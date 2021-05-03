@@ -70,7 +70,7 @@ function HistoryEntry(
                 <Col>
                     <span className={style.changesAmount}>
                         {Object.keys(diffSummary)
-                            .map(diffType => (
+                            .map((diffType) => (
                                 <span
                                     className={style[diffType]}
                                     key={`history-diff-at-${modifiedAt}-${diffType}`}
@@ -85,7 +85,7 @@ function HistoryEntry(
                         Felder:
                         {' '}
                         {diffEntries
-                            .map(diff => diff.property)
+                            .map((diff) => diff.property)
                             .join(', ')}
                     </span>
                 </Col>
@@ -103,8 +103,6 @@ function HistoryEntry(
             </Row>
             <Collapse isOpen={active}>
                 <Container fluid className={style.details}>
-
-
                     <h5>
                         <strong>
                             {getTranslation('changes', translations)}
@@ -174,6 +172,7 @@ HistoryEntry.propTypes = {
         modifiedByUserId: PropTypes.string,
         operation: PropTypes.string,
         operationType: PropTypes.string,
+        timeAgo: PropTypes.string,
     }).isRequired,
     translations: PropTypes.shape({
         changes: PropTypes.string,

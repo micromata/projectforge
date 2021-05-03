@@ -118,7 +118,6 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
         case LIST_FILTER_SET: {
             const { filter } = state;
 
-
             return {
                 ...state,
                 filter: {
@@ -145,9 +144,9 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                     sortProperties: [
                         payload.sortProperty,
                         ...(filter.sortProperties || [])
-                            .filter(entry => entry.property !== payload.column)
+                            .filter((entry) => entry.property !== payload.column)
                             .slice(0, 2),
-                    ].filter(entry => entry !== undefined),
+                    ].filter((entry) => entry !== undefined),
                 },
             };
         }

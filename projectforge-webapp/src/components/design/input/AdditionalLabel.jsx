@@ -4,7 +4,7 @@ import style from './Input.module.scss';
 
 function AdditionalLabel({ title }) {
     if (!title) {
-        return <React.Fragment />;
+        return <></>;
     }
 
     return (

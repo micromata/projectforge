@@ -5,10 +5,10 @@ function CustomizedAddressView({ values }) {
     function add(line) {
         if (line && line.length > 0) {
             return (
-                <React.Fragment>
+                <>
                     {line}
                     <br />
-                </React.Fragment>
+                </>
             );
         }
         return undefined;
@@ -18,13 +18,13 @@ function CustomizedAddressView({ values }) {
 
     return React.useMemo(
         () => (
-            <React.Fragment>
+            <>
                 {add(values.address)}
                 {add(values.address2)}
                 {add(city)}
                 {add(values.state)}
                 {add(values.country)}
-            </React.Fragment>
+            </>
         ),
         [
             values,

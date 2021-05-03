@@ -16,7 +16,7 @@ import { CalendarContext } from '../../page/calendar/CalendarContext';
 class CalendarFilterSettings extends Component {
     static extractDefaultCalendarValue(props) {
         const { listOfDefaultCalendars, defaultCalendarId } = props;
-        return listOfDefaultCalendars.find(it => it.id === defaultCalendarId);
+        return listOfDefaultCalendars.find((it) => it.id === defaultCalendarId);
     }
 
     static loadVacationGroupsOptions(search, callback) {
@@ -125,7 +125,7 @@ class CalendarFilterSettings extends Component {
     }
 
     toggle() {
-        this.setState(prevState => ({
+        this.setState((prevState) => ({
             isOpen: !prevState.isOpen,
         }));
     }
@@ -163,7 +163,7 @@ class CalendarFilterSettings extends Component {
         };
         const defaultCalendar = CalendarFilterSettings.extractDefaultCalendarValue(this.props);
         return (
-            <React.Fragment>
+            <>
                 <Button
                     color="link"
                     className="selectPanelIconLinks"
@@ -267,7 +267,7 @@ class CalendarFilterSettings extends Component {
                         </Container>
                     </ModalBody>
                 </Modal>
-            </React.Fragment>
+            </>
         );
     }
 }
@@ -286,7 +286,17 @@ CalendarFilterSettings.propTypes = {
     gridSize: PropTypes.number,
     otherTimesheetUsersEnabled: PropTypes.bool.isRequired,
     listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
-    translations: PropTypes.shape({}).isRequired,
+    translations: PropTypes.shape({
+        settings: PropTypes.string,
+        'calendar.defaultCalendar': PropTypes.string,
+        'calendar.defaultCalendar.tooltip': PropTypes.string,
+        'calendar.option.timesheets': PropTypes.string,
+        'calendar.filter.vacation.groups': PropTypes.string,
+        'calendar.filter.vacation.groups.tooltip': PropTypes.string,
+        'calendar.filter.vacation.users': PropTypes.string,
+        'calendar.filter.vacation.user.tooltip': PropTypes.string,
+        'calendar.option.gridSize': PropTypes.string,
+    }).isRequired,
     vacationGroups: PropTypes.arrayOf(PropTypes.shape({
         title: PropTypes.string,
         id: PropTypes.number,

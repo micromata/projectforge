@@ -60,7 +60,11 @@ ListPage.propTypes = {
         }).isRequired,
     }).isRequired,
     onCategoryChange: PropTypes.func.isRequired,
-    category: PropTypes.shape({}),
+    category: PropTypes.shape({
+        ui: PropTypes.shape({ }),
+        data: PropTypes.shape({ }),
+        variables: PropTypes.shape({ }),
+    }),
 };
 
 ListPage.defaultProps = {

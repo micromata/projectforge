@@ -17,7 +17,7 @@ export const loadSuccess = (favoritesMenu, mainMenu, myAccountMenu) => ({
     },
 });
 
-export const loadFailure = error => ({
+export const loadFailure = (error) => ({
     type: MENU_LOAD_FAILURE,
     payload: { error },
 });
@@ -33,9 +33,9 @@ export const loadMenu = () => (dispatch) => {
         },
     )
         .then(handleHTTPErrors)
-        .then(response => response.json())
+        .then((response) => response.json())
         .then(({ favoritesMenu, mainMenu, myAccountMenu }) => dispatch(
             loadSuccess(favoritesMenu, mainMenu, myAccountMenu),
         ))
-        .catch(error => dispatch(loadFailure(error)));
+        .catch((error) => dispatch(loadFailure(error)));
 };
