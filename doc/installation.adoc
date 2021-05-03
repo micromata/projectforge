@@ -50,7 +50,11 @@ You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 2. `cd projectforge`
 3. `docker build -t micromata/projectforge:latest .`
 
-==== Java-Installation (without docker)
+==== Increasing memory
+
+Edit `~/ProjectForge/environment.sh` for customizing settings of ProjectForge as environment variables.
+
+=== Java-Installation (without docker)
 If you don't want to use Docker, you're able to install ProjectForge from the executable jar file.
 
 1. Install openjdk (java 8 should also work, if needed, 11+ recommended).
