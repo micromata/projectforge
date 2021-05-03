@@ -44,6 +44,16 @@
                         </goals>
                         <phase>generate-resources</phase>
                     </execution>
+                    <!-- https://stackoverflow.com/questions/60394291/error-node-modules-node-sass-command-failed -->
+                    <execution>
+                        <id>npm config set python2</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>config set python python2</arguments>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>npm install</id>
                         <goals>
@@ -108,6 +118,7 @@
                 </executions-->
                 <configuration>
                     <nodeVersion>${node.version}</nodeVersion>
+                    <npmVersion>${npm.version}</npmVersion>
                     <yarnVersion>${yarn.version}</yarnVersion>
                     <installDirectory>${project.build.directory}</installDirectory>
                     <workingDirectory>${project.basedir}</workingDirectory>
