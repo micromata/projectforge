@@ -1,32 +1,34 @@
 #!/bin/bash
 
-pid=$(pgrep -f "java.*-jar projectforge-application")
-if [[ -z $pid ]]; then
-    echo "ProjectForge process not found"
+PROCESS_IDENTIFIER="projectforge-application"
+APP_NAME="ProjectForge"
+
+checkStopped() {
+  pid=$(pgrep -f $PROCESS_IDENTIFIER)
+  if [[ -z $pid ]]; then
+    echo "${APP_NAME} $1"
     exit 0
-else
-    kill $pid
-fi
+  fi
+  if [[ -n $2 ]]; then
+    echo "${APP_NAME} $2"
+  fi
+}
 
-echo "waiting 10 sec for termination of pid $pid..."
-sleep 10
+checkStopped "process not found (already terminated?)"
 
-pid=$(pgrep -f "java.*-jar projectforge-application")
-if [[ -z $pid ]]; then
-    echo "ProjectForge stopped"
-    exit 0
-else
-    echo "ProjectForge not stopped, now sending sigkill"
-    kill -9 $pid
-fi
+echo "Sending shutdown signal to $APP_NAME..."
+kill $pid
 
-sleep 0.5
+# Loop 20 times a 3 seconds to wait for ProjectForge's shutdown:
+for run in {1..20}; do
+  echo "waiting 3 sec for termination of pid $pid..."
+  sleep 3
+  checkStopped "successfully stopped."
+done
 
-pid=$(pgrep -f "java.*-jar projectforge-application")
-if [[ -z $pid ]]; then
-    echo "ProjectForge killed"
-    exit 0
-else
-    echo "ProjectForge could not be killed"
-    exit 1
-fi
+checkStopped "successfully stopped." "not stopped, sending sigkill now..."
+kill -9 $pid
+
+sleep 2
+
+checkStopped "killed." "cannot be killed?!"
