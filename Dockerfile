@@ -1,3 +1,12 @@
+#FROM node:16.0.0-buster as buildreact
+#RUN apt-get update && apt-get -y upgrade
+#RUN mkdir /app
+#WORKDIR /app
+#RUN npm install -g npm@7.11.2
+#COPY ./projectforge-webapp /app
+#RUN npm install
+#RUN npm run build
+
 FROM maven:3.8.1-jdk-11 AS build
 RUN mkdir /app
 COPY . /app
@@ -5,7 +14,7 @@ WORKDIR /app
 # http://whitfin.io/speeding-up-maven-docker-builds/
 #RUN mvn dependency:go-offline -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B
 # -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B needed, otherwise log will be clipped (log limit reached)
-RUN mvn clean install -DskipTests -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B
+RUN mvn install -DskipTests -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B
 # For test only: COPY projectforge-application-7.1.1.jar /app
 RUN mkdir /dist
 WORKDIR /dist
@@ -34,6 +43,8 @@ ARG DEPENDENCY=/dist
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
+
+#COPY --from=buildreact /app ${DEPENDENCY}/BOOT-INF/classes
 
 COPY --from=build --chown=projectforge:projectforge /app/docker/entrypoint.sh /app
 RUN chmod 755 /app/entrypoint.sh
