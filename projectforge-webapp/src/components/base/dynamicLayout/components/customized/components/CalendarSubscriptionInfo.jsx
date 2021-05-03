@@ -22,7 +22,7 @@ function CalendarSubscriptionInfo({ values }) {
 
     return React.useMemo(
         () => (
-            <React.Fragment>
+            <>
                 <Row>
                     <Col sm={12}>
                         <h4>{subscriptionInfo.headline}</h4>
@@ -66,7 +66,7 @@ function CalendarSubscriptionInfo({ values }) {
                         <a href={url}>{url}</a>
                     </Col>
                 </Row>
-            </React.Fragment>
+            </>
         ),
     );
 }

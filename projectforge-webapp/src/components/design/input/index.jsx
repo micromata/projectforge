@@ -131,7 +131,9 @@ Input.propTypes = {
     className: PropTypes.string,
     color: colorPropType,
     icon: PropTypes.shape({}),
-    iconProps: PropTypes.shape({}),
+    iconProps: PropTypes.shape({
+        className: PropTypes.string,
+    }),
     label: PropTypes.string,
     onBlur: PropTypes.func,
     onFocus: PropTypes.func,

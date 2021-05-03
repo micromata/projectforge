@@ -23,7 +23,7 @@ function DynamicDateInput(props) {
             value = new Date(value);
         }
 
-        const handleDateChange = newDate => setData({ [id]: newDate });
+        const handleDateChange = (newDate) => setData({ [id]: newDate });
 
         return (
             <DynamicValidationManager id={id}>

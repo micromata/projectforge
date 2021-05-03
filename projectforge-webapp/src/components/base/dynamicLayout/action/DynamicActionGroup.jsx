@@ -17,14 +17,14 @@ function DynamicActionGroup({ actions }) {
     const { isFetching } = React.useContext(DynamicLayoutContext);
 
     if (!actions) {
-        return <React.Fragment />;
+        return <></>;
     }
 
     return (
         <Row>
             <Col>
                 <ButtonGroup>
-                    {actions.map(action => (
+                    {actions.map((action) => (
                         <DynamicButton
                             key={`dynamic-action-button-${action.id}-${action.key}`}
                             {...action}

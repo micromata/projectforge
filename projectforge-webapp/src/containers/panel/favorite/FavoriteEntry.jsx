@@ -107,7 +107,10 @@ FavoriteEntry.propTypes = {
     id: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
     onFavoriteSelect: PropTypes.func.isRequired,
-    translations: PropTypes.shape({}).isRequired,
+    translations: PropTypes.shape({
+        delete: PropTypes.string,
+        rename: PropTypes.string,
+    }).isRequired,
     currentFavoriteId: PropTypes.number,
     isModified: PropTypes.bool,
     onFavoriteDelete: PropTypes.func,

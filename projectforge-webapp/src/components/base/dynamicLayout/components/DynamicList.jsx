@@ -19,7 +19,7 @@ function DynamicList(
     const list = Object.getByString(data, listId) || [];
 
     return React.useMemo(() => (
-        <React.Fragment>
+        <>
             {list
                 .sort((elementA, elementB) => elementA.number - elementB.number)
                 .map((element) => {
@@ -35,7 +35,7 @@ function DynamicList(
                         setData({
                             [listId]: [
                                 // Remove the current element
-                                ...list.filter(e => e !== element),
+                                ...list.filter((e) => e !== element),
                                 // Add the current element with changed values
                                 {
                                     // Old values from element
@@ -68,7 +68,7 @@ function DynamicList(
                         />
                     );
                 })}
-        </React.Fragment>
+        </>
     ), [list, setData]);
 }
 

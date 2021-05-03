@@ -52,7 +52,7 @@ function SearchFilter(props) {
     } = category;
 
     return (
-        <React.Fragment>
+        <>
             <h4 className={styles.uiTitle}>{ui.title}</h4>
             <div className={styles.searchRow}>
                 {/* FLEX-BOX IS SET TO REVERSE ON BIG SCREENS */}
@@ -131,7 +131,7 @@ function SearchFilter(props) {
                 <h4>Oh Snap!</h4>
                 <p>Error while contacting the server. Please contact an administrator.</p>
             </Alert>
-        </React.Fragment>
+        </>
     );
 }
 
@@ -140,10 +140,20 @@ SearchFilter.propTypes = {
         ui: PropTypes.shape({
             translations: PropTypes.shape({
                 search: PropTypes.string,
+                delete: PropTypes.string,
             }),
+            title: PropTypes.string,
+            pageMenu: PropTypes.shape({}),
         }),
-        filter: PropTypes.shape({}),
+        filter: PropTypes.shape({
+            id: PropTypes.string,
+            searchString: PropTypes.string,
+        }),
         filterFavorites: PropTypes.arrayOf(PropTypes.shape({})),
+        error: PropTypes.string,
+        isFetching: PropTypes.bool,
+        newlySwitched: PropTypes.bool,
+        quickSelectUrl: PropTypes.string,
     }).isRequired,
     onErrorDismiss: PropTypes.func.isRequired,
     onFavoriteCreate: PropTypes.func.isRequired,
@@ -168,18 +178,18 @@ const mapStateToProps = ({ list }) => {
     };
 };
 
-const actions = dispatch => ({
+const actions = (dispatch) => ({
     onErrorDismiss: () => dispatch(dismissCurrentError()),
-    onFavoriteCreate: name => dispatch(createListFavorite({ name })),
-    onFavoriteDelete: id => dispatch(deleteListFavorite({ id })),
+    onFavoriteCreate: (name) => dispatch(createListFavorite({ name })),
+    onFavoriteDelete: (id) => dispatch(deleteListFavorite({ id })),
     onFavoriteRename: (id, newName) => dispatch(renameListFavorite({
         id,
         newName,
     })),
-    onFavoriteSelect: id => dispatch(selectListFavorite({ id })),
+    onFavoriteSelect: (id) => dispatch(selectListFavorite({ id })),
     onFavoriteUpdate: () => dispatch(updateListFavorite()),
     onSearchStringBlur: () => dispatch(fetchCurrentList()),
-    onSearchStringChange: completion => dispatch(changeSearchString(completion)),
+    onSearchStringChange: (completion) => dispatch(changeSearchString(completion)),
     onSearchStringDelete: () => dispatch(changeSearchString('')),
     onSelectQuickSelection: ({ id }) => dispatch(openEditPage(id)),
     onSyncButtonClick: () => dispatch(fetchCurrentList(true)),

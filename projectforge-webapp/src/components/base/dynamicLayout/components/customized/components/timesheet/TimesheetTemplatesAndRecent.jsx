@@ -39,7 +39,7 @@ function TimesheetTemplatesAndRecent() {
                 { credentials: 'include' },
             )
                 .then(handleHTTPErrors)
-                .then(body => body.json())
+                .then((body) => body.json())
                 .then(setRecentList)
                 .catch(() => setRecentList({ timesheets: [] }));
         },
@@ -53,7 +53,7 @@ function TimesheetTemplatesAndRecent() {
 
     return React.useMemo(
         () => {
-            const handleFavoriteCreate = newFilterName => fetchJsonPost(
+            const handleFavoriteCreate = (newFilterName) => fetchJsonPost(
                 'timesheet/favorites/create',
                 {
                     name: newFilterName,
@@ -62,13 +62,13 @@ function TimesheetTemplatesAndRecent() {
                 ({ timesheetFavorites: response }) => setTimesheetFavorites(response),
             );
 
-            const handleFavoriteDelete = id => fetchJsonGet(
+            const handleFavoriteDelete = (id) => fetchJsonGet(
                 'timesheet/favorites/delete',
                 { id },
                 ({ timesheetFavorites: response }) => setTimesheetFavorites(response),
             );
 
-            const handleFavoriteSelect = id => fetchJsonPost('timesheet/favorites/select',
+            const handleFavoriteSelect = (id) => fetchJsonPost('timesheet/favorites/select',
                 {
                     id,
                     timesheet: data,
@@ -97,7 +97,7 @@ function TimesheetTemplatesAndRecent() {
             };
 
             return (
-                <React.Fragment>
+                <>
                     <FavoritesPanel
                         onFavoriteCreate={handleFavoriteCreate}
                         onFavoriteDelete={handleFavoriteDelete}
@@ -138,11 +138,11 @@ function TimesheetTemplatesAndRecent() {
                                         <thead>
                                             <tr>
                                                 {recentList.cost2Visible && (
-                                                    <React.Fragment>
+                                                    <>
                                                         <th>{ui.translations['fibu.kost2']}</th>
                                                         <th>{ui.translations['fibu.kunde']}</th>
                                                         <th>{ui.translations['fibu.projekt']}</th>
-                                                    </React.Fragment>
+                                                    </>
                                                 )}
                                                 <th>{ui.translations.task}</th>
                                                 <th>{ui.translations['timesheet.location']}</th>
@@ -151,7 +151,7 @@ function TimesheetTemplatesAndRecent() {
                                         </thead>
                                         <tbody>
                                             {recentList.timesheets
-                                                .filter(recent => filterRecent(
+                                                .filter((recent) => filterRecent(
                                                     search.toLowerCase(),
                                                     recent,
                                                 ))
@@ -176,7 +176,7 @@ function TimesheetTemplatesAndRecent() {
                             </Card>
                         </Collapse>
                     </span>
-                </React.Fragment>
+                </>
             );
         },
         [

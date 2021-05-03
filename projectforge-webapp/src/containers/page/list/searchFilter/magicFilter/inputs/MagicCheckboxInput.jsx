@@ -24,14 +24,16 @@ MagicCheckboxInput.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
-    value: PropTypes.shape({}).isRequired,
+    value: PropTypes.shape({
+        value: PropTypes.shape({}),
+    }).isRequired,
 };
 
 MagicCheckboxInput.defaultProps = {};
 
 MagicCheckboxInput.isEmpty = ({ value }) => value === 'false';
 
-MagicCheckboxInput.getLabel = label => label;
+MagicCheckboxInput.getLabel = (label) => label;
 
 MagicCheckboxInput.defaultValue = { value: 'true' };
 

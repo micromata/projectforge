@@ -5,7 +5,6 @@ import { faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import style from '../../../components/design/input/Input.module.scss';
 
-
 const CalendarToolBar = (toolbar) => {
     const goToBack = () => {
         toolbar.onNavigate('PREV');
@@ -42,19 +41,19 @@ const CalendarToolBar = (toolbar) => {
         const date = moment_timezone(toolbar.date);
         if (view === 'day') {
             return (
-                <React.Fragment>
+                <>
                     <b>{date.format('dddd')}</b>
                     {' '}
                     {date.format('DD.MM.YYYY')}
-                </React.Fragment>
+                </>
             );
         }
         return (
-            <React.Fragment>
+            <>
                 <b>{date.format('MMMM')}</b>
                 {' '}
                 {date.format('YYYY')}
-            </React.Fragment>
+            </>
         );
     };
     const classNameMonth = (view === 'month') ? 'rbc-active' : '';
@@ -62,7 +61,8 @@ const CalendarToolBar = (toolbar) => {
     const classNameWorkWeek = (view === 'work_week') ? 'rbc-active' : '';
     const classNameDay = (view === 'day') ? 'rbc-active' : '';
     const classNameAgenda = (view === 'agenda') ? 'rbc-active' : '';
-    const { messages } = toolbar.localizer;
+    const { localizer } = toolbar;
+    const { messages } = localizer;
     return (
         <div className="rbc-toolbar">
             <span className="rbc-btn-group">

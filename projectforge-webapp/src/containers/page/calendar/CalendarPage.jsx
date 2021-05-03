@@ -55,15 +55,13 @@ class CalendarPage extends React.Component {
         this.fetchInitial();
     }
 
-    onChange(activeCalendars) {
-        this.setState({
-            activeCalendars: activeCalendars
-                // When activeCalendars are set, sort them
-                ? activeCalendars.sort((a, b) => a.title.localeCompare(b.title))
-                // Otherwise set empty array.
-                : [],
-            isFilterModified: true,
-        });
+    handleMultiValueChange(id, newValue) {
+        this.setState(({ colors }) => ({
+            colors: {
+                ...colors,
+                [id]: newValue,
+            },
+        }));
     }
 
     onTimesheetUserChange(timesheetUser) {
@@ -79,7 +77,7 @@ class CalendarPage extends React.Component {
     }
 
     onDefaultCalendarChange(defaultCalendarId) {
-        this.setState(currentState => ({
+        this.setState((currentState) => ({
             filter: {
                 ...currentState.filter,
                 defaultCalendarId,
@@ -87,9 +85,8 @@ class CalendarPage extends React.Component {
         }));
     }
 
-
     onGridSizeChange(gridSize) {
-        this.setState(currentState => ({
+        this.setState((currentState) => ({
             filter: {
                 ...currentState.filter,
                 gridSize,
@@ -124,6 +121,17 @@ class CalendarPage extends React.Component {
             this.saveUpdateResponseInState);
     }
 
+    onChange(activeCalendars) {
+        this.setState({
+            activeCalendars: activeCalendars
+                // When activeCalendars are set, sort them
+                ? activeCalendars.sort((a, b) => a.title.localeCompare(b.title))
+                // Otherwise set empty array.
+                : [],
+            isFilterModified: true,
+        });
+    }
+
     onFavoriteUpdate(id) {
         fetchJsonGet('calendar/updateFilter',
             { id },
@@ -153,15 +161,6 @@ class CalendarPage extends React.Component {
         this.setState(newState);
     }
 
-    handleMultiValueChange(id, newValue) {
-        this.setState(({ colors }) => ({
-            colors: {
-                ...colors,
-                [id]: newValue,
-            },
-        }));
-    }
-
     render() {
         const {
             activeCalendars,
@@ -186,7 +185,7 @@ class CalendarPage extends React.Component {
 
         const { match, location } = this.props;
 
-        const options = teamCalendars.map(option => ({
+        const options = teamCalendars.map((option) => ({
             ...option,
             filterType: 'COLOR_PICKER',
             label: option.title,
@@ -211,8 +210,8 @@ class CalendarPage extends React.Component {
                                                 components={{
                                                     MultiValueLabel: EditableMultiValueLabel,
                                                 }}
-                                                getOptionLabel={option => (option.title)}
-                                                getOptionValue={option => (option.id)}
+                                                getOptionLabel={(option) => (option.title)}
+                                                getOptionValue={(option) => (option.id)}
                                                 isClearable
                                                 isMulti
                                                 onChange={this.onChange}
@@ -221,7 +220,7 @@ class CalendarPage extends React.Component {
                                                 setMultiValue={this.handleMultiValueChange}
                                                 styles={customStyles}
                                                 values={colors}
-                                                value={activeCalendars.map(option => ({
+                                                value={activeCalendars.map((option) => ({
                                                     ...option,
                                                     filterType: 'COLOR_PICKER',
                                                     label: option.title,

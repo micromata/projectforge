@@ -5,10 +5,10 @@ import AdditionalLabel from './AdditionalLabel';
 
 // Automatically validate the input fields nested inside. (Only first level)
 function ValidationManager({ children, customValidation }) {
-    let extraLabel = <React.Fragment />;
+    let extraLabel = <></>;
 
     return (
-        <React.Fragment>
+        <>
             {React.Children.map(children, (child) => {
                 if (!child) {
                     return child;
@@ -60,7 +60,7 @@ function ValidationManager({ children, customValidation }) {
                 };
             })}
             {extraLabel}
-        </React.Fragment>
+        </>
     );
 }
 

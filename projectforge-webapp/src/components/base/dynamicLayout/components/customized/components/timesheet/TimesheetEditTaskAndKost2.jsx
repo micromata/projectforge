@@ -44,7 +44,7 @@ function TimesheetEditTaskAndKost2({ values }) {
         }
 
         return (
-            <React.Fragment>
+            <>
                 <Row>
                     <Col>
                         <DynamicTaskSelect
@@ -56,7 +56,7 @@ function TimesheetEditTaskAndKost2({ values }) {
                     </Col>
                 </Row>
                 {kost2Row}
-            </React.Fragment>
+            </>
         );
     }, [kost2List]);
 }

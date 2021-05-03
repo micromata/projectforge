@@ -7,7 +7,7 @@ function CustomizedImageDataPreview({ data }) {
 
     return React.useMemo(() => {
         if (!previewImageUrl) {
-            return <React.Fragment />;
+            return <></>;
         }
 
         return (

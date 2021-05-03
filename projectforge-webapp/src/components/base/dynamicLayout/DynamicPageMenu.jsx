@@ -24,7 +24,7 @@ function DynamicPageMenu({ menu, title }) {
 
         // Return fragment when the menu is empty
         if (navigationMenu === undefined || navigationMenu.length === 0) {
-            return <React.Fragment />;
+            return <></>;
         }
 
         // Build a navigation with the menu(-entries) from the props.

@@ -61,12 +61,12 @@ class FormHistory extends React.Component {
             },
         )
             .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(json => this.setState({
+            .then((response) => response.json())
+            .then((json) => this.setState({
                 loading: false,
                 history: json,
             }))
-            .catch(error => this.setState({
+            .catch((error) => this.setState({
                 loading: false,
                 error,
             }));
@@ -87,7 +87,7 @@ class FormHistory extends React.Component {
 
         return (
             <LoadingContainer loading={loading}>
-                {history.map(entry => (
+                {history.map((entry) => (
                     <HistoryEntry
                         key={`history-entry-at-${entry.modifiedAt}`}
                         entry={entry}
