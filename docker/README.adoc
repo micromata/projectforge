@@ -11,7 +11,7 @@ controlling and managing work-break-down-structures (e. g. together with JIRA as
 2. Build ProjectForge in main directory: +
    `docker build -t micromata/projectforge:latest .`
 3. Run ProjectForge and enjoy: +
-   `docker run -t -i -p 127.0.0.1:8080:8080 -v ~/ProjectForgeDocker:/ProjectForge micromata/projectforge`
+   `docker run -t -i -p 127.0.0.1:8080:8080 -v ~/ProjectForgeDocker:/ProjectForge --name projectforge micromata/projectforge`
 
 === With external PostgreSQL
 tbd.
