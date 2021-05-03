@@ -3,8 +3,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { components } from 'react-select';
 
-/* eslint-disable react/jsx-props-no-spreading */
-
 function ReactSelectControlWithLabel(props) {
     const { selectProps, isFocused, hasValue } = props;
 

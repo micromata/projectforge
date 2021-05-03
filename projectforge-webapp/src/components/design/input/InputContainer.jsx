@@ -31,7 +31,6 @@ function InputContainer(
                     styles[color],
                     className,
                 )}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {children}

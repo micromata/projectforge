@@ -11,8 +11,6 @@ import AdditionalLabel from '../AdditionalLabel';
 import InputContainer from '../InputContainer';
 import styles from './CalendarInput.module.scss';
 
-/* eslint-disable react/jsx-props-no-spreading */
-
 function DateInput(
     {
         additionalLabel,

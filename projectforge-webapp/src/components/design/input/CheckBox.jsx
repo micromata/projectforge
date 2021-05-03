@@ -29,7 +29,6 @@ function CheckBox(
                         type="checkbox"
                         className={style.checkbox}
                         id={id}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />
                     <span

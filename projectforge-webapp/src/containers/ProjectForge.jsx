@@ -57,7 +57,6 @@ function ProjectForge(
                     path={prefix}
                     render={({ match, location, ...props }) => (
                         <FormPage
-                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...props}
                             location={location}
                             isPublic

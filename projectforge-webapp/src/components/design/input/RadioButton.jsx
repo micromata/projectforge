@@ -30,7 +30,6 @@ function RadioButton(
                     className={style.radio}
                     id={id}
                     name={name}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
                 <span className={classNames(style.text, style[color])} id={`radio-label-${id}`}>

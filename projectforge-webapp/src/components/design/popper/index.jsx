@@ -36,7 +36,6 @@ function Popper(
                                 style={popperStyle}
                                 data-placement={placement}
                                 className={classNames(style.popper, className)}
-                                // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...props}
                             >
                                 {children}

@@ -31,16 +31,13 @@ function TextAutoCompletion(
                     forwardRef={ref}
                     id={inputId}
                     autoFocus={focus}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...otherInputProps}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...inputProps}
                     onChange={handleChange}
                 />
             )}
             onSelect={handleSelect}
             search={value}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

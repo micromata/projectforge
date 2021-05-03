@@ -34,7 +34,6 @@ function AdvancedPopperInput(
                 icon={icon}
                 className={styles.container}
                 autoComplete="off"
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 onKeyDown={handleKeyDown}
             />

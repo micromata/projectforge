@@ -138,7 +138,6 @@ function AutoCompletion(
             setIsOpen={setIsOpen}
             isOpen={isOpen && completions.length !== 0}
             withInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             <ul className={styles.entries}>

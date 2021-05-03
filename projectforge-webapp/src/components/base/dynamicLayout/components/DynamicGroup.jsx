@@ -61,7 +61,6 @@ function DynamicGroup(props) {
 
         // Render tag and further content
         return (
-            // eslint-disable-next-line react/jsx-props-no-spreading
             <Tag {...groupProperties}>
                 {renderLayout(content)}
             </Tag>

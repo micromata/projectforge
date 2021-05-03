@@ -70,7 +70,6 @@ function FavoritesPanel(
                         {favorites.map((favorite) => (
                             <FavoriteEntry
                                 key={favorite.id}
-                                // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...favorite}
                                 currentFavoriteId={currentFavoriteId}
                                 isModified={isModified}

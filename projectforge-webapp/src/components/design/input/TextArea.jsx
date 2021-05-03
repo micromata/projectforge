@@ -75,7 +75,6 @@ function TextArea(
                 <textarea
                     id={id}
                     className={style.textArea}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     onBlur={(event) => setActive(event.target.value !== '')}
                     onChange={handleChange}

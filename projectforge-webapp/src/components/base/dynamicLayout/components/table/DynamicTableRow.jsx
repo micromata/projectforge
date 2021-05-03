@@ -40,7 +40,6 @@ function DynamicTableRow(
                                 data={row}
                                 id={id}
                                 dataType={dataType}
-                                // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...column}
                             />
                         )}

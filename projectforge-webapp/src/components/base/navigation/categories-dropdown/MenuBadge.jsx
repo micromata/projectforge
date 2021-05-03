@@ -22,7 +22,6 @@ function MenuBadge(
             <span
                 className={classNames(style.badge, { [style.isFlying]: isFlying }, style[color])}
                 id={id}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {children}

@@ -27,8 +27,7 @@ const localizer = momentLocalizer(moment);
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
 
-/* eslint-disable prefer-object-spread, react/jsx-props-no-spreading */
-
+// eslint-disable-next-line prefer-object-spread
 const convertJsonDates = (e) => Object.assign({}, e, {
     start: new Date(e.start),
     end: new Date(e.end),

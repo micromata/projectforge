@@ -121,7 +121,6 @@ function ReactSelect(
                 }}
                 placeholder=""
                 value={value || null}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
             {additionalLabel && (

@@ -3,8 +3,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 
-/* eslint-disable react/jsx-props-no-spreading */
-
 function FormattedDateTime(
     {
         date,

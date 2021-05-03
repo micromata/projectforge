@@ -111,7 +111,6 @@ function MagicFilterPill(
                         onCancel={handleCancel}
                         value={tempValue}
                         translations={translations}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />
                 </div>
