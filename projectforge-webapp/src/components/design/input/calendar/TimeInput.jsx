@@ -58,7 +58,7 @@ function TimeInput({
                         ref={hourRef}
                         max={23}
                         min={0}
-                        onChange={e => setHour(e.currentTarget.value)}
+                        onChange={(e) => setHour(e.currentTarget.value)}
                         onFocus={handleInputFocus}
                         type="number"
                         value={formatTimeUnit(hours)}
@@ -69,7 +69,7 @@ function TimeInput({
                         ref={minuteRef}
                         max={59}
                         min={0}
-                        onChange={e => setMinute(e.currentTarget.value)}
+                        onChange={(e) => setMinute(e.currentTarget.value)}
                         onFocus={handleInputFocus}
                         step={precision}
                         type="number"
@@ -83,7 +83,7 @@ function TimeInput({
             withInput
         >
             <ul className={style.hours}>
-                {[...Array(12).keys()].map(hour => (
+                {[...Array(12).keys()].map((hour) => (
                     <TimeInputUnit
                         key={`time-input-${id}-hour-${hour}`}
                         className={style.hour}
@@ -96,8 +96,8 @@ function TimeInput({
             </ul>
             <ul className={style.hours}>
                 {[...Array(12).keys()]
-                    .map(hour => hour + 12)
-                    .map(hour => (
+                    .map((hour) => hour + 12)
+                    .map((hour) => (
                         <TimeInputUnit
                             key={`time-input-${id}-hour-${hour}`}
                             className={style.hour}
@@ -113,8 +113,8 @@ function TimeInput({
                     className={classNames(style.minutes, style[`precision-${precision}`])}
                 >
                     {[...Array(60 / precision).keys()]
-                        .map(minute => minute * precision)
-                        .map(minute => (
+                        .map((minute) => minute * precision)
+                        .map((minute) => (
                             <TimeInputUnit
                                 key={`time-input-${id}-minute-${minute}`}
                                 className={style.minute}

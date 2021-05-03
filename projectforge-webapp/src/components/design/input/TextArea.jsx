@@ -76,7 +76,7 @@ function TextArea(
                     id={id}
                     className={style.textArea}
                     {...props}
-                    onBlur={event => setActive(event.target.value !== '')}
+                    onBlur={(event) => setActive(event.target.value !== '')}
                     onChange={handleChange}
                     onFocus={() => setActive(true)}
                     onKeyDown={handleKeyDown}

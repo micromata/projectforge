@@ -6,7 +6,6 @@ import { UncontrolledTooltip } from '../../index';
 import styles from './AutoCompletion.module.scss';
 import ObjectAutoCompletion from './ObjectAutoCompletion';
 
-
 function ObjectSelect(
     {
         dispatch,
@@ -59,7 +58,7 @@ function ObjectSelect(
     }
 
     return (
-        <React.Fragment>
+        <>
             <ObjectAutoCompletion
                 inputId={id}
                 inputProps={inputProps}
@@ -73,7 +72,7 @@ function ObjectSelect(
                     {translations['tooltip.selectMe']}
                 </UncontrolledTooltip>
             )}
-        </React.Fragment>
+        </>
     );
 }
 
@@ -92,7 +91,9 @@ ObjectSelect.propTypes = {
         displayName: PropTypes.string.isRequired,
         employeeId: PropTypes.number,
     }),
-    value: PropTypes.shape({}),
+    value: PropTypes.shape({
+        id: PropTypes.string,
+    }),
 };
 
 ObjectSelect.defaultProps = {

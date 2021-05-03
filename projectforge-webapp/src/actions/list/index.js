@@ -8,12 +8,12 @@ export const LIST_INITIAL_CALL_BEGIN = 'LIST_INITIAL_CALL_BEGIN';
 export const LIST_FETCH_DATA_BEGIN = 'LIST_FETCH_DATA_BEGIN';
 export const LIST_CALL_SUCCESS = 'LIST_CALL_SUCCESS';
 
-const dismissError = category => ({
+const dismissError = (category) => ({
     type: LIST_DISMISS_ERROR,
     payload: { category },
 });
 
-const switchCategory = category => ({
+const switchCategory = (category) => ({
     type: LIST_SWITCH_CATEGORY,
     payload: { category },
 });
@@ -64,9 +64,9 @@ const initialCall = (category, dispatch) => {
         },
     )
         .then(handleHTTPErrors)
-        .then(response => response.json())
-        .then(response => dispatch(callSuccess(category, response)))
-        .catch(error => dispatch(fetchFailure(category, error.message)));
+        .then((response) => response.json())
+        .then((response) => dispatch(callSuccess(category, response)))
+        .catch((error) => dispatch(fetchFailure(category, error.message)));
 };
 
 const fetchData = (category, dispatch, listState, variables) => {
@@ -84,9 +84,9 @@ const fetchData = (category, dispatch, listState, variables) => {
         },
     )
         .then(handleHTTPErrors)
-        .then(response => response.json())
-        .then(data => dispatch(callSuccess(category, { data })))
-        .catch(error => dispatch(fetchFailure(category, error.message)));
+        .then((response) => response.json())
+        .then((data) => dispatch(callSuccess(category, { data })))
+        .catch((error) => dispatch(fetchFailure(category, error.message)));
 };
 
 export const dismissCurrentError = () => (dispatch, getState) => dispatch(
@@ -138,7 +138,7 @@ export const fetchCurrentList = (ignoreLastQueriedFilters = false) => (dispatch,
     loadList(category, ignoreLastQueriedFilters)(dispatch, getState);
 };
 
-export const openEditPage = id => (_, getState) => {
+export const openEditPage = (id) => (_, getState) => {
     const state = getState().list;
     history.push(`/${state.categories[state.currentCategory].standardEditPage.replace(':id', id)}`);
 };

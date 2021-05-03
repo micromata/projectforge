@@ -18,7 +18,7 @@ function VacationStatisticsEntry(
     const prevField = prev[field];
 
     if (!(currentField || prevField)) {
-        return <React.Fragment />;
+        return <></>;
     }
 
     const Tag = isHead ? 'th' : 'td';

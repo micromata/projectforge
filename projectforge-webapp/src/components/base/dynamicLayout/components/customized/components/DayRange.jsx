@@ -61,11 +61,11 @@ function DayRange(
             });
         };
 
-        const changeStartTime = value => setFields(timezone(value), endDate);
-        const changeEndTime = value => setFields(startDate, timezone(value));
+        const changeStartTime = (value) => setFields(timezone(value), endDate);
+        const changeEndTime = (value) => setFields(startDate, timezone(value));
 
         return (
-            <React.Fragment>
+            <>
                 <TimeRange
                     label={label}
                     from={startDate ? startDate.toDate() : undefined}
@@ -77,7 +77,7 @@ function DayRange(
                     toLabel={ui.translations.until}
                 />
                 <AdditionalLabel title={additionalLabel} />
-            </React.Fragment>
+            </>
         );
     }, [startDate, endDate, setData]);
 }

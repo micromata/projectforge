@@ -16,8 +16,8 @@ function RatingStars(
 ) {
     const [hoverIdx, setHoverIdx] = useState(-1);
 
-    const handleClick = idx => () => onChange(idx);
-    const handleMouseEnter = idx => () => setHoverIdx(idx);
+    const handleClick = (idx) => () => onChange(idx);
+    const handleMouseEnter = (idx) => () => setHoverIdx(idx);
     const handleMouseLeave = () => setHoverIdx(-1);
 
     return (

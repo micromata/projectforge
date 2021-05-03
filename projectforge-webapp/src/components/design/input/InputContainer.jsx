@@ -19,7 +19,7 @@ function InputContainer(
     },
 ) {
     return (
-        <React.Fragment>
+        <>
             <div
                 className={classNames(
                     styles.inputContainer,
@@ -37,7 +37,7 @@ function InputContainer(
                 {label && <span className={styles.labelText}>{label}</span>}
             </div>
             <AdditionalLabel title={additionalLabel} />
-        </React.Fragment>
+        </>
     );
 }
 

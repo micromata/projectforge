@@ -20,7 +20,7 @@ function DynamicTable({ columns, id }) {
             <Table striped hover responsive>
                 <thead>
                     <tr>
-                        {columns.map(column => (
+                        {columns.map((column) => (
                             <DynamicTableHead
                                 key={`table-head-column-${column.id}`}
                                 {...column}
@@ -29,7 +29,7 @@ function DynamicTable({ columns, id }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {entries.map(row => (
+                    {entries.map((row) => (
                         <DynamicTableRow
                             key={`table-body-row-${row.id}`}
                             columns={columns}

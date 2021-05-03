@@ -26,6 +26,7 @@ function MagicObjectInput(
 MagicObjectInput.propTypes = {
     autoCompletion: PropTypes.shape({
         url: PropTypes.string.isRequired,
+        type: PropTypes.string,
     }).isRequired,
     onChange: PropTypes.func.isRequired,
     translations: PropTypes.shape({

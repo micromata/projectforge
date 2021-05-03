@@ -57,7 +57,7 @@ function ReactSelect(
     if (tooltip && id) {
         const tooltipId = `rs-tooltip-${id}`;
         tooltipElement = (
-            <React.Fragment>
+            <>
                 <span>{' '}</span>
                 <FontAwesomeIcon
                     icon={faQuestion}
@@ -69,7 +69,7 @@ function ReactSelect(
                 <UncontrolledTooltip placement="right" target={tooltipId}>
                     {tooltip}
                 </UncontrolledTooltip>
-            </React.Fragment>
+            </>
         );
     }
 
@@ -102,7 +102,7 @@ function ReactSelect(
                 components={{ Control: ReactSelectControlWithLabel }}
                 defaultOptions={defaultOptions}
                 getOptionLabel={getOptionLabel || getOptionLabelDefault}
-                getOptionValue={option => (option[valueProperty])}
+                getOptionValue={(option) => (option[valueProperty])}
                 id={id}
                 isClearable={!required}
                 isMulti={multi}
@@ -114,7 +114,7 @@ function ReactSelect(
                 styles={{
                     // Input font size has to be set here, so the component can calculate with
                     // this size.
-                    input: provided => ({
+                    input: (provided) => ({
                         ...provided,
                         fontSize: 15,
                     }),

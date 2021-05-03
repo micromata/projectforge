@@ -26,7 +26,7 @@ const loadCompletionsBounced = (
         },
     )
         .then(handleHTTPErrors)
-        .then(response => response.json())
+        .then((response) => response.json())
         .then(setCompletions)
         .catch(() => {});
 };

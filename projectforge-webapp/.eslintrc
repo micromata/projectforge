@@ -23,6 +23,7 @@
       "error",
       4
     ],
+    "react/jsx-props-no-spreading": "off",
     "object-curly-newline": [
       "error",
       {

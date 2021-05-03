@@ -53,7 +53,6 @@ function FormPage(
         search = `?${search}`;
     }
 
-
     React.useEffect(
         () => {
             if (location.state && location.state.noReload) {
@@ -86,12 +85,12 @@ function FormPage(
 
     const globalValidation = React.useMemo(() => {
         if (validationErrors === undefined) {
-            return <React.Fragment />;
+            return <></>;
         }
-        const globalErrors = validationErrors.filter(entry => entry.fieldId === undefined);
+        const globalErrors = validationErrors.filter((entry) => entry.fieldId === undefined);
 
         if (globalErrors.length === 0) {
-            return <React.Fragment />;
+            return <></>;
         }
 
         return (
@@ -132,7 +131,7 @@ function FormPage(
             <Route
                 path={`${match.url}/:tab?`}
                 render={({ match: tabMatch }) => (
-                    <React.Fragment>
+                    <>
                         <TabNavigation
                             tabs={tabs}
                             activeTab={tabMatch.params.tab || 'form'}
@@ -179,7 +178,7 @@ function FormPage(
                                 </TabPane>
                             )}
                         </TabContent>
-                    </React.Fragment>
+                    </>
                 )}
             />
         </Container>

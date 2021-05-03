@@ -7,41 +7,41 @@ export const renderEvent = (event) => {
     let formattedDuration;
     if (event.location) {
         location = (
-            <React.Fragment>
+            <>
                 {event.location}
                 <br />
-            </React.Fragment>
+            </>
         );
     }
     if (event.desc) {
         desc = (
-            <React.Fragment>
+            <>
                 {event.description}
                 <br />
-            </React.Fragment>
+            </>
         );
     }
     if (event.formattedDuration) {
         formattedDuration = (
-            <React.Fragment>
+            <>
                 {event.formattedDuration}
                 <br />
-            </React.Fragment>
+            </>
         );
     }
     return (
-        <React.Fragment>
+        <>
             <p><strong>{event.title}</strong></p>
             {location}
             {desc}
             {formattedDuration}
-        </React.Fragment>
+        </>
     );
 };
 
-export const renderMonthEvent = event => <React.Fragment>{event.title}</React.Fragment>;
+export const renderMonthEvent = (event) => <>{event.title}</>;
 
-export const renderAgendaEvent = event => <React.Fragment>{event.title}</React.Fragment>;
+export const renderAgendaEvent = (event) => <>{event.title}</>;
 
 export const renderDateHeader = (entry, specialDays, navigateToDay) => {
     const isoDate = timezone(entry.date)
@@ -52,7 +52,7 @@ export const renderDateHeader = (entry, specialDays, navigateToDay) => {
         dayInfo = `${specialDay.holidayTitle} `;
     }
     return (
-        <React.Fragment>
+        <>
             <div
                 role="presentation"
                 onClick={() => navigateToDay(entry.date)}
@@ -60,7 +60,7 @@ export const renderDateHeader = (entry, specialDays, navigateToDay) => {
                 {dayInfo}
                 {entry.label}
             </div>
-        </React.Fragment>
+        </>
     );
 };
 

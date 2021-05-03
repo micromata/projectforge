@@ -22,10 +22,9 @@ function CostNumber24Component() {
         return data.bereich.toString();
     }
 
-
     return React.useMemo(
         () => (
-            <React.Fragment>
+            <>
                 Projektnummer
                 <br />
                 {data.nummernkreis}
@@ -51,7 +50,7 @@ function CostNumber24Component() {
                 />
                 .
                 ##
-            </React.Fragment>
+            </>
         ),
     );
 }
@@ -60,6 +59,5 @@ const mapStateToProps = ({ authentication }) => ({
     user: authentication.user,
     jsTimestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,
 });
-
 
 export default connect(mapStateToProps)(CostNumber24Component);
