@@ -22,6 +22,7 @@ function DynamicReadonlyField(
         <DynamicValidationManager id={id}>
             <ReadonlyField
                 id={`${ui.uid}-${id}`}
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 value={value}
                 dataType={dataType}

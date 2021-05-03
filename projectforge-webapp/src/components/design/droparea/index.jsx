@@ -64,7 +64,7 @@ class DropArea extends React.Component {
 
             newFiles = Array.of(
                 ...files,
-                fileList.filter(file => !files.find(cf => DropArea.areFilesEqual(file, cf))),
+                fileList.filter((file) => !files.find((cf) => DropArea.areFilesEqual(file, cf))),
             );
         } else {
             newFiles = [fileList[0]];
@@ -78,7 +78,12 @@ class DropArea extends React.Component {
     }
 
     render() {
-        const { children, multiple, noStyle, title } = this.props;
+        const {
+            children,
+            multiple,
+            noStyle,
+            title,
+        } = this.props;
         const { inDrag } = this.state;
 
         const inputProps = {};
@@ -113,6 +118,7 @@ class DropArea extends React.Component {
                         type="file"
                         className={style.file}
                         ref={this.input}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...inputProps}
                     />
                     <span className={style.info}>

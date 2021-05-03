@@ -28,6 +28,7 @@ function DynamicRadioButton(
                     id={`${ui.uid}-${id}-${value}`}
                     checked={checked}
                     onChange={handleCheckboxChange}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             </DynamicValidationManager>

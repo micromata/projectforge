@@ -11,6 +11,8 @@ import AdditionalLabel from '../AdditionalLabel';
 import InputContainer from '../InputContainer';
 import styles from './CalendarInput.module.scss';
 
+/* eslint-disable react/jsx-props-no-spreading */
+
 function DateInput(
     {
         additionalLabel,
@@ -111,7 +113,7 @@ function DateInput(
         .join('');
 
     const input = (
-        <React.Fragment>
+        <>
             <Tag {...tagProps}>
                 <div className={styles.dateInput}>
                     {isActive && (
@@ -135,7 +137,7 @@ function DateInput(
                 </div>
             </Tag>
             <AdditionalLabel title={additionalLabel} />
-        </React.Fragment>
+        </>
     );
 
     if (hideDayPicker) {

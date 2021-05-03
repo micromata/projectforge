@@ -34,13 +34,14 @@ function NavigationDropdown(
                 <FontAwesomeIcon icon={faChevronDown} />
             </DropdownToggle>
             <DropdownMenu>
-                {subMenu.map(item => (
+                {subMenu.map((item) => (
                     <DropdownItem
                         key={`entry-item-${entryKey || id}-${item.key || item.id}`}
                     >
                         <NavigationAction
                             badgeIsFlying={false}
                             entryKey={item.key}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...item}
                         />
                     </DropdownItem>
@@ -55,6 +56,7 @@ NavigationDropdown.propTypes = {
     subMenu: PropTypes.arrayOf(menuItemPropType).isRequired,
     badge: PropTypes.shape({
         counter: PropTypes.number,
+        style: PropTypes.string,
     }),
     entryKey: PropTypes.string,
     id: PropTypes.string,

@@ -21,7 +21,7 @@ export const extractDataValue = (
         // For react-select it seems to be important, that the current selected element matches
         // its value of the values list.
         const valueOfArray = (typeof dataValue === 'object') ? dataValue[valueProperty] : dataValue;
-        const value = values.find(it => it[valueProperty] === valueOfArray);
+        const value = values.find((it) => it[valueProperty] === valueOfArray);
 
         if (value) {
             dataValue = value;
@@ -91,7 +91,7 @@ function DynamicReactSelect(props) {
             },
         )
             .then(handleHTTPErrors)
-            .then(response => response.json())
+            .then((response) => response.json())
             .then(callback);
 
         const url = autoCompletion ? autoCompletion.url : undefined;
@@ -109,19 +109,20 @@ function DynamicReactSelect(props) {
         }
 
         return (
-            <React.Fragment>
+            <>
                 <DynamicValidationManager id={id}>
                     <ReactSelect
                         className="invalid"
                         onChange={onChange}
                         translations={ui.translations}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                         value={value}
                         loadOptions={(url && url.length > 0) ? loadOptions : undefined}
                     />
                     {favoritesElement}
                 </DynamicValidationManager>
-            </React.Fragment>
+            </>
         );
     }, [data[id], value, setData, values, autoCompletionData]);
 }

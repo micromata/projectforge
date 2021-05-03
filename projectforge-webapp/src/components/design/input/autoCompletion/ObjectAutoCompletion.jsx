@@ -49,7 +49,9 @@ function ObjectAutoCompletion(
                 <AdvancedPopperInput
                     forwardRef={ref}
                     id={inputId}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...otherInputsProps}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...inputProps}
                     onBlur={handleBlur}
                     onChange={handleChange}
@@ -65,6 +67,7 @@ function ObjectAutoCompletion(
             )}
             onSelect={onSelect}
             search={search}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );
@@ -75,7 +78,9 @@ ObjectAutoCompletion.propTypes = {
     onSelect: PropTypes.func.isRequired,
     icon: PropTypes.shape({}),
     inputProps: PropTypes.shape({}),
-    value: PropTypes.shape({}),
+    value: PropTypes.shape({
+        displayName: PropTypes.string,
+    }),
 };
 
 ObjectAutoCompletion.defaultProps = {

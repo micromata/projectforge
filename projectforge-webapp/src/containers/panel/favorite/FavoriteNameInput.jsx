@@ -25,7 +25,7 @@ function FavoriteNameInput(
     };
 
     return (
-        <React.Fragment>
+        <>
             <Input
                 label={label}
                 icon={faCheckSquare}
@@ -37,9 +37,10 @@ function FavoriteNameInput(
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 value={filterName}
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
-        </React.Fragment>
+        </>
     );
 }
 

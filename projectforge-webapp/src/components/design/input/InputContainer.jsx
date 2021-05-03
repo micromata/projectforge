@@ -19,7 +19,7 @@ function InputContainer(
     },
 ) {
     return (
-        <React.Fragment>
+        <>
             <div
                 className={classNames(
                     styles.inputContainer,
@@ -31,13 +31,14 @@ function InputContainer(
                     styles[color],
                     className,
                 )}
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {children}
                 {label && <span className={styles.labelText}>{label}</span>}
             </div>
             <AdditionalLabel title={additionalLabel} />
-        </React.Fragment>
+        </>
     );
 }
 

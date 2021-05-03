@@ -18,10 +18,11 @@ function MenuBadge(
     const id = `menu-badge-${elementKey}`;
 
     return (
-        <React.Fragment>
+        <>
             <span
                 className={classNames(style.badge, { [style.isFlying]: isFlying }, style[color])}
                 id={id}
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {children}
@@ -33,7 +34,7 @@ function MenuBadge(
                     </UncontrolledTooltip>
                 )
                 : undefined}
-        </React.Fragment>
+        </>
     );
 }
 

@@ -7,8 +7,9 @@ import style from '../Page.module.scss';
 
 function TabNavigation({ tabs, activeTab, ...props }) {
     return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
         <Nav tabs {...props}>
-            {tabs.map(tab => (
+            {tabs.map((tab) => (
                 <NavItem key={tab.id}>
                     <NavLink
                         id={tab.id}

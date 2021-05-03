@@ -62,7 +62,7 @@ function DynamicButton(props) {
     const buttonId = `${ui.uid}-${id}`;
 
     return (
-        <React.Fragment>
+        <>
             {confirmMessage && (
                 <Modal
                     isOpen={showConfirmMessage}
@@ -81,6 +81,7 @@ function DynamicButton(props) {
                 </Modal>
             )}
             <Button
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...stylingProps}
                 onClick={handleClick}
                 type={type}
@@ -92,7 +93,7 @@ function DynamicButton(props) {
                     {tooltip}
                 </UncontrolledTooltip>
             )}
-        </React.Fragment>
+        </>
     );
 }
 

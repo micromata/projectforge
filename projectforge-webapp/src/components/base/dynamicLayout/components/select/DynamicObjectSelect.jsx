@@ -12,8 +12,7 @@ function DynamicObjectSelect(
 ) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
-    const handleSelect = completion => setData({ [id]: completion });
-
+    const handleSelect = (completion) => setData({ [id]: completion });
 
     return (
         <DynamicValidationManager id={id}>
@@ -22,6 +21,7 @@ function DynamicObjectSelect(
                 onSelect={handleSelect}
                 translations={ui.translations}
                 value={data[id] || {}}
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </DynamicValidationManager>

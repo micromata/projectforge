@@ -20,6 +20,7 @@ function DynamicFieldset(props) {
     // Render a Column around the fieldset and the enclosed layout.
     return React.useMemo(
         () => (
+            // eslint-disable-next-line react/jsx-props-no-spreading
             <Col {...buildLengthForColumn(length, offset)}>
                 <fieldset>
                     {title ? <legend>{title}</legend> : undefined}

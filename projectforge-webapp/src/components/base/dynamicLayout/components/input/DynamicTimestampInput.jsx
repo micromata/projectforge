@@ -25,24 +25,25 @@ function DynamicTimestampInput(
     }, [dateStr]);
 
     return React.useMemo(() => (
-        <React.Fragment>
+        <>
             {/* TODO: VALIDATION */}
             <DynamicValidationManager id={id}>
                 <InputContainer
                     isActive
                     style={{ display: 'flex' }}
                     withMargin
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 >
                     <DateTimeInput
                         id={`${ui.uid}-${id}`}
-                        setTime={newDate => setData({ [id]: newDate })}
+                        setTime={(newDate) => setData({ [id]: newDate })}
                         showDate
                         time={date ? date.toDate() : undefined}
                     />
                 </InputContainer>
             </DynamicValidationManager>
-        </React.Fragment>
+        </>
     ), [date, setData, id, props]);
 }
 

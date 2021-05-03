@@ -106,6 +106,7 @@ function DynamicCustomized({ id, ...props }) {
     }
 
     return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
         <Tag id={id} {...props} />
     );
 }

@@ -27,11 +27,12 @@ const localizer = momentLocalizer(moment);
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
 
-const convertJsonDates = e => Object.assign({}, e, {
+/* eslint-disable prefer-object-spread, react/jsx-props-no-spreading */
+
+const convertJsonDates = (e) => Object.assign({}, e, {
     start: new Date(e.start),
     end: new Date(e.end),
 });
-
 
 class CalendarPanel extends React.Component {
     static getDerivedStateFromProps({ location }, { prevLocation }) {
@@ -286,7 +287,7 @@ class CalendarPanel extends React.Component {
     fetchEvents() {
         const { start, end, view } = this.state;
         const { activeCalendars, timesheetUserId } = this.props;
-        const activeCalendarIds = activeCalendars ? activeCalendars.map(obj => obj.id) : [];
+        const activeCalendarIds = activeCalendars ? activeCalendars.map((obj) => obj.id) : [];
         this.setState({ loading: true });
         fetchJsonPost('calendar/events',
             {
@@ -343,7 +344,7 @@ class CalendarPanel extends React.Component {
 
         const messages = {
             ...translations,
-            showMore: total => `+${total} ${translations['calendar.showMore']}`,
+            showMore: (total) => `+${total} ${translations['calendar.showMore']}`,
         };
 
         return (
@@ -372,7 +373,7 @@ class CalendarPanel extends React.Component {
                     selectable
                     slotPropGetter={CalendarPanel.slotStyle}
                     eventPropGetter={this.eventStyle}
-                    dayPropGetter={day => dayStyle(day, specialDays)}
+                    dayPropGetter={(day) => dayStyle(day, specialDays)}
                     showMultiDayTimes
                     timeslots={1}
                     scrollToTime={initTime}
@@ -380,7 +381,7 @@ class CalendarPanel extends React.Component {
                         event: renderEvent,
                         month: {
                             event: renderMonthEvent,
-                            dateHeader: entry => renderDateHeader(entry,
+                            dateHeader: (entry) => renderDateHeader(entry,
                                 specialDays,
                                 this.navigateToDay),
                         },
@@ -396,7 +397,7 @@ class CalendarPanel extends React.Component {
                 />
                 <Route
                     path={`${match.url}/:category/:type/:id?`}
-                    render={props => <FormModal baseUrl={match.url} {...props} />}
+                    render={(props) => <FormModal baseUrl={match.url} {...props} />}
                 />
             </LoadingContainer>
         );
@@ -404,7 +405,13 @@ class CalendarPanel extends React.Component {
 }
 
 CalendarPanel.propTypes = {
-    activeCalendars: PropTypes.arrayOf(PropTypes.shape({})),
+    activeCalendars: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.string,
+        visible: PropTypes.bool,
+        style: PropTypes.shape({
+            bgColor: PropTypes.string,
+        }),
+    })),
     timesheetUserId: PropTypes.number,
     vacationGroups: PropTypes.arrayOf(PropTypes.shape({})),
     vacationUsers: PropTypes.arrayOf(PropTypes.shape({})),
@@ -415,11 +422,17 @@ CalendarPanel.propTypes = {
     defaultDate: PropTypes.instanceOf(Date),
     defaultView: PropTypes.string,
     gridSize: PropTypes.number,
-    translations: PropTypes.shape({}).isRequired,
+    translations: PropTypes.shape({
+        'calendar.showMore': PropTypes.string,
+    }).isRequired,
     match: PropTypes.shape({
         url: PropTypes.string.isRequired,
+        isExact: PropTypes.bool,
     }).isRequired,
-    location: PropTypes.shape({}).isRequired,
+    location: PropTypes.shape({
+        state: PropTypes.string,
+        pathname: PropTypes.string,
+    }).isRequired,
 };
 
 CalendarPanel.defaultProps = {

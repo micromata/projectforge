@@ -8,6 +8,7 @@ function AdvancedPopperAction({ type, children, ...props }) {
         <button
             type="button"
             className={classNames(styles.action, styles[type])}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             {children}

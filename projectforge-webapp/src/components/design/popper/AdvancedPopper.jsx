@@ -100,6 +100,7 @@ function AdvancedPopper(
                 { [style.isOpen]: additionalVisible },
                 className,
             )}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onBlur={handleBlur}
             role="menu"

@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { components } from 'react-select';
 
+/* eslint-disable react/jsx-props-no-spreading */
+
 function ReactSelectControlWithLabel(props) {
     const { selectProps, isFocused, hasValue } = props;
 
@@ -13,7 +15,7 @@ function ReactSelectControlWithLabel(props) {
     };
 
     return (
-        <React.Fragment>
+        <>
             <components.Control {...props} />
             <span
                 className={classNames('react-select__label', { isActive: isFocused || hasValue })}
@@ -23,7 +25,7 @@ function ReactSelectControlWithLabel(props) {
             >
                 {selectProps.label}
             </span>
-        </React.Fragment>
+        </>
     );
 }
 
@@ -32,6 +34,11 @@ ReactSelectControlWithLabel.propTypes = {
     isFocused: PropTypes.bool.isRequired,
     selectProps: PropTypes.shape({
         label: PropTypes.string,
+        selectRef: PropTypes.shape({
+            current: PropTypes.shape({
+                focus: PropTypes.bool,
+            }),
+        }),
     }).isRequired,
 };
 

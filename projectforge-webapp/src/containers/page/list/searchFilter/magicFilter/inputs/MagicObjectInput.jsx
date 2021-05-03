@@ -16,6 +16,7 @@ function MagicObjectInput(
             onSelect={onChange}
             translations={translations}
             value={value}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             type={autoCompletion.type}
             url={autoCompletion.url}
@@ -26,6 +27,7 @@ function MagicObjectInput(
 MagicObjectInput.propTypes = {
     autoCompletion: PropTypes.shape({
         url: PropTypes.string.isRequired,
+        type: PropTypes.string,
     }).isRequired,
     onChange: PropTypes.func.isRequired,
     translations: PropTypes.shape({

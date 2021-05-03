@@ -40,6 +40,7 @@ function DynamicTableRow(
                                 data={row}
                                 id={id}
                                 dataType={dataType}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...column}
                             />
                         )}
@@ -54,6 +55,7 @@ DynamicTableRow.propTypes = {
     handleRowClick: PropTypes.func.isRequired,
     row: PropTypes.shape({
         id: PropTypes.number.isRequired,
+        deleted: PropTypes.bool,
     }).isRequired,
     highlightRow: PropTypes.bool,
 };

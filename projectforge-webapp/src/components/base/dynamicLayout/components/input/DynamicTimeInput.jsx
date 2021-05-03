@@ -18,9 +18,8 @@ function DynamicTimeInput(
     const timeStr = Object.getByString(data, id);
     const [time, setTime] = React.useState([0, 0]);
 
-
     React.useEffect(() => {
-        const timeTuple = timeStr && timeStr.split(':').map(part => Number(part));
+        const timeTuple = timeStr && timeStr.split(':').map((part) => Number(part));
         setTime(timeTuple && timeTuple.length >= 2 ? timeTuple.slice(0, 2) : [0, 0]);
     }, [timeStr]);
 
@@ -29,7 +28,7 @@ function DynamicTimeInput(
     };
 
     return React.useMemo(() => (
-        <React.Fragment>
+        <>
             {/* TODO: VALIDATION */}
             <DynamicValidationManager id={id}>
                 <InputContainer
@@ -37,6 +36,7 @@ function DynamicTimeInput(
                     style={{ display: 'flex' }}
                     withMargin
                     id={`${ui.uid}-${id}`}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 >
                     <TimeInput
@@ -46,7 +46,7 @@ function DynamicTimeInput(
                     />
                 </InputContainer>
             </DynamicValidationManager>
-        </React.Fragment>
+        </>
     ), [time, setData, id, props]);
 }
 

@@ -27,7 +27,7 @@ function MagicFilters(
     const searchRef = React.useRef(null);
 
     if (!searchFilter) {
-        return <React.Fragment />;
+        return <></>;
     }
 
     const setIsOpen = (open) => {
@@ -67,10 +67,10 @@ function MagicFilters(
                     setIsOpen={setIsOpen}
                     isOpen={allFiltersAreOpen}
                     basic={(
-                        <React.Fragment>
+                        <>
                             {`${translations.searchFilter} `}
                             <FontAwesomeIcon icon={faFilter} />
-                        </React.Fragment>
+                        </>
                     )}
                     className={styles.allFilters}
                     contentClassName={classNames(
@@ -118,23 +118,26 @@ function MagicFilters(
                 </AdvancedPopper>
             </div>
             {searchFilter.content
-                .filter(filter => filter.defaultFilter)
-                .map(filter => (
+                .filter((filter) => filter.defaultFilter)
+                .map((filter) => (
                     <MagicFilterPill
                         key={`magic-filter-default-${filter.id}`}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...Array.findByField(filterEntries, 'field', filter.id)}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...filter}
                     />
                 ))}
             {filterEntries
-                .map(entry => ({
+                .map((entry) => ({
                     ...Array.findByField(searchFilter.content, 'id', entry.field),
                     ...entry,
                 }))
                 .filter(({ id, defaultFilter }) => id !== undefined && !defaultFilter)
-                .map(entry => (
+                .map((entry) => (
                     <MagicFilterPill
                         key={`magic-filter-${entry.id}`}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...entry}
                         isRemovable
                     />
@@ -148,10 +151,15 @@ MagicFilters.propTypes = {
         reset: PropTypes.string,
         searchFilter: PropTypes.string,
         search: PropTypes.string,
+        'datatable.no-records-found': PropTypes.shape({}),
     }).isRequired,
     filterEntries: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     onResetAllFilters: PropTypes.func.isRequired,
-    searchFilter: PropTypes.shape({}),
+    searchFilter: PropTypes.shape({
+        content: PropTypes.shape({
+            filter: PropTypes.shape({}),
+        }),
+    }),
     searchString: PropTypes.string,
 };
 
@@ -171,7 +179,7 @@ const mapStateToProps = ({ list }) => {
     };
 };
 
-const actions = dispatch => ({
+const actions = (dispatch) => ({
     onResetAllFilters: () => dispatch(resetAllFilters()),
 });
 
