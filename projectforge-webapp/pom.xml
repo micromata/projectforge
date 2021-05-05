@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.projectforge</groupId>
         <artifactId>projectforge-parent</artifactId>
-        <version>7.1.1</version><!-- projectforge.version -->
+        <version>7.1.2-SNAPSHOT</version><!-- projectforge.version -->
     </parent>
 
     <licenses>
@@ -44,16 +44,6 @@
                         </goals>
                         <phase>generate-resources</phase>
                     </execution>
-                    <!-- https://stackoverflow.com/questions/60394291/error-node-modules-node-sass-command-failed -->
-                    <execution>
-                        <id>npm config set python2</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>config set python python2</arguments>
-                        </configuration>
-                    </execution>
                     <execution>
                         <id>npm install</id>
                         <goals>
@@ -83,15 +73,6 @@
                         </goals>
                         <!- - optional: default phase is "generate-resources" - ->
                         <phase>generate-resources</phase>
-                    </execution>
-                    <execution>
-                        <id>yarn add node-sass</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>add node-sass</arguments>
-                        </configuration>
                     </execution>
                     <execution>
                         <id>yarn install</id>
