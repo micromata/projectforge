@@ -20,6 +20,7 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.rest.config
 
 import kotlin.Throws
@@ -50,6 +51,8 @@ class CORSFilter : Filter {
     servletResponse.addHeader("Access-Control-Allow-Methods", "GET, OPTIONS, HEAD, PUT, POST, DELETE")
     servletResponse.addHeader("Access-Control-Allow-Credentials", "true")
     servletResponse.addHeader("Access-Control-Allow-Headers", "Content-Type")
+    // "Content-Disposition" for filenames of downloads.
+    servletResponse.addHeader("Access-Control-Expose-Headers", "Content-Disposition")
     // For HTTP OPTIONS verb/method reply with ACCEPTED status code -- per CORS handshake
     if (request.method == "OPTIONS") {
       servletResponse.status = HttpServletResponse.SC_ACCEPTED
