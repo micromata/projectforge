@@ -36,7 +36,6 @@ import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.UIColor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -44,7 +43,6 @@ import java.io.IOException
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.*
-import javax.servlet.http.HttpServletRequest
 
 /**
  * For uploading address immages.
@@ -53,107 +51,119 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/address")
 class AddressServicesRest {
 
-    companion object {
-        internal const val SESSION_IMAGE_ATTR = "uploadedAddressImage"
-        private const val APPLE_SCRIPT_DIR = "misc/"
-        private const val APPLE_SCRIPT_FOR_ADDRESS_BOOK = "AddressBookRemoveNotesOfClassWork.scpt"
+  companion object {
+    internal const val SESSION_IMAGE_ATTR = "uploadedAddressImage"
+    private const val APPLE_SCRIPT_DIR = "misc/"
+    private const val APPLE_SCRIPT_FOR_ADDRESS_BOOK = "AddressBookRemoveNotesOfClassWork.scpt"
+  }
+
+  private val log = org.slf4j.LoggerFactory.getLogger(AddressServicesRest::class.java)
+
+  @Autowired
+  private lateinit var addressDao: AddressDao
+
+  @Autowired
+  private lateinit var addressRest: AddressPagesRest
+
+  @Autowired
+  private lateinit var addressExport: AddressExport
+
+  @Autowired
+  private lateinit var personalAddressDao: PersonalAddressDao
+
+  @Autowired
+  private lateinit var languageService: LanguageService
+
+  @GetMapping("acLang")
+  fun getLanguages(@RequestParam("search") search: String?): List<DisplayLanguage> {
+    return languageService.getLanguages(search).map { DisplayLanguage(it.value, it.label) }
+  }
+
+  @GetMapping("usedLanguages")
+  fun getUsedLanguages(): List<LanguageService.Language> {
+    return languageService.getLanguages(addressDao.usedCommunicationLanguages.asIterable())
+  }
+
+  @GetMapping("exportFavoritesVCards")
+  fun exportFavoritesVCards(): ResponseEntity<*> {
+    log.info("Exporting personal address book as vcards.")
+    val list = addressDao.favoriteVCards
+    if (list.isNullOrEmpty()) {
+      return ResponseEntity(
+        ResponseData(
+          "address.book.hasNoVCards",
+          messageType = MessageType.TOAST,
+          color = UIColor.WARNING
+        ), HttpStatus.NOT_FOUND
+      )
     }
+    val filename = ("ProjectForge-PersonalAddressBook_" + DateHelper.getDateAsFilenameSuffix(Date())
+        + ".vcf")
+    val writer = StringWriter()
+    addressDao.exportFavoriteVCards(writer, list)
 
-    private val log = org.slf4j.LoggerFactory.getLogger(AddressServicesRest::class.java)
+    return RestUtils.downloadFile(filename, writer.toString())
+  }
 
-    @Autowired
-    private lateinit var addressDao: AddressDao
+  /**
+   * Exports favorites addresses.
+   */
+  @GetMapping("exportFavoritesExcel")
+  fun exportFavoritesExcel(): ResponseEntity<*> {
+    log.info("Exporting personal address book as Excel file.")
+    val list = addressDao.favoriteVCards.map { it.address!! }
+    val resultSet = ResultSet(list, list.size)
+    addressRest.processResultSetBeforeExport(resultSet)
 
-    @Autowired
-    private lateinit var addressRest: AddressPagesRest
+    val personalAddressMap = personalAddressDao.personalAddressByAddressId
 
-    @Autowired
-    private lateinit var addressExport: AddressExport
-
-    @Autowired
-    private lateinit var personalAddressDao: PersonalAddressDao
-
-    @Autowired
-    private lateinit var languageService: LanguageService
-
-    @GetMapping("acLang")
-    fun getLanguages(@RequestParam("search") search: String?): List<DisplayLanguage> {
-        return languageService.getLanguages(search).map { DisplayLanguage(it.value, it.label) }
+    val xls = addressExport.export(list, personalAddressMap)
+    if (xls == null || xls.isEmpty()) {
+      return ResponseEntity(
+        ResponseData(
+          "address.book.hasNoVCards",
+          messageType = MessageType.TOAST,
+          color = UIColor.WARNING
+        ), HttpStatus.NOT_FOUND
+      )
     }
+    val filename = ("ProjectForge-AddressExport_" + DateHelper.getDateAsFilenameSuffix(Date())
+        + ".xlsx")
 
-    @GetMapping("usedLanguages")
-    fun getUsedLanguages(): List<LanguageService.Language> {
-        return languageService.getLanguages(addressDao.usedCommunicationLanguages.asIterable())
+    val resource = ByteArrayResource(xls)
+    return RestUtils.downloadFile(filename, resource)
+  }
+
+  @GetMapping("downloadAppleScript")
+  fun downloadAppleScript(): ResponseEntity<*> {
+    log.info("Downloading AppleScript.")
+    val content: ByteArray?
+    val file = APPLE_SCRIPT_DIR + APPLE_SCRIPT_FOR_ADDRESS_BOOK
+    try {
+      val cLoader = this.javaClass.classLoader
+      val inputStream = cLoader.getResourceAsStream(file)
+      if (inputStream == null) {
+        log.error("Could not find script in resource path: '$file'.")
+      }
+      content = IOUtils.toByteArray(inputStream!!)
+    } catch (ex: IOException) {
+      log.error("Could not load script '" + file + "'." + ex.message, ex)
+      throw RuntimeException(ex)
     }
+    val filename = (APPLE_SCRIPT_FOR_ADDRESS_BOOK)
+    val resource = ByteArrayResource(content!!)
+    return RestUtils.downloadFile(filename, resource)
+  }
 
-    @GetMapping("exportFavoritesVCards")
-    fun exportFavoritesVCards(): ResponseEntity<*> {
-        log.info("Exporting personal address book as vcards.")
-        val list = addressDao.favoriteVCards
-        if (list.isNullOrEmpty()) {
-            return ResponseEntity(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, color = UIColor.WARNING), HttpStatus.NOT_FOUND)
-        }
-        val filename = ("ProjectForge-PersonalAddressBook_" + DateHelper.getDateAsFilenameSuffix(Date())
-                + ".vcf")
-        val writer = StringWriter()
-        addressDao.exportFavoriteVCards(writer, list)
+  @GetMapping("exportVCard/{id}")
+  fun exportVCard(@PathVariable("id") id: Int?): ResponseEntity<*> {
+    val address = addressDao.getById(id) ?: return ResponseEntity<Any>(HttpStatus.NOT_FOUND)
+    val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.fullName, true) + "_"
+        + DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf")
+    val writer = StringWriter()
+    addressDao.exportVCard(PrintWriter(writer), address)
+    return RestUtils.downloadFile(filename, writer.toString())
+  }
 
-        return RestUtils.downloadFile(filename, writer.toString())
-    }
-
-    /**
-     * Exports favorites addresses.
-     */
-    @GetMapping("exportFavoritesExcel")
-    fun exportFavoritesExcel(): ResponseEntity<*> {
-        log.info("Exporting personal address book as Excel file.")
-        val list = addressDao.favoriteVCards.map { it.address!! }
-        val resultSet = ResultSet(list, list.size)
-        addressRest.processResultSetBeforeExport(resultSet)
-
-        val personalAddressMap = personalAddressDao.personalAddressByAddressId
-
-        val xls = addressExport.export(list, personalAddressMap)
-        if (xls == null || xls.isEmpty()) {
-            return ResponseEntity(ResponseData("address.book.hasNoVCards", messageType = MessageType.TOAST, color = UIColor.WARNING), HttpStatus.NOT_FOUND)
-        }
-        val filename = ("ProjectForge-AddressExport_" + DateHelper.getDateAsFilenameSuffix(Date())
-                + ".xls")
-
-        val resource = ByteArrayResource(xls)
-        return RestUtils.downloadFile(filename, resource)
-    }
-
-    @GetMapping("downloadAppleScript")
-    fun downloadAppleScript(): ResponseEntity<*> {
-        log.info("Downloading AppleScript.")
-        val content: ByteArray?
-        val file = APPLE_SCRIPT_DIR + APPLE_SCRIPT_FOR_ADDRESS_BOOK
-        try {
-            val cLoader = this.javaClass.classLoader
-            val inputStream = cLoader.getResourceAsStream(file)
-            if (inputStream == null) {
-                log.error("Could not find script in resource path: '$file'.")
-            }
-            content = IOUtils.toByteArray(inputStream!!)
-        } catch (ex: IOException) {
-            log.error("Could not load script '" + file + "'." + ex.message, ex)
-            throw RuntimeException(ex)
-        }
-        val filename = (APPLE_SCRIPT_FOR_ADDRESS_BOOK)
-        val resource = ByteArrayResource(content!!)
-        return RestUtils.downloadFile(filename, resource)
-    }
-
-    @GetMapping("exportVCard/{id}")
-    fun exportVCard(@PathVariable("id") id: Int?): ResponseEntity<*> {
-        val address = addressDao.getById(id) ?: return ResponseEntity<Any>(HttpStatus.NOT_FOUND)
-        val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.fullName, true) + "_"
-                + DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf")
-        val writer = StringWriter()
-        addressDao.exportVCard(PrintWriter(writer), address)
-        return RestUtils.downloadFile(filename, writer.toString())
-    }
-
-    class DisplayLanguage(val id: String, val displayName: String)
+  class DisplayLanguage(val id: String, val displayName: String)
 }

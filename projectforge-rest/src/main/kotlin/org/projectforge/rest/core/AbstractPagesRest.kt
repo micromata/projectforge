@@ -449,6 +449,12 @@ constructor(
     return resultSet
   }
 
+  fun getResultList(filter: MagicFilter): List<O> {
+    filter.autoWildcardSearch = true
+    fixMagicFilterFromClient(filter)
+    return getObjectList(this, baseDao, filter)
+  }
+
   private fun getFilterFavorites(): Favorites<MagicFilter> {
     var favorites: Favorites<MagicFilter>? = null
     try {

@@ -153,8 +153,21 @@ export const exportCurrentList = () => (dispatch, getState) => {
         },
     )
         .then(handleHTTPErrors)
-        .then((response) => response.json())
-        .then((data) => dispatch(callSuccess(category, { data })))
+        .then((response) => {
+            const contentDisposition = response.headers.get('Content-Disposition'); // is null for CORS
+            const filename = contentDisposition ? contentDisposition.split('filename=')[1] : `${category}Export.xls`;
+            response.blob().then((blob) => {
+                // https://stackoverflow.com/questions/50694881/how-to-download-file-in-react-js
+                // eslint-disable-next-line
+                const url = window.URL.createObjectURL(new Blob([blob]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                link.parentNode.removeChild(link);
+            });
+        })
         .catch((error) => dispatch(fetchFailure(category, error.message)));
 };
 
