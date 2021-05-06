@@ -291,16 +291,7 @@ class AddressPagesRest
         type = MenuItemTargetType.DOWNLOAD
       )
     )
-    exportMenu.add(
-      MenuItem(
-        "address.export",
-        i18nKey = "address.book.export",
-        url = "${getRestPath()}/exportAsExcel",
-        tooltipTitle = "address.book.export",
-        tooltip = "address.book.export.tooltip",
-        type = MenuItemTargetType.DOWNLOAD
-      )
-    )
+    layout.excelExportSupported = true
     layout.add(exportMenu, menuIndex)
     layout.getMenuById(GEAR_MENU)?.add(
       MenuItem(
