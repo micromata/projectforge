@@ -37,20 +37,27 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
 import org.projectforge.rest.dto.Address
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
+import org.projectforge.ui.Formatter
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -77,6 +84,9 @@ class AddressPagesRest
 
   @Autowired
   private lateinit var addressbookDao: AddressbookDao
+
+  @Autowired
+  private lateinit var addressExport: AddressExport
 
   @Autowired
   private lateinit var addressImageDao: AddressImageDao
@@ -499,7 +509,10 @@ class AddressPagesRest
     layout.addTranslations("delete", "file.upload.dropArea")
     layout.addTranslation(
       "address.image.upload.error",
-      translateMsg("address.image.upload.error", FormatterUtils.formatBytes(addressImageServicesRest.maxImageSize.toBytes()))
+      translateMsg(
+        "address.image.upload.error",
+        FormatterUtils.formatBytes(addressImageServicesRest.maxImageSize.toBytes())
+      )
     )
     if (dto.id != null) {
       layout.add(
@@ -560,5 +573,22 @@ class AddressPagesRest
         UICol(3)
           .add(UICheckbox(id, label = "favorite"))
       )
+  }
+
+  /**
+   * Exports favorites addresses.
+   */
+  @PostMapping("exportAsExcel")
+  fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+    log.info("Exporting addresses as Excel file.")
+    @Suppress("UNCHECKED_CAST")
+    val list = getObjectList(this, baseDao, filter)
+    val personalAddressMap = personalAddressDao.personalAddressByAddressId
+    val xls = addressExport.export(list, personalAddressMap)
+    if (xls == null || xls.isEmpty()) {
+      return RestUtils.downloadFile("empty.txt", "nothing to export.")
+    }
+    val filename = "ProjectForge-AddressExport_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
+    return RestUtils.downloadFile(filename, xls)
   }
 }
