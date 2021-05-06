@@ -228,7 +228,7 @@ constructor(
       )
     ui.add(gearMenu)
     ui.addTranslations(
-      "reset", "datatable.no-records-found", "date.begin", "date.end",
+      "reset", "datatable.no-records-found", "date.begin", "date.end", "exportAsXls",
       "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday"
     )
     ui.addTranslation("search.lastMinutes.10", translateMsg("search.lastMinutes", 10))

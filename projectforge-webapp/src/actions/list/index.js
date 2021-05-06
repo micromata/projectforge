@@ -138,6 +138,26 @@ export const fetchCurrentList = (ignoreLastQueriedFilters = false) => (dispatch,
     loadList(category, ignoreLastQueriedFilters)(dispatch, getState);
 };
 
+export const exportCurrentList = () => (dispatch, getState) => {
+    const { list } = getState();
+    const category = list.currentCategory;
+    return fetch(
+        getServiceURL(`${category}/exportAsExcel`),
+        {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(list.categories[category].filter),
+        },
+    )
+        .then(handleHTTPErrors)
+        .then((response) => response.json())
+        .then((data) => dispatch(callSuccess(category, { data })))
+        .catch((error) => dispatch(fetchFailure(category, error.message)));
+};
+
 export const openEditPage = (id) => (_, getState) => {
     const state = getState().list;
     history.push(`/${state.categories[state.currentCategory].standardEditPage.replace(':id', id)}`);

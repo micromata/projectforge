@@ -1,15 +1,17 @@
 import { faSearch, faSync } from '@fortawesome/free-solid-svg-icons';
+import { faFileExcel } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { Navbar } from 'reactstrap';
+import { Button, Navbar } from 'reactstrap';
 import {
     createListFavorite,
     deleteListFavorite,
     dismissCurrentError,
     fetchCurrentList,
+    exportCurrentList,
     openEditPage,
     renameListFavorite,
     selectListFavorite,
@@ -39,6 +41,7 @@ function SearchFilter(props) {
         onSearchStringDelete,
         onSelectQuickSelection,
         onSyncButtonClick,
+        onExportButtonClick,
     } = props;
 
     const {
@@ -84,6 +87,20 @@ function SearchFilter(props) {
                         translations={ui.translations}
                         htmlId="searchFilterFavoritesPopover"
                     />
+                    {ui && ui.excelExportSupported && (
+                        <Button
+                            id="excelExport"
+                            color="link"
+                            className="selectPanelIconLinks"
+                        >
+                            <FontAwesomeIcon
+                                icon={faFileExcel}
+                                size="lg"
+                                title={ui.translations.exportAsXls}
+                                onClick={onExportButtonClick}
+                            />
+                        </Button>
+                    )}
                     {isFetching && <Spinner className={styles.loadingSpinner} />}
                 </div>
                 <TextAutoCompletion
@@ -141,9 +158,11 @@ SearchFilter.propTypes = {
             translations: PropTypes.shape({
                 search: PropTypes.string,
                 delete: PropTypes.string,
+                exportAsXls: PropTypes.string,
             }),
             title: PropTypes.string,
             pageMenu: PropTypes.shape({}),
+            excelExportSupported: PropTypes.bool,
         }),
         filter: PropTypes.shape({
             id: PropTypes.string,
@@ -166,6 +185,7 @@ SearchFilter.propTypes = {
     onSearchStringDelete: PropTypes.func.isRequired,
     onSelectQuickSelection: PropTypes.func.isRequired,
     onSyncButtonClick: PropTypes.func.isRequired,
+    onExportButtonClick: PropTypes.func.isRequired,
 };
 
 SearchFilter.defaultProps = {};
@@ -193,6 +213,7 @@ const actions = (dispatch) => ({
     onSearchStringDelete: () => dispatch(changeSearchString('')),
     onSelectQuickSelection: ({ id }) => dispatch(openEditPage(id)),
     onSyncButtonClick: () => dispatch(fetchCurrentList(true)),
+    onExportButtonClick: () => dispatch(exportCurrentList()),
 });
 
 export default connect(mapStateToProps, actions)(SearchFilter);
