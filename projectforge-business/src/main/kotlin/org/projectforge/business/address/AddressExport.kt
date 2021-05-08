@@ -28,11 +28,9 @@ import de.micromata.merlin.excel.ExcelRow
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
-import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.projectforge.business.converter.LanguageConverter
 import org.projectforge.business.excel.ExcelDateFormats
-import org.projectforge.business.excel.I18nExportColumn
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
@@ -82,9 +80,9 @@ open class AddressExport {
     register(sheet, "mobilePhone", ExcelUtils.Size.PHONENUMBER)
 
     registerAddress(sheet, "private")
-    register(sheet, "privateEmail", ExcelUtils.Size.EMAIL)
-    register(sheet, "privatePhone", ExcelUtils.Size.PHONENUMBER)
-    register(sheet, "privateMobilePhone", ExcelUtils.Size.PHONENUMBER)
+    register(sheet, "address.privateEmail", "privateEmail", ExcelUtils.Size.EMAIL)
+    register(sheet, "address.phoneType.private", "privatePhone", ExcelUtils.Size.PHONENUMBER)
+    register(sheet, "address.phoneType.privateMobile", "privateMobilePhone", ExcelUtils.Size.PHONENUMBER)
     register(sheet, "birthday", ExcelUtils.Size.DATE)
     register(sheet, "lastUpdate", ExcelUtils.Size.DATE)
     register(sheet, "comment")
@@ -158,39 +156,40 @@ open class AddressExport {
     val boldStyle = workbook.createOrGetCellStyle("hr")
     boldStyle.setFont(boldFont)
     registerCols(sheet)
-    val headRow = sheet.createRow()
+    sheet.createRow() // title row
+    val headRow = sheet.createRow() // second row as head row.
     sheet.columnDefinitions.forEachIndexed { index, it ->
       headRow.getCell(index).setCellValue(it.columnHeadname).setCellStyle(boldStyle)
     }
+    //sheet.poiSheet.setAutoFilter(CellRangeAddress(1, 1, 0, sheet.getRow(1).lastCellNum - 1))
     sheet.setMergedRegion(
       0,
       0,
       sheet.getColNumber("mailingAddressText")!!,
       sheet.getColNumber("mailingState")!!,
       translate("address.mailing")
-    )
+    ).setCellStyle(boldStyle)
     sheet.setMergedRegion(
       0,
       0,
       sheet.getColNumber("addressText")!!,
       sheet.getColNumber("state")!!,
       translate("address.addressText")
-    )
+    ).setCellStyle(boldStyle)
     sheet.setMergedRegion(
       0,
       0,
       sheet.getColNumber("postalAddressText")!!,
       sheet.getColNumber("postalState")!!,
       translate("address.postalAddressText")
-    )
+    ).setCellStyle(boldStyle)
     sheet.setMergedRegion(
       0,
       0,
       sheet.getColNumber("privateAddressText")!!,
-      sheet.getColNumber("postalState")!!,
+      sheet.getColNumber("privateState")!!,
       translate("address.privateAddressText")
-    )
-    sheet.poiSheet.setAutoFilter(CellRangeAddress(1, 1, 0, sheet.getRow(1).lastCellNum - 1))
+    ).setCellStyle(boldStyle)
 
     for (address in list) {
       address ?: continue
@@ -205,11 +204,6 @@ open class AddressExport {
       row.getCell("mailingCity")!!.setCellValue(address.mailingCity);
       row.getCell("mailingCountry")!!.setCellValue(address.mailingCountry);
       row.getCell("mailingState")!!.setCellValue(address.mailingState);
-/*      mapping.add(Col.MAILING_ADDRESS2, address.getMailingAddressText2());
-      mapping.add(Col.MAILING_ZIPCODE, address.getMailingZipCode());
-      mapping.add(Col.MAILING_CITY, address.getMailingCity());
-      mapping.add(Col.MAILING_COUNTRY, address.getMailingCountry());
-      mapping.add(Col.MAILING_STATE, address.getMailingState());*/
 
       handleAddressCampaign(row, address, *params)
     }
