@@ -23,10 +23,13 @@
 
 package org.projectforge.excel
 
-import de.micromata.merlin.excel.ExcelColumnDef
-import de.micromata.merlin.excel.ExcelSheet
+import de.micromata.merlin.excel.*
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.projectforge.business.excel.ExcelDateFormats
+import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 
 /**
  * For excel export.
@@ -34,6 +37,24 @@ import org.projectforge.framework.i18n.translate
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object ExcelUtils {
+  /**
+   * Should be used for workbook creation for every export.
+   * @return workbook configured with date formats of the logged-in user and number formats.
+   */
+  @JvmStatic
+  fun prepareWorkbook(): ExcelWorkbook {
+    val workbook = ExcelWorkbook(XSSFWorkbook())
+    workbook.configuration.let { cfg ->
+      cfg.setDateFormats(
+        ThreadLocalUserContext.getUser().excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE,
+        Configuration.TimeStampPrecision.DAY
+      )
+      cfg.intFormat = "#,##0"
+      cfg.floatFormat = "#,##0.#"
+      return workbook
+    }
+  }
+
   /**
    * Registers an excel column by using the translated i18n-key of the given property as column head and the
    * property name as alias (for refering and [de.micromata.merlin.excel.ExcelRow.autoFillFromObject].
@@ -45,6 +66,30 @@ object ExcelUtils {
     val colDef = sheet.registerColumn(translate(i18nKey), property)
     size?.let { colDef.withSize(it) }
     return colDef
+  }
+
+  @JvmStatic
+  fun autoFill(row: ExcelRow, obj: Any?, vararg ignoreProperties: String) {
+    autoFill(row, obj, process, *ignoreProperties)
+  }
+
+  @JvmStatic
+  fun autoFill(
+    row: ExcelRow,
+    obj: Any?,
+    process: (Any, Any, ExcelCell, ExcelColumnDef) -> Boolean,
+    vararg ignoreProperties: String
+  ) {
+    row.autoFillFromObject(obj, process, *ignoreProperties)
+  }
+
+  val process: (Any, Any, ExcelCell, ExcelColumnDef) -> Boolean = { obj, propertyValue, cell, columnDef ->
+    if (propertyValue is I18nEnum) {
+      cell.setCellValue(translate(propertyValue.i18nKey))
+      true
+    } else {
+      false
+    }
   }
 
   object Size {
