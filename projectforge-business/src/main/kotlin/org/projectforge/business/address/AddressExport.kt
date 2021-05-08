@@ -28,6 +28,7 @@ import de.micromata.merlin.excel.ExcelRow
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
+import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.projectforge.business.converter.LanguageConverter
 import org.projectforge.business.excel.ExcelDateFormats
@@ -88,7 +89,7 @@ open class AddressExport {
     register(sheet, "comment")
     register(sheet, "fingerprint")
     register(sheet, "publicKey", ExcelUtils.Size.EXTRA_LONG)
-    register(sheet, "id")
+    register(sheet, "id", ExcelUtils.Size.ID)
   }
 
   // Implemented by AddressCampaignValueExport
@@ -141,11 +142,7 @@ open class AddressExport {
       return null
     }
 
-    val workbook = ExcelWorkbook(XSSFWorkbook())
-    workbook.configuration.setDateFormats(
-      ThreadLocalUserContext.getUser().excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE,
-      Configuration.TimeStampPrecision.DAY
-    )
+    val workbook = ExcelUtils.prepareWorkbook()
     val sheet = workbook.createOrGetSheet(translate(sheetTitle))!!
     sheet.enableMultipleColumns = true
     initSheet(sheet, *params)
@@ -161,7 +158,7 @@ open class AddressExport {
     sheet.columnDefinitions.forEachIndexed { index, it ->
       headRow.getCell(index).setCellValue(it.columnHeadname).setCellStyle(boldStyle)
     }
-    //sheet.poiSheet.setAutoFilter(CellRangeAddress(1, 1, 0, sheet.getRow(1).lastCellNum - 1))
+    sheet.poiSheet.setAutoFilter(CellRangeAddress(1, 1, 0, sheet.getRow(1).lastCellNum - 1))
     sheet.setMergedRegion(
       0,
       0,
@@ -194,7 +191,7 @@ open class AddressExport {
     for (address in list) {
       address ?: continue
       val row = sheet.createRow()
-      row.autoFillFromObject(address, "communicationLanguage")
+      ExcelUtils.autoFill(row, address, "communicationLanguage")
       val lang =
         LanguageConverter.getLanguageAsString(address.communicationLanguage, ThreadLocalUserContext.getLocale())
       row.getCell("communicationLanguage")!!.setCellValue(lang)
