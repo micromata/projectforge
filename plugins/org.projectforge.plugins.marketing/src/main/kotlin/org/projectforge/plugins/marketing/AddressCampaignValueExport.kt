@@ -30,6 +30,7 @@ import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressExport
 import org.projectforge.business.address.PersonalAddressDO
+import org.projectforge.framework.i18n.translate
 import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
@@ -53,19 +54,25 @@ open class AddressCampaignValueExport : AddressExport() {
     return super.export(origList, personalAddressMap, *params)
   }
 
+  override fun registerAdditionalCols(sheet: ExcelSheet) {
+    register(sheet, "value", "campaignValue")
+    register(sheet, "comment", "campaignComment")
+  }
+
   override fun handleAddressCampaign(row: ExcelRow, address: AddressDO, vararg params: Any) {
     @Suppress("UNCHECKED_CAST")
     val addressCampaignValue = (params[0] as Map<Int, AddressCampaignValueDO>).get(address.id)
-    row.getCell(ExcelCol.ADDRESS_CAMPAIGN_VALUE, ExcelCellType.STRING).setCellValue(addressCampaignValue?.value ?: "")
-    row.getCell(ExcelCol.ADDRESS_CAMPAIGN_COMMENT, ExcelCellType.STRING)
-      .setCellValue(addressCampaignValue?.comment ?: "")
+    row.getCell("campaignValue")?.setCellValue(addressCampaignValue?.value)
+    row.getCell("campaignComment")?.setCellValue(addressCampaignValue?.comment)
   }
 
   override val sheetTitle = "plugins.marketing.addressCampaign"
 
   override fun initSheet(sheet: ExcelSheet, vararg params: Any) {
     sheet.setMergedRegion(
-      0, 0, ExcelCol.ADDRESS_CAMPAIGN_VALUE.ordinal, ExcelCol.ADDRESS_CAMPAIGN_COMMENT.ordinal,
+      0, 0,
+      sheet.getColNumber("campaignValue")!!,
+      sheet.getColNumber("campaignComment")!!,
       params[1]
     )
   }
