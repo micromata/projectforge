@@ -26,10 +26,14 @@ package org.projectforge.excel
 import de.micromata.merlin.excel.*
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.projectforge.business.excel.ExcelDateFormats
+import org.projectforge.common.BeanHelper
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 /**
  * For excel export.
@@ -64,7 +68,25 @@ object ExcelUtils {
   fun registerColumn(sheet: ExcelSheet, clazz: Class<*>, property: String, size: Int? = null): ExcelColumnDef {
     val i18nKey = PropUtils.getI18nKey(clazz, property) ?: property
     val colDef = sheet.registerColumn(translate(i18nKey), property)
-    size?.let { colDef.withSize(it) }
+    if (size != null) {
+      colDef.withSize(size)
+    } else {
+      if (property == "id") {
+        colDef.withSize(Size.ID)
+      } else {
+        when (BeanHelper.determinePropertyType(clazz, property)) {
+          null -> {
+            colDef.withSize(Size.STANDARD)
+          }
+          LocalDate::class.java, Date::class.java, LocalDateTime::class.java -> {
+            colDef.withSize(Size.DATE)
+          }
+          else -> {
+            colDef.withSize(Size.STANDARD)
+          }
+        }
+      }
+    }
     return colDef
   }
 
@@ -94,6 +116,7 @@ object ExcelUtils {
 
   object Size {
     const val DATE = 10
+    const val DATE_TIME = 20
     const val EMAIL = 30
     const val EXTRA_LONG = 80
     const val ID = 10
