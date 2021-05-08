@@ -84,12 +84,12 @@ open class AddressExport {
     register(sheet, "address.privateEmail", "privateEmail", ExcelUtils.Size.EMAIL)
     register(sheet, "address.phoneType.private", "privatePhone", ExcelUtils.Size.PHONENUMBER)
     register(sheet, "address.phoneType.privateMobile", "privateMobilePhone", ExcelUtils.Size.PHONENUMBER)
-    register(sheet, "birthday", ExcelUtils.Size.DATE)
-    register(sheet, "lastUpdate", ExcelUtils.Size.DATE)
+    register(sheet, "birthday")
+    register(sheet, "lastUpdate")
     register(sheet, "comment")
     register(sheet, "fingerprint")
     register(sheet, "publicKey", ExcelUtils.Size.EXTRA_LONG)
-    register(sheet, "id", ExcelUtils.Size.ID)
+    register(sheet, "id")
   }
 
   // Implemented by AddressCampaignValueExport
@@ -100,7 +100,7 @@ open class AddressExport {
     sheet.registerColumn(translate(i18nKey), alias).withSize(size)
   }
 
-  protected fun register(sheet: ExcelSheet, property: String, size: Int = ExcelUtils.Size.STANDARD) {
+  protected fun register(sheet: ExcelSheet, property: String, size: Int? = null) {
     ExcelUtils.registerColumn(sheet, AddressDO::class.java, property, size)
   }
 
