@@ -45,15 +45,25 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   magicFilter: MagicFilter
 )
     : ResultSet<O> {
+  val list = getObjectList(pagesRest, baseDao, magicFilter)
+  val resultSet = ResultSet(pagesRest.filterList(list, magicFilter), list.size)
+  return resultSet
+}
+
+fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+    getObjectList(
+  pagesRest: AbstractPagesRest<O, DTO, B>,
+  baseDao: BaseDao<O>,
+  magicFilter: MagicFilter
+)
+    : MutableList<O> {
   magicFilter.sortAndLimitMaxRowsWhileSelect = true
   val queryFilter = QueryFilter()
   val customResultFilters = pagesRest.preProcessMagicFilter(queryFilter, magicFilter)
   magicFilter.sortProperties = magicFilter.sortProperties.distinctBy { it.property }.toMutableList()
   MagicFilterProcessor.doIt(baseDao.doClass, magicFilter, queryFilter)
   pagesRest.postProcessMagicFilter(queryFilter, magicFilter)
-  val list = baseDao.getList(queryFilter, customResultFilters)
-  val resultSet = ResultSet(pagesRest.filterList(list, magicFilter), list.size)
-  return resultSet
+  return baseDao.getList(queryFilter, customResultFilters)
 }
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>

@@ -228,7 +228,7 @@ constructor(
       )
     ui.add(gearMenu)
     ui.addTranslations(
-      "reset", "datatable.no-records-found", "date.begin", "date.end",
+      "reset", "datatable.no-records-found", "date.begin", "date.end", "exportAsXls",
       "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday"
     )
     ui.addTranslation("search.lastMinutes.10", translateMsg("search.lastMinutes", 10))
@@ -447,6 +447,12 @@ constructor(
     val resultSet = processResultSetBeforeExport(list)
     resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
     return resultSet
+  }
+
+  fun getResultList(filter: MagicFilter): List<O> {
+    filter.autoWildcardSearch = true
+    fixMagicFilterFromClient(filter)
+    return getObjectList(this, baseDao, filter)
   }
 
   private fun getFilterFavorites(): Favorites<MagicFilter> {

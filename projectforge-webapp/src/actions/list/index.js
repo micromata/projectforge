@@ -138,6 +138,39 @@ export const fetchCurrentList = (ignoreLastQueriedFilters = false) => (dispatch,
     loadList(category, ignoreLastQueriedFilters)(dispatch, getState);
 };
 
+export const exportCurrentList = () => (dispatch, getState) => {
+    const { list } = getState();
+    const category = list.currentCategory;
+    return fetch(
+        getServiceURL(`${category}/exportAsExcel`),
+        {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(list.categories[category].filter),
+        },
+    )
+        .then(handleHTTPErrors)
+        .then((response) => {
+            const contentDisposition = response.headers.get('Content-Disposition'); // is null for CORS
+            const filename = contentDisposition ? contentDisposition.split('filename=')[1] : `${category}Export.xls`;
+            response.blob().then((blob) => {
+                // https://stackoverflow.com/questions/50694881/how-to-download-file-in-react-js
+                // eslint-disable-next-line
+                const url = window.URL.createObjectURL(new Blob([blob]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                link.parentNode.removeChild(link);
+            });
+        })
+        .catch((error) => dispatch(fetchFailure(category, error.message)));
+};
+
 export const openEditPage = (id) => (_, getState) => {
     const state = getState().list;
     history.push(`/${state.categories[state.currentCategory].standardEditPage.replace(':id', id)}`);

@@ -48,18 +48,22 @@ object ExceptionStackTracePrinter {
         var placeHolderPrinted = false
         var ownStackelementsPrinted = false
         for (element in ex.stackTrace) {
-            if (!showPackages.any { element.className.startsWith(it) }) {
-                if (ownStackelementsPrinted && stopBeforeForeignPackages) {
-                    sb.append("...following foreign packages are hidden...\n")
-                    break
+            val ownPackage = showPackages.any { element.className.startsWith(it) }
+            if (!ownPackage) {
+                if (ownStackelementsPrinted) {
+                    if (stopBeforeForeignPackages) {
+                        sb.append("...following foreign packages are hidden...\n")
+                        break
+                    }
+                    if (!placeHolderPrinted) {
+                        sb.append("...(foreign packages are hidden)...\n")
+                        placeHolderPrinted = true
+                    }
+                    continue // Don't show foreign class entries.
                 }
-                if (!placeHolderPrinted) {
-                    sb.append("...(foreign packages are hidden)...\n")
-                    placeHolderPrinted = true
-                }
-                continue // Don't show foreign class entries.
+            } else {
+                ownStackelementsPrinted = true
             }
-            ownStackelementsPrinted = true
             sb.append("at ${element.className}.${element.methodName} (${element.fileName}:${element.lineNumber})\n")
             if (++counter >= depth) {
                 break

@@ -136,6 +136,10 @@ object RestUtils {
       .body(resource)
   }
 
+  fun downloadFile(filename: String, ba: ByteArray): ResponseEntity<Resource> {
+    return downloadFile(filename, ByteArrayResource(ba))
+  }
+
   fun badRequest(message: String): ResponseEntity<String> {
     return ResponseEntity.badRequest().body(message)
   }
