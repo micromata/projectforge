@@ -114,8 +114,7 @@ class DataTransferArea(
     super.copyFrom(src)
     src.getPersonalBoxUserId()?.let {
       // This data transfer area is a personal box.
-      val user = UserGroupCache.getInstance().getUser(it)
-      areaName = translateMsg("plugins.datatransfer.personalBox.title", "${user?.displayName}")
+      areaName = src.displayName
       personalBox = true
     }
     admins = User.toUserList(src.adminIds)
