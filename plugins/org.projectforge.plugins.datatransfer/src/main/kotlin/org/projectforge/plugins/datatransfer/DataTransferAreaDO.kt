@@ -27,7 +27,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
@@ -206,6 +208,17 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
     }
     return adminIds?.toIntOrNull()
   }
+
+  val displayName: String
+    @Transient
+    get() {
+      getPersonalBoxUserId()?.let {
+        // This data transfer area is a personal box.
+        val user = UserGroupCache.getInstance().getUser(it)
+        return translateMsg("plugins.datatransfer.personalBox.title", "${user?.displayName}")
+      }
+      return areaName ?: "???"
+    }
 
   companion object {
     internal const val FIND_BY_EXTERNAL_ACCESS_TOKEN = "DataTransferAreaDO_FindByExternalAccessToken"
