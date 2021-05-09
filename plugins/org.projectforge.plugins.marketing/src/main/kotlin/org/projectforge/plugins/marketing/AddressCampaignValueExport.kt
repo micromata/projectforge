@@ -68,7 +68,7 @@ open class AddressCampaignValueExport : AddressExport() {
 
   override val sheetTitle = "plugins.marketing.addressCampaign"
 
-  override fun initSheet(sheet: ExcelSheet, vararg params: Any) {
+  override fun configureSheet(sheet: ExcelSheet, vararg params: Any) {
     sheet.setMergedRegion(
       0, 0,
       sheet.getColNumber("campaignValue")!!,

@@ -23,15 +23,11 @@
 
 package org.projectforge.business.address
 
-import de.micromata.merlin.excel.Configuration
 import de.micromata.merlin.excel.ExcelRow
 import de.micromata.merlin.excel.ExcelSheet
-import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
 import org.apache.poi.ss.util.CellRangeAddress
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.projectforge.business.converter.LanguageConverter
-import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
@@ -145,8 +141,6 @@ open class AddressExport {
     val workbook = ExcelUtils.prepareWorkbook()
     val sheet = workbook.createOrGetSheet(translate(sheetTitle))!!
     sheet.enableMultipleColumns = true
-    initSheet(sheet, *params)
-    sheet.createFreezePane(2, 2)
 
     val boldFont = workbook.createOrGetFont("bold")!!
     boldFont.bold = true
@@ -158,6 +152,7 @@ open class AddressExport {
     sheet.columnDefinitions.forEachIndexed { index, it ->
       headRow.getCell(index).setCellValue(it.columnHeadname).setCellStyle(boldStyle)
     }
+    sheet.createFreezePane(2, 2)
     sheet.poiSheet.setAutoFilter(CellRangeAddress(1, 1, 0, sheet.getRow(1).lastCellNum - 1))
     sheet.setMergedRegion(
       0,
@@ -188,6 +183,8 @@ open class AddressExport {
       translate("address.privateAddressText")
     ).setCellStyle(boldStyle)
 
+    configureSheet(sheet, *params)
+
     for (address in list) {
       address ?: continue
       val row = sheet.createRow()
@@ -207,7 +204,7 @@ open class AddressExport {
     return workbook.asByteArrayOutputStream.toByteArray()
   }
 
-  protected open fun initSheet(sheet: ExcelSheet, vararg params: Any) {
+  protected open fun configureSheet(sheet: ExcelSheet, vararg params: Any) {
 
   }
 
