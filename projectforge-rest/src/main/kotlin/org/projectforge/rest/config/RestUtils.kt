@@ -36,7 +36,9 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import java.io.InputStream
 import java.net.InetAddress
+import java.net.URLEncoder
 import java.net.UnknownHostException
+import java.nio.charset.StandardCharsets
 import javax.servlet.Filter
 import javax.servlet.FilterRegistration
 import javax.servlet.ServletContext
@@ -117,23 +119,33 @@ object RestUtils {
 
   fun downloadFile(filename: String, inputStream: InputStream): ResponseEntity<InputStreamResource> {
     return ResponseEntity.ok()
-      .contentType(MediaType.parseMediaType("application/octet-stream"))
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
+      .contentType(getDownloadContentType())
+      .header(HttpHeaders.CONTENT_DISPOSITION, getDownloadContentDisposition(filename))
       .body(InputStreamResource(inputStream))
   }
 
   fun downloadFile(filename: String, content: String): ResponseEntity<String> {
     return ResponseEntity.ok()
-      .contentType(MediaType.parseMediaType("application/octet-stream"))
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
+      .contentType(getDownloadContentType())
+      .header(HttpHeaders.CONTENT_DISPOSITION, getDownloadContentDisposition(filename))
       .body(content)
   }
 
   fun downloadFile(filename: String, resource: ByteArrayResource): ResponseEntity<Resource> {
     return ResponseEntity.ok()
-      .contentType(MediaType.parseMediaType("application/octet-stream"))
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
+      .contentType(getDownloadContentType())
+      .header(HttpHeaders.CONTENT_DISPOSITION, getDownloadContentDisposition(filename))
       .body(resource)
+  }
+
+  private fun getDownloadContentType(): MediaType {
+    return MediaType.parseMediaType("application/octet-stream")
+  }
+
+  private fun getDownloadContentDisposition(filename: String): String {
+    val encodedFileName = URLEncoder.encode(filename, StandardCharsets.UTF_8.name())
+      .replace("+", "_");
+    return "attachment; filename*=UTF-8''$encodedFileName; filename=$encodedFileName"
   }
 
   fun downloadFile(filename: String, ba: ByteArray): ResponseEntity<Resource> {
