@@ -23,6 +23,7 @@ export {
     dismissCurrentError,
     loadList,
     fetchCurrentList,
+    exportCurrentList,
     openEditPage,
 } from './list';
 
