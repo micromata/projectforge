@@ -52,26 +52,6 @@ object TimeAgo {
   const val MONTH = 30 * DAY
   const val YEAR = 365 * DAY
 
-  fun getI18nKey(date: Date): Pair<String, Long> {
-    val seconds = (System.currentTimeMillis() - date.time) / 1000
-    when {
-      seconds < 0 -> return Pair("timeago.inthefuture", -1)
-      seconds > 2 * YEAR -> return Pair("timeago.years", seconds / YEAR)
-      seconds > YEAR -> return Pair("timeago.ayear", -1)
-      seconds > 40 * DAY -> return Pair("timeago.months", seconds / MONTH)
-      seconds > MONTH -> return Pair("timeago.amonth", -1)
-      seconds > 2 * WEEK -> return Pair("timeago.weeks", seconds / WEEK)
-      seconds > WEEK -> return Pair("timeago.aweek", -1)
-      seconds > 2 * DAY -> return Pair("timeago.days", seconds / DAY)
-      seconds > DAY -> return Pair("timeago.yesterday", -1)
-      seconds > 2 * HOUR -> return Pair("timeago.hours", seconds / HOUR)
-      seconds > HOUR -> return Pair("timeago.anhour", -1)
-      seconds > 2 * MINUTE -> return Pair("timeago.minutes", seconds / MINUTE)
-      seconds > MINUTE -> return Pair("timeago.aminute", -1)
-      else -> return Pair("timeago.afewseconds", -1)
-    }
-  }
-
   fun getMessage(date: Date?, locale: Locale? = null): String {
     date ?: return ""
     val pair = getI18nKey(date)
@@ -79,5 +59,25 @@ object TimeAgo {
       translate(locale, pair.first)
     else
       translateMsg(locale, pair.first, pair.second)
+  }
+
+  internal fun getI18nKey(date: Date): Pair<String, Long> {
+    val seconds = (System.currentTimeMillis() - date.time) / 1000
+    return when {
+      seconds < 0 -> Pair("timeago.inthefuture", -1)
+      seconds > 2 * YEAR -> Pair("timeago.years", seconds / YEAR)
+      seconds > YEAR -> Pair("timeago.ayear", -1)
+      seconds > 40 * DAY -> Pair("timeago.months", seconds / MONTH)
+      seconds > MONTH -> Pair("timeago.amonth", -1)
+      seconds > 2 * WEEK -> Pair("timeago.weeks", seconds / WEEK)
+      seconds > WEEK -> Pair("timeago.aweek", -1)
+      seconds > 2 * DAY -> Pair("timeago.days", seconds / DAY)
+      seconds > DAY -> Pair("timeago.yesterday", -1)
+      seconds > 2 * HOUR -> Pair("timeago.hours", seconds / HOUR)
+      seconds > HOUR -> Pair("timeago.anhour", -1)
+      seconds > 2 * MINUTE -> Pair("timeago.minutes", seconds / MINUTE)
+      seconds > MINUTE -> Pair("timeago.aminute", -1)
+      else -> Pair("timeago.afewseconds", -1)
+    }
   }
 }
