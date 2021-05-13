@@ -52,13 +52,22 @@ object TimeAgo {
   const val MONTH = 30 * DAY
   const val YEAR = 365 * DAY
 
+  /**
+   * @param date Date in the past to compare with now. For future dates, a message will be returned: 'in the future!'
+   * @param locale Locale to use for translation.
+   * @return Time ago message or an empty string, if no date was given.
+   */
+  @JvmStatic
   fun getMessage(date: Date?, locale: Locale? = null): String {
     date ?: return ""
     val pair = getI18nKey(date)
-    return if (pair.second < 0)
+    return if (pair.second < 0) {
+      // Translates the i18n key:
       translate(locale, pair.first)
-    else
+    } else {
+      // Translates the message using the i18n key with parameter pair.second:
       translateMsg(locale, pair.first, pair.second)
+    }
   }
 
   internal fun getI18nKey(date: Date): Pair<String, Long> {
