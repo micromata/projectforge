@@ -129,6 +129,25 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
             )
         )
     )
+    if (hasEditAccess(dto, dbObj)) {
+      fieldSet.add(
+        UIRow().add(
+          UICol(UILength(md = 8))
+            .add(UIReadOnlyField("externalLink", label = "plugins.datatransfer.external.link", canCopy = true))
+        )
+          .add(
+            UICol(UILength(md = 4))
+              .add(
+                UIReadOnlyField(
+                  "externalPassword",
+                  label = "plugins.datatransfer.external.password",
+                  canCopy = true,
+                  coverUp = true
+                )
+              )
+          )
+      )
+    }
     fieldSet.add(
       UIRow().add(
         UICol(UILength(md = 8))
@@ -181,7 +200,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
     layout.add(fieldSet)
 
-    if (dto.personalBox != true && dataTransferAreaDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)) {
+    if (hasEditAccess(dto, dbObj)) {
       layout.add(
         MenuItem(
           "EDIT",
@@ -241,11 +260,19 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     return dto.observers?.any { it.id == user.id } ?: false
   }
 
+  /**
+   * @return true, if the area isn't a personal box and the user has write access.
+   */
+  private fun hasEditAccess(dto: DataTransferArea, dbObj: DataTransferAreaDO): Boolean {
+    return dto.personalBox != true && dataTransferAreaDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)
+  }
 
   private fun convertData(id: Int): Pair<DataTransferAreaDO, DataTransferArea> {
     val dbObj = dataTransferAreaDao.getById(id)
     val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService, userService)
-    dto.externalPassword = null
+    if (!hasEditAccess(dto, dbObj)) {
+      dto.externalPassword = null
+    }
     dto.attachments = attachmentsService.getAttachments(
       dataTransferAreaPagesRest.jcrPath!!,
       id,

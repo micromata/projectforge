@@ -87,8 +87,9 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     checkAccess.second?.let {
       return getLoginFailed(response, it)
     }
+    val dbo = checkAccess.first!!
     val data = DataTransferPublicArea()
-    data.copyFrom(checkAccess.first!!)
+    data.copyFrom(dbo)
     data.attachments = attachmentsAccessChecker.filterAttachments(
       request, data.externalDownloadEnabled,
       attachmentsService.getAttachments(
@@ -132,6 +133,12 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     )
     val layout = UILayout("plugins.datatransfer.title.heading")
       .add(fieldSet)
+      .addAction(UIButton("refresh",
+        translate("refresh"),
+        UIColor.SUCCESS,
+        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java, "login"), targetType = TargetType.POST),
+        default = true)
+      )
     LayoutUtils.process(layout)
     return layout
   }
