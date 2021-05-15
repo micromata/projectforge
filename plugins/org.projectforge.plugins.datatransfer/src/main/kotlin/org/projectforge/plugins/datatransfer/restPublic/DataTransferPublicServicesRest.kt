@@ -24,6 +24,7 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
+import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileInfo
@@ -90,7 +91,7 @@ class DataTransferPublicServicesRest {
         )
       }'."
     }
-    val checkResult = checkAccess(request, category, accessString, userInfo)
+    val checkResult = checkAccess(request, category, id, accessString, userInfo)
     checkResult.second?.let { return it }
     val result =
       attachmentsService.getAttachmentInputStream(
@@ -139,7 +140,7 @@ class DataTransferPublicServicesRest {
       }'."
     }
 
-    checkAccess(request, category, accessString, userInfo).second?.let { return it }
+    checkAccess(request, category, id, accessString, userInfo).second?.let { return it }
 
     val obj = dataTransferAreaDao.internalGetById(id)
       ?: throw TechnicalException(
@@ -177,6 +178,7 @@ class DataTransferPublicServicesRest {
   private fun checkAccess(
     request: HttpServletRequest,
     category: String,
+    id: Int,
     accessString: String?,
     userInfo: String?
   ): Pair<DataTransferAreaDO?, ResponseEntity<String>?> {
@@ -199,6 +201,15 @@ class DataTransferPublicServicesRest {
         null, ResponseEntity.badRequest()
           .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
           .body(it)
+      )
+    }
+    val dbo = checkAccess.first!!
+    if (dbo.id != id) {
+      log.warn { "User tries to use data transfer area by id different from access token!!!" }
+      return Pair(
+        null, ResponseEntity.badRequest()
+          .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
+          .body(LoginResultStatus.FAILED.localizedMessage)
       )
     }
     return Pair(checkAccess.first, null)
