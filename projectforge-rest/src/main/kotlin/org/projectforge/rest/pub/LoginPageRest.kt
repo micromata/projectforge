@@ -36,6 +36,7 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.login.LoginHandlerService
@@ -48,7 +49,6 @@ import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.*
 import org.projectforge.web.rest.AbstractRestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.web.bind.annotation.*
 import java.net.URLDecoder
 import javax.servlet.ServletRequest
@@ -79,8 +79,27 @@ open class LoginPageRest {
   private lateinit var loginHandlerService: LoginHandlerService
 
   @GetMapping("dynamic")
-  fun getForm(@RequestParam url: String? = null): FormLayoutData {
-    return FormLayoutData(null, this.getLoginLayout(), ServerData(returnToCaller = url))
+  fun getForm(
+    request: HttpServletRequest,
+    @RequestParam url: String? = null
+  ): FormLayoutData {
+    val form = if (UserFilter.getUserContext(request) != null) {
+      // User is already logged-in:
+      UILayout("login.title")
+        .add(
+          UIAlert(
+            translate(ThreadLocalUserContext.getLocale(), "login.successful"),
+            color = UIColor.INFO,
+            icon = UIIconType.INFO
+          )
+        )
+      // Translation can't be done automatically, because the user isn't set here in ThreadLocalUserContext, because this
+      // is a public page!
+      // (The thread local user isn't set, but the locale should be set by LocaleFilter in ThreadUserLocalContext.)
+    } else {
+      this.getLoginLayout()
+    }
+    return FormLayoutData(null, form, ServerData(returnToCaller = url))
   }
 
   @PostMapping
