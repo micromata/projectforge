@@ -183,11 +183,9 @@ class DataTransferPublicServicesRest {
     userInfo: String?
   ): Pair<DataTransferAreaDO?, ResponseEntity<String>?> {
     check(category == "datatransfer")
-    check(accessString?.contains('|') == true)
-    val credentials = accessString!!.split('|')
-    check(credentials.size == 2)
-    val externalAccessToken = credentials[0]
-    val externalPassword = credentials[1]
+    val credentials = splitAccessString(accessString)
+    val externalAccessToken = credentials.first
+    val externalPassword = credentials.second
     val checkAccess =
       attachmentsAccessChecker.checkExternalAccess(
         dataTransferAreaDao,
@@ -217,5 +215,14 @@ class DataTransferPublicServicesRest {
 
   private fun getExternalUserString(request: HttpServletRequest, userString: String?): String {
     return "external: ${RestUtils.getClientIp(request)} ('${userString?.take(255)}')"
+  }
+
+  companion object {
+    internal fun splitAccessString(accessString: String?): Pair<String, String> {
+      check(accessString?.contains('|') == true)
+      val credentials = accessString!!.split('|')
+      check(credentials.size == 2)
+      return Pair(credentials[0], credentials[1])
+    }
   }
 }

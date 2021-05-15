@@ -29,6 +29,7 @@ import org.projectforge.framework.jcr.AttachmentsService
  * List of attachments including upload, download and remove functionality.
  * See DynamicAttachmentList.jsx for usage.
  */
+@Suppress("unused")
 class UIAttachmentList(
   /**
    * Simply use [org.projectforge.rest.core.AbstractPagesRest.category] if using in pages rest. Otherwise
@@ -55,6 +56,10 @@ class UIAttachmentList(
    */
   val serviceBaseUrl: String? = null,
   /**
+   * Url called if the user presses the reload button (for reloading list of attachments).
+   */
+  val reloadUrl: String? = null,
+  /**
    * Used by data transfer tool for using public rest api.
    */
   val restBaseUrl: String? = null,
@@ -75,4 +80,9 @@ class UIAttachmentList(
    */
   val uploadDisabled: Boolean? = null
 ) :
-  UIElement(type = UIElementType.ATTACHMENT_LIST)
+  UIElement(type = UIElementType.ATTACHMENT_LIST) {
+  /**
+   * Used as post body for reloading attachment list.
+   */
+  class ReloadData(var accessString: String?, var userInfo: String?)
+}
