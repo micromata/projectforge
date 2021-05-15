@@ -77,7 +77,7 @@ public class UserFilter implements Filter {
   @Override
   public void init(final FilterConfig filterConfig) throws ServletException {
     WebApplicationContext springContext = WebApplicationContextUtils
-            .getRequiredWebApplicationContext(filterConfig.getServletContext());
+        .getRequiredWebApplicationContext(filterConfig.getServletContext());
     final AutowireCapableBeanFactory beanFactory = springContext.getAutowireCapableBeanFactory();
     beanFactory.autowireBean(this);
     CONTEXT_PATH = filterConfig.getServletContext().getContextPath();
@@ -102,7 +102,13 @@ public class UserFilter implements Filter {
    * @param userContext
    */
   public static void login(final HttpServletRequest request, final UserContext userContext) {
-    final HttpSession session = request.getSession();
+    // Session Fixation: Change JSESSIONID after login (due to security reasons / XSS attack on login page)
+    HttpSession session = request.getSession(false);
+    if (session != null && !session.isNew()) {
+      session.invalidate();
+    }
+    session = request.getSession(true); // create the session
+    // do the login (store the user in the session, or whatever)
     session.setAttribute(SESSION_KEY_USER, userContext);
   }
 
@@ -149,7 +155,7 @@ public class UserFilter implements Filter {
 
   @Override
   public void doFilter(final ServletRequest req, final ServletResponse resp, final FilterChain chain)
-          throws IOException, ServletException {
+      throws IOException, ServletException {
     HttpServletRequest request = (HttpServletRequest) req;
     if (log.isDebugEnabled()) {
       log.debug("doFilter " + request.getRequestURI() + ": " + request.getSession().getId());
@@ -183,17 +189,17 @@ public class UserFilter implements Filter {
             if (cookies != null) {
               for (final Cookie cookie : cookies) {
                 log.debug("Cookie found: "
-                        + cookie.getName()
-                        + ", path="
-                        + cookie.getPath()
-                        + ", value="
-                        + cookie.getValue()
-                        + ", secure="
-                        + cookie.getVersion()
-                        + ", maxAge="
-                        + cookie.getMaxAge()
-                        + ", domain="
-                        + cookie.getDomain());
+                    + cookie.getName()
+                    + ", path="
+                    + cookie.getPath()
+                    + ", value="
+                    + cookie.getValue()
+                    + ", secure="
+                    + cookie.getVersion()
+                    + ", maxAge="
+                    + cookie.getMaxAge()
+                    + ", domain="
+                    + cookie.getDomain());
               }
             }
           }

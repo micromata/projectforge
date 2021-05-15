@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import mu.KotlinLogging
 import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
@@ -38,14 +39,14 @@ import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+private val log = KotlinLogging.logger {}
+
 /**
  * This rest service should be available without login (public).
  */
 @RestController
 @RequestMapping("${Rest.URL}/logout")
 open class LogoutRest {
-    private val log = org.slf4j.LoggerFactory.getLogger(LogoutRest::class.java)
-
     @Autowired
     private lateinit var cookieService: CookieService
 
@@ -75,6 +76,9 @@ open class LogoutRest {
         }
         if (stayLoggedInCookie != null) {
             response.addCookie(stayLoggedInCookie)
+        }
+        if (user != null) {
+            log.info("User successfully logged out: ${user.username}")
         }
         return ResponseAction(url = "/${RestResolver.REACT_PUBLIC_PATH}/login", targetType = TargetType.CHECK_AUTHENTICATION)
     }
