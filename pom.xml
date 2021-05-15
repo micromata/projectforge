@@ -230,7 +230,7 @@
     <spring.boot.version>2.4.4</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
     <wicket.version>7.18.0</wicket.version>
     <wicket-stuff.version>7.17.0</wicket-stuff.version>
-    <micromata.merlin-core.version>1.1.10</micromata.merlin-core.version>
+    <micromata.merlin-core.version>1.1.11</micromata.merlin-core.version>
 
     <javax.jsp-api.version>2.3.3</javax.jsp-api.version>
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
