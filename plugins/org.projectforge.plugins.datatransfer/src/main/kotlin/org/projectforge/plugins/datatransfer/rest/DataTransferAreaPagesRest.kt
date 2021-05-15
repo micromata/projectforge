@@ -130,9 +130,14 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
           .add(UITableColumn("maxUploadSizeFormatted", "plugins.datatransfer.maxUploadSize"))
           .add(UITableColumn(
-              "externalAccessEnabled",
-              "plugins.datatransfer.external.access.title"
+              "externalDownloadEnabled",
+              "plugins.datatransfer.external.download.enabled.title"
             ).setStandardBoolean()
+          )
+          .add(UITableColumn(
+            "externalUploadEnabled",
+            "plugins.datatransfer.external.upload.enabled.title"
+          ).setStandardBoolean()
           )
           .add(lc, "expiryDays")
           .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins"))
