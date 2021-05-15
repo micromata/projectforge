@@ -76,6 +76,28 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     val externalAccessToken = postData.data.externalAccessToken
     val externalPassword = postData.data.externalPassword
     val userInfo = postData.data.userInfo
+    return load(request, response, externalAccessToken, externalPassword, userInfo)
+  }
+
+  @PostMapping("reload")
+  fun reload(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @RequestBody postData: PostData<UIAttachmentList.ReloadData>
+  ): ResponseAction {
+    val credentials = DataTransferPublicServicesRest.splitAccessString(postData.data.accessString)
+    val externalAccessToken = credentials.first
+    val externalPassword = credentials.second
+    return load(request, response, externalAccessToken, externalPassword, postData.data.userInfo)
+  }
+
+  private fun load(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    externalAccessToken: String?,
+    externalPassword: String?,
+    userInfo: String?
+  ): ResponseAction {
     val checkAccess =
       attachmentsAccessChecker.checkExternalAccess(
         dataTransferAreaDao,
@@ -105,6 +127,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
       .addVariable("data", data)
   }
 
+
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") externalAccessToken: String?): FormLayoutData {
     val dataTransfer = DataTransferPublicArea()
@@ -124,6 +147,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
             dataTransfer.id,
             //serviceBaseUrl = "/${RestResolver.REACT_PUBLIC_PATH}/datatransferattachment/dynamic",
             restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",
+            reloadUrl = RestResolver.getRestUrl(this::class.java, "reload"),
             accessString = "${dataTransfer.externalAccessToken}|${dataTransfer.externalPassword}",
             userInfo = "${dataTransfer.userInfo}",
             downloadOnRowClick = true,
@@ -133,12 +157,6 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     )
     val layout = UILayout("plugins.datatransfer.title.heading")
       .add(fieldSet)
-      .addAction(UIButton("refresh",
-        translate("refresh"),
-        UIColor.SUCCESS,
-        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java, "login"), targetType = TargetType.POST),
-        default = true)
-      )
     LayoutUtils.process(layout)
     return layout
   }
@@ -206,5 +224,4 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     LayoutUtils.process(layout)
     return layout
   }
-
 }
