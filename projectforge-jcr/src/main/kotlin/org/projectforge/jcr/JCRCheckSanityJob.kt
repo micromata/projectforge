@@ -69,7 +69,7 @@ open class JCRCheckSanityJob {
           if (repoChecksum != null && repoChecksum.length > 10) {
             log.info { "Checking checksum of file '${fileObject.fileName}' (${FormatterUtils.formatBytes(fileObject.size)})..." }
             val checksum =
-              repoService.getFileInputStream(fileNode, fileObject, true)
+              repoService.getFileInputStream(fileNode, fileObject, true, useEncryptedFile = true)
                 .use { istream -> RepoService.checksum(istream) }
             if (!validateChecksum(checksum, repoChecksum)) {
               val msg =

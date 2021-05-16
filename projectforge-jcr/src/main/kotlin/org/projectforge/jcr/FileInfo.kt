@@ -51,6 +51,10 @@ open class FileInfo(
    * The checksum of the file, e. g.: (SHA256).
    */
   var checksum: String? = null,
+  /**
+   * The password isn't stored anywhere. If true, a password to decrypt is required for download.
+   */
+  var isCrypted: Boolean? = false,
   fileSize: Long? = null
 ) {
   /**
