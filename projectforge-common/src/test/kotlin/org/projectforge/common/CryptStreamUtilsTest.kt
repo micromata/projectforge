@@ -25,15 +25,12 @@ package org.projectforge.common
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.framework.utils.Crypt.encrypt
-import org.projectforge.framework.utils.Crypt.decrypt
-import org.projectforge.framework.utils.CryptStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 
-class CryptStreamTest {
+class CryptStreamUtilsTest {
   @Test
   fun encryptionTest() {
     val result = checkFile("pom.xml")
@@ -41,7 +38,7 @@ class CryptStreamTest {
     val decrypted = result.second
     Assertions.assertFalse(String(encrypted).contains("<artifactId>projectforge-common</artifactId>"))
     Assertions.assertTrue(String(decrypted).contains("<artifactId>projectforge-common</artifactId>"))
-    
+
     checkFile("../doc/misc/ForecastExportProbabilities.xlsx")
   }
 
