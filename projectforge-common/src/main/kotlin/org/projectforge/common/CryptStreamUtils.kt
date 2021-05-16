@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.utils
+package org.projectforge.common
 
 import mu.KotlinLogging
 import java.io.BufferedInputStream
@@ -37,13 +37,14 @@ import javax.crypto.spec.SecretKeySpec
 private val log = KotlinLogging.logger {}
 
 /**
- * Encrypts and decrypts streams.
+ * Encrypts and decrypts streams by using AES.
  * @author Kai Reinhard
  */
 object CryptStream {
   @JvmStatic
   @JvmOverloads
   fun encrypt(inStream: InputStream, outStream: OutputStream, password: String, salt: String = STANDARD_SALT) {
+    // https://www.baeldung.com/java-cipher-input-output-stream
     val secretKey = generateAESKey(password, salt)
     val cipher = createCipher()
     cipher.init(Cipher.ENCRYPT_MODE, secretKey)
@@ -59,6 +60,7 @@ object CryptStream {
   @JvmStatic
   @JvmOverloads
   fun decrypt(inStream: InputStream, outStream: OutputStream, password: String, salt: String = STANDARD_SALT) {
+    // https://www.baeldung.com/java-cipher-input-output-stream
     val fileIv = ByteArray(16)
     inStream.read(fileIv)
     val secretKey = generateAESKey(password, salt)
@@ -87,5 +89,5 @@ object CryptStream {
    * The salt avoids comparison of encrypted passwords with pre-calculated rainbow tables. You may use this
    * salt as standard.
    */
-  const val STANDARD_SALT = "dMD15Gaij8FfwQ7n"
+  private const val STANDARD_SALT = "dMD15Gaij8FfwQ7n"
 }
