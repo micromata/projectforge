@@ -25,10 +25,8 @@ package org.projectforge.common
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileInputStream
+import java.io.*
+import java.lang.IllegalArgumentException
 
 class CryptStreamUtilsTest {
   @Test
@@ -40,16 +38,23 @@ class CryptStreamUtilsTest {
     Assertions.assertTrue(String(decrypted).contains("<artifactId>projectforge-common</artifactId>"))
 
     checkFile("../doc/misc/ForecastExportProbabilities.xlsx")
+
+    Assertions.assertFalse(CryptStreamUtils.wasWrongPassword(IllegalArgumentException("some other error")))
   }
 
   private fun checkFile(file: String): Pair<ByteArray, ByteArray> {
     var outStream = ByteArrayOutputStream()
-    CryptStream.encrypt(FileInputStream(file), outStream, "myPassword")
+    CryptStreamUtils.encrypt(FileInputStream(file), outStream, "myPassword")
     val encrypted = outStream.toByteArray()
     outStream = ByteArrayOutputStream()
-    CryptStream.decrypt(ByteArrayInputStream(encrypted), outStream, "myPassword")
+    CryptStreamUtils.decrypt(ByteArrayInputStream(encrypted), outStream, "myPassword")
     val decrypted = outStream.toByteArray()
     Assertions.assertArrayEquals(File(file).readBytes(), decrypted)
+    outStream = ByteArrayOutputStream()
+    val ex = Assertions.assertThrows(IllegalArgumentException::class.java) {
+      CryptStreamUtils.decrypt(ByteArrayInputStream(encrypted), outStream, "wrongPassword")
+    }
+    Assertions.assertTrue(CryptStreamUtils.wasWrongPassword(ex))
     return Pair(encrypted, decrypted)
   }
 }

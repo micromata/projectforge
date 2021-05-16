@@ -157,7 +157,7 @@ open class RepoBackupService {
           log.info { "Ignore path=${fileNode.path} as configured." }
           return
         }
-        val content = repoService.getFileContent(fileNode, fileObject)
+        val content = repoService.getFileContent(fileNode, fileObject, useEncryptedFile = true)
         if (content != null) {
           val fileName = PFJcrUtils.createSafeFilename(fileObject)
           zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, fileNode.path, fileName))
