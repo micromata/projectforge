@@ -233,7 +233,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
 
     private fun encryptToken(token: String): String {
         //val authenticationToken: String = StringUtils.rightPad(token, 32, "x")
-        return Crypt.encrypt(authenticationTokenEncryptionKey, token)
+        return Crypt.encrypt(authenticationTokenEncryptionKey, token)!!
     }
 
     open fun decryptToken(token: String?): String? {
