@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.utils
 
+import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.slf4j.LoggerFactory
@@ -36,12 +37,13 @@ import javax.crypto.BadPaddingException
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 
+private val log = KotlinLogging.logger {}
+
 /**
  * @author Wolfgang Jung (W.Jung@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object Crypt {
-  private val log = LoggerFactory.getLogger(Crypt::class.java)
   private const val CRYPTO_ALGORITHM = "AES/ECB/PKCS5Padding"
   private var initialized = false
 
