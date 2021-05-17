@@ -23,22 +23,29 @@
 
 package org.projectforge.plugins.datatransfer.rest
 
+import de.micromata.merlin.utils.ReplaceUtils
 import mu.KotlinLogging
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.jcr.FileInfo
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.NotificationMailService
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
@@ -46,8 +53,12 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
+
 
 private val log = KotlinLogging.logger {}
 
@@ -67,7 +78,52 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
   private lateinit var groupService: GroupService
 
   @Autowired
+  private lateinit var notificationMailService: NotificationMailService
+
+  @Autowired
   private lateinit var userService: UserService
+
+  @GetMapping("downloadAll/{id}")
+  fun downloadAll(
+    @PathVariable("id", required = true) id: Int,
+    response: HttpServletResponse
+  ) {
+    val pair = convertData(id)
+    val dbObj = pair.first
+    val dto = pair.second
+    response.status = HttpServletResponse.SC_OK
+    val filename = ReplaceUtils.encodeFilename("${dto.areaName}_${PFDay.now().isoString}.zip")
+    RestUtils.setContentDisposition(response, "$filename")
+    val zipOutputStream = ZipOutputStream(response.outputStream)
+    val attachments = dto.attachments
+    if (attachments == null) {
+      zipOutputStream.putNextEntry(ZipEntry("empty.txt"))
+      zipOutputStream.write("Area is empty. Thank you for using ProjectForge!".toByteArray())
+      zipOutputStream.closeEntry()
+    } else {
+      for (attachment in attachments) {
+        zipOutputStream.putNextEntry(ZipEntry(attachment.name))
+        val result = attachmentsService.getAttachmentInputStream(
+          dataTransferAreaPagesRest.jcrPath!!,
+          id,
+          attachment.fileId!!,
+          dataTransferAreaPagesRest.attachmentsAccessChecker
+        ) ?: continue
+        result.second.use {
+          it.copyTo(zipOutputStream)
+        }
+        zipOutputStream.closeEntry()
+      }
+    }
+    zipOutputStream.close()
+    notificationMailService.sendMail(
+      AttachmentsEventType.DOWNLOAD_ALL,
+      FileInfo(translate("plugins.datatransfer.mail.action.DOWNLOAD_ALL.filename")),
+      dbObj,
+      ThreadLocalUserContext.getUser(),
+      null
+    )
+  }
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
@@ -90,6 +146,21 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
             DataTransferAreaPagesRest::class.java,
             absolute = true
           ), targetType = TargetType.REDIRECT
+        ),
+        default = true
+      )
+    )
+    layout.add(
+      UIButton(
+        "downloadAll",
+        translate("plugins.datatransfer.button.downloadAll"),
+        UIColor.LINK,
+        tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
+        responseAction = ResponseAction(
+          RestResolver.getRestUrl(
+            this.javaClass,
+            "downloadAll/$id"
+          ), targetType = TargetType.DOWNLOAD
         ),
         default = true
       )
