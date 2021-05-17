@@ -44,6 +44,7 @@ import javax.servlet.FilterRegistration
 import javax.servlet.ServletContext
 import javax.servlet.ServletRequest
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -136,6 +137,10 @@ object RestUtils {
       .contentType(getDownloadContentType())
       .header(HttpHeaders.CONTENT_DISPOSITION, getDownloadContentDisposition(filename))
       .body(resource)
+  }
+
+  fun setContentDisposition(response: HttpServletResponse, filename: String) {
+    response.addHeader(HttpHeaders.CONTENT_DISPOSITION, getDownloadContentDisposition(filename))
   }
 
   private fun getDownloadContentType(): MediaType {
