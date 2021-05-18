@@ -36,9 +36,11 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.NotificationMailService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
@@ -47,7 +49,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
+
 
 private val log = KotlinLogging.logger {}
 
@@ -67,7 +71,32 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
   private lateinit var groupService: GroupService
 
   @Autowired
+  private lateinit var notificationMailService: NotificationMailService
+
+  @Autowired
   private lateinit var userService: UserService
+
+  @GetMapping("downloadAll/{id}")
+  fun downloadAll(
+    @PathVariable("id", required = true) id: Int,
+    response: HttpServletResponse
+  ) {
+    val pair = convertData(id)
+    val dbObj = pair.first
+    val dto = pair.second
+    DataTransferlUtils.downloadAll(
+      response,
+      attachmentsService,
+      dataTransferAreaPagesRest.attachmentsAccessChecker,
+      notificationMailService,
+      dbObj,
+      dto.areaName,
+      jcrPath = dataTransferAreaPagesRest.jcrPath!!,
+      id,
+      dto.attachments,
+      byUser = ThreadLocalUserContext.getUser()
+    )
+  }
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
@@ -90,6 +119,21 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
             DataTransferAreaPagesRest::class.java,
             absolute = true
           ), targetType = TargetType.REDIRECT
+        ),
+        default = true
+      )
+    )
+    layout.add(
+      UIButton(
+        "downloadAll",
+        translate("plugins.datatransfer.button.downloadAll"),
+        UIColor.LINK,
+        tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
+        responseAction = ResponseAction(
+          RestResolver.getRestUrl(
+            this.javaClass,
+            "downloadAll/$id"
+          ), targetType = TargetType.DOWNLOAD
         ),
         default = true
       )
@@ -129,6 +173,25 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
             )
         )
     )
+    if (hasEditAccess(dto, dbObj)) {
+      fieldSet.add(
+        UIRow().add(
+          UICol(UILength(md = 8))
+            .add(UIReadOnlyField("externalLink", label = "plugins.datatransfer.external.link", canCopy = true))
+        )
+          .add(
+            UICol(UILength(md = 4))
+              .add(
+                UIReadOnlyField(
+                  "externalPassword",
+                  label = "plugins.datatransfer.external.password",
+                  canCopy = true,
+                  coverUp = true
+                )
+              )
+          )
+      )
+    }
     fieldSet.add(
       UIRow().add(
         UICol(UILength(md = 8))
@@ -181,7 +244,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
     layout.add(fieldSet)
 
-    if (dto.personalBox != true && dataTransferAreaDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)) {
+    if (hasEditAccess(dto, dbObj)) {
       layout.add(
         MenuItem(
           "EDIT",
@@ -241,11 +304,19 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     return dto.observers?.any { it.id == user.id } ?: false
   }
 
+  /**
+   * @return true, if the area isn't a personal box and the user has write access.
+   */
+  private fun hasEditAccess(dto: DataTransferArea, dbObj: DataTransferAreaDO): Boolean {
+    return dto.personalBox != true && dataTransferAreaDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)
+  }
 
   private fun convertData(id: Int): Pair<DataTransferAreaDO, DataTransferArea> {
     val dbObj = dataTransferAreaDao.getById(id)
     val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService, userService)
-    dto.externalPassword = null
+    if (!hasEditAccess(dto, dbObj)) {
+      dto.externalPassword = null
+    }
     dto.attachments = attachmentsService.getAttachments(
       dataTransferAreaPagesRest.jcrPath!!,
       id,

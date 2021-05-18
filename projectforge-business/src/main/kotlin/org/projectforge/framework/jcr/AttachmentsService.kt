@@ -228,6 +228,7 @@ open class AttachmentsService {
   /**
    * @param path Unique path of data object.
    * @param id Id of data object.
+   * @param password Optional password for encryption. The password will not be stored in any kind!
    */
   @JvmOverloads
   open fun addAttachment(
@@ -237,13 +238,24 @@ open class AttachmentsService {
     content: ByteArray,
     enableSearchIndex: Boolean,
     accessChecker: AttachmentsAccessChecker,
-    subPath: String? = null
+    subPath: String? = null,
+    password: String? = null,
   ): Attachment {
-    return addAttachment(path, id, fileInfo, content.inputStream(), enableSearchIndex, accessChecker, subPath)
+    return addAttachment(
+      path,
+      id,
+      fileInfo,
+      content.inputStream(),
+      enableSearchIndex,
+      accessChecker,
+      subPath = subPath,
+      password = password
+    )
   }
 
   /**
    * @param path Unique path of data object.
+   * @param password Optional password for encryption. The password will not be stored in any kind!
    */
   @JvmOverloads
   open fun addAttachment(
@@ -253,15 +265,26 @@ open class AttachmentsService {
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
     accessChecker: AttachmentsAccessChecker,
-    subPath: String? = null
+    subPath: String? = null,
+    password: String? = null,
   )
       : Attachment {
-    return addAttachment(path, fileInfo, content.inputStream(), baseDao, obj, accessChecker, subPath)
+    return addAttachment(
+      path,
+      fileInfo,
+      content.inputStream(),
+      baseDao,
+      obj,
+      accessChecker,
+      subPath = subPath,
+      password = password
+    )
   }
 
   /**
    * @param path Unique path of data object.
    * @param id Id of data object.
+   * @param password Optional password for encryption. The password will not be stored in any kind!
    */
   @JvmOverloads
   open fun addAttachment(
@@ -272,6 +295,7 @@ open class AttachmentsService {
     enableSearchIndex: Boolean,
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null,
+    password: String? = null,
     /**
      * Only for external users. Otherwise logged in user will be assumed.
      */
@@ -285,18 +309,21 @@ open class AttachmentsService {
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
     repoService.ensureNode(null, getPath(path, id))
     val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileInfo = fileInfo)
+    fileObject.isCrypted = !password.isNullOrBlank()
     repoService.storeFile(
       fileObject,
       inputStream,
       accessChecker.fileSizeChecker,
       userString ?: ThreadLocalUserContext.getUserId()!!.toString(),
-      data
+      data,
+      password = password
     )
     return asAttachment(fileObject)
   }
 
   /**
    * @param path Unique path of data object.
+   * @param password Optional password for encryption. The password will not be stored in any kind!
    */
   @JvmOverloads
   open fun addAttachment(
@@ -307,6 +334,7 @@ open class AttachmentsService {
     obj: ExtendedBaseDO<Int>,
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null,
+    password: String? = null,
     /**
      * Only for external users. Otherwise logged in user will be assumed.
      */
@@ -322,7 +350,7 @@ open class AttachmentsService {
       }
     }
     val attachment =
-      addAttachment(path, obj.id, fileInfo, inputStream, false, accessChecker, subPath, userString, obj)
+      addAttachment(path, obj.id, fileInfo, inputStream, false, accessChecker, subPath, password, userString, obj)
     updateAttachmentsInfo(
       path,
       baseDao,

@@ -26,7 +26,6 @@ package org.projectforge.jcr
 import com.fasterxml.jackson.annotation.JsonIgnore
 import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
-import java.util.*
 import javax.jcr.Node
 
 private val log = KotlinLogging.logger {}
@@ -81,6 +80,7 @@ class FileObject(): FileInfo() {
     fileId = node.name
     size = PFJcrUtils.getProperty(node, RepoService.PROPERTY_FILESIZE)?.long
     checksum = PFJcrUtils.getProperty(node, RepoService.PROPERTY_CHECKSUM)?.string
+    isCrypted = PFJcrUtils.getProperty(node, RepoService.PROPERTY_IS_CRYPTED)?.boolean == true
     if (log.isDebugEnabled) {
       log.debug { "Restoring: ${PFJcrUtils.toJson(this)}" }
     }
@@ -96,6 +96,7 @@ class FileObject(): FileInfo() {
     node.setProperty(RepoService.PROPERTY_CREATED_BY_USER, createdByUser ?: "")
     node.setProperty(RepoService.PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString(lastUpdate) ?: "")
     node.setProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER, lastUpdateByUser ?: "")
+    node.setProperty(RepoService.PROPERTY_IS_CRYPTED, isCrypted == true)
     setChecksum(node, checksum)
     size?.let { node.setProperty(RepoService.PROPERTY_FILESIZE, it) }
     log.info { "Storing file info: ${PFJcrUtils.toJson(this)}" }
@@ -137,7 +138,7 @@ class FileObject(): FileInfo() {
   var relPath: String? = null
 
   override fun toString(): String {
-    return "location=[$location],id=[$fileId],fileName=[$fileName],size=[${FormatterUtils.formatBytes(size)}]"
+    return "location=[$location],id=[$fileId],fileName=[$fileName],size=[${FormatterUtils.formatBytes(size)}],isCypted=[${isCrypted == true}]"
   }
 
   companion object {

@@ -29,8 +29,8 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.SessionCsrfCache
 import org.projectforge.ui.ValidationError
 import org.springframework.core.io.ByteArrayResource
-import org.springframework.core.io.Resource
 import org.springframework.core.io.InputStreamResource
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -44,6 +44,7 @@ import javax.servlet.FilterRegistration
 import javax.servlet.ServletContext
 import javax.servlet.ServletRequest
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -138,12 +139,16 @@ object RestUtils {
       .body(resource)
   }
 
+  fun setContentDisposition(response: HttpServletResponse, filename: String) {
+    response.addHeader(HttpHeaders.CONTENT_DISPOSITION, getDownloadContentDisposition(filename))
+  }
+
   private fun getDownloadContentType(): MediaType {
     return MediaType.parseMediaType("application/octet-stream")
   }
 
   private fun getDownloadContentDisposition(filename: String): String {
-    val encodedFileName = URLEncoder.encode(filename, StandardCharsets.UTF_8.name())
+    val encodedFileName = URLEncoder.encode(filename.trim { it <= ' ' }, StandardCharsets.UTF_8.name())
       .replace("+", "_");
     return "attachment; filename*=UTF-8''$encodedFileName; filename=$encodedFileName"
   }
