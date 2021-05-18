@@ -50,7 +50,7 @@ object ProjectForgeVersion {
     @JvmField
     val SCM_COMMIT_ID_FULL = getGitResource("git.commit.id.full")
     @JvmField
-    val SCM_COMMIT_TIME = getGitResource("git.commit.time", "2020-?git.commit.time?")
+    val SCM_COMMIT_TIME = getGitResource("git.commit.time", "2021-?git.commit.time?")
 
     @JvmField
     val SCM_DIRTY = getGitResource("git.dirty") != "false"

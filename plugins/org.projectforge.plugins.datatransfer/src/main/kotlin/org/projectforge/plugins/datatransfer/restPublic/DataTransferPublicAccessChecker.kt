@@ -49,7 +49,8 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
   fun checkExternalAccess(
     dataTransferAreaDao: DataTransferAreaDao,
     request: HttpServletRequest,
-    externalAccessToken: String?, externalPassword: String?,
+    externalAccessToken: String?,
+    externalPassword: String?,
     userInfo: String?
   ): Pair<DataTransferAreaDO?, String?> {
     if (externalAccessToken == null || externalPassword == null) {

@@ -60,7 +60,7 @@ object PagesResolver {
      */
     fun getBasePageUrl(pagesRestClass: Class<out AbstractPagesRest<*, *, *>>, subPath: String? = null, params: Map<String, Any?>? = null, absolute: Boolean = false): String {
         val path = getRequestMappingPath(pagesRestClass) ?: return "NOT_FOUND"
-        val subPathString = if (subPath != null) "/subPath" else ""
+        val subPathString = if (subPath != null) "/$subPath" else ""
         val prefix = if (absolute) "/" else ""
         return "$prefix$path$subPathString${getQueryString(params)}"
     }

@@ -50,6 +50,9 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
   private lateinit var services: AttachmentsServicesRest
 
   /**
+   * Returns the form for a single attachment, including file properties as well as editable properties such
+   * as file name and description.
+   * The form supports also the buttons: download, delete and update.
    * The react path of this should look like: 'react/attachment/dynamic/42?category=contract...'
    * @param id: Id of data object with attachments.
    */
