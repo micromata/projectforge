@@ -106,6 +106,11 @@ class Attachment() {
      */
     var checksum: String? = null
 
+    /**
+     * The password isn't stored anywhere. If true, a password to decrypt is required for download.
+     */
+    var isCrypted: Boolean? = false
+
     constructor(fileObject: FileObject) : this() {
         this.fileId = fileObject.fileId
         this.name = fileObject.fileName
@@ -116,6 +121,7 @@ class Attachment() {
         this.lastUpdate = fileObject.lastUpdate
         this.lastUpdateByUser = fileObject.lastUpdateByUser
         this.checksum = fileObject.checksum
+        this.isCrypted = fileObject.isCrypted
     }
 
     override fun toString(): String {
