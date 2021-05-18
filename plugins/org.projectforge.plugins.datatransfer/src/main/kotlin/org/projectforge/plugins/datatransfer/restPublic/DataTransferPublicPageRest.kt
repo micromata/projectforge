@@ -23,12 +23,10 @@
 
 package org.projectforge.plugins.datatransfer.restPublic
 
-import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
-import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferlUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
@@ -42,24 +40,19 @@ import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-private val log = KotlinLogging.logger {}
-
 /**
  * For external anonymous usage via token/password.
  */
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/datatransfer")
 class DataTransferPublicPageRest : AbstractDynamicPageRest() {
-  @Autowired
-  private lateinit var attachmentsService: AttachmentsService
-
   private lateinit var attachmentsAccessChecker: DataTransferPublicAccessChecker
 
   @Autowired
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
   @Autowired
-  private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+  private lateinit var dataTransferPublicServicesRest: DataTransferPublicServicesRest
 
   @PostConstruct
   private fun postConstruct() {
@@ -85,7 +78,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     response: HttpServletResponse,
     @RequestBody postData: PostData<UIAttachmentList.ReloadData>
   ): ResponseAction {
-    val credentials = DataTransferPublicServicesRest.splitAccessString(postData.data.accessString)
+    val credentials = DataTransferlUtils.splitAccessString(postData.data.accessString)
     val externalAccessToken = credentials.first
     val externalPassword = credentials.second
     return load(request, response, externalAccessToken, externalPassword, postData.data.userInfo)
@@ -110,23 +103,12 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
       return getLoginFailed(response, it)
     }
     val dbo = checkAccess.first!!
-    val data = DataTransferPublicArea()
-    data.copyFrom(dbo)
-    data.attachments = attachmentsAccessChecker.filterAttachments(
-      request, data.externalDownloadEnabled,
-      attachmentsService.getAttachments(
-        dataTransferAreaPagesRest.jcrPath!!,
-        data.id!!,
-        attachmentsAccessChecker
-      )
-    )
-    data.userInfo = userInfo
+    val data = dataTransferPublicServicesRest.convert(request, dbo, userInfo)
 
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("ui", getAttachmentLayout(data))
       .addVariable("data", data)
   }
-
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") externalAccessToken: String?): FormLayoutData {
@@ -148,7 +130,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
             //serviceBaseUrl = "/${RestResolver.REACT_PUBLIC_PATH}/datatransferattachment/dynamic",
             restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",
             reloadUrl = RestResolver.getRestUrl(this::class.java, "reload"),
-            accessString = "${dataTransfer.externalAccessToken}|${dataTransfer.externalPassword}",
+            accessString = DataTransferlUtils.getAccessString(dataTransfer),
             userInfo = "${dataTransfer.userInfo}",
             downloadOnRowClick = true,
             uploadDisabled = dataTransfer.externalUploadEnabled != true
@@ -157,6 +139,21 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     )
     val layout = UILayout("plugins.datatransfer.title.heading")
       .add(fieldSet)
+    fieldSet.add(
+        UIButton(
+          "downloadAll",
+          translate("plugins.datatransfer.button.downloadAll"),
+          UIColor.LINK,
+          tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
+          responseAction = ResponseAction(
+            RestResolver.getPublicRestUrl(
+              this.javaClass,
+              "downloadAll/datatransfer/${dataTransfer.id}?accessString=${DataTransferlUtils.getAccessString(dataTransfer, true)}"
+            ), targetType = TargetType.DOWNLOAD
+          ),
+          default = true
+        )
+      )
     LayoutUtils.process(layout)
     return layout
   }

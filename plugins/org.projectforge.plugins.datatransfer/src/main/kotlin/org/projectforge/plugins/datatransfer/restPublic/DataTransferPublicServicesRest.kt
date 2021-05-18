@@ -30,7 +30,9 @@ import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileInfo
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.NotificationMailService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferlUtils
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -44,6 +46,7 @@ import org.springframework.web.multipart.MultipartFile
 import java.nio.charset.StandardCharsets
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -61,6 +64,9 @@ class DataTransferPublicServicesRest {
 
   @Autowired
   private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+
+  @Autowired
+  private lateinit var notificationMailService: NotificationMailService
 
   private lateinit var attachmentsAccessChecker: DataTransferPublicAccessChecker
 
@@ -115,6 +121,42 @@ class DataTransferPublicServicesRest {
     val filename = result.first.fileName ?: "file"
     val inputStream = result.second
     return RestUtils.downloadFile(filename, inputStream)
+  }
+
+  @GetMapping("downloadAll/{category}/{id}")
+  fun downloadAll(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @PathVariable("category", required = true) category: String,
+    @PathVariable("id", required = true) id: Int,
+    @RequestParam("accessString") accessString: String?,
+    @RequestParam("userInfo") userInfo: String?
+  ): ResponseEntity<*>? {
+    log.info {
+      "User tries to download all attachments: category=$category, id=$id}, user='${
+        getExternalUserString(
+          request,
+          userInfo
+        )
+      }'."
+    }
+    val checkResult = checkAccess(request, category, id, accessString, userInfo)
+    checkResult.second?.let { return it }
+    val dbObj = checkResult.first!!
+    val dto = convert(request, dbObj, userInfo)
+    DataTransferlUtils.downloadAll(
+      response,
+      attachmentsService,
+      attachmentsAccessChecker,
+      notificationMailService,
+      dbObj,
+      dto.areaName,
+      jcrPath = dataTransferAreaPagesRest.jcrPath!!,
+      id,
+      dto.attachments,
+      byExternalUser = getExternalUserString(request, userInfo)
+    )
+    return null
   }
 
   @PostMapping("upload/{category}/{id}/{listId}")
@@ -183,7 +225,7 @@ class DataTransferPublicServicesRest {
     userInfo: String?
   ): Pair<DataTransferAreaDO?, ResponseEntity<String>?> {
     check(category == "datatransfer")
-    val credentials = splitAccessString(accessString)
+    val credentials = DataTransferlUtils.splitAccessString(accessString)
     val externalAccessToken = credentials.first
     val externalPassword = credentials.second
     val checkAccess =
@@ -217,12 +259,22 @@ class DataTransferPublicServicesRest {
     return "external: ${RestUtils.getClientIp(request)} ('${userString?.take(255)}')"
   }
 
-  companion object {
-    internal fun splitAccessString(accessString: String?): Pair<String, String> {
-      check(accessString?.contains('|') == true)
-      val credentials = accessString!!.split('|')
-      check(credentials.size == 2)
-      return Pair(credentials[0], credentials[1])
-    }
+  internal fun convert(
+    request: HttpServletRequest,
+    dbo: DataTransferAreaDO,
+    userInfo: String?
+  ): DataTransferPublicArea {
+    val dto = DataTransferPublicArea()
+    dto.copyFrom(dbo)
+    dto.attachments = attachmentsAccessChecker.filterAttachments(
+      request, dto.externalDownloadEnabled,
+      attachmentsService.getAttachments(
+        dataTransferAreaPagesRest.jcrPath!!,
+        dto.id!!,
+        attachmentsAccessChecker
+      )
+    )
+    dto.userInfo = userInfo
+    return dto
   }
 }
