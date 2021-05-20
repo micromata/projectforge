@@ -99,7 +99,7 @@ class User(
      * Converts user list to ints (of format supported by [toUserList]).
      */
     fun toIntList(users: List<User>?): String? {
-      return users?.joinToString { "${it.id}" }
+      return users?.filter { it.id != null }?.joinToString { "${it.id}" }
     }
 
     /**

@@ -120,6 +120,7 @@ public class InitTestDB {
     user.setUsername(username);
     user.setLocale(Locale.ENGLISH);
     user.setDateFormat("dd/MM/yyyy");
+    user.setEmail("devnull@localhost");
     if (password != null) {
       userService.createEncryptedPassword(user, password);
     }
@@ -276,33 +277,33 @@ public class InitTestDB {
     PFUserDO user = new PFUserDO();
     user.setUsername(AbstractTestBase.TEST_FINANCE_USER);
     user//
-            .addRight(new UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.FIBU_ACCOUNTS, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)); //
+        .addRight(new UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.FIBU_ACCOUNTS, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)); //
     addUser(user);
     user = new PFUserDO();
     user.setUsername(AbstractTestBase.TEST_HR_USER);
     user//
-            .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.HR_VACATION, UserRightValue.READWRITE)); //
+        .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.HR_VACATION, UserRightValue.READWRITE)); //
     addUser(user);
     user = new PFUserDO();
     user.setUsername(AbstractTestBase.TEST_FULL_ACCESS_USER);
     user//
-            .addRight(new UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.FIBU_ACCOUNTS, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
-            .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)); //
+        .addRight(new UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.FIBU_ACCOUNTS, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)); //
     userService.createEncryptedPassword(user, AbstractTestBase.TEST_FULL_ACCESS_USER_PASSWORD);
     addUser(user);
     addUser(AbstractTestBase.TEST_USER, AbstractTestBase.TEST_USER_PASSWORD);
@@ -323,23 +324,23 @@ public class InitTestDB {
 
   private void initGroups() {
     addGroup(AbstractTestBase.ADMIN_GROUP,
-            new String[]{"PFAdmin", AbstractTestBase.TEST_ADMIN_USER, AbstractTestBase.TEST_FULL_ACCESS_USER});
+        "PFAdmin", AbstractTestBase.TEST_ADMIN_USER, AbstractTestBase.TEST_FULL_ACCESS_USER);
     addGroup(AbstractTestBase.FINANCE_GROUP,
-            new String[]{AbstractTestBase.TEST_FINANCE_USER, AbstractTestBase.TEST_FULL_ACCESS_USER});
+        AbstractTestBase.TEST_FINANCE_USER, AbstractTestBase.TEST_FULL_ACCESS_USER);
     addGroup(AbstractTestBase.CONTROLLING_GROUP,
-            new String[]{AbstractTestBase.TEST_CONTROLLING_USER, AbstractTestBase.TEST_FULL_ACCESS_USER});
-    addGroup(AbstractTestBase.HR_GROUP, new String[]{AbstractTestBase.TEST_FULL_ACCESS_USER, AbstractTestBase.TEST_HR_USER });
-    addGroup(AbstractTestBase.ORGA_GROUP, new String[]{AbstractTestBase.TEST_FULL_ACCESS_USER});
+        AbstractTestBase.TEST_CONTROLLING_USER, AbstractTestBase.TEST_FULL_ACCESS_USER);
+    addGroup(AbstractTestBase.HR_GROUP, AbstractTestBase.TEST_FULL_ACCESS_USER, AbstractTestBase.TEST_HR_USER);
+    addGroup(AbstractTestBase.ORGA_GROUP, AbstractTestBase.TEST_FULL_ACCESS_USER);
     addGroup(AbstractTestBase.PROJECT_MANAGER,
-            new String[]{AbstractTestBase.TEST_PROJECT_MANAGER_USER, AbstractTestBase.TEST_FULL_ACCESS_USER});
+        AbstractTestBase.TEST_PROJECT_MANAGER_USER, AbstractTestBase.TEST_FULL_ACCESS_USER);
     addGroup(AbstractTestBase.PROJECT_ASSISTANT,
-            new String[]{AbstractTestBase.TEST_PROJECT_ASSISTANT_USER, AbstractTestBase.TEST_FULL_ACCESS_USER});
+        AbstractTestBase.TEST_PROJECT_ASSISTANT_USER, AbstractTestBase.TEST_FULL_ACCESS_USER);
     addGroup(AbstractTestBase.MARKETING_GROUP,
-            new String[]{AbstractTestBase.TEST_MARKETING_USER, AbstractTestBase.TEST_FULL_ACCESS_USER});
-    addGroup(AbstractTestBase.TEST_GROUP, new String[]{AbstractTestBase.TEST_USER});
-    addGroup("group1", new String[]{"user1", "user2"});
-    addGroup("group2", new String[]{"user1"});
-    addGroup("group3", new String[]{});
+        AbstractTestBase.TEST_MARKETING_USER, AbstractTestBase.TEST_FULL_ACCESS_USER);
+    addGroup(AbstractTestBase.TEST_GROUP, AbstractTestBase.TEST_USER, AbstractTestBase.TEST_USER2);
+    addGroup("group1", "user1", "user2");
+    addGroup("group2", "user1");
+    addGroup("group3");
   }
 
   private void initKost2Arts() {
