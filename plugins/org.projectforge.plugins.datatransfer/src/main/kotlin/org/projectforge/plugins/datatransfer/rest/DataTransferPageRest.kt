@@ -36,6 +36,7 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.NotificationMailService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -107,7 +108,22 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val layout = UILayout("plugins.datatransfer.title.heading")
       .add(
         UIFieldset(title = "'${dto.areaName}")
-          .add(UIAttachmentList("datatransfer", id))
+          .add(UIAttachmentList(DataTransferPlugin.ID, id))
+          .add(
+            UIButton(
+              "downloadAll",
+              translate("plugins.datatransfer.button.downloadAll"),
+              UIColor.LINK,
+              tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
+              responseAction = ResponseAction(
+                RestResolver.getRestUrl(
+                  this.javaClass,
+                  "downloadAll/$id"
+                ), targetType = TargetType.DOWNLOAD
+              ),
+              default = true
+            )
+          )
       )
     layout.add(
       UIButton(
@@ -119,21 +135,6 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
             DataTransferAreaPagesRest::class.java,
             absolute = true
           ), targetType = TargetType.REDIRECT
-        ),
-        default = true
-      )
-    )
-    layout.add(
-      UIButton(
-        "downloadAll",
-        translate("plugins.datatransfer.button.downloadAll"),
-        UIColor.LINK,
-        tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
-        responseAction = ResponseAction(
-          RestResolver.getRestUrl(
-            this.javaClass,
-            "downloadAll/$id"
-          ), targetType = TargetType.DOWNLOAD
         ),
         default = true
       )
