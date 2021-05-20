@@ -23,10 +23,12 @@
 
 package org.projectforge.plugins.datatransfer
 
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.jcr.FileObject
 
 /**
  * Checks access to attachments by external anonymous users.
@@ -41,23 +43,48 @@ open class DataTransferAccessChecker(
    * @param subPath Equals to listId.
    */
   override fun checkSelectAccess(user: PFUserDO?, path: String, id: Any, subPath: String?) {
-    user!!
-    val dbo = dataTransferAreaDao.internalGetById(id as Int)
-    dataTransferAreaDao.hasAccess(user, dbo, dbo, OperationType.SELECT, throwException = true)
+    checkAccess(user, id)
   }
 
   /**
    * @param subPath Equals to listId.
    */
   override fun checkUploadAccess(user: PFUserDO?, path: String, id: Any, subPath: String?) {
-    checkSelectAccess(user, path, id, subPath)
+    checkAccess(user, id) // Upload access is given, if select/download access is given
   }
 
   /**
    * @param subPath Equals to listId.
    */
-  override fun checkDownloadAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
-    checkUploadAccess(user, path, id, subPath)
+  override fun checkDownloadAccess(user: PFUserDO?, path: String, id: Any, file: FileObject, subPath: String?) {
+    val dbo = getDataTransferArea(user, id)
+    if (dbo.isPersonalBox()) {
+      if (user!!.id == dbo.getPersonalBoxUserId()) {
+        // User has full access to his own personal box.
+        return
+      }
+      val userId = file.createdByUser?.toIntOrNull()
+      if (userId != user.id!!) {
+        throw AccessException("plugins.datatransfer.external.noAccess")
+      }
+    } else {
+      checkAccess(user, id)
+    }
+  }
+
+  /**
+   * Checks select/download-access (same). See [checkDownloadAccess] for special handling of perosnal boxes.
+   */
+  private fun checkAccess(user: PFUserDO?, id: Any) {
+    user!!
+    val dbo = getDataTransferArea(user, id)
+    // No difference between download and upload access:
+    dataTransferAreaDao.hasAccess(user, dbo, dbo, OperationType.SELECT, throwException = true)
+  }
+
+  private fun getDataTransferArea(user: PFUserDO?, id: Any): DataTransferAreaDO {
+    user!!
+    return dataTransferAreaDao.internalGetById(id as Int)
   }
 
   /**
