@@ -42,7 +42,9 @@ object ZipUtils {
       ZipInputStream(inputStream).nextEntry // nextEntry.isEncrypted doesn't work.
       return false
     } catch (ex: ZipException) {
-      return ex.type == ZipException.Type.WRONG_PASSWORD
+      return ex.type == ZipException.Type.WRONG_PASSWORD || // Standard encryption
+          // empty or null password provided for AES decryption:
+          ex.type == ZipException.Type.UNKNOWN && ex.message?.contains("password") == true
     }
   }
 
