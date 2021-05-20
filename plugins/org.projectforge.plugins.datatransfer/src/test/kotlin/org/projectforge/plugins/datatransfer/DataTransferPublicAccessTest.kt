@@ -84,6 +84,9 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
 
     downloadAllAndCheck(externalFullAccessArea, file2)
 
+    uploadFile(externalDownloadArea, "no-upload-access.txt")
+    downloadAllAndCheck(externalDownloadArea, file1a, file1b) // Unchanged list of files.
+
     uploadFile(externalFullAccessArea, "upload.txt")
     downloadAllAndCheck(externalFullAccessArea, file2.fileName!!, "upload.txt")
 
