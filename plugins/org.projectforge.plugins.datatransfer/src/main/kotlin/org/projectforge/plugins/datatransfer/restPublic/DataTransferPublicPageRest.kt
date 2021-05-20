@@ -26,6 +26,7 @@ package org.projectforge.plugins.datatransfer.restPublic
 import org.projectforge.framework.i18n.translate
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.rest.DataTransferlUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -125,7 +126,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
       UIFieldset(title = "attachment.list")
         .add(
           UIAttachmentList(
-            "datatransfer",
+            DataTransferPlugin.ID,
             dataTransfer.id,
             //serviceBaseUrl = "/${RestResolver.REACT_PUBLIC_PATH}/datatransferattachment/dynamic",
             restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",

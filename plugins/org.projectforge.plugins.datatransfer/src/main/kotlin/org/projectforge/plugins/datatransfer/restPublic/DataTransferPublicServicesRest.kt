@@ -30,6 +30,7 @@ import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileInfo
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.NotificationMailService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.plugins.datatransfer.rest.DataTransferlUtils
@@ -76,6 +77,7 @@ class DataTransferPublicServicesRest {
   }
 
   /**
+   * @param category [DataTransferPlugin.ID] ("datatransfer") expected
    * @param userInfo See [org.projectorge.plugins.DataTransferPubli
    */
   @GetMapping("download/{category}/{id}")
@@ -174,7 +176,7 @@ class DataTransferPublicServicesRest {
     //files.forEach { file ->
     val filename = file.originalFilename
     log.info {
-      "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', page='${this::class.java.name}', user='${
+      "User tries to upload attachment: id='$id', filename='$filename', page='${this::class.java.name}', user='${
         getExternalUserString(
           request,
           userInfo
@@ -208,7 +210,7 @@ class DataTransferPublicServicesRest {
       attachmentsAccessChecker.filterAttachments(
         request,
         obj.externalDownloadEnabled,
-        attachmentsService.getAttachments(dataTransferAreaPagesRest.jcrPath!!, id, attachmentsAccessChecker, listId)
+        attachmentsService.getAttachments(dataTransferAreaPagesRest.jcrPath!!, id, attachmentsAccessChecker, null)
       )
     return ResponseEntity.ok()
       .body(
@@ -224,7 +226,7 @@ class DataTransferPublicServicesRest {
     accessString: String?,
     userInfo: String?
   ): Pair<DataTransferAreaDO?, ResponseEntity<String>?> {
-    check(category == "datatransfer")
+    check(category == DataTransferPlugin.ID)
     val credentials = DataTransferlUtils.splitAccessString(accessString)
     val externalAccessToken = credentials.first
     val externalPassword = credentials.second

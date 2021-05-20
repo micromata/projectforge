@@ -25,6 +25,7 @@ package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.AttachmentPageRest
 import org.projectforge.rest.AttachmentsServicesRest
@@ -64,6 +65,7 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
   /**
    * The react path of this should look like: 'react/attachment/dynamic/42?category=contract...'
    * @param id: Id of data object with attachments.
+   * @param category [DataTransferPlugin.ID] ("datatransfer") expected
    */
   @GetMapping("dynamic")
   fun getForm(
@@ -74,7 +76,7 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
     request: HttpServletRequest
   ): FormLayoutData {
     log.info { "User tries to edit/view details of attachment: category='$category', id='$id', listId='$listId', fileId='$fileId', page='${this::class.java.name}'." }
-    check(category == "datatransfer")
+    check(category == DataTransferPlugin.ID)
     // services.getDataObject(pagesRest, id) // Check data object availability.
     val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
     data.attachment = services.getAttachment(dataTransferAreaPagesRest.jcrPath!!, dataTransferPublicAccessChecker, data)

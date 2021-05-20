@@ -57,7 +57,7 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
   private lateinit var dataTransferJCRCleanUpJob: DataTransferJCRCleanUpJob
 
   @Autowired
-  private lateinit var pluginAdminService: PluginAdminService
+  private lateinit var dataTransferTestService: DataTransferTestService
 
   init {
     MyJpaWithExtLibrariesScanner.setPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName)
@@ -65,7 +65,6 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
 
   @PostConstruct
   private fun postConstruct() {
-    pluginAdminService.initializeAllPluginsForUnitTest()
     initJCRTestRepo(MODUL_NAME, "cleanUpTestRepo")
   }
 
@@ -73,9 +72,9 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
   fun cleanUpTest() {
     val user = logon(TEST_USER)
     repoService.ensureNode(null, "${dataTransferAreaPagesRest.jcrPath}")
-    createArea("emptyTestArea", user)
-    val area = createArea("testArea", user)
-    val deletedArea = createArea("deletedArea", user)
+    createArea("emptyTestArea")
+    val area = createArea("testArea")
+    val deletedArea = createArea("deletedArea")
     val file31 = createFile(area, 31)
     val file1 = createFile(area, 1)
     val file31OfDeletedArea = createFile(deletedArea, 31, "deleted")
@@ -97,33 +96,11 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
     repoService.shutdown()
   }
 
-  private fun createArea(areaName: String, admin: PFUserDO): DataTransferAreaDO {
-    val dbo = DataTransferAreaDO()
-    dbo.areaName = areaName
-    dbo.adminIds = "${admin.id}"
-    dataTransferAreaDao.internalSave(dbo)
-    return dbo
+  private fun createArea(areaName: String): DataTransferAreaDO {
+    return dataTransferTestService.createArea(areaName)
   }
 
   private fun createFile(area: DataTransferAreaDO, ageInDays: Int, fileSuffix: String? = null): FileObject {
-    val path = "/ProjectForge/${dataTransferAreaPagesRest.jcrPath}"
-    val file = FileObject()
-    file.fileName = "pom-$ageInDays${fileSuffix ?: ""}.xml"
-    file.description = "This is the maven pom file."
-    file.parentNodePath = path
-    file.relPath = "${area.id}/attachments"
-    file.created = Date(System.currentTimeMillis() - ageInDays * DataTransferJCRCleanUpJob.MILLIS_PER_DAY)
-    file.createdByUser = "fin"
-    file.lastUpdate = file.created
-    file.lastUpdateByUser = "kai"
-    attachmentsService.addAttachment(
-      dataTransferAreaPagesRest.jcrPath!!,
-      fileInfo = file,
-      content = File("pom.xml").readBytes(),
-      baseDao = dataTransferAreaDao,
-      obj = area,
-      accessChecker = DataTransferAccessChecker(dataTransferAreaDao)
-    )
-    return file
+    return dataTransferTestService.createFile(area, ageInDays = ageInDays, fileSuffix = fileSuffix)!!
   }
 }
