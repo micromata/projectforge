@@ -32,23 +32,38 @@ import java.io.*
 
 class ZipUtilsTest {
   private var testUtils = TestUtils(MODULE_NAME)
+  val testDir = testUtils.deleteAndCreateTestFile("zipTests")
+  init {
+    testDir.mkdirs()
+  }
 
   @Test
   fun encryptionTest() {
-    val testDir = testUtils.deleteAndCreateTestFile("zipTests")
-    testDir.mkdirs()
+    checkMethod(ZipUtils.EncryptionMode.ZIP_STANDARD, "pom.zip")
+    checkMethod(ZipUtils.EncryptionMode.AES128, "pom-AES128.zip")
+    checkMethod(ZipUtils.EncryptionMode.AES256, "pom-AES256.zip")
+  }
+
+  private fun checkMethod(mode: ZipUtils.EncryptionMode, zipFilename: String) {
     val istream = FileInputStream("pom.xml")
-    val zipFile = File(testDir, "pom.zip")
+    val zipFile = File(testDir, zipFilename)
     val outputStream = FileOutputStream(zipFile)
     outputStream.use {
-      ZipUtils.encryptZipFile("pom.xml", "test123", istream, it)
+      ZipUtils.encryptZipFile("pom.xml", "test123", istream, it, mode)
     }
     val content = File("pom.xml").readBytes()
     Assertions.assertTrue(ZipUtils.isEncrypted(FileInputStream(zipFile)))
-    decryptZipFile("test123", FileInputStream(zipFile), "pom.xml", content)
+    FileInputStream(zipFile).use {
+      decryptZipFile("test123", it, "pom.xml", content)
+    }
   }
 
-  internal fun decryptZipFile(password: String, inputStream: InputStream, expectedFileName: String, expectedContent: ByteArray) {
+  private fun decryptZipFile(
+    password: String,
+    inputStream: InputStream,
+    expectedFileName: String,
+    expectedContent: ByteArray
+  ) {
     var localFileHeader: LocalFileHeader?
     ZipInputStream(inputStream, password.toCharArray()).use { zipInputStream ->
       while (zipInputStream.nextEntry.also { localFileHeader = it } != null) {
@@ -61,5 +76,4 @@ class ZipUtilsTest {
       }
     }
   }
-
 }
