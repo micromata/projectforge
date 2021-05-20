@@ -145,19 +145,19 @@ open class AttachmentsService {
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null
   ): ByteArray? {
-    accessChecker.checkDownloadAccess(
-      ThreadLocalUserContext.getUser(),
-      path = path,
-      id = id,
-      fileId = fileId,
-      subPath = subPath
-    )
     val fileObject = repoService.getFileInfo(
       getPath(path, id),
       subPath ?: DEFAULT_NODE,
       fileId = fileId
     )
       ?: return null
+    accessChecker.checkDownloadAccess(
+      ThreadLocalUserContext.getUser(),
+      path = path,
+      id = id,
+      file = fileObject,
+      subPath = subPath
+    )
     return if (repoService.retrieveFile(fileObject)) {
       fileObject.content
     } else {
@@ -187,17 +187,17 @@ open class AttachmentsService {
     userString: String? = null
   )
       : Pair<FileObject, InputStream>? {
-    accessChecker.checkDownloadAccess(
-      ThreadLocalUserContext.getUser(),
-      path = path,
-      id = id,
-      fileId = fileId,
-      subPath = subPath
-    )
     val fileObject = repoService.getFileInfo(
       getPath(path, id),
       subPath ?: DEFAULT_NODE,
       fileId = fileId
+    ) ?: return null
+    accessChecker.checkDownloadAccess(
+      ThreadLocalUserContext.getUser(),
+      path = path,
+      id = id,
+      file = fileObject,
+      subPath = subPath
     )
     val inputStream = if (fileObject != null) {
       repoService.retrieveFileInputStream(fileObject)

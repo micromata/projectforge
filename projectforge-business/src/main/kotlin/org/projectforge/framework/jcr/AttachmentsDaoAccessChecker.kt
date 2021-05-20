@@ -28,6 +28,7 @@ import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.jcr.FileObject
 import org.projectforge.jcr.FileSizeChecker
 import java.io.Serializable
 
@@ -93,7 +94,7 @@ open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
   /**
    * @param subPath Equals to listId.
    */
-  override fun checkDownloadAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
+  override fun checkDownloadAccess(user: PFUserDO?, path: String, id: Any, file: FileObject, subPath: String?) {
     checkNotNull(user)
     checkJcrActivity(subPath)
     checkSelectAccess(user, path, id, subPath)

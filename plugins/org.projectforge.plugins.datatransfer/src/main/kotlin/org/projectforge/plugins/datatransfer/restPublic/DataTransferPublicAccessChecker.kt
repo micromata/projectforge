@@ -31,9 +31,11 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferFileSizeChecker
+import org.projectforge.plugins.datatransfer.rest.DataTransferArea
 import org.projectforge.rest.config.RestUtils
 import javax.servlet.http.HttpServletRequest
 
@@ -76,6 +78,10 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
     if (dbo == null) {
       log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' not found. Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
       loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
+      return Pair(null, LoginResultStatus.FAILED.localizedMessage)
+    }
+    if (dbo.isPersonalBox()) {
+      log.warn { "Paranoia setting: no external access of personal boxes (of user with id=${dbo.adminIds}). Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
       return Pair(null, LoginResultStatus.FAILED.localizedMessage)
     }
     if (dbo.externalPassword != externalPassword) {
@@ -125,7 +131,7 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
   /**
    * @param subPath Equals to listId.
    */
-  override fun checkDownloadAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
+  override fun checkDownloadAccess(user: PFUserDO?, path: String, id: Any, file: FileObject, subPath: String?) {
   }
 
   /**
