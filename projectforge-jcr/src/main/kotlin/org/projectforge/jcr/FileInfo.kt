@@ -53,6 +53,8 @@ open class FileInfo(
   var checksum: String? = null,
   /**
    * The password isn't stored anywhere. If true, a password to decrypt is required for download.
+   * An encrypted file is encrypted in the storage itself and has to be encrypted server-side before download.
+   * After download the user gets the file decrypted.
    */
   var isCrypted: Boolean? = false,
   fileSize: Long? = null
