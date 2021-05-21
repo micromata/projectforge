@@ -99,6 +99,7 @@ class DataTransferPublicServicesRest {
         )
       }'."
     }
+    check(listId == AttachmentsService.DEFAULT_NODE)
     val checkResult = checkAccess(request, category, id, accessString, userInfo)
     checkResult.failedAccess?.let { return it }
     val result =
