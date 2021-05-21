@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.datatransfer
 
-import org.apache.commons.io.FilenameUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -33,12 +32,7 @@ import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.util.zip.ZipInputStream
 import javax.annotation.PostConstruct
-import javax.servlet.ServletOutputStream
-import javax.servlet.WriteListener
 import javax.servlet.http.HttpServletResponse
 
 
@@ -78,7 +72,11 @@ class DataTransferAccessTest : AbstractTestBase() {
     val otherUser = getUser(TEST_HR_USER)
     logon(testUser1)
     val testGroupArea =
-      testService.createArea("Test user's 1 box", accessUsers = listOf(otherUser), accessGroups = listOf(getGroup(TEST_GROUP)))
+      testService.createArea(
+        "Test user's 1 box",
+        accessUsers = listOf(otherUser),
+        accessGroups = listOf(getGroup(TEST_GROUP))
+      )
     val file1a = testService.createFile(testGroupArea, "file1.xml")!!
     val file1b = testService.createFile(testGroupArea, "pom.xml")!!
 
