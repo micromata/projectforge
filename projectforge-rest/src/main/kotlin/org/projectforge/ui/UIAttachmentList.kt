@@ -56,10 +56,6 @@ class UIAttachmentList(
    */
   val serviceBaseUrl: String? = null,
   /**
-   * Url called if the user presses the reload button (for reloading list of attachments).
-   */
-  val reloadUrl: String? = null,
-  /**
    * Used by data transfer tool for using public rest api.
    */
   val restBaseUrl: String? = null,

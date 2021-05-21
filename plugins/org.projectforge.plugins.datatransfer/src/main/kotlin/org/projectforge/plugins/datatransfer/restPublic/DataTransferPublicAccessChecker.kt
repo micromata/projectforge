@@ -35,7 +35,6 @@ import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferFileSizeChecker
-import org.projectforge.plugins.datatransfer.rest.DataTransferArea
 import org.projectforge.rest.config.RestUtils
 import javax.servlet.http.HttpServletRequest
 
@@ -48,15 +47,20 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
   override val fileSizeChecker: DataTransferFileSizeChecker =
     DataTransferFileSizeChecker(dataTransferAreaDao.maxFileSize.toBytes())
 
-  fun checkExternalAccess(
+  internal class CheckAccessResult(
+    val dataTransferArea: DataTransferAreaDO? = null,
+    val failedAccessMessage: String? = null
+  )
+
+  internal fun checkExternalAccess(
     dataTransferAreaDao: DataTransferAreaDao,
     request: HttpServletRequest,
     externalAccessToken: String?,
     externalPassword: String?,
     userInfo: String?
-  ): Pair<DataTransferAreaDO?, String?> {
+  ): CheckAccessResult {
     if (externalAccessToken == null || externalPassword == null) {
-      return Pair(null, LoginResultStatus.FAILED.localizedMessage)
+      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
     }
     val loginProtection = LoginProtection.instance()
     val clientIpAddress = RestUtils.getClientIp(request)
@@ -71,33 +75,34 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
         seconds,
         numberOfFailedAttempts.toString()
       )
-      return Pair(null, loginResultStatus.localizedMessage)
+      return CheckAccessResult(failedAccessMessage = loginResultStatus.localizedMessage)
     }
 
     val dbo = dataTransferAreaDao.getAnonymousArea(externalAccessToken)
     if (dbo == null) {
       log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' not found. Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
       loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
-      return Pair(null, LoginResultStatus.FAILED.localizedMessage)
+      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
     }
     if (dbo.isPersonalBox()) {
       log.warn { "Paranoia setting: no external access of personal boxes (of user with id=${dbo.adminIds}). Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
-      return Pair(null, LoginResultStatus.FAILED.localizedMessage)
+      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
     }
     if (dbo.externalPassword != externalPassword) {
       log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' doesn't match given password. Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
       loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
-      return Pair(null, LoginResultStatus.FAILED.localizedMessage)
+      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
     }
     if (dbo.externalUploadEnabled != true && dbo.externalDownloadEnabled != true) {
-      return Pair(null, translate("plugins.datatransfer.external.noAccess"))
+      return CheckAccessResult(failedAccessMessage = translate("plugins.datatransfer.external.noAccess"))
     }
 
     // Successfully logged in:
     loginProtection.clearLoginTimeOffset(externalAccessToken, null, clientIpAddress)
     log.info { "Data transfer area with externalAccessToken '$externalAccessToken': login successful by ip=$clientIpAddress, userInfo='$userInfo'." }
 
-    return Pair(dbo, null)
+    DataTransferPublicSession.register(request, externalAccessToken, externalPassword, userInfo)
+    return CheckAccessResult(dbo)
   }
 
   /**

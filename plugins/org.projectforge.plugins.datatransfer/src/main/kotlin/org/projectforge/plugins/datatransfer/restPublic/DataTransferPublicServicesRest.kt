@@ -100,21 +100,21 @@ class DataTransferPublicServicesRest {
       }'."
     }
     val checkResult = checkAccess(request, category, id, accessString, userInfo)
-    checkResult.second?.let { return it }
+    checkResult.failedAccess?.let { return it }
     val result =
       attachmentsService.getAttachmentInputStream(
         dataTransferAreaPagesRest.jcrPath!!,
         id,
         fileId,
         attachmentsAccessChecker,
-        data = checkResult.first,
+        data = checkResult.dataTransferArea,
         attachmentsEventListener = dataTransferAreaDao,
         userString = getExternalUserString(request, userInfo)
       )
         ?: throw TechnicalException(
           "File to download not accessible for user or not found: category=$category, id=$id, fileId=$fileId, listId=$listId)}."
         )
-    if (checkResult.first?.externalDownloadEnabled != true) {
+    if (checkResult.dataTransferArea?.externalDownloadEnabled != true) {
       val clientIp = RestUtils.getClientIp(request) ?: "NO IP ADDRESS GIVEN. CAN'T SHOW ANY ATTACHMENT."
       if (result.first.createdByUser?.contains(clientIp) != true) {
         return RestUtils.badRequest("Download not enabled.")
@@ -143,8 +143,8 @@ class DataTransferPublicServicesRest {
       }'."
     }
     val checkResult = checkAccess(request, category, id, accessString, userInfo)
-    checkResult.second?.let { return it }
-    val dbObj = checkResult.first!!
+    checkResult.failedAccess?.let { return it }
+    val dbObj = checkResult.dataTransferArea!!
     val dto = convert(request, dbObj, userInfo)
     DataTransferlUtils.downloadAll(
       response,
@@ -185,7 +185,7 @@ class DataTransferPublicServicesRest {
       }'."
     }
 
-    checkAccess(request, category, id, accessString, userInfo).second?.let { return it }
+    checkAccess(request, category, id, accessString, userInfo).failedAccess?.let { return it }
 
     val obj = dataTransferAreaDao.internalGetById(id)
       ?: throw TechnicalException(
@@ -226,7 +226,7 @@ class DataTransferPublicServicesRest {
     id: Int,
     accessString: String?,
     userInfo: String?
-  ): Pair<DataTransferAreaDO?, ResponseEntity<String>?> {
+  ): CheckAccessResponse {
     check(category == DataTransferPlugin.ID)
     val credentials = DataTransferlUtils.splitAccessString(accessString)
     val externalAccessToken = credentials.first
@@ -239,23 +239,23 @@ class DataTransferPublicServicesRest {
         externalPassword,
         userInfo
       )
-    checkAccess.second?.let {
-      return Pair(
-        null, ResponseEntity.badRequest()
+    checkAccess.failedAccessMessage?.let {
+      return CheckAccessResponse(
+        failedAccess = ResponseEntity.badRequest()
           .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
           .body(it)
       )
     }
-    val dbo = checkAccess.first!!
+    val dbo = checkAccess.dataTransferArea!!
     if (dbo.id != id) {
       log.warn { "User tries to use data transfer area by id different from access token!!!" }
-      return Pair(
-        null, ResponseEntity.badRequest()
+      return CheckAccessResponse(
+        failedAccess = ResponseEntity.badRequest()
           .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
           .body(LoginResultStatus.FAILED.localizedMessage)
       )
     }
-    return Pair(checkAccess.first, null)
+    return CheckAccessResponse(checkAccess.dataTransferArea)
   }
 
   private fun getExternalUserString(request: HttpServletRequest, userString: String?): String {
@@ -280,4 +280,9 @@ class DataTransferPublicServicesRest {
     dto.userInfo = userInfo
     return dto
   }
+
+  internal class CheckAccessResponse(
+    val dataTransferArea: DataTransferAreaDO? = null,
+    val failedAccess: ResponseEntity<String>? = null
+  )
 }
