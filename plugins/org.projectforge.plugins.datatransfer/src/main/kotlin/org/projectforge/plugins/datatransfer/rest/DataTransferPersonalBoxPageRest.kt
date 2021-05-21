@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.datatransfer.rest
 
-import mu.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.i18n.translate
@@ -42,8 +41,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
-
-private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/datatransferpersonalfiles")
@@ -72,10 +69,7 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
    * Will be called, if the user changes the user.
    */
   @PostMapping(RestPaths.WATCH_FIELDS)
-  fun watchFields(
-    request: HttpServletRequest,
-    @Valid @RequestBody postData: PostData<DataTransferPersonalBox>
-  ): ResponseEntity<ResponseAction> {
+  fun watchFields(@Valid @RequestBody postData: PostData<DataTransferPersonalBox>): ResponseEntity<ResponseAction> {
     val id =
       ensurePersonalBox(postData.data) ?: return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     val userId = postData.data.user?.id
@@ -90,7 +84,7 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
     val layout = UILayout("plugins.datatransfer.title.heading")
     layout.add(
       UIFieldset(title = "plugins.datatransfer.personalBox")
-        .add(UIInput("user",label = "user", dataType = UIDataType.USER))
+        .add(UIInput("user", label = "user", dataType = UIDataType.USER))
     )
     layout.add(
       UIButton(

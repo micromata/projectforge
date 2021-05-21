@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.datatransfer.rest
 
-import mu.KotlinLogging
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
@@ -52,9 +51,6 @@ import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
-
-
-private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/datatransferfiles")
@@ -266,10 +262,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
    * Will be called, if the user wants to change his/her obeserveStatus.
    */
   @PostMapping(RestPaths.WATCH_FIELDS)
-  fun watchFields(
-    request: HttpServletRequest,
-    @Valid @RequestBody postData: PostData<DataTransferArea>
-  ): ResponseEntity<ResponseAction> {
+  fun watchFields(@Valid @RequestBody postData: PostData<DataTransferArea>): ResponseEntity<ResponseAction> {
     val id = postData.data.id ?: throw IllegalAccessException("Parameter id not given.")
     val userWantsToOserveArea =
       postData.data.userWantsToObserve ?: return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
