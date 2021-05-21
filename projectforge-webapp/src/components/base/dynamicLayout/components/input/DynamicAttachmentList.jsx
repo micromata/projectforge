@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { evalServiceURL, getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
-import { Button, Table } from '../../../../design';
+import { Table } from '../../../../design';
 import DropArea from '../../../../design/droparea';
 import LoadingContainer from '../../../../design/loading-container';
 import { DynamicLayoutContext } from '../../context';
@@ -14,7 +14,6 @@ function DynamicAttachmentList(
         id,
         listId,
         serviceBaseUrl,
-        reloadUrl,
         restBaseUrl,
         accessString,
         userInfo,
@@ -73,36 +72,6 @@ function DynamicAttachmentList(
                 absolute: true,
             },
         });
-    };
-
-    const reload = () => {
-        fetch(
-            getServiceURL(reloadUrl),
-            {
-                credentials: 'include',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                },
-                body: JSON.stringify({
-                    data: {
-                        accessString,
-                        userInfo,
-                    },
-                }),
-            },
-        )
-            .then(handleHTTPErrors)
-            .then((response) => response.json())
-            .then((json) => {
-                callAction({ responseAction: json });
-                setLoading(false);
-            })
-            .catch((catchError) => {
-                alert(catchError);
-                setLoading(false);
-            });
     };
 
     const handleRowClick = (entry) => (event) => {
@@ -183,13 +152,6 @@ function DynamicAttachmentList(
                     >
                         {table}
                     </DropArea>
-                    {reloadUrl
-                        ? (
-                            <Button color="link" onClick={reload}>
-                                {ui.translations.reload}
-                            </Button>
-                        )
-                        : undefined}
                 </LoadingContainer>
             );
         }
@@ -208,7 +170,6 @@ DynamicAttachmentList.propTypes = {
     readOnly: PropTypes.bool,
     serviceBaseUrl: PropTypes.string,
     restBaseUrl: PropTypes.string,
-    reloadUrl: PropTypes.string,
     accessString: PropTypes.string,
     userInfo: PropTypes.string,
     downloadOnRowClick: PropTypes.bool,
@@ -219,7 +180,6 @@ DynamicAttachmentList.defaultProps = {
     id: undefined, // Undefined for new object.
     readOnly: false,
     serviceBaseUrl: '/react/attachment/dynamic',
-    reloadUrl: undefined,
     restBaseUrl: '/rs/attachments',
     accessString: '',
     useInfo: null,

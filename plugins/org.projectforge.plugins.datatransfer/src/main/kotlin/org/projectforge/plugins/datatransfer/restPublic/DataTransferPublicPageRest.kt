@@ -68,30 +68,10 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
   )
       : ResponseAction {
     val externalAccessToken = postData.data.externalAccessToken
-    val externalPassword = postData.data.externalPassword
-    val userInfo = postData.data.userInfo
-    return load(request, response, externalAccessToken, externalPassword, userInfo)
-  }
+    val sessionData = DataTransferPublicSession.getTransferAreaData(request, externalAccessToken)
+    val externalPassword = postData.data.externalPassword ?: sessionData?.password
+    val userInfo = postData.data.userInfo ?: sessionData?.userInfo
 
-  @PostMapping("reload")
-  fun reload(
-    request: HttpServletRequest,
-    response: HttpServletResponse,
-    @RequestBody postData: PostData<UIAttachmentList.ReloadData>
-  ): ResponseAction {
-    val credentials = DataTransferlUtils.splitAccessString(postData.data.accessString)
-    val externalAccessToken = credentials.first
-    val externalPassword = credentials.second
-    return load(request, response, externalAccessToken, externalPassword, postData.data.userInfo)
-  }
-
-  private fun load(
-    request: HttpServletRequest,
-    response: HttpServletResponse,
-    externalAccessToken: String?,
-    externalPassword: String?,
-    userInfo: String?
-  ): ResponseAction {
     val checkAccess =
       attachmentsAccessChecker.checkExternalAccess(
         dataTransferAreaDao,
@@ -100,11 +80,12 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
         externalPassword,
         userInfo
       )
-    checkAccess.second?.let {
+    checkAccess.failedAccessMessage?.let {
       return getLoginFailed(response, it)
     }
-    val dbo = checkAccess.first!!
+    val dbo = checkAccess.dataTransferArea!!
     val data = dataTransferPublicServicesRest.convert(request, dbo, userInfo)
+    request.getSession(true).setAttribute("password", externalPassword)
 
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("ui", getAttachmentLayout(data))
@@ -112,7 +93,25 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
   }
 
   @GetMapping("dynamic")
-  fun getForm(@RequestParam("id") externalAccessToken: String?): FormLayoutData {
+  fun getForm(request: HttpServletRequest, @RequestParam("id") externalAccessToken: String?): FormLayoutData {
+    val sessionData = DataTransferPublicSession.getTransferAreaData(request, externalAccessToken)
+    if (sessionData != null) {
+      val externalPassword = sessionData.password
+      val userInfo = sessionData.userInfo
+      val checkAccess =
+        attachmentsAccessChecker.checkExternalAccess(
+          dataTransferAreaDao,
+          request,
+          externalAccessToken,
+          externalPassword,
+          userInfo
+        )
+      checkAccess.dataTransferArea?.let {
+        val data = dataTransferPublicServicesRest.convert(request, it, userInfo)
+        return FormLayoutData(data, getAttachmentLayout(data), ServerData())
+      }
+    }
+
     val dataTransfer = DataTransferPublicArea()
     dataTransfer.areaName = translate("plugins.datatransfer.title.heading")
     dataTransfer.externalAccessToken = externalAccessToken
@@ -130,7 +129,6 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
             dataTransfer.id,
             //serviceBaseUrl = "/${RestResolver.REACT_PUBLIC_PATH}/datatransferattachment/dynamic",
             restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",
-            reloadUrl = RestResolver.getRestUrl(this::class.java, "reload"),
             accessString = DataTransferlUtils.getAccessString(dataTransfer),
             userInfo = "${dataTransfer.userInfo}",
             downloadOnRowClick = true,
@@ -141,20 +139,25 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     val layout = UILayout("plugins.datatransfer.title.heading")
       .add(fieldSet)
     fieldSet.add(
-        UIButton(
-          "downloadAll",
-          translate("plugins.datatransfer.button.downloadAll"),
-          UIColor.LINK,
-          tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
-          responseAction = ResponseAction(
-            RestResolver.getPublicRestUrl(
-              this.javaClass,
-              "downloadAll/datatransfer/${dataTransfer.id}?accessString=${DataTransferlUtils.getAccessString(dataTransfer, true)}"
-            ), targetType = TargetType.DOWNLOAD
-          ),
-          default = true
-        )
+      UIButton(
+        "downloadAll",
+        translate("plugins.datatransfer.button.downloadAll"),
+        UIColor.LINK,
+        tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
+        responseAction = ResponseAction(
+          RestResolver.getPublicRestUrl(
+            this.javaClass,
+            "downloadAll/datatransfer/${dataTransfer.id}?accessString=${
+              DataTransferlUtils.getAccessString(
+                dataTransfer,
+                true
+              )
+            }"
+          ), targetType = TargetType.DOWNLOAD
+        ),
+        default = true
       )
+    )
     LayoutUtils.process(layout)
     return layout
   }
@@ -179,11 +182,9 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
 
     formCol
       .add(
-        UIInput(
+        UIReadOnlyField(
           "externalAccessToken",
-          required = true,
           label = "plugins.datatransfer.external.accessToken",
-          autoComplete = UIInput.AutoCompleteType.USERNAME
         )
       )
       .add(
