@@ -119,6 +119,12 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     return FormLayoutData(dataTransfer, this.getLayout(), ServerData())
   }
 
+  @GetMapping("logout")
+  fun reload(request: HttpServletRequest, response: HttpServletResponse): ResponseAction {
+    DataTransferPublicSession.logout(request)
+    return getLoginFailed(response, translate("logout.successful"))
+  }
+
   private fun getAttachmentLayout(dataTransfer: DataTransferPublicArea): UILayout {
     val fieldSet = UIFieldset(12, title = "'${dataTransfer.areaName}")
     fieldSet.add(
@@ -154,6 +160,19 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
               )
             }"
           ), targetType = TargetType.DOWNLOAD
+        ),
+        default = true
+      )
+    ).add(
+      UIButton(
+        "logout",
+        translate("menu.logout"),
+        UIColor.WARNING,
+        responseAction = ResponseAction(
+          RestResolver.getPublicRestUrl(
+            this.javaClass,
+            "logout"
+          ), targetType = TargetType.GET
         ),
         default = true
       )
