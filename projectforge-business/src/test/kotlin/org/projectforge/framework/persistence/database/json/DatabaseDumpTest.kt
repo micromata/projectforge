@@ -39,7 +39,7 @@ class DatabaseDumpTest : AbstractTestBase() {
         val out = ByteArrayOutputStream()
         databaseDump.dump( out)
         val result = out.toString("UTF-8")
-        log.info("$result")
+        baseLog.info("$result")
         assertEquals("WIP", "WIP")
     }
 }

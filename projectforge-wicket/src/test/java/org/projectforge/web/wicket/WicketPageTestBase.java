@@ -40,7 +40,6 @@ import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginResult;
-import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.UserContext;
@@ -90,18 +89,18 @@ public class WicketPageTestBase extends AbstractTestBase {
 
     @Override
     protected void init() {
-      log.info("Init WicketTestApplication");
+      baseLog.info("Init WicketTestApplication");
       super.init();
       getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext));
       if (!initialized) {
         // Only on first initialization.
-        log.info("Init resource loader");
+        baseLog.info("Init resource loader");
         addResourceBundle(WicketApplication.RESOURCE_BUNDLE_NAME);
         resourceSettings = getResourceSettings();
         addPluginResources();
         initialized = true;
       } else {
-        log.info("Restore resource settings from last initialization");
+        baseLog.info("Restore resource settings from last initialization");
         setResourceSettings(resourceSettings);
       }
     }
