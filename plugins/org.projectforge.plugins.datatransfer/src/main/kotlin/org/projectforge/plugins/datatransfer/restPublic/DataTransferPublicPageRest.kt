@@ -112,7 +112,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
   }
 
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, @RequestParam("id") externalAccessToken: String?): FormLayoutData {
+  fun getForm(@RequestParam("id") externalAccessToken: String?): FormLayoutData {
     val dataTransfer = DataTransferPublicArea()
     dataTransfer.areaName = translate("plugins.datatransfer.title.heading")
     dataTransfer.externalAccessToken = externalAccessToken

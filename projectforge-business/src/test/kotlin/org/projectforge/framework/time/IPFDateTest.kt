@@ -68,18 +68,18 @@ class IPFDateTest {
         checkDate(date.beginOfWeek, 2019, Month.DECEMBER, 23, checkBeginOfDay)
         checkDate(date.endOfWeek, 2019, Month.DECEMBER, 29, checkEndOfDay)
 
-        var myDate = date.withDayOfMonth(30)
+        val myDate = date.withDayOfMonth(30)
         checkDate(myDate.beginOfWeek, 2019, Month.DECEMBER, 30, checkBeginOfDay)
         checkDate(myDate.endOfWeek, 2020, Month.JANUARY, 5, checkEndOfDay)
 
         try {
-            myDate = date.withDayOfWeek(0)
+            date.withDayOfWeek(0)
             fail("IllegalArgumentException expected")
         } catch (ex: IllegalArgumentException) {
             // OK
         }
         try {
-            myDate = date.withDayOfWeek(8)
+            date.withDayOfWeek(8)
             fail("IllegalArgumentException expected")
         } catch (ex: IllegalArgumentException) {
             // OK
@@ -183,6 +183,7 @@ class IPFDateTest {
             when (checkMode) {
                 TimeCheck.BEGIN_OF_DAY -> checkTime(date.dateTime, 0, 0, 0, 0)
                 TimeCheck.END_OF_DAY -> checkTime(date.dateTime, 23, 59, 59, 999999999)
+                else -> {}
             }
         }
     }
