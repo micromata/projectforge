@@ -25,6 +25,7 @@ package org.projectforge.plugins.datatransfer
 
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.io.IOUtils
+import org.mockito.Mockito
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -44,6 +45,8 @@ import java.util.zip.ZipInputStream
 import javax.annotation.PostConstruct
 import javax.servlet.ServletOutputStream
 import javax.servlet.WriteListener
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpSession
 
 @Service
 class DataTransferTestService {
@@ -160,6 +163,12 @@ class DataTransferTestService {
         }
       }
       return result
+    }
+
+    internal fun mockHttpServletRequest(): HttpServletRequest {
+      val request = Mockito.mock(HttpServletRequest::class.java)
+      Mockito.`when`(request.getSession(true)).thenReturn(Mockito.mock(HttpSession::class.java))
+      return request
     }
   }
 

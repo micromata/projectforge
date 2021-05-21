@@ -23,15 +23,16 @@
 
 package org.projectforge.plugins.datatransfer
 
+import mu.KotlinLogging
 import org.apache.commons.io.IOUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.datatransfer.rest.DataTransferlUtils
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicArea
-import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicPageRest
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,6 +43,7 @@ import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+private val log = KotlinLogging.logger {}
 
 class DataTransferPublicAccessTest : AbstractTestBase() {
   @Autowired
@@ -129,7 +131,7 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
     accessString: String = getAccessString(dataTransferArea)
   ) {
     val response = Mockito.mock(HttpServletResponse::class.java)
-    val request = Mockito.mock(HttpServletRequest::class.java)
+    val request = DataTransferTestService.mockHttpServletRequest()
     val servletOutputStream = DataTransferTestService.MyServletOutputStream()
     Mockito.`when`(response.outputStream).thenReturn(servletOutputStream)
     dataTransferPublicServicesRest.downloadAll(
@@ -151,7 +153,7 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
     dataTransferArea: DataTransferAreaDO,
     filename: String
   ) {
-    val request = Mockito.mock(HttpServletRequest::class.java)
+    val request = DataTransferTestService.mockHttpServletRequest()
     val file = Mockito.mock(MultipartFile::class.java)
     Mockito.`when`(file.originalFilename).thenReturn(filename)
     Mockito.`when`(file.inputStream).thenReturn(ByteArrayInputStream("fake file content".toByteArray()))
@@ -160,15 +162,16 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
     try {
       dataTransferPublicServicesRest.uploadAttachment(
         request,
-        DataTransferPlugin.ID,
-        dataTransferArea.id!!,
-        null,
-        file,
-        getAccessString(dataTransferArea),
-        "External test user"
+        category = DataTransferPlugin.ID,
+        id = dataTransferArea.id!!,
+        listId = AttachmentsService.DEFAULT_NODE,
+        file = file,
+        accessString = getAccessString(dataTransferArea),
+        userInfo = "External test user"
       )
     } catch (ex: Exception) {
       // Not found or no access
+      log.info(ex.message, ex)
     }
   }
 
@@ -176,19 +179,20 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
     dataTransferArea: DataTransferAreaDO,
     fileObject: FileObject,
   ): ByteArray? {
-    val request = Mockito.mock(HttpServletRequest::class.java)
+    val request = DataTransferTestService.mockHttpServletRequest()
     val response = try {
       dataTransferPublicServicesRest.download(
         request,
-        DataTransferPlugin.ID,
-        dataTransferArea.id!!,
-        fileObject.fileId!!,
-        null,
-        getAccessString(dataTransferArea),
-        "External test user"
+        category = DataTransferPlugin.ID,
+        id = dataTransferArea.id!!,
+        fileId = fileObject.fileId!!,
+        listId = AttachmentsService.DEFAULT_NODE,
+        accessString = getAccessString(dataTransferArea),
+        userInfo = "External test user"
       )
     } catch (ex: Exception) {
       // Not found or no access
+      log.info(ex.message, ex)
       return null
     }
     (response.body as InputStreamResource).inputStream.use {
