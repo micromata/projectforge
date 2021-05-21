@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
+import org.apache.commons.io.IOUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -45,9 +46,6 @@ import javax.servlet.http.HttpServletResponse
 class DataTransferPublicAccessTest : AbstractTestBase() {
   @Autowired
   private lateinit var testService: DataTransferTestService
-
-  @Autowired
-  private lateinit var dataTransferPublicPageRest: DataTransferPublicPageRest
 
   @Autowired
   private lateinit var dataTransferPublicServicesRest: DataTransferPublicServicesRest
@@ -194,7 +192,7 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
       return null
     }
     (response.body as InputStreamResource).inputStream.use {
-      return it.readAllBytes()
+      return IOUtils.toByteArray(it)
     }
   }
 
