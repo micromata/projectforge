@@ -24,6 +24,7 @@
 package org.projectforge.plugins.datatransfer
 
 import org.apache.commons.io.FilenameUtils
+import org.apache.commons.io.IOUtils
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -140,7 +141,7 @@ class DataTransferTestService {
       return null
     }
     response.body.inputStream.use {
-      return it.readAllBytes()
+      return IOUtils.toByteArray(it);
     }
   }
 
