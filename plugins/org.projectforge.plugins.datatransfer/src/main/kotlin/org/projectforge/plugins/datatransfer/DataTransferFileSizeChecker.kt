@@ -61,7 +61,8 @@ class DataTransferFileSizeChecker(val globalMaxFileSizeOfDataTransfer: Long) : F
           throw ex
         }
       }
+    } ?: run {
+      log.warn { "Size of attachments of area not given. Can't check total size of area: $data" }
     }
-    log.warn { "Size of attachments of area not given. Can't check total size of area: $data" }
   }
 }
