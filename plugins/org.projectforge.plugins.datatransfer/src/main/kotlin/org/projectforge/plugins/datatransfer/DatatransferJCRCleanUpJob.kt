@@ -118,7 +118,7 @@ class DataTransferJCRCleanUpJob {
           continue
         }
         val files = mutableListOf<String>()
-        child.findDescendant("attachments", RepoService.NODENAME_FILES)?.children?.forEach {
+        child.findDescendant(AttachmentsService.DEFAULT_NODE, RepoService.NODENAME_FILES)?.children?.forEach {
           deletedCounter++
           deletedSize += it.getProperty("size")?.value?.long ?: 0
           files.add("file=[${it.name}: '${it.getProperty("fileName")?.value?.string}' (${FormatterUtils.formatBytes(it.getProperty("size")?.value?.long)})]")

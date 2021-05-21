@@ -174,6 +174,7 @@ class DataTransferPublicServicesRest {
   //@RequestParam("files") files: Array<MultipartFile>)
       : ResponseEntity<*>? {
     //files.forEach { file ->
+    check(listId == AttachmentsService.DEFAULT_NODE)
     val filename = file.originalFilename
     log.info {
       "User tries to upload attachment: id='$id', filename='$filename', page='${this::class.java.name}', user='${
