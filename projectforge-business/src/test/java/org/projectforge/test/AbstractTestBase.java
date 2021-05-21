@@ -92,7 +92,7 @@ import static org.junit.jupiter.api.Assertions.*;
 //@Transactional
 @Component
 public abstract class AbstractTestBase {
-  protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory
+  protected static final org.slf4j.Logger baseLog = org.slf4j.LoggerFactory
       .getLogger(AbstractTestBase.class);
 
   public static final String ADMIN = "PFAdmin";
@@ -261,7 +261,7 @@ public abstract class AbstractTestBase {
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
     Locale.setDefault(Locale.ENGLISH);
-    log.info("user.timezone is: " + System.getProperty("user.timezone"));
+    baseLog.info("user.timezone is: " + System.getProperty("user.timezone"));
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     try {
       jdbc.execute("CHECKPOINT DEFRAG");
@@ -279,7 +279,7 @@ public abstract class AbstractTestBase {
     try {
       initDb();
     } catch (BeansException e) {
-      log.error("Something in setUp go wrong: " + e.getMessage(), e);
+      baseLog.error("Something in setUp go wrong: " + e.getMessage(), e);
     }
     return;
   }
