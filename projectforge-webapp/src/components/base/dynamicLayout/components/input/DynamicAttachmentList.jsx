@@ -86,8 +86,6 @@ function DynamicAttachmentList(
                         category,
                         fileId: entry.fileId,
                         listId,
-                        accessString,
-                        userInfo,
                     }),
                 },
             });

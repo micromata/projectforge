@@ -30,6 +30,7 @@ import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.rest.DataTransferlUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -133,11 +134,11 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
           UIAttachmentList(
             DataTransferPlugin.ID,
             dataTransfer.id,
-            //serviceBaseUrl = "/${RestResolver.REACT_PUBLIC_PATH}/datatransferattachment/dynamic",
+            serviceBaseUrl = PagesResolver.getDynamicPageUrl(DataTransferPublicAttachmentPageRest::class.java, absolute = true),
             restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",
             accessString = DataTransferlUtils.getAccessString(dataTransfer),
             userInfo = "${dataTransfer.userInfo}",
-            downloadOnRowClick = true,
+            downloadOnRowClick = false,
             uploadDisabled = dataTransfer.externalUploadEnabled != true
           )
         )
