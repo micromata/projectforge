@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
  * For external anonymous usage via token/password.
  */
 @RestController
-@RequestMapping("${Rest.PUBLIC_URL}/datatransferattachment")
+@RequestMapping("${Rest.PUBLIC_URL}/attachment")
 class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var services: AttachmentsServicesRest
