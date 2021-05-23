@@ -23,7 +23,6 @@
 
 package org.projectforge.business.vacation.service
 
-import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
@@ -39,8 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
-
-private val log = KotlinLogging.logger {}
 
 class VacationValidatorTest : AbstractTestBase() {
     @Autowired
@@ -60,7 +57,7 @@ class VacationValidatorTest : AbstractTestBase() {
         logon(TEST_EMPLOYEE_USER)
         val employee = createEmployee("2019-joiner-for-validation", LocalDate.of(2019, Month.MAY, 1))
         val manager = createEmployee("VacationValidatorTest-manager", LocalDate.of(2019, Month.MAY, 1))
-        var vacation = createVacation(employee, manager, 2020, Month.JANUARY, 1, Month.JANUARY, 10, true, VacationStatus.IN_PROGRESS)
+        val vacation = createVacation(employee, manager, 2020, Month.JANUARY, 1, Month.JANUARY, 10, true, VacationStatus.IN_PROGRESS)
         vacation.startDate = null
         Assertions.assertEquals(VacationValidator.Error.DATE_NOT_SET, vacationService.validate(vacation))
 
@@ -69,7 +66,6 @@ class VacationValidatorTest : AbstractTestBase() {
 
         vacation.startDate = LocalDate.now().minusMonths(1)
         vacation.endDate = vacation.startDate!!.plusDays(2)
-        log.error { "VacationValidator ($VacationValidator).rejectNewVacationEntriesBeforeNow = ${VacationValidator.rejectNewVacationEntriesBeforeNow}" }
         Assertions.assertEquals(VacationValidator.Error.START_DATE_BEFORE_NOW, vacationService.validate(vacation))
 
         vacation.startDate = PFDayUtils.getNextWorkingDay(LocalDate.now().plusDays(1))
@@ -126,7 +122,7 @@ class VacationValidatorTest : AbstractTestBase() {
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30));
+        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30))
         employeeDao.internalSave(employee)
         return employee
     }

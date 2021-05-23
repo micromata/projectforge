@@ -23,7 +23,6 @@
 
 package org.projectforge.business.vacation.service
 
-import mu.KotlinLogging
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.common.i18n.UserException
@@ -32,8 +31,6 @@ import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Validates vacation entries. Use this functionality through [VacationService.validate].
@@ -68,7 +65,7 @@ object VacationValidator {
 
     /**
      * The current user is not allowed to approve this entry. Only allowed for the manager of this entry or
-     * HR staff members. Checked by [org.projectforge.business.vacation.model.VacationDao].
+     * HR staff members. Checked by [org.projectforge.business.vacation.repository.VacationDao].
      */
     NOT_ALLOWED_TO_APPROVE("vacation.validate.notAllowedToSelfApprove")
   }
@@ -79,7 +76,7 @@ object VacationValidator {
   internal var rejectNewVacationEntriesBeforeNow = true
 
   /**
-   * Checks for collisions, enough left days etc. The access checking will be done by [org.projectforge.business.vacation.model.VactionDO].
+   * Checks for collisions, enough left days etc. The access checking will be done by [org.projectforge.business.vacation.model.VacationDO].
    * @param vacation The vacation entry to check.
    * @param dbVacation If modified, the previous entry (data base entry).
    * @param throwException If true, an exception is thrown if validation failed. Default is false.
@@ -114,13 +111,6 @@ object VacationValidator {
       return returnOrThrow(Error.DATE_BEFORE_JOINING, throwException)
     }
 
-    log.error {
-      "Test: this=$this, rejectNewVacationEntriesBeforeNow=$rejectNewVacationEntriesBeforeNow, before=${
-        startDate.isBefore(
-          LocalDate.now()
-        )
-      }, hrAccess=${vacationService.hasLoggedInUserHRVacationAccess()}"
-    }
     // Is new vacation data
     if (rejectNewVacationEntriesBeforeNow && vacation.id == null && startDate.isBefore(LocalDate.now()) && !vacationService.hasLoggedInUserHRVacationAccess()) {
       return returnOrThrow(Error.START_DATE_BEFORE_NOW, throwException)
