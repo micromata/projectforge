@@ -25,25 +25,16 @@ package org.projectforge.plugins.datatransfer
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.FileObject
 import org.projectforge.jcr.RepoService
-import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
-import java.io.File
-import java.util.*
-import javax.annotation.PostConstruct
 
 const val MODUL_NAME = "org.projectforge.plugins.datatransfer"
 
 class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
-  @Autowired
-  private lateinit var attachmentsService: AttachmentsService
-
   @Autowired
   private lateinit var repoService: RepoService
 
@@ -61,16 +52,12 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
 
   init {
     MyJpaWithExtLibrariesScanner.setPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName)
-  }
-
-  @PostConstruct
-  private fun postConstruct() {
     initJCRTestRepo(MODUL_NAME, "cleanUpTestRepo")
   }
 
-  // Doesn't work on Jenkins server: @Test
+  @Test
   fun cleanUpTest() {
-    val user = logon(TEST_USER)
+    logon(TEST_USER)
     repoService.ensureNode(null, "${dataTransferAreaPagesRest.jcrPath}")
     createArea("emptyTestArea")
     val area = createArea("testArea")

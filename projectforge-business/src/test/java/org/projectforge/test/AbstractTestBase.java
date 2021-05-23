@@ -242,6 +242,11 @@ public abstract class AbstractTestBase {
       instance = this; // Store instance for afterAll method.
       //System.out.println("******** " + instance.getClass());
     }
+    if (testRepoDir != null) {
+      repoService.internalResetForJunitTestCases();
+      repoService.init(testRepoDir);
+      testRepoDir = null; // Don't initialize twice.
+    }
     if (!initialized) {
       initialized = true;
       if (getUser(ADMIN) == null) {
@@ -298,9 +303,6 @@ public abstract class AbstractTestBase {
     if (createTestData) {
       initTestDB.initDatabase();
     }
-    if (testRepoDir != null) {
-      repoService.init(testRepoDir);
-    }
   }
 
   /**
@@ -309,9 +311,10 @@ public abstract class AbstractTestBase {
    * @param modulName    Maven module name (dir) of your current tested module.
    * @param testRepoName Unique test repoName like "datatransferTestRepo"
    */
-  protected void initJCRTestRepo(String modulName, String testRepoName) {
+  protected File initJCRTestRepo(String modulName, String testRepoName) {
     final TestUtils testUtils = new TestUtils(modulName);
     testRepoDir = testUtils.deleteAndCreateTestFile("cleanUpTestRepo");
+    return testRepoDir;
   }
 
   protected void clearDatabase() {
