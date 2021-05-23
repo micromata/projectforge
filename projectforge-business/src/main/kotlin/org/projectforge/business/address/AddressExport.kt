@@ -139,7 +139,7 @@ open class AddressExport {
     }
 
     val workbook = ExcelUtils.prepareWorkbook()
-    val sheet = workbook.createOrGetSheet(translate(sheetTitle))!!
+    val sheet = workbook.createOrGetSheet(translate(sheetTitle))
     sheet.enableMultipleColumns = true
 
     val boldFont = workbook.createOrGetFont("bold")!!
@@ -192,12 +192,12 @@ open class AddressExport {
       val lang =
         LanguageConverter.getLanguageAsString(address.communicationLanguage, ThreadLocalUserContext.getLocale())
       row.getCell("communicationLanguage")!!.setCellValue(lang)
-      row.getCell("mailingAddressText")!!.setCellValue(address.mailingAddressText);
-      row.getCell("mailingAddressText2")!!.setCellValue(address.mailingAddressText2);
-      row.getCell("mailingZipCode")!!.setCellValue(address.mailingZipCode);
-      row.getCell("mailingCity")!!.setCellValue(address.mailingCity);
-      row.getCell("mailingCountry")!!.setCellValue(address.mailingCountry);
-      row.getCell("mailingState")!!.setCellValue(address.mailingState);
+      row.getCell("mailingAddressText")!!.setCellValue(address.mailingAddressText)
+      row.getCell("mailingAddressText2")!!.setCellValue(address.mailingAddressText2)
+      row.getCell("mailingZipCode")!!.setCellValue(address.mailingZipCode)
+      row.getCell("mailingCity")!!.setCellValue(address.mailingCity)
+      row.getCell("mailingCountry")!!.setCellValue(address.mailingCountry)
+      row.getCell("mailingState")!!.setCellValue(address.mailingState)
 
       handleAddressCampaign(row, address, *params)
     }
