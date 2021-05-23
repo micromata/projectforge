@@ -71,7 +71,7 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
     }
 
     private fun importBuchungssaetze(workbook: ExcelWorkbook, idx: Int): ImportedSheet<BuchungssatzDO>? {
-        val sheet = workbook.getSheet(idx)!!
+        val sheet = workbook.getSheet(idx)
         sheet.autotrimCellValues = true
         val name = sheet.sheetName
         var month: Int? = null

@@ -105,7 +105,7 @@ object ExcelUtils {
     row.autoFillFromObject(obj, process, *ignoreProperties)
   }
 
-  val process: (Any, Any, ExcelCell, ExcelColumnDef) -> Boolean = { obj, propertyValue, cell, columnDef ->
+  val process: (Any, Any, ExcelCell, ExcelColumnDef) -> Boolean = { _, propertyValue, cell, _ ->
     if (propertyValue is I18nEnum) {
       cell.setCellValue(translate(propertyValue.i18nKey))
       true
