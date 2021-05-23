@@ -50,6 +50,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.Tuple;
 import javax.persistence.criteria.JoinType;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
@@ -306,6 +307,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     final QueryFilter queryFilter = new QueryFilter(myFilter);
 
+    boolean positionStatusAlreadyFilterd = false;
     queryFilter.createJoin("positionen");
     if (myFilter.getAuftragFakturiertFilterStatus() == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
       // Show all orders to be invoiced (ignore status values on orders and their positions).
@@ -318,6 +320,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
               ));
     } else {
       addCriterionForAuftragsStatuses(myFilter, queryFilter);
+      positionStatusAlreadyFilterd = true;
     }
 
     if (myFilter.getUser() != null) {
@@ -348,8 +351,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     if (myFilter.getAuftragFakturiertFilterStatus() != AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
       // Don't use filter for orders to be invoiced.
+      list = new ArrayList(list); // Make mutable list of Kotlin's immutable list.
       filterPositionsArten(myFilter, list);
-      filterPositionsStatus(myFilter, list);
+      if (!positionStatusAlreadyFilterd) { // Don't filter position status' again.
+        filterPositionsStatus(myFilter, list);
+      }
       filterPositionsPaymentTypes(myFilter, list);
     }
 
