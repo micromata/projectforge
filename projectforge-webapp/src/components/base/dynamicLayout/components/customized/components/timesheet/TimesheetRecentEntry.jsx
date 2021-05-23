@@ -54,6 +54,7 @@ function TimesheetRecentEntry(
         .then(handleHTTPErrors)
         .then((body) => body.json())
         .then(callback)
+        // eslint-disable-next-line no-alert
         .catch((error) => alert(`Internal error: ${error}`));
 
     const projekt = kost2 ? kost2.projekt : undefined;

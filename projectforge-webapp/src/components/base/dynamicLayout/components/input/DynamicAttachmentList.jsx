@@ -54,6 +54,7 @@ function DynamicAttachmentList(
                 setLoading(false);
             })
             .catch((catchError) => {
+                // eslint-disable-next-line no-alert
                 alert(catchError);
                 setLoading(false);
             });

@@ -1,3 +1,4 @@
+/* eslint-disable no-alert */
 import moment from 'moment-timezone';
 
 import 'moment/min/locales';
@@ -276,7 +277,6 @@ class CalendarPanel extends React.Component {
     }
 
     navigateToDay(e) {
-        console.log('*** ToDo: navigate to day.', e);
         this.setState({
             date: e,
             viewType: 'day',

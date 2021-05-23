@@ -1,3 +1,4 @@
+/* eslint-disable no-alert */
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { SketchPicker } from 'react-color';

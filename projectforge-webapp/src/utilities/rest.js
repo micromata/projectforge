@@ -1,3 +1,4 @@
+/* eslint-disable no-alert */
 const testServer = 'http://localhost:8080';
 
 // Save Data when saveData mode is enabled.
