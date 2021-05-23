@@ -33,14 +33,15 @@ import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.datatransfer.rest.DataTransferlUtils
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicArea
+import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicPageRest
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
 import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
@@ -59,6 +60,14 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
   @PostConstruct
   private fun postConstruct() {
     initJCRTestRepo(MODUL_NAME, "publicAccessTestRepo")
+  }
+
+  @Test
+  fun pageResolverTest() {
+    Assertions.assertEquals(
+      "react/public/datatransfer/dynamic",
+      PagesResolver.getDynamicPageUrl(DataTransferPublicPageRest::class.java)
+    )
   }
 
   @Test
@@ -90,7 +99,10 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
     uploadFile(externalFullAccessArea, "upload.txt")
     downloadAllAndCheck(externalFullAccessArea, file2.fileName!!, "upload.txt")
 
-    downloadAllAndCheck(externalFullAccessArea, accessString = getAccessString(externalDownloadArea)) // Try to use access string of different area
+    downloadAllAndCheck(
+      externalFullAccessArea,
+      accessString = getAccessString(externalDownloadArea)
+    ) // Try to use access string of different area
   }
 
   private fun checkDownload(
