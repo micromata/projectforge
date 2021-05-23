@@ -71,6 +71,10 @@ class VacationServiceTest : AbstractTestBase() {
     VacationValidator.rejectNewVacationEntriesBeforeNow = false
   }
 
+  override fun afterAll() {
+    VacationValidator.rejectNewVacationEntriesBeforeNow = true // Reset to normal value.
+  }
+
   /**
    * Test is based on year 2020 (should also run in 2021...).
    */
