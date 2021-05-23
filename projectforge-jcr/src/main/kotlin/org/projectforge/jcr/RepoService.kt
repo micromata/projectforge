@@ -80,6 +80,13 @@ open class RepoService {
   }
 
   /**
+   * Should only be called by test cases if you need to initialize a repo multiple times.
+   */
+  fun internalResetForJunitTestCases() {
+    nodeStore = null
+  }
+
+  /**
    * @param parentNodePath Path, nodes are separated by '/', e. g. "world/germany". The nodes of this path must already exist.
    * For creating top level nodes (direct child of main node), set parentNode to null, empty string or "/".
    * @param relPath Sub node parent node to create if not exists. Null value results in nop.
