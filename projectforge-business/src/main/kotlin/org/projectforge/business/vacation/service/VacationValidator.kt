@@ -115,7 +115,7 @@ object VacationValidator {
     }
 
     log.error {
-      "Test: rejectNewVacationEntriesBeforeNow=$rejectNewVacationEntriesBeforeNow, before=${
+      "Test: this=$this, rejectNewVacationEntriesBeforeNow=$rejectNewVacationEntriesBeforeNow, before=${
         startDate.isBefore(
           LocalDate.now()
         )
