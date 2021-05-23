@@ -13,6 +13,7 @@ import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 import AuthorizedRoutes, { publicRoute, wicketRoute } from './AuthorizedRoutes';
 import FormPage from './page/form/FormPage';
 import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
+import ModalRoutes from './ModalRoutes';
 
 function ProjectForge(
     {
@@ -49,8 +50,8 @@ function ProjectForge(
             </LoadingContainer>
         );
     } else {
-        content = (
-            <Switch>
+        const getRoutesWithLocation = (switchLocation) => (
+            <Switch location={switchLocation}>
                 {wicketRoute}
                 {publicRoute}
                 <Route
@@ -74,6 +75,8 @@ function ProjectForge(
                 />
             </Switch>
         );
+
+        content = <ModalRoutes getRoutesWithLocation={getRoutesWithLocation} />;
     }
 
     return (
