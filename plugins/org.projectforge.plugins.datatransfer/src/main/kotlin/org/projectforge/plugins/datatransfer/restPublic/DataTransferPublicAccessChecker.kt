@@ -28,6 +28,7 @@ import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.FileObject
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferFileSizeChecker
 import org.projectforge.rest.config.RestUtils
@@ -36,24 +37,39 @@ import javax.servlet.http.HttpServletRequest
 /**
  * Checks access to attachments by external anonymous users.
  */
-open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferAreaDao) : AttachmentsAccessChecker {
+open class DataTransferPublicAccessChecker(
+  dataTransferAreaDao: DataTransferAreaDao,
+  val dataTransferPublicSession: DataTransferPublicSession
+) : AttachmentsAccessChecker {
   override val fileSizeChecker: DataTransferFileSizeChecker =
     DataTransferFileSizeChecker(dataTransferAreaDao.maxFileSize.toBytes())
 
   /**
-   * If user has no download access, only attachments uploaded from own ip address should be displayed.
+   * If user has no download access, only attachments uploaded inside his session are available.
    */
   internal fun filterAttachments(
     request: HttpServletRequest,
     externalDownloadEnabled: Boolean?,
+    areaId: Int,
     attachments: List<Attachment>?
   ): List<Attachment>? {
     attachments ?: return null
     if (externalDownloadEnabled == true) {
       return attachments
     }
-    val clientIp = RestUtils.getClientIp(request) ?: "NO IP ADDRESS GIVEN. CAN'T SHOW ANY ATTACHMENT."
-    return attachments.filter { it.createdByUser?.contains(clientIp) == true }
+    return attachments.filter { dataTransferPublicSession.isOwnerOfFile(request, areaId, it.fileId) }
+  }
+
+  internal fun hasDownloadAccess(request: HttpServletRequest, area: DataTransferAreaDO, fileId: String): Boolean {
+    return area.externalDownloadEnabled == true || dataTransferPublicSession.isOwnerOfFile(request, area.id, fileId)
+  }
+
+  internal fun hasDeleteAccess(request: HttpServletRequest, area: DataTransferAreaDO, fileId: String): Boolean {
+    return hasUpdateAccess(request, area, fileId)
+  }
+
+  internal fun hasUpdateAccess(request: HttpServletRequest, area: DataTransferAreaDO, fileId: String): Boolean {
+    return area.externalUploadEnabled == true && dataTransferPublicSession.isOwnerOfFile(request, area.id, fileId)
   }
 
   /**
