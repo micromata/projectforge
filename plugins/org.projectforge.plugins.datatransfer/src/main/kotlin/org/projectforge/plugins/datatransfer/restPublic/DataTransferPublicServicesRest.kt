@@ -37,6 +37,7 @@ import org.projectforge.plugins.datatransfer.rest.DataTransferlUtils
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
@@ -214,6 +215,89 @@ class DataTransferPublicServicesRest {
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = TargetType.UPDATE, merge = true)
+          .addVariable("data", AttachmentsServicesRest.ResponseData(list))
+      )
+  }
+
+  @PostMapping("delete")
+  fun delete(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>)
+      : ResponseEntity<*>? {
+    val category = postData.data.category
+    val id = postData.data.id
+    val checkResult = checkAccess(request, category, id)
+    checkResult.failedAccess?.let { return it }
+    log.info {
+      "User tries to delete attachment: id='$id', fileId='${postData.data.fileId}', file=${postData.data.attachment}, user='${
+        getExternalUserString(
+          request,
+          checkResult.userInfo
+        )
+      }'."
+    }
+
+    val data = postData.data
+    attachmentsService.deleteAttachment(
+      dataTransferAreaPagesRest.jcrPath!!,
+      data.fileId,
+      dataTransferAreaDao,
+      checkResult.dataTransferArea!!,
+      attachmentsAccessChecker,
+      data.listId
+    )
+    val list =
+      attachmentsService.getAttachments(
+        dataTransferAreaPagesRest.jcrPath!!,
+        data.id,
+        attachmentsAccessChecker,
+        data.listId
+      )
+        ?: emptyList() // Client needs empty list to update data of attachments.
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
+          .addVariable("data", AttachmentsServicesRest.ResponseData(list))
+      )
+  }
+
+  @PostMapping("modify")
+  fun modify(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>)
+      : ResponseEntity<*>? {
+    val data = postData.data
+    val attachment = data.attachment
+    val category = data.category
+    val id = data.id
+    val checkResult = checkAccess(request, category, id)
+    checkResult.failedAccess?.let { return it }
+    log.info {
+      "User tries to modify attachment: id='$id', fileId='${data.fileId}', file=${postData.data.attachment}, user='${
+        getExternalUserString(
+          request,
+          checkResult.userInfo
+        )
+      }'."
+    }
+
+    attachmentsService.changeFileInfo(
+      dataTransferAreaPagesRest.jcrPath!!,
+      data.fileId,
+      dataTransferAreaDao,
+      checkResult.dataTransferArea!!,
+      attachment.name,
+      attachment.description,
+      attachmentsAccessChecker,
+      data.listId,
+      userString = getExternalUserString(request, checkResult.userInfo)
+    )
+    val list =
+      attachmentsService.getAttachments(
+        dataTransferAreaPagesRest.jcrPath!!,
+        data.id,
+        attachmentsAccessChecker,
+        data.listId
+      )
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
           .addVariable("data", AttachmentsServicesRest.ResponseData(list))
       )
   }

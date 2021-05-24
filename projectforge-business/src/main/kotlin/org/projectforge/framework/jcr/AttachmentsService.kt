@@ -489,7 +489,11 @@ open class AttachmentsService {
     newFileName: String?,
     newDescription: String?,
     accessChecker: AttachmentsAccessChecker,
-    subPath: String? = null
+    subPath: String? = null,
+    /**
+     * Only for external users. Otherwise logged in user will be assumed.
+     */
+    userString: String? = null,
   )
       : FileObject? {
     accessChecker.checkUpdateAccess(
@@ -502,7 +506,7 @@ open class AttachmentsService {
     val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
     val result = repoService.changeFileInfo(
       fileObject,
-      ThreadLocalUserContext.getUserId()!!.toString(),
+      ThreadLocalUserContext.getUserId()?.toString() ?: userString!!,
       newFileName,
       newDescription
     )

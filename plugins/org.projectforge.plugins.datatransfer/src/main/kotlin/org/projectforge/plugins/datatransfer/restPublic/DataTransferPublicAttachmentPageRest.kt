@@ -97,7 +97,15 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
     val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
     data.attachment = services.getAttachment(dataTransferAreaPagesRest.jcrPath!!, dataTransferPublicAccessChecker, data)
     val writeAccess = DataTransferPublicSession.isOwnerOfFile(request, id, fileId)
-    val layout = AttachmentPageRest.createAttachmentLayout(id, category, fileId, listId, data.attachment, writeAccess)
+    val layout = AttachmentPageRest.createAttachmentLayout(
+      id,
+      category,
+      fileId,
+      listId,
+      data.attachment,
+      writeAccess,
+      restClass = DataTransferPublicServicesRest::class.java
+    )
     return FormLayoutData(data, layout, createServerData(request))
   }
 }
