@@ -73,18 +73,24 @@ object DataTransferPublicSession {
     return data
   }
 
-  fun register(request: HttpServletRequest, id: Int, authenticationToken: String, password: String, userInfo: String?) {
+  fun register(request: HttpServletRequest, id: Int, accessToken: String, password: String, userInfo: String?) {
     @Suppress("UNCHECKED_CAST")
     var map = getSessionMap(request)
     if (map == null) {
       map = mutableMapOf()
       request.getSession(true).setAttribute(SESSION_ATTRIBUTE, map)
     }
-    val data = TransferAreaData(id, authenticationToken, password, userInfo)
-    if (map[id] == null) {
+    var data = map[id]
+    if (data == null) {
+      data = TransferAreaData(id, accessToken, password, userInfo)
       log.info { "External user logged-in: ${ToStringUtil.toJsonString(data)}, ip=${RestUtils.getClientIp(request)}" }
+      map[id] = data
+    } else {
+      // Update values (if changed by re-login):
+      data.accessToken = accessToken
+      data.password = password
+      data.userInfo = userInfo
     }
-    map[id] = data
   }
 
   fun logout(request: HttpServletRequest) {
@@ -134,13 +140,16 @@ object DataTransferPublicSession {
       }
       return
     }
-    if (!data.ownedFiles.contains(fileId)) {
-      log.info {
-        "Mark external user as file owner inside his session: $areaId=$areaId, fileId=$fileId, name=$fileName, ip=${
-          RestUtils.getClientIp(
-            request
-          )
-        }"
+    synchronized(data.ownedFiles) {
+      if (!data.ownedFiles.contains(fileId)) {
+        log.info {
+          "Mark external user as file owner inside his session: $areaId=$areaId, fileId=$fileId, name=$fileName, ip=${
+            RestUtils.getClientIp(
+              request
+            )
+          }"
+        }
+        data.ownedFiles.add(fileId)
       }
     }
   }

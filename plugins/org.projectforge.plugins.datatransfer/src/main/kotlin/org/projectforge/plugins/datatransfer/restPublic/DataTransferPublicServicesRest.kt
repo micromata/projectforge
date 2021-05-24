@@ -77,6 +77,7 @@ class DataTransferPublicServicesRest {
   }
 
   /**
+   * User must be logged in before (the accessToken and external password of the user's session are used).
    * @param category [DataTransferPlugin.ID] ("datatransfer") expected
    */
   @GetMapping("download/{category}/{id}")
@@ -217,10 +218,10 @@ class DataTransferPublicServicesRest {
       )
   }
 
-  private fun checkAccess(
+  internal fun checkAccess(
     request: HttpServletRequest,
     category: String,
-    areaId: Int,
+    areaId: Int
   ): CheckAccessResponse {
     check(category == DataTransferPlugin.ID)
     val sessionData = DataTransferPublicSession.getTransferAreaData(request, areaId)
@@ -256,7 +257,7 @@ class DataTransferPublicServicesRest {
     return CheckAccessResponse(checkAccess.dataTransferArea, userInfo = sessionData.userInfo)
   }
 
-  private fun getExternalUserString(request: HttpServletRequest, userString: String?): String {
+  internal fun getExternalUserString(request: HttpServletRequest, userString: String?): String {
     return "external: ${RestUtils.getClientIp(request)} ('${userString?.take(255)}')"
   }
 
