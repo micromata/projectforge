@@ -24,7 +24,6 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
-import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileInfo
@@ -41,11 +40,9 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import java.nio.charset.StandardCharsets
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -66,6 +63,9 @@ class DataTransferPublicServicesRest {
 
   @Autowired
   private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+
+  @Autowired
+  private lateinit var dataTransferPublicSession: DataTransferPublicSession
 
   @Autowired
   private lateinit var notificationMailService: NotificationMailService
@@ -90,14 +90,16 @@ class DataTransferPublicServicesRest {
     @RequestParam("listId") listId: String?,
   )
       : ResponseEntity<*> {
+    check(category == DataTransferPlugin.ID)
     check(listId == AttachmentsService.DEFAULT_NODE)
-    val checkResult = checkAccess(request, category, id)
-    checkResult.failedAccess?.let { return it }
+    val data = dataTransferPublicSession.checkLogin(request, id) ?: return RestUtils.badRequest("No valid login.")
+    val area: DataTransferAreaDO = data.first
+    val sessionData = data.second
     log.info {
       "User tries to download attachment: category=$category, id=$id, fileId=$fileId, listId=$listId)}, user='${
         getExternalUserString(
           request,
-          checkResult.userInfo
+          sessionData.userInfo
         )
       }'."
     }
@@ -107,16 +109,15 @@ class DataTransferPublicServicesRest {
         id,
         fileId,
         attachmentsAccessChecker,
-        data = checkResult.dataTransferArea,
+        data = area,
         attachmentsEventListener = dataTransferAreaDao,
-        userString = getExternalUserString(request, checkResult.userInfo)
+        userString = getExternalUserString(request, sessionData.userInfo)
       )
         ?: throw TechnicalException(
           "File to download not accessible for user or not found: category=$category, id=$id, fileId=$fileId, listId=$listId)}."
         )
-    if (checkResult.dataTransferArea?.externalDownloadEnabled != true) {
-      val clientIp = RestUtils.getClientIp(request) ?: "NO IP ADDRESS GIVEN. CAN'T SHOW ANY ATTACHMENT."
-      if (result.first.createdByUser?.contains(clientIp) != true) {
+    if (area.externalDownloadEnabled != true) {
+      if (!dataTransferPublicSession.isOwnerOfFile(request, id, fileId)) {
         return RestUtils.badRequest("Download not enabled.")
       }
     }
@@ -132,30 +133,33 @@ class DataTransferPublicServicesRest {
     @PathVariable("category", required = true) category: String,
     @PathVariable("id", required = true) id: Int,
   ): ResponseEntity<*>? {
-    //Session check as alternative
-    val checkResult = checkAccess(request, category, id)
-    checkResult.failedAccess?.let { return it }
+    check(category == DataTransferPlugin.ID)
+    val data = dataTransferPublicSession.checkLogin(request, id) ?: return RestUtils.badRequest("No valid login.")
+    val area: DataTransferAreaDO = data.first
+    val sessionData = data.second
     log.info {
       "User tries to download all attachments: category=$category, id=$id}, user='${
         getExternalUserString(
           request,
-          checkResult.userInfo
+          sessionData.userInfo
         )
       }'."
     }
-    val dbObj = checkResult.dataTransferArea!!
-    val dto = convert(request, dbObj, checkResult.userInfo)
+    if (area.externalDownloadEnabled != true) {
+      return RestUtils.badRequest("Download not enabled.")
+    }
+    val dto = convert(request, area, sessionData.userInfo)
     DataTransferlUtils.downloadAll(
       response,
       attachmentsService,
       attachmentsAccessChecker,
       notificationMailService,
-      dbObj,
+      area,
       dto.areaName,
       jcrPath = dataTransferAreaPagesRest.jcrPath!!,
       id,
       dto.attachments,
-      byExternalUser = getExternalUserString(request, checkResult.userInfo)
+      byExternalUser = getExternalUserString(request, sessionData.userInfo)
     )
     return null
   }
@@ -171,26 +175,22 @@ class DataTransferPublicServicesRest {
   //@RequestParam("files") files: Array<MultipartFile>)
       : ResponseEntity<*>? {
     //files.forEach { file ->
+    check(category == DataTransferPlugin.ID)
     check(listId == AttachmentsService.DEFAULT_NODE)
+    val data = dataTransferPublicSession.checkLogin(request, id) ?: return RestUtils.badRequest("No valid login.")
+    val area: DataTransferAreaDO = data.first
+    val sessionData = data.second
     val filename = file.originalFilename
-    val checkResult = checkAccess(request, category, id)
-    checkResult.failedAccess?.let { return it }
     log.info {
       "User tries to upload attachment: id='$id', filename='$filename', page='${this::class.java.name}', user='${
         getExternalUserString(
           request,
-          checkResult.userInfo
+          sessionData.userInfo
         )
       }'."
     }
 
-    val obj = dataTransferAreaDao.internalGetById(id)
-      ?: throw TechnicalException(
-        "Entity with id $id not accessible for category '$category' or doesn't exist.",
-        "Entity with id unknown."
-      )
-
-    if (obj.externalUploadEnabled != true) {
+    if (area.externalUploadEnabled != true) {
       return RestUtils.badRequest("Upload not enabled.")
     }
 
@@ -199,17 +199,17 @@ class DataTransferPublicServicesRest {
       fileInfo = FileInfo(file.originalFilename, fileSize = file.size),
       inputStream = file.inputStream,
       baseDao = dataTransferAreaDao,
-      obj = obj,
+      obj = area,
       accessChecker = attachmentsAccessChecker,
-      userString = getExternalUserString(request, checkResult.userInfo)
+      userString = getExternalUserString(request, sessionData.userInfo)
     )
     //}
 
-    DataTransferPublicSession.registerFileAsOwner(request, obj.id, attachment.fileId, attachment.name)
+    dataTransferPublicSession.registerFileAsOwner(request, area.id, attachment.fileId, attachment.name)
     val list =
       attachmentsAccessChecker.filterAttachments(
         request,
-        obj.externalDownloadEnabled,
+        area.externalDownloadEnabled,
         attachmentsService.getAttachments(dataTransferAreaPagesRest.jcrPath!!, id, attachmentsAccessChecker, null)
       )
     return ResponseEntity.ok()
@@ -224,32 +224,37 @@ class DataTransferPublicServicesRest {
       : ResponseEntity<*>? {
     val category = postData.data.category
     val id = postData.data.id
-    val checkResult = checkAccess(request, category, id)
-    checkResult.failedAccess?.let { return it }
+    val listId = postData.data.listId
+    check(category == DataTransferPlugin.ID)
+    check(listId == AttachmentsService.DEFAULT_NODE)
+    val data = dataTransferPublicSession.checkLogin(request, id) ?: return RestUtils.badRequest("No valid login.")
+    val area: DataTransferAreaDO = data.first
+    val sessionData = data.second
+
     log.info {
       "User tries to delete attachment: id='$id', fileId='${postData.data.fileId}', file=${postData.data.attachment}, user='${
         getExternalUserString(
           request,
-          checkResult.userInfo
+          sessionData.userInfo
         )
       }'."
     }
 
-    val data = postData.data
+    val fileId = postData.data.fileId
     attachmentsService.deleteAttachment(
       dataTransferAreaPagesRest.jcrPath!!,
-      data.fileId,
+      fileId,
       dataTransferAreaDao,
-      checkResult.dataTransferArea!!,
+      area,
       attachmentsAccessChecker,
-      data.listId
+      listId
     )
     val list =
       attachmentsService.getAttachments(
         dataTransferAreaPagesRest.jcrPath!!,
-        data.id,
+        id,
         attachmentsAccessChecker,
-        data.listId
+        listId
       )
         ?: emptyList() // Client needs empty list to update data of attachments.
     return ResponseEntity.ok()
@@ -262,83 +267,49 @@ class DataTransferPublicServicesRest {
   @PostMapping("modify")
   fun modify(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>)
       : ResponseEntity<*>? {
-    val data = postData.data
-    val attachment = data.attachment
-    val category = data.category
-    val id = data.id
-    val checkResult = checkAccess(request, category, id)
-    checkResult.failedAccess?.let { return it }
+    val attachment = postData.data.attachment
+    val category = postData.data.category
+    val id = postData.data.id
+    val listId = postData.data.listId
+    check(category == DataTransferPlugin.ID)
+    check(listId == AttachmentsService.DEFAULT_NODE)
+    val data = dataTransferPublicSession.checkLogin(request, id) ?: return RestUtils.badRequest("No valid login.")
+    val area: DataTransferAreaDO = data.first
+    val sessionData = data.second
+
+    val fileId = postData.data.fileId
     log.info {
-      "User tries to modify attachment: id='$id', fileId='${data.fileId}', file=${postData.data.attachment}, user='${
+      "User tries to modify attachment: id='$id', fileId='$fileId', file=${postData.data.attachment}, user='${
         getExternalUserString(
           request,
-          checkResult.userInfo
+          sessionData.userInfo
         )
       }'."
     }
 
     attachmentsService.changeFileInfo(
       dataTransferAreaPagesRest.jcrPath!!,
-      data.fileId,
+      fileId,
       dataTransferAreaDao,
-      checkResult.dataTransferArea!!,
+      area,
       attachment.name,
       attachment.description,
       attachmentsAccessChecker,
-      data.listId,
-      userString = getExternalUserString(request, checkResult.userInfo)
+      listId,
+      userString = getExternalUserString(request, sessionData.userInfo)
     )
     val list =
       attachmentsService.getAttachments(
         dataTransferAreaPagesRest.jcrPath!!,
-        data.id,
+        id,
         attachmentsAccessChecker,
-        data.listId
+        listId
       )
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
           .addVariable("data", AttachmentsServicesRest.ResponseData(list))
       )
-  }
-
-  internal fun checkAccess(
-    request: HttpServletRequest,
-    category: String,
-    areaId: Int
-  ): CheckAccessResponse {
-    check(category == DataTransferPlugin.ID)
-    val sessionData = DataTransferPublicSession.getTransferAreaData(request, areaId)
-      ?: return CheckAccessResponse(
-        failedAccess = ResponseEntity.badRequest()
-          .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
-          .body("Not logged-in.")
-      )
-    val checkAccess =
-      attachmentsAccessChecker.checkExternalAccess(
-        dataTransferAreaDao,
-        request,
-        sessionData.accessToken,
-        sessionData.password,
-        sessionData.userInfo
-      )
-    checkAccess.failedAccessMessage?.let {
-      return CheckAccessResponse(
-        failedAccess = ResponseEntity.badRequest()
-          .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
-          .body(it)
-      )
-    }
-    val dbo = checkAccess.dataTransferArea!!
-    if (dbo.id != areaId) {
-      log.warn { "User tries to use data transfer area by id different from access token!!!" }
-      return CheckAccessResponse(
-        failedAccess = ResponseEntity.badRequest()
-          .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))
-          .body(LoginResultStatus.FAILED.localizedMessage)
-      )
-    }
-    return CheckAccessResponse(checkAccess.dataTransferArea, userInfo = sessionData.userInfo)
   }
 
   internal fun getExternalUserString(request: HttpServletRequest, userString: String?): String {
@@ -363,10 +334,4 @@ class DataTransferPublicServicesRest {
     dto.userInfo = userInfo
     return dto
   }
-
-  internal class CheckAccessResponse(
-    val dataTransferArea: DataTransferAreaDO? = null,
-    val failedAccess: ResponseEntity<String>? = null,
-    val userInfo: String? = null,
-  )
 }
