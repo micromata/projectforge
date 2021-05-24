@@ -67,7 +67,7 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
   @PostConstruct
   private fun postConstruct() {
     val baseDao = dataTransferAreaPagesRest.baseDao
-    dataTransferPublicAccessChecker = DataTransferPublicAccessChecker(baseDao)
+    dataTransferPublicAccessChecker = DataTransferPublicAccessChecker(baseDao, dataTransferPublicSession)
   }
 
   /**
@@ -84,6 +84,7 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
     check(category == DataTransferPlugin.ID)
     check(listId == AttachmentsService.DEFAULT_NODE)
     val data = dataTransferPublicSession.checkLogin(request, id) ?: throw IllegalArgumentException("No valid login.")
+    val area = data.first
     val sessionData = data.second
 
     log.info {
@@ -98,14 +99,13 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
       AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
     attachmentData.attachment =
       services.getAttachment(dataTransferAreaPagesRest.jcrPath!!, dataTransferPublicAccessChecker, attachmentData)
-    val writeAccess = dataTransferPublicSession.isOwnerOfFile(request, id, fileId)
     val layout = AttachmentPageRest.createAttachmentLayout(
       id,
       category,
       fileId,
       listId,
       attachmentData.attachment,
-      writeAccess,
+      writeAccess = dataTransferPublicAccessChecker.hasUpdateAccess(request, area, fileId),
       restClass = DataTransferPublicServicesRest::class.java
     )
     return FormLayoutData(attachmentData, layout, createServerData(request))

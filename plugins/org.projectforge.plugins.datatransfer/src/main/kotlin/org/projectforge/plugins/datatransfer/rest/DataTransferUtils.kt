@@ -41,7 +41,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.servlet.http.HttpServletResponse
 
-object DataTransferlUtils {
+object DataTransferUtils {
   fun downloadAll(
     response: HttpServletResponse,
     attachmentsService: AttachmentsService,

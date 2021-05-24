@@ -60,7 +60,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
 
   @PostConstruct
   private fun postConstruct() {
-    attachmentsAccessChecker = DataTransferPublicAccessChecker(dataTransferAreaDao)
+    attachmentsAccessChecker = DataTransferPublicAccessChecker(dataTransferAreaDao, dataTransferPublicSession)
   }
 
   /**

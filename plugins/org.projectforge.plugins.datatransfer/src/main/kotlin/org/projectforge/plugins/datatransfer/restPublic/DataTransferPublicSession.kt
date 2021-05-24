@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
  * A minimal session handling for avoiding annoying re-logins for external users of the data transfer tool.
  */
 @Service
-internal class DataTransferPublicSession {
+class DataTransferPublicSession {
   internal class TransferAreaData(
     var id: Int,
     var accessToken: String,

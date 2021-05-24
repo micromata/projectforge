@@ -32,7 +32,7 @@ import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.NotificationMailService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
-import org.projectforge.plugins.datatransfer.rest.DataTransferlUtils
+import org.projectforge.plugins.datatransfer.rest.DataTransferUtils
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -74,7 +74,7 @@ class DataTransferPublicServicesRest {
 
   @PostConstruct
   private fun postConstruct() {
-    attachmentsAccessChecker = DataTransferPublicAccessChecker(dataTransferAreaDao)
+    attachmentsAccessChecker = DataTransferPublicAccessChecker(dataTransferAreaDao, dataTransferPublicSession)
   }
 
   /**
@@ -103,6 +103,9 @@ class DataTransferPublicServicesRest {
         )
       }'."
     }
+    if (!attachmentsAccessChecker.hasDownloadAccess(request, area, fileId)) {
+      return RestUtils.badRequest("Download not enabled.")
+    }
     val result =
       attachmentsService.getAttachmentInputStream(
         dataTransferAreaPagesRest.jcrPath!!,
@@ -116,11 +119,6 @@ class DataTransferPublicServicesRest {
         ?: throw TechnicalException(
           "File to download not accessible for user or not found: category=$category, id=$id, fileId=$fileId, listId=$listId)}."
         )
-    if (area.externalDownloadEnabled != true) {
-      if (!dataTransferPublicSession.isOwnerOfFile(request, id, fileId)) {
-        return RestUtils.badRequest("Download not enabled.")
-      }
-    }
     val filename = result.first.fileName ?: "file"
     val inputStream = result.second
     return RestUtils.downloadFile(filename, inputStream)
@@ -149,7 +147,7 @@ class DataTransferPublicServicesRest {
       return RestUtils.badRequest("Download not enabled.")
     }
     val dto = convert(request, area, sessionData.userInfo)
-    DataTransferlUtils.downloadAll(
+    DataTransferUtils.downloadAll(
       response,
       attachmentsService,
       attachmentsAccessChecker,
@@ -210,6 +208,7 @@ class DataTransferPublicServicesRest {
       attachmentsAccessChecker.filterAttachments(
         request,
         area.externalDownloadEnabled,
+        area.id!!,
         attachmentsService.getAttachments(dataTransferAreaPagesRest.jcrPath!!, id, attachmentsAccessChecker, null)
       )
     return ResponseEntity.ok()
@@ -241,6 +240,11 @@ class DataTransferPublicServicesRest {
     }
 
     val fileId = postData.data.fileId
+
+    if (!attachmentsAccessChecker.hasDeleteAccess(request, area, fileId)) {
+      return RestUtils.badRequest("Deleting not allowed.")
+    }
+
     attachmentsService.deleteAttachment(
       dataTransferAreaPagesRest.jcrPath!!,
       fileId,
@@ -324,7 +328,9 @@ class DataTransferPublicServicesRest {
     val dto = DataTransferPublicArea()
     dto.copyFrom(dbo)
     dto.attachments = attachmentsAccessChecker.filterAttachments(
-      request, dto.externalDownloadEnabled,
+      request,
+      dto.externalDownloadEnabled,
+      dto.id!!,
       attachmentsService.getAttachments(
         dataTransferAreaPagesRest.jcrPath!!,
         dto.id!!,
