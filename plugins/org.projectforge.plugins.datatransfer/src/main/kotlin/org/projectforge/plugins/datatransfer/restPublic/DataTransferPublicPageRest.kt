@@ -134,7 +134,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
           UIAttachmentList(
             DataTransferPlugin.ID,
             dataTransfer.id,
-            serviceBaseUrl = PagesResolver.getDynamicPageUrl(DataTransferPublicAttachmentPageRest::class.java, absolute = true),
+            serviceBaseUrl = PagesResolver.getDynamicPageUrl(DataTransferPublicAttachmentPageRest::class.java, absolute = true, trailingSlash = false),
             restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",
             accessString = DataTransferlUtils.getAccessString(dataTransfer),
             userInfo = "${dataTransfer.userInfo}",
