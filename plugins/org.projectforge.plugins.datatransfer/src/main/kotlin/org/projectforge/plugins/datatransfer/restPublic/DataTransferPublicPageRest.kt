@@ -119,11 +119,11 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     dataTransfer.areaName = translate("plugins.datatransfer.title.heading")
     dataTransfer.externalAccessToken = externalAccessToken
 
-    return FormLayoutData(dataTransfer, this.getLayout(), ServerData())
+    return FormLayoutData(dataTransfer, this.getLoginLayout(), ServerData())
   }
 
   @GetMapping("logout")
-  fun reload(
+  fun logout(
     request: HttpServletRequest,
     response: HttpServletResponse,
     @RequestParam("accessToken") externalAccessToken: String?
@@ -190,10 +190,10 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
   private fun getLoginFailed(response: HttpServletResponse, msg: String): ResponseAction {
     response.status = 400
     return ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("ui", getLayout(msg))
+      .addVariable("ui", getLoginLayout(msg))
   }
 
-  private fun getLayout(alertMessage: String? = null): UILayout {
+  private fun getLoginLayout(alertMessage: String? = null): UILayout {
     val responseAction =
       ResponseAction(RestResolver.getRestUrl(this::class.java, "login"), targetType = TargetType.POST)
 
