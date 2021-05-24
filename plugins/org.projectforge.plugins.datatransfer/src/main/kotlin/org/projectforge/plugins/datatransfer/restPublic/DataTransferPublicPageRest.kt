@@ -121,9 +121,14 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
   }
 
   @GetMapping("logout")
-  fun reload(request: HttpServletRequest, response: HttpServletResponse): ResponseAction {
+  fun reload(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @RequestParam("accessToken") externalAccessToken: String?
+  ): ResponseAction {
     DataTransferPublicSession.logout(request)
     return getLoginFailed(response, translate("logout.successful"))
+    //return ResponseAction("/${RestResolver.REACT_PUBLIC_PATH}/datatransfer/dynamic/$externalAccessToken")
   }
 
   private fun getAttachmentLayout(dataTransfer: DataTransferPublicArea): UILayout {
@@ -134,7 +139,11 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
           UIAttachmentList(
             DataTransferPlugin.ID,
             dataTransfer.id,
-            serviceBaseUrl = PagesResolver.getDynamicPageUrl(DataTransferPublicAttachmentPageRest::class.java, absolute = true, trailingSlash = false),
+            serviceBaseUrl = PagesResolver.getDynamicPageUrl(
+              DataTransferPublicAttachmentPageRest::class.java,
+              absolute = true,
+              trailingSlash = false
+            ),
             restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",
             accessString = DataTransferlUtils.getAccessString(dataTransfer),
             userInfo = "${dataTransfer.userInfo}",
@@ -172,7 +181,8 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
         responseAction = ResponseAction(
           RestResolver.getPublicRestUrl(
             this.javaClass,
-            "logout"
+            "logout",
+            params = mapOf("accessToken" to dataTransfer.externalAccessToken)
           ), targetType = TargetType.GET
         ),
         default = true
@@ -202,9 +212,11 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
 
     formCol
       .add(
-        UIReadOnlyField(
+        UIInput(
           "externalAccessToken",
+          required = true,
           label = "plugins.datatransfer.external.accessToken",
+          autoComplete = UIInput.AutoCompleteType.USERNAME
         )
       )
       .add(
