@@ -80,7 +80,9 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
 
   override fun scan(environment: ScanEnvironment, options: ScanOptions, parameters: ScanParameters): ScanResult {
     log.debug { "Method scan (1)." }
-    pluginEntitiesForTestCases?.forEach {
+    scanned = true
+    pluginEntitiesForTestCases.forEach {
+      log.debug { "environment.explicitlyListedClassNames.add('$it')" }
       environment.explicitlyListedClassNames.add(it)
     }
     val collector = ScanResultCollector(environment, options, parameters)
@@ -215,6 +217,7 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
     }
     val prov = loadJpaExtScannerUrlProvider(environment)
     val urls = prov!!.scannUrls
+    log.debug { "Scanner urls: ${urls?.joinToString { it.toString() }}" }
     for (url in urls) {
       if (loadedUrls.contains(url)) {
         log.debug { "Method visitExternUrls (2), skipping url which was already visited: '$url'" }
@@ -427,11 +430,21 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
       INTERNAL_TEST_MODE = true
     }
 
-    private var pluginEntitiesForTestCases: Array<out String>? = null
+    private var pluginEntitiesForTestCases = mutableListOf<String>()
+
+    private var scanned = false
 
     @JvmStatic
-    fun setPluginEntitiesForTestMode(vararg entities: String) {
-      pluginEntitiesForTestCases = entities
+    fun addPluginEntitiesForTestMode(vararg entities: String) {
+      entities.forEach { entity ->
+        if (!pluginEntitiesForTestCases.contains(entity)) {
+          if (scanned) {
+            throw IllegalArgumentException("Scan is already done. Adding plugin entities has now effect anymore! This may occur in different run orders of tests, if the first test running in your package hasn't added this entity.")
+          }
+          log.info { "Adding '$entity' as plugin-entity for test cases." }
+          pluginEntitiesForTestCases.add(entity)
+        }
+      }
     }
   }
 }
