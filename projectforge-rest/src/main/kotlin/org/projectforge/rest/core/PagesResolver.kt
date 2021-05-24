@@ -140,20 +140,6 @@ object PagesResolver {
   }
 
   private fun getQueryString(params: Map<String, Any?>? = null): String {
-    if (params.isNullOrEmpty()) {
-      return ""
-    }
-    val sb = StringBuilder()
-    var first = true
-    params.forEach {
-      if (first) {
-        sb.append("?")
-        first = false
-      } else {
-        sb.append("&")
-      }
-      sb.append(it.key).append("=").append(URLEncoder.encode("${it.value}", "UTF-8"))
-    }
-    return sb.toString()
+    return RestResolver.getQueryString(params)
   }
 }
