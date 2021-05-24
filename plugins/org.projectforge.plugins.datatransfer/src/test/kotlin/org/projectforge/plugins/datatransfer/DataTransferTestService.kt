@@ -66,7 +66,7 @@ class DataTransferTestService {
   private lateinit var pluginAdminService: PluginAdminService
 
   init {
-    MyJpaWithExtLibrariesScanner.setPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName)
+    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName)
   }
 
   @PostConstruct

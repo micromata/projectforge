@@ -51,7 +51,7 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
   private lateinit var dataTransferTestService: DataTransferTestService
 
   init {
-    MyJpaWithExtLibrariesScanner.setPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName)
+    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName)
     initJCRTestRepo(MODUL_NAME, "cleanUpTestRepo")
   }
 
