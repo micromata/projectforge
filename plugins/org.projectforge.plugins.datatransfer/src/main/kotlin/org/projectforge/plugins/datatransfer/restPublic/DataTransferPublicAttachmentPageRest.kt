@@ -24,11 +24,14 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
+import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.AttachmentPageRest
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
 import org.springframework.beans.factory.annotation.Autowired
@@ -56,6 +59,9 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var dataTransferPublicServicesRest: DataTransferPublicServicesRest
 
+  @Autowired
+  private lateinit var dataTransferPublicSession: DataTransferPublicSession
+
   private lateinit var dataTransferPublicAccessChecker: DataTransferPublicAccessChecker
 
   @PostConstruct
@@ -66,8 +72,6 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
 
   /**
    * Fails, if the user has no session.
-   * @param externalAccessToken accessToken of the desired area.
-   * @param category [DataTransferPlugin.ID] ("datatransfer") expected
    */
   @GetMapping("dynamic")
   fun getForm(
@@ -78,34 +82,32 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
     request: HttpServletRequest
   ): FormLayoutData {
     check(category == DataTransferPlugin.ID)
-    val checkResult = dataTransferPublicServicesRest.checkAccess(request, category, id)
-    checkResult.failedAccess?.let { throw IllegalArgumentException("User not logged-in.") }
+    check(listId == AttachmentsService.DEFAULT_NODE)
+    val data = dataTransferPublicSession.checkLogin(request, id) ?: throw IllegalArgumentException("No valid login.")
+    val sessionData = data.second
+
     log.info {
       "User tries to edit/view details of attachment: category=$category, id=$id, fileId=$fileId, listId=$listId)}, user='${
         dataTransferPublicServicesRest.getExternalUserString(
           request,
-          checkResult.userInfo
+          sessionData.userInfo
         )
       }'."
     }
-    val area = checkResult.dataTransferArea
-    if (area == null) {
-      log.error { "User has no access (isn't logged in)." }
-      throw IllegalArgumentException("User not logged-in.")
-    }
-    check(area.id == id)
-    val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
-    data.attachment = services.getAttachment(dataTransferAreaPagesRest.jcrPath!!, dataTransferPublicAccessChecker, data)
-    val writeAccess = DataTransferPublicSession.isOwnerOfFile(request, id, fileId)
+    val attachmentData =
+      AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
+    attachmentData.attachment =
+      services.getAttachment(dataTransferAreaPagesRest.jcrPath!!, dataTransferPublicAccessChecker, attachmentData)
+    val writeAccess = dataTransferPublicSession.isOwnerOfFile(request, id, fileId)
     val layout = AttachmentPageRest.createAttachmentLayout(
       id,
       category,
       fileId,
       listId,
-      data.attachment,
+      attachmentData.attachment,
       writeAccess,
       restClass = DataTransferPublicServicesRest::class.java
     )
-    return FormLayoutData(data, layout, createServerData(request))
+    return FormLayoutData(attachmentData, layout, createServerData(request))
   }
 }

@@ -55,11 +55,36 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var dataTransferPublicServicesRest: DataTransferPublicServicesRest
 
+  @Autowired
+  private lateinit var dataTransferPublicSession: DataTransferPublicSession
+
   @PostConstruct
   private fun postConstruct() {
     attachmentsAccessChecker = DataTransferPublicAccessChecker(dataTransferAreaDao)
   }
 
+  /**
+   * The main page. If not logged-in, the login form will be shown, otherwise the file list of the data transfer area.
+   */
+  @GetMapping("dynamic")
+  fun getForm(request: HttpServletRequest, @RequestParam("id") externalAccessToken: String?): FormLayoutData {
+    dataTransferPublicSession.checkLogin(request, accessToken = externalAccessToken)?.let {
+      // Already logged-in, accessToken, password and settings of the area are OK.
+      val data = dataTransferPublicServicesRest.convert(request, it.first, it.second.userInfo)
+      return FormLayoutData(data, getAttachmentLayout(data), ServerData())
+    }
+
+    // User isn't logged-in:
+    val dataTransfer = DataTransferPublicArea()
+    dataTransfer.areaName = translate("plugins.datatransfer.title.heading")
+    dataTransfer.externalAccessToken = externalAccessToken
+
+    return FormLayoutData(dataTransfer, this.getLoginLayout(), ServerData())
+  }
+
+  /**
+   * User pressed login button on login form.
+   */
   @PostMapping("login")
   fun login(
     request: HttpServletRequest,
@@ -68,58 +93,18 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
   )
       : ResponseAction {
     val externalAccessToken = postData.data.externalAccessToken
-    val sessionData = DataTransferPublicSession.getTransferAreaData(request, externalAccessToken)
-    val externalPassword = postData.data.externalPassword ?: sessionData?.password
-    var userInfo = postData.data.userInfo
-    if (userInfo.isNullOrBlank()) {
-      userInfo = sessionData?.userInfo
-    }
-
-    val checkAccess =
-      attachmentsAccessChecker.checkExternalAccess(
-        dataTransferAreaDao,
-        request,
-        externalAccessToken,
-        externalPassword,
-        userInfo
-      )
+    val externalPassword = postData.data.externalPassword
+    val userInfo = postData.data.userInfo
+    val checkAccess = dataTransferPublicSession.login(request, externalAccessToken, externalPassword, userInfo)
     checkAccess.failedAccessMessage?.let {
       return getLoginFailed(response, it)
     }
     val dbo = checkAccess.dataTransferArea!!
     val data = dataTransferPublicServicesRest.convert(request, dbo, userInfo)
-    request.getSession(true).setAttribute("password", externalPassword)
 
     return ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("ui", getAttachmentLayout(data))
+      .addVariable("ui", getAttachmentLayout(data)) // Show list of attachments.
       .addVariable("data", data)
-  }
-
-  @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, @RequestParam("id") externalAccessToken: String?): FormLayoutData {
-    val sessionData = DataTransferPublicSession.getTransferAreaData(request, externalAccessToken)
-    if (sessionData != null) {
-      val externalPassword = sessionData.password
-      val userInfo = sessionData.userInfo
-      val checkAccess =
-        attachmentsAccessChecker.checkExternalAccess(
-          dataTransferAreaDao,
-          request,
-          externalAccessToken,
-          externalPassword,
-          userInfo
-        )
-      checkAccess.dataTransferArea?.let {
-        val data = dataTransferPublicServicesRest.convert(request, it, userInfo)
-        return FormLayoutData(data, getAttachmentLayout(data), ServerData())
-      }
-    }
-
-    val dataTransfer = DataTransferPublicArea()
-    dataTransfer.areaName = translate("plugins.datatransfer.title.heading")
-    dataTransfer.externalAccessToken = externalAccessToken
-
-    return FormLayoutData(dataTransfer, this.getLoginLayout(), ServerData())
   }
 
   @GetMapping("logout")
@@ -128,7 +113,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     response: HttpServletResponse,
     @RequestParam("accessToken") externalAccessToken: String?
   ): ResponseAction {
-    DataTransferPublicSession.logout(request)
+    dataTransferPublicSession.logout(request)
     return getLoginFailed(response, translate("logout.successful"))
     //return ResponseAction("/${RestResolver.REACT_PUBLIC_PATH}/datatransfer/dynamic/$externalAccessToken")
   }

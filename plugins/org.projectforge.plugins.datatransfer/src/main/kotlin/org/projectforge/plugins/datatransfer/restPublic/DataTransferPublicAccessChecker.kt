@@ -23,22 +23,15 @@
 
 package org.projectforge.plugins.datatransfer.restPublic
 
-import mu.KotlinLogging
-import org.projectforge.business.login.LoginProtection
-import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.FileObject
-import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferFileSizeChecker
 import org.projectforge.rest.config.RestUtils
 import javax.servlet.http.HttpServletRequest
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Checks access to attachments by external anonymous users.
@@ -46,64 +39,6 @@ private val log = KotlinLogging.logger {}
 open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferAreaDao) : AttachmentsAccessChecker {
   override val fileSizeChecker: DataTransferFileSizeChecker =
     DataTransferFileSizeChecker(dataTransferAreaDao.maxFileSize.toBytes())
-
-  internal class CheckAccessResult(
-    val dataTransferArea: DataTransferAreaDO? = null,
-    val failedAccessMessage: String? = null
-  )
-
-  internal fun checkExternalAccess(
-    dataTransferAreaDao: DataTransferAreaDao,
-    request: HttpServletRequest,
-    externalAccessToken: String?,
-    externalPassword: String?,
-    userInfo: String?
-  ): CheckAccessResult {
-    if (externalAccessToken == null || externalPassword == null) {
-      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
-    }
-    val loginProtection = LoginProtection.instance()
-    val clientIpAddress = RestUtils.getClientIp(request)
-    val offset = loginProtection.getFailedLoginTimeOffsetIfExists(externalAccessToken, clientIpAddress)
-    if (offset > 0) {
-      // Time offset still exists. Ignore login try.
-      val seconds = (offset / 1000).toString()
-      log.warn("The account for '${externalAccessToken}', ip=$clientIpAddress, userInfo='$userInfo' is locked for $seconds seconds due to failed login attempts. Please try again later.")
-      val numberOfFailedAttempts = loginProtection.getNumberOfFailedLoginAttempts(externalAccessToken, clientIpAddress)
-      val loginResultStatus = LoginResultStatus.LOGIN_TIME_OFFSET
-      loginResultStatus.setMsgParams(
-        seconds,
-        numberOfFailedAttempts.toString()
-      )
-      return CheckAccessResult(failedAccessMessage = loginResultStatus.localizedMessage)
-    }
-
-    val dbo = dataTransferAreaDao.getAnonymousArea(externalAccessToken)
-    if (dbo == null) {
-      log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' not found. Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
-      loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
-      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
-    }
-    if (dbo.isPersonalBox()) {
-      log.warn { "Paranoia setting: no external access of personal boxes (of user with id=${dbo.adminIds}). Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
-      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
-    }
-    if (dbo.externalPassword != externalPassword) {
-      log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' doesn't match given password. Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
-      loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
-      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
-    }
-    if (dbo.externalUploadEnabled != true && dbo.externalDownloadEnabled != true) {
-      return CheckAccessResult(failedAccessMessage = translate("plugins.datatransfer.external.noAccess"))
-    }
-
-    // Successfully logged in:
-    loginProtection.clearLoginTimeOffset(externalAccessToken, null, clientIpAddress)
-    log.info { "Data transfer area with externalAccessToken '$externalAccessToken': login successful by ip=$clientIpAddress, userInfo='$userInfo'." }
-
-    DataTransferPublicSession.register(request, dbo.id!!, externalAccessToken, externalPassword, userInfo)
-    return CheckAccessResult(dbo)
-  }
 
   /**
    * If user has no download access, only attachments uploaded from own ip address should be displayed.

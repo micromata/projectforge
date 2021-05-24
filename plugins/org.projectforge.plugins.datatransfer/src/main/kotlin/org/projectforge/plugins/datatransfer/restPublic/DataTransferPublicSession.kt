@@ -25,8 +25,15 @@ package org.projectforge.plugins.datatransfer.restPublic
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import mu.KotlinLogging
+import org.projectforge.business.login.LoginProtection
+import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.framework.i18n.translate
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.rest.config.RestUtils
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -34,8 +41,9 @@ private val log = KotlinLogging.logger {}
 /**
  * A minimal session handling for avoiding annoying re-logins for external users of the data transfer tool.
  */
-object DataTransferPublicSession {
-  class TransferAreaData(
+@Service
+internal class DataTransferPublicSession {
+  internal class TransferAreaData(
     var id: Int,
     var accessToken: String,
     @JsonIgnore var password: String?,
@@ -43,57 +51,150 @@ object DataTransferPublicSession {
     var ownedFiles: MutableList<String> = mutableListOf()
   )
 
-  fun getTransferAreaData(request: HttpServletRequest, areaId: Int?): TransferAreaData? {
-    areaId ?: return null
-    val data = getSessionMap(request)?.entries?.find { it.value.id == areaId }?.value
-    if (data != null) {
-      log.info {
-        "External user info restored from session: ${ToStringUtil.toJsonString(data)}, ip=${
-          RestUtils.getClientIp(
-            request
-          )
-        }"
-      }
+  internal class CheckAccessResult(
+    val dataTransferArea: DataTransferAreaDO? = null,
+    val failedAccessMessage: String? = null
+  )
+
+
+  @Autowired
+  private lateinit var dataTransferAreaDao: DataTransferAreaDao
+
+  /**
+   * Checks if the user has a valid entry (accessToken/password) in his session.
+   * @param areaId Search area by id in user's session.
+   * @param accessToken Search area by accessToken in user's session.
+   */
+  internal fun checkLogin(
+    request: HttpServletRequest,
+    areaId: Int? = null,
+    accessToken: String? = null
+  ): Pair<DataTransferAreaDO, TransferAreaData>? {
+    check(areaId != null || !accessToken.isNullOrBlank())
+    val data = if (areaId != null) {
+      getSessionMap(request)?.get(areaId)
+    } else {
+      getSessionMap(request)?.entries?.find { it.value.accessToken == accessToken }?.value
+    } ?: return null
+    val area = dataTransferAreaDao.getAnonymousArea(data.accessToken) ?: return null
+    val errorMessage = checkDataBaseEntry(request, area, data.id, data.accessToken, data.password, data.userInfo)
+    if (errorMessage != null) {
+      unregister(request, data.id) // Unregister, force re-login.
+      return null
     }
-    return data
+    log.info {
+      "External user info restored from session: ${ToStringUtil.toJsonString(data)}, ip=${
+        RestUtils.getClientIp(
+          request
+        )
+      }"
+    }
+    return Pair(area, data)
   }
 
-  fun getTransferAreaData(request: HttpServletRequest, accessToken: String?): TransferAreaData? {
-    accessToken ?: return null
-    val data = getSessionMap(request)?.entries?.find { it.value.accessToken == accessToken }?.value
-    if (data != null) {
-      log.info {
-        "External user info restored from session: ${ToStringUtil.toJsonString(data)}, ip=${
-          RestUtils.getClientIp(
-            request
-          )
-        }"
-      }
+  /**
+   * Tries to log-in the user. Uses LoginProtection. Doesn't check if the user is already logged-in.
+   */
+  internal fun login(
+    request: HttpServletRequest,
+    accessToken: String?,
+    password: String?,
+    userInfo: String?
+  ): CheckAccessResult {
+    if (accessToken == null || password == null) {
+      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
     }
-    return data
+    val loginProtection = LoginProtection.instance()
+    val clientIpAddress = RestUtils.getClientIp(request)
+    val offset = loginProtection.getFailedLoginTimeOffsetIfExists(accessToken, clientIpAddress)
+    if (offset > 0) {
+      // Time offset still exists. Ignore login try.
+      val seconds = (offset / 1000).toString()
+      log.warn("The account for '${accessToken}', ip=$clientIpAddress, userInfo='$userInfo' is locked for $seconds seconds due to failed login attempts. Please try again later.")
+      val numberOfFailedAttempts = loginProtection.getNumberOfFailedLoginAttempts(accessToken, clientIpAddress)
+      val loginResultStatus = LoginResultStatus.LOGIN_TIME_OFFSET
+      loginResultStatus.setMsgParams(
+        seconds,
+        numberOfFailedAttempts.toString()
+      )
+      return CheckAccessResult(failedAccessMessage = loginResultStatus.localizedMessage)
+    }
+
+    val dbo = dataTransferAreaDao.getAnonymousArea(accessToken)
+    if (dbo == null) {
+      log.warn { "Data transfer area with externalAccessToken '$accessToken' not found. Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
+      loginProtection.incrementFailedLoginTimeOffset(accessToken, clientIpAddress)
+      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
+    }
+    val errorMessage = checkDataBaseEntry(request, dbo, dbo.id!!, accessToken, password, userInfo)
+    if (errorMessage != null) {
+      loginProtection.incrementFailedLoginTimeOffset(accessToken, clientIpAddress)
+      return CheckAccessResult(failedAccessMessage = errorMessage)
+    }
+    // Successfully logged in:
+    loginProtection.clearLoginTimeOffset(accessToken, null, clientIpAddress)
+    log.info { "Data transfer area with externalAccessToken '$accessToken': login successful by ip=$clientIpAddress, userInfo='$userInfo'." }
+    register(request, dbo, userInfo)
+    return CheckAccessResult(dbo)
   }
 
-  fun register(request: HttpServletRequest, id: Int, accessToken: String, password: String, userInfo: String?) {
+  private fun checkDataBaseEntry(
+    request: HttpServletRequest,
+    dbo: DataTransferAreaDO,
+    areaId: Int,
+    accessToken: String?,
+    password: String?,
+    userInfo: String?
+  ): String? {
+    if (dbo.isPersonalBox()) {
+      log.warn {
+        "Paranoia setting: no external access of personal boxes (of user with id=${dbo.adminIds}). Requested by ip=${
+          RestUtils.getClientIp(request)
+        }, userInfo='$userInfo'."
+      }
+      return LoginResultStatus.FAILED.localizedMessage
+    }
+    // Check the matching of all params (protect against cross area access)
+    if (dbo.id != areaId || dbo.externalPassword != password || dbo.externalAccessToken != accessToken) {
+      log.warn {
+        "Data transfer area with externalAccessToken '$accessToken' doesn't match given area id, password and/or accessToken. Requested by ip=${
+          RestUtils.getClientIp(request)
+        }, userInfo='$userInfo'."
+      }
+      return LoginResultStatus.FAILED.localizedMessage
+    }
+    if (dbo.externalUploadEnabled != true && dbo.externalDownloadEnabled != true) {
+      return translate("plugins.datatransfer.external.noAccess")
+    }
+    return null
+  }
+
+  private fun register(request: HttpServletRequest, area: DataTransferAreaDO, userInfo: String?) {
     @Suppress("UNCHECKED_CAST")
     var map = getSessionMap(request)
     if (map == null) {
       map = mutableMapOf()
       request.getSession(true).setAttribute(SESSION_ATTRIBUTE, map)
     }
+    val id = area.id!!
     var data = map[id]
     if (data == null) {
-      data = TransferAreaData(id, accessToken, password, userInfo)
+      data = TransferAreaData(id, area.externalAccessToken!!, area.externalPassword, userInfo)
       log.info { "External user logged-in: ${ToStringUtil.toJsonString(data)}, ip=${RestUtils.getClientIp(request)}" }
       map[id] = data
     } else {
       // Update values (if changed by re-login):
-      data.accessToken = accessToken
-      data.password = password
+      data.accessToken = area.externalAccessToken!!
+      data.password = area.externalPassword
       data.userInfo = userInfo
     }
   }
 
-  fun logout(request: HttpServletRequest) {
+  private fun unregister(request: HttpServletRequest, areaId: Int) {
+    getSessionMap(request)?.remove(areaId)
+  }
+
+  internal fun logout(request: HttpServletRequest) {
     val map = getSessionMap(request)
     if (map != null) {
       log.info { "External user logged-out: ${ToStringUtil.toJsonString(map)}, ip=${RestUtils.getClientIp(request)}" }
@@ -104,7 +205,7 @@ object DataTransferPublicSession {
   /**
    * Checks if the user has uploaded the given file inside his session. If so, the user is the owner and has write access (update and delete).
    */
-  fun isOwnerOfFile(request: HttpServletRequest, areaId: Int?, fileId: String?): Boolean {
+  internal fun isOwnerOfFile(request: HttpServletRequest, areaId: Int?, fileId: String?): Boolean {
     areaId ?: return false
     fileId ?: return false
     val data = getSessionMap(request)?.get(areaId) ?: return false
@@ -121,7 +222,7 @@ object DataTransferPublicSession {
   /**
    * Called directly after uploading a new file. Marks this session user as owner for write access inside this session.
    */
-  fun registerFileAsOwner(
+  internal fun registerFileAsOwner(
     request: HttpServletRequest,
     areaId: Int?,
     fileId: String?,
@@ -129,7 +230,7 @@ object DataTransferPublicSession {
   ) {
     areaId ?: return
     fileId ?: return
-    val data = getTransferAreaData(request, areaId)
+    val data = checkLogin(request, areaId)
     if (data == null) {
       log.warn {
         "Can't restore external user info from session: $areaId=$areaId, ip=${
@@ -140,8 +241,8 @@ object DataTransferPublicSession {
       }
       return
     }
-    synchronized(data.ownedFiles) {
-      if (!data.ownedFiles.contains(fileId)) {
+    synchronized(data.second.ownedFiles) {
+      if (!data.second.ownedFiles.contains(fileId)) {
         log.info {
           "Mark external user as file owner inside his session: $areaId=$areaId, fileId=$fileId, name=$fileName, ip=${
             RestUtils.getClientIp(
@@ -149,7 +250,7 @@ object DataTransferPublicSession {
             )
           }"
         }
-        data.ownedFiles.add(fileId)
+        data.second.ownedFiles.add(fileId)
       }
     }
   }
@@ -161,5 +262,7 @@ object DataTransferPublicSession {
     return map
   }
 
-  internal const val SESSION_ATTRIBUTE = "transferAreas"
+  companion object {
+    internal const val SESSION_ATTRIBUTE = "transferAreas"
+  }
 }

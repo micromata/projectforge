@@ -53,6 +53,9 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
   @Autowired
   private lateinit var dataTransferPublicServicesRest: DataTransferPublicServicesRest
 
+  @Autowired
+  private lateinit var dataTransferPublicSession: DataTransferPublicSession
+
   init {
     MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName)
   }
@@ -104,9 +107,8 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
   }
 
   private fun login(request: HttpServletRequest, dataTransferArea: DataTransferAreaDO) {
-    DataTransferPublicSession.register(
+    dataTransferPublicSession.login(
       request,
-      dataTransferArea.id!!,
       dataTransferArea.externalAccessToken!!,
       dataTransferArea.externalPassword!!,
       "external Userinfo"
@@ -127,7 +129,12 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
     }
   }
 
-  private fun checkDownloadFile(request: HttpServletRequest, dataTransferArea: DataTransferAreaDO, file: FileObject, access: Boolean) {
+  private fun checkDownloadFile(
+    request: HttpServletRequest,
+    dataTransferArea: DataTransferAreaDO,
+    file: FileObject,
+    access: Boolean
+  ) {
     val result = downloadFile(request, dataTransferArea, file)
     if (access) {
       Assertions.assertNotNull(
@@ -142,7 +149,11 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
     }
   }
 
-  private fun downloadAllAndCheck(request: HttpServletRequest, dataTransferArea: DataTransferAreaDO, vararg expectedFiles: FileObject) {
+  private fun downloadAllAndCheck(
+    request: HttpServletRequest,
+    dataTransferArea: DataTransferAreaDO,
+    vararg expectedFiles: FileObject
+  ) {
     downloadAllAndCheck(request, dataTransferArea, *(expectedFiles.map { it.fileName!! }.toTypedArray()))
   }
 
