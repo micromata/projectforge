@@ -24,7 +24,6 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
-import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.AttachmentPageRest
@@ -63,8 +62,8 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
   }
 
   /**
-   * The react path of this should look like: 'react/attachment/dynamic/42?category=contract...'
-   * @param id: Id of data object with attachments.
+   * Fails, if the user has no session.
+   * @param externalAccessToken accessToken of the desired area.
    * @param category [DataTransferPlugin.ID] ("datatransfer") expected
    */
   @GetMapping("dynamic")
@@ -77,11 +76,16 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
   ): FormLayoutData {
     log.info { "User tries to edit/view details of attachment: category='$category', id='$id', listId='$listId', fileId='$fileId', page='${this::class.java.name}'." }
     check(category == DataTransferPlugin.ID)
-    // services.getDataObject(pagesRest, id) // Check data object availability.
+    val transferArea = DataTransferPublicSession.getTransferAreaData(request, id)
+    if (transferArea == null) {
+      log.error { "User has no access (isn't logged in)." }
+      throw IllegalArgumentException("User not logged-in.")
+    }
+    check(transferArea.id == id)
     val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
     data.attachment = services.getAttachment(dataTransferAreaPagesRest.jcrPath!!, dataTransferPublicAccessChecker, data)
-
-    val layout = AttachmentPageRest.createAttachmentLayout(id, category, fileId, listId, data.attachment)
+    val writeAccess = DataTransferPublicSession.isOwnerOfFile(request, id, fileId)
+    val layout = AttachmentPageRest.createAttachmentLayout(id, category, fileId, listId, data.attachment, writeAccess)
     return FormLayoutData(data, layout, createServerData(request))
   }
 }

@@ -35,29 +35,56 @@ private val log = KotlinLogging.logger {}
  * A minimal session handling for avoiding annoying re-logins for external users of the data transfer tool.
  */
 object DataTransferPublicSession {
-  class TransferAreaData(var authenticationToken: String, @JsonIgnore var password: String?, var userInfo: String?)
+  class TransferAreaData(
+    var id: Int,
+    var accessToken: String,
+    @JsonIgnore var password: String?,
+    var userInfo: String?,
+    var ownedFiles: MutableList<String> = mutableListOf()
+  )
 
-  fun getTransferAreaData(request: HttpServletRequest, authenticationToken: String?): TransferAreaData? {
-    authenticationToken ?: return null
-    val data = getSessionMap(request)?.get(authenticationToken)
+  fun getTransferAreaData(request: HttpServletRequest, areaId: Int?): TransferAreaData? {
+    areaId ?: return null
+    val data = getSessionMap(request)?.entries?.find { it.value.id == areaId }?.value
     if (data != null) {
-      log.info { "External user info restored from session: ${ToStringUtil.toJsonString(data)}, ip=${RestUtils.getClientIp(request)}" }
+      log.info {
+        "External user info restored from session: ${ToStringUtil.toJsonString(data)}, ip=${
+          RestUtils.getClientIp(
+            request
+          )
+        }"
+      }
     }
     return data
   }
 
-  fun register(request: HttpServletRequest, authenticationToken: String, password: String, userInfo: String?) {
+  fun getTransferAreaData(request: HttpServletRequest, accessToken: String?): TransferAreaData? {
+    accessToken ?: return null
+    val data = getSessionMap(request)?.entries?.find { it.value.accessToken == accessToken }?.value
+    if (data != null) {
+      log.info {
+        "External user info restored from session: ${ToStringUtil.toJsonString(data)}, ip=${
+          RestUtils.getClientIp(
+            request
+          )
+        }"
+      }
+    }
+    return data
+  }
+
+  fun register(request: HttpServletRequest, id: Int, authenticationToken: String, password: String, userInfo: String?) {
     @Suppress("UNCHECKED_CAST")
     var map = getSessionMap(request)
     if (map == null) {
       map = mutableMapOf()
       request.getSession(true).setAttribute(SESSION_ATTRIBUTE, map)
     }
-    val data = TransferAreaData(authenticationToken, password, userInfo)
-    if (map[authenticationToken] == null) {
+    val data = TransferAreaData(id, authenticationToken, password, userInfo)
+    if (map[id] == null) {
       log.info { "External user logged-in: ${ToStringUtil.toJsonString(data)}, ip=${RestUtils.getClientIp(request)}" }
     }
-    map[authenticationToken] = data
+    map[id] = data
   }
 
   fun logout(request: HttpServletRequest) {
@@ -68,12 +95,62 @@ object DataTransferPublicSession {
     }
   }
 
-  private fun getSessionMap(request: HttpServletRequest): MutableMap<String, TransferAreaData>? {
+  /**
+   * Checks if the user has uploaded the given file inside his session. If so, the user is the owner and has write access (update and delete).
+   */
+  fun isOwnerOfFile(request: HttpServletRequest, areaId: Int?, fileId: String?): Boolean {
+    areaId ?: return false
+    fileId ?: return false
+    val data = getSessionMap(request)?.get(areaId) ?: return false
+    log.info {
+      "External user info restored from session: ${ToStringUtil.toJsonString(data)}, ip=${
+        RestUtils.getClientIp(
+          request
+        )
+      }"
+    }
+    return data.ownedFiles.contains(fileId)
+  }
+
+  /**
+   * Called directly after uploading a new file. Marks this session user as owner for write access inside this session.
+   */
+  fun registerFileAsOwner(
+    request: HttpServletRequest,
+    areaId: Int?,
+    fileId: String?,
+    fileName: String?
+  ) {
+    areaId ?: return
+    fileId ?: return
+    val data = getTransferAreaData(request, areaId)
+    if (data == null) {
+      log.warn {
+        "Can't restore external user info from session: $areaId=$areaId, ip=${
+          RestUtils.getClientIp(
+            request
+          )
+        }. So can't register file's owner."
+      }
+      return
+    }
+    if (!data.ownedFiles.contains(fileId)) {
+      log.info {
+        "Mark external user as file owner inside his session: $areaId=$areaId, fileId=$fileId, name=$fileName, ip=${
+          RestUtils.getClientIp(
+            request
+          )
+        }"
+      }
+    }
+  }
+
+  private fun getSessionMap(request: HttpServletRequest): MutableMap<Int, TransferAreaData>? {
     @Suppress("UNCHECKED_CAST")
-    val map: MutableMap<String, TransferAreaData>? =
-      request.session?.getAttribute(SESSION_ATTRIBUTE) as? MutableMap<String, TransferAreaData>
+    val map: MutableMap<Int, TransferAreaData>? =
+      request.session?.getAttribute(SESSION_ATTRIBUTE) as? MutableMap<Int, TransferAreaData>
     return map
   }
 
-  private const val SESSION_ATTRIBUTE = "transferAreas"
+  internal const val SESSION_ATTRIBUTE = "transferAreas"
 }

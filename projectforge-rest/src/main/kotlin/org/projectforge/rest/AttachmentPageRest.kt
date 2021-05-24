@@ -79,7 +79,8 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
       category: String,
       fileId: String,
       listId: String?,
-      attachment: Attachment
+      attachment: Attachment,
+      writeAccess: Boolean = true,
     ): UILayout {
       val layout = UILayout("attachment")
 
@@ -130,30 +131,32 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
           )
         )
       )
-      layout.addAction(
-        UIButton(
-          "delete",
-          translate("delete"),
-          UIColor.DANGER,
-          confirmMessage = translate("file.panel.deleteExistingFile.heading"),
-          responseAction = ResponseAction(
-            RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "delete"),
-            targetType = TargetType.POST
-          )
-        )
-      )
-        .addAction(
+      if (writeAccess) {
+        layout.addAction(
           UIButton(
-            "update",
-            translate("update"),
-            UIColor.SUCCESS,
+            "delete",
+            translate("delete"),
+            UIColor.DANGER,
+            confirmMessage = translate("file.panel.deleteExistingFile.heading"),
             responseAction = ResponseAction(
-              RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "modify"),
+              RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "delete"),
               targetType = TargetType.POST
-            ),
-            default = true
+            )
           )
         )
+          .addAction(
+            UIButton(
+              "update",
+              translate("update"),
+              UIColor.SUCCESS,
+              responseAction = ResponseAction(
+                RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "modify"),
+                targetType = TargetType.POST
+              ),
+              default = true
+            )
+          )
+      }
       LayoutUtils.process(layout)
       return layout
     }

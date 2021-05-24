@@ -88,20 +88,4 @@ object DataTransferlUtils {
       byExternalUser = byExternalUser,
     )
   }
-
-  internal fun splitAccessString(accessString: String?): Pair<String, String> {
-    check(accessString?.contains('|') == true)
-    val credentials = accessString!!.split('|')
-    check(credentials.size == 2)
-    return Pair(credentials[0], credentials[1])
-  }
-
-  fun getAccessString(dataTransfer: DataTransferPublicArea, encodeUrl: Boolean = false): String {
-    val accessString = "${dataTransfer.externalAccessToken}|${dataTransfer.externalPassword}"
-    return if (encodeUrl) {
-      URLEncoder.encode(accessString, "UTF-8")
-    } else {
-      accessString
-    }
-  }
 }

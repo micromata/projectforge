@@ -25,6 +25,8 @@ package org.projectforge.plugins.datatransfer
 
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.io.IOUtils
+import org.mockito.ArgumentMatchers.anyMapOf
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
@@ -47,6 +49,7 @@ import javax.servlet.ServletOutputStream
 import javax.servlet.WriteListener
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpSession
+
 
 @Service
 class DataTransferTestService {
@@ -167,7 +170,9 @@ class DataTransferTestService {
 
     internal fun mockHttpServletRequest(): HttpServletRequest {
       val request = Mockito.mock(HttpServletRequest::class.java)
-      Mockito.`when`(request.getSession(true)).thenReturn(Mockito.mock(HttpSession::class.java))
+      val mockSession = MockSession()
+      Mockito.`when`(request.getSession(Mockito.anyBoolean())).thenReturn(mockSession.session)
+      Mockito.`when`(request.getSession()).thenReturn(mockSession.session)
       return request
     }
   }
@@ -186,6 +191,27 @@ class DataTransferTestService {
     }
 
     override fun setWriteListener(p0: WriteListener?) {
+    }
+  }
+
+  private class MockSession {
+    val session = Mockito.mock(HttpSession::class.java)
+    private val attributes = mutableMapOf<String, Any>()
+
+    init {
+      Mockito.`when`(session.getAttribute(Mockito.anyString())).thenAnswer { invocationOnMock ->
+        val attribute = invocationOnMock.getArgument<String>(0)
+        return@thenAnswer attributes[attribute]
+      }
+      Mockito.`when`(session.setAttribute(Mockito.anyString(), Mockito.any())).thenAnswer { invocationOnMock ->
+        val attribute = invocationOnMock.getArgument<String>(0)
+        val value = invocationOnMock.getArgument<Any>(1)
+        attributes.put(attribute, value)
+      }
+    }
+
+    fun clearSession() {
+      attributes.clear()
     }
   }
 }
