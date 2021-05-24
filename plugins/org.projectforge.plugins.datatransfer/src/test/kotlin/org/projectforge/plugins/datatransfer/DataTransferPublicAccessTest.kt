@@ -66,7 +66,7 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
   fun pageResolverTest() {
     Assertions.assertEquals(
       "react/public/datatransfer/dynamic",
-      PagesResolver.getDynamicPageUrl(DataTransferPublicPageRest::class.java)
+      PagesResolver.getDynamicPageUrl(DataTransferPublicPageRest::class.java, trailingSlash = false)
     )
   }
 
