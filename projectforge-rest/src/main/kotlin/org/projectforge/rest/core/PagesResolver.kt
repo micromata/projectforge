@@ -87,6 +87,7 @@ object PagesResolver {
   }
 
   /**
+   * @param trailingSlash Only effect if id is null: return .../dynamic/ (default) or .../dynamic if param is false.
    * @return Path of react page.
    */
   @JvmStatic
@@ -95,11 +96,12 @@ object PagesResolver {
     pageRestClass: Class<*>,
     params: Map<String, Any?>? = null,
     id: Int? = null,
-    absolute: Boolean = false
+    absolute: Boolean = false,
+    trailingSlash: Boolean = true,
   ): String {
     val path = getRequestMappingPath(pageRestClass, "/dynamic") ?: return "NOT_FOUND"
     val prefix = if (absolute) "/" else ""
-    val idPart = if (id != null) "/$id" else ""
+    val idPart = if (id != null) "/$id" else if (trailingSlash) "/" else ""
     return "$prefix$path$idPart${getQueryString(params)}"
   }
 
