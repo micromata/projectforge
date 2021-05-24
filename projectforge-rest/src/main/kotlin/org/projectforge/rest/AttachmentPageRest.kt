@@ -81,6 +81,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
       listId: String?,
       attachment: Attachment,
       writeAccess: Boolean = true,
+      restClass: Class<*> = AttachmentsServicesRest::class.java,
     ): UILayout {
       val layout = UILayout("attachment")
 
@@ -124,7 +125,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
           UIColor.LINK,
           responseAction = ResponseAction(
             RestResolver.getRestUrl(
-              AttachmentsServicesRest::class.java,
+              restClass,
               "download/$category/$id?fileId=$fileId&listId=$listId"
             ),
             targetType = TargetType.DOWNLOAD
@@ -139,7 +140,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
             UIColor.DANGER,
             confirmMessage = translate("file.panel.deleteExistingFile.heading"),
             responseAction = ResponseAction(
-              RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "delete"),
+              RestResolver.getRestUrl(restClass, "delete"),
               targetType = TargetType.POST
             )
           )
@@ -150,7 +151,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
               translate("update"),
               UIColor.SUCCESS,
               responseAction = ResponseAction(
-                RestResolver.getRestUrl(AttachmentsServicesRest::class.java, "modify"),
+                RestResolver.getRestUrl(restClass, "modify"),
                 targetType = TargetType.POST
               ),
               default = true
