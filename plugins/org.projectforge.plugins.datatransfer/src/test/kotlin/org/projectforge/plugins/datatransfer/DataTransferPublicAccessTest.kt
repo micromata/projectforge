@@ -31,10 +31,9 @@ import org.mockito.Mockito
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.jcr.FileObject
-import org.projectforge.plugins.datatransfer.rest.DataTransferlUtils
-import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicArea
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicPageRest
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest
+import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicSession
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,6 +41,7 @@ import org.springframework.core.io.InputStreamResource
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
 import javax.annotation.PostConstruct
+import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
@@ -85,41 +85,50 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
 
     val file2 = testService.createFile(externalFullAccessArea, "pom.xml")!!
 
+    val request = DataTransferTestService.mockHttpServletRequest()
+    login(request, externalDownloadArea)
+    login(request, externalFullAccessArea)
 
-    checkDownload(externalDownloadArea, listOf(file1a, file1b))
-    checkDownload(externalFullAccessArea, listOf(file2))
+    checkDownload(request, externalDownloadArea, listOf(file1a, file1b))
+    checkDownload(request, externalFullAccessArea, listOf(file2))
 
-    downloadAllAndCheck(externalDownloadArea, file1a, file1b)
+    downloadAllAndCheck(request, externalDownloadArea, file1a, file1b)
 
-    downloadAllAndCheck(externalFullAccessArea, file2)
+    downloadAllAndCheck(request, externalFullAccessArea, file2)
 
-    uploadFile(externalDownloadArea, "no-upload-access.txt")
-    downloadAllAndCheck(externalDownloadArea, file1a, file1b) // Unchanged list of files.
+    uploadFile(request, externalDownloadArea, "no-upload-access.txt")
+    downloadAllAndCheck(request, externalDownloadArea, file1a, file1b) // Unchanged list of files.
 
-    uploadFile(externalFullAccessArea, "upload.txt")
-    downloadAllAndCheck(externalFullAccessArea, file2.fileName!!, "upload.txt")
+    uploadFile(request, externalFullAccessArea, "upload.txt")
+    downloadAllAndCheck(request, externalFullAccessArea, file2.fileName!!, "upload.txt")
+  }
 
-    downloadAllAndCheck(
-      externalFullAccessArea,
-      accessString = getAccessString(externalDownloadArea)
-    ) // Try to use access string of different area
+  private fun login(request: HttpServletRequest, dataTransferArea: DataTransferAreaDO) {
+    DataTransferPublicSession.register(
+      request,
+      dataTransferArea.id!!,
+      dataTransferArea.externalAccessToken!!,
+      dataTransferArea.externalPassword!!,
+      "external Userinfo"
+    )
   }
 
   private fun checkDownload(
+    request: HttpServletRequest,
     dataTransferArea: DataTransferAreaDO,
     accessFiles: List<FileObject>?,
     noAccessFiles: List<FileObject>? = null
   ) {
     accessFiles?.forEach {
-      checkDownloadFile(dataTransferArea, it, true)
+      checkDownloadFile(request, dataTransferArea, it, true)
     }
     noAccessFiles?.forEach {
-      checkDownloadFile(dataTransferArea, it, false)
+      checkDownloadFile(request, dataTransferArea, it, false)
     }
   }
 
-  private fun checkDownloadFile(dataTransferArea: DataTransferAreaDO, file: FileObject, access: Boolean) {
-    val result = downloadFile(dataTransferArea, file)
+  private fun checkDownloadFile(request: HttpServletRequest, dataTransferArea: DataTransferAreaDO, file: FileObject, access: Boolean) {
+    val result = downloadFile(request, dataTransferArea, file)
     if (access) {
       Assertions.assertNotNull(
         result,
@@ -133,17 +142,16 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
     }
   }
 
-  private fun downloadAllAndCheck(dataTransferArea: DataTransferAreaDO, vararg expectedFiles: FileObject) {
-    downloadAllAndCheck(dataTransferArea, *(expectedFiles.map { it.fileName!! }.toTypedArray()))
+  private fun downloadAllAndCheck(request: HttpServletRequest, dataTransferArea: DataTransferAreaDO, vararg expectedFiles: FileObject) {
+    downloadAllAndCheck(request, dataTransferArea, *(expectedFiles.map { it.fileName!! }.toTypedArray()))
   }
 
   private fun downloadAllAndCheck(
+    request: HttpServletRequest,
     dataTransferArea: DataTransferAreaDO,
     vararg expectedFiles: String,
-    accessString: String = getAccessString(dataTransferArea)
   ) {
     val response = Mockito.mock(HttpServletResponse::class.java)
-    val request = DataTransferTestService.mockHttpServletRequest()
     val servletOutputStream = DataTransferTestService.MyServletOutputStream()
     Mockito.`when`(response.outputStream).thenReturn(servletOutputStream)
     dataTransferPublicServicesRest.downloadAll(
@@ -151,9 +159,8 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
       response,
       DataTransferPlugin.ID,
       dataTransferArea.id!!,
-      accessString,
-      "external test user"
-    )
+
+      )
     val files = DataTransferTestService.checkZipArchive(servletOutputStream.byteArray)
     Assertions.assertEquals(expectedFiles.size, files.size)
     expectedFiles.forEach {
@@ -162,10 +169,10 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
   }
 
   private fun uploadFile(
+    request: HttpServletRequest,
     dataTransferArea: DataTransferAreaDO,
     filename: String
   ) {
-    val request = DataTransferTestService.mockHttpServletRequest()
     val file = Mockito.mock(MultipartFile::class.java)
     Mockito.`when`(file.originalFilename).thenReturn(filename)
     Mockito.`when`(file.inputStream).thenReturn(ByteArrayInputStream("fake file content".toByteArray()))
@@ -178,8 +185,6 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
         id = dataTransferArea.id!!,
         listId = AttachmentsService.DEFAULT_NODE,
         file = file,
-        accessString = getAccessString(dataTransferArea),
-        userInfo = "External test user"
       )
     } catch (ex: Exception) {
       // Not found or no access
@@ -188,10 +193,10 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
   }
 
   private fun downloadFile(
+    request: HttpServletRequest,
     dataTransferArea: DataTransferAreaDO,
     fileObject: FileObject,
   ): ByteArray? {
-    val request = DataTransferTestService.mockHttpServletRequest()
     val response = try {
       dataTransferPublicServicesRest.download(
         request,
@@ -199,8 +204,6 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
         id = dataTransferArea.id!!,
         fileId = fileObject.fileId!!,
         listId = AttachmentsService.DEFAULT_NODE,
-        accessString = getAccessString(dataTransferArea),
-        userInfo = "External test user"
       )
     } catch (ex: Exception) {
       // Not found or no access
@@ -210,11 +213,5 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
     (response.body as InputStreamResource).inputStream.use {
       return IOUtils.toByteArray(it)
     }
-  }
-
-  private fun getAccessString(dataTransferArea: DataTransferAreaDO): String {
-    val area = DataTransferPublicArea()
-    area.copyFrom(dataTransferArea)
-    return DataTransferlUtils.getAccessString(area)
   }
 }

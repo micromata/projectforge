@@ -27,7 +27,6 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferPlugin
-import org.projectforge.plugins.datatransfer.rest.DataTransferlUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
@@ -71,7 +70,10 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     val externalAccessToken = postData.data.externalAccessToken
     val sessionData = DataTransferPublicSession.getTransferAreaData(request, externalAccessToken)
     val externalPassword = postData.data.externalPassword ?: sessionData?.password
-    val userInfo = postData.data.userInfo ?: sessionData?.userInfo
+    var userInfo = postData.data.userInfo
+    if (userInfo.isNullOrBlank()) {
+      userInfo = sessionData?.userInfo
+    }
 
     val checkAccess =
       attachmentsAccessChecker.checkExternalAccess(
@@ -145,8 +147,6 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
               trailingSlash = false
             ),
             restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",
-            accessString = DataTransferlUtils.getAccessString(dataTransfer),
-            userInfo = "${dataTransfer.userInfo}",
             downloadOnRowClick = false,
             uploadDisabled = dataTransfer.externalUploadEnabled != true
           )
@@ -163,12 +163,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
         responseAction = ResponseAction(
           RestResolver.getPublicRestUrl(
             this.javaClass,
-            "downloadAll/datatransfer/${dataTransfer.id}?accessString=${
-              DataTransferlUtils.getAccessString(
-                dataTransfer,
-                true
-              )
-            }"
+            "downloadAll/datatransfer/${dataTransfer.id}"
           ), targetType = TargetType.DOWNLOAD
         ),
         default = true

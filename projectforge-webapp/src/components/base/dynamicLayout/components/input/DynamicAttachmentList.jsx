@@ -15,8 +15,6 @@ function DynamicAttachmentList(
         listId,
         serviceBaseUrl,
         restBaseUrl,
-        accessString,
-        userInfo,
         downloadOnRowClick,
         uploadDisabled,
     },
@@ -37,10 +35,7 @@ function DynamicAttachmentList(
         const formData = new FormData();
         formData.append('file', files[0]);
         fetch(
-            getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}`, {
-                accessString,
-                userInfo,
-            }),
+            getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}`),
             {
                 credentials: 'include',
                 method: 'POST',
@@ -67,8 +62,6 @@ function DynamicAttachmentList(
                 url: getServiceURL(`${restBaseUrl}/download/${category}/${id}`, {
                     fileId: entryId,
                     listId,
-                    accessString,
-                    userInfo,
                 }),
                 absolute: true,
             },
@@ -169,8 +162,6 @@ DynamicAttachmentList.propTypes = {
     readOnly: PropTypes.bool,
     serviceBaseUrl: PropTypes.string,
     restBaseUrl: PropTypes.string,
-    accessString: PropTypes.string,
-    userInfo: PropTypes.string,
     downloadOnRowClick: PropTypes.bool,
     uploadDisabled: PropTypes.bool,
 };
@@ -180,8 +171,6 @@ DynamicAttachmentList.defaultProps = {
     readOnly: false,
     serviceBaseUrl: '/react/attachment/dynamic',
     restBaseUrl: '/rs/attachments',
-    accessString: '',
-    useInfo: null,
     downloadOnRowClick: false,
     uploadDisabled: false,
 };

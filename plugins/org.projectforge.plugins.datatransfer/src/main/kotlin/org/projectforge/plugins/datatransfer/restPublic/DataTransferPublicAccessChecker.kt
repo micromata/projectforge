@@ -101,7 +101,7 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
     loginProtection.clearLoginTimeOffset(externalAccessToken, null, clientIpAddress)
     log.info { "Data transfer area with externalAccessToken '$externalAccessToken': login successful by ip=$clientIpAddress, userInfo='$userInfo'." }
 
-    DataTransferPublicSession.register(request, externalAccessToken, externalPassword, userInfo)
+    DataTransferPublicSession.register(request, dbo.id!!, externalAccessToken, externalPassword, userInfo)
     return CheckAccessResult(dbo)
   }
 

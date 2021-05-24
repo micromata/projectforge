@@ -62,14 +62,6 @@ class UIAttachmentList(
   /**
    * Used by data transfer tool for using public rest api and react pages (for serving access token and password by the client).
    */
-  val accessString: String? = null,
-  /**
-   * Used by data transfer tool for optional user info, such as name or e-mail (s. DataTransfer).
-   */
-  val userInfo: String? = null,
-  /**
-   * Used by data transfer tool for using public rest api and react pages (for serving access token and password by the client).
-   */
   val downloadOnRowClick: Boolean? = null,
   /**
    * If true, the upload function isn't available.
@@ -77,8 +69,4 @@ class UIAttachmentList(
   val uploadDisabled: Boolean? = null
 ) :
   UIElement(type = UIElementType.ATTACHMENT_LIST) {
-  /**
-   * Used as post body for reloading attachment list.
-   */
-  class ReloadData(var accessString: String?, var userInfo: String?)
 }
