@@ -94,6 +94,7 @@ class DataTransferPublicSession {
 
   /**
    * Tries to log-in the user. Uses LoginProtection. Doesn't check if the user is already logged-in.
+   * The session id will be changed (session fixation), but any previous logged-in area will be put in the new session.
    */
   internal fun login(
     request: HttpServletRequest,
@@ -134,6 +135,18 @@ class DataTransferPublicSession {
     // Successfully logged in:
     loginProtection.clearLoginTimeOffset(accessToken, null, clientIpAddress)
     log.info { "Data transfer area with externalAccessToken '$accessToken': login successful by ip=$clientIpAddress, userInfo='$userInfo'." }
+
+    // Session Fixation: Change JSESSIONID after login (due to security reasons / XSS attack on login page)
+    request.getSession(false)?.let { session ->
+      if (!session.isNew) {
+        val map = getSessionMap(request)
+        session.invalidate()
+        if (map != null) {
+          // Save any logged-in areas from old session and restore in nes session:
+          request.getSession(true).setAttribute(SESSION_ATTRIBUTE, map)
+        }
+      }
+    }
     register(request, dbo, userInfo)
     return CheckAccessResult(dbo)
   }
