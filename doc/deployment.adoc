@@ -12,26 +12,24 @@ link:index{outfilesuffix}[Top]
 
 == How to deploy a new release?
 
-1. Create new release GIT branch (e.g. /release/7.0.0-RELEASE) -> Recommondation: Use Git Flow
-2. `mvn clean site` (Check test results and reports in all modules). If all tests are OK, continue with next step.
-3. Modify NEWS.md with updated release informations
-4. Change version number of all `pom.xml` files: +
-   `export PF_NEW_VERSION=7.0.0` +
+1. Modify NEWS.md with updated release informations
+2. Define new release variable: `export PF_NEW_VERSION=7.1.3`
+3. Change version number of all `pom.xml` files: +
    `find . -name pom.xml | xargs perl -pi -e 's|<version>.*</version><!-- projectforge.version -\->|<version>$ENV{PF_NEW_VERSION}</version><!-- projectforge.version -\->|g'`
-5. Check git-modifications: all `pom.xml` files should have the new ProjectForge-Version.
-6. `mvn clean install`
-7. If all tests are finished successfully and the test of the ProjectForge-Application works for new and existing databases), proceeed:
-8. Copy executable jar file from projectforge-application/target to SourceForge and tag this file as default for all platforms
-9. Building and pushing docker
+4. Check git-modifications: all `pom.xml` files should have the new ProjectForge-Version.
+5. `mvn clean install`
+6. If all tests are finished successfully and the test of the ProjectForge-Application works for new and existing databases), proceeed:
+7. Copy executable jar file from projectforge-application/target to SourceForge and tag this file as default for all platforms
+8. Building and pushing docker
     a. `docker build -t micromata/projectforge:latest .`
-    b. `docker tag bc0459ed7d01 micromata/projectforge:7.0.0` (use image id for tagging)
-    c. `docker push micromata/projectforge:7.0.0`
+    b. `docker tag bc0459ed7d01 micromata/projectforge:$PF_NEW_VERSION` (use image id for tagging)
+    c. `docker push micromata/projectforge:PF_NEW_VERSION`
     d. `docker push micromata/projectforge:latest`
-10. Merge the release branch into the master and develop branch (Git Flow: Finish release)
-11. Tag master branch with version number
-12. Change to develop branch
-13. Create new SNAPSHOT-Release by increasing version number of all `pom.xml`files: +
-   `export PF_NEW_VERSION=7.0.1-SNAPSHOT` +
+9. Merge the release branch into the master and develop branch (Git Flow: Finish release)
+10. Tag master branch with version number
+11. Change to develop branch
+12. Create new SNAPSHOT-Release by increasing version number of all `pom.xml`files: +
+   `export PF_NEW_VERSION=7.1.3-SNAPSHOT` +
    `find . -name pom.xml | xargs perl -pi -e 's|<version>.*</version><!-- projectforge.version -\->|<version>$ENV{PF_NEW_VERSION}</version><!-- projectforge.version -\->|g'`
-14. Commit everything to master and develop branch and push it to Github
-15. Upload the saved jar files to Github (Create release from taged version) and SourceForge (e.g. as zip (see previous versions as example)).
+13. Commit everything to master and develop branch and push it to Github
+14. Upload the saved jar files to Github (Create release from taged version) and SourceForge (e.g. as zip (see previous versions as example)).
