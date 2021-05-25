@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>org.projectforge.plugins</artifactId>
-    <version>7.1.2</version><!-- projectforge.version -->
+    <version>7.1.3-SNAPSHOT</version><!-- projectforge.version -->
   </parent>
   <artifactId>org.projectforge.plugins.ihk</artifactId>
   <packaging>jar</packaging>
