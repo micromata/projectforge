@@ -29,8 +29,8 @@ link:index{outfilesuffix}[Top]
 9. Merge the release branch into the master and develop branch (Git Flow: Finish release)
 10. Tag master branch with version number
 11. Change to develop branch
-12. Create new SNAPSHOT-Release by increasing version number of all `pom.xml`files: +
-   `export PF_NEW_VERSION=7.1.3-SNAPSHOT` +
+12. Create new SNAPSHOT-Release by increasing version number of all `pom.xml` files: +
+   `export PF_NEW_VERSION=7.1.4-SNAPSHOT` +
    `find . -name pom.xml | xargs perl -pi -e 's|<version>.*</version><!-- projectforge.version -\->|<version>$ENV{PF_NEW_VERSION}</version><!-- projectforge.version -\->|g'`
 13. Commit everything to master and develop branch and push it to Github
 14. Upload the saved jar files to Github (Create release from taged version) and SourceForge (e.g. as zip (see previous versions as example)).
