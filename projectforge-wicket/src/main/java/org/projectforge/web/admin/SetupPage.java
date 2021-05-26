@@ -29,6 +29,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.common.DatabaseDialect;
@@ -158,6 +159,8 @@ public class SetupPage extends AbstractUnsecureBasePage
     }
     setResponsePage(new MessagePage(message, adminUser.getUsername()));
     log.info("Set-up finished.");
+
+    ProjectForgeApp.shutdown(10);
   }
 
   private void loginAdminUser(PFUserDO adminUser)
