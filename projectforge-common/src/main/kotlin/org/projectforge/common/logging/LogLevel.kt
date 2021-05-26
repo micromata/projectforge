@@ -26,9 +26,10 @@ package org.projectforge.common.logging
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.spi.ILoggingEvent
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.common.i18n.I18nEnum
 
-enum class LogLevel {
-  ERROR, WARN, INFO, DEBUG, TRACE;
+enum class LogLevel(val key: String): I18nEnum {
+  ERROR("error"), WARN("warn"), INFO("info"), DEBUG("debug"), TRACE("trace");
 
   /**
    * @param treshold
@@ -40,6 +41,12 @@ enum class LogLevel {
     } else ordinal <= treshold.ordinal
   }
 
+  /**
+   * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
+   */
+  override val i18nKey: String
+    get() = "log.level.$key"
+
   companion object {
     fun getLevel(event: ILoggingEvent): LogLevel {
       return when (event.level.toInt()) {
@@ -50,8 +57,5 @@ enum class LogLevel {
         else -> ERROR
       }
     }
-
-    val supportedValues: String
-      get() = StringUtils.join(values(), ", ")
   }
 }
