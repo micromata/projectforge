@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Table } from '../../../../design';
 import { DynamicLayoutContext } from '../../context';
-import DynamicTableHead from './DynamicTableHead';
-import DynamicTableRow from './DynamicTableRow';
+import DynamicTableHead from './DynamicListPageTableHead';
+import DynamicTableRow from './DynamicListPageTableRow';
 
-function DynamicTable({ columns, id }) {
+function DynamicListPageTable({ columns, id }) {
     const { data, ui } = React.useContext(DynamicLayoutContext);
 
     const entries = Object.getByString(data, id) || '';
@@ -48,7 +48,7 @@ function DynamicTable({ columns, id }) {
     ), [entries, ui]);
 }
 
-DynamicTable.propTypes = {
+DynamicListPageTable.propTypes = {
     columns: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.string.isRequired,
         title: PropTypes.string,
@@ -57,8 +57,8 @@ DynamicTable.propTypes = {
     id: PropTypes.string,
 };
 
-DynamicTable.defaultProps = {
+DynamicListPageTable.defaultProps = {
     id: undefined,
 };
 
-export default DynamicTable;
+export default DynamicListPageTable;
