@@ -6,9 +6,9 @@ import DynamicTableHead from './DynamicTableHead';
 import DynamicTableRow from './DynamicTableRow';
 
 function DynamicTable({ columns, id }) {
-    const { data, ui } = React.useContext(DynamicLayoutContext);
+    const { data, ui, variables } = React.useContext(DynamicLayoutContext);
 
-    const entries = Object.getByString(data, id) || '';
+    const entries = Object.getByString(data, id) || Object.getByString(variables, id) || '';
 
     return React.useMemo(() => (
         <div

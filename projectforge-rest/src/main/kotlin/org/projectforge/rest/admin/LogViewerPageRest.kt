@@ -24,49 +24,101 @@
 package org.projectforge.rest.admin
 
 import mu.KotlinLogging
-import org.projectforge.common.logging.LogFilter
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.logging.LoggerMemoryAppender
-import org.projectforge.common.logging.LoggingEventData
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.AbstractPagesRest
-import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/logViewer")
 class LogViewerPageRest : AbstractDynamicPageRest() {
-  class Data(val logEntries: List<LogViewerEvent>)
-
   @Autowired
   lateinit var accessChecker: AccessChecker
+
+  @Autowired
+  private lateinit var userPrefService: UserPrefService
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
     val lc = LayoutContext(LogViewerEvent::class.java)
+    val filterLc = LayoutContext(LogViewFilter::class.java)
+    val logViewFilter = getUserPref()
 
     val layout = UILayout("system.admin.logViewer.title")
-      .add(UITable("logEntries")
-        .add(lc, "timestamp", "level", "message", "user", "userAgent", "stackTrace"))
-    /*layout.add(MenuItem("EDIT",
-            i18nKey = "address.title.edit",
-            url = PagesResolver.getEditPageUrl(AddressPagesRest::class.java, address.id),
-            type = MenuItemTargetType.REDIRECT))*/
+      .add(
+        UIFieldset()
+          .add(
+            UIRow()
+              .add(
+                UICol(UILength(md = 2))
+                  .add(filterLc, "threshold")
+              )
+              .add(
+                UICol(UILength(md = 10))
+                  .add(filterLc, "search")
+              )
+          )
+          .add(
+            UIButton(
+              "refresh",
+              title = translate("refresh"),
+              color = UIColor.SUCCESS,
+              responseAction = ResponseAction(
+                RestResolver.getRestUrl(this::class.java, "refresh"),
+                targetType = TargetType.POST
+              )
+            )
+          )
+      )
+      .add(
+        UITable("logEntries")
+          .add(lc, "timestamp", "level", "user", "message", "userAgent", "stackTrace")
+      )
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
 
-    val logEntries = LoggerMemoryAppender.getInstance().query(LogFilter()).map { LogViewerEvent(it) }
-    return FormLayoutData(Data(logEntries), layout, createServerData(request))
+    val logEntries = queryList(logViewFilter)
+    return FormLayoutData(
+      logViewFilter,
+      layout,
+      createServerData(request),
+      variables = mutableMapOf("logEntries" to logEntries)
+    )
+  }
+
+  @PostMapping("refresh")
+  fun refresh(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @RequestBody postData: PostData<LogViewFilter>
+  )
+      : ResponseAction {
+    val filter = postData.data
+    val userPref = getUserPref()
+    userPref.search = filter.search
+    userPref.threshold = filter.threshold
+    return ResponseAction(targetType = TargetType.UPDATE)
+      .addVariable("logEntries", queryList(filter))
+  }
+
+  private fun queryList(filter: LogViewFilter): List<LogViewerEvent> {
+    return LoggerMemoryAppender.getInstance().query(filter.logFilter).map { LogViewerEvent(it) }
+  }
+
+  private fun getUserPref(): LogViewFilter {
+    return userPrefService.ensureEntry("logging", "logViewFilter", LogViewFilter())
   }
 }
