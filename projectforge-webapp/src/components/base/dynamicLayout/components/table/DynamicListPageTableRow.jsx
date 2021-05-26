@@ -8,7 +8,7 @@ import Formatter from '../../../Formatter';
 import DynamicCustomized from '../customized';
 import style from './DynamicTable.module.scss';
 
-function DynamicTableRow(
+function DynamicListPageTableRow(
     {
         columns,
         row,
@@ -49,7 +49,7 @@ function DynamicTableRow(
     );
 }
 
-DynamicTableRow.propTypes = {
+DynamicListPageTableRow.propTypes = {
     columns: tableColumnsPropType.isRequired,
     handleRowClick: PropTypes.func.isRequired,
     row: PropTypes.shape({
@@ -59,7 +59,7 @@ DynamicTableRow.propTypes = {
     highlightRow: PropTypes.bool,
 };
 
-DynamicTableRow.defaultProps = {
+DynamicListPageTableRow.defaultProps = {
     highlightRow: false,
 };
 
@@ -69,4 +69,4 @@ const actions = (dispatch, { row }) => ({
     handleRowClick: () => dispatch(openEditPage(row.id)),
 });
 
-export default connect(mapStateToProps, actions)(DynamicTableRow);
+export default connect(mapStateToProps, actions)(DynamicListPageTableRow);

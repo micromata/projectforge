@@ -6,7 +6,7 @@ import { sortList } from '../../../../../actions/list/filter';
 import AnimatedChevron from '../../../../design/input/chevron/Animated';
 import style from './DynamicTable.module.scss';
 
-function DynamicTableHead(
+function DynamicListPageTableHead(
     {
         id,
         sortable,
@@ -32,7 +32,7 @@ function DynamicTableHead(
     );
 }
 
-DynamicTableHead.propTypes = {
+DynamicListPageTableHead.propTypes = {
     id: PropTypes.string.isRequired,
     dispatchSort: PropTypes.func.isRequired,
     title: PropTypes.string,
@@ -41,7 +41,7 @@ DynamicTableHead.propTypes = {
     sortable: PropTypes.bool,
 };
 
-DynamicTableHead.defaultProps = {
+DynamicListPageTableHead.defaultProps = {
     sortable: false,
     direction: undefined,
     title: undefined,
@@ -60,4 +60,4 @@ const actions = {
     dispatchSort: sortList,
 };
 
-export default connect(mapStateToProps, actions)(DynamicTableHead);
+export default connect(mapStateToProps, actions)(DynamicListPageTableHead);
