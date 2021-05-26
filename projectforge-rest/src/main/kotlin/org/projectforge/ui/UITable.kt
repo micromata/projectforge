@@ -23,37 +23,41 @@
 
 package org.projectforge.ui
 
-data class UITable(val id: String, val columns: MutableList<UITableColumn> = mutableListOf()) : UIElement(UIElementType.TABLE) {
-    companion object {
-        @JvmStatic
-        fun createUIResultSetTable(): UITable {
-            return UITable("resultSet")
-        }
+open class UITable(
+  val id: String,
+  val columns: MutableList<UITableColumn> = mutableListOf(),
+  listPageTable: Boolean = false
+) : UIElement(if (listPageTable) UIElementType.TABLE_LIST_PAGE else UIElementType.TABLE) {
+  companion object {
+    @JvmStatic
+    fun createUIResultSetTable(): UITable {
+      return UITable("resultSet", listPageTable = true)
     }
+  }
 
-    fun add(column: UITableColumn): UITable {
-        columns.add(column)
-        return this
-    }
+  fun add(column: UITableColumn): UITable {
+    columns.add(column)
+    return this
+  }
 
-    /**
-     * For adding columns with the given ids
-     */
-    fun add(lc: LayoutContext, vararg columnIds: String): UITable {
-        columnIds.forEach {
-            val col = UITableColumn(it)
-            val elementInfo = ElementsRegistry.getElementInfo(lc, it)
-            if (elementInfo != null) {
-                col.title = elementInfo.i18nKey
-                col.dataType = UIDataTypeUtils.ensureDataType(elementInfo)
-                if (col.dataType == UIDataType.BOOLEAN) {
-                    col.setStandardBoolean()
-                }
-            }
-            if (!lc.idPrefix.isNullOrBlank())
-                col.id = "${lc.idPrefix}${col.id}"
-            add(col)
+  /**
+   * For adding columns with the given ids
+   */
+  fun add(lc: LayoutContext, vararg columnIds: String): UITable {
+    columnIds.forEach {
+      val col = UITableColumn(it)
+      val elementInfo = ElementsRegistry.getElementInfo(lc, it)
+      if (elementInfo != null) {
+        col.title = elementInfo.i18nKey
+        col.dataType = UIDataTypeUtils.ensureDataType(elementInfo)
+        if (col.dataType == UIDataType.BOOLEAN) {
+          col.setStandardBoolean()
         }
-        return this
+      }
+      if (!lc.idPrefix.isNullOrBlank())
+        col.id = "${lc.idPrefix}${col.id}"
+      add(col)
     }
+    return this
+  }
 }

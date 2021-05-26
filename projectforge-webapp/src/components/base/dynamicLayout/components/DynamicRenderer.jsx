@@ -14,6 +14,7 @@ import DynamicRating from './input/DynamicRating';
 import DynamicReadonlyField from './input/DynamicReadonlyField';
 import DynamicTextArea from './input/DynamicTextArea';
 import DynamicReactSelect from './select/DynamicReactSelect';
+import DynamicTable from './table/DynamicTable';
 import DynamicListPageTable from './table/DynamicListPageTable';
 
 const components = {};
@@ -73,5 +74,6 @@ registerComponent('LABEL', DynamicLabel);
 registerComponent('RATING', DynamicRating);
 registerComponent('READONLY_FIELD', DynamicReadonlyField);
 registerComponent('SELECT', DynamicReactSelect);
-registerComponent('TABLE', DynamicListPageTable);
+registerComponent('TABLE', DynamicTable);
+registerComponent('TABLE_LIST_PAGE', DynamicListPageTable);
 registerComponent('TEXTAREA', DynamicTextArea);
