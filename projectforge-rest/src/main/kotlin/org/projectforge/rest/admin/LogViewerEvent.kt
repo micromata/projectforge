@@ -21,32 +21,23 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.ui
+package org.projectforge.rest.admin
 
-enum class UIElementType {
-    ALERT,
-    /**
-     * Attachments including list view, downloading, uploading and deleting files.
-     */
-    ATTACHMENT_LIST,
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CUSTOMIZED,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    RADIOBUTTON,
-    READONLY_FIELD,
-    RATING,
-    ROW,
-    SELECT,
-    TABLE,
-    TABLE_LIST_PAGE,
-    TABLE_COLUMN,
-    TEXTAREA
+import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.common.logging.LoggingEventData
+
+class LogViewerEvent(event: LoggingEventData) {
+  val id = event.id
+  @PropertyInfo(i18nKey = "timestamp")
+  val timestamp = event.isoTimestamp
+  @PropertyInfo(i18nKey = "system.admin.logViewer.level")
+  val level = event.level
+  @PropertyInfo(i18nKey = "system.admin.logViewer.message")
+  val message = event.message
+  @PropertyInfo(i18nKey = "system.admin.logViewer.stacktrace")
+  val stackTrace = event.stackTrace
+  @PropertyInfo(i18nKey = "system.admin.logViewer.user")
+  val user = "${event.user ?: ""}@${event.ip ?: ""}"
+  @PropertyInfo(i18nKey = "system.admin.logViewer.userAgent")
+  val userAgent = event.userAgent
 }
