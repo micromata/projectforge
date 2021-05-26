@@ -37,8 +37,7 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
   var queue = FiFoBuffer<LoggingEventData>(QUEUE_SIZE)
 
   override fun append(event: ILoggingEvent?) {
-    val eventData = LoggingEventData(event!!)
-    eventData.id = ++lastLogEntryOrderNumber
+    val eventData = LoggingEventData(event!!, ++lastLogEntryOrderNumber)
     queue.add(eventData)
   }
 
@@ -53,23 +52,19 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
 
   fun query(filter: LogFilter, locale: Locale? = null): List<LoggingEventData> {
     val result: MutableList<LoggingEventData> = ArrayList()
-    var maxSize = filter.maxSize ?: MAX_RESULT_SIZE
-    if (maxSize > MAX_RESULT_SIZE) {
-      maxSize = MAX_RESULT_SIZE
-    }
     var counter = 0
     //I18n i18n = CoreI18n.getDefault().get(locale);
     if (filter.isAscendingOrder) {
       for (i in 0 until queue.size) {
         val resultEvent = getResultEvent(filter, queue[i], locale) ?: continue
         result.add(resultEvent)
-        if (++counter > maxSize) break
+        if (++counter > filter.maxSize) break
       }
     } else {
       for (i in queue.size downTo 0) {
         val resultEvent = getResultEvent(filter, queue[i], locale) ?: continue
         result.add(resultEvent)
-        if (++counter > maxSize) break
+        if (++counter > filter.maxSize) break
       }
     }
     return result
@@ -96,7 +91,7 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
             localizedMessage = true;
         }*/if (StringUtils.isNotBlank(filter.search)) {
       val sb = StringBuilder()
-      sb.append(event.logDate)
+      sb.append(event.isoTimestamp)
       append(sb, event.level, true)
       append(sb, message, true)
       append(sb, event.javaClass, true)
