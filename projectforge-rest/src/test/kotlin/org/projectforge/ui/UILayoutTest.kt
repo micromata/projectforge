@@ -117,7 +117,7 @@ class UILayoutTest : AbstractTestBase() {
         val jsonValidator = JsonValidator(jsonString)
 
         assertEquals("resultSet", jsonValidator.get("layout[0].id"))
-        assertEquals("TABLE", jsonValidator.get("layout[0].type"))
+        assertEquals("TABLE_LIST_PAGE", jsonValidator.get("layout[0].type"))
         assertEquals("el-1", jsonValidator.get("layout[0].key"))
 
         assertEquals(7, jsonValidator.getList("layout[0].columns")?.size)
