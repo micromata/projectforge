@@ -29,34 +29,33 @@ import ch.qos.logback.core.CoreConstants
 import org.apache.commons.lang3.ClassUtils
 import java.io.PrintWriter
 import java.io.StringWriter
-import java.text.SimpleDateFormat
-import java.util.*
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 /**
  * For easier serialization: JSON
  */
-class LoggingEventData(event: ILoggingEvent) : Cloneable {
-  var id = 0
-  var level: LogLevel = LogLevel.getLevel(event)
+class LoggingEventData(event: ILoggingEvent, val id: Int) : Cloneable {
+  val level: LogLevel = LogLevel.getLevel(event)
   var message: String? = event.formattedMessage
-  var messageObjectClass: String? = event.message.javaClass.toString()
-    private set
-  var loggerName: String? = event.loggerName
-    private set
-  var logDate: String? = getIsoLogDate(event.timeStamp)
-    private set
-  var javaClass: String? = null
-  var javaClassSimpleName: String? = null
-    private set
-  var lineNumber = 0
-    private set
-  var methodName: String? = null
-    private set
+  val messageObjectClass: Class<*> = event.message.javaClass
+  val loggerName: String? = event.loggerName
+  val timestampMillis: Long = event.timeStamp
+  val isoTimestamp: String
+    get() = isoDateTimeFormatterMinutes.format(Instant.ofEpochMilli(timestampMillis))
+  val javaClass: String = event.callerData[0].className
+  val javaClassSimpleName: String? = ClassUtils.getShortClassName(event.callerData[0].className)
+  val lineNumber = event.callerData[0].lineNumber
+  val methodName: String = event.callerData[0].methodName
   var stackTrace: String? = null
     private set
+  var user: String? = null
+  var ip: String? = null
+  var userAgent: String? = null
+  var session: String? = null
 
   init {
-    val info = event.callerData[0]
     val throwableProxy = event.throwableProxy
     if (throwableProxy != null) {
       val writer = StringWriter()
@@ -65,16 +64,11 @@ class LoggingEventData(event: ILoggingEvent) : Cloneable {
       printWriter.append(CoreConstants.LINE_SEPARATOR)
       stackTrace = writer.toString()
     }
-    if (info != null) {
-      javaClass = info.className
-      javaClassSimpleName = ClassUtils.getShortClassName(info.className)
-      lineNumber = info.lineNumber
-      methodName = info.methodName
-    }
-  }
-
-  private fun getIsoLogDate(millis: Long): String {
-    synchronized(ISO_DATEFORMAT) { return ISO_DATEFORMAT.format(Date(millis)) }
+    val mdcMap = event.mdcPropertyMap
+    user = mdcMap[MDC_USER]
+    session = mdcMap[MDC_SESSION]
+    ip = mdcMap[MDC_IP]
+    userAgent = mdcMap[MDC_USER_AGENT]
   }
 
   public override fun clone(): LoggingEventData {
@@ -87,6 +81,7 @@ class LoggingEventData(event: ILoggingEvent) : Cloneable {
   }
 
   companion object {
-    private val ISO_DATEFORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    private val isoDateTimeFormatterMinutes =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC)
   }
 }
