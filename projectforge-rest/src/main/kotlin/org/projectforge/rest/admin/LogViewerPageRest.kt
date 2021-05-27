@@ -71,17 +71,18 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
                   .add(filterLc, "search")
               )
           )
-          .add(
-            UIButton(
-              "refresh",
-              title = translate("refresh"),
-              color = UIColor.SUCCESS,
-              responseAction = ResponseAction(
-                RestResolver.getRestUrl(this::class.java, "refresh"),
-                targetType = TargetType.POST
-              )
-            )
+      )
+      .add(
+        UIButton(
+          "refresh",
+          title = translate("refresh"),
+          color = UIColor.SUCCESS,
+          default = true,
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(this::class.java, "refresh"),
+            targetType = TargetType.POST
           )
+        )
       )
       .add(
         UITable("logEntries")
@@ -110,8 +111,9 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
     val userPref = getUserPref()
     userPref.search = filter.search
     userPref.threshold = filter.threshold
-    return ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("logEntries", queryList(filter))
+    val variables = mapOf("logEntries" to queryList(filter))
+    return ResponseAction(targetType = TargetType.UPDATE, merge = true)
+      .addVariable("variables", variables)
   }
 
   private fun queryList(filter: LogViewFilter): List<LogViewerEvent> {
