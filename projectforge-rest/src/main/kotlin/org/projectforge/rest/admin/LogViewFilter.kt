@@ -31,7 +31,10 @@ class LogViewFilter(
   @PropertyInfo(i18nKey = "system.admin.logViewer.level", required = true)
   var threshold: LogLevel = LogLevel.INFO,
   @PropertyInfo(i18nKey = "search")
-  var search: String? = null) {
+  var search: String? = null,
+  @PropertyInfo(i18nKey = "system.admin.logViewer.autoRefresh")
+  var autoRefresh: Boolean? = null
+) {
   val logFilter
     get() = LogFilter(threshold = threshold, search = search)
 }

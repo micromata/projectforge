@@ -23,11 +23,11 @@
 
 package org.projectforge.rest.admin
 
-import mu.KotlinLogging
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
@@ -37,9 +37,9 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import javax.validation.Valid
 
-private val log = KotlinLogging.logger {}
+// private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/logViewer")
@@ -63,12 +63,18 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
           .add(
             UIRow()
               .add(
+                UICol(UILength(md = 8))
+                  .add(filterLc, "search")
+              )
+              .add(
                 UICol(UILength(md = 2))
                   .add(filterLc, "threshold")
               )
               .add(
-                UICol(UILength(md = 10))
-                  .add(filterLc, "search")
+                UICol(UILength(md = 2))
+                  .add(
+                    filterLc, "autoRefresh"
+                  )
               )
           )
       )
@@ -79,15 +85,21 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
           color = UIColor.SUCCESS,
           default = true,
           responseAction = ResponseAction(
-            RestResolver.getRestUrl(this::class.java, "refresh"),
+            RestResolver.getRestUrl(this::class.java, "search"),
             targetType = TargetType.POST
           )
         )
       )
       .add(
-        UITable("logEntries")
-          .add(lc, "timestamp", "level", "user", "message", "userAgent", "stackTrace")
+        UITable(
+          "logEntries",
+          refreshUrl = "/rs/logViewer/refresh",
+          refreshIntervalSeconds = 2,
+          autoRefreshFlag = "autoRefresh"
+        )
+          .add(lc, "timestamp", "level", "user", "message", "userAgent", "stackTrace", sortable = false)
       )
+    layout.watchFields.addAll(arrayOf("threshold", "search", "refreshInterval"))
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
 
@@ -102,18 +114,34 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
 
   @PostMapping("refresh")
   fun refresh(
-    request: HttpServletRequest,
-    response: HttpServletResponse,
+    @RequestBody postData: PostData<LogViewFilter>
+  )
+      : List<LogViewerEvent> {
+    return getList(postData)
+  }
+
+  @PostMapping(RestPaths.WATCH_FIELDS)
+  fun watchFields(@Valid @RequestBody postData: PostData<LogViewFilter>): ResponseAction {
+    return search(postData)
+  }
+
+
+  @PostMapping("search")
+  fun search(
     @RequestBody postData: PostData<LogViewFilter>
   )
       : ResponseAction {
+    val variables = mapOf("logEntries" to getList(postData))
+    return ResponseAction(targetType = TargetType.UPDATE, merge = true)
+      .addVariable("variables", variables)
+  }
+
+  private fun getList(postData: PostData<LogViewFilter>): List<LogViewerEvent> {
     val filter = postData.data
     val userPref = getUserPref()
     userPref.search = filter.search
     userPref.threshold = filter.threshold
-    val variables = mapOf("logEntries" to queryList(filter))
-    return ResponseAction(targetType = TargetType.UPDATE, merge = true)
-      .addVariable("variables", variables)
+    return queryList(filter)
   }
 
   private fun queryList(filter: LogViewFilter): List<LogViewerEvent> {
