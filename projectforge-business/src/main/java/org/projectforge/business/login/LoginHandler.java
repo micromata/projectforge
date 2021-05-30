@@ -44,8 +44,6 @@ public interface LoginHandler {
   void initialize();
 
   /**
-   * After calling this method, the password array is cleared, if correctly implemented by the impl class.
-   *
    * @param username
    * @param password As char array due to security reasons (don't wait for the garbage collector to remove the
    *                 password in memory).
@@ -140,7 +138,7 @@ public interface LoginHandler {
    *
    * @param password The password array will be cleared (filled with '*').
    */
-  public static void clearPassword(char[] password) {
+  static void clearPassword(char[] password) {
     Arrays.fill(password, '*'); // Clear password due to security reasons.
   }
 }
