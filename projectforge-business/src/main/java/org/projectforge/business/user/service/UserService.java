@@ -380,34 +380,31 @@ public class UserService {
 
   /**
    * Ohne Zugangsbegrenzung. Wird bei Anmeldung benötigt.
+   *
    * @param username
-   * @param password Will be cleared at the end of this methods due to security reasons.
+   * @param password
    */
   public PFUserDO authenticateUser(final String username, final char[] password) {
-    try {
-      Validate.notNull(username);
-      Validate.isTrue(password.length > 0);
+    Validate.notNull(username);
+    Validate.isTrue(password.length > 0);
 
-      PFUserDO user = getUser(username, password, true);
-      if (user != null) {
+    PFUserDO user = getUser(username, password, true);
+    if (user != null) {
 
-        final int loginFailures = user.getLoginFailures();
-        final Date lastLogin = user.getLastLogin();
-        userDao.updateUserAfterLoginSuccess(user);
-        if (!user.hasSystemAccess()) {
-          log.warn("Deleted/deactivated user tried to login: " + user);
-          return null;
-        }
-        final PFUserDO contextUser = PFUserDO.createCopyWithoutSecretFields(user);
-        contextUser.setLoginFailures(loginFailures); // Restore loginFailures for current user session.
-        contextUser.setLastLogin(lastLogin); // Restore lastLogin for current user session.
-        return contextUser;
+      final int loginFailures = user.getLoginFailures();
+      final Date lastLogin = user.getLastLogin();
+      userDao.updateUserAfterLoginSuccess(user);
+      if (!user.hasSystemAccess()) {
+        log.warn("Deleted/deactivated user tried to login: " + user);
+        return null;
       }
-      userDao.updateIncrementLoginFailure(username);
-      return null;
-    } finally {
-      LoginHandler.clearPassword(password);
+      final PFUserDO contextUser = PFUserDO.createCopyWithoutSecretFields(user);
+      contextUser.setLoginFailures(loginFailures); // Restore loginFailures for current user session.
+      contextUser.setLastLogin(lastLogin); // Restore lastLogin for current user session.
+      return contextUser;
     }
+    userDao.updateIncrementLoginFailure(username);
+    return null;
   }
 
   private String getPepperString() {

@@ -43,8 +43,7 @@ import java.util.Hashtable;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class LdapConnector implements ConfigurationListener
-{
+public class LdapConnector implements ConfigurationListener {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapConnector.class);
 
   @Autowired
@@ -58,12 +57,10 @@ public class LdapConnector implements ConfigurationListener
    * Don't call this constructor unless you really know what you're doing. This LdapHelper is a singleton and is
    * available via IOC.
    */
-  public LdapConnector()
-  {
+  public LdapConnector() {
   }
 
-  private void init()
-  {
+  private void init() {
     if (initialized) {
       return;
     }
@@ -77,10 +74,9 @@ public class LdapConnector implements ConfigurationListener
     }
   }
 
-  private Hashtable<String, Object> createEnv(final String user, final char[] password)
-  {
+  private Hashtable<String, String> createEnv(final String user, final char[] password) {
     // Set up the environment for creating the initial context
-    final Hashtable<String, Object> env = new Hashtable<>();
+    final Hashtable<String, String> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
     env.put(Context.PROVIDER_URL, ldapConfig.getCompleteServerUrl());
     final String authentication = ldapConfig.getAuthentication();
@@ -88,7 +84,7 @@ public class LdapConnector implements ConfigurationListener
       env.put(Context.SECURITY_AUTHENTICATION, ldapConfig.getAuthentication());
       if (!"none".equals(authentication) && user != null && password != null) {
         env.put(Context.SECURITY_PRINCIPAL, user);
-        env.put(Context.SECURITY_CREDENTIALS, password);
+        env.put(Context.SECURITY_CREDENTIALS, new String(password));
       }
     }
     if (ldapConfig != null && StringUtils.isNotBlank(ldapConfig.getSslCertificateFile())) {
@@ -104,16 +100,14 @@ public class LdapConnector implements ConfigurationListener
     return env;
   }
 
-  public String getBase()
-  {
+  public String getBase() {
     init();
     return ldapConfig.getBaseDN();
   }
 
-  public LdapContext createContext()
-  {
+  public LdapContext createContext() {
     init();
-    final Hashtable<String, Object> env;
+    final Hashtable<String, String> env;
     final String authentication = ldapConfig.getAuthentication();
     if (!"none".equals(authentication)) {
       env = createEnv(ldapConfig.getManagerUser(), ldapConfig.getManagerPassword().toCharArray());
@@ -129,10 +123,9 @@ public class LdapConnector implements ConfigurationListener
     }
   }
 
-  public LdapContext createContext(final String username, final char[] password) throws NamingException
-  {
+  public LdapContext createContext(final String username, final char[] password) throws NamingException {
     init();
-    final Hashtable<String, Object> env = createEnv(username, password);
+    final Hashtable<String, String> env = createEnv(username, password);
     final LdapContext ctx = new InitialLdapContext(env, null);
     return ctx;
   }
@@ -142,8 +135,7 @@ public class LdapConnector implements ConfigurationListener
    *
    * @param ldapConfig
    */
-  LdapConnector(final LdapConfig ldapConfig)
-  {
+  LdapConnector(final LdapConfig ldapConfig) {
     this.ldapConfig = ldapConfig;
     if (this.ldapConfig != null && StringUtils.isNotBlank(this.ldapConfig.getSslCertificateFile())) {
       // Try to load SSL certificate.
@@ -156,8 +148,7 @@ public class LdapConnector implements ConfigurationListener
    * @see org.projectforge.framework.configuration.ConfigurationListener#afterRead()
    */
   @Override
-  public void afterRead()
-  {
+  public void afterRead() {
     this.ldapConfig = ldapService.getLdapConfig();
     if (this.ldapConfig != null && StringUtils.isNotBlank(this.ldapConfig.getSslCertificateFile())) {
       // Try to load SSL certificate.
@@ -168,8 +159,7 @@ public class LdapConnector implements ConfigurationListener
   /**
    * @return the ldapConfig
    */
-  LdapConfig getLdapConfig()
-  {
+  LdapConfig getLdapConfig() {
     return ldapConfig;
   }
 }

@@ -25,6 +25,7 @@ package org.projectforge.rest.pub
 
 import mu.KotlinLogging
 import org.projectforge.Const
+import org.projectforge.business.login.LoginHandler
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.login.LoginResult
 import org.projectforge.business.login.LoginResultStatus
@@ -247,6 +248,7 @@ open class LoginPageRest {
       )
     }
     val result = loginHandlerService.loginHandler.checkLogin(loginData.username, loginData.password)
+    LoginHandler.clearPassword(loginData.password)
     if (result.loginResultStatus == LoginResultStatus.SUCCESS) {
       loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
     } else if (result.loginResultStatus == LoginResultStatus.FAILED) {
