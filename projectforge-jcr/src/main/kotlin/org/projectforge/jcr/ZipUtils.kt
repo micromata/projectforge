@@ -33,14 +33,16 @@ import java.io.InputStream
 import java.io.OutputStream
 
 object ZipUtils {
-  @Suppress("unused")
-  enum class EncryptionMode { ZIP_STANDARD, AES128, AES256 }
-
   @JvmStatic
   fun isEncrypted(inputStream: InputStream): Boolean {
     try {
-      ZipInputStream(inputStream).nextEntry // nextEntry.isEncrypted doesn't work.
-      return false
+      ZipInputStream(inputStream).use { zipIn ->
+        var zipEntry = zipIn.nextEntry
+        while (zipEntry != null && zipEntry.isDirectory) {
+          zipEntry = zipIn.nextEntry
+        }
+        return zipEntry?.isEncrypted == true
+      }
     } catch (ex: ZipException) {
       return ex.type == ZipException.Type.WRONG_PASSWORD || // Standard encryption
           // empty or null password provided for AES decryption:
@@ -55,15 +57,15 @@ object ZipUtils {
     password: String,
     inputStream: InputStream,
     outputStream: OutputStream,
-    mode: EncryptionMode = EncryptionMode.ZIP_STANDARD,
+    mode: ZipEncryptionAlgorithm = ZipEncryptionAlgorithm.ZIP_STANDARD,
   ) {
     val zipParameters = ZipParameters()
     zipParameters.isEncryptFiles = true
-    if (mode == EncryptionMode.ZIP_STANDARD) {
+    if (mode == ZipEncryptionAlgorithm.ZIP_STANDARD || mode == ZipEncryptionAlgorithm.ENCRYPTED) {
       zipParameters.encryptionMethod = EncryptionMethod.ZIP_STANDARD
     } else {
       zipParameters.encryptionMethod = EncryptionMethod.AES
-      zipParameters.aesKeyStrength = if (mode == EncryptionMode.AES128) {
+      zipParameters.aesKeyStrength = if (mode == ZipEncryptionAlgorithm.AES128) {
         AesKeyStrength.KEY_STRENGTH_128
       } else {
         AesKeyStrength.KEY_STRENGTH_256

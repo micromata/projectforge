@@ -307,7 +307,8 @@ open class RepoService {
     fileObject: FileObject,
     user: String,
     newFileName: String? = null,
-    newDescription: String?
+    newDescription: String? = null,
+    newZipEncryptionAlgorithm: ZipEncryptionAlgorithm? = null,
   ): FileObject? {
     return runInSession { session ->
       val node = getNode(session, fileObject.parentNodePath, fileObject.relPath, false)
@@ -330,6 +331,11 @@ open class RepoService {
           if (newDescription != null) {
             log.info { "Changing file description to '$newDescription' for: $fileObject" }
             fileNode.setProperty(PROPERTY_FILEDESC, newDescription)
+            modified = true
+          }
+          if (newZipEncryptionAlgorithm != null) {
+            log.info { "Changing zip encryption algorithm to '$newZipEncryptionAlgorithm' for: $fileObject" }
+            fileNode.setProperty(PROPERTY_ZIP_ENCRYPTION_ALGORITHM, newZipEncryptionAlgorithm.name)
             modified = true
           }
           if (modified) {
@@ -684,6 +690,7 @@ open class RepoService {
     internal const val PROPERTY_LAST_UPDATE_BY_USER = "lastUpdateByUser"
     internal const val PROPERTY_CHECKSUM = "checksum"
     internal const val PROPERTY_IS_CRYPTED = "isCrypted"
+    internal const val PROPERTY_ZIP_ENCRYPTION_ALGORITHM = "zipEncryptionAlgorith"
     private const val PROPERTY_RANDOM_ID_LENGTH = 20
     private val ALPHA_CHARSET: Array<Char> = ('a'..'z').toList().toTypedArray()
 

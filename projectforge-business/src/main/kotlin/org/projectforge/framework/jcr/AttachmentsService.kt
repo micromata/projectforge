@@ -37,9 +37,7 @@ import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.jcr.FileInfo
-import org.projectforge.jcr.FileObject
-import org.projectforge.jcr.RepoService
+import org.projectforge.jcr.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -310,14 +308,24 @@ open class AttachmentsService {
     repoService.ensureNode(null, getPath(path, id))
     val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileInfo = fileInfo)
     fileObject.isCrypted = !password.isNullOrBlank()
+    val user = userString ?: ThreadLocalUserContext.getUserId()!!.toString()
     repoService.storeFile(
       fileObject,
       inputStream,
       accessChecker.fileSizeChecker,
-      userString ?: ThreadLocalUserContext.getUserId()!!.toString(),
+      user,
       data,
       password = password
     )
+    if (fileObject.fileExtension.equals("zip", ignoreCase = true)) {
+      // Try to check, if uploaded zip file is encrypted.
+      repoService.retrieveFileInputStream(fileObject, password)?.use { istrean ->
+        if (ZipUtils.isEncrypted(istrean)) {
+          // It's encrypted, modify file info:
+          repoService.changeFileInfo(fileObject, user, newZipEncryptionAlgorithm = ZipEncryptionAlgorithm.ENCRYPTED)
+        }
+      }
+    }
     return asAttachment(fileObject)
   }
 
