@@ -421,14 +421,16 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
     final String userPasswordId = "userPassword";
     log.info("Change attribute " + userPasswordId + " for " + getObjectClass() + ": " + buildDn(null, user));
     final List<ModificationItem> modificationItems = new ArrayList<>();
+    // passwords as char[] result in Exception: javax.naming.directory.InvalidAttributeValueException: Malformed 'userPassword' attribute value
+    // Use new String instead.
     if (oldPassword != null) {
       modificationItems
-          .add(new ModificationItem(DirContext.REMOVE_ATTRIBUTE, new BasicAttribute(userPasswordId, oldPassword)));
+          .add(new ModificationItem(DirContext.REMOVE_ATTRIBUTE, new BasicAttribute(userPasswordId, new String(oldPassword))));
       modificationItems
-          .add(new ModificationItem(DirContext.ADD_ATTRIBUTE, new BasicAttribute(userPasswordId, newPassword)));
+          .add(new ModificationItem(DirContext.ADD_ATTRIBUTE, new BasicAttribute(userPasswordId, new String(newPassword))));
     } else {
       modificationItems
-          .add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute(userPasswordId, newPassword)));
+          .add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute(userPasswordId, new String(newPassword))));
     }
     // Perform the update
     modify(user, modificationItems);
