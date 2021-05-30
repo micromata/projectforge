@@ -74,9 +74,9 @@ public class LdapConnector implements ConfigurationListener {
     }
   }
 
-  private Hashtable<String, String> createEnv(final String user, final char[] password) {
+  private Hashtable<String, Object> createEnv(final String user, final char[] password) {
     // Set up the environment for creating the initial context
-    final Hashtable<String, String> env = new Hashtable<>();
+    final Hashtable<String, Object> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
     env.put(Context.PROVIDER_URL, ldapConfig.getCompleteServerUrl());
     final String authentication = ldapConfig.getAuthentication();
@@ -84,7 +84,7 @@ public class LdapConnector implements ConfigurationListener {
       env.put(Context.SECURITY_AUTHENTICATION, ldapConfig.getAuthentication());
       if (!"none".equals(authentication) && user != null && password != null) {
         env.put(Context.SECURITY_PRINCIPAL, user);
-        env.put(Context.SECURITY_CREDENTIALS, new String(password));
+        env.put(Context.SECURITY_CREDENTIALS, password);
       }
     }
     if (ldapConfig != null && StringUtils.isNotBlank(ldapConfig.getSslCertificateFile())) {
@@ -107,7 +107,7 @@ public class LdapConnector implements ConfigurationListener {
 
   public LdapContext createContext() {
     init();
-    final Hashtable<String, String> env;
+    final Hashtable<String, Object> env;
     final String authentication = ldapConfig.getAuthentication();
     if (!"none".equals(authentication)) {
       env = createEnv(ldapConfig.getManagerUser(), ldapConfig.getManagerPassword().toCharArray());
@@ -125,7 +125,7 @@ public class LdapConnector implements ConfigurationListener {
 
   public LdapContext createContext(final String username, final char[] password) throws NamingException {
     init();
-    final Hashtable<String, String> env = createEnv(username, password);
+    final Hashtable<String, Object> env = createEnv(username, password);
     final LdapContext ctx = new InitialLdapContext(env, null);
     return ctx;
   }
