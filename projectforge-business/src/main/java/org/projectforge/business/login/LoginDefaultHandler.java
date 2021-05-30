@@ -42,6 +42,7 @@ import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -81,40 +82,44 @@ public class LoginDefaultHandler implements LoginHandler
   @Override
   public LoginResult checkLogin(final String username, final char[] password)
   {
-    final LoginResult loginResult = new LoginResult();
-    PFUserDO user = null;
-    if (UserFilter.isUpdateRequiredFirst()) {
-      // Only administrator login is allowed. The login is checked without Hibernate because the data-base schema may be out-dated thus
-      // Hibernate isn't functioning.
-      try {
-        final PFUserDO resUser = getUserWithJdbc(username, password);
-        if (resUser == null || resUser.getUsername() == null) {
-          log.info("Admin login for maintenance (data-base update) failed for user '" + username
-              + "' (user/password not found).");
-          return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
+    try {
+      final LoginResult loginResult = new LoginResult();
+      PFUserDO user = null;
+      if (UserFilter.isUpdateRequiredFirst()) {
+        // Only administrator login is allowed. The login is checked without Hibernate because the data-base schema may be out-dated thus
+        // Hibernate isn't functioning.
+        try {
+          final PFUserDO resUser = getUserWithJdbc(username, password);
+          if (resUser == null || resUser.getUsername() == null) {
+            log.info("Admin login for maintenance (data-base update) failed for user '" + username
+                + "' (user/password not found).");
+            return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
+          }
+          if (!isAdminUser(resUser)) {
+            return loginResult.setLoginResultStatus(LoginResultStatus.ADMIN_LOGIN_REQUIRED);
+          }
+          userGroupCache.internalSetAdminUser(resUser); // User is now marked as admin user.
+          return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(resUser);
+        } catch (final Exception ex) {
+          log.error(ex.getMessage(), ex);
         }
-        if (!isAdminUser(resUser)) {
-          return loginResult.setLoginResultStatus(LoginResultStatus.ADMIN_LOGIN_REQUIRED);
-        }
-        userGroupCache.internalSetAdminUser(resUser); // User is now marked as admin user.
-        return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(resUser);
-      } catch (final Exception ex) {
-        log.error(ex.getMessage(), ex);
-      }
-    } else {
-      user = userService.authenticateUser(username, password);
-    }
-    if (user != null) {
-      log.info("User with valid username/password: " + username + "/****");
-      if (!user.hasSystemAccess()) {
-        log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
-        return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
       } else {
-        return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(user);
+        user = userService.authenticateUser(username, password);
       }
-    } else {
-      log.info("User login failed: " + username + "/****");
-      return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
+      if (user != null) {
+        log.info("User with valid username/password: " + username + "/****");
+        if (!user.hasSystemAccess()) {
+          log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
+          return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
+        } else {
+          return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(user);
+        }
+      } else {
+        log.info("User login failed: " + username + "/****");
+        return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
+      }
+    } finally {
+      LoginHandler.clearPassword(password);
     }
   }
 

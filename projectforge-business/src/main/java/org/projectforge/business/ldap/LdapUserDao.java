@@ -26,6 +26,7 @@ package org.projectforge.business.ldap;
 import arlut.csd.crypto.SmbEncrypt;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.login.LoginHandler;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -433,25 +434,33 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
     modify(user, modificationItems);
   }
 
+  /**
+   * @param user
+   * @param newPassword Will be cleared at the end of this method due to security reasons.
+   */
   public void changeWlanPassword(final LdapUser user, final char[] newPassword) {
-    final String sambaPasswordAttributeId = "sambaNTPassword";
+    try {
+      final String sambaPasswordAttributeId = "sambaNTPassword";
 
-    if (!isSambaAccountsConfigured()) {
-      log.error("Could not change attribute " + sambaPasswordAttributeId + " because the samba accounts are not configured.");
-      return;
+      if (!isSambaAccountsConfigured()) {
+        log.error("Could not change attribute " + sambaPasswordAttributeId + " because the samba accounts are not configured.");
+        return;
+      }
+
+      if (user.getSambaSIDNumber() == null) {
+        log.error("Could not change attribute " + sambaPasswordAttributeId + " because the sambaSID is null.");
+        return;
+      }
+
+      log.info("Change attribute " + sambaPasswordAttributeId + " for " + getObjectClass() + ": " + buildDn(null, user));
+      final String sambaNTPassword = SmbEncrypt.NTUNICODEHash(newPassword);
+      log.info("Checksum (for debugging): " + sambaNTPassword.substring(0, 4) + "...");
+      final ModificationItem modItem = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute(sambaPasswordAttributeId, sambaNTPassword));
+      // Perform the update
+      modify(user, Collections.singletonList(modItem));
+    } finally {
+      LoginHandler.clearPassword(newPassword);
     }
-
-    if (user.getSambaSIDNumber() == null) {
-      log.error("Could not change attribute " + sambaPasswordAttributeId + " because the sambaSID is null.");
-      return;
-    }
-
-    log.info("Change attribute " + sambaPasswordAttributeId + " for " + getObjectClass() + ": " + buildDn(null, user));
-    final String sambaNTPassword = SmbEncrypt.NTUNICODEHash(newPassword);
-    log.info("Checksum (for debugging): " + sambaNTPassword.substring(0, 4) + "...");
-    final ModificationItem modItem = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute(sambaPasswordAttributeId, sambaNTPassword));
-    // Perform the update
-    modify(user, Collections.singletonList(modItem));
   }
 
   public LdapUser findByUsername(final Object username, final String... organizationalUnits) {

@@ -247,7 +247,6 @@ open class LoginPageRest {
       )
     }
     val result = loginHandlerService.loginHandler.checkLogin(loginData.username, loginData.password)
-    loginData.password?.fill(' ') // Reset
     if (result.loginResultStatus == LoginResultStatus.SUCCESS) {
       loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
     } else if (result.loginResultStatus == LoginResultStatus.FAILED) {

@@ -27,6 +27,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -36,18 +37,19 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-public interface LoginHandler
-{
+public interface LoginHandler {
   /**
    * A login handler will be initialized by ProjectForge during start-up.
    */
   void initialize();
 
   /**
+   * After calling this method, the password array is cleared, if correctly implemented by the impl class.
+   *
    * @param username
    * @param password As char array due to security reasons (don't wait for the garbage collector to remove the
    *                 password in memory).
-   * @return {@link loginresultstatus#SUCCESS} only and only if the login credentials were accepted.
+   * @return {@link LoginResultStatus#SUCCESS} only and only if the login credentials were accepted.
    */
   LoginResult checkLogin(final String username, final char[] password);
 
@@ -105,6 +107,8 @@ public interface LoginHandler
 
   /**
    * Will be called while changing the user's WLAN password. The access and password quality is already checked.
+   * <p>
+   * Only supported by {@link org.projectforge.business.ldap.LdapMasterLoginHandler}
    *
    * @param user
    * @param newPassword
@@ -130,4 +134,13 @@ public interface LoginHandler
    * otherwise false.
    */
   boolean isWlanPasswordChangeSupported(PFUserDO user);
+
+  /**
+   * Should be called after checking login due to security reasons (for not having the passwords e. g. in heap dumps etc.).
+   *
+   * @param password The password array will be cleared (filled with '*').
+   */
+  public static void clearPassword(char[] password) {
+    Arrays.fill(password, '*'); // Clear password due to security reasons.
+  }
 }

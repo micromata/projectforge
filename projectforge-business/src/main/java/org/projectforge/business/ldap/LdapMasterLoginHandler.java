@@ -24,6 +24,7 @@
 package org.projectforge.business.ldap;
 
 import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.user.UserGroupCache;
@@ -89,30 +90,34 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   }
 
   /**
-   * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, java.lang.String, boolean)
+   * @see org.projectforge.business.login.LoginHandler#checkLogin(String, char[])
    */
   @Override
   public LoginResult checkLogin(final String username, final char[] password)
   {
-    final LoginResult loginResult = loginDefaultHandler.checkLogin(username, password);
-    if (loginResult.getLoginResultStatus() != LoginResultStatus.SUCCESS) {
-      return loginResult;
-    }
     try {
-      // User is now logged-in successfully.
-      final LdapUser authLdapUser = ldapUserDao.authenticate(username, password, userBase);
-      if (authLdapUser == null) {
-        final PFUserDO user = loginResult.getUser();
-        final LdapUser ldapUser = pfUserDOConverter.convert(user);
-        ldapUser.setOrganizationalUnit(userBase);
-        log.info("User's credentials in LDAP not up-to-date: " + username + ". Updating LDAP entry...");
-        ldapUserDao.createOrUpdate(userBase, ldapUser);
-        ldapUserDao.changePassword(ldapUser, null, password); // update the userPassword but not the (WLAN)sambaNTPassword
+      final LoginResult loginResult = loginDefaultHandler.checkLogin(username, password);
+      if (loginResult.getLoginResultStatus() != LoginResultStatus.SUCCESS) {
+        return loginResult;
       }
-    } catch (final Exception ex) {
-      log.error("An exception occured while checking login against LDAP system (ignoring this error): " + ex.getMessage(), ex);
+      try {
+        // User is now logged-in successfully.
+        final LdapUser authLdapUser = ldapUserDao.authenticate(username, password, userBase);
+        if (authLdapUser == null) {
+          final PFUserDO user = loginResult.getUser();
+          final LdapUser ldapUser = pfUserDOConverter.convert(user);
+          ldapUser.setOrganizationalUnit(userBase);
+          log.info("User's credentials in LDAP not up-to-date: " + username + ". Updating LDAP entry...");
+          ldapUserDao.createOrUpdate(userBase, ldapUser);
+          ldapUserDao.changePassword(ldapUser, null, password); // update the userPassword but not the (WLAN)sambaNTPassword
+        }
+      } catch (final Exception ex) {
+        log.error("An exception occured while checking login against LDAP system (ignoring this error): " + ex.getMessage(), ex);
+      }
+      return loginResult;
+    } finally {
+      LoginHandler.clearPassword(password);
     }
-    return loginResult;
   }
 
   /**

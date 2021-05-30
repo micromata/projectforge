@@ -25,6 +25,7 @@ package org.projectforge.business.ldap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginDefaultHandler;
+import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.user.UserGroupCache;
@@ -124,56 +125,60 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   }
 
   /**
-   * Uses the standard implementation {@link LoginDefaultHandler#checkLogin(String, String)} for local users. For all
+   * Uses the standard implementation {@link LoginDefaultHandler#checkLogin(String, char[])} for local users. For all
    * other users a LDAP authentication is checked. If the LDAP authentication fails then
    * {@link LoginResultStatus#FAILED} is returned. If successful then {@link LoginResultStatus#SUCCESS} is returned with
    * the user settings of ProjectForge database. If the user doesn't yet exist in ProjectForge's data-base, it will be
    * created after and then returned.
    *
-   * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, char[], boolean)
+   * @see LoginHandler#checkLogin(String, char[])
    */
   @Override
   public LoginResult checkLogin(final String username, final char[] password)
   {
-    PFUserDO user = userService.getInternalByUsername(username);
-    if (user != null && user.getLocalUser()) {
-      return loginDefaultHandler.checkLogin(username, password);
-    }
-    final LoginResult loginResult = new LoginResult();
-    final String organizationalUnits = ldapConfig.getUserBase();
-    final LdapUser ldapUser = ldapUserDao.authenticate(username, password, organizationalUnits);
-    if (ldapUser == null) {
-      log.info("User login failed: " + username);
-      return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
-    }
-    log.info("LDAP authentication was successful for: " + username);
-    user = userService.getInternalByUsername(username); // Get again (may-be the user does no exist since last call of getInternalByName(String).
-    if (user == null) {
-      log.info("LDAP user '" + username + "' doesn't yet exist in ProjectForge's data base. Creating new user...");
-      user = pfUserDOConverter.convert(ldapUser);
-      user.setId(null); // Force new id.
-      if (mode == Mode.SIMPLE || !ldapConfig.isStorePasswords()) {
-        user.setNoPassword();
-      } else {
-        userService.createEncryptedPassword(user, password);
+    try {
+      PFUserDO user = userService.getInternalByUsername(username);
+      if (user != null && user.getLocalUser()) {
+        return loginDefaultHandler.checkLogin(username, password);
       }
-      userDao.internalSave(user);
-    } else if (mode != Mode.SIMPLE) {
-      PFUserDOConverter.copyUserFields(pfUserDOConverter.convert(ldapUser), user);
-      if (ldapConfig.isStorePasswords()) {
-        userService.createEncryptedPassword(user, password);
+      final LoginResult loginResult = new LoginResult();
+      final String organizationalUnits = ldapConfig.getUserBase();
+      final LdapUser ldapUser = ldapUserDao.authenticate(username, password, organizationalUnits);
+      if (ldapUser == null) {
+        log.info("User login failed: " + username);
+        return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
       }
-      userDao.internalUpdate(user);
-      if (!user.hasSystemAccess()) {
-        log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
-        return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
+      log.info("LDAP authentication was successful for: " + username);
+      user = userService.getInternalByUsername(username); // Get again (may-be the user does no exist since last call of getInternalByName(String).
+      if (user == null) {
+        log.info("LDAP user '" + username + "' doesn't yet exist in ProjectForge's data base. Creating new user...");
+        user = pfUserDOConverter.convert(ldapUser);
+        user.setId(null); // Force new id.
+        if (mode == Mode.SIMPLE || !ldapConfig.isStorePasswords()) {
+          user.setNoPassword();
+        } else {
+          userService.createEncryptedPassword(user, password);
+        }
+        userDao.internalSave(user);
+      } else if (mode != Mode.SIMPLE) {
+        PFUserDOConverter.copyUserFields(pfUserDOConverter.convert(ldapUser), user);
+        if (ldapConfig.isStorePasswords()) {
+          userService.createEncryptedPassword(user, password);
+        }
+        userDao.internalUpdate(user);
+        if (!user.hasSystemAccess()) {
+          log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
+          return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
+        }
       }
+      loginResult.setUser(user);
+      if (mode == Mode.USER_GROUPS) {
+        // TODO: Groups: Get groups of user.
+      }
+      return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(user);
+    } finally {
+      LoginHandler.clearPassword(password);
     }
-    loginResult.setUser(user);
-    if (mode == Mode.USER_GROUPS) {
-      // TODO: Groups: Get groups of user.
-    }
-    return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(user);
   }
 
   /**
