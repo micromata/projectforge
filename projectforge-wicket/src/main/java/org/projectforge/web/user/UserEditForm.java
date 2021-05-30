@@ -780,7 +780,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
         return;
       }
       if (passwordUser == null) {
-        final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+        final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
         if (errorMsgKeys.isEmpty() == false) {
           for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
             final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
@@ -788,7 +788,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
           }
         } else {
           passwordUser = new PFUserDO();
-          userService.createEncryptedPassword(passwordUser, passwordInput);
+          userService.createEncryptedPassword(passwordUser, passwordInput.toCharArray());
         }
       }
     });
@@ -845,7 +845,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
         return;
       }
 
-      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
       if (errorMsgKeys.isEmpty() == false) {
         for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
           final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);

@@ -24,7 +24,6 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.Const
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
@@ -40,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -56,19 +56,19 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
 
     class WlanPasswordData(
             var userId: Int? = null,
-            var loginPassword: String? = null,
-            var newWlanPassword: String? = null,
-            var wlanPasswordRepeat: String? = null
+            var loginPassword: CharArray? = null,
+            var newWlanPassword: CharArray? = null,
+            var wlanPasswordRepeat: CharArray? = null
     )
 
     @PostMapping
     fun save(request: HttpServletRequest, @RequestBody postData: PostData<WlanPasswordData>)
-            : ResponseEntity<ResponseAction>? {
+            : ResponseEntity<ResponseAction> {
         validateCsrfToken(request, postData)?.let { return it }
         val data = postData.data
         check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, ChangeWlanPasswordPage is called with another than the logged in user!" }
 
-        if (data.newWlanPassword != data.wlanPasswordRepeat) {
+        if (!Arrays.equals(data.newWlanPassword, data.wlanPasswordRepeat)) {
             val validationErrors = listOf(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch"))
             return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
         }

@@ -76,10 +76,10 @@ public class LoginDefaultHandler implements LoginHandler
   }
 
   /**
-   * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, java.lang.String, boolean)
+   * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, char[], boolean)
    */
   @Override
-  public LoginResult checkLogin(final String username, final String password)
+  public LoginResult checkLogin(final String username, final char[] password)
   {
     final LoginResult loginResult = new LoginResult();
     PFUserDO user = null;
@@ -122,13 +122,12 @@ public class LoginDefaultHandler implements LoginHandler
    * Only administrator login is allowed. The login is checked without Hibernate because the data-base schema may be
    * out-dated thus Hibernate isn't functioning.
    *
-   * @param jdbc
    * @param username
    * @param password
    * @return
    * @throws SQLException
    */
-  private PFUserDO getUserWithJdbc(final String username, final String password) throws SQLException
+  private PFUserDO getUserWithJdbc(final String username, final char[] password) throws SQLException
   {
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     String sql = "select pk, firstname, lastname, password, password_salt from t_pf_user where username=? and deleted=false and deactivated=false and restricted_user=false";
@@ -152,8 +151,8 @@ public class LoginDefaultHandler implements LoginHandler
   }
 
   /**
-   * @param user
-   * @param rs
+   * @param jdbc
+   * @param sql
    * @param username
    * @param withSaltString false before ProjectForge version 5.3.
    * @throws SQLException
@@ -297,16 +296,16 @@ public class LoginDefaultHandler implements LoginHandler
    * Do nothing.
    *
    * @see org.projectforge.business.login.LoginHandler#passwordChanged(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   * java.lang.String)
+   * char[])
    */
   @Override
-  public void passwordChanged(final PFUserDO user, final String newPassword)
+  public void passwordChanged(final PFUserDO user, final char[] newPassword)
   {
     // Do nothing.
   }
 
   @Override
-  public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
+  public void wlanPasswordChanged(final PFUserDO user, final char[] newPassword)
   {
     // Do nothing. The wlan password input field is not visible if this handler is used.
   }

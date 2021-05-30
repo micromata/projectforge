@@ -24,7 +24,6 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.Const
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
@@ -40,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -56,19 +56,19 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
 
     class PasswordData(
             var userId: Int? = null,
-            var oldPassword: String? = null,
-            var newPassword: String? = null,
-            var passwordRepeat: String? = null
+            var oldPassword: CharArray? = null,
+            var newPassword: CharArray? = null,
+            var passwordRepeat: CharArray? = null
     )
 
     @PostMapping
     fun save(request: HttpServletRequest, @RequestBody postData: PostData<PasswordData>)
-            : ResponseEntity<ResponseAction>? {
+            : ResponseEntity<ResponseAction> {
         validateCsrfToken(request, postData)?.let { return it }
         val data = postData.data
         check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, ChangePasswordPage is called with another than the logged in user!" }
 
-        if (data.newPassword != data.passwordRepeat) {
+        if (!Arrays.equals(data.newPassword, data.passwordRepeat)) {
             val validationErrors = listOf(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch"))
             return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
         }

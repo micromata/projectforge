@@ -92,7 +92,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, java.lang.String, boolean)
    */
   @Override
-  public LoginResult checkLogin(final String username, final String password)
+  public LoginResult checkLogin(final String username, final char[] password)
   {
     final LoginResult loginResult = loginDefaultHandler.checkLogin(username, password);
     if (loginResult.getLoginResultStatus() != LoginResultStatus.SUCCESS) {
@@ -323,10 +323,10 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
 
   /**
    * @see org.projectforge.business.login.LoginHandler#passwordChanged(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   * java.lang.String)
+   * char[])
    */
   @Override
-  public void passwordChanged(final PFUserDO user, final String newPassword)
+  public void passwordChanged(final PFUserDO user, final char[] newPassword)
   {
     final LdapUser ldapUser = ldapUserDao.findById(user.getId());
     if (user.isDeleted() || user.getLocalUser()) {
@@ -343,7 +343,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   }
 
   @Override
-  public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
+  public void wlanPasswordChanged(final PFUserDO user, final char[] newPassword)
   {
     final LdapUser ldapUser = ldapUserDao.findById(user.getId());
     if (user.isDeleted() || user.getLocalUser()) {

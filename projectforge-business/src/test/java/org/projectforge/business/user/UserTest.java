@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class UserTest extends AbstractTestBase {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserTest.class);
-  private static final String STRONGOLDPW = "ja6gieyai8quie0Eey!ooS8eMonah:";
+  private static final char[] STRONGOLDPW = "ja6gieyai8quie0Eey!ooS8eMonah:".toCharArray();
 
   private static final String MESSAGE_KEY_PASSWORD_QUALITY_ERROR = "user.changePassword.error.passwordQualityCheck";
 
@@ -151,24 +151,24 @@ public class UserTest extends AbstractTestBase {
     assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)),
             "Empty password not allowed.");
 
-    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "");
+    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "".toCharArray());
     assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)),
             "Empty password not allowed.");
 
-    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "abcd12345");
+    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "abcd12345".toCharArray());
     assertTrue(passwordQualityMessages.contains(new
                     I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)),
             "Password with less than " + "10" + " characters not allowed.");
 
-    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "ProjectForge");
+    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "ProjectForge".toCharArray());
     assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_NONCHAR_ERROR)),
             "Password must have one non letter at minimum.");
 
-    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "1234567890");
+    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "1234567890".toCharArray());
     assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR)),
             "Password must have one non letter at minimum.");
 
-    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "12345678901");
+    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "12345678901".toCharArray());
     assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR)),
             "Password must have one non letter at minimum.");
 
@@ -176,13 +176,13 @@ public class UserTest extends AbstractTestBase {
     assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR)),
             "Password must New password should not be the same as the old one.");
 
-    assertTrue(passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kabcdjh!id").isEmpty(),
+    assertTrue(passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kabcdjh!id".toCharArray()).isEmpty(),
             "Password OK.");
 
-    assertTrue(passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kjh8iabcddsf").isEmpty(),
+    assertTrue(passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kjh8iabcddsf".toCharArray()).isEmpty(),
             "Password OK.");
 
-    assertTrue(passwordQualityService.checkPasswordQuality(STRONGOLDPW, "  5     g ").isEmpty(),
+    assertTrue(passwordQualityService.checkPasswordQuality(STRONGOLDPW, "  5     g ".toCharArray()).isEmpty(),
             "Password OK.");
   }
 

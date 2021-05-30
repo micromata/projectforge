@@ -130,10 +130,10 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    * the user settings of ProjectForge database. If the user doesn't yet exist in ProjectForge's data-base, it will be
    * created after and then returned.
    *
-   * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, java.lang.String, boolean)
+   * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, char[], boolean)
    */
   @Override
-  public LoginResult checkLogin(final String username, final String password)
+  public LoginResult checkLogin(final String username, final char[] password)
   {
     PFUserDO user = userService.getInternalByUsername(username);
     if (user != null && user.getLocalUser()) {

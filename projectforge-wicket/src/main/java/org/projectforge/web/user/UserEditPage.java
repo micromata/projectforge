@@ -137,7 +137,7 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
     if (form.getPasswordUser() != null) {
       log.info("Start password change");
       start = System.currentTimeMillis();
-      Login.getInstance().passwordChanged(getData(), form.getPassword());
+      Login.getInstance().passwordChanged(getData(), form.getPassword().toCharArray());
       end = System.currentTimeMillis();
       log.info("Finish password change. Took: " + (end - start) / 1000 + " sec.");
     }
@@ -145,7 +145,7 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
     if (StringUtils.isNotEmpty(form.getWlanPassword())) {
       log.info("Start WLAN password change");
       start = System.currentTimeMillis();
-      Login.getInstance().wlanPasswordChanged(getData(), form.getWlanPassword());
+      Login.getInstance().wlanPasswordChanged(getData(), form.getWlanPassword().toCharArray());
       end = System.currentTimeMillis();
       log.info("Finish WLAN password change. Took: " + (end - start) / 1000 + " sec.");
     }

@@ -64,7 +64,10 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/login")
 open class LoginPageRest {
-  class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
+  /**
+   * Password as char array for security reasons (don't wait for the garbage collector).
+   */
+  class LoginData(var username: String? = null, var password: CharArray? = null, var stayLoggedIn: Boolean? = null)
 
   @Autowired
   private lateinit var userService: UserService
@@ -216,7 +219,7 @@ open class LoginPageRest {
       val stayLoggedInKey = userAuthenticationsService.internalGetToken(user.id, UserTokenType.STAY_LOGGED_IN_KEY)
       val cookie = Cookie(
         Const.COOKIE_NAME_FOR_STAY_LOGGED_IN,
-        "${loggedInUser.getId()}:${loggedInUser.username}:$stayLoggedInKey"
+        "${loggedInUser.id}:${loggedInUser.username}:$stayLoggedInKey"
       )
       cookieService.addStayLoggedInCookie(request, response, cookie)
     }
@@ -244,9 +247,10 @@ open class LoginPageRest {
       )
     }
     val result = loginHandlerService.loginHandler.checkLogin(loginData.username, loginData.password)
-    if (result.getLoginResultStatus() == LoginResultStatus.SUCCESS) {
+    loginData.password?.fill(' ') // Reset
+    if (result.loginResultStatus == LoginResultStatus.SUCCESS) {
       loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
-    } else if (result.getLoginResultStatus() == LoginResultStatus.FAILED) {
+    } else if (result.loginResultStatus == LoginResultStatus.FAILED) {
       loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)
     }
     return result

@@ -39,7 +39,7 @@ import java.util.Hashtable;
 /**
  * Should be initialized on start-up and will be called every time if config.xml is reread. This class is needed for
  * initialization of the spring beans with properties configured in config.xml.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
@@ -77,10 +77,10 @@ public class LdapConnector implements ConfigurationListener
     }
   }
 
-  private Hashtable<String, String> createEnv(final String user, final String password)
+  private Hashtable<String, Object> createEnv(final String user, final char[] password)
   {
     // Set up the environment for creating the initial context
-    final Hashtable<String, String> env = new Hashtable<>();
+    final Hashtable<String, Object> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
     env.put(Context.PROVIDER_URL, ldapConfig.getCompleteServerUrl());
     final String authentication = ldapConfig.getAuthentication();
@@ -113,10 +113,10 @@ public class LdapConnector implements ConfigurationListener
   public LdapContext createContext()
   {
     init();
-    final Hashtable<String, String> env;
+    final Hashtable<String, Object> env;
     final String authentication = ldapConfig.getAuthentication();
     if (!"none".equals(authentication)) {
-      env = createEnv(ldapConfig.getManagerUser(), ldapConfig.getManagerPassword());
+      env = createEnv(ldapConfig.getManagerUser(), ldapConfig.getManagerPassword().toCharArray());
     } else {
       env = createEnv(null, null);
     }
@@ -129,17 +129,17 @@ public class LdapConnector implements ConfigurationListener
     }
   }
 
-  public LdapContext createContext(final String username, final String password) throws NamingException
+  public LdapContext createContext(final String username, final char[] password) throws NamingException
   {
     init();
-    final Hashtable<String, String> env = createEnv(username, password);
+    final Hashtable<String, Object> env = createEnv(username, password);
     final LdapContext ctx = new InitialLdapContext(env, null);
     return ctx;
   }
 
   /**
    * Used by test class.
-   * 
+   *
    * @param ldapConfig
    */
   LdapConnector(final LdapConfig ldapConfig)
