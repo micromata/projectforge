@@ -57,6 +57,10 @@ open class FileInfo(
    * After download the user gets the file decrypted.
    */
   var isCrypted: Boolean? = false,
+  /**
+   * The password isn't stored anywhere. If zip file is encrypted, the algorithm is stored (if encrypted by ProjectForge).
+   */
+  var zipEncryptionAlgorithm: ZipEncryptionAlgorithm? = null,
   fileSize: Long? = null
 ) {
   /**
@@ -64,6 +68,9 @@ open class FileInfo(
    */
   var size: Long? = fileSize
     internal set
+
+  val fileExtension: String
+    get() = fileName?.substringAfterLast('.', "") ?: ""
 
   fun copyFrom(other: FileInfo?) {
     other ?: return
@@ -75,5 +82,7 @@ open class FileInfo(
     this.lastUpdateByUser = other.lastUpdateByUser
     this.size = other.size
     this.checksum = other.checksum
+    this.isCrypted = other.isCrypted
+    this.zipEncryptionAlgorithm = other.zipEncryptionAlgorithm
   }
 }

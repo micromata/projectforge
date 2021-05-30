@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.nio.file.Files
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -85,6 +86,11 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
     ): UILayout {
       val layout = UILayout("attachment")
 
+      attachment.zipEncryptionAlgorithm?.let {
+        attachment.info = translate(it.i18nKey)
+      }
+
+
       val lc = LayoutContext(Attachment::class.java)
 
       layout
@@ -98,7 +104,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
             )
             .add(
               UICol(UILength(md = 6))
-                .add(UIReadOnlyField("attachment.fileId", label = "attachment.fileId"))
+                .add(UIReadOnlyField("attachment.info", label = "attachment.info"))
             )
         )
         .add(

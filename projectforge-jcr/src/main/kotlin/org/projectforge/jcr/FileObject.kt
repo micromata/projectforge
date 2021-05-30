@@ -33,7 +33,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Files in the content repository may addressed by location (parent node) and id or location and filename.
  */
-class FileObject(): FileInfo() {
+class FileObject() : FileInfo() {
   @JvmOverloads
   constructor(
     parentNodePath: String?,
@@ -81,6 +81,9 @@ class FileObject(): FileInfo() {
     size = PFJcrUtils.getProperty(node, RepoService.PROPERTY_FILESIZE)?.long
     checksum = PFJcrUtils.getProperty(node, RepoService.PROPERTY_CHECKSUM)?.string
     isCrypted = PFJcrUtils.getProperty(node, RepoService.PROPERTY_IS_CRYPTED)?.boolean == true
+    PFJcrUtils.getProperty(node, RepoService.PROPERTY_ZIP_ENCRYPTION_ALGORITHM)?.string?.let {
+      zipEncryptionAlgorithm = ZipEncryptionAlgorithm.valueOf(it)
+    }
     if (log.isDebugEnabled) {
       log.debug { "Restoring: ${PFJcrUtils.toJson(this)}" }
     }
@@ -97,6 +100,9 @@ class FileObject(): FileInfo() {
     node.setProperty(RepoService.PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString(lastUpdate) ?: "")
     node.setProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER, lastUpdateByUser ?: "")
     node.setProperty(RepoService.PROPERTY_IS_CRYPTED, isCrypted == true)
+    zipEncryptionAlgorithm?.let {
+      node.setProperty(RepoService.PROPERTY_ZIP_ENCRYPTION_ALGORITHM, it.name)
+    }
     setChecksum(node, checksum)
     size?.let { node.setProperty(RepoService.PROPERTY_FILESIZE, it) }
     log.info { "Storing file info: ${PFJcrUtils.toJson(this)}" }

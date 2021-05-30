@@ -28,105 +28,120 @@ import org.projectforge.common.DateFormatType
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.i18n.TimeAgo
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
+import org.projectforge.jcr.ZipEncryptionAlgorithm
 import java.util.*
 
 /**
  * Represents a file object of jcr (including meta data as well as location in jcr).
  */
 class Attachment() {
-    /**
-     * Unique id, set by jcr
-     */
-    @PropertyInfo(i18nKey = "attachment.fileId")
-    var fileId: String? = null
+  /**
+   * Unique id, set by jcr
+   */
+  @PropertyInfo(i18nKey = "attachment.fileId")
+  var fileId: String? = null
 
-    /**
-     * Filename.
-     */
-    @PropertyInfo(i18nKey = "attachment.fileName")
-    var name: String? = null
-    var size: Long? = null
+  /**
+   * Filename.
+   */
+  @PropertyInfo(i18nKey = "attachment.fileName")
+  var name: String? = null
+  var size: Long? = null
 
-    @get:JsonProperty
-    val sizeHumanReadable: String
-        get() = NumberHelper.formatBytes(size)
+  @get:JsonProperty
+  val sizeHumanReadable: String
+    get() = NumberHelper.formatBytes(size)
 
-    @PropertyInfo(i18nKey = "description")
-    var description: String? = null
+  @PropertyInfo(i18nKey = "description")
+  var description: String? = null
 
-    var created: Date? = null
+  var created: Date? = null
 
-    /**
-     * Date of creation in user's timezone and date format.
-     */
-    @get:JsonProperty
-    val createdFormatted: String
-        get() = PFDateTime.fromOrNull(created)?.format(DateFormatType.DATE_TIME_MINUTES) ?: ""
+  /**
+   * Date of creation in user's timezone and date format.
+   */
+  @get:JsonProperty
+  val createdFormatted: String
+    get() = PFDateTime.fromOrNull(created)?.format(DateFormatType.DATE_TIME_MINUTES) ?: ""
 
-    /**
-     * Id or full name or external user info.
-     */
-    var createdByUser: String? = null
+  /**
+   * Id or full name or external user info.
+   */
+  var createdByUser: String? = null
 
-    /**
-     * Id of internal user or null, if no internal user.
-     */
-    var createdByUserId: Int? = null
+  /**
+   * Id of internal user or null, if no internal user.
+   */
+  var createdByUserId: Int? = null
 
-    var lastUpdate: Date? = null
-    /**
-     * Date of last update in user's timezone and date format.
-     */
-    @get:JsonProperty
-    val lastUpdateFormatted: String
-        get() = PFDateTime.fromOrNull(lastUpdate)?.format(DateFormatType.DATE_TIME_MINUTES) ?: ""
-    /**
-     * Date of last update as time-ago in user's locale.
-     */
-    @get:JsonProperty
-    val lastUpdateTimeAgo: String
-        get() = TimeAgo.getMessage(lastUpdate)
-    var lastUpdateByUser: String? = null
+  var lastUpdate: Date? = null
 
-    /**
-     * Location of file as path to node in JCR.
-     */
-    var location: String? = null
+  /**
+   * Date of last update in user's timezone and date format.
+   */
+  @get:JsonProperty
+  val lastUpdateFormatted: String
+    get() = PFDateTime.fromOrNull(lastUpdate)?.format(DateFormatType.DATE_TIME_MINUTES) ?: ""
 
-    /**
-     * If true, the user has no access to modify or delete this attachment.
-     */
-    var readonly: Boolean? = null
+  /**
+   * Date of last update as time-ago in user's locale.
+   */
+  @get:JsonProperty
+  val lastUpdateTimeAgo: String
+    get() = TimeAgo.getMessage(lastUpdate)
+  var lastUpdateByUser: String? = null
 
-    /**
-     * The checksum of the file, e. g.: (SHA256).
-     */
-    var checksum: String? = null
+  /**
+   * Location of file as path to node in JCR.
+   */
+  var location: String? = null
 
-    /**
-     * The password isn't stored anywhere. If true, a password to decrypt is required for download.
-     * An encrypted file is encrypted in the storage itself and has to be encrypted server-side before download.
-     * After download the user gets the file decrypted.
-     */
-    var isCrypted: Boolean? = false
+  /**
+   * If true, the user has no access to modify or delete this attachment.
+   */
+  var readonly: Boolean? = null
 
-    constructor(fileObject: FileObject) : this() {
-        this.fileId = fileObject.fileId
-        this.name = fileObject.fileName
-        this.size = fileObject.size
-        this.description = fileObject.description
-        this.created = fileObject.created
-        this.createdByUser = fileObject.createdByUser
-        this.lastUpdate = fileObject.lastUpdate
-        this.lastUpdateByUser = fileObject.lastUpdateByUser
-        this.checksum = fileObject.checksum
-        this.isCrypted = fileObject.isCrypted
-    }
+  /**
+   * The checksum of the file, e. g.: (SHA256).
+   */
+  var checksum: String? = null
 
-    override fun toString(): String {
-        return ToStringUtil.toJsonString(this)
-    }
+  /**
+   * The password isn't stored anywhere. If true, a password to decrypt is required for download.
+   * An encrypted file is encrypted in the storage itself and has to be encrypted server-side before download.
+   * After download the user gets the file decrypted.
+   */
+  var isCrypted: Boolean? = false
+
+  /**
+   * Info field (e. g. crypt status of zip files)
+   */
+  var info: String? = null
+
+  /**
+   * If zip file is encrypted, the algorithm is stored (if encrypted by ProjectForge)
+   */
+  var zipEncryptionAlgorithm: ZipEncryptionAlgorithm? = null
+
+  constructor(fileObject: FileObject) : this() {
+    this.fileId = fileObject.fileId
+    this.name = fileObject.fileName
+    this.size = fileObject.size
+    this.description = fileObject.description
+    this.created = fileObject.created
+    this.createdByUser = fileObject.createdByUser
+    this.lastUpdate = fileObject.lastUpdate
+    this.lastUpdateByUser = fileObject.lastUpdateByUser
+    this.checksum = fileObject.checksum
+    this.isCrypted = fileObject.isCrypted
+    this.zipEncryptionAlgorithm = fileObject.zipEncryptionAlgorithm
+  }
+
+  override fun toString(): String {
+    return ToStringUtil.toJsonString(this)
+  }
 }
