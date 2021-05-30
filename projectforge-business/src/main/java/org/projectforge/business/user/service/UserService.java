@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
+import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.login.PasswordCheckResult;
 import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.*;
@@ -179,7 +180,7 @@ public class UserService {
    *
    * @param user     The user to user.
    * @param password as clear text.
-   * @see Crypt#digest(String)
+   * @see Crypt#digest(char[])
    */
   public void createEncryptedPassword(final PFUserDO user, final char[] password) {
     final String saltString = createSaltString();
@@ -197,62 +198,72 @@ public class UserService {
    * before. Also the stay-logged-in-key will be renewed, so any existing stay-logged-in cookie will be invalid.
    *
    * @param user
-   * @param oldPassword
-   * @param newPassword
+   * @param oldPassword Will be cleared at the end of this method due to security reasons.
+   * @param newPassword Will be cleared at the end of this method due to security reasons.
    * @return Error message key if any check failed or null, if successfully changed.
    */
   public List<I18nKeyAndParams> changePassword(PFUserDO user, final char[] oldPassword, final char[] newPassword) {
-    Validate.notNull(user);
-    Validate.isTrue(oldPassword.length > 0);
-    Validate.isTrue(newPassword.length > 0);
+    try {
+      Validate.notNull(user);
+      Validate.isTrue(oldPassword.length > 0);
+      Validate.isTrue(newPassword.length > 0);
 
-    final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(oldPassword, newPassword);
-    if (!errorMsgKeys.isEmpty()) {
-      return errorMsgKeys;
+      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(oldPassword, newPassword);
+      if (!errorMsgKeys.isEmpty()) {
+        return errorMsgKeys;
+      }
+
+      accessChecker.checkRestrictedOrDemoUser();
+      user = getUser(user.getUsername(), oldPassword, false);
+      if (user == null) {
+        return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG));
+      }
+
+      createEncryptedPassword(user, newPassword);
+      onPasswordChange(user, true);
+      userDao.internalUpdate(user);
+      Login.getInstance().passwordChanged(user, newPassword);
+      log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
+      return Collections.emptyList();
+    } finally {
+      LoginHandler.clearPassword(newPassword);
+      LoginHandler.clearPassword(oldPassword);
     }
-
-    accessChecker.checkRestrictedOrDemoUser();
-    user = getUser(user.getUsername(), oldPassword, false);
-    if (user == null) {
-      return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG));
-    }
-
-    createEncryptedPassword(user, newPassword);
-    onPasswordChange(user, true);
-    userDao.internalUpdate(user);
-    Login.getInstance().passwordChanged(user, newPassword);
-    log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
-    return Collections.emptyList();
   }
 
   /**
    * Changes the user's WLAN password. Checks the password quality and the correct authentication for the login password before.
    *
    * @param user
-   * @param loginPassword
-   * @param newWlanPassword
+   * @param loginPassword   Will be cleared at the end of this method due to security reasons
+   * @param newWlanPassword Will be cleared at the end of this method due to security reasons
    * @return Error message key if any check failed or null, if successfully changed.
    */
   public List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, final char[] loginPassword, final char[] newWlanPassword) {
-    Validate.notNull(user);
-    Validate.isTrue(loginPassword.length > 0);
-    Validate.isTrue(newWlanPassword.length > 0);
+    try {
+      Validate.notNull(user);
+      Validate.isTrue(loginPassword.length > 0);
+      Validate.isTrue(newWlanPassword.length > 0);
 
-    final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(newWlanPassword);
-    if (!errorMsgKeys.isEmpty()) {
-      return errorMsgKeys;
+      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(newWlanPassword);
+      if (!errorMsgKeys.isEmpty()) {
+        return errorMsgKeys;
+      }
+
+      accessChecker.checkRestrictedOrDemoUser();
+      user = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
+      if (user == null) {
+        return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_LOGIN_PASSWORD_WRONG));
+      }
+
+      onWlanPasswordChange(user, true); // set last change time and creaty history entry
+      Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
+      log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
+      return Collections.emptyList();
+    } finally {
+      LoginHandler.clearPassword(loginPassword);
+      LoginHandler.clearPassword(newWlanPassword);
     }
-
-    accessChecker.checkRestrictedOrDemoUser();
-    user = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
-    if (user == null) {
-      return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_LOGIN_PASSWORD_WRONG));
-    }
-
-    onWlanPasswordChange(user, true); // set last change time and creaty history entry
-    Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
-    log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
-    return Collections.emptyList();
   }
 
   public void onPasswordChange(final PFUserDO user, final boolean createHistoryEntry) {
@@ -288,6 +299,12 @@ public class UserService {
     }
   }
 
+  /**
+   * @param username
+   * @param password
+   * @param updateSaltAndPepperIfNeeded
+   * @return
+   */
   @SuppressWarnings("unchecked")
   protected PFUserDO getUser(final String username, final char[] password, final boolean updateSaltAndPepperIfNeeded) {
     final List<PFUserDO> list = userDao.findByUsername(username);
@@ -363,28 +380,34 @@ public class UserService {
 
   /**
    * Ohne Zugangsbegrenzung. Wird bei Anmeldung benötigt.
+   * @param username
+   * @param password Will be cleared at the end of this methods due to security reasons.
    */
   public PFUserDO authenticateUser(final String username, final char[] password) {
-    Validate.notNull(username);
-    Validate.isTrue(password.length > 0);
+    try {
+      Validate.notNull(username);
+      Validate.isTrue(password.length > 0);
 
-    PFUserDO user = getUser(username, password, true);
-    if (user != null) {
+      PFUserDO user = getUser(username, password, true);
+      if (user != null) {
 
-      final int loginFailures = user.getLoginFailures();
-      final Date lastLogin = user.getLastLogin();
-      userDao.updateUserAfterLoginSuccess(user);
-      if (!user.hasSystemAccess()) {
-        log.warn("Deleted/deactivated user tried to login: " + user);
-        return null;
+        final int loginFailures = user.getLoginFailures();
+        final Date lastLogin = user.getLastLogin();
+        userDao.updateUserAfterLoginSuccess(user);
+        if (!user.hasSystemAccess()) {
+          log.warn("Deleted/deactivated user tried to login: " + user);
+          return null;
+        }
+        final PFUserDO contextUser = PFUserDO.createCopyWithoutSecretFields(user);
+        contextUser.setLoginFailures(loginFailures); // Restore loginFailures for current user session.
+        contextUser.setLastLogin(lastLogin); // Restore lastLogin for current user session.
+        return contextUser;
       }
-      final PFUserDO contextUser = PFUserDO.createCopyWithoutSecretFields(user);
-      contextUser.setLoginFailures(loginFailures); // Restore loginFailures for current user session.
-      contextUser.setLastLogin(lastLogin); // Restore lastLogin for current user session.
-      return contextUser;
+      userDao.updateIncrementLoginFailure(username);
+      return null;
+    } finally {
+      LoginHandler.clearPassword(password);
     }
-    userDao.updateIncrementLoginFailure(username);
-    return null;
   }
 
   private String getPepperString() {
@@ -523,7 +546,7 @@ public class UserService {
     final String saltPepper = StringUtils.defaultString(pepper) + StringUtils.defaultString(salt);
     final char[] saltedAndPepperedPassword = ArrayUtils.addAll(saltPepper.toCharArray(), password);
     String encryptedPassword = Crypt.digest(saltedAndPepperedPassword);
-    Arrays.fill(saltedAndPepperedPassword, '*'); // Clear array to to security reasons.
+    LoginHandler.clearPassword(saltedAndPepperedPassword); // Clear array to to security reasons.
     return encryptedPassword;
   }
 }
