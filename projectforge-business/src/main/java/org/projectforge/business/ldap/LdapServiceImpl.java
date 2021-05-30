@@ -107,7 +107,7 @@ public class LdapServiceImpl implements LdapService
 
   /**
    * For test use only
-   * 
+   *
    * @param ldapConfig the ldapConfig to set
    * @return this for chaining.
    */

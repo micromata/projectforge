@@ -101,9 +101,9 @@ public abstract class AbstractTestBase {
 
   public static final String TEST_EMPLOYEE_USER = "testEmployee";
 
-  public static final String TEST_EMPLOYEE_USER_PASSWORD = "testEmployee42";
+  public static final char[] TEST_EMPLOYEE_USER_PASSWORD = "testEmployee42".toCharArray();
 
-  public static final String TEST_ADMIN_USER_PASSWORD = "testSysAdmin42";
+  public static final char[] TEST_ADMIN_USER_PASSWORD = "testSysAdmin42".toCharArray();
 
   public static final String TEST_FINANCE_USER = "testFinanceUser";
 
@@ -111,19 +111,19 @@ public abstract class AbstractTestBase {
 
   public static final String TEST_FULL_ACCESS_USER = "testFullAccessUser";
 
-  public static final String TEST_FULL_ACCESS_USER_PASSWORD = "testFullAccessUser42";
+  public static final char[] TEST_FULL_ACCESS_USER_PASSWORD = "testFullAccessUser42".toCharArray();
 
   public static final String TEST_GROUP = "testGroup";
 
   public static final String TEST_USER = "testUser";
 
-  public static final String TEST_USER_PASSWORD = "testUser42";
+  public static final char[] TEST_USER_PASSWORD = "testUser42".toCharArray();
 
   public static final String TEST_USER2 = "testUser2";
 
   public static final String TEST_DELETED_USER = "deletedTestUser";
 
-  public static final String TEST_DELETED_USER_PASSWORD = "deletedTestUser42";
+  public static final char[] TEST_DELETED_USER_PASSWORD = "deletedTestUser42".toCharArray();
 
   public static final String TEST_PROJECT_MANAGER_USER = "testProjectManager";
 

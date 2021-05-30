@@ -115,7 +115,7 @@ public class InitTestDB {
     return addUser(username, null);
   }
 
-  public PFUserDO addUser(final String username, final String password) {
+  public PFUserDO addUser(final String username, final char[] password) {
     final PFUserDO user = new PFUserDO();
     user.setUsername(username);
     user.setLocale(Locale.ENGLISH);

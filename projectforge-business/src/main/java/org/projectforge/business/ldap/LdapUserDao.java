@@ -85,14 +85,14 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
 
   public boolean isDeactivated(final LdapUser user) {
     return user.isDeactivated()
-            || user.getOrganizationalUnit() != null
-            && LdapUtils.getOu(user.getOrganizationalUnit()).contains(DEACTIVATED_SUB_CONTEXT);
+        || user.getOrganizationalUnit() != null
+        && LdapUtils.getOu(user.getOrganizationalUnit()).contains(DEACTIVATED_SUB_CONTEXT);
   }
 
   public boolean isRestrictedUser(final LdapUser user) {
     return user.isRestrictedUser()
-            || user.getOrganizationalUnit() != null
-            && LdapUtils.getOu(user.getOrganizationalUnit()).contains(RESTRICTED_USER_SUB_CONTEXT);
+        || user.getOrganizationalUnit() != null
+        && LdapUtils.getOu(user.getOrganizationalUnit()).contains(RESTRICTED_USER_SUB_CONTEXT);
   }
 
   public boolean isPosixAccountsConfigured() {
@@ -153,9 +153,9 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
   @Override
   protected String[] getAdditionalObjectClasses(final LdapUser obj) {
     final boolean posixAccount = isPosixAccountsConfigured()
-            && !PFUserDOConverter.isPosixAccountValuesEmpty(obj);
+        && !PFUserDOConverter.isPosixAccountValuesEmpty(obj);
     final boolean sambaAccount = isSambaAccountsConfigured()
-            && !PFUserDOConverter.isSambaAccountValuesEmpty(obj);
+        && !PFUserDOConverter.isSambaAccountValuesEmpty(obj);
     if (ALL_OBJECT_CLASSES == null) {
       initializeObjectClasses();
     }
@@ -213,7 +213,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
       user.setSambaSIDNumber(sambaSIDNumber);
       final String sambaPrimaryGroupSID = LdapUtils.getAttributeStringValue(attributes, "sambaPrimaryGroupSID");
       final Integer sambaPrimaryGroupSIDNumber = ldapConfig.getSambaAccountsConfig()
-              .getSambaSIDNumber(sambaPrimaryGroupSID);
+          .getSambaSIDNumber(sambaPrimaryGroupSID);
       user.setSambaPrimaryGroupSIDNumber(sambaPrimaryGroupSIDNumber);
       user.setSambaNTPassword(LdapUtils.getAttributeStringValue(attributes, "sambaNTPassword"));
       final String sambaPwdLastSet = LdapUtils.getAttributeStringValue(attributes, "sambaPwdLastSet");
@@ -255,7 +255,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
     final List<ModificationItem> modificationItems = new ArrayList<>();
     modificationItems.add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("userPassword", null)));
     modificationItems
-            .add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("mail", DEACTIVATED_MAIL)));
+        .add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("mail", DEACTIVATED_MAIL)));
     buildDn(null, user);
     modify(ctx, user, modificationItems);
     final String ou = user.getOrganizationalUnit();
@@ -379,15 +379,15 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
    */
   @Override
   public void create(final DirContext ctx, final String ouBase, final LdapUser user, final Object... args)
-          throws NamingException {
+      throws NamingException {
     if (user.isDeleted()) {
       log.info(
-              "Given LDAP user is deleted, so the user will not be created in the LDAP system (nothing will be done).");
+          "Given LDAP user is deleted, so the user will not be created in the LDAP system (nothing will be done).");
       return;
     }
     if (user.getUid() == null) {
       log.info(
-              "Given LDAP user has UID null, so the user will be skipped: " + user);
+          "Given LDAP user has UID null, so the user will be skipped: " + user);
       return;
     }
     super.create(ctx, ouBase, user, args);
@@ -405,7 +405,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
    */
   @Override
   public void update(final DirContext ctx, final String ouBase, final LdapUser user, final Object... objs)
-          throws NamingException {
+      throws NamingException {
     if (user.isDeleted()) {
       log.info("Given LDAP user is deleted, so the user will be removed from the LDAP system.");
       delete(ctx, user);
@@ -416,24 +416,24 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
     updateRestrictedUserStatus(ctx, user);
   }
 
-  public void changePassword(final LdapUser user, final String oldPassword, final String newPassword) {
+  public void changePassword(final LdapUser user, final char[] oldPassword, final char[] newPassword) {
     final String userPasswordId = "userPassword";
     log.info("Change attribute " + userPasswordId + " for " + getObjectClass() + ": " + buildDn(null, user));
     final List<ModificationItem> modificationItems = new ArrayList<>();
     if (oldPassword != null) {
       modificationItems
-              .add(new ModificationItem(DirContext.REMOVE_ATTRIBUTE, new BasicAttribute(userPasswordId, oldPassword)));
+          .add(new ModificationItem(DirContext.REMOVE_ATTRIBUTE, new BasicAttribute(userPasswordId, oldPassword)));
       modificationItems
-              .add(new ModificationItem(DirContext.ADD_ATTRIBUTE, new BasicAttribute(userPasswordId, newPassword)));
+          .add(new ModificationItem(DirContext.ADD_ATTRIBUTE, new BasicAttribute(userPasswordId, newPassword)));
     } else {
       modificationItems
-              .add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute(userPasswordId, newPassword)));
+          .add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute(userPasswordId, newPassword)));
     }
     // Perform the update
     modify(user, modificationItems);
   }
 
-  public void changeWlanPassword(final LdapUser user, final String newPassword) {
+  public void changeWlanPassword(final LdapUser user, final char[] newPassword) {
     final String sambaPasswordAttributeId = "sambaNTPassword";
 
     if (!isSambaAccountsConfigured()) {
@@ -477,12 +477,11 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
     }.excecute();
   }
 
-  public LdapUser authenticate(final String username, final String userPassword, final String... organizationalUnits) {
+  public LdapUser authenticate(final String username, final char[] userPassword, final String... organizationalUnits) {
     String dn;
     LdapUser user = null;
     final String searchBase = getSearchBase(organizationalUnits);
-    if (StringUtils.isNotBlank(ldapConfig.getManagerUser())
-            && StringUtils.isNotBlank(ldapConfig.getManagerPassword())) {
+    if (StringUtils.isNotBlank(ldapConfig.getManagerUser()) && StringUtils.isNotBlank(ldapConfig.getManagerPassword())) {
       user = findByUsername(username, searchBase);
       if (user == null || !StringUtils.equals(username, user.getId())) {
         log.info("User with id '" + username + "' not found.");
@@ -524,14 +523,14 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
     list = ldapPersonDao.getModificationItems(list, user);
     createAndAddModificationItems(list, "cn", user.getCommonName());
     final boolean modifyPosixAccount = isPosixAccountsConfigured()
-            && !PFUserDOConverter.isPosixAccountValuesEmpty(user);
+        && !PFUserDOConverter.isPosixAccountValuesEmpty(user);
     final boolean modifySambaAccount = isSambaAccountsConfigured()
-            && !PFUserDOConverter.isSambaAccountValuesEmpty(user);
+        && !PFUserDOConverter.isSambaAccountValuesEmpty(user);
     if (modifyPosixAccount || modifySambaAccount) {
       if (user.getObjectClasses() != null) {
         final List<String> missedObjectClasses = LdapUtils.getMissedObjectClasses(getAdditionalObjectClasses(user),
-                getObjectClass(),
-                user.getObjectClasses());
+            getObjectClass(),
+            user.getObjectClasses());
         if (CollectionUtils.isNotEmpty(missedObjectClasses)) {
           for (final String missedObjectClass : missedObjectClasses) {
             list.add(createModificationItem(DirContext.ADD_ATTRIBUTE, "objectClass", missedObjectClass));
@@ -547,14 +546,14 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
     }
     if (modifySambaAccount) {
       createAndAddModificationItems(list, "sambaSID",
-              ldapConfig.getSambaAccountsConfig().getSambaSID(user.getSambaSIDNumber()));
+          ldapConfig.getSambaAccountsConfig().getSambaSID(user.getSambaSIDNumber()));
       createAndAddModificationItems(list, "sambaPrimaryGroupSID",
-              ldapConfig.getSambaAccountsConfig().getSambaPrimaryGroupSID(user.getSambaPrimaryGroupSIDNumber()));
+          ldapConfig.getSambaAccountsConfig().getSambaPrimaryGroupSID(user.getSambaPrimaryGroupSIDNumber()));
       createAndAddModificationItems(list, "sambaAcctFlags", "U          ");
       createAndAddModificationItems(list, "sambaPasswordHistory",
-              "0000000000000000000000000000000000000000000000000000000000000000");
+          "0000000000000000000000000000000000000000000000000000000000000000");
       createAndAddModificationItems(list, "sambaPwdLastSet",
-              String.valueOf(user.getSambaPwdLastSetAsUnixEpochSeconds()));
+          String.valueOf(user.getSambaPwdLastSetAsUnixEpochSeconds()));
     }
     return list;
   }

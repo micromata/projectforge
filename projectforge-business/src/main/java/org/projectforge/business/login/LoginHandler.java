@@ -45,10 +45,11 @@ public interface LoginHandler
 
   /**
    * @param username
-   * @param password
-   * @return {@link LoginResultStatus#SUCCESS} only and only if the login credentials were accepted.
+   * @param password As char array due to security reasons (don't wait for the garbage collector to remove the
+   *                 password in memory).
+   * @return {@link loginresultstatus#SUCCESS} only and only if the login credentials were accepted.
    */
-  LoginResult checkLogin(final String username, final String password);
+  LoginResult checkLogin(final String username, final char[] password);
 
   /**
    * The simplest implementation is: UserRights.getAccessChecker().isUserMemberOfAdminGroup(user). The default login
@@ -100,7 +101,7 @@ public interface LoginHandler
    * @param user
    * @param newPassword
    */
-  void passwordChanged(PFUserDO user, String newPassword);
+  void passwordChanged(PFUserDO user, char[] newPassword);
 
   /**
    * Will be called while changing the user's WLAN password. The access and password quality is already checked.
@@ -108,7 +109,7 @@ public interface LoginHandler
    * @param user
    * @param newPassword
    */
-  void wlanPasswordChanged(PFUserDO user, String newPassword);
+  void wlanPasswordChanged(PFUserDO user, char[] newPassword);
 
   /**
    * If the functionality of changing passwords isn't supported for a given user then the password change functionality

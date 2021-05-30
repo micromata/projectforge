@@ -23,6 +23,7 @@
 
 package org.projectforge.business.user.service;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -110,7 +111,7 @@ public class UserService {
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final PFUserDO user : allusers) {
       if (!user.isDeleted() && !user.getDeactivated()
-              && userDao.hasUserSelectAccess(loggedInUser, user, false)) {
+          && userDao.hasUserSelectAccess(loggedInUser, user, false)) {
         sortedUsers.add(user);
       }
     }
@@ -154,9 +155,9 @@ public class UserService {
       return userDao.internalLoadAll();
     } catch (final Exception ex) {
       log.error(
-              "******* Exception while getting users from data-base (OK only in case of migration from older versions): "
-                      + ex.getMessage(),
-              ex);
+          "******* Exception while getting users from data-base (OK only in case of migration from older versions): "
+              + ex.getMessage(),
+          ex);
       return new ArrayList<>();
     }
   }
@@ -180,10 +181,10 @@ public class UserService {
    * @param password as clear text.
    * @see Crypt#digest(String)
    */
-  public void createEncryptedPassword(final PFUserDO user, final String password) {
+  public void createEncryptedPassword(final PFUserDO user, final char[] password) {
     final String saltString = createSaltString();
     user.setPasswordSalt(saltString);
-    final String encryptedPassword = Crypt.digest(getPepperString() + saltString + password);
+    final String encryptedPassword = encryptAndClear(getPepperString(), saltString, password);
     user.setPassword(encryptedPassword);
   }
 
@@ -200,10 +201,10 @@ public class UserService {
    * @param newPassword
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> changePassword(PFUserDO user, final String oldPassword, final String newPassword) {
+  public List<I18nKeyAndParams> changePassword(PFUserDO user, final char[] oldPassword, final char[] newPassword) {
     Validate.notNull(user);
-    Validate.notNull(oldPassword);
-    Validate.notNull(newPassword);
+    Validate.isTrue(oldPassword.length > 0);
+    Validate.isTrue(newPassword.length > 0);
 
     final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(oldPassword, newPassword);
     if (!errorMsgKeys.isEmpty()) {
@@ -232,10 +233,10 @@ public class UserService {
    * @param newWlanPassword
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword) {
+  public List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, final char[] loginPassword, final char[] newWlanPassword) {
     Validate.notNull(user);
-    Validate.notNull(loginPassword);
-    Validate.notNull(newWlanPassword);
+    Validate.isTrue(loginPassword.length > 0);
+    Validate.isTrue(newWlanPassword.length > 0);
 
     final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(newWlanPassword);
     if (!errorMsgKeys.isEmpty()) {
@@ -272,7 +273,7 @@ public class UserService {
       }
     } else {
       throw new IllegalArgumentException(
-              "Given password seems to be not encrypted! Aborting due to security reasons (for avoiding storage of clear password in the database).");
+          "Given password seems to be not encrypted! Aborting due to security reasons (for avoiding storage of clear password in the database).");
     }
   }
 
@@ -288,7 +289,7 @@ public class UserService {
   }
 
   @SuppressWarnings("unchecked")
-  protected PFUserDO getUser(final String username, final String password, final boolean updateSaltAndPepperIfNeeded) {
+  protected PFUserDO getUser(final String username, final char[] password, final boolean updateSaltAndPepperIfNeeded) {
     final List<PFUserDO> list = userDao.findByUsername(username);
     if (list == null || list.isEmpty() || list.get(0) == null) {
       return null;
@@ -314,7 +315,7 @@ public class UserService {
    * @param password as clear text.
    * @return true if the password matches the user's password.
    */
-  public PasswordCheckResult checkPassword(final PFUserDO user, final String password) {
+  public PasswordCheckResult checkPassword(final PFUserDO user, final char[] password) {
     if (user == null) {
       log.warn("User not given in checkPassword(PFUserDO, String) method.");
       return PasswordCheckResult.FAILED;
@@ -334,7 +335,7 @@ public class UserService {
       saltString = "";
     }
     final String pepperString = getPepperString();
-    String encryptedPassword = Crypt.digest(pepperString + saltString + password);
+    String encryptedPassword = encryptAndClear(pepperString, saltString, password);
     if (userPassword.equals(encryptedPassword)) {
       // Passwords match!
       if (StringUtils.isEmpty(saltString)) {
@@ -344,13 +345,13 @@ public class UserService {
       return PasswordCheckResult.OK;
     }
     if (StringUtils.isNotBlank(pepperString)) {
-      // Check password without pepper:
-      encryptedPassword = Crypt.digest(saltString + password);
+      // Check password without pepper (if pepper was introduced after the user has set his/her password):
+      encryptedPassword = encryptAndClear(null, saltString, password);
       if (userPassword.equals(encryptedPassword)) {
         // Passwords match!
         if (StringUtils.isEmpty(saltString)) {
           log.info("Password of user " + user.getId() + " with username '" + user.getUsername()
-                  + "' is not yet salted and has no pepper!");
+              + "' is not yet salted and has no pepper!");
           return PasswordCheckResult.OK_WITHOUT_SALT_AND_PEPPER;
         }
         log.info("Password of user " + user.getId() + " with username '" + user.getUsername() + "' has no pepper!");
@@ -363,9 +364,9 @@ public class UserService {
   /**
    * Ohne Zugangsbegrenzung. Wird bei Anmeldung benötigt.
    */
-  public PFUserDO authenticateUser(final String username, final String password) {
+  public PFUserDO authenticateUser(final String username, final char[] password) {
     Validate.notNull(username);
-    Validate.notNull(password);
+    Validate.isTrue(password.length > 0);
 
     PFUserDO user = getUser(username, password, true);
     if (user != null) {
@@ -508,5 +509,21 @@ public class UserService {
       }
     }
     return userList;
+  }
+
+  /**
+   * Creates salted and peppered password as char array, encrypts it and clears the char array afterwards due to security reasons.
+   *
+   * @param pepper
+   * @param salt
+   * @param password
+   * @return
+   */
+  private String encryptAndClear(final String pepper, final String salt, final char[] password) {
+    final String saltPepper = StringUtils.defaultString(pepper) + StringUtils.defaultString(salt);
+    final char[] saltedAndPepperedPassword = ArrayUtils.addAll(saltPepper.toCharArray(), password);
+    String encryptedPassword = Crypt.digest(saltedAndPepperedPassword);
+    Arrays.fill(saltedAndPepperedPassword, '*'); // Clear array to to security reasons.
+    return encryptedPassword;
   }
 }

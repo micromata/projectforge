@@ -158,7 +158,7 @@ public class WicketPageTestBase extends AbstractTestBase {
    * @param username
    * @param password not encrypted.
    */
-  public void login(final String username, final String password) {
+  public void login(final String username, final char[] password) {
     login(username, password, true);
   }
 
@@ -169,7 +169,7 @@ public class WicketPageTestBase extends AbstractTestBase {
    * @param username
    * @param password not encrypted.
    */
-  public void login(final String username, final String password, final boolean checkDefaultPage) {
+  public void login(final String username, final char[] password, final boolean checkDefaultPage) {
     final LoginResult result = loginHandler.checkLogin(username, password);
     UserContext userContext = new UserContext(PFUserDO.createCopyWithoutSecretFields(result.getUser()));
     ((MySession) tester.getSession()).login(userContext, null);

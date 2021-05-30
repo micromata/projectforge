@@ -61,7 +61,7 @@ public abstract class LdapTemplate
     return internalExcecute();
   }
 
-  public Object excecute(final String username, final String password)
+  public Object excecute(final String username, final char[] password)
   {
     try {
       ctx = ldapConnector.createContext(username, password);

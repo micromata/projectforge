@@ -26,7 +26,6 @@ package org.projectforge.framework.utils
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.slf4j.LoggerFactory
 import java.io.UnsupportedEncodingException
 import java.nio.charset.StandardCharsets
 import java.security.Key
@@ -182,6 +181,17 @@ object Crypt {
     return encode(s, "SHA")
   }
 
+  /**
+   * Encrypts the given String via SHA crypt algorithm.
+   *
+   * @param s
+   * @return
+   */
+  @JvmStatic
+  fun digest(s: CharArray): String {
+    return encode(s, "SHA")
+  }
+
   @JvmStatic
   fun digest(s: String, alg: String): String {
     return encode(s, alg)
@@ -194,10 +204,23 @@ object Crypt {
   }
 
   private fun encode(s: String, alg: String): String {
+    return encode(s.toCharArray(), alg)
+  }
+
+  private fun convertToByteArray(src: CharArray): ByteArray {
+    val dest = ByteArray(src.size)
+
+    for (i in src.indices) {
+      dest[i] = src[i].toByte()
+    }
+    return dest
+  }
+
+  private fun encode(ca: CharArray, alg: String): String {
     return try {
       val md = MessageDigest.getInstance(alg)
       md.reset()
-      md.update(s.toByteArray())
+      md.update(convertToByteArray(ca))
       val d = md.digest()
       var ret = ""
       for (byte in d) {
@@ -216,7 +239,7 @@ object Crypt {
       md.algorithm + '{' + ret + '}'
     } catch (ex: NoSuchAlgorithmException) {
       log.error(ex.toString())
-      "NONE{$s}"
+      "NONE{xxxxxxx}"
     }
   }
 }

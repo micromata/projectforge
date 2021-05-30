@@ -76,7 +76,7 @@ public class Login
     return loginHandler.checkStayLoggedIn(user);
   }
 
-  public void passwordChanged(final PFUserDO user, final String newPassword)
+  public void passwordChanged(final PFUserDO user, final char[] newPassword)
   {
     if (loginHandler == null) {
       log.warn("No login handler is defined yet, so can't handle password-changed request.");
@@ -88,7 +88,7 @@ public class Login
     loginHandler.passwordChanged(user, newPassword);
   }
 
-  public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
+  public void wlanPasswordChanged(final PFUserDO user, final char[] newPassword)
   {
     if (loginHandler == null) {
       log.warn("No login handler is defined yet, so can't handle WLAN password-changed request.");
