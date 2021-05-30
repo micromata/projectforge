@@ -181,7 +181,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
   }
 
   /**
-   * @see org.projectforge.business.ldap.LdapDao#getId(org.projectforge.business.ldap.LdapUser)
+   * @see org.projectforge.business.ldap.LdapDao#getId(LdapObject)
    */
   @Override
   public String getId(final LdapUser obj) {
@@ -375,7 +375,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
    * Calls super method and {@link #deactivateUser(DirContext, LdapUser)} if the given user is deactivated. If the given
    * user is deleted, nothing will be done.
    *
-   * @see org.projectforge.business.ldap.LdapDao#create(javax.naming.directory.DirContext, org.projectforge.business.ldap.LdapObject,
+   * @see org.projectforge.business.ldap.LdapDao#create(DirContext, String, LdapObject, Object...)
    * java.lang.Object[])
    */
   @Override
@@ -401,8 +401,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
   }
 
   /**
-   * @see org.projectforge.business.ldap.LdapDao#update(javax.naming.directory.DirContext, org.projectforge.business.ldap.LdapObject,
-   * java.lang.Object[])
+   * @see org.projectforge.business.ldap.LdapDao#update(DirContext, String, LdapObject, Object...)
    */
   @Override
   public void update(final DirContext ctx, final String ouBase, final LdapUser user, final Object... objs)
@@ -527,7 +526,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
   }
 
   /**
-   * @see org.projectforge.ldap.LdapPDao#getModificationItems(java.util.List, org.projectforge.business.ldap.LdapUser)
+   * @see LdapDao#getModificationItems(List, LdapObject)
    */
   @Override
   protected List<ModificationItem> getModificationItems(List<ModificationItem> list, final LdapUser user) {
