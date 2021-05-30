@@ -94,7 +94,7 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
         UITable(
           "logEntries",
           refreshUrl = "/rs/logViewer/refresh",
-          refreshIntervalSeconds = 2,
+          refreshIntervalSeconds = 5,
           autoRefreshFlag = "autoRefresh"
         )
           .add(lc, "timestamp", "level", "user", "message", "userAgent", "stackTrace", sortable = false)
