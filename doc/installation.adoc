@@ -281,7 +281,7 @@ Refer config file for all options: [https://github.com/micromata/projectforge/bl
 |===
 |Java version | V6* | V7.0* | V7.1+ | Comments
 
-|Oracle 1.8 | \+++ | + | + | Oracle 1.8 was in production for years up to version 7.0.0.
+|Oracle 1.8 | \+++ | + | + | Oracle 1.8 was in production for years up to version 7.1.2. (LDAP master/slave needs Java 11 since 7.1*)
 |OpenJDK 11 | - | \+++ | \+++ | OpenJDK 11 is used in development (MacOS) and in heavy production since version 7.0.0. (Linux)
 |OpenJDK 12 | - | + | ? | Should run since version V7.0
 |OpenJDK 13 | - | + | ? | Should run since version V7.0
