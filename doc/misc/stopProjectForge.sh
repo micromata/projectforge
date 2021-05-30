@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROCESS_IDENTIFIER="projectforge-application"
+PROCESS_IDENTIFIER="java.*projectforge-application"
 APP_NAME="ProjectForge"
 
 checkStopped() {
