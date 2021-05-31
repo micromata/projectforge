@@ -37,12 +37,12 @@ import java.util.*
  * * timeago.ayear=a year ago
  * * timeago.days={0} days ago
  * * timeago.hours={0} hours ago
- * * timeago.inthefuture=in the future!
+ * * timeago.negative=in the future!
  * * timeago.minutes={0} minutes ago
  * * timeago.months={0} months ago
  * * timeago.weeks={0} weeks ago
  * * timeago.years={0} years ago
- * * timeago.yesterday=yesterday
+ * * timeago.day=yesterday
  */
 object TimeAgo {
   const val MINUTE = 60
@@ -57,36 +57,47 @@ object TimeAgo {
    * @param locale Locale to use for translation.
    * @return Time ago message or an empty string, if no date was given.
    */
+  @JvmOverloads
   @JvmStatic
-  fun getMessage(date: Date?, locale: Locale? = null): String {
+  fun getMessage(date: Date?, locale: Locale? = null, allowFutureTimes: Boolean = false): String {
     date ?: return ""
-    val pair = getI18nKey(date)
+    return translate(getI18nKey(date, allowFutureTimes), "timeago", locale)
+  }
+
+  internal fun getI18nKey(date: Date, allowFutureTimes: Boolean): Pair<String, Long> {
+    val seconds = (System.currentTimeMillis() - date.time) / 1000
+    if (seconds < 0 && allowFutureTimes) {
+      return TimeLeft.getI18nKey(date, false)
+    }
+    return getUnit(seconds)
+  }
+
+  internal fun translate(pair: Pair<String, Long>, prefix: String, locale: Locale?): String {
     return if (pair.second < 0) {
       // Translates the i18n key:
-      translate(locale, pair.first)
+      translate(locale, "$prefix.${pair.first}")
     } else {
       // Translates the message using the i18n key with parameter pair.second:
-      translateMsg(locale, pair.first, pair.second)
+      translateMsg(locale, "$prefix.${pair.first}", pair.second)
     }
   }
 
-  internal fun getI18nKey(date: Date): Pair<String, Long> {
-    val seconds = (System.currentTimeMillis() - date.time) / 1000
+  internal fun getUnit(seconds: Long): Pair<String, Long> {
     return when {
-      seconds < 0 -> Pair("timeago.inthefuture", -1)
-      seconds > 2 * YEAR -> Pair("timeago.years", seconds / YEAR)
-      seconds > YEAR -> Pair("timeago.ayear", -1)
-      seconds > 40 * DAY -> Pair("timeago.months", seconds / MONTH)
-      seconds > MONTH -> Pair("timeago.amonth", -1)
-      seconds > 2 * WEEK -> Pair("timeago.weeks", seconds / WEEK)
-      seconds > WEEK -> Pair("timeago.aweek", -1)
-      seconds > 2 * DAY -> Pair("timeago.days", seconds / DAY)
-      seconds > DAY -> Pair("timeago.yesterday", -1)
-      seconds > 2 * HOUR -> Pair("timeago.hours", seconds / HOUR)
-      seconds > HOUR -> Pair("timeago.anhour", -1)
-      seconds > 2 * MINUTE -> Pair("timeago.minutes", seconds / MINUTE)
-      seconds > MINUTE -> Pair("timeago.aminute", -1)
-      else -> Pair("timeago.afewseconds", -1)
+      seconds < 0 -> Pair("negative", -1)
+      seconds > 2 * TimeLeft.YEAR -> Pair("years", seconds / TimeLeft.YEAR)
+      seconds > TimeLeft.YEAR -> Pair("ayear", -1)
+      seconds > 40 * TimeLeft.DAY -> Pair("months", seconds / TimeLeft.MONTH)
+      seconds > TimeLeft.MONTH -> Pair("amonth", -1)
+      seconds > 2 * TimeLeft.WEEK -> Pair("weeks", seconds / TimeLeft.WEEK)
+      seconds > TimeLeft.WEEK -> Pair("aweek", -1)
+      seconds > 2 * TimeLeft.DAY -> Pair("days", seconds / TimeLeft.DAY)
+      seconds > TimeLeft.DAY -> Pair("day", -1)
+      seconds > 2 * TimeLeft.HOUR -> Pair("hours", seconds / TimeLeft.HOUR)
+      seconds > TimeLeft.HOUR -> Pair("anhour", -1)
+      seconds > 2 * TimeLeft.MINUTE -> Pair("minutes", seconds / TimeLeft.MINUTE)
+      seconds > TimeLeft.MINUTE -> Pair("aminute", -1)
+      else -> Pair("afewseconds", -1)
     }
   }
 }
