@@ -31,6 +31,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.plugins.core.PluginsRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -55,6 +56,9 @@ open class FavoritesMenuCreator {
     fun getFavoriteMenu(): Menu {
         val favMenuAsUserPrefString = userXmlPreferencesService.getEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY) as String?
         val menu = getFavoriteMenu(favMenuAsUserPrefString)
+        PluginsRegistry.instance().plugins.forEach {activePlugin ->
+            activePlugin.handleFavoriteMenu(menu, menu.getAllDescendants())
+        }
         menu.postProcess() // Build badges of top menus.
         return menu
     }
