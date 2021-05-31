@@ -35,6 +35,8 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.framework.persistence.xstream.XStreamSavingConverter
+import org.projectforge.menu.Menu
+import org.projectforge.menu.MenuItem
 import org.projectforge.registry.Registry
 import org.projectforge.registry.RegistryEntry
 import org.springframework.beans.factory.annotation.Autowired
@@ -213,6 +215,8 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
                 .toTypedArray()
     }
 
+    open fun handleFavoriteMenu(menu: Menu, allMenuItems: List<MenuItem>) {
+    }
 
     /**
      * Override this method if an update entry for initialization does exist. This will be called, if the plugin runs the
