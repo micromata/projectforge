@@ -314,6 +314,7 @@ class LayoutUtils {
           is UIAttachmentList -> {
             if (!layout.translations.containsKey("attachment.fileName")) {
               layout.addTranslations(
+                "attachment.expires",
                 "attachment.fileName",
                 "attachment.onlyAvailableAfterSave",
                 "attachment.size",

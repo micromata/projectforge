@@ -23,7 +23,6 @@
 
 package org.projectforge.common
 
-import mu.KotlinLogging
 import java.io.*
 import java.security.spec.KeySpec
 import javax.crypto.*
@@ -31,7 +30,7 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
-private val log = KotlinLogging.logger {}
+// private val log = KotlinLogging.logger {}
 
 /**
  * Encrypts and decrypts streams by using AES.

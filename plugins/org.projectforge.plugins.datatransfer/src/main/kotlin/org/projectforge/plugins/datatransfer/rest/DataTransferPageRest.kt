@@ -33,10 +33,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
-import org.projectforge.plugins.datatransfer.DataTransferAreaDO
-import org.projectforge.plugins.datatransfer.DataTransferAreaDao
-import org.projectforge.plugins.datatransfer.DataTransferPlugin
-import org.projectforge.plugins.datatransfer.NotificationMailService
+import org.projectforge.plugins.datatransfer.*
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
@@ -81,7 +78,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val pair = convertData(id)
     val dbObj = pair.first
     val dto = pair.second
-    DataTransferUtils.downloadAll(
+    DataTransferRestUtils.downloadAll(
       response,
       attachmentsService,
       dataTransferAreaPagesRest.attachmentsAccessChecker,
@@ -104,7 +101,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val layout = UILayout("plugins.datatransfer.title.heading")
       .add(
         UIFieldset(title = "'${dto.areaName}")
-          .add(UIAttachmentList(DataTransferPlugin.ID, id))
+          .add(UIAttachmentList(DataTransferPlugin.ID, id, showExpiryInfo = true))
           .add(
             UIButton(
               "downloadAll",
@@ -316,6 +313,9 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       id,
       dataTransferAreaPagesRest.attachmentsAccessChecker
     )
+    dto.attachments?.forEach {
+      it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it.lastUpdate, dbObj.expiryDays))
+    }
     dto.internalLink = getUrl(PagesResolver.getDynamicPageUrl(this::class.java, id = id))
     if (!dbObj.accessGroupIds.isNullOrBlank()) {
       // Add all users assigned to the access groups:

@@ -40,18 +40,29 @@ object TimeLeft {
   /**
    * @param date Date in the future to compare with now. For past dates, a message of [TimeAgo] will be returned
    * @param locale Locale to use for translation.
+   * @param pastMessage If given for dates in the past, the given past message is returned, otherwise [TimeAgo.getMessage] is called for past times.
    * @return Time ago message or an empty string, if no date was given.
    */
   @JvmStatic
-  fun getMessage(date: Date?, locale: Locale? = null): String {
+  @JvmOverloads
+  fun getMessage(date: Date?, locale: Locale? = null, pastMessage: String? = null): String {
     date ?: return ""
-    return TimeAgo.translate(getI18nKey(date, true), "timeleft", locale)
+    val result = getI18nKey(date, pastMessage)
+    return if (result.first == pastMessage) {
+      pastMessage
+    } else {
+      TimeAgo.translate(result, "timeleft", locale)
+    }
   }
 
-  internal fun getI18nKey(date: Date, allowFutureTimes: Boolean): Pair<String, Long> {
+  internal fun getI18nKey(date: Date, pastMessage: String? = null): Pair<String, Long> {
     val seconds = (date.time - System.currentTimeMillis()) / 1000
-    if (seconds < 0 && allowFutureTimes) {
-      return TimeAgo.getI18nKey(date, false)
+    if (seconds < 0) {
+      return if (pastMessage != null) {
+        Pair(pastMessage, -1)
+      } else {
+        TimeAgo.getI18nKey(date, false)
+      }
     }
     return TimeAgo.getUnit(seconds)
   }

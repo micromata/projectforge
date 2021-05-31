@@ -28,7 +28,6 @@ import org.projectforge.common.DateFormatType
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.i18n.TimeAgo
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
@@ -118,9 +117,9 @@ class Attachment() {
   var isCrypted: Boolean? = false
 
   /**
-   * Info field (e. g. crypt status of zip files)
+   * Info fields (used e. g. by DataTransferTool). You may add entries via [addInfo].
    */
-  var info: String? = null
+  var info: MutableMap<String, Any?>? = null
 
   /**
    * If zip file is encrypted, the algorithm is stored (if encrypted by ProjectForge)
@@ -141,7 +140,29 @@ class Attachment() {
     this.zipEncryptionAlgorithm = fileObject.zipEncryptionAlgorithm
   }
 
+  /**
+   * Appends entries to [info] map (map will be created if null).
+   */
+  fun addInfo(key: String, value: Any?) {
+    info?.let {
+      it[key] = value
+    } ?: run {
+      info = mutableMapOf(key to value)
+    }
+  }
+
+  /**
+   * Adds expiry info to map [info], used by DynamicAttachmentList.jsx.
+   */
+  fun addExpiryInfo(value: String) {
+    addInfo(INFO_EXPIRY_KEY, value)
+  }
+
   override fun toString(): String {
     return ToStringUtil.toJsonString(this)
+  }
+
+  companion object {
+    const val INFO_EXPIRY_KEY = "expiryInfo"
   }
 }

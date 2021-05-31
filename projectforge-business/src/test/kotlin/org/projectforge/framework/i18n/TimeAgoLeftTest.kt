@@ -68,7 +68,7 @@ class TimeAgoLeftTest {
     Assertions.assertEquals(expectedI18nKey, pair.first)
     Assertions.assertEquals(expectedCounter, pair.second)
 
-    pair = TimeLeft.getI18nKey(Date(System.currentTimeMillis() + secondsOffset * 1000 + 1000), allowNegativeTimes)
+    pair = TimeLeft.getI18nKey(Date(System.currentTimeMillis() + secondsOffset * 1000 + 1000), if (allowNegativeTimes) null else "negative")
     Assertions.assertEquals(expectedI18nKey, pair.first)
     Assertions.assertEquals(expectedCounter, pair.second)
   }

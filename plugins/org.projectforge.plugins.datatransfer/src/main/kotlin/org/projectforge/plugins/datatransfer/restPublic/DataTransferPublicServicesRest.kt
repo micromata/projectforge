@@ -32,7 +32,7 @@ import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.NotificationMailService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
-import org.projectforge.plugins.datatransfer.rest.DataTransferUtils
+import org.projectforge.plugins.datatransfer.rest.DataTransferRestUtils
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -147,7 +147,7 @@ class DataTransferPublicServicesRest {
       return RestUtils.badRequest("Download not enabled.")
     }
     val dto = convert(request, area, sessionData.userInfo)
-    DataTransferUtils.downloadAll(
+    DataTransferRestUtils.downloadAll(
       response,
       attachmentsService,
       attachmentsAccessChecker,
