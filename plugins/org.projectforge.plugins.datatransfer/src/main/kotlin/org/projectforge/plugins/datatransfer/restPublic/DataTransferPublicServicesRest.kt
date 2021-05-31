@@ -27,10 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileInfo
-import org.projectforge.plugins.datatransfer.DataTransferAreaDO
-import org.projectforge.plugins.datatransfer.DataTransferAreaDao
-import org.projectforge.plugins.datatransfer.DataTransferPlugin
-import org.projectforge.plugins.datatransfer.NotificationMailService
+import org.projectforge.plugins.datatransfer.*
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.plugins.datatransfer.rest.DataTransferRestUtils
 import org.projectforge.rest.AttachmentsServicesRest
@@ -337,6 +334,9 @@ class DataTransferPublicServicesRest {
         attachmentsAccessChecker
       )
     )
+    dto.attachments?.forEach {
+      it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it.lastUpdate, dbo.expiryDays))
+    }
     dto.userInfo = userInfo
     return dto
   }
