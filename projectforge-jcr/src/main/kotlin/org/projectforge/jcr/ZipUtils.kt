@@ -51,21 +51,27 @@ object ZipUtils {
   }
 
   @JvmStatic
+  fun determineZipMode(inputStream: InputStream?): ZipMode? {
+    inputStream ?: return null
+    return if (isEncrypted(inputStream)) ZipMode.ENCRYPTED else ZipMode.STANDARD
+  }
+
+  @JvmStatic
   @JvmOverloads
   fun encryptZipFile(
     fileName: String,
     password: String,
     inputStream: InputStream,
     outputStream: OutputStream,
-    mode: ZipEncryptionAlgorithm = ZipEncryptionAlgorithm.ZIP_STANDARD,
+    mode: ZipMode = ZipMode.ENCRYPTED_STANDARD,
   ) {
     val zipParameters = ZipParameters()
     zipParameters.isEncryptFiles = true
-    if (mode == ZipEncryptionAlgorithm.ZIP_STANDARD || mode == ZipEncryptionAlgorithm.ENCRYPTED) {
+    if (mode == ZipMode.ENCRYPTED_STANDARD || mode == ZipMode.ENCRYPTED) {
       zipParameters.encryptionMethod = EncryptionMethod.ZIP_STANDARD
     } else {
       zipParameters.encryptionMethod = EncryptionMethod.AES
-      zipParameters.aesKeyStrength = if (mode == ZipEncryptionAlgorithm.AES128) {
+      zipParameters.aesKeyStrength = if (mode == ZipMode.ENCRYPTED_AES128) {
         AesKeyStrength.KEY_STRENGTH_128
       } else {
         AesKeyStrength.KEY_STRENGTH_256

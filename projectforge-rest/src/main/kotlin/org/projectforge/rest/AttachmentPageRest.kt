@@ -24,13 +24,10 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.framework.i18n.TimeLeft
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
@@ -91,7 +88,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
       val info = mutableMapOf<String, Any?>()
       attachment.info = info
 
-      attachment.zipEncryptionAlgorithm?.let {
+      attachment.zipMode?.let {
         info["encryptionStatus"] = translate(it.i18nKey)
       }
 

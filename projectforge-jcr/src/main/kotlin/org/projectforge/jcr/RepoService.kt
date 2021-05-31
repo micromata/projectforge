@@ -185,7 +185,7 @@ open class RepoService {
         } else {
           val inputStream = CryptStreamUtils.pipeToEncryptedInputStream(content, password)
           bin = session.valueFactory.createBinary(inputStream)
-          fileObject.isCrypted = true
+          fileObject.aesEncrypted = true
         }
         fileNode.setProperty(PROPERTY_FILECONTENT, bin)
         fileObject.size = bin?.size
@@ -308,7 +308,7 @@ open class RepoService {
     user: String,
     newFileName: String? = null,
     newDescription: String? = null,
-    newZipEncryptionAlgorithm: ZipEncryptionAlgorithm? = null,
+    newZipMode: ZipMode? = null,
   ): FileObject? {
     return runInSession { session ->
       val node = getNode(session, fileObject.parentNodePath, fileObject.relPath, false)
@@ -333,9 +333,9 @@ open class RepoService {
             fileNode.setProperty(PROPERTY_FILEDESC, newDescription)
             modified = true
           }
-          if (newZipEncryptionAlgorithm != null) {
-            log.info { "Changing zip encryption algorithm to '$newZipEncryptionAlgorithm' for: $fileObject" }
-            fileNode.setProperty(PROPERTY_ZIP_ENCRYPTION_ALGORITHM, newZipEncryptionAlgorithm.name)
+          if (newZipMode != null) {
+            log.info { "Changing zip encryption algorithm to '$newZipMode' for: $fileObject" }
+            fileNode.setProperty(PROPERTY_ZIP_MODE, newZipMode.name)
             modified = true
           }
           if (modified) {
@@ -509,7 +509,7 @@ open class RepoService {
     if (!suppressLogInfo) {
       log.info { "Reading file from repository '${node.path}': $fileObject..." }
     }
-    if (!useEncryptedFile && fileObject.isCrypted == true && password.isNullOrBlank()) {
+    if (!useEncryptedFile && fileObject.aesEncrypted == true && password.isNullOrBlank()) {
       log.error { "File is crypted, but no password given to decrypt in repository '${node.path}': $fileObject" }
       return null
     }
@@ -689,8 +689,8 @@ open class RepoService {
     internal const val PROPERTY_LAST_UPDATE = "lastUpdate"
     internal const val PROPERTY_LAST_UPDATE_BY_USER = "lastUpdateByUser"
     internal const val PROPERTY_CHECKSUM = "checksum"
-    internal const val PROPERTY_IS_CRYPTED = "isCrypted"
-    internal const val PROPERTY_ZIP_ENCRYPTION_ALGORITHM = "zipEncryptionAlgorith"
+    internal const val PROPERTY_AES_ENCRYPTED = "aesEncrypted"
+    internal const val PROPERTY_ZIP_MODE = "zipMode"
     private const val PROPERTY_RANDOM_ID_LENGTH = 20
     private val ALPHA_CHARSET: Array<Char> = ('a'..'z').toList().toTypedArray()
 

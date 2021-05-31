@@ -307,7 +307,7 @@ open class AttachmentsService {
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
     repoService.ensureNode(null, getPath(path, id))
     val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileInfo = fileInfo)
-    fileObject.isCrypted = !password.isNullOrBlank()
+    fileObject.aesEncrypted = !password.isNullOrBlank()
     val user = userString ?: ThreadLocalUserContext.getUserId()!!.toString()
     repoService.storeFile(
       fileObject,
@@ -322,7 +322,7 @@ open class AttachmentsService {
       repoService.retrieveFileInputStream(fileObject, password)?.use { istrean ->
         if (ZipUtils.isEncrypted(istrean)) {
           // It's encrypted, modify file info:
-          repoService.changeFileInfo(fileObject, user, newZipEncryptionAlgorithm = ZipEncryptionAlgorithm.ENCRYPTED)
+          repoService.changeFileInfo(fileObject, user, newZipMode = ZipMode.ENCRYPTED)
         }
       }
     }

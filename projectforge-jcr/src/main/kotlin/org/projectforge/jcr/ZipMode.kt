@@ -25,8 +25,34 @@ package org.projectforge.jcr
 
 import org.projectforge.common.i18n.I18nEnum
 
-enum class ZipEncryptionAlgorithm(val key: String) : I18nEnum {
-  ENCRYPTED("encrypted"), ZIP_STANDARD("standard"), AES128("aes128"), AES256("aes256");
+enum class ZipMode(val key: String) : I18nEnum {
+  /**
+   * Not encrypted.
+   */
+  STANDARD("standard"),
+
+  /**
+   * Encrypted (algorithm not known, was uploaded as already encrypted file).
+   */
+  ENCRYPTED("encrypted"),
+
+  /**
+   * Encrypted with standard zip algorithm (most compatibility, less secure).
+   */
+  ENCRYPTED_STANDARD("encryptedStandard"),
+
+  /**
+   * AES-128 encrpyted (not supported by all clients)
+   */
+  ENCRYPTED_AES128("encrytpedAes128"),
+
+  /**
+   * AES-256 encrpyted (not supported by all clients, highest security)
+   */
+  ENCRYPTED_AES256("encrytpedAes256");
+
+  val isEncrpyted: Boolean
+    get() = this != STANDARD
 
   /**
    * The key will be used e. g. for i18n.
@@ -34,5 +60,5 @@ enum class ZipEncryptionAlgorithm(val key: String) : I18nEnum {
    * @return
    */
   override val i18nKey: String
-    get() = "attachment.zip.encryptionAlgorithm.$key"
+    get() = "attachment.zip.$key"
 }

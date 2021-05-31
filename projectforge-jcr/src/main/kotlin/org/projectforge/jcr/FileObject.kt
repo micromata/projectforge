@@ -80,9 +80,9 @@ class FileObject() : FileInfo() {
     fileId = node.name
     size = PFJcrUtils.getProperty(node, RepoService.PROPERTY_FILESIZE)?.long
     checksum = PFJcrUtils.getProperty(node, RepoService.PROPERTY_CHECKSUM)?.string
-    isCrypted = PFJcrUtils.getProperty(node, RepoService.PROPERTY_IS_CRYPTED)?.boolean == true
-    PFJcrUtils.getProperty(node, RepoService.PROPERTY_ZIP_ENCRYPTION_ALGORITHM)?.string?.let {
-      zipEncryptionAlgorithm = ZipEncryptionAlgorithm.valueOf(it)
+    aesEncrypted = PFJcrUtils.getProperty(node, RepoService.PROPERTY_AES_ENCRYPTED)?.boolean == true
+    PFJcrUtils.getProperty(node, RepoService.PROPERTY_ZIP_MODE)?.string?.let {
+      zipMode = ZipMode.valueOf(it)
     }
     if (log.isDebugEnabled) {
       log.debug { "Restoring: ${PFJcrUtils.toJson(this)}" }
@@ -99,9 +99,9 @@ class FileObject() : FileInfo() {
     node.setProperty(RepoService.PROPERTY_CREATED_BY_USER, createdByUser ?: "")
     node.setProperty(RepoService.PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString(lastUpdate) ?: "")
     node.setProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER, lastUpdateByUser ?: "")
-    node.setProperty(RepoService.PROPERTY_IS_CRYPTED, isCrypted == true)
-    zipEncryptionAlgorithm?.let {
-      node.setProperty(RepoService.PROPERTY_ZIP_ENCRYPTION_ALGORITHM, it.name)
+    node.setProperty(RepoService.PROPERTY_AES_ENCRYPTED, aesEncrypted == true)
+    zipMode?.let {
+      node.setProperty(RepoService.PROPERTY_ZIP_MODE, it.name)
     }
     setChecksum(node, checksum)
     size?.let { node.setProperty(RepoService.PROPERTY_FILESIZE, it) }
@@ -144,7 +144,7 @@ class FileObject() : FileInfo() {
   var relPath: String? = null
 
   override fun toString(): String {
-    return "location=[$location],id=[$fileId],fileName=[$fileName],size=[${FormatterUtils.formatBytes(size)}],isCypted=[${isCrypted == true}]"
+    return "location=[$location],id=[$fileId],fileName=[$fileName],size=[${FormatterUtils.formatBytes(size)}],isCypted=[${aesEncrypted == true}]"
   }
 
   companion object {

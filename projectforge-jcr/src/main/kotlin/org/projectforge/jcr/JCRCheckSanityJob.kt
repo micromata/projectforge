@@ -88,6 +88,16 @@ open class JCRCheckSanityJob {
             log.info { msg }
           }
         }
+        if (fileObject.fileExtension == "zip") {
+          // Check mode of zip files (encryption).
+          if (fileObject.zipMode == null) {
+            val newZipMode = repoService.getFileInputStream(fileNode, fileObject, true, useEncryptedFile = true)
+              .use { istream -> ZipUtils.determineZipMode(istream) }
+            if (newZipMode != null) {
+              fileNode.setProperty(RepoService.PROPERTY_ZIP_MODE, newZipMode.name)
+            }
+          }
+        }
         fileObject.size.let { repoSize ->
           if (repoSize == null) {
             val msg =
