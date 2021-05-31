@@ -66,7 +66,11 @@ class UIAttachmentList(
   /**
    * If true, the upload function isn't available.
    */
-  val uploadDisabled: Boolean? = null
+  val uploadDisabled: Boolean? = null,
+  /**
+   * If true, the expiry info of the attachments will be displayed (if given in [org.projectforge.framework.jcr.Attachment.info] as string value with key 'expiryInfo'.
+   */
+  val showExpiryInfo: Boolean? = null,
 ) :
   UIElement(type = UIElementType.ATTACHMENT_LIST) {
 }

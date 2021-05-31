@@ -67,7 +67,7 @@ object TimeAgo {
   internal fun getI18nKey(date: Date, allowFutureTimes: Boolean): Pair<String, Long> {
     val seconds = (System.currentTimeMillis() - date.time) / 1000
     if (seconds < 0 && allowFutureTimes) {
-      return TimeLeft.getI18nKey(date, false)
+      return TimeLeft.getI18nKey(date, null)
     }
     return getUnit(seconds)
   }

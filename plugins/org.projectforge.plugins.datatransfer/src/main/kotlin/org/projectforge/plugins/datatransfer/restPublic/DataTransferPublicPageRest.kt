@@ -133,7 +133,8 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
             ),
             restBaseUrl = "/${RestPaths.REST_PUBLIC}/datatransfer",
             downloadOnRowClick = false,
-            uploadDisabled = dataTransfer.externalUploadEnabled != true
+            uploadDisabled = dataTransfer.externalUploadEnabled != true,
+            showExpiryInfo = true,
           )
         )
     )

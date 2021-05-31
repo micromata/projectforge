@@ -17,6 +17,7 @@ function DynamicAttachmentList(
         restBaseUrl,
         downloadOnRowClick,
         uploadDisabled,
+        showExpiryInfo,
     },
 ) {
     const {
@@ -98,6 +99,10 @@ function DynamicAttachmentList(
                     <th>{ui.translations['attachment.fileName']}</th>
                     <th>{ui.translations['attachment.size']}</th>
                     <th>{ui.translations.description}</th>
+                    {showExpiryInfo === true
+                    && (
+                        <th>{ui.translations['attachment.expires']}</th>
+                    )}
                     <th>{ui.translations.created}</th>
                     <th>{ui.translations.createdBy}</th>
                     <th>{ui.translations.modified}</th>
@@ -120,6 +125,10 @@ function DynamicAttachmentList(
                         </td>
                         <td>{entry.sizeHumanReadable}</td>
                         <td>{entry.description}</td>
+                        {showExpiryInfo
+                        && (
+                            <td>{(entry.info && entry.info.expiryInfo) ? entry.info.expiryInfo : ''}</td>
+                        )}
                         <td>{entry.createdFormatted}</td>
                         <td>{entry.createdByUser}</td>
                         <td>{entry.lastUpdateTimeAgo}</td>
@@ -164,6 +173,7 @@ DynamicAttachmentList.propTypes = {
     restBaseUrl: PropTypes.string,
     downloadOnRowClick: PropTypes.bool,
     uploadDisabled: PropTypes.bool,
+    showExpiryInfo: PropTypes.bool,
 };
 
 DynamicAttachmentList.defaultProps = {
@@ -173,6 +183,7 @@ DynamicAttachmentList.defaultProps = {
     restBaseUrl: '/rs/attachments',
     downloadOnRowClick: false,
     uploadDisabled: false,
+    showExpiryInfo: undefined,
 };
 
 export default DynamicAttachmentList;

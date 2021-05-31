@@ -24,10 +24,13 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
+import org.projectforge.framework.i18n.TimeLeft
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
@@ -36,7 +39,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import java.nio.file.Files
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -86,10 +88,12 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
     ): UILayout {
       val layout = UILayout("attachment")
 
-      attachment.zipEncryptionAlgorithm?.let {
-        attachment.info = translate(it.i18nKey)
-      }
+      val info = mutableMapOf<String, Any?>()
+      attachment.info = info
 
+      attachment.zipEncryptionAlgorithm?.let {
+        info["encryptionStatus"] = translate(it.i18nKey)
+      }
 
       val lc = LayoutContext(Attachment::class.java)
 
@@ -104,7 +108,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
             )
             .add(
               UICol(UILength(md = 6))
-                .add(UIReadOnlyField("attachment.info", label = "attachment.info"))
+                .add(UIReadOnlyField("attachment.info.encryptionStatus", label = "attachment.info"))
             )
         )
         .add(
@@ -124,6 +128,46 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
         layout.add(UIReadOnlyField("attachment.checksum", label = "attachment.checksum", canCopy = true))
       }
 
+      if (writeAccess) {
+        layout.addAction(
+          UIButton(
+            "delete",
+            translate("delete"),
+            UIColor.DANGER,
+            confirmMessage = translate("file.panel.deleteExistingFile.heading"),
+            responseAction = ResponseAction(
+              RestResolver.getRestUrl(restClass, "delete"),
+              targetType = TargetType.POST
+            )
+          )
+        )
+        /*layout.addAction(
+          UIButton(
+            "encrypt",
+            title = translate("attachment.encryption"),
+            color = UIColor.DARK,
+            responseAction = ResponseAction(
+              PagesResolver.getDynamicPageUrl(
+                AttachmentPageRest::class.java,
+                params = mapOf("category" to category, "listId" to listId, "id" to id, "fileId" to fileId)
+              ),
+              targetType = TargetType.POST
+            )
+          )
+        )*/
+        layout.addAction(
+          UIButton(
+            "update",
+            translate("update"),
+            UIColor.SUCCESS,
+            responseAction = ResponseAction(
+              RestResolver.getRestUrl(restClass, "modify"),
+              targetType = TargetType.POST
+            ),
+            default = true
+          )
+        )
+      }
       layout.addAction(
         UIButton(
           "download",
@@ -138,32 +182,6 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
           )
         )
       )
-      if (writeAccess) {
-        layout.addAction(
-          UIButton(
-            "delete",
-            translate("delete"),
-            UIColor.DANGER,
-            confirmMessage = translate("file.panel.deleteExistingFile.heading"),
-            responseAction = ResponseAction(
-              RestResolver.getRestUrl(restClass, "delete"),
-              targetType = TargetType.POST
-            )
-          )
-        )
-          .addAction(
-            UIButton(
-              "update",
-              translate("update"),
-              UIColor.SUCCESS,
-              responseAction = ResponseAction(
-                RestResolver.getRestUrl(restClass, "modify"),
-                targetType = TargetType.POST
-              ),
-              default = true
-            )
-          )
-      }
       LayoutUtils.process(layout)
       return layout
     }
