@@ -144,7 +144,8 @@ open class JacksonConfiguration {
         "sizeHumanReadable",
         "createdFormatted",
         "lastUpdateFormatted",
-        "lastUpdateTimeAgo"
+        "lastUpdateTimeAgo",
+        "encrypted",
       )
       registerAllowedUnknownProperties(PFUserDO::class.java, "fullname")
       registerAllowedUnknownProperties(KundeDO::class.java, "id")

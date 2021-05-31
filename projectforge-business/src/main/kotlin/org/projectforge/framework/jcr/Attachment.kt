@@ -31,7 +31,7 @@ import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
-import org.projectforge.jcr.ZipEncryptionAlgorithm
+import org.projectforge.jcr.ZipMode
 import java.util.*
 
 /**
@@ -114,7 +114,7 @@ class Attachment() {
    * An encrypted file is encrypted in the storage itself and has to be encrypted server-side before download.
    * After download the user gets the file decrypted.
    */
-  var isCrypted: Boolean? = false
+  var aesEncrypted: Boolean? = false
 
   /**
    * Info fields (used e. g. by DataTransferTool). You may add entries via [addInfo].
@@ -124,7 +124,11 @@ class Attachment() {
   /**
    * If zip file is encrypted, the algorithm is stored (if encrypted by ProjectForge)
    */
-  var zipEncryptionAlgorithm: ZipEncryptionAlgorithm? = null
+  var zipMode: ZipMode? = null
+
+  @get:JsonProperty
+  val encrypted: Boolean
+    get() =  zipMode?.isEncrpyted == true || aesEncrypted == true
 
   constructor(fileObject: FileObject) : this() {
     this.fileId = fileObject.fileId
@@ -136,8 +140,8 @@ class Attachment() {
     this.lastUpdate = fileObject.lastUpdate
     this.lastUpdateByUser = fileObject.lastUpdateByUser
     this.checksum = fileObject.checksum
-    this.isCrypted = fileObject.isCrypted
-    this.zipEncryptionAlgorithm = fileObject.zipEncryptionAlgorithm
+    this.aesEncrypted = fileObject.aesEncrypted
+    this.zipMode = fileObject.zipMode
   }
 
   /**

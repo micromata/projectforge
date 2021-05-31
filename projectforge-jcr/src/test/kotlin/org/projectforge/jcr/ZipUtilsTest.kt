@@ -39,12 +39,12 @@ class ZipUtilsTest {
 
   @Test
   fun encryptionTest() {
-    checkMethod(ZipEncryptionAlgorithm.ZIP_STANDARD, "pom.zip")
-    checkMethod(ZipEncryptionAlgorithm.AES128, "pom-AES128.zip")
-    checkMethod(ZipEncryptionAlgorithm.AES256, "pom-AES256.zip")
+    checkMethod(ZipMode.ENCRYPTED_STANDARD, "pom.zip")
+    checkMethod(ZipMode.ENCRYPTED_AES128, "pom-AES128.zip")
+    checkMethod(ZipMode.ENCRYPTED_AES256, "pom-AES256.zip")
   }
 
-  private fun checkMethod(mode: ZipEncryptionAlgorithm, zipFilename: String) {
+  private fun checkMethod(mode: ZipMode, zipFilename: String) {
     val istream = FileInputStream("pom.xml")
     val zipFile = File(testDir, zipFilename)
     val outputStream = FileOutputStream(zipFile)

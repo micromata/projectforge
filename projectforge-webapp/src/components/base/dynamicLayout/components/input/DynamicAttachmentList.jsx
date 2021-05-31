@@ -1,4 +1,4 @@
-import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -119,6 +119,10 @@ function DynamicAttachmentList(
                                 }}
                                 onClick={handleDownload(entry.fileId)}
                             >
+                                {entry.encrypted
+                                && (
+                                    <FontAwesomeIcon icon={faLock} className="mr-2" />
+                                )}
                                 {`${entry.name} `}
                                 <FontAwesomeIcon icon={faDownload} />
                             </span>

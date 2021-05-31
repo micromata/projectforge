@@ -56,11 +56,11 @@ open class FileInfo(
    * An encrypted file is encrypted in the storage itself and has to be encrypted server-side before download.
    * After download the user gets the file decrypted.
    */
-  var isCrypted: Boolean? = false,
+  var aesEncrypted: Boolean? = false,
   /**
    * The password isn't stored anywhere. If zip file is encrypted, the algorithm is stored (if encrypted by ProjectForge).
    */
-  var zipEncryptionAlgorithm: ZipEncryptionAlgorithm? = null,
+  var zipMode: ZipMode? = null,
   fileSize: Long? = null
 ) {
   /**
@@ -69,6 +69,9 @@ open class FileInfo(
   var size: Long? = fileSize
     internal set
 
+  /**
+   * extension after last '.' (zip, pdf etc.)
+   */
   val fileExtension: String
     get() = fileName?.substringAfterLast('.', "") ?: ""
 
@@ -82,7 +85,7 @@ open class FileInfo(
     this.lastUpdateByUser = other.lastUpdateByUser
     this.size = other.size
     this.checksum = other.checksum
-    this.isCrypted = other.isCrypted
-    this.zipEncryptionAlgorithm = other.zipEncryptionAlgorithm
+    this.aesEncrypted = other.aesEncrypted
+    this.zipMode = other.zipMode
   }
 }
