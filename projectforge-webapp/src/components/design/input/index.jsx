@@ -106,7 +106,7 @@ const Input = React.forwardRef((
                 <span
                     ref={labelRef}
                     className={styles.labelText}
-                    id={`input-label-${id}`}
+                    id={`input-label-${String.idify(id)}`}
                 >
                     {label}
                     {tooltip && <TooltipIcon />}
@@ -116,7 +116,7 @@ const Input = React.forwardRef((
                 <span className={styles.additionalLabel}>{additionalLabel}</span>
             )}
             {tooltip && (
-                <UncontrolledTooltip placement="auto" target={`input-label-${id}`}>
+                <UncontrolledTooltip placement="auto" target={`input-label-${String.idify(id)}`}>
                     {tooltip}
                 </UncontrolledTooltip>
             )}
