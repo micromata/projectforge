@@ -150,6 +150,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
                   UIInput(
                     "attachment.password",
                     label = "password",
+                    tooltip = "attachment.password.info",
                     dataType = UIDataType.PASSWORD,
                   )
                 )
