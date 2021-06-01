@@ -26,6 +26,8 @@ package org.projectforge.rest
 import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.api.TechnicalException
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
@@ -33,6 +35,8 @@ import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.jcr.FileInfo
+import org.projectforge.jcr.ZipMode
+import org.projectforge.jcr.ZipUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -42,11 +46,15 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.projectforge.ui.UIAttachmentList
+import org.projectforge.ui.UIToast
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -95,6 +103,79 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       )
   }
 
+  @PostMapping("encrypt")
+  fun encrypt(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentData>)
+      : Any? {
+    validateCsrfToken(request, postData)?.let { return it }
+    val data = postData.data
+    val attachment = data.attachment
+    val encryptionMode = attachment.newZipMode ?: ZipMode.ENCRYPTED_STANDARD
+    val password = attachment.password
+    if (password.isNullOrBlank() || password.length < 6) {
+      return UIToast.createToast(translateMsg("user.changePassword.error.notMinLength", "6"))
+    }
+    val pagesRest = getPagesRest(data.category, data.listId)
+    getAttachment(pagesRest, data) // Check attachment availability
+    val obj = getDataObject(pagesRest, data.id) // Check data object availability.
+
+    val pair = attachmentsService.getAttachmentInputStream(
+      pagesRest.jcrPath!!, data.id, data.fileId, pagesRest.attachmentsAccessChecker, data.listId
+    )
+    if (pair?.second == null) {
+      log.error { "Can't encrypt zip file. Not found as inputstream: $attachment" }
+      return UIToast.createToast(translate("exception.internalError"))
+    }
+    var newFilename = "untitled.zip"
+    val tmpFile = File.createTempFile("projectforge-encrypted-zip", null)
+    pair.second.use { istream ->
+      val file = File(pair.first.fileName ?: "untitled.zip")
+      val filenameWithoutExtension = file.nameWithoutExtension
+      val oldExtension = file.extension
+      val preserveExtension = if (oldExtension.equals("zip", ignoreCase = true)) "" else ".$oldExtension"
+      newFilename = "$filenameWithoutExtension$preserveExtension.zip"
+      FileOutputStream(tmpFile).use { out ->
+        ZipUtils.encryptZipFile(
+          newFilename,
+          password,
+          istream,
+          out,
+          encryptionMode
+        )
+      }
+    }
+    FileInputStream(tmpFile).use { istream ->
+      attachmentsService.addAttachment(
+        pagesRest.jcrPath!!,
+        fileInfo = FileInfo(
+          newFilename,
+          fileSize = tmpFile.length(),
+          description = attachment.description,
+          zipMode = encryptionMode,
+        ),
+        inputStream = istream,
+        baseDao = pagesRest.baseDao,
+        obj = obj,
+        accessChecker = pagesRest.attachmentsAccessChecker
+      )
+    }
+    attachmentsService.deleteAttachment(
+      pagesRest.jcrPath!!,
+      data.fileId,
+      pagesRest.baseDao,
+      obj,
+      pagesRest.attachmentsAccessChecker,
+      data.listId
+    )
+    val list =
+      attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
+          .addVariable("data", ResponseData(list))
+      )
+  }
+
+
   /**
    * Upload service e. g. for [UIAttachmentList].
    * @param id Object id where the uploaded file should belong to.
@@ -108,12 +189,18 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     @PathVariable("listId") listId: String?,
     @RequestParam("file") file: MultipartFile
   )
-  //@RequestParam("files") files: Array<MultipartFile>)
+//@RequestParam("files") files: Array<MultipartFile>)
       : ResponseEntity<*>? {
     val pagesRest = getPagesRest(category, listId)
     //files.forEach { file ->
     val filename = file.originalFilename
-    log.info { "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', size=${FormatterUtils.formatBytes(file.size)}, page='${this::class.java.name}'." }
+    log.info {
+      "User tries to upload attachment: id='$id', listId='$listId', filename='$filename', size=${
+        FormatterUtils.formatBytes(
+          file.size
+        )
+      }, page='${this::class.java.name}'."
+    }
 
     val obj = getDataObject(pagesRest, id) // Check data object availability.
     attachmentsService.addAttachment(

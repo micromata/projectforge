@@ -317,7 +317,7 @@ open class AttachmentsService {
       data,
       password = password
     )
-    if (fileObject.fileExtension.equals("zip", ignoreCase = true)) {
+    if (fileInfo.zipMode == null && fileObject.fileExtension.equals("zip", ignoreCase = true)) {
       // Try to check, if uploaded zip file is encrypted.
       repoService.retrieveFileInputStream(fileObject, password)?.use { istrean ->
         if (ZipUtils.isEncrypted(istrean)) {

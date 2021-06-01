@@ -126,9 +126,21 @@ class Attachment() {
    */
   var zipMode: ZipMode? = null
 
+  /**
+   * If zip file isn't encrypted, this algorithm is the desired one, if the user presses "encrypt" button.
+   */
+  @PropertyInfo(i18nKey = "attachment.zip.encryptionAlgorithm")
+  var newZipMode: ZipMode? = null
+
+  /**
+   * Optional password to encrypt file or to test encryption.
+   */
+  @PropertyInfo(i18nKey = "password")
+  var password: String? = null
+
   @get:JsonProperty
   val encrypted: Boolean
-    get() =  zipMode?.isEncrpyted == true || aesEncrypted == true
+    get() = zipMode?.isEncrpyted == true || aesEncrypted == true
 
   constructor(fileObject: FileObject) : this() {
     this.fileId = fileObject.fileId
