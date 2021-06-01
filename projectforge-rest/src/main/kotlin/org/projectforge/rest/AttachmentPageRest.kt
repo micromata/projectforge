@@ -26,8 +26,10 @@ package org.projectforge.rest
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
+import org.projectforge.jcr.ZipMode
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
@@ -69,7 +71,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
     services.getDataObject(pagesRest, id) // Check data object availability.
     val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
     data.attachment = services.getAttachment(pagesRest, data)
-    val layout = createAttachmentLayout(id, category, fileId, listId, attachment = data.attachment)
+    val layout = createAttachmentLayout(id, category, fileId, listId, attachment = data.attachment, encryptionSupport = true)
     return FormLayoutData(data, layout, createServerData(request))
   }
 
@@ -82,6 +84,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
       attachment: Attachment,
       writeAccess: Boolean = true,
       restClass: Class<*> = AttachmentsServicesRest::class.java,
+      encryptionSupport: Boolean = false,
     ): UILayout {
       val layout = UILayout("attachment")
 
@@ -121,6 +124,49 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
                 .add(UIReadOnlyField("attachment.lastUpdateByUser", label = "modifiedBy"))
             )
         )
+      if (encryptionSupport && writeAccess && !attachment.encrypted) {
+        attachment.newZipMode = ZipMode.ENCRYPTED_AES256
+        val algoCol = UICol(UILength(md = 6))
+        val algoSelect = UISelect(
+          "attachment.newZipMode",
+          layoutContext = lc,
+          values = listOf(
+            UISelectValue(ZipMode.ENCRYPTED_STANDARD.name, translate(ZipMode.ENCRYPTED_STANDARD.i18nKey)),
+            UISelectValue(ZipMode.ENCRYPTED_AES256.name, translate(ZipMode.ENCRYPTED_AES256.i18nKey))
+          ),
+        )
+        algoCol.add(algoSelect)
+
+        layout.add(
+          UIRow()
+            .add(algoCol)
+            .add(
+              UICol(UILength(md = 3))
+                .add(
+                  UIInput(
+                    "attachment.password",
+                    label = "password",
+                    dataType = UIDataType.PASSWORD,
+                  )
+                )
+            )
+            .add(
+              UICol(UILength(md = 3))
+                .add(
+                  UIButton(
+                    "encrypt",
+                    title = translate("attachment.encrypt"),
+                    color = UIColor.DARK,
+                    responseAction = ResponseAction(
+                      RestResolver.getRestUrl(restClass, "encrypt"),
+                      targetType = TargetType.POST
+                    ),
+                    confirmMessage = translate("attachment.encrypt.question")
+                  )
+                )
+            )
+        )
+      }
       if (!attachment.checksum.isNullOrBlank()) {
         layout.add(UIReadOnlyField("attachment.checksum", label = "attachment.checksum", canCopy = true))
       }
@@ -138,20 +184,6 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
             )
           )
         )
-        /*layout.addAction(
-          UIButton(
-            "encrypt",
-            title = translate("attachment.encryption"),
-            color = UIColor.DARK,
-            responseAction = ResponseAction(
-              PagesResolver.getDynamicPageUrl(
-                AttachmentPageRest::class.java,
-                params = mapOf("category" to category, "listId" to listId, "id" to id, "fileId" to fileId)
-              ),
-              targetType = TargetType.POST
-            )
-          )
-        )*/
         layout.addAction(
           UIButton(
             "update",
