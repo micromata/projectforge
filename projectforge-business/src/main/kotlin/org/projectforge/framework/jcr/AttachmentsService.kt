@@ -408,7 +408,8 @@ open class AttachmentsService {
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
     accessChecker: AttachmentsAccessChecker,
-    subPath: String? = null
+    subPath: String? = null,
+    encryptionInProgress: Boolean? = null,
   )
       : Boolean {
     accessChecker.checkDeleteAccess(
@@ -418,7 +419,7 @@ open class AttachmentsService {
       fileId = fileId,
       subPath = subPath
     )
-    return internalDeleteAttachment(path, fileId, baseDao, obj, subPath)
+    return internalDeleteAttachment(path, fileId, baseDao, obj, subPath, encryptionInProgress = encryptionInProgress)
   }
 
   /**
@@ -431,10 +432,11 @@ open class AttachmentsService {
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
     subPath: String? = null,
-    userString: String? = null
-  )
+    userString: String? = null,
+    encryptionInProgress: Boolean? = null,
+    )
       : Boolean {
-    val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
+    val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId, encryptionInProgress = encryptionInProgress)
     val result = repoService.deleteFile(fileObject)
     if (result) {
       updateAttachmentsInfo(

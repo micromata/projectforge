@@ -131,7 +131,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       val file = File(pair.first.fileName ?: "untitled.zip")
       val filenameWithoutExtension = file.nameWithoutExtension
       val oldExtension = file.extension
-      val preserveExtension = if (oldExtension.equals("zip", ignoreCase = true)) "" else ".$oldExtension"
+      val preserveExtension = if (oldExtension.equals("zip", ignoreCase = true)) "-encrypted" else ".$oldExtension"
       newFilename = "$filenameWithoutExtension$preserveExtension.zip"
       FileOutputStream(tmpFile).use { out ->
         ZipUtils.encryptZipFile(
@@ -151,6 +151,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
           fileSize = tmpFile.length(),
           description = attachment.description,
           zipMode = encryptionMode,
+          encryptionInProgress = true,
         ),
         inputStream = istream,
         baseDao = pagesRest.baseDao,
@@ -165,7 +166,8 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       pagesRest.baseDao,
       obj,
       pagesRest.attachmentsAccessChecker,
-      data.listId
+      data.listId,
+      encryptionInProgress = true,
     )
     val list =
       attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
