@@ -26,11 +26,14 @@ package org.projectforge.jcr
 import net.lingala.zip4j.exception.ZipException
 import net.lingala.zip4j.io.inputstream.ZipInputStream
 import net.lingala.zip4j.io.outputstream.ZipOutputStream
+import net.lingala.zip4j.model.LocalFileHeader
 import net.lingala.zip4j.model.ZipParameters
 import net.lingala.zip4j.model.enums.AesKeyStrength
 import net.lingala.zip4j.model.enums.EncryptionMethod
+import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+
 
 object ZipUtils {
   @JvmStatic
@@ -87,4 +90,32 @@ object ZipUtils {
       zipOut.closeEntry()
     }
   }
+
+  /*
+  @JvmStatic
+  @JvmOverloads
+  fun deryptZipFile(
+    password: String,
+    inputStream: InputStream,
+    outputStream: OutputStream,
+  ) {
+    var localFileHeader: LocalFileHeader?
+    var readLen: Int
+    val readBuffer = ByteArray(4096)
+
+    ZipInputStream(inputStream, password.toCharArray()).use { zipInputStream ->
+      while (zipInputStream.getNextEntry().also {
+          localFileHeader = it
+        } != null) {
+        val extractedFile = File(localFileHeader.getFileName())
+        FileOutputStream(extractedFile).use { outputStream ->
+          while (zipInputStream.read(readBuffer).also {
+              readLen = it
+            } !== -1) {
+            outputStream.write(readBuffer, 0, readLen)
+          }
+        }
+      }
+    }
+  }*/
 }

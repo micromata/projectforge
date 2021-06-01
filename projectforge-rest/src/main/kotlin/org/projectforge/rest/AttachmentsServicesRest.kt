@@ -135,6 +135,74 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       newFilename = "$filenameWithoutExtension$preserveExtension.zip"
       FileOutputStream(tmpFile).use { out ->
         ZipUtils.encryptZipFile(
+          file.name,
+          password,
+          istream,
+          out,
+          encryptionMode
+        )
+      }
+    }
+    FileInputStream(tmpFile).use { istream ->
+      attachmentsService.addAttachment(
+        pagesRest.jcrPath!!,
+        fileInfo = FileInfo(
+          newFilename,
+          fileSize = tmpFile.length(),
+          description = attachment.description,
+          zipMode = encryptionMode,
+        ),
+        inputStream = istream,
+        baseDao = pagesRest.baseDao,
+        obj = obj,
+        accessChecker = pagesRest.attachmentsAccessChecker
+      )
+    }
+    tmpFile.delete()
+    attachmentsService.deleteAttachment(
+      pagesRest.jcrPath!!,
+      data.fileId,
+      pagesRest.baseDao,
+      obj,
+      pagesRest.attachmentsAccessChecker,
+      data.listId
+    )
+    val list =
+      attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
+          .addVariable("data", ResponseData(list))
+      )
+  }
+
+  /*
+  @PostMapping("decrypt")
+  fun decrypt(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentData>)
+      : Any? {
+    validateCsrfToken(request, postData)?.let { return it }
+    val data = postData.data
+    val attachment = data.attachment
+    val password = attachment.password
+    val pagesRest = getPagesRest(data.category, data.listId)
+    getAttachment(pagesRest, data) // Check attachment availability
+    val obj = getDataObject(pagesRest, data.id) // Check data object availability.
+
+    val pair = attachmentsService.getAttachmentInputStream(
+      pagesRest.jcrPath!!, data.id, data.fileId, pagesRest.attachmentsAccessChecker, data.listId
+    )
+    if (pair?.second == null) {
+      log.error { "Can't encrypt zip file. Not found as inputstream: $attachment" }
+      return UIToast.createToast(translate("exception.internalError"))
+    }
+    pair.second.use { istream ->
+      val file = File(pair.first.fileName ?: "untitled.zip")
+      val filenameWithoutExtension = file.nameWithoutExtension
+      val oldExtension = file.extension
+      val preserveExtension = if (oldExtension.equals("zip", ignoreCase = true)) "" else ".$oldExtension"
+      newFilename = "$filenameWithoutExtension$preserveExtension.zip"
+      FileOutputStream(tmpFile).use { out ->
+        ZipUtils.encryptZipFile(
           newFilename,
           password,
           istream,
@@ -173,8 +241,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
           .addVariable("data", ResponseData(list))
       )
-  }
-
+  }*/
 
   /**
    * Upload service e. g. for [UIAttachmentList].
