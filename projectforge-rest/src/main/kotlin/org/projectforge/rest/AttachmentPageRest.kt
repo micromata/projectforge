@@ -124,25 +124,29 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
                 .add(UIReadOnlyField("attachment.lastUpdateByUser", label = "modifiedBy"))
             )
         )
-      if (encryptionSupport && writeAccess && !attachment.encrypted) {
-        attachment.newZipMode = ZipMode.ENCRYPTED_AES256
+      if (encryptionSupport && writeAccess && !attachment.encrypted) { // encrpyted not yet supported: || encrypted
         val algoCol = UICol(UILength(md = 6))
-        val algoSelect = UISelect(
-          "attachment.newZipMode",
-          layoutContext = lc,
-          values = listOf(
-            UISelectValue(ZipMode.ENCRYPTED_STANDARD.name, translate(ZipMode.ENCRYPTED_STANDARD.i18nKey)),
-            UISelectValue(ZipMode.ENCRYPTED_AES256.name, translate(ZipMode.ENCRYPTED_AES256.i18nKey))
-          ),
-        )
-        algoCol.add(algoSelect)
-
+        if (!attachment.encrypted) {
+          // Show encryption algorithms only, if not yet encrypted.
+          attachment.newZipMode = ZipMode.ENCRYPTED_AES256
+          val algoSelect = UISelect(
+            "attachment.newZipMode",
+            layoutContext = lc,
+            values = listOf(
+              UISelectValue(ZipMode.ENCRYPTED_STANDARD.name, translate(ZipMode.ENCRYPTED_STANDARD.i18nKey)),
+              UISelectValue(ZipMode.ENCRYPTED_AES256.name, translate(ZipMode.ENCRYPTED_AES256.i18nKey))
+            ),
+          )
+          algoCol.add(algoSelect)
+        }
+        val function = if (attachment.encrypted) "decrypt" else "encrypt"
         layout.add(
           UIRow()
             .add(algoCol)
             .add(
               UICol(UILength(md = 3))
                 .add(
+                  // Show password for encryption or for decryption:
                   UIInput(
                     "attachment.password",
                     label = "password",
@@ -154,14 +158,14 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
               UICol(UILength(md = 3))
                 .add(
                   UIButton(
-                    "encrypt",
-                    title = translate("attachment.encrypt"),
+                    function,
+                    title = translate("attachment.$function"),
                     color = UIColor.DARK,
                     responseAction = ResponseAction(
-                      RestResolver.getRestUrl(restClass, "encrypt"),
+                      RestResolver.getRestUrl(restClass, function),
                       targetType = TargetType.POST
                     ),
-                    confirmMessage = translate("attachment.encrypt.question")
+                    confirmMessage = if (!attachment.encrypted) translate("attachment.encrypt.question") else null
                   )
                 )
             )
