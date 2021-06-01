@@ -61,6 +61,12 @@ open class FileInfo(
    * The password isn't stored anywhere. If zip file is encrypted, the algorithm is stored (if encrypted by ProjectForge).
    */
   var zipMode: ZipMode? = null,
+
+  /**
+   * Indicates, that an encryption process in in progress. Used by DataTransferDao to suppress several e-mail notifications
+   * caused by adding and deleting current file.
+   */
+  var encryptionInProgress: Boolean? = null,
   fileSize: Long? = null
 ) {
   /**

@@ -251,6 +251,10 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         // Do not notify on downloads and deletions of internal users.
         return
       }
+      if (file.encryptionInProgress == true) {
+        // Don't notificate observers if one user encrypts a file.
+        return
+      }
       // log download access of external users.
       if (!byExternalUser.isNullOrBlank() && event == AttachmentsEventType.DOWNLOAD) {
         // internalUpdateAny(data) // Must call update. On upload event, the data will stored by caller.

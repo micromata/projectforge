@@ -39,11 +39,13 @@ class FileObject() : FileInfo() {
     parentNodePath: String?,
     relPath: String? = null,
     fileId: String? = null,
-    fileInfo: FileInfo? = null
+    fileInfo: FileInfo? = null,
+    encryptionInProgress: Boolean? = null,
   ) : this() {
     this.parentNodePath = parentNodePath
     this.relPath = relPath
     this.fileId = fileId
+    this.encryptionInProgress = encryptionInProgress
     copyFrom(fileInfo)
   }
 
