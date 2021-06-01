@@ -167,7 +167,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
             )
         )
     )
-    if (hasEditAccess(dto, dbObj)) {
+    if (hasEditAccess(dto, dbObj) && dto.externalAccessEnabled) {
       fieldSet.add(
         UIRow().add(
           UICol(UILength(md = 8))
