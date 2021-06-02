@@ -23,6 +23,8 @@
 
 package org.projectforge.framework.i18n
 
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.*
 
 /**
@@ -45,13 +47,6 @@ import java.util.*
  * * timeago.years.one=a year ago
  */
 object TimeAgo {
-  const val MINUTE = 60
-  const val HOUR = 60 * MINUTE
-  const val DAY = 24 * HOUR
-  const val WEEK = 7 * DAY
-  const val MONTH = 30 * DAY
-  const val YEAR = 365 * DAY
-
   /**
    * @param date Date in the past to compare with now. For future dates, a message will be returned: 'in the future!'
    * @param locale Locale to use for translation.
@@ -64,7 +59,7 @@ object TimeAgo {
     return translate(getI18nKey(date, allowFutureTimes), "timeago", locale)
   }
 
-  internal fun getI18nKey(date: Date, allowFutureTimes: Boolean): Pair<String, Long> {
+  internal fun getI18nKey(date: Date, allowFutureTimes: Boolean): Pair<String, Int> {
     val seconds = (System.currentTimeMillis() - date.time) / 1000
     if (seconds < 0 && allowFutureTimes) {
       return TimeLeft.getI18nKey(date, null)
@@ -72,7 +67,7 @@ object TimeAgo {
     return getUnit(seconds)
   }
 
-  internal fun translate(pair: Pair<String, Long>, prefix: String, locale: Locale?): String {
+  internal fun translate(pair: Pair<String, Int>, prefix: String, locale: Locale?): String {
     return if (pair.second < 0) {
       // Translates the i18n key:
       translate(locale, "$prefix.${pair.first}")
@@ -82,26 +77,36 @@ object TimeAgo {
     }
   }
 
-  internal fun getUnit(seconds: Long): Pair<String, Long> {
+  internal fun getUnit(seconds: Long): Pair<String, Int> {
     if (seconds < 0) {
       return Pair("negative", -1)
     }
-    return getUnit(seconds, YEAR, "years")
-      ?: getUnit(seconds, MONTH, "months")
-      ?: getUnit(seconds, WEEK, "weeks")
-      ?: getUnit(seconds, DAY, "days")
-      ?: getUnit(seconds, HOUR, "hours")
-      ?: getUnit(seconds, MINUTE, "minutes")
+    val seconds10 = seconds * 10
+    return getUnit(seconds10, YEAR)
+      ?: getUnit(seconds10, MONTH)
+      ?: getUnit(seconds10, WEEK)
+      ?: getUnit(seconds10, DAY)
+      ?: getUnit(seconds10, HOUR)
+      ?: getUnit(seconds10, MINUTE)
       ?: Pair("afewseconds", -1)
   }
 
-  private fun getUnit(seconds: Long, unitSeconds: Int, unit: String): Pair<String, Long>? {
-    return if (seconds > 2 * unitSeconds) {
-       Pair(unit, seconds / unitSeconds)
-    } else if (seconds > unitSeconds) {
-      Pair("$unit.one", -1)
+  private fun getUnit(seconds10: Long, unit: Unit): Pair<String, Int>? {
+    return if (seconds10 >= 20 * unit.int) {
+      Pair(unit.unitString, BigDecimal(seconds10).divide(unit.bigDecimal10Based, 0, RoundingMode.HALF_UP).toInt())
+    } else if (seconds10 >= 10 * unit.int) {
+      Pair("${unit.unitString}.one", -1)
     } else {
       null
     }
   }
+
+  private class Unit(val int: Int, val unitString: String, val bigDecimal10Based: BigDecimal = BigDecimal(int * 10))
+
+  private val MINUTE = Unit(60, "minutes")
+  private val HOUR = Unit(60 * MINUTE.int, "hours")
+  private val DAY = Unit(24 * HOUR.int, "days")
+  private val WEEK = Unit(7 * DAY.int, "weeks")
+  private val MONTH = Unit(30 * DAY.int, "months")
+  private val YEAR = Unit(365 * DAY.int, "years")
 }

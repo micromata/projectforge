@@ -48,7 +48,7 @@ object TimeLeft {
     }
   }
 
-  internal fun getI18nKey(date: Date, pastMessage: String? = null): Pair<String, Long> {
+  internal fun getI18nKey(date: Date, pastMessage: String? = null): Pair<String, Int> {
     val seconds = (date.time - System.currentTimeMillis()) / 1000
     if (seconds < 0) {
       return if (pastMessage != null) {
