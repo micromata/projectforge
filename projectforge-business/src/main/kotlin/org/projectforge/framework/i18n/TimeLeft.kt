@@ -30,13 +30,6 @@ import java.util.*
  *
  */
 object TimeLeft {
-  const val MINUTE = 60
-  const val HOUR = 60 * MINUTE
-  const val DAY = 24 * HOUR
-  const val WEEK = 7 * DAY
-  const val MONTH = 30 * DAY
-  const val YEAR = 365 * DAY
-
   /**
    * @param date Date in the future to compare with now. For past dates, a message of [TimeAgo] will be returned
    * @param locale Locale to use for translation.
