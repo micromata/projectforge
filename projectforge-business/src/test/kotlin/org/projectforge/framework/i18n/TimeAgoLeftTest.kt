@@ -41,20 +41,20 @@ class TimeAgoLeftTest {
     timeAgoLeft(-125, "minutes", 2, true)
     timeAgoLeft(20, "afewseconds", -1)
     timeAgoLeft(59, "afewseconds", -1)
-    timeAgoLeft(65, "aminute", -1)
+    timeAgoLeft(65, "minutes.one", -1)
     timeAgoLeft(125, "minutes", 2)
 
-    timeAgoLeft(HOUR, "anhour", -1)
+    timeAgoLeft(HOUR, "hours.one", -1)
     timeAgoLeft(2 * HOUR, "hours", 2)
-    timeAgoLeft(DAY, "day", -1)
+    timeAgoLeft(DAY, "days.one", -1)
     timeAgoLeft(2 * DAY, "days", 2)
-    timeAgoLeft(7 * DAY, "aweek", -1)
+    timeAgoLeft(7 * DAY, "weeks.one", -1)
     timeAgoLeft(14 * DAY, "weeks", 2)
-    timeAgoLeft(31 * DAY, "amonth", -1)
+    timeAgoLeft(31 * DAY, "months.one", -1)
 
     timeAgoLeft(2 * MONTH, "months", 2)
     timeAgoLeft(11 * MONTH, "months", 11)
-    timeAgoLeft(365 * DAY, "ayear", -1)
+    timeAgoLeft(365 * DAY, "years.one", -1)
     timeAgoLeft(25 * MONTH, "years", 2)
   }
 
