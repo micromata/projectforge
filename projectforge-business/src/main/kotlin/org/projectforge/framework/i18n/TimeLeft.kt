@@ -28,6 +28,22 @@ import java.util.*
 /**
  * Time left builds human readable localized strings for time to left events, such as: in a few seconds, in a minute, in 19 minutes, in an hour ago, ...
  *
+ * Used i18n properties:
+ * * timeleft.afewseconds=in a few seconds
+ * * timeleft.days=in {0} days
+ * * timeleft.days.one=tomorrow
+ * * timeleft.hours=in {0} hours
+ * * timeleft.hours.one=in an hour
+ * * timeleft.minutes=in {0} minutes
+ * * timeleft.minutes.one=in a minute
+ * * timeleft.months=in {0} months
+ * * timeleft.months.one=in a month
+ * * timeleft.negative=in the past!
+ * * timeleft.weeks=in {0} weeks
+ * * timeleft.weeks.one=in a week
+ * * timeleft.years=in {0} years
+ * * timeleft.years.one=in a year
+ *
  */
 object TimeLeft {
   /**
