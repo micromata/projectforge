@@ -30,19 +30,19 @@ import java.util.*
  *
  * Used i18n properties:
  * * timeago.afewseconds=a few seconds ago
- * * timeago.aminute=a minute ago
- * * timeago.amonth=a month ago
- * * timeago.anhour=an hour ago
- * * timeago.aweek=a week ago
- * * timeago.ayear=a year ago
  * * timeago.days={0} days ago
+ * * timeago.days.one=yesterday
  * * timeago.hours={0} hours ago
- * * timeago.negative=in the future!
+ * * timeago.hours.one=an hour ago
  * * timeago.minutes={0} minutes ago
+ * * timeago.minutes.one=a minute ago
  * * timeago.months={0} months ago
+ * * timeago.months.one=a month ago
+ * * timeago.negative=in the future!
  * * timeago.weeks={0} weeks ago
+ * * timeago.weeks.one=a week ago
  * * timeago.years={0} years ago
- * * timeago.day=yesterday
+ * * timeago.years.one=a year ago
  */
 object TimeAgo {
   const val MINUTE = 60
@@ -83,21 +83,25 @@ object TimeAgo {
   }
 
   internal fun getUnit(seconds: Long): Pair<String, Long> {
-    return when {
-      seconds < 0 -> Pair("negative", -1)
-      seconds > 2 * YEAR -> Pair("years", seconds / YEAR)
-      seconds > YEAR -> Pair("ayear", -1)
-      seconds > 40 * DAY -> Pair("months", seconds / MONTH)
-      seconds > MONTH -> Pair("amonth", -1)
-      seconds > 2 * WEEK -> Pair("weeks", seconds / WEEK)
-      seconds > WEEK -> Pair("aweek", -1)
-      seconds > 2 * DAY -> Pair("days", seconds / DAY)
-      seconds > DAY -> Pair("day", -1)
-      seconds > 2 * HOUR -> Pair("hours", seconds / HOUR)
-      seconds > HOUR -> Pair("anhour", -1)
-      seconds > 2 * MINUTE -> Pair("minutes", seconds / MINUTE)
-      seconds > MINUTE -> Pair("aminute", -1)
-      else -> Pair("afewseconds", -1)
+    if (seconds < 0) {
+      return Pair("negative", -1)
+    }
+    return getUnit(seconds, YEAR, "years")
+      ?: getUnit(seconds, MONTH, "months")
+      ?: getUnit(seconds, WEEK, "weeks")
+      ?: getUnit(seconds, DAY, "days")
+      ?: getUnit(seconds, HOUR, "hours")
+      ?: getUnit(seconds, MINUTE, "minutes")
+      ?: Pair("afewseconds", -1)
+  }
+
+  private fun getUnit(seconds: Long, unitSeconds: Int, unit: String): Pair<String, Long>? {
+    return if (seconds > 2 * unitSeconds) {
+       Pair(unit, seconds / unitSeconds)
+    } else if (seconds > unitSeconds) {
+      Pair("$unit.one", -1)
+    } else {
+      null
     }
   }
 }
