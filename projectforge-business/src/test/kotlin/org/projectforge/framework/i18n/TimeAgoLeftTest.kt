@@ -40,7 +40,10 @@ class TimeAgoLeftTest {
     timeAgoLeft(-100, "negative", -1)
     timeAgoLeft(-125, "minutes", 2, true)
     timeAgoLeft(20, "afewseconds", -1)
-    timeAgoLeft(59, "afewseconds", -1)
+    timeAgoLeft(30, "afewseconds", -1)
+    timeAgoLeft(31, "afewseconds", -1)
+    timeAgoLeft(49, "afewseconds", -1)
+    timeAgoLeft(50, "afewseconds", -1)
     timeAgoLeft(65, "minutes.one", -1)
     timeAgoLeft(125, "minutes", 2)
 
@@ -51,6 +54,9 @@ class TimeAgoLeftTest {
     timeAgoLeft(7 * DAY, "weeks.one", -1)
     timeAgoLeft(14 * DAY, "weeks", 2)
     timeAgoLeft(31 * DAY, "months.one", -1)
+    timeAgoLeft(40 * DAY, "months.one", -1)
+    timeAgoLeft(50 * DAY, "months.one", -1)
+    timeAgoLeft(60 * DAY, "months", 2)
 
     timeAgoLeft(2 * MONTH, "months", 2)
     timeAgoLeft(11 * MONTH, "months", 11)
@@ -61,7 +67,7 @@ class TimeAgoLeftTest {
   private fun timeAgoLeft(
     secondsOffset: Long,
     expectedI18nKey: String,
-    expectedCounter: Long,
+    expectedCounter: Int,
     allowNegativeTimes: Boolean = false
   ) {
     var pair = TimeAgo.getI18nKey(Date(System.currentTimeMillis() - secondsOffset * 1000 - 1000), allowNegativeTimes)
