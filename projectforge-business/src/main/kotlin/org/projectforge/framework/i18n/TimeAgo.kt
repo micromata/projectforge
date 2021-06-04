@@ -24,8 +24,8 @@
 package org.projectforge.framework.i18n
 
 import java.math.BigDecimal
-import java.math.RoundingMode
 import java.util.*
+import kotlin.math.round
 
 /**
  * Time ago builds human readable localized strings for time ago events, such as: a few seconds ago, a minute ago, 19 minutes ago, an hour ago, ...
@@ -60,11 +60,11 @@ object TimeAgo {
   }
 
   internal fun getI18nKey(date: Date, allowFutureTimes: Boolean): Pair<String, Int> {
-    val seconds = (System.currentTimeMillis() - date.time) / 1000
-    if (seconds < 0 && allowFutureTimes) {
+    val millis = (System.currentTimeMillis() - date.time)
+    if (millis < 0 && allowFutureTimes) {
       return TimeLeft.getI18nKey(date, null)
     }
-    return getUnit(seconds)
+    return getUnit(millis)
   }
 
   internal fun translate(pair: Pair<String, Int>, prefix: String, locale: Locale?): String {
@@ -77,36 +77,36 @@ object TimeAgo {
     }
   }
 
-  internal fun getUnit(seconds: Long): Pair<String, Int> {
-    if (seconds < 0) {
+  internal fun getUnit(millis: Long): Pair<String, Int> {
+    if (millis < 0) {
       return Pair("negative", -1)
     }
-    val seconds10 = seconds * 10
-    return getUnit(seconds10, YEAR)
-      ?: getUnit(seconds10, MONTH)
-      ?: getUnit(seconds10, WEEK)
-      ?: getUnit(seconds10, DAY)
-      ?: getUnit(seconds10, HOUR)
-      ?: getUnit(seconds10, MINUTE)
+    return getUnit(millis, 1, YEAR, "years")
+      ?: getUnit(millis, 1, MONTH, "months")
+      ?: getUnit(millis, 1, WEEK, "weeks")
+      ?: getUnit(millis, 1, DAY, "days")
+      ?: getUnit(millis, 1, HOUR, "hours")
+      ?: getUnit(millis, 1, MINUTE, "minutes")
       ?: Pair("afewseconds", -1)
   }
 
-  private fun getUnit(seconds10: Long, unit: Unit): Pair<String, Int>? {
-    return if (seconds10 >= 20 * unit.int) {
-      Pair(unit.unitString, BigDecimal(seconds10).divide(unit.bigDecimal10Based, 0, RoundingMode.HALF_UP).toInt())
-    } else if (seconds10 >= 10 * unit.int) {
-      Pair("${unit.unitString}.one", -1)
+  private fun getUnit(millis: Long, minAmount: Int, unit: Long, unitString: String): Pair<String, Int>? {
+    return if (millis >= minAmount * unit) {
+      val amount = round(millis.toDouble() / unit).toInt()
+      if (amount > 1) {
+        Pair(unitString, amount)
+      } else {
+        Pair("$unitString.one", -1)
+      }
     } else {
       null
     }
   }
 
-  private class Unit(val int: Int, val unitString: String, val bigDecimal10Based: BigDecimal = BigDecimal(int * 10))
-
-  private val MINUTE = Unit(60, "minutes")
-  private val HOUR = Unit(60 * MINUTE.int, "hours")
-  private val DAY = Unit(24 * HOUR.int, "days")
-  private val WEEK = Unit(7 * DAY.int, "weeks")
-  private val MONTH = Unit(30 * DAY.int, "months")
-  private val YEAR = Unit(365 * DAY.int, "years")
+  private const val MINUTE = 60 * 1000L
+  private const val HOUR = 60 * MINUTE
+  private const val DAY = 24 * HOUR
+  private const val WEEK = 7 * DAY
+  private const val MONTH = 30 * DAY
+  private const val YEAR = 365 * DAY
 }
