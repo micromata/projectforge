@@ -29,7 +29,9 @@ import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.TimeLeft
 import java.util.*
 
-private const val HOUR = 3600L
+private const val SECOND = 1000L
+private const val MINUTE = 60 * SECOND
+private const val HOUR = 60 * MINUTE
 private const val DAY = 24 * HOUR
 private const val MONTH = 30 * DAY
 
@@ -37,15 +39,15 @@ class TimeAgoLeftTest {
 
   @Test
   fun i18nTest() {
-    timeAgoLeft(-100, "negative", -1)
-    timeAgoLeft(-125, "minutes", 2, true)
-    timeAgoLeft(20, "afewseconds", -1)
-    timeAgoLeft(30, "afewseconds", -1)
-    timeAgoLeft(31, "afewseconds", -1)
-    timeAgoLeft(49, "afewseconds", -1)
-    timeAgoLeft(50, "afewseconds", -1)
-    timeAgoLeft(65, "minutes.one", -1)
-    timeAgoLeft(125, "minutes", 2)
+    timeAgoLeft(-100 * SECOND, "negative", -1)
+    timeAgoLeft(-125 * SECOND, "minutes", 2, true)
+    timeAgoLeft(20 * SECOND, "afewseconds", -1)
+    timeAgoLeft(30 * SECOND, "afewseconds", -1)
+    timeAgoLeft(31 * SECOND, "afewseconds", -1)
+    timeAgoLeft(49 * SECOND, "afewseconds", -1)
+    timeAgoLeft(50 * SECOND, "afewseconds", -1)
+    timeAgoLeft(65 * SECOND, "minutes.one", -1)
+    timeAgoLeft(125 * SECOND, "minutes", 2)
 
     timeAgoLeft(HOUR, "hours.one", -1)
     timeAgoLeft(2 * HOUR, "hours", 2)
@@ -53,29 +55,47 @@ class TimeAgoLeftTest {
     timeAgoLeft(2 * DAY, "days", 2)
     timeAgoLeft(7 * DAY, "weeks.one", -1)
     timeAgoLeft(14 * DAY, "weeks", 2)
-    timeAgoLeft(31 * DAY, "months.one", -1)
-    timeAgoLeft(40 * DAY, "months.one", -1)
-    timeAgoLeft(50 * DAY, "months.one", -1)
-    timeAgoLeft(60 * DAY, "months", 2)
+    timeAgoLeft(29 * DAY, "weeks", 4)
+    timeAgoLeft(30 * DAY, "months.one", -1)
+    for (days in 31..44) {
+      timeAgoLeft(days * DAY, "months.one", -1, message = "for $days days")
+    }
+    for (days in 45..74) {
+      timeAgoLeft(days * DAY, "months", 2, message = "for $days days")
+    }
+    for (days in 75..104) {
+      timeAgoLeft(days * DAY, "months", 3, message = "for $days days")
+    }
 
-    timeAgoLeft(2 * MONTH, "months", 2)
-    timeAgoLeft(11 * MONTH, "months", 11)
+    for (months in 2..12) {
+      timeAgoLeft(months * MONTH, "months", months, message = "for $months months")
+    }
+    for (months in 13..18) {
+      timeAgoLeft(months * MONTH, "years.one", -1, message = "for $months months")
+    }
+    for (months in 19..30) {
+      timeAgoLeft(months * MONTH, "years", 2, message = "for $months months")
+    }
     timeAgoLeft(365 * DAY, "years.one", -1)
     timeAgoLeft(25 * MONTH, "years", 2)
   }
 
   private fun timeAgoLeft(
-    secondsOffset: Long,
+    millissOffset: Long,
     expectedI18nKey: String,
     expectedCounter: Int,
-    allowNegativeTimes: Boolean = false
+    allowNegativeTimes: Boolean = false,
+    message: String? = null,
   ) {
-    var pair = TimeAgo.getI18nKey(Date(System.currentTimeMillis() - secondsOffset * 1000 - 1000), allowNegativeTimes)
-    Assertions.assertEquals(expectedI18nKey, pair.first)
-    Assertions.assertEquals(expectedCounter, pair.second)
+    var pair = TimeAgo.getI18nKey(Date(System.currentTimeMillis() - millissOffset - 1000), allowNegativeTimes)
+    Assertions.assertEquals(expectedI18nKey, pair.first, message)
+    Assertions.assertEquals(expectedCounter, pair.second, message)
 
-    pair = TimeLeft.getI18nKey(Date(System.currentTimeMillis() + secondsOffset * 1000 + 1000), if (allowNegativeTimes) null else "negative")
-    Assertions.assertEquals(expectedI18nKey, pair.first)
-    Assertions.assertEquals(expectedCounter, pair.second)
+    pair = TimeLeft.getI18nKey(
+      Date(System.currentTimeMillis() + millissOffset + 1000),
+      if (allowNegativeTimes) null else "negative"
+    )
+    Assertions.assertEquals(expectedI18nKey, pair.first, message)
+    Assertions.assertEquals(expectedCounter, pair.second, message)
   }
 }
