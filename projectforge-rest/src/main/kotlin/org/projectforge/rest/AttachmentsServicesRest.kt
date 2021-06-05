@@ -73,7 +73,11 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     var category: String,
     var id: Int,
     var fileId: String,
-    var listId: String? = null
+    var listId: String? = null,
+    /**
+     * True, if the user selects the checkbox "encryption" for displaying/hiding functionality for zip encryption.
+     */
+    var showEncryptionOption: Boolean? = false,
   ) {
     lateinit var attachment: Attachment
   }

@@ -27,18 +27,18 @@ import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.jcr.ZipMode
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
 
@@ -71,11 +71,20 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
     services.getDataObject(pagesRest, id) // Check data object availability.
     val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
     data.attachment = services.getAttachment(pagesRest, data)
-    val layout = createAttachmentLayout(id, category, fileId, listId, attachment = data.attachment, encryptionSupport = true)
+    val layout = createAttachmentLayout(
+      id,
+      category,
+      fileId,
+      listId,
+      attachment = data.attachment,
+      encryptionSupport = true,
+      data = data,
+    )
     return FormLayoutData(data, layout, createServerData(request))
   }
 
   companion object {
+
     fun createAttachmentLayout(
       id: Int,
       category: String,
@@ -85,6 +94,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
       writeAccess: Boolean = true,
       restClass: Class<*> = AttachmentsServicesRest::class.java,
       encryptionSupport: Boolean = false,
+      data: AttachmentsServicesRest.AttachmentData? = null,
     ): UILayout {
       val layout = UILayout("attachment")
 
@@ -125,52 +135,74 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
             )
         )
       if (encryptionSupport && writeAccess && !attachment.encrypted) { // encrpyted not yet supported: || encrypted
-        val algoCol = UICol(UILength(md = 6))
-        if (!attachment.encrypted) {
-          // Show encryption algorithms only, if not yet encrypted.
-          attachment.newZipMode = ZipMode.ENCRYPTED_AES256
-          val algoSelect = UISelect(
-            "attachment.newZipMode",
-            layoutContext = lc,
-            values = listOf(
-              UISelectValue(ZipMode.ENCRYPTED_STANDARD.name, translate(ZipMode.ENCRYPTED_STANDARD.i18nKey)),
-              UISelectValue(ZipMode.ENCRYPTED_AES256.name, translate(ZipMode.ENCRYPTED_AES256.i18nKey))
-            ),
+        if (data!!.showEncryptionOption == true) {
+          // User wants to see encryption options.
+          val algoCol = UICol(UILength(md = 6))
+          if (!attachment.encrypted) {
+            // Show encryption algorithms only, if not yet encrypted.
+            attachment.newZipMode = ZipMode.ENCRYPTED_AES256
+            val algoSelect = UISelect(
+              "attachment.newZipMode",
+              layoutContext = lc,
+              values = listOf(
+                UISelectValue(ZipMode.ENCRYPTED_STANDARD.name, translate(ZipMode.ENCRYPTED_STANDARD.i18nKey)),
+                UISelectValue(ZipMode.ENCRYPTED_AES256.name, translate(ZipMode.ENCRYPTED_AES256.i18nKey))
+              ),
+            )
+            algoCol.add(algoSelect)
+          }
+          val function = if (attachment.encrypted) "decrypt" else "encrypt"
+          layout.add(
+            UIRow()
+              .add(algoCol)
+              .add(
+                UICol(UILength(md = 3))
+                  .add(
+                    // Show password for encryption or for decryption:
+                    UIInput(
+                      "attachment.password",
+                      label = "password",
+                      tooltip = "attachment.password.info",
+                      dataType = UIDataType.PASSWORD,
+                    )
+                  )
+              )
+              .add(
+                UICol(UILength(md = 3))
+                  .add(
+                    UIButton(
+                      function,
+                      title = translate("attachment.$function"),
+                      color = UIColor.DARK,
+                      responseAction = ResponseAction(
+                        RestResolver.getRestUrl(restClass, function),
+                        targetType = TargetType.POST
+                      ),
+                      confirmMessage = if (!attachment.encrypted) translate("attachment.encrypt.question") else null
+                    )
+                  )
+              )
           )
-          algoCol.add(algoSelect)
+        } else {
+          // User doesn't want to see encryption options (yet). Show only checkbox for displaying options:
+          layout.add(
+            UIRow()
+              .add(
+                UICol(6)
+              )
+              .add(
+                UICol()
+                  .add(
+                    // Show password for encryption or for decryption:
+                    UICheckbox(
+                      "showEncryptionOption",
+                      label = "attachment.showEncryptionOption",
+                    )
+                  )
+              )
+          )
+          layout.watchFields.add("showEncryptionOption")
         }
-        val function = if (attachment.encrypted) "decrypt" else "encrypt"
-        layout.add(
-          UIRow()
-            .add(algoCol)
-            .add(
-              UICol(UILength(md = 3))
-                .add(
-                  // Show password for encryption or for decryption:
-                  UIInput(
-                    "attachment.password",
-                    label = "password",
-                    tooltip = "attachment.password.info",
-                    dataType = UIDataType.PASSWORD,
-                  )
-                )
-            )
-            .add(
-              UICol(UILength(md = 3))
-                .add(
-                  UIButton(
-                    function,
-                    title = translate("attachment.$function"),
-                    color = UIColor.DARK,
-                    responseAction = ResponseAction(
-                      RestResolver.getRestUrl(restClass, function),
-                      targetType = TargetType.POST
-                    ),
-                    confirmMessage = if (!attachment.encrypted) translate("attachment.encrypt.question") else null
-                  )
-                )
-            )
-        )
       }
       if (!attachment.checksum.isNullOrBlank()) {
         layout.add(UIReadOnlyField("attachment.checksum", label = "attachment.checksum", canCopy = true))
@@ -219,5 +251,31 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
       LayoutUtils.process(layout)
       return layout
     }
+  }
+
+  /**
+   * Will be called, if the user wants to change his/her obeserveStatus.
+   */
+  @PostMapping(RestPaths.WATCH_FIELDS)
+  fun watchFields(@Valid @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>): ResponseEntity<ResponseAction> {
+    val data = postData.data
+    // write access is always true, otherwise watch field wasn't registered.
+    return ResponseEntity.ok(
+      ResponseAction(targetType = TargetType.UPDATE)
+        .addVariable(
+          "ui",
+          createAttachmentLayout(
+            data.id,
+            data.category,
+            data.fileId,
+            data.listId,
+            data.attachment,
+            writeAccess = true,
+            encryptionSupport = true,
+            data = data
+          )
+        )
+        .addVariable("data", data)
+    )
   }
 }

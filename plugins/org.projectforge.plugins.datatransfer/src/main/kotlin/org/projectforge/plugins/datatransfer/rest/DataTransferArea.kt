@@ -25,11 +25,9 @@ package org.projectforge.plugins.datatransfer.rest
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.TimeAgo
-import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
