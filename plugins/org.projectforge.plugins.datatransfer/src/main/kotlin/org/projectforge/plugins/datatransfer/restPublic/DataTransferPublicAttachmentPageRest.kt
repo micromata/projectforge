@@ -25,13 +25,11 @@ package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
 import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.AttachmentPageRest
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
 import org.springframework.beans.factory.annotation.Autowired
