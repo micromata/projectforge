@@ -33,6 +33,7 @@ import java.io.*
 class ZipUtilsTest {
   private var testUtils = TestUtils(MODULE_NAME)
   val testDir = testUtils.deleteAndCreateTestFile("zipTests")
+
   init {
     testDir.mkdirs()
   }
@@ -55,6 +56,10 @@ class ZipUtilsTest {
     Assertions.assertTrue(ZipUtils.isEncrypted(FileInputStream(zipFile)))
     FileInputStream(zipFile).use {
       decryptZipFile("test123", it, "pom.xml", content)
+    }
+    FileInputStream(zipFile).use {
+      Assertions.assertTrue(ZipUtils.testDecryptZipFile("test123", it), "Test of decryption failed with correct password.")
+      Assertions.assertFalse(ZipUtils.testDecryptZipFile("wrongPassword", it), "Test of decryption worked with incorrect password?!")
     }
   }
 
