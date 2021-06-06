@@ -256,7 +256,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
   }
 
   /**
-   * Will be called, if the user wants to change his/her obeserveStatus.
+   * Will be called, if the user wants to change his/her observeStatus.
    */
   @PostMapping(RestPaths.WATCH_FIELDS)
   fun watchFields(@Valid @RequestBody postData: PostData<DataTransferArea>): ResponseEntity<ResponseAction> {

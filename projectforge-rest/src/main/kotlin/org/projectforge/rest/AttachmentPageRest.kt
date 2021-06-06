@@ -83,6 +83,33 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
     return FormLayoutData(data, layout, createServerData(request))
   }
 
+  /**
+   * Will be called, if the user wants to see the encrpytion options.
+   */
+  @PostMapping(RestPaths.WATCH_FIELDS)
+  fun watchFields(@Valid @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>): ResponseEntity<ResponseAction> {
+    val data = postData.data
+    // write access is always true, otherwise watch field wasn't registered.
+    return ResponseEntity.ok(
+      ResponseAction(targetType = TargetType.UPDATE)
+        .addVariable(
+          "ui",
+          createAttachmentLayout(
+            data.id,
+            data.category,
+            data.fileId,
+            data.listId,
+            data.attachment,
+            writeAccess = true,
+            encryptionSupport = true,
+            data = data
+          )
+        )
+        .addVariable("data", data)
+    )
+  }
+
+
   companion object {
 
     fun createAttachmentLayout(
@@ -134,74 +161,11 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
                 .add(UIReadOnlyField("attachment.lastUpdateByUser", label = "modifiedBy"))
             )
         )
-      if (encryptionSupport && writeAccess && !attachment.encrypted) { // encrpyted not yet supported: || encrypted
-        if (data!!.showEncryptionOption == true) {
-          // User wants to see encryption options.
-          val algoCol = UICol(UILength(md = 6))
-          if (!attachment.encrypted) {
-            // Show encryption algorithms only, if not yet encrypted.
-            attachment.newZipMode = ZipMode.ENCRYPTED_AES256
-            val algoSelect = UISelect(
-              "attachment.newZipMode",
-              layoutContext = lc,
-              values = listOf(
-                UISelectValue(ZipMode.ENCRYPTED_STANDARD.name, translate(ZipMode.ENCRYPTED_STANDARD.i18nKey)),
-                UISelectValue(ZipMode.ENCRYPTED_AES256.name, translate(ZipMode.ENCRYPTED_AES256.i18nKey))
-              ),
-            )
-            algoCol.add(algoSelect)
-          }
-          val function = if (attachment.encrypted) "decrypt" else "encrypt"
-          layout.add(
-            UIRow()
-              .add(algoCol)
-              .add(
-                UICol(UILength(md = 3))
-                  .add(
-                    // Show password for encryption or for decryption:
-                    UIInput(
-                      "attachment.password",
-                      label = "password",
-                      tooltip = "attachment.password.info",
-                      dataType = UIDataType.PASSWORD,
-                    )
-                  )
-              )
-              .add(
-                UICol(UILength(md = 3))
-                  .add(
-                    UIButton(
-                      function,
-                      title = translate("attachment.$function"),
-                      color = UIColor.DARK,
-                      responseAction = ResponseAction(
-                        RestResolver.getRestUrl(restClass, function),
-                        targetType = TargetType.POST
-                      ),
-                      confirmMessage = if (!attachment.encrypted) translate("attachment.encrypt.question") else null
-                    )
-                  )
-              )
-          )
+      if (encryptionSupport && writeAccess) {
+        if (attachment.encrypted || data!!.showEncryptionOption == true) {
+          addShowEncryptionOption(layout, attachment, lc, restClass)
         } else {
-          // User doesn't want to see encryption options (yet). Show only checkbox for displaying options:
-          layout.add(
-            UIRow()
-              .add(
-                UICol(6)
-              )
-              .add(
-                UICol()
-                  .add(
-                    // Show password for encryption or for decryption:
-                    UICheckbox(
-                      "showEncryptionOption",
-                      label = "attachment.showEncryptionOption",
-                    )
-                  )
-              )
-          )
-          layout.watchFields.add("showEncryptionOption")
+          addShowEncryptionCheckbox(layout)
         }
       }
       if (!attachment.checksum.isNullOrBlank()) {
@@ -251,31 +215,82 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
       LayoutUtils.process(layout)
       return layout
     }
-  }
 
-  /**
-   * Will be called, if the user wants to change his/her obeserveStatus.
-   */
-  @PostMapping(RestPaths.WATCH_FIELDS)
-  fun watchFields(@Valid @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>): ResponseEntity<ResponseAction> {
-    val data = postData.data
-    // write access is always true, otherwise watch field wasn't registered.
-    return ResponseEntity.ok(
-      ResponseAction(targetType = TargetType.UPDATE)
-        .addVariable(
-          "ui",
-          createAttachmentLayout(
-            data.id,
-            data.category,
-            data.fileId,
-            data.listId,
-            data.attachment,
-            writeAccess = true,
-            encryptionSupport = true,
-            data = data
-          )
+    private fun addShowEncryptionOption(
+      layout: UILayout,
+      attachment: Attachment,
+      lc: LayoutContext,
+      restClass: Class<*>
+    ) {
+      // User wants to see encryption options.
+      val algoCol = UICol(UILength(md = 6))
+      if (!attachment.encrypted) {
+        // Show encryption algorithms only, if not yet encrypted.
+        attachment.newZipMode = ZipMode.ENCRYPTED_AES256
+        val algoSelect = UISelect(
+          "attachment.newZipMode",
+          layoutContext = lc,
+          values = listOf(
+            UISelectValue(ZipMode.ENCRYPTED_STANDARD.name, translate(ZipMode.ENCRYPTED_STANDARD.i18nKey)),
+            UISelectValue(ZipMode.ENCRYPTED_AES256.name, translate(ZipMode.ENCRYPTED_AES256.i18nKey)),
+          ),
         )
-        .addVariable("data", data)
-    )
+        algoCol.add(algoSelect)
+      }
+      val function = if (attachment.encrypted) "testDecryption" else "encrypt"
+      layout.add(
+        UIRow()
+          .add(algoCol)
+          .add(
+            UICol(UILength(md = 3))
+              .add(
+                // Show password for encryption or for test encryption:
+                UIInput(
+                  "attachment.password",
+                  label = "password",
+                  tooltip = "attachment.password.info",
+                  dataType = UIDataType.PASSWORD,
+                  autoComplete = UIInput.AutoCompleteType.OFF,
+                )
+              )
+          )
+          .add(
+            UICol(UILength(md = 3))
+              .add(
+                UIButton(
+                  function,
+                  title = translate("attachment.$function"),
+                  color = UIColor.DARK,
+                  responseAction = ResponseAction(
+                    RestResolver.getRestUrl(restClass, function),
+                    targetType = TargetType.POST
+                  ),
+                  confirmMessage = if (!attachment.encrypted) translate("attachment.encrypt.question") else null
+                )
+              )
+          )
+      )
+    }
+
+    private fun addShowEncryptionCheckbox(layout: UILayout) {
+      // User doesn't want to see encryption options (yet). Show only checkbox for displaying options:
+      layout.add(
+        UIRow()
+          .add(
+            UICol(6)
+          )
+          .add(
+            UICol()
+              .add(
+                // Show password for encryption or for decryption:
+                UICheckbox(
+                  "showEncryptionOption",
+                  label = "attachment.showEncryptionOption",
+                )
+              )
+          )
+      )
+      layout.watchFields.add("showEncryptionOption")
+    }
   }
 }
