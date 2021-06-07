@@ -113,7 +113,16 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     validateCsrfToken(request, postData)?.let { return it }
     val password = postData.data.attachment.password
     if (password.isNullOrBlank() || password.length < 6) {
-      return MyResult(UIToast.createToast(translateMsg("user.changePassword.error.notMinLength", "6")))
+      return ResponseEntity(
+        ResponseAction(
+          validationErrors = createValidationErrors(
+            ValidationError(
+              translateMsg("user.changePassword.error.notMinLength", "6"),
+              fieldId = "attachment.password"
+            )
+          )
+        ), HttpStatus.NOT_ACCEPTABLE
+      )
     }
     val result = prepareEncryption(postData)
     result.responseAction?.let { return it }
@@ -186,10 +195,16 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     if (testResult) {
       return UIToast.createToast(translate("attachment.testDecryption.successful"), color = UIColor.SUCCESS)
     }
-    val validationErrors = mutableListOf<ValidationError>()
-    validationErrors.add(
-      ValidationError(translate("attachment.testDecryption.failed"), fieldId = "attachment.password"))
-    return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+    return ResponseEntity(
+      ResponseAction(
+        validationErrors = createValidationErrors(
+          ValidationError(
+            translate("attachment.testDecryption.failed"),
+            fieldId = "attachment.password"
+          )
+        )
+      ), HttpStatus.NOT_ACCEPTABLE
+    )
   }
 
   private fun prepareEncryption(postData: PostData<AttachmentData>): MyResult {
