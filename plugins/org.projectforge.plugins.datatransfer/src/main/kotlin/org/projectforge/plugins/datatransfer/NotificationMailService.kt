@@ -29,6 +29,7 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -75,9 +76,11 @@ open class NotificationMailService {
     StringHelper.splitToInts(dataTransfer.observerIds, ",", false).forEach {
       recipients.add(it)
     }
+    /*
+    Don't notify admins anymore.
     StringHelper.splitToInts(dataTransfer.adminIds, ",", false).forEach {
       recipients.add(it)
-    }
+    }*/
     if (recipients.isNullOrEmpty()) {
       // No observers, admins and deleted files of other createdByUsers.
       return
@@ -114,30 +117,33 @@ open class NotificationMailService {
     val messageKey: String
     val byUserString: String
     if (byUser != null || byExternalUser == DataTransferJCRCleanUpJob.SYSTEM_USER) {
-      titleKey = "plugins.datatransfer.mail.subject.$event.title"
-      messageKey = "plugins.datatransfer.mail.subject.$event.msg"
+      titleKey = "plugins.datatransfer.mail.subject.title"
+      messageKey = "plugins.datatransfer.mail.subject.msg"
       byUserString = byUser?.getFullname() ?: DataTransferJCRCleanUpJob.SYSTEM_USER
     } else {
-      titleKey = "plugins.datatransfer.mail.subject.external.$event.title"
-      messageKey = "plugins.datatransfer.mail.subject.external.$event.msg"
+      titleKey = "plugins.datatransfer.mail.subject.external.title"
+      messageKey = "plugins.datatransfer.mail.subject.external.msg"
       byUserString = byExternalUser ?: "???"
     }
-    val title = translate(
+    val title = myTranslate(
       recipient,
       titleKey,
-      dataTransfer.areaName ?: "???"
+      dataTransfer.displayName,
+      translate("plugins.datatransfer.mail.action.$event")
     )
-    val message = translate(
+    val message = myTranslate(
       recipient,
       messageKey,
       fileName,
-      dataTransfer.areaName ?: "???",
-      byUserString
+      dataTransfer.displayName,
+      byUserString,
+      translate("plugins.datatransfer.mail.action.$event")
     )
+    // EventInfo is given to mail renderer.
     val eventInfo = EventInfo(link = link, user = byUserString, message = message)
 
     val mail = Mail()
-    mail.subject = message
+    mail.subject = message // Subject equals to message
     mail.contentType = Mail.CONTENTTYPE_HTML
     mail.setTo(recipient.email, recipient.getFullname())
     if (mail.to.isEmpty()) {
@@ -162,13 +168,13 @@ open class NotificationMailService {
         return _defaultLocale!!
       }
 
-    private fun translate(recipient: PFUserDO?, i18nKey: String, vararg params: Any): String {
+    private fun myTranslate(recipient: PFUserDO?, i18nKey: String, vararg params: Any): String {
       val locale = recipient?.locale ?: defaultLocale
       return I18nHelper.getLocalizedMessage(locale, i18nKey, *params)
     }
 
-    private fun translate(recipient: PFUserDO?, value: Boolean?): String {
-      return translate(recipient, if (value == true) "yes" else "no")
+    private fun myTranslate(recipient: PFUserDO?, value: Boolean?): String {
+      return myTranslate(recipient, if (value == true) "yes" else "no")
     }
   }
 }

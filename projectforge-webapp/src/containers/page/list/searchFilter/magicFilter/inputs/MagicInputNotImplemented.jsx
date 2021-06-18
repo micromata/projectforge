@@ -12,6 +12,6 @@ MagicInputNotImplemented.defaultProps = {};
 
 MagicInputNotImplemented.isEmpty = () => false;
 
-MagicInputNotImplemented.getLabel = label => `${label} (Not implemented)`;
+MagicInputNotImplemented.getLabel = (label) => `${label} (Not implemented)`;
 
 export default MagicInputNotImplemented;

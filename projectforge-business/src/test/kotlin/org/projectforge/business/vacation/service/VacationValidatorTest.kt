@@ -57,7 +57,7 @@ class VacationValidatorTest : AbstractTestBase() {
         logon(TEST_EMPLOYEE_USER)
         val employee = createEmployee("2019-joiner-for-validation", LocalDate.of(2019, Month.MAY, 1))
         val manager = createEmployee("VacationValidatorTest-manager", LocalDate.of(2019, Month.MAY, 1))
-        var vacation = createVacation(employee, manager, 2020, Month.JANUARY, 1, Month.JANUARY, 10, true, VacationStatus.IN_PROGRESS)
+        val vacation = createVacation(employee, manager, 2020, Month.JANUARY, 1, Month.JANUARY, 10, true, VacationStatus.IN_PROGRESS)
         vacation.startDate = null
         Assertions.assertEquals(VacationValidator.Error.DATE_NOT_SET, vacationService.validate(vacation))
 
@@ -122,7 +122,7 @@ class VacationValidatorTest : AbstractTestBase() {
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30));
+        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30))
         employeeDao.internalSave(employee)
         return employee
     }

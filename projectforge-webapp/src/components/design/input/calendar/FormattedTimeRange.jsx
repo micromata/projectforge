@@ -32,9 +32,8 @@ function FormattedTimeRange(
     useClickOutsideHandler(fromEditRef, () => setFromInEditMode(false), fromInEditMode);
     useClickOutsideHandler(toEditRef, () => setToInEditMode(false), toInEditMode);
 
-
     return (
-        <React.Fragment>
+        <>
             {children}
             <FormattedDateTime
                 slot="FROM"
@@ -47,7 +46,7 @@ function FormattedTimeRange(
                 date={to}
                 onClick={handleToClick}
             />
-        </React.Fragment>
+        </>
     );
 }
 

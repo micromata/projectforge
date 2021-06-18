@@ -26,7 +26,7 @@ class GlobalNavigation extends React.Component {
     }
 
     toggleMobile() {
-        this.setState(state => ({ mobileIsOpen: !state.mobileIsOpen }));
+        this.setState((state) => ({ mobileIsOpen: !state.mobileIsOpen }));
     }
 
     render() {
@@ -72,7 +72,7 @@ GlobalNavigation.defaultProps = {
     badge: undefined,
 };
 
-const mapStateToProps = state => ({ ...state.menu });
+const mapStateToProps = (state) => ({ ...state.menu });
 
 const actions = {
     loadNavigation: loadMenu,

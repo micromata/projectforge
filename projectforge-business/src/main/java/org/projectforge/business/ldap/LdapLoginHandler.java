@@ -108,14 +108,14 @@ public abstract class LdapLoginHandler implements LoginHandler {
    * Does nothing at default.
    *
    * @see org.projectforge.business.login.LoginHandler#passwordChanged(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   * java.lang.String)
+   * char[])
    */
   @Override
-  public void passwordChanged(final PFUserDO user, final String newPassword) {
+  public void passwordChanged(final PFUserDO user, final char[] newPassword) {
   }
 
   @Override
-  public void wlanPasswordChanged(final PFUserDO user, final String newPassword) {
+  public void wlanPasswordChanged(final PFUserDO user, final char[] newPassword) {
     // Do nothing. The wlan password input field is not visible if this handler is used.
   }
 

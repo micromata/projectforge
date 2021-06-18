@@ -5,7 +5,6 @@ import list from './list';
 import menu from './menu';
 import toasts from './toast';
 
-
 export default combineReducers({
     authentication,
     menu,

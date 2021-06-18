@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -30,6 +31,7 @@ import org.projectforge.framework.persistence.api.SortProperty
 import org.slf4j.LoggerFactory
 import javax.persistence.EntityManager
 
+private val log = KotlinLogging.logger {}
 
 class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         private val baseDao: BaseDao<O>,
@@ -53,7 +55,6 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         CRITERIA
     }
 
-    private val log = LoggerFactory.getLogger(DBQueryBuilder::class.java)
     private var _dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>? = null
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
         get() {

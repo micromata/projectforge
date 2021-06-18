@@ -8,7 +8,7 @@ import style from './ConsumptionBar.module.scss';
 
 function ConsumptionBar({ progress, taskId, identifier }) {
     if (!progress) {
-        return <React.Fragment />;
+        return <></>;
     }
     const {
         title,
@@ -18,7 +18,7 @@ function ConsumptionBar({ progress, taskId, identifier }) {
     } = progress;
 
     const element = (
-        <React.Fragment>
+        <>
             <Progress
                 value={percentage}
                 className={classNames(style.consumption, style[status])}
@@ -27,7 +27,7 @@ function ConsumptionBar({ progress, taskId, identifier }) {
             <UncontrolledTooltip placement="right" target={`${identifier}-${id}`}>
                 {title}
             </UncontrolledTooltip>
-        </React.Fragment>
+        </>
     );
     if (taskId) {
         return (

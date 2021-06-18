@@ -11,7 +11,7 @@ const TreeStatus = {
     LEAF: 'LEAF',
 };
 
-TreeStatus.isFolder = status => status !== TreeStatus.OPENED && status !== TreeStatus.CLOSED;
+TreeStatus.isFolder = (status) => status !== TreeStatus.OPENED && status !== TreeStatus.CLOSED;
 TreeStatus.getIcon = (status) => {
     switch (status) {
         case TreeStatus.OPENED:

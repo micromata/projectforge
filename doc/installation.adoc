@@ -1,5 +1,4 @@
-ProjectForge installation documentation
-=======================================
+= ProjectForge installation documentation
 Micromata GmbH, Version {version}
 :toc:
 :toclevels: 4
@@ -23,7 +22,7 @@ For test or small installations you may use the built-in data base (embedded).
 
 ==== Running single docker container
 
-1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge kreinhard/projectforge`
+1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge micromata/projectforge`
 2. Follow setup wizard below.
 3. After finalization of setup page in browser, press `CTRL-C` for stopping container.
 4. Restart  `docker start projectforge`
@@ -35,7 +34,7 @@ You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 
 In this docker-compose case ProjectForge is composed with a PostgreSQL docker container (for productive and larger installations).
 
-1. Copy and modify https://github.com/micromata/projectforge/blob/master/projectforge-docker/compose/docker-compose.yml[docker-compose.yml] (change data base password).
+1. Copy and modify https://github.com/micromata/projectforge/blob/master/docker/compose/docker-compose.yml[docker-compose.yml] (change data base password).
 2. First start: `docker-compose run projectforge-app`
 3. Follow setup wizard below (choose PostgreSQL connection settings).
 4. ProjectForge stops automatically after setting up your ProjectForge directory. Restart `docker-compose up`
@@ -45,7 +44,17 @@ In this docker-compose case ProjectForge is composed with a PostgreSQL docker co
 
 You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 
-==== Java-Installation (without docker)
+==== Building docker container from source
+
+1. `git clone git@github.com:micromata/projectforge.git`
+2. `cd projectforge`
+3. `docker build -t micromata/projectforge:latest .`
+
+==== Increasing memory
+
+Edit `~/ProjectForge/environment.sh` for customizing settings of ProjectForge as environment variables.
+
+=== Java-Installation (without docker)
 If you don't want to use Docker, you're able to install ProjectForge from the executable jar file.
 
 1. Install openjdk (java 8 should also work, if needed, 11+ recommended).
@@ -272,7 +281,7 @@ Refer config file for all options: [https://github.com/micromata/projectforge/bl
 |===
 |Java version | V6* | V7.0* | V7.1+ | Comments
 
-|Oracle 1.8 | \+++ | + | + | Oracle 1.8 was in production for years up to version 7.0.0.
+|Oracle 1.8 | \+++ | + | + | Oracle 1.8 was in production for years up to version 7.1.2. (LDAP master/slave needs Java 11 since 7.1*)
 |OpenJDK 11 | - | \+++ | \+++ | OpenJDK 11 is used in development (MacOS) and in heavy production since version 7.0.0. (Linux)
 |OpenJDK 12 | - | + | ? | Should run since version V7.0
 |OpenJDK 13 | - | + | ? | Should run since version V7.0

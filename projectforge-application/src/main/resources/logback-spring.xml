@@ -16,9 +16,12 @@
         </rollingPolicy>
     </appender>
 
+    <appender name="MEMORY" class="org.projectforge.common.logging.LoggerMemoryAppender" />
+
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="ROLLING-FILE-ALL"/>
+        <appender-ref ref="MEMORY"/>
     </root>
 
     <!-- custom logging levels -->

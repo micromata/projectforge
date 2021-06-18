@@ -82,7 +82,7 @@ open class InvoiceService {
         if (templateName.isNullOrBlank()) {
             return arrayOf("")
         }
-        val resourceDir = configurationService.resourceDir
+        val resourceDir = configurationService.resourceDirName
         val baseDir = File("$resourceDir/officeTemplates")
         val langs = mutableListOf<String>()
         baseDir.list()?.filter { it.startsWith(templateName) }?.forEach {
@@ -103,7 +103,7 @@ open class InvoiceService {
             var invoiceTemplate: Resource? = null
             val isSkonto = data.discountMaturity != null && data.discountPercent != null && data.discountZahlungsZielInTagen != null
             if (!customInvoiceTemplateName.isNullOrEmpty()) {
-                val resourceDir = configurationService.resourceDir
+                val resourceDir = configurationService.resourceDirName
                 val langSuffix = if (lang.isNullOrBlank()) "" else "_$lang"
                 invoiceTemplate = applicationContext.getResource("file://$resourceDir/officeTemplates/$customInvoiceTemplateName$langSuffix.docx")
             }

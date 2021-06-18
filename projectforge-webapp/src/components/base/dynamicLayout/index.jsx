@@ -52,20 +52,20 @@ function DynamicLayout(
 
     // Render PageMenu if the option displayPageMenu is true.
     const menu = React.useMemo(() => (
-        <React.Fragment>
+        <>
             {displayPageMenu
                 ? <DynamicPageMenu menu={pageMenu} title={title} />
                 : undefined}
-        </React.Fragment>
+        </>
     ), [displayPageMenu, pageMenu, title]);
 
     // Render ActionGroup if actions were found in the ui object.
     const actionGroup = React.useMemo(() => (
-        <React.Fragment>
+        <>
             {actions && showActionButtons
                 ? <DynamicActionGroup actions={actions} />
                 : undefined}
-        </React.Fragment>
+        </>
     ), [actions, showActionButtons]);
 
     return (
@@ -90,7 +90,7 @@ DynamicLayout.propTypes = {
     // UI Prop
     ui: PropTypes.shape({
         actions: PropTypes.arrayOf(buttonPropType),
-        layout: PropTypes.array,
+        layout: PropTypes.instanceOf(Array),
         title: PropTypes.string,
         pageMenu: PropTypes.arrayOf(menuItemPropType),
     }).isRequired,

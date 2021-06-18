@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.framework.jcr.AttachmentsEventType
+import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
 import org.projectforge.rest.core.PagesResolver
@@ -39,6 +40,10 @@ class NotificationMailTest : AbstractTestBase() {
 
   @Autowired
   private lateinit var notificationMailService: NotificationMailService
+
+  init {
+    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName)
+  }
 
   @Test
   fun mailTest() {

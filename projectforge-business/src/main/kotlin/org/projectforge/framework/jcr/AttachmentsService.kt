@@ -30,15 +30,14 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.FormatterUtils
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.jcr.FileInfo
-import org.projectforge.jcr.FileObject
-import org.projectforge.jcr.RepoService
+import org.projectforge.jcr.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -83,8 +82,18 @@ open class AttachmentsService {
     accessChecker: AttachmentsAccessChecker?,
     subPath: String? = null
   ): List<Attachment>? {
-    accessChecker?.checkSelectAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
-    return internalGetAttachments(path, id, subPath)
+    val loggedInUser = ThreadLocalUserContext.getUser()
+    accessChecker?.checkSelectAccess(loggedInUser, path = path, id = id, subPath = subPath)
+    return internalGetAttachments(path, id, subPath)?.filter {
+      accessChecker?.hasAccess(
+        loggedInUser,
+        path,
+        id,
+        subPath,
+        OperationType.SELECT,
+        it
+      ) != false
+    }
   }
 
   /**
@@ -97,7 +106,7 @@ open class AttachmentsService {
     id: Any,
     subPath: String? = null
   ): List<Attachment>? {
-    return repoService.getFileInfos(getPath(path, id), subPath ?: DEFAULT_NODE)?.map { createAttachment(it) }
+    return repoService.getFileInfos(getPath(path, id), subPath ?: DEFAULT_NODE)?.map { asAttachment(it) }
   }
 
   /**
@@ -119,7 +128,7 @@ open class AttachmentsService {
       fileId = fileId
     )
       ?: return null
-    return createAttachment(fileObject)
+    return asAttachment(fileObject)
   }
 
   /**
@@ -134,19 +143,19 @@ open class AttachmentsService {
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null
   ): ByteArray? {
-    accessChecker.checkDownloadAccess(
-      ThreadLocalUserContext.getUser(),
-      path = path,
-      id = id,
-      fileId = fileId,
-      subPath = subPath
-    )
     val fileObject = repoService.getFileInfo(
       getPath(path, id),
       subPath ?: DEFAULT_NODE,
       fileId = fileId
     )
       ?: return null
+    accessChecker.checkDownloadAccess(
+      ThreadLocalUserContext.getUser(),
+      path = path,
+      id = id,
+      file = fileObject,
+      subPath = subPath
+    )
     return if (repoService.retrieveFile(fileObject)) {
       fileObject.content
     } else {
@@ -176,17 +185,17 @@ open class AttachmentsService {
     userString: String? = null
   )
       : Pair<FileObject, InputStream>? {
-    accessChecker.checkDownloadAccess(
-      ThreadLocalUserContext.getUser(),
-      path = path,
-      id = id,
-      fileId = fileId,
-      subPath = subPath
-    )
     val fileObject = repoService.getFileInfo(
       getPath(path, id),
       subPath ?: DEFAULT_NODE,
       fileId = fileId
+    ) ?: return null
+    accessChecker.checkDownloadAccess(
+      ThreadLocalUserContext.getUser(),
+      path = path,
+      id = id,
+      file = fileObject,
+      subPath = subPath
     )
     val inputStream = if (fileObject != null) {
       repoService.retrieveFileInputStream(fileObject)
@@ -204,13 +213,20 @@ open class AttachmentsService {
       }
       return null
     }
-    attachmentsEventListener?.onAttachmentEvent(AttachmentsEventType.DOWNLOAD, fileObject, data, ThreadLocalUserContext.getUser(), userString)
+    attachmentsEventListener?.onAttachmentEvent(
+      AttachmentsEventType.DOWNLOAD,
+      fileObject,
+      data,
+      ThreadLocalUserContext.getUser(),
+      userString
+    )
     return Pair(fileObject, inputStream)
   }
 
   /**
    * @param path Unique path of data object.
    * @param id Id of data object.
+   * @param password Optional password for encryption. The password will not be stored in any kind!
    */
   @JvmOverloads
   open fun addAttachment(
@@ -220,13 +236,24 @@ open class AttachmentsService {
     content: ByteArray,
     enableSearchIndex: Boolean,
     accessChecker: AttachmentsAccessChecker,
-    subPath: String? = null
+    subPath: String? = null,
+    password: String? = null,
   ): Attachment {
-    return addAttachment(path, id, fileInfo, content.inputStream(), enableSearchIndex, accessChecker, subPath)
+    return addAttachment(
+      path,
+      id,
+      fileInfo,
+      content.inputStream(),
+      enableSearchIndex,
+      accessChecker,
+      subPath = subPath,
+      password = password
+    )
   }
 
   /**
    * @param path Unique path of data object.
+   * @param password Optional password for encryption. The password will not be stored in any kind!
    */
   @JvmOverloads
   open fun addAttachment(
@@ -236,15 +263,26 @@ open class AttachmentsService {
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
     accessChecker: AttachmentsAccessChecker,
-    subPath: String? = null
+    subPath: String? = null,
+    password: String? = null,
   )
       : Attachment {
-    return addAttachment(path, fileInfo, content.inputStream(), baseDao, obj, accessChecker, subPath)
+    return addAttachment(
+      path,
+      fileInfo,
+      content.inputStream(),
+      baseDao,
+      obj,
+      accessChecker,
+      subPath = subPath,
+      password = password
+    )
   }
 
   /**
    * @param path Unique path of data object.
    * @param id Id of data object.
+   * @param password Optional password for encryption. The password will not be stored in any kind!
    */
   @JvmOverloads
   open fun addAttachment(
@@ -255,6 +293,7 @@ open class AttachmentsService {
     enableSearchIndex: Boolean,
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null,
+    password: String? = null,
     /**
      * Only for external users. Otherwise logged in user will be assumed.
      */
@@ -268,18 +307,31 @@ open class AttachmentsService {
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
     repoService.ensureNode(null, getPath(path, id))
     val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileInfo = fileInfo)
+    fileObject.aesEncrypted = !password.isNullOrBlank()
+    val user = userString ?: ThreadLocalUserContext.getUserId()!!.toString()
     repoService.storeFile(
       fileObject,
       inputStream,
       accessChecker.fileSizeChecker,
-      userString ?: ThreadLocalUserContext.getUserId()!!.toString(),
-      data
+      user,
+      data,
+      password = password
     )
-    return createAttachment(fileObject)
+    if (fileInfo.zipMode == null && fileObject.fileExtension.equals("zip", ignoreCase = true)) {
+      // Try to check, if uploaded zip file is encrypted.
+      repoService.retrieveFileInputStream(fileObject, password)?.use { istrean ->
+        if (ZipUtils.isEncrypted(istrean)) {
+          // It's encrypted, modify file info:
+          repoService.changeFileInfo(fileObject, user, newZipMode = ZipMode.ENCRYPTED)
+        }
+      }
+    }
+    return asAttachment(fileObject)
   }
 
   /**
    * @param path Unique path of data object.
+   * @param password Optional password for encryption. The password will not be stored in any kind!
    */
   @JvmOverloads
   open fun addAttachment(
@@ -290,6 +342,7 @@ open class AttachmentsService {
     obj: ExtendedBaseDO<Int>,
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null,
+    password: String? = null,
     /**
      * Only for external users. Otherwise logged in user will be assumed.
      */
@@ -305,7 +358,7 @@ open class AttachmentsService {
       }
     }
     val attachment =
-      addAttachment(path, obj.id, fileInfo, inputStream, false, accessChecker, subPath, userString, obj)
+      addAttachment(path, obj.id, fileInfo, inputStream, false, accessChecker, subPath, password, userString, obj)
     updateAttachmentsInfo(
       path,
       baseDao,
@@ -355,7 +408,8 @@ open class AttachmentsService {
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
     accessChecker: AttachmentsAccessChecker,
-    subPath: String? = null
+    subPath: String? = null,
+    encryptionInProgress: Boolean? = null,
   )
       : Boolean {
     accessChecker.checkDeleteAccess(
@@ -365,7 +419,7 @@ open class AttachmentsService {
       fileId = fileId,
       subPath = subPath
     )
-    return internalDeleteAttachment(path, fileId, baseDao, obj, subPath)
+    return internalDeleteAttachment(path, fileId, baseDao, obj, subPath, encryptionInProgress = encryptionInProgress)
   }
 
   /**
@@ -378,10 +432,11 @@ open class AttachmentsService {
     baseDao: BaseDao<out ExtendedBaseDO<Int>>,
     obj: ExtendedBaseDO<Int>,
     subPath: String? = null,
-    userString: String? = null
-  )
+    userString: String? = null,
+    encryptionInProgress: Boolean? = null,
+    )
       : Boolean {
-    val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
+    val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId, encryptionInProgress = encryptionInProgress)
     val result = repoService.deleteFile(fileObject)
     if (result) {
       updateAttachmentsInfo(
@@ -444,7 +499,11 @@ open class AttachmentsService {
     newFileName: String?,
     newDescription: String?,
     accessChecker: AttachmentsAccessChecker,
-    subPath: String? = null
+    subPath: String? = null,
+    /**
+     * Only for external users. Otherwise logged in user will be assumed.
+     */
+    userString: String? = null,
   )
       : FileObject? {
     accessChecker.checkUpdateAccess(
@@ -457,7 +516,7 @@ open class AttachmentsService {
     val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
     val result = repoService.changeFileInfo(
       fileObject,
-      ThreadLocalUserContext.getUserId()!!.toString(),
+      ThreadLocalUserContext.getUserId()?.toString() ?: userString!!,
       newFileName,
       newDescription
     )
@@ -513,6 +572,10 @@ open class AttachmentsService {
         dbObj.attachmentsIds = attachments.joinToString(separator = " ") { "${it.fileId}" }
         dbObj.attachmentsCounter = attachments.size
         dbObj.attachmentsSize = attachments.sumByLong { it.size ?: 0 }
+        if (fileInfo.fileName.isNullOrBlank() && fileInfo is FileObject) {
+          // Try to get filename from attachments
+          fileInfo.fileName = attachments.find { it.fileId == fileInfo.fileId }?.name
+        }
       } else {
         dbObj.attachmentsNames = null
         dbObj.attachmentsIds = null
@@ -537,10 +600,12 @@ open class AttachmentsService {
     }
   }
 
-  private fun createAttachment(fileObject: FileObject): Attachment {
+  private fun asAttachment(fileObject: FileObject): Attachment {
     val attachment = Attachment(fileObject)
     NumberHelper.parseInteger(fileObject.createdByUser, false)?.let {
-      attachment.createdByUser = userGroupCache.getUser(it)?.getFullname()
+      val user = userGroupCache.getUser(it)
+      attachment.createdByUser = user?.getFullname()
+      attachment.createdByUserId = user?.id
     }
     NumberHelper.parseInteger(fileObject.lastUpdateByUser, false)?.let {
       attachment.lastUpdateByUser = userGroupCache.getUser(it)?.getFullname()

@@ -31,6 +31,7 @@ import org.apache.jackrabbit.oak.segment.SegmentNodeStoreBuilders
 import org.apache.jackrabbit.oak.segment.file.FileStore
 import org.apache.jackrabbit.oak.segment.file.FileStoreBuilder
 import org.apache.jackrabbit.oak.spi.state.NodeStore
+import org.projectforge.common.CryptStreamUtils
 import org.projectforge.common.FormatterUtils
 import org.springframework.stereotype.Service
 import java.io.File
@@ -71,11 +72,18 @@ open class RepoService {
       it.close()
     }
     nodeStore?.let {
-      log.warn { "Method not yet implemented: ${it.javaClass}.dispose()" }
+      //log.warn { "Method not yet implemented: ${it.javaClass}.dispose()" }
       /*if (it is DocumentNodeStore) {
         it.dispose()
       }*/
     }
+  }
+
+  /**
+   * Should only be called by test cases if you need to initialize a repo multiple times.
+   */
+  fun internalResetForJunitTestCases() {
+    nodeStore = null
   }
 
   /**
@@ -115,16 +123,21 @@ open class RepoService {
 
   /**
    * Content of file should be given as [FileObject.content].
+   * @param password Optional password for encryption. The password will not be stored in any kind!
    */
   @JvmOverloads
   open fun storeFile(
     fileObject: FileObject, fileSizeChecker: FileSizeChecker,
-    user: String? = null
+    user: String? = null,
+    password: String? = null,
   ) {
     val content = fileObject.content ?: ByteArray(0) // Assuming 0 byte file if no content is given.
-    return storeFile(fileObject, content.inputStream(), fileSizeChecker, user)
+    return storeFile(fileObject, content.inputStream(), fileSizeChecker, user, password = password)
   }
 
+  /**
+   * @param password Optional password for encryption. The password will not be stored in any kind!
+   */
   @JvmOverloads
   open fun storeFile(
     fileObject: FileObject,
@@ -134,7 +147,8 @@ open class RepoService {
     /**
      * Optional data e. g. for fileSizeChecker of data transfer area size.
      */
-    data: Any? = null
+    data: Any? = null,
+    password: String? = null,
   ) {
     if (fileObject.size != null) { // file size already known:
       fileSizeChecker.checkSize(fileObject, data)
@@ -166,7 +180,13 @@ open class RepoService {
       fileObject.lastUpdateByUser = user
       var bin: Binary? = null
       try {
-        bin = session.valueFactory.createBinary(content)
+        if (password.isNullOrBlank()) {
+          bin = session.valueFactory.createBinary(content)
+        } else {
+          val inputStream = CryptStreamUtils.pipeToEncryptedInputStream(content, password)
+          bin = session.valueFactory.createBinary(inputStream)
+          fileObject.aesEncrypted = true
+        }
         fileNode.setProperty(PROPERTY_FILECONTENT, bin)
         fileObject.size = bin?.size
         Integer.MAX_VALUE
@@ -200,7 +220,7 @@ open class RepoService {
     // Calculate checksum for files smaller than 50MB (it's fast enough).
     val startTime = System.currentTimeMillis()
     // Calculate checksum
-    getFileInputStream(fileNode, fileObject).use { istream ->
+    getFileInputStream(fileNode, fileObject, useEncryptedFile = true).use { istream ->
       fileObject.checksum = checksum(istream)
     }
     FileObject.setChecksum(fileNode, fileObject.checksum)
@@ -287,7 +307,8 @@ open class RepoService {
     fileObject: FileObject,
     user: String,
     newFileName: String? = null,
-    newDescription: String?
+    newDescription: String? = null,
+    newZipMode: ZipMode? = null,
   ): FileObject? {
     return runInSession { session ->
       val node = getNode(session, fileObject.parentNodePath, fileObject.relPath, false)
@@ -310,6 +331,11 @@ open class RepoService {
           if (newDescription != null) {
             log.info { "Changing file description to '$newDescription' for: $fileObject" }
             fileNode.setProperty(PROPERTY_FILEDESC, newDescription)
+            modified = true
+          }
+          if (newZipMode != null) {
+            log.info { "Changing zip encryption algorithm to '$newZipMode' for: $fileObject" }
+            fileNode.setProperty(PROPERTY_ZIP_MODE, newZipMode.name)
             modified = true
           }
           if (modified) {
@@ -350,6 +376,7 @@ open class RepoService {
     }
   }
 
+  @JvmOverloads
   open fun getNodeInfo(absPath: String, recursive: Boolean = false): NodeInfo {
     return runInSession { session ->
       log.info { "Getting node info of path '$absPath'..." }
@@ -427,7 +454,8 @@ open class RepoService {
     return null
   }
 
-  open fun retrieveFile(fileObject: FileObject): Boolean {
+  @JvmOverloads
+  open fun retrieveFile(fileObject: FileObject, password: String? = null): Boolean {
     return runInSession { session ->
       val filesNode = getFilesNode(session, fileObject.parentNodePath, fileObject.relPath, false)
       val node = findFile(filesNode, fileObject.fileId, fileObject.fileName)
@@ -436,13 +464,13 @@ open class RepoService {
         false
       } else {
         fileObject.copyFrom(node)
-        fileObject.content = getFileContent(node, fileObject)
+        fileObject.content = getFileContent(node, fileObject, password)
         true
       }
     }
   }
 
-  open fun retrieveFileInputStream(fileObject: FileObject): InputStream? {
+  open fun retrieveFileInputStream(fileObject: FileObject, password: String? = null): InputStream? {
     return runInSession { session ->
       val filesNode = getFilesNode(session, fileObject.parentNodePath, fileObject.relPath, false)
       val node = findFile(filesNode, fileObject.fileId, fileObject.fileName)
@@ -455,19 +483,53 @@ open class RepoService {
     }
   }
 
-  internal fun getFileContent(node: Node?, fileObject: FileObject): ByteArray? {
-    return getFileInputStream(node, fileObject)?.use(InputStream::readBytes)
+  internal fun getFileContent(
+    node: Node?, fileObject: FileObject,
+    password: String? = null,
+    useEncryptedFile: Boolean = false,
+  ): ByteArray? {
+    return getFileInputStream(node, fileObject, password = password, useEncryptedFile = useEncryptedFile)?.use(
+      InputStream::readBytes
+    )
   }
 
-  internal fun getFileInputStream(node: Node?, fileObject: FileObject, suppressLogInfo: Boolean = false): InputStream? {
+  /**
+   * @param password Must be given for encrypted file to decrypt (if useEncryptedFile isn't true)
+   * @param useEncryptedFile If true, work with encrypted file directly without password and decryption.
+   * Used by internal checksum and backup functionality.
+   */
+  internal fun getFileInputStream(
+    node: Node?,
+    fileObject: FileObject,
+    suppressLogInfo: Boolean = false,
+    password: String? = null,
+    useEncryptedFile: Boolean = false,
+  ): InputStream? {
     node ?: return null
     if (!suppressLogInfo) {
-      log.info { "Reading file from repository '${node.path}': '${fileObject.fileName}'..." }
+      log.info { "Reading file from repository '${node.path}': $fileObject..." }
+    }
+    if (!useEncryptedFile && fileObject.aesEncrypted == true && password.isNullOrBlank()) {
+      log.error { "File is crypted, but no password given to decrypt in repository '${node.path}': $fileObject" }
+      return null
     }
     var binary: Binary? = null
     try {
-      binary = node.getProperty(PROPERTY_FILECONTENT)?.binary
-      return binary?.stream
+      binary = node.getProperty(PROPERTY_FILECONTENT)?.binary ?: return null
+      return if (useEncryptedFile || password.isNullOrBlank()) {
+        binary.stream
+      } else {
+        try {
+          CryptStreamUtils.pipeToDecryptedInputStream(binary.stream, password)
+        } catch (ex: Exception) {
+          if (CryptStreamUtils.wasWrongPassword(ex)) {
+            log.error { "Can't decrypt and retrieve file (wrong password) in repository '${node.path}': $fileObject" }
+            null
+          } else {
+            throw ex
+          }
+        }
+      }
     } finally {
       binary?.dispose()
     }
@@ -627,6 +689,8 @@ open class RepoService {
     internal const val PROPERTY_LAST_UPDATE = "lastUpdate"
     internal const val PROPERTY_LAST_UPDATE_BY_USER = "lastUpdateByUser"
     internal const val PROPERTY_CHECKSUM = "checksum"
+    internal const val PROPERTY_AES_ENCRYPTED = "aesEncrypted"
+    internal const val PROPERTY_ZIP_MODE = "zipMode"
     private const val PROPERTY_RANDOM_ID_LENGTH = 20
     private val ALPHA_CHARSET: Array<Char> = ('a'..'z').toList().toTypedArray()
 

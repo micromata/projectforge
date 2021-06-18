@@ -514,5 +514,13 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
             user.clearSecretFields()
             return user
         }
+
+        /**
+         * Converts user list to comma separated int values.
+         * @return String with csv or null, if list of user's is null.
+         */
+        fun toIntList(users: List<PFUserDO>?): String? {
+            return users?.filter { it.id != null }?.joinToString { "${it.id}" }
+        }
     }
 }

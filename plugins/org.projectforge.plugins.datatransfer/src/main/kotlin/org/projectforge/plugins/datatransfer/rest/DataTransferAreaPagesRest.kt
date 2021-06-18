@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.menu.MenuItem
 import org.projectforge.plugins.datatransfer.DataTransferAccessChecker
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -41,9 +42,7 @@ import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.RestResolver
-import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -85,24 +84,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
   }
 
   override fun transformFromDB(obj: DataTransferAreaDO, editMode: Boolean): DataTransferArea {
-    val dto = DataTransferArea()
-    dto.copyFrom(obj)
-    dto.externalLinkBaseUrl = baseDao.getExternalBaseLinkUrl()
-
-    // Group names needed by React client (for ReactSelect):
-    Group.restoreDisplayNames(dto.accessGroups, groupService)
-
-    // Usernames needed by React client (for ReactSelect):
-    User.restoreDisplayNames(dto.admins, userService)
-    User.restoreDisplayNames(dto.observers, userService)
-    User.restoreDisplayNames(dto.accessUsers, userService)
-
-    dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
-    dto.observersAsString = dto.observers?.joinToString { it.displayName ?: "???" } ?: ""
-    dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
-    dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
-
-    return dto
+    return DataTransferArea.transformFromDB(obj, baseDao, groupService, userService)
   }
 
   /**
@@ -147,11 +129,15 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(lc, "areaName", "description")
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
           .add(UITableColumn("maxUploadSizeFormatted", "plugins.datatransfer.maxUploadSize"))
-          .add(
-            UITableColumn(
-              "externalAccessEnabled",
-              "plugins.datatransfer.external.access.title"
+          .add(UITableColumn(
+              "externalDownloadEnabled",
+              "plugins.datatransfer.external.download.enabled.title"
             ).setStandardBoolean()
+          )
+          .add(UITableColumn(
+            "externalUploadEnabled",
+            "plugins.datatransfer.external.upload.enabled.title"
+          ).setStandardBoolean()
           )
           .add(lc, "expiryDays")
           .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins"))
@@ -159,6 +145,14 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups"))
           .add(UITableColumn("accessUsersAsString", "plugins.datatransfer.accessUsers"))
       )
+    layout.add(
+      MenuItem(
+        "HIGHLIGHT",
+        i18nKey = "plugins.datatransfer.personalBox",
+        tooltip = "plugins.datatransfer.personalBox.info",
+        url = PagesResolver.getDynamicPageUrl(DataTransferPersonalBoxPageRest::class.java)
+      )
+    )
     return LayoutUtils.processListPage(layout, this)
   }
 
@@ -418,7 +412,11 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       createEditLayout(dto, UILayout.UserAccess(history = false, insert = true, update = true, delete = true))
     preserveLayoutUid?.let {
       layout.uid = it
+      dto.layoutUid = it
     }
-    return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("ui", layout))
+    DataTransferAreaDao.ensureSecureExternalAccess(dto)
+    return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE)
+      .addVariable("ui", layout)
+      .addVariable("data", dto))
   }
 }

@@ -29,19 +29,22 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.SessionCsrfCache
 import org.projectforge.ui.ValidationError
 import org.springframework.core.io.ByteArrayResource
-import org.springframework.core.io.Resource
 import org.springframework.core.io.InputStreamResource
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import java.io.InputStream
 import java.net.InetAddress
+import java.net.URLEncoder
 import java.net.UnknownHostException
+import java.nio.charset.StandardCharsets
 import javax.servlet.Filter
 import javax.servlet.FilterRegistration
 import javax.servlet.ServletContext
 import javax.servlet.ServletRequest
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -117,23 +120,41 @@ object RestUtils {
 
   fun downloadFile(filename: String, inputStream: InputStream): ResponseEntity<InputStreamResource> {
     return ResponseEntity.ok()
-      .contentType(MediaType.parseMediaType("application/octet-stream"))
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
+      .contentType(getDownloadContentType())
+      .header(HttpHeaders.CONTENT_DISPOSITION, getDownloadContentDisposition(filename))
       .body(InputStreamResource(inputStream))
   }
 
   fun downloadFile(filename: String, content: String): ResponseEntity<String> {
     return ResponseEntity.ok()
-      .contentType(MediaType.parseMediaType("application/octet-stream"))
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
+      .contentType(getDownloadContentType())
+      .header(HttpHeaders.CONTENT_DISPOSITION, getDownloadContentDisposition(filename))
       .body(content)
   }
 
   fun downloadFile(filename: String, resource: ByteArrayResource): ResponseEntity<Resource> {
     return ResponseEntity.ok()
-      .contentType(MediaType.parseMediaType("application/octet-stream"))
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${filename.replace('"', '_')}\"")
+      .contentType(getDownloadContentType())
+      .header(HttpHeaders.CONTENT_DISPOSITION, getDownloadContentDisposition(filename))
       .body(resource)
+  }
+
+  fun setContentDisposition(response: HttpServletResponse, filename: String) {
+    response.addHeader(HttpHeaders.CONTENT_DISPOSITION, getDownloadContentDisposition(filename))
+  }
+
+  private fun getDownloadContentType(): MediaType {
+    return MediaType.parseMediaType("application/octet-stream")
+  }
+
+  private fun getDownloadContentDisposition(filename: String): String {
+    val encodedFileName = URLEncoder.encode(filename.trim { it <= ' ' }, StandardCharsets.UTF_8.name())
+      .replace("+", "_");
+    return "attachment; filename*=UTF-8''$encodedFileName; filename=$encodedFileName"
+  }
+
+  fun downloadFile(filename: String, ba: ByteArray): ResponseEntity<Resource> {
+    return downloadFile(filename, ByteArrayResource(ba))
   }
 
   fun badRequest(message: String): ResponseEntity<String> {

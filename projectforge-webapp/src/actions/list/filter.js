@@ -23,7 +23,7 @@ const remove = (category, fieldId) => ({
     },
 });
 
-const reset = category => ({
+const reset = (category) => ({
     type: LIST_FILTER_RESET,
     payload: { category },
 });
@@ -54,18 +54,18 @@ const sort = (column, sortProperty, category) => ({
     },
 });
 
-export const addFilter = fieldId => (dispatch, getState) => dispatch(
+export const addFilter = (fieldId) => (dispatch, getState) => dispatch(
     add(getState().list.currentCategory, fieldId),
 );
 
-export const removeFilter = fieldId => (dispatch, getState) => {
+export const removeFilter = (fieldId) => (dispatch, getState) => {
     const category = getState().list.currentCategory;
 
     dispatch(remove(category, fieldId));
     loadList(category)(dispatch, getState);
 };
 
-export const changeSearchString = searchString => (dispatch, getState) => dispatch(
+export const changeSearchString = (searchString) => (dispatch, getState) => dispatch(
     searchFilterChanged(getState().list.currentCategory, searchString),
 );
 

@@ -37,7 +37,7 @@ function CalendarEventRecurrence({ locale }) {
         },
     ];
 
-    const onChange = rrule => setData({ recurrenceRule: rrule });
+    const onChange = (rrule) => setData({ recurrenceRule: rrule });
 
     const getTranslation = () => ((locale === 'de') ? translations.german : undefined);
 
@@ -63,7 +63,7 @@ function CalendarEventRecurrence({ locale }) {
 
         return options
             .map(({ value: opt }) => opt)
-            .find(opt => rrule.indexOf(opt) > 0) || 'CUSTOMIZED';
+            .find((opt) => rrule.indexOf(opt) > 0) || 'CUSTOMIZED';
     });
 
     const onSelectChange = (option) => {
@@ -84,10 +84,10 @@ function CalendarEventRecurrence({ locale }) {
         }
     };
 
-    const defaultValue = options.find(element => element.value === value) || options[0];
+    const defaultValue = options.find((element) => element.value === value) || options[0];
     return React.useMemo(
         () => (
-            <React.Fragment>
+            <>
                 <Row>
                     <Col sm={4}>
                         <ReactSelect
@@ -105,7 +105,7 @@ function CalendarEventRecurrence({ locale }) {
                         <Row className="rrule-generator">
                             <Col sm={12}>
                                 <RRuleGenerator
-                                    onChange={rrule => onChange(rrule)}
+                                    onChange={(rrule) => onChange(rrule)}
                                     value={data.recurrenceRule}
                                     config={{
                                         repeat: ['Yearly', 'Monthly', 'Weekly', 'Daily'],
@@ -115,7 +115,7 @@ function CalendarEventRecurrence({ locale }) {
                             </Col>
                         </Row>
                     ) : undefined}
-            </React.Fragment>
+            </>
         ),
         [value, setData],
     );

@@ -155,14 +155,14 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
           return;
         }
         if (MAGIC_PASSWORD.equals(passwordInput) == false || adminUser.getPassword() == null) {
-          final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+          final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
           if (errorMsgKeys.isEmpty() == false) {
             adminUser.setPassword(null);
             for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
               passwordField.error(I18nHelper.getLocalizedMessage(errorMsgKey));
             }
           } else {
-            userService.createEncryptedPassword(adminUser, passwordInput);
+            userService.createEncryptedPassword(adminUser, passwordInput.toCharArray());
           }
         }
       });

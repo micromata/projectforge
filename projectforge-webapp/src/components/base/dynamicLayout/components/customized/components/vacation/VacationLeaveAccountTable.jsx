@@ -10,9 +10,9 @@ function VacationLeaveAccountTable({ entries }) {
     const { ui } = React.useContext(DynamicLayoutContext);
 
     return (
-        <React.Fragment>
+        <>
             {entries && entries.length > 0 && (
-                <React.Fragment>
+                <>
                     <h4>{ui.translations['vacation.leaveAccountEntry.title.heading']}</h4>
                     <Table striped hover>
                         <thead>
@@ -25,7 +25,7 @@ function VacationLeaveAccountTable({ entries }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {entries.map(entry => (
+                            {entries.map((entry) => (
                                 <tr
                                     key={entry.id}
                                     onClick={() => history.push(`${prefix}leaveAccountEntry/edit/${entry.id}?returnToCaller=account`)}
@@ -37,9 +37,9 @@ function VacationLeaveAccountTable({ entries }) {
                             ))}
                         </tbody>
                     </Table>
-                </React.Fragment>
+                </>
             )}
-        </React.Fragment>
+        </>
     );
 }
 

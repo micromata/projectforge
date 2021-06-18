@@ -77,7 +77,7 @@ public class RestUserFilterTest extends AbstractTestBase {
     final HttpServletResponse response = mock(HttpServletResponse.class);
 
     // Wrong password
-    HttpServletRequest request = mockRequest(AbstractTestBase.TEST_USER, "failed", null, null);
+    HttpServletRequest request = mockRequest(AbstractTestBase.TEST_USER, "failed".toCharArray(), null, null);
     FilterChain chain = mock(FilterChain.class);
     filter.doFilter(request, response, chain);
     verify(chain, never()).doFilter(Mockito.any(HttpServletRequest.class), Mockito.any(HttpServletResponse.class));
@@ -100,14 +100,14 @@ public class RestUserFilterTest extends AbstractTestBase {
     verify(chain).doFilter(Mockito.eq(request), Mockito.eq(response));
   }
 
-  private HttpServletRequest mockRequest(final String username, final String password, final Integer userId,
+  private HttpServletRequest mockRequest(final String username, final char[] password, final Integer userId,
                                          final String authenticationToken) {
     final HttpServletRequest request = mock(HttpServletRequest.class);
     if (username != null) {
       when(request.getHeader(Mockito.eq(Authentication.AUTHENTICATION_USERNAME))).thenReturn(username);
     }
     if (password != null) {
-      when(request.getHeader(Mockito.eq(Authentication.AUTHENTICATION_PASSWORD))).thenReturn(password);
+      when(request.getHeader(Mockito.eq(Authentication.AUTHENTICATION_PASSWORD))).thenReturn(new String(password));
     }
     if (userId != null) {
       when(request.getHeader(Mockito.eq(Authentication.AUTHENTICATION_USER_ID))).thenReturn(userId.toString());

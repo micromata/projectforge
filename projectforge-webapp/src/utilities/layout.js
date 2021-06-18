@@ -3,7 +3,7 @@ export const getNamedContainer = (id, namedContainers) => {
         return undefined;
     }
 
-    return namedContainers.find(current => current.id === id);
+    return namedContainers.find((current) => current.id === id);
 };
 
 export const getTranslation = (key, translations) => {
@@ -14,4 +14,4 @@ export const getTranslation = (key, translations) => {
     return translations[key];
 };
 
-export const formatTimeUnit = time => `${time !== undefined && Number(time) < 10 ? '0' : ''}${time}`;
+export const formatTimeUnit = (time) => `${time !== undefined && Number(time) < 10 ? '0' : ''}${time}`;

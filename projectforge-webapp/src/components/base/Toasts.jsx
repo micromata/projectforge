@@ -6,7 +6,7 @@ import { colorPropType } from '../../utilities/propTypes';
 import { Toast, ToastBody, ToastHeader } from '../design';
 
 function Toasts({ onClear, onToastRemove, toasts }) {
-    const handleDismissClick = id => (event) => {
+    const handleDismissClick = (id) => (event) => {
         if (event.shiftKey) {
             onClear();
         } else {
@@ -26,7 +26,7 @@ function Toasts({ onClear, onToastRemove, toasts }) {
             {toasts
                 .filter(({ dismissed }) => dismissed !== true)
                 .reverse()
-                .map(toast => (
+                .map((toast) => (
                     <Toast key={`toast-${toast.id}`}>
                         <ToastHeader toggle={handleDismissClick(toast.id)} icon={toast.color}>
                             ProjectForge

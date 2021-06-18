@@ -85,7 +85,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     @get:Column(name = "first_name", length = 255)
     open var firstName: String? = null
 
-    @PropertyInfo(i18nKey = "gender", required = true)
+    @PropertyInfo(i18nKey = "address.form", required = true)
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "form", length = 10)

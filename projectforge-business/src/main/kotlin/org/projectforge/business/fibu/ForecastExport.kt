@@ -27,6 +27,7 @@ import de.micromata.merlin.I18n
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import de.micromata.merlin.excel.ExcelWriterContext
+import mu.KotlinLogging
 import org.projectforge.Const
 import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.business.excel.XlsContentProvider
@@ -46,6 +47,8 @@ import java.io.IOException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Forcast excel export based on order book with probabilities as well as on already invoiced orders.
@@ -187,18 +190,18 @@ open class ForecastExport { // open needed by Wicket.
 
         // Now: evaluate the formulars:
         for (row in 1..7) {
-            val excelRow = forecastSheet.getRow(row)!!
+            val excelRow = forecastSheet.getRow(row)
             MonthCol.values().forEach {
                 val cell = excelRow.getCell(forecastSheet.getColumnDef(it.header)!!)
-                cell?.evaluateFormularCell()
+                cell.evaluateFormularCell()
             }
         }
         val revenueSheet = workbook.getSheet("Umsatz kumuliert")!!
         for (row in 0..8) {
-            val excelRow = revenueSheet.getRow(row)!!
+            val excelRow = revenueSheet.getRow(row)
             for (col in 1..12) {
                 val cell = excelRow.getCell(col)
-                cell?.evaluateFormularCell()
+                cell.evaluateFormularCell()
             }
         }
 
@@ -257,7 +260,7 @@ open class ForecastExport { // open needed by Wicket.
         var currentMonth = baseDate
         MonthCol.values().forEach {
             val cell = sheet.headRow!!.getCell(sheet.getColumnDef(it.header)!!)
-            cell?.setCellValue(formatMonthHeader(currentMonth))
+            cell.setCellValue(formatMonthHeader(currentMonth))
             currentMonth = currentMonth.plusMonths(1)
         }
     }
@@ -406,7 +409,7 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     private fun highlightErrorCell(ctx: Context, rowNumber: Int, colNumber: Int, comment: String? = null) {
-        val excelRow = ctx.forecastSheet.getRow(rowNumber)!!
+        val excelRow = ctx.forecastSheet.getRow(rowNumber)
         val excelCell = excelRow.getCell(colNumber)
         ctx.writerContext.cellHighlighter.highlightErrorCell(excelCell, ctx.writerContext, ctx.forecastSheet, ctx.forecastSheet.getColumnDef(0), excelRow)
         if (comment != null)
@@ -462,8 +465,6 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(ForecastExport::class.java)
-        private const val FORECAST_IST_SUM_ROW = 7
         private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM yyyy")
 
         fun formatMonthHeader(date: PFDay): String {

@@ -22,7 +22,7 @@ function FavoriteActionButton(
     };
 
     return (
-        <React.Fragment>
+        <>
             <FontAwesomeIcon
                 id={id}
                 icon={icon}
@@ -35,7 +35,7 @@ function FavoriteActionButton(
                     {tooltip}
                 </UncontrolledTooltip>
             ) : undefined}
-        </React.Fragment>
+        </>
     );
 }
 

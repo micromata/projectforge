@@ -28,15 +28,23 @@ import org.junit.jupiter.api.Test
 import org.projectforge.rest.AddressPagesRest
 
 class RestResolverTest {
-    @Test
-    fun resolveTest() {
-        assertEquals("/rs/address", RestResolver.getRestUrl(AddressPagesRest::class.java))
-        assertEquals("address", RestResolver.getRestUrl(AddressPagesRest::class.java, null, true))
+  @Test
+  fun resolveTest() {
+    test("address")
+    test("address/edit", "edit")
+    test("address/edit", "/edit")
 
-        assertEquals("/rs/address/edit", RestResolver.getRestUrl(AddressPagesRest::class.java, "edit"))
-        assertEquals("address/edit", RestResolver.getRestUrl(AddressPagesRest::class.java, "edit", true))
+    test("address?q=hurz", params = mapOf("q" to "hurz"))
+    test("address?q=hurz&id=null", params = mapOf("q" to "hurz", "id" to null))
+    test("address/edit?q=hurz", "edit", params = mapOf("q" to "hurz"))
+    test("address/edit?q=hurz&id=null", "edit", params = mapOf("q" to "hurz", "id" to null))
+  }
 
-        assertEquals("/rs/address/edit", RestResolver.getRestUrl(AddressPagesRest::class.java, "/edit"))
-        assertEquals("address/edit", RestResolver.getRestUrl(AddressPagesRest::class.java, "/edit", true))
-    }
+  private fun test(expected: String, subPath: String? = null, params: Map<String, Any?>? = null) {
+    assertEquals(expected, RestResolver.getRestUrl(AddressPagesRest::class.java, subPath, true, params = params))
+    assertEquals(
+      "/rs/$expected",
+      RestResolver.getRestUrl(AddressPagesRest::class.java, subPath, false, params = params)
+    )
+  }
 }

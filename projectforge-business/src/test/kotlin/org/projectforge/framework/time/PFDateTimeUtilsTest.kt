@@ -38,7 +38,7 @@ class PFDateTimeUtilsTest {
         val testDate = PFDateTime.withDate(2012, Month.DECEMBER, 23, 8, 33, 24, 123, timeZone.toZoneId());
         val utcDate: PFDateTime = PFDateTimeUtils.getUTCBeginOfDay(testDate.utilDate, timeZone)
         Assertions.assertEquals("2012-12-23 00:00:00.000", utcDate.isoStringMilli)
-        Assertions.assertEquals("2012-12-22 23:00:00.000", from(testDate.utilDate)!!.beginOfDay.isoStringMilli)
+        Assertions.assertEquals("2012-12-22 23:00:00.000", from(testDate.utilDate).beginOfDay.isoStringMilli)
     }
 
     @Test

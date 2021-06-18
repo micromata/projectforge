@@ -55,7 +55,7 @@ export const defaultValues = {
      */
     // Disable no-unused-vars so its clear what you need to override the function.
     /* eslint-disable-next-line no-unused-vars */
-    renderLayout: content => <React.Fragment />,
+    renderLayout: (content) => <></>,
     /**
      * Modifies the context data object in a way like Reacts setState().
      *

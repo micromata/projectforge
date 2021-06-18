@@ -78,6 +78,8 @@ package arlut.csd.crypto;
 
 ------------------------------------------------------------------------------*/
 
+import java.util.Arrays;
+
 /**
  * <p>This Java class implements the two cryptographic hash methods used
  * by SMB clients.  In particular, the LANMANHash() and NTUNICODEHash()
@@ -727,16 +729,17 @@ public class SmbEncrypt {
    *
    * <p>This method hashes the first 128 characters of the password,
    * with full Unicode range and case preservation.</p>
+   *
+   * Refactored by Kai Reinhard for handling of char arrays.
+   *
+   * @param c_ary
+   * @return
    */
-
-  public static String NTUNICODEHash(String password)
-  {
-    if (password.length() > 128)
+  public static String NTUNICODEHash(char[] c_ary) {
+    if (c_ary.length > 128)
     {
-      password = password.substring(0, 128);
+      c_ary = Arrays.copyOfRange(c_ary, 0, 128);
     }
-
-    final char c_ary[] = password.toCharArray();
 
     // we need to simulate NT's little endian Unicode
     // representation before we pass this to md4
@@ -771,7 +774,7 @@ public class SmbEncrypt {
     }
 
     System.err.println(LANMANHash(argv[0]));
-    System.err.println(NTUNICODEHash(argv[0]));
+    System.err.println(NTUNICODEHash(argv[0].toCharArray()));
     System.exit(0);
   }
 }

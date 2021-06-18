@@ -144,7 +144,8 @@ open class JacksonConfiguration {
         "sizeHumanReadable",
         "createdFormatted",
         "lastUpdateFormatted",
-        "lastUpdateTimeAgo"
+        "lastUpdateTimeAgo",
+        "encrypted",
       )
       registerAllowedUnknownProperties(PFUserDO::class.java, "fullname")
       registerAllowedUnknownProperties(KundeDO::class.java, "id")
@@ -178,9 +179,7 @@ open class JacksonConfiguration {
 
   @Bean
   open fun objectMapper(): ObjectMapper {
-    if (objectMapper != null) {
-      return objectMapper!!
-    }
+    objectMapper?.let { return it }
     val mapper = ObjectMapper()
     mapper.registerModule(KotlinModule())
     mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)

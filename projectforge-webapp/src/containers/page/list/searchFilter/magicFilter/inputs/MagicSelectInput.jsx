@@ -15,7 +15,7 @@ function MagicSelectInput(
     const Tag = multi ? CheckBox : RadioButton;
 
     return (
-        <React.Fragment>
+        <>
             {values.map(({ id: selectValue, displayName }) => (
                 <Tag
                     key={`magic-select-${selectValue}`}
@@ -26,7 +26,7 @@ function MagicSelectInput(
                         if (multi) {
                             const oldValues = value.values || [];
                             if (oldValues.includes(selectValue)) {
-                                onChange({ values: oldValues.filter(v => v !== selectValue) });
+                                onChange({ values: oldValues.filter((v) => v !== selectValue) });
                             } else {
                                 onChange({ values: [...oldValues, selectValue] });
                             }
@@ -37,17 +37,18 @@ function MagicSelectInput(
                     checked={Boolean(value.values && value.values.includes(selectValue))}
                 />
             ))}
-        </React.Fragment>
+        </>
     );
 }
 
 MagicSelectInput.propTypes = {
     onChange: PropTypes.func.isRequired,
-    value: PropTypes.shape({}).isRequired,
-    values: PropTypes.arrayOf(PropTypes.shape({
-        value: PropTypes.string,
-        label: PropTypes.string,
-    })).isRequired,
+    value: PropTypes.shape({
+        values: PropTypes.shape({
+            includes: PropTypes.shape({}),
+        }),
+    }).isRequired,
+    values: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     id: PropTypes.string,
     multi: PropTypes.bool,
 };
@@ -61,7 +62,7 @@ MagicSelectInput.isEmpty = ({ values }) => !values || values.length === 0;
 
 MagicSelectInput.getLabel = (label, { values }, { values: dataValues }) => `${label}: ${values
     // Find Labels for selected items by values
-    .map(v => dataValues.find(dv => dv.id === v).displayName)
+    .map((v) => dataValues.find((dv) => dv.id === v).displayName)
     .join(', ')}`;
 
 export default MagicSelectInput;

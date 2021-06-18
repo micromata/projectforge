@@ -23,8 +23,6 @@
 
 package org.projectforge.business.configuration;
 
-import org.projectforge.framework.configuration.Configuration;
-
 import java.time.DayOfWeek;
 import java.util.Locale;
 
@@ -43,11 +41,11 @@ public class ConfigurationServiceAccessor {
   }
 
   public static void internalSetLocaleForJunitTests(Locale defaultLocale) {
-    ((ConfigurationService)get()).setDefaultLocale(defaultLocale);
+    ((ConfigurationService) get()).setDefaultLocale(defaultLocale);
   }
 
   public static void internalSetMinimalDaysInFirstWeekForJunitTests(Integer minimalDaysInFirstWeek) {
-    ((ConfigurationService)get()).setMinimalDaysInFirstWeek(minimalDaysInFirstWeek);
+    ((ConfigurationService) get()).setMinimalDaysInFirstWeek(minimalDaysInFirstWeek);
   }
 
   public static ConfigurationService get() {

@@ -81,6 +81,8 @@ class UILayout {
 
     val pageMenu = mutableListOf<MenuItem>()
 
+    var excelExportSupported = false
+
     val watchFields = mutableListOf<String>()
 
     /**

@@ -15,6 +15,7 @@ import DynamicReadonlyField from './input/DynamicReadonlyField';
 import DynamicTextArea from './input/DynamicTextArea';
 import DynamicReactSelect from './select/DynamicReactSelect';
 import DynamicTable from './table/DynamicTable';
+import DynamicListPageTable from './table/DynamicListPageTable';
 
 const components = {};
 
@@ -25,11 +26,12 @@ export const registerComponent = (type, tag) => {
 // Renders the components out of a content array.
 export default (content) => {
     if (!content) {
-        return <React.Fragment />;
+        return <></>;
     }
 
     return (
-        <React.Fragment>
+        <>
+            {/* eslint-disable-next-line react/destructuring-assignment */}
             {content.map(({ type, key, ...props }) => {
                 const Tag = components[type];
                 const componentKey = `dynamic-layout-${key}`;
@@ -50,7 +52,7 @@ export default (content) => {
                     />
                 );
             })}
-        </React.Fragment>
+        </>
     );
 };
 
@@ -73,4 +75,5 @@ registerComponent('RATING', DynamicRating);
 registerComponent('READONLY_FIELD', DynamicReadonlyField);
 registerComponent('SELECT', DynamicReactSelect);
 registerComponent('TABLE', DynamicTable);
+registerComponent('TABLE_LIST_PAGE', DynamicListPageTable);
 registerComponent('TEXTAREA', DynamicTextArea);

@@ -8,7 +8,7 @@ import style from '../Page.module.scss';
 function TabNavigation({ tabs, activeTab, ...props }) {
     return (
         <Nav tabs {...props}>
-            {tabs.map(tab => (
+            {tabs.map((tab) => (
                 <NavItem key={tab.id}>
                     <NavLink
                         id={tab.id}

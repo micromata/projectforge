@@ -59,7 +59,7 @@ public class I18nServiceImpl implements I18nService
     if (localeResourceBundleMap == null) {
       localeResourceBundleMap = new HashMap<>();
     }
-    File file = new File(configurationService.getResourceDir());
+    File file = new File(configurationService.getResourceDirName());
     URL[] urls = new URL[0];
     try {
       urls = new URL[] { file.toURI().toURL() };
@@ -78,11 +78,11 @@ public class I18nServiceImpl implements I18nService
     for (Locale locale : Const.I18NSERVICE_LANGUAGES) {
       for (String bundleName : resourceBundles) {
         try {
-          if (new File(configurationService.getResourceDir() + File.separator + bundleName + "_" + locale.toString() + ".properties").exists()) {
+          if (new File(configurationService.getResourceDirName() + File.separator + bundleName + "_" + locale.toString() + ".properties").exists()) {
             localeResourceBundleMap.put(new Pair<>(locale, bundleName), ResourceBundle.getBundle(bundleName, locale, loader));
           } else {
             ResourceBundle defaultBundle = ResourceBundle.getBundle(bundleName, Locale.ROOT,
-                new URLClassLoader(new URL[] { new File(configurationService.getResourceDir()).toURI().toURL() }));
+                new URLClassLoader(new URL[] { new File(configurationService.getResourceDirName()).toURI().toURL() }));
             localeResourceBundleMap.put(new Pair<>(locale, bundleName), defaultBundle);
           }
         } catch (MissingResourceException ignored) {

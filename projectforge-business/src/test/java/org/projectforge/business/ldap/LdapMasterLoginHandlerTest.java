@@ -210,9 +210,9 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase {
     user.setUsername("kai");
     user.setFirstname("Kai");
     user.setLastname("Reinhard");
-    userService.createEncryptedPassword(user, "successful");
+    userService.createEncryptedPassword(user, "successful".toCharArray());
     userService.save(user);
-    Assertions.assertEquals(LoginResultStatus.SUCCESS, loginHandler.checkLogin("kai", "successful").getLoginResultStatus());
+    Assertions.assertEquals(LoginResultStatus.SUCCESS, loginHandler.checkLogin("kai", "successful".toCharArray()).getLoginResultStatus());
 
     final ArgumentCaptor<LdapUser> argumentCaptor = ArgumentCaptor.forClass(LdapUser.class);
     verify(ldapUserDao).createOrUpdate(Mockito.anyString(), argumentCaptor.capture());
@@ -317,7 +317,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase {
     }
   }
 
-  private Integer createUser(final String username, final String password, final String firstname,
+  private Integer createUser(final String username, final char[] password, final String firstname,
                              final String lastname) {
     final PFUserDO user = new PFUserDO();
     user.setUsername(username);

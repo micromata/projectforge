@@ -42,6 +42,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.ldap.*;
 import org.projectforge.business.login.Login;
+import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.*;
 import org.projectforge.business.user.service.UserService;
@@ -780,7 +781,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
         return;
       }
       if (passwordUser == null) {
-        final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+        final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
         if (errorMsgKeys.isEmpty() == false) {
           for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
             final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
@@ -788,7 +789,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
           }
         } else {
           passwordUser = new PFUserDO();
-          userService.createEncryptedPassword(passwordUser, passwordInput);
+          char[] pw = passwordInput.toCharArray();
+          userService.createEncryptedPassword(passwordUser, pw);
+          LoginHandler.clearPassword(pw);
         }
       }
     });
@@ -845,7 +848,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
         return;
       }
 
-      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
       if (errorMsgKeys.isEmpty() == false) {
         for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
           final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);

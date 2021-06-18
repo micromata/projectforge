@@ -24,7 +24,8 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
-import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.AttachmentPageRest
 import org.projectforge.rest.AttachmentsServicesRest
@@ -45,7 +46,7 @@ private val log = KotlinLogging.logger {}
  * For external anonymous usage via token/password.
  */
 @RestController
-@RequestMapping("${Rest.PUBLIC_URL}/datatransferattachment")
+@RequestMapping("${Rest.PUBLIC_URL}/attachment")
 class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var services: AttachmentsServicesRest
@@ -53,17 +54,22 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
 
+  @Autowired
+  private lateinit var dataTransferPublicServicesRest: DataTransferPublicServicesRest
+
+  @Autowired
+  private lateinit var dataTransferPublicSession: DataTransferPublicSession
+
   private lateinit var dataTransferPublicAccessChecker: DataTransferPublicAccessChecker
 
   @PostConstruct
   private fun postConstruct() {
     val baseDao = dataTransferAreaPagesRest.baseDao
-    dataTransferPublicAccessChecker = DataTransferPublicAccessChecker(baseDao)
+    dataTransferPublicAccessChecker = DataTransferPublicAccessChecker(baseDao, dataTransferPublicSession)
   }
 
   /**
-   * The react path of this should look like: 'react/attachment/dynamic/42?category=contract...'
-   * @param id: Id of data object with attachments.
+   * Fails, if the user has no session.
    */
   @GetMapping("dynamic")
   fun getForm(
@@ -73,13 +79,33 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
     @RequestParam("listId") listId: String?,
     request: HttpServletRequest
   ): FormLayoutData {
-    log.info { "User tries to edit/view details of attachment: category='$category', id='$id', listId='$listId', fileId='$fileId', page='${this::class.java.name}'." }
-    check(category == "datatransfer")
-    // services.getDataObject(pagesRest, id) // Check data object availability.
-    val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
-    data.attachment = services.getAttachment(dataTransferAreaPagesRest.jcrPath!!, dataTransferPublicAccessChecker, data)
+    check(category == DataTransferPlugin.ID)
+    check(listId == AttachmentsService.DEFAULT_NODE)
+    val data = dataTransferPublicSession.checkLogin(request, id) ?: throw IllegalArgumentException("No valid login.")
+    val area = data.first
+    val sessionData = data.second
 
-    val layout = AttachmentPageRest.createAttachmentLayout(id, category, fileId, listId, data.attachment)
-    return FormLayoutData(data, layout, createServerData(request))
+    log.info {
+      "User tries to edit/view details of attachment: category=$category, id=$id, fileId=$fileId, listId=$listId)}, user='${
+        dataTransferPublicServicesRest.getExternalUserString(
+          request,
+          sessionData.userInfo
+        )
+      }'."
+    }
+    val attachmentData =
+      AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
+    attachmentData.attachment =
+      services.getAttachment(dataTransferAreaPagesRest.jcrPath!!, dataTransferPublicAccessChecker, attachmentData)
+    val layout = AttachmentPageRest.createAttachmentLayout(
+      id,
+      category,
+      fileId,
+      listId,
+      attachmentData.attachment,
+      writeAccess = dataTransferPublicAccessChecker.hasUpdateAccess(request, area, fileId),
+      restClass = DataTransferPublicServicesRest::class.java
+    )
+    return FormLayoutData(attachmentData, layout, createServerData(request))
   }
 }

@@ -23,87 +23,53 @@
 
 package org.projectforge.plugins.datatransfer.restPublic
 
-import mu.KotlinLogging
-import org.projectforge.business.login.LoginProtection
-import org.projectforge.business.login.LoginResultStatus
-import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferFileSizeChecker
 import org.projectforge.rest.config.RestUtils
 import javax.servlet.http.HttpServletRequest
 
-private val log = KotlinLogging.logger {}
-
 /**
  * Checks access to attachments by external anonymous users.
  */
-open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferAreaDao) : AttachmentsAccessChecker {
+open class DataTransferPublicAccessChecker(
+  dataTransferAreaDao: DataTransferAreaDao,
+  val dataTransferPublicSession: DataTransferPublicSession
+) : AttachmentsAccessChecker {
   override val fileSizeChecker: DataTransferFileSizeChecker =
     DataTransferFileSizeChecker(dataTransferAreaDao.maxFileSize.toBytes())
 
-  fun checkExternalAccess(
-    dataTransferAreaDao: DataTransferAreaDao,
-    request: HttpServletRequest,
-    externalAccessToken: String?, externalPassword: String?
-  ): Pair<DataTransferAreaDO?, String?> {
-    if (externalAccessToken == null || externalPassword == null) {
-      return Pair(null, LoginResultStatus.FAILED.localizedMessage)
-    }
-    val loginProtection = LoginProtection.instance()
-    val clientIpAddress = RestUtils.getClientIp(request)
-    val offset = loginProtection.getFailedLoginTimeOffsetIfExists(externalAccessToken, clientIpAddress)
-    if (offset > 0) {
-      // Time offset still exists. Ignore login try.
-      val seconds = (offset / 1000).toString()
-      log.warn("The account for '${externalAccessToken}', ip=$clientIpAddress is locked for $seconds seconds due to failed login attempts. Please try again later.")
-      val numberOfFailedAttempts = loginProtection.getNumberOfFailedLoginAttempts(externalAccessToken, clientIpAddress)
-      val loginResultStatus = LoginResultStatus.LOGIN_TIME_OFFSET
-      loginResultStatus.setMsgParams(
-        seconds,
-        numberOfFailedAttempts.toString()
-      )
-      return Pair(null, loginResultStatus.localizedMessage)
-    }
-
-    val dbo = dataTransferAreaDao.getAnonymousArea(externalAccessToken)
-    if (dbo == null) {
-      log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' not found. Requested by ip=$clientIpAddress." }
-      loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
-      return Pair(null, LoginResultStatus.FAILED.localizedMessage)
-    }
-    if (dbo.externalPassword != externalPassword) {
-      log.warn { "Data transfer area with externalAccessToken '$externalAccessToken' doesn't match given password. Requested by ip=$clientIpAddress." }
-      loginProtection.incrementFailedLoginTimeOffset(externalAccessToken, clientIpAddress)
-      return Pair(null, LoginResultStatus.FAILED.localizedMessage)
-    }
-    if (dbo.externalUploadEnabled != true && dbo.externalDownloadEnabled != true) {
-      return Pair(null, translate("plugins.datatransfer.external.noAccess"))
-    }
-
-    // Successfully logged in:
-    loginProtection.clearLoginTimeOffset(externalAccessToken, null, clientIpAddress)
-
-    return Pair(dbo, null)
-  }
-
   /**
-   * If user has no download access, only attachments uploaded from own ip address should be displayed.
+   * If user has no download access, only attachments uploaded inside his session are available.
    */
   internal fun filterAttachments(
     request: HttpServletRequest,
     externalDownloadEnabled: Boolean?,
+    areaId: Int,
     attachments: List<Attachment>?
   ): List<Attachment>? {
     attachments ?: return null
     if (externalDownloadEnabled == true) {
       return attachments
     }
-    val clientIp = RestUtils.getClientIp(request) ?: "NO IP ADDRESS GIVEN. CAN'T SHOW ANY ATTACHMENT."
-    return attachments.filter { it.createdByUser?.contains(clientIp) == true }
+    return attachments.filter { dataTransferPublicSession.isOwnerOfFile(request, areaId, it.fileId) }
+  }
+
+  internal fun hasDownloadAccess(request: HttpServletRequest, area: DataTransferAreaDO, fileId: String): Boolean {
+    return area.externalDownloadEnabled == true || dataTransferPublicSession.isOwnerOfFile(request, area.id, fileId)
+  }
+
+  internal fun hasDeleteAccess(request: HttpServletRequest, area: DataTransferAreaDO, fileId: String): Boolean {
+    return hasUpdateAccess(request, area, fileId)
+  }
+
+  internal fun hasUpdateAccess(request: HttpServletRequest, area: DataTransferAreaDO, fileId: String): Boolean {
+    return area.externalUploadEnabled == true && dataTransferPublicSession.isOwnerOfFile(request, area.id, fileId)
   }
 
   /**
@@ -121,7 +87,7 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
   /**
    * @param subPath Equals to listId.
    */
-  override fun checkDownloadAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
+  override fun checkDownloadAccess(user: PFUserDO?, path: String, id: Any, file: FileObject, subPath: String?) {
   }
 
   /**
@@ -134,5 +100,16 @@ open class DataTransferPublicAccessChecker(dataTransferAreaDao: DataTransferArea
    * @param subPath Equals to listId.
    */
   override fun checkDeleteAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
+  }
+
+  override fun hasAccess(
+    user: PFUserDO?,
+    path: String,
+    id: Any,
+    subPath: String?,
+    operationType: OperationType,
+    attachment: Attachment
+  ): Boolean {
+    return true
   }
 }

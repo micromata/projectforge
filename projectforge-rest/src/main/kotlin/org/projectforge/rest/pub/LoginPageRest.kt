@@ -25,6 +25,7 @@ package org.projectforge.rest.pub
 
 import mu.KotlinLogging
 import org.projectforge.Const
+import org.projectforge.business.login.LoginHandler
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.login.LoginResult
 import org.projectforge.business.login.LoginResultStatus
@@ -36,6 +37,7 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.login.LoginHandlerService
@@ -48,7 +50,6 @@ import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.*
 import org.projectforge.web.rest.AbstractRestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.web.bind.annotation.*
 import java.net.URLDecoder
 import javax.servlet.ServletRequest
@@ -64,7 +65,10 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/login")
 open class LoginPageRest {
-  class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
+  /**
+   * Password as char array for security reasons (don't wait for the garbage collector).
+   */
+  class LoginData(var username: String? = null, var password: CharArray? = null, var stayLoggedIn: Boolean? = null)
 
   @Autowired
   private lateinit var userService: UserService
@@ -79,8 +83,27 @@ open class LoginPageRest {
   private lateinit var loginHandlerService: LoginHandlerService
 
   @GetMapping("dynamic")
-  fun getForm(@RequestParam url: String? = null): FormLayoutData {
-    return FormLayoutData(null, this.getLoginLayout(), ServerData(returnToCaller = url))
+  fun getForm(
+    request: HttpServletRequest,
+    @RequestParam url: String? = null
+  ): FormLayoutData {
+    val form = if (UserFilter.getUserContext(request) != null) {
+      // User is already logged-in:
+      UILayout("login.title")
+        .add(
+          UIAlert(
+            translate(ThreadLocalUserContext.getLocale(), "login.successful"),
+            color = UIColor.INFO,
+            icon = UIIconType.INFO
+          )
+        )
+      // Translation can't be done automatically, because the user isn't set here in ThreadLocalUserContext, because this
+      // is a public page!
+      // (The thread local user isn't set, but the locale should be set by LocaleFilter in ThreadUserLocalContext.)
+    } else {
+      this.getLoginLayout()
+    }
+    return FormLayoutData(null, form, ServerData(returnToCaller = url))
   }
 
   @PostMapping
@@ -197,7 +220,7 @@ open class LoginPageRest {
       val stayLoggedInKey = userAuthenticationsService.internalGetToken(user.id, UserTokenType.STAY_LOGGED_IN_KEY)
       val cookie = Cookie(
         Const.COOKIE_NAME_FOR_STAY_LOGGED_IN,
-        "${loggedInUser.getId()}:${loggedInUser.username}:$stayLoggedInKey"
+        "${loggedInUser.id}:${loggedInUser.username}:$stayLoggedInKey"
       )
       cookieService.addStayLoggedInCookie(request, response, cookie)
     }
@@ -225,9 +248,10 @@ open class LoginPageRest {
       )
     }
     val result = loginHandlerService.loginHandler.checkLogin(loginData.username, loginData.password)
-    if (result.getLoginResultStatus() == LoginResultStatus.SUCCESS) {
+    LoginHandler.clearPassword(loginData.password)
+    if (result.loginResultStatus == LoginResultStatus.SUCCESS) {
       loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
-    } else if (result.getLoginResultStatus() == LoginResultStatus.FAILED) {
+    } else if (result.loginResultStatus == LoginResultStatus.FAILED) {
       loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)
     }
     return result

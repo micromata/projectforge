@@ -1,8 +1,6 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { connect } from 'react-redux';
-import { openEditPage } from '../../../../../actions';
 import { tableColumnsPropType } from '../../../../../utilities/propTypes';
 import Formatter from '../../../Formatter';
 import DynamicCustomized from '../customized';
@@ -13,12 +11,10 @@ function DynamicTableRow(
         columns,
         row,
         highlightRow,
-        handleRowClick,
     },
 ) {
     return (
         <tr
-            onClick={handleRowClick}
             className={classNames(
                 style.clickable,
                 { [style.highlighted]: highlightRow === true },
@@ -51,9 +47,9 @@ function DynamicTableRow(
 
 DynamicTableRow.propTypes = {
     columns: tableColumnsPropType.isRequired,
-    handleRowClick: PropTypes.func.isRequired,
     row: PropTypes.shape({
         id: PropTypes.number.isRequired,
+        deleted: PropTypes.bool,
     }).isRequired,
     highlightRow: PropTypes.bool,
 };
@@ -62,10 +58,4 @@ DynamicTableRow.defaultProps = {
     highlightRow: false,
 };
 
-const mapStateToProps = undefined;
-
-const actions = (dispatch, { row }) => ({
-    handleRowClick: () => dispatch(openEditPage(row.id)),
-});
-
-export default connect(mapStateToProps, actions)(DynamicTableRow);
+export default DynamicTableRow;

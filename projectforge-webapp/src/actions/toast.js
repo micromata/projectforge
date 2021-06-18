@@ -13,7 +13,7 @@ const add = (id, message, color) => ({
     },
 });
 
-export const removeToast = id => ({
+export const removeToast = (id) => ({
     type: TOAST_REMOVE,
     payload: { id },
 });

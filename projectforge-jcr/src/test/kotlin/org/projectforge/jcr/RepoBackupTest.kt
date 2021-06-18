@@ -99,6 +99,13 @@ class RepoBackupTest {
       Assertions.assertEquals(8, checkResult.numberOfVisitedNodes)
       Assertions.assertEquals(3, checkResult.numberOfVisitedFiles)
     }
+    ZipInputStream(FileInputStream(zipFile)).use {
+      var zipEntry = it.nextEntry
+      while (zipEntry != null) {
+        Assertions.assertFalse(zipEntry.name.contains("datatransfer", true), "DataTransfer should be ignored: ${zipEntry.name}")
+        zipEntry = it.nextEntry
+      }
+    }
     ZipOutputStream(FileOutputStream(testUtils.deleteAndCreateTestFile("fullbackupFromRestored.zip"))).use {
       repo2BackupService.backupAsZipArchive("fullbackupFromRestored", it)
     }

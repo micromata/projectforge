@@ -14,7 +14,7 @@ function MagicTimeStampInput(
         value,
     },
 ) {
-    const fragment = <React.Fragment />;
+    const fragment = <></>;
 
     if (value.to === undefined || value.from === undefined) {
         onChange({
@@ -33,12 +33,12 @@ function MagicTimeStampInput(
     }
 
     // TODO CHECK IF FROM IS AFTER TO (AND VICE VERSA)
-    const setFrom = from => onChange({
+    const setFrom = (from) => onChange({
         ...value,
         from,
     });
 
-    const setTo = to => onChange({
+    const setTo = (to) => onChange({
         ...value,
         to,
     });

@@ -31,17 +31,15 @@ import org.projectforge.test.AbstractTestBase;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class HibernateUtilsTest extends AbstractTestBase
-{
+public class HibernateUtilsTest extends AbstractTestBase {
   @Test
-  public void propertyLengthTest()
-  {
+  public void propertyLengthTest() {
     Integer length = HibernateUtils.getPropertyLength(TaskDO.class.getName(), "title");
-    assertEquals(new Integer(40), length);
+    assertEquals(Integer.valueOf(40), length);
     length = HibernateUtils.getPropertyLength(TaskDO.class.getName(), "shortDescription");
-    assertEquals(new Integer(255), length);
+    assertEquals(Integer.valueOf(255), length);
     length = HibernateUtils.getPropertyLength(TaskDO.class, "shortDescription");
-    assertEquals(new Integer(255), length);
+    assertEquals(Integer.valueOf(255), length);
     HibernateUtils.enterTestMode();
     length = HibernateUtils.getPropertyLength(TaskDO.class.getName(), "unknown");
     HibernateUtils.exitTestMode();

@@ -12,8 +12,7 @@ function DynamicObjectSelect(
 ) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
-    const handleSelect = completion => setData({ [id]: completion });
-
+    const handleSelect = (completion) => setData({ [id]: completion });
 
     return (
         <DynamicValidationManager id={id}>

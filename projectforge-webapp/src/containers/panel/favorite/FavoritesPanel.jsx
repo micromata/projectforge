@@ -40,7 +40,7 @@ function FavoritesPanel(
     useClickOutsideHandler(popperRef, setOpen, open);
 
     return (
-        <React.Fragment>
+        <>
             <FavoritesButton
                 toggle={toggle}
                 id={htmlId}
@@ -67,7 +67,7 @@ function FavoritesPanel(
                                 />
                             </li>
                         ) : undefined}
-                        {favorites.map(favorite => (
+                        {favorites.map((favorite) => (
                             <FavoriteEntry
                                 key={favorite.id}
                                 {...favorite}
@@ -83,7 +83,7 @@ function FavoritesPanel(
                     </ul>
                 </PopoverBody>
             </Popover>
-        </React.Fragment>
+        </>
     );
 }
 
@@ -95,7 +95,7 @@ FavoritesPanel.propTypes = {
     currentFavoriteId: PropTypes.number,
     favoriteButtonText: PropTypes.string,
     favorites: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.any,
+        id: PropTypes.number,
         name: PropTypes.string,
     })),
     htmlId: PropTypes.string,

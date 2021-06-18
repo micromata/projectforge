@@ -31,85 +31,154 @@ import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileObject
+import org.projectforge.jcr.ZipMode
 import java.util.*
 
 /**
  * Represents a file object of jcr (including meta data as well as location in jcr).
  */
 class Attachment() {
-    /**
-     * Unique id, set by jcr
-     */
-    @PropertyInfo(i18nKey = "attachment.fileId")
-    var fileId: String? = null
+  /**
+   * Unique id, set by jcr
+   */
+  @PropertyInfo(i18nKey = "attachment.fileId")
+  var fileId: String? = null
 
-    /**
-     * Filename.
-     */
-    @PropertyInfo(i18nKey = "attachment.fileName")
-    var name: String? = null
-    var size: Long? = null
+  /**
+   * Filename.
+   */
+  @PropertyInfo(i18nKey = "attachment.fileName")
+  var name: String? = null
+  var size: Long? = null
 
-    @get:JsonProperty
-    val sizeHumanReadable: String
-        get() = NumberHelper.formatBytes(size)
+  @get:JsonProperty
+  val sizeHumanReadable: String
+    get() = NumberHelper.formatBytes(size)
 
-    @PropertyInfo(i18nKey = "description")
-    var description: String? = null
+  @PropertyInfo(i18nKey = "description")
+  var description: String? = null
 
-    var created: Date? = null
+  var created: Date? = null
 
-    /**
-     * Date of creation in user's timezone and date format.
-     */
-    @get:JsonProperty
-    val createdFormatted: String
-        get() = PFDateTime.fromOrNull(created)?.format(DateFormatType.DATE_TIME_MINUTES) ?: ""
-    var createdByUser: String? = null
+  /**
+   * Date of creation in user's timezone and date format.
+   */
+  @get:JsonProperty
+  val createdFormatted: String
+    get() = PFDateTime.fromOrNull(created)?.format(DateFormatType.DATE_TIME_MINUTES) ?: ""
 
-    var lastUpdate: Date? = null
-    /**
-     * Date of last update in user's timezone and date format.
-     */
-    @get:JsonProperty
-    val lastUpdateFormatted: String
-        get() = PFDateTime.fromOrNull(lastUpdate)?.format(DateFormatType.DATE_TIME_MINUTES) ?: ""
-    /**
-     * Date of last update as time-ago in user's locale.
-     */
-    @get:JsonProperty
-    val lastUpdateTimeAgo: String
-        get() = TimeAgo.getMessage(lastUpdate)
-    var lastUpdateByUser: String? = null
+  /**
+   * Id or full name or external user info.
+   */
+  var createdByUser: String? = null
 
-    /**
-     * Location of file as path to node in JCR.
-     */
-    var location: String? = null
+  /**
+   * Id of internal user or null, if no internal user.
+   */
+  var createdByUserId: Int? = null
 
-    /**
-     * If true, the user has no access to modify or delete this attachment.
-     */
-    var readonly: Boolean? = null
+  var lastUpdate: Date? = null
 
-    /**
-     * The checksum of the file, e. g.: (SHA256).
-     */
-    var checksum: String? = null
+  /**
+   * Date of last update in user's timezone and date format.
+   */
+  @get:JsonProperty
+  val lastUpdateFormatted: String
+    get() = PFDateTime.fromOrNull(lastUpdate)?.format(DateFormatType.DATE_TIME_MINUTES) ?: ""
 
-    constructor(fileObject: FileObject) : this() {
-        this.fileId = fileObject.fileId
-        this.name = fileObject.fileName
-        this.size = fileObject.size
-        this.description = fileObject.description
-        this.created = fileObject.created
-        this.createdByUser = fileObject.createdByUser
-        this.lastUpdate = fileObject.lastUpdate
-        this.lastUpdateByUser = fileObject.lastUpdateByUser
-        this.checksum = fileObject.checksum
+  /**
+   * Date of last update as time-ago in user's locale.
+   */
+  @get:JsonProperty
+  val lastUpdateTimeAgo: String
+    get() = TimeAgo.getMessage(lastUpdate)
+  var lastUpdateByUser: String? = null
+
+  /**
+   * Location of file as path to node in JCR.
+   */
+  var location: String? = null
+
+  /**
+   * If true, the user has no access to modify or delete this attachment.
+   */
+  var readonly: Boolean? = null
+
+  /**
+   * The checksum of the file, e. g.: (SHA256).
+   */
+  var checksum: String? = null
+
+  /**
+   * The password isn't stored anywhere. If true, a password to decrypt is required for download.
+   * An encrypted file is encrypted in the storage itself and has to be encrypted server-side before download.
+   * After download the user gets the file decrypted.
+   */
+  var aesEncrypted: Boolean? = false
+
+  /**
+   * Info fields (used e. g. by DataTransferTool). You may add entries via [addInfo].
+   */
+  var info: MutableMap<String, Any?>? = null
+
+  /**
+   * If zip file is encrypted, the algorithm is stored (if encrypted by ProjectForge)
+   */
+  var zipMode: ZipMode? = null
+
+  /**
+   * If zip file isn't encrypted, this algorithm is the desired one, if the user presses "encrypt" button.
+   */
+  @PropertyInfo(i18nKey = "attachment.zip.encryptionAlgorithm")
+  var newZipMode: ZipMode? = null
+
+  /**
+   * Optional password to encrypt file or to test encryption.
+   */
+  @PropertyInfo(i18nKey = "password")
+  var password: String? = null
+
+  @get:JsonProperty
+  val encrypted: Boolean
+    get() = zipMode?.isEncrpyted == true || aesEncrypted == true
+
+  constructor(fileObject: FileObject) : this() {
+    this.fileId = fileObject.fileId
+    this.name = fileObject.fileName
+    this.size = fileObject.size
+    this.description = fileObject.description
+    this.created = fileObject.created
+    this.createdByUser = fileObject.createdByUser
+    this.lastUpdate = fileObject.lastUpdate
+    this.lastUpdateByUser = fileObject.lastUpdateByUser
+    this.checksum = fileObject.checksum
+    this.aesEncrypted = fileObject.aesEncrypted
+    this.zipMode = fileObject.zipMode
+  }
+
+  /**
+   * Appends entries to [info] map (map will be created if null).
+   */
+  fun addInfo(key: String, value: Any?) {
+    info?.let {
+      it[key] = value
+    } ?: run {
+      info = mutableMapOf(key to value)
     }
+  }
 
-    override fun toString(): String {
-        return ToStringUtil.toJsonString(this)
-    }
+  /**
+   * Adds expiry info to map [info], used by DynamicAttachmentList.jsx.
+   */
+  fun addExpiryInfo(value: String) {
+    addInfo(INFO_EXPIRY_KEY, value)
+  }
+
+  override fun toString(): String {
+    return ToStringUtil.toJsonString(this)
+  }
+
+  companion object {
+    const val INFO_EXPIRY_KEY = "expiryInfo"
+  }
 }

@@ -43,8 +43,10 @@ import org.projectforge.jcr.RepoBackupService;
 import org.projectforge.jcr.RepoService;
 import org.projectforge.registry.Registry;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -57,7 +59,7 @@ import java.io.InputStream;
 import java.util.TimeZone;
 
 /**
- * Doing some initialization stuff and stuff on shutdown (planned). Most stuff is yet done by WicketApplication.
+ * Doing some initialization stuff and stuff on shutdown (planned). Most stuff is yet done by SrpingApplication.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -67,7 +69,15 @@ public class ProjectForgeApp {
 
   public static final String CONFIG_PARAM_BASE_DIR = "projectforge.base.dir";
 
+  /**
+   * "postgres" for setup wizard without embedded db option (useful for docker-compose with PostgreSQL) or null.
+   */
   public static final String PROJECTFORGE_SETUP = "projectforge.setup";
+
+  /**
+   * If given, ProjectForge runs in docker. Values are: stack (for docker compose or single).
+   */
+  public static final String DOCKER_MODE = "docker";
 
   public static final String CONFIG_PLUGINS_DIR = "projectforge.plugins.dir";
 
@@ -81,6 +91,12 @@ public class ProjectForgeApp {
   public static void internalSetJunitTestMode() {
     junitTestMode = true;
   }
+
+  private static ConfigurableApplicationContext springApplicationRunContext;
+
+  private static boolean restarted = false;
+
+  private static Class<?> springApplication;
 
   private boolean upAndRunning;
 
@@ -103,6 +119,53 @@ public class ProjectForgeApp {
   private SystemInfoCache systemInfoCache;
 
   private SystemStatus systemStatus;
+
+  /**
+   * Will be called by SpringApplication main class (ProjectForgeApplication).
+   *
+   * @param ctx The context returned by run.
+   */
+  public static void setSpringApplicationRunContext(ConfigurableApplicationContext ctx, Class<?> springApplicationClass) {
+    springApplicationRunContext = ctx;
+    springApplication = springApplicationClass;
+  }
+
+  /**
+   * Shutdowns the SpringApplication. Should only be used after setup a new ProjectForge system.
+   *
+   * @param sleepInSeconds Wait before shutting down.
+   */
+  public static void shutdown(int sleepInSeconds) {
+    ApplicationArguments args = springApplicationRunContext.getBean(ApplicationArguments.class);
+
+    //try {
+    Thread thread = new Thread(() -> {
+      log.warn("Shutting down ProjectForge application.");
+      try {
+        Thread.sleep(sleepInSeconds * 1000);
+      } catch (InterruptedException ex) {
+        log.error("Error while sleeping " + sleepInSeconds + "s: " + ex.getMessage(), ex);
+      }
+      System.exit(0);
+        /* Doesn't work (after restart, EntityManager errors: EmployeeDao.getEmployeeIdByByUserId(...))
+        springApplicationRunContext.close();
+        restarted = true;
+        springApplicationRunContext = SpringApplication.run(springApplication, args.getSourceArgs());
+         */
+    });
+
+    thread.setDaemon(false);
+    thread.start();
+   /* } catch (Exception ex) {
+      log.error("Can't restart ProjecForgeAppliation: " + ex.getMessage(), ex);
+      log.error("Shuttind down only.");
+      System.exit(0);
+    }*/
+  }
+
+  public static boolean isRestarted() {
+    return restarted;
+  }
 
   @Autowired
   ProjectForgeApp(ApplicationContext applicationContext,

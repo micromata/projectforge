@@ -7,7 +7,7 @@ import styles from './Vacation.module.scss';
 
 function VacationEntries({ entries }) {
     return (
-        <React.Fragment>
+        <>
             {entries && entries.length > 0 && entries.map((entry, index) => (
                 <tr
                     key={entry.id}
@@ -25,7 +25,7 @@ function VacationEntries({ entries }) {
                     <td>{entry.comment}</td>
                 </tr>
             ))}
-        </React.Fragment>
+        </>
     );
 }
 
