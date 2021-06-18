@@ -18,14 +18,14 @@ export const userLoginSuccess = (user, version, buildTimestamp, alertMessage) =>
     },
 });
 
-export const userLoginFailure = error => ({
+export const userLoginFailure = (error) => ({
     type: USER_LOGIN_FAILURE,
     payload: {
         error,
     },
 });
 
-const catchError = dispatch => error => dispatch(userLoginFailure(error.message));
+const catchError = (dispatch) => (error) => dispatch(userLoginFailure(error.message));
 
 export const loadUserStatus = () => (dispatch) => {
     dispatch(userLoginBegin());
@@ -38,7 +38,7 @@ export const loadUserStatus = () => (dispatch) => {
         },
     )
         .then(handleHTTPErrors)
-        .then(response => response.json())
+        .then((response) => response.json())
         .then(({ userData, systemData, alertMessage }) => {
             dispatch(userLoginSuccess(
                 userData,

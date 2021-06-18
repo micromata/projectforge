@@ -76,7 +76,7 @@ public class Login
     return loginHandler.checkStayLoggedIn(user);
   }
 
-  public void passwordChanged(final PFUserDO user, final String newPassword)
+  public void passwordChanged(final PFUserDO user, final char[] newPassword)
   {
     if (loginHandler == null) {
       log.warn("No login handler is defined yet, so can't handle password-changed request.");
@@ -88,16 +88,25 @@ public class Login
     loginHandler.passwordChanged(user, newPassword);
   }
 
-  public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
+  /**
+   * Only supported by {@link org.projectforge.business.ldap.LdapMasterLoginHandler}
+   * @param user
+   * @param newPassword Will be cleared at the end of this method.
+   */
+  public void wlanPasswordChanged(final PFUserDO user, final char[] newPassword)
   {
-    if (loginHandler == null) {
-      log.warn("No login handler is defined yet, so can't handle WLAN password-changed request.");
-      return;
+    try {
+      if (loginHandler == null) {
+        log.warn("No login handler is defined yet, so can't handle WLAN password-changed request.");
+        return;
+      }
+      if (user == null) {
+        return;
+      }
+      loginHandler.wlanPasswordChanged(user, newPassword);
+    } finally {
+      LoginHandler.clearPassword(newPassword);
     }
-    if (user == null) {
-      return;
-    }
-    loginHandler.wlanPasswordChanged(user, newPassword);
   }
 
   public boolean isPasswordChangeSupported(final PFUserDO user)

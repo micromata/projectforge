@@ -26,7 +26,6 @@ package org.projectforge.jcr
 import com.fasterxml.jackson.annotation.JsonIgnore
 import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
-import java.util.*
 import javax.jcr.Node
 
 private val log = KotlinLogging.logger {}
@@ -34,17 +33,19 @@ private val log = KotlinLogging.logger {}
 /**
  * Files in the content repository may addressed by location (parent node) and id or location and filename.
  */
-class FileObject(): FileInfo() {
+class FileObject() : FileInfo() {
   @JvmOverloads
   constructor(
     parentNodePath: String?,
     relPath: String? = null,
     fileId: String? = null,
-    fileInfo: FileInfo? = null
+    fileInfo: FileInfo? = null,
+    encryptionInProgress: Boolean? = null,
   ) : this() {
     this.parentNodePath = parentNodePath
     this.relPath = relPath
     this.fileId = fileId
+    this.encryptionInProgress = encryptionInProgress
     copyFrom(fileInfo)
   }
 
@@ -81,6 +82,10 @@ class FileObject(): FileInfo() {
     fileId = node.name
     size = PFJcrUtils.getProperty(node, RepoService.PROPERTY_FILESIZE)?.long
     checksum = PFJcrUtils.getProperty(node, RepoService.PROPERTY_CHECKSUM)?.string
+    aesEncrypted = PFJcrUtils.getProperty(node, RepoService.PROPERTY_AES_ENCRYPTED)?.boolean == true
+    PFJcrUtils.getProperty(node, RepoService.PROPERTY_ZIP_MODE)?.string?.let {
+      zipMode = ZipMode.valueOf(it)
+    }
     if (log.isDebugEnabled) {
       log.debug { "Restoring: ${PFJcrUtils.toJson(this)}" }
     }
@@ -96,6 +101,10 @@ class FileObject(): FileInfo() {
     node.setProperty(RepoService.PROPERTY_CREATED_BY_USER, createdByUser ?: "")
     node.setProperty(RepoService.PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString(lastUpdate) ?: "")
     node.setProperty(RepoService.PROPERTY_LAST_UPDATE_BY_USER, lastUpdateByUser ?: "")
+    node.setProperty(RepoService.PROPERTY_AES_ENCRYPTED, aesEncrypted == true)
+    zipMode?.let {
+      node.setProperty(RepoService.PROPERTY_ZIP_MODE, it.name)
+    }
     setChecksum(node, checksum)
     size?.let { node.setProperty(RepoService.PROPERTY_FILESIZE, it) }
     log.info { "Storing file info: ${PFJcrUtils.toJson(this)}" }
@@ -137,7 +146,7 @@ class FileObject(): FileInfo() {
   var relPath: String? = null
 
   override fun toString(): String {
-    return "location=[$location],id=[$fileId],fileName=[$fileName],size=[${FormatterUtils.formatBytes(size)}]"
+    return "location=[$location],id=[$fileId],fileName=[$fileName],size=[${FormatterUtils.formatBytes(size)}],isCypted=[${aesEncrypted == true}]"
   }
 
   companion object {

@@ -123,7 +123,7 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(
                   srcField.isAccessible = true
                   val srcValue = srcField.get(src)
                   if (srcValue != null) {
-                    val instance = destType.newInstance()
+                    val instance = destType.getDeclaredConstructor().newInstance()
                     (instance as BaseDTO<*>)._copyFromMinimal(srcValue)
                     destField.isAccessible = true
                     destField.set(dest, instance)
@@ -136,7 +136,7 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(
                   srcField.isAccessible = true
                   val srcValue = srcField.get(src)
                   if (srcValue != null) {
-                    val instance = destType.newInstance()
+                    val instance = destType.getDeclaredConstructor().newInstance()
                     (instance as BaseDO<*>).id = (srcValue as BaseDTO<*>).id
                     destField.isAccessible = true
                     destField.set(dest, instance)
@@ -144,7 +144,8 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(
                 } else {
                   if (srcField.type.isPrimitive) { // boolean, ....
                     var value: Any? = null
-                    if (srcField.type == kotlin.Boolean::class.java) {
+                    @Suppress("RemoveRedundantQualifierName")
+                    if (srcField.type == kotlin.Boolean::class.java) { // kotlin.Boolean needed (or not?)
                       srcField.isAccessible = true
                       value = (srcField.get(src) == true)
                     } else {

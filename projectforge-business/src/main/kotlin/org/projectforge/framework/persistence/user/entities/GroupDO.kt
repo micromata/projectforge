@@ -188,6 +188,14 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
     }
 
     companion object {
+        /**
+         * Converts group list to comma separated int values.
+         * @return String with csv or null, if list of group's is null.
+         */
+        fun toIntList(users: List<GroupDO>?): String? {
+            return users?.filter { it.id != null }?.joinToString { "${it.id}" }
+        }
+
         internal const val FIND_BY_NAME = "GroupDO_FindByName"
         /**
          * For detecting other groups with same groupname.

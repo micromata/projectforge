@@ -24,10 +24,14 @@
 package org.projectforge.plugins.datatransfer.rest
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.user.service.UserService
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.IDataTransferArea
 import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Group
@@ -42,25 +46,30 @@ class DataTransferArea(
   var adminsAsString: String? = null,
   var observers: List<User>? = null,
   var observersAsString: String? = null,
+  /**
+   * Checked, if the logged-in-user observes this area. Used by [DataTransferRest].
+   */
+  var userWantsToObserve: Boolean? = null,
   var accessGroups: List<Group>? = null,
   var accessGroupsAsString: String? = null,
   var accessGroupsUsesAsString: String? = null,
   var accessUsers: List<User>? = null,
   var accessUsersAsString: String? = null,
-  var externalDownloadEnabled: Boolean? = null,
-  var externalUploadEnabled: Boolean? = null,
-  var externalAccessToken: String? = null,
-  var externalPassword: String? = null,
+  override var externalDownloadEnabled: Boolean? = null,
+  override var externalUploadEnabled: Boolean? = null,
+  override var externalAccessToken: String? = null,
+  override var externalPassword: String? = null,
   var expiryDays: Int? = null,
   var maxUploadSizeKB: Int? = null,
   var internalLink: String? = null,
+  var personalBox: Boolean? = null,
   override var attachmentsCounter: Int? = null,
   override var attachmentsSize: Long? = null,
   /**
    * Needed for updating UILayout for watchfields.
    */
   var layoutUid: String? = null
-) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport {
+) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport, IDataTransferArea {
   override var attachments: List<Attachment>? = null
 
   /**
@@ -101,6 +110,11 @@ class DataTransferArea(
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: DataTransferAreaDO) {
     super.copyFrom(src)
+    src.getPersonalBoxUserId()?.let {
+      // This data transfer area is a personal box.
+      areaName = src.displayName
+      personalBox = true
+    }
     admins = User.toUserList(src.adminIds)
     observers = User.toUserList(src.observerIds)
     accessGroups = Group.toGroupList(src.accessGroupIds)
@@ -110,9 +124,40 @@ class DataTransferArea(
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyTo(dest: DataTransferAreaDO) {
     super.copyTo(dest)
-    dest.adminIds = User.toIntList(admins)
-    dest.observerIds = User.toIntList(observers)
-    dest.accessGroupIds = Group.toIntList(accessGroups)
-    dest.accessUserIds = User.toIntList(accessUsers)
+    if (personalBox == true) {
+      dest.areaName = DataTransferAreaDO.PERSONAL_BOX_AREA_NAME // Restore db specific name.
+    } else {
+      dest.adminIds = User.toIntList(admins)
+      dest.observerIds = User.toIntList(observers)
+      dest.accessGroupIds = Group.toIntList(accessGroups)
+      dest.accessUserIds = User.toIntList(accessUsers)
+    }
+  }
+
+  companion object {
+    fun transformFromDB(
+      obj: DataTransferAreaDO,
+      dataTransferAreaDao: DataTransferAreaDao,
+      groupService: GroupService,
+      userService: UserService,
+    ): DataTransferArea {
+      val dto = DataTransferArea()
+      dto.copyFrom(obj)
+      dto.externalLinkBaseUrl = dataTransferAreaDao.getExternalBaseLinkUrl()
+
+      // Group names needed by React client (for ReactSelect):
+      Group.restoreDisplayNames(dto.accessGroups, groupService)
+
+      // Usernames needed by React client (for ReactSelect):
+      User.restoreDisplayNames(dto.admins, userService)
+      User.restoreDisplayNames(dto.observers, userService)
+      User.restoreDisplayNames(dto.accessUsers, userService)
+
+      dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
+      dto.observersAsString = dto.observers?.joinToString { it.displayName ?: "???" } ?: ""
+      dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
+      dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
+      return dto
+    }
   }
 }

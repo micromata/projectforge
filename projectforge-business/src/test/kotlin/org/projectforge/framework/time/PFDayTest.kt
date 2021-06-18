@@ -43,11 +43,11 @@ class PFDayTest {
         val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z")
         formatter.timeZone = TimeZone.getTimeZone("UTC")
 
-        var sqlDate = date!!.sqlDate
+        val sqlDate = date.sqlDate
         assertEquals("2019-04-10", sqlDate.toString())
 
         date = PFDay.from(sqlDate)
-        checkDate(date!!.date, 2019, Month.APRIL, 10)
+        checkDate(date.date, 2019, Month.APRIL, 10)
 
         // 1581206400000 is UTC midnight
         val utcMidnight = Date(1581206400000)

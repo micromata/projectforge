@@ -126,4 +126,11 @@ class MenuItem(var id: String? = null,
             badge = MenuBadge(badgeCounter, style = "danger")
         subMenu?.removeIf { !it.isLeaf() && it.subMenu.isNullOrEmpty() }
     }
+
+    fun addDescendants(items: MutableList<MenuItem>) {
+        subMenu?.forEach { child ->
+            items.add(child)
+            child.addDescendants(items)
+        }
+    }
 }

@@ -86,9 +86,9 @@ class AuthenticationPublicServicesRestTest : AbstractTestBase() {
         } catch (ex: Exception) {
             // excepted
         }
-        val token = userAuthenticationsDao.getToken(uid, UserTokenType.REST_CLIENT)
+        val token = userAuthenticationsDao.getToken(uid, UserTokenType.REST_CLIENT)!!
         try {
-            authenticationPublicServicesRest.checkQuery(Crypt.encrypt(token, "nonumber"))
+            authenticationPublicServicesRest.checkQuery(Crypt.encrypt(token, "nonumber")!!)
             fail("Invalid system time im millis. Failure was expected.")
         } catch (ex: Exception) {
             // excepted

@@ -78,7 +78,7 @@ open class VacationSendMailService {
             return
         }
         if (obj.special == true && arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.APPROVED).contains(obj.status)) {
-            val hrEmailAddress = configurationService.hrEmailadress
+            val hrEmailAddress = configurationService.hREmailadress
             if (hrEmailAddress.isNullOrBlank() || !hrEmailAddress.contains("@")) {
                 log.warn { "E-Mail configuration of HR staff isn't configured. Can't notificate HR team for special vacation entries. You may configure the e-mail address under ProjectForge's menu Administration->Configuration." }
             } else {

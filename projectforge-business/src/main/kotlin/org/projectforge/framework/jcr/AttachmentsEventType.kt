@@ -23,4 +23,4 @@
 
 package org.projectforge.framework.jcr
 
-enum class AttachmentsEventType { DOWNLOAD, UPLOAD, DELETE, MODIFICATION }
+enum class AttachmentsEventType { DOWNLOAD, DOWNLOAD_ALL, UPLOAD, DELETE, MODIFICATION }

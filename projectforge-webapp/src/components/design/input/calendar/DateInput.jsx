@@ -111,7 +111,7 @@ function DateInput(
         .join('');
 
     const input = (
-        <React.Fragment>
+        <>
             <Tag {...tagProps}>
                 <div className={styles.dateInput}>
                     {isActive && (
@@ -135,7 +135,7 @@ function DateInput(
                 </div>
             </Tag>
             <AdditionalLabel title={additionalLabel} />
-        </React.Fragment>
+        </>
     );
 
     if (hideDayPicker) {

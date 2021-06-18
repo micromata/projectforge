@@ -35,7 +35,7 @@ function Formatter(
 ) {
     const value = Object.getByString(data, id);
     if (value === undefined) {
-        return <React.Fragment />;
+        return <></>;
     }
 
     let result = value;

@@ -1,10 +1,12 @@
 import React from 'react';
+import { Button } from 'reactstrap';
 import { connect } from 'react-redux';
 import { DynamicLayoutContext } from '../../../context';
-import {Button} from "reactstrap";
 
-function AccessTableComponent({user}) {
-    const { data, callAction} = React.useContext(DynamicLayoutContext);
+/* eslint-disable */
+
+function AccessTableComponent() {
+    const { callAction } = React.useContext(DynamicLayoutContext);
 
     const clear = () => callAction({
         responseAction: {
@@ -43,7 +45,7 @@ function AccessTableComponent({user}) {
 
     return React.useMemo(
         () => (
-            <React.Fragment>
+            <>
                 <table>
                     <tbody>
                     <tr>
@@ -188,7 +190,7 @@ function AccessTableComponent({user}) {
                         Administrator
                     </Button>
                 </div>
-            </React.Fragment>
+            </>
         )
     );
 }

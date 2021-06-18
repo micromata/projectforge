@@ -28,11 +28,13 @@ import org.projectforge.ProjectForgeApp;
 import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.framework.time.DateHelper;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.ConnectorStartFailedException;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.File;
 import java.util.Arrays;
@@ -56,6 +58,8 @@ public class ProjectForgeApplication {
 
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
+  private static ConfigurableApplicationContext context;
+
   public static void main(String[] args) {
     // Find application home or start the setup wizard, if not found:
     File baseDir = new ProjectForgeHomeFinder().findAndEnsureAppHomeDir();
@@ -68,7 +72,8 @@ public class ProjectForgeApplication {
     try {
       final SpringApplication app = new SpringApplication(ProjectForgeApplication.class);
       app.addListeners(new ProjectForgeStartupListener(baseDir));
-      app.run(args);
+      context = app.run(args);
+      ProjectForgeApp.setSpringApplicationRunContext(context, ProjectForgeApplication.class);
     } catch (Exception ex) {
       log.error("Exception while running application: " + ex.getMessage(), ex);
       Throwable cause = ex;

@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import mu.KotlinLogging
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -36,10 +37,11 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import javax.persistence.EntityManager
 
+private val log = KotlinLogging.logger {}
+
 @Service
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 open class DBQuery {
-    private val log = LoggerFactory.getLogger(DBQuery::class.java)
 
     @Autowired
     private lateinit var emgrFactory: PfEmgrFactory

@@ -1,3 +1,4 @@
+/* eslint-disable no-alert */
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { SketchPicker } from 'react-color';
@@ -40,21 +41,21 @@ class CalendarStyler extends Component {
             credentials: 'include',
         })
             .then(handleHTTPErrors)
-            .then(response => response.json())
+            .then((response) => response.json())
             .then(saveUpdateResponseInState)
             .then(() => {
                 if (submit) {
                     submit();
                 }
             })
-            .catch(error => alert(`Internal error: ${error}`));
+            .catch((error) => alert(`Internal error: ${error}`));
     }
 
     render() {
         const { background, visible } = this.state;
         const { calendar } = this.props;
         return (
-            <React.Fragment>
+            <>
                 <CheckBox
                     // label={translations['calendar.filter.visible']}
                     label={calendar.title}
@@ -67,7 +68,7 @@ class CalendarStyler extends Component {
                     onChangeComplete={this.handleBackgroundColorChange}
                     disableAlpha
                 />
-            </React.Fragment>
+            </>
         );
     }
 }
@@ -81,9 +82,10 @@ CalendarStyler.propTypes = {
         style: PropTypes.shape({
             bgColor: PropTypes.string,
         }),
+        title: PropTypes.string,
+        bgColor: PropTypes.string,
     }).isRequired,
     submit: PropTypes.func,
-    // translations: PropTypes.shape({}).isRequired,
 };
 
 CalendarStyler.defaultProps = {

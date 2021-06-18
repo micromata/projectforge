@@ -27,8 +27,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.test.AbstractTestBase
 
-class TaskTest {
+class TaskTest: AbstractTestBase() {
 
     @Test
     fun dtoTest() {

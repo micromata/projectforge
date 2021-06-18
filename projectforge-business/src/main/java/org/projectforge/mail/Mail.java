@@ -25,6 +25,7 @@ package org.projectforge.mail;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.projectforge.framework.ToStringUtil;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import javax.mail.Message;
@@ -325,34 +326,7 @@ public class Mail implements Comparable<Mail>
   @Override
   public String toString()
   {
-    ToStringBuilder sb = new ToStringBuilder(this);
-    sb.append("from", getFrom());
-    sb.append("fromRealname", getFromRealname());
-    sb.append("to", getTo());
-    sb.append("toRealname", getToRealname());
-    sb.append("cc", getCC());
-    sb.append("subject", getSubject());
-    sb.append("contentType", getContentType());
-    sb.append("charset", getCharset());
-    if (content != null) {
-      sb.append("content", getContent());
-    }
-    if (messageNumber != -1) {
-      sb.append("no", getMessageNumber());
-    }
-    if (date != null) {
-      sb.append("date", getDate());
-    }
-    if (deleted) {
-      sb.append("deleted", isDeleted());
-    }
-    if (recent) {
-      sb.append("recent", isRecent());
-    }
-    if (seen) {
-      sb.append("seen", isSeen());
-    }
-    return sb.toString();
+    return ToStringUtil.toJsonString(this);
   }
 
   @Override

@@ -25,15 +25,17 @@ package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.configuration.ConfigurationChecker
 import org.projectforge.framework.jcr.AttachmentsEventListener
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
@@ -59,6 +61,9 @@ private val log = KotlinLogging.logger {}
 open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO::class.java), AttachmentsEventListener {
   @Autowired
   private lateinit var notificationMailService: NotificationMailService
+
+  @Autowired
+  private lateinit var configurationChecker: ConfigurationChecker
 
   @Value("\${${MAX_FILE_SIZE_SPRING_PROPERTY}:100MB}")
   internal open lateinit var maxFileSizeConfig: String
@@ -86,12 +91,88 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     return file
   }
 
+  override fun onChange(obj: DataTransferAreaDO, dbObj: DataTransferAreaDO) {
+    if (dbObj.isPersonalBox()) {
+      if (obj.adminIds != dbObj.adminIds || obj.areaName != dbObj.areaName) {
+        throw IllegalArgumentException("Can't modify personal boxes: $obj")
+      }
+      securePersonalBox(obj)
+    }
+    ensureSecureExternalAccess(obj)
+  }
+
+  override fun onSave(obj: DataTransferAreaDO) {
+    if (obj.isPersonalBox()) {
+      if (obj.modifyPersonalBox != true) {
+        // Prevent from saving or changing personal boxes.
+        throw IllegalArgumentException("Can't save or update personal boxes.")
+      }
+      securePersonalBox(obj)
+    }
+    ensureSecureExternalAccess(obj)
+  }
+
+  /**
+   * Removes personal boxes of other users in result list.
+   */
+  override fun getList(
+    filter: QueryFilter?,
+    customResultFilters: MutableList<CustomResultFilter<DataTransferAreaDO>>?
+  ): List<DataTransferAreaDO> {
+    val loggedInUserId = ThreadLocalUserContext.getUserId()
+    return super.getList(filter, customResultFilters)
+      .filter { !it.isPersonalBox() || it.getPersonalBoxUserId() == loggedInUserId }
+  }
+
+  /**
+   * Prevents changing some base values due to security reasons (such as don't allow external access and access to
+   * other users/groups).
+   * Sets also default values (expiry days to 30, and max upload size to max value).
+   */
+  private fun securePersonalBox(obj: DataTransferAreaDO) {
+    // No external access to personal boxed (due to security reasons)
+    obj.observerIds = obj.adminIds // Owner is always observer
+    obj.accessGroupIds = null
+    obj.accessUserIds = null
+    obj.externalDownloadEnabled = false
+    obj.externalUploadEnabled = false
+    obj.externalPassword = null
+    obj.externalAccessToken = null
+    obj.expiryDays = 7
+    val springServletMultipartMaxFileSize = configurationChecker.springServletMultipartMaxFileSize.toBytes()
+    obj.maxUploadSizeKB = (springServletMultipartMaxFileSize / 1024).toInt()
+  }
+
   override fun afterLoad(obj: DataTransferAreaDO) {
     if (obj.maxUploadSizeKB == null)
       obj.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE
   }
 
+  open fun ensurePersonalBox(userId: Int): DataTransferAreaDO? {
+    userGroupCache.getUser(userId) ?: return null
+    var dbo = SQLHelper.ensureUniqueResult(
+      em.createNamedQuery(DataTransferAreaDO.FIND_PERSONAL_BOX, DataTransferAreaDO::class.java)
+        .setParameter("areaName", DataTransferAreaDO.PERSONAL_BOX_AREA_NAME)
+        .setParameter("adminIds", "$userId")
+    )
+    if (dbo != null) {
+      securePersonalBox(dbo)
+      internalUpdate(dbo)
+      return dbo
+    }
+    dbo = DataTransferAreaDO()
+    dbo.areaName = DataTransferAreaDO.PERSONAL_BOX_AREA_NAME
+    dbo.adminIds = "$userId"
+    dbo.observerIds = "$userId"
+    dbo.modifyPersonalBox = true
+    internalSave(dbo)
+    return dbo
+  }
+
   open fun getAnonymousArea(externalAccessToken: String?): DataTransferAreaDO? {
+    if (externalAccessToken?.length ?: 0 < ACCESS_TOKEN_LENGTH) {
+      throw IllegalArgumentException("externalAccessToken to short.")
+    }
     val dbo = SQLHelper.ensureUniqueResult(
       em.createNamedQuery(DataTransferAreaDO.FIND_BY_EXTERNAL_ACCESS_TOKEN, DataTransferAreaDO::class.java)
         .setParameter("externalAccessToken", externalAccessToken)
@@ -114,6 +195,14 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     operationType: OperationType,
     throwException: Boolean
   ): Boolean {
+    if (obj.isPersonalBox()) {
+      if (operationType != OperationType.SELECT && throwException) {
+        // Select only on inboxes:
+        throw AccessException(user, "access.exception.userHasNotRight")
+      }
+      // Select only on inboxes:
+      return operationType == OperationType.SELECT
+    }
     val adminIds = StringHelper.splitToIntegers(obj.adminIds, ",")
     if (adminIds.contains(user.id)) {
       return true
@@ -159,8 +248,12 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     check(data != null)
     try {
       if (byUser != null && event == AttachmentsEventType.DOWNLOAD) {
-          // Do not notify on downloads and deletions of internal users.
-          return
+        // Do not notify on downloads and deletions of internal users.
+        return
+      }
+      if (file.encryptionInProgress == true) {
+        // Don't notificate observers if one user encrypts a file.
+        return
       }
       // log download access of external users.
       if (!byExternalUser.isNullOrBlank() && event == AttachmentsEventType.DOWNLOAD) {
@@ -182,6 +275,17 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       return NumberHelper.getSecureRandomReducedAlphanumeric(PASSWORD_LENGTH)
     }
 
+    fun ensureSecureExternalAccess(obj: IDataTransferArea) {
+      if (obj.externalDownloadEnabled == true || obj.externalUploadEnabled == true) {
+        if (obj.externalAccessToken?.length ?: 0 < ACCESS_TOKEN_LENGTH) {
+          obj.externalAccessToken = generateExternalAccessToken()
+        }
+        if (obj.externalPassword.isNullOrBlank()) {
+          obj.externalPassword = generateExternalPassword()
+        }
+      }
+    }
+
     const val MAX_FILE_SIZE_SPRING_PROPERTY = "projectforge.plugin.datatransfer.maxFileSize"
     val EXPIRY_DAYS_VALUES = "plugins.datatransfer.expiryDays".let {
       mapOf(
@@ -197,9 +301,10 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       )
     }
     private const val MB = 1024
+    private const val GB = 1024 * MB
 
     val MAX_UPLOAD_SIZE_VALUES =
-      arrayOf(20 * MB, 50 * MB, 100 * MB, 200 * MB, 500 * MB, 1024 * MB, 1536 * MB, 2048 * MB, 3072 * MB)
+      arrayOf(20 * MB, 50 * MB, 100 * MB, 200 * MB, 500 * MB, GB, 1536 * MB, 2 * GB, 3 * GB, 5 * GB)
 
     private const val MAX_UPLOAD_SIZE_DEFAULT_VALUE = 100 * MB
 

@@ -42,10 +42,10 @@ public interface PasswordQualityService
   /**
    * Check password quality and compare old and new password.
    */
-  List<I18nKeyAndParams> checkPasswordQuality(String oldPassword, String newPassword);
+  List<I18nKeyAndParams> checkPasswordQuality(char[] oldPassword, char[] newPassword);
 
   /**
    * Checks the password quality of a new password.
    */
-  List<I18nKeyAndParams> checkPasswordQuality(String password);
+  List<I18nKeyAndParams> checkPasswordQuality(char[] password);
 }

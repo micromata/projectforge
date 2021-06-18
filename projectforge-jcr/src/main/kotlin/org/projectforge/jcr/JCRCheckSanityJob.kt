@@ -69,7 +69,7 @@ open class JCRCheckSanityJob {
           if (repoChecksum != null && repoChecksum.length > 10) {
             log.info { "Checking checksum of file '${fileObject.fileName}' (${FormatterUtils.formatBytes(fileObject.size)})..." }
             val checksum =
-              repoService.getFileInputStream(fileNode, fileObject, true)
+              repoService.getFileInputStream(fileNode, fileObject, true, useEncryptedFile = true)
                 .use { istream -> RepoService.checksum(istream) }
             if (!validateChecksum(checksum, repoChecksum)) {
               val msg =
@@ -86,6 +86,16 @@ open class JCRCheckSanityJob {
               "Checksum of file '${fileObject.fileName}' from repository not given (skipping checksum check). ['${fileNode.path}']"
             warnings.add(msg)
             log.info { msg }
+          }
+        }
+        if (fileObject.fileExtension == "zip") {
+          // Check mode of zip files (encryption).
+          if (fileObject.zipMode == null) {
+            val newZipMode = repoService.getFileInputStream(fileNode, fileObject, true, useEncryptedFile = true)
+              .use { istream -> ZipUtils.determineZipMode(istream) }
+            if (newZipMode != null) {
+              fileNode.setProperty(RepoService.PROPERTY_ZIP_MODE, newZipMode.name)
+            }
           }
         }
         fileObject.size.let { repoSize ->

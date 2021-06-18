@@ -40,8 +40,7 @@ and simply start it `java -jar projectforge-application-X.X.X.jar`.
 Or simply use the fastest way: https://github.com/micromata/projectforge/blob/master/doc/installation.adoc[Installation as docker image]
 ====
 
-1. Checkout:
-   https://github.com/micromata/projectforge.git
+1. Checkout: `git clone git@github.com:micromata/projectforge.git`
 2. For developing try OpenJDK 11 (tested): `java -version`.
 3. Build ProjectForge:
    `mvn -DskipTests clean install`

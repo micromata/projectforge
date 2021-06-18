@@ -28,8 +28,9 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.rest.dto.Addressbook
 import org.projectforge.rest.dto.BaseDTO
+import org.projectforge.test.AbstractTestBase
 
-class AddressbookTest {
+class AddressbookTest: AbstractTestBase() {
 
     @Test
     fun listToStringTest() {

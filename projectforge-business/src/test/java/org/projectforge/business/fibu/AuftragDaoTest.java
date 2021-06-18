@@ -28,8 +28,9 @@ import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserRightDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
-import org.projectforge.framework.access.AccessException;
 import org.projectforge.common.i18n.UserException;
+import org.projectforge.framework.ToStringUtil;
+import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
@@ -46,12 +47,12 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AuftragDaoTest extends AbstractTestBase
-{
+public class AuftragDaoTest extends AbstractTestBase {
   private static int dbNumber = 0;
 
   @Override
   protected void beforeAll() {
+    recreateDataBase(); // Remove any orders created by other tests before.
     dbNumber = auftragDao.getNextNumber();
   }
 
@@ -70,8 +71,7 @@ public class AuftragDaoTest extends AbstractTestBase
   private final Random random = new Random();
 
   @Test
-  public void getNextNumber()
-  {
+  public void getNextNumber() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     AuftragDO auftrag = new AuftragDO();
     auftrag.setNummer(auftragDao.getNextNumber(auftrag));
@@ -86,8 +86,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void checkAccess()
-  {
+  public void checkAccess() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     AuftragDO auftrag1 = new AuftragDO();
     auftrag1.setNummer(auftragDao.getNextNumber(auftrag1));
@@ -151,8 +150,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void checkAccess2()
-  {
+  public void checkAccess2() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     final GroupDO group1 = initTestDB.addGroup("AuftragDaoTest.ProjectManagers1", AbstractTestBase.TEST_PROJECT_ASSISTANT_USER);
     final GroupDO group2 = initTestDB.addGroup("AuftragDaoTest.ProjectManagers2", AbstractTestBase.TEST_PROJECT_MANAGER_USER);
@@ -205,8 +203,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void checkPartlyReadwriteAccess()
-  {
+  public void checkPartlyReadwriteAccess() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     PFUserDO user = initTestDB.addUser("AuftragDaoCheckPartlyReadWriteAccess");
     GroupDO financeGroup = getGroup(AbstractTestBase.FINANCE_GROUP);
@@ -266,8 +263,7 @@ public class AuftragDaoTest extends AbstractTestBase
     auftrag = auftragDao.getById(id);
   }
 
-  private void checkHasUpdateAccess(final Serializable auftragsId)
-  {
+  private void checkHasUpdateAccess(final Serializable auftragsId) {
     AuftragDO auftrag = auftragDao.getById(auftragsId);
     final String value = String.valueOf(random.nextLong());
     auftrag.setBemerkung(value);
@@ -276,8 +272,7 @@ public class AuftragDaoTest extends AbstractTestBase
     assertEquals(value, auftrag.getBemerkung());
   }
 
-  private void checkNoAccess(final String who)
-  {
+  private void checkNoAccess(final String who) {
     try {
       final AuftragFilter filter = new AuftragFilter();
       auftragDao.getList(filter);
@@ -287,8 +282,7 @@ public class AuftragDaoTest extends AbstractTestBase
     }
   }
 
-  private void checkNoAccess(final Serializable auftragsId, final String who)
-  {
+  private void checkNoAccess(final Serializable auftragsId, final String who) {
     try {
       auftragDao.getById(auftragsId);
       fail("AccessException expected: " + who + " users should not have select access to orders.");
@@ -297,15 +291,13 @@ public class AuftragDaoTest extends AbstractTestBase
     }
   }
 
-  private void checkNoAccess(final Serializable id, final AuftragDO auftrag, final String who)
-  {
+  private void checkNoAccess(final Serializable id, final AuftragDO auftrag, final String who) {
     checkNoAccess(who);
     checkNoAccess(id, who);
     checkNoWriteAccess(id, auftrag, who);
   }
 
-  private void checkNoWriteAccess(final Serializable id, final AuftragDO auftrag, final String who)
-  {
+  private void checkNoWriteAccess(final Serializable id, final AuftragDO auftrag, final String who) {
     try {
       final AuftragDO auf = new AuftragDO();
       final int number = auftragDao.getNextNumber(auf);
@@ -325,8 +317,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void checkVollstaendigFakturiert()
-  {
+  public void checkVollstaendigFakturiert() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     AuftragDO auftrag1 = new AuftragDO();
     auftrag1.setNummer(auftragDao.getNextNumber(auftrag1));
@@ -371,8 +362,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void checkEmptyAuftragsPositionen()
-  {
+  public void checkEmptyAuftragsPositionen() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     AuftragDO auftrag = new AuftragDO();
     auftrag.setNummer(auftragDao.getNextNumber(auftrag));
@@ -403,8 +393,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition()
-  {
+  public void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition() {
     final AuftragDO auftrag = new AuftragDO();
     final List<AuftragsPositionDO> auftragsPositions = auftrag.ensureAndGetPositionen();
     final List<PaymentScheduleDO> paymentSchedules = auftrag.ensureAndGetPaymentSchedules();
@@ -485,8 +474,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition()
-  {
+  public void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition() {
     final AuftragDO auftrag = new AuftragDO();
     final List<AuftragsPositionDO> auftragsPositions = auftrag.ensureAndGetPositionen();
     final List<PaymentScheduleDO> paymentSchedules = auftrag.ensureAndGetPaymentSchedules();
@@ -557,8 +545,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void testPeriodOfPerformanceFilter()
-  {
+  public void testPeriodOfPerformanceFilter() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
 
     auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 4, 1, 2017, 4, 30));
@@ -593,15 +580,13 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   private void setPeriodOfPerformanceStartDateAndEndDate(final AuftragFilter auftragFilter, final int startYear, final int startMonth, final int startDay,
-      final int endYear, final int endMonth, final int endDay)
-  {
+                                                         final int endYear, final int endMonth, final int endDay) {
     auftragFilter.setPeriodOfPerformanceStartDate(PFDay.withDate(startYear, startMonth, startDay).getLocalDate());
     auftragFilter.setPeriodOfPerformanceEndDate(PFDay.withDate(endYear, endMonth, endDay).getLocalDate());
   }
 
   private AuftragDO createAuftragWithPeriodOfPerformance(final int beginYear, final int beginMonth, final int beginDay, final int endYear, final int endMonth,
-      final int endDay)
-  {
+                                                         final int endDay) {
     final AuftragDO auftrag = new AuftragDO();
     auftrag.setNummer(auftragDao.getNextNumber(auftrag));
     dbNumber++;

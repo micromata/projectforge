@@ -67,12 +67,13 @@ open class DataTransferStatisticsBuilder(
       } else {
         ""
       }
+      val expiryDays = ", expiry=[${dbo.expiryDays} days]"
 
       stats.add(
         "datatransfer:${dbo.id}",
         "data transfer (part of JCR)",
         "'${dbo.areaName?.take(5)}...",
-        "$size: admins=[$admins]$accessUserString$accessGroupString$externalAccess"
+        "$size: admins=[$admins]$accessUserString$accessGroupString$externalAccess$expiryDays"
           )
         }
     }

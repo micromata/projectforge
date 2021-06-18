@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class DatabaseServiceTestFork extends AbstractTestBase
 {
-  static final String DEFAULT_ADMIN_PASSWORD = "manage";
+  static final char[] DEFAULT_ADMIN_PASSWORD = "manage".toCharArray();
 
   @Autowired
   private DatabaseService databaseService;

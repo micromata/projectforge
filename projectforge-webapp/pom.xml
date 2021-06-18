@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.projectforge</groupId>
         <artifactId>projectforge-parent</artifactId>
-        <version>7.1.0</version><!-- projectforge.version -->
+        <version>7.1.3-SNAPSHOT</version><!-- projectforge.version -->
     </parent>
 
     <licenses>
@@ -20,14 +20,16 @@
 
     <properties>
         <!-- Thanx to https://medium.com/@itzgeoff/including-react-in-your-spring-boot-maven-build-ae3b8f8826e -->
+        <!-- https://nodejs.org/dist -->
         <node.version>v15.14.0</node.version>
-        <npm.version>7.9.0</npm.version>
-        <!--yarn.version>v1.15.2</yarn.version-->
+        <npm.version>7.11.2</npm.version>
+        <!-- https://github.com/yarnpkg/yarn/releases -->
+        <yarn.version>v1.22.10</yarn.version>
         <frontend-maven-plugin.version>1.11.3</frontend-maven-plugin.version>
     </properties>
 
     <build>
-        <finalName>projectforge-webapp</finalName>
+        <finalName>projectforge-webapp-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>com.github.eirslett</groupId>
@@ -40,10 +42,7 @@
                         <goals>
                             <goal>install-node-and-npm</goal>
                         </goals>
-                        <configuration>
-                            <nodeVersion>${node.version}</nodeVersion>
-                            <npmVersion>${npm.version}</npmVersion>
-                        </configuration>
+                        <phase>generate-resources</phase>
                     </execution>
                     <execution>
                         <id>npm install</id>
@@ -67,14 +66,13 @@
                 <!-- YARN: -->
                 <!--executions>
                     <execution>
+                        <!- - optional: you don't really need execution ids, but it looks nice in your build log. - ->
                         <id>install node and yarn</id>
                         <goals>
                             <goal>install-node-and-yarn</goal>
                         </goals>
-                        <configuration>
-                            <nodeVersion>${node.version}</nodeVersion>
-                            <yarnVersion>${yarn.version}</yarnVersion>
-                        </configuration>
+                        <!- - optional: default phase is "generate-resources" - ->
+                        <phase>generate-resources</phase>
                     </execution>
                     <execution>
                         <id>yarn install</id>
@@ -82,6 +80,10 @@
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
+                            <!- - optional: The default argument is actually
+                            "install", so unless you need to run some other yarn command,
+                            you can remove this whole <configuration> section.
+                            - ->
                             <arguments>install</arguments>
                         </configuration>
                     </execution>
@@ -96,6 +98,9 @@
                     </execution>
                 </executions-->
                 <configuration>
+                    <nodeVersion>${node.version}</nodeVersion>
+                    <npmVersion>${npm.version}</npmVersion>
+                    <yarnVersion>${yarn.version}</yarnVersion>
                     <installDirectory>${project.build.directory}</installDirectory>
                     <workingDirectory>${project.basedir}</workingDirectory>
                     <!--workingDirectory>${pom.parent.basedir}</workingDirectory-->

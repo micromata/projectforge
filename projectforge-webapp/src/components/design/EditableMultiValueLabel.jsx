@@ -1,3 +1,4 @@
+/* eslint-disable no-alert */
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
@@ -42,9 +43,9 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                 credentials: 'include',
             })
                 .then(handleHTTPErrors)
-                .then(response => response.json())
+                .then((response) => response.json())
                 .then(saveUpdateResponseInState)
-                .catch(error => alert(`Internal error: ${error}`));
+                .catch((error) => alert(`Internal error: ${error}`));
         }
 
         setIsOpen(false);
@@ -69,8 +70,8 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
     }
 
     const selectHandler = {
-        onClick: event => event.stopPropagation(),
-        onMouseDown: event => event.stopPropagation(),
+        onClick: (event) => event.stopPropagation(),
+        onMouseDown: (event) => event.stopPropagation(),
         onKeyDown: (event) => {
             event.stopPropagation();
 
@@ -129,9 +130,14 @@ EditableMultiValueLabel.propTypes = {
     data: PropTypes.shape({
         id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         filterType: PropTypes.string,
+        label: PropTypes.string,
+        bgColor: PropTypes.string,
+        isNew: PropTypes.bool,
+        __isNew__: PropTypes.bool,
     }).isRequired,
     selectProps: PropTypes.shape({
         setMultiValue: PropTypes.func,
+        values: PropTypes.shape({ }),
     }).isRequired,
 };
 

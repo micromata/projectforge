@@ -25,7 +25,7 @@ function FavoriteNameInput(
     };
 
     return (
-        <React.Fragment>
+        <>
             <Input
                 label={label}
                 icon={faCheckSquare}
@@ -39,7 +39,7 @@ function FavoriteNameInput(
                 value={filterName}
                 {...props}
             />
-        </React.Fragment>
+        </>
     );
 }
 

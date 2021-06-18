@@ -27,7 +27,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
@@ -43,9 +45,13 @@ import javax.persistence.*
   NamedQuery(
     name = DataTransferAreaDO.FIND_BY_EXTERNAL_ACCESS_TOKEN,
     query = "from DataTransferAreaDO where externalAccessToken=:externalAccessToken"
+  ),
+  NamedQuery(
+    name = DataTransferAreaDO.FIND_PERSONAL_BOX,
+    query = "from DataTransferAreaDO where areaName=:areaName and adminIds=:adminIds"
   )
 )
-open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
+open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTransferArea {
 
   @PropertyInfo(i18nKey = "id")
   private var id: Int? = null
@@ -92,7 +98,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
     tooltip = "plugins.datatransfer.external.download.enabled.info"
   )
   @get:Column(length = 100, name = "external_download_enabled")
-  open var externalDownloadEnabled: Boolean? = null
+  override var externalDownloadEnabled: Boolean? = null
 
   /**
    * Optional password for external access.
@@ -102,7 +108,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
     tooltip = "plugins.datatransfer.external.upload.enabled.info"
   )
   @get:Column(length = 100, name = "external_upload_enabled")
-  open var externalUploadEnabled: Boolean? = null
+  override var externalUploadEnabled: Boolean? = null
 
   /**
    * Optional password for external access.
@@ -112,7 +118,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
     tooltip = "plugins.datatransfer.external.accessToken.info"
   )
   @get:Column(length = 100, name = "external_access_token")
-  open var externalAccessToken: String? = null
+  override var externalAccessToken: String? = null
 
   /**
    * Optional password for external access.
@@ -122,7 +128,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
     tooltip = "plugins.datatransfer.external.password.info"
   )
   @get:Column(length = 100, name = "external_password")
-  open var externalPassword: String? = null
+  override var externalPassword: String? = null
 
   /**
    * All attachments will be deleted automatically after the given days.
@@ -170,6 +176,13 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   @get:Column(length = 10000, name = "external_access_logs")
   open var externalAccessLogs: String? = null
 
+  /**
+   * Only used for marking objects as modifiable internal objects.
+   */
+  @JsonIgnore
+  @get:Transient
+  internal var modifyPersonalBox: Boolean? = null
+
   @Id
   @GeneratedValue
   @Column(name = "pk")
@@ -181,7 +194,35 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo {
     this.id = id
   }
 
+  @JsonIgnore
+  @Transient
+  fun isPersonalBox(): Boolean {
+    return getPersonalBoxUserId() != null
+  }
+
+  @JsonIgnore
+  @Transient
+  fun getPersonalBoxUserId(): Int? {
+    if (areaName != PERSONAL_BOX_AREA_NAME) {
+      return null
+    }
+    return adminIds?.toIntOrNull()
+  }
+
+  val displayName: String
+    @Transient
+    get() {
+      getPersonalBoxUserId()?.let {
+        // This data transfer area is a personal box.
+        val user = UserGroupCache.getInstance().getUser(it)
+        return translateMsg("plugins.datatransfer.personalBox.title", "${user?.displayName}")
+      }
+      return areaName ?: "???"
+    }
+
   companion object {
     internal const val FIND_BY_EXTERNAL_ACCESS_TOKEN = "DataTransferAreaDO_FindByExternalAccessToken"
+    internal const val FIND_PERSONAL_BOX = "DataTransferAreaDO_FindPersonalBox"
+    const val PERSONAL_BOX_AREA_NAME = "<PERSONAL_BOX>"
   }
 }

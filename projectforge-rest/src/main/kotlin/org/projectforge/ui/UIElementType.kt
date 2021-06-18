@@ -46,6 +46,7 @@ enum class UIElementType {
     ROW,
     SELECT,
     TABLE,
+    TABLE_LIST_PAGE,
     TABLE_COLUMN,
     TEXTAREA
 }

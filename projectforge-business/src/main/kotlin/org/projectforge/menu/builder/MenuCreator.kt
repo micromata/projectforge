@@ -222,8 +222,10 @@ class MenuCreator {
       .add(MenuItemDef(MenuItemDefId.BOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))
-    if (configurationService.telephoneSystemUrl.isNotEmpty())
-      commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
+    configurationService.telephoneSystemUrl?.let {
+      if (it.isNotEmpty())
+        commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
+    }
     if (smsSenderConfig.isSmsConfigured())
       commonMenu.add(MenuItemDef(MenuItemDefId.SEND_SMS))
     if (Configuration.instance.isMebConfigured)
@@ -491,7 +493,7 @@ class MenuCreator {
       .add(MenuItemDef(MenuItemDefId.ACCESS_LIST)) // Visible for all.
       .add(MenuItemDef(MenuItemDefId.SYSTEM, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
 
-    if (configurationService.securityConfig?.isSqlConsoleAvailable == true) {
+    if (configurationService.securityConfig.isSqlConsoleAvailable == true) {
       // Only available in development mode or if SQL console is configured in SecurityConfig.
       adminMenu.add(
         MenuItemDef(
@@ -512,7 +514,9 @@ class MenuCreator {
           )
         )
     }
-    adminMenu.add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
+    adminMenu
+      .add(MenuItemDef(MenuItemDefId.LOG_VIEWER, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+      .add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
       .add(MenuItemDef(MenuItemDefId.CONFIGURATION, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
       .add(
         MenuItemDef(

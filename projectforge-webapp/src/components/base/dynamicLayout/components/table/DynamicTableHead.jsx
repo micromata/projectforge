@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { connect } from 'react-redux';
-import { sortList } from '../../../../../actions/list/filter';
 import AnimatedChevron from '../../../../design/input/chevron/Animated';
 import style from './DynamicTable.module.scss';
 
@@ -48,16 +46,4 @@ DynamicTableHead.defaultProps = {
     titleIcon: undefined,
 };
 
-const mapStateToProps = ({ list }, { id }) => ({
-    direction: (Array.findByField(
-        list.categories[list.currentCategory].filter.sortProperties,
-        'property',
-        id,
-    ) || {}).sortOrder,
-});
-
-const actions = {
-    dispatchSort: sortList,
-};
-
-export default connect(mapStateToProps, actions)(DynamicTableHead);
+export default DynamicTableHead;

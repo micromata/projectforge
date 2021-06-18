@@ -23,7 +23,10 @@
 
 package org.projectforge.setup
 
+import mu.KotlinLogging
 import org.projectforge.ProjectForgeApp
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Some context information for setup wizard.
@@ -32,6 +35,10 @@ class SetupContext {
   enum class DockerMode { SINGLE, STACK }
 
   var embeddedDatabaseSupported: Boolean = true
+
+  /**
+   * STACK: Autostart setting disabled.
+   */
   var dockerMode: DockerMode? = null
 
   val graphicModeSupported: Boolean
@@ -47,14 +54,19 @@ class SetupContext {
     get() = runAsDockerContainer
 
   init {
-    val setupVal = System.getProperty(ProjectForgeApp.PROJECTFORGE_SETUP)?.toLowerCase() ?: ""
-    when {
-      setupVal.contains("postgres", ignoreCase = true) -> {
-        dockerMode = DockerMode.STACK
-        embeddedDatabaseSupported = false
-      }
-      setupVal.contains("docker", ignoreCase = true) -> dockerMode = DockerMode.SINGLE
+    val setupVal = System.getProperty(ProjectForgeApp.PROJECTFORGE_SETUP) ?: ""
+    if (setupVal.contains("postgres", ignoreCase = true)) {
+      embeddedDatabaseSupported = false
     }
+    val dockerVal = System.getProperty(ProjectForgeApp.DOCKER_MODE)
+    dockerMode = if (dockerVal.isNullOrBlank()) {
+      null
+    } else if (dockerVal.contains("stack", true)) {
+      DockerMode.STACK
+    } else {
+      DockerMode.SINGLE
+    }
+    log.info { "Setup-mode: embeddedDatabaseSupported=$embeddedDatabaseSupported, dockerMode=$dockerMode" }
   }
 }
 

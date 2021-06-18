@@ -52,9 +52,10 @@ function TimesheetRecentEntry(
         },
     )
         .then(handleHTTPErrors)
-        .then(body => body.json())
+        .then((body) => body.json())
         .then(callback)
-        .catch(error => alert(`Internal error: ${error}`));
+        // eslint-disable-next-line no-alert
+        .catch((error) => alert(`Internal error: ${error}`));
 
     const projekt = kost2 ? kost2.projekt : undefined;
     const kunde = projekt ? projekt.kunde : undefined;
@@ -62,11 +63,11 @@ function TimesheetRecentEntry(
     return (
         <tr onClick={handleRowClick}>
             {cost2Visible && (
-                <React.Fragment>
+                <>
                     <td>{kost2 ? kost2.formattedNumber : ''}</td>
                     <td>{kunde ? kunde.name : ''}</td>
                     <td>{projekt ? projekt.name : ''}</td>
-                </React.Fragment>
+                </>
             )}
             <td>{task ? task.title : ''}</td>
             <td>{location || ''}</td>
@@ -81,6 +82,7 @@ TimesheetRecentEntry.propTypes = {
     recent: PropTypes.shape({
         kost2: PropTypes.shape({
             formattedNumber: PropTypes.string,
+            projekt: PropTypes.string,
         }),
         task: PropTypes.shape({
             title: PropTypes.string,

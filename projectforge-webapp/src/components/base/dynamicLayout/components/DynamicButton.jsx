@@ -62,7 +62,7 @@ function DynamicButton(props) {
     const buttonId = `${ui.uid}-${id}`;
 
     return (
-        <React.Fragment>
+        <>
             {confirmMessage && (
                 <Modal
                     isOpen={showConfirmMessage}
@@ -92,7 +92,7 @@ function DynamicButton(props) {
                     {tooltip}
                 </UncontrolledTooltip>
             )}
-        </React.Fragment>
+        </>
     );
 }
 

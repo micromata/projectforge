@@ -1,3 +1,4 @@
+/* eslint-disable no-alert */
 import { faHistory } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
@@ -31,7 +32,7 @@ class NavigationAction extends React.Component {
                 },
             )
                 .then(handleHTTPErrors)
-                .then(response => response.json())
+                .then((response) => response.json())
                 .then(({ targetType, url: redirectUrl }) => {
                     switch (targetType) {
                         case 'REDIRECT':
@@ -98,7 +99,7 @@ class NavigationAction extends React.Component {
         switch (type) {
             case 'RESTCALL':
                 return (
-                    <React.Fragment>
+                    <>
                         <NavLink
                             id={id}
                             onClick={this.handleClick}
@@ -108,11 +109,11 @@ class NavigationAction extends React.Component {
                             {content}
                         </NavLink>
                         {tooltipElement}
-                    </React.Fragment>
+                    </>
                 );
             case 'DOWNLOAD':
                 return (
-                    <React.Fragment>
+                    <>
                         <NavLink
                             id={id}
                             href={getServiceURL(url)}
@@ -122,13 +123,13 @@ class NavigationAction extends React.Component {
                             {content}
                         </NavLink>
                         {tooltipElement}
-                    </React.Fragment>
+                    </>
                 );
             case 'LINK':
             case 'MODAL':
             case 'REDIRECT':
                 return (
-                    <React.Fragment>
+                    <>
                         <NavLink
                             id={id}
                             tag={Link}
@@ -142,7 +143,7 @@ class NavigationAction extends React.Component {
                             {content}
                         </NavLink>
                         {tooltipElement}
-                    </React.Fragment>
+                    </>
                 );
             case 'TEXT':
             default:

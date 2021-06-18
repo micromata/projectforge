@@ -92,7 +92,7 @@ import static org.junit.jupiter.api.Assertions.*;
 //@Transactional
 @Component
 public abstract class AbstractTestBase {
-  protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory
+  protected static final org.slf4j.Logger baseLog = org.slf4j.LoggerFactory
       .getLogger(AbstractTestBase.class);
 
   public static final String ADMIN = "PFAdmin";
@@ -101,9 +101,9 @@ public abstract class AbstractTestBase {
 
   public static final String TEST_EMPLOYEE_USER = "testEmployee";
 
-  public static final String TEST_EMPLOYEE_USER_PASSWORD = "testEmployee42";
+  public static final char[] TEST_EMPLOYEE_USER_PASSWORD = "testEmployee42".toCharArray();
 
-  public static final String TEST_ADMIN_USER_PASSWORD = "testSysAdmin42";
+  public static final char[] TEST_ADMIN_USER_PASSWORD = "testSysAdmin42".toCharArray();
 
   public static final String TEST_FINANCE_USER = "testFinanceUser";
 
@@ -111,19 +111,19 @@ public abstract class AbstractTestBase {
 
   public static final String TEST_FULL_ACCESS_USER = "testFullAccessUser";
 
-  public static final String TEST_FULL_ACCESS_USER_PASSWORD = "testFullAccessUser42";
+  public static final char[] TEST_FULL_ACCESS_USER_PASSWORD = "testFullAccessUser42".toCharArray();
 
   public static final String TEST_GROUP = "testGroup";
 
   public static final String TEST_USER = "testUser";
 
-  public static final String TEST_USER_PASSWORD = "testUser42";
+  public static final char[] TEST_USER_PASSWORD = "testUser42".toCharArray();
 
   public static final String TEST_USER2 = "testUser2";
 
   public static final String TEST_DELETED_USER = "deletedTestUser";
 
-  public static final String TEST_DELETED_USER_PASSWORD = "deletedTestUser42";
+  public static final char[] TEST_DELETED_USER_PASSWORD = "deletedTestUser42".toCharArray();
 
   public static final String TEST_PROJECT_MANAGER_USER = "testProjectManager";
 
@@ -242,6 +242,11 @@ public abstract class AbstractTestBase {
       instance = this; // Store instance for afterAll method.
       //System.out.println("******** " + instance.getClass());
     }
+    if (testRepoDir != null) {
+      repoService.internalResetForJunitTestCases();
+      repoService.init(testRepoDir);
+      testRepoDir = null; // Don't initialize twice.
+    }
     if (!initialized) {
       initialized = true;
       if (getUser(ADMIN) == null) {
@@ -261,7 +266,7 @@ public abstract class AbstractTestBase {
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
     Locale.setDefault(Locale.ENGLISH);
-    log.info("user.timezone is: " + System.getProperty("user.timezone"));
+    baseLog.info("user.timezone is: " + System.getProperty("user.timezone"));
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     try {
       jdbc.execute("CHECKPOINT DEFRAG");
@@ -279,7 +284,7 @@ public abstract class AbstractTestBase {
     try {
       initDb();
     } catch (BeansException e) {
-      log.error("Something in setUp go wrong: " + e.getMessage(), e);
+      baseLog.error("Something in setUp go wrong: " + e.getMessage(), e);
     }
     return;
   }
@@ -298,9 +303,6 @@ public abstract class AbstractTestBase {
     if (createTestData) {
       initTestDB.initDatabase();
     }
-    if (testRepoDir != null) {
-      repoService.init(testRepoDir);
-    }
   }
 
   /**
@@ -309,9 +311,10 @@ public abstract class AbstractTestBase {
    * @param modulName    Maven module name (dir) of your current tested module.
    * @param testRepoName Unique test repoName like "datatransferTestRepo"
    */
-  protected void initJCRTestRepo(String modulName, String testRepoName) {
+  protected File initJCRTestRepo(String modulName, String testRepoName) {
     final TestUtils testUtils = new TestUtils(modulName);
     testRepoDir = testUtils.deleteAndCreateTestFile("cleanUpTestRepo");
+    return testRepoDir;
   }
 
   protected void clearDatabase() {

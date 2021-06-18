@@ -10,9 +10,10 @@ import LoadingContainer from '../components/design/loading-container';
 import history from '../utilities/history';
 import prefix from '../utilities/prefix';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
-import AuthorizedRoutes, {publicRoute, wicketRoute} from './AuthorizedRoutes';
+import AuthorizedRoutes, { publicRoute, wicketRoute } from './AuthorizedRoutes';
 import FormPage from './page/form/FormPage';
 import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
+import ModalRoutes from './ModalRoutes';
 
 function ProjectForge(
     {
@@ -28,7 +29,7 @@ function ProjectForge(
 
         fetch(getServiceURL('/rsPublic/systemStatus'))
             .then(handleHTTPErrors)
-            .then(response => response.json())
+            .then((response) => response.json())
             .then((json) => {
                 const { setupRedirectUrl } = json;
                 setSystemStatus(json);
@@ -49,8 +50,8 @@ function ProjectForge(
             </LoadingContainer>
         );
     } else {
-        content = (
-            <Switch>
+        const getRoutesWithLocation = (switchLocation) => (
+            <Switch location={switchLocation}>
                 {wicketRoute}
                 {publicRoute}
                 <Route
@@ -74,6 +75,8 @@ function ProjectForge(
                 />
             </Switch>
         );
+
+        content = <ModalRoutes getRoutesWithLocation={getRoutesWithLocation} />;
     }
 
     return (
@@ -103,7 +106,7 @@ ProjectForge.defaultProps = {
     user: undefined,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
     loginInProgress: state.authentication.loading,
     user: state.authentication.user,
 });

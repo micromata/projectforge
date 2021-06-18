@@ -1,12 +1,12 @@
-import {faDownload} from '@fortawesome/free-solid-svg-icons';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import { faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {getServiceURL, handleHTTPErrors} from '../../../../../utilities/rest';
-import {Table} from '../../../../design';
+import { evalServiceURL, getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
+import { Table } from '../../../../design';
 import DropArea from '../../../../design/droparea';
 import LoadingContainer from '../../../../design/loading-container';
-import {DynamicLayoutContext} from '../../context';
+import { DynamicLayoutContext } from '../../context';
 
 function DynamicAttachmentList(
     {
@@ -15,9 +15,9 @@ function DynamicAttachmentList(
         listId,
         serviceBaseUrl,
         restBaseUrl,
-        accessString,
         downloadOnRowClick,
         uploadDisabled,
+        showExpiryInfo,
     },
 ) {
     const {
@@ -29,16 +29,14 @@ function DynamicAttachmentList(
 
     const [loading, setLoading] = React.useState(false);
 
-    const {attachments} = data;
+    const { attachments } = data;
 
     const uploadFile = (files) => {
         setLoading(true);
         const formData = new FormData();
         formData.append('file', files[0]);
-        const params = accessString ? `?accessString=${encodeURIComponent(accessString)}` : ''
         fetch(
-            // Set the image with id -1, so the image will be set in the session.
-            getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}${params}`),
+            getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}`),
             {
                 credentials: 'include',
                 method: 'POST',
@@ -46,34 +44,16 @@ function DynamicAttachmentList(
             },
         )
             .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(json => {
-                callAction({responseAction: json})
+            .then((response) => response.json())
+            .then((json) => {
+                callAction({ responseAction: json });
                 setLoading(false);
             })
             .catch((catchError) => {
+                // eslint-disable-next-line no-alert
                 alert(catchError);
                 setLoading(false);
             });
-    };
-
-    const handleRowClick = entry => (event) => {
-        event.stopPropagation();
-        if (downloadOnRowClick) {
-            download(entry.fileId)
-        } else {
-            callAction({
-                responseAction: {
-                    targetType: 'MODAL',
-                    url: `${serviceBaseUrl}/${id}?category=${category}&fileId=${entry.fileId}&listId=${listId}${accessString}`,
-                },
-            });
-        }
-    };
-
-    const handleDownload = entryId => (event) => {
-        event.stopPropagation();
-        download(entryId)
     };
 
     const download = (entryId) => {
@@ -83,56 +63,90 @@ function DynamicAttachmentList(
                 url: getServiceURL(`${restBaseUrl}/download/${category}/${id}`, {
                     fileId: entryId,
                     listId,
-                    accessString,
                 }),
                 absolute: true,
             },
         });
-    }
+    };
+
+    const handleRowClick = (entry) => (event) => {
+        event.stopPropagation();
+        if (downloadOnRowClick) {
+            download(entry.fileId);
+        } else {
+            callAction({
+                responseAction: {
+                    targetType: 'MODAL',
+                    url: evalServiceURL(`${serviceBaseUrl}/${id}`, {
+                        category,
+                        fileId: entry.fileId,
+                        listId,
+                    }),
+                },
+            });
+        }
+    };
+
+    const handleDownload = (entryId) => (event) => {
+        event.stopPropagation();
+        download(entryId);
+    };
 
     const table = attachments && attachments.length > 0 && (
         <Table striped hover>
             <thead>
-            <tr>
-                <th>{ui.translations['attachment.fileName']}</th>
-                <th>{ui.translations['attachment.size']}</th>
-                <th>{ui.translations.description}</th>
-                <th>{ui.translations.created}</th>
-                <th>{ui.translations.createdBy}</th>
-                <th>{ui.translations.modified}</th>
-                <th>{ui.translations.modifiededBy}</th>
-            </tr>
+                <tr>
+                    <th>{ui.translations['attachment.fileName']}</th>
+                    <th>{ui.translations['attachment.size']}</th>
+                    <th>{ui.translations.description}</th>
+                    {showExpiryInfo === true
+                    && (
+                        <th>{ui.translations['attachment.expires']}</th>
+                    )}
+                    <th>{ui.translations.created}</th>
+                    <th>{ui.translations.createdBy}</th>
+                    <th>{ui.translations.modified}</th>
+                    <th>{ui.translations.modifiededBy}</th>
+                </tr>
             </thead>
             <tbody>
-            {attachments.map(entry => (
-                <tr key={entry.fileId} onClick={handleRowClick(entry)}>
-                    <td>
-                                            <span
-                                                role="presentation"
-                                                onKeyDown={() => {
-                                                }}
-                                                onClick={handleDownload(entry.fileId)}
-                                            >
-                                                {`${entry.name} `}
-                                                <FontAwesomeIcon icon={faDownload}/>
-                                            </span>
-                    </td>
-                    <td>{entry.sizeHumanReadable}</td>
-                    <td>{entry.description}</td>
-                    <td>{entry.createdFormatted}</td>
-                    <td>{entry.createdByUser}</td>
-                    <td>{entry.lastUpdateTimeAgo}</td>
-                    <td>{entry.lastUpdateByUser}</td>
-                </tr>
-            ))}
+                { attachments.map((entry) => (
+                    <tr key={entry.fileId} onClick={handleRowClick(entry)}>
+                        <td>
+                            <span
+                                role="presentation"
+                                onKeyDown={() => {
+                                }}
+                                onClick={handleDownload(entry.fileId)}
+                            >
+                                {entry.encrypted
+                                && (
+                                    <FontAwesomeIcon icon={faLock} className="mr-2" />
+                                )}
+                                {`${entry.name} `}
+                                <FontAwesomeIcon icon={faDownload} />
+                            </span>
+                        </td>
+                        <td>{entry.sizeHumanReadable}</td>
+                        <td>{entry.description}</td>
+                        {showExpiryInfo
+                        && (
+                            <td>{(entry.info && entry.info.expiryInfo) ? entry.info.expiryInfo : ''}</td>
+                        )}
+                        <td>{entry.createdFormatted}</td>
+                        <td>{entry.createdByUser}</td>
+                        <td>{entry.lastUpdateTimeAgo}</td>
+                        <td>{entry.lastUpdateByUser}</td>
+                    </tr>
+                ))}
             </tbody>
         </Table>
-    )
+    );
 
     return React.useMemo(() => {
         if (id && id > 0) {
             if (uploadDisabled) {
-                return (<React.Fragment>{table}</React.Fragment>)
+                return (<>{table}</>);
             }
             return (
                 <LoadingContainer loading={loading}>
@@ -147,9 +161,9 @@ function DynamicAttachmentList(
             );
         }
         return (
-            <React.Fragment>
+            <>
                 {ui.translations['attachment.onlyAvailableAfterSave']}
-            </React.Fragment>
+            </>
         );
     }, [setData, loading, id, attachments]);
 }
@@ -161,9 +175,9 @@ DynamicAttachmentList.propTypes = {
     readOnly: PropTypes.bool,
     serviceBaseUrl: PropTypes.string,
     restBaseUrl: PropTypes.string,
-    accessString: PropTypes.string,
     downloadOnRowClick: PropTypes.bool,
     uploadDisabled: PropTypes.bool,
+    showExpiryInfo: PropTypes.bool,
 };
 
 DynamicAttachmentList.defaultProps = {
@@ -171,9 +185,9 @@ DynamicAttachmentList.defaultProps = {
     readOnly: false,
     serviceBaseUrl: '/react/attachment/dynamic',
     restBaseUrl: '/rs/attachments',
-    accessString: '',
     downloadOnRowClick: false,
     uploadDisabled: false,
+    showExpiryInfo: undefined,
 };
 
 export default DynamicAttachmentList;

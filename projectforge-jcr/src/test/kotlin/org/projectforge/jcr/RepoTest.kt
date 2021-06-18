@@ -62,7 +62,7 @@ class RepoTest {
 
     val file = FileObject()
     file.fileName = "test/files/logo.png"
-    file.description = "This is the maven pom file."
+    file.description = "This is logo file."
     file.parentNodePath = "/world/europe"
     file.relPath = "germany"
     file.content = File(file.fileName).readBytes()
@@ -99,12 +99,37 @@ class RepoTest {
     Assertions.assertTrue(repoService.deleteFile(file))
     Assertions.assertFalse(repoService.retrieveFile(file))
 
+    cryptoTest()
+
     val repoBackupService = RepoBackupService()
     repoBackupService.repoService = repoService
     ZipOutputStream(FileOutputStream(testUtils.deleteAndCreateTestFile("fullbackupRepoTest.zip"))).use {
       repoBackupService.backupAsZipArchive("fullbackupRepoTest", it)
     }
     repoService.shutdown()
+  }
+
+  private fun cryptoTest() {
+    val file = FileObject()
+    val password = "dummyPassword"
+    file.fileName = "test/files/logo.png"
+    file.description = "This is the logo file."
+    file.parentNodePath = "/world/europe"
+    file.relPath = "germany"
+    file.content = File(file.fileName).readBytes()
+    file.created = Date()
+    file.createdByUser = "fin"
+    file.lastUpdate = Date()
+    file.lastUpdateByUser = "kai"
+    val content = file.content
+    repoService.storeFile(file, FileSizeStandardChecker(10000L), password = password)
+    file.content = null
+    repoService.retrieveFile(file, "dummyPassword")
+    Assertions.assertArrayEquals(content, file.content)
+    repoService.retrieveFile(file, "dsfsd")
+    Assertions.assertNull(file.content)
+    repoService.retrieveFile(file)
+    Assertions.assertNull(file.content)
   }
 
   private fun checkFile(expected: FileObject, id: String?, fileName: String?, repo: RepoService = repoService) {

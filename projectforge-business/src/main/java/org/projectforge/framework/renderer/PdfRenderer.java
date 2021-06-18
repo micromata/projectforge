@@ -83,8 +83,8 @@ public class PdfRenderer {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     data.put("createdLabel", ThreadLocalUserContext.getLocalizedString("created"));
     data.put("loggedInUser", user);
-    data.put("baseDir", configurationService.getResourceDir());
-    data.put("logoFile", configurationService.getResourceDir() + "/images/" + logoFileName);
+    data.put("baseDir", configurationService.getResourceDirName());
+    data.put("logoFile", configurationService.getResourceDirName() + "/images/" + logoFileName);
     data.put("appId", ProjectForgeVersion.APP_ID);
     data.put("appVersion", ProjectForgeVersion.VERSION_NUMBER);
     data.put("organization",
@@ -96,7 +96,7 @@ public class PdfRenderer {
             + ", jellyXml="
             + groovyXml
             + ", baseDir="
-            + configurationService.getResourceDir()
+            + configurationService.getResourceDirName()
             + ", fontBaseDir="
             + getFontResourcePath());
 

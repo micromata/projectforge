@@ -23,8 +23,6 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
-import org.projectforge.SystemStatus
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
@@ -36,37 +34,36 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-private val log = KotlinLogging.logger {}
-
 @RestController
 @RequestMapping("${Rest.URL}/menu")
 class MenuRest {
-    class Menus(val mainMenu: Menu, val favoritesMenu: Menu, val myAccountMenu: Menu)
+  // favoritesMenu and myAccountMenu used by rest client.
+  @Suppress("unused")
+  class Menus(val mainMenu: Menu, val favoritesMenu: Menu, val myAccountMenu: Menu)
 
-    @Autowired
-    private lateinit var menuCreator: MenuCreator
+  @Autowired
+  private lateinit var menuCreator: MenuCreator
 
-    @Autowired
-    private lateinit var favoritesMenuCreator: FavoritesMenuCreator
+  @Autowired
+  private lateinit var favoritesMenuCreator: FavoritesMenuCreator
 
-    @Autowired
-    private lateinit var systemStatus: SystemStatus;
+  @GetMapping
+  fun getMenu(): Menus {
+    val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
+    val favoritesMenu = favoritesMenuCreator.getFavoriteMenu()
+    val goClassicsMenu = MenuItemDef(MenuItemDefId.GO_CLASSIC)
+    favoritesMenu.add(goClassicsMenu)
 
-    @GetMapping
-    fun getMenu(): Menus {
-        val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
-        val favoritesMenu = favoritesMenuCreator.getFavoriteMenu()
-        val goClassicsMenu = MenuItemDef(MenuItemDefId.GO_CLASSIC)
-        favoritesMenu.add(goClassicsMenu)
-
-        val myAccountMenu = Menu()
-        val item = MenuItem("username", ThreadLocalUserContext.getUser()?.getFullname())
-        myAccountMenu.add(item)
-        item.add(MenuItem(MenuItemDefId.FEEDBACK))
-        item.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
-        item.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
-        item.add(MenuItem(MenuItemDefId.LOGOUT, type = MenuItemTargetType.RESTCALL))
-        item.subMenu?.forEach { it.postProcess() }
-        return Menus(mainMenu, favoritesMenu, myAccountMenu)
+    val myAccountMenu = Menu()
+    val item = MenuItem("username", ThreadLocalUserContext.getUser()?.getFullname())
+    myAccountMenu.add(item)
+    item.add(MenuItem(MenuItemDefId.FEEDBACK))
+    item.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
+    if (ThreadLocalUserContext.getUserContext().employeeId != null) {
+      item.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
     }
+    item.add(MenuItem(MenuItemDefId.LOGOUT, type = MenuItemTargetType.RESTCALL))
+    item.subMenu?.forEach { it.postProcess() }
+    return Menus(mainMenu, favoritesMenu, myAccountMenu)
+  }
 }

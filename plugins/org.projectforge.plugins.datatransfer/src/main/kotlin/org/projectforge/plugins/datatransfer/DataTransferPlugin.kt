@@ -28,6 +28,8 @@ import org.projectforge.business.admin.SystemStatistics
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.jcr.RepoBackupService
+import org.projectforge.menu.Menu
+import org.projectforge.menu.MenuItem
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -35,6 +37,7 @@ import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferArea
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferPersonalBox
 import org.projectforge.rest.config.JacksonConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -89,6 +92,10 @@ class DataTransferPlugin :
       "lastUpdateTimeAgo",
       "maxUploadSizeFormatted"
     )
+    JacksonConfiguration.registerAllowedUnknownProperties(
+      DataTransferPersonalBox::class.java,
+      "lastUpdateTimeAgo"
+    )
 
     systemStatistics.registerStatisticsBuilder(
       DataTransferStatisticsBuilder(
@@ -98,6 +105,14 @@ class DataTransferPlugin :
         groupService
       )
     )
+  }
+
+  override fun handleFavoriteMenu(menu: Menu, allMenuItems: List<MenuItem>) {
+   if (allMenuItems.any { it.id == info.id }) {
+     // DataTransfer menu already set in user's favorite menu.
+     return
+   }
+    menu.add(menuCreator.findById(PluginAdminService.PLUGIN_DATA_TRANSFER_ID))
   }
 
   companion object {

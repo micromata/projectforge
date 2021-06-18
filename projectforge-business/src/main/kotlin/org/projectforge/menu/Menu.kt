@@ -60,4 +60,13 @@ class Menu() {
             return // Do nothing.
         add(MenuItem(menuItemDef))
     }
+
+    fun getAllDescendants(): List<MenuItem> {
+        val result = mutableListOf<MenuItem>()
+        menuItems.forEach { child ->
+            result.add(child)
+            child.addDescendants(result)
+        }
+        return result
+    }
 }

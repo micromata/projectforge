@@ -26,6 +26,7 @@ package org.projectforge.business.user.filter;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.Const;
 import org.projectforge.common.StringHelper;
+import org.projectforge.common.logging.LogConstantsKt;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -55,6 +56,12 @@ public class UserFilter implements Filter {
 
   private final static String SESSION_KEY_USER = "UserFilter.user";
 
+  private final static String MDC_IP = LogConstantsKt.MDC_IP;
+  private final static String MDC_SESSION = LogConstantsKt.MDC_SESSION;
+  private final static String MDC_USER = LogConstantsKt.MDC_USER;
+  private final static String MDC_USER_AGENT = LogConstantsKt.MDC_USER_AGENT;
+
+
   @Autowired
   private CookieService cookieService;
 
@@ -77,7 +84,7 @@ public class UserFilter implements Filter {
   @Override
   public void init(final FilterConfig filterConfig) throws ServletException {
     WebApplicationContext springContext = WebApplicationContextUtils
-            .getRequiredWebApplicationContext(filterConfig.getServletContext());
+        .getRequiredWebApplicationContext(filterConfig.getServletContext());
     final AutowireCapableBeanFactory beanFactory = springContext.getAutowireCapableBeanFactory();
     beanFactory.autowireBean(this);
     CONTEXT_PATH = filterConfig.getServletContext().getContextPath();
@@ -102,7 +109,13 @@ public class UserFilter implements Filter {
    * @param userContext
    */
   public static void login(final HttpServletRequest request, final UserContext userContext) {
-    final HttpSession session = request.getSession();
+    // Session Fixation: Change JSESSIONID after login (due to security reasons / XSS attack on login page)
+    HttpSession session = request.getSession(false);
+    if (session != null && !session.isNew()) {
+      session.invalidate();
+    }
+    session = request.getSession(true); // create the session
+    // do the login (store the user in the session, or whatever)
     session.setAttribute(SESSION_KEY_USER, userContext);
   }
 
@@ -149,7 +162,7 @@ public class UserFilter implements Filter {
 
   @Override
   public void doFilter(final ServletRequest req, final ServletResponse resp, final FilterChain chain)
-          throws IOException, ServletException {
+      throws IOException, ServletException {
     HttpServletRequest request = (HttpServletRequest) req;
     if (log.isDebugEnabled()) {
       log.debug("doFilter " + request.getRequestURI() + ": " + request.getSession().getId());
@@ -157,9 +170,9 @@ public class UserFilter implements Filter {
     final HttpServletResponse response = (HttpServletResponse) resp;
     UserContext userContext = null;
     try {
-      MDC.put("ip", request.getRemoteAddr());
-      MDC.put("session", request.getSession().getId());
-      MDC.put("userAgent", request.getHeader("User-Agent"));
+      MDC.put(MDC_IP, request.getRemoteAddr());
+      MDC.put(MDC_SESSION, request.getSession().getId());
+      MDC.put(MDC_USER_AGENT, request.getHeader("User-Agent"));
       if (ignoreFilterFor(request)) {
         // Ignore the filter for this request:
         chain.doFilter(request, response);
@@ -183,17 +196,17 @@ public class UserFilter implements Filter {
             if (cookies != null) {
               for (final Cookie cookie : cookies) {
                 log.debug("Cookie found: "
-                        + cookie.getName()
-                        + ", path="
-                        + cookie.getPath()
-                        + ", value="
-                        + cookie.getValue()
-                        + ", secure="
-                        + cookie.getVersion()
-                        + ", maxAge="
-                        + cookie.getMaxAge()
-                        + ", domain="
-                        + cookie.getDomain());
+                    + cookie.getName()
+                    + ", path="
+                    + cookie.getPath()
+                    + ", value="
+                    + cookie.getValue()
+                    + ", secure="
+                    + cookie.getVersion()
+                    + ", maxAge="
+                    + cookie.getMaxAge()
+                    + ", domain="
+                    + cookie.getDomain());
               }
             }
           }
@@ -207,7 +220,7 @@ public class UserFilter implements Filter {
         }
         final PFUserDO user = userContext != null ? userContext.getUser() : null;
         if (user != null) {
-          MDC.put("user", user.getUsername());
+          MDC.put(MDC_USER, user.getUsername());
           ThreadLocalUserContext.setUserContext(userContext);
           request = decorateWithLocale(request);
           chain.doFilter(request, response);
@@ -228,12 +241,12 @@ public class UserFilter implements Filter {
       }
     } finally {
       ThreadLocalUserContext.clear();
-      MDC.remove("ip");
-      MDC.remove("session");
-      MDC.remove("userAgent");
+      MDC.remove(MDC_IP);
+      MDC.remove(MDC_SESSION);
+      MDC.remove(MDC_USER_AGENT);
       final PFUserDO user = userContext != null ? userContext.getUser() : null;
       if (user != null) {
-        MDC.remove("user");
+        MDC.remove(MDC_USER);
       }
       if (log.isDebugEnabled()) {
         StringBuilder sb = new StringBuilder();

@@ -16,7 +16,7 @@ function PhoneNumber(
         smsEnabled,
     },
 ) {
-    const stopPropagation = event => event.stopPropagation();
+    const stopPropagation = (event) => event.stopPropagation();
 
     const phoneIcon = phoneType === 'MOBILE' || phoneType === 'PRIVATE_MOBILE'
         ? faMobileAlt

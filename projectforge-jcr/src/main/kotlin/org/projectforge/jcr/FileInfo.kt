@@ -23,7 +23,6 @@
 
 package org.projectforge.jcr
 
-import mu.KotlinLogging
 import java.util.*
 
 /**
@@ -52,6 +51,22 @@ open class FileInfo(
    * The checksum of the file, e. g.: (SHA256).
    */
   var checksum: String? = null,
+  /**
+   * The password isn't stored anywhere. If true, a password to decrypt is required for download.
+   * An encrypted file is encrypted in the storage itself and has to be encrypted server-side before download.
+   * After download the user gets the file decrypted.
+   */
+  var aesEncrypted: Boolean? = false,
+  /**
+   * The password isn't stored anywhere. If zip file is encrypted, the algorithm is stored (if encrypted by ProjectForge).
+   */
+  var zipMode: ZipMode? = null,
+
+  /**
+   * Indicates, that an encryption process in in progress. Used by DataTransferDao to suppress several e-mail notifications
+   * caused by adding and deleting current file.
+   */
+  var encryptionInProgress: Boolean? = null,
   fileSize: Long? = null
 ) {
   /**
@@ -59,6 +74,12 @@ open class FileInfo(
    */
   var size: Long? = fileSize
     internal set
+
+  /**
+   * extension after last '.' (zip, pdf etc.)
+   */
+  val fileExtension: String
+    get() = fileName?.substringAfterLast('.', "") ?: ""
 
   fun copyFrom(other: FileInfo?) {
     other ?: return
@@ -70,5 +91,7 @@ open class FileInfo(
     this.lastUpdateByUser = other.lastUpdateByUser
     this.size = other.size
     this.checksum = other.checksum
+    this.aesEncrypted = other.aesEncrypted
+    this.zipMode = other.zipMode
   }
 }

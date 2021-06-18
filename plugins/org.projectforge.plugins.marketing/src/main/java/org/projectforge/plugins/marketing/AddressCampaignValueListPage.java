@@ -51,9 +51,9 @@ import java.util.*;
 
 /**
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @ListPage(editPage = AddressCampaignValueEditPage.class)
 public class AddressCampaignValueListPage extends AbstractListPage<AddressCampaignValueListForm, AddressDao, AddressDO>
@@ -309,7 +309,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
             return;
           }
           final String filename = "ProjectForge-AddressCampaignValueExport_"
-              + DateHelper.getDateAsFilenameSuffix(new Date()) + ".xls";
+              + DateHelper.getDateAsFilenameSuffix(new Date()) + ".xlsx";
           DownloadUtils.setDownloadTarget(xls, filename);
         }
       };
