@@ -53,7 +53,7 @@ class SkillMatrixPlugin : AbstractPlugin(PluginAdminService.PLUGIN_SKILL_MATRIX_
         // Define the access management:
         registerRight(SkillRight(accessChecker))
 
-        menuCreator.add(MenuItemDefId.PROJECT_MANAGEMENT, MenuItemDef(info.id, "plugins.skillmatrix.menu", "${Const.REACT_APP_PATH}skillentry"));
+        menuCreator.register(MenuItemDefId.PROJECT_MANAGEMENT, MenuItemDef(info.id, "plugins.skillmatrix.menu", "${Const.REACT_APP_PATH}skillentry"));
 
         // All the i18n stuff:
         addResourceBundle(RESOURCE_BUNDLE_NAME)

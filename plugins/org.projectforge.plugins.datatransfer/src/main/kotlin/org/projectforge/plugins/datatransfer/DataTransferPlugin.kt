@@ -76,7 +76,7 @@ class DataTransferPlugin :
     // Register it:
     register(dataTransferAreaDao::class.java, dataTransferAreaDao, "plugins.datatransfer")
 
-    menuCreator.add(
+    menuCreator.register(
       MenuItemDefId.MISC,
       MenuItemDef(info.id, "plugins.datatransfer.menu", "${Const.REACT_APP_PATH}datatransfer")
     )
