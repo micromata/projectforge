@@ -71,13 +71,7 @@ public class PluginWicketRegistrationService {
       String url = WebRegistry.getInstance().getMountPoint(pageClass);
       menuItemDef.setUrl(url);
     }
-    getMenuCreator().add(parentId, menuItemDef);
-    if (pageClass != null)
-      menuItemRegistry.register(menuItemDef.getId(), pageClass);
-  }
-
-  public void registerTopLevelMenuItem(final MenuItemDef menuItemDef, Class<? extends Page> pageClass) {
-    getMenuCreator().addTopLevelMenu(menuItemDef);
+    getMenuCreator().register(parentId, menuItemDef);
     if (pageClass != null)
       menuItemRegistry.register(menuItemDef.getId(), pageClass);
   }
