@@ -24,12 +24,10 @@
 package org.projectforge.rest.core
 
 import org.projectforge.Const
-import org.projectforge.ProjectForgeApp
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.config.Rest
 import org.springframework.web.bind.annotation.RequestMapping
-import java.net.URLEncoder
 
 /**
  * Helper for getting url of list and edit pages.
@@ -115,10 +113,7 @@ object PagesResolver {
 
   fun register(category: String, pagesRest: AbstractPagesRest<*, *, *>) {
     if (pagesRegistry.containsKey(category)) {
-      if (!ProjectForgeApp.isRestarted()) {
-        throw IllegalArgumentException("Category name '$category' is already registered. Can't register ${pagesRest::class.java.name}.")
-      }
-      return;
+      throw IllegalArgumentException("Category name '$category' is already registered. Can't register ${pagesRest::class.java.name}.")
     }
     pagesRegistry[category] = pagesRest
   }

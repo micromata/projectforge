@@ -147,20 +147,14 @@ public class SetupPage extends AbstractUnsecureBasePage
     configure(ConfigurationParam.CALENDAR_DOMAIN, setupForm.getCalendarDomain());
     configure(ConfigurationParam.SYSTEM_ADMIN_E_MAIL, setupForm.getSysopEMail());
     configure(ConfigurationParam.FEEDBACK_E_MAIL, setupForm.getFeedbackEMail());
-    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_DATA_TRANSFER_ID, true);
-    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_LICENSE_MANAGEMENT_ID, true);
-    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_LIQUIDITY_PLANNING_ID, true);
-    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_MEMO_ID, true);
-    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_SKILL_MATRIX_ID, true);
-    pluginAdminService.storePluginToBeActivated(PluginAdminService.PLUGIN_TODO_ID, true);
+    pluginAdminService.afterSetup();
+
     if (databaseService.getSystemUpdater().isUpdated() == true) {
       // Update status:
       UserFilter.setUpdateRequiredFirst(false);
     }
-    setResponsePage(new MessagePage(message, adminUser.getUsername()));
+    setResponsePage(new MessagePage(message));
     log.info("Set-up finished.");
-
-    ProjectForgeApp.shutdown(10);
   }
 
   private void loginAdminUser(PFUserDO adminUser)
