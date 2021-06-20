@@ -55,6 +55,8 @@ public class PluginListForm extends AbstractStandardForm<PluginListForm, PluginL
     List<AbstractPlugin> availables = pluginAdminService.getAvailablePlugins();
     List<String> activatedPlugins = pluginAdminService.getActivatedPluginsFromConfiguration();
 
+    gridBuilder.newFormHeading("Please note: (de)activation of plugins will take effect only after restart!");
+
     for (AbstractPlugin plugin : availables) {
       gridBuilder.newGridPanel();
       gridBuilder.newSplitPanel(GridSize.SPAN2);
@@ -85,9 +87,9 @@ public class PluginListForm extends AbstractStandardForm<PluginListForm, PluginL
         }
       };
       final SingleButtonPanel buttonPanel = new SingleButtonPanel(section.newChildId(), button,
-              isActivated(activatedPlugins, plugin) ? getString("system.pluginAdmin.button.deactivate")
-                      : getString("system.pluginAdmin.button.activate"),
-              SingleButtonPanel.DANGER);
+          isActivated(activatedPlugins, plugin) ? getString("system.pluginAdmin.button.deactivate")
+              : getString("system.pluginAdmin.button.activate"),
+          SingleButtonPanel.DANGER);
       if (isActivated(activatedPlugins, plugin)) {
         buttonPanel.setClassnames(SingleButtonPanel.SUCCESS);
       }
