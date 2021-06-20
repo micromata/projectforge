@@ -48,7 +48,7 @@ class MerlinPlugin :
     // Register it:
     register(MerlinTemplateDao::class.java, merlinTemplateDao, "plugins.merlin")
 
-    menuCreator.add(
+    menuCreator.register(
       MenuItemDefId.MISC,
       MenuItemDef(info.id, "plugins.merlin.menu", "${Const.REACT_APP_PATH}merlin")
     )
@@ -58,7 +58,7 @@ class MerlinPlugin :
   }
 
   companion object {
-    const val ID = PluginAdminService.PLUGIN_DATA_TRANSFER_ID
+    const val ID = PluginAdminService.PLUGIN_MERLIN_ID
     const val RESOURCE_BUNDLE_NAME = "MerlinI18nResources"
   }
 }
