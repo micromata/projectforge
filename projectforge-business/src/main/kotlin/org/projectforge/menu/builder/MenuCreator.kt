@@ -73,6 +73,8 @@ class MenuCreator {
 
   private var menuItemDefHolder = MenuItemDefHolder()
 
+  private var menuItemsRegistry = mutableMapOf<String, MutableList<MenuItemDef>>()
+
   @Autowired
   private lateinit var accessChecker: AccessChecker
 
@@ -117,14 +119,15 @@ class MenuCreator {
    * @param menuItemDef
    * @return this for chaining.
    */
-  fun addTopLevelMenu(menuItemDef: MenuItemDef) {
-    initialize()
-    // Check if ID already exists
-    menuItemDefHolder.menuItems.forEach {
-      if (it.id == menuItemDef.id)
-        throw IllegalArgumentException(("Duplicated menu ID '${menuItemDef.id}' for entry '${menuItemDef.i18nKey}'"))
+  fun register(parentId: String, menuItemDef: MenuItemDef) {
+    synchronized(menuItemsRegistry) {
+      var items = menuItemsRegistry[parentId]
+      if (items == null) {
+        items = mutableListOf()
+        menuItemsRegistry[parentId] = items
+      }
+      items.add(menuItemDef)
     }
-    menuItemDefHolder.add(menuItemDef)
   }
 
   /**
@@ -134,10 +137,8 @@ class MenuCreator {
    * @param menuItemDef
    * @return this for chaining.
    */
-  fun add(parentId: String, menuItemDef: MenuItemDef): MenuItemDef {
-    val parent = findById(parentId)
-      ?: throw java.lang.IllegalArgumentException("Can't append menu '${menuItemDef.id}' to parent '$parentId'. Parent not found.")
-    return add(parent, menuItemDef)
+  fun register(parentId: MenuItemDefId, menuItemDef: MenuItemDef) {
+    register(parentId.id, menuItemDef)
   }
 
   /**
@@ -147,20 +148,7 @@ class MenuCreator {
    * @param menuItemDef
    * @return this for chaining.
    */
-  fun add(parentId: MenuItemDefId, menuItemDef: MenuItemDef): MenuItemDef {
-    val parent = findById(parentId)
-      ?: throw java.lang.IllegalArgumentException("Can't append menu '${menuItemDef.id}' to parent '$parentId'. Parent not found.")
-    return add(parent, menuItemDef)
-  }
-
-  /**
-   * Registers menu entry definition. It's important that a parent menu entry item definition is registered before its
-   * sub menu entry items.
-   *
-   * @param menuItemDef
-   * @return this for chaining.
-   */
-  fun add(parent: MenuItemDef, menuItemDef: MenuItemDef): MenuItemDef {
+  private fun add(parent: MenuItemDef, menuItemDef: MenuItemDef): MenuItemDef {
     if (findById(parent, menuItemDef.id) != null) {
       throw IllegalArgumentException(("Duplicated menu ID '${menuItemDef.id}' for entry '${menuItemDef.i18nKey}'"))
     }
@@ -531,6 +519,17 @@ class MenuCreator {
     // MISC
     //
     menuItemDefHolder.add(MenuItemDef(MenuItemDefId.MISC))
+
+    menuItemsRegistry.forEach { parentId, list ->
+      val parent = findById(parentId)
+      if (parent == null) {
+        log.error("Can't append menu items to parent menu '$parentId'. Parent not found.")
+      } else {
+        list.forEach { menuItemDef ->
+          add(parent, menuItemDef)
+        }
+      }
+    }
   }
 
   /**

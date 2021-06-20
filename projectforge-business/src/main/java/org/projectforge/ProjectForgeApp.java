@@ -94,8 +94,6 @@ public class ProjectForgeApp {
 
   private static ConfigurableApplicationContext springApplicationRunContext;
 
-  private static boolean restarted = false;
-
   private static Class<?> springApplication;
 
   private boolean upAndRunning;
@@ -128,43 +126,6 @@ public class ProjectForgeApp {
   public static void setSpringApplicationRunContext(ConfigurableApplicationContext ctx, Class<?> springApplicationClass) {
     springApplicationRunContext = ctx;
     springApplication = springApplicationClass;
-  }
-
-  /**
-   * Shutdowns the SpringApplication. Should only be used after setup a new ProjectForge system.
-   *
-   * @param sleepInSeconds Wait before shutting down.
-   */
-  public static void shutdown(int sleepInSeconds) {
-    ApplicationArguments args = springApplicationRunContext.getBean(ApplicationArguments.class);
-
-    //try {
-    Thread thread = new Thread(() -> {
-      log.warn("Shutting down ProjectForge application.");
-      try {
-        Thread.sleep(sleepInSeconds * 1000);
-      } catch (InterruptedException ex) {
-        log.error("Error while sleeping " + sleepInSeconds + "s: " + ex.getMessage(), ex);
-      }
-      System.exit(0);
-        /* Doesn't work (after restart, EntityManager errors: EmployeeDao.getEmployeeIdByByUserId(...))
-        springApplicationRunContext.close();
-        restarted = true;
-        springApplicationRunContext = SpringApplication.run(springApplication, args.getSourceArgs());
-         */
-    });
-
-    thread.setDaemon(false);
-    thread.start();
-   /* } catch (Exception ex) {
-      log.error("Can't restart ProjecForgeAppliation: " + ex.getMessage(), ex);
-      log.error("Shuttind down only.");
-      System.exit(0);
-    }*/
-  }
-
-  public static boolean isRestarted() {
-    return restarted;
   }
 
   @Autowired
