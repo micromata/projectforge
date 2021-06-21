@@ -44,16 +44,16 @@ import javax.persistence.Table
 open class MerlinTemplateDO : DefaultBaseDO(), AttachmentsInfo {
 
   @PropertyInfo(i18nKey = "plugins.merlin.name")
-  @get:Column(length = 100)
+  @get:Column(length = 100, nullable = false)
   open var name: String? = null
 
-  @PropertyInfo(i18nKey = "plugins.merlin.description")
+  @PropertyInfo(i18nKey = "description")
   @Field
   @get:Column(length = Constants.LENGTH_TEXT)
   open var description: String? = null
 
   @PropertyInfo(i18nKey = "plugins.merlin.fileNamePattern", tooltip = "plugins.merlin.fileNamePattern.info")
-  @get:Column(name = "filename_pattern", length = 1000)
+  @get:Column(name = "filename_pattern", length = 1000, nullable = false)
   open var fileNamePattern: String? = null
 
   @PropertyInfo(i18nKey = "plugins.merlin.forceStrictFilenames", tooltip = "plugins.merlin.forceStrictFilenames.info")
