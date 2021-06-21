@@ -138,7 +138,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     obj.externalUploadEnabled = false
     obj.externalPassword = null
     obj.externalAccessToken = null
-    obj.expiryDays = 7
+    obj.expiryDays = 60 // 60 days as standard (if user is on holiday etc.)
     val springServletMultipartMaxFileSize = configurationChecker.springServletMultipartMaxFileSize.toBytes()
     obj.maxUploadSizeKB = (springServletMultipartMaxFileSize / 1024).toInt()
   }
