@@ -175,6 +175,10 @@ class MerlinPagesRest :
               )
           )
       )
+      .add(
+        UIFieldset(title = "attachment.list")
+          .add(UIAttachmentList(category, dto.id))
+      )
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 }

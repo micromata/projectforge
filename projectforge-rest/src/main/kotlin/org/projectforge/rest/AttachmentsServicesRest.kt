@@ -28,16 +28,10 @@ import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
-import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
-import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.jcr.*
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.jcr.FileInfo
-import org.projectforge.jcr.FileObject
-import org.projectforge.jcr.ZipMode
-import org.projectforge.jcr.ZipUtils
+import org.projectforge.jcr.*
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -69,6 +63,10 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var attachmentsService: AttachmentsService
 
+  private var actionListeners = mutableMapOf<String, AttachmentsActionListener>()
+
+  private val defaultActionListener = AttachmentsActionListener()
+
   class AttachmentData(
     var category: String,
     var id: Int,
@@ -83,6 +81,29 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
   }
 
   class ResponseData(var attachments: List<Attachment>?)
+
+  /**
+   * Registered listener will be called on actions, if given category is affected.
+   */
+  fun register(category: String, listener: AttachmentsActionListener) {
+    synchronized(actionListeners) {
+      if (actionListeners[category] != null) {
+        log.warn { "Can't register action listener twice for category '$category'. Already registered: $listener" }
+      } else {
+        actionListeners[category] = listener
+      }
+    }
+  }
+
+  /**
+   * @param category
+   * @return AttachmentsActionListener registered by category or default implementation, if no listener registered by given category.
+   */
+  fun getListener(category: String): AttachmentsActionListener {
+    synchronized(actionListeners) {
+      return actionListeners[category] ?: defaultActionListener
+    }
+  }
 
   @PostMapping("modify")
   fun modify(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentData>)
@@ -257,15 +278,22 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     }
 
     val obj = getDataObject(pagesRest, id) // Check data object availability.
-    attachmentsService.addAttachment(
+    val fileInfo = FileInfo(file.originalFilename, fileSize = file.size)
+    val actionListener = getListener(category)
+    actionListener.onUpload(fileInfo, obj)?.let {
+      return it
+    }
+    val attachment = attachmentsService.addAttachment(
       pagesRest.jcrPath!!,
-      fileInfo = FileInfo(file.originalFilename, fileSize = file.size),
+      fileInfo = fileInfo,
       inputStream = file.inputStream,
       baseDao = pagesRest.baseDao,
       obj = obj,
-      accessChecker = pagesRest.attachmentsAccessChecker
+      accessChecker = pagesRest.attachmentsAccessChecker,
+      allowDuplicateFiles = actionListener.allowDuplicateFiles,
     )
     //}
+    actionListener.afterUpload(attachment, obj, pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, listId)
     val list = attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker, listId)
     return ResponseEntity.ok()
       .body(

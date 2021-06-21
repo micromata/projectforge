@@ -13,6 +13,7 @@ function DynamicAttachmentList(
         category,
         id,
         listId,
+        readOnly,
         serviceBaseUrl,
         restBaseUrl,
         downloadOnRowClick,
@@ -71,7 +72,7 @@ function DynamicAttachmentList(
 
     const handleRowClick = (entry) => (event) => {
         event.stopPropagation();
-        if (downloadOnRowClick) {
+        if (readOnly || downloadOnRowClick) {
             download(entry.fileId);
         } else {
             callAction({
@@ -145,7 +146,7 @@ function DynamicAttachmentList(
 
     return React.useMemo(() => {
         if (id && id > 0) {
-            if (uploadDisabled) {
+            if (readOnly || uploadDisabled) {
                 return (<>{table}</>);
             }
             return (

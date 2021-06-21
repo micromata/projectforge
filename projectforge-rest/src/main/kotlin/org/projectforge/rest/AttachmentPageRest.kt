@@ -71,7 +71,8 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
     services.getDataObject(pagesRest, id) // Check data object availability.
     val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
     data.attachment = services.getAttachment(pagesRest, data)
-    val layout = createAttachmentLayout(
+    val actionListener = services.getListener(category)
+    val layout = actionListener.createAttachmentLayout(
       id,
       category,
       fileId,
@@ -84,7 +85,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
   }
 
   /**
-   * Will be called, if the user wants to see the encrpytion options.
+   * Will be called, if the user wants to see the encryption options.
    */
   @PostMapping(RestPaths.WATCH_FIELDS)
   fun watchFields(@Valid @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>): ResponseEntity<ResponseAction> {
