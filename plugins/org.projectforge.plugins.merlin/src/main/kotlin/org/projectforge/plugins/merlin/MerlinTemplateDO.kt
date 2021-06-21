@@ -58,7 +58,7 @@ open class MerlinTemplateDO : DefaultBaseDO(), AttachmentsInfo {
 
   @PropertyInfo(i18nKey = "plugins.merlin.forceStrictFilenames", tooltip = "plugins.merlin.forceStrictFilenames.info")
   @get:Column(name = "strongly_restricted_filenames")
-  open var stronglyRestrictedFilenames: String? = null
+  open var stronglyRestrictedFilenames: Boolean? = null
 
   /**
    * These users have full read/write/execute access.

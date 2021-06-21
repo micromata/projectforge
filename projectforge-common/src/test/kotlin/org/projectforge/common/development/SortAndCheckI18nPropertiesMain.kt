@@ -48,6 +48,7 @@ object SortAndCheckI18nPropertiesMain {
     "plugins/org.projectforge.plugins.ihk/src/main/resources/IHKI18nResources",
     "plugins/org.projectforge.plugins.todo/src/main/resources/ToDoI18nResources",
     "plugins/org.projectforge.plugins.memo/src/main/resources/MemoI18nResources",
+    "plugins/org.projectforge.plugins.merlin/src/main/resources/MerlinI18nResources",
     "plugins/org.projectforge.plugins.marketing/src/main/resources/MarketingI18nResources",
     "plugins/org.projectforge.plugins.licensemanagement/src/main/resources/LicenseManagementI18nResources",
     "plugins/org.projectforge.plugins.skillmatrix/src/main/resources/SkillMatrixI18nResources",
