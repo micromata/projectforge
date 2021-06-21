@@ -24,11 +24,14 @@
 package org.projectforge.plugins.merlin
 
 import org.projectforge.Const
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.plugins.merlin.rest.MerlinAttachmentsActionListener
+import org.projectforge.rest.AttachmentsServicesRest
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -37,9 +40,15 @@ import org.springframework.beans.factory.annotation.Autowired
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class MerlinPlugin :
-  AbstractPlugin(ID, PluginAdminService.PLUGIN_MERLIN_ID, "Plugin for Microsoft Word® templating (with variables, dependant variables as well as serial execution). Useful for contracts, serial documents etc.") {
+  AbstractPlugin(ID, "Merlin-Word®-Templates", "Plugin for Microsoft Word® templating (with variables, dependant variables as well as serial execution). Useful for contracts, serial documents etc.") {
   @Autowired
   private lateinit var merlinTemplateDao: MerlinTemplateDao
+
+  @Autowired
+  private lateinit var attachmentsServicesRest: AttachmentsServicesRest
+
+  @Autowired
+  private lateinit var attachmentsService: AttachmentsService
 
   @Autowired
   private lateinit var menuCreator: MenuCreator
@@ -55,6 +64,8 @@ class MerlinPlugin :
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME)
+
+    attachmentsServicesRest.register(ID, MerlinAttachmentsActionListener(attachmentsService, merlinTemplateDao))
   }
 
   companion object {

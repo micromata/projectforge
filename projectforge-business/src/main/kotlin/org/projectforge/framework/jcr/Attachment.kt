@@ -49,6 +49,13 @@ class Attachment() {
    */
   @PropertyInfo(i18nKey = "attachment.fileName")
   var name: String? = null
+
+  /**
+   * extension after last '.' (zip, pdf etc.)
+   */
+  val fileExtension: String
+    get() = name?.substringAfterLast('.', "") ?: ""
+
   var size: Long? = null
 
   @get:JsonProperty

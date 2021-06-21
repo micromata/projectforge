@@ -106,7 +106,7 @@ open class AttachmentsService {
     id: Any,
     subPath: String? = null
   ): List<Attachment>? {
-    return repoService.getFileInfos(getPath(path, id), subPath ?: DEFAULT_NODE)?.map { asAttachment(it) }
+    return repoService.getFileInfos(getPath(path, id), subPath ?: DEFAULT_NODE)?.sortedByDescending { it.created }?.map { asAttachment(it) }
   }
 
   /**
@@ -346,15 +346,18 @@ open class AttachmentsService {
     /**
      * Only for external users. Otherwise logged in user will be assumed.
      */
-    userString: String? = null
+    userString: String? = null,
+    allowDuplicateFiles: Boolean = false,
   )
       : Attachment {
     accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
     val attachments = getAttachments(path, obj.id, null, subPath)
-    attachments?.forEach { attachment ->
-      if (attachment.name == fileInfo.fileName && attachment.size == fileInfo.size) {
-        log.warn { "Can't upload file '${fileInfo.fileName}' of size ${FormatterUtils.formatBytes(fileInfo.size)}. A file with same name and of same size does already exist." }
-        throw UserException("plugins.datatransfer.validation.error.fileAlreadyExists")
+    if (!allowDuplicateFiles) {
+      attachments?.forEach { attachment ->
+        if (attachment.name == fileInfo.fileName && attachment.size == fileInfo.size) {
+          log.warn { "Can't upload file '${fileInfo.fileName}' of size ${FormatterUtils.formatBytes(fileInfo.size)}. A file with same name and of same size does already exist." }
+          throw UserException("plugins.datatransfer.validation.error.fileAlreadyExists")
+        }
       }
     }
     val attachment =
