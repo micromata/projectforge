@@ -16,6 +16,8 @@ import DynamicTextArea from './input/DynamicTextArea';
 import DynamicReactSelect from './select/DynamicReactSelect';
 import DynamicTable from './table/DynamicTable';
 import DynamicListPageTable from './table/DynamicListPageTable';
+import DynamicBadgeList from './DynamicBadgeList';
+import DynamicBadge from './DynamicBadge';
 
 const components = {};
 
@@ -59,6 +61,8 @@ export default (content) => {
 // register default components
 registerComponent('ALERT', DynamicAlert);
 registerComponent('ATTACHMENT_LIST', DynamicAttachmentList);
+registerComponent('BADGE', DynamicBadge);
+registerComponent('BADGE_LIST', DynamicBadgeList);
 registerComponent('BUTTON', DynamicButton);
 registerComponent('CHECKBOX', DynamicCheckbox);
 registerComponent('COL', DynamicGroup);

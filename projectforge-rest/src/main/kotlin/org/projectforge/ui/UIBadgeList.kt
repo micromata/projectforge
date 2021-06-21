@@ -23,32 +23,19 @@
 
 package org.projectforge.ui
 
-enum class UIElementType {
-    ALERT,
-    /**
-     * Attachments including list view, downloading, uploading and deleting files.
-     */
-    ATTACHMENT_LIST,
-    BADGE,
-    BADGE_LIST,
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CUSTOMIZED,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    RADIOBUTTON,
-    READONLY_FIELD,
-    RATING,
-    ROW,
-    SELECT,
-    TABLE,
-    TABLE_LIST_PAGE,
-    TABLE_COLUMN,
-    TEXTAREA
+/**
+ * List of badges.
+ */
+class UIBadgeList : UIElement(UIElementType.BADGE_LIST) {
+  var badgeList = mutableListOf<UIBadge>()
+
+  /**
+   * @return this for chaining.
+   */
+  fun add(vararg badges: UIBadge): UIBadgeList {
+    badges.forEach {
+      badgeList.add(it)
+    }
+    return this
+  }
 }

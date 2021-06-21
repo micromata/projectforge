@@ -99,6 +99,7 @@ class MerlinPagesRest :
       .add(
         UITable.createUIResultSetTable()
           .add(lc, "created", "modified", "name", "description")
+          .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
           .add(UITableColumn("adminsAsString", "plugins.merlin.admins"))
           .add(UITableColumn("accessUsersAsString", "plugins.merlin.accessUsers"))
           .add(UITableColumn("accessGroupsAsString", "plugins.merlin.accessGroups"))
@@ -178,6 +179,12 @@ class MerlinPagesRest :
       .add(
         UIFieldset(title = "attachment.list")
           .add(UIAttachmentList(category, dto.id))
+      )
+      .add(
+        UIBadgeList().add(UIBadge("one", UIColor.DANGER), UIBadge("two"))
+      )
+      .add(
+        UIBadge("one", UIColor.SUCCESS)
       )
     return LayoutUtils.processEditPage(layout, dto, this)
   }
