@@ -203,11 +203,11 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
         )
     )
     if (dto.personalBox != true) {
-      if (!dto.accessGroupsAsString.isNullOrBlank()) {
-        fieldSet.add(UIReadOnlyField("accessGroupsAsString", label = "plugins.datatransfer.accessGroups"))
-      }
       if (!dto.accessUsersAsString.isNullOrBlank()) {
         fieldSet.add(UIReadOnlyField("accessUsersAsString", label = "plugins.datatransfer.accessUsers"))
+      }
+      if (!dto.accessGroupsAsString.isNullOrBlank()) {
+        fieldSet.add(UIReadOnlyField("accessGroupsAsString", label = "plugins.datatransfer.accessGroups"))
       }
       if (dto.externalAccessEnabled) {
         fieldSet.add(

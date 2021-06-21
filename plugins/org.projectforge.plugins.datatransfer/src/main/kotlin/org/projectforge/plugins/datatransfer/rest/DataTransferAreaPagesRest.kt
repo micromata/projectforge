@@ -142,8 +142,8 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(lc, "expiryDays")
           .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins"))
           .add(UITableColumn("observersAsString", "plugins.datatransfer.observers"))
-          .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups"))
           .add(UITableColumn("accessUsersAsString", "plugins.datatransfer.accessUsers"))
+          .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups"))
       )
     layout.add(
       MenuItem(
