@@ -25,6 +25,7 @@ package org.projectforge.plugins.merlin.rest
 
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.merlin.MerlinTemplate
 import org.projectforge.plugins.merlin.MerlinTemplateDO
 import org.projectforge.plugins.merlin.MerlinTemplateDao
@@ -62,6 +63,8 @@ class MerlinPagesRest :
    */
   override fun newBaseDO(request: HttpServletRequest?): MerlinTemplateDO {
     val template = super.newBaseDO(request)
+    template.adminIds = "${ThreadLocalUserContext.getUserId()}"
+    template.fileNamePattern = "\${date}-document"
     return template
   }
 
@@ -97,8 +100,8 @@ class MerlinPagesRest :
         UITable.createUIResultSetTable()
           .add(lc, "created", "modified", "name", "description")
           .add(UITableColumn("adminsAsString", "plugins.merlin.admins"))
-          .add(UITableColumn("accessGroupsAsString", "plugins.merlin.accessGroups"))
           .add(UITableColumn("accessUsersAsString", "plugins.merlin.accessUsers"))
+          .add(UITableColumn("accessGroupsAsString", "plugins.merlin.accessGroups"))
       )
     /*layout.add(
       MenuItem(
@@ -137,19 +140,22 @@ class MerlinPagesRest :
       tooltip = "plugins.merlin.accessGroups.info"
     )
     val layout = super.createEditLayout(dto, userAccess)
-      .add(lc, "name")
       .add(
-        UIRow()
+        UIFieldset(UILength(md = 12, lg = 12))
+          .add(lc, "name")
           .add(
-            UICol()
-              .add(UIInput("fileNamePattern", lc))
+            UIRow()
+              .add(
+                UICol()
+                  .add(UIInput("fileNamePattern", lc))
+              )
+              .add(
+                UICol()
+                  .add(lc, "stronglyRestrictedFilenames")
+              )
           )
-          .add(
-            UICol()
-              .add(lc, "stronglyRestrictedFilenames")
-          )
+          .add(lc, "description")
       )
-      .add(lc, "description")
       .add(
         UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
           .add(
