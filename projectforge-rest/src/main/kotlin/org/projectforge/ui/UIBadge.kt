@@ -23,32 +23,10 @@
 
 package org.projectforge.ui
 
-enum class UIElementType {
-    ALERT,
-    /**
-     * Attachments including list view, downloading, uploading and deleting files.
-     */
-    ATTACHMENT_LIST,
-    BADGE,
-    BADGE_LIST,
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CUSTOMIZED,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    RADIOBUTTON,
-    READONLY_FIELD,
-    RATING,
-    ROW,
-    SELECT,
-    TABLE,
-    TABLE_LIST_PAGE,
-    TABLE_COLUMN,
-    TEXTAREA
-}
+/**
+ * One badge.
+ */
+data class UIBadge(
+  var title: String? = null,
+  val color: UIColor? = null
+) : UIElement(UIElementType.BADGE)
