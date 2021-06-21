@@ -103,6 +103,7 @@ class MerlinPagesRest :
           .add(UITableColumn("accessUsersAsString", "plugins.merlin.accessUsers"))
           .add(UITableColumn("accessGroupsAsString", "plugins.merlin.accessGroups"))
       )
+      .add(UIAlert("'For further documentation, please refer: [Merlin documentation](https://github.com/micromata/Merlin/blob/master/docs/templates.adoc)", markdown = true))
     /*layout.add(
       MenuItem(
         "HIGHLIGHT",

@@ -30,5 +30,9 @@ data class UIAlert(
         var message: String? = null,
         var title: String? = null,
         val color: UIColor? = null,
+        /**
+         * If true, the client should preprocess the message as markdown content.
+         */
+        val markdown: Boolean? = null,
         val icon: UIIconType? = null)
         : UIElement(UIElementType.ALERT)
