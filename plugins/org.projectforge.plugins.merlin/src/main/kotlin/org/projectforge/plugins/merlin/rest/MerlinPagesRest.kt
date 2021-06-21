@@ -96,10 +96,18 @@ class MerlinPagesRest :
       .add(
         UITable.createUIResultSetTable()
           .add(lc, "created", "modified", "name", "description")
-          .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins"))
-          .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups"))
-          .add(UITableColumn("accessUsersAsString", "plugins.datatransfer.accessUsers"))
+          .add(UITableColumn("adminsAsString", "plugins.merlin.admins"))
+          .add(UITableColumn("accessGroupsAsString", "plugins.merlin.accessGroups"))
+          .add(UITableColumn("accessUsersAsString", "plugins.merlin.accessUsers"))
       )
+    /*layout.add(
+      MenuItem(
+        "HIGHLIGHT",
+        i18nKey = "plugins.merlin.personalBox",
+        tooltip = "plugins.merlin.personalBox.info",
+        url = PagesResolver.getDynamicPageUrl(merlinPersonalBoxPageRest::class.java)
+      )
+    )*/
     return LayoutUtils.processListPage(layout, this)
   }
 
@@ -107,21 +115,59 @@ class MerlinPagesRest :
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: MerlinTemplate, userAccess: UILayout.UserAccess): UILayout {
+    val adminsSelect = UISelect.createUserSelect(
+      lc,
+      "admins",
+      true,
+      "plugins.merlin.admins",
+      tooltip = "plugins.merlin.admins.info"
+    )
+    val accessUsers = UISelect.createUserSelect(
+      lc,
+      "accessUsers",
+      true,
+      "plugins.merlin.accessUsers",
+      tooltip = "plugins.merlin.accessUsers.info"
+    )
+    val accessGroups = UISelect.createGroupSelect(
+      lc,
+      "accessGroups",
+      true,
+      "plugins.merlin.accessGroups",
+      tooltip = "plugins.merlin.accessGroups.info"
+    )
     val layout = super.createEditLayout(dto, userAccess)
-      .add(lc, "subject")
+      .add(lc, "name")
       .add(
         UIRow()
           .add(
             UICol()
-              .add(lc, "type", "status", "dueDate")
+              .add(UIInput("fileNamePattern", lc))
           )
           .add(
             UICol()
-              .add(lc, "priority", "assignee", "reporter")
+              .add(lc, "stronglyRestrictedFilenames")
           )
       )
-      .add(lc, "task")
-      .add(lc, "description", "comment", "options")
+      .add(lc, "description")
+      .add(
+        UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
+          .add(
+            UIRow()
+              .add(
+                UICol(UILength(md = 4))
+                  .add(adminsSelect)
+              )
+              .add(
+                UICol(UILength(md = 4))
+                  .add(accessUsers)
+              )
+              .add(
+                UICol(UILength(md = 4))
+                  .add(accessGroups)
+              )
+          )
+      )
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 }
