@@ -24,16 +24,24 @@
 package org.projectforge.ui
 
 class UIFieldset(
-        /**
-         * Length in grid system
-         */
-        length: UILength? = null,
-        /**
-         * Offset in grid system
-         */
-        offset: UILength? = null,
-        var title: String? = null) :
-        UICol(length, offset, type = UIElementType.FIELDSET) {
+  /**
+   * Length in grid system
+   */
+  length: UILength? = null,
+  /**
+   * Offset in grid system
+   */
+  offset: UILength? = null,
+  var title: String? = null,
+  /**
+   * Useless, if length is already given.
+   */
+  xs: Int? = null,
+  sm: Int? = null,
+  md: Int? = null,
+  lg: Int? = null,
+) :
+  UICol(length ?: UILength(xs = xs, sm = sm, md = md, lg = lg), offset, type = UIElementType.FIELDSET) {
 
-    constructor(xsLength: Int, title: String? = null) : this(length = UILength(xsLength), title = title)
+  constructor(xsLength: Int, title: String? = null) : this(length = UILength(xsLength), title = title)
 }
