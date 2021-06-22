@@ -56,6 +56,7 @@ class MerlinPagesRest :
   @PostConstruct
   private fun postConstruct() {
     enableJcr()
+    instance = this
   }
 
   /**
@@ -104,7 +105,12 @@ class MerlinPagesRest :
           .add(UITableColumn("accessUsersAsString", "plugins.merlin.accessUsers"))
           .add(UITableColumn("accessGroupsAsString", "plugins.merlin.accessGroups"))
       )
-      .add(UIAlert("'For further documentation, please refer: [Merlin documentation](https://github.com/micromata/Merlin/blob/master/docs/templates.adoc)", markdown = true))
+      .add(
+        UIAlert(
+          "'For further documentation, please refer: [Merlin documentation](https://github.com/micromata/Merlin/blob/master/docs/templates.adoc)",
+          markdown = true
+        )
+      )
     /*layout.add(
       MenuItem(
         "HIGHLIGHT",
@@ -120,72 +126,96 @@ class MerlinPagesRest :
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: MerlinTemplate, userAccess: UILayout.UserAccess): UILayout {
-    val adminsSelect = UISelect.createUserSelect(
-      lc,
-      "admins",
-      true,
-      "plugins.merlin.admins",
-      tooltip = "plugins.merlin.admins.info"
-    )
-    val accessUsers = UISelect.createUserSelect(
-      lc,
-      "accessUsers",
-      true,
-      "plugins.merlin.accessUsers",
-      tooltip = "plugins.merlin.accessUsers.info"
-    )
-    val accessGroups = UISelect.createGroupSelect(
-      lc,
-      "accessGroups",
-      true,
-      "plugins.merlin.accessGroups",
-      tooltip = "plugins.merlin.accessGroups.info"
-    )
-    val layout = super.createEditLayout(dto, userAccess)
-      .add(
-        UIFieldset(UILength(md = 12, lg = 12))
-          .add(lc, "name")
-          .add(
-            UIRow()
-              .add(
-                UICol()
-                  .add(UIInput("fileNamePattern", lc))
-              )
-              .add(
-                UICol()
-                  .add(lc, "stronglyRestrictedFilenames")
-              )
-          )
-          .add(lc, "description")
+    return createEditLayout(null, dto, userAccess)
+  }
+
+  private fun getUserAccess(dbo: MerlinTemplateDO): UILayout.UserAccess {
+    val userAccess = UILayout.UserAccess()
+    super.checkUserAccess(dbo, userAccess)
+    return userAccess
+  }
+
+  private fun createEditLayoutSuper(dto: MerlinTemplate, userAccess: UILayout.UserAccess): UILayout {
+    return super.createEditLayout(dto, userAccess)
+  }
+
+  companion object {
+    private lateinit var instance: MerlinPagesRest
+
+    internal fun createEditLayout(
+      dbo: MerlinTemplateDO? = null,
+      dto: MerlinTemplate = instance.transformFromDB(dbo!!),
+      userAccess: UILayout.UserAccess? = null
+    ): UILayout {
+      check(dbo != null || userAccess != null) { "dbo or userAcess must be given." }
+      val lc = LayoutContext(MerlinTemplateDO::class.java)
+      val adminsSelect = UISelect.createUserSelect(
+        lc,
+        "admins",
+        true,
+        "plugins.merlin.admins",
+        tooltip = "plugins.merlin.admins.info"
       )
-      .add(
-        UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
-          .add(
-            UIRow()
-              .add(
-                UICol(UILength(md = 4))
-                  .add(adminsSelect)
-              )
-              .add(
-                UICol(UILength(md = 4))
-                  .add(accessUsers)
-              )
-              .add(
-                UICol(UILength(md = 4))
-                  .add(accessGroups)
-              )
-          )
+      val accessUsers = UISelect.createUserSelect(
+        lc,
+        "accessUsers",
+        true,
+        "plugins.merlin.accessUsers",
+        tooltip = "plugins.merlin.accessUsers.info"
       )
-      .add(
-        UIFieldset(title = "attachment.list")
-          .add(UIAttachmentList(category, dto.id))
+      val accessGroups = UISelect.createGroupSelect(
+        lc,
+        "accessGroups",
+        true,
+        "plugins.merlin.accessGroups",
+        tooltip = "plugins.merlin.accessGroups.info"
       )
-      .add(
-        UIBadgeList().add(UIBadge("one", UIColor.DANGER), UIBadge("two"))
-      )
-      .add(
-        UIBadge("one", UIColor.SUCCESS)
-      )
-    return LayoutUtils.processEditPage(layout, dto, this)
+      val layout = instance.createEditLayoutSuper(dto, userAccess ?: instance.getUserAccess(dbo!!))
+        .add(
+          UIFieldset(UILength(md = 12, lg = 12))
+            .add(lc, "name")
+            .add(
+              UIRow()
+                .add(
+                  UICol()
+                    .add(UIInput("fileNamePattern", lc))
+                )
+                .add(
+                  UICol()
+                    .add(lc, "stronglyRestrictedFilenames")
+                )
+            )
+            .add(lc, "description")
+        )
+        .add(
+          UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
+            .add(
+              UIRow()
+                .add(
+                  UICol(UILength(md = 4))
+                    .add(adminsSelect)
+                )
+                .add(
+                  UICol(UILength(md = 4))
+                    .add(accessUsers)
+                )
+                .add(
+                  UICol(UILength(md = 4))
+                    .add(accessGroups)
+                )
+            )
+        )
+        .add(
+          UIFieldset(title = "attachment.list")
+            .add(UIAttachmentList(instance.category, dto.id))
+        )
+        .add(
+          UIBadgeList().add(UIBadge("one", UIColor.DANGER), UIBadge("two"))
+        )
+        .add(
+          UIBadge("one", UIColor.SUCCESS)
+        )
+      return LayoutUtils.processEditPage(layout, dto, instance)
+    }
   }
 }

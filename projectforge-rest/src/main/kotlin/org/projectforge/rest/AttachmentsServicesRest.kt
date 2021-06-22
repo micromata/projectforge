@@ -49,6 +49,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -65,7 +66,12 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
 
   private var actionListeners = mutableMapOf<String, AttachmentsActionListener>()
 
-  private val defaultActionListener = AttachmentsActionListener()
+  private lateinit var defaultActionListener: AttachmentsActionListener
+
+  @PostConstruct
+  private fun postConstruct() {
+    defaultActionListener = AttachmentsActionListener(attachmentsService)
+  }
 
   class AttachmentData(
     var category: String,
@@ -293,13 +299,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       allowDuplicateFiles = actionListener.allowDuplicateFiles,
     )
     //}
-    actionListener.afterUpload(attachment, obj, pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, listId)
-    val list = attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker, listId)
-    return ResponseEntity.ok()
-      .body(
-        ResponseAction(targetType = TargetType.UPDATE, merge = true)
-          .addVariable("data", ResponseData(list))
-      )
+    return actionListener.afterUpload(attachment, obj, pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, listId)
   }
 
   @PostMapping("delete")

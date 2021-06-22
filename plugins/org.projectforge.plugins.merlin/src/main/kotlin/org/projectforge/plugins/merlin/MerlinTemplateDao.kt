@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.merlin
 
-import mu.KotlinLogging
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
@@ -31,8 +30,6 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.stereotype.Repository
-
-private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -82,5 +79,4 @@ open class MerlinTemplateDao : BaseDao<MerlinTemplateDO>(MerlinTemplateDO::class
   override fun newInstance(): MerlinTemplateDO {
     return MerlinTemplateDO()
   }
-
 }
