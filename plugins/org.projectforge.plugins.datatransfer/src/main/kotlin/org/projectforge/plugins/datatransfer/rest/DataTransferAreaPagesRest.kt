@@ -88,7 +88,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
   }
 
   /**
-   * @return the address view page.
+   * @return the data transfer view page.
    */
   override fun getStandardEditPage(): String {
     return "${PagesResolver.getDynamicPageUrl(DataTransferPageRest::class.java)}:id"

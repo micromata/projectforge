@@ -23,41 +23,27 @@
 
 package org.projectforge.plugins.merlin
 
-import de.micromata.merlin.word.templating.DependentVariableDefinition
-import de.micromata.merlin.word.templating.VariableDefinition
-import org.projectforge.ui.UIColor
+import de.micromata.merlin.word.AbstractConditional
 
 /**
+ * Represents info of an conditional expression.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class MerlinVariable(
-  val name: String,
-  val definition: VariableDefinition? = null,
-  val dependentVariableDefinition: DependentVariableDefinition? = null,
-  var used: Boolean? = null,
-  var masterVariable: Boolean? = null,
-  /**
-   * Number in Word template, if used. For getting the variables in order of their occurrence.
-   */
-  var number: Int? = null,
-) {
-  val dependant: Boolean
-    get() = dependentVariableDefinition != null
-  val input: Boolean
-    get() = definition != null || !dependant
+class MerlinConditional(conditional: AbstractConditional) {
+  var statement: String? = null
+  var childConditionals = mutableListOf<MerlinConditional>()
 
-  val uiColor: UIColor?
-    get() {
-      return if (masterVariable == true) {
-        UIColor.DANGER
-      } else if (input) {
-        UIColor.SUCCESS
-      } else if (used == false) {
-        UIColor.LIGHT
-      } else if (dependant) {
-        UIColor.SECONDARY
-      } else {
-        null
-      }
+  init {
+    statement = conditional.conditionalStatement
+    conditional.childConditionals?.forEach { child ->
+      childConditionals.add(MerlinConditional(child))
     }
+  }
+
+  internal fun asMarkDown(sb: StringBuilder, indent: String) {
+    sb.appendLine("$indent* `$statement`")
+    childConditionals.forEach { child ->
+      child.asMarkDown(sb, "$indent  ")
+    }
+  }
 }

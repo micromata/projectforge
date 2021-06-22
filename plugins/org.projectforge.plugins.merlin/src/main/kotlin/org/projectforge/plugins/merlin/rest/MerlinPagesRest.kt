@@ -36,8 +36,11 @@ import org.projectforge.plugins.merlin.*
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.Group
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -138,6 +141,13 @@ class MerlinPagesRest :
     return LayoutUtils.processListPage(layout, this)
   }
 
+  /**
+   * @return the data transfer view page.
+   */
+  override fun getStandardEditPage(): String {
+    return "${PagesResolver.getDynamicPageUrl(MerlinExecutionPageRest::class.java)}:id"
+  }
+
   @GetMapping("exportExcelTemplate/{id}")
   fun exportExcelTemplate(@PathVariable("id") id: Int): ResponseEntity<*> {
     val stats = merlinRunner.getStatistics(id)
@@ -147,11 +157,12 @@ class MerlinPagesRest :
       filename = "${FilenameUtils.getBaseName(stats.wordTemplateFilename ?: "untitled")}.xlsx"
     }
     MerlinRunner.initTemplateRunContext(writer.templateRunContext)
-    stats.template?.let {template ->
+    stats.template?.let { template ->
       template.fileDescriptor = FileDescriptor()
       template.fileDescriptor.filename = filename
     }
-    val templateDefinition = stats.templateDefinition ?: stats.template?.createAutoTemplateDefinition() ?: TemplateDefinition()
+    val templateDefinition =
+      stats.templateDefinition ?: stats.template?.createAutoTemplateDefinition() ?: TemplateDefinition()
     val dbo = baseDao.getById(id)
     templateDefinition.filenamePattern = dbo.fileNamePattern
     templateDefinition.id = "${dbo.id}"
@@ -173,6 +184,19 @@ class MerlinPagesRest :
   override fun createEditLayout(dto: MerlinTemplate, userAccess: UILayout.UserAccess): UILayout {
     return updateLayoutAndData(null, dto, userAccess).first
   }
+
+  override fun afterOperationRedirectTo(
+    obj: MerlinTemplateDO,
+    postData: PostData<MerlinTemplate>,
+    event: RestButtonEvent
+  ): String? {
+    return if (event == RestButtonEvent.SAVE || event == RestButtonEvent.UPDATE) PagesResolver.getDynamicPageUrl(
+      MerlinExecutionPageRest::class.java,
+      id = obj.id,
+      absolute = true
+    ) else null
+  }
+
 
   private fun getUserAccess(dbo: MerlinTemplateDO): UILayout.UserAccess {
     val userAccess = UILayout.UserAccess()
@@ -284,6 +308,8 @@ class MerlinPagesRest :
                     .add(dependentVariables)
                 )
             )
+            .add(UILabel("plugins.merlin.variables.conditionals"))
+            .add(UIAlert(message = "'${stats.conditionalsAsMarkdown()}", markdown = true))
         )
         .add(
           UIFieldset(md = 12, lg = 12, title = "access.title.heading")

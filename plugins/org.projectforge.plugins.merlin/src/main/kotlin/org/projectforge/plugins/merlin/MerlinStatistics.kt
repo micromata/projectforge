@@ -34,6 +34,7 @@ import org.projectforge.framework.ToStringUtil
  */
 class MerlinStatistics {
   val variables = mutableListOf<MerlinVariable>()
+  val conditionals = mutableListOf<MerlinConditional>()
   var wordTemplateFilename: String? = null
   var excelTemplateDefinitionFilename: String? = null
 
@@ -51,15 +52,25 @@ class MerlinStatistics {
     this.templateDefinition = templateDefinition
     synchronized(variables) {
       variables.clear()
+      var orderNumber = 0
       statistics?.inputVariables?.forEach { variableDefinition ->
         val name = variableDefinition.name
+        val used = statistics.usedVariables?.contains(name) == true
         val variable = MerlinVariable(
           name,
           variableDefinition,
-          used = statistics.usedVariables?.contains(name) == true,
-          masterVariable = statistics.masterVariables?.contains(name) == true
+          used = used,
+          masterVariable = statistics.masterVariables?.contains(name) == true,
+          number = if (used) {
+            orderNumber++
+          } else {
+            null
+          },
         )
         variables.add(variable)
+      }
+      statistics?.conditionals?.conditionalsSet?.forEach {
+        conditionals.add(MerlinConditional(it))
       }
       templateDefinition?.dependentVariableDefinitions?.forEach { variableDefinition ->
         val name = variableDefinition.name
@@ -75,5 +86,13 @@ class MerlinStatistics {
 
   override fun toString(): String {
     return ToStringUtil.toJsonString(this)
+  }
+
+  fun conditionalsAsMarkdown(): String {
+    val sb = StringBuilder()
+    conditionals?.forEach {
+      it.asMarkDown(sb, "")
+    }
+    return sb.toString()
   }
 }
