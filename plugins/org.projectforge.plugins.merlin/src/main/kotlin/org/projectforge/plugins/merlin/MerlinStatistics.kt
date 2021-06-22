@@ -23,25 +23,53 @@
 
 package org.projectforge.plugins.merlin
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import de.micromata.merlin.word.templating.Template
+import de.micromata.merlin.word.templating.TemplateDefinition
 import de.micromata.merlin.word.templating.TemplateStatistics
 import org.projectforge.framework.ToStringUtil
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class MerlinStatistics(statistics: TemplateStatistics? = null) {
+class MerlinStatistics {
   val variables = mutableListOf<MerlinVariable>()
+  var wordTemplateFilename: String? = null
+  var excelTemplateDefinitionFilename: String? = null
 
-  init {
-    statistics?.inputVariables?.forEach { variableDefinition ->
-      val name = variableDefinition.name
-      val variable = MerlinVariable(
-        name,
-        variableDefinition,
-        used = statistics.usedVariables?.contains(name) == true,
-        masterVariable = statistics.masterVariables?.contains(name) == true
-      )
-      variables.add(variable)
+  @get:JsonIgnore
+  var templateStatistics: TemplateStatistics? = null
+
+  @get:JsonIgnore
+  var templateDefinition: TemplateDefinition? = null
+
+  @get:JsonIgnore
+  var template: Template? = null
+
+  fun update(statistics: TemplateStatistics? = null, templateDefinition: TemplateDefinition? = null) {
+    this.templateStatistics = statistics
+    this.templateDefinition = templateDefinition
+    synchronized(variables) {
+      variables.clear()
+      statistics?.inputVariables?.forEach { variableDefinition ->
+        val name = variableDefinition.name
+        val variable = MerlinVariable(
+          name,
+          variableDefinition,
+          used = statistics.usedVariables?.contains(name) == true,
+          masterVariable = statistics.masterVariables?.contains(name) == true
+        )
+        variables.add(variable)
+      }
+      templateDefinition?.dependentVariableDefinitions?.forEach { variableDefinition ->
+        val name = variableDefinition.name
+        val variable = MerlinVariable(
+          name,
+          dependentVariableDefinition = variableDefinition,
+          used = statistics?.usedVariables?.contains(name) == true
+        )
+        variables.add(variable)
+      }
     }
   }
 

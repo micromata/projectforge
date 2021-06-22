@@ -43,6 +43,8 @@ class MerlinTemplate(
   var accessUsersAsString: String? = null,
   var fileNamePattern: String? = null,
   var stronglyRestrictedFilenames: Boolean? = null,
+  var wordTemplateFileName: String? = null,
+  var excelTemplateDefinitionFileName: String? = null,
   override var attachmentsCounter: Int? = null,
   override var attachmentsSize: Long? = null,
 ) : BaseDTO<MerlinTemplateDO>(id), AttachmentsSupport {

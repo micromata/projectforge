@@ -46,12 +46,12 @@ class MerlinVariable(
     get() {
       return if (masterVariable == true) {
         UIColor.DANGER
-      } else if (dependant) {
-        UIColor.SECONDARY
       } else if (input) {
         UIColor.SUCCESS
       } else if (used == false) {
         UIColor.LIGHT
+      } else if (dependant) {
+        UIColor.SECONDARY
       } else {
         null
       }

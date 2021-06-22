@@ -40,6 +40,7 @@ open class AttachmentsActionListener(
   val attachmentsService: AttachmentsService,
   val allowDuplicateFiles: Boolean = false
 ) {
+
   /**
    * Will be called on upload. If ResponseEntity is returned, further processing of this upload will be prevented.
    * Useful e. g. to allow only special file extensions etc.
@@ -62,6 +63,24 @@ open class AttachmentsActionListener(
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = TargetType.UPDATE, merge = true)
+          .addVariable("data", AttachmentsServicesRest.ResponseData(list))
+      )
+  }
+
+  /**
+   * Will be called after upload.
+   */
+  open fun afterModification(
+    attachment: Attachment,
+    obj: ExtendedBaseDO<Int>,
+    jcrPath: String,
+    attachmentsAccessChecker: AttachmentsAccessChecker,
+    listId: String?
+  ): ResponseEntity<*> {
+    val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId)
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
           .addVariable("data", AttachmentsServicesRest.ResponseData(list))
       )
   }

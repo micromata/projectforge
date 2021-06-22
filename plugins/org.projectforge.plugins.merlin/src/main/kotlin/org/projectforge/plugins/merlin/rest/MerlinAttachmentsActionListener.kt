@@ -30,7 +30,7 @@ import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.jcr.FileInfo
-import org.projectforge.plugins.merlin.MerlinRunner
+import org.projectforge.plugins.merlin.MerlinTemplate
 import org.projectforge.plugins.merlin.MerlinTemplateDO
 import org.projectforge.plugins.merlin.MerlinTemplateDao
 import org.projectforge.rest.AttachmentsActionListener
@@ -77,7 +77,8 @@ class MerlinAttachmentsActionListener(
   ): ResponseEntity<*> {
     val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId)
     list?.forEach { element ->
-      if (element.fileExtension != "backup" && element.fileId != attachment.fileId) {
+      // If docx is uploaded, backup all previous existing docx. Same for xlsx.
+      if (element.fileExtension == attachment.fileExtension && element.fileId != attachment.fileId) {
         // docx and not the current uploaded file. So rename all other docx elements as backup-files.
         val newFileName = "${element.name}.backup"
         attachmentsService.changeFileInfo(
@@ -92,11 +93,33 @@ class MerlinAttachmentsActionListener(
         )
       }
     }
+    return createResponseEntity(obj, list, TargetType.UPDATE)
+  }
+
+  override fun afterModification(
+    attachment: Attachment,
+    obj: ExtendedBaseDO<Int>,
+    jcrPath: String,
+    attachmentsAccessChecker: AttachmentsAccessChecker,
+    listId: String?
+  ): ResponseEntity<*> {
+    val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId)
+    return createResponseEntity(obj, list, TargetType.CLOSE_MODAL)
+  }
+
+  private fun createResponseEntity(obj: ExtendedBaseDO<Int>, list: List<Attachment>?, targetType: TargetType): ResponseEntity<*> {
+    val result = MerlinPagesRest.updateLayoutAndData(obj as MerlinTemplateDO)
+    val dto = result.second
+    val ui = result.first
+    val data = mapOf(
+      "attachments" to list,
+      "wordTemplateFileName" to (dto.wordTemplateFileName ?: "---"),
+      "excelTemplateDefinitionFileName" to (dto.excelTemplateDefinitionFileName ?: "---"))
     return ResponseEntity.ok()
       .body(
-        ResponseAction(targetType = TargetType.UPDATE, merge = true)
-          .addVariable("data", AttachmentsServicesRest.ResponseData(list))
-          .addVariable("ui", MerlinPagesRest.createEditLayout(obj as MerlinTemplateDO))
+        ResponseAction(targetType = targetType, merge = true)
+          .addVariable("data", data)
+          .addVariable("ui", ui)
       )
   }
 

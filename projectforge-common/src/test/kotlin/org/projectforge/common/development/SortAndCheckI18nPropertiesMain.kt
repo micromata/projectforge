@@ -276,6 +276,7 @@ object SortAndCheckI18nPropertiesMain {
       .replace("Ü", "\\u00DC")
       .replace("ü", "\\u00FC")
       .replace("ß", "\\u00DF")
+      .replace("®", "\\u00AE")
     if (!result.contains("{0}") && !result.contains("{1}") && !result.contains("\${")) {
       return result
     }

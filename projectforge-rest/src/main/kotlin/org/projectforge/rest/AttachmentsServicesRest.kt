@@ -113,9 +113,11 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
 
   @PostMapping("modify")
   fun modify(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentData>)
-      : ResponseEntity<ResponseAction>? {
+      : ResponseEntity<*>? {
     validateCsrfToken(request, postData)?.let { return it }
     val data = postData.data
+    val category = data.category
+    val listId = data.listId
     val attachment = data.attachment
     val pagesRest = getPagesRest(data.category, data.listId)
     getAttachment(pagesRest, data) // Check attachment availability
@@ -127,11 +129,8 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     )
     val list =
       attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
-    return ResponseEntity.ok()
-      .body(
-        ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-          .addVariable("data", ResponseData(list))
-      )
+    val actionListener = getListener(category)
+    return actionListener.afterModification(attachment, obj, pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, listId)
   }
 
   @PostMapping("encrypt")
