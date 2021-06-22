@@ -300,6 +300,8 @@ open class RepoService {
 
   /**
    * Change fileName and/or description if given.
+   * @param updateLastUpdateInfo If true (default),
+   * time stamp of last update and user of this update will be updated. Otherwise time stamp and user info will be left untouched.
    * @return new file info without content.
    */
   @JvmOverloads
@@ -309,6 +311,7 @@ open class RepoService {
     newFileName: String? = null,
     newDescription: String? = null,
     newZipMode: ZipMode? = null,
+    updateLastUpdateInfo: Boolean = true,
   ): FileObject? {
     return runInSession { session ->
       val node = getNode(session, fileObject.parentNodePath, fileObject.relPath, false)
@@ -338,7 +341,7 @@ open class RepoService {
             fileNode.setProperty(PROPERTY_ZIP_MODE, newZipMode.name)
             modified = true
           }
-          if (modified) {
+          if (modified && updateLastUpdateInfo) {
             fileNode.setProperty(PROPERTY_LAST_UPDATE_BY_USER, user)
             fileNode.setProperty(PROPERTY_LAST_UPDATE, PFJcrUtils.convertToString(Date()) ?: "")
           }

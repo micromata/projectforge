@@ -460,6 +460,7 @@ open class AttachmentsService {
   /**
    * @param path Unique path of data object.
    * @param id Id of data object.
+   * @param updateLastUpdateInfo see [RepoService.changeFileInfo]
    */
   @JvmOverloads
   open fun changeFileInfo(
@@ -470,7 +471,8 @@ open class AttachmentsService {
     newFileName: String?,
     newDescription: String?,
     accessChecker: AttachmentsAccessChecker,
-    subPath: String? = null
+    subPath: String? = null,
+    updateLastUpdateInfo: Boolean = true,
   )
       : FileObject? {
     developerWarning(path, id, "changeProperty", enableSearchIndex)
@@ -486,12 +488,14 @@ open class AttachmentsService {
       fileObject,
       user = ThreadLocalUserContext.getUserId()!!.toString(),
       newFileName = newFileName,
-      newDescription = newDescription
+      newDescription = newDescription,
+      updateLastUpdateInfo = updateLastUpdateInfo,
     )
   }
 
   /**
    * @param path Unique path of data object.
+   * @param updateLastUpdateInfo see [RepoService.changeFileInfo]
    */
   @JvmOverloads
   open fun changeFileInfo(
@@ -507,7 +511,8 @@ open class AttachmentsService {
      * Only for external users. Otherwise logged in user will be assumed.
      */
     userString: String? = null,
-  )
+    updateLastUpdateInfo: Boolean = true,
+    )
       : FileObject? {
     accessChecker.checkUpdateAccess(
       ThreadLocalUserContext.getUser(),
@@ -521,7 +526,8 @@ open class AttachmentsService {
       fileObject,
       ThreadLocalUserContext.getUserId()?.toString() ?: userString!!,
       newFileName,
-      newDescription
+      newDescription,
+      updateLastUpdateInfo = updateLastUpdateInfo,
     )
     if (result != null) {
       val fileNameChanged = if (!newFileName.isNullOrBlank()) "filename='$newFileName'" else null
