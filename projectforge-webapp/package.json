@@ -19,6 +19,7 @@
     "fetch-mock": "^9.11.0",
     "history": "^4.10.1",
     "jquery": "^3.6.0",
+    "js-file-download": "^0.4.12",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.33",
     "node-fetch": "^2.6.1",

@@ -118,6 +118,11 @@ enum class TargetType {
     POST,
 
     /**
+     * The client should call the given url with http method POST and will receive a download.
+     */
+    POST_AND_DOWNLOAD,
+
+    /**
      * The client should call the given url with http method DELETE.
      */
     DELETE,

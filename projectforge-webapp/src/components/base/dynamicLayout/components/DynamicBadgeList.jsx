@@ -7,7 +7,6 @@ function DynamicBadge(props) {
     const {
         badgeList,
     } = props;
-    console.log(badgeList);
 
     return (
         <h4>

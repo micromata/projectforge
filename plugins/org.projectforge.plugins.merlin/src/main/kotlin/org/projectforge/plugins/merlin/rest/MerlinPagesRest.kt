@@ -45,13 +45,11 @@ import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.io.ByteArrayOutputStream
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
+import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
 
@@ -148,9 +146,10 @@ class MerlinPagesRest :
     return "${PagesResolver.getDynamicPageUrl(MerlinExecutionPageRest::class.java)}:id"
   }
 
-  @GetMapping("exportExcelTemplate/{id}")
-  fun exportExcelTemplate(@PathVariable("id") id: Int): ResponseEntity<*> {
-    val stats = merlinRunner.getStatistics(id)
+  @PostMapping("exportExcelTemplate")
+  fun exportExcelTemplate(@Valid @RequestBody postData: PostData<MerlinTemplate>): ResponseEntity<*> {
+    val dto = postData.data
+    val stats = merlinRunner.getStatistics(dto.id!!)
     val writer = TemplateDefinitionExcelWriter()
     var filename = stats.excelTemplateDefinitionFilename
     if (filename == null) {
@@ -163,11 +162,10 @@ class MerlinPagesRest :
     }
     val templateDefinition =
       stats.templateDefinition ?: stats.template?.createAutoTemplateDefinition() ?: TemplateDefinition()
-    val dbo = baseDao.getById(id)
-    templateDefinition.filenamePattern = dbo.fileNamePattern
-    templateDefinition.id = "${dbo.id}"
-    templateDefinition.isStronglyRestrictedFilenames = dbo.stronglyRestrictedFilenames == true
-    templateDefinition.description = dbo.description
+    templateDefinition.filenamePattern = dto.fileNamePattern
+    templateDefinition.id = "${dto.id}"
+    templateDefinition.isStronglyRestrictedFilenames = dto.stronglyRestrictedFilenames == true
+    templateDefinition.description = dto.description
     val workbook = writer.writeToWorkbook(templateDefinition)
     workbook.filename = filename
     val outStream = ByteArrayOutputStream()
@@ -350,8 +348,8 @@ class MerlinPagesRest :
           responseAction = ResponseAction(
             RestResolver.getRestUrl(
               instance.javaClass,
-              "exportExcelTemplate/$id"
-            ), targetType = TargetType.DOWNLOAD
+              "exportExcelTemplate"
+            ), targetType = TargetType.POST_AND_DOWNLOAD
           )
         )
       )
