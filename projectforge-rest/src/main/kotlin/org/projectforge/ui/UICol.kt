@@ -27,36 +27,49 @@ package org.projectforge.ui
  * Twelve column grid system.
  */
 open class UICol(
-        /**
-         * Length in grid system
-         */
-        val length: UILength? = null,
-        /**
-         * Offset in grid system
-         */
-        val offset: UILength? = null,
-        val content: MutableList<UIElement> = mutableListOf(),
-        type: UIElementType = UIElementType.COL)
-    : UIElement(type) {
+  /**
+   * Length in grid system
+   */
+  var length: UILength? = null,
+  /**
+   * Offset in grid system
+   */
+  val offset: UILength? = null,
+  val content: MutableList<UIElement> = mutableListOf(),
+  type: UIElementType = UIElementType.COL,
+  /**
+   * Useless, if length is already given.
+   */
+  xs: Int? = null,
+  sm: Int? = null,
+  md: Int? = null,
+  lg: Int? = null,
+) : UIElement(type) {
 
-    constructor(xsLength: Int): this(length = UILength(xsLength))
+  constructor(xsLength: Int) : this(length = UILength(xsLength))
 
-    fun add(element: UIElement): UICol {
-        content.add(element)
-        return this
+  init {
+    if (length == null) {
+      length = UILength(xs = xs, sm = sm, md = md, lg = lg)
     }
+  }
 
-    /**
-     * Convenient method for adding a bunch of UIInput fields with the given ids.
-     * @param createRowCol If true (default), the elements will be surrounded with [UIRow] and [UICol] each, otherwise not.
-     */
-    fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UICol {
-        ids.forEach {
-            val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
-            if (element != null) {
-                add(LayoutUtils.prepareElementToAdd(element, createRowCol))
-            }
-        }
-        return this
+  fun add(element: UIElement): UICol {
+    content.add(element)
+    return this
+  }
+
+  /**
+   * Convenient method for adding a bunch of UIInput fields with the given ids.
+   * @param createRowCol If true (default), the elements will be surrounded with [UIRow] and [UICol] each, otherwise not.
+   */
+  fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UICol {
+    ids.forEach {
+      val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
+      if (element != null) {
+        add(LayoutUtils.prepareElementToAdd(element, createRowCol))
+      }
     }
+    return this
+  }
 }
