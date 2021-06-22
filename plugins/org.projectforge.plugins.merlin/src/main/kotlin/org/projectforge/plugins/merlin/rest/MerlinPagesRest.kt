@@ -261,56 +261,64 @@ class MerlinPagesRest :
         tooltip = "plugins.merlin.accessGroups.info"
       )
       val layout = instance.createEditLayoutSuper(dto, userAccess ?: instance.getUserAccess(dbo!!))
+      val fieldset = UIFieldset(md = 12, lg = 12)
+        .add(lc, "name")
         .add(
-          UIFieldset(md = 12, lg = 12)
-            .add(lc, "name")
+          UIRow()
             .add(
-              UIRow()
-                .add(
-                  UICol(md = 6)
-                    .add(UIInput("fileNamePattern", lc))
-                )
-                .add(
-                  UICol(md = 6)
-                    .add(lc, "stronglyRestrictedFilenames")
-                )
+              UICol(md = 6)
+                .add(UIInput("fileNamePattern", lc))
             )
-            .add(lc, "description")
             .add(
-              UIRow()
-                .add(
-                  UICol(md = 6)
-                    .add(
-                      UIReadOnlyField(
-                        "wordTemplateFileName",
-                        label = "plugins.merlin.wordTemplateFile",
-                        tooltip = "plugins.merlin.wordTemplateFile.info"
-                      )
-                    )
-                    .add(
-                      UIReadOnlyField(
-                        "excelTemplateDefinitionFileName",
-                        label = "plugins.merlin.templateConfigurationFile",
-                        tooltip = "plugins.merlin.templateConfigurationFile.info"
-                      )
-                    )
-                )
-                .add(
-                  UICol(md = 6)
-                    .add(UILabel("plugins.merlin.variables.input", tooltip = "plugins.merlin.variables.input.info"))
-                    .add(inputVariables)
-                    .add(
-                      UILabel(
-                        "plugins.merlin.variables.dependant",
-                        tooltip = "plugins.merlin.variables.dependant.info"
-                      )
-                    )
-                    .add(dependentVariables)
-                )
+              UICol(md = 6)
+                .add(lc, "stronglyRestrictedFilenames")
             )
-            .add(UILabel("plugins.merlin.variables.conditionals"))
-            .add(UIAlert(message = "'${stats.conditionalsAsMarkdown()}", markdown = true))
         )
+        .add(lc, "description")
+        .add(
+          UIRow()
+            .add(
+              UICol(md = 6)
+                .add(
+                  UIReadOnlyField(
+                    "wordTemplateFileName",
+                    label = "plugins.merlin.wordTemplateFile",
+                    tooltip = "plugins.merlin.wordTemplateFile.info"
+                  )
+                )
+                .add(
+                  UIReadOnlyField(
+                    "excelTemplateDefinitionFileName",
+                    label = "plugins.merlin.templateConfigurationFile",
+                    tooltip = "plugins.merlin.templateConfigurationFile.info"
+                  )
+                )
+            )
+            .add(
+              UICol(md = 6)
+                .add(UILabel("plugins.merlin.variables.input", tooltip = "plugins.merlin.variables.input.info"))
+                .add(inputVariables)
+                .add(
+                  UILabel(
+                    "plugins.merlin.variables.dependant",
+                    tooltip = "plugins.merlin.variables.dependant.info"
+                  )
+                )
+                .add(dependentVariables)
+            )
+        )
+      if (!stats.conditionals.isNullOrEmpty()) {
+        fieldset
+          .add(
+            UIRow()
+              .add(
+                UICol(collapseTitle = translate("plugins.merlin.variables.conditionals"))
+                  .add(UIAlert(message = "'${stats.conditionalsAsMarkdown()}", markdown = true))
+              )
+          )
+      }
+
+      layout.add(fieldset)
         .add(
           UIFieldset(md = 12, lg = 12, title = "access.title.heading")
             .add(

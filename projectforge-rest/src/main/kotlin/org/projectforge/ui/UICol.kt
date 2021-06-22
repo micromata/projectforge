@@ -44,6 +44,7 @@ open class UICol(
   sm: Int? = null,
   md: Int? = null,
   lg: Int? = null,
+  var collapseTitle: String? = null,
 ) : UIElement(type) {
 
   constructor(xsLength: Int) : this(length = UILength(xsLength))
