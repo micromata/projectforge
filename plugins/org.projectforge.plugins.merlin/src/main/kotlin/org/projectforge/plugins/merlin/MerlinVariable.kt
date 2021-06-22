@@ -25,11 +25,13 @@ package org.projectforge.plugins.merlin
 
 import de.micromata.merlin.word.templating.DependentVariableDefinition
 import de.micromata.merlin.word.templating.VariableDefinition
+import org.projectforge.ui.UIColor
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class MerlinVariable(
+  val name: String,
   val definition: VariableDefinition? = null,
   val dependentVariableDefinition: DependentVariableDefinition? = null,
   var used: Boolean? = null,
@@ -37,4 +39,21 @@ class MerlinVariable(
 ) {
   val dependant: Boolean
     get() = dependentVariableDefinition != null
+  val input: Boolean
+    get() = definition != null || !dependant
+
+  val uiColor: UIColor?
+    get() {
+      return if (masterVariable == true) {
+        UIColor.DANGER
+      } else if (dependant) {
+        UIColor.SECONDARY
+      } else if (input) {
+        UIColor.SUCCESS
+      } else if (used == false) {
+        UIColor.LIGHT
+      } else {
+        null
+      }
+    }
 }

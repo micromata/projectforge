@@ -32,6 +32,8 @@ enum class UIColor {
     DARK,
     @JsonProperty("info")
     INFO,
+    @JsonProperty("light")
+    LIGHT,
     @JsonProperty("link")
     LINK,
     @JsonProperty("primary")

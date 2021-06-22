@@ -29,13 +29,14 @@ import org.projectforge.framework.ToStringUtil
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class MerlinStatistics(statistics: TemplateStatistics) {
+class MerlinStatistics(statistics: TemplateStatistics? = null) {
   val variables = mutableListOf<MerlinVariable>()
 
   init {
-    statistics.inputVariables?.forEach { variableDefinition ->
+    statistics?.inputVariables?.forEach { variableDefinition ->
       val name = variableDefinition.name
       val variable = MerlinVariable(
+        name,
         variableDefinition,
         used = statistics.usedVariables?.contains(name) == true,
         masterVariable = statistics.masterVariables?.contains(name) == true

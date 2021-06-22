@@ -46,7 +46,6 @@ private val log = KotlinLogging.logger {}
 class MerlinAttachmentsActionListener(
   attachmentsService: AttachmentsService,
   private val baseDao: MerlinTemplateDao,
-  private val merlinRunner: MerlinRunner,
 ) :
   AttachmentsActionListener(attachmentsService, allowDuplicateFiles = true) {
 
@@ -91,20 +90,6 @@ class MerlinAttachmentsActionListener(
           accessChecker = attachmentsAccessChecker,
           updateLastUpdateInfo = false,
         )
-      }
-    }
-    attachmentsService.getAttachmentInputStream(
-      jcrPath,
-      obj.id,
-      attachment.fileId!!,
-      accessChecker = attachmentsAccessChecker,
-      listId
-    )?.let {
-      val istream = it.second
-      val fileObject = it.first
-      istream.use {
-        val stats = merlinRunner.analyzeWordDocument(istream, fileObject.fileName ?: "untitled.docx")
-        log.info("Statistics: $stats")
       }
     }
     return ResponseEntity.ok()

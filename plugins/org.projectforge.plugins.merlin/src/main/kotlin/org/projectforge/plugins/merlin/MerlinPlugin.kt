@@ -57,9 +57,6 @@ class MerlinPlugin :
   @Autowired
   private lateinit var menuCreator: MenuCreator
 
-  @Autowired
-  private lateinit var merlinRunner: MerlinRunner
-
   override fun initialize() {
     // Register it:
     register(MerlinTemplateDao::class.java, merlinTemplateDao, "plugins.merlin")
@@ -74,7 +71,7 @@ class MerlinPlugin :
 
     attachmentsServicesRest.register(
       ID,
-      MerlinAttachmentsActionListener(attachmentsService, merlinTemplateDao, merlinRunner)
+      MerlinAttachmentsActionListener(attachmentsService, merlinTemplateDao)
     )
   }
 
