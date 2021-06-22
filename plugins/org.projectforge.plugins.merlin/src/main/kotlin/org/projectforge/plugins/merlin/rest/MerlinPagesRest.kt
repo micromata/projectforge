@@ -159,7 +159,6 @@ class MerlinPagesRest :
     templateDefinition.description = dbo.description
     val workbook = writer.writeToWorkbook(templateDefinition)
     workbook.filename = filename
-    workbook.removeSheetAt(2) // Remove configuration sheet
     val outStream = ByteArrayOutputStream()
     outStream.use {
       workbook.write(it)
