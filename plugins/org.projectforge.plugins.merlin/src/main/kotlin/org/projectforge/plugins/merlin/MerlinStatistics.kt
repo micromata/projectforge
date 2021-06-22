@@ -23,37 +23,28 @@
 
 package org.projectforge.plugins.merlin
 
-import de.micromata.merlin.word.WordDocument
-import de.micromata.merlin.word.templating.Template
-import de.micromata.merlin.word.templating.TemplateDefinition
-import de.micromata.merlin.word.templating.WordTemplateChecker
-import org.projectforge.framework.jcr.AttachmentsService
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
-import java.io.InputStream
+import de.micromata.merlin.word.templating.TemplateStatistics
+import org.projectforge.framework.ToStringUtil
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Service
-open class MerlinRunner {
-  @Autowired
-  private lateinit var merlinTemplateDao: MerlinTemplateDao
+class MerlinStatistics(statistics: TemplateStatistics) {
+  val variables = mutableListOf<MerlinVariable>()
 
-  @Autowired
-  private lateinit var attachmentsService: AttachmentsService
-
-  fun analyzeWordDocument(istream: InputStream, filename: String): MerlinStatistics {
-    val doc = WordDocument(istream, filename)
-    val templateChecker = WordTemplateChecker(doc)
-    val statistics = templateChecker.template.statistics
-    return MerlinStatistics(statistics)
+  init {
+    statistics.inputVariables?.forEach { variableDefinition ->
+      val name = variableDefinition.name
+      val variable = MerlinVariable(
+        variableDefinition,
+        used = statistics.usedVariables?.contains(name) == true,
+        masterVariable = statistics.masterVariables?.contains(name) == true
+      )
+      variables.add(variable)
+    }
   }
 
-  /**
-   * @param id Id of MerlinTemplateDO
-   */
-  fun analyzeTemplate(id: Int) {
-
+  override fun toString(): String {
+    return ToStringUtil.toJsonString(this)
   }
 }

@@ -23,31 +23,38 @@
 
 package org.projectforge.plugins.merlin.rest
 
-import de.micromata.merlin.utils.ReplaceUtils
+import mu.KotlinLogging
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.time.PFDay
 import org.projectforge.jcr.FileInfo
+import org.projectforge.plugins.merlin.MerlinRunner
+import org.projectforge.plugins.merlin.MerlinTemplateDO
 import org.projectforge.plugins.merlin.MerlinTemplateDao
 import org.projectforge.rest.AttachmentsActionListener
 import org.projectforge.rest.AttachmentsServicesRest
-import org.projectforge.ui.UIColor
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UIToast
+import org.projectforge.ui.*
 import org.springframework.http.ResponseEntity
 
-class MerlinAttachmentsActionListener(val attachmentsService: AttachmentsService, val baseDao: MerlinTemplateDao) :
-  AttachmentsActionListener(allowDuplicateFiles = true) {
+private val log = KotlinLogging.logger {}
+
+/**
+ * Listener on template changes.
+ */
+class MerlinAttachmentsActionListener(
+  attachmentsService: AttachmentsService,
+  private val baseDao: MerlinTemplateDao,
+  private val merlinRunner: MerlinRunner,
+) :
+  AttachmentsActionListener(attachmentsService, allowDuplicateFiles = true) {
 
   /**
    * Allows only upload of Word and Excel documents.
    */
   override fun onUpload(fileInfo: FileInfo, obj: ExtendedBaseDO<Int>): ResponseEntity<*>? {
-    return if (fileInfo.fileExtension != "docx") {
+    return if (fileInfo.fileExtension != "docx" && fileInfo.fileExtension != "xlsx") {
       ResponseEntity.ok().body(
         UIToast.createToast(
           translateMsg("plugins.merlin.upload.unsupportedUploadFormat", fileInfo.fileName),
@@ -62,17 +69,50 @@ class MerlinAttachmentsActionListener(val attachmentsService: AttachmentsService
   /**
    * Renames all existing docx files to backup files.
    */
-  override fun afterUpload(attachment: Attachment, obj: ExtendedBaseDO<Int>, jcrPath: String, attachmentsAccessChecker: AttachmentsAccessChecker, listId: String?) {
+  override fun afterUpload(
+    attachment: Attachment,
+    obj: ExtendedBaseDO<Int>,
+    jcrPath: String,
+    attachmentsAccessChecker: AttachmentsAccessChecker,
+    listId: String?
+  ): ResponseEntity<*> {
     val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId)
-    val date = ReplaceUtils.encodeFilename(PFDateTime.now().isoString, reducedCharsOnly = true)
     list?.forEach { element ->
-      if (element.fileExtension == "docx" && element.fileId != attachment.fileId) {
+      if (element.fileExtension != "backup" && element.fileId != attachment.fileId) {
         // docx and not the current uploaded file. So rename all other docx elements as backup-files.
-        val newFileName = "${element.name}-$date.bak"
-        attachmentsService.changeFileInfo(jcrPath, element.fileId!!, baseDao = baseDao, obj, newFileName = newFileName, newDescription = null, accessChecker = attachmentsAccessChecker)
+        val newFileName = "${element.name}.backup"
+        attachmentsService.changeFileInfo(
+          jcrPath,
+          element.fileId!!,
+          baseDao = baseDao,
+          obj,
+          newFileName = newFileName,
+          newDescription = null,
+          accessChecker = attachmentsAccessChecker,
+          updateLastUpdateInfo = false,
+        )
       }
     }
-    attachmentsService.getAttachmentInputStream(jcrPath, obj.id, attachment.fileId!!, accessChecker = attachmentsAccessChecker, listId)
+    attachmentsService.getAttachmentInputStream(
+      jcrPath,
+      obj.id,
+      attachment.fileId!!,
+      accessChecker = attachmentsAccessChecker,
+      listId
+    )?.let {
+      val istream = it.second
+      val fileObject = it.first
+      istream.use {
+        val stats = merlinRunner.analyzeWordDocument(istream, fileObject.fileName ?: "untitled.docx")
+        log.info("Statistics: $stats")
+      }
+    }
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.UPDATE, merge = true)
+          .addVariable("data", AttachmentsServicesRest.ResponseData(list))
+          .addVariable("ui", MerlinPagesRest.createEditLayout(obj as MerlinTemplateDO))
+      )
   }
 
   override fun createAttachmentLayout(

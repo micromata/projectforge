@@ -25,15 +25,21 @@ package org.projectforge.rest
 
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.jcr.FileInfo
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
 import org.projectforge.ui.UILayout
 import org.springframework.http.ResponseEntity
 
 /**
  * Listener to register. Will be called on actions by attachment service ([AttachmentsServicesRest]).
  */
-open class AttachmentsActionListener(val allowDuplicateFiles: Boolean = false) {
+open class AttachmentsActionListener(
+  val attachmentsService: AttachmentsService,
+  val allowDuplicateFiles: Boolean = false
+) {
   /**
    * Will be called on upload. If ResponseEntity is returned, further processing of this upload will be prevented.
    * Useful e. g. to allow only special file extensions etc.
@@ -45,7 +51,19 @@ open class AttachmentsActionListener(val allowDuplicateFiles: Boolean = false) {
   /**
    * Will be called after upload.
    */
-  open fun afterUpload(attachment: Attachment, obj: ExtendedBaseDO<Int>, jcrPath: String, attachmentsAccessChecker: AttachmentsAccessChecker, listId: String?) {
+  open fun afterUpload(
+    attachment: Attachment,
+    obj: ExtendedBaseDO<Int>,
+    jcrPath: String,
+    attachmentsAccessChecker: AttachmentsAccessChecker,
+    listId: String?
+  ): ResponseEntity<*> {
+    val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId)
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.UPDATE, merge = true)
+          .addVariable("data", AttachmentsServicesRest.ResponseData(list))
+      )
   }
 
   /**

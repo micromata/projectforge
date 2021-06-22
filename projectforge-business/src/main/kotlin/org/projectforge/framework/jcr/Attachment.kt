@@ -51,6 +51,12 @@ class Attachment() {
   var name: String? = null
 
   /**
+   * Filename without extension (before last '.')
+   */
+  val nameWithoutExtension: String
+    get() = name?.substringBeforeLast('.', "") ?: ""
+
+  /**
    * extension after last '.' (zip, pdf etc.)
    */
   val fileExtension: String

@@ -40,7 +40,11 @@ import org.springframework.beans.factory.annotation.Autowired
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class MerlinPlugin :
-  AbstractPlugin(ID, "Merlin-Word®-Templates", "Plugin for Microsoft Word® templating (with variables, dependant variables as well as serial execution). Useful for contracts, serial documents etc.") {
+  AbstractPlugin(
+    ID,
+    "Merlin-Word®-Templates",
+    "Plugin for Microsoft Word® templating (with variables, dependant variables as well as serial execution). Useful for contracts, serial documents etc."
+  ) {
   @Autowired
   private lateinit var merlinTemplateDao: MerlinTemplateDao
 
@@ -52,6 +56,9 @@ class MerlinPlugin :
 
   @Autowired
   private lateinit var menuCreator: MenuCreator
+
+  @Autowired
+  private lateinit var merlinRunner: MerlinRunner
 
   override fun initialize() {
     // Register it:
@@ -65,7 +72,10 @@ class MerlinPlugin :
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME)
 
-    attachmentsServicesRest.register(ID, MerlinAttachmentsActionListener(attachmentsService, merlinTemplateDao))
+    attachmentsServicesRest.register(
+      ID,
+      MerlinAttachmentsActionListener(attachmentsService, merlinTemplateDao, merlinRunner)
+    )
   }
 
   companion object {
