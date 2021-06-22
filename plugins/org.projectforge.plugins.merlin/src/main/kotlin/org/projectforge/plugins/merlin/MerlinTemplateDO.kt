@@ -30,10 +30,9 @@ import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.api.Constants
+import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Table
+import javax.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -41,7 +40,9 @@ import javax.persistence.Table
 @Entity
 @Indexed
 @Table(name = "t_plugin_merlin_template")
-open class MerlinTemplateDO : DefaultBaseDO(), AttachmentsInfo {
+open class MerlinTemplateDO : AbstractBaseDO<Int>(), AttachmentsInfo {
+  @PropertyInfo(i18nKey = "id")
+  private var id: Int? = null
 
   @PropertyInfo(i18nKey = "plugins.merlin.name")
   @get:Column(length = 100, nullable = false)
@@ -121,4 +122,15 @@ open class MerlinTemplateDO : DefaultBaseDO(), AttachmentsInfo {
   @JsonIgnore
   @get:Column(length = 10000, name = "attachments_last_user_action")
   override var attachmentsLastUserAction: String? = null
+
+  @Id
+  @GeneratedValue
+  @Column(name = "pk")
+  override fun getId(): Int? {
+    return id
+  }
+
+  override fun setId(id: Int?) {
+    this.id = id
+  }
 }
