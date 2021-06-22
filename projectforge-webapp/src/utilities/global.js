@@ -98,3 +98,8 @@ Array.findByField = (array, field, value) => array.reduce((accumulator, currentV
 
 // Replace all selector characters to prevent that they appear in an id.
 String.idify = (string) => string.replace(/[.#*, >+~/[\]=|^$:()]/g, '-');
+
+Object.getResponseHeaderFilename = (contentDisposition) => {
+    const matches = /filename[^;=\n]*=(UTF-8(['"]*))?(.*)/.exec(contentDisposition);
+    return matches && matches.length >= 3 && matches[3] ? decodeURI(matches[3].replace(/['"]/g, '')) : 'download';
+};

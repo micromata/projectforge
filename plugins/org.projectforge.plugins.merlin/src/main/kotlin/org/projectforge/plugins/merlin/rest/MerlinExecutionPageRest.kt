@@ -28,18 +28,23 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
-import org.projectforge.plugins.merlin.*
+import org.projectforge.model.rest.RestPaths
+import org.projectforge.plugins.merlin.MerlinRunner
+import org.projectforge.plugins.merlin.MerlinTemplateDO
+import org.projectforge.plugins.merlin.MerlinTemplateDao
+import org.projectforge.plugins.merlin.MerlinVariable
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import javax.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/merlinexecution")
@@ -53,6 +58,13 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
 
   @Autowired
   private lateinit var merlinPagesRest: MerlinPagesRest
+
+  /**
+   * Will be called, if the user wants to change his/her observeStatus.
+   */
+  /*@PostMapping("execute")
+  fun execute(@Valid @RequestBody postData: PostData<Map<String, Any?>>): ResponseEntity<ResponseAction> {
+  }*/
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
@@ -76,10 +88,14 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     }
     val layout = UILayout("plugins.merlin.templateExecutor.heading")
       .add(UIReadOnlyField("todo", label = "validation of min/max value"))
-      .add(UIFieldset(title = "plugins.merlin.variables.input")
-        .add(UIRow()
-          .add(col1)
-          .add(col2)))
+      .add(
+        UIFieldset(title = "plugins.merlin.variables.input")
+          .add(
+            UIRow()
+              .add(col1)
+              .add(col2)
+          )
+      )
     layout.add(
       UIButton(
         "back",
@@ -91,9 +107,22 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
             absolute = true
           ), targetType = TargetType.REDIRECT
         ),
+      )
+    ).add(
+      UIButton(
+        "execute",
+        translate("plugins.merlin.templateExecutor.execute"),
+        UIColor.SUCCESS,
+        responseAction = ResponseAction(
+          RestResolver.getRestUrl(
+            this::class.java,
+            subPath = "execute"
+          ), targetType = TargetType.POST
+        ),
         default = true
       )
     )
+
     if (hasEditAccess(dbObj)) {
       layout.add(
         MenuItem(

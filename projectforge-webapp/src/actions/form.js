@@ -1,3 +1,4 @@
+import { fileDownload } from 'js-file-download';
 import history from '../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 import { loadUserStatus } from './authentication';
@@ -180,6 +181,34 @@ export const callAction = (
 
             window.open(url, '_blank');
             return Promise.resolve();
+        }
+        case 'POST_AND_DOWNLOAD': {
+            const { data, serverData } = state.categories[category];
+
+            let filename;
+            const body = JSON.stringify({
+                data,
+                serverData,
+            });
+
+            fetch(
+                getServiceURL(action.url),
+                {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body,
+                },
+            )
+                .then((response) => {
+                    filename = Object.getResponseHeaderFilename(response.headers.get('Content-Disposition'));
+                    return response.blob();
+                })
+                .then((blob) => {
+                    fileDownload(blob, filename);
+                })
+                .catch((error) => dispatch(callFailure(category, error)));
+            break;
         }
         case 'NOTHING':
         case 'TOAST':
