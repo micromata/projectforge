@@ -15,9 +15,6 @@ CREATE TABLE t_plugin_merlin_template
     filename_pattern              CHARACTER VARYING(1000) NOT NULL,
     strongly_restricted_filenames BOOLEAN,
 
-    variables                     CHARACTER VARYING(100000),
-    dependent_variables           CHARACTER VARYING(100000),
-
     attachments_names             CHARACTER VARYING(10000),
     attachments_ids               CHARACTER VARYING(10000),
     attachments_counter           SMALLINT,

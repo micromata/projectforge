@@ -82,16 +82,19 @@ open class MerlinTemplateDO : DefaultBaseDO(), AttachmentsInfo {
    * Master variables of TemplateDefinition ([de.micromata.merlin.word.templating.TemplateDefinition.variableDefinitions])
    * serialized as json array.
    */
-  @get:Column(name = "variables", length = 100000, nullable = true)
-  open var variables: String? = null
+  //@get:Column(name = "variables", length = 100000, nullable = true)
+  //open var variables: String? = null
 
   /**
    * Dependant variables of TemplateDefinition ([de.micromata.merlin.word.templating.TemplateDefinition.dependentVariableDefinitions])
    * serialized as json array.
    */
-  @get:Column(name = "dependent_variables", length = 100000, nullable = true)
-  open var dependentVariables: String? = null
+  //@get:Column(name = "dependent_variables", length = 100000, nullable = true)
+  //open var dependentVariables: String? = null
 
+  /**
+   * Names of attachments for displaying purposes only.
+   */
   @JsonIgnore
   @Field
   @field:NoHistory

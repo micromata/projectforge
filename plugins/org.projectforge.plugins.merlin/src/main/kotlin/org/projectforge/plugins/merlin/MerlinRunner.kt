@@ -23,14 +23,21 @@
 
 package org.projectforge.plugins.merlin
 
+import de.micromata.merlin.excel.ExcelWorkbook
 import de.micromata.merlin.word.WordDocument
-import de.micromata.merlin.word.templating.Template
 import de.micromata.merlin.word.templating.TemplateDefinition
+import de.micromata.merlin.word.templating.TemplateDefinitionExcelReader
+import de.micromata.merlin.word.templating.TemplateRunContext
 import de.micromata.merlin.word.templating.WordTemplateChecker
+import mu.KotlinLogging
+import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.InputStream
+
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -38,22 +45,85 @@ import java.io.InputStream
 @Service
 open class MerlinRunner {
   @Autowired
-  private lateinit var merlinTemplateDao: MerlinTemplateDao
-
-  @Autowired
   private lateinit var attachmentsService: AttachmentsService
 
-  fun analyzeWordDocument(istream: InputStream, filename: String): MerlinStatistics {
+  internal lateinit var attachmentsAccessChecker: AttachmentsAccessChecker // Set by MerlinPagesRest
+
+  internal lateinit var jcrPath: String // Set by MerlinPagesRest
+
+  fun analyzeTemplate(
+    istream: InputStream,
+    filename: String,
+    templateDefinition: TemplateDefinition? = null,
+    merlinStatistics: MerlinStatistics,
+  ) {
     val doc = WordDocument(istream, filename)
     val templateChecker = WordTemplateChecker(doc)
+    templateDefinition?.let {
+      templateChecker.assignTemplateDefinition(it)
+    }
     val statistics = templateChecker.template.statistics
-    return MerlinStatistics(statistics)
+    merlinStatistics.template = templateChecker.template
+    merlinStatistics.update(statistics, templateDefinition)
   }
 
   /**
-   * @param id Id of MerlinTemplateDO
+   * @param id Id of the MerlinTemplateDO
    */
-  fun analyzeTemplate(id: Int) {
+  fun getStatistics(id: Int): MerlinStatistics {
+    val list =
+      attachmentsService.getAttachments(jcrPath, id, attachmentsAccessChecker)?.sortedByDescending { it.created }
+        ?: return MerlinStatistics()
+    val wordAttachment = list.find { it.fileExtension == "docx" }
+    val excelAttachment = list.find { it.fileExtension == "xlsx" }
 
+    var templateDefinition: TemplateDefinition? = null
+    val stats = MerlinStatistics()
+    excelAttachment?.let {
+      attachmentsService.getAttachmentInputStream(
+        jcrPath,
+        id,
+        it.fileId!!,
+        accessChecker = attachmentsAccessChecker,
+      )?.let {
+        val istream = it.second
+        val fileObject = it.first
+        stats.excelTemplateDefinitionFilename = fileObject.fileName
+        istream.use {
+          val reader = TemplateDefinitionExcelReader()
+          val workBook = ExcelWorkbook(istream, fileObject.fileName ?: "undefined", ThreadLocalUserContext.getLocale())
+          val def = reader.readFromWorkbook(workBook, false)
+          // log.info("Template definition: ${ToStringUtil.toJsonString(def)}")
+          templateDefinition = def
+        }
+      }
+    }
+    wordAttachment?.let { word ->
+      attachmentsService.getAttachmentInputStream(
+        jcrPath,
+        id,
+        word.fileId!!,
+        accessChecker = attachmentsAccessChecker,
+      )?.let {
+        val istream = it.second
+        val fileObject = it.first
+        istream.use {
+          analyzeTemplate(istream, fileObject.fileName ?: "untitled.docx", templateDefinition, stats)
+          stats.excelTemplateDefinitionFilename = excelAttachment?.name
+          word.name?.let {
+            stats.wordTemplateFilename = word.name
+          }
+          // log.info("Statistics: $stats")
+        }
+      }
+    }
+    return stats
+  }
+
+  companion object {
+    fun initTemplateRunContext(templateRunContext: TemplateRunContext) {
+      val contextUser = ThreadLocalUserContext.getUser()
+      templateRunContext.setLocale(contextUser.excelDateFormat, contextUser.locale)
+    }
   }
 }

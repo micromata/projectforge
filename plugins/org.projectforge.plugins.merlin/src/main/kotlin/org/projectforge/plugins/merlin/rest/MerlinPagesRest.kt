@@ -23,19 +23,30 @@
 
 package org.projectforge.plugins.merlin.rest
 
+import de.micromata.merlin.persistency.FileDescriptor
+import de.micromata.merlin.word.templating.TemplateDefinition
+import de.micromata.merlin.word.templating.TemplateDefinitionExcelWriter
 import mu.KotlinLogging
+import org.apache.commons.io.FilenameUtils
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.merlin.*
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.io.ByteArrayOutputStream
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
@@ -61,6 +72,8 @@ class MerlinPagesRest :
   private fun postConstruct() {
     enableJcr()
     instance = this
+    merlinRunner.attachmentsAccessChecker = attachmentsAccessChecker
+    merlinRunner.jcrPath = jcrPath!!
   }
 
   /**
@@ -93,6 +106,13 @@ class MerlinPagesRest :
     dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
     dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
     dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
+
+    obj.id?.let { id ->
+      val list =
+        attachmentsService.getAttachments(jcrPath!!, id, attachmentsAccessChecker)?.sortedByDescending { it.created }
+      dto.wordTemplateFileName = list?.find { it.fileExtension == "docx" }?.name
+      dto.excelTemplateDefinitionFileName = list?.find { it.fileExtension == "xlsx" }?.name
+    }
     return dto
   }
 
@@ -115,22 +135,44 @@ class MerlinPagesRest :
           markdown = true
         )
       )
-    /*layout.add(
-      MenuItem(
-        "HIGHLIGHT",
-        i18nKey = "plugins.merlin.personalBox",
-        tooltip = "plugins.merlin.personalBox.info",
-        url = PagesResolver.getDynamicPageUrl(merlinPersonalBoxPageRest::class.java)
-      )
-    )*/
     return LayoutUtils.processListPage(layout, this)
   }
+
+  @GetMapping("exportExcelTemplate/{id}")
+  fun exportExcelTemplate(@PathVariable("id") id: Int): ResponseEntity<*> {
+    val stats = merlinRunner.getStatistics(id)
+    val writer = TemplateDefinitionExcelWriter()
+    var filename = stats.excelTemplateDefinitionFilename
+    if (filename == null) {
+      filename = "${FilenameUtils.getBaseName(stats.wordTemplateFilename ?: "untitled")}.xlsx"
+    }
+    MerlinRunner.initTemplateRunContext(writer.templateRunContext)
+    stats.template?.let {template ->
+      template.fileDescriptor = FileDescriptor()
+      template.fileDescriptor.filename = filename
+    }
+    val templateDefinition = stats.templateDefinition ?: stats.template?.createAutoTemplateDefinition() ?: TemplateDefinition()
+    val dbo = baseDao.getById(id)
+    templateDefinition.filenamePattern = dbo.fileNamePattern
+    templateDefinition.id = "${dbo.id}"
+    templateDefinition.isStronglyRestrictedFilenames = dbo.stronglyRestrictedFilenames == true
+    templateDefinition.description = dbo.description
+    val workbook = writer.writeToWorkbook(templateDefinition)
+    workbook.filename = filename
+    workbook.removeSheetAt(2) // Remove configuration sheet
+    val outStream = ByteArrayOutputStream()
+    outStream.use {
+      workbook.write(it)
+    }
+    return RestUtils.downloadFile(workbook.filename!!, outStream.toByteArray())
+  }
+
 
   /**
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: MerlinTemplate, userAccess: UILayout.UserAccess): UILayout {
-    return createEditLayout(null, dto, userAccess)
+    return updateLayoutAndData(null, dto, userAccess).first
   }
 
   private fun getUserAccess(dbo: MerlinTemplateDO): UILayout.UserAccess {
@@ -143,42 +185,24 @@ class MerlinPagesRest :
     return super.createEditLayout(dto, userAccess)
   }
 
-  /**
-   * @param id Id of the MerlinTemplateDO
-   */
-  private fun getStatistics(id: Int): MerlinStatistics {
-    val list =
-      attachmentsService.getAttachments(jcrPath!!, id, attachmentsAccessChecker)?.sortedByDescending { it.created }
-        ?: return MerlinStatistics()
-    val wordTemplate = list.find { it.fileExtension == "docx" } ?: return MerlinStatistics()
-
-    attachmentsService.getAttachmentInputStream(
-      jcrPath!!,
-      id,
-      wordTemplate.fileId!!,
-      accessChecker = attachmentsAccessChecker,
-    )?.let {
-      val istream = it.second
-      val fileObject = it.first
-      istream.use {
-        val stats = merlinRunner.analyzeWordDocument(istream, fileObject.fileName ?: "untitled.docx")
-        log.info("Statistics: $stats")
-        return stats
-      }
-    }
-    return MerlinStatistics()
-  }
-
   companion object {
     private lateinit var instance: MerlinPagesRest
 
-    internal fun createEditLayout(
+    private val merlinRunner: MerlinRunner
+      get() = instance.merlinRunner
+
+    internal fun updateLayoutAndData(
       dbo: MerlinTemplateDO? = null,
       dto: MerlinTemplate = instance.transformFromDB(dbo!!),
       userAccess: UILayout.UserAccess? = null
-    ): UILayout {
+    ): Pair<UILayout, MerlinTemplate> {
       check(dbo != null || userAccess != null) { "dbo or userAcess must be given." }
-      val stats = instance.getStatistics(dbo?.id ?: dto.id!!)
+      val id = dbo?.id ?: dto.id
+      val stats = if (id != null) {
+        merlinRunner.getStatistics(id)
+      } else {
+        MerlinStatistics()
+      }
       val inputVariables = UIBadgeList()
       stats.variables.sortedBy { it.name.toLowerCase() }.forEach {
         if (it.input) {
@@ -187,7 +211,9 @@ class MerlinPagesRest :
       }
       val dependentVariables = UIBadgeList()
       stats.variables.sortedBy { it.name.toLowerCase() }.forEach {
-        inputVariables.add(UIBadge(it.name, it.uiColor))
+        if (it.dependant) {
+          dependentVariables.add(UIBadge(it.name, it.uiColor))
+        }
       }
       val lc = LayoutContext(MerlinTemplateDO::class.java)
       val adminsSelect = UISelect.createUserSelect(
@@ -213,37 +239,67 @@ class MerlinPagesRest :
       )
       val layout = instance.createEditLayoutSuper(dto, userAccess ?: instance.getUserAccess(dbo!!))
         .add(
-          UIFieldset(UILength(md = 12, lg = 12))
+          UIFieldset(md = 12, lg = 12)
             .add(lc, "name")
             .add(
               UIRow()
                 .add(
-                  UICol()
+                  UICol(md = 6)
                     .add(UIInput("fileNamePattern", lc))
                 )
                 .add(
-                  UICol()
+                  UICol(md = 6)
                     .add(lc, "stronglyRestrictedFilenames")
                 )
             )
             .add(lc, "description")
-            .add(UILabel("plugins.merlin.variables.input", tooltip = "plugins.merlin.variables.input.info"))
-            .add(inputVariables)
-        )
-        .add(
-          UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
             .add(
               UIRow()
                 .add(
-                  UICol(UILength(md = 4))
+                  UICol(md = 6)
+                    .add(
+                      UIReadOnlyField(
+                        "wordTemplateFileName",
+                        label = "plugins.merlin.wordTemplateFile",
+                        tooltip = "plugins.merlin.wordTemplateFile.info"
+                      )
+                    )
+                    .add(
+                      UIReadOnlyField(
+                        "excelTemplateDefinitionFileName",
+                        label = "plugins.merlin.templateConfigurationFile",
+                        tooltip = "plugins.merlin.templateConfigurationFile.info"
+                      )
+                    )
+                )
+                .add(
+                  UICol(md = 6)
+                    .add(UILabel("plugins.merlin.variables.input", tooltip = "plugins.merlin.variables.input.info"))
+                    .add(inputVariables)
+                    .add(
+                      UILabel(
+                        "plugins.merlin.variables.dependant",
+                        tooltip = "plugins.merlin.variables.dependant.info"
+                      )
+                    )
+                    .add(dependentVariables)
+                )
+            )
+        )
+        .add(
+          UIFieldset(md = 12, lg = 12, title = "access.title.heading")
+            .add(
+              UIRow()
+                .add(
+                  UICol(md = 4)
                     .add(adminsSelect)
                 )
                 .add(
-                  UICol(UILength(md = 4))
+                  UICol(md = 4)
                     .add(accessUsers)
                 )
                 .add(
-                  UICol(UILength(md = 4))
+                  UICol(md = 4)
                     .add(accessGroups)
                 )
             )
@@ -252,7 +308,24 @@ class MerlinPagesRest :
           UIFieldset(title = "attachment.list")
             .add(UIAttachmentList(instance.category, dto.id))
         )
-      return LayoutUtils.processEditPage(layout, dto, instance)
+      layout.add(
+        UIButton(
+          "exportExcelTemplate",
+          title = translate("plugins.merlin.exportExcelTemplate"),
+          tooltip = "plugins.merlin.exportExcelTemplate.info",
+          color = UIColor.LINK,
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(
+              instance.javaClass,
+              "exportExcelTemplate/$id"
+            ), targetType = TargetType.DOWNLOAD
+          )
+        )
+      )
+
+      dto.wordTemplateFileName = stats.wordTemplateFilename
+      dto.excelTemplateDefinitionFileName = stats.excelTemplateDefinitionFilename
+      return Pair(LayoutUtils.processEditPage(layout, dto, instance), dto)
     }
   }
 }
