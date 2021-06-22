@@ -60,13 +60,26 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     val stats = merlinRunner.getStatistics(id)
     val dbObj = merlinTemplateDao.getById(id)
     val dto = merlinPagesRest.transformFromDB(dbObj)
-    val variablesFieldset = UIFieldset(title = "variables")
-    stats.variables.filter { it.input }.sortedBy { it.number ?: Integer.MAX_VALUE }.forEach {
-      variablesFieldset.add(createInputElement(it))
+    val col1 = UICol(md = 6)
+    val col2 = UICol(md = 6)
+    val inputVariables = stats.variables.filter { it.input }
+    val size = inputVariables.size
+    var counter = 0
+    // Place input variables in two columns
+    inputVariables.forEach {
+      if (counter < size) {
+        col1.add(createInputElement(it))
+      } else {
+        col2.add(createInputElement(it))
+      }
+      counter += 2
     }
     val layout = UILayout("plugins.merlin.templateExecutor.heading")
       .add(UIReadOnlyField("todo", label = "validation of min/max value"))
-      .add(variablesFieldset)
+      .add(UIFieldset(title = "plugins.merlin.variables.input")
+        .add(UIRow()
+          .add(col1)
+          .add(col2)))
     layout.add(
       UIButton(
         "back",
@@ -81,7 +94,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         default = true
       )
     )
-    if (hasEditAccess(dto, dbObj)) {
+    if (hasEditAccess(dbObj)) {
       layout.add(
         MenuItem(
           "EDIT",
@@ -109,13 +122,13 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
       return UIInput(variable.name, label = "'${variable.name}", dataType = dataType, required = definition.isRequired)
     }
     val values = allowedValuesList.map { UISelectValue(it, "$it") }
-    return UISelect("excelDateFormat", label = "'${variable.name}", required = definition.isRequired, values = values)
+    return UISelect(variable.name, label = "'${variable.name}", required = definition.isRequired, values = values)
   }
 
   /**
    * @return true, if the area isn't a personal box and the user has write access.
    */
-  private fun hasEditAccess(dto: MerlinTemplate, dbObj: MerlinTemplateDO): Boolean {
+  private fun hasEditAccess(dbObj: MerlinTemplateDO): Boolean {
     return merlinTemplateDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)
   }
 }

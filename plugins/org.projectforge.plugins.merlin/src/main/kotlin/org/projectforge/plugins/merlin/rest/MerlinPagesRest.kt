@@ -313,7 +313,7 @@ class MerlinPagesRest :
             UIRow()
               .add(
                 UICol(collapseTitle = translate("plugins.merlin.variables.conditionals"))
-                  .add(UIAlert(message = "'${stats.conditionalsAsMarkdown()}", markdown = true))
+                  .add(UIAlert(message = "'${stats.conditionalsAsMarkdown()}", markdown = true, color = UIColor.LIGHT))
               )
           )
       }

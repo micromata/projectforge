@@ -31,13 +31,27 @@ import de.micromata.merlin.word.AbstractConditional
  */
 class MerlinConditional(conditional: AbstractConditional) {
   var statement: String? = null
+  var variable: String? = null
   var childConditionals = mutableListOf<MerlinConditional>()
 
   init {
     statement = conditional.conditionalStatement
+    variable = conditional.variable
     conditional.childConditionals?.forEach { child ->
       childConditionals.add(MerlinConditional(child))
     }
+  }
+
+  fun usesVariable(name: String): Boolean {
+    if (name == variable) {
+      return true
+    }
+    childConditionals.forEach { child ->
+      if (child.usesVariable(name)) {
+        return true
+      }
+    }
+    return false
   }
 
   internal fun asMarkDown(sb: StringBuilder, indent: String) {

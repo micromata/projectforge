@@ -36,10 +36,6 @@ class MerlinVariable(
   val dependentVariableDefinition: DependentVariableDefinition? = null,
   var used: Boolean? = null,
   var masterVariable: Boolean? = null,
-  /**
-   * Number in Word template, if used. For getting the variables in order of their occurrence.
-   */
-  var number: Int? = null,
 ) {
   val dependant: Boolean
     get() = dependentVariableDefinition != null
