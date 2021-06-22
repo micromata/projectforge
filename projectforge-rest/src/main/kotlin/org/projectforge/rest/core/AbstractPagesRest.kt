@@ -175,7 +175,7 @@ constructor(
   private lateinit var applicationContext: ApplicationContext
 
   @Autowired
-  private lateinit var attachmentsService: AttachmentsService
+  protected lateinit var attachmentsService: AttachmentsService
 
   @Autowired
   private lateinit var historyService: HistoryService

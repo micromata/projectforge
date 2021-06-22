@@ -23,12 +23,11 @@
 
 package org.projectforge.plugins.merlin.rest
 
+import mu.KotlinLogging
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.plugins.merlin.MerlinTemplate
-import org.projectforge.plugins.merlin.MerlinTemplateDO
-import org.projectforge.plugins.merlin.MerlinTemplateDao
+import org.projectforge.plugins.merlin.*
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Group
@@ -40,6 +39,8 @@ import org.springframework.web.bind.annotation.RestController
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
+
 @RestController
 @RequestMapping("${Rest.URL}/merlin")
 class MerlinPagesRest :
@@ -49,6 +50,9 @@ class MerlinPagesRest :
   ) {
   @Autowired
   private lateinit var groupService: GroupService
+
+  @Autowired
+  private lateinit var merlinRunner: MerlinRunner
 
   @Autowired
   private lateinit var userService: UserService
@@ -139,6 +143,32 @@ class MerlinPagesRest :
     return super.createEditLayout(dto, userAccess)
   }
 
+  /**
+   * @param id Id of the MerlinTemplateDO
+   */
+  private fun getStatistics(id: Int): MerlinStatistics {
+    val list =
+      attachmentsService.getAttachments(jcrPath!!, id, attachmentsAccessChecker)?.sortedByDescending { it.created }
+        ?: return MerlinStatistics()
+    val wordTemplate = list.find { it.fileExtension == "docx" } ?: return MerlinStatistics()
+
+    attachmentsService.getAttachmentInputStream(
+      jcrPath!!,
+      id,
+      wordTemplate.fileId!!,
+      accessChecker = attachmentsAccessChecker,
+    )?.let {
+      val istream = it.second
+      val fileObject = it.first
+      istream.use {
+        val stats = merlinRunner.analyzeWordDocument(istream, fileObject.fileName ?: "untitled.docx")
+        log.info("Statistics: $stats")
+        return stats
+      }
+    }
+    return MerlinStatistics()
+  }
+
   companion object {
     private lateinit var instance: MerlinPagesRest
 
@@ -148,6 +178,17 @@ class MerlinPagesRest :
       userAccess: UILayout.UserAccess? = null
     ): UILayout {
       check(dbo != null || userAccess != null) { "dbo or userAcess must be given." }
+      val stats = instance.getStatistics(dbo?.id ?: dto.id!!)
+      val inputVariables = UIBadgeList()
+      stats.variables.sortedBy { it.name.toLowerCase() }.forEach {
+        if (it.input) {
+          inputVariables.add(UIBadge(it.name, it.uiColor))
+        }
+      }
+      val dependentVariables = UIBadgeList()
+      stats.variables.sortedBy { it.name.toLowerCase() }.forEach {
+        inputVariables.add(UIBadge(it.name, it.uiColor))
+      }
       val lc = LayoutContext(MerlinTemplateDO::class.java)
       val adminsSelect = UISelect.createUserSelect(
         lc,
@@ -186,6 +227,8 @@ class MerlinPagesRest :
                 )
             )
             .add(lc, "description")
+            .add(UILabel("plugins.merlin.variables.input", tooltip = "plugins.merlin.variables.input.info"))
+            .add(inputVariables)
         )
         .add(
           UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
@@ -208,12 +251,6 @@ class MerlinPagesRest :
         .add(
           UIFieldset(title = "attachment.list")
             .add(UIAttachmentList(instance.category, dto.id))
-        )
-        .add(
-          UIBadgeList().add(UIBadge("one", UIColor.DANGER), UIBadge("two"))
-        )
-        .add(
-          UIBadge("one", UIColor.SUCCESS)
         )
       return LayoutUtils.processEditPage(layout, dto, instance)
     }
