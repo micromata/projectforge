@@ -50,27 +50,25 @@ class MerlinStatistics {
   fun update(statistics: TemplateStatistics? = null, templateDefinition: TemplateDefinition? = null) {
     this.templateStatistics = statistics
     this.templateDefinition = templateDefinition
+    synchronized(conditionals) {
+      conditionals.clear()
+      statistics?.conditionals?.conditionalsSet?.forEach {
+        conditionals.add(MerlinConditional(it))
+      }
+    }
     synchronized(variables) {
       variables.clear()
-      var orderNumber = 0
       statistics?.inputVariables?.forEach { variableDefinition ->
         val name = variableDefinition.name
         val used = statistics.usedVariables?.contains(name) == true
+        val masterVariable = statistics.masterVariables?.contains(name) == true || conditionalsUsesVariable(name)
         val variable = MerlinVariable(
           name,
           variableDefinition,
           used = used,
-          masterVariable = statistics.masterVariables?.contains(name) == true,
-          number = if (used) {
-            orderNumber++
-          } else {
-            null
-          },
+          masterVariable = masterVariable,
         )
         variables.add(variable)
-      }
-      statistics?.conditionals?.conditionalsSet?.forEach {
-        conditionals.add(MerlinConditional(it))
       }
       templateDefinition?.dependentVariableDefinitions?.forEach { variableDefinition ->
         val name = variableDefinition.name
@@ -90,9 +88,18 @@ class MerlinStatistics {
 
   fun conditionalsAsMarkdown(): String {
     val sb = StringBuilder()
-    conditionals?.forEach {
+    conditionals.forEach {
       it.asMarkDown(sb, "")
     }
     return sb.toString()
+  }
+
+  fun conditionalsUsesVariable(name: String): Boolean {
+    conditionals.forEach {
+      if (it.usesVariable(name)) {
+        return true
+      }
+    }
+    return false
   }
 }
