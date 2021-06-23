@@ -329,6 +329,10 @@ class LayoutUtils {
               )
             }
           }
+          is UIDropArea -> {
+            it.title = getLabelTransformation(it.title, it as UIElement)
+            it.tooltip = getLabelTransformation(it.tooltip, it, LabelType.TOOLTIP)
+          }
         }
       }
       return elements
