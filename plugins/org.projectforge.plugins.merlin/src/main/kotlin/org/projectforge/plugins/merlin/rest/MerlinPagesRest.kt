@@ -137,7 +137,6 @@ class MerlinPagesRest :
       .add(
         UIAlert(
           """'# TODO
-* Serial execution
 * Listener of log files for scanning and executing Merlin stuff
 * Writing to inboxes
 * Demo templates for creating (menu entry in list view)""",

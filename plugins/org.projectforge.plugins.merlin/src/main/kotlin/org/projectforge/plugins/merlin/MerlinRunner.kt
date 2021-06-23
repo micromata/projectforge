@@ -97,7 +97,13 @@ open class MerlinRunner {
         val istream = it.second
         val fileObject = it.first
         istream.use {
-          stats.wordDocument = analyzeTemplate(istream, fileObject.fileName ?: "untitled.docx", templateDefinition, stats, keepWordDocument)
+          stats.wordDocument = analyzeTemplate(
+            istream,
+            fileObject.fileName ?: "untitled.docx",
+            templateDefinition,
+            stats,
+            keepWordDocument
+          )
           stats.excelTemplateDefinitionFilename = excelAttachment?.name
           word.name?.let {
             stats.wordTemplateFilename = word.name
@@ -179,28 +185,39 @@ open class MerlinRunner {
   }
 
   /**
-   * @return Pair of filename and byte array representing the Word file.
+   * @param id Id of the MerlinTemplateDO
+   * @return Pair of filename and byte array representing the zip file containing all generated word documents.
    */
-  fun serialExecuteTemplate(dbo: MerlinTemplateDO, filename: String, istream: InputStream): Pair<String, ByteArray>? {
-    val id = dbo.id!!
+  fun serialExecuteTemplate(id: Int, filename: String, istream: InputStream): Pair<String, ByteArray>? {
+    var workbook: ExcelWorkbook? = null
+    var wordDocument: WordDocument? = null
     var stats: MerlinStatistics? = null
+    var serialData: SerialData? = null
     try {
+      stats = getStatistics(id, true)
+      wordDocument = stats.wordDocument
+      if (wordDocument == null) {
+        return null
+      }
       istream.use {
-        val workbook = ExcelWorkbook(istream, filename)
+        workbook = ExcelWorkbook(istream, filename)
         if (!SerialDataExcelReader.isMerlinSerialRunDefinition(workbook)) {
           return null
         }
+        val reader = SerialDataExcelReader(workbook)
+        initTemplateRunContext(reader.templateRunContext)
+        val data = reader.serialData
+        data.template = stats.template
+        data.templateDefinition = stats.templateDefinition
+        reader.readVariables(data.template.statistics)
+        serialData = data
       }
-
-      stats = getStatistics(id, true)
-      if (stats.wordDocument == null) {
-        return null
-      }
-      val serialData = prepareSerialData(stats)
-      val serialTemplateRunner = SerialTemplateRunner(serialData, stats.wordDocument)
-      //serialTemplateRunner.run()
+      val runner = SerialTemplateRunner(serialData, wordDocument)
+      val zipByteArray: ByteArray = runner.run(filename)
+      return Pair(runner.zipFilename, zipByteArray)
     } finally {
-      stats?.wordDocument?.close()
+      workbook?.close()
+      wordDocument?.close()
     }
     return null
   }
@@ -211,7 +228,9 @@ open class MerlinRunner {
    */
   fun createSerialExcelTemplate(id: Int): Pair<String, ByteArray> {
     val stats = getStatistics(id)
-    val serialData = prepareSerialData(stats)
+    val serialData = SerialData()
+    serialData.template = stats.template
+    serialData.templateDefinition = stats.templateDefinition
     val writer = SerialDataExcelWriter(serialData)
     initTemplateRunContext(writer.templateRunContext)
     val workbook = writer.writeToWorkbook()
@@ -223,13 +242,6 @@ open class MerlinRunner {
       val filename = serialData.createFilenameForSerialTemplate()
       return Pair(filename, bos.toByteArray())
     }
-  }
-
-  private fun prepareSerialData(stats: MerlinStatistics): SerialData {
-    val serialData = SerialData()
-    serialData.template = stats.template
-    serialData.templateDefinition = stats.templateDefinition
-    return serialData
   }
 
   private fun convertVariables(
@@ -291,7 +303,7 @@ open class MerlinRunner {
     return doc
   }
 
-  private fun fakeFileDescriptor(filename: String):FileDescriptor {
+  private fun fakeFileDescriptor(filename: String): FileDescriptor {
     val fileDescriptor = FileDescriptor()
     fileDescriptor.filename = filename
     fileDescriptor.directory = "."
