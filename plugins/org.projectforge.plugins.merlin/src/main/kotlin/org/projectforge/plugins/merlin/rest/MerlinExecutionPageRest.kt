@@ -45,6 +45,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.lang.IllegalArgumentException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -98,9 +99,10 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         )
       }."
     }
-    //merlinRunner.
-    //  inputStream = file.inputStream,
-    return RestUtils.downloadFile("hurzel.txt", "Hurzel")
+    val result = merlinRunner.serialExecuteTemplate(id, filename, file.inputStream) ?: throw IllegalArgumentException("Can't execute serial Excel file.")
+    val zipFilename = result.first
+    val zipByteArray = result.second
+    return RestUtils.downloadFile(zipFilename, zipByteArray)
   }
 
   private fun validate(data: MerlinExecutionData): List<ValidationError>? {
