@@ -1,4 +1,4 @@
-import { fileDownload } from 'js-file-download';
+import fileDownload from 'js-file-download';
 import history from '../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 import { loadUserStatus } from './authentication';
