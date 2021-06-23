@@ -165,7 +165,7 @@ open class MerlinRunner {
           val runner = WordTemplateRunner(stats.templateDefinition, doc)
           val context = TemplateRunContext()
           initTemplateRunContext(context)
-          val variables = convertVariables(inputVariables, templateDefinition, context)
+          val variables = convertVariables(inputVariables, templateDefinition)
           val result = runner.run(variables)
           val filename = runner.createFilename(dbo.fileNamePattern, variables)
           val byteArray = result.asByteArrayOutputStream.toByteArray()
@@ -198,10 +198,11 @@ open class MerlinRunner {
       }
       val serialData = prepareSerialData(stats)
       val serialTemplateRunner = SerialTemplateRunner(serialData, stats.wordDocument)
-      serialTemplateRunner.run()
+      //serialTemplateRunner.run()
     } finally {
       stats?.wordDocument?.close()
     }
+    return null
   }
 
   /**
@@ -234,7 +235,6 @@ open class MerlinRunner {
   private fun convertVariables(
     variables: Map<String, Any?>?,
     templateDefinition: TemplateDefinition?,
-    context: TemplateRunContext
   ): Variables {
     val result = Variables()
     if (templateDefinition == null) {
