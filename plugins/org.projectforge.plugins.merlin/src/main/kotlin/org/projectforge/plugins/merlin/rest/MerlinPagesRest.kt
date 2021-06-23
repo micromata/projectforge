@@ -45,7 +45,10 @@ import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.io.ByteArrayOutputStream
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
@@ -122,6 +125,18 @@ class MerlinPagesRest :
    */
   override fun createListLayout(): UILayout {
     val layout = super.createListLayout()
+      .add(
+        UIAlert(
+          """'# TODO
+* validation of min/max value
+* Save input variables on each template in UserPrefs
+* Listener of log files for scanning and executing Merlin stuff
+* Serial execution
+* Writing to inboxes""",
+          color = UIColor.WARNING,
+          markdown = true
+        )
+      )
       .add(
         UITable.createUIResultSetTable()
           .add(lc, "created", "modified", "name", "description")
