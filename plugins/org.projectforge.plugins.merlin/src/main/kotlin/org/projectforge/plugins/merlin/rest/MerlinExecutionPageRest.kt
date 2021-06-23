@@ -25,6 +25,7 @@ package org.projectforge.plugins.merlin.rest
 
 import de.micromata.merlin.word.templating.VariableType
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
@@ -34,6 +35,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -41,6 +43,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 import java.time.Month
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
@@ -64,7 +67,12 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   @PostMapping("execute")
   fun execute(@Valid @RequestBody postData: PostData<MerlinExecutionData>): ResponseEntity<*> {
     val executionData = postData.data
-    return RestUtils.downloadFile("hurzel.txt", "Test")
+    val dbObj = merlinTemplateDao.getById(executionData.id)
+    //return RestUtils.downloadFile("hurzel.txt", "Test")
+    val result = merlinRunner.executeTemplate(dbObj, executionData.inputVariables)
+    val filename = result.first
+    val word = result.second
+    return RestUtils.downloadFile(filename, word)
   }
 
   @GetMapping("dynamic")
@@ -144,7 +152,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
       "MA_Strasse" to "Marie-Calm-Str. 1-5",
       "MA_PLZ" to "34131",
       "MA_Ort" to "Kassel",
-      "Vertragsbeginn" to PFDay.of(2020, Month.APRIL, 1),
+      "Vertragsbeginn" to PFDateTime.from(LocalDate.of(2020, Month.APRIL, 1)).withHour(12).javaScriptString,
       "Wochenstunden" to "40",
       "Urlaubstage" to 30,
       "Position" to "Softwareentwickler",

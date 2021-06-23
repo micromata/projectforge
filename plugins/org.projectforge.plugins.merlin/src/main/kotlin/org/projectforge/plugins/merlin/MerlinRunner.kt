@@ -24,17 +24,19 @@
 package org.projectforge.plugins.merlin
 
 import de.micromata.merlin.excel.ExcelWorkbook
+import de.micromata.merlin.persistency.FileDescriptor
 import de.micromata.merlin.word.WordDocument
-import de.micromata.merlin.word.templating.TemplateDefinition
-import de.micromata.merlin.word.templating.TemplateDefinitionExcelReader
-import de.micromata.merlin.word.templating.TemplateRunContext
-import de.micromata.merlin.word.templating.WordTemplateChecker
+import de.micromata.merlin.word.templating.*
 import mu.KotlinLogging
+import org.apache.commons.io.FilenameUtils
+import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
 private val log = KotlinLogging.logger {}
@@ -51,30 +53,12 @@ open class MerlinRunner {
 
   internal lateinit var jcrPath: String // Set by MerlinPagesRest
 
-  fun analyzeTemplate(
-    istream: InputStream,
-    filename: String,
-    templateDefinition: TemplateDefinition? = null,
-    merlinStatistics: MerlinStatistics,
-  ) {
-    val doc = WordDocument(istream, filename)
-    val templateChecker = WordTemplateChecker(doc)
-    templateDefinition?.let {
-      templateChecker.assignTemplateDefinition(it)
-    }
-    val statistics = templateChecker.template.statistics
-    merlinStatistics.template = templateChecker.template
-    merlinStatistics.update(statistics, templateDefinition)
-  }
-
   /**
    * @param id Id of the MerlinTemplateDO
    */
   fun getStatistics(id: Int): MerlinStatistics {
-    val list =
-      attachmentsService.getAttachments(jcrPath, id, attachmentsAccessChecker)?.sortedByDescending { it.created }
-        ?: return MerlinStatistics()
-    val wordAttachment = list.find { it.fileExtension == "docx" }
+    val list = getAttachments(id) ?: return MerlinStatistics()
+    val wordAttachment = getWordTemplate(list)
     val excelAttachment = list.find { it.fileExtension == "xlsx" }
 
     var templateDefinition: TemplateDefinition? = null
@@ -118,6 +102,130 @@ open class MerlinRunner {
       }
     }
     return stats
+  }
+
+  /**
+   * @return Pair of filename and byte array representing the Excel file.
+   */
+  fun writeTemplateDefinitionWorkbook(dto: MerlinTemplate): Pair<String, ByteArray> {
+    val stats = getStatistics(dto.id!!)
+    val writer = TemplateDefinitionExcelWriter()
+    var filename = stats.excelTemplateDefinitionFilename
+    if (filename == null) {
+      filename = "${FilenameUtils.getBaseName(stats.wordTemplateFilename ?: "untitled")}.xlsx"
+    }
+    initTemplateRunContext(writer.templateRunContext)
+    stats.template?.let { template ->
+      template.fileDescriptor = FileDescriptor()
+      template.fileDescriptor.filename = filename
+    }
+    val templateDefinition =
+      stats.templateDefinition ?: stats.template?.createAutoTemplateDefinition() ?: TemplateDefinition()
+    templateDefinition.filenamePattern = dto.fileNamePattern
+    templateDefinition.id = "${dto.id}"
+    templateDefinition.isStronglyRestrictedFilenames = dto.stronglyRestrictedFilenames == true
+    templateDefinition.description = dto.description
+    val workbook = writer.writeToWorkbook(templateDefinition)
+    workbook.filename = filename
+    val outStream = ByteArrayOutputStream()
+    outStream.use {
+      workbook.write(it)
+      return Pair(filename, outStream.toByteArray())
+    }
+  }
+
+  /**
+   * @return Pair of filename and byte array representing the Word file.
+   */
+  fun executeTemplate(dbo: MerlinTemplateDO, inputVariables: Map<String, Any?>): Pair<String, ByteArray> {
+    val id = dbo.id!!
+    val stats = getStatistics(id)
+    val templateDefinition = stats.templateDefinition
+    val list = getAttachments(id) ?: throw IllegalArgumentException("No attachments given. Can't run template.")
+    val wordAttachment =
+      getWordTemplate(list) ?: throw IllegalArgumentException("No Word® template given. Can't run template.")
+    attachmentsService.getAttachmentInputStream(
+      jcrPath,
+      id,
+      wordAttachment.fileId!!,
+      accessChecker = attachmentsAccessChecker,
+    )?.let {
+      val istream = it.second
+      val fileObject = it.first
+      val templateFilename = fileObject.fileName ?: "untitled.docx"
+      istream.use {
+        var doc: WordDocument? = null
+        try {
+          doc = WordDocument(istream, templateFilename)
+          val runner = WordTemplateRunner(stats.templateDefinition, doc)
+          val context = TemplateRunContext()
+          initTemplateRunContext(context)
+          val variables = convertVariables(inputVariables, templateDefinition, context)
+          val result = runner.run(variables)
+          val filename = runner.createFilename(dbo.fileNamePattern, variables)
+          val byteArray = result.asByteArrayOutputStream.toByteArray()
+          return Pair(filename, byteArray)
+        } finally {
+          doc?.close()
+        }
+      }
+    }
+    throw IllegalArgumentException("Can't execute Word template. Internal error.")
+  }
+
+  private fun convertVariables(
+    variables: Map<String, Any?>,
+    templateDefinition: TemplateDefinition?,
+    context: TemplateRunContext
+  ): Variables {
+    val result = Variables()
+    if (templateDefinition == null) {
+      result.putAll(variables)
+      return result
+    }
+    variables.forEach { (varname, value) ->
+      val variableDefinition = templateDefinition.getVariableDefinition(varname)
+      if (variableDefinition != null) {
+        if (variableDefinition.type == VariableType.DATE && value != null && value is String) {
+          val date = RestHelper.parseJSDateTime(value)?.sqlDate
+          if (date != null) {
+            val formattedDate = context.dateFormatter.format(date)
+            result.putFormatted(varname, formattedDate)
+          }
+        }
+      }
+      result.put(varname, value)
+    }
+    return result
+  }
+
+  private fun getAttachments(id: Int): List<Attachment>? {
+    return attachmentsService.getAttachments(jcrPath, id, attachmentsAccessChecker)?.sortedByDescending { it.created }
+  }
+
+  private fun getWordTemplate(list: List<Attachment>): Attachment? {
+    return list.find { it.fileExtension == "docx" }
+  }
+
+  private fun analyzeTemplate(
+    istream: InputStream,
+    filename: String,
+    templateDefinition: TemplateDefinition? = null,
+    merlinStatistics: MerlinStatistics,
+  ) {
+    var doc: WordDocument? = null
+    try {
+      doc = WordDocument(istream, filename)
+      val templateChecker = WordTemplateChecker(doc)
+      templateDefinition?.let {
+        templateChecker.assignTemplateDefinition(it)
+      }
+      val statistics = templateChecker.template.statistics
+      merlinStatistics.template = templateChecker.template
+      merlinStatistics.update(statistics, templateDefinition)
+    } finally {
+      doc?.close()
+    }
   }
 
   companion object {
