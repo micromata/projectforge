@@ -50,9 +50,9 @@ class MerlinTemplate(
 ) : BaseDTO<MerlinTemplateDO>(id), AttachmentsSupport {
   override var attachments: List<Attachment>? = null
 
-  var variables = mutableListOf<VariableDefinition>()
+  var variables = mutableListOf<MerlinVariable>()
 
-  var dependentVariables = mutableListOf<DependentVariableDefinition>()
+  var dependentVariables = mutableListOf<MerlinVariable>()
 
 
   // The user and group ids are stored as csv list of integers in the data base.

@@ -58,11 +58,13 @@ class MerlinStatistics {
     }
     synchronized(variables) {
       variables.clear()
+      var counter = 0
       statistics?.inputVariables?.forEach { variableDefinition ->
         val name = variableDefinition.name
         val used = statistics.usedVariables?.contains(name) == true
         val masterVariable = statistics.masterVariables?.contains(name) == true || conditionalsUsesVariable(name)
         val variable = MerlinVariable(
+          counter++,
           name,
           variableDefinition,
           used = used,
@@ -73,6 +75,7 @@ class MerlinStatistics {
       templateDefinition?.dependentVariableDefinitions?.forEach { variableDefinition ->
         val name = variableDefinition.name
         val variable = MerlinVariable(
+          counter++,
           name,
           dependentVariableDefinition = variableDefinition,
           used = statistics?.usedVariables?.contains(name) == true

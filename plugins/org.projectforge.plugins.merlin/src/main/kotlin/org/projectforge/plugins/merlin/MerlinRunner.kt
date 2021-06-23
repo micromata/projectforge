@@ -29,10 +29,13 @@ import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.*
 import mu.KotlinLogging
 import org.apache.commons.io.FilenameUtils
+import org.projectforge.common.DateFormatType
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.DateFormats
+import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -137,7 +140,7 @@ open class MerlinRunner {
   /**
    * @return Pair of filename and byte array representing the Word file.
    */
-  fun executeTemplate(dbo: MerlinTemplateDO, inputVariables: Map<String, Any?>): Pair<String, ByteArray> {
+  fun executeTemplate(dbo: MerlinTemplateDO, inputVariables: Map<String, Any?>?): Pair<String, ByteArray> {
     val id = dbo.id!!
     val stats = getStatistics(id)
     val templateDefinition = stats.templateDefinition
@@ -174,7 +177,7 @@ open class MerlinRunner {
   }
 
   private fun convertVariables(
-    variables: Map<String, Any?>,
+    variables: Map<String, Any?>?,
     templateDefinition: TemplateDefinition?,
     context: TemplateRunContext
   ): Variables {
@@ -183,13 +186,13 @@ open class MerlinRunner {
       result.putAll(variables)
       return result
     }
-    variables.forEach { (varname, value) ->
+    variables?.forEach { (varname, value) ->
       val variableDefinition = templateDefinition.getVariableDefinition(varname)
       if (variableDefinition != null) {
         if (variableDefinition.type == VariableType.DATE && value != null && value is String) {
           val date = RestHelper.parseJSDateTime(value)?.sqlDate
           if (date != null) {
-            val formattedDate = context.dateFormatter.format(date)
+            val formattedDate = DateTimeFormatter.instance().getFormattedDate(date)
             result.putFormatted(varname, formattedDate)
           }
         }
@@ -231,7 +234,7 @@ open class MerlinRunner {
   companion object {
     fun initTemplateRunContext(templateRunContext: TemplateRunContext) {
       val contextUser = ThreadLocalUserContext.getUser()
-      templateRunContext.setLocale(contextUser.excelDateFormat, contextUser.locale)
+      templateRunContext.setLocale(DateFormats.getExcelFormatString(DateFormatType.DATE), contextUser.locale)
     }
   }
 }
