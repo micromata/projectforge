@@ -24,7 +24,9 @@
 package org.projectforge.plugins.merlin.rest
 
 import de.micromata.merlin.word.templating.VariableType
+import mu.KotlinLogging
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
@@ -42,8 +44,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
+
+private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/merlinexecution")
@@ -78,6 +83,24 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     val filename = result.first
     val word = result.second
     return RestUtils.downloadFile(filename, word)
+  }
+
+  @PostMapping("serialExecution/{id}")
+  fun serialExecution(
+    @PathVariable("id", required = true) id: Int,
+    @RequestParam("file") file: MultipartFile
+  ): ResponseEntity<*> {
+    val filename = file.originalFilename
+    log.info {
+      "User tries to upload serial execution file: id='$id', filename='$filename', size=${
+        FormatterUtils.formatBytes(
+          file.size
+        )
+      }."
+    }
+    merlinRunner.
+    //  inputStream = file.inputStream,
+    return RestUtils.downloadFile("hurzel.txt", "Hurzel")
   }
 
   private fun validate(data: MerlinExecutionData): List<ValidationError>? {
@@ -124,6 +147,13 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
       counter += 2
     }
     val layout = UILayout("plugins.merlin.templateExecutor.heading")
+      .add(
+        UIDropArea(
+          "plugins.merlin.upload.serialExecution",
+          tooltip = "plugins.merlin.upload.serialExecution.info",
+          uploadUrl = RestResolver.getRestUrl(this::class.java, "serialExecution/$id"),
+        )
+      )
       .add(
         UIFieldset(title = "'${template.name}")
           .add(

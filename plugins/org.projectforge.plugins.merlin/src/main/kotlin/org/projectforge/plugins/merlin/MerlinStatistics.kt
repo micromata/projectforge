@@ -24,6 +24,7 @@
 package org.projectforge.plugins.merlin
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.Template
 import de.micromata.merlin.word.templating.TemplateDefinition
 import de.micromata.merlin.word.templating.TemplateStatistics
@@ -37,6 +38,7 @@ class MerlinStatistics {
   val conditionals = mutableListOf<MerlinConditional>()
   var wordTemplateFilename: String? = null
   var excelTemplateDefinitionFilename: String? = null
+  var wordDocument: WordDocument? = null
 
   @get:JsonIgnore
   var templateStatistics: TemplateStatistics? = null
