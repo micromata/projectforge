@@ -32,6 +32,7 @@ import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.merlin.rest.MerlinAttachmentsActionListener
 import org.projectforge.rest.AttachmentsServicesRest
+import org.projectforge.rest.config.JacksonConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -60,6 +61,13 @@ class MerlinPlugin :
   override fun initialize() {
     // Register it:
     register(MerlinTemplateDao::class.java, merlinTemplateDao, "plugins.merlin")
+
+    // Will only delivered to client but has to be ignored on sending back from client:
+    JacksonConfiguration.registerAllowedUnknownProperties(
+      MerlinVariable::class.java,
+      "allowedValuesFormatted",
+      "mappingFormatted",
+    )
 
     menuCreator.register(
       MenuItemDefId.MISC,

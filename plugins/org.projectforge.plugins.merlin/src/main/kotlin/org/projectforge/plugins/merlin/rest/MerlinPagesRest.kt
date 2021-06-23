@@ -353,7 +353,7 @@ class MerlinPagesRest :
             RestResolver.getRestUrl(
               instance.javaClass,
               "exportExcelTemplate"
-            ), targetType = TargetType.POST_AND_DOWNLOAD
+            ), targetType = TargetType.POST
           )
         )
       )
