@@ -98,7 +98,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         )
       }."
     }
-    merlinRunner.
+    //merlinRunner.
     //  inputStream = file.inputStream,
     return RestUtils.downloadFile("hurzel.txt", "Hurzel")
   }
