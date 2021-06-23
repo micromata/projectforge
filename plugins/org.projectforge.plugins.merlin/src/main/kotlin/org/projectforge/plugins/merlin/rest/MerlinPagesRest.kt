@@ -23,11 +23,7 @@
 
 package org.projectforge.plugins.merlin.rest
 
-import de.micromata.merlin.persistency.FileDescriptor
-import de.micromata.merlin.word.templating.TemplateDefinition
-import de.micromata.merlin.word.templating.TemplateDefinitionExcelWriter
 import mu.KotlinLogging
-import org.apache.commons.io.FilenameUtils
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
@@ -49,7 +45,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.io.ByteArrayOutputStream
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
@@ -126,18 +121,6 @@ class MerlinPagesRest :
   override fun createListLayout(): UILayout {
     val layout = super.createListLayout()
       .add(
-        UIAlert(
-          """'# TODO
-* validation of min/max value
-* Save input variables on each template in UserPrefs
-* Listener of log files for scanning and executing Merlin stuff
-* Serial execution
-* Writing to inboxes""",
-          color = UIColor.WARNING,
-          markdown = true
-        )
-      )
-      .add(
         UITable.createUIResultSetTable()
           .add(lc, "created", "modified", "name", "description")
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
@@ -148,6 +131,20 @@ class MerlinPagesRest :
       .add(
         UIAlert(
           "'For further documentation, please refer: [Merlin documentation](https://github.com/micromata/Merlin/blob/master/docs/templates.adoc)",
+          markdown = true
+        )
+      )
+      .add(
+        UIAlert(
+          """'# TODO
+* validation of min/max value
+* Save input variables on each template in UserPrefs
+* Listener of log files for scanning and executing Merlin stuff
+* Serial execution
+* Writing to inboxes
+* Displaying variables (with properties)/Editing?
+* Demo templates for creating (menu entry in list view)""",
+          color = UIColor.WARNING,
           markdown = true
         )
       )
@@ -164,30 +161,10 @@ class MerlinPagesRest :
   @PostMapping("exportExcelTemplate")
   fun exportExcelTemplate(@Valid @RequestBody postData: PostData<MerlinTemplate>): ResponseEntity<*> {
     val dto = postData.data
-    val stats = merlinRunner.getStatistics(dto.id!!)
-    val writer = TemplateDefinitionExcelWriter()
-    var filename = stats.excelTemplateDefinitionFilename
-    if (filename == null) {
-      filename = "${FilenameUtils.getBaseName(stats.wordTemplateFilename ?: "untitled")}.xlsx"
-    }
-    MerlinRunner.initTemplateRunContext(writer.templateRunContext)
-    stats.template?.let { template ->
-      template.fileDescriptor = FileDescriptor()
-      template.fileDescriptor.filename = filename
-    }
-    val templateDefinition =
-      stats.templateDefinition ?: stats.template?.createAutoTemplateDefinition() ?: TemplateDefinition()
-    templateDefinition.filenamePattern = dto.fileNamePattern
-    templateDefinition.id = "${dto.id}"
-    templateDefinition.isStronglyRestrictedFilenames = dto.stronglyRestrictedFilenames == true
-    templateDefinition.description = dto.description
-    val workbook = writer.writeToWorkbook(templateDefinition)
-    workbook.filename = filename
-    val outStream = ByteArrayOutputStream()
-    outStream.use {
-      workbook.write(it)
-    }
-    return RestUtils.downloadFile(workbook.filename!!, outStream.toByteArray())
+    val workbook = merlinRunner.writeTemplateDefinitionWorkbook(dto)
+    val filename = workbook.first
+    val bytes = workbook.second
+    return RestUtils.downloadFile(filename, bytes)
   }
 
 
