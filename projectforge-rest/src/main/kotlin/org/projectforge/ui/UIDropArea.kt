@@ -23,33 +23,9 @@
 
 package org.projectforge.ui
 
-enum class UIElementType {
-    ALERT,
-    /**
-     * Attachments including list view, downloading, uploading and deleting files.
-     */
-    ATTACHMENT_LIST,
-    BADGE,
-    BADGE_LIST,
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CUSTOMIZED,
-    DROP_AREA,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    RADIOBUTTON,
-    READONLY_FIELD,
-    RATING,
-    ROW,
-    SELECT,
-    TABLE,
-    TABLE_LIST_PAGE,
-    TABLE_COLUMN,
-    TEXTAREA
-}
+data class UIDropArea(
+  var title: String?,
+  var uploadUrl: String,
+  var tooltip: String? = null,
+  var id: String? = "dropArea"
+) : UIElement(UIElementType.DROP_AREA)

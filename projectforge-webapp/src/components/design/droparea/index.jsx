@@ -83,6 +83,7 @@ class DropArea extends React.Component {
             multiple,
             noStyle,
             title,
+            id,
         } = this.props;
         const { inDrag } = this.state;
 
@@ -96,6 +97,7 @@ class DropArea extends React.Component {
 
         return (
             <div
+                id={id}
                 role="button"
                 onKeyDown={() => {
                 }}
@@ -137,6 +139,7 @@ DropArea.propTypes = {
     noStyle: PropTypes.bool,
     setFiles: PropTypes.func,
     title: PropTypes.string,
+    id: PropTypes.string,
 };
 
 DropArea.defaultProps = {
@@ -145,6 +148,7 @@ DropArea.defaultProps = {
     noStyle: false,
     setFiles: undefined,
     title: 'Select a file, or drop one here.',
+    id: undefined,
 };
 
 export default DropArea;

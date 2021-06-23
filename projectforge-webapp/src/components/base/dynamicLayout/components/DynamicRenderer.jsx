@@ -18,6 +18,7 @@ import DynamicTable from './table/DynamicTable';
 import DynamicListPageTable from './table/DynamicListPageTable';
 import DynamicBadgeList from './DynamicBadgeList';
 import DynamicBadge from './DynamicBadge';
+import DynamicDropArea from './input/DynamicDropArea';
 
 const components = {};
 
@@ -66,6 +67,7 @@ registerComponent('BADGE_LIST', DynamicBadgeList);
 registerComponent('BUTTON', DynamicButton);
 registerComponent('CHECKBOX', DynamicCheckbox);
 registerComponent('COL', DynamicGroup);
+registerComponent('DROP_AREA', DynamicDropArea);
 registerComponent('FRAGMENT', DynamicGroup);
 registerComponent('GROUP', DynamicGroup);
 registerComponent('LIST', DynamicList);
