@@ -191,7 +191,7 @@ export const callAction = (
                 serverData,
             });
 
-            fetch(
+            return fetch(
                 getServiceURL(action.url),
                 {
                     method: 'POST',
@@ -208,7 +208,6 @@ export const callAction = (
                     fileDownload(blob, filename);
                 })
                 .catch((error) => dispatch(callFailure(category, error)));
-            break;
         }
         case 'NOTHING':
         case 'TOAST':
