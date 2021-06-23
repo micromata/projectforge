@@ -94,6 +94,15 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     return if (validationErrors.isEmpty()) null else validationErrors
   }
 
+  @GetMapping("downloadSerialExecutionTemplate/{id}")
+  fun downloadSerialExecutionTemplate(@PathVariable("id", required = true) id: Int)
+      : ResponseEntity<*> {
+    val result = merlinRunner.createSerialExcelTemplate(id)
+    val filename = result.first
+    val excel = result.second
+    return RestUtils.downloadFile(filename, excel)
+  }
+
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
     val id = NumberHelper.parseInteger(idString) ?: throw IllegalAccessException("Parameter id not an int.")
@@ -149,6 +158,18 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
       )
     )
 
+    layout.add(
+      MenuItem(
+        "HIGHLIGHT",
+        i18nKey = "plugins.merlin.serial.template.download",
+        tooltip = "plugins.merlin.serial.template.download.info",
+        url = RestResolver.getRestUrl(
+          this.javaClass,
+          "downloadSerialExecutionTemplate/$id"
+        ),
+        type = MenuItemTargetType.DOWNLOAD,
+      )
+    )
     if (hasEditAccess(dbObj)) {
       layout.add(
         MenuItem(
