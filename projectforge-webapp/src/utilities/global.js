@@ -100,6 +100,7 @@ Array.findByField = (array, field, value) => array.reduce((accumulator, currentV
 String.idify = (string) => string.replace(/[.#*, >+~/[\]=|^$:()]/g, '-');
 
 Object.getResponseHeaderFilename = (contentDisposition) => {
-    const matches = /filename[^;=\n]*=(UTF-8(['"]*))?(.*)/.exec(contentDisposition);
+    // attachment; filename*=UTF-8''document.pdf; filename=document.pdf
+    const matches = /filename[^;=\n]*=(UTF-8(['"]*))?([^;=\n]*)*/.exec(contentDisposition);
     return matches && matches.length >= 3 && matches[3] ? decodeURI(matches[3].replace(/['"]/g, '')) : 'download';
 };

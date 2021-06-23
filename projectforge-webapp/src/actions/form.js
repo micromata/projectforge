@@ -182,33 +182,6 @@ export const callAction = (
             window.open(url, '_blank');
             return Promise.resolve();
         }
-        case 'POST_AND_DOWNLOAD': {
-            const { data, serverData } = state.categories[category];
-
-            let filename;
-            const body = JSON.stringify({
-                data,
-                serverData,
-            });
-
-            return fetch(
-                getServiceURL(action.url),
-                {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' },
-                    body,
-                },
-            )
-                .then((response) => {
-                    filename = Object.getResponseHeaderFilename(response.headers.get('Content-Disposition'));
-                    return response.blob();
-                })
-                .then((blob) => {
-                    fileDownload(blob, filename);
-                })
-                .catch((error) => dispatch(callFailure(category, error)));
-        }
         case 'NOTHING':
         case 'TOAST':
             break;
@@ -222,6 +195,7 @@ export const callAction = (
 
             const { data, serverData } = state.categories[category];
 
+            let filename;
             let body;
 
             if (action.targetType !== 'GET') {
@@ -248,22 +222,31 @@ export const callAction = (
                         .includes('application/json')) {
                         return response.json();
                     }
+                    if (response.headers.get('Content-Type').includes('application/octet-stream')) {
+                        filename = Object.getResponseHeaderFilename(response.headers.get('Content-Disposition'));
+                        return response.blob();
+                    }
 
                     throw Error(`Error ${status}`);
                 })
-                .then((json) => {
+                .then((result) => {
                     dispatch(callActionSuccess(category));
 
                     if (status === 406) {
+                        // result as json expected
                         dispatch(callSuccess(
                             category,
-                            { validationErrors: json.validationErrors },
+                            { validationErrors: result.validationErrors },
                         ));
                         window.scrollTo(0, 0);
                         return Promise.resolve();
                     }
+                    if (filename) {
+                        // result as blob expected:
+                        return fileDownload(result, filename);
+                    }
 
-                    return callAction({ responseAction: json })(dispatch, getState);
+                    return callAction({ responseAction: result })(dispatch, getState);
                 })
                 .catch((error) => dispatch(callFailure(category, error)));
         }
