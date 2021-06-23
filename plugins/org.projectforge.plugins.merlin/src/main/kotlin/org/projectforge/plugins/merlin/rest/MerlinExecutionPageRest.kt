@@ -24,9 +24,8 @@
 package org.projectforge.plugins.merlin.rest
 
 import de.micromata.merlin.word.templating.VariableType
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -35,16 +34,14 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
-import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.time.LocalDate
-import java.time.Month
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -61,18 +58,40 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var merlinPagesRest: MerlinPagesRest
 
+  @Autowired
+  private lateinit var userPrefService: UserPrefService
+
   /**
    * Will be called, if the user wants to change his/her observeStatus.
    */
   @PostMapping("execute")
   fun execute(@Valid @RequestBody postData: PostData<MerlinExecutionData>): ResponseEntity<*> {
     val executionData = postData.data
+    // Save input values as user preference:
+    getUserPref(executionData.id).inputVariables = executionData.inputVariables
+    val errors = validate(executionData)
+    if (!errors.isNullOrEmpty()) {
+      return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
+    }
     val dbObj = merlinTemplateDao.getById(executionData.id)
-    //return RestUtils.downloadFile("hurzel.txt", "Test")
     val result = merlinRunner.executeTemplate(dbObj, executionData.inputVariables)
     val filename = result.first
     val word = result.second
     return RestUtils.downloadFile(filename, word)
+  }
+
+  private fun validate(data: MerlinExecutionData): List<ValidationError>? {
+    val validationErrors = mutableListOf<ValidationError>()
+    val stats = merlinRunner.getStatistics(data.id)
+    val inputVariables = stats.variables.filter { it.input }
+    val inputData = data.inputVariables
+    if (inputData != null) {
+      inputVariables.forEach { variable ->
+        variable.validate(inputData[variable.name])
+          ?.let { validationErrors.add(ValidationError(it, getFieldId(variable.name))) }
+      }
+    }
+    return if (validationErrors.isEmpty()) null else validationErrors
   }
 
   @GetMapping("dynamic")
@@ -124,7 +143,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
           RestResolver.getRestUrl(
             this::class.java,
             subPath = "execute"
-          ), targetType = TargetType.POST_AND_DOWNLOAD
+          ), targetType = TargetType.POST
         ),
         default = true
       )
@@ -144,40 +163,30 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     layout.postProcessPageMenu()
 
     val dto = MerlinExecutionData(template.id!!, template.name ?: "???")
-    dto.inputVariables = mutableMapOf(
-      "Vertragsart" to "Arbeitsvertrag",
-      "Vertragsnummer" to 1234,
-      "Mitarbeiter" to "Kai Reinhard",
-      "Geschlecht" to "männlich",
-      "MA_Strasse" to "Marie-Calm-Str. 1-5",
-      "MA_PLZ" to "34131",
-      "MA_Ort" to "Kassel",
-      "Vertragsbeginn" to PFDateTime.from(LocalDate.of(2020, Month.APRIL, 1)).withHour(12).javaScriptString,
-      "Wochenstunden" to "40",
-      "Urlaubstage" to 30,
-      "Position" to "Softwareentwickler",
-      "Aufgaben" to "Die Welt retten",
-      "Gehalt_Zahl" to "40000",
-      "Gehalt_Wort" to "vierzigtausend",
-    )
+    dto.inputVariables = getUserPref(id).inputVariables
     return FormLayoutData(dto, layout, createServerData(request))
   }
 
   private fun createInputElement(variable: MerlinVariable): UIElement {
-    val definition = variable.definition!!
-    val dataType = when (definition.type) {
+    val dataType = when (variable.type) {
       VariableType.DATE -> UIDataType.DATE
       VariableType.FLOAT -> UIDataType.DECIMAL
       VariableType.INT -> UIDataType.INT
       else -> UIDataType.STRING
     }
-    val allowedValuesList = definition.allowedValuesList
+    val allowedValues = variable.allowedValues
     val name = variable.name
-    if (allowedValuesList.isNullOrEmpty()) {
-      return UIInput("inputVariables.$name", label = "'$name", dataType = dataType, required = definition.isRequired)
+    if (allowedValues.isNullOrEmpty()) {
+      return UIInput(
+        getFieldId(name),
+        label = "'$name",
+        dataType = dataType,
+        required = variable.required,
+        tooltip = "'${variable.description}",
+      )
     }
-    val values = allowedValuesList.map { UISelectValue(it, "$it") }
-    return UISelect("inputVariables.$name", label = "'$name", required = definition.isRequired, values = values)
+    val values = allowedValues.map { UISelectValue(it, "$it") }
+    return UISelect(getFieldId(name), label = "'$name", required = variable.required, values = values)
   }
 
   /**
@@ -185,5 +194,13 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
    */
   private fun hasEditAccess(dbObj: MerlinTemplateDO): Boolean {
     return merlinTemplateDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)
+  }
+
+  private fun getUserPref(id: Int): MerlinExecutionData {
+    return userPrefService.ensureEntry("merlin-template", "$id", MerlinExecutionData(id, ""))
+  }
+
+  private fun getFieldId(variableName: String): String {
+    return "inputVariables.$variableName"
   }
 }

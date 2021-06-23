@@ -23,9 +23,11 @@
 
 package org.projectforge.plugins.merlin
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+
 class MerlinExecutionData(
   val id: Int,
-  val name: String,
+  val name: String? = null,
 ) {
-  var inputVariables: MutableMap<String, Any> = mutableMapOf()
+  var inputVariables: MutableMap<String, Any>? = null
 }

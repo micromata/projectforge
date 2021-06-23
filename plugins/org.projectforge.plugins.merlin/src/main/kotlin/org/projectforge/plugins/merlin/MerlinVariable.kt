@@ -23,24 +23,67 @@
 
 package org.projectforge.plugins.merlin
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import de.micromata.merlin.word.templating.DependentVariableDefinition
 import de.micromata.merlin.word.templating.VariableDefinition
+import de.micromata.merlin.word.templating.VariableType
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.ui.UIColor
+import java.math.BigDecimal
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class MerlinVariable(
+  val id: Int,
   val name: String,
-  val definition: VariableDefinition? = null,
-  val dependentVariableDefinition: DependentVariableDefinition? = null,
+  definition: VariableDefinition? = null,
+  dependentVariableDefinition: DependentVariableDefinition? = null,
   var used: Boolean? = null,
   var masterVariable: Boolean? = null,
 ) {
-  val dependant: Boolean
-    get() = dependentVariableDefinition != null
+  var description: String? = null
+  var required: Boolean = false
+  var unique: Boolean = false
+  var minimumValue: Any? = null
+  var maximumValue: Any? = null
+  var allowedValues: List<Any>? = null
+  var type: VariableType = VariableType.STRING
+  var defined: Boolean = false
+  var dependsOn: String? = null
+  var mapping: Map<Any, Any>? = null
+
+  @get:JsonProperty
+  val allowedValuesFormatted: String?
+    get() = allowedValues?.joinToString { "$it" }
+
+  @get:JsonProperty
+  val mappingFormatted: String?
+    get() = mapping?.entries?.joinToString { "${it.key}=>${it.value}" }
+
+  val dependent: Boolean
+    get() = dependsOn != null
+
+  init {
+    if (definition != null) {
+      defined = true
+      description = definition.description
+      required = definition.isRequired
+      unique = definition.isUnique
+      minimumValue = definition.minimumValue
+      maximumValue = definition.maximumValue
+      allowedValues = definition.allowedValuesList
+      type = definition.type
+    }
+    if (dependentVariableDefinition != null) {
+      mapping = dependentVariableDefinition.mapping
+      dependsOn = dependentVariableDefinition.dependsOn.name ?: "???"
+    }
+  }
+
   val input: Boolean
-    get() = definition != null || !dependant
+    get() = defined && !dependent
 
   val uiColor: UIColor?
     get() {
@@ -50,10 +93,81 @@ class MerlinVariable(
         UIColor.SUCCESS
       } else if (used == false) {
         UIColor.LIGHT
-      } else if (dependant) {
+      } else if (dependent) {
         UIColor.SECONDARY
       } else {
         null
       }
     }
+
+  fun validate(value: Any?): String? {
+    if (!defined) {
+      return null
+    }
+    val empty = value == null || value is String && value.isEmpty()
+    if (required) {
+      if (empty) {
+        return translateMsg("validation.error.fieldRequired", name)
+      }
+    }
+    if (!empty) {
+      val list = allowedValues
+      if (!list.isNullOrEmpty()) {
+        var matches = false
+        list.forEach {
+          if (it == value) {
+            matches = true
+          }
+        }
+        if (!matches) {
+          return translateMsg(
+            "plugins.merlin.validation.valueDoesNotMatchOptions",
+            name,
+            value,
+            list.joinToString { "$it" })
+        }
+      }
+      val bdValue = asBigDecimal(value)
+      if (bdValue != null) {
+        val minimumBD = asBigDecimal(minimumValue)
+        if (minimumBD != null) {
+          if (type.isIn(VariableType.INT, VariableType.FLOAT, VariableType.STRING)) {
+            if (minimumBD > bdValue) {
+              return translateMsg(
+                "plugins.merlin.validation.valueToLow",
+                name,
+                value,
+                minimumValue
+              )
+            }
+          }
+        }
+        val maximumBD = asBigDecimal(maximumValue)
+        if (maximumBD != null) {
+          if (type.isIn(VariableType.INT, VariableType.FLOAT, VariableType.STRING)) {
+            if (maximumBD < bdValue) {
+              return translateMsg(
+                "plugins.merlin.validation.valueToHigh",
+                name,
+                value,
+                maximumValue
+              )
+            }
+          }
+        }
+      }
+    }
+    return null
+  }
+
+  fun asBigDecimal(value: Any?): BigDecimal? {
+    value ?: return null
+    if (value is Number) {
+      return BigDecimal(value.toString())
+    }
+    if (value is String) {
+      return NumberHelper.parseBigDecimal(value)
+    }
+    return null
+  }
 }

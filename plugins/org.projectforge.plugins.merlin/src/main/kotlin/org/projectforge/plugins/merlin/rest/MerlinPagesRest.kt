@@ -137,12 +137,9 @@ class MerlinPagesRest :
       .add(
         UIAlert(
           """'# TODO
-* validation of min/max value
-* Save input variables on each template in UserPrefs
-* Listener of log files for scanning and executing Merlin stuff
 * Serial execution
+* Listener of log files for scanning and executing Merlin stuff
 * Writing to inboxes
-* Displaying variables (with properties)/Editing?
 * Demo templates for creating (menu entry in list view)""",
           color = UIColor.WARNING,
           markdown = true
@@ -224,7 +221,7 @@ class MerlinPagesRest :
       }
       val dependentVariables = UIBadgeList()
       stats.variables.sortedBy { it.name.toLowerCase() }.forEach {
-        if (it.dependant) {
+        if (it.dependent) {
           dependentVariables.add(UIBadge(it.name, it.uiColor))
         }
       }
@@ -297,6 +294,21 @@ class MerlinPagesRest :
                 .add(dependentVariables)
             )
         )
+      fieldset
+        .add(
+          UIRow()
+            .add(
+              UICol(collapseTitle = translate("plugins.merlin.variables.input"))
+                .add(createVariableTable())
+            )
+        )
+        .add(
+          UIRow()
+            .add(
+              UICol(collapseTitle = translate("plugins.merlin.variables.dependant"))
+                .add(createDependenVariableTable())
+            )
+        )
       if (!stats.conditionals.isNullOrEmpty()) {
         fieldset
           .add(
@@ -348,7 +360,57 @@ class MerlinPagesRest :
 
       dto.wordTemplateFileName = stats.wordTemplateFilename
       dto.excelTemplateDefinitionFileName = stats.excelTemplateDefinitionFilename
+      dto.variables = stats.variables.filter { it.defined && !it.dependent }.toMutableList()
+      dto.dependentVariables = stats.variables.filter { it.dependent }.sortedBy { it.name.toLowerCase() }.toMutableList()
       return Pair(LayoutUtils.processEditPage(layout, dto, instance), dto)
+    }
+
+    private fun createVariableTable(): UITable {
+      return UITable("variables")
+        .add(UITableColumn("name", title = "plugins.merlin.variable.name", sortable = false))
+        .add(UITableColumn("type", title = "plugins.merlin.variable.type", sortable = false))
+        .add(
+          UITableColumn(
+            "required",
+            title = "plugins.merlin.variable.required",
+            sortable = false
+          ).setStandardBoolean()
+        )
+        .add(
+          UITableColumn(
+            "unique",
+            title = "plugins.merlin.variable.unique",
+            tooltip = "plugins.merlin.variable.unique",
+            sortable = false
+          ).setStandardBoolean()
+        )
+        .add(
+          UITableColumn(
+            "allowedValuesFormatted",
+            title = "plugins.merlin.variable.allowedValues",
+            sortable = false
+          )
+        )
+        .add(
+          UITableColumn(
+            "description",
+            title = "description",
+            sortable = false
+          )
+        )
+    }
+
+    private fun createDependenVariableTable(): UITable {
+      return UITable("dependentVariables")
+        .add(UITableColumn("name", title = "plugins.merlin.variable.name", sortable = false))
+        .add(UITableColumn("dependsOn", title = "plugins.merlin.variable.dependsOn", sortable = false))
+        .add(
+          UITableColumn(
+            "mappingFormatted",
+            title = "plugins.merlin.variable.mapping",
+            sortable = false
+          )
+        )
     }
   }
 }
