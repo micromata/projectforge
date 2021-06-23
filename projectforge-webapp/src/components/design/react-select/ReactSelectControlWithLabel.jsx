@@ -34,7 +34,7 @@ ReactSelectControlWithLabel.propTypes = {
         label: PropTypes.string,
         selectRef: PropTypes.shape({
             current: PropTypes.shape({
-                focus: PropTypes.bool,
+                focus: PropTypes.func,
             }),
         }),
     }).isRequired,

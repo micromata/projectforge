@@ -93,7 +93,6 @@ export const lengthPropType = PropTypes.shape({
     medium: PropTypes.number,
     large: PropTypes.number,
     extraLarge: PropTypes.number,
-    collapseTitle: PropTypes.string,
 });
 
 DynamicGroup.propTypes = {
@@ -107,7 +106,7 @@ DynamicGroup.propTypes = {
     ]).isRequired,
     length: lengthPropType,
     offset: lengthPropType,
-    collapseTitle: undefined,
+    collapseTitle: PropTypes.string,
 };
 
 DynamicGroup.defaultProps = {
