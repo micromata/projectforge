@@ -81,6 +81,7 @@ open class MerlinRunner {
           val workBook = ExcelWorkbook(istream, fileObject.fileName ?: "undefined", ThreadLocalUserContext.getLocale())
           val def = reader.readFromWorkbook(workBook, false)
           // log.info("Template definition: ${ToStringUtil.toJsonString(def)}")
+          def?.fileDescriptor = fakeFileDescriptor(fileObject.fileName ?: "untitled.xlsx")
           templateDefinition = def
         }
       }
@@ -176,6 +177,28 @@ open class MerlinRunner {
     throw IllegalArgumentException("Can't execute Word template. Internal error.")
   }
 
+  /**
+   * @param id Id of the MerlinTemplateDO
+   * @return Pair of filename and byte array representing the Excel file.
+   */
+  fun createSerialExcelTemplate(id: Int): Pair<String, ByteArray> {
+    val stats = getStatistics(id)
+    val serialData = SerialData()
+    serialData.template = stats.template
+    serialData.templateDefinition = stats.templateDefinition
+    val writer = SerialDataExcelWriter(serialData)
+    initTemplateRunContext(writer.templateRunContext)
+    val workbook = writer.writeToWorkbook()
+
+    val bos = org.apache.commons.io.output.ByteArrayOutputStream()
+    bos.use {
+      workbook.pOIWorkbook.write(bos)
+      workbook.close()
+      val filename = serialData.createFilenameForSerialTemplate()
+      return Pair(filename, bos.toByteArray())
+    }
+  }
+
   private fun convertVariables(
     variables: Map<String, Any?>?,
     templateDefinition: TemplateDefinition?,
@@ -225,10 +248,19 @@ open class MerlinRunner {
       }
       val statistics = templateChecker.template.statistics
       merlinStatistics.template = templateChecker.template
+      merlinStatistics.template?.fileDescriptor = fakeFileDescriptor(filename)
       merlinStatistics.update(statistics, templateDefinition)
     } finally {
       doc?.close()
     }
+  }
+
+  private fun fakeFileDescriptor(filename: String):FileDescriptor {
+    val fileDescriptor = FileDescriptor()
+    fileDescriptor.filename = filename
+    fileDescriptor.directory = "."
+    fileDescriptor.relativePath = "."
+    return fileDescriptor
   }
 
   companion object {
