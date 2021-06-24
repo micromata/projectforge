@@ -26,7 +26,6 @@ package org.projectforge.common.logging
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.AppenderBase
 import mu.KotlinLogging
-import org.apache.commons.lang3.StringUtils
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -59,15 +58,21 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
     }
   }
 
-  internal fun ensureSubscription(match: (LogSubscription) -> Boolean, create: () -> LogSubscription): LogSubscription {
+  internal fun ensureSubscription(title: String, user: String, create: (title: String, user: String) -> LogSubscription): LogSubscription {
     synchronized(logSubscriptions) {
-      return getSubscription(match) ?: return register(create())
+      return getSubscription(title = title, user = user) ?: return register(create(title, user))
     }
   }
 
-  internal fun getSubscription(match: (LogSubscription) -> Boolean): LogSubscription? {
+  internal fun getSubscription(title: String, user: String): LogSubscription? {
     synchronized(logSubscriptions) {
-      return logSubscriptions.find { match(it) }
+      return logSubscriptions.find { it.title == title && it.user == user }
+    }
+  }
+
+  internal fun getSubscription(id: Int): LogSubscription? {
+    synchronized(logSubscriptions) {
+      return logSubscriptions.find { it.id == id }
     }
   }
 
