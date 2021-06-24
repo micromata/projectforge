@@ -35,7 +35,7 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
   private var lastLogEntryOrderNumber = -1
   private val logSubscriptions = mutableListOf<LogSubscription>()
 
-  private val queue = FiFoBuffer<LoggingEventData>(QUEUE_SIZE)
+  private val queue = LogQueue(QUEUE_SIZE)
 
   private var lastSubscriptionGCRun = System.currentTimeMillis()
 
@@ -85,80 +85,8 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
     }
   }
 
-  fun query(filter: LogFilter, locale: Locale?): List<LoggingEventData> {
-    val result: MutableList<LoggingEventData> = ArrayList()
-    var counter = 0
-    //I18n i18n = CoreI18n.getDefault().get(locale);
-    if (filter.isAscendingOrder) {
-      for (i in 0 until queue.size) {
-        val resultEvent = getResultEvent(filter, queue[i], locale) ?: continue
-        result.add(resultEvent)
-        if (++counter > filter.maxSize) break
-      }
-    } else {
-      for (i in queue.size downTo 0) {
-        val resultEvent = getResultEvent(filter, queue[i], locale) ?: continue
-        result.add(resultEvent)
-        if (++counter > filter.maxSize) break
-      }
-    }
-    return result
-  }
-
-  private fun getResultEvent(filter: LogFilter, event: LoggingEventData?, locale: Locale?): LoggingEventData? {
-    if (event == null) {
-      return null
-    }
-    if (!event.level.matches(filter.threshold)) {
-      return null
-    }
-    filter.lastReceivedLogOrderNumber?.let { lastReceivedLogOrderNumber ->
-      if (event.id <= lastReceivedLogOrderNumber) {
-        return null
-      }
-    }
-    var logString: String? = null
-    val message = event.message
-    val localizedMessage = false
-    /*if (message != null && message.startsWith("i18n=")) {
-            I18nLogEntry i18nLogEntry = I18nLogEntry.parse(message);
-            message = i18n.formatMessage(i18nLogEntry.getI18nKey(), (Object[])i18nLogEntry.getArgs());
-            localizedMessage = true;
-        }*/if (StringUtils.isNotBlank(filter.search)) {
-      val sb = StringBuilder()
-      sb.append(event.isoTimestamp)
-      append(sb, event.level, true)
-      append(sb, message, true)
-      append(sb, event.javaClass, true)
-      append(sb, event.stackTrace, filter.isShowStackTraces)
-      logString = sb.toString()
-    }
-    if (logString == null || matches(logString, filter.search)) {
-      var resultEvent: LoggingEventData = event
-      if (localizedMessage) {
-        // Need a clone
-        resultEvent = event.clone()
-        resultEvent.message = message
-      }
-      return resultEvent
-    }
-    return null
-  }
-
-  private fun append(sb: StringBuilder, value: Any?, append: Boolean) {
-    if (!append || value == null) {
-      return
-    }
-    sb.append("|#|").append(value)
-  }
-
-  private fun matches(str: String?, searchString: String?): Boolean {
-    if (str.isNullOrBlank()) {
-      return searchString.isNullOrBlank()
-    }
-    return if (searchString.isNullOrBlank()) {
-      true
-    } else str.contains(searchString, ignoreCase = true)
+  fun query(filter: LogFilter, locale: Locale? = null): List<LoggingEventData> {
+    return queue.query(filter, locale)
   }
 
   companion object {
