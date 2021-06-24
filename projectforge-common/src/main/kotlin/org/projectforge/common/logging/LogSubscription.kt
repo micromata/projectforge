@@ -83,5 +83,9 @@ class LogSubscription(val user: String, vararg packages: String) {
     fun getSubscription(user: String, vararg packages: String): LogSubscription? {
       return LoggerMemoryAppender.getInstance().getSubscription { subscription -> subscription.matches(user, packages) }
     }
+
+    fun getSubscription(id: Int): LogSubscription? {
+      return LoggerMemoryAppender.getInstance().getSubscription { subscription -> subscription.id == id }
+    }
   }
 }

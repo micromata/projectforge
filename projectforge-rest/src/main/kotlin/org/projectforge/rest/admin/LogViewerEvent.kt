@@ -23,21 +23,36 @@
 
 package org.projectforge.rest.admin
 
+import org.projectforge.common.DateFormatType
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.logging.LoggingEventData
+import org.projectforge.framework.time.PFDateTime
 
-class LogViewerEvent(event: LoggingEventData) {
+/**
+ * @param userLocalTime If true, the timestamp of the log event will be displayed in user's time zone (for user view). If false (default), UTC is used.
+ */
+class LogViewerEvent(event: LoggingEventData, userFriendlyTime: Boolean = false) {
   val id = event.id
+
   @PropertyInfo(i18nKey = "timestamp")
-  val timestamp = event.isoTimestamp
+  val timestamp = if (userFriendlyTime) {
+    PFDateTime.from(event.timestampMillis).format(DateFormatType.DATE_TIME_SECONDS)
+  } else {
+    event.isoTimestamp
+  }
+
   @PropertyInfo(i18nKey = "system.admin.logViewer.level")
   val level = event.level
+
   @PropertyInfo(i18nKey = "system.admin.logViewer.message")
   val message = event.message
+
   @PropertyInfo(i18nKey = "system.admin.logViewer.stacktrace")
   val stackTrace = event.stackTrace
+
   @PropertyInfo(i18nKey = "system.admin.logViewer.user")
   val user = "${event.user ?: ""}@${event.ip ?: ""}"
+
   @PropertyInfo(i18nKey = "system.admin.logViewer.userAgent")
   val userAgent = event.userAgent
 }

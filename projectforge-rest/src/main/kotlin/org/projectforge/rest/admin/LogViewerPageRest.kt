@@ -23,10 +23,15 @@
 
 package org.projectforge.rest.admin
 
+import mu.KotlinLogging
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.common.logging.LogSubscription
 import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.access.AccessCheckerImpl
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -36,11 +41,16 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
+import java.lang.IllegalArgumentException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
-// private val log = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
+/**
+ * Log viewer as well for administrators to view and search last 10.000 log events as well, as for all users, to browse
+ * own [LogSubscription] queues.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/logViewer")
 class LogViewerPageRest : AbstractDynamicPageRest() {
@@ -50,12 +60,34 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var userPrefService: UserPrefService
 
+  /**
+   * @param id If given, a [LogSubscription] is used by id, otherwise all log entries of the queues are used (for admins only).
+   */
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest): FormLayoutData {
-    accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+  fun getForm(request: HttpServletRequest, @RequestParam("id") id: Int?): FormLayoutData {
+    if (id == null) {
+      accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+    }
     val lc = LayoutContext(LogViewerEvent::class.java)
     val filterLc = LayoutContext(LogViewFilter::class.java)
-    val logViewFilter = getUserPref()
+    val logViewFilter = if (id == null) {
+      getUserPref()
+    } else {
+      LogViewFilter(logSubscriptionId = id)
+    }
+
+    val logEntriesTable = UITable(
+      "logEntries",
+      refreshUrl = "/rs/logViewer/refresh",
+      refreshIntervalSeconds = 5,
+      autoRefreshFlag = "autoRefresh"
+    )
+    if (id == null) {
+      logEntriesTable.add(lc, "timestamp", "level", "user", "message", "userAgent", "stackTrace", sortable = false)
+    } else {
+      // Don't bother normal user with technical stuff:
+      logEntriesTable.add(lc, "timestamp", "level", "message", sortable = false)
+    }
 
     val layout = UILayout("system.admin.logViewer.title")
       .add(
@@ -90,15 +122,7 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
           )
         )
       )
-      .add(
-        UITable(
-          "logEntries",
-          refreshUrl = "/rs/logViewer/refresh",
-          refreshIntervalSeconds = 5,
-          autoRefreshFlag = "autoRefresh"
-        )
-          .add(lc, "timestamp", "level", "user", "message", "userAgent", "stackTrace", sortable = false)
-      )
+      .add(logEntriesTable)
     layout.watchFields.addAll(arrayOf("threshold", "search", "refreshInterval"))
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
@@ -145,7 +169,18 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
   }
 
   private fun queryList(filter: LogViewFilter): List<LogViewerEvent> {
-    return LoggerMemoryAppender.getInstance().query(filter.logFilter).map { LogViewerEvent(it) }
+    val logSubscriptionId = filter.logSubscriptionId
+    if (logSubscriptionId == null) {
+      accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+      return LoggerMemoryAppender.getInstance().query(filter.logFilter).map { LogViewerEvent(it) }
+    }
+    // Log subscription:
+    val logSubscription = LogSubscription.getSubscription(logSubscriptionId) ?: return emptyList()
+    if (logSubscription.user != ThreadLocalUserContext.getUser().username) {
+      log.warn { "log subscription requested by user is a subscription of another user '${logSubscription.user}'. Access denied." }
+      return emptyList()
+    }
+    return logSubscription.query(filter.logFilter).map { LogViewerEvent(it, userFriendlyTime = true) }
   }
 
   private fun getUserPref(): LogViewFilter {
