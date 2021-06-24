@@ -34,6 +34,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.plugins.merlin.*
+import org.projectforge.rest.admin.LogViewerPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -76,7 +77,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   fun execute(@Valid @RequestBody postData: PostData<MerlinExecutionData>): ResponseEntity<*> {
     MerlinPlugin.ensureUserLogSubscription()
     val executionData = postData.data
-    log.info("User wants to execute '${executionData.name}...")
+    log.info("User wants to execute '${executionData.name}'...")
     // Save input values as user preference:
     getUserPref(executionData.id).inputVariables = executionData.inputVariables
     val errors = validate(executionData)
@@ -136,7 +137,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-    MerlinPlugin.ensureUserLogSubscription()
+    val logViewerMenuItem = MerlinPlugin.createUserLogSubscriptionMenuItem()
     val id = NumberHelper.parseInteger(idString) ?: throw IllegalAccessException("Parameter id not an int.")
     val stats = merlinRunner.getStatistics(id)
     val dbObj = merlinTemplateDao.getById(id)
@@ -208,7 +209,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         ),
         type = MenuItemTargetType.DOWNLOAD,
       )
-    )
+    ).add(logViewerMenuItem)
     if (hasEditAccess(dbObj)) {
       layout.add(
         MenuItem(
