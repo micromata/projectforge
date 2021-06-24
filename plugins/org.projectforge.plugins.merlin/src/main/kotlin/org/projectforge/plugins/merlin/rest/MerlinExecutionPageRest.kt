@@ -76,6 +76,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   fun execute(@Valid @RequestBody postData: PostData<MerlinExecutionData>): ResponseEntity<*> {
     MerlinPlugin.ensureUserLogSubscription()
     val executionData = postData.data
+    log.info("User wants to execute '${executionData.name}...")
     // Save input values as user preference:
     getUserPref(executionData.id).inputVariables = executionData.inputVariables
     val errors = validate(executionData)
