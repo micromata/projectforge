@@ -27,14 +27,11 @@ import de.micromata.merlin.word.templating.VariableType
 import mu.KotlinLogging
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.FormatterUtils
-import org.projectforge.common.logging.LogSubscription
-import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.plugins.merlin.*
-import org.projectforge.rest.admin.LogViewerPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -48,7 +45,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import java.lang.IllegalArgumentException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -105,7 +101,8 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         )
       }."
     }
-    val result = merlinRunner.serialExecuteTemplate(id, filename, file.inputStream) ?: throw IllegalArgumentException("Can't execute serial Excel file.")
+    val result = merlinRunner.serialExecuteTemplate(id, filename, file.inputStream)
+      ?: throw IllegalArgumentException("Can't execute serial Excel file.")
     val zipFilename = result.first
     val zipByteArray = result.second
     return RestUtils.downloadFile(zipFilename, zipByteArray)
@@ -198,18 +195,20 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
       )
     )
 
-    layout.add(
-      MenuItem(
-        "HIGHLIGHT",
-        i18nKey = "plugins.merlin.serial.template.download",
-        tooltip = "plugins.merlin.serial.template.download.info",
-        url = RestResolver.getRestUrl(
-          this.javaClass,
-          "downloadSerialExecutionTemplate/$id"
-        ),
-        type = MenuItemTargetType.DOWNLOAD,
+    layout
+      .add(logViewerMenuItem)
+      .add(
+        MenuItem(
+          "HIGHLIGHT",
+          i18nKey = "plugins.merlin.serial.template.download",
+          tooltip = "plugins.merlin.serial.template.download.info",
+          url = RestResolver.getRestUrl(
+            this.javaClass,
+            "downloadSerialExecutionTemplate/$id"
+          ),
+          type = MenuItemTargetType.DOWNLOAD,
+        )
       )
-    ).add(logViewerMenuItem)
     if (hasEditAccess(dbObj)) {
       layout.add(
         MenuItem(
