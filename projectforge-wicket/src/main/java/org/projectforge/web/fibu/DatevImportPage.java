@@ -28,8 +28,6 @@ import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.link.Link;
-import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.datev.DatevImportDao;
@@ -38,10 +36,9 @@ import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
+import org.projectforge.common.logging.LogEventLoggerNameMatcher;
 import org.projectforge.common.logging.LogSubscription;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.rest.ChangePasswordPageRest;
-import org.projectforge.rest.MyAccountPageRest;
 import org.projectforge.rest.admin.LogViewerPageRest;
 import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
@@ -62,7 +59,8 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
   public DatevImportPage(final PageParameters parameters) {
     super(parameters);
     final String username = ThreadLocalUserContext.getUser().getUsername();
-    final LogSubscription logSubscription = LogSubscription.ensureSubscription(username, "org.projectforge.web.fibu.Datev", "org.projectforge.business.fibu.datev", "de.micromata.merlin");
+    final LogSubscription logSubscription = LogSubscription.ensureSubscription("Datev-Import", username,
+        (title, user) -> new LogSubscription(title, user, new LogEventLoggerNameMatcher("org.projectforge.business.fibu.datev", "de.micromata.merlin")));
 
     form = new DatevImportForm(this);
     body.add(form);

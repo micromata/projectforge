@@ -24,6 +24,7 @@
 package org.projectforge.plugins.merlin
 
 import org.projectforge.Const
+import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -95,7 +96,16 @@ class MerlinPlugin :
 
     fun ensureUserLogSubscription(): LogSubscription? {
       val username = ThreadLocalUserContext.getUser().username ?: return null
-      return LogSubscription.ensureSubscription(username, "de.micromata.merlin", "org.projectforge.plugins.merlin")
+      return LogSubscription.ensureSubscription(
+        title = "Merlin",
+        user = username,
+        create = { title, user ->
+        LogSubscription(
+          title,
+          user,
+          LogEventLoggerNameMatcher("de.micromata.merlin", "org.projectforge.plugins.merlin")
+        )
+      })
     }
 
     /**

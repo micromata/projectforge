@@ -29,13 +29,14 @@ import java.util.*
  * LogSubscriptions may be registered for collecting log message for users of special functionality (e. g. used by Merlin plugin).
  * Please take care to not expose to much log messages for the users!
  * LogSubscriptions will be deleted automatically after 1 hour of inactivity.
+ * @param title Is also the identifier. Each user may have only one subscription with this title (first come - first serve).
  * @param user Subscribes only log events for this specific user (caused by this user).
  * @param packages Subscribes only log messages of these packages.
  */
-class LogSubscription(val user: String, vararg packages: String) {
+class LogSubscription(val title: String, val user: String, val matcher: LogEventMatcher) {
+
   private val queue = LogQueue(100)
   private var lastActivity = System.currentTimeMillis()
-  private val packageArray: Array<out String> = packages
   val id = ++counter
 
   fun query(filter: LogFilter, locale: Locale? = null): List<LoggingEventData> {
@@ -50,22 +51,11 @@ class LogSubscription(val user: String, vararg packages: String) {
     lastActivity = eventData.timestampMillis
   }
 
-  internal fun matches(user: String, packages: Array<out String>): Boolean {
-    return this.user == user && packages.contentEquals(this.packageArray)
-  }
-
   private fun matches(eventData: LoggingEventData): Boolean {
     if (eventData.user != user) {
       return false
     }
-    packageArray.forEach {
-      val pkg = it.substringBefore("|")
-      val msgPart = it.substringAfter("|", "")
-      if (eventData.loggerName?.startsWith(pkg) == true && (msgPart.isEmpty() || eventData.message?.contains(msgPart, ignoreCase = true) == true)) {
-        return true
-      }
-    }
-    return false
+    return matcher.matches(eventData)
   }
 
   val expired: Boolean
@@ -76,21 +66,17 @@ class LogSubscription(val user: String, vararg packages: String) {
     private var counter = 0
 
     @JvmStatic
-    fun ensureSubscription(user: String, vararg packages: String): LogSubscription {
-      return LoggerMemoryAppender.getInstance().ensureSubscription(match = { subscription ->
-        subscription.matches(user, packages)
-      },
-        create = { -> LogSubscription(user, *packages) })
-    }
-
-    @JvmStatic
-    fun getSubscription(user: String, vararg packages: String): LogSubscription? {
-      return LoggerMemoryAppender.getInstance().getSubscription { subscription -> subscription.matches(user, packages) }
-    }
-
-    @JvmStatic
     fun getSubscription(id: Int): LogSubscription? {
-      return LoggerMemoryAppender.getInstance().getSubscription { subscription -> subscription.id == id }
+      return LoggerMemoryAppender.getInstance().getSubscription(id)
+    }
+
+    @JvmStatic
+    fun ensureSubscription(
+      title: String,
+      user: String,
+      create: (title: String, user: String) -> LogSubscription
+    ): LogSubscription {
+      return LoggerMemoryAppender.getInstance().ensureSubscription(title = title, user = user, create = create)
     }
   }
 }
