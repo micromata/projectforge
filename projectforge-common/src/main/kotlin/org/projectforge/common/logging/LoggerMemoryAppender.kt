@@ -31,26 +31,61 @@ import java.util.*
 
 private val log = KotlinLogging.logger {}
 
-class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
+class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>(), LogQuery {
   private var lastLogEntryOrderNumber = -1
+  private var logSubscriptions = mutableListOf<LogSubscription>()
 
-  var queue = FiFoBuffer<LoggingEventData>(QUEUE_SIZE)
+  private var queue = FiFoBuffer<LoggingEventData>(QUEUE_SIZE)
+
+  private var lastSubscriptionGCRun = System.currentTimeMillis()
 
   override fun append(event: ILoggingEvent?) {
     val eventData = LoggingEventData(event!!, ++lastLogEntryOrderNumber)
     queue.add(eventData)
+    synchronized(logSubscriptions) {
+      logSubscriptions.forEach { subscription ->
+        subscription.processEvent(eventData)
+      }
+    }
+    if (System.currentTimeMillis() - lastSubscriptionGCRun > REGISTERED_SUBSCRIPTION_GC_INTERVAL_MS) {
+      runSubscriptionsGC()
+    }
   }
 
-  /**
-   * For testing purposes.
-   *
-   * @param event
-   */
-  fun append(event: LoggingEventData) {
-    queue.add(event)
+  internal fun register(subscription: LogSubscription): LogSubscription {
+    synchronized(logSubscriptions) {
+      logSubscriptions.add(subscription)
+      return subscription
+    }
   }
 
-  fun query(filter: LogFilter, locale: Locale? = null): List<LoggingEventData> {
+  internal fun ensureSubscription(match: (LogSubscription) -> Boolean, create: () -> LogSubscription): LogSubscription {
+    synchronized(logSubscriptions) {
+      return getSubscription(match) ?: return register(create())
+    }
+  }
+
+  internal fun getSubscription(match: (LogSubscription) -> Boolean): LogSubscription? {
+    synchronized(logSubscriptions) {
+      return logSubscriptions.find { match(it) }
+    }
+  }
+
+  private fun runSubscriptionsGC() {
+    synchronized(logSubscriptions) {
+      val size = logSubscriptions.size
+      if (size == 0) {
+        return
+      }
+      val removed = logSubscriptions.removeIf { it.expired }
+      if (removed) {
+        log.info { "Expired LogSubscription(s) removed." }
+      }
+      lastSubscriptionGCRun = System.currentTimeMillis()
+    }
+  }
+
+  override fun query(filter: LogFilter, locale: Locale?): List<LoggingEventData> {
     val result: MutableList<LoggingEventData> = ArrayList()
     var counter = 0
     //I18n i18n = CoreI18n.getDefault().get(locale);
@@ -129,6 +164,7 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
   companion object {
     private const val MAX_RESULT_SIZE = 1000
     private const val QUEUE_SIZE = 10000
+    private const val REGISTERED_SUBSCRIPTION_GC_INTERVAL_MS = 10 * 60 * 1000 // run GC every 10 minutes
     private var instance: LoggerMemoryAppender? = null
 
     fun getInstance(): LoggerMemoryAppender {

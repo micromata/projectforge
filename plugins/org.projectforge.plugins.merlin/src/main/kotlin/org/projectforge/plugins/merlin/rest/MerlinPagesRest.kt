@@ -205,6 +205,7 @@ class MerlinPagesRest :
       dto: MerlinTemplate = instance.transformFromDB(dbo!!),
       userAccess: UILayout.UserAccess? = null
     ): Pair<UILayout, MerlinTemplate> {
+      MerlinPlugin.ensureUserLogSubscription()
       check(dbo != null || userAccess != null) { "dbo or userAcess must be given." }
       val id = dbo?.id ?: dto.id
       val stats = if (id != null) {
