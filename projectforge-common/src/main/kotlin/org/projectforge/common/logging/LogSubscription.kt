@@ -23,6 +23,8 @@
 
 package org.projectforge.common.logging
 
+import java.util.*
+
 /**
  * LogSubscriptions may be registered for collecting log message for users of special functionality (e. g. used by Merlin plugin).
  * Please take care to not expose to much log messages for the users!
@@ -31,12 +33,16 @@ package org.projectforge.common.logging
  * @param packages Subscribes only log messages of these packages.
  */
 class LogSubscription(val user: String, vararg packages: String) {
-  private val queue = FiFoBuffer<LoggingEventData>(100)
+  private val queue = LogQueue(100)
   private var lastActivity = System.currentTimeMillis()
   private val packageArray: Array<out String> = packages
   val id = ++counter
 
-  fun processEvent(eventData: LoggingEventData) {
+  fun query(filter: LogFilter, locale: Locale? = null): List<LoggingEventData> {
+    return queue.query(filter, locale)
+  }
+
+  internal fun processEvent(eventData: LoggingEventData) {
     if (!matches(eventData)) {
       return
     }

@@ -126,6 +126,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   @GetMapping("downloadSerialExecutionTemplate/{id}")
   fun downloadSerialExecutionTemplate(@PathVariable("id", required = true) id: Int)
       : ResponseEntity<*> {
+    MerlinPlugin.ensureUserLogSubscription()
     val result = merlinRunner.createSerialExcelTemplate(id)
     val filename = result.first
     val excel = result.second
@@ -134,6 +135,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
+    MerlinPlugin.ensureUserLogSubscription()
     val id = NumberHelper.parseInteger(idString) ?: throw IllegalAccessException("Parameter id not an int.")
     val stats = merlinRunner.getStatistics(id)
     val dbObj = merlinTemplateDao.getById(id)
