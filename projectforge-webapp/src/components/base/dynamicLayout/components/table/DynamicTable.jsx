@@ -64,7 +64,7 @@ function DynamicTable(
                     </tr>
                 </thead>
                 <tbody>
-                    {entries.map((row) => (
+                    {entries && entries.map((row) => (
                         <DynamicTableRow
                             key={`table-body-row-${row.id}`}
                             columns={columns}
