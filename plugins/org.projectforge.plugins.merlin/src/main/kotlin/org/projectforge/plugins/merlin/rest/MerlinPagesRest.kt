@@ -137,13 +137,13 @@ class MerlinPagesRest :
       .add(
         UIAlert(
           """'# TODO
-* Listener of log files for scanning and executing Merlin stuff
 * Writing to inboxes
 * Demo templates for creating (menu entry in list view)""",
           color = UIColor.WARNING,
           markdown = true
         )
       )
+      .add(MerlinPlugin.createUserLogSubscriptionMenuItem())
     return LayoutUtils.processListPage(layout, this)
   }
 
@@ -205,7 +205,7 @@ class MerlinPagesRest :
       dto: MerlinTemplate = instance.transformFromDB(dbo!!),
       userAccess: UILayout.UserAccess? = null
     ): Pair<UILayout, MerlinTemplate> {
-      MerlinPlugin.ensureUserLogSubscription()
+      val logViewerMenuItem = MerlinPlugin.createUserLogSubscriptionMenuItem()
       check(dbo != null || userAccess != null) { "dbo or userAcess must be given." }
       val id = dbo?.id ?: dto.id
       val stats = if (id != null) {
@@ -357,6 +357,7 @@ class MerlinPagesRest :
           )
         )
       )
+      layout.add(logViewerMenuItem)
 
       dto.wordTemplateFileName = stats.wordTemplateFilename
       dto.excelTemplateDefinitionFileName = stats.excelTemplateDefinitionFilename

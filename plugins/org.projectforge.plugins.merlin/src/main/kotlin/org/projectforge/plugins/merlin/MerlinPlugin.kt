@@ -27,6 +27,8 @@ import org.projectforge.Const
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -34,7 +36,9 @@ import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.merlin.rest.MerlinAttachmentsActionListener
 import org.projectforge.rest.AttachmentsServicesRest
+import org.projectforge.rest.admin.LogViewerPageRest
 import org.projectforge.rest.config.JacksonConfiguration
+import org.projectforge.rest.core.PagesResolver
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -89,9 +93,21 @@ class MerlinPlugin :
     const val ID = PluginAdminService.PLUGIN_MERLIN_ID
     const val RESOURCE_BUNDLE_NAME = "MerlinI18nResources"
 
-    fun ensureUserLogSubscription() {
-      val username = ThreadLocalUserContext.getUser().username ?: return
-      LogSubscription.ensureSubscription(username, "de.micromata.merlin", "org.projectforge.plugins.merlin")
+    fun ensureUserLogSubscription(): LogSubscription? {
+      val username = ThreadLocalUserContext.getUser().username ?: return null
+      return LogSubscription.ensureSubscription(username, "de.micromata.merlin", "org.projectforge.plugins.merlin")
+    }
+
+    /**
+     * Calls also [ensureUserLogSubscription].
+     */
+    fun createUserLogSubscriptionMenuItem(): MenuItem {
+      return MenuItem(
+        "logViewer",
+        i18nKey = "plugins.merlin.viewLogs",
+        url = PagesResolver.getDynamicPageUrl(LogViewerPageRest::class.java, id = ensureUserLogSubscription()!!.id),
+        type = MenuItemTargetType.REDIRECT,
+      )
     }
   }
 }
