@@ -24,7 +24,9 @@
 package org.projectforge.plugins.merlin
 
 import org.projectforge.Const
+import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -86,5 +88,10 @@ class MerlinPlugin :
   companion object {
     const val ID = PluginAdminService.PLUGIN_MERLIN_ID
     const val RESOURCE_BUNDLE_NAME = "MerlinI18nResources"
+
+    fun ensureUserLogSubscription() {
+      val username = ThreadLocalUserContext.getUser().username ?: return
+      LogSubscription.ensureSubscription(username, "de.micromata.merlin", "org.projectforge.plugins.merlin")
+    }
   }
 }

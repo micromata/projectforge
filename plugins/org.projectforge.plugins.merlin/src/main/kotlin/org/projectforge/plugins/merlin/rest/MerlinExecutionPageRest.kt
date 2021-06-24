@@ -27,6 +27,8 @@ import de.micromata.merlin.word.templating.VariableType
 import mu.KotlinLogging
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.FormatterUtils
+import org.projectforge.common.logging.LogSubscription
+import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
@@ -72,6 +74,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
    */
   @PostMapping("execute")
   fun execute(@Valid @RequestBody postData: PostData<MerlinExecutionData>): ResponseEntity<*> {
+    MerlinPlugin.ensureUserLogSubscription()
     val executionData = postData.data
     // Save input values as user preference:
     getUserPref(executionData.id).inputVariables = executionData.inputVariables
@@ -91,6 +94,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     @PathVariable("id", required = true) id: Int,
     @RequestParam("file") file: MultipartFile
   ): ResponseEntity<*> {
+    MerlinPlugin.ensureUserLogSubscription()
     val filename = file.originalFilename
     log.info {
       "User tries to upload serial execution file: id='$id', filename='$filename', size=${

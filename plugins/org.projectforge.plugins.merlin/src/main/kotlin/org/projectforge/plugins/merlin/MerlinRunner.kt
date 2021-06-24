@@ -189,6 +189,10 @@ open class MerlinRunner {
    * @return Pair of filename and byte array representing the zip file containing all generated word documents.
    */
   fun serialExecuteTemplate(id: Int, filename: String, istream: InputStream): Pair<String, ByteArray>? {
+    if (!filename.endsWith("xlsx") && !filename.endsWith(".xls")) {
+      log.error { "Only Excel files are supported for serial execution. Unsupported file: '$filename'" }
+      return null
+    }
     var workbook: ExcelWorkbook? = null
     var wordDocument: WordDocument? = null
     var stats: MerlinStatistics? = null
