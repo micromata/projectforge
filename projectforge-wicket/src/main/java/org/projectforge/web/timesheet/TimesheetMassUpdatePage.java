@@ -28,6 +28,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DefaultDataT
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -38,10 +39,15 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlDateTimeFormatter;
+import org.projectforge.common.logging.LogSubscription;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.MyBeanComparator;
+import org.projectforge.rest.admin.LogViewerPageRest;
+import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractMassEditPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
+import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -70,6 +76,8 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
   public TimesheetMassUpdatePage(final AbstractSecuredPage callerPage, final List<TimesheetDO> timesheets)
   {
     super(new PageParameters(), callerPage);
+    final String username = ThreadLocalUserContext.getUser().getUsername();
+    final LogSubscription logSubscription = LogSubscription.ensureSubscription(username, "org.projectforge.business.timesheet.TimesheetDao", "org.projectforge.framework.persistence.api.BaseDaoSupport|TimesheetDO");
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     this.timesheets = timesheets;
     form = new TimesheetMassUpdateForm(this);
@@ -88,6 +96,10 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
     }
     body.add(form);
     form.init();
+
+    final ExternalLink myAccountLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(LogViewerPageRest.class, null, logSubscription.getId(), true));
+    addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), myAccountLink, getString("system.admin.logViewer.title")));
+
     final List<IColumn<TimesheetDO, String>> columns = TimesheetListPage.createColumns(getUserGroupCache(), this,
         false, true,
         null,

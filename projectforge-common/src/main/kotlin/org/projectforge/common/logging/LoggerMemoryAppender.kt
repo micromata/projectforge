@@ -79,7 +79,7 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
       }
       val removed = logSubscriptions.removeIf { it.expired }
       if (removed) {
-        log.info { "Expired LogSubscription(s) removed." }
+        log.info { "Expired LogSubscription(s) removed. Number of subscriptions=${logSubscriptions.size}" }
       }
       lastSubscriptionGCRun = System.currentTimeMillis()
     }

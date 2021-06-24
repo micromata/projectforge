@@ -59,7 +59,9 @@ class LogSubscription(val user: String, vararg packages: String) {
       return false
     }
     packageArray.forEach {
-      if (eventData.loggerName?.startsWith(it) == true) {
+      val pkg = it.substringBefore("|")
+      val msgPart = it.substringAfter("|", "")
+      if (eventData.loggerName?.startsWith(pkg) == true && (msgPart.isEmpty() || eventData.message?.contains(msgPart, ignoreCase = true) == true)) {
         return true
       }
     }
@@ -73,6 +75,7 @@ class LogSubscription(val user: String, vararg packages: String) {
     private const val LIFETIME_MS = 60 * 60 * 1000 // On hour
     private var counter = 0
 
+    @JvmStatic
     fun ensureSubscription(user: String, vararg packages: String): LogSubscription {
       return LoggerMemoryAppender.getInstance().ensureSubscription(match = { subscription ->
         subscription.matches(user, packages)
@@ -80,10 +83,12 @@ class LogSubscription(val user: String, vararg packages: String) {
         create = { -> LogSubscription(user, *packages) })
     }
 
+    @JvmStatic
     fun getSubscription(user: String, vararg packages: String): LogSubscription? {
       return LoggerMemoryAppender.getInstance().getSubscription { subscription -> subscription.matches(user, packages) }
     }
 
+    @JvmStatic
     fun getSubscription(id: Int): LogSubscription? {
       return LoggerMemoryAppender.getInstance().getSubscription { subscription -> subscription.id == id }
     }
