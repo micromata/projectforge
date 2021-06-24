@@ -31,11 +31,11 @@ import java.util.*
 
 private val log = KotlinLogging.logger {}
 
-class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>(), LogQuery {
+class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
   private var lastLogEntryOrderNumber = -1
-  private var logSubscriptions = mutableListOf<LogSubscription>()
+  private val logSubscriptions = mutableListOf<LogSubscription>()
 
-  private var queue = FiFoBuffer<LoggingEventData>(QUEUE_SIZE)
+  private val queue = FiFoBuffer<LoggingEventData>(QUEUE_SIZE)
 
   private var lastSubscriptionGCRun = System.currentTimeMillis()
 
@@ -85,7 +85,7 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>(), LogQuery {
     }
   }
 
-  override fun query(filter: LogFilter, locale: Locale?): List<LoggingEventData> {
+  fun query(filter: LogFilter, locale: Locale?): List<LoggingEventData> {
     val result: MutableList<LoggingEventData> = ArrayList()
     var counter = 0
     //I18n i18n = CoreI18n.getDefault().get(locale);
@@ -162,7 +162,6 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>(), LogQuery {
   }
 
   companion object {
-    private const val MAX_RESULT_SIZE = 1000
     private const val QUEUE_SIZE = 10000
     private const val REGISTERED_SUBSCRIPTION_GC_INTERVAL_MS = 10 * 60 * 1000 // run GC every 10 minutes
     private var instance: LoggerMemoryAppender? = null
