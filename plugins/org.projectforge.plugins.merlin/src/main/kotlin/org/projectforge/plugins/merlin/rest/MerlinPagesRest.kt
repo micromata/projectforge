@@ -24,6 +24,7 @@
 package org.projectforge.plugins.merlin.rest
 
 import mu.KotlinLogging
+import org.projectforge.SystemStatus
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
@@ -134,7 +135,19 @@ class MerlinPagesRest :
           markdown = true
         )
       )
-      .add(MerlinPlugin.createUserLogSubscriptionMenuItem())
+    if (SystemStatus.isDevelopmentMode()) {
+      layout.add(
+        UIAlert(
+          """'# TODO
+* Demo templates for creating (menu entry in list view)
+* Doku: #PersonalBox etc.""",
+          color = UIColor.WARNING,
+          markdown = true
+        )
+      )
+
+    }
+    layout.add(MerlinPlugin.createUserLogSubscriptionMenuItem())
     return LayoutUtils.processListPage(layout, this)
   }
 
@@ -353,7 +366,8 @@ class MerlinPagesRest :
       dto.wordTemplateFileName = stats.wordTemplateFilename
       dto.excelTemplateDefinitionFileName = stats.excelTemplateDefinitionFilename
       dto.variables = stats.variables.filter { it.defined && !it.dependent }.toMutableList()
-      dto.dependentVariables = stats.variables.filter { it.dependent }.sortedBy { it.name.toLowerCase() }.toMutableList()
+      dto.dependentVariables =
+        stats.variables.filter { it.dependent }.sortedBy { it.name.toLowerCase() }.toMutableList()
       return Pair(LayoutUtils.processEditPage(layout, dto, instance), dto)
     }
 

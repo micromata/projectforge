@@ -77,7 +77,8 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
     super(new PageParameters(), callerPage);
     final String username = ThreadLocalUserContext.getUser().getUsername();
     final LogSubscription logSubscription = LogSubscription.ensureSubscription("Timesheet mass update", username,
-        (title, user) -> new LogSubscription(title, user, new LogEventLoggerNameMatcher("org.projectforge.business.timesheet.TimesheetDao", "org.projectforge.framework.persistence.api.BaseDaoSupport|TimesheetDO")));
+        (title, user) -> new LogSubscription(title, user, new LogEventLoggerNameMatcher("org.projectforge.business.timesheet.TimesheetDao", "org.projectforge.framework.persistence.api.BaseDaoSupport|TimesheetDO")
+        .withBlocked("org.projectforge.business.timesheet.TimesheetDao|TimesheetDao.hasTimeOverlap")));
 
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     this.timesheets = timesheets;

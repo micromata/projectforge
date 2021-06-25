@@ -39,10 +39,26 @@ interface LogEventMatcher {
  *
  * @param loggerNameBeginnings List of names ("de.micromata.merlin", "org.projectforge.business.timesheet.TimesheetDao", ...)
  */
-class LogEventLoggerNameMatcher(vararg loggerNameBeginnings: String): LogEventMatcher {
+class LogEventLoggerNameMatcher(vararg loggerNameBeginnings: String) : LogEventMatcher {
   private val loggerNameBeginningsArray = loggerNameBeginnings
+  private var blockedLoggerNameBeginningsArray: Array<out String>? = null
+
+  /**
+   * If any entry of this array matches, the logEventData is ignored (Blocked vs. allowed list).
+   * @return this for chaining.
+   */
+  fun withBlocked(vararg blockedLoggerNameBeginningsArray: String): LogEventLoggerNameMatcher {
+    this.blockedLoggerNameBeginningsArray = blockedLoggerNameBeginningsArray
+    return this
+  }
+
   override fun matches(eventData: LoggingEventData): Boolean {
-    loggerNameBeginningsArray.forEach {
+    return matches(eventData, loggerNameBeginningsArray) && !matches(eventData, blockedLoggerNameBeginningsArray)
+  }
+
+  private fun matches(eventData: LoggingEventData, array: Array<out String>?): Boolean {
+    array ?: return false
+    array.forEach {
       val pkg = it.substringBefore("|")
       val msgPart = it.substringAfter("|", "")
       if (eventData.loggerName?.startsWith(pkg) == true && (msgPart.isEmpty() || eventData.message?.contains(
