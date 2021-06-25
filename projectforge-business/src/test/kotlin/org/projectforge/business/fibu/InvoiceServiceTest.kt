@@ -81,7 +81,7 @@ class InvoiceServiceTest : AbstractTestBase() {
         val filename = invoiceService.getInvoiceFilename(data)
         Assertions.assertNotNull(filename)
         Assertions.assertTrue(filename.length < 256)
-        Assertions.assertEquals("12345_Kunde___Kunde_Projekt-Titel_Betreff_Aenderung__2017-08-04.docx", filename)
+        Assertions.assertEquals("12345_Kunde_Kunde_Projekt-Titel_Betreff_Aenderung_2017-08-04.docx", filename)
     }
 
     @Test
@@ -101,7 +101,7 @@ class InvoiceServiceTest : AbstractTestBase() {
         val filename = invoiceService.getInvoiceFilename(data)
         Assertions.assertNotNull(filename)
         Assertions.assertTrue(filename.length < 256)
-        Assertions.assertEquals("12345_Kunde_Koenig_Projekt____webapp_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc....docx",
+        Assertions.assertEquals("12345_Kunde_Koenig_Projekt_webapp_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc....docx",
                 filename, "Assertions.equals is dependent from property projectforge.domain!")
     }
 
