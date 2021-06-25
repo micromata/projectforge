@@ -26,8 +26,11 @@ package org.projectforge.common.logging
 import org.apache.commons.lang3.StringUtils
 import java.util.*
 
-internal class LogQueue(val size: Int) {
-  private var queue = FiFoBuffer<LoggingEventData>(size)
+internal class LogQueue(val maxSize: Int) {
+  private var queue = FiFoBuffer<LoggingEventData>(maxSize)
+
+  internal val size
+    get() = queue.size
 
   internal fun add(event: LoggingEventData) {
     queue.add(event)

@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.merlin
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-
 class MerlinExecutionData(
   val id: Int,
   val name: String? = null,

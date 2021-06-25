@@ -405,7 +405,7 @@ open class MerlinRunner {
     private const val PERSONAL_BOX_VARIABLE = "#PersonalBox"
     fun initTemplateRunContext(templateRunContext: TemplateRunContext) {
       val contextUser = ThreadLocalUserContext.getUser()
-      templateRunContext.setLocale(DateFormats.getExcelFormatString(DateFormatType.DATE), contextUser.locale)
+      templateRunContext.setLocale(DateFormats.getFormatString(DateFormatType.DATE), contextUser.locale)
     }
   }
 }

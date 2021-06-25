@@ -29,6 +29,7 @@ import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
 import org.projectforge.plugins.merlin.*
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -180,11 +181,21 @@ class MerlinPagesRest :
     postData: PostData<MerlinTemplate>,
     event: RestButtonEvent
   ): String? {
-    return if (event == RestButtonEvent.SAVE || event == RestButtonEvent.UPDATE) PagesResolver.getDynamicPageUrl(
-      MerlinExecutionPageRest::class.java,
-      id = obj.id,
-      absolute = true
-    ) else null
+    return if (event == RestButtonEvent.SAVE) {
+      // Stay on edit page after saving for uploading Word template and Excel template definition.
+      PagesResolver.getEditPageUrl(
+        MerlinPagesRest::class.java,
+        id = obj.id,
+        absolute = true
+      )
+    } else if (event == RestButtonEvent.UPDATE || event == RestButtonEvent.CANCEL) {
+      // Return to execution page
+      PagesResolver.getDynamicPageUrl(
+        MerlinExecutionPageRest::class.java,
+        id = obj.id,
+        absolute = true
+      )
+    } else null
   }
 
 

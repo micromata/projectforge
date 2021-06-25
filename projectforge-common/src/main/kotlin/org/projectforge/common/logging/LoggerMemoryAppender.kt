@@ -58,7 +58,11 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
     }
   }
 
-  internal fun ensureSubscription(title: String, user: String, create: (title: String, user: String) -> LogSubscription): LogSubscription {
+  internal fun ensureSubscription(
+    title: String,
+    user: String,
+    create: (title: String, user: String) -> LogSubscription
+  ): LogSubscription {
     synchronized(logSubscriptions) {
       return getSubscription(title = title, user = user) ?: return register(create(title, user))
     }
@@ -75,6 +79,9 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
       return logSubscriptions.find { it.id == id }
     }
   }
+
+  internal val size
+    get() = queue.size
 
   private fun runSubscriptionsGC() {
     synchronized(logSubscriptions) {

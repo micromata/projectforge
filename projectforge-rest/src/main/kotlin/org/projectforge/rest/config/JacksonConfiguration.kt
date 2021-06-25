@@ -147,6 +147,7 @@ open class JacksonConfiguration {
         "lastUpdateTimeAgo",
         "encrypted",
       )
+      registerAllowedUnknownProperties(ServerData::class.java, "id") // Sometimes send by client, don't know, why. Not needed.
       registerAllowedUnknownProperties(PFUserDO::class.java, "fullname")
       registerAllowedUnknownProperties(KundeDO::class.java, "id")
       // reminderDuration* will be there after function switchToTimesheet is used:
