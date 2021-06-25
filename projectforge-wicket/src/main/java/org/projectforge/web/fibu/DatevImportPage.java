@@ -65,8 +65,8 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
     form = new DatevImportForm(this);
     body.add(form);
     form.init();
-    final ExternalLink myAccountLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(LogViewerPageRest.class, null, logSubscription.getId(), true));
-    addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), myAccountLink, getString("system.admin.logViewer.title")));
+    final ExternalLink logViewerLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(LogViewerPageRest.class, null, logSubscription.getId(), true));
+    addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), logViewerLink, getString("system.admin.logViewer.title")));
   }
 
   protected void importAccountList() {

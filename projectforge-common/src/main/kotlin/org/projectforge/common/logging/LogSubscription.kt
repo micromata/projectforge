@@ -35,7 +35,7 @@ import java.util.*
  */
 class LogSubscription(val title: String, val user: String, val matcher: LogEventMatcher) {
 
-  private val queue = LogQueue(100)
+  private val queue = LogQueue(1000)
   private var lastActivity = System.currentTimeMillis()
   val id = ++counter
 

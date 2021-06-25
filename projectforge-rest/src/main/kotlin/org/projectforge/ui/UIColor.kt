@@ -36,9 +36,16 @@ enum class UIColor {
     LIGHT,
     @JsonProperty("link")
     LINK,
+
+    /**
+     * Blue
+     */
     @JsonProperty("primary")
     PRIMARY,
     @JsonProperty("secondary")
+    /**
+     * Grey
+     */
     SECONDARY,
     @JsonProperty("success")
     SUCCESS,
