@@ -33,11 +33,19 @@ import java.util.*
  * @param user Subscribes only log events for this specific user (caused by this user).
  * @param packages Subscribes only log messages of these packages.
  */
-class LogSubscription(val title: String, val user: String, val matcher: LogEventMatcher) {
+class LogSubscription @JvmOverloads constructor(
+  val title: String,
+  val user: String,
+  val matcher: LogEventMatcher,
+  val maxSize: Int = 1000
+) {
 
-  private val queue = LogQueue(1000)
+  private val queue = LogQueue(maxSize)
   private var lastActivity = System.currentTimeMillis()
   val id = ++counter
+
+  val size
+    get() = queue.size
 
   fun query(filter: LogFilter, locale: Locale? = null): List<LoggingEventData> {
     return queue.query(filter, locale)
