@@ -134,16 +134,6 @@ class MerlinPagesRest :
           markdown = true
         )
       )
-      .add(
-        UIAlert(
-          """'# TODO
-* Writing to inboxes
-* Merlin: FileDescriptor und Id für ProjectForge raus aus Config-Excel
-* Demo templates for creating (menu entry in list view)""",
-          color = UIColor.WARNING,
-          markdown = true
-        )
-      )
       .add(MerlinPlugin.createUserLogSubscriptionMenuItem())
     return LayoutUtils.processListPage(layout, this)
   }

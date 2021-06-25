@@ -161,14 +161,16 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
           uploadUrl = RestResolver.getRestUrl(this::class.java, "serialExecution/$id"),
         )
       )
-      .add(
-        UIFieldset(title = "'${template.name}")
-          .add(
-            UIRow()
-              .add(col1)
-              .add(col2)
-          )
-      )
+    val variablesFieldset = UIFieldset(title = "'${template.name}")
+    if (!dbObj.description.isNullOrBlank()) {
+      variablesFieldset.add(UIAlert(message = "'${dbObj.description}", color = UIColor.LIGHT))
+    }
+    variablesFieldset.add(
+      UIRow()
+        .add(col1)
+        .add(col2)
+    )
+    layout.add(variablesFieldset)
     layout.add(
       UIButton(
         "back",

@@ -29,18 +29,29 @@ import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.*
 import mu.KotlinLogging
 import org.apache.commons.io.FilenameUtils
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DateFormatType
+import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateTimeFormatter
+import org.projectforge.jcr.FileInfo
+import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferPlugin
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.util.zip.ZipInputStream
+
 
 private val log = KotlinLogging.logger {}
 
@@ -52,9 +63,18 @@ open class MerlinRunner {
   @Autowired
   private lateinit var attachmentsService: AttachmentsService
 
+  @Autowired
+  private lateinit var dataTransferAreaDao: DataTransferAreaDao
+
+  @Autowired
+  private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+
   internal lateinit var attachmentsAccessChecker: AttachmentsAccessChecker // Set by MerlinPagesRest
 
   internal lateinit var jcrPath: String // Set by MerlinPagesRest
+
+  @Autowired
+  private lateinit var pluginAdminService: PluginAdminService
 
   /**
    * @param id Id of the MerlinTemplateDO
@@ -82,7 +102,6 @@ open class MerlinRunner {
           val workBook = ExcelWorkbook(istream, fileObject.fileName ?: "undefined", ThreadLocalUserContext.getLocale())
           val def = reader.readFromWorkbook(workBook, false)
           // log.info("Template definition: ${ToStringUtil.toJsonString(def)}")
-          def?.fileDescriptor = fakeFileDescriptor(fileObject.fileName ?: "untitled.xlsx")
           templateDefinition = def
         }
       }
@@ -128,12 +147,12 @@ open class MerlinRunner {
     initTemplateRunContext(writer.templateRunContext)
     stats.template?.let { template ->
       template.fileDescriptor = FileDescriptor()
-      template.fileDescriptor.filename = filename
+      template.fileDescriptor.filename = stats.wordTemplateFilename
     }
     val templateDefinition =
       stats.templateDefinition ?: stats.template?.createAutoTemplateDefinition() ?: TemplateDefinition()
     templateDefinition.filenamePattern = dto.fileNamePattern
-    templateDefinition.id = "${dto.id}"
+    templateDefinition.id = filename
     templateDefinition.isStronglyRestrictedFilenames = dto.stronglyRestrictedFilenames == true
     templateDefinition.description = dto.description
     val workbook = writer.writeToWorkbook(templateDefinition)
@@ -213,17 +232,19 @@ open class MerlinRunner {
         val data = reader.serialData
         data.template = stats.template
         data.templateDefinition = stats.templateDefinition
+        data.template.statistics.inputVariables.add(VariableDefinition(PERSONAL_BOX_VARIABLE))
         reader.readVariables(data.template.statistics)
         serialData = data
       }
       val runner = SerialTemplateRunner(serialData, wordDocument)
       val zipByteArray: ByteArray = runner.run(filename)
+
+      serialDocuments4PersonalBox(zipByteArray, serialData!!)
       return Pair(runner.zipFilename, zipByteArray)
     } finally {
       workbook?.close()
       wordDocument?.close()
     }
-    return null
   }
 
   /**
@@ -237,7 +258,7 @@ open class MerlinRunner {
     serialData.templateDefinition = stats.templateDefinition
     val writer = SerialDataExcelWriter(serialData)
     initTemplateRunContext(writer.templateRunContext)
-    val workbook = writer.writeToWorkbook()
+    val workbook = writer.writeToWorkbook(false)
 
     val bos = org.apache.commons.io.output.ByteArrayOutputStream()
     bos.use {
@@ -245,6 +266,73 @@ open class MerlinRunner {
       workbook.close()
       val filename = serialData.createFilenameForSerialTemplate()
       return Pair(filename, bos.toByteArray())
+    }
+  }
+
+  private fun serialDocuments4PersonalBox(zipByteArray: ByteArray, serialData: SerialData) {
+    if (serialData.entries.none {
+        val personalBoxVariable = it.get(PERSONAL_BOX_VARIABLE)
+        personalBoxVariable != null && personalBoxVariable is String && personalBoxVariable.isNotEmpty()
+      }) {
+      // No #PersonalBox value given. Nothing to do.
+      return
+    }
+    if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
+      log.error { "No DataTransfer activated, can't use personal box. Please contact your administrator to activate the plugin 'DataTransfer'." }
+      return
+    }
+    log.info { "Using #PersonalBox for sending documents via DataTransfer." }
+    // First, check all usernames:
+    val users = mutableListOf<PFUserDO?>()
+    serialData.entries.forEach { variables ->
+      val username = variables.get(PERSONAL_BOX_VARIABLE)
+      if (username != null) {
+        val user = UserGroupCache.getInstance().getUser("$username") // username is of type Any.
+        if (user == null) {
+          log.error { "User with username '$username' not found. No document will be send to any personal user box. Aborting." }
+          return
+        }
+        users.add(user)
+      } else {
+        users.add(null)
+      }
+    }
+    var counter = 0
+    ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
+      var zipEntry = zipInputStream.nextEntry
+      while (zipEntry != null) {
+        if (zipEntry.isDirectory) {
+          continue
+        }
+        if (users.size <= counter) {
+          log.warn { "Oups, found more generated files than serial variables! Stopping #PersonalBox processing" }
+          break
+        }
+        val user = users[counter++]
+        if (user != null) {
+          try {
+            zipEntry.name
+            val personalBox = dataTransferAreaDao.ensurePersonalBox(user.id)
+            if (personalBox == null) {
+              log.error { "Can't get personal box of user '${user.username}. Skipping user." }
+              continue
+            }
+            attachmentsService.addAttachment(
+              dataTransferAreaPagesRest.jcrPath!!,
+              fileInfo = FileInfo(zipEntry.name, fileSize = zipEntry.size),
+              content = zipInputStream.readAllBytes(),
+              baseDao = dataTransferAreaDao,
+              obj = personalBox,
+              accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
+            )
+            log.info("Document '${zipEntry.name}' of size ${FormatterUtils.formatBytes(zipEntry.size)} put in the personal box (DataTransfer) of '${user.displayName}'.")
+          } catch (ex: Exception) {
+            log.error("Can't put document into user '${user.username}' personal box: ${ex.message}", ex)
+          }
+        }
+        zipEntry = zipInputStream.nextEntry
+      }
+      zipInputStream.closeEntry()
     }
   }
 
@@ -297,7 +385,7 @@ open class MerlinRunner {
       }
       val statistics = templateChecker.template.statistics
       merlinStatistics.template = templateChecker.template
-      merlinStatistics.template?.fileDescriptor = fakeFileDescriptor(filename)
+      merlinStatistics.template?.fileDescriptor = createFileDescriptor(filename)
       merlinStatistics.update(statistics, templateDefinition)
     } finally {
       if (!keepWordDocument) {
@@ -307,15 +395,14 @@ open class MerlinRunner {
     return doc
   }
 
-  private fun fakeFileDescriptor(filename: String): FileDescriptor {
+  private fun createFileDescriptor(filename: String): FileDescriptor {
     val fileDescriptor = FileDescriptor()
     fileDescriptor.filename = filename
-    fileDescriptor.directory = "."
-    fileDescriptor.relativePath = "."
     return fileDescriptor
   }
 
   companion object {
+    private const val PERSONAL_BOX_VARIABLE = "#PersonalBox"
     fun initTemplateRunContext(templateRunContext: TemplateRunContext) {
       val contextUser = ThreadLocalUserContext.getUser()
       templateRunContext.setLocale(DateFormats.getExcelFormatString(DateFormatType.DATE), contextUser.locale)
