@@ -23,19 +23,25 @@
 
 package org.projectforge.plugins.ihk;
 
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.timesheet.OrderDirection;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
+import org.projectforge.common.logging.LogEventLoggerNameMatcher;
+import org.projectforge.common.logging.LogSubscription;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.rest.admin.LogViewerPageRest;
+import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.timesheet.TimesheetEditPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
+import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -65,9 +71,12 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
   public IHKPage(final PageParameters parameters)
   {
     super(parameters);
+    final LogSubscription logSubscription = IHKPlugin.ensureUserLogSubscription();
     form = new IHKForm(this);
     body.add(form);
     form.init();
+    final ExternalLink logViewerLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(LogViewerPageRest.class, null, logSubscription.getId(), true));
+    addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), logViewerLink, getString("system.admin.logViewer.title")));
   }
 
   @Override

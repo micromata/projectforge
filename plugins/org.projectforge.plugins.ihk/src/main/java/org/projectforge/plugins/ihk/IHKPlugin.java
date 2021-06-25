@@ -24,6 +24,9 @@
 package org.projectforge.plugins.ihk;
 
 import org.projectforge.business.timesheet.TimesheetDao;
+import org.projectforge.common.logging.LogEventLoggerNameMatcher;
+import org.projectforge.common.logging.LogSubscription;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
@@ -73,6 +76,23 @@ public class IHKPlugin extends AbstractPlugin {
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);
 
+  }
+
+  static LogSubscription ensureUserLogSubscription() {
+    String username = ThreadLocalUserContext.getUser().getUsername();
+    if (username == null) {
+      return null;
+    }
+    return LogSubscription.ensureSubscription(
+         "IHK-Plugin",
+         username,
+        (title, user) ->
+            new LogSubscription(
+                title,
+                user,
+                new LogEventLoggerNameMatcher("org.projectforge.plugins.ihk")
+            )
+        );
   }
 
 
