@@ -38,7 +38,7 @@ class FiFoBuffer<T>(private val maxSize: Int) {
 
   operator fun get(index: Int): T? {
     synchronized(list) {
-      return if (index <= 0 || index >= list.size) {
+      return if (index < 0 || index >= list.size) {
         null
       } else list[index]
     }
