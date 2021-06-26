@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 
 class LogEventLoggerNameMatcherTest {
-  private var counter = 0
+  private var counter: Long = 0
   @Test
   fun formatBytesTest() {
     val matcher1 = LogEventLoggerNameMatcher("org.projectforge.common", "de.micromata.merlin|hurzel")
