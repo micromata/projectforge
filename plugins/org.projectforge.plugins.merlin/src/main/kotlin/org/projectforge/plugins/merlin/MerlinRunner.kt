@@ -77,6 +77,9 @@ open class MerlinRunner {
   @Autowired
   private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
 
+  @Autowired
+  private lateinit var merlinTemplateDao: MerlinTemplateDao
+
   internal lateinit var attachmentsAccessChecker: AttachmentsAccessChecker // Set by MerlinPagesRest
 
   internal lateinit var jcrPath: String // Set by MerlinPagesRest
@@ -242,8 +245,8 @@ open class MerlinRunner {
       }
       val runner = SerialTemplateRunner(serialData, wordDocument)
       var zipByteArray: ByteArray = runner.run(filename)
-
-      zipByteArray = postProcessSerialDocuments(zipByteArray, serialData!!, lastLogNumber)
+      val template = merlinTemplateDao.getById(id)
+      zipByteArray = postProcessSerialDocuments(zipByteArray, serialData!!, lastLogNumber, template.pdfExport == true)
       return Pair(runner.zipFilename, zipByteArray)
     }
   }
@@ -292,7 +295,8 @@ open class MerlinRunner {
   private fun postProcessSerialDocuments(
     zipByteArray: ByteArray,
     serialData: SerialData,
-    lastLogNumber: Long?
+    lastLogNumber: Long?,
+    pdfExport: Boolean,
   ): ByteArray {
     processPersonalBoxOfReceivers(zipByteArray, serialData)
     ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
@@ -303,7 +307,17 @@ open class MerlinRunner {
             val clonedZipEntry = zipEntry.clone() as ZipEntry
             zipOut.putNextEntry(clonedZipEntry)
             if (!zipEntry.isDirectory) {
-              zipInputStream.copyTo(zipOut)
+              val ba = zipInputStream.readAllBytes()
+              zipOut.write(ba)
+              if (pdfExport && zipEntry.name.endsWith(".docx")) {
+                val result = convertToPdf(ba, zipEntry.name)
+                val pdfFilename = result.first
+                val pdfByteArray = result.second
+                zipOut.closeEntry()
+                zipOut.putNextEntry(ZipEntry(pdfFilename))
+                zipOut.write(pdfByteArray)
+                log.info { "Converted to pdf: $pdfFilename" }
+              }
             }
             zipOut.closeEntry()
             zipEntry = zipInputStream.nextEntry

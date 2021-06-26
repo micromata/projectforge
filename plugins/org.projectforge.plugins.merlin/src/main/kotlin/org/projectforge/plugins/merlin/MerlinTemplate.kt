@@ -43,6 +43,7 @@ class MerlinTemplate(
   var accessUsersAsString: String? = null,
   var fileNamePattern: String? = null,
   var stronglyRestrictedFilenames: Boolean? = null,
+  var pdfExport: Boolean? = null,
   var wordTemplateFileName: String? = null,
   var excelTemplateDefinitionFileName: String? = null,
   override var attachmentsCounter: Int? = null,

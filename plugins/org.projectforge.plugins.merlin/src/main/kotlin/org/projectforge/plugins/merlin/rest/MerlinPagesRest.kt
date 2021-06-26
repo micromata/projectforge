@@ -273,8 +273,12 @@ class MerlinPagesRest :
                 .add(UIInput("fileNamePattern", lc))
             )
             .add(
-              UICol(md = 6)
+              UICol(md = 3)
                 .add(lc, "stronglyRestrictedFilenames")
+            )
+            .add(
+              UICol(md = 3)
+                .add(lc, "pdfExport")
             )
         )
         .add(lc, "description")
