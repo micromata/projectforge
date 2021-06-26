@@ -32,6 +32,10 @@ import org.apache.commons.io.FilenameUtils
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.FormatterUtils
+import org.projectforge.common.logging.LogFilter
+import org.projectforge.common.logging.LoggingEventData
+import org.projectforge.excel.ExcelUtils
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
@@ -50,7 +54,9 @@ import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 
 private val log = KotlinLogging.logger {}
@@ -212,10 +218,11 @@ open class MerlinRunner {
       log.error { "Only Excel files are supported for serial execution. Unsupported file: '$filename'" }
       return null
     }
+    val lastLogNumber = MerlinPlugin.ensureUserLogSubscription().lastEntryNumber
     var workbook: ExcelWorkbook? = null
     var wordDocument: WordDocument? = null
-    var stats: MerlinStatistics? = null
-    var serialData: SerialData? = null
+    var stats: MerlinStatistics?
+    var serialData: SerialData?
     try {
       stats = getStatistics(id, true)
       wordDocument = stats.wordDocument
@@ -237,9 +244,9 @@ open class MerlinRunner {
         serialData = data
       }
       val runner = SerialTemplateRunner(serialData, wordDocument)
-      val zipByteArray: ByteArray = runner.run(filename)
+      var zipByteArray: ByteArray = runner.run(filename)
 
-      serialDocuments4PersonalBox(zipByteArray, serialData!!)
+      zipByteArray = postProcessSerialDocuments(zipByteArray, serialData!!, lastLogNumber)
       return Pair(runner.zipFilename, zipByteArray)
     } finally {
       workbook?.close()
@@ -269,7 +276,63 @@ open class MerlinRunner {
     }
   }
 
-  private fun serialDocuments4PersonalBox(zipByteArray: ByteArray, serialData: SerialData) {
+  /**
+   * Drops files in receiver's personal box (DataTransfer) if configured and adds log view events as Excel
+   * file to zip archive.
+   */
+  private fun postProcessSerialDocuments(
+    zipByteArray: ByteArray,
+    serialData: SerialData,
+    lastLogNumber: Long?
+  ): ByteArray {
+    processPersonalBoxOfReceivers(zipByteArray, serialData)
+    ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
+      val baos = ByteArrayOutputStream()
+      baos.use { baos ->
+        ZipOutputStream(baos).use { zipOut ->
+          var zipEntry = zipInputStream.nextEntry
+          while (zipEntry != null) {
+            val clonedZipEntry = zipEntry.clone() as ZipEntry
+            zipOut.putNextEntry(clonedZipEntry)
+            if (!zipEntry.isDirectory) {
+              zipInputStream.copyTo(zipOut)
+            }
+            zipOut.closeEntry()
+            zipEntry = zipInputStream.nextEntry
+          }
+          zipInputStream.closeEntry()
+
+          val workbook = ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.getLocale())
+          val sheet = workbook.createOrGetSheet(translate("plugins.merlin.export.logging.excel.sheetName"))
+          ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "isoTimestamp")
+          ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "level", 6)
+          ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "message", 100)
+          ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "loggerName", 30)
+          val boldFont = workbook.createOrGetFont("bold", bold = true)
+          val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
+          val headRow = sheet.createRow() // second row as head row.
+          sheet.columnDefinitions.forEachIndexed { index, it ->
+            headRow.getCell(index).setCellValue(it.columnHeadname).setCellStyle(boldStyle)
+          }
+          val logs =
+            MerlinPlugin.ensureUserLogSubscription().query(LogFilter(lastReceivedLogOrderNumber = lastLogNumber))
+          logs.forEach { logEntry ->
+            val row = sheet.createRow()
+            ExcelUtils.autoFill(row, logEntry)
+          }
+          val logViewerBytes = workbook.asByteArrayOutputStream.toByteArray()
+          workbook.close()
+          val logViewerEntry = ZipEntry("${translate("plugins.merlin.export.logging.excel.logBaseFilename")}.xlsx")
+          zipOut.putNextEntry(logViewerEntry)
+          zipOut.write(logViewerBytes)
+          zipOut.closeEntry()
+        }
+        return baos.toByteArray()
+      }
+    }
+  }
+
+  private fun processPersonalBoxOfReceivers(zipByteArray: ByteArray, serialData: SerialData) {
     if (serialData.entries.none {
         val personalBoxVariable = it.get(PERSONAL_BOX_VARIABLE)
         personalBoxVariable != null && personalBoxVariable is String && personalBoxVariable.isNotEmpty()

@@ -24,7 +24,6 @@
 package org.projectforge.excel
 
 import de.micromata.merlin.excel.*
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.i18n.I18nEnum
@@ -47,7 +46,7 @@ object ExcelUtils {
    */
   @JvmStatic
   fun prepareWorkbook(): ExcelWorkbook {
-    val workbook = ExcelWorkbook(XSSFWorkbook())
+    val workbook = ExcelWorkbook.createEmptyHSSFWorkbook(ThreadLocalUserContext.getLocale())
     workbook.configuration.let { cfg ->
       cfg.setDateFormats(
         ThreadLocalUserContext.getUser().excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE,
@@ -62,6 +61,7 @@ object ExcelUtils {
   /**
    * Registers an excel column by using the translated i18n-key of the given property as column head and the
    * property name as alias (for refering and [de.micromata.merlin.excel.ExcelRow.autoFillFromObject].
+   * @param size approx no of characters
    */
   @JvmStatic
   @JvmOverloads

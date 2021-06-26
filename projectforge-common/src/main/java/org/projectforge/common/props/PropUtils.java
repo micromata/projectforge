@@ -28,6 +28,7 @@ import org.projectforge.common.BeanHelper;
 import org.projectforge.common.anots.PropertyInfo;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -42,11 +43,14 @@ public class PropUtils {
   private static final Set<String> unknownFields = new HashSet<>();
 
   public static PropertyInfo get(final Class<?> clazz, final String property) {
-    final Field field = getField(clazz, property);
-    if (field != null) {
-      return field.getAnnotation(PropertyInfo.class);
+    final Object result = getFieldOrGetter(clazz, property, false);
+    if (result == null) {
+      return null;
     }
-    return null;
+    if (result instanceof Field) {
+       return ((Field) result).getAnnotation(PropertyInfo.class);
+    }
+    return ((Method) result).getAnnotation(PropertyInfo.class);
   }
 
   public static PropertyInfo get(final Field field) {
@@ -72,6 +76,24 @@ public class PropUtils {
    * @return
    */
   public static Field getField(final Class<?> clazz, final String property, boolean suppressWarning) {
+    final Object result = getFieldOrGetter(clazz, property, suppressWarning, true);
+    if (result != null) {
+      return (Field)result;
+    }
+    return null;
+  }
+
+  /**
+   * @param clazz
+   * @param property        Nested properties are supported: task.project.title
+   * @param suppressWarning If true, no warning message will be logged, if property not found.
+   * @return Found field or getter or null, if both not found.
+   */
+  public static Object getFieldOrGetter(final Class<?> clazz, final String property, boolean suppressWarning) {
+    return getFieldOrGetter(clazz, property, suppressWarning, false);
+  }
+
+  private static Object getFieldOrGetter(final Class<?> clazz, final String property, boolean suppressWarning, boolean ignoreGetter) {
     String[] nestedProps = StringUtils.split(property, '.');
     if (nestedProps == null || nestedProps.length == 0) {
       if (!suppressWarning) {
@@ -85,10 +107,16 @@ public class PropUtils {
       field = null; // Reset field from previous loops.
       final Field[] declaredFields = BeanHelper.getAllDeclaredFields(cls);
       for (final Field declaredField : declaredFields) {
-        if (nestedProp.equals(declaredField.getName()) == true) {
+        if (nestedProp.equals(declaredField.getName())) {
           field = declaredField;
           cls = field.getType();
           break;
+        }
+      }
+      if (field == null && !ignoreGetter) {
+        final Method getter = BeanHelper.determineGetter(clazz, nestedProp);
+        if (getter != null) {
+          return getter;
         }
       }
     }
@@ -102,6 +130,7 @@ public class PropUtils {
       }
     }
     return field;
+
   }
 
   public static String getI18nKey(final Class<?> clazz, final String property) {
