@@ -142,10 +142,8 @@ open class AddressExport {
     val sheet = workbook.createOrGetSheet(translate(sheetTitle))
     sheet.enableMultipleColumns = true
 
-    val boldFont = workbook.createOrGetFont("bold")!!
-    boldFont.bold = true
-    val boldStyle = workbook.createOrGetCellStyle("hr")
-    boldStyle.setFont(boldFont)
+    val boldFont = workbook.createOrGetFont("bold", bold = true)
+    val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
     registerCols(sheet)
     sheet.createRow() // title row
     val headRow = sheet.createRow() // second row as head row.

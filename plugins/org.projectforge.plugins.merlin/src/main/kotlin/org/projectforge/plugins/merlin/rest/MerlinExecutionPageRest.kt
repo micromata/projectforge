@@ -82,7 +82,9 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     val executionData = postData.data
     log.info("User wants to execute '${executionData.name}'...")
     // Save input values as user preference:
-    getUserPref(executionData.id).inputVariables = executionData.inputVariables
+    val userPref = getUserPref(executionData.id)
+    userPref.inputVariables = executionData.inputVariables
+    userPref.pdfFormat = executionData.pdfFormat
     val errors = validate(executionData)
     if (!errors.isNullOrEmpty()) {
       return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
@@ -185,17 +187,24 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     if (!dbObj.description.isNullOrBlank()) {
       variablesFieldset.add(UIAlert(message = "'${dbObj.description}", color = UIColor.LIGHT))
     }
-    variablesFieldset .add(
-        UIRow()
-          .add(UICol(md = 6)
-            .add(UICheckbox( "pdfFormat", label = "plugins.merlin.format.pdf", tooltip = "plugins.merlin.format.pdf.info"))
-          )
-      )
-    .add(
+    variablesFieldset.add(
       UIRow()
         .add(col1)
         .add(col2)
     )
+      .add(
+        UIRow()
+          .add(
+            UICol(md = 6)
+              .add(
+                UICheckbox(
+                  "pdfFormat",
+                  label = "plugins.merlin.format.pdf",
+                  tooltip = "plugins.merlin.format.pdf.info"
+                )
+              )
+          )
+      )
     layout.add(variablesFieldset)
     layout.add(
       UIButton(
@@ -251,7 +260,9 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     layout.postProcessPageMenu()
 
     val dto = MerlinExecutionData(template.id!!, template.name ?: "???")
-    dto.inputVariables = getUserPref(id).inputVariables
+    val userPref = getUserPref(id)
+    dto.inputVariables = userPref.inputVariables
+    dto.pdfFormat = userPref.pdfFormat
     return FormLayoutData(dto, layout, createServerData(request))
   }
 

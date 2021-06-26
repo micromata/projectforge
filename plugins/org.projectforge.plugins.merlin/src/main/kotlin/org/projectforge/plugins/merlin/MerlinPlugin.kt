@@ -94,8 +94,8 @@ class MerlinPlugin :
     const val ID = PluginAdminService.PLUGIN_MERLIN_ID
     const val RESOURCE_BUNDLE_NAME = "MerlinI18nResources"
 
-    fun ensureUserLogSubscription(): LogSubscription? {
-      val username = ThreadLocalUserContext.getUser().username ?: return null
+    fun ensureUserLogSubscription(): LogSubscription {
+      val username = ThreadLocalUserContext.getUser().username ?: throw InternalError("User not given")
       return LogSubscription.ensureSubscription(
         title = "Merlin",
         user = username,
