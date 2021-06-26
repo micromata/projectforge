@@ -28,7 +28,6 @@ import de.micromata.merlin.word.templating.VariableType
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
 import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions
 import mu.KotlinLogging
-import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.FormatterUtils
@@ -90,20 +89,22 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     }
     val dbObj = merlinTemplateDao.getById(executionData.id)
     val result = merlinRunner.executeTemplate(dbObj, executionData.inputVariables)
-    val filename = result.first
+    var filename = result.first
     val wordBytes = result.second
-    /*var download = wordBytes
-    ByteArrayInputStream(wordBytes).use { bais ->
-      val word = WordDocument(bais, filename)
-      val options = PdfOptions.create()
-      ByteArrayOutputStream().use { baos ->
-        PdfConverter.getInstance().convert(word.document, baos, options);
-        download = baos.toByteArray()
-        filename = "${FilenameUtils.getBaseName(filename)}.pdf"
+    var download = wordBytes
+    if (executionData.pdfFormat) {
+      ByteArrayInputStream(wordBytes).use { bais ->
+        val word = WordDocument(bais, filename)
+        val options = PdfOptions.create()
+        ByteArrayOutputStream().use { baos ->
+          PdfConverter.getInstance().convert(word.document, baos, options);
+          download = baos.toByteArray()
+          filename = "${FilenameUtils.getBaseName(filename)}.pdf"
+        }
+        word.close()
       }
-      word.close()
-    }*/
-    return RestUtils.downloadFile(filename, wordBytes)
+    }
+    return RestUtils.downloadFile(filename, download)
   }
 
   @PostMapping("serialExecution/{id}")
@@ -184,7 +185,13 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     if (!dbObj.description.isNullOrBlank()) {
       variablesFieldset.add(UIAlert(message = "'${dbObj.description}", color = UIColor.LIGHT))
     }
-    variablesFieldset.add(
+    variablesFieldset .add(
+        UIRow()
+          .add(UICol(md = 6)
+            .add(UICheckbox( "pdfFormat", label = "plugins.merlin.format.pdf", tooltip = "plugins.merlin.format.pdf.info"))
+          )
+      )
+    .add(
       UIRow()
         .add(col1)
         .add(col2)
