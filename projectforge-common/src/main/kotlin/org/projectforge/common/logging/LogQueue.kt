@@ -38,6 +38,9 @@ internal class LogQueue(val maxSize: Int) {
 
   fun query(filter: LogFilter, locale: Locale? = null): List<LoggingEventData> {
     val result: MutableList<LoggingEventData> = ArrayList()
+    if (queue.size == 0) {
+      return result
+    }
     var counter = 0
     //I18n i18n = CoreI18n.getDefault().get(locale);
     if (filter.isAscendingOrder) {
@@ -47,7 +50,7 @@ internal class LogQueue(val maxSize: Int) {
         if (++counter > filter.maxSize) break
       }
     } else {
-      for (i in queue.size downTo 0) {
+      for (i in queue.size - 1 downTo 0) {
         val resultEvent = getResultEvent(filter, queue[i], locale) ?: continue
         result.add(resultEvent)
         if (++counter > filter.maxSize) break
