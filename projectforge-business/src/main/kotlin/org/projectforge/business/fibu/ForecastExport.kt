@@ -147,67 +147,66 @@ open class ForecastExport { // open needed by Wicket.
         log.info("Exporting forecast script for date ${baseDate.isoString}")
         val forecastTemplate = applicationContext.getResource("classpath:officeTemplates/ForecastTemplate.xlsx")
 
-        val workbook = ExcelWorkbook(forecastTemplate.inputStream, "ForecastTemplate.xlsx")
-        val forecastSheet = workbook.getSheet(Sheet.FORECAST.title)!!
-        ForecastCol.values().forEach { forecastSheet.registerColumn(it.header) }
-        MonthCol.values().forEach { forecastSheet.registerColumn(it.header) }
+        ExcelWorkbook(forecastTemplate.inputStream, "ForecastTemplate.xlsx").use { workbook ->
+            val forecastSheet = workbook.getSheet(Sheet.FORECAST.title)!!
+            ForecastCol.values().forEach { forecastSheet.registerColumn(it.header) }
+            MonthCol.values().forEach { forecastSheet.registerColumn(it.header) }
 
-        val invoicesSheet = workbook.getSheet(Sheet.INVOICES.title)!!
-        InvoicesCol.values().forEach { invoicesSheet.registerColumn(it.header) }
-        MonthCol.values().forEach { invoicesSheet.registerColumn(it.header) }
+            val invoicesSheet = workbook.getSheet(Sheet.INVOICES.title)!!
+            InvoicesCol.values().forEach { invoicesSheet.registerColumn(it.header) }
+            MonthCol.values().forEach { invoicesSheet.registerColumn(it.header) }
 
-        val invoicesPriorYearSheet = workbook.getSheet(Sheet.INVOICES_PREV_YEAR.title)!!
-        InvoicesCol.values().forEach { invoicesPriorYearSheet.registerColumn(it.header) }
-        MonthCol.values().forEach { invoicesPriorYearSheet.registerColumn(it.header) }
+            val invoicesPriorYearSheet = workbook.getSheet(Sheet.INVOICES_PREV_YEAR.title)!!
+            InvoicesCol.values().forEach { invoicesPriorYearSheet.registerColumn(it.header) }
+            MonthCol.values().forEach { invoicesPriorYearSheet.registerColumn(it.header) }
 
-        val ctx = Context(workbook, forecastSheet, invoicesSheet, invoicesPriorYearSheet, baseDate, invoices)
+            val ctx = Context(workbook, forecastSheet, invoicesSheet, invoicesPriorYearSheet, baseDate, invoices)
 
-        var currentRow = 9
-        for (order in orderList) {
-            ctx.orderMap[order.id] = order
-            for (pos in order.positionen ?: continue) {
-                ctx.orderPositionMap[pos.id] = pos // Register all order positions for invoice handling.
-            }
-            if (order.isDeleted || order.positionenExcludingDeleted.isEmpty()) {
-                continue
-            }
-            orderBookDao.calculateInvoicedSum(order)
-            if (ForecastUtils.auftragsStatusToShow.contains(order.auftragsStatus)) {
-                for (pos in order.positionenExcludingDeleted) {
-                    if (pos.status != null && ForecastUtils.auftragsPositionsStatusToShow.contains(pos.status!!)) {
-                        addOrderPosition(ctx, currentRow++, order, pos)
+            var currentRow = 9
+            for (order in orderList) {
+                ctx.orderMap[order.id] = order
+                for (pos in order.positionen ?: continue) {
+                    ctx.orderPositionMap[pos.id] = pos // Register all order positions for invoice handling.
+                }
+                if (order.isDeleted || order.positionenExcludingDeleted.isEmpty()) {
+                    continue
+                }
+                orderBookDao.calculateInvoicedSum(order)
+                if (ForecastUtils.auftragsStatusToShow.contains(order.auftragsStatus)) {
+                    for (pos in order.positionenExcludingDeleted) {
+                        if (pos.status != null && ForecastUtils.auftragsPositionsStatusToShow.contains(pos.status!!)) {
+                            addOrderPosition(ctx, currentRow++, order, pos)
+                        }
                     }
                 }
             }
-        }
-        fillInvoices(ctx)
-        replaceMonthDatesInHeaderRow(forecastSheet, baseDate)
-        replaceMonthDatesInHeaderRow(invoicesSheet, baseDate)
-        replaceMonthDatesInHeaderRow(invoicesPriorYearSheet, prioYearBaseDate)
-        forecastSheet.setAutoFilter()
-        invoicesSheet.setAutoFilter()
-        invoicesPriorYearSheet.setAutoFilter()
+            fillInvoices(ctx)
+            replaceMonthDatesInHeaderRow(forecastSheet, baseDate)
+            replaceMonthDatesInHeaderRow(invoicesSheet, baseDate)
+            replaceMonthDatesInHeaderRow(invoicesPriorYearSheet, prioYearBaseDate)
+            forecastSheet.setAutoFilter()
+            invoicesSheet.setAutoFilter()
+            invoicesPriorYearSheet.setAutoFilter()
 
-        // Now: evaluate the formulars:
-        for (row in 1..7) {
-            val excelRow = forecastSheet.getRow(row)
-            MonthCol.values().forEach {
-                val cell = excelRow.getCell(forecastSheet.getColumnDef(it.header)!!)
-                cell.evaluateFormularCell()
+            // Now: evaluate the formulars:
+            for (row in 1..7) {
+                val excelRow = forecastSheet.getRow(row)
+                MonthCol.values().forEach {
+                    val cell = excelRow.getCell(forecastSheet.getColumnDef(it.header)!!)
+                    cell.evaluateFormularCell()
+                }
             }
-        }
-        val revenueSheet = workbook.getSheet("Umsatz kumuliert")!!
-        for (row in 0..8) {
-            val excelRow = revenueSheet.getRow(row)
-            for (col in 1..12) {
-                val cell = excelRow.getCell(col)
-                cell.evaluateFormularCell()
+            val revenueSheet = workbook.getSheet("Umsatz kumuliert")!!
+            for (row in 0..8) {
+                val excelRow = revenueSheet.getRow(row)
+                for (col in 1..12) {
+                    val cell = excelRow.getCell(col)
+                    cell.evaluateFormularCell()
+                }
             }
-        }
 
-        val result = workbook.asByteArrayOutputStream.toByteArray()
-        workbook.close()
-        return result
+            return workbook.asByteArrayOutputStream.toByteArray()
+        }
     }
 
     private fun fillInvoices(ctx: Context) {

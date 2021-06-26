@@ -74,19 +74,19 @@ class ForecastExportTest : AbstractTestBase() {
         baseLog.info("Writing forecast Excel file to work directory: " + excelFile.absolutePath)
         FileUtils.writeByteArrayToFile(excelFile, ba)
 
-        val workbook = ExcelWorkbook(ByteArrayInputStream(ba), excelFile.name)
-        val forecastSheet = workbook.getSheet(ForecastExport.Sheet.FORECAST.title)!!
-        val monthCols = Array(12) {
-            forecastSheet.registerColumn(ForecastExport.formatMonthHeader(baseDate.plusMonths(it.toLong())))
-        }
-        val firstRow = 9
-        forecastSheet.headRow // Enforce analyzing the column definitions.
+        ExcelWorkbook(ByteArrayInputStream(ba), excelFile.name).use { workbook ->
+            val forecastSheet = workbook.getSheet(ForecastExport.Sheet.FORECAST.title)!!
+            val monthCols = Array(12) {
+                forecastSheet.registerColumn(ForecastExport.formatMonthHeader(baseDate.plusMonths(it.toLong())))
+            }
+            val firstRow = 9
+            forecastSheet.headRow // Enforce analyzing the column definitions.
 
-        // order 1
-        Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[3])!!.stringCellValue.isNullOrBlank())
-        val amount = forecastSheet.getCell(firstRow + 1, monthCols[4])!!.numericCellValue
-        assertAmount(order1.getPosition(1)!!.nettoSumme!!.divide(BigDecimal(4)), amount)
-        workbook.close()
+            // order 1
+            Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[3])!!.stringCellValue.isNullOrBlank())
+            val amount = forecastSheet.getCell(firstRow + 1, monthCols[4])!!.numericCellValue
+            assertAmount(order1.getPosition(1)!!.nettoSumme!!.divide(BigDecimal(4)), amount)
+        }
     }
 
     private fun createTimeAndMaterials(orderStatus: AuftragsStatus, posStatus: AuftragsPositionsStatus,

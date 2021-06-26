@@ -118,11 +118,12 @@ public class DatevImportDao {
           throws Exception {
     checkLoggeinUserRight(accessChecker);
     log.info("importKontenplan called");
-    ExcelWorkbook workbook = new ExcelWorkbook(inputStream, filename, ThreadLocalUserContext.getLocale());
-    final ImportStorage<KontoDO> storage = new ImportStorage<>(Type.KONTENPLAN, workbook, ImportLogger.Level.INFO, "'" + filename + "':", log);
-    final KontenplanExcelImporter imp = new KontenplanExcelImporter();
-    imp.doImport(storage, workbook);
-    return storage;
+     try (ExcelWorkbook workbook = new ExcelWorkbook(inputStream, filename, ThreadLocalUserContext.getLocale())) {
+      final ImportStorage<KontoDO> storage = new ImportStorage<>(Type.KONTENPLAN, workbook, ImportLogger.Level.INFO, "'" + filename + "':", log);
+      final KontenplanExcelImporter imp = new KontenplanExcelImporter();
+      imp.doImport(storage, workbook);
+      return storage;
+    }
   }
 
   /**
@@ -138,11 +139,12 @@ public class DatevImportDao {
           throws Exception {
     checkLoggeinUserRight(accessChecker);
     log.info("importBuchungsdaten called.");
-    ExcelWorkbook workbook = new ExcelWorkbook(is, filename, ThreadLocalUserContext.getLocale());
-    final ImportStorage<BuchungssatzDO> storage = new ImportStorage<>(Type.BUCHUNGSSAETZE, workbook, ImportLogger.Level.INFO, "'" + filename + "':", log);
-    final BuchungssatzExcelImporter imp = new BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao);
-    imp.doImport(workbook);
-    return storage;
+    try (ExcelWorkbook workbook = new ExcelWorkbook(is, filename, ThreadLocalUserContext.getLocale())) {
+      final ImportStorage<BuchungssatzDO> storage = new ImportStorage<>(Type.BUCHUNGSSAETZE, workbook, ImportLogger.Level.INFO, "'" + filename + "':", log);
+      final BuchungssatzExcelImporter imp = new BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao);
+      imp.doImport(workbook);
+      return storage;
+    }
   }
 
   /**

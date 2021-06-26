@@ -23,12 +23,8 @@
 
 package org.projectforge.plugins.merlin.rest
 
-import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.VariableType
-import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
-import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions
 import mu.KotlinLogging
-import org.apache.commons.io.FilenameUtils
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.translate
@@ -49,8 +45,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -95,16 +89,9 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     val wordBytes = result.second
     var download = wordBytes
     if (executionData.pdfFormat) {
-      ByteArrayInputStream(wordBytes).use { bais ->
-        val word = WordDocument(bais, filename)
-        val options = PdfOptions.create()
-        ByteArrayOutputStream().use { baos ->
-          PdfConverter.getInstance().convert(word.document, baos, options);
-          download = baos.toByteArray()
-          filename = "${FilenameUtils.getBaseName(filename)}.pdf"
-        }
-        word.close()
-      }
+      val pdfResult = merlinRunner.convertToPdf(wordBytes, filename)
+      filename = pdfResult.first
+      download = pdfResult.second
     }
     return RestUtils.downloadFile(filename, download)
   }

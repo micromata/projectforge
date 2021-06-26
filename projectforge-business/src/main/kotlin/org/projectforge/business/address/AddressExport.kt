@@ -138,68 +138,69 @@ open class AddressExport {
       return null
     }
 
-    val workbook = ExcelUtils.prepareWorkbook()
-    val sheet = workbook.createOrGetSheet(translate(sheetTitle))
-    sheet.enableMultipleColumns = true
+    ExcelUtils.prepareWorkbook().use { workbook ->
+      val sheet = workbook.createOrGetSheet(translate(sheetTitle))
+      sheet.enableMultipleColumns = true
 
-    val boldFont = workbook.createOrGetFont("bold", bold = true)
-    val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
-    registerCols(sheet)
-    sheet.createRow() // title row
-    val headRow = sheet.createRow() // second row as head row.
-    sheet.columnDefinitions.forEachIndexed { index, it ->
-      headRow.getCell(index).setCellValue(it.columnHeadname).setCellStyle(boldStyle)
+      val boldFont = workbook.createOrGetFont("bold", bold = true)
+      val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
+      registerCols(sheet)
+      sheet.createRow() // title row
+      val headRow = sheet.createRow() // second row as head row.
+      sheet.columnDefinitions.forEachIndexed { index, it ->
+        headRow.getCell(index).setCellValue(it.columnHeadname).setCellStyle(boldStyle)
+      }
+      sheet.createFreezePane(2, 2)
+      sheet.poiSheet.setAutoFilter(CellRangeAddress(1, 1, 0, sheet.getRow(1).lastCellNum - 1))
+      sheet.setMergedRegion(
+        0,
+        0,
+        sheet.getColNumber("mailingAddressText")!!,
+        sheet.getColNumber("mailingState")!!,
+        translate("address.mailing")
+      ).setCellStyle(boldStyle)
+      sheet.setMergedRegion(
+        0,
+        0,
+        sheet.getColNumber("addressText")!!,
+        sheet.getColNumber("state")!!,
+        translate("address.addressText")
+      ).setCellStyle(boldStyle)
+      sheet.setMergedRegion(
+        0,
+        0,
+        sheet.getColNumber("postalAddressText")!!,
+        sheet.getColNumber("postalState")!!,
+        translate("address.postalAddressText")
+      ).setCellStyle(boldStyle)
+      sheet.setMergedRegion(
+        0,
+        0,
+        sheet.getColNumber("privateAddressText")!!,
+        sheet.getColNumber("privateState")!!,
+        translate("address.privateAddressText")
+      ).setCellStyle(boldStyle)
+
+      configureSheet(sheet, *params)
+
+      for (address in list) {
+        address ?: continue
+        val row = sheet.createRow()
+        ExcelUtils.autoFill(row, address, "communicationLanguage")
+        val lang =
+          LanguageConverter.getLanguageAsString(address.communicationLanguage, ThreadLocalUserContext.getLocale())
+        row.getCell("communicationLanguage")!!.setCellValue(lang)
+        row.getCell("mailingAddressText")!!.setCellValue(address.mailingAddressText)
+        row.getCell("mailingAddressText2")!!.setCellValue(address.mailingAddressText2)
+        row.getCell("mailingZipCode")!!.setCellValue(address.mailingZipCode)
+        row.getCell("mailingCity")!!.setCellValue(address.mailingCity)
+        row.getCell("mailingCountry")!!.setCellValue(address.mailingCountry)
+        row.getCell("mailingState")!!.setCellValue(address.mailingState)
+
+        handleAddressCampaign(row, address, *params)
+      }
+      return workbook.asByteArrayOutputStream.toByteArray()
     }
-    sheet.createFreezePane(2, 2)
-    sheet.poiSheet.setAutoFilter(CellRangeAddress(1, 1, 0, sheet.getRow(1).lastCellNum - 1))
-    sheet.setMergedRegion(
-      0,
-      0,
-      sheet.getColNumber("mailingAddressText")!!,
-      sheet.getColNumber("mailingState")!!,
-      translate("address.mailing")
-    ).setCellStyle(boldStyle)
-    sheet.setMergedRegion(
-      0,
-      0,
-      sheet.getColNumber("addressText")!!,
-      sheet.getColNumber("state")!!,
-      translate("address.addressText")
-    ).setCellStyle(boldStyle)
-    sheet.setMergedRegion(
-      0,
-      0,
-      sheet.getColNumber("postalAddressText")!!,
-      sheet.getColNumber("postalState")!!,
-      translate("address.postalAddressText")
-    ).setCellStyle(boldStyle)
-    sheet.setMergedRegion(
-      0,
-      0,
-      sheet.getColNumber("privateAddressText")!!,
-      sheet.getColNumber("privateState")!!,
-      translate("address.privateAddressText")
-    ).setCellStyle(boldStyle)
-
-    configureSheet(sheet, *params)
-
-    for (address in list) {
-      address ?: continue
-      val row = sheet.createRow()
-      ExcelUtils.autoFill(row, address, "communicationLanguage")
-      val lang =
-        LanguageConverter.getLanguageAsString(address.communicationLanguage, ThreadLocalUserContext.getLocale())
-      row.getCell("communicationLanguage")!!.setCellValue(lang)
-      row.getCell("mailingAddressText")!!.setCellValue(address.mailingAddressText)
-      row.getCell("mailingAddressText2")!!.setCellValue(address.mailingAddressText2)
-      row.getCell("mailingZipCode")!!.setCellValue(address.mailingZipCode)
-      row.getCell("mailingCity")!!.setCellValue(address.mailingCity)
-      row.getCell("mailingCountry")!!.setCellValue(address.mailingCountry)
-      row.getCell("mailingState")!!.setCellValue(address.mailingState)
-
-      handleAddressCampaign(row, address, *params)
-    }
-    return workbook.asByteArrayOutputStream.toByteArray()
   }
 
   protected open fun configureSheet(sheet: ExcelSheet, vararg params: Any) {

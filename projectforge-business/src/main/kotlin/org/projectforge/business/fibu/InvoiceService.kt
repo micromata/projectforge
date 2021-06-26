@@ -138,17 +138,18 @@ open class InvoiceService {
             }
             variables.put("Zwischensumme", formatCurrencyAmount(data.netSum))
             variables.put("MwSt", formatCurrencyAmount(data.vatAmountSum))
-            var sharedVat = extractSharedVat(data)
+            val sharedVat = extractSharedVat(data)
             if (sharedVat != null) {
                 variables.put("MwStSatz", formatBigDecimal(sharedVat.multiply(NumberHelper.HUNDRED)))
             } else {
                 variables.put("MwStSatz", "??????????")
             }
             variables.put("Gesamtbetrag", formatCurrencyAmount(data.grossSum))
-            val document = WordDocument(invoiceTemplate!!.inputStream, invoiceTemplate.file.name)
-            generatePosTableRows(document.document, data)
-            document.process(variables)
-            document.asByteArrayOutputStream
+            WordDocument(invoiceTemplate!!.inputStream, invoiceTemplate.file.name).use { document ->
+                generatePosTableRows(document.document, data)
+                document.process(variables)
+                document.asByteArrayOutputStream
+            }
         } catch (e: IOException) {
             log.error("Could not read invoice template", e)
             null
