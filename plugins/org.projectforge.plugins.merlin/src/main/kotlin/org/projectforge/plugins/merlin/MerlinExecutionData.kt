@@ -26,6 +26,7 @@ package org.projectforge.plugins.merlin
 class MerlinExecutionData(
   val id: Int,
   val name: String? = null,
+  val pdfFormat: Boolean = false,
 ) {
   var inputVariables: MutableMap<String, Any>? = null
 }
