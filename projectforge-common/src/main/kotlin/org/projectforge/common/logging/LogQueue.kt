@@ -29,6 +29,9 @@ import java.util.*
 internal class LogQueue(val maxSize: Int) {
   private var queue = FiFoBuffer<LoggingEventData>(maxSize)
 
+  val newestEntry: LoggingEventData?
+    get() = queue.newestEntry
+
   internal val size
     get() = queue.size
 

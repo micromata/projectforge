@@ -39,13 +39,16 @@ class LogSubscription @JvmOverloads constructor(
   val matcher: LogEventMatcher,
   val maxSize: Int = 1000
 ) {
-
   private val queue = LogQueue(maxSize)
   private var lastActivity = System.currentTimeMillis()
   val id = ++counter
 
   val size
     get() = queue.size
+
+  val lastEntryNumber: Long?
+    get() = queue.newestEntry?.id
+
 
   fun query(filter: LogFilter, locale: Locale? = null): List<LoggingEventData> {
     return queue.query(filter, locale)

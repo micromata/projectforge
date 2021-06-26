@@ -31,7 +31,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
-  private var lastLogEntryOrderNumber = -1
+  private var lastLogEntryOrderNumber: Long = -1
   private val logSubscriptions = mutableListOf<LogSubscription>()
 
   private val queue = LogQueue(QUEUE_SIZE)

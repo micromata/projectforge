@@ -23,8 +23,19 @@
 
 package org.projectforge.common.logging
 
+/**
+ * Synchronized queue should be multi-thread-safe.
+ */
 class FiFoBuffer<T>(private val maxSize: Int) {
   private val list = mutableListOf<T>()
+
+  val newestEntry: T?
+    get() {
+      synchronized(list) {
+        return list.lastOrNull()
+      }
+    }
+
   fun add(element: T) {
     synchronized(list) {
       if (list.size >= maxSize) {
@@ -45,5 +56,9 @@ class FiFoBuffer<T>(private val maxSize: Int) {
   }
 
   val size: Int
-    get() = list.size
+    get() {
+      synchronized(list) {
+        return list.size
+      }
+    }
 }

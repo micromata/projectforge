@@ -27,6 +27,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.classic.spi.ThrowableProxyUtil
 import ch.qos.logback.core.CoreConstants
 import org.apache.commons.lang3.ClassUtils
+import org.projectforge.common.anots.PropertyInfo
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.time.Instant
@@ -36,13 +37,19 @@ import java.time.format.DateTimeFormatter
 /**
  * For easier serialization: JSON
  */
-class LoggingEventData(event: ILoggingEvent, val id: Int) : Cloneable {
+class LoggingEventData(event: ILoggingEvent, val id: Long) : Cloneable {
+  @PropertyInfo(i18nKey = "system.admin.logViewer.level")
   val level: LogLevel = LogLevel.getLevel(event)
+
+  @PropertyInfo(i18nKey = "system.admin.logViewer.message")
   var message: String? = event.formattedMessage
   val messageObjectClass: Class<*> = event.message.javaClass
+
+  @PropertyInfo(i18nKey = "system.admin.logViewer.loggerName")
   val loggerName: String? = event.loggerName
   val timestampMillis: Long = event.timeStamp
   val isoTimestamp: String
+    @PropertyInfo(i18nKey = "timestamp")
     get() = isoDateTimeFormatterMinutes.format(Instant.ofEpochMilli(timestampMillis))
   val javaClass: String = event.callerData[0].className
   val javaClassSimpleName: String? = ClassUtils.getShortClassName(event.callerData[0].className)

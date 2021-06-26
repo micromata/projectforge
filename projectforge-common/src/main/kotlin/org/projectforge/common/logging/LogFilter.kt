@@ -43,5 +43,5 @@ class LogFilter(
   /**
    * @return If given, all log entries with order orderNumber higher than this orderNumber will be queried.
    */
-  var lastReceivedLogOrderNumber: Int? = null
+  var lastReceivedLogOrderNumber: Long? = null
 )
