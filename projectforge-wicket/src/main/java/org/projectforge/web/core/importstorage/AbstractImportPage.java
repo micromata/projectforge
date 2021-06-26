@@ -32,6 +32,7 @@ import de.micromata.merlin.excel.importer.ImportStorage;
 import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.common.SupplierWithException;
 import org.projectforge.business.excel.ExcelImportException;
@@ -116,41 +117,43 @@ public abstract class AbstractImportPage<F extends AbstractImportForm<?, ?, ?>> 
   protected void downloadErrorLog(ImportedSheet sheet) {
     StringBuilder sb = new StringBuilder();
     ImportLogger logger = getStorage().getLogger();
-    ExcelWorkbook workbook = logger.getExcelWorkbook();
-    if (logger.getHasEvents()) {
-      String filename = workbook != null ? workbook.getFilename() : "file.xls";
-      appendSectionTitle(sb, getLocalizedMessage("common.import.logger.error.workbookSection", filename));
-      sb.append(logger.getErrorEventsAsString());
-      sb.append("\n\n");
+    try (ExcelWorkbook workbook = logger.getExcelWorkbook()) {
+      if (logger.getHasEvents()) {
+        String filename = workbook != null ? workbook.getFilename() : "file.xls";
+        appendSectionTitle(sb, getLocalizedMessage("common.import.logger.error.workbookSection", filename));
+        sb.append(logger.getErrorEventsAsString());
+        sb.append("\n\n");
+      }
+      logger = sheet.getLogger();
+      if (logger.getHasEvents()) {
+        appendSectionTitle(sb, getLocalizedMessage("common.import.logger.error.sheetSection", sheet.getOrigName()));
+        sb.append(logger.getErrorEventsAsString());
+      }
+      appendSheetInformation(sheet, sb);
+      DownloadUtils.setUTF8CharacterEncoding(getResponse());
+      DownloadUtils.setDownloadTarget(sb.toString().getBytes(StandardCharsets.UTF_8), "Fehlerprotokolldatei-Excelimport.txt");
     }
-    logger = sheet.getLogger();
-    if (logger.getHasEvents()) {
-      appendSectionTitle(sb, getLocalizedMessage("common.import.logger.error.sheetSection", sheet.getOrigName()));
-      sb.append(logger.getErrorEventsAsString());
-    }
-    appendSheetInformation(sheet, sb);
-    DownloadUtils.setUTF8CharacterEncoding(getResponse());
-    DownloadUtils.setDownloadTarget(sb.toString().getBytes(StandardCharsets.UTF_8), "Fehlerprotokolldatei-Excelimport.txt");
   }
 
   protected void downloadInfoLog(ImportedSheet sheet) {
     StringBuilder sb = new StringBuilder();
     ImportLogger logger = getStorage().getLogger();
-    ExcelWorkbook workbook = logger.getExcelWorkbook();
-    if (logger.getHasEvents()) {
-      String filename = workbook != null ? workbook.getFilename() : "file.xls";
-      appendSectionTitle(sb, getLocalizedMessage("common.import.logger.info.workbookSection", filename));
-      sb.append(logger.getEventsAsString());
-      sb.append("\n\n");
+    try (ExcelWorkbook workbook = logger.getExcelWorkbook()) {
+      if (logger.getHasEvents()) {
+        String filename = workbook != null ? workbook.getFilename() : "file.xls";
+        appendSectionTitle(sb, getLocalizedMessage("common.import.logger.info.workbookSection", filename));
+        sb.append(logger.getEventsAsString());
+        sb.append("\n\n");
+      }
+      logger = sheet.getLogger();
+      if (logger.getHasEvents()) {
+        appendSectionTitle(sb, getLocalizedMessage("common.import.logger.info.sheetSection", sheet.getOrigName()));
+        sb.append(logger.getEventsAsString());
+      }
+      appendSheetInformation(sheet, sb);
+      DownloadUtils.setUTF8CharacterEncoding(getResponse());
+      DownloadUtils.setDownloadTarget(sb.toString().getBytes(StandardCharsets.UTF_8), "Protokolldatei-Excelimport.txt");
     }
-    logger = sheet.getLogger();
-    if (logger.getHasEvents()) {
-      appendSectionTitle(sb, getLocalizedMessage("common.import.logger.info.sheetSection", sheet.getOrigName()));
-      sb.append(logger.getEventsAsString());
-    }
-    appendSheetInformation(sheet, sb);
-    DownloadUtils.setUTF8CharacterEncoding(getResponse());
-    DownloadUtils.setDownloadTarget(sb.toString().getBytes(StandardCharsets.UTF_8), "Protokolldatei-Excelimport.txt");
   }
 
   private void appendSheetInformation(ImportedSheet sheet, StringBuilder sb) {
@@ -179,10 +182,11 @@ public abstract class AbstractImportPage<F extends AbstractImportForm<?, ?, ?>> 
   }
 
   protected void downloadValidatedExcel(final String sheetName) {
-    final ExcelWorkbook workbook = form.getStorage().getWorkbook();
-    workbook.setActiveSheet(sheetName);
-    DownloadUtils.setUTF8CharacterEncoding(getResponse());
-    DownloadUtils.setDownloadTarget(workbook.getAsByteArrayOutputStream().toByteArray(), workbook.getFilename());
+    try (final ExcelWorkbook workbook = form.getStorage().getWorkbook()) {
+      workbook.setActiveSheet(sheetName);
+      DownloadUtils.setUTF8CharacterEncoding(getResponse());
+      DownloadUtils.setDownloadTarget(workbook.getAsByteArrayOutputStream().toByteArray(), workbook.getFilename());
+    }
   }
 
   public String getStorageKey() {

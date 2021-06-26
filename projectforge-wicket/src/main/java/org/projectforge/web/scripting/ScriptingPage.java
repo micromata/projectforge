@@ -302,6 +302,8 @@ public class ScriptingPage extends AbstractScriptingPage
     } catch (final Exception ex) {
       error(getLocalizedMessage("error", ex.getMessage()));
       log.error(ex.getMessage(), ex);
+    } finally {
+      workbook.close();
     }
   }
 

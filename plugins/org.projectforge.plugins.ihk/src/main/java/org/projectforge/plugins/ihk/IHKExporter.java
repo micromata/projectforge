@@ -89,8 +89,7 @@ class IHKExporter {
         ExcelRow emptyRow = null;
         ClassPathResource classPathResource = new ClassPathResource("VorlageWochenbericht.xlsx");
 
-        try {
-            ExcelWorkbook workbook = new ExcelWorkbook(classPathResource.getInputStream(), classPathResource.getPath());
+        try(ExcelWorkbook workbook = new ExcelWorkbook(classPathResource.getInputStream(), classPathResource.getPath())) {
             excelSheet = workbook.getSheet(0);
             assert excelSheet != null;
             emptyRow = excelSheet.getRow(2);
@@ -219,10 +218,11 @@ class IHKExporter {
     }
 
     private static byte[] returnByteFile(ExcelSheet excelSheet) {
-        ExcelWorkbook workbook = excelSheet.getExcelWorkbook();
-        ByteArrayOutputStream byteArrayOutputStream = workbook.getAsByteArrayOutputStream();
+        try (ExcelWorkbook workbook = excelSheet.getExcelWorkbook()) {
+            ByteArrayOutputStream byteArrayOutputStream = workbook.getAsByteArrayOutputStream();
 
-        return byteArrayOutputStream.toByteArray();
+            return byteArrayOutputStream.toByteArray();
+        }
     }
 
     // KR: Diese Methode sollte nicht static sein.

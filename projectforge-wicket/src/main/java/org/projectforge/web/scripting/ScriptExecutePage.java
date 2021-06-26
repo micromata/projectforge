@@ -212,20 +212,24 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
   }
 
   private void exportExcel(final ExcelWorkbook workbook) {
-    final StringBuffer buf = new StringBuffer();
-    if (workbook.getFilename() != null) {
-      buf.append(workbook.getFilenameWithoutExtension()).append("_");
-    } else {
-      buf.append("pf_scriptresult_");
+    try {
+      final StringBuffer buf = new StringBuffer();
+      if (workbook.getFilename() != null) {
+        buf.append(workbook.getFilenameWithoutExtension()).append("_");
+      } else {
+        buf.append("pf_scriptresult_");
+      }
+      buf.append(DateHelper.getTimestampAsFilenameSuffix(new Date())).append(".").append(workbook.getFilenameExtension());
+      final String filename = buf.toString();
+      final byte[] xls = workbook.getAsByteArrayOutputStream().toByteArray();
+      if (xls == null || xls.length == 0) {
+        log.error("Oups, xls has zero size. Filename: " + filename);
+        return;
+      }
+      DownloadUtils.setDownloadTarget(xls, filename);
+    } finally {
+      workbook.close();
     }
-    buf.append(DateHelper.getTimestampAsFilenameSuffix(new Date())).append(".").append(workbook.getFilenameExtension());
-    final String filename = buf.toString();
-    final byte[] xls = workbook.getAsByteArrayOutputStream().toByteArray();
-    if (xls == null || xls.length == 0) {
-      log.error("Oups, xls has zero size. Filename: " + filename);
-      return;
-    }
-    DownloadUtils.setDownloadTarget(xls, filename);
   }
 
   private void exportJFreeChart(final ExportJFreeChart exportJFreeChart) {

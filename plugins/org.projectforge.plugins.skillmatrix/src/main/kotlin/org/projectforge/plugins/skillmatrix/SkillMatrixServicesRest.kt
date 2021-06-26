@@ -69,48 +69,49 @@ class SkillMatrixServicesRest {
   fun exportFavoritesExcel(): ResponseEntity<Any> {
     log.info("Exporting skill matrix as Excel file.")
 
-    val workbook = ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.getLocale())
-    val sheet = workbook.createOrGetSheet(translate("plugins.skillmatrix.title.list"))
-    val boldFont = workbook.createOrGetFont("bold", bold = true)
-    val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
-    val decimalStyle = workbook.createOrGetCellStyle("decimal")
-    decimalStyle.dataFormat = workbook.createDataFormat().getFormat("0.0")
-    val headRow = sheet.createRow()
-    ExcelCol.values().forEach {
-      headRow.getCell(it.ordinal, ExcelCellType.STRING)
-        .setCellValue(
-          if (it.header != "#") {
-            translate(it.header)
-          } else {
-            it.header
-          }
-        )
-        .setCellStyle(boldStyle)
-      sheet.setColumnWidth(it.ordinal, it.width * 256)
-    }
-    sheet.setAutoFilter()
-    val ownSkills = skillEntryDao.getSkills(ThreadLocalUserContext.getUser())
-    skillStatisticsCache.statistics.forEach { stats ->
-      val row = sheet.createRow()
-      if (ownSkills.any { it.normalizedSkill == SkillEntryDO.getNormalizedSkill(stats.skill) }) {
-        row.getCell(ExcelCol.MY_SKILL.ordinal, ExcelCellType.STRING).setCellValue("*")
+    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.getLocale()).use { workbook ->
+      val sheet = workbook.createOrGetSheet(translate("plugins.skillmatrix.title.list"))
+      val boldFont = workbook.createOrGetFont("bold", bold = true)
+      val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
+      val decimalStyle = workbook.createOrGetCellStyle("decimal")
+      decimalStyle.dataFormat = workbook.createDataFormat().getFormat("0.0")
+      val headRow = sheet.createRow()
+      ExcelCol.values().forEach {
+        headRow.getCell(it.ordinal, ExcelCellType.STRING)
+          .setCellValue(
+            if (it.header != "#") {
+              translate(it.header)
+            } else {
+              it.header
+            }
+          )
+          .setCellStyle(boldStyle)
+        sheet.setColumnWidth(it.ordinal, it.width * 256)
       }
-      row.getCell(ExcelCol.SKILL.ordinal, ExcelCellType.STRING).setCellValue(stats.skill)
-      row.getCell(ExcelCol.COUNTER.ordinal, ExcelCellType.INT).setCellValue(stats.totalCounter)
-      row.getCell(ExcelCol.RATING_MEAN.ordinal, ExcelCellType.DOUBLE)
-        .setCellValue(stats.ratingMean)
-        .setCellStyle(decimalStyle)
-      row.getCell(ExcelCol.INTEREST_MEAN.ordinal, ExcelCellType.DOUBLE)
-        .setCellValue(stats.interestsMean)
-        .setCellStyle(decimalStyle)
-    }
+      sheet.setAutoFilter()
+      val ownSkills = skillEntryDao.getSkills(ThreadLocalUserContext.getUser())
+      skillStatisticsCache.statistics.forEach { stats ->
+        val row = sheet.createRow()
+        if (ownSkills.any { it.normalizedSkill == SkillEntryDO.getNormalizedSkill(stats.skill) }) {
+          row.getCell(ExcelCol.MY_SKILL.ordinal, ExcelCellType.STRING).setCellValue("*")
+        }
+        row.getCell(ExcelCol.SKILL.ordinal, ExcelCellType.STRING).setCellValue(stats.skill)
+        row.getCell(ExcelCol.COUNTER.ordinal, ExcelCellType.INT).setCellValue(stats.totalCounter)
+        row.getCell(ExcelCol.RATING_MEAN.ordinal, ExcelCellType.DOUBLE)
+          .setCellValue(stats.ratingMean)
+          .setCellStyle(decimalStyle)
+        row.getCell(ExcelCol.INTEREST_MEAN.ordinal, ExcelCellType.DOUBLE)
+          .setCellValue(stats.interestsMean)
+          .setCellStyle(decimalStyle)
+      }
 
-    val filename = ("SkillMatrix_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx")
-    val resource = ByteArrayResource(workbook.asByteArrayOutputStream.toByteArray())
-    return ResponseEntity.ok()
-      .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-      .body(resource)
+      val filename = ("SkillMatrix_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx")
+      val resource = ByteArrayResource(workbook.asByteArrayOutputStream.toByteArray())
+      return ResponseEntity.ok()
+        .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+        .body(resource)
+    }
   }
 
   companion object {

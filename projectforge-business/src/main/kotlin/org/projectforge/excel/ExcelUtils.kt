@@ -46,7 +46,7 @@ object ExcelUtils {
    */
   @JvmStatic
   fun prepareWorkbook(): ExcelWorkbook {
-    val workbook = ExcelWorkbook.createEmptyHSSFWorkbook(ThreadLocalUserContext.getLocale())
+    val workbook = ExcelWorkbook(ThreadLocalUserContext.getLocale())
     workbook.configuration.let { cfg ->
       cfg.setDateFormats(
         ThreadLocalUserContext.getUser().excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE,

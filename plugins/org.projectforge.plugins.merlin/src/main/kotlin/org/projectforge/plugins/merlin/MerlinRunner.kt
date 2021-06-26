@@ -27,6 +27,8 @@ import de.micromata.merlin.excel.ExcelWorkbook
 import de.micromata.merlin.persistency.FileDescriptor
 import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.*
+import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
+import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions
 import mu.KotlinLogging
 import org.apache.commons.io.FilenameUtils
 import org.projectforge.business.user.UserGroupCache
@@ -190,9 +192,7 @@ open class MerlinRunner {
       val fileObject = it.first
       val templateFilename = fileObject.fileName ?: "untitled.docx"
       istream.use {
-        var doc: WordDocument? = null
-        try {
-          doc = WordDocument(istream, templateFilename)
+        WordDocument(istream, templateFilename).use { doc ->
           val runner = WordTemplateRunner(stats.templateDefinition, doc)
           val context = TemplateRunContext()
           initTemplateRunContext(context)
@@ -201,8 +201,6 @@ open class MerlinRunner {
           val filename = runner.createFilename(dbo.fileNamePattern, variables)
           val byteArray = result.asByteArrayOutputStream.toByteArray()
           return Pair(filename, byteArray)
-        } finally {
-          doc?.close()
         }
       }
     }
@@ -219,38 +217,34 @@ open class MerlinRunner {
       return null
     }
     val lastLogNumber = MerlinPlugin.ensureUserLogSubscription().lastEntryNumber
-    var workbook: ExcelWorkbook? = null
-    var wordDocument: WordDocument? = null
-    var stats: MerlinStatistics?
+    val stats: MerlinStatistics
     var serialData: SerialData?
-    try {
-      stats = getStatistics(id, true)
-      wordDocument = stats.wordDocument
+    stats = getStatistics(id, true)
+    stats.wordDocument.use { wordDocument ->
       if (wordDocument == null) {
         return null
       }
       istream.use {
-        workbook = ExcelWorkbook(istream, filename)
-        if (!SerialDataExcelReader.isMerlinSerialRunDefinition(workbook)) {
-          return null
+        ExcelWorkbook(istream, filename).use { workbook ->
+          if (!SerialDataExcelReader.isMerlinSerialRunDefinition(workbook)) {
+            return null
+          }
+          val reader = SerialDataExcelReader(workbook)
+          initTemplateRunContext(reader.templateRunContext)
+          val data = reader.serialData
+          data.template = stats.template
+          data.templateDefinition = stats.templateDefinition
+          data.template.statistics.inputVariables.add(VariableDefinition(PERSONAL_BOX_VARIABLE))
+          data.template.statistics.inputVariables.add(VariableDefinition(PERSONAL_BOX_VARIABLE_AS_PDF))
+          reader.readVariables(data.template.statistics)
+          serialData = data
         }
-        val reader = SerialDataExcelReader(workbook)
-        initTemplateRunContext(reader.templateRunContext)
-        val data = reader.serialData
-        data.template = stats.template
-        data.templateDefinition = stats.templateDefinition
-        data.template.statistics.inputVariables.add(VariableDefinition(PERSONAL_BOX_VARIABLE))
-        reader.readVariables(data.template.statistics)
-        serialData = data
       }
       val runner = SerialTemplateRunner(serialData, wordDocument)
       var zipByteArray: ByteArray = runner.run(filename)
 
       zipByteArray = postProcessSerialDocuments(zipByteArray, serialData!!, lastLogNumber)
       return Pair(runner.zipFilename, zipByteArray)
-    } finally {
-      workbook?.close()
-      wordDocument?.close()
     }
   }
 
@@ -265,15 +259,30 @@ open class MerlinRunner {
     serialData.templateDefinition = stats.templateDefinition
     val writer = SerialDataExcelWriter(serialData)
     initTemplateRunContext(writer.templateRunContext)
-    val workbook = writer.writeToWorkbook(false)
-
-    val bos = org.apache.commons.io.output.ByteArrayOutputStream()
-    bos.use {
-      workbook.pOIWorkbook.write(bos)
-      workbook.close()
-      val filename = serialData.createFilenameForSerialTemplate()
-      return Pair(filename, bos.toByteArray())
+    writer.writeToWorkbook(false).use { workbook ->
+      val bos = org.apache.commons.io.output.ByteArrayOutputStream()
+      bos.use {
+        workbook.pOIWorkbook.write(bos)
+        val filename = serialData.createFilenameForSerialTemplate()
+        return Pair(filename, bos.toByteArray())
+      }
     }
+  }
+
+  /**
+   * @return Pair of filename and pdf byte array.
+   */
+  fun convertToPdf(wordBytes: ByteArray, filename: String): Pair<String, ByteArray> {
+    ByteArrayInputStream(wordBytes).use { bais ->
+      WordDocument(bais, filename).use { word ->
+        val options = PdfOptions.create()
+        ByteArrayOutputStream().use { baos ->
+          PdfConverter.getInstance().convert(word.document, baos, options)
+          return Pair("${FilenameUtils.getBaseName(filename)}.pdf", baos.toByteArray())
+        }
+      }
+    }
+
   }
 
   /**
@@ -287,8 +296,7 @@ open class MerlinRunner {
   ): ByteArray {
     processPersonalBoxOfReceivers(zipByteArray, serialData)
     ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
-      val baos = ByteArrayOutputStream()
-      baos.use { baos ->
+      ByteArrayOutputStream().use { baos ->
         ZipOutputStream(baos).use { zipOut ->
           var zipEntry = zipInputStream.nextEntry
           while (zipEntry != null) {
@@ -302,30 +310,31 @@ open class MerlinRunner {
           }
           zipInputStream.closeEntry()
 
-          val workbook = ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.getLocale())
-          val sheet = workbook.createOrGetSheet(translate("plugins.merlin.export.logging.excel.sheetName"))
-          ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "isoTimestamp")
-          ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "level", 6)
-          ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "message", 100)
-          ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "loggerName", 30)
-          val boldFont = workbook.createOrGetFont("bold", bold = true)
-          val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
-          val headRow = sheet.createRow() // second row as head row.
-          sheet.columnDefinitions.forEachIndexed { index, it ->
-            headRow.getCell(index).setCellValue(it.columnHeadname).setCellStyle(boldStyle)
+          ExcelUtils.prepareWorkbook().use { workbook ->
+            val sheet = workbook.createOrGetSheet(translate("plugins.merlin.export.logging.excel.sheetName"))
+            ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "isoTimestamp", 20)
+            ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "level", 6)
+            ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "message", 100)
+            ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "loggerName", 60)
+            val boldFont = workbook.createOrGetFont("bold", bold = true)
+            val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
+            val headRow = sheet.createRow() // second row as head row.
+            sheet.columnDefinitions.forEachIndexed { index, it ->
+              headRow.getCell(index).setCellValue(it.columnHeadname).setCellStyle(boldStyle)
+            }
+            val logs =
+              MerlinPlugin.ensureUserLogSubscription().query(LogFilter(lastReceivedLogOrderNumber = lastLogNumber))
+                .sortedBy { it.id } // In ascending order.
+            logs.forEach { logEntry ->
+              val row = sheet.createRow()
+              ExcelUtils.autoFill(row, logEntry)
+            }
+            val logViewerBytes = workbook.asByteArrayOutputStream.toByteArray()
+            val logViewerEntry = ZipEntry("${translate("plugins.merlin.export.logging.excel.logBaseFilename")}.xlsx")
+            zipOut.putNextEntry(logViewerEntry)
+            zipOut.write(logViewerBytes)
+            zipOut.closeEntry()
           }
-          val logs =
-            MerlinPlugin.ensureUserLogSubscription().query(LogFilter(lastReceivedLogOrderNumber = lastLogNumber))
-          logs.forEach { logEntry ->
-            val row = sheet.createRow()
-            ExcelUtils.autoFill(row, logEntry)
-          }
-          val logViewerBytes = workbook.asByteArrayOutputStream.toByteArray()
-          workbook.close()
-          val logViewerEntry = ZipEntry("${translate("plugins.merlin.export.logging.excel.logBaseFilename")}.xlsx")
-          zipOut.putNextEntry(logViewerEntry)
-          zipOut.write(logViewerBytes)
-          zipOut.closeEntry()
         }
         return baos.toByteArray()
       }
@@ -335,30 +344,45 @@ open class MerlinRunner {
   private fun processPersonalBoxOfReceivers(zipByteArray: ByteArray, serialData: SerialData) {
     if (serialData.entries.none {
         val personalBoxVariable = it.get(PERSONAL_BOX_VARIABLE)
-        personalBoxVariable != null && personalBoxVariable is String && personalBoxVariable.isNotEmpty()
+        val personalBoxUsed =
+          personalBoxVariable != null && personalBoxVariable is String && personalBoxVariable.isNotEmpty()
+
+        val personalBoxAsPdfVariable = it.get(PERSONAL_BOX_VARIABLE_AS_PDF)
+        val personalBoxAsPdfUsed =
+          personalBoxAsPdfVariable != null && personalBoxAsPdfVariable is String && personalBoxAsPdfVariable.isNotEmpty()
+
+        personalBoxUsed || personalBoxAsPdfUsed
       }) {
-      // No #PersonalBox value given. Nothing to do.
+      // No #PersonalBox value or #PersonalBoxAsPdf given. Nothing to do.
       return
     }
     if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
       log.error { "No DataTransfer activated, can't use personal box. Please contact your administrator to activate the plugin 'DataTransfer'." }
       return
     }
-    log.info { "Using #PersonalBox for sending documents via DataTransfer." }
+    log.info { "Using $PERSONAL_BOX_VARIABLE/$PERSONAL_BOX_VARIABLE_AS_PDF for sending documents via DataTransfer." }
     // First, check all usernames:
-    val users = mutableListOf<PFUserDO?>()
+    val docReceivers = mutableListOf<PFUserDO?>()
+    val pdfReceivers = mutableListOf<PFUserDO?>()
+    var validUsernames = true
     serialData.entries.forEach { variables ->
-      val username = variables.get(PERSONAL_BOX_VARIABLE)
-      if (username != null) {
-        val user = UserGroupCache.getInstance().getUser("$username") // username is of type Any.
-        if (user == null) {
-          log.error { "User with username '$username' not found. No document will be send to any personal user box. Aborting." }
-          return
-        }
-        users.add(user)
-      } else {
-        users.add(null)
+      val personalBoxUserResult = getUser(variables.get(PERSONAL_BOX_VARIABLE))
+      val personalBoxAsPdfUserResult = getUser(variables.get(PERSONAL_BOX_VARIABLE_AS_PDF))
+      if (!personalBoxUserResult.first || !personalBoxAsPdfUserResult.first) {
+        validUsernames = false
       }
+      val docReceiver = personalBoxUserResult.second
+      docReceivers.add(docReceiver)
+      val pdfReceiver = personalBoxAsPdfUserResult.second
+      pdfReceivers.add(pdfReceiver)
+      if (docReceiver != null && pdfReceiver != null && docReceiver != pdfReceiver) {
+        validUsernames = false
+        log.error { "Can't send Word® file and PDF file to different users: '${docReceiver.getFullname()}' != '${pdfReceiver.getFullname()}'!" }
+      }
+    }
+    if (!validUsernames) {
+      log.error { "Errors for personal box users occured. No document will be send to any personal user box. Aborting." }
+      return
     }
     var counter = 0
     ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
@@ -367,36 +391,72 @@ open class MerlinRunner {
         if (zipEntry.isDirectory) {
           continue
         }
-        if (users.size <= counter) {
-          log.warn { "Oups, found more generated files than serial variables! Stopping #PersonalBox processing" }
+        if (docReceivers.size <= counter || pdfReceivers.size <= counter) {
+          log.warn { "Oups, found more generated files than serial variables! Stopping #PersonalBox[AsPdf] processing" }
           break
         }
-        val user = users[counter++]
-        if (user != null) {
+        val docReceiver = docReceivers[counter]
+        val pdfReceiver = pdfReceivers[counter++]
+        if (docReceiver != null || pdfReceiver != null) {
+          val receiver = docReceiver ?: pdfReceiver!!
           try {
             zipEntry.name
-            val personalBox = dataTransferAreaDao.ensurePersonalBox(user.id)
+            val personalBox = dataTransferAreaDao.ensurePersonalBox(receiver.id)
             if (personalBox == null) {
-              log.error { "Can't get personal box of user '${user.username}. Skipping user." }
+              log.error { "Can't get personal box of user '${receiver.getFullname()}. Skipping user." }
               continue
             }
-            attachmentsService.addAttachment(
-              dataTransferAreaPagesRest.jcrPath!!,
-              fileInfo = FileInfo(zipEntry.name, fileSize = zipEntry.size),
-              content = zipInputStream.readAllBytes(),
-              baseDao = dataTransferAreaDao,
-              obj = personalBox,
-              accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
-            )
-            log.info("Document '${zipEntry.name}' of size ${FormatterUtils.formatBytes(zipEntry.size)} put in the personal box (DataTransfer) of '${user.displayName}'.")
+            val wordBytes = zipInputStream.readAllBytes()
+            if (docReceiver != null) {
+              attachmentsService.addAttachment(
+                dataTransferAreaPagesRest.jcrPath!!,
+                fileInfo = FileInfo(zipEntry.name, fileSize = zipEntry.size),
+                content = wordBytes,
+                baseDao = dataTransferAreaDao,
+                obj = personalBox,
+                accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
+              )
+              log.info("Document '${zipEntry.name}' of size ${FormatterUtils.formatBytes(wordBytes.size)} put in the personal box (DataTransfer) of '${receiver.displayName}'.")
+            }
+            if (pdfReceiver != null) {
+              val pdfResult = convertToPdf(wordBytes, zipEntry.name)
+              val pdfFilename = pdfResult.first
+              val pdfBytes = pdfResult.second
+              attachmentsService.addAttachment(
+                dataTransferAreaPagesRest.jcrPath!!,
+                fileInfo = FileInfo(pdfFilename, fileSize = pdfBytes.size.toLong()),
+                content = pdfBytes,
+                baseDao = dataTransferAreaDao,
+                obj = personalBox,
+                accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
+              )
+              log.info("Document '$pdfFilename' of size ${FormatterUtils.formatBytes(pdfBytes.size)} put in the personal box (DataTransfer) of '${receiver.displayName}'.")
+            }
           } catch (ex: Exception) {
-            log.error("Can't put document into user '${user.username}' personal box: ${ex.message}", ex)
+            log.error("Can't put document into user '${receiver.getFullname()}' personal box: ${ex.message}", ex)
           }
         }
         zipEntry = zipInputStream.nextEntry
       }
       zipInputStream.closeEntry()
     }
+  }
+
+  private fun getUser(userObject: Any?): Pair<Boolean, PFUserDO?> {
+    if (userObject == null) {
+      return Pair(true, null) // OK, no user specified.
+    }
+    val userString = "$userObject" // Stringify
+    if (userString.isBlank()) {
+      return Pair(true, null) // OK, no user specified.
+    }
+    val user = UserGroupCache.getInstance().getUser(userString.trim())
+      ?: UserGroupCache.getInstance().getUserByFullname(userString.trim())
+    if (user != null) {
+      return Pair(true, user)
+    }
+    log.error { "User with username/full name '$userString' not found. No document will be send to any personal user box." }
+    return Pair(false, null)
   }
 
   private fun convertVariables(
@@ -466,6 +526,7 @@ open class MerlinRunner {
 
   companion object {
     private const val PERSONAL_BOX_VARIABLE = "#PersonalBox"
+    private const val PERSONAL_BOX_VARIABLE_AS_PDF = "#PersonalBoxAsPdf"
     fun initTemplateRunContext(templateRunContext: TemplateRunContext) {
       val contextUser = ThreadLocalUserContext.getUser()
       templateRunContext.setLocale(DateFormats.getFormatString(DateFormatType.DATE), contextUser.locale)

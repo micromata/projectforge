@@ -140,9 +140,7 @@ class MerlinPagesRest :
       layout.add(
         UIAlert(
           """'# TODO
-* Excel-Export in Adressenliste
 * Variable-Administration in UI
-* PDF-Export in Serienausführung
 * Demo templates for creating (menu entry in list view)
 * Doku: #PersonalBox etc.""",
           color = UIColor.WARNING,

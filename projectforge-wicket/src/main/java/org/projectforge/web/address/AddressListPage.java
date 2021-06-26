@@ -334,7 +334,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
             return;
           }
           final String filename = "ProjectForge-AddressExport_" + DateHelper.getDateAsFilenameSuffix(new Date())
-                  + ".xls";
+                  + ".xlsx";
           DownloadUtils.setDownloadTarget(xls, filename);
         }
       };
