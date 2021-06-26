@@ -61,6 +61,10 @@ open class MerlinTemplateDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   @get:Column(name = "strongly_restricted_filenames")
   open var stronglyRestrictedFilenames: Boolean? = null
 
+  @PropertyInfo(i18nKey = "plugins.merlin.format.pdf", tooltip = "plugins.merlin.format.pdf.info")
+  @get:Column(name = "pdf_export")
+  open var pdfExport: Boolean? = null
+
   /**
    * These users have full read/write/execute access.
    */
