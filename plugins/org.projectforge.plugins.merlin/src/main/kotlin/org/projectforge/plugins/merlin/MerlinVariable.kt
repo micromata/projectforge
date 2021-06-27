@@ -64,16 +64,14 @@ class MerlinVariable(
   var defined: Boolean = false
   @PropertyInfo(i18nKey = "plugins.merlin.variable.dependsOn")
   var dependsOn: String? = null
-  @PropertyInfo(i18nKey = "plugins.merlin.variable.mapping")
   var mapping: Map<Any, Any>? = null
+
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.mapping", additionalI18nKey = "plugins.merlin.variable.mapping.info")
+  var mappingText: String? = null
 
   @get:JsonProperty
   val allowedValuesFormatted: String?
     get() = allowedValues?.joinToString { "$it" }
-
-  @get:JsonProperty
-  val mappingFormatted: String?
-    get() = mapping?.entries?.joinToString { "${it.key}=>${it.value}" }
 
   val dependent: Boolean
     get() = dependsOn != null
