@@ -119,21 +119,9 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
         UISelect(
           "currentVariable.type",
           lc,
-          values = VariableType.values().map { UISelectValue(it, translate("plugins.merlin.variable.type.${it.name}")) })
+          values = VariableType.values()
+            .map { UISelectValue(it, translate("plugins.merlin.variable.type.${it.name}")) })
       )
-      when (variable.type) {
-        VariableType.STRING -> {
-          leftCol.add(UITextArea("allowedValues", lc))
-        }
-        VariableType.FLOAT -> {
-          leftCol.add(UIInput("minimumValue", lc, dataType = UIDataType.DECIMAL))
-          leftCol.add(UIInput("maximumValue", lc, dataType = UIDataType.DECIMAL))
-        }
-        VariableType.INT -> {
-          leftCol.add(UIInput("minimumValue", lc, dataType = UIDataType.INT))
-          leftCol.add(UIInput("maximumValue", lc, dataType = UIDataType.INT))
-        }
-      }
     }
     val rightCol = UICol(UILength(md = 6))
     if (variable.masterVariable != true) {
@@ -148,30 +136,43 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
       )
     }
 
-    val bottomCol = UICol()
+    val fieldset = UIFieldset(UILength(md = 12, lg = 12))
+    fieldset.add(
+      UIRow()
+        .add(leftCol)
+        .add(rightCol)
+    )
     if (!variable.dependent) {
       rightCol.add(UICheckbox("currentVariable.required", lc))
       rightCol.add(UICheckbox("currentVariable.unique", lc))
+
+      when (variable.type) {
+        VariableType.STRING -> {
+          fieldset.add(UITextArea("allowedValues", lc))
+        }
+        VariableType.FLOAT, VariableType.INT -> {
+          val dataType = if (variable.type == VariableType.FLOAT) UIDataType.DECIMAL else UIDataType.INT
+          fieldset.add(
+            UIRow().add(
+              UICol(md = 6)
+                .add(UIInput("minimumValue", lc, dataType = dataType))
+            ).add(
+              UICol(md = 6)
+                .add(UIInput("maximumValue", lc, dataType = dataType))
+            )
+          )
+        }
+      }
     } else {
-      bottomCol.add(UITextArea("currentVariable.mappingText", lc))
+      fieldset.add(UITextArea("currentVariable.mappingText", lc))
     }
 
-    bottomCol.add(
+    fieldset.add(
       UITextArea("currentVariable.description", lc)
     )
 
     val layout = UILayout("plugins.merlin.variable.edit")
-      .add(
-        UIFieldset(UILength(md = 12, lg = 12))
-          .add(
-            UIRow()
-              .add(leftCol)
-              .add(rightCol)
-          )
-          .add(
-            UIRow().add(bottomCol)
-          )
-      )
+      .add(fieldset)
     layout.watchFields.clear()
     layout.watchFields.addAll(arrayOf("currentVariable.type", "currentVariable.dependsOn"))
     LayoutUtils.process(layout)
