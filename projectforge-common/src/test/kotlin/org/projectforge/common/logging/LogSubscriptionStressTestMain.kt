@@ -36,7 +36,7 @@ private val log = KotlinLogging.logger {}
 class LogSubscriptionTestMain {
   private val threads = ArrayList<Thread>()
 
-  private val testLogger2: Logger = LoggerFactory.getLogger(MessageParam::class.java)
+  private val testLogger2: Logger = LoggerFactory.getLogger("org.projectforge.common.i18n.MessageParam")
 
   fun test() {
     val subscription1 = LoggerMemoryAppender.getInstance()
