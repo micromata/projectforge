@@ -24,10 +24,9 @@
 package org.projectforge.plugins.merlin.rest
 
 import de.micromata.merlin.word.templating.VariableType
-import mu.KotlinLogging
+import org.projectforge.framework.i18n.translate
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.merlin.MerlinTemplate
-import org.projectforge.plugins.merlin.MerlinTemplateDao
 import org.projectforge.plugins.merlin.MerlinVariable
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -36,13 +35,10 @@ import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Modal dialog showing details of an attachment with the functionality to download, modify and delete it.
@@ -50,9 +46,6 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.URL}/merlinvariables")
 class MerlinVariablePageRest : AbstractDynamicPageRest() {
-  @Autowired
-  private lateinit var merlinTemplateDao: MerlinTemplateDao
-
   /**
    * Returns the form for a single attachment, including file properties as well as editable properties such
    * as file name and description.
@@ -126,21 +119,26 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
         UISelect(
           "currentVariable.type",
           lc,
-          values = VariableType.values().map { UISelectValue(it, it.name) })
+          values = VariableType.values().map { UISelectValue(it, translate("plugins.merlin.variable.type.${it.name}")) })
       )
-      if (variable.type == VariableType.STRING) {
-        leftCol.add(UITextArea("allowedValues", lc))
-      } else if (variable.type == VariableType.FLOAT) {
-        leftCol.add(UIInput("minimumValue", lc, dataType = UIDataType.DECIMAL))
-        leftCol.add(UIInput("maximumValue", lc, dataType = UIDataType.DECIMAL))
-      } else if (variable.type == VariableType.INT) {
-        leftCol.add(UIInput("minimumValue", lc, dataType = UIDataType.INT))
-        leftCol.add(UIInput("maximumValue", lc, dataType = UIDataType.INT))
+      when (variable.type) {
+        VariableType.STRING -> {
+          leftCol.add(UITextArea("allowedValues", lc))
+        }
+        VariableType.FLOAT -> {
+          leftCol.add(UIInput("minimumValue", lc, dataType = UIDataType.DECIMAL))
+          leftCol.add(UIInput("maximumValue", lc, dataType = UIDataType.DECIMAL))
+        }
+        VariableType.INT -> {
+          leftCol.add(UIInput("minimumValue", lc, dataType = UIDataType.INT))
+          leftCol.add(UIInput("maximumValue", lc, dataType = UIDataType.INT))
+        }
       }
     }
     val rightCol = UICol(UILength(md = 6))
     if (variable.masterVariable != true) {
-      val dependsOnCandidates = dto.variables.filter { it.id != variable.id && !it.allowedValues.isNullOrEmpty() }.map { UISelectValue(it.name, it.name) }
+      val dependsOnCandidates = dto.variables.filter { it.id != variable.id && !it.allowedValues.isNullOrEmpty() }
+        .map { UISelectValue(it.name, it.name) }
       rightCol.add(
         UISelect(
           "currentVariable.dependsOn",
@@ -149,10 +147,18 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
         )
       )
     }
+
+    val bottomCol = UICol()
     if (!variable.dependent) {
       rightCol.add(UICheckbox("currentVariable.required", lc))
       rightCol.add(UICheckbox("currentVariable.unique", lc))
+    } else {
+      bottomCol.add(UITextArea("currentVariable.mappingText", lc))
     }
+
+    bottomCol.add(
+      UITextArea("currentVariable.description", lc)
+    )
 
     val layout = UILayout("plugins.merlin.variable.edit")
       .add(
@@ -163,12 +169,7 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
               .add(rightCol)
           )
           .add(
-            UIRow().add(
-              UICol()
-                .add(
-                  UITextArea("currentVariable.description", lc)
-                )
-            )
+            UIRow().add(bottomCol)
           )
       )
     layout.watchFields.clear()
