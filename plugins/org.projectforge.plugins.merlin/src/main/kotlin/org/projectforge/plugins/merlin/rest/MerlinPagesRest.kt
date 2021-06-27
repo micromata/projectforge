@@ -29,7 +29,6 @@ import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
 import org.projectforge.plugins.merlin.*
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -105,7 +104,7 @@ class MerlinPagesRest :
     User.restoreDisplayNames(dto.accessUsers, userService)
 
     dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
-    dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
+    buildAccessGroupAsString(dto)
     dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
 
     obj.id?.let { id ->
@@ -358,6 +357,13 @@ class MerlinPagesRest :
                     .add(accessGroups)
                 )
             )
+            .add(
+              UIRow()
+                .add(
+                  UICol()
+                    .add(UIReadOnlyField("accessGroupsAsString", label = "plugins.merlin.accessGroups"))
+                )
+            )
         )
         .add(
           UIFieldset(title = "attachment.list")
@@ -434,5 +440,16 @@ class MerlinPagesRest :
           )
         )
     }
+  }
+
+  internal fun buildAccessGroupAsString(dto: MerlinTemplate) {
+    if (dto.accessGroups.isNullOrEmpty()) {
+      dto.accessGroupsAsString = "-"
+      return
+    }
+    dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
+    val accessGroupUsers =
+      groupService.getGroupUsers(User.toIntArray(dto.accessGroupIds)).joinToString { it.displayName }
+    dto.accessGroupsAsString += ": $accessGroupUsers"
   }
 }
