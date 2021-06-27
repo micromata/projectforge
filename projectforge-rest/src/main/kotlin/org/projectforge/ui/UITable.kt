@@ -26,7 +26,8 @@ package org.projectforge.ui
 open class UITable(
   val id: String,
   val columns: MutableList<UITableColumn> = mutableListOf(),
-  listPageTable: Boolean = false,
+  val listPageTable: Boolean = false,
+  var rowClickPostUrl: String? = null,
   /**
    * If given, the entries of the table will be refreshed by calling this post url. This works only, if the
    * entries of the table are given as variables (see LogViewer as a reference).

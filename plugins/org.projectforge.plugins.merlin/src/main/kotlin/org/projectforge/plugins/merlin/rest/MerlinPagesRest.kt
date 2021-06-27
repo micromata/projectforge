@@ -394,7 +394,7 @@ class MerlinPagesRest :
     }
 
     private fun createVariableTable(): UITable {
-      return UITable("variables")
+      return UITable("variables", rowClickPostUrl = RestResolver.getRestUrl(MerlinVariablePageRest::class.java, "editVariable"))
         .add(UITableColumn("name", title = "plugins.merlin.variable.name", sortable = false))
         .add(UITableColumn("type", title = "plugins.merlin.variable.type", sortable = false))
         .add(
