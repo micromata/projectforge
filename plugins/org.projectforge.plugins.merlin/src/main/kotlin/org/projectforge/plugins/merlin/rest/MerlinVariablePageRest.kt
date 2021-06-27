@@ -23,16 +23,20 @@
 
 package org.projectforge.plugins.merlin.rest
 
+import de.micromata.merlin.word.templating.VariableType
 import mu.KotlinLogging
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.merlin.MerlinTemplate
+import org.projectforge.plugins.merlin.MerlinTemplateDO
 import org.projectforge.plugins.merlin.MerlinTemplateDao
+import org.projectforge.plugins.merlin.MerlinVariable
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
-import org.projectforge.ui.ResponseAction
-import org.projectforge.ui.TargetType
-import org.projectforge.ui.UILayout
+import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -45,21 +49,49 @@ private val log = KotlinLogging.logger {}
  * Modal dialog showing details of an attachment with the functionality to download, modify and delete it.
  */
 @RestController
-@RequestMapping("${Rest.URL}/merlin")
+@RequestMapping("${Rest.URL}/merlinvariables")
 class MerlinVariablePageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var merlinTemplateDao: MerlinTemplateDao
 
   /**
+   * Returns the form for a single attachment, including file properties as well as editable properties such
+   * as file name and description.
+   * The form supports also the buttons: download, delete and update.
+   * The react path of this should look like: 'react/attachment/dynamic/42?category=contract...'
+   * @param id: Id of data object with attachments.
+   */
+  @GetMapping("dynamic")
+  fun getForm(
+    @RequestParam("id", required = true) id: Int,
+    request: HttpServletRequest
+  ): FormLayoutData {
+    val dto = ExpiringSessionAttributes.getAttribute(request.session, "${this::class.java.name}:$id")
+    if (dto == null || dto !is MerlinTemplate) {
+      throw InternalError("Please try again.")
+    }
+    return FormLayoutData(dto, createAttachmentLayout(dto), createServerData(request))
+  }
+
+  /**
    * For editing variables.
    */
-  @PostMapping("editVariable/{variable}")
+  @PostMapping("edit/{variable}")
   fun getForm(
     @PathVariable("variable", required = true) variable: String,
     @Valid @RequestBody dto: MerlinTemplate, request: HttpServletRequest
   ): ResponseEntity<*> {
-    log.info { "To be implement: Editing of variable '$variable'." }
-    dto.name = "Hurra"
+    ExpiringSessionAttributes.setAttribute(request.session, "${this::class.java.name}:${dto.id}", dto, 1)
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(
+          PagesResolver.getDynamicPageUrl(
+            this::class.java,
+            id = dto.id,
+            absolute = true
+          ), targetType = TargetType.MODAL
+        )
+      )
 /*    merlinTemplateDao.
     services.getDataObject(pagesRest, id) // Check data object availability.
     val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
@@ -74,37 +106,58 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
       encryptionSupport = true,
       data = data,
     )*/
-    return ResponseEntity.ok(
-      ResponseAction(targetType = TargetType.UPDATE)
-        .addVariable("data", dto)
-    )
   }
 
   /**
    * Will be called, if the user wants to see the encryption options.
    */
-/*  @PostMapping(RestPaths.WATCH_FIELDS)
-  fun watchFields(@Valid @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>): ResponseEntity<ResponseAction> {
-    val data = postData.data
+  @PostMapping(RestPaths.WATCH_FIELDS)
+  fun watchFields(@Valid @RequestBody postData: PostData<MerlinTemplate>): ResponseEntity<ResponseAction> {
+    val dto = postData.data
     // write access is always true, otherwise watch field wasn't registered.
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE)
         .addVariable(
           "ui",
-          createAttachmentLayout(
-            data.id,
-            data.category,
-            data.fileId,
-            data.listId,
-            data.attachment,
-            writeAccess = true,
-            encryptionSupport = true,
-            data = data
-          )
+          createAttachmentLayout(dto)
         )
-        .addVariable("data", data)
+        .addVariable("data", dto)
     )
   }
 
-*/
+  private fun createAttachmentLayout(dto: MerlinTemplate): UILayout {
+    val lc = LayoutContext(MerlinVariable::class.java)
+    val layout = UILayout("plugins.merlin.variable.edit")
+      .add(
+        UIFieldset(UILength(md = 12, lg = 12))
+          .add(
+            UIRow().add(
+              UICol(UILength(md = 6))
+                .add(UIReadOnlyField("name", lc))
+                .add(UISelect("type", lc, values = VariableType.values().map { UISelectValue(it, it.name) }))
+            )
+          )
+          .add(
+            UIRow().add(
+              UICol(UILength(md = 6))
+                .add(
+                  UICheckbox("required", lc)
+                )
+                .add(
+                  UICheckbox("unique", lc)
+                )
+            )
+          )
+          .add(
+            UIRow().add(
+              UICol()
+                .add(
+                  UIReadOnlyField("description", lc)
+                )
+            )
+          )
+      )
+    LayoutUtils.process(layout)
+    return layout
+  }
 }

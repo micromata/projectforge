@@ -24,10 +24,11 @@ function DynamicTableRow(
 
     const { template } = data;
 
-    const handleRowClick = (rowId) => (event) => {
+    const handleRowClick = () => (event) => {
         event.stopPropagation();
+        console.log(row);
         fetch(
-            getServiceURL(`${rowClickPostUrl}/${rowId}`),
+            getServiceURL(`${rowClickPostUrl}/${row.id}`),
             {
                 credentials: 'include',
                 method: 'POST',
@@ -47,19 +48,6 @@ function DynamicTableRow(
             })
             // eslint-disable-next-line no-alert
             .catch((error) => alert(`Internal error: ${error}`));
-        /*
-        console.log(rowId);
-        callAction({
-            responseAction: {
-                targetType: 'MODAL',
-                url: evalServiceURL(`${rowClickPostUrl}/${rowId}`, {
-                    category,
-                    fileId: entry.fileId,
-                    listId,
-                }),
-            },
-        });
-        */
     };
 
     return React.useMemo(() => (
@@ -69,7 +57,7 @@ function DynamicTableRow(
                 { [style.highlighted]: highlightRow === true },
                 { [style.deleted]: row.deleted === true },
             )}
-            onClick={rowClickPostUrl ? handleRowClick(row.id) : undefined}
+            onClick={rowClickPostUrl ? handleRowClick() : undefined}
         >
             {columns.map((
                 {
