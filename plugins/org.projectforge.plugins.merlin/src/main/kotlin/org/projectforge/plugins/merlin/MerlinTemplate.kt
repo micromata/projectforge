@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.merlin
 
-import de.micromata.merlin.word.templating.DependentVariableDefinition
-import de.micromata.merlin.word.templating.VariableDefinition
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
@@ -39,6 +37,7 @@ class MerlinTemplate(
   var adminsAsString: String? = null,
   var accessGroups: List<Group>? = null,
   var accessGroupsAsString: String? = null,
+  var accessGroupIds: String? = null,
   var accessUsers: List<User>? = null,
   var accessUsersAsString: String? = null,
   var fileNamePattern: String? = null,
