@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import de.micromata.merlin.word.templating.DependentVariableDefinition
 import de.micromata.merlin.word.templating.VariableDefinition
 import de.micromata.merlin.word.templating.VariableType
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.ui.UIColor
@@ -37,21 +38,33 @@ import java.math.BigDecimal
  */
 class MerlinVariable(
   val id: Int,
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.name")
   val name: String,
   definition: VariableDefinition? = null,
   dependentVariableDefinition: DependentVariableDefinition? = null,
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.used", additionalI18nKey = "plugins.merlin.variable.used.info")
   var used: Boolean? = null,
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.master", additionalI18nKey = "plugins.merlin.variable.master.info")
   var masterVariable: Boolean? = null,
 ) {
+  @PropertyInfo(i18nKey = "description")
   var description: String? = null
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.required")
   var required: Boolean = false
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.unique", additionalI18nKey = "plugins.merlin.variable.unique.info")
   var unique: Boolean = false
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.minValue")
   var minimumValue: Any? = null
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.maxValue")
   var maximumValue: Any? = null
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.allowedValues")
   var allowedValues: List<Any>? = null
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.type")
   var type: VariableType = VariableType.STRING
   var defined: Boolean = false
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.dependsOn")
   var dependsOn: String? = null
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.mapping")
   var mapping: Map<Any, Any>? = null
 
   @get:JsonProperty
