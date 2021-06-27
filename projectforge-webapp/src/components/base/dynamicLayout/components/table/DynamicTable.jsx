@@ -11,6 +11,7 @@ function DynamicTable(
     {
         columns,
         id,
+        rowClickPostUrl,
         refreshUrl,
         refreshIntervalSeconds,
         autoRefreshFlag,
@@ -70,6 +71,7 @@ function DynamicTable(
                             columns={columns}
                             row={row}
                             highlightRow={data.highlightRowId === row.id}
+                            rowClickPostUrl={rowClickPostUrl}
                         />
                     ))}
                 </tbody>
@@ -90,6 +92,7 @@ DynamicTable.propTypes = {
         titleIcon: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
     id: PropTypes.string,
+    rowClickPostUrl: PropTypes.string,
     refreshUrl: PropTypes.string,
     refreshIntervalSeconds: PropTypes.number,
     autoRefreshFlag: PropTypes.string,
@@ -97,6 +100,7 @@ DynamicTable.propTypes = {
 
 DynamicTable.defaultProps = {
     id: undefined,
+    rowClickPostUrl: undefined,
     refreshUrl: undefined,
     refreshIntervalSeconds: 10, // 10 seconds as default intervall.
     autoRefreshFlag: undefined,

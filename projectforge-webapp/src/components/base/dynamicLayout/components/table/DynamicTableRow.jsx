@@ -5,21 +5,71 @@ import { tableColumnsPropType } from '../../../../../utilities/propTypes';
 import Formatter from '../../../Formatter';
 import DynamicCustomized from '../customized';
 import style from './DynamicTable.module.scss';
+import { DynamicLayoutContext } from '../../context';
+import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
 
 function DynamicTableRow(
     {
         columns,
         row,
         highlightRow,
+        rowClickPostUrl,
     },
 ) {
-    return (
+    const {
+        callAction,
+        data,
+        setData,
+    } = React.useContext(DynamicLayoutContext);
+
+    const { template } = data;
+
+    const handleRowClick = (rowId) => (event) => {
+        event.stopPropagation();
+        fetch(
+            getServiceURL(`${rowClickPostUrl}/${rowId}`),
+            {
+                credentials: 'include',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({
+                    ...data,
+                }),
+            },
+        )
+            .then(handleHTTPErrors)
+            .then((body) => body.json())
+            .then((json) => {
+                callAction({ responseAction: json });
+            })
+            // eslint-disable-next-line no-alert
+            .catch((error) => alert(`Internal error: ${error}`));
+        /*
+        console.log(rowId);
+        callAction({
+            responseAction: {
+                targetType: 'MODAL',
+                url: evalServiceURL(`${rowClickPostUrl}/${rowId}`, {
+                    category,
+                    fileId: entry.fileId,
+                    listId,
+                }),
+            },
+        });
+        */
+    };
+
+    return React.useMemo(() => (
         <tr
             className={classNames(
                 style.clickable,
                 { [style.highlighted]: highlightRow === true },
                 { [style.deleted]: row.deleted === true },
             )}
+            onClick={rowClickPostUrl ? handleRowClick(row.id) : undefined}
         >
             {columns.map((
                 {
@@ -42,7 +92,7 @@ function DynamicTableRow(
                 </td>
             ))}
         </tr>
-    );
+    ), [setData, template]);
 }
 
 DynamicTableRow.propTypes = {
@@ -52,10 +102,12 @@ DynamicTableRow.propTypes = {
         deleted: PropTypes.bool,
     }).isRequired,
     highlightRow: PropTypes.bool,
+    rowClickPostUrl: PropTypes.string,
 };
 
 DynamicTableRow.defaultProps = {
     highlightRow: false,
+    rowClickPostUrl: undefined,
 };
 
 export default DynamicTableRow;
