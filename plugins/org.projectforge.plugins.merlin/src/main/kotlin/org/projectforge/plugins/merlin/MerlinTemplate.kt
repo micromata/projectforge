@@ -45,6 +45,10 @@ class MerlinTemplate(
   var pdfExport: Boolean? = null,
   var wordTemplateFileName: String? = null,
   var excelTemplateDefinitionFileName: String? = null,
+  /**
+   * Used by [org.projectforge.plugins.merlinMerlinVariablePageRest]
+   */
+  var currentVariable: MerlinVariable? = null,
   override var attachmentsCounter: Int? = null,
   override var attachmentsSize: Long? = null,
 ) : BaseDTO<MerlinTemplateDO>(id), AttachmentsSupport {

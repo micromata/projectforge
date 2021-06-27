@@ -26,7 +26,6 @@ function DynamicTableRow(
 
     const handleRowClick = () => (event) => {
         event.stopPropagation();
-        console.log(row);
         fetch(
             getServiceURL(`${rowClickPostUrl}/${row.id}`),
             {
