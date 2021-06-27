@@ -27,7 +27,6 @@ import de.micromata.merlin.word.templating.VariableType
 import mu.KotlinLogging
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.merlin.MerlinTemplate
-import org.projectforge.plugins.merlin.MerlinTemplateDO
 import org.projectforge.plugins.merlin.MerlinTemplateDao
 import org.projectforge.plugins.merlin.MerlinVariable
 import org.projectforge.rest.config.Rest
@@ -70,18 +69,23 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
     if (dto == null || dto !is MerlinTemplate) {
       throw InternalError("Please try again.")
     }
-    return FormLayoutData(dto, createAttachmentLayout(dto), createServerData(request))
+    return FormLayoutData(dto, createEditLayout(dto), createServerData(request))
   }
 
   /**
-   * For editing variables.
+   * For editing variables. Must be called first for storing current state of all variables in [ExpiringSessionAttributes]
+   * before redirecting to dynamic page (where the values will get from the session).
+   * Post to dynamic page isn't yet available, so this workaround is needed.
    */
-  @PostMapping("edit/{variable}")
+  @PostMapping("edit/{variableId}")
   fun getForm(
-    @PathVariable("variable", required = true) variable: String,
+    @PathVariable("variableId", required = true) variableId: Int,
     @Valid @RequestBody dto: MerlinTemplate, request: HttpServletRequest
   ): ResponseEntity<*> {
-    ExpiringSessionAttributes.setAttribute(request.session, "${this::class.java.name}:${dto.id}", dto, 1)
+    dto.currentVariable =
+      getCurrentVariable(dto, variableId) ?: throw InternalError("Variable with given id not found.")
+    // 10 minutes (if user reloads page)
+    ExpiringSessionAttributes.setAttribute(request.session, "${this::class.java.name}:${dto.id}", dto, 10)
     return ResponseEntity.ok()
       .body(
         ResponseAction(
@@ -92,20 +96,6 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
           ), targetType = TargetType.MODAL
         )
       )
-/*    merlinTemplateDao.
-    services.getDataObject(pagesRest, id) // Check data object availability.
-    val data = AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
-    data.attachment = services.getAttachment(pagesRest, data)
-    val actionListener = services.getListener(category)
-    val layout = actionListener.createAttachmentLayout(
-      id,
-      category,
-      fileId,
-      listId,
-      attachment = data.attachment,
-      encryptionSupport = true,
-      data = data,
-    )*/
   }
 
   /**
@@ -119,45 +109,85 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
       ResponseAction(targetType = TargetType.UPDATE)
         .addVariable(
           "ui",
-          createAttachmentLayout(dto)
+          createEditLayout(dto)
         )
         .addVariable("data", dto)
     )
   }
 
-  private fun createAttachmentLayout(dto: MerlinTemplate): UILayout {
+  private fun createEditLayout(dto: MerlinTemplate): UILayout {
+    val variable = dto.currentVariable ?: throw InternalError("No current variable given to edit.")
     val lc = LayoutContext(MerlinVariable::class.java)
+
+    val leftCol = UICol(UILength(md = 6))
+      .add(UIReadOnlyField("currentVariable.name", lc))
+    if (!variable.dependent) {
+      leftCol.add(
+        UISelect(
+          "currentVariable.type",
+          lc,
+          values = VariableType.values().map { UISelectValue(it, it.name) })
+      )
+      if (variable.type == VariableType.STRING) {
+        leftCol.add(UITextArea("allowedValues", lc))
+      } else if (variable.type == VariableType.FLOAT) {
+        leftCol.add(UIInput("minimumValue", lc, dataType = UIDataType.DECIMAL))
+        leftCol.add(UIInput("maximumValue", lc, dataType = UIDataType.DECIMAL))
+      } else if (variable.type == VariableType.INT) {
+        leftCol.add(UIInput("minimumValue", lc, dataType = UIDataType.INT))
+        leftCol.add(UIInput("maximumValue", lc, dataType = UIDataType.INT))
+      }
+    }
+    val rightCol = UICol(UILength(md = 6))
+    if (variable.masterVariable != true) {
+      val dependsOnCandidates = dto.variables.filter { it.id != variable.id && !it.allowedValues.isNullOrEmpty() }.map { UISelectValue(it.name, it.name) }
+      rightCol.add(
+        UISelect(
+          "currentVariable.dependsOn",
+          lc,
+          values = dependsOnCandidates
+        )
+      )
+    }
+    if (!variable.dependent) {
+      rightCol.add(UICheckbox("currentVariable.required", lc))
+      rightCol.add(UICheckbox("currentVariable.unique", lc))
+    }
+
     val layout = UILayout("plugins.merlin.variable.edit")
       .add(
         UIFieldset(UILength(md = 12, lg = 12))
           .add(
-            UIRow().add(
-              UICol(UILength(md = 6))
-                .add(UIReadOnlyField("name", lc))
-                .add(UISelect("type", lc, values = VariableType.values().map { UISelectValue(it, it.name) }))
-            )
-          )
-          .add(
-            UIRow().add(
-              UICol(UILength(md = 6))
-                .add(
-                  UICheckbox("required", lc)
-                )
-                .add(
-                  UICheckbox("unique", lc)
-                )
-            )
+            UIRow()
+              .add(leftCol)
+              .add(rightCol)
           )
           .add(
             UIRow().add(
               UICol()
                 .add(
-                  UIReadOnlyField("description", lc)
+                  UITextArea("currentVariable.description", lc)
                 )
             )
           )
       )
+    layout.watchFields.clear()
+    layout.watchFields.addAll(arrayOf("currentVariable.type", "currentVariable.dependsOn"))
     LayoutUtils.process(layout)
     return layout
+  }
+
+  /**
+   * @return Pair of path of variable (e. g. variables[1] or dependentVariables[12]) and found variable or null, if not found.
+   */
+  private fun getCurrentVariable(dto: MerlinTemplate, currentVariableId: Int?): MerlinVariable? {
+    currentVariableId ?: return null
+    dto.variables.find { it.id == currentVariableId }?.let {
+      return it
+    }
+    dto.dependentVariables.find { it.id == currentVariableId }?.let {
+      return it
+    }
+    return null
   }
 }

@@ -57,7 +57,7 @@ class MerlinVariable(
   var minimumValue: Any? = null
   @PropertyInfo(i18nKey = "plugins.merlin.variable.maxValue")
   var maximumValue: Any? = null
-  @PropertyInfo(i18nKey = "plugins.merlin.variable.allowedValues")
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.allowedValues", additionalI18nKey = "plugins.merlin.variable.allowedValues.info")
   var allowedValues: List<Any>? = null
   @PropertyInfo(i18nKey = "plugins.merlin.variable.type")
   var type: VariableType = VariableType.STRING
