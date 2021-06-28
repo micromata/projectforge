@@ -41,6 +41,7 @@ class LogSubscription @JvmOverloads constructor(
 ) {
   private val queue = LogQueue(maxSize)
   private var lastActivity = System.currentTimeMillis()
+  private var lastReceivedLogOrderNumber: Long? = null
   val id = ++counter
 
   val size
@@ -49,8 +50,20 @@ class LogSubscription @JvmOverloads constructor(
   val lastEntryNumber: Long?
     get() = queue.newestEntry?.id
 
+  /**
+   * Resets the standard value of [LogFilter.lastReceivedLogOrderNumber] to last received value.
+   * If no value is explicit set, any query will return only entries newer than the current one.
+   * This method doesn't clear the queue, because e. g. Merlin serial execution data may miss some log entries
+   * if user calls this method in parallel.
+   */
+  fun reset() {
+    lastReceivedLogOrderNumber = queue.newestEntryId
+  }
 
   fun query(filter: LogFilter, locale: Locale? = null): List<LoggingEventData> {
+    if (filter.lastReceivedLogOrderNumber == null && lastReceivedLogOrderNumber != null) {
+      filter.lastReceivedLogOrderNumber = lastReceivedLogOrderNumber
+    }
     return queue.query(filter, locale)
   }
 
