@@ -36,6 +36,12 @@ class FiFoBuffer<T>(private val maxSize: Int) {
       }
     }
 
+  fun clear() {
+    synchronized(list) {
+      list.clear()
+    }
+  }
+
   fun add(element: T) {
     synchronized(list) {
       if (list.size >= maxSize) {
