@@ -90,8 +90,9 @@ open class MerlinRunner {
   /**
    * @param id Id of the MerlinTemplateDO
    * @param keepWordDocument If true, you have to close the workbook finally.
+   * @param dto If given and variables are already defined, the settings of this given dto will override the stats settings.
    */
-  fun getStatistics(id: Int, keepWordDocument: Boolean = false): MerlinStatistics {
+  fun getStatistics(id: Int, keepWordDocument: Boolean = false, dto: MerlinTemplate? = null): MerlinStatistics {
     val list = getAttachments(id) ?: return MerlinStatistics()
     val wordAttachment = getWordTemplate(list)
     val excelAttachment = list.find { it.fileExtension == "xlsx" }
@@ -117,6 +118,7 @@ open class MerlinRunner {
         }
       }
     }
+    templateDefinition?.let { updateTemplateDefinition(it, dto) }
     wordAttachment?.let { word ->
       attachmentsService.getAttachmentInputStream(
         jcrPath,
@@ -530,6 +532,38 @@ open class MerlinRunner {
       }
     }
     return doc
+  }
+
+  private fun updateTemplateDefinition(templateDefinition: TemplateDefinition, dto: MerlinTemplate?) {
+    dto ?: return
+    val allVariables = mutableListOf<MerlinVariable>()
+    templateDefinition.variableDefinitions?.forEach {
+      allVariables.add(MerlinVariable.from(it))
+    }
+    templateDefinition.dependentVariableDefinitions?.forEach {
+      allVariables.add(MerlinVariable.from(it))
+    }
+    // Update all variables
+    dto.variables.forEach { dtoVariable ->
+      val variable = allVariables.find { it.name == dtoVariable.name }
+      if (variable == null) {
+        // Add dto variable to template definition.
+        allVariables.add(dtoVariable)
+      } else {
+        variable.copyFrom(dtoVariable)
+      }
+    }
+    templateDefinition.variableDefinitions = MerlinTemplate.extractInputVariables(allVariables).map {dtoVariable ->
+      val definition = VariableDefinition()
+      dtoVariable.copyTo(definition)
+      definition
+    }
+    templateDefinition.dependentVariableDefinitions = MerlinTemplate.extractDependentVariables(allVariables).map {dtoVariable->
+      val definition = DependentVariableDefinition()
+      val dependsOn = templateDefinition.variableDefinitions.find { it.name == dtoVariable.name }
+      dtoVariable.copyTo(definition, dependsOn)
+      definition
+    }
   }
 
   private fun createFileDescriptor(filename: String): FileDescriptor {
