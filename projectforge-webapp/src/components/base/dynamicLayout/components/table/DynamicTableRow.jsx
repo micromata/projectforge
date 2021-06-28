@@ -79,7 +79,7 @@ function DynamicTableRow(
                 </td>
             ))}
         </tr>
-    ), [setData, template]);
+    ), [columns, setData, template]);
 }
 
 DynamicTableRow.propTypes = {

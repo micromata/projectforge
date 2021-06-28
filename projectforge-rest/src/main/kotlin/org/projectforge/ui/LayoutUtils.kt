@@ -349,6 +349,7 @@ class LayoutUtils {
       return when (element) {
         is UIInput -> element.id
         is UICheckbox -> element.id
+        is UICreatableSelect -> element.id
         is UIRadioButton -> element.id
         is UIReadOnlyField -> element.id
         is UISelect<*> -> element.id
