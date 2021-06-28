@@ -74,4 +74,27 @@ class MerlinTemplate(
     dest.accessGroupIds = Group.toIntList(accessGroups)
     dest.accessUserIds = User.toIntList(accessUsers)
   }
+
+  /**
+   * Reorders variables ([variables] and [dependentVariables]), if any state of any variable was changed.
+   */
+  fun reorderVariables() {
+    val allVariables = variables + dependentVariables
+    replaceVariables(allVariables)
+  }
+
+  fun replaceVariables(allVariables: List<MerlinVariable>) {
+    variables = extractInputVariables(allVariables).toMutableList()
+    dependentVariables = extractDependentVariables(allVariables).toMutableList()
+  }
+
+  companion object {
+    fun extractInputVariables(allVariables: List<MerlinVariable>): List<MerlinVariable> {
+      return allVariables.filter { !it.dependent }
+    }
+
+    fun extractDependentVariables(allVariables: List<MerlinVariable>): List<MerlinVariable> {
+      return allVariables.filter { it.dependent }.sortedBy { it.name.toLowerCase() }
+    }
+  }
 }

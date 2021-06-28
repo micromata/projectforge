@@ -149,7 +149,8 @@ class MerlinPagesRest :
 
     }
     layout.add(MerlinPlugin.createUserLogSubscriptionMenuItem())
-    return LayoutUtils.processListPage(layout, this)
+    LayoutUtils.process(layout)
+    return layout
   }
 
   /**
@@ -224,7 +225,7 @@ class MerlinPagesRest :
       check(dbo != null || userAccess != null) { "dbo or userAcess must be given." }
       val id = dbo?.id ?: dto.id
       val stats = if (id != null) {
-        merlinRunner.getStatistics(id)
+        merlinRunner.getStatistics(id, dto = dto)
       } else {
         MerlinStatistics()
       }
@@ -387,9 +388,7 @@ class MerlinPagesRest :
 
       dto.wordTemplateFileName = stats.wordTemplateFilename
       dto.excelTemplateDefinitionFileName = stats.excelTemplateDefinitionFilename
-      dto.variables = stats.variables.filter { it.defined && !it.dependent }.toMutableList()
-      dto.dependentVariables =
-        stats.variables.filter { it.dependent }.sortedBy { it.name.toLowerCase() }.toMutableList()
+      dto.replaceVariables(stats.variables)
       return Pair(LayoutUtils.processEditPage(layout, dto, instance), dto)
     }
 
@@ -429,12 +428,12 @@ class MerlinPagesRest :
     }
 
     private fun createDependenVariableTable(): UITable {
-      return UITable("dependentVariables")
+      return UITable("dependentVariables", rowClickPostUrl = RestResolver.getRestUrl(MerlinVariablePageRest::class.java, "edit"))
         .add(UITableColumn("name", title = "plugins.merlin.variable.name", sortable = false))
         .add(UITableColumn("dependsOn", title = "plugins.merlin.variable.dependsOn", sortable = false))
         .add(
           UITableColumn(
-            "mappingFormatted",
+            "mappingText",
             title = "plugins.merlin.variable.mapping",
             sortable = false
           )

@@ -24,6 +24,7 @@
 package org.projectforge.plugins.merlin.rest
 
 import de.micromata.merlin.word.templating.VariableType
+import org.jetbrains.kotlin.psi.postfixExpressionVisitor
 import org.projectforge.framework.i18n.translate
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.merlin.MerlinTemplate
@@ -32,11 +33,14 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.lang.IllegalArgumentException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -71,7 +75,7 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
    * Post to dynamic page isn't yet available, so this workaround is needed.
    */
   @PostMapping("edit/{variableId}")
-  fun getForm(
+  fun openEditModal(
     @PathVariable("variableId", required = true) variableId: Int,
     @Valid @RequestBody dto: MerlinTemplate, request: HttpServletRequest
   ): ResponseEntity<*> {
@@ -88,6 +92,31 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
             absolute = true
           ), targetType = TargetType.MODAL
         )
+      )
+  }
+
+  /**
+   * User wants to save changes of variable (currentVariable of posted dto).
+   */
+  @PostMapping("update")
+  fun update(
+    @Valid @RequestBody data: PostData<MerlinTemplate>, request: HttpServletRequest
+  ): ResponseEntity<*> {
+    val dto = data.data
+    val currentVariable = dto.currentVariable ?: throw IllegalArgumentException("No current variable found. Nothing to update.")
+    val dest = getCurrentVariable(dto, dto.currentVariable?.id) ?: throw IllegalArgumentException("No current variable found. Nothing to update.")
+    if (currentVariable.name != dest.name) {
+      throw InternalError("Oups, name of current variable and variable to change in list differs!")
+    }
+    dest.copyFrom(currentVariable)
+    dto.reorderVariables()
+    val result = MerlinPagesRest.updateLayoutAndData(dto = dto, userAccess = UILayout.UserAccess(true, true, true, true))
+    val ui = result.first
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
+          .addVariable("data", ResponseData(dto.variables, dto.dependentVariables, "Hurzel"))
+          .addVariable("ui", ui)
       )
   }
 
@@ -148,7 +177,7 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
 
       when (variable.type) {
         VariableType.STRING -> {
-          fieldset.add(UITextArea("allowedValues", lc))
+          fieldset.add(UICreatableSelect("currentVariable.allowedValues", lc))
         }
         VariableType.FLOAT, VariableType.INT -> {
           val dataType = if (variable.type == VariableType.FLOAT) UIDataType.DECIMAL else UIDataType.INT
@@ -163,18 +192,38 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
           )
         }
       }
+
+      fieldset.add(
+        UITextArea("currentVariable.description", lc)
+      )
     } else {
       fieldset.add(UITextArea("currentVariable.mappingText", lc))
     }
-
-    fieldset.add(
-      UITextArea("currentVariable.description", lc)
-    )
 
     val layout = UILayout("plugins.merlin.variable.edit")
       .add(fieldset)
     layout.watchFields.clear()
     layout.watchFields.addAll(arrayOf("currentVariable.type", "currentVariable.dependsOn"))
+    layout.addAction(
+      UIButton(
+        "cancel",
+        translate("cancel"),
+        UIColor.DANGER,
+        responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)
+      )
+    )
+    layout.addAction(
+      UIButton(
+        "update",
+        translate("update"),
+        UIColor.SUCCESS,
+        responseAction = ResponseAction(
+          RestResolver.getRestUrl(this::class.java, "update"),
+          targetType = TargetType.POST
+        ),
+        default = true
+      )
+    )
     LayoutUtils.process(layout)
     return layout
   }
@@ -192,4 +241,6 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
     }
     return null
   }
+
+  class ResponseData(val variables: List<MerlinVariable>, val dependentVariables: List<MerlinVariable>, val name: String)
 }

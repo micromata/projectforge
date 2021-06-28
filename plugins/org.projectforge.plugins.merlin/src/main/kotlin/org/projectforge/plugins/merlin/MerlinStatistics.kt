@@ -38,6 +38,7 @@ class MerlinStatistics {
   val conditionals = mutableListOf<MerlinConditional>()
   var wordTemplateFilename: String? = null
   var excelTemplateDefinitionFilename: String? = null
+
   @get:JsonIgnore
   var wordDocument: WordDocument? = null
 
@@ -66,10 +67,9 @@ class MerlinStatistics {
         val name = variableDefinition.name
         val used = statistics.usedVariables?.contains(name) == true
         val masterVariable = statistics.masterVariables?.contains(name) == true || conditionalsUsesVariable(name)
-        val variable = MerlinVariable(
-          counter++,
-          name,
-          variableDefinition,
+        val variable = MerlinVariable.from(variableDefinition).with(
+          id = counter++,
+          name = name,
           used = used,
           masterVariable = masterVariable,
         )
@@ -77,10 +77,9 @@ class MerlinStatistics {
       }
       templateDefinition?.dependentVariableDefinitions?.forEach { variableDefinition ->
         val name = variableDefinition.name
-        val variable = MerlinVariable(
-          counter++,
-          name,
-          dependentVariableDefinition = variableDefinition,
+        val variable = MerlinVariable.from(variableDefinition).with(
+          id = counter++,
+          name = name,
           used = statistics?.usedVariables?.contains(name) == true
         )
         variables.add(variable)
