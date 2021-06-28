@@ -544,7 +544,7 @@ open class MerlinRunner {
       allVariables.add(MerlinVariable.from(it))
     }
     // Update all variables
-    dto.variables.forEach { dtoVariable ->
+    (dto.variables + dto.dependentVariables).forEach { dtoVariable ->
       val variable = allVariables.find { it.name == dtoVariable.name }
       if (variable == null) {
         // Add dto variable to template definition.
@@ -553,17 +553,17 @@ open class MerlinRunner {
         variable.copyFrom(dtoVariable)
       }
     }
-    templateDefinition.variableDefinitions = MerlinTemplate.extractInputVariables(allVariables).map {dtoVariable ->
+    templateDefinition.variableDefinitions = MerlinTemplate.extractInputVariables(allVariables).map { dtoVariable ->
       val definition = VariableDefinition()
       dtoVariable.copyTo(definition)
       definition
     }
-    templateDefinition.dependentVariableDefinitions = MerlinTemplate.extractDependentVariables(allVariables).map {dtoVariable->
-      val definition = DependentVariableDefinition()
-      val dependsOn = templateDefinition.variableDefinitions.find { it.name == dtoVariable.name }
-      dtoVariable.copyTo(definition, dependsOn)
-      definition
-    }
+    templateDefinition.dependentVariableDefinitions =
+      MerlinTemplate.extractDependentVariables(allVariables).map { dtoVariable ->
+        val definition = DependentVariableDefinition()
+        dtoVariable.copyTo(definition)
+        definition
+      }
   }
 
   private fun createFileDescriptor(filename: String): FileDescriptor {

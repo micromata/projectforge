@@ -24,6 +24,7 @@
 package org.projectforge.plugins.merlin
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import de.micromata.merlin.csv.CSVStringUtils
 import de.micromata.merlin.word.templating.DependentVariableDefinition
 import de.micromata.merlin.word.templating.VariableDefinition
 import de.micromata.merlin.word.templating.VariableType
@@ -61,22 +62,31 @@ class MerlinVariable {
     i18nKey = "plugins.merlin.variable.allowedValues",
     additionalI18nKey = "plugins.merlin.variable.allowedValues.info"
   )
-  var allowedValues: List<Any>? = null
+  var allowedValues: List<String>? = null
 
   @PropertyInfo(i18nKey = "plugins.merlin.variable.type")
   var type: VariableType = VariableType.STRING
   var defined: Boolean = false
 
+  var dependsOn: MerlinVariable? = null
+    set(value) {
+      field = value
+      dependsOnName = value?.name
+    }
+
   @PropertyInfo(i18nKey = "plugins.merlin.variable.dependsOn")
-  var dependsOn: String? = null
-  var mapping: Map<Any, Any>? = null
+  var dependsOnName: String? = null
 
   @PropertyInfo(i18nKey = "plugins.merlin.variable.mapping", additionalI18nKey = "plugins.merlin.variable.mapping.info")
-  var mappingText: String? = null
+  var mappingValues: String? = null
+
+  @get:JsonProperty
+  val mappingMasterValues
+    get() = dependsOn?.allowedValues?.joinToString { it }
 
   @get:JsonProperty
   val allowedValuesFormatted: String?
-    get() = allowedValues?.joinToString { "$it" }
+    get() = allowedValues?.joinToString { it }
 
   @PropertyInfo(i18nKey = "plugins.merlin.variable.used", additionalI18nKey = "plugins.merlin.variable.used.info")
   var used: Boolean? = null
@@ -135,7 +145,7 @@ class MerlinVariable {
             "plugins.merlin.validation.valueDoesNotMatchOptions",
             name,
             value,
-            list.joinToString { "$it" })
+            list.joinToString { it })
         }
       }
       val bdValue = asBigDecimal(value)
@@ -208,6 +218,7 @@ class MerlinVariable {
     this.unique = src.unique
     this.allowedValues = src.allowedValues
     this.description = src.description
+    this.mappingValues = src.mappingValues
   }
 
   fun copyTo(dest: VariableDefinition) {
@@ -224,31 +235,42 @@ class MerlinVariable {
     dest.isUnique = unique
   }
 
-  fun copyTo(dest: DependentVariableDefinition, dependsOn: VariableDefinition?) {
+  fun copyTo(dest: DependentVariableDefinition) {
     dest.name = name
-    dest.mapping = mapping
-    dest.dependsOn = dependsOn
+
+    val destMapping = mutableMapOf<Any, Any?>()
+    val values = CSVStringUtils.parseStringList(mappingValues)
+    dependsOn?.let {
+      it.allowedValues?.forEachIndexed { index, masterValue ->
+        destMapping[masterValue] = values.getOrNull(index)
+      }
+      dest.mapping = destMapping
+      val master = VariableDefinition()
+      it.copyTo(master)
+      dest.dependsOn = master
+    }
   }
 
   companion object {
     fun from(definition: VariableDefinition): MerlinVariable {
       val variable = MerlinVariable()
+      variable.name = definition.name
       variable.defined = true
       variable.description = definition.description
       variable.required = definition.isRequired
       variable.unique = definition.isUnique
       variable.minimumValue = definition.minimumValue
       variable.maximumValue = definition.maximumValue
-      variable.allowedValues = definition.allowedValuesList
+      variable.allowedValues = definition.allowedValuesList?.map { "$it" }
       variable.type = definition.type
       return variable
     }
 
     fun from(definition: DependentVariableDefinition): MerlinVariable {
       val variable = MerlinVariable()
-      variable.mapping = definition.mapping
-      variable.mappingText = variable.mapping?.entries?.joinToString { "${it.key}=${it.value}" }
-      variable.dependsOn = definition.dependsOn.name ?: "???"
+      variable.name = definition.name
+      variable.mappingValues = definition.mapping?.values?.joinToString { "$it" }
+      variable.dependsOn = from(definition.dependsOn)
       return variable
     }
   }

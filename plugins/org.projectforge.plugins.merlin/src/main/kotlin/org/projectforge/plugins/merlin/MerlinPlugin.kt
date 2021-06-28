@@ -73,7 +73,7 @@ class MerlinPlugin :
     JacksonConfiguration.registerAllowedUnknownProperties(
       MerlinVariable::class.java,
       "allowedValuesFormatted",
-      "mappingFormatted",
+      "mappingMasterValues",
     )
 
     menuCreator.register(

@@ -139,7 +139,7 @@ class MerlinPagesRest :
       layout.add(
         UIAlert(
           """'# TODO
-* Variable-Administration in UI
+* Variable-Administration in UI: Handling of "one", "two", ..., speichern/backup.
 * Demo templates for creating (menu entry in list view)
 * Doku: #PersonalBox etc.""",
           color = UIColor.WARNING,
@@ -430,10 +430,17 @@ class MerlinPagesRest :
     private fun createDependenVariableTable(): UITable {
       return UITable("dependentVariables", rowClickPostUrl = RestResolver.getRestUrl(MerlinVariablePageRest::class.java, "edit"))
         .add(UITableColumn("name", title = "plugins.merlin.variable.name", sortable = false))
-        .add(UITableColumn("dependsOn", title = "plugins.merlin.variable.dependsOn", sortable = false))
+        .add(UITableColumn("dependsOn.name", title = "plugins.merlin.variable.dependsOn", sortable = false))
         .add(
           UITableColumn(
-            "mappingText",
+            "mappingMasterValues",
+            title = "plugins.merlin.variable.master.values",
+            sortable = false
+          )
+        )
+        .add(
+          UITableColumn(
+            "mappingValues",
             title = "plugins.merlin.variable.mapping",
             sortable = false
           )

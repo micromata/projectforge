@@ -24,7 +24,6 @@
 package org.projectforge.plugins.merlin.rest
 
 import de.micromata.merlin.word.templating.VariableType
-import org.jetbrains.kotlin.psi.postfixExpressionVisitor
 import org.projectforge.framework.i18n.translate
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.merlin.MerlinTemplate
@@ -37,10 +36,8 @@ import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.lang.IllegalArgumentException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -103,19 +100,27 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
     @Valid @RequestBody data: PostData<MerlinTemplate>, request: HttpServletRequest
   ): ResponseEntity<*> {
     val dto = data.data
-    val currentVariable = dto.currentVariable ?: throw IllegalArgumentException("No current variable found. Nothing to update.")
-    val dest = getCurrentVariable(dto, dto.currentVariable?.id) ?: throw IllegalArgumentException("No current variable found. Nothing to update.")
+    val currentVariable =
+      dto.currentVariable ?: throw IllegalArgumentException("No current variable found. Nothing to update.")
+    val dest = getCurrentVariable(dto, dto.currentVariable?.id)
+      ?: throw IllegalArgumentException("No current variable found. Nothing to update.")
     if (currentVariable.name != dest.name) {
       throw InternalError("Oups, name of current variable and variable to change in list differs!")
     }
+    var dependsOn: MerlinVariable? = null
+    currentVariable.dependsOnName?.let { dependsOnName ->
+      dependsOn = dto.variables.find { it.name == dependsOnName }
+    }
     dest.copyFrom(currentVariable)
+    dest.dependsOn = dependsOn
     dto.reorderVariables()
-    val result = MerlinPagesRest.updateLayoutAndData(dto = dto, userAccess = UILayout.UserAccess(true, true, true, true))
+    val result =
+      MerlinPagesRest.updateLayoutAndData(dto = dto, userAccess = UILayout.UserAccess(true, true, true, true))
     val ui = result.first
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-          .addVariable("data", ResponseData(dto.variables, dto.dependentVariables, "Hurzel"))
+          .addVariable("data", ResponseData(dto.variables, dto.dependentVariables))
           .addVariable("ui", ui)
       )
   }
@@ -126,6 +131,13 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
   @PostMapping(RestPaths.WATCH_FIELDS)
   fun watchFields(@Valid @RequestBody postData: PostData<MerlinTemplate>): ResponseEntity<ResponseAction> {
     val dto = postData.data
+    val currentVariable = dto.currentVariable ?: throw InternalError("No currentVariable given.")
+    val dependsOnName = currentVariable.dependsOnName
+    if (dependsOnName != null) {
+      currentVariable.dependsOn = dto.variables.find { it.name == dependsOnName }
+    } else {
+      currentVariable.dependsOn = null
+    }
     // write access is always true, otherwise watch field wasn't registered.
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE)
@@ -158,7 +170,7 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
         .map { UISelectValue(it.name, it.name) }
       rightCol.add(
         UISelect(
-          "currentVariable.dependsOn",
+          "currentVariable.dependsOnName",
           lc,
           values = dependsOnCandidates
         )
@@ -197,13 +209,19 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
         UITextArea("currentVariable.description", lc)
       )
     } else {
-      fieldset.add(UITextArea("currentVariable.mappingText", lc))
+      fieldset.add(
+        UIReadOnlyField(
+          "currentVariable.mappingMasterValues",
+          label = "plugins.merlin.variable.master.values"
+        )
+      )
+      fieldset.add(UITextArea("currentVariable.mappingValues", lc))
     }
 
     val layout = UILayout("plugins.merlin.variable.edit")
       .add(fieldset)
     layout.watchFields.clear()
-    layout.watchFields.addAll(arrayOf("currentVariable.type", "currentVariable.dependsOn"))
+    layout.watchFields.addAll(arrayOf("currentVariable.type", "currentVariable.dependsOnName"))
     layout.addAction(
       UIButton(
         "cancel",
@@ -242,5 +260,8 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
     return null
   }
 
-  class ResponseData(val variables: List<MerlinVariable>, val dependentVariables: List<MerlinVariable>, val name: String)
+  class ResponseData(
+    val variables: List<MerlinVariable>,
+    val dependentVariables: List<MerlinVariable>,
+  )
 }
