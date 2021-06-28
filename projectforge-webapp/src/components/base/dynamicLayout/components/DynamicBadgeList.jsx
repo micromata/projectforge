@@ -9,11 +9,11 @@ function DynamicBadge(props) {
     } = props;
 
     return (
-        <h4>
+        <h3>
             {badgeList && badgeList.map((badge) => (
                 <Badge color={badge.color} pill>{badge.title}</Badge>
             ))}
-        </h4>
+        </h3>
     );
 }
 

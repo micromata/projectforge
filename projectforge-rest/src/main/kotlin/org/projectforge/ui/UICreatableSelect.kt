@@ -23,11 +23,16 @@
 
 package org.projectforge.ui
 
-/**
- * One badge, mostly used as pill.
- */
-data class UIBadge(
-  var title: String? = null,
-  val color: UIColor? = null,
-  val pill: Boolean = true
-) : UIElement(UIElementType.BADGE)
+class UICreatableSelect(
+  val id: String,
+  @Transient
+  override val layoutContext: LayoutContext? = null,
+  override var label: String? = null,
+  override var additionalLabel: String? = null,
+  override var tooltip: String? = null,
+  val required: Boolean? = null,
+  override val ignoreAdditionalLabel: Boolean = false,
+  @Transient
+  override val ignoreTooltip: Boolean = false,
+  key: String? = null,
+) : UIElement(UIElementType.CREATABLE_SELECT, key = key), UILabelledElement

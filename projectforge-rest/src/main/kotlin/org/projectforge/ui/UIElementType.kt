@@ -34,6 +34,7 @@ enum class UIElementType {
     BUTTON,
     CHECKBOX,
     COL,
+    CREATABLE_SELECT,
     CUSTOMIZED,
     DROP_AREA,
     FIELDSET,
