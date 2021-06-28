@@ -32,11 +32,18 @@ internal class LogQueue(val maxSize: Int) {
   val newestEntry: LoggingEventData?
     get() = queue.newestEntry
 
+  val newestEntryId: Long?
+    get() = newestEntry?.id
+
   internal val size
     get() = queue.size
 
   internal fun add(event: LoggingEventData) {
     queue.add(event)
+  }
+
+  fun clear() {
+    queue.clear()
   }
 
   fun query(filter: LogFilter, locale: Locale? = null): List<LoggingEventData> {

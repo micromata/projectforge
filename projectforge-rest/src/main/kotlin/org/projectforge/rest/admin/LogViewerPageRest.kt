@@ -28,8 +28,6 @@ import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.access.AccessCheckerImpl
-import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.model.rest.RestPaths
@@ -41,7 +39,6 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import java.lang.IllegalArgumentException
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -110,18 +107,33 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
               )
           )
       )
-      .add(
+
+    if (id != null) {
+      layout.add(
         UIButton(
-          "refresh",
-          title = translate("refresh"),
-          color = UIColor.SUCCESS,
+          "reset",
+          title = translate("reset"),
+          color = UIColor.DANGER,
           default = true,
           responseAction = ResponseAction(
-            RestResolver.getRestUrl(this::class.java, "search"),
+            RestResolver.getRestUrl(this::class.java, "reset"),
             targetType = TargetType.POST
           )
         )
       )
+    }
+    layout.add(
+      UIButton(
+        "refresh",
+        title = translate("refresh"),
+        color = UIColor.SUCCESS,
+        default = true,
+        responseAction = ResponseAction(
+          RestResolver.getRestUrl(this::class.java, "search"),
+          targetType = TargetType.POST
+        )
+      )
+    )
       .add(logEntriesTable)
     layout.watchFields.addAll(arrayOf("threshold", "search", "refreshInterval"))
     LayoutUtils.process(layout)
@@ -142,6 +154,20 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
   )
       : List<LogViewerEvent> {
     return getList(postData)
+  }
+
+  @PostMapping("reset")
+  fun reset(
+    @RequestBody postData: PostData<LogViewFilter>
+  )
+      : ResponseAction {
+    val filter = postData.data
+    val logSubscriptionId =
+      filter.logSubscriptionId ?: throw InternalError("Can't reset user's personal LogViewer, no id given.")
+    LogSubscription.getSubscription(logSubscriptionId)?.reset()
+    val variables = mapOf("logEntries" to getList(postData))
+    return ResponseAction(targetType = TargetType.UPDATE, merge = true)
+      .addVariable("variables", variables)
   }
 
   @PostMapping(RestPaths.WATCH_FIELDS)
