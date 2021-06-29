@@ -95,30 +95,21 @@ open class MerlinRunner {
   fun getStatistics(id: Int, keepWordDocument: Boolean = false, dto: MerlinTemplate? = null): MerlinStatistics {
     val list = getAttachments(id) ?: return MerlinStatistics()
     val wordAttachment = getWordTemplate(list)
-    val excelAttachment = list.find { it.fileExtension == "xlsx" }
-
-    var templateDefinition: TemplateDefinition? = null
     val stats = MerlinStatistics()
-    excelAttachment?.let {
-      attachmentsService.getAttachmentInputStream(
-        jcrPath,
-        id,
-        it.fileId!!,
-        accessChecker = attachmentsAccessChecker,
-      )?.let {
-        val istream = it.second
-        val fileObject = it.first
-        stats.excelTemplateDefinitionFilename = fileObject.fileName
-        istream.use {
-          val reader = TemplateDefinitionExcelReader()
-          val workBook = ExcelWorkbook(istream, fileObject.fileName ?: "undefined", ThreadLocalUserContext.getLocale())
-          val def = reader.readFromWorkbook(workBook, false)
-          // log.info("Template definition: ${ToStringUtil.toJsonString(def)}")
-          templateDefinition = def
-        }
+    var templateDefinition: TemplateDefinition? = null
+    if (dto?.variables?.isNullOrEmpty() == true) {
+      // No variables defined, so try to read from uploaded Excel:
+      val excelAttachment = list.find { it.fileExtension == "xlsx" }
+      templateDefinition = readTemplateDefinition(id, excelAttachment)
+      if (templateDefinition != null) {
+        stats.excelTemplateDefinitionFilename = excelAttachment?.name
       }
     }
-    templateDefinition?.let { updateTemplateDefinition(it, dto) }
+    if (templateDefinition == null) {
+      templateDefinition = TemplateDefinition()
+      updateTemplateDefinition(templateDefinition, dto)
+      stats.excelTemplateDefinitionFilename = "database"
+    }
     wordAttachment?.let { word ->
       attachmentsService.getAttachmentInputStream(
         jcrPath,
@@ -137,7 +128,6 @@ open class MerlinRunner {
             keepWordDocument,
             dto,
           )
-          stats.excelTemplateDefinitionFilename = excelAttachment?.name
           word.name?.let {
             stats.wordTemplateFilename = word.name
           }
@@ -288,7 +278,27 @@ open class MerlinRunner {
         }
       }
     }
+  }
 
+  internal fun readTemplateDefinition(id: Int, attachment: Attachment?): TemplateDefinition? {
+    attachment ?: return null
+    val attPair = attachmentsService.getAttachmentInputStream(
+      jcrPath,
+      id,
+      attachment.fileId!!,
+      accessChecker = attachmentsAccessChecker,
+    ) ?: return null
+
+    val istream = attPair.second
+    val fileObject = attPair.first
+    istream.use {
+      val reader = TemplateDefinitionExcelReader()
+      ExcelWorkbook(istream, fileObject.fileName ?: "undefined", ThreadLocalUserContext.getLocale()).use { workBook ->
+        val def = reader.readFromWorkbook(workBook, false)
+        // log.info("Template definition: ${ToStringUtil.toJsonString(def)}")
+        return def
+      }
+    }
   }
 
   /**
@@ -541,14 +551,18 @@ open class MerlinRunner {
 
   private fun updateTemplateDefinition(templateDefinition: TemplateDefinition, dto: MerlinTemplate?) {
     dto ?: return
+    templateDefinition.filenamePattern = dto.fileNamePattern
+    templateDefinition.description = dto.description
+    templateDefinition.isStronglyRestrictedFilenames = (dto.stronglyRestrictedFilenames == true)
     val allVariables = mutableListOf<MerlinVariable>()
+    // First get all variables from templateDefinition if any:
     templateDefinition.variableDefinitions?.forEach {
       allVariables.add(MerlinVariable.from(it))
     }
     templateDefinition.dependentVariableDefinitions?.forEach {
       allVariables.add(MerlinVariable.from(it))
     }
-    // Update all variables
+    // Upsert all variables from dto:
     (dto.variables + dto.dependentVariables).forEach { dtoVariable ->
       val variable = allVariables.find { it.name == dtoVariable.name }
       if (variable == null) {
@@ -558,11 +572,13 @@ open class MerlinRunner {
         variable.copyFrom(dtoVariable)
       }
     }
+    // Now, re-create variables in templateDefinition:
     templateDefinition.variableDefinitions = MerlinTemplate.extractInputVariables(allVariables).map { dtoVariable ->
       val definition = VariableDefinition()
       dtoVariable.copyTo(definition)
       definition
     }
+    // Now, re-create dependent variables in templateDefinition:
     templateDefinition.dependentVariableDefinitions =
       MerlinTemplate.extractDependentVariables(allVariables).map { dtoVariable ->
         val definition = DependentVariableDefinition()
