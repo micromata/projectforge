@@ -37,7 +37,6 @@ class MerlinStatistics {
   val variables = mutableListOf<MerlinVariable>()
   val conditionals = mutableListOf<MerlinConditional>()
   var wordTemplateFilename: String? = null
-  var excelTemplateDefinitionFilename: String? = null
 
   @get:JsonIgnore
   var wordDocument: WordDocument? = null

@@ -30,7 +30,6 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.merlin.*
-import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -118,7 +117,6 @@ class MerlinPagesRest :
       val list =
         attachmentsService.getAttachments(jcrPath!!, id, attachmentsAccessChecker)?.sortedByDescending { it.created }
       dto.wordTemplateFileName = list?.find { it.fileExtension == "docx" }?.name
-      dto.excelTemplateDefinitionFileName = list?.find { it.fileExtension == "xlsx" }?.name
     }
     return dto
   }
@@ -278,6 +276,13 @@ class MerlinPagesRest :
             .add(
               UICol(md = 6)
                 .add(UIInput("fileNamePattern", lc))
+                .add(
+                  UIReadOnlyField(
+                    "wordTemplateFileName",
+                    label = "plugins.merlin.wordTemplateFile",
+                    tooltip = "plugins.merlin.wordTemplateFile.info"
+                  )
+                )
             )
             .add(
               UICol(md = 3)
@@ -293,25 +298,14 @@ class MerlinPagesRest :
           UIRow()
             .add(
               UICol(md = 6)
+                .add(UILabel("plugins.merlin.variables.input", tooltip = "plugins.merlin.variables.input.info"))
                 .add(
-                  UIReadOnlyField(
-                    "wordTemplateFileName",
-                    label = "plugins.merlin.wordTemplateFile",
-                    tooltip = "plugins.merlin.wordTemplateFile.info"
-                  )
-                )
-                .add(
-                  UIReadOnlyField(
-                    "excelTemplateDefinitionFileName",
-                    label = "plugins.merlin.templateConfigurationFile",
-                    tooltip = "plugins.merlin.templateConfigurationFile.info"
-                  )
+                  inputVariables
                 )
             )
             .add(
               UICol(md = 6)
-                .add(UILabel("plugins.merlin.variables.input", tooltip = "plugins.merlin.variables.input.info"))
-                .add(inputVariables)
+
                 .add(
                   UILabel(
                     "plugins.merlin.variables.dependant",
@@ -342,7 +336,13 @@ class MerlinPagesRest :
             UIRow()
               .add(
                 UICol(collapseTitle = translate("plugins.merlin.variables.conditionals"))
-                  .add(UIAlert(message = "'${stats.conditionalsAsMarkdown()}", markdown = true, color = UIColor.LIGHT))
+                  .add(
+                    UIAlert(
+                      message = "'${stats.conditionalsAsMarkdown()}",
+                      markdown = true,
+                      color = UIColor.LIGHT
+                    )
+                  )
               )
           )
       }
@@ -394,7 +394,6 @@ class MerlinPagesRest :
       layout.add(logViewerMenuItem)
 
       dto.wordTemplateFileName = stats.wordTemplateFilename
-      dto.excelTemplateDefinitionFileName = stats.excelTemplateDefinitionFilename
       dto.replaceVariables(stats.variables)
       return Pair(LayoutUtils.processEditPage(layout, dto, instance), dto)
     }
@@ -420,6 +419,14 @@ class MerlinPagesRest :
         )
         .add(
           UITableColumn(
+            "masterVariable",
+            title = "plugins.merlin.variable.master",
+            tooltip = "plugins.merlin.variable.master.info",
+            sortable = false
+          ).setStandardBoolean()
+        )
+        .add(
+          UITableColumn(
             "allowedValuesFormatted",
             title = "plugins.merlin.variable.allowedValues",
             sortable = false
@@ -435,7 +442,10 @@ class MerlinPagesRest :
     }
 
     private fun createDependenVariableTable(): UITable {
-      return UITable("dependentVariables", rowClickPostUrl = RestResolver.getRestUrl(MerlinVariablePageRest::class.java, "edit"))
+      return UITable(
+        "dependentVariables",
+        rowClickPostUrl = RestResolver.getRestUrl(MerlinVariablePageRest::class.java, "edit")
+      )
         .add(UITableColumn("name", title = "plugins.merlin.variable.name", sortable = false))
         .add(UITableColumn("dependsOn.name", title = "plugins.merlin.variable.dependsOn", sortable = false))
         .add(
