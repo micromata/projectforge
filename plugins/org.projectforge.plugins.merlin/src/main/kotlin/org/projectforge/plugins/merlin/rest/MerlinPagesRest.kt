@@ -96,6 +96,12 @@ class MerlinPagesRest :
   override fun transformFromDB(obj: MerlinTemplateDO, editMode: Boolean): MerlinTemplate {
     val dto = MerlinTemplate()
     dto.copyFrom(obj)
+    dto.dependentVariables.forEach { variable ->
+      variable.dependsOnName?.let { dependsOnName ->
+        // Restore dependsOn variable:
+        variable.dependsOn = dto.variables.find { it.name == dependsOnName }
+      }
+    }
 
     // Group names needed by React client (for ReactSelect):
     Group.restoreDisplayNames(dto.accessGroups, groupService)

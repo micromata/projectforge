@@ -145,9 +145,9 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
     val logViewerMenuItem = MerlinPlugin.createUserLogSubscriptionMenuItem()
     val id = NumberHelper.parseInteger(idString) ?: throw IllegalAccessException("Parameter id not an int.")
-    val stats = merlinRunner.getStatistics(id)
     val dbObj = merlinTemplateDao.getById(id)
     val template = merlinPagesRest.transformFromDB(dbObj)
+    val stats = merlinRunner.getStatistics(id, dto = template)
     val col1 = UICol(md = 6)
     val col2 = UICol(md = 6)
     val inputVariables = stats.variables.filter { it.input }
