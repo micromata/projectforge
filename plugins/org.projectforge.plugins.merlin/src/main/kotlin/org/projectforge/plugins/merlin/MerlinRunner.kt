@@ -96,20 +96,7 @@ open class MerlinRunner {
     val list = getAttachments(id) ?: return MerlinStatistics()
     val wordAttachment = getWordTemplate(list)
     val stats = MerlinStatistics()
-    var templateDefinition: TemplateDefinition? = null
-    if (dto?.variables?.isNullOrEmpty() == true) {
-      // No variables defined, so try to read from uploaded Excel:
-      val excelAttachment = list.find { it.fileExtension == "xlsx" }
-      templateDefinition = readTemplateDefinition(id, excelAttachment)
-      if (templateDefinition != null) {
-        stats.excelTemplateDefinitionFilename = excelAttachment?.name
-      }
-    }
-    if (templateDefinition == null) {
-      templateDefinition = TemplateDefinition()
-      updateTemplateDefinition(templateDefinition, dto)
-      stats.excelTemplateDefinitionFilename = "database"
-    }
+    val templateDefinition = buildTemplateDefinition(list, id, dto)
     wordAttachment?.let { word ->
       attachmentsService.getAttachmentInputStream(
         jcrPath,
@@ -126,7 +113,6 @@ open class MerlinRunner {
             templateDefinition,
             stats,
             keepWordDocument,
-            dto,
           )
           word.name?.let {
             stats.wordTemplateFilename = word.name
@@ -144,10 +130,7 @@ open class MerlinRunner {
   fun writeTemplateDefinitionWorkbook(dto: MerlinTemplate): Pair<String, ByteArray> {
     val stats = getStatistics(dto.id!!)
     val writer = TemplateDefinitionExcelWriter()
-    var filename = stats.excelTemplateDefinitionFilename
-    if (filename == null) {
-      filename = "${FilenameUtils.getBaseName(stats.wordTemplateFilename ?: "untitled")}.xlsx"
-    }
+    val filename = "${FilenameUtils.getBaseName(stats.wordTemplateFilename ?: "untitled")}.xlsx"
     initTemplateRunContext(writer.templateRunContext)
     stats.template?.let { template ->
       template.fileDescriptor = FileDescriptor()
@@ -280,7 +263,21 @@ open class MerlinRunner {
     }
   }
 
-  internal fun readTemplateDefinition(id: Int, attachment: Attachment?): TemplateDefinition? {
+  /**
+   * Creates Template definition by using defined variables or, if not defined, by loading the latest xlsx file.
+   */
+  private fun buildTemplateDefinition(list: List<Attachment>, id: Int, dto: MerlinTemplate?): TemplateDefinition {
+    if (dto?.variables.isNullOrEmpty()) {
+      // No variables defined, so try to read from uploaded Excel:
+      val excelAttachment = list.find { it.fileExtension == "xlsx" }
+      readTemplateDefinition(id, excelAttachment)?.let { return it }
+    }
+    val templateDefinition = TemplateDefinition()
+    updateTemplateDefinition(templateDefinition, dto)
+    return templateDefinition
+  }
+
+  private fun readTemplateDefinition(id: Int, attachment: Attachment?): TemplateDefinition? {
     attachment ?: return null
     val attPair = attachmentsService.getAttachmentInputStream(
       jcrPath,
@@ -525,7 +522,6 @@ open class MerlinRunner {
     templateDefinition: TemplateDefinition? = null,
     merlinStatistics: MerlinStatistics,
     keepWordDocument: Boolean = false,
-    dto: MerlinTemplate? = null,
   ): WordDocument? {
     var doc: WordDocument? = null
     try {
@@ -533,9 +529,6 @@ open class MerlinRunner {
       val templateChecker = WordTemplateChecker(doc)
       templateDefinition?.let {
         templateChecker.assignTemplateDefinition(it)
-        if (dto != null) {
-          updateTemplateDefinition(it, dto)
-        }
       }
       val statistics = templateChecker.template.statistics
       merlinStatistics.template = templateChecker.template

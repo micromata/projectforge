@@ -102,17 +102,22 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
     val dto = data.data
     val currentVariable =
       dto.currentVariable ?: throw IllegalArgumentException("No current variable found. Nothing to update.")
+    // Find current variable in list of variables as destination:
     val dest = getCurrentVariable(dto, dto.currentVariable?.id)
       ?: throw IllegalArgumentException("No current variable found. Nothing to update.")
-    if (currentVariable.name != dest.name) {
-      throw InternalError("Oups, name of current variable and variable to change in list differs!")
-    }
+    val oldName = dest.name
     var dependsOn: MerlinVariable? = null
     currentVariable.dependsOnName?.let { dependsOnName ->
       dependsOn = dto.variables.find { it.name == dependsOnName }
     }
     dest.copyFrom(currentVariable)
     dest.dependsOn = dependsOn
+    if (currentVariable.name != oldName) {
+      // Rename also dependent variables:
+      dto.dependentVariables.filter { it.dependsOnName == oldName }.forEach {
+        it.dependsOn = dest
+      }
+    }
     dto.reorderVariables()
     val result =
       MerlinPagesRest.updateLayoutAndData(dto = dto, userAccess = UILayout.UserAccess(true, true, true, true))

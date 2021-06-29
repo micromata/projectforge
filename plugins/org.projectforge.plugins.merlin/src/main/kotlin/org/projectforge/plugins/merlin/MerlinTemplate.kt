@@ -45,7 +45,6 @@ class MerlinTemplate(
   var stronglyRestrictedFilenames: Boolean? = null,
   var pdfExport: Boolean? = null,
   var wordTemplateFileName: String? = null,
-  var excelTemplateDefinitionFileName: String? = null,
   /**
    * Used by [org.projectforge.plugins.merlinMerlinVariablePageRest]
    */

@@ -23,14 +23,12 @@
 
 package org.projectforge.plugins.merlin.rest
 
-import mu.KotlinLogging
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.jcr.FileInfo
-import org.projectforge.plugins.merlin.MerlinTemplate
 import org.projectforge.plugins.merlin.MerlinTemplateDO
 import org.projectforge.plugins.merlin.MerlinTemplateDao
 import org.projectforge.rest.AttachmentsActionListener
@@ -38,7 +36,7 @@ import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.ui.*
 import org.springframework.http.ResponseEntity
 
-private val log = KotlinLogging.logger {}
+// private val log = KotlinLogging.logger {}
 
 /**
  * Listener on template changes.
@@ -66,7 +64,7 @@ class MerlinAttachmentsActionListener(
   }
 
   /**
-   * Renames all existing docx files to backup files.
+   * Renames all existing docx and xlsx files to backup files.
    */
   override fun afterUpload(
     attachment: Attachment,
@@ -77,7 +75,7 @@ class MerlinAttachmentsActionListener(
   ): ResponseEntity<*> {
     val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId)
     list?.forEach { element ->
-      // If docx is uploaded, backup all previous existing docx. Same for xlsx.
+      // If docx/xlsx is uploaded, backup all previous existing docx/xlsx.
       if (element.fileExtension == attachment.fileExtension && element.fileId != attachment.fileId) {
         // docx and not the current uploaded file. So rename all other docx elements as backup-files.
         val newFileName = "${element.name}.backup"
@@ -93,6 +91,7 @@ class MerlinAttachmentsActionListener(
         )
       }
     }
+
     return createResponseEntity(obj, list, TargetType.UPDATE)
   }
 
@@ -107,14 +106,18 @@ class MerlinAttachmentsActionListener(
     return createResponseEntity(obj, list, TargetType.CLOSE_MODAL)
   }
 
-  private fun createResponseEntity(obj: ExtendedBaseDO<Int>, list: List<Attachment>?, targetType: TargetType): ResponseEntity<*> {
+  private fun createResponseEntity(
+    obj: ExtendedBaseDO<Int>,
+    list: List<Attachment>?,
+    targetType: TargetType
+  ): ResponseEntity<*> {
     val result = MerlinPagesRest.updateLayoutAndData(obj as MerlinTemplateDO)
     val dto = result.second
     val ui = result.first
     val data = mapOf(
       "attachments" to list,
       "wordTemplateFileName" to (dto.wordTemplateFileName ?: "---"),
-      "excelTemplateDefinitionFileName" to (dto.excelTemplateDefinitionFileName ?: "---"))
+    )
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = targetType, merge = true)
