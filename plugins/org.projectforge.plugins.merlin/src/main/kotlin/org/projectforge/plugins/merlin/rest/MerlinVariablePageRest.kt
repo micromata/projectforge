@@ -154,7 +154,7 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
     val lc = LayoutContext(MerlinVariable::class.java)
 
     val leftCol = UICol(UILength(md = 6))
-      .add(UIReadOnlyField("currentVariable.name", lc))
+      .add(UIInput("currentVariable.name", lc))
     if (!variable.dependent) {
       leftCol.add(
         UISelect(

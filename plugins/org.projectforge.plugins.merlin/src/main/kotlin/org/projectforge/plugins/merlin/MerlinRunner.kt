@@ -134,7 +134,8 @@ open class MerlinRunner {
             fileObject.fileName ?: "untitled.docx",
             templateDefinition,
             stats,
-            keepWordDocument
+            keepWordDocument,
+            dto,
           )
           stats.excelTemplateDefinitionFilename = excelAttachment?.name
           word.name?.let {
@@ -514,6 +515,7 @@ open class MerlinRunner {
     templateDefinition: TemplateDefinition? = null,
     merlinStatistics: MerlinStatistics,
     keepWordDocument: Boolean = false,
+    dto: MerlinTemplate? = null,
   ): WordDocument? {
     var doc: WordDocument? = null
     try {
@@ -521,6 +523,9 @@ open class MerlinRunner {
       val templateChecker = WordTemplateChecker(doc)
       templateDefinition?.let {
         templateChecker.assignTemplateDefinition(it)
+        if (dto != null) {
+          updateTemplateDefinition(it, dto)
+        }
       }
       val statistics = templateChecker.template.statistics
       merlinStatistics.template = templateChecker.template

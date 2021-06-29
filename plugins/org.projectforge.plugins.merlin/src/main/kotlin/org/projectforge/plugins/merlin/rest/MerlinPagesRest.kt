@@ -30,6 +30,7 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.merlin.*
+import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -139,7 +140,7 @@ class MerlinPagesRest :
       layout.add(
         UIAlert(
           """'# TODO
-* Variable-Administration in UI: Handling of "one", "two", ..., speichern/backup.
+* Variable-Administration in UI: Handling of "one", "two", ..., speichern/backup/neue Variablen.
 * Demo templates for creating (menu entry in list view)
 * Doku: #PersonalBox etc.""",
           color = UIColor.WARNING,

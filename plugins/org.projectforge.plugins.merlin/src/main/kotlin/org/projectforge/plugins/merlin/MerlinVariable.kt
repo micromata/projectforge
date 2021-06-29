@@ -37,35 +37,10 @@ import java.math.BigDecimal
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class MerlinVariable {
+@Suppress("unused")
+class MerlinVariable: MerlinVariableBase() {
   var id: Int? = null
 
-  @PropertyInfo(i18nKey = "plugins.merlin.variable.name")
-  var name: String = ""
-
-  @PropertyInfo(i18nKey = "description")
-  var description: String? = null
-
-  @PropertyInfo(i18nKey = "plugins.merlin.variable.required")
-  var required: Boolean = false
-
-  @PropertyInfo(i18nKey = "plugins.merlin.variable.unique", additionalI18nKey = "plugins.merlin.variable.unique.info")
-  var unique: Boolean = false
-
-  @PropertyInfo(i18nKey = "plugins.merlin.variable.minValue")
-  var minimumValue: Any? = null
-
-  @PropertyInfo(i18nKey = "plugins.merlin.variable.maxValue")
-  var maximumValue: Any? = null
-
-  @PropertyInfo(
-    i18nKey = "plugins.merlin.variable.allowedValues",
-    additionalI18nKey = "plugins.merlin.variable.allowedValues.info"
-  )
-  var allowedValues: List<String>? = null
-
-  @PropertyInfo(i18nKey = "plugins.merlin.variable.type")
-  var type: VariableType = VariableType.STRING
   var defined: Boolean = false
 
   var dependsOn: MerlinVariable? = null
@@ -73,12 +48,6 @@ class MerlinVariable {
       field = value
       dependsOnName = value?.name
     }
-
-  @PropertyInfo(i18nKey = "plugins.merlin.variable.dependsOn")
-  var dependsOnName: String? = null
-
-  @PropertyInfo(i18nKey = "plugins.merlin.variable.mapping", additionalI18nKey = "plugins.merlin.variable.mapping.info")
-  var mappingValues: String? = null
 
   @get:JsonProperty
   val mappingMasterValues
@@ -210,15 +179,12 @@ class MerlinVariable {
   }
 
   fun copyFrom(src: MerlinVariable) {
-    this.type = src.type
+    super.copyFrom(src)
     this.dependsOn = src.dependsOn
-    this.minimumValue = src.minimumValue
-    this.maximumValue = src.maximumValue
-    this.required = src.required
-    this.unique = src.unique
-    this.allowedValues = src.allowedValues
-    this.description = src.description
-    this.mappingValues = src.mappingValues
+    this.id = src.id
+    this.defined = src.defined
+    this.used = src.used
+    this.masterVariable = src.masterVariable
   }
 
   fun copyTo(dest: VariableDefinition) {

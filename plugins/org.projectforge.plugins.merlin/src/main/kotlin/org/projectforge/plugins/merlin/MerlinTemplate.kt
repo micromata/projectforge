@@ -24,6 +24,7 @@
 package org.projectforge.plugins.merlin
 
 import org.projectforge.framework.jcr.Attachment
+import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Group
@@ -65,6 +66,18 @@ class MerlinTemplate(
     admins = User.toUserList(src.adminIds)
     accessGroups = Group.toGroupList(src.accessGroupIds)
     accessUsers = User.toUserList(src.accessUserIds)
+    variablesFromJson(src.variables)?.let { variables = it }
+    variablesFromJson(src.dependentVariables)?.let { dependentVariables = it }
+  }
+
+  private fun variablesFromJson(json: String?): MutableList<MerlinVariable>? {
+    if (json.isNullOrBlank()) {
+      return null
+    }
+    JsonUtils.fromJson(json, Array<MerlinVariable>::class.java, failOnUnknownProps = false)?.let {
+      return it.toMutableList()
+    }
+    return null
   }
 
   // The user and group ids are stored as csv list of integers in the data base.
@@ -73,6 +86,16 @@ class MerlinTemplate(
     dest.adminIds = User.toIntList(admins)
     dest.accessGroupIds = Group.toIntList(accessGroups)
     dest.accessUserIds = User.toIntList(accessUsers)
+    dest.variables = variablesToJson(variables)
+    dest.dependentVariables = variablesToJson(dependentVariables)
+  }
+
+  private fun variablesToJson(variables: MutableList<MerlinVariable>): String? {
+    if (variables.isNullOrEmpty()) {
+      return null
+    }
+    val baseVariables = variables.map { MerlinVariableBase().copyFrom(it) }
+    return JsonUtils.toJson(baseVariables, ignoreNullableProps = true)
   }
 
   /**
