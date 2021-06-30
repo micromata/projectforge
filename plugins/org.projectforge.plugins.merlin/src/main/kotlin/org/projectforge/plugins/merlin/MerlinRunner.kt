@@ -24,7 +24,6 @@
 package org.projectforge.plugins.merlin
 
 import de.micromata.merlin.excel.ExcelWorkbook
-import de.micromata.merlin.persistency.FileDescriptor
 import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.*
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
@@ -38,8 +37,6 @@ import org.projectforge.common.logging.LogFilter
 import org.projectforge.common.logging.LoggingEventData
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -78,112 +75,41 @@ open class MerlinRunner {
   private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
 
   @Autowired
+  private lateinit var merlinHandler: MerlinHandler
+
+  @Autowired
   private lateinit var merlinTemplateDao: MerlinTemplateDao
 
-  internal lateinit var attachmentsAccessChecker: AttachmentsAccessChecker // Set by MerlinPagesRest
-
-  internal lateinit var jcrPath: String // Set by MerlinPagesRest
+  @Autowired
+  private lateinit var merlinTemplateDefinitionHandler: MerlinTemplateDefinitionHandler
 
   @Autowired
   private lateinit var pluginAdminService: PluginAdminService
-
-  /**
-   * @param id Id of the MerlinTemplateDO
-   * @param keepWordDocument If true, you have to close the workbook finally.
-   * @param dto If given and variables are already defined, the settings of this given dto will override the stats settings.
-   */
-  fun getStatistics(id: Int, keepWordDocument: Boolean = false, dto: MerlinTemplate? = null): MerlinStatistics {
-    val list = getAttachments(id) ?: return MerlinStatistics()
-    val wordAttachment = getWordTemplate(list)
-    val stats = MerlinStatistics()
-    val templateDefinition = buildTemplateDefinition(list, id, dto)
-    wordAttachment?.let { word ->
-      attachmentsService.getAttachmentInputStream(
-        jcrPath,
-        id,
-        word.fileId!!,
-        accessChecker = attachmentsAccessChecker,
-      )?.let {
-        val istream = it.second
-        val fileObject = it.first
-        istream.use {
-          stats.wordDocument = analyzeTemplate(
-            istream,
-            fileObject.fileName ?: "untitled.docx",
-            templateDefinition,
-            stats,
-            keepWordDocument,
-          )
-          word.name?.let {
-            stats.wordTemplateFilename = word.name
-          }
-          // log.info("Statistics: $stats")
-        }
-      }
-    }
-    return stats
-  }
-
-  /**
-   * @return Pair of filename and byte array representing the Excel file.
-   */
-  fun writeTemplateDefinitionWorkbook(dto: MerlinTemplate): Pair<String, ByteArray> {
-    val stats = getStatistics(dto.id!!)
-    val writer = TemplateDefinitionExcelWriter()
-    val filename = "${FilenameUtils.getBaseName(stats.wordTemplateFilename ?: "untitled")}.xlsx"
-    initTemplateRunContext(writer.templateRunContext)
-    stats.template?.let { template ->
-      template.fileDescriptor = FileDescriptor()
-      template.fileDescriptor.filename = stats.wordTemplateFilename
-    }
-    val templateDefinition =
-      stats.templateDefinition ?: stats.template?.createAutoTemplateDefinition() ?: TemplateDefinition()
-    templateDefinition.filenamePattern = dto.fileNamePattern
-    templateDefinition.id = filename
-    templateDefinition.isStronglyRestrictedFilenames = dto.stronglyRestrictedFilenames == true
-    templateDefinition.description = dto.description
-    val workbook = writer.writeToWorkbook(templateDefinition)
-    workbook.filename = filename
-    val outStream = ByteArrayOutputStream()
-    outStream.use {
-      workbook.write(it)
-      return Pair(filename, outStream.toByteArray())
-    }
-  }
 
   /**
    * @return Pair of filename and byte array representing the Word file.
    */
   fun executeTemplate(dbo: MerlinTemplateDO, inputVariables: Map<String, Any?>?): Pair<String, ByteArray> {
     val id = dbo.id!!
-    val stats = getStatistics(id)
-    val templateDefinition = stats.templateDefinition
-    val list = getAttachments(id) ?: throw IllegalArgumentException("No attachments given. Can't run template.")
-    val wordAttachment =
-      getWordTemplate(list) ?: throw IllegalArgumentException("No Word® template given. Can't run template.")
-    attachmentsService.getAttachmentInputStream(
-      jcrPath,
-      id,
-      wordAttachment.fileId!!,
-      accessChecker = attachmentsAccessChecker,
-    )?.let {
-      val istream = it.second
-      val fileObject = it.first
-      val templateFilename = fileObject.fileName ?: "untitled.docx"
-      istream.use {
-        WordDocument(istream, templateFilename).use { doc ->
-          val runner = WordTemplateRunner(stats.templateDefinition, doc)
-          val context = TemplateRunContext()
-          initTemplateRunContext(context)
-          val variables = convertVariables(inputVariables, templateDefinition)
-          val result = runner.run(variables)
-          val filename = runner.createFilename(dbo.fileNamePattern, variables)
-          val byteArray = result.asByteArrayOutputStream.toByteArray()
-          return Pair(filename, byteArray)
-        }
+    val analysis = merlinHandler.analyze(id)
+    val templateDefinition = analysis.statistics.templateDefinition
+    val wordDocumentResult = merlinHandler.getWordTemplateInputStream(id)
+      ?: throw IllegalArgumentException("No Word® template given. Can't run template.")
+    val istream = wordDocumentResult.second
+    val fileObject = wordDocumentResult.first
+    val templateFilename = fileObject.fileName ?: "untitled.docx"
+    istream.use {
+      WordDocument(istream, templateFilename).use { doc ->
+        val runner = WordTemplateRunner(templateDefinition, doc)
+        val context = TemplateRunContext()
+        initTemplateRunContext(context)
+        val variables = convertVariables(inputVariables, templateDefinition)
+        val result = runner.run(variables)
+        val filename = runner.createFilename(dbo.fileNamePattern, variables)
+        val byteArray = result.asByteArrayOutputStream.toByteArray()
+        return Pair(filename, byteArray)
       }
     }
-    throw IllegalArgumentException("Can't execute Word template. Internal error.")
   }
 
   /**
@@ -196,13 +122,12 @@ open class MerlinRunner {
       return null
     }
     val lastLogNumber = MerlinPlugin.ensureUserLogSubscription().lastEntryNumber
-    val stats: MerlinStatistics
     var serialData: SerialData?
-    stats = getStatistics(id, true)
-    stats.wordDocument.use { wordDocument ->
-      if (wordDocument == null) {
-        return null
-      }
+    val analysis = merlinHandler.analyze(id)
+    val templateDefinition = analysis.statistics.templateDefinition
+    val dto = analysis.dto
+    val wordDocument = merlinHandler.getWordTemplateToCloseOnYourOwn(id) ?: return null
+    wordDocument.use { doc ->
       istream.use {
         ExcelWorkbook(istream, filename).use { workbook ->
           if (!SerialDataExcelReader.isMerlinSerialRunDefinition(workbook)) {
@@ -211,18 +136,17 @@ open class MerlinRunner {
           val reader = SerialDataExcelReader(workbook)
           initTemplateRunContext(reader.templateRunContext)
           val data = reader.serialData
-          data.template = stats.template
-          data.templateDefinition = stats.templateDefinition
+          data.templateDefinition = templateDefinition
+          data.template = analysis.statistics.template
           data.template.statistics.inputVariables.add(VariableDefinition(PERSONAL_BOX_VARIABLE))
           data.template.statistics.inputVariables.add(VariableDefinition(PERSONAL_BOX_VARIABLE_AS_PDF))
           reader.readVariables(data.template.statistics)
           serialData = data
         }
       }
-      val runner = SerialTemplateRunner(serialData, wordDocument)
+      val runner = SerialTemplateRunner(serialData, doc)
       var zipByteArray: ByteArray = runner.run(filename)
-      val template = merlinTemplateDao.getById(id)
-      zipByteArray = postProcessSerialDocuments(zipByteArray, serialData!!, lastLogNumber, template.pdfExport == true)
+      zipByteArray = postProcessSerialDocuments(zipByteArray, serialData!!, lastLogNumber, dto.pdfExport == true)
       return Pair(runner.zipFilename, zipByteArray)
     }
   }
@@ -232,10 +156,10 @@ open class MerlinRunner {
    * @return Pair of filename and byte array representing the Excel file.
    */
   fun createSerialExcelTemplate(id: Int): Pair<String, ByteArray> {
-    val stats = getStatistics(id)
     val serialData = SerialData()
-    serialData.template = stats.template
-    serialData.templateDefinition = stats.templateDefinition
+    val analysis = merlinHandler.analyze(id)
+    serialData.templateDefinition = analysis.statistics.templateDefinition
+    serialData.template = analysis.statistics.template
     val writer = SerialDataExcelWriter(serialData)
     initTemplateRunContext(writer.templateRunContext)
     writer.writeToWorkbook(false).use { workbook ->
@@ -259,41 +183,6 @@ open class MerlinRunner {
           PdfConverter.getInstance().convert(word.document, baos, options)
           return Pair("${FilenameUtils.getBaseName(filename)}.pdf", baos.toByteArray())
         }
-      }
-    }
-  }
-
-  /**
-   * Creates Template definition by using defined variables or, if not defined, by loading the latest xlsx file.
-   */
-  private fun buildTemplateDefinition(list: List<Attachment>, id: Int, dto: MerlinTemplate?): TemplateDefinition {
-    if (dto?.variables.isNullOrEmpty()) {
-      // No variables defined, so try to read from uploaded Excel:
-      val excelAttachment = list.find { it.fileExtension == "xlsx" }
-      readTemplateDefinition(id, excelAttachment)?.let { return it }
-    }
-    val templateDefinition = TemplateDefinition()
-    updateTemplateDefinition(templateDefinition, dto)
-    return templateDefinition
-  }
-
-  private fun readTemplateDefinition(id: Int, attachment: Attachment?): TemplateDefinition? {
-    attachment ?: return null
-    val attPair = attachmentsService.getAttachmentInputStream(
-      jcrPath,
-      id,
-      attachment.fileId!!,
-      accessChecker = attachmentsAccessChecker,
-    ) ?: return null
-
-    val istream = attPair.second
-    val fileObject = attPair.first
-    istream.use {
-      val reader = TemplateDefinitionExcelReader()
-      ExcelWorkbook(istream, fileObject.fileName ?: "undefined", ThreadLocalUserContext.getLocale()).use { workBook ->
-        val def = reader.readFromWorkbook(workBook, false)
-        // log.info("Template definition: ${ToStringUtil.toJsonString(def)}")
-        return def
       }
     }
   }
@@ -432,29 +321,43 @@ open class MerlinRunner {
             }
             val wordBytes = zipInputStream.readAllBytes()
             if (docReceiver != null) {
-              attachmentsService.addAttachment(
-                dataTransferAreaPagesRest.jcrPath!!,
-                fileInfo = FileInfo(zipEntry.name, fileSize = zipEntry.size),
-                content = wordBytes,
-                baseDao = dataTransferAreaDao,
-                obj = personalBox,
-                accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
-              )
-              log.info("Document '${zipEntry.name}' of size ${FormatterUtils.formatBytes(wordBytes.size)} put in the personal box (DataTransfer) of '${receiver.displayName}'.")
+              try {
+                attachmentsService.addAttachment(
+                  dataTransferAreaPagesRest.jcrPath!!,
+                  fileInfo = FileInfo(zipEntry.name, fileSize = zipEntry.size),
+                  content = wordBytes,
+                  baseDao = dataTransferAreaDao,
+                  obj = personalBox,
+                  accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
+                )
+                log.info("Document '${zipEntry.name}' of size ${FormatterUtils.formatBytes(wordBytes.size)} put in the personal box (DataTransfer) of '${receiver.displayName}'.")
+              } catch (ex: Exception) {
+                log.error(
+                  "Can't put document '${zipEntry.name}' of size ${FormatterUtils.formatBytes(wordBytes.size)} into user '${receiver.getFullname()}' personal box: ${ex.message}",
+                  ex
+                )
+              }
             }
             if (pdfReceiver != null) {
               val pdfResult = convertToPdf(wordBytes, zipEntry.name)
               val pdfFilename = pdfResult.first
               val pdfBytes = pdfResult.second
-              attachmentsService.addAttachment(
-                dataTransferAreaPagesRest.jcrPath!!,
-                fileInfo = FileInfo(pdfFilename, fileSize = pdfBytes.size.toLong()),
-                content = pdfBytes,
-                baseDao = dataTransferAreaDao,
-                obj = personalBox,
-                accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
-              )
-              log.info("Document '$pdfFilename' of size ${FormatterUtils.formatBytes(pdfBytes.size)} put in the personal box (DataTransfer) of '${receiver.displayName}'.")
+              try {
+                attachmentsService.addAttachment(
+                  dataTransferAreaPagesRest.jcrPath!!,
+                  fileInfo = FileInfo(pdfFilename, fileSize = pdfBytes.size.toLong()),
+                  content = pdfBytes,
+                  baseDao = dataTransferAreaDao,
+                  obj = personalBox,
+                  accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
+                )
+                log.info("Document '$pdfFilename' of size ${FormatterUtils.formatBytes(pdfBytes.size)} put in the personal box (DataTransfer) of '${receiver.displayName}'.")
+              } catch (ex: Exception) {
+                log.error(
+                  "Can't put document '$pdfFilename' of size ${FormatterUtils.formatBytes(pdfBytes.size)} into user '${receiver.getFullname()}' personal box: ${ex.message}",
+                  ex
+                )
+              }
             }
           } catch (ex: Exception) {
             log.error("Can't put document into user '${receiver.getFullname()}' personal box: ${ex.message}", ex)
@@ -467,9 +370,7 @@ open class MerlinRunner {
   }
 
   private fun getUser(userObject: Any?): Pair<Boolean, PFUserDO?> {
-    if (userObject == null) {
-      return Pair(true, null) // OK, no user specified.
-    }
+    userObject ?: return Pair(true, null) // OK, no user specified.
     val userString = "$userObject" // Stringify
     if (userString.isBlank()) {
       return Pair(true, null) // OK, no user specified.
@@ -506,84 +407,6 @@ open class MerlinRunner {
       result.put(varname, value)
     }
     return result
-  }
-
-  private fun getAttachments(id: Int): List<Attachment>? {
-    return attachmentsService.getAttachments(jcrPath, id, attachmentsAccessChecker)?.sortedByDescending { it.created }
-  }
-
-  private fun getWordTemplate(list: List<Attachment>): Attachment? {
-    return list.find { it.fileExtension == "docx" }
-  }
-
-  private fun analyzeTemplate(
-    istream: InputStream,
-    filename: String,
-    templateDefinition: TemplateDefinition? = null,
-    merlinStatistics: MerlinStatistics,
-    keepWordDocument: Boolean = false,
-  ): WordDocument? {
-    var doc: WordDocument? = null
-    try {
-      doc = WordDocument(istream, filename)
-      val templateChecker = WordTemplateChecker(doc)
-      templateDefinition?.let {
-        templateChecker.assignTemplateDefinition(it)
-      }
-      val statistics = templateChecker.template.statistics
-      merlinStatistics.template = templateChecker.template
-      merlinStatistics.template?.fileDescriptor = createFileDescriptor(filename)
-      merlinStatistics.update(statistics, templateDefinition)
-    } finally {
-      if (!keepWordDocument) {
-        doc?.close()
-      }
-    }
-    return doc
-  }
-
-  private fun updateTemplateDefinition(templateDefinition: TemplateDefinition, dto: MerlinTemplate?) {
-    dto ?: return
-    templateDefinition.filenamePattern = dto.fileNamePattern
-    templateDefinition.description = dto.description
-    templateDefinition.isStronglyRestrictedFilenames = (dto.stronglyRestrictedFilenames == true)
-    val allVariables = mutableListOf<MerlinVariable>()
-    // First get all variables from templateDefinition if any:
-    templateDefinition.variableDefinitions?.forEach {
-      allVariables.add(MerlinVariable.from(it))
-    }
-    templateDefinition.dependentVariableDefinitions?.forEach {
-      allVariables.add(MerlinVariable.from(it))
-    }
-    // Upsert all variables from dto:
-    (dto.variables + dto.dependentVariables).forEach { dtoVariable ->
-      val variable = allVariables.find { it.name == dtoVariable.name }
-      if (variable == null) {
-        // Add dto variable to template definition.
-        allVariables.add(dtoVariable)
-      } else {
-        variable.copyFrom(dtoVariable)
-      }
-    }
-    // Now, re-create variables in templateDefinition:
-    templateDefinition.variableDefinitions = MerlinTemplate.extractInputVariables(allVariables).map { dtoVariable ->
-      val definition = VariableDefinition()
-      dtoVariable.copyTo(definition)
-      definition
-    }
-    // Now, re-create dependent variables in templateDefinition:
-    templateDefinition.dependentVariableDefinitions =
-      MerlinTemplate.extractDependentVariables(allVariables).map { dtoVariable ->
-        val definition = DependentVariableDefinition()
-        dtoVariable.copyTo(definition)
-        definition
-      }
-  }
-
-  private fun createFileDescriptor(filename: String): FileDescriptor {
-    val fileDescriptor = FileDescriptor()
-    fileDescriptor.filename = filename
-    return fileDescriptor
   }
 
   companion object {

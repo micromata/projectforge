@@ -36,7 +36,7 @@ function DynamicTableRow(
                     Accept: 'application/json',
                 },
                 body: JSON.stringify({
-                    ...data,
+                    data,
                 }),
             },
         )

@@ -34,6 +34,10 @@ enum class UIColor {
     INFO,
     @JsonProperty("light")
     LIGHT,
+
+    /**
+     * Blue text with white background and without border.
+     */
     @JsonProperty("link")
     LINK,
 

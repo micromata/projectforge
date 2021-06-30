@@ -31,7 +31,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import java.util.*
 import javax.persistence.*
 
 /**
@@ -82,6 +82,11 @@ open class MerlinTemplateDO : AbstractBaseDO<Int>(), AttachmentsInfo {
    */
   @get:Column(name = "access_user_ids", length = 4000, nullable = true)
   open var accessUserIds: String? = null
+
+
+  @get:Basic
+  @get:Column(name = "last_variable_update")
+  open var lastVariableUpdate: Date? = null
 
   /**
    * Master variables of TemplateDefinition ([de.micromata.merlin.word.templating.TemplateDefinition.variableDefinitions])

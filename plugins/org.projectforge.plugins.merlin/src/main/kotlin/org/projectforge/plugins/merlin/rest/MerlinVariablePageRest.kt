@@ -38,6 +38,7 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -70,14 +71,21 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
    * For editing variables. Must be called first for storing current state of all variables in [ExpiringSessionAttributes]
    * before redirecting to dynamic page (where the values will get from the session).
    * Post to dynamic page isn't yet available, so this workaround is needed.
+   * @param variableId -1 creates a new variable.
    */
   @PostMapping("edit/{variableId}")
   fun openEditModal(
     @PathVariable("variableId", required = true) variableId: Int,
-    @Valid @RequestBody dto: MerlinTemplate, request: HttpServletRequest
+    @Valid @RequestBody data: PostData<MerlinTemplate>, request: HttpServletRequest
   ): ResponseEntity<*> {
-    dto.currentVariable =
+    val dto = data.data
+    dto.currentVariable = if (variableId != -1) {
       getCurrentVariable(dto, variableId) ?: throw InternalError("Variable with given id not found.")
+    } else {
+      val newVariable = MerlinVariable().with(dto.findNextId())
+      dto.variables.add(newVariable)
+      newVariable
+    }
     // 10 minutes (if user reloads page)
     ExpiringSessionAttributes.setAttribute(request.session, "${this::class.java.name}:${dto.id}", dto, 10)
     return ResponseEntity.ok()
@@ -117,6 +125,34 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
       dto.dependentVariables.filter { it.dependsOnName == oldName }.forEach {
         it.dependsOn = dest
       }
+    }
+    dto.lastVariableUpdate = Date() // Mark dto as newer than Excel template
+    dto.reorderVariables()
+    val result =
+      MerlinPagesRest.updateLayoutAndData(dto = dto, userAccess = UILayout.UserAccess(true, true, true, true))
+    val ui = result.first
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
+          .addVariable("data", ResponseData(dto.variables, dto.dependentVariables))
+          .addVariable("ui", ui)
+      )
+  }
+
+  /**
+   * User wants to save changes of variable (currentVariable of posted dto).
+   */
+  @PostMapping("delete")
+  fun delete(
+    @Valid @RequestBody data: PostData<MerlinTemplate>, request: HttpServletRequest
+  ): ResponseEntity<*> {
+    val dto = data.data
+    dto.currentVariable ?: throw IllegalArgumentException("No current variable found. Nothing to update.")
+    // Find current variable in list of variables as destination:
+    val dest = getCurrentVariable(dto, dto.currentVariable?.id)
+      ?: throw IllegalArgumentException("No current variable found. Nothing to update.")
+    if (dto.variables.remove(dest) || dto.dependentVariables.remove(dest)) {
+      dto.lastVariableUpdate = Date() // Mark dto as newer than Excel template
     }
     dto.reorderVariables()
     val result =
@@ -231,10 +267,24 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
       UIButton(
         "cancel",
         translate("cancel"),
-        UIColor.DANGER,
+        UIColor.WARNING,
         responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)
       )
     )
+    if (variable.used == false) {
+      // Deleting only of unused variables supported.
+      layout.addAction(
+        UIButton(
+          "delete",
+          translate("delete"),
+          UIColor.DANGER,
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(this::class.java, "delete"),
+            targetType = TargetType.POST
+          )
+        )
+      )
+    }
     layout.addAction(
       UIButton(
         "update",
