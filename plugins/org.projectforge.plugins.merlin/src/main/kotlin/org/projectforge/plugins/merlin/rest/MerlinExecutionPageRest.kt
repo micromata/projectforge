@@ -59,6 +59,9 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   private lateinit var merlinTemplateDao: MerlinTemplateDao
 
   @Autowired
+  private lateinit var merlinHandler: MerlinHandler
+
+  @Autowired
   private lateinit var merlinRunner: MerlinRunner
 
   @Autowired
@@ -110,7 +113,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         )
       }."
     }
-    val result = merlinRunner.serialExecuteTemplate(id, filename, file.inputStream)
+    val result = merlinRunner.serialExecuteTemplate(id, filename ?: "untitled.docx", file.inputStream)
       ?: throw IllegalArgumentException("Can't execute serial Excel file.")
     val zipFilename = result.first
     val zipByteArray = result.second
@@ -119,7 +122,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
 
   private fun validate(data: MerlinExecutionData): List<ValidationError>? {
     val validationErrors = mutableListOf<ValidationError>()
-    val stats = merlinRunner.getStatistics(data.id)
+    val stats = merlinHandler.analyze(data.id).statistics
     val inputVariables = stats.variables.filter { it.input }
     val inputData = data.inputVariables
     if (inputData != null) {
@@ -146,8 +149,8 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     val logViewerMenuItem = MerlinPlugin.createUserLogSubscriptionMenuItem()
     val id = NumberHelper.parseInteger(idString) ?: throw IllegalAccessException("Parameter id not an int.")
     val dbObj = merlinTemplateDao.getById(id)
-    val template = merlinPagesRest.transformFromDB(dbObj)
-    val stats = merlinRunner.getStatistics(id, dto = template)
+    val dto = merlinPagesRest.transformFromDB(dbObj)
+    val stats = merlinHandler.analyze(dto).statistics
     val col1 = UICol(md = 6)
     val col2 = UICol(md = 6)
     val inputVariables = stats.variables.filter { it.input }
@@ -170,7 +173,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
           uploadUrl = RestResolver.getRestUrl(this::class.java, "serialExecution/$id"),
         )
       )
-    val variablesFieldset = UIFieldset(title = "'${template.name}")
+    val variablesFieldset = UIFieldset(title = "'${dto.name}")
     if (!dbObj.description.isNullOrBlank()) {
       variablesFieldset.add(UIAlert(message = "'${dbObj.description}", color = UIColor.LIGHT))
     }
@@ -238,7 +241,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         MenuItem(
           "EDIT",
           i18nKey = "plugins.merlin.title.edit",
-          url = PagesResolver.getEditPageUrl(MerlinPagesRest::class.java, template.id),
+          url = PagesResolver.getEditPageUrl(MerlinPagesRest::class.java, dto.id),
           type = MenuItemTargetType.REDIRECT
         )
       )
@@ -246,11 +249,11 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
 
-    val dto = MerlinExecutionData(template.id!!, template.name ?: "???")
+    val executionData = MerlinExecutionData(dto.id!!, dto.name ?: "???")
     val userPref = getUserPref(id)
-    dto.inputVariables = userPref.inputVariables
-    dto.pdfFormat = userPref.pdfFormat
-    return FormLayoutData(dto, layout, createServerData(request))
+    executionData.inputVariables = userPref.inputVariables
+    executionData.pdfFormat = userPref.pdfFormat
+    return FormLayoutData(executionData, layout, createServerData(request))
   }
 
   private fun createInputElement(variable: MerlinVariable): UIElement {
@@ -271,7 +274,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         tooltip = "'${variable.description}",
       )
     }
-    val values = allowedValues.map { UISelectValue(it, "$it") }
+    val values = allowedValues.map { UISelectValue(it, it) }
     return UISelect(getFieldId(name), label = "'$name", required = variable.required, values = values)
   }
 

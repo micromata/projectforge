@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.merlin.rest
 
-import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
@@ -50,7 +49,7 @@ import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
-private val log = KotlinLogging.logger {}
+// private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/merlin")
@@ -63,7 +62,13 @@ class MerlinPagesRest :
   private lateinit var groupService: GroupService
 
   @Autowired
+  private lateinit var merlinHandler: MerlinHandler
+
+  @Autowired
   private lateinit var merlinRunner: MerlinRunner
+
+  @Autowired
+  private lateinit var merlinTemplateDefinitionHandler: MerlinTemplateDefinitionHandler
 
   @Autowired
   private lateinit var userService: UserService
@@ -72,8 +77,8 @@ class MerlinPagesRest :
   private fun postConstruct() {
     enableJcr()
     instance = this
-    merlinRunner.attachmentsAccessChecker = attachmentsAccessChecker
-    merlinRunner.jcrPath = jcrPath!!
+    merlinHandler.attachmentsAccessChecker = attachmentsAccessChecker
+    merlinHandler.jcrPath = jcrPath!!
   }
 
   /**
@@ -93,14 +98,7 @@ class MerlinPagesRest :
   }
 
   override fun transformFromDB(obj: MerlinTemplateDO, editMode: Boolean): MerlinTemplate {
-    val dto = MerlinTemplate()
-    dto.copyFrom(obj)
-    dto.dependentVariables.forEach { variable ->
-      variable.dependsOnName?.let { dependsOnName ->
-        // Restore dependsOn variable:
-        variable.dependsOn = dto.variables.find { it.name == dependsOnName }
-      }
-    }
+    val dto = merlinHandler.getDto(obj)
 
     // Group names needed by React client (for ReactSelect):
     Group.restoreDisplayNames(dto.accessGroups, groupService)
@@ -145,6 +143,7 @@ class MerlinPagesRest :
         UIAlert(
           """'# TODO
 * Variable-Administration in UI: Handling of "one", "two", ..., speichern/backup/neue Variablen.
+* Ausgabeformat von Floats: Tausendertrennzeichen und Dezimalzeichen!
 * Demo templates for creating (menu entry in list view)
 * Doku: #PersonalBox etc.""",
           color = UIColor.WARNING,
@@ -168,7 +167,7 @@ class MerlinPagesRest :
   @PostMapping("exportExcelTemplate")
   fun exportExcelTemplate(@Valid @RequestBody postData: PostData<MerlinTemplate>): ResponseEntity<*> {
     val dto = postData.data
-    val workbook = merlinRunner.writeTemplateDefinitionWorkbook(dto)
+    val workbook = merlinTemplateDefinitionHandler.writeTemplateDefinitionWorkbook(dto)
     val filename = workbook.first
     val bytes = workbook.second
     return RestUtils.downloadFile(filename, bytes)
@@ -218,8 +217,8 @@ class MerlinPagesRest :
   companion object {
     private lateinit var instance: MerlinPagesRest
 
-    private val merlinRunner: MerlinRunner
-      get() = instance.merlinRunner
+    private val merlinHandler: MerlinHandler
+      get() = instance.merlinHandler
 
     internal fun updateLayoutAndData(
       dbo: MerlinTemplateDO? = null,
@@ -228,23 +227,17 @@ class MerlinPagesRest :
     ): Pair<UILayout, MerlinTemplate> {
       val logViewerMenuItem = MerlinPlugin.createUserLogSubscriptionMenuItem()
       check(dbo != null || userAccess != null) { "dbo or userAcess must be given." }
-      val id = dbo?.id ?: dto.id
-      val stats = if (id != null) {
-        merlinRunner.getStatistics(id, dto = dto)
-      } else {
-        MerlinStatistics()
-      }
-      val inputVariables = UIBadgeList()
-      stats.variables.sortedBy { it.name.toLowerCase() }.forEach {
-        if (it.input) {
-          inputVariables.add(UIBadge(it.name, it.uiColor))
-        }
+      val analyzeResult = merlinHandler.analyze(dto)
+      val stats = analyzeResult.statistics
+      stats.updateDtoVariables(dto)
+      dto.wordTemplateFileName = analyzeResult.wordTemplateFilename
+      val variables = UIBadgeList()
+      dto.variables.sortedBy { it.name.toLowerCase() }.forEach {
+        variables.add(UIBadge(it.name, it.uiColor))
       }
       val dependentVariables = UIBadgeList()
-      stats.variables.sortedBy { it.name.toLowerCase() }.forEach {
-        if (it.dependent) {
-          dependentVariables.add(UIBadge(it.name, it.uiColor))
-        }
+      dto.dependentVariables.sortedBy { it.name.toLowerCase() }.forEach {
+        dependentVariables.add(UIBadge(it.name, it.uiColor))
       }
       val lc = LayoutContext(MerlinTemplateDO::class.java)
       val adminsSelect = UISelect.createUserSelect(
@@ -268,28 +261,33 @@ class MerlinPagesRest :
         "plugins.merlin.accessGroups",
         tooltip = "plugins.merlin.accessGroups.info"
       )
+      val fileCol = UICol(md = 6)
+        .add(UIInput("fileNamePattern", lc))
+        .add(
+          UIReadOnlyField(
+            "wordTemplateFileName",
+            label = "plugins.merlin.wordTemplateFile",
+            tooltip = "plugins.merlin.wordTemplateFile.info"
+          )
+        )
+      if (!dto.excelTemplateDefinitionFileName.isNullOrBlank()) {
+        fileCol.add(
+          UIReadOnlyField(
+            "excelTemplateDefinitionFileName",
+            label = "plugins.merlin.templateConfigurationFile",
+            tooltip = "plugins.merlin.templateConfigurationFile.info"
+          )
+        )
+      }
       val layout = instance.createEditLayoutSuper(dto, userAccess ?: instance.getUserAccess(dbo!!))
       val fieldset = UIFieldset(md = 12, lg = 12)
         .add(lc, "name")
         .add(
           UIRow()
+            .add(fileCol)
             .add(
               UICol(md = 6)
-                .add(UIInput("fileNamePattern", lc))
-                .add(
-                  UIReadOnlyField(
-                    "wordTemplateFileName",
-                    label = "plugins.merlin.wordTemplateFile",
-                    tooltip = "plugins.merlin.wordTemplateFile.info"
-                  )
-                )
-            )
-            .add(
-              UICol(md = 3)
                 .add(lc, "stronglyRestrictedFilenames")
-            )
-            .add(
-              UICol(md = 3)
                 .add(lc, "pdfExport")
             )
         )
@@ -300,7 +298,7 @@ class MerlinPagesRest :
               UICol(md = 6)
                 .add(UILabel("plugins.merlin.variables.input", tooltip = "plugins.merlin.variables.input.info"))
                 .add(
-                  inputVariables
+                  variables
                 )
             )
             .add(
@@ -319,15 +317,20 @@ class MerlinPagesRest :
         .add(
           UIRow()
             .add(
-              UICol(collapseTitle = translate("plugins.merlin.variables.input"))
-                .add(createVariableTable())
-            )
-        )
-        .add(
-          UIRow()
-            .add(
-              UICol(collapseTitle = translate("plugins.merlin.variables.dependant"))
-                .add(createDependenVariableTable())
+              UICol()
+                .add(
+                  UIButton(
+                    "add",
+                    title = translate("plugins.merlin.variable.add"),
+                    color = UIColor.SECONDARY,
+                    responseAction = ResponseAction(
+                      RestResolver.getRestUrl(
+                        MerlinVariablePageRest::class.java,
+                        "edit/-1" // -1 means new variable.
+                      ), targetType = TargetType.POST
+                    )
+                  )
+                )
             )
         )
       if (!stats.conditionals.isNullOrEmpty()) {
@@ -348,6 +351,23 @@ class MerlinPagesRest :
       }
 
       layout.add(fieldset)
+        .add(
+          UIFieldset(md = 12, lg = 12, title = "plugins.merlin.variables")
+            .add(
+              UIRow()
+                .add(
+                  UICol(collapseTitle = translate("plugins.merlin.variables.input"))
+                    .add(createVariableTable())
+                )
+            )
+            .add(
+              UIRow()
+                .add(
+                  UICol(collapseTitle = translate("plugins.merlin.variables.dependant"))
+                    .add(createDependenVariableTable())
+                )
+            )
+        )
         .add(
           UIFieldset(md = 12, lg = 12, title = "access.title.heading")
             .add(
@@ -393,8 +413,6 @@ class MerlinPagesRest :
       )
       layout.add(logViewerMenuItem)
 
-      dto.wordTemplateFileName = stats.wordTemplateFilename
-      dto.replaceVariables(stats.variables)
       return Pair(LayoutUtils.processEditPage(layout, dto, instance), dto)
     }
 
@@ -413,7 +431,7 @@ class MerlinPagesRest :
           UITableColumn(
             "unique",
             title = "plugins.merlin.variable.unique",
-            tooltip = "plugins.merlin.variable.unique",
+            tooltip = "plugins.merlin.variable.unique.info",
             sortable = false
           ).setStandardBoolean()
         )
@@ -447,6 +465,14 @@ class MerlinPagesRest :
         rowClickPostUrl = RestResolver.getRestUrl(MerlinVariablePageRest::class.java, "edit")
       )
         .add(UITableColumn("name", title = "plugins.merlin.variable.name", sortable = false))
+        .add(
+          UITableColumn(
+            "used",
+            title = "plugins.merlin.variable.used",
+            tooltip = "plugins.merlin.variable.used.info",
+            sortable = false
+          ).setStandardBoolean()
+        )
         .add(UITableColumn("dependsOn.name", title = "plugins.merlin.variable.dependsOn", sortable = false))
         .add(
           UITableColumn(

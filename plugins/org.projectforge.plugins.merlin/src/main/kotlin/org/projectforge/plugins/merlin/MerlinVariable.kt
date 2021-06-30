@@ -75,11 +75,11 @@ class MerlinVariable: MerlinVariableBase() {
         masterVariable == true -> {
           UIColor.DANGER
         }
-        input -> {
-          UIColor.SUCCESS
-        }
         used == false -> {
           UIColor.LIGHT
+        }
+        input -> {
+          UIColor.SUCCESS
         }
         dependent -> {
           UIColor.SECONDARY
@@ -217,26 +217,34 @@ class MerlinVariable: MerlinVariableBase() {
     }
   }
 
+  fun copyFrom(src: VariableDefinition) {
+    this.name = src.name
+    this.defined = true
+    this.description = src.description
+    this.required = src.isRequired
+    this.unique = src.isUnique
+    this.minimumValue = src.minimumValue
+    this.maximumValue = src.maximumValue
+    this.allowedValues = src.allowedValuesList?.map { "$it" }
+    this.type = src.type
+  }
+
+  fun copyFrom(src: DependentVariableDefinition) {
+    this.name = src.name
+    this.mappingValues = src.mapping?.values?.joinToString { "$it" }
+    this.dependsOn = from(src.dependsOn)
+  }
+
   companion object {
     fun from(definition: VariableDefinition): MerlinVariable {
       val variable = MerlinVariable()
-      variable.name = definition.name
-      variable.defined = true
-      variable.description = definition.description
-      variable.required = definition.isRequired
-      variable.unique = definition.isUnique
-      variable.minimumValue = definition.minimumValue
-      variable.maximumValue = definition.maximumValue
-      variable.allowedValues = definition.allowedValuesList?.map { "$it" }
-      variable.type = definition.type
+      variable.copyFrom(definition)
       return variable
     }
 
     fun from(definition: DependentVariableDefinition): MerlinVariable {
       val variable = MerlinVariable()
-      variable.name = definition.name
-      variable.mappingValues = definition.mapping?.values?.joinToString { "$it" }
-      variable.dependsOn = from(definition.dependsOn)
+      variable.copyFrom(definition)
       return variable
     }
   }

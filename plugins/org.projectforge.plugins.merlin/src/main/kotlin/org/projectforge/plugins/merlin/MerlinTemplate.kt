@@ -23,12 +23,14 @@
 
 package org.projectforge.plugins.merlin
 
+import de.micromata.merlin.word.templating.TemplateDefinition
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
+import java.util.*
 
 class MerlinTemplate(
   id: Int? = null,
@@ -45,10 +47,12 @@ class MerlinTemplate(
   var stronglyRestrictedFilenames: Boolean? = null,
   var pdfExport: Boolean? = null,
   var wordTemplateFileName: String? = null,
+  var excelTemplateDefinitionFileName: String? = null,
   /**
    * Used by [org.projectforge.plugins.merlinMerlinVariablePageRest]
    */
   var currentVariable: MerlinVariable? = null,
+  var lastVariableUpdate: Date? = null,
   override var attachmentsCounter: Int? = null,
   override var attachmentsSize: Long? = null,
 ) : BaseDTO<MerlinTemplateDO>(id), AttachmentsSupport {
@@ -58,6 +62,12 @@ class MerlinTemplate(
 
   var dependentVariables = mutableListOf<MerlinVariable>()
 
+  /**
+   * @return variable or dependent variable by name or null, if not found.
+   */
+  fun findVariableByName(name: String): MerlinVariable? {
+    return variables.find { it.name == name } ?: dependentVariables.find { it.name == name }
+  }
 
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: MerlinTemplateDO) {
@@ -108,6 +118,53 @@ class MerlinTemplate(
   fun replaceVariables(allVariables: List<MerlinVariable>) {
     variables = extractInputVariables(allVariables).toMutableList()
     dependentVariables = extractDependentVariables(allVariables).toMutableList()
+    ensureVariableIds()
+  }
+
+  /**
+   * Ensures variable id's of all variables / dependent variables.
+   */
+  fun ensureVariableIds() {
+    var counter = findNextId()
+    (variables + dependentVariables).forEach {
+      if (it.id == null) {
+        it.id = counter++
+      }
+    }
+  }
+
+  /**
+   * Checks all (dependent) variables for their id's and returns the next unused id number.
+   */
+  fun findNextId(): Int {
+    val variablesMaxId = variables.maxByOrNull { it.id ?: 0 }?.id ?: 0
+    val dependentVariablesMaxId = dependentVariables.maxByOrNull { it.id ?: 0 }?.id ?: 0
+    return maxOf(variablesMaxId, dependentVariablesMaxId) + 1
+  }
+
+  /**
+   * Gets all variables from the given templateDefinition and updates the variable
+   */
+  fun updateFromTemplateDefinition(templateDefinition: TemplateDefinition) {
+    val allVariables = variables + dependentVariables
+
+    templateDefinition.variableDefinitions?.forEach { variableDefinition ->
+      val dtoVariable = allVariables.find { it.name == variableDefinition.name }
+      if (dtoVariable != null) {
+        dtoVariable.copyFrom(variableDefinition)
+      } else {
+        variables.add(MerlinVariable.from(variableDefinition))
+      }
+    }
+    templateDefinition.dependentVariableDefinitions?.forEach { dependentVariableDefinition ->
+      val dtoVariable = allVariables.find { it.name == dependentVariableDefinition.name }
+      if (dtoVariable != null) {
+        dtoVariable.copyFrom(dependentVariableDefinition)
+      } else {
+        dependentVariables.add(MerlinVariable.from(dependentVariableDefinition))
+      }
+    }
+    reorderVariables() // Variables may changed from input to dependent and vice versa.
   }
 
   companion object {

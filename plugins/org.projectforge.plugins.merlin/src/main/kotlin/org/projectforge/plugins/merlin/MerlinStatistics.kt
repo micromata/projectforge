@@ -24,10 +24,11 @@
 package org.projectforge.plugins.merlin
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.merlin.word.WordDocument
+import de.micromata.merlin.persistency.FileDescriptor
 import de.micromata.merlin.word.templating.Template
 import de.micromata.merlin.word.templating.TemplateDefinition
 import de.micromata.merlin.word.templating.TemplateStatistics
+import de.micromata.merlin.word.templating.WordTemplateChecker
 import org.projectforge.framework.ToStringUtil
 
 /**
@@ -36,13 +37,10 @@ import org.projectforge.framework.ToStringUtil
 class MerlinStatistics {
   val variables = mutableListOf<MerlinVariable>()
   val conditionals = mutableListOf<MerlinConditional>()
-  var wordTemplateFilename: String? = null
-
-  @get:JsonIgnore
-  var wordDocument: WordDocument? = null
 
   @get:JsonIgnore
   var templateStatistics: TemplateStatistics? = null
+    private set
 
   @get:JsonIgnore
   var templateDefinition: TemplateDefinition? = null
@@ -50,9 +48,12 @@ class MerlinStatistics {
   @get:JsonIgnore
   var template: Template? = null
 
-  fun update(statistics: TemplateStatistics? = null, templateDefinition: TemplateDefinition? = null) {
+  fun update(templateChecker: WordTemplateChecker, wordFilename: String) {
+    template = templateChecker.template
+    template!!.fileDescriptor = createFileDescriptor(wordFilename)
+    val statistics = templateChecker.template.statistics
+    this.templateDefinition = templateChecker.template.templateDefinition
     this.templateStatistics = statistics
-    this.templateDefinition = templateDefinition
     synchronized(conditionals) {
       conditionals.clear()
       statistics?.conditionals?.conditionalsSet?.forEach {
@@ -86,6 +87,32 @@ class MerlinStatistics {
     }
   }
 
+  /**
+   * Updates dto variables: Adds statistics variables not yet included in dto and updates usage info (defined, master variabl etc.)
+   * of dto variables and dependentVariables.
+   */
+  fun updateDtoVariables(dto: MerlinTemplate) {
+    val statistics = templateStatistics ?: return
+    dto.variables.forEach {
+      it.used = statistics.usedVariables?.contains(it.name) == true
+      it.masterVariable = statistics.masterVariables?.contains(it.name) == true || conditionalsUsesVariable(it.name)
+    }
+    dto.dependentVariables.forEach {
+      it.used = statistics.usedVariables?.contains(it.name) == true
+    }
+    // Add missing variables in dto, but found in template.
+    variables.forEach { variable ->
+      if (dto.findVariableByName(variable.name) == null) {
+        val newVariable = MerlinVariable()
+        newVariable.copyFrom(variable)
+        newVariable.id = null // Force to use own id (if variable was renamed).
+        dto.variables.add(newVariable) // Add as variable, dependent variables will be re-assigned at the end of this method
+                                    // by [MerlinTemplate.reorderVariables].
+      }
+    }
+    dto.reorderVariables()
+  }
+
   override fun toString(): String {
     return ToStringUtil.toJsonString(this)
   }
@@ -105,5 +132,11 @@ class MerlinStatistics {
       }
     }
     return false
+  }
+
+  private fun createFileDescriptor(filename: String): FileDescriptor {
+    val fileDescriptor = FileDescriptor()
+    fileDescriptor.filename = filename
+    return fileDescriptor
   }
 }

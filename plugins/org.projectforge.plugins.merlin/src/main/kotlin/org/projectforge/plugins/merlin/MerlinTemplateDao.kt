@@ -30,6 +30,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.stereotype.Repository
+import java.util.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -78,5 +79,19 @@ open class MerlinTemplateDao : BaseDao<MerlinTemplateDO>(MerlinTemplateDO::class
 
   override fun newInstance(): MerlinTemplateDO {
     return MerlinTemplateDO()
+  }
+
+  override fun onSave(obj: MerlinTemplateDO) {
+    if (!obj.variables.isNullOrBlank() || !obj.dependentVariables.isNullOrBlank()) {
+      // Variables were changed:
+      obj.lastVariableUpdate = Date()
+    }
+  }
+
+  override fun onChange(obj: MerlinTemplateDO, dbObj: MerlinTemplateDO) {
+    if (obj.variables != dbObj.variables || obj.dependentVariables != dbObj.dependentVariables) {
+      // Variables were changed:
+      obj.lastVariableUpdate = Date()
+    }
   }
 }
