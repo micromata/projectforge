@@ -144,12 +144,29 @@ open class MerlinRunner {
           data.template.statistics.inputVariables.add(VariableDefinition(PERSONAL_BOX_VARIABLE))
           data.template.statistics.inputVariables.add(VariableDefinition(PERSONAL_BOX_VARIABLE_AS_PDF))
           reader.readVariables(data.template.statistics)
+
+          val validatedEntries = mutableListOf<Variables>()
+          data.entries.forEachIndexed { index, variables ->
+            var error = false
+            // Validate each set of variables (one set per document to generate):
+            dto.variables.filter { it.input }.forEach { variable ->
+              variable.validate(variables.get(variable.name))?.let { errorMsg ->
+                log.error { "Document #$index: $errorMsg" }
+                error = true
+              }
+            }
+            if (!error) {
+              validatedEntries.add(variables)
+            }
+          }
+          data.entries = validatedEntries
+
           serialData = data
         }
       }
       val runner = SerialTemplateRunner(serialData, doc)
       var zipByteArray: ByteArray = runner.run(filename)
-      zipByteArray = postProcessSerialDocuments(zipByteArray, serialData!!, lastLogNumber, dto.pdfExport == true)
+      zipByteArray = postProcessSerialDocuments(zipByteArray, serialData!!, dto, lastLogNumber, dto.pdfExport == true)
       return Pair(runner.zipFilename, zipByteArray)
     }
   }
@@ -197,10 +214,11 @@ open class MerlinRunner {
   private fun postProcessSerialDocuments(
     zipByteArray: ByteArray,
     serialData: SerialData,
+    dto: MerlinTemplate,
     lastLogNumber: Long?,
     pdfExport: Boolean,
   ): ByteArray {
-    processPersonalBoxOfReceivers(zipByteArray, serialData)
+    processPersonalBoxOfReceivers(zipByteArray, serialData, dto)
     ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
       ByteArrayOutputStream().use { baos ->
         ZipOutputStream(baos).use { zipOut ->
@@ -257,7 +275,7 @@ open class MerlinRunner {
     }
   }
 
-  private fun processPersonalBoxOfReceivers(zipByteArray: ByteArray, serialData: SerialData) {
+  private fun processPersonalBoxOfReceivers(zipByteArray: ByteArray, serialData: SerialData, dto: MerlinTemplate) {
     if (serialData.entries.none {
         val personalBoxVariable = it.get(PERSONAL_BOX_VARIABLE)
         val personalBoxUsed =
@@ -283,17 +301,29 @@ open class MerlinRunner {
     var validUsernames = true
     serialData.entries.forEach { variables ->
       val personalBoxUserResult = getUser(variables.get(PERSONAL_BOX_VARIABLE))
+      val docReceiver = personalBoxUserResult.second
       val personalBoxAsPdfUserResult = getUser(variables.get(PERSONAL_BOX_VARIABLE_AS_PDF))
+      val pdfReceiver = personalBoxAsPdfUserResult.second
+      var error = false
       if (!personalBoxUserResult.first || !personalBoxAsPdfUserResult.first) {
         validUsernames = false
+      } else {
+        dto.variables.filter { it.input }.forEach { variable ->
+          if (!error) { // Log only first validation error.
+            variable.validate(variables.get(variable.name))?.let { errorMsg ->
+              log.error { "Not sending anything to receiver '${docReceiver?.getFullname() ?: pdfReceiver?.getFullname()}' due to validation error of variable '${variable.name}': $errorMsg" }
+              error = true
+            }
+          }
+        }
       }
-      val docReceiver = personalBoxUserResult.second
-      docReceivers.add(docReceiver)
-      val pdfReceiver = personalBoxAsPdfUserResult.second
-      pdfReceivers.add(pdfReceiver)
-      if (docReceiver != null && pdfReceiver != null && docReceiver != pdfReceiver) {
-        validUsernames = false
-        log.error { "Can't send Word® file and PDF file to different users: '${docReceiver.getFullname()}' != '${pdfReceiver.getFullname()}'!" }
+      if (!error) {
+        docReceivers.add(docReceiver)
+        pdfReceivers.add(pdfReceiver)
+        if (docReceiver != null && pdfReceiver != null && docReceiver != pdfReceiver) {
+          validUsernames = false
+          log.error { "Can't send Word® file and PDF file to different users: '${docReceiver.getFullname()}' != '${pdfReceiver.getFullname()}'!" }
+        }
       }
     }
     if (!validUsernames) {
