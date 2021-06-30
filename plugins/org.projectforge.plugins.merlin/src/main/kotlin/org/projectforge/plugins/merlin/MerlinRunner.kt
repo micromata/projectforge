@@ -42,6 +42,8 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateTimeFormatter
+import org.projectforge.framework.utils.NumberFormatter
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileInfo
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -53,6 +55,7 @@ import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.math.RoundingMode
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -89,9 +92,9 @@ open class MerlinRunner {
   /**
    * @return Pair of filename and byte array representing the Word file.
    */
-  fun executeTemplate(dbo: MerlinTemplateDO, inputVariables: Map<String, Any?>?): Pair<String, ByteArray> {
-    val id = dbo.id!!
+  fun executeTemplate(id: Int, inputVariables: Map<String, Any?>?): Pair<String, ByteArray> {
     val analysis = merlinHandler.analyze(id)
+    val dto = analysis.dto
     val templateDefinition = analysis.statistics.templateDefinition
     val wordDocumentResult = merlinHandler.getWordTemplateInputStream(id)
       ?: throw IllegalArgumentException("No Word® template given. Can't run template.")
@@ -103,9 +106,9 @@ open class MerlinRunner {
         val runner = WordTemplateRunner(templateDefinition, doc)
         val context = TemplateRunContext()
         initTemplateRunContext(context)
-        val variables = convertVariables(inputVariables, templateDefinition)
+        val variables = formatVariables(inputVariables, dto)
         val result = runner.run(variables)
-        val filename = runner.createFilename(dbo.fileNamePattern, variables)
+        val filename = runner.createFilename(dto.fileNamePattern, variables)
         val byteArray = result.asByteArrayOutputStream.toByteArray()
         return Pair(filename, byteArray)
       }
@@ -384,23 +387,37 @@ open class MerlinRunner {
     return Pair(false, null)
   }
 
-  private fun convertVariables(
+  /**
+   * Format variables.
+   */
+  private fun formatVariables(
     variables: Map<String, Any?>?,
-    templateDefinition: TemplateDefinition?,
+    dto: MerlinTemplate,
   ): Variables {
     val result = Variables()
-    if (templateDefinition == null) {
-      result.putAll(variables)
-      return result
-    }
     variables?.forEach { (varname, value) ->
-      val variableDefinition = templateDefinition.getVariableDefinition(varname)
-      if (variableDefinition != null) {
-        if (variableDefinition.type == VariableType.DATE && value != null && value is String) {
+      val variable = dto.findVariableByName(varname)
+      if (variable != null) {
+        if (variable.type == VariableType.DATE && value != null && value is String) {
           val date = RestHelper.parseJSDateTime(value)?.sqlDate
           if (date != null) {
             val formattedDate = DateTimeFormatter.instance().getFormattedDate(date)
             result.putFormatted(varname, formattedDate)
+          }
+        } else if (variable.type.isIn(VariableType.INT, VariableType.FLOAT)) {
+          if (value != null && value is String) {
+            NumberHelper.parseBigDecimal(value)?.let { bd ->
+              if (variable.type == VariableType.INT) {
+                result.putFormatted(varname, NumberFormatter.format(bd.setScale(0, RoundingMode.HALF_UP), 0))
+              } else {
+                val scale = variable.scale
+                if (scale != null) {
+                  result.putFormatted(varname, NumberFormatter.format(bd.setScale(scale, RoundingMode.HALF_UP), scale))
+                } else {
+                  result.putFormatted(varname, NumberFormatter.format(bd))
+                }
+              }
+            }
           }
         }
       }

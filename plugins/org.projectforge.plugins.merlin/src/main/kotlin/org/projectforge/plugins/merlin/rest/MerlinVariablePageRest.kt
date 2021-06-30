@@ -232,15 +232,28 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
         VariableType.STRING -> {
           fieldset.add(UICreatableSelect("currentVariable.allowedValues", lc))
         }
-        VariableType.FLOAT, VariableType.INT -> {
-          val dataType = if (variable.type == VariableType.FLOAT) UIDataType.DECIMAL else UIDataType.INT
+        VariableType.INT -> {
           fieldset.add(
             UIRow().add(
               UICol(md = 6)
-                .add(UIInput("minimumValue", lc, dataType = dataType))
+                .add(UIInput("currentVariable.minimumValue", lc, dataType = UIDataType.INT))
             ).add(
               UICol(md = 6)
-                .add(UIInput("maximumValue", lc, dataType = dataType))
+                .add(UIInput("currentVariable.maximumValue", lc, dataType = UIDataType.INT))
+            )
+          )
+        }
+        VariableType.FLOAT -> {
+          fieldset.add(
+            UIRow().add(
+              UICol(md = 4)
+                .add(UIInput("currentVariable.minimumValue", lc, dataType = UIDataType.DECIMAL))
+            ).add(
+              UICol(md = 4)
+                .add(UIInput("currentVariable.maximumValue", lc, dataType = UIDataType.DECIMAL))
+            ).add(
+              UICol(md = 4)
+                .add(UIInput("currentVariable.scale", lc, dataType = UIDataType.INT))
             )
           )
         }

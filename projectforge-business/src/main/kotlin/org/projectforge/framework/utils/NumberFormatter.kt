@@ -25,6 +25,7 @@ package org.projectforge.framework.utils
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.text.NumberFormat
 import java.util.*
 
@@ -87,7 +88,15 @@ object NumberFormatter {
             format.maximumFractionDigits = scale
             format.minimumFractionDigits = scale
         }
-        return format.format(value.toDouble())
+        return when (value) {
+            is BigDecimal -> format.format(value)
+            is BigInteger -> format.format(value)
+            is Double -> format.format(value)
+            is Float -> format.format(value)
+            is Int -> format.format(value)
+            is Long -> format.format(value)
+            else -> format.format(value.toDouble())
+        }
     }
 
     /**
