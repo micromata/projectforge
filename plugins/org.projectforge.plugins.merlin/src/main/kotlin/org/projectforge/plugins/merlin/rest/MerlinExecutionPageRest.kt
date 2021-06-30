@@ -86,8 +86,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     if (!errors.isNullOrEmpty()) {
       return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
     }
-    val dbObj = merlinTemplateDao.getById(executionData.id)
-    val result = merlinRunner.executeTemplate(dbObj, executionData.inputVariables)
+    val result = merlinRunner.executeTemplate(executionData.id, executionData.inputVariables)
     var filename = result.first
     val wordBytes = result.second
     var download = wordBytes

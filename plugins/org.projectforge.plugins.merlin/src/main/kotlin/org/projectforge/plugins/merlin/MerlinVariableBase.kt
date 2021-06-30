@@ -49,6 +49,9 @@ open class MerlinVariableBase {
   @PropertyInfo(i18nKey = "plugins.merlin.variable.maxValue")
   var maximumValue: Any? = null
 
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.scale", additionalI18nKey = "plugins.merlin.variable.scale.info")
+  var scale: Int? = null
+
   @PropertyInfo(
     i18nKey = "plugins.merlin.variable.allowedValues",
     additionalI18nKey = "plugins.merlin.variable.allowedValues.info"
@@ -72,6 +75,7 @@ open class MerlinVariableBase {
     this.type = src.type
     this.minimumValue = src.minimumValue
     this.maximumValue = src.maximumValue
+    this.scale = src.scale
     this.required = src.required
     this.unique = src.unique
     this.allowedValues = src.allowedValues
