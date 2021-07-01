@@ -143,8 +143,7 @@ class MerlinPagesRest :
         UIAlert(
           """'# TODO
 * Variablen umsortieren.
-* Demo templates for creating (menu entry in list view)
-* Doku: #PersonalBox etc.""",
+* Demo templates for creating (menu entry in list view)""",
           color = UIColor.WARNING,
           markdown = true
         )
@@ -279,16 +278,18 @@ class MerlinPagesRest :
         )
       }
       val layout = instance.createEditLayoutSuper(dto, userAccess ?: instance.getUserAccess(dbo!!))
+      val propsCol = UICol(md = 6)
+        .add(lc, "stronglyRestrictedFilenames")
+        .add(lc, "pdfExport")
+      if (merlinHandler.dataTransferPluginAvailable()) {
+        propsCol.add(lc, "dataTransferUsage")
+      }
       val fieldset = UIFieldset(md = 12, lg = 12)
         .add(lc, "name")
         .add(
           UIRow()
             .add(fileCol)
-            .add(
-              UICol(md = 6)
-                .add(lc, "stronglyRestrictedFilenames")
-                .add(lc, "pdfExport")
-            )
+            .add(propsCol)
         )
         .add(lc, "description")
         .add(

@@ -66,6 +66,13 @@ open class MerlinTemplateDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   open var pdfExport: Boolean? = null
 
   /**
+   * If checked, the download of the Excel template for serial execution will contain the #PersonalBox... variables as well.
+   */
+  @PropertyInfo(i18nKey = "plugins.merlin.template.dataTransferUsage", tooltip = "plugins.merlin.template.dataTransferUsage.info")
+  @get:Column(name = "data_transfer_usage")
+  open var dataTransferUsage: Boolean? = null
+
+  /**
    * These users have full read/write/execute access.
    */
   @get:Column(name = "admin_ids", length = 4000, nullable = true)

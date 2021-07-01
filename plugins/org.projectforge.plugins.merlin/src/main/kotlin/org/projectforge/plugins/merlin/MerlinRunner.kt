@@ -23,7 +23,10 @@
 
 package org.projectforge.plugins.merlin
 
+import de.micromata.merlin.CoreI18n
 import de.micromata.merlin.excel.ExcelWorkbook
+import de.micromata.merlin.excel.ExcelWriterContext
+import de.micromata.merlin.utils.ReplaceUtils.replace
 import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.*
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
@@ -45,9 +48,7 @@ import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileInfo
-import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
-import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
@@ -81,13 +82,7 @@ open class MerlinRunner {
   private lateinit var merlinHandler: MerlinHandler
 
   @Autowired
-  private lateinit var merlinTemplateDao: MerlinTemplateDao
-
-  @Autowired
-  private lateinit var merlinTemplateDefinitionHandler: MerlinTemplateDefinitionHandler
-
-  @Autowired
-  private lateinit var pluginAdminService: PluginAdminService
+  private lateinit var merlinFontService: MerlinFontService
 
   /**
    * @return Pair of filename and byte array representing the Word file.
@@ -147,7 +142,9 @@ open class MerlinRunner {
           data.templateDefinition = templateDefinition
           data.template = analysis.statistics.template
           data.template.statistics.inputVariables.add(VariableDefinition(PERSONAL_BOX_VARIABLE))
+          data.template.statistics.inputVariables.add(VariableDefinition(PERSONAL_BOX_VARIABLE_DESC))
           data.template.statistics.inputVariables.add(VariableDefinition(PERSONAL_BOX_VARIABLE_AS_PDF))
+          data.template.statistics.inputVariables.add(VariableDefinition(PERSONAL_BOX_VARIABLE_AS_PDF_DESC))
           reader.readVariables(data.template.statistics)
 
           val validatedEntries = mutableListOf<Variables>()
@@ -171,12 +168,21 @@ open class MerlinRunner {
       }
       val runner = SerialTemplateRunner(serialData, doc)
       var zipByteArray: ByteArray = runner.run(filename)
-      zipByteArray = postProcessSerialDocuments(zipByteArray, excelByteArray, filename, serialData!!, dto, lastLogNumber, dto.pdfExport == true)
+      zipByteArray = postProcessSerialDocuments(
+        zipByteArray,
+        excelByteArray,
+        filename,
+        serialData!!,
+        dto,
+        lastLogNumber,
+        dto.pdfExport == true
+      )
       return Pair(runner.zipFilename, zipByteArray)
     }
   }
 
   /**
+   * Creates a template for Excel for executing serial document generation.
    * @param id Id of the MerlinTemplateDO
    * @return Pair of filename and byte array representing the Excel file.
    */
@@ -188,6 +194,34 @@ open class MerlinRunner {
     val writer = SerialDataExcelWriter(serialData)
     initTemplateRunContext(writer.templateRunContext)
     writer.writeToWorkbook(false).use { workbook ->
+      if (merlinHandler.dataTransferPluginAvailable()) {
+        // DataTransfer plugin is available, so offer columns to send documents directory to personal boxes of user.
+        val variablesSheet = workbook.getSheet(0)
+        serialData.templateDefinition.variableDefinitions.forEach {
+          variablesSheet.registerColumn(it.name) // For finding the head row.
+        }
+        val headRow = variablesSheet.headRow
+        if (headRow == null) {
+          log.error { "Oups, can't find head row of sheet '${variablesSheet.sheetName}'. Can't add #PersonalBox columns." }
+        } else {
+          val writerContext = ExcelWriterContext(CoreI18n(), workbook)
+          listOf(
+            PERSONAL_BOX_VARIABLE,
+            PERSONAL_BOX_VARIABLE_DESC,
+            PERSONAL_BOX_VARIABLE_AS_PDF,
+            PERSONAL_BOX_VARIABLE_AS_PDF_DESC
+          ).forEach {
+            val cell = headRow.createCell()
+            val i18nKey = it.substring(1) // Ignore trailing '#'
+            cell.setCellValue(it)
+            writerContext.cellHighlighter.setCellComment(
+              cell,
+              translate("plugins.merlin.serial.variable.$i18nKey.info")
+            )
+          }
+          variablesSheet.autosize()
+        }
+      }
       val bos = org.apache.commons.io.output.ByteArrayOutputStream()
       bos.use {
         workbook.pOIWorkbook.write(bos)
@@ -204,6 +238,7 @@ open class MerlinRunner {
     ByteArrayInputStream(wordBytes).use { bais ->
       WordDocument(bais, filename).use { word ->
         val options = PdfOptions.create()
+        options.fontProvider(MerlinFontProvider(merlinFontService))
         ByteArrayOutputStream().use { baos ->
           PdfConverter.getInstance().convert(word.document, baos, options)
           return Pair("${FilenameUtils.getBaseName(filename)}.pdf", baos.toByteArray())
@@ -300,14 +335,14 @@ open class MerlinRunner {
       // No #PersonalBox value or #PersonalBoxAsPdf given. Nothing to do.
       return
     }
-    if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
+    if (!merlinHandler.dataTransferPluginAvailable()) {
       log.error { "No DataTransfer activated, can't use personal box. Please contact your administrator to activate the plugin 'DataTransfer'." }
       return
     }
     log.info { "Using $PERSONAL_BOX_VARIABLE/$PERSONAL_BOX_VARIABLE_AS_PDF for sending documents via DataTransfer." }
     // First, check all usernames:
-    val docReceivers = mutableListOf<PFUserDO?>()
-    val pdfReceivers = mutableListOf<PFUserDO?>()
+    val docReceivers = mutableListOf<PersonalBoxReceiver>()
+    val pdfReceivers = mutableListOf<PersonalBoxReceiver>()
     var validUsernames = true
     serialData.entries.forEach { variables ->
       val personalBoxUserResult = getUser(variables.get(PERSONAL_BOX_VARIABLE))
@@ -328,8 +363,8 @@ open class MerlinRunner {
         }
       }
       if (!error) {
-        docReceivers.add(docReceiver)
-        pdfReceivers.add(pdfReceiver)
+        docReceivers.add(PersonalBoxReceiver(docReceiver, variables, PERSONAL_BOX_VARIABLE_DESC))
+        pdfReceivers.add(PersonalBoxReceiver(pdfReceiver, variables, PERSONAL_BOX_VARIABLE_AS_PDF_DESC))
         if (docReceiver != null && pdfReceiver != null && docReceiver != pdfReceiver) {
           validUsernames = false
           log.error { "Can't send Word® file and PDF file to different users: '${docReceiver.getFullname()}' != '${pdfReceiver.getFullname()}'!" }
@@ -353,57 +388,65 @@ open class MerlinRunner {
         }
         val docReceiver = docReceivers[counter]
         val pdfReceiver = pdfReceivers[counter++]
-        if (docReceiver != null || pdfReceiver != null) {
+        if (docReceiver.user != null || pdfReceiver.user != null) {
           val receiver = docReceiver ?: pdfReceiver!!
           try {
             zipEntry.name
-            val personalBox = dataTransferAreaDao.ensurePersonalBox(receiver.id)
+            val personalBox = dataTransferAreaDao.ensurePersonalBox(receiver.userId)
             if (personalBox == null) {
-              log.error { "Can't get personal box of user '${receiver.getFullname()}. Skipping user." }
+              log.error { "Can't get personal box of user '${receiver.userFullname}. Skipping user." }
               continue
             }
             val wordBytes = zipInputStream.readAllBytes()
-            if (docReceiver != null) {
+            if (docReceiver.user != null) {
               try {
                 attachmentsService.addAttachment(
                   dataTransferAreaPagesRest.jcrPath!!,
-                  fileInfo = FileInfo(zipEntry.name, fileSize = zipEntry.size),
+                  fileInfo = FileInfo(
+                    zipEntry.name,
+                    fileSize = zipEntry.size,
+                    description = docReceiver.attachmentDescription
+                  ),
                   content = wordBytes,
                   baseDao = dataTransferAreaDao,
                   obj = personalBox,
                   accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
                 )
-                log.info("Document '${zipEntry.name}' of size ${FormatterUtils.formatBytes(wordBytes.size)} put in the personal box (DataTransfer) of '${receiver.displayName}'.")
+                log.info("Document '${zipEntry.name}' of size ${FormatterUtils.formatBytes(wordBytes.size)} put in the personal box (DataTransfer) of '${receiver.userDisplayName}' with description '${docReceiver.attachmentDescription}'.")
               } catch (ex: Exception) {
                 log.error(
-                  "Can't put document '${zipEntry.name}' of size ${FormatterUtils.formatBytes(wordBytes.size)} into user '${receiver.getFullname()}' personal box: ${ex.message}",
+                  "Can't put document '${zipEntry.name}' of size ${FormatterUtils.formatBytes(wordBytes.size)} into user '${receiver.userFullname}' personal box: ${ex.message}",
                   ex
                 )
               }
             }
-            if (pdfReceiver != null) {
+            if (pdfReceiver.user != null) {
               val pdfResult = convertToPdf(wordBytes, zipEntry.name)
               val pdfFilename = pdfResult.first
               val pdfBytes = pdfResult.second
               try {
                 attachmentsService.addAttachment(
                   dataTransferAreaPagesRest.jcrPath!!,
-                  fileInfo = FileInfo(pdfFilename, fileSize = pdfBytes.size.toLong()),
+                  fileInfo = FileInfo(
+                    pdfFilename,
+                    fileSize = pdfBytes.size.toLong(),
+                    description = pdfReceiver.attachmentDescription
+                  ),
                   content = pdfBytes,
                   baseDao = dataTransferAreaDao,
                   obj = personalBox,
                   accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
                 )
-                log.info("Document '$pdfFilename' of size ${FormatterUtils.formatBytes(pdfBytes.size)} put in the personal box (DataTransfer) of '${receiver.displayName}'.")
+                log.info("Document '$pdfFilename' of size ${FormatterUtils.formatBytes(pdfBytes.size)} put in the personal box (DataTransfer) of '${receiver.userDisplayName}' with description '${pdfReceiver.attachmentDescription}'.")
               } catch (ex: Exception) {
                 log.error(
-                  "Can't put document '$pdfFilename' of size ${FormatterUtils.formatBytes(pdfBytes.size)} into user '${receiver.getFullname()}' personal box: ${ex.message}",
+                  "Can't put document '$pdfFilename' of size ${FormatterUtils.formatBytes(pdfBytes.size)} into user '${receiver.userFullname}' personal box: ${ex.message}",
                   ex
                 )
               }
             }
           } catch (ex: Exception) {
-            log.error("Can't put document into user '${receiver.getFullname()}' personal box: ${ex.message}", ex)
+            log.error("Can't put document into user '${receiver.userFullname}' personal box: ${ex.message}", ex)
           }
         }
         zipEntry = zipInputStream.nextEntry
@@ -466,9 +509,23 @@ open class MerlinRunner {
     return result
   }
 
+  class PersonalBoxReceiver(val user: PFUserDO?, variables: Variables, varname: String) {
+    val userId = user?.id ?: -1
+    val userFullname = user?.getFullname() ?: "unknown"
+    val userDisplayName = user?.displayName ?: "unknown"
+    val attachmentDescription = replace(variables.getFormatted(varname) ?: "", variables)
+  }
+
   companion object {
-    private const val PERSONAL_BOX_VARIABLE = "#PersonalBox"
-    private const val PERSONAL_BOX_VARIABLE_AS_PDF = "#PersonalBoxAsPdf"
+    private const val PERSONAL_BOX_VARIABLE =
+      "#PersonalBox" // This string is also used in MerlinI18nResources.properties.
+    private const val PERSONAL_BOX_VARIABLE_DESC =
+      "#PersonalBox_Description" // This string is also used in MerlinI18nResources.properties.
+    private const val PERSONAL_BOX_VARIABLE_AS_PDF =
+      "#PersonalBoxAsPdf" // This string is also used in MerlinI18nResources.properties.
+    private const val PERSONAL_BOX_VARIABLE_AS_PDF_DESC =
+      "#PersonalBoxAsPdf_Description" // This string is also used in MerlinI18nResources.properties.
+
     fun initTemplateRunContext(templateRunContext: TemplateRunContext) {
       val contextUser = ThreadLocalUserContext.getUser()
       templateRunContext.setLocale(DateFormats.getFormatString(DateFormatType.DATE), contextUser.locale)

@@ -46,6 +46,7 @@ class MerlinTemplate(
   var fileNamePattern: String? = null,
   var stronglyRestrictedFilenames: Boolean? = null,
   var pdfExport: Boolean? = null,
+  var dataTransferUsage: Boolean? = null,
   var wordTemplateFileName: String? = null,
   var excelTemplateDefinitionFileName: String? = null,
   /**
