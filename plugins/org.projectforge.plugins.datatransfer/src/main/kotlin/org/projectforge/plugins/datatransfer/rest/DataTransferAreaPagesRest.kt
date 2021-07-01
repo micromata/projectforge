@@ -127,23 +127,25 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(lc, "created")
           .add(UITableColumn("lastUpdateTimeAgo", "lastUpdate"))
           .add(lc, "areaName", "description")
-          .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
-          .add(UITableColumn("maxUploadSizeFormatted", "plugins.datatransfer.maxUploadSize"))
+          .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP, sortable = false))
+          .add(UITableColumn("maxUploadSizeFormatted", "plugins.datatransfer.maxUploadSize", sortable = false))
           .add(UITableColumn(
               "externalDownloadEnabled",
-              "plugins.datatransfer.external.download.enabled.title"
+              "plugins.datatransfer.external.download.enabled.title",
+            sortable = false,
             ).setStandardBoolean()
           )
           .add(UITableColumn(
             "externalUploadEnabled",
-            "plugins.datatransfer.external.upload.enabled.title"
+            "plugins.datatransfer.external.upload.enabled.title",
+            sortable = false,
           ).setStandardBoolean()
           )
           .add(lc, "expiryDays")
-          .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins"))
-          .add(UITableColumn("observersAsString", "plugins.datatransfer.observers"))
-          .add(UITableColumn("accessUsersAsString", "plugins.datatransfer.accessUsers"))
-          .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups"))
+          .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins", sortable = false))
+          .add(UITableColumn("observersAsString", "plugins.datatransfer.observers", sortable = false))
+          .add(UITableColumn("accessUsersAsString", "plugins.datatransfer.accessUsers", sortable = false))
+          .add(UITableColumn("accessGroupsAsString", "plugins.datatransfer.accessGroups", sortable = false))
       )
     layout.add(
       MenuItem(
