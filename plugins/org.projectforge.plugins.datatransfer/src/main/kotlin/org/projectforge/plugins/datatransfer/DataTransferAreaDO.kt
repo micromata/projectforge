@@ -29,6 +29,7 @@ import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.ToStringUtil.Companion.toJsonString
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.api.Constants
@@ -219,6 +220,18 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
       }
       return areaName ?: "???"
     }
+
+  /**
+   * Hides field externalPassword due to security reasons.
+   */
+  override fun toString(): String {
+    val clone = DataTransferAreaDO()
+    clone.copyValuesFrom(this, "externalPassword")
+    if (!externalPassword.isNullOrEmpty()) {
+      clone.externalPassword = "***"
+    }
+    return toJsonString(clone)
+  }
 
   companion object {
     internal const val FIND_BY_EXTERNAL_ACCESS_TOKEN = "DataTransferAreaDO_FindByExternalAccessToken"
