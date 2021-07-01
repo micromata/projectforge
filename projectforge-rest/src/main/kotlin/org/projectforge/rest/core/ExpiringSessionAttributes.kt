@@ -32,7 +32,8 @@ import kotlin.concurrent.timer
  * in the user's session and the session terminates after several hours.
  */
 object ExpiringSessionAttributes {
-    /** Store all session attributes for deleting content after expire time. */
+    /** Store all session attributes for deleting content after expire time. Key is the index
+     * of the ExpirintAttribute. */
     private val attributesMap = mutableMapOf<Long, ExpiringAttribute>()
     private var counter = 0L
 
@@ -90,12 +91,16 @@ object ExpiringSessionAttributes {
     private fun check() {
         val current = System.currentTimeMillis()
         synchronized(attributesMap) {
+            val attributesToRemove = mutableListOf<Long>()
             attributesMap.forEach {
                 val attribute = it.value
                 if (current - attribute.timestamp > attribute.ttlMillis) {
                     attribute.value = null // Save memory
-                    attributesMap.remove(it.key)
+                    attributesToRemove.add(it.key) // Don't remove here due to ConcurrentModificationException
                 }
+            }
+            attributesToRemove.forEach {
+                attributesMap.remove(it)
             }
         }
     }
