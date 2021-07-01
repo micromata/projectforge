@@ -23,6 +23,9 @@
 
 package org.projectforge.plugins.merlin
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
+import de.micromata.merlin.csv.CSVStringUtils
 import de.micromata.merlin.word.templating.VariableType
 import org.projectforge.common.anots.PropertyInfo
 
@@ -66,6 +69,10 @@ open class MerlinVariableBase {
 
   @PropertyInfo(i18nKey = "plugins.merlin.variable.mapping", additionalI18nKey = "plugins.merlin.variable.mapping.info")
   var mappingValues: String? = null
+
+  @get:JsonIgnore
+  val mappingValuesArray: Array<out String>
+    get() = CSVStringUtils.parseStringList(mappingValues)
 
   /**
    * @return this for chaining.

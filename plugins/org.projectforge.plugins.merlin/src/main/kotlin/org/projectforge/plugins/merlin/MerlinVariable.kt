@@ -24,7 +24,6 @@
 package org.projectforge.plugins.merlin
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import de.micromata.merlin.csv.CSVStringUtils
 import de.micromata.merlin.word.templating.DependentVariableDefinition
 import de.micromata.merlin.word.templating.VariableDefinition
 import de.micromata.merlin.word.templating.VariableType
@@ -38,7 +37,7 @@ import java.math.BigDecimal
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Suppress("unused")
-class MerlinVariable: MerlinVariableBase() {
+class MerlinVariable : MerlinVariableBase() {
   var id: Int? = null
 
   var defined: Boolean = false
@@ -51,11 +50,11 @@ class MerlinVariable: MerlinVariableBase() {
 
   @get:JsonProperty
   val mappingMasterValues
-    get() = dependsOn?.allowedValues?.joinToString { it }
+    get() = writeAsCSV(dependsOn?.allowedValues)
 
   @get:JsonProperty
   val allowedValuesFormatted: String?
-    get() = allowedValues?.joinToString { it }
+    get() = writeAsCSV(allowedValues)
 
   @PropertyInfo(i18nKey = "plugins.merlin.variable.used", additionalI18nKey = "plugins.merlin.variable.used.info")
   var used: Boolean? = null
@@ -114,7 +113,7 @@ class MerlinVariable: MerlinVariableBase() {
             "plugins.merlin.validation.valueDoesNotMatchOptions",
             name,
             value,
-            list.joinToString { it })
+            writeAsCSV(list))
         }
       }
       val bdValue = asBigDecimal(value)
@@ -205,7 +204,7 @@ class MerlinVariable: MerlinVariableBase() {
     dest.name = name
 
     val destMapping = mutableMapOf<Any, Any?>()
-    val values = CSVStringUtils.parseStringList(mappingValues)
+    val values = mappingValuesArray
     dependsOn?.let {
       it.allowedValues?.forEachIndexed { index, masterValue ->
         destMapping[masterValue] = values.getOrNull(index)
@@ -231,7 +230,7 @@ class MerlinVariable: MerlinVariableBase() {
 
   fun copyFrom(src: DependentVariableDefinition) {
     this.name = src.name
-    this.mappingValues = src.mapping?.values?.joinToString { "$it" }
+    this.mappingValues = writeAsCSV(src.mapping?.values)
     this.dependsOn = from(src.dependsOn)
   }
 
@@ -246,6 +245,25 @@ class MerlinVariable: MerlinVariableBase() {
       val variable = MerlinVariable()
       variable.copyFrom(definition)
       return variable
+    }
+
+    internal fun writeAsCSV(values: Collection<Any?>?): String {
+      values ?: return ""
+      val sb = StringBuilder()
+      var first = true
+      values.forEach {
+        if (!first) {
+          sb.append(", ")
+        }
+        val str = it?.toString() ?: ""
+        if (str.contains(',') || str.trim() != it) {
+          sb.append("\"$str\"")
+        } else {
+          sb.append(str)
+        }
+        first = false
+      }
+      return sb.toString()
     }
   }
 }
