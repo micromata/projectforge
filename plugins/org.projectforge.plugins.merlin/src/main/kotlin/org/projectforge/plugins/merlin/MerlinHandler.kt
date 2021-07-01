@@ -30,6 +30,8 @@ import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileObject
+import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.InputStream
@@ -50,6 +52,9 @@ open class MerlinHandler {
 
   @Autowired
   private lateinit var merlinTemplateDao: MerlinTemplateDao
+
+  @Autowired
+  private lateinit var pluginAdminService: PluginAdminService
 
   internal lateinit var attachmentsAccessChecker: AttachmentsAccessChecker // Set by MerlinPagesRest
 
@@ -161,5 +166,9 @@ open class MerlinHandler {
       }
     }
     return doc
+  }
+
+  internal fun dataTransferPluginAvailable(): Boolean {
+    return pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }
   }
 }
