@@ -142,7 +142,6 @@ class MerlinPagesRest :
       layout.add(
         UIAlert(
           """'# TODO
-* Serienexceldatei mit in Ergebnis-Zip packen.
 * Variablen umsortieren.
 * Demo templates for creating (menu entry in list view)
 * Doku: #PersonalBox etc.""",
