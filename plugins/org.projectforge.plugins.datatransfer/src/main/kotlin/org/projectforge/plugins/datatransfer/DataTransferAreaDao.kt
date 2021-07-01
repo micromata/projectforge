@@ -116,13 +116,31 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
    * Removes personal boxes of other users in result list.
    */
   override fun getList(
-    filter: QueryFilter?,
+    filter: QueryFilter,
     customResultFilters: MutableList<CustomResultFilter<DataTransferAreaDO>>?
   ): List<DataTransferAreaDO> {
-    filter?.maxRows = 1000
+    filter.maxRows = 1000
     val loggedInUserId = ThreadLocalUserContext.getUserId()
     return super.getList(filter, customResultFilters)
-      .filter { !it.isPersonalBox() || it.getPersonalBoxUserId() == loggedInUserId }
+      .filter { filterPersonalBoxes(it, filter, loggedInUserId) }
+  }
+
+  /**
+   * Don't show personal boxes of other users at default for avoiding "noise" (remember: all personal boxes are selectable!).
+   * But, if a full text search string is given, show personal boxes of user's matching the search string.
+   */
+  private fun filterPersonalBoxes(dataTransferArea: DataTransferAreaDO, queryFilter: QueryFilter, loggedInUserId: Int): Boolean {
+    if (!dataTransferArea.isPersonalBox() || dataTransferArea.getPersonalBoxUserId() == loggedInUserId) {
+      return true
+    }
+    // searchString contains trailing %:
+    val searchString = queryFilter.fulltextSearchString?.replace("%", "") ?: return false
+    if (searchString.length < 2) {
+      return false
+    }
+    val user = userGroupCache.getUser(dataTransferArea.getPersonalBoxUserId()) ?: return false
+    return user.username?.contains(searchString, ignoreCase = true) == true ||
+        user.getFullname().contains(searchString, ignoreCase = true)
   }
 
   /**
