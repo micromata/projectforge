@@ -142,8 +142,6 @@ class MerlinPagesRest :
       layout.add(
         UIAlert(
           """'# TODO
-* Variable-Administration in UI: Handling of "one", "two", ...,.
-* Validierung bei Serienausführung
 * Serienexceldatei mit in Ergebnis-Zip packen.
 * Variablen umsortieren.
 * Demo templates for creating (menu entry in list view)
