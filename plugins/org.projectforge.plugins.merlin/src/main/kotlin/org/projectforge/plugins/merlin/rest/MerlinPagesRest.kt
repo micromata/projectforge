@@ -28,6 +28,8 @@ import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.plugins.merlin.*
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -142,15 +144,32 @@ class MerlinPagesRest :
       layout.add(
         UIAlert(
           """'# TODO
-* Variablen umsortieren.
-* Demo templates for creating (menu entry in list view)""",
+* Variablen umsortieren.""",
           color = UIColor.WARNING,
           markdown = true
         )
       )
-
     }
     layout.add(MerlinPlugin.createUserLogSubscriptionMenuItem())
+    val examplesMenu = MenuItem("examples", i18nKey = "plugins.merlin.menu.examples")
+    examplesMenu.add(
+      MenuItem(
+        "examples.contract",
+        i18nKey = "plugins.merlin.menu.examples.contract",
+        type = MenuItemTargetType.RESTCALL,
+        url = RestResolver.getRestUrl(MerlinTestServicesRest::class.java, "contract")
+      )
+    )
+    examplesMenu.add(
+      MenuItem(
+        "examples.letter",
+        i18nKey = "plugins.merlin.menu.examples.letter",
+        type = MenuItemTargetType.RESTCALL,
+        url = RestResolver.getRestUrl(MerlinTestServicesRest::class.java, "letter")
+      )
+    )
+    layout.add(examplesMenu)
+
     LayoutUtils.process(layout)
     return layout
   }
