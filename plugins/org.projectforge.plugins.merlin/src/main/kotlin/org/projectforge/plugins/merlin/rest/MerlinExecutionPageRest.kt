@@ -112,7 +112,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         )
       }."
     }
-    val result = merlinRunner.serialExecuteTemplate(id, filename ?: "untitled.docx", file.inputStream)
+    val result = merlinRunner.serialExecuteTemplate(id, filename ?: "untitled.xlsx", file.inputStream)
       ?: throw IllegalArgumentException("Can't execute serial Excel file.")
     val zipFilename = result.first
     val zipByteArray = result.second

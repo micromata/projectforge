@@ -117,6 +117,7 @@ open class MerlinRunner {
 
   /**
    * @param id Id of the MerlinTemplateDO
+   * @param istream Inputstream of Excel serial file.
    * @return Pair of filename and byte array representing the zip file containing all generated word documents.
    */
   fun serialExecuteTemplate(id: Int, filename: String, istream: InputStream): Pair<String, ByteArray>? {
@@ -131,8 +132,12 @@ open class MerlinRunner {
     val dto = analysis.dto
     val wordDocument = merlinHandler.getWordTemplateToCloseOnYourOwn(id) ?: return null
     wordDocument.use { doc ->
+      val excelByteArray: ByteArray
       istream.use {
-        ExcelWorkbook(istream, filename).use { workbook ->
+        excelByteArray = it.readAllBytes()
+      }
+      ByteArrayInputStream(excelByteArray).use { xlsIstream ->
+        ExcelWorkbook(xlsIstream, filename).use { workbook ->
           if (!SerialDataExcelReader.isMerlinSerialRunDefinition(workbook)) {
             return null
           }
@@ -166,7 +171,7 @@ open class MerlinRunner {
       }
       val runner = SerialTemplateRunner(serialData, doc)
       var zipByteArray: ByteArray = runner.run(filename)
-      zipByteArray = postProcessSerialDocuments(zipByteArray, serialData!!, dto, lastLogNumber, dto.pdfExport == true)
+      zipByteArray = postProcessSerialDocuments(zipByteArray, excelByteArray, filename, serialData!!, dto, lastLogNumber, dto.pdfExport == true)
       return Pair(runner.zipFilename, zipByteArray)
     }
   }
@@ -213,6 +218,8 @@ open class MerlinRunner {
    */
   private fun postProcessSerialDocuments(
     zipByteArray: ByteArray,
+    excelByteArray: ByteArray,
+    excelFilename: String,
     serialData: SerialData,
     dto: MerlinTemplate,
     lastLogNumber: Long?,
@@ -269,6 +276,9 @@ open class MerlinRunner {
             zipOut.write(logViewerBytes)
             zipOut.closeEntry()
           }
+          zipOut.putNextEntry(ZipEntry(excelFilename))
+          zipOut.write(excelByteArray)
+          zipOut.closeEntry()
         }
         return baos.toByteArray()
       }
