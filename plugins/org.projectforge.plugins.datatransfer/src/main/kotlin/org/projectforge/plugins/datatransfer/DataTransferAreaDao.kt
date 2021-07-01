@@ -119,6 +119,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     filter: QueryFilter?,
     customResultFilters: MutableList<CustomResultFilter<DataTransferAreaDO>>?
   ): List<DataTransferAreaDO> {
+    filter?.maxRows = 1000
     val loggedInUserId = ThreadLocalUserContext.getUserId()
     return super.getList(filter, customResultFilters)
       .filter { !it.isPersonalBox() || it.getPersonalBoxUserId() == loggedInUserId }
