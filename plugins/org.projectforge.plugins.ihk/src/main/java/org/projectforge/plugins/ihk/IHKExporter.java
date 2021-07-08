@@ -50,6 +50,7 @@ import static org.projectforge.framework.persistence.user.api.ThreadLocalUserCon
 /**
  * Created by mnuhn on 05.12.2019
  * Updated by mweishaar, jhpeters and mopreusser on 27.07.2020 with updated IHK-Fields in XLSX file
+ * Updated by mweishaar on 09.07.2021
  */
 class IHKExporter {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IHKExporter.class);
@@ -57,75 +58,64 @@ class IHKExporter {
 
     private static final int FIRST_DATA_ROW_NUM = 2;
 
-    // KR: Alle folgenden Variablen sollten unbedingt nicht statisch sein:
-    static private String teamname;
-    static private int ausbildungsjahr = -1;
-    static private LocalDate ausbildungsbeginn;
-    static private String docNr = "error";
-    static private TimeZone timeZone;
+    private String teamname;
+    private int ausbildungsjahr = -1;
+    private LocalDate ausbildungsbeginn;
+    private String docNr = "error";
+    private TimeZone timeZone;
 
-    static byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsBeginn,
+    byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsBeginn,
                            String teamName, int ausbildungsJahr, TimeZone usersTimeZone) {
         if (timesheets.size() < 1) {
             return new byte[]{};
         }
-        // KR: Hier einfügen:
-        //IHKExporter exporter = new IHKExporter();
-        //exporter.teamname = teamName;
-        //...
 
         teamname = teamName;
         ausbildungsjahr = ausbildungsJahr;
         ausbildungsbeginn = ausbildungsBeginn;
         timeZone = usersTimeZone;
 
-        // KR: Nun sowas in der Art
-        //return exporter.getExcel();
-        //}
-        //
-        //private byte[] getExcel() {
-
         ExcelSheet excelSheet = null;
         ExcelRow emptyRow = null;
         ClassPathResource classPathResource = new ClassPathResource("VorlageWochenbericht.xlsx");
 
         try(ExcelWorkbook workbook = new ExcelWorkbook(classPathResource.getInputStream(), classPathResource.getPath())) {
-            excelSheet = workbook.getSheet(0);
-            assert excelSheet != null;
-            emptyRow = excelSheet.getRow(2);
-        } catch (NullPointerException | IOException e) {
-            e.printStackTrace();
-        }
+          excelSheet = workbook.getSheet(0);
 
-        /// TODO insert needed rows
-        String fileName = "example";
-        final int anzNewRows = timesheets.size(); // 1 already exists
+          emptyRow = excelSheet.getRow(2);
 
-        setFirstRow(timesheets, excelSheet);
-        createNewRow(excelSheet, emptyRow, anzNewRows);
+          String fileName = "example";
+          final int anzNewRows = timesheets.size(); // 1 already exists
 
-        double hourCounter = 0;
+          setFirstRow(timesheets, excelSheet);
+          createNewRow(excelSheet, emptyRow, anzNewRows);
 
-        for (int i = 0; i < anzNewRows; i++) {
+          double hourCounter = 0;
+
+          for (int i = 0; i < anzNewRows; i++) {
+
             final TimesheetDO timesheet = timesheets.get(i);
+
             hourCounter = setNewRows(hourCounter, timesheet, excelSheet, i);
+          }
+
+          excelSheet.getRow(FIRST_DATA_ROW_NUM + anzNewRows).getCell(5).setCellValue(trimDouble(hourCounter));
+
+          return returnByteFile(excelSheet);
+        } catch (NullPointerException | IOException e) {
+          e.printStackTrace();
         }
-
-        excelSheet.getRow(FIRST_DATA_ROW_NUM + anzNewRows).getCell(5).setCellValue(trimDouble(hourCounter));
-
-
-        return returnByteFile(excelSheet);
+        return null;
     }
 
-    // KR: Diese Methode sollte nicht static sein.
-    private static void setFirstRow(final List<TimesheetDO> timesheets, ExcelSheet excelSheet) {
+    private void setFirstRow(final List<TimesheetDO> timesheets, ExcelSheet excelSheet) {
         PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek().getEndOfDay();
         PFDateTime sundayDate = mondayDate.getEndOfWeek().getEndOfDay();
         sdf.setTimeZone(timeZone);
 
 
         // run exception
-        if (excelSheet == null || excelSheet.getRow(0) == null) {
+        if (excelSheet == null) {
             return;
         }
 
@@ -144,8 +134,7 @@ class IHKExporter {
         excelSheet.getRow(0).getCell(0).setCellValue(contentOfCell);
     }
 
-    // KR: Diese Methode sollte nicht static sein.
-    private static void createNewRow(ExcelSheet excelSheet, ExcelRow emptyRow, int anzNewRows) {
+    private void createNewRow(ExcelSheet excelSheet, ExcelRow emptyRow, int anzNewRows) {
         // run exception
         if (excelSheet == null || emptyRow == null) {
             return;
@@ -156,8 +145,7 @@ class IHKExporter {
         }
     }
 
-    // KR: Diese Methode sollte nicht static sein.
-    private static double setNewRows(double hourCounter, final TimesheetDO timesheet, ExcelSheet excelSheet, int cell) {
+    private double setNewRows(double hourCounter, final TimesheetDO timesheet, ExcelSheet excelSheet, int cell) {
         final double durationInHours = timesheet.getDuration() / (1000.0 * 60.0 * 60.0);
         hourCounter += durationInHours;
 
@@ -212,12 +200,12 @@ class IHKExporter {
         return hourCounter;
     }
 
-    private static String trimDouble(double value) {
+    private String trimDouble(double value) {
         DecimalFormat df = new DecimalFormat("#.##");
         return df.format(value);
     }
 
-    private static byte[] returnByteFile(ExcelSheet excelSheet) {
+    private byte[] returnByteFile(ExcelSheet excelSheet) {
         try (ExcelWorkbook workbook = excelSheet.getExcelWorkbook()) {
             ByteArrayOutputStream byteArrayOutputStream = workbook.getAsByteArrayOutputStream();
 
@@ -225,16 +213,13 @@ class IHKExporter {
         }
     }
 
-    // KR: Diese Methode sollte nicht static sein.
-    private static String getCurrentAzubiName() {
-        return getUser().getFullname();
+    private String getCurrentAzubiName() {
+        return Objects.requireNonNull(getUser()).getFullname();
     }
 
-    /// TODO set parameters
     // KR: Hier als Parameter besser PFDateTime nehmen. Bei der Konvertierung in Util-Date landet man schon wieder bei UTC.
     //private String getCurrentAzubiYear(PFDateTime date) {
-    // KR: Diese Methode sollte nicht static sein.
-    private static String getCurrentAzubiYear(Date date) {
+    private String getCurrentAzubiYear(Date date) {
         String azubiYear = "";
 
         if (ausbildungsjahr > 0) {
@@ -255,8 +240,7 @@ class IHKExporter {
         return "UNKNOWN";
     }
 
-    // KR: Diese Methode sollte nicht static sein.
-    private static String getDocNrByDate(PFDateTime sundayDate) {
+    private String getDocNrByDate(PFDateTime sundayDate) {
         long diff = 0;
         if (ausbildungsbeginn != null) {
             diff = DAYS.between(ausbildungsbeginn, sundayDate.getLocalDate());
@@ -273,8 +257,7 @@ class IHKExporter {
         return docNr;
     }
 
-    // KR: Diese Methode sollte nicht static sein.
-    private static String getDepartment() {
+    private String getDepartment() {
         if (teamname != null) {
             return teamname;
         } else {
@@ -283,8 +266,7 @@ class IHKExporter {
         }
     }
 
-    // KR: Diese Methode sollte nicht static sein.
-    public static String getDocNr() {
+    public String getDocNr() {
         return docNr;
     }
 }
