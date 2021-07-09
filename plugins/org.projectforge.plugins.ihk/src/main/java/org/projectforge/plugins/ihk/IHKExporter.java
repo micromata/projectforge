@@ -65,10 +65,12 @@ class IHKExporter
   private String docNr = "error";
   private TimeZone timeZone;
 
+  // returns the filled excel as byteArray
   byte[] getExcel(final List<TimesheetDO> timesheets, LocalDate ausbildungsBeginn,
       String teamName, int ausbildungsJahr, TimeZone usersTimeZone)
   {
     if (timesheets.size() < 1) {
+      log.error("in getExcel(...) List<TimesheetDO> is empty");
       return new byte[] {};
     }
 
@@ -86,7 +88,6 @@ class IHKExporter
 
       emptyRow = excelSheet.getRow(2);
 
-      String fileName = "example";
       final int anzNewRows = timesheets.size(); // 1 already exists
 
       setFirstRow(timesheets, excelSheet);
@@ -95,9 +96,7 @@ class IHKExporter
       double hourCounter = 0;
 
       for (int i = 0; i < anzNewRows; i++) {
-
         final TimesheetDO timesheet = timesheets.get(i);
-
         hourCounter = setNewRows(hourCounter, timesheet, excelSheet, i);
       }
 
@@ -112,7 +111,8 @@ class IHKExporter
 
   private void setFirstRow(final List<TimesheetDO> timesheets, ExcelSheet excelSheet)
   {
-    PFDateTime mondayDate = PFDateTime.from(timesheets.get(0).getStartTime()).getBeginOfWeek().getEndOfDay();
+    PFDateTime mondayDate = PFDateTime.from(Objects.requireNonNull(timesheets.get(0).getStartTime()))
+        .getBeginOfWeek().getEndOfDay();
     PFDateTime sundayDate = mondayDate.getEndOfWeek().getEndOfDay();
     sdf.setTimeZone(timeZone);
 
@@ -123,6 +123,10 @@ class IHKExporter
 
     String contentOfCell = excelSheet.getRow(0).getCell(0).getStringCellValue();
 
+    if (contentOfCell == null) {
+      log.error("in setFirstRow(...) contentOfCell is null");
+      return;
+    }
     contentOfCell = contentOfCell.replace("#idName", getCurrentAzubiName());
     // KR: contentOfCell = contentOfCell.replace("#idYear", getCurrentAzubiYear(sundayDate));
     contentOfCell = contentOfCell.replace("#idYear", getCurrentAzubiYear(sundayDate.getUtilDate()));
@@ -138,13 +142,15 @@ class IHKExporter
 
   private void createNewRow(ExcelSheet excelSheet, ExcelRow emptyRow, int anzNewRows)
   {
-    // run exception
     if (excelSheet == null || emptyRow == null) {
+      log.error("in createNewRow(...) excelSheet or emptyRow is null");
       return;
     }
 
     for (int i = 1; i < anzNewRows; i++) {
-      Objects.requireNonNull(excelSheet.getRow(FIRST_DATA_ROW_NUM)).copyAndInsert(emptyRow.getSheet());
+      Objects.requireNonNull(
+          excelSheet.getRow(FIRST_DATA_ROW_NUM)).copyAndInsert(emptyRow.getSheet()
+      );
     }
   }
 
@@ -165,7 +171,7 @@ class IHKExporter
       }
     }
 
-        /*
+    /*
         // if you wanna use merlin style:
 
         final CellStyle descriptionStyle = excelSheet.getExcelWorkbook().createOrGetCellStyle("description");
@@ -174,7 +180,7 @@ class IHKExporter
         CellStyle style = excelSheet.getExcelWorkbook().createOrGetCellStyle("id");
         style.setWrapText(true);
         excelRow.getCell(1).setCellStyle(style);
-        */
+    */
 
     ExcelRow excelRow = excelSheet.getRow(FIRST_DATA_ROW_NUM + cell);
 
@@ -185,15 +191,16 @@ class IHKExporter
     excelRow.getCell(5).setCellValue(trimDouble(hourCounter));
 
 
-        /*
-        Calculate height of cell from the content lenght and the number of line breaks
-         */
+    /*
+      Calculate height of cell from the content lenght and the number of line breaks
+    */
 
     String puffer = description;
     int counterOfBreaking = -1, counterOfOverlength = 0;
 
     String[] pufferSplit = puffer.split("\n");
 
+    // check for line-breaks
     for (int i = 0; i < pufferSplit.length; i++) {
       counterOfBreaking++;
       counterOfOverlength += pufferSplit[i].length() / 70;
@@ -225,11 +232,11 @@ class IHKExporter
   }
 
   // KR: Hier als Parameter besser PFDateTime nehmen. Bei der Konvertierung in Util-Date landet man schon wieder bei UTC.
-  //private String getCurrentAzubiYear(PFDateTime date) {
   private String getCurrentAzubiYear(Date date)
   {
     String azubiYear = "";
 
+    // only needed if someone doesn't start in the first year otherwise it should be set on -1 in the address-book
     if (ausbildungsjahr > 0) {
       azubiYear = ausbildungsjahr + "";
       return azubiYear;
@@ -264,7 +271,7 @@ class IHKExporter
     boolean isWeekend = PFDateTime.from(ausbildungsbeginn).isWeekend();
     int ifWeekend = isWeekend ? 0 : 1;
 
-    docNr = "" + ((int) Math.ceil(diff / 7) + ifWeekend);
+    docNr = "" + ((int) Math.ceil((float) diff / 7) + ifWeekend);
     return docNr;
   }
 
