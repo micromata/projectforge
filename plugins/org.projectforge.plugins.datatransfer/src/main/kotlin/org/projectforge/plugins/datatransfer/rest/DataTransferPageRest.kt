@@ -99,25 +99,26 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val dbObj = pair.first
     val dto = pair.second
     val layout = UILayout("plugins.datatransfer.title.heading")
-      .add(
-        UIFieldset(title = "'${dto.areaName}")
-          .add(UIAttachmentList(DataTransferPlugin.ID, id, showExpiryInfo = true))
-          .add(
-            UIButton(
-              "downloadAll",
-              translate("plugins.datatransfer.button.downloadAll"),
-              UIColor.LINK,
-              tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
-              responseAction = ResponseAction(
-                RestResolver.getRestUrl(
-                  this.javaClass,
-                  "downloadAll/$id"
-                ), targetType = TargetType.DOWNLOAD
-              ),
-              default = true
-            )
-          )
+    val attachmentsFieldset = UIFieldset(title = "'${dto.areaName}")
+    attachmentsFieldset.add(UIAttachmentList(DataTransferPlugin.ID, id, showExpiryInfo = true))
+    if (dto.attachments?.size ?: 0 > 0) {
+      attachmentsFieldset.add(
+        UIButton(
+          "downloadAll",
+          translate("plugins.datatransfer.button.downloadAll"),
+          UIColor.LINK,
+          tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(
+              this.javaClass,
+              "downloadAll/$id"
+            ), targetType = TargetType.DOWNLOAD
+          ),
+          default = true
+        )
       )
+    }
+    layout.add(attachmentsFieldset)
     layout.add(
       UIButton(
         "back",
