@@ -49,6 +49,8 @@ Or simply use the fastest way: https://github.com/micromata/projectforge/blob/ma
 5. Open your browser:
    http://localhost:8080
 
+Remark: If you have any trouble regarding `projectforge-webapp`, try to delete the sub directory `node_modules` and repeat `mvn clean install`.
+
 === Configuration of ProjectForge
 
 No configuration needed. After starting ProjectForge a first time, a console or desktop based wizard is provided for doing

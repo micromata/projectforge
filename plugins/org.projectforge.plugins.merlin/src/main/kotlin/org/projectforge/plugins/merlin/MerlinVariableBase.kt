@@ -24,7 +24,6 @@
 package org.projectforge.plugins.merlin
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonProperty
 import de.micromata.merlin.csv.CSVStringUtils
 import de.micromata.merlin.word.templating.VariableType
 import org.projectforge.common.anots.PropertyInfo
@@ -33,9 +32,12 @@ import org.projectforge.common.anots.PropertyInfo
  * For serializing/deserializing with only minimum properties editable by the user.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-open class MerlinVariableBase {
+open class MerlinVariableBase : Comparable<MerlinVariableBase> {
   @PropertyInfo(i18nKey = "plugins.merlin.variable.name")
   var name: String = ""
+
+  @PropertyInfo(i18nKey = "plugins.merlin.variable.sortName", tooltip = "plugins.merlin.variable.sortName.info")
+  var sortName: String? = null
 
   @PropertyInfo(i18nKey = "description")
   var description: String? = null
@@ -75,10 +77,18 @@ open class MerlinVariableBase {
     get() = CSVStringUtils.parseStringList(mappingValues)
 
   /**
+   * Compares sortName/name (ignoring case).
+   */
+  override fun compareTo(other: MerlinVariableBase): Int {
+    return (this.sortName ?: this.name).compareTo(other.sortName ?: other.name, ignoreCase = true)
+  }
+
+  /**
    * @return this for chaining.
    */
   fun copyFrom(src: MerlinVariableBase): MerlinVariableBase {
     this.name = src.name
+    this.sortName = src.sortName
     this.type = src.type
     this.minimumValue = src.minimumValue
     this.maximumValue = src.maximumValue

@@ -206,6 +206,9 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
       )
     }
     val rightCol = UICol(UILength(md = 6))
+    if (variable.input) {
+      rightCol.add(UIInput("currentVariable.sortName", lc))
+    }
     if (variable.masterVariable != true) {
       val dependsOnCandidates = dto.variables.filter { it.id != variable.id && !it.allowedValues.isNullOrEmpty() }
         .map { UISelectValue(it.name, it.name) }
