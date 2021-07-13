@@ -30,7 +30,6 @@ import org.projectforge.business.timesheet.OrderDirection;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
-import org.projectforge.common.logging.LogEventLoggerNameMatcher;
 import org.projectforge.common.logging.LogSubscription;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
@@ -51,11 +50,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
 
-import static java.time.temporal.ChronoUnit.DAYS;
-
 /**
  * Created by mnuhn on 05.12.2019
  * Updated by mweishaar, jhpeters and mopreusser on 28.05.2020
+ * Updated by mweishaar on 08.07.2021
  */
 public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPage
 {
@@ -75,8 +73,10 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
     form = new IHKForm(this);
     body.add(form);
     form.init();
-    final ExternalLink logViewerLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(LogViewerPageRest.class, null, logSubscription.getId(), true));
-    addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), logViewerLink, getString("system.admin.logViewer.title")));
+    final ExternalLink logViewerLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID,
+        PagesResolver.getDynamicPageUrl(LogViewerPageRest.class, null, logSubscription.getId(), true));
+    addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), logViewerLink,
+        getString("system.admin.logViewer.title")));
   }
 
   @Override
@@ -133,12 +133,15 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
       }
     }
 
+    IHKExporter ihkExporter = new IHKExporter();
+    byte[] xlsx = ihkExporter
+        .getExcel(timeSheetList, form.getAusbildungsbeginn(), form.getTeamname(), form.getAusbildungsjahr(),
+            ThreadLocalUserContext.getTimeZone());
 
-    byte[] xlsx = IHKExporter.getExcel(timeSheetList,form.getAusbildungsbeginn(),form.getTeamname(),form.getAusbildungsjahr(),ThreadLocalUserContext.getTimeZone());
-
-    final String filename = "WB-Nr_" + IHKExporter.getDocNr() + "_"
+    final String filename = "WB-Nr_" + ihkExporter.getDocNr() + "_"
         + DateHelper.getDateAsFilenameSuffix(form.getStartDate().getConvertedInput())
         + ".xlsx";
+
     if (xlsx == null || xlsx.length == 0) {
       log.error("Oups, xlsx has zero size. Filename: " + filename);
       return;
@@ -146,8 +149,8 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
     DownloadUtils.setDownloadTarget(xlsx, filename);
   }
 
-  void edit(TimesheetDO ts) {
-
+  void edit(TimesheetDO ts)
+  {
     final TimesheetEditPage timesheetEditPage = new TimesheetEditPage(ts);
     timesheetEditPage.error(getString("plugins.ihk.nodescriptionfound"));
     timesheetEditPage.setReturnToPage(this);
@@ -158,7 +161,8 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
   {
     final TimeZone usersTimeZone = ThreadLocalUserContext.getTimeZone();
     final Date fromDate = form.getTimePeriod().getFromDate();
-    final PFDateTime startDate = PFDateTime.fromOrNow(fromDate, usersTimeZone).withDayOfWeek(DayOfWeek.MONDAY.getValue());
+    final PFDateTime startDate = PFDateTime.fromOrNow(fromDate, usersTimeZone)
+        .withDayOfWeek(DayOfWeek.MONDAY.getValue());
     final TimesheetFilter tf = new TimesheetFilter();
     //ASC = Montag bis Sonntag
     tf.setOrderType(OrderDirection.ASC);
