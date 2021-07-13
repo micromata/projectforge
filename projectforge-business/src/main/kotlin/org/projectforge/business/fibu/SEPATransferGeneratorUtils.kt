@@ -33,6 +33,9 @@ object SEPATransferGeneratorUtils {
     // removes non-printable characters from Unicode
     text = text.replace("[\\p{C}&&[^\r\n\t]]".toRegex(), "")
 
+    // Underscores are not supported, replace them by -:
+    text = text.replace('_', '-')
+
     return text.trim { it <= ' ' }
   }
 }
