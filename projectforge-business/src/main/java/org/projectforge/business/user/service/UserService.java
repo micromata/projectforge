@@ -106,6 +106,9 @@ public class UserService {
     return list;
   }
 
+  /**
+   * @return Sorted list of not deleted and not deactivated users.
+   */
   public Collection<PFUserDO> getSortedUsers() {
     TreeSet<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
     final Collection<PFUserDO> allusers = userGroupCache.getAllUsers();
