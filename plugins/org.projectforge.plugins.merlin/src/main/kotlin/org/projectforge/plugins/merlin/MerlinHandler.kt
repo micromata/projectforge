@@ -143,6 +143,11 @@ open class MerlinHandler {
         result.wordDocument = wordDocument
       }
     }
+    /**
+     * Copy sortName of dto variables to stats variables.
+     */
+    stats.variables.forEach { inputVariable -> inputVariable.sortName = dto.variables.find { it.name == inputVariable.name }?.sortName }
+    stats.variables.sort() // Sorted by sortName / name.
     return result
   }
 

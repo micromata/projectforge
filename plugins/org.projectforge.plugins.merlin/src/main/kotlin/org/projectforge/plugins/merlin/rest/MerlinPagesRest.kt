@@ -249,7 +249,8 @@ class MerlinPagesRest :
       stats.updateDtoVariables(dto)
       dto.wordTemplateFileName = analyzeResult.wordTemplateFilename
       val variables = UIBadgeList()
-      dto.variables.sortedBy { it.name.toLowerCase() }.forEach {
+      dto.variables.sort()
+      dto.variables.forEach {
         variables.add(UIBadge(it.name, it.uiColor))
       }
       val dependentVariables = UIBadgeList()
@@ -438,6 +439,7 @@ class MerlinPagesRest :
     private fun createVariableTable(): UITable {
       return UITable("variables", rowClickPostUrl = RestResolver.getRestUrl(MerlinVariablePageRest::class.java, "edit"))
         .add(UITableColumn("name", title = "plugins.merlin.variable.name", sortable = false))
+        .add(UITableColumn("sortName", title = "plugins.merlin.variable.sortName", sortable = false))
         .add(UITableColumn("type", title = "plugins.merlin.variable.type", sortable = false))
         .add(
           UITableColumn(

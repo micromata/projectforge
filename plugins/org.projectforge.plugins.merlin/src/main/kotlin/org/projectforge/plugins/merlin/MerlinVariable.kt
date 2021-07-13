@@ -42,6 +42,9 @@ class MerlinVariable : MerlinVariableBase() {
 
   var defined: Boolean = false
 
+  /**
+   * If this variable depends on another (master) variable, the master variable is given here.
+   */
   var dependsOn: MerlinVariable? = null
     set(value) {
       field = value
@@ -56,15 +59,25 @@ class MerlinVariable : MerlinVariableBase() {
   val allowedValuesFormatted: String?
     get() = writeAsCSV(allowedValues)
 
+  /**
+   * Is this variable used in the Word template?
+   */
   @PropertyInfo(i18nKey = "plugins.merlin.variable.used", additionalI18nKey = "plugins.merlin.variable.used.info")
   var used: Boolean? = null
 
+  /**
+   * Is this variable a master variables (where others depends on)?
+   */
   @PropertyInfo(i18nKey = "plugins.merlin.variable.master", additionalI18nKey = "plugins.merlin.variable.master.info")
   var masterVariable: Boolean? = null
 
   val dependent: Boolean
     get() = dependsOn != null
 
+  /**
+   * Input variables will be displayed for editing (or given in serial Excel). Input variables are defined and not dependent.
+   * Equals to definded && !dependent.
+   */
   val input: Boolean
     get() = defined && !dependent
 
@@ -113,7 +126,8 @@ class MerlinVariable : MerlinVariableBase() {
             "plugins.merlin.validation.valueDoesNotMatchOptions",
             name,
             value,
-            writeAsCSV(list))
+            writeAsCSV(list)
+          )
         }
       }
       val bdValue = asBigDecimal(value)
