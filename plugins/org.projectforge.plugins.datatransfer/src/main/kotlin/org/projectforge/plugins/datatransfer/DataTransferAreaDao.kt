@@ -25,6 +25,7 @@ package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
+import org.projectforge.business.user.service.UserService
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
@@ -36,6 +37,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
@@ -64,6 +66,9 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
   @Autowired
   private lateinit var configurationChecker: ConfigurationChecker
+
+  @Autowired
+  private lateinit var userService: UserService
 
   @Value("\${${MAX_FILE_SIZE_SPRING_PROPERTY}:100MB}")
   internal open lateinit var maxFileSizeConfig: String
@@ -119,28 +124,32 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     filter: QueryFilter,
     customResultFilters: MutableList<CustomResultFilter<DataTransferAreaDO>>?
   ): List<DataTransferAreaDO> {
-    filter.maxRows = 1000
     val loggedInUserId = ThreadLocalUserContext.getUserId()
-    return super.getList(filter, customResultFilters)
-      .filter { filterPersonalBoxes(it, filter, loggedInUserId) }
-  }
-
-  /**
-   * Don't show personal boxes of other users at default for avoiding "noise" (remember: all personal boxes are selectable!).
-   * But, if a full text search string is given, show personal boxes of user's matching the search string.
-   */
-  private fun filterPersonalBoxes(dataTransferArea: DataTransferAreaDO, queryFilter: QueryFilter, loggedInUserId: Int): Boolean {
-    if (!dataTransferArea.isPersonalBox() || dataTransferArea.getPersonalBoxUserId() == loggedInUserId) {
-      return true
-    }
+    // Don't search for personal boxes of other users (they will be added afterwards):
+    filter.add(
+      DBPredicate.Or(
+        // Either not a personal box,
+        DBPredicate.NotEqual("areaName", DataTransferAreaDO.PERSONAL_BOX_AREA_NAME),
+        // or the personal box of the logged-in user:
+        DBPredicate.Equal("adminIds", loggedInUserId.toString()),
+      )
+    )
+    var result = super.getList(filter, customResultFilters)
     // searchString contains trailing %:
-    val searchString = queryFilter.fulltextSearchString?.replace("%", "") ?: return false
-    if (searchString.length < 2) {
-      return false
+    val searchString = filter.fulltextSearchString?.replace("%", "")
+    if (searchString == null || searchString.length < 2) { // Search string is given and has at least 2 chars:
+      return result
     }
-    val user = userGroupCache.getUser(dataTransferArea.getPersonalBoxUserId()) ?: return false
-    return user.username?.contains(searchString, ignoreCase = true) == true ||
-        user.getFullname().contains(searchString, ignoreCase = true)
+    result = result.toMutableList()
+    userService.sortedUsers.filter { user ->
+      user.username?.contains(searchString, ignoreCase = true) == true ||
+          user.getFullname().contains(searchString, ignoreCase = true)
+    }.forEach { user ->
+      // User name matches given string, so add personal box of this active user:
+      val personalBox = ensurePersonalBox(user.id)
+      result.add(personalBox)
+    }
+    return result
   }
 
   /**
