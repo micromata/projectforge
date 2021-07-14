@@ -224,6 +224,20 @@ public class ProjectForgeApp {
     } finally {
       ThreadLocalUserContext.clear();
     }
+    File tmpDir = new File(System.getProperty("java.io.tmpdir"));
+    log.info("Cleaning up tmp directory: " + tmpDir.getAbsolutePath());
+    File[] files = tmpDir.listFiles();
+    for (File file: files) {
+      String name = file.getName();
+      if (file.isDirectory() && name.startsWith("tomcat.") || name.startsWith("projectforge-application")) {
+        try {
+          FileUtils.deleteDirectory(file);
+          log.info("Deleting tmp directory: " + file.getAbsolutePath());
+        } catch (IOException ex) {
+          log.error("Error while deleting tmp directory '" + file.getAbsolutePath() + "': " + ex.getMessage(), ex);
+        }
+      }
+    }
     log.info("Shutdown completed.");
   }
 
