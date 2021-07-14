@@ -95,6 +95,7 @@ public class AddressDao extends BaseDao<AddressDO> {
 
   public AddressDao() {
     super(AddressDO.class);
+    forceDeletionSupport = true;
   }
 
   @PostConstruct
@@ -342,6 +343,15 @@ public class AddressDao extends BaseDao<AddressDO> {
       obj.setImageLastUpdate(dbObj.getImageLastUpdate());
     }
     super.onChange(obj, dbObj);
+  }
+
+  /**
+   * On force deletion all personal address references has to be deleted.
+   * @param obj The deleted object.
+   */
+  @Override
+  protected void onDelete(AddressDO obj) {
+    personalAddressDao.internalDeleteAll(obj);
   }
 
   /**

@@ -24,6 +24,7 @@
 package org.projectforge.business.address
 
 import org.hibernate.search.annotations.Indexed
+import org.projectforge.business.address.PersonalAddressDO.Companion.DELETE_ALL_BY_ADDRESS_ID
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER_AND_ADDRESS_ID
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER_AND_ADDRESS_UID
@@ -41,79 +42,98 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PERSONAL_ADDRESS",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["owner_id", "address_id"])],
-        indexes = [Index(name = "idx_fk_t_personal_address_address_id", columnList = "address_id"),
-            Index(name = "idx_fk_t_personal_address_owner_id", columnList = "owner_id")])
+@Table(
+  name = "T_PERSONAL_ADDRESS",
+  uniqueConstraints = [UniqueConstraint(columnNames = ["owner_id", "address_id"])],
+  indexes = [Index(name = "idx_fk_t_personal_address_address_id", columnList = "address_id"),
+    Index(name = "idx_fk_t_personal_address_owner_id", columnList = "owner_id")]
+)
 @NamedQueries(
-        NamedQuery(name = FIND_FAVORITE_ADDRESS_IDS_BY_OWNER,
-                query = "select pa.address.id from PersonalAddressDO pa where pa.owner.id=:ownerId and pa.favoriteCard=true and deleted=false and pa.address.deleted=false"),
-        NamedQuery(name = FIND_BY_OWNER,
-                query = "from PersonalAddressDO pa where pa.owner.id = :ownerId"),
-        NamedQuery(name = FIND_BY_OWNER_AND_ADDRESS_ID,
-                query = "from PersonalAddressDO where owner.id = :ownerId and address.id = :addressId"),
-        NamedQuery(name = FIND_BY_OWNER_AND_ADDRESS_UID,
-                query = "from PersonalAddressDO p where owner.id = :ownerId and address.uid = :addressUid"),
-        NamedQuery(name = FIND_JOINED_BY_OWNER,
-                query = "from PersonalAddressDO p join fetch p.address where p.owner.id = :ownerId and p.address.deleted=false order by p.address.name, p.address.firstName"))
+  NamedQuery(
+    name = DELETE_ALL_BY_ADDRESS_ID,
+    query = "delete from PersonalAddressDO where address.id=:addressId"
+  ),
+  NamedQuery(
+    name = FIND_FAVORITE_ADDRESS_IDS_BY_OWNER,
+    query = "select pa.address.id from PersonalAddressDO pa where pa.owner.id=:ownerId and pa.favoriteCard=true and deleted=false and pa.address.deleted=false"
+  ),
+  NamedQuery(
+    name = FIND_BY_OWNER,
+    query = "from PersonalAddressDO pa where pa.owner.id = :ownerId"
+  ),
+  NamedQuery(
+    name = FIND_BY_OWNER_AND_ADDRESS_ID,
+    query = "from PersonalAddressDO where owner.id = :ownerId and address.id = :addressId"
+  ),
+  NamedQuery(
+    name = FIND_BY_OWNER_AND_ADDRESS_UID,
+    query = "from PersonalAddressDO p where owner.id = :ownerId and address.uid = :addressUid"
+  ),
+  NamedQuery(
+    name = FIND_JOINED_BY_OWNER,
+    query = "from PersonalAddressDO p join fetch p.address where p.owner.id = :ownerId and p.address.deleted=false order by p.address.name, p.address.firstName"
+  )
+)
 class PersonalAddressDO : AbstractBaseDO<Int>() {
 
-    private var id: Int? = null
+  private var id: Int? = null
+
+  /**
+   * Not used as object due to performance reasons.
+   */
+  @get:ManyToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "address_id", nullable = false)
+  var address: AddressDO? = null
+
+  /**
+   * If true, the whole address will be exported as vCard.
+   */
+  @get:Column(nullable = false, name = "favorite_card")
+  var isFavoriteCard: Boolean = false
+
+  /**
+   * Not used as object due to performance reasons.
+   */
+  @get:ManyToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "owner_id", nullable = false)
+  var owner: PFUserDO? = null
+
+  /**
+   * @return true, if any checkbox is set (isFavoriteCard, isBusinessPhone etc.)
+   */
+  val isFavorite: Boolean
+    @Transient
+    get() = isFavoriteCard
+
+  val ownerId: Int?
+    @Transient
+    get() = if (this.owner == null) null else owner!!.id
+
+  val addressId: Int?
+    @Transient
+    get() = if (this.address == null) null else address!!.id
+
+  @Id
+  @GeneratedValue
+  @Column(name = "pk")
+  override fun getId(): Int? {
+    return id
+  }
+
+  override fun setId(id: Int?) {
+    this.id = id
+  }
+
+  companion object {
+    internal const val FIND_FAVORITE_ADDRESS_IDS_BY_OWNER = "PersonalAddressDO_FindIDsByOwner"
 
     /**
-     * Not used as object due to performance reasons.
+     * Also deleted ones.
      */
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "address_id", nullable = false)
-    var address: AddressDO? = null
-
-    /**
-     * If true, the whole address will be exported as vCard.
-     */
-    @get:Column(nullable = false, name = "favorite_card")
-    var isFavoriteCard: Boolean = false
-
-    /**
-     * Not used as object due to performance reasons.
-     */
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "owner_id", nullable = false)
-    var owner: PFUserDO? = null
-
-    /**
-     * @return true, if any checkbox is set (isFavoriteCard, isBusinessPhone etc.)
-     */
-    val isFavorite: Boolean
-        @Transient
-        get() = isFavoriteCard
-
-    val ownerId: Int?
-        @Transient
-        get() = if (this.owner == null) null else owner!!.id
-
-    val addressId: Int?
-        @Transient
-        get() = if (this.address == null) null else address!!.id
-
-    @Id
-    @GeneratedValue
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return id
-    }
-
-    override fun setId(id: Int?) {
-        this.id = id
-    }
-
-    companion object {
-        internal const val FIND_FAVORITE_ADDRESS_IDS_BY_OWNER = "PersonalAddressDO_FindIDsByOwner"
-        /**
-         * Also deleted ones.
-         */
-        internal const val FIND_BY_OWNER = "PersonalAddressDO_FindByOwner"
-        internal const val FIND_BY_OWNER_AND_ADDRESS_ID = "PersonalAddressDO_FindByOwnerAndAddressId"
-        internal const val FIND_BY_OWNER_AND_ADDRESS_UID = "PersonalAddressDO_FindByOwnerAndAddressUid"
-        internal const val FIND_JOINED_BY_OWNER = "PersonalAddressDO_FindJoinedByOwnerAndAddressId"
-    }
+    internal const val DELETE_ALL_BY_ADDRESS_ID = "PersonalAddressDO_DeleteAllByAddressId"
+    internal const val FIND_BY_OWNER = "PersonalAddressDO_FindByOwner"
+    internal const val FIND_BY_OWNER_AND_ADDRESS_ID = "PersonalAddressDO_FindByOwnerAndAddressId"
+    internal const val FIND_BY_OWNER_AND_ADDRESS_UID = "PersonalAddressDO_FindByOwnerAndAddressUid"
+    internal const val FIND_JOINED_BY_OWNER = "PersonalAddressDO_FindJoinedByOwnerAndAddressId"
+  }
 }

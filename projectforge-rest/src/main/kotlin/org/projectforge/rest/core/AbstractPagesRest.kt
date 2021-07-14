@@ -940,6 +940,19 @@ constructor(
   }
 
   /**
+   * The given object will be deleted, if supported by the [BaseDao] (forced, including any history entries due to privacy protection).
+   * No undo is possible!
+   */
+  @DeleteMapping(RestPaths.FORCE_DELETE)
+  fun forceDelete(
+    request: HttpServletRequest,
+    @Valid @RequestBody postData: PostData<DTO>
+  ): ResponseEntity<ResponseAction> {
+    val dbObj = transformForDB(postData.data)
+    return forceDelete(request, baseDao, dbObj, postData, this)
+  }
+
+  /**
    * The given object is marked as deleted.
    * Please note, if you try to mark a non-historizable data base object, an exception will be thrown.
    */

@@ -93,6 +93,8 @@ public class RestPaths
 
   public static final String MARK_AS_DELETED = "markAsDeleted";
 
+  public static final String FORCE_DELETE = "forceDelete";
+
   public static final String UNDELETE = "undelete";
 
   public static final String CLONE = "clone";
