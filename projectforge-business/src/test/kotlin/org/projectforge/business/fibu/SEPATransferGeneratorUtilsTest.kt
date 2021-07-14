@@ -23,23 +23,14 @@
 
 package org.projectforge.business.fibu
 
-import de.micromata.merlin.utils.ReplaceUtils
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
-object SEPATransferGeneratorUtils {
-  @JvmStatic
-  fun eraseUnsuportedChars(orig: String?): String {
-    orig ?: return ""
-    var text = orig
-      // Underscores are not supported, replace them by -:
-      .replace('_', '-')
-      // ';'' are not supported, replace them by -:
-      .replace(';', ',')
-      .replace("#", "")
-
-    text = ReplaceUtils.replaceGermanUmlauteAndAccents(text) ?: ""
-    // Replace all non ASCII characters:
-    text = text.replace("\\P{InBasic_Latin}".toRegex(), "")
-
-    return text.trim { it <= ' ' }
+class SEPATransferGeneratorUtilsTest {
+  @Test
+  fun replaceSubjectTest() {
+    Assertions.assertEquals("", SEPATransferGeneratorUtils.eraseUnsuportedChars(null))
+    Assertions.assertEquals("1234567890", SEPATransferGeneratorUtils.eraseUnsuportedChars("\t\n\r\u202D1234567890\u202C"))
+    Assertions.assertEquals("Buerokosten a konto ss 4711,-,,", SEPATransferGeneratorUtils.eraseUnsuportedChars("Bürokosten à konto ß #4711;_;;"))
   }
 }
