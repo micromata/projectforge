@@ -21,29 +21,29 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.marketing;
+package org.projectforge.plugins.marketing
 
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.springframework.stereotype.Repository;
+import mu.KotlinLogging
+import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.AddressDeletionListener
+import org.projectforge.framework.persistence.jpa.PfEmgr
+
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
-public class AddressCampaignDao extends BaseDao<AddressCampaignDO> {
-
-  public AddressCampaignDao() {
-    super(AddressCampaignDO.class);
-    userRightId = MarketingPluginUserRightId.PLUGIN_MARKETING_ADDRESS_CAMPAIGN;
-  }
-
-  @Override
-  public AddressCampaignDO newInstance() {
-    return new AddressCampaignDO();
-  }
-
-  PfEmgrFactory getEmgrFactory() {
-    return emgrFactory;
+class MarketingPluginAddressDeletionListener(val addressCampaignDao: AddressCampaignDao) : AddressDeletionListener {
+  override fun onDelete(address: AddressDO) {
+    addressCampaignDao.emgrFactory.runInTrans { emgr: PfEmgr ->
+      val counter = emgr.entityManager
+        .createNamedQuery(AddressCampaignValueDO.DELETE_BY_ADDRESS)
+        .setParameter("addressId", address.getId())
+        .executeUpdate()
+      if (counter > 0) {
+        log.info("Removed #$counter address campaign value entries of deleted address: $address")
+      }
+      true
+    }
   }
 }

@@ -93,6 +93,8 @@ public class AddressDao extends BaseDao<AddressDO> {
 
   private BirthdayCache birthdayCache;
 
+  private List<AddressDeletionListener> deletionListeners = new ArrayList<>();
+
   public AddressDao() {
     super(AddressDO.class);
     forceDeletionSupport = true;
@@ -102,6 +104,12 @@ public class AddressDao extends BaseDao<AddressDO> {
   private void postConstruct() {
     addressCache = new AddressCache(this);
     birthdayCache = new BirthdayCache(this);
+  }
+
+  public void register(AddressDeletionListener listener) {
+    synchronized (deletionListeners) {
+      this.deletionListeners.add(listener);
+    }
   }
 
   public List<Locale> getUsedCommunicationLanguages() {
@@ -352,6 +360,11 @@ public class AddressDao extends BaseDao<AddressDO> {
   @Override
   protected void onDelete(AddressDO obj) {
     personalAddressDao.internalDeleteAll(obj);
+    synchronized (deletionListeners) {
+      for (AddressDeletionListener listener : deletionListeners) {
+        listener.onDelete(obj);
+      }
+    }
   }
 
   /**

@@ -23,14 +23,12 @@
 
 package org.projectforge.plugins.marketing
 
-import de.micromata.merlin.excel.ExcelCellType
 import de.micromata.merlin.excel.ExcelRow
 import de.micromata.merlin.excel.ExcelSheet
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressExport
 import org.projectforge.business.address.PersonalAddressDO
-import org.projectforge.framework.i18n.translate
 import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}

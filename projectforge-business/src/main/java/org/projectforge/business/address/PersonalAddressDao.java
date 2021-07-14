@@ -176,7 +176,9 @@ public class PersonalAddressDao {
           .createNamedQuery(PersonalAddressDO.DELETE_ALL_BY_ADDRESS_ID)
           .setParameter("addressId", addressDO.getId())
           .executeUpdate();
-      log.info("Removed #" + counter + " personal address book entries of deleted address: " + addressDO);
+      if (counter > 0) {
+        log.info("Removed #" + counter + " personal address book entries of deleted address: " + addressDO);
+      }
       return true;
     });
   }

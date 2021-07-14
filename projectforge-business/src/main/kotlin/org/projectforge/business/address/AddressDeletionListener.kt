@@ -21,29 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.marketing;
-
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.springframework.stereotype.Repository;
+package org.projectforge.business.address
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
-public class AddressCampaignDao extends BaseDao<AddressCampaignDO> {
-
-  public AddressCampaignDao() {
-    super(AddressCampaignDO.class);
-    userRightId = MarketingPluginUserRightId.PLUGIN_MARKETING_ADDRESS_CAMPAIGN;
-  }
-
-  @Override
-  public AddressCampaignDO newInstance() {
-    return new AddressCampaignDO();
-  }
-
-  PfEmgrFactory getEmgrFactory() {
-    return emgrFactory;
-  }
+interface AddressDeletionListener {
+  fun onDelete(address: AddressDO)
 }
