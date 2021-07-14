@@ -25,6 +25,7 @@ package org.projectforge.plugins.marketing;
 
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
@@ -63,6 +64,9 @@ public class MarketingPlugin extends AbstractPlugin {
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  @Autowired
+  private PfEmgrFactory emgrFactory;
+
   public MarketingPlugin() {
     super("marketing", "Marketing", "Marketing plugin for address campaigns.");
   }
@@ -93,6 +97,8 @@ public class MarketingPlugin extends AbstractPlugin {
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);
+
+    addressDao.register(new MarketingPluginAddressDeletionListener(addressCampaignDao));
   }
 
   /**

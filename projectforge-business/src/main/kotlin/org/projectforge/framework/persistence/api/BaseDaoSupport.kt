@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.api
 
 import de.micromata.genome.db.jpa.history.entities.HistoryMasterBaseDO
+import mu.KotlinLogging
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.ToStringUtil
@@ -34,14 +35,13 @@ import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
 import org.projectforge.framework.persistence.jpa.PfEmgr
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
-import org.slf4j.LoggerFactory
+
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object BaseDaoSupport {
-  private val log = LoggerFactory.getLogger(BaseDaoSupport::class.java)
-
   class ResultObject<O : ExtendedBaseDO<Int>>(
     var dbObjBackup: O? = null,
     var wantsReindexAllDependentObjects: Boolean = false,
