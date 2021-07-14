@@ -437,6 +437,7 @@ constructor(
 
   /**
    * Get the list of all items matching the given filter.
+   * Please note: filter.deleted is ignored (entries.field == "deleted" is used instead).
    */
   @RequestMapping(RestPaths.LIST)
   fun getList(@RequestBody filter: MagicFilter): ResultSet<*> {
@@ -449,6 +450,9 @@ constructor(
     return resultSet
   }
 
+  /**
+   * Please note: filter.deleted is ignored (entries.field == "deleted" is used instead).
+   */
   fun getResultList(filter: MagicFilter): List<O> {
     filter.autoWildcardSearch = true
     fixMagicFilterFromClient(filter)
@@ -477,11 +481,11 @@ constructor(
    * deleted flag may also be given in entries.field == "deleted".
    */
   private fun fixMagicFilterFromClient(magicFilter: MagicFilter) {
-    if (magicFilter.entries.isNullOrEmpty())
+    if (magicFilter.entries.isNullOrEmpty()) {
+      magicFilter.deleted = false
       return
-    if (magicFilter.entries.find { it.field == "deleted" }?.value?.value == "true") {
-      magicFilter.deleted = true
     }
+    magicFilter.deleted = magicFilter.entries.find { it.field == "deleted" }?.value?.value == "true"
     magicFilter.entries.removeIf { it.isEmpty }
   }
 
@@ -517,6 +521,7 @@ constructor(
   }
 
   /**
+   * Please note: filter.deleted is ignored (entries.field == "deleted" is used instead).
    * @return currentFilter, new filterFavorites and isFilterModified=false.
    */
   @PostMapping("filter/create")
@@ -560,6 +565,7 @@ constructor(
 
   /**
    * Updates the named Filter with the given values.
+   * Please note: filter.deleted is ignored (entries.field == "deleted" is used instead).
    */
   @RequestMapping("filter/update")
   fun updateFavoriteFilter(@RequestBody magicFilter: MagicFilter): Map<String, Any> {
