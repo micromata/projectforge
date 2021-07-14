@@ -474,10 +474,14 @@ constructor(
 
   /**
    * Workaround of parsing effects, e. g. from and to is given as json to value.
+   * deleted flag may also be given in entries.field == "deleted".
    */
   private fun fixMagicFilterFromClient(magicFilter: MagicFilter) {
     if (magicFilter.entries.isNullOrEmpty())
       return
+    if (magicFilter.entries.find { it.field == "deleted" }?.value?.value == "true") {
+      magicFilter.deleted = true
+    }
     magicFilter.entries.removeIf { it.isEmpty }
   }
 
