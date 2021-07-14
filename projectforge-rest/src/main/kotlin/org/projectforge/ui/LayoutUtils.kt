@@ -137,11 +137,13 @@ class LayoutUtils {
                 )
               )
             }
+            addForceDeleteButton(pagesRest, layout, userAccess)
           } else if (userAccess.delete == true) {
+            addForceDeleteButton(pagesRest, layout, userAccess)
             layout.addAction(
               UIButton(
                 "markAsDeleted",
-                color = UIColor.DANGER,
+                color = UIColor.WARNING,
                 outline = true,
                 responseAction = ResponseAction(
                   pagesRest.getRestPath(RestPaths.MARK_AS_DELETED),
@@ -150,7 +152,6 @@ class LayoutUtils {
                 confirmMessage = translate("question.markAsDeletedQuestion")
               )
             )
-
             layout.addTranslations("yes", "cancel")
           }
         }
@@ -208,6 +209,30 @@ class LayoutUtils {
       layout.addTranslations("label.historyOfChanges")
       addCommonTranslations(layout)
       return layout
+    }
+
+    /**
+     * Will only be added, if user has delete access as well as the baseDao.isForceDeletionSupport == true.
+     */
+    private fun addForceDeleteButton(
+      pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
+      layout: UILayout,
+      userAccess: UILayout.UserAccess,
+    ) {
+      if (pagesRest.baseDao.isForceDeletionSupport && userAccess.delete == true) {
+        layout.addAction(
+          UIButton(
+            "forceDelete",
+            color = UIColor.DANGER,
+            outline = true,
+            responseAction = ResponseAction(
+              pagesRest.getRestPath(RestPaths.FORCE_DELETE),
+              targetType = TargetType.DELETE
+            ),
+            confirmMessage = translate("question.forceDeleteQuestion")
+          )
+        )
+      }
     }
 
     private fun addCommonTranslations(layout: UILayout) {
@@ -287,6 +312,7 @@ class LayoutUtils {
                 "clone" -> "clone"
                 "create" -> "create"
                 "deleteIt" -> "delete"
+                "forceDelete" -> "forceDelete"
                 "markAsDeleted" -> "markAsDeleted"
                 "reset" -> "reset"
                 "search" -> "search"

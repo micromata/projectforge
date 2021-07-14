@@ -24,8 +24,8 @@
 package org.projectforge.rest.core
 
 import mu.KotlinLogging
-import org.projectforge.framework.access.OperationType
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.*
@@ -153,6 +153,25 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
     return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
   } catch (ex: Exception) {
     return handleException("Error while trying to mark object '${obj::class.java}' as deleted with id #${obj.id}", ex)
+  }
+}
+
+fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+    forceDelete(
+  request: HttpServletRequest,
+  baseDao: BaseDao<O>,
+  obj: O,
+  postData: PostData<DTO>,
+  pagesRest: AbstractPagesRest<O, DTO, B>
+)
+    : ResponseEntity<ResponseAction> {
+  try {
+    pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.DELETE)
+    pagesRest.onBeforeDelete(request, obj, postData)
+    baseDao.forceDelete(obj)
+    return ResponseEntity(pagesRest.onAfterDelete(obj, postData), HttpStatus.OK)
+  } catch (ex: Exception) {
+    return handleException("Error while trying to forced deleting object '${obj::class.java}' with id #${obj.id}", ex)
   }
 }
 

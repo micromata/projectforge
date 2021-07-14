@@ -135,6 +135,12 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    */
   protected boolean supportAfterUpdate = false;
 
+  /**
+   * If true, deletion of historizable objects is supported (including any history entry) due to privacy protection (e. g. addresses).
+   * Otherwise, objects may only be marked as deleted (default).
+   */
+  protected boolean forceDeletionSupport = false;
+
   @Autowired
   protected PfEmgrFactory emgrFactory;
 
@@ -774,6 +780,29 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     BaseDaoSupport.internalMarkAsDeleted(this, obj);
   }
 
+  /**
+   * Historizable objects will be deleted (including all history entries). This option is used to fullfill the
+   * privacy protection rules.
+   */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  public void forceDelete(final O obj) throws AccessException {
+    Validate.notNull(obj);
+    if (obj.getId() == null) {
+      final String msg = "Could not delete object unless id is not given:" + obj.toString();
+      log.error(msg);
+      throw new RuntimeException(msg);
+    }
+    accessChecker.checkRestrictedOrDemoUser();
+    final O dbObj = em.find(clazz, obj.getId());
+    checkLoggedInUserDeleteAccess(obj, dbObj);
+    internalForceDelete(obj);
+  }
+
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  public void internalForceDelete(final O obj) {
+    BaseDaoSupport.internalForceDelete(this, obj);
+  }
+
   void flushSearchSession(EntityManager em) {
     long begin = System.currentTimeMillis();
     if (LUCENE_FLUSH_ALWAYS) {
@@ -1277,6 +1306,10 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   // siehe org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils.getNestedHistoryEntities(Class<?>)
   protected Class<?>[] getAdditionalHistorySearchDOs() {
     return null;
+  }
+
+  public boolean isForceDeletionSupport() {
+    return forceDeletionSupport;
   }
 
   /**
