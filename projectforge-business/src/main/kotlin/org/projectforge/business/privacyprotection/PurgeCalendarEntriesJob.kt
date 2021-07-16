@@ -91,7 +91,7 @@ class PurgeCalendarEntries: IPrivacyProtectionJob {
         log.error { "Expiry days property (${it.expiryDays}) of calendar #${it.calendarId} must be greater than 0. Can't purge this calendar." }
       } else {
         val expiryDate = PFDateTime.now().minusDays(expiryDays.toLong())
-        log.info { "Purging calendar #${it.calendarId} '${calendar.title}' by deleting entries of ${it.expiryDays} or more in the past (before ${expiryDate.isoString}Z)..." }
+        log.info { "Purging calendar #${it.calendarId} '${calendar.title}' by deleting entries of ${it.expiryDays} or more days in the past (before ${expiryDate.isoString}Z)..." }
         emgrFactory.runInTrans { emgr: PfEmgr ->
           val counter = emgr.entityManager
             .createNamedQuery(TeamEventDO.PURGE_ENTRIES_IN_THE_PAST)
