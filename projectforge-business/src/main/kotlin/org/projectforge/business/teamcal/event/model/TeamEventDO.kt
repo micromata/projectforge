@@ -25,6 +25,7 @@ package org.projectforge.business.teamcal.event.model
 
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.db.jpa.history.api.WithHistory
+import mu.KotlinLogging
 import net.fortuna.ical4j.model.DateTime
 import net.fortuna.ical4j.model.Recur
 import net.fortuna.ical4j.model.WeekDay
@@ -49,6 +50,8 @@ import org.projectforge.framework.time.TimePeriod
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.persistence.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Overview of used (and may-be planned) fields:
@@ -75,6 +78,12 @@ import javax.persistence.*
 @Table(name = "T_PLUGIN_CALENDAR_EVENT", uniqueConstraints = [UniqueConstraint(name = "unique_t_plugin_calendar_event_uid_calendar_fk", columnNames = ["uid", "calendar_fk"])], indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_calendar_fk", columnList = "calendar_fk"), javax.persistence.Index(name = "idx_plugin_team_cal_end_date", columnList = "calendar_fk, end_date"), javax.persistence.Index(name = "idx_plugin_team_cal_start_date", columnList = "calendar_fk, start_date"), javax.persistence.Index(name = "idx_plugin_team_cal_time", columnList = "calendar_fk, start_date, end_date")])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [TeamEventAttendeeDO::class])
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
+@NamedQueries(
+    NamedQuery(
+        name = TeamEventDO.PURGE_ENTRIES_IN_THE_PAST,
+        query = "delete from TeamEventDO where calendar.id=:calendarId and endDate<:endDate"
+    ),
+)
 open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     @PropertyInfo(i18nKey = "plugins.teamcal.event.subject")
     @Field
@@ -990,6 +999,6 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     }
 
     companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(TeamEventDO::class.java)
+        internal const val PURGE_ENTRIES_IN_THE_PAST = "TeamEventDO_purgeEntriesInThePast"
     }
 }
