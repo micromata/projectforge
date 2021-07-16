@@ -30,7 +30,6 @@ import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import javax.persistence.*
 
@@ -39,83 +38,95 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_SKILLMATRIX_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skillmatrix_entry_owner_fk", columnList = "owner_fk")])
+@Table(
+  name = "T_PLUGIN_SKILLMATRIX_ENTRY",
+  indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_skillmatrix_entry_owner_fk", columnList = "owner_fk")]
+)
 @NamedQueries(
-        NamedQuery(name = SkillEntryDO.FIND_OF_OWNER,
-                query = "from SkillEntryDO where owner.id=:ownerId and deleted=false"))
+  NamedQuery(
+    name = SkillEntryDO.FIND_OF_OWNER,
+    query = "from SkillEntryDO where owner.id=:ownerId and deleted=false"
+  ),
+  NamedQuery(
+    name = SkillEntryDO.DELETE_ALL_OF_USER,
+    query = "delete from SkillEntryDO where owner.id=:userId"
+  ),
+)
 open class SkillEntryDO : AbstractBaseDO<Int>() {
 
-    @PropertyInfo(i18nKey = "id")
-    private var id: Int? = null
+  @PropertyInfo(i18nKey = "id")
+  private var id: Int? = null
 
-    @PropertyInfo(i18nKey = "plugins.skillmatrix.skill")
-    @Field
-    @get:Column(length = 255, nullable = false)
-    open var skill: String? = null
+  @PropertyInfo(i18nKey = "plugins.skillmatrix.skill")
+  @Field
+  @get:Column(length = 255, nullable = false)
+  open var skill: String? = null
 
-    @get:Transient
-    val normalizedSkill: String
-        get() = getNormalizedSkill(skill)
+  @get:Transient
+  val normalizedSkill: String
+    get() = getNormalizedSkill(skill)
 
-    /**
-     * Don't index this field (due to privacy protection). No one should filter all skills of one user by simply entering user's name into the
-     * search field.
-     */
-    @PropertyInfo(i18nKey = "plugins.skillmatrix.owner")
-    @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "owner_fk")
-    open var owner: PFUserDO? = null
+  /**
+   * Don't index this field (due to privacy protection). No one should filter all skills of one user by simply entering user's name into the
+   * search field.
+   */
+  @PropertyInfo(i18nKey = "plugins.skillmatrix.owner")
+  @IndexedEmbedded(depth = 1)
+  @get:ManyToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "owner_fk")
+  open var owner: PFUserDO? = null
 
-    /**
-     * 1 - basic knowledge, 2 - established knowledge, 3 - expert knowledge
-     */
-    @PropertyInfo(i18nKey = "plugins.skillmatrix.rating")
-    @Field
-    @get:Column
-    open var rating: Int? = null
+  /**
+   * 1 - basic knowledge, 2 - established knowledge, 3 - expert knowledge
+   */
+  @PropertyInfo(i18nKey = "plugins.skillmatrix.rating")
+  @Field
+  @get:Column
+  open var rating: Int? = null
 
-    /**
-     * 1 - interested, 2 - vested interest, 3 - going crazy
-     */
-    @PropertyInfo(i18nKey = "plugins.skillmatrix.interest")
-    @Field
-    @get:Column
-    open var interest: Int? = null
+  /**
+   * 1 - interested, 2 - vested interest, 3 - going crazy
+   */
+  @PropertyInfo(i18nKey = "plugins.skillmatrix.interest")
+  @Field
+  @get:Column
+  open var interest: Int? = null
 
-    @PropertyInfo(i18nKey = "comment")
-    @Field
-    @get:Column(length = Constants.LENGTH_COMMENT)
-    open var comment: String? = null
+  @PropertyInfo(i18nKey = "comment")
+  @Field
+  @get:Column(length = Constants.LENGTH_COMMENT)
+  open var comment: String? = null
 
-    val ownerId: Int?
-        @Transient
-        get() = owner?.id
+  val ownerId: Int?
+    @Transient
+    get() = owner?.id
 
-    @Id
-    @GeneratedValue
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return id
+  @Id
+  @GeneratedValue
+  @Column(name = "pk")
+  override fun getId(): Int? {
+    return id
+  }
+
+  override fun setId(id: Int?) {
+    this.id = id
+  }
+
+  companion object {
+    const val FIND_OF_OWNER = "SkillEntryDO_FindSkillsOfOwner"
+
+    internal const val DELETE_ALL_OF_USER = "SkillEntryDO_DeleteAllOfUser"
+
+    const val MIN_VAL_RATING = 0
+
+    const val MAX_VAL_RATING = 3
+
+    const val MIN_VAL_INTEREST = 0
+
+    const val MAX_VAL_INTEREST = 3
+
+    fun getNormalizedSkill(skill: String?): String {
+      return StringHelper.normalize(skill, true)!!
     }
-
-    override fun setId(id: Int?) {
-        this.id = id
-    }
-
-    companion object {
-        const val FIND_OF_OWNER = "SkillEntryDO_FindSkillsOfOwner"
-
-        const val MIN_VAL_RATING = 0
-
-        const val MAX_VAL_RATING = 3
-
-        const val MIN_VAL_INTEREST = 0
-
-        const val MAX_VAL_INTEREST = 3
-
-        fun getNormalizedSkill(skill: String?): String {
-            return StringHelper.normalize(skill, true)!!
-        }
-    }
+  }
 }
