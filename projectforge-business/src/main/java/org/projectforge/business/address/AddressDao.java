@@ -26,11 +26,11 @@ package org.projectforge.business.address;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.api.*;
@@ -88,6 +88,9 @@ public class AddressDao extends BaseDao<AddressDO> {
 
   @Autowired
   private PersonalAddressDao personalAddressDao;
+
+  @Autowired
+  private TeamEventDao teamEventDao;
 
   private AddressCache addressCache;
 
@@ -360,6 +363,7 @@ public class AddressDao extends BaseDao<AddressDO> {
   @Override
   protected void onDelete(AddressDO obj) {
     personalAddressDao.internalDeleteAll(obj);
+    teamEventDao.removeAttendeeByAddressIdFromAllEvents(obj);
     synchronized (deletionListeners) {
       for (AddressDeletionListener listener : deletionListeners) {
         listener.onDelete(obj);

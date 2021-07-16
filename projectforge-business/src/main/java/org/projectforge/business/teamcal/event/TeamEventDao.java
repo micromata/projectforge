@@ -31,6 +31,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.calendar.event.model.SeriesModificationMode;
 import org.projectforge.business.teamcal.TeamCalConfig;
@@ -41,8 +42,8 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache;
 import org.projectforge.business.user.UserRightId;
-import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.common.i18n.UserException;
+import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -119,8 +120,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     StringBuilder message = new StringBuilder();
     final TeamEventDO dbObj = emgrFac.runRoTrans(emgr -> emgr.selectByPk(TeamEventDO.class, newObj.getId()));
     if ((dbObj.getReminderActionType() == null && newObj.getReminderActionType() != null)
-            || (dbObj.getReminderDuration() == null && newObj.getReminderDuration() != null)
-            || (dbObj.getReminderDurationUnit() == null && newObj.getReminderDurationUnit() != null)) {
+        || (dbObj.getReminderDuration() == null && newObj.getReminderDuration() != null)
+        || (dbObj.getReminderDurationUnit() == null && newObj.getReminderDurationUnit() != null)) {
       reminderHasChanged = true;
       message.append("DBObj was null -> new values were set; ");
     }
@@ -128,31 +129,31 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
       if (!dbObj.getReminderActionType().equals(newObj.getReminderActionType())) {
         reminderHasChanged = true;
         message.append(
-                "DBObj.getReminderActionType() was " + dbObj.getReminderActionType() + " NewObj.getReminderActionType() is " + newObj.getReminderActionType()
-                        + "; ");
+            "DBObj.getReminderActionType() was " + dbObj.getReminderActionType() + " NewObj.getReminderActionType() is " + newObj.getReminderActionType()
+                + "; ");
       }
     }
     if (dbObj.getReminderDuration() != null) {
       if (!dbObj.getReminderDuration().equals(newObj.getReminderDuration())) {
         reminderHasChanged = true;
         message.append(
-                "DBObj.getReminderDuration() was " + dbObj.getReminderActionType() + " NewObj.getReminderDuration() is " + newObj.getReminderActionType() + "; ");
+            "DBObj.getReminderDuration() was " + dbObj.getReminderActionType() + " NewObj.getReminderDuration() is " + newObj.getReminderActionType() + "; ");
       }
     }
     if (dbObj.getReminderDurationUnit() != null) {
       if (!dbObj.getReminderDurationUnit().equals(newObj.getReminderDurationUnit())) {
         reminderHasChanged = true;
         message.append(
-                "DBObj.getReminderDurationUnit() was " + dbObj.getReminderActionType() + " NewObj.getReminderDurationUnit() is " + newObj.getReminderActionType()
-                        + "; ");
+            "DBObj.getReminderDurationUnit() was " + dbObj.getReminderActionType() + " NewObj.getReminderDurationUnit() is " + newObj.getReminderActionType()
+                + "; ");
       }
     }
     if (reminderHasChanged) {
       StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
       boolean changedByWebView =
-              Arrays.stream(stackTrace).filter(ste -> ste.getClassName().contains("org.projectforge.web.wicket.EditPageSupport")).count() > 0;
+          Arrays.stream(stackTrace).filter(ste -> ste.getClassName().contains("org.projectforge.web.wicket.EditPageSupport")).count() > 0;
       log.info("TeamEventDao.internalUpdate -> Changed reminder of team event. Changed by: " + (changedByWebView ? "WebView" : "REST") + " Message: " + message
-              .toString());
+          .toString());
     }
   }
 
@@ -282,9 +283,9 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
       save(newEvent);
       if (log.isDebugEnabled()) {
         log.debug("Recurrency ex date of master entry is now added: "
-                + DateHelper.formatAsUTC(selectedEvent.getStartDate())
-                + ". The new string is: "
-                + event.getRecurrenceExDate());
+            + DateHelper.formatAsUTC(selectedEvent.getStartDate())
+            + ". The new string is: "
+            + event.getRecurrenceExDate());
         log.debug("The new event is: " + newEvent);
       }
     }
@@ -397,7 +398,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     list = selectUnique(list);
     // add all abo events
     final List<TeamEventDO> recurrenceEvents = teamEventExternalSubscriptionCache
-            .getRecurrenceEvents(teamEventFilter);
+        .getRecurrenceEvents(teamEventFilter);
     if (recurrenceEvents != null && recurrenceEvents.size() > 0) {
       list.addAll(recurrenceEvents);
     }
@@ -502,8 +503,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     }
     checkLoggedInUserSelectAccess();
     final String s = "select distinct location from "
-            + clazz.getSimpleName()
-            + " t where deleted=false and t.calendar.id in :cals and lastUpdate > :lastUpdate and lower(t.location) like :location order by t.location";
+        + clazz.getSimpleName()
+        + " t where deleted=false and t.calendar.id in :cals and lastUpdate > :lastUpdate and lower(t.location) like :location order by t.location";
     final TypedQuery<String> query = em.createQuery(s, String.class);
     final List<Integer> calIds = new ArrayList(calendars.length);
     for (int i = 0; i < calendars.length; i++) {
@@ -587,16 +588,16 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     if (startDate != null && endDate != null) {
       if (!filter.isOnlyRecurrence()) {
         queryFilter.add(QueryFilter.or(
-                QueryFilter.between("startDate", startDate, endDate),
-                QueryFilter.between("endDate", startDate, endDate),
-                // get events whose duration overlap with chosen duration.
-                QueryFilter.and(QueryFilter.le("startDate", startDate), QueryFilter.ge("endDate", endDate))));
+            QueryFilter.between("startDate", startDate, endDate),
+            QueryFilter.between("endDate", startDate, endDate),
+            // get events whose duration overlap with chosen duration.
+            QueryFilter.and(QueryFilter.le("startDate", startDate), QueryFilter.ge("endDate", endDate))));
       } else {
         queryFilter.add(
-                // "startDate" < endDate && ("recurrenceUntil" == null || "recurrenceUntil" > startDate)
-                (QueryFilter.and(QueryFilter.lt("startDate", endDate),
-                        QueryFilter.or(QueryFilter.isNull("recurrenceUntil"),
-                                QueryFilter.gt("recurrenceUntil", startDate)))));
+            // "startDate" < endDate && ("recurrenceUntil" == null || "recurrenceUntil" > startDate)
+            (QueryFilter.and(QueryFilter.lt("startDate", endDate),
+                QueryFilter.or(QueryFilter.isNull("recurrenceUntil"),
+                    QueryFilter.gt("recurrenceUntil", startDate)))));
       }
     } else if (startDate != null) {
       if (!filter.isOnlyRecurrence()) {
@@ -604,8 +605,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
       } else {
         // This branch is reached for subscriptions and calendar downloads.
         queryFilter.add(
-                // "recurrenceUntil" == null || "recurrenceUntil" > startDate
-                QueryFilter.or(QueryFilter.isNull("recurrenceUntil"), QueryFilter.gt("recurrenceUntil", startDate)));
+            // "recurrenceUntil" == null || "recurrenceUntil" > startDate
+            QueryFilter.or(QueryFilter.isNull("recurrenceUntil"), QueryFilter.gt("recurrenceUntil", startDate)));
       }
     } else if (endDate != null) {
       queryFilter.add(QueryFilter.le("startDate", endDate));
@@ -633,7 +634,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
           final String propertyName = entry.getPropertyName();
           if (propertyName != null) {
             entry.setPropertyName(
-                    attendee.toString() + ":" + entry.getPropertyName()); // Prepend user name or url to identify.
+                attendee.toString() + ":" + entry.getPropertyName()); // Prepend user name or url to identify.
           } else {
             entry.setPropertyName(attendee.toString());
           }
@@ -700,12 +701,12 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     }
     final java.util.TimeZone timeZone4Calc = timeZone;
     final String eventStartDateString = event.getAllDay()
-            ? DateHelper.formatIsoDate(event.getStartDate(), timeZone) : DateHelper
-            .formatIsoTimestamp(event.getStartDate(), DateHelper.UTC);
+        ? DateHelper.formatIsoDate(event.getStartDate(), timeZone) : DateHelper
+        .formatIsoTimestamp(event.getStartDate(), DateHelper.UTC);
     java.util.Date eventStartDate = event.getStartDate();
     if (log.isDebugEnabled()) {
       log.debug("---------- startDate=" + DateHelper.formatIsoTimestamp(eventStartDate, timeZone) + ", timeZone="
-              + timeZone.getID());
+          + timeZone.getID());
     }
     net.fortuna.ical4j.model.TimeZone ical4jTimeZone;
     try {
@@ -735,7 +736,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
       for (final Object obj : dateList) {
         final net.fortuna.ical4j.model.DateTime dateTime = (net.fortuna.ical4j.model.DateTime) obj;
         final String isoDateString = event.getAllDay() ? DateHelper.formatIsoDate(dateTime, timeZone)
-                : DateHelper.formatIsoTimestamp(dateTime, DateHelper.UTC);
+            : DateHelper.formatIsoTimestamp(dateTime, DateHelper.UTC);
         if (exDates != null && exDates.size() > 0) {
           for (Date exDate : exDates) {
             if (!event.getAllDay()) {
@@ -777,15 +778,37 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     if (log.isDebugEnabled()) {
       for (final ICalendarEvent ev : col) {
         log.debug("startDate="
-                + DateHelper.formatIsoTimestamp(ev.getStartDate(), timeZone)
-                + "; "
-                + DateHelper.formatAsUTC(ev.getStartDate())
-                + ", endDate="
-                + DateHelper.formatIsoTimestamp(ev.getStartDate(), timeZone)
-                + "; "
-                + DateHelper.formatAsUTC(ev.getEndDate()));
+            + DateHelper.formatIsoTimestamp(ev.getStartDate(), timeZone)
+            + "; "
+            + DateHelper.formatAsUTC(ev.getStartDate())
+            + ", endDate="
+            + DateHelper.formatIsoTimestamp(ev.getStartDate(), timeZone)
+            + "; "
+            + DateHelper.formatAsUTC(ev.getEndDate()));
       }
     }
     return col;
   }
+
+  /**
+   * Will be called, before an address is (forced) deleted. All references in personal address books have to be deleted first.
+   *
+   * @param addressDO
+   */
+  public void removeAttendeeByAddressIdFromAllEvents(final AddressDO addressDO) {
+    Integer addressId = addressDO.getId();
+    if (addressId == null) {
+      return;
+    }
+    int counter = emgrFactory.runInTrans(emgr ->
+        emgr.getEntityManager()
+            .createNamedQuery(TeamEventAttendeeDO.DELETE_ATTENDEE_BY_ADDRESS_ID_FROM_ALL_EVENTS)
+            .setParameter("addressId", addressId)
+            .executeUpdate()
+    );
+    if (counter > 0) {
+      log.info("Address #" + addressId + " of '" + addressDO.getFullName() + "' removed as attendee in " + counter + " events.");
+    }
+  }
+
 }
