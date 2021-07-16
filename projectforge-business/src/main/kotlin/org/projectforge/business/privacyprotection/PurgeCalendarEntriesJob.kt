@@ -25,6 +25,7 @@ package org.projectforge.business.privacyprotection
 
 import mu.KotlinLogging
 import org.projectforge.business.teamcal.admin.TeamCalDao
+import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.jpa.PfEmgr
@@ -44,7 +45,7 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard
  */
 @Component
-class PurgeCalendarEntries: IPrivacyProtectionJob {
+class PurgeCalendarEntries : IPrivacyProtectionJob {
   class CalendarEntry(var calendarId: Int? = null, var expiryDays: Int? = null)
 
   @Autowired
@@ -55,6 +56,9 @@ class PurgeCalendarEntries: IPrivacyProtectionJob {
 
   @Autowired
   private lateinit var teamCalDao: TeamCalDao
+
+  @Autowired
+  private lateinit var teamEventDao: TeamEventDao
 
   @Value("\${projectforge.privacyProtection.purgeCalendars}")
   private var calendarEntriesConfig: String? = null
@@ -93,11 +97,16 @@ class PurgeCalendarEntries: IPrivacyProtectionJob {
         val expiryDate = PFDateTime.now().minusDays(expiryDays.toLong())
         log.info { "Purging calendar #${it.calendarId} '${calendar.title}' by deleting entries of ${it.expiryDays} or more days in the past (before ${expiryDate.isoString}Z)..." }
         emgrFactory.runInTrans { emgr: PfEmgr ->
-          val counter = emgr.entityManager
-            .createNamedQuery(TeamEventDO.PURGE_ENTRIES_IN_THE_PAST)
+          var counter = 0
+          val eventsToPurge = emgr.entityManager
+            .createNamedQuery(TeamEventDO.SELECT_ENTRIES_IN_THE_PAST_TO_PURGE, TeamEventDO::class.java)
             .setParameter("calendarId", calendar.id)
             .setParameter("endDate", expiryDate.utilDate)
-            .executeUpdate()
+            .resultList
+          eventsToPurge.forEach { event ->
+            ++counter
+            teamEventDao.internalForceDelete(event)
+          }
           if (counter > 0) {
             log.info("Removed $counter calendar entries in calendar #${it.calendarId} '${calendar.title}' in the past (before ${expiryDate.isoString}Z).")
           } else {
