@@ -469,9 +469,6 @@ public class BaseDaoJpaAdapter {
       // transients.
       return false;
     }
-    if ("created".equals(field.getName()) || "lastUpdate".equals(field.getName())) {
-      return false;
-    }
     return true;
   }
 
