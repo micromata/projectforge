@@ -32,6 +32,7 @@ import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
+import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.model.rest.AddressObject;

@@ -21,15 +21,18 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest
+package org.projectforge.framework.json
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import mu.KotlinLogging
 import org.slf4j.LoggerFactory
 import java.io.IOException
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Serialization and deserialization for rest calls.
@@ -37,7 +40,6 @@ import java.io.IOException
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object JsonUtils {
-  private val log = LoggerFactory.getLogger(JsonUtils::class.java)
   private val typeAdapterMap: MutableMap<Class<*>, Any> = HashMap()
   private val objectMapper: ObjectMapper = ObjectMapper()
   private val objectMapperIgnoreNullableProps: ObjectMapper = ObjectMapper()
