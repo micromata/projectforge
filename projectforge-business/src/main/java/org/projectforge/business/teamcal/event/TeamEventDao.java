@@ -105,6 +105,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
   public TeamEventDao() {
     super(TeamEventDO.class);
     userRightId = UserRightId.PLUGIN_CALENDAR_EVENT;
+    forceDeletionSupport = true;
   }
 
   @Override

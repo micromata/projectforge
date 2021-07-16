@@ -80,8 +80,8 @@ private val log = KotlinLogging.logger {}
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
 @NamedQueries(
     NamedQuery(
-        name = TeamEventDO.PURGE_ENTRIES_IN_THE_PAST,
-        query = "delete from TeamEventDO where calendar.id=:calendarId and endDate<:endDate"
+        name = TeamEventDO.SELECT_ENTRIES_IN_THE_PAST_TO_PURGE,
+        query = "from TeamEventDO where calendar.id=:calendarId and endDate<:endDate"
     ),
 )
 open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
@@ -999,6 +999,6 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     }
 
     companion object {
-        internal const val PURGE_ENTRIES_IN_THE_PAST = "TeamEventDO_purgeEntriesInThePast"
+        internal const val SELECT_ENTRIES_IN_THE_PAST_TO_PURGE = "TeamEventDO_selectEntriesInThePastToPurge"
     }
 }
