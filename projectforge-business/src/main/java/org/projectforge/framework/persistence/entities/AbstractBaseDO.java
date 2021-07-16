@@ -32,7 +32,10 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -41,13 +44,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @MappedSuperclass
-public abstract class AbstractBaseDO<I extends Serializable> implements ExtendedBaseDO<I>, Serializable
-{
+public abstract class AbstractBaseDO<I extends Serializable> implements ExtendedBaseDO<I>, Serializable {
   private static final long serialVersionUID = -2225460450662176301L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractBaseDO.class);
@@ -72,44 +72,37 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
    * data object has transient fields which are calculated by other fields. This default implementation does nothing.
    */
   @Override
-  public void recalculate()
-  {
+  public void recalculate() {
   }
 
   @Override
   @Basic
-  public boolean isDeleted()
-  {
+  public boolean isDeleted() {
     return deleted;
   }
 
   @Override
-  public void setDeleted(final boolean deleted)
-  {
+  public void setDeleted(final boolean deleted) {
     this.deleted = deleted;
   }
 
   @Override
   @Basic
-  public Date getCreated()
-  {
+  public Date getCreated() {
     return created;
   }
 
   @Override
-  public void setCreated(final Date created)
-  {
+  public void setCreated(final Date created) {
     this.created = created;
   }
 
   @Override
-  public void setCreated()
-  {
+  public void setCreated() {
     this.created = new Date();
   }
 
   /**
-   *
    * Last update will be modified automatically for every update of the database object.
    *
    * @return
@@ -117,20 +110,17 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
   @Override
   @Basic
   @Column(name = "last_update")
-  public Date getLastUpdate()
-  {
+  public Date getLastUpdate() {
     return lastUpdate;
   }
 
   @Override
-  public void setLastUpdate(final Date lastUpdate)
-  {
+  public void setLastUpdate(final Date lastUpdate) {
     this.lastUpdate = lastUpdate;
   }
 
   @Override
-  public void setLastUpdate()
-  {
+  public void setLastUpdate() {
     this.lastUpdate = new Date();
   }
 
@@ -141,20 +131,17 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
    */
   @Override
   @Transient
-  public boolean isMinorChange()
-  {
+  public boolean isMinorChange() {
     return minorChange;
   }
 
   @Override
-  public void setMinorChange(final boolean value)
-  {
+  public void setMinorChange(final boolean value) {
     this.minorChange = value;
   }
 
   @Override
-  public Object getTransientAttribute(final String key)
-  {
+  public Object getTransientAttribute(final String key) {
     if (attributeMap == null) {
       return null;
     }
@@ -171,8 +158,7 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
   }
 
   @Override
-  public void setTransientAttribute(final String key, final Object value)
-  {
+  public void setTransientAttribute(final String key, final Object value) {
     if (attributeMap == null) {
       attributeMap = new HashMap<>();
     }
@@ -196,13 +182,13 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
    * @return true, if any modifications are detected, otherwise false;
    */
   @Override
-  public ModificationStatus copyValuesFrom(final BaseDO<? extends Serializable> src, final String... ignoreFields)
-  {
+  public ModificationStatus copyValuesFrom(final BaseDO<? extends Serializable> src, final String... ignoreFields) {
     return copyValues(src, this, ignoreFields);
   }
 
   /**
-   * Copies all values from the given src object excluding the values created and lastUpdate. Do not overwrite created
+   * Copies all values from the given src object excluding the values created and lastUpdate, if already existed
+   * in the dest object. Do not overwrite created
    * and lastUpdate from the original database object.
    *
    * @param src
@@ -211,15 +197,30 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
    * @return true, if any modifications are detected, otherwise false;
    */
   @SuppressWarnings("unchecked")
-  public static ModificationStatus copyValues(final BaseDO src, final BaseDO dest, final String... ignoreFields)
-  {
+  public static ModificationStatus copyValues(final BaseDO src, final BaseDO dest, final String... ignoreFields) {
+    if (dest instanceof AbstractBaseDO<?> && src instanceof AbstractBaseDO<?>) {
+      final AbstractBaseDO<?> srcObj = (AbstractBaseDO<?>) src;
+      final AbstractBaseDO<?> destObj = (AbstractBaseDO<?>) dest;
+      final Date created = destObj.created;
+      final Date lastUpdate = destObj.lastUpdate;
+      destObj.created = srcObj.created;
+      destObj.lastUpdate = srcObj.lastUpdate;
+      final ModificationStatus modificationStatus = BaseDaoJpaAdapter.copyValues(src, dest, ignoreFields);
+      // Preserve original dest values:
+      if (created != null) {
+        destObj.created = created;
+      }
+      if (lastUpdate != null) {
+        destObj.lastUpdate = lastUpdate;
+      }
+      return modificationStatus;
+    }
     return BaseDaoJpaAdapter.copyValues(src, dest, ignoreFields);
   }
 
   @Deprecated
   public static ModificationStatus getModificationStatus(final ModificationStatus currentStatus,
-      final ModificationStatus status)
-  {
+                                                         final ModificationStatus status) {
     return currentStatus.combine(status);
   }
 
@@ -234,8 +235,7 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
    * @param field The Field to test.
    * @return Whether or not to consider the given <code>Field</code>.
    */
-  protected static boolean accept(final Field field)
-  {
+  protected static boolean accept(final Field field) {
     if (field.getName().indexOf(ClassUtils.INNER_CLASS_SEPARATOR_CHAR) != -1) {
       // Reject field from inner class.
       return false;
