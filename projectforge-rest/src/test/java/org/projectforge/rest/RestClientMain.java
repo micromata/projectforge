@@ -24,6 +24,7 @@
 package org.projectforge.rest;
 
 import org.projectforge.ProjectForgeVersion;
+import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.ServerInfo;
 import org.projectforge.model.rest.UserObject;

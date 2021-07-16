@@ -23,6 +23,7 @@
 
 package org.projectforge.rest;
 
+import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.model.rest.CalendarEventObject;
 import org.projectforge.model.rest.CalendarObject;
 import org.projectforge.model.rest.RestPaths;

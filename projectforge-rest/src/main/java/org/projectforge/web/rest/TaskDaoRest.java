@@ -24,10 +24,10 @@
 package org.projectforge.web.rest;
 
 import org.projectforge.business.task.*;
+import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.TaskObject;
-import org.projectforge.rest.JsonUtils;
 import org.projectforge.web.rest.converter.TaskDOConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
