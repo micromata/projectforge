@@ -60,7 +60,15 @@ class MagicFilterEntry(
             /**
              * Label is returned by the React frontend but it will be ignored by the backend.
              */
-            var label: String? = null
+            var label: String? = null,
+            /**
+             * Sent/used by client for history search: changed by user (displayName and id).
+             */
+            var displayName: String? = null,
+            /**
+             * Sent by client for history search: changed by user (displayName and id).
+             */
+            var id: Int? = null,
     )
 
     var value: Value

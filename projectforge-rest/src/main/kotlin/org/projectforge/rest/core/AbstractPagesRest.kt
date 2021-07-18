@@ -485,7 +485,6 @@ constructor(
       magicFilter.deleted = false
       return
     }
-    magicFilter.deleted = magicFilter.entries.find { it.field == "deleted" }?.value?.value == "true"
     magicFilter.entries.removeIf { it.isEmpty }
   }
 
