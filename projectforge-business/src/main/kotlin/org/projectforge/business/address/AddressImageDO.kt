@@ -24,46 +24,57 @@
 package org.projectforge.business.address
 
 import de.micromata.genome.jpa.DbRecord
-import org.projectforge.business.fibu.EingangsrechnungDO
 import javax.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @NamedQueries(
-        NamedQuery(name = AddressImageDO.SELECT_IMAGE, query = "select image from AddressImageDO where address.id = :addressId"),
-        NamedQuery(name = AddressImageDO.SELECT_IMAGE_PREVIEW, query = "select imagePreview from AddressImageDO where address.id = :addressId"))
+  NamedQuery(
+    name = AddressImageDO.SELECT_IMAGE,
+    query = "select image from AddressImageDO where address.id = :addressId"
+  ),
+  NamedQuery(
+    name = AddressImageDO.SELECT_IMAGE_PREVIEW,
+    query = "select imagePreview from AddressImageDO where address.id = :addressId"
+  ),
+  NamedQuery(
+    name = AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID,
+    query = "delete from AddressImageDO where address.id = :addressId"
+  ),
+)
 @Entity
 @Table(name = "T_ADDRESS_IMAGE")
 open class AddressImageDO : DbRecord<Int> {
-    @get:Id
-    @get:GeneratedValue
-    @get:Column(name = "pk")
-    open var id: Int? = null
+  @get:Id
+  @get:GeneratedValue
+  @get:Column(name = "pk")
+  open var id: Int? = null
 
-    @get:OneToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "address_fk", nullable = false)
-    open var address: AddressDO? = null
+  @get:OneToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "address_fk", nullable = false)
+  open var address: AddressDO? = null
 
-    @get:Column
-    @get:Basic(fetch = FetchType.LAZY)
-    open var image: ByteArray? = null
+  @get:Column
+  @get:Basic(fetch = FetchType.LAZY)
+  open var image: ByteArray? = null
 
-    @get:Column(name = "image_preview")
-    @get:Basic(fetch = FetchType.LAZY)
-    open var imagePreview: ByteArray? = null
+  @get:Column(name = "image_preview")
+  @get:Basic(fetch = FetchType.LAZY)
+  open var imagePreview: ByteArray? = null
 
-    @javax.persistence.Transient
-    override fun getPk(): Int? {
-        return id
-    }
+  @javax.persistence.Transient
+  override fun getPk(): Int? {
+    return id
+  }
 
-    override fun setPk(pk: Int?) {
-        id = pk
-    }
+  override fun setPk(pk: Int?) {
+    id = pk
+  }
 
-    companion object {
-        internal const val SELECT_IMAGE = "AddressImageDO.selectImage"
-        internal const val SELECT_IMAGE_PREVIEW = "AddressImageDO.selectImagePreview"
-    }
+  companion object {
+    internal const val SELECT_IMAGE = "AddressImageDO.selectImage"
+    internal const val SELECT_IMAGE_PREVIEW = "AddressImageDO.selectImagePreview"
+    internal const val DELETE_ALL_IMAGES_BY_ADDRESS_ID = "AddressImageDO.deleteAllImagesByAddressId"
+  }
 }

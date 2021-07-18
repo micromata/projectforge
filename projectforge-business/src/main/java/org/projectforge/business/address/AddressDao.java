@@ -364,6 +364,16 @@ public class AddressDao extends BaseDao<AddressDO> {
   protected void onDelete(AddressDO obj) {
     personalAddressDao.internalDeleteAll(obj);
     teamEventDao.removeAttendeeByAddressIdFromAllEvents(obj);
+    emgrFactory.runInTrans(emgr -> {
+      int counter = emgr.getEntityManager()
+          .createNamedQuery(AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID)
+          .setParameter("addressId", obj.getId())
+          .executeUpdate();
+      if (counter > 0) {
+        log.info("Removed #" + counter + " address images of deleted address: " + obj);
+      }
+      return true;
+    });
     synchronized (deletionListeners) {
       for (AddressDeletionListener listener : deletionListeners) {
         listener.onDelete(obj);

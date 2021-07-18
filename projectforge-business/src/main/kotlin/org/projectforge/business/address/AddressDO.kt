@@ -27,6 +27,7 @@ import de.micromata.genome.db.jpa.history.api.HistoryProperty
 import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
+import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
@@ -41,6 +42,8 @@ import org.projectforge.framework.utils.LabelValueBean
 import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -553,8 +556,6 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     }
 
     companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(AddressDO::class.java)
-
         /**
          * Used for representation in the data base and for hibernate search (lucene).
          */
