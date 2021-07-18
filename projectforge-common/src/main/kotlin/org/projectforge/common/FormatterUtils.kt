@@ -48,11 +48,11 @@ object FormatterUtils {
   fun formatBytes(bytes: Long?, locale: Locale = Locale.getDefault()): String {
     bytes ?: return "--"
     if (bytes == 0L) return "0"
-    if (bytes < KILO_BYTES) return format(bytes, locale, BigDecimal.ONE, "bytes")
-    if (bytes < MEGA_BYTES) return format(bytes, locale, KB_BD, "KB")
-    if (bytes < GIGA_BYTES) return format(bytes, locale, MB_BD, "MB")
-    if (bytes < TERRA_BYTES) return format(bytes, locale, GB_BD, "GB")
-    var no = BigDecimal(bytes).divide(TB_BD, 1, RoundingMode.HALF_UP)
+    if (bytes < NumberOfBytes.KILO_BYTES) return format(bytes, locale, BigDecimal.ONE, "bytes")
+    if (bytes < NumberOfBytes.MEGA_BYTES) return format(bytes, locale, NumberOfBytes.KILO_BYTES_BD, "KB")
+    if (bytes < NumberOfBytes.GIGA_BYTES) return format(bytes, locale, NumberOfBytes.MEGA_BYTES_BD, "MB")
+    if (bytes < NumberOfBytes.TERRA_BYTES) return format(bytes, locale, NumberOfBytes.GIGA_BYTES_BD, "GB")
+    var no = BigDecimal(bytes).divide(NumberOfBytes.TERRA_BYTES_BD, 1, RoundingMode.HALF_UP)
     if (no.toLong() >= 100) {
       no = no.setScale(0, RoundingMode.HALF_UP)
     }
@@ -89,13 +89,4 @@ object FormatterUtils {
     }
     return "${NumberFormat.getInstance(locale).format(no)}$unitString"
   }
-
-  const val KILO_BYTES = 1024L
-  private val KB_BD = BigDecimal(KILO_BYTES)
-  const val MEGA_BYTES = KILO_BYTES * 1024
-  private val MB_BD = BigDecimal(MEGA_BYTES)
-  const val GIGA_BYTES = MEGA_BYTES * 1024
-  private val GB_BD = BigDecimal(GIGA_BYTES)
-  private const val TERRA_BYTES = GIGA_BYTES * 1024
-  private val TB_BD = BigDecimal(TERRA_BYTES)
 }

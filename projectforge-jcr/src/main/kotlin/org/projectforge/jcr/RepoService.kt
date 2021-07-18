@@ -33,6 +33,7 @@ import org.apache.jackrabbit.oak.segment.file.FileStoreBuilder
 import org.apache.jackrabbit.oak.spi.state.NodeStore
 import org.projectforge.common.CryptStreamUtils
 import org.projectforge.common.FormatterUtils
+import org.projectforge.common.NumberOfBytes
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.InputStream
@@ -200,7 +201,7 @@ open class RepoService {
         fileNode.remove()
         throw ex
       }
-      if (fileObject.size ?: 0 > FormatterUtils.MEGA_BYTES * 50) {
+      if (fileObject.size ?: 0 > NumberOfBytes.MEGA_BYTES * 50) {
         lazyCheckSumFileObject = fileObject
         fileObject.checksum = "..."
       } else {
