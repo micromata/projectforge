@@ -253,6 +253,7 @@ class AddressPagesRest
           .add(lc, "address.addressbookList")
       )
     layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
+    layout.getTableColumnById("address.imagePreview").set(sortable = false)
     layout.getTableColumnById("address.addressbookList").set(formatter = Formatter.ADDRESS_BOOK, sortable = false)
     layout.getTableColumnById("address.isFavoriteCard").set(
       sortable = false,
