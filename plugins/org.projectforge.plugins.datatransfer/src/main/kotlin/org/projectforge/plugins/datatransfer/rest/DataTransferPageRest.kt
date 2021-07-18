@@ -25,6 +25,7 @@ package org.projectforge.plugins.datatransfer.rest
 
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
+import org.projectforge.common.NumberOfBytes
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -101,7 +102,8 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val layout = UILayout("plugins.datatransfer.title.heading")
     val attachmentsFieldset = UIFieldset(title = "'${dto.areaName}")
     attachmentsFieldset.add(UIAttachmentList(DataTransferPlugin.ID, id, showExpiryInfo = true))
-    if (dto.attachments?.size ?: 0 > 0) {
+    if (dto.attachmentsSize ?: 0 in 1..NumberOfBytes.GIGA_BYTES) {
+      // Download all not for attachments with size of more than 1 GB in total.
       attachmentsFieldset.add(
         UIButton(
           "downloadAll",
