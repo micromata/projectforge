@@ -250,8 +250,8 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
           type = MenuItemTargetType.REDIRECT
         )
       )
-      layout.watchFields.addAll(arrayOf("userWantsToObserve"))
     }
+    layout.watchFields.addAll(arrayOf("userWantsToObserve"))
 
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
