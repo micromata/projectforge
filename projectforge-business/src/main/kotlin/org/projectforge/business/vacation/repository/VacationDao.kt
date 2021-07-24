@@ -98,7 +98,9 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         if (hasHrRights(user) || isOwnEntry(user, obj) || isManager(user, obj) || isReplacement(user, obj)) {
             return true
         }
-        return if (obj.employee != null && accessChecker.areUsersInSameGroup(user, obj.employee!!.user)) {
+        return if (obj.employee != null && accessChecker.areUsersInSameGroup(user, obj.employee!!.user) &&
+            // Don't show vacation entries of others older than 31 days (end date):
+            obj.endDate?.isAfter(LocalDate.now().minusDays(31L)) == true) {
             true
         } else throwOrReturnFalse(throwException)
     }
