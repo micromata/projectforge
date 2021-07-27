@@ -499,13 +499,19 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     final List<Short> positionsWithDatesNotWithinPop = new ArrayList<>();
     for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
       final LocalDate periodOfPerformanceBegin = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceBegin() : auftrag.getPeriodOfPerformanceBegin();
-      final LocalDate periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
+      LocalDate periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
+      if (periodOfPerformanceEnd != null) {
+        // Payments milestones are allowed inside period of performance plus 3 months:
+        periodOfPerformanceEnd = periodOfPerformanceEnd.plusMonths(3);
+      }
+      final LocalDate lastInvoiceDate = periodOfPerformanceEnd;
 
       final boolean hasDateNotInRange = paymentSchedules.stream()
               .filter(payment -> payment.getPositionNumber() == pos.getNumber())
               .map(PaymentScheduleDO::getScheduleDate)
               .filter(Objects::nonNull)
-              .anyMatch(date -> date.isBefore(periodOfPerformanceBegin) || date.isAfter(periodOfPerformanceEnd));
+              .anyMatch(date -> (periodOfPerformanceBegin != null && date.isBefore(periodOfPerformanceBegin))
+                  || (lastInvoiceDate != null && date.isAfter(lastInvoiceDate)));
 
       if (hasDateNotInRange) {
         positionsWithDatesNotWithinPop.add(pos.getNumber());
