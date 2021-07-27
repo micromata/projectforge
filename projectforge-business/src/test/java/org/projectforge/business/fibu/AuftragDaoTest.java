@@ -459,7 +459,8 @@ public class AuftragDaoTest extends AbstractTestBase {
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 2);
-    paymentSchedule.setScheduleDate(LocalDate.of(2017, 5, 26));
+    // Later than end of performance plus 3 months:
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 8, 26));
 
     paymentSchedules.add(paymentSchedule);
 
