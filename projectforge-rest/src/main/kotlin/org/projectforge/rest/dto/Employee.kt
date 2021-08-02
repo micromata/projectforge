@@ -25,7 +25,7 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeStatus
-import org.projectforge.business.fibu.Gender
+import org.projectforge.business.fibu.IsoGender
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -46,7 +46,7 @@ class Employee(id: Int? = null,
                var accountHolder: String? = null,
                var iban: String? = null,
                var bic: String? = null,
-               var gender: Gender? = null,
+               var gender: IsoGender? = null,
                var street: String? = null,
                var zipCode: String? = null,
                var city: String? = null,
