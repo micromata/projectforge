@@ -131,10 +131,20 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(length = 255)
     open var firstname: String? = null
 
+    @PropertyInfo(i18nKey = "nickName")
+    @Field
+    @get:Column(name="nick_name", length = 255)
+    open var nickName: String? = null
+
     @PropertyInfo(i18nKey = "name")
     @Field
     @get:Column(length = 255)
     open var lastname: String? = null
+
+    @PropertyInfo(i18nKey = "gender")
+    @get:Enumerated(EnumType.STRING)
+    @get:Column(name = "gender", length = 100)
+    open var gender: Gender? = null
 
     /**
      * Optional description of the user.
