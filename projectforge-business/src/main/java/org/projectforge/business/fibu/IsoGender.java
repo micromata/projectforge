@@ -25,7 +25,7 @@ package org.projectforge.business.fibu;
 
 import org.projectforge.common.i18n.I18nEnum;
 
-public enum Gender implements I18nEnum
+public enum IsoGender implements I18nEnum
 {
   NOT_KNOWN(0, "notKnown"),
   MALE(1, "male"),
@@ -35,7 +35,7 @@ public enum Gender implements I18nEnum
   private final int isoCode;
   private final String i18nKey;
 
-  Gender(int isoCode, String i18nKey)
+  IsoGender(int isoCode, String i18nKey)
   {
     this.isoCode = isoCode;
     this.i18nKey = i18nKey;

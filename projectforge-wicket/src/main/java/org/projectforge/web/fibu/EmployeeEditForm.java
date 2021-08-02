@@ -34,7 +34,7 @@ import org.apache.wicket.validation.ValidationError;
 import org.apache.wicket.validation.validator.PatternValidator;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
-import org.projectforge.business.fibu.Gender;
+import org.projectforge.business.fibu.IsoGender;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
@@ -270,9 +270,9 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     {
       // DropDownChoice gender
       final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "gender");
-      final LabelValueChoiceRenderer<Gender> genderChoiceRenderer = new LabelValueChoiceRenderer<>(this,
-              Gender.values());
-      final DropDownChoice<Gender> statusChoice = new DropDownChoice<>(
+      final LabelValueChoiceRenderer<IsoGender> genderChoiceRenderer = new LabelValueChoiceRenderer<>(this,
+              IsoGender.values());
+      final DropDownChoice<IsoGender> statusChoice = new DropDownChoice<>(
               fs.getDropDownChoiceId(),
               new PropertyModel<>(data, "gender"),
               genderChoiceRenderer.getValues(),
