@@ -23,15 +23,21 @@
 
 package org.projectforge.plugins.merlin.rest
 
+import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.word.templating.VariableType
 import mu.KotlinLogging
+import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.business.user.service.UserService
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.plugins.merlin.*
+import org.projectforge.rest.admin.LogViewerPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -69,6 +75,12 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
 
   @Autowired
   private lateinit var userPrefService: UserPrefService
+
+  @Autowired
+  private lateinit var userService: UserService
+
+  @Autowired
+  private lateinit var employeeService: EmployeeService
 
   /**
    * Will be called, if the user wants to change his/her observeStatus.
@@ -139,10 +151,19 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   }
 
   @GetMapping("downloadSerialExecutionTemplate/{id}")
-  fun downloadSerialExecutionTemplate(@PathVariable("id", required = true) id: Int)
+  fun downloadSerialExecutionTemplate(
+    @PathVariable("id", required = true) id: Int,
+    @RequestParam("fill") fill: String? = null
+  )
       : ResponseEntity<*> {
     MerlinPlugin.ensureUserLogSubscription()
-    val result = merlinRunner.createSerialExcelTemplate(id)
+    val result = merlinRunner.createSerialExcelTemplate(id) { sheet: ExcelSheet ->
+      if (fill == "users") {
+        addUsers(sheet)
+      } else if (fill == "employees") {
+        addEmployees(sheet)
+      }
+    }
     val filename = result.first
     val excel = result.second
     return RestUtils.downloadFile(filename, excel)
@@ -226,20 +247,29 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
       )
     )
 
-    layout
-      .add(logViewerMenuItem)
-      .add(
-        MenuItem(
-          "HIGHLIGHT",
-          i18nKey = "plugins.merlin.serial.template.download",
-          tooltip = "plugins.merlin.serial.template.download.info",
-          url = RestResolver.getRestUrl(
-            this.javaClass,
-            "downloadSerialExecutionTemplate/$id"
-          ),
-          type = MenuItemTargetType.DOWNLOAD,
-        )
-      )
+    layout.add(logViewerMenuItem)
+    val serialExceutionMenu = MenuItem(
+      "serialExceutionMenu",
+      title = translate("plugins.merlin.serial.template.download"),
+    )
+    serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "base"))
+    if (UserGroupCache.getInstance().isUserMemberOfAdminGroup(ThreadLocalUserContext.getUserId())
+      || UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.getUserId())
+    ) {
+      serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "employees"))
+      serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "users"))
+    }
+    layout.add(serialExceutionMenu)
+    MenuItem(
+      "logViewer",
+      i18nKey = "plugins.merlin.viewLogs",
+      url = PagesResolver.getDynamicPageUrl(
+        LogViewerPageRest::class.java,
+        id = MerlinPlugin.ensureUserLogSubscription().id
+      ),
+      type = MenuItemTargetType.REDIRECT,
+    )
+
     if (hasEditAccess(dbObj)) {
       layout.add(
         MenuItem(
@@ -258,6 +288,24 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     executionData.inputVariables = userPref.inputVariables
     executionData.pdfFormat = userPref.pdfFormat
     return FormLayoutData(executionData, layout, createServerData(request))
+  }
+
+  private fun createSerialExcelDownloadMenu(id: Int, type: String): MenuItem {
+    val fill = if (type == "base") {
+      ""
+    } else {
+      "?fill=$type"
+    }
+    return MenuItem(
+      "serialExecution",
+      i18nKey = "plugins.merlin.serial.template.download.$type",
+      tooltip = "plugins.merlin.serial.template.download.info",
+      url = RestResolver.getRestUrl(
+        this.javaClass,
+        "downloadSerialExecutionTemplate/$id$fill"
+      ),
+      type = MenuItemTargetType.DOWNLOAD,
+    )
   }
 
   private fun createInputElement(variable: MerlinVariable): UIElement {
@@ -295,5 +343,69 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
 
   private fun getFieldId(variableName: String): String {
     return "inputVariables.$variableName"
+  }
+
+  private fun addUsers(sheet: ExcelSheet) {
+    val access = UserGroupCache.getInstance().isUserMemberOfAdminGroup(ThreadLocalUserContext.getUserId())
+        || UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.getUserId())
+    if (!access) {
+      return
+    }
+    registerColumn(sheet, "username", "username")
+    registerColumn(sheet, "gender", "gender")
+    registerColumn(sheet, "nickname", "nickname")
+    registerColumn(sheet, "firstname", "firstName")
+    registerColumn(sheet, "lastname", "name")
+    registerColumn(sheet, "email", "email")
+    registerColumn(sheet, "organization", "organization")
+    sheet.reset()
+    userService.allActiveUsers.forEach { user ->
+      sheet.createRow().autoFillFromObject(user)
+    }
+  }
+
+  private fun addEmployees(sheet: ExcelSheet) {
+    val hrAccess = UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.getUserId())
+    if (hrAccess) {
+      registerColumn(sheet, "staffNumber", "fibu.employee.staffNumber")
+    }
+    registerColumn(sheet, "username", "username")
+    registerColumn(sheet, "gender", "gender")
+    registerColumn(sheet, "nickname", "nickname")
+    registerColumn(sheet, "firstname", "firstName")
+    registerColumn(sheet, "lastname", "name")
+    registerColumn(sheet, "email", "email")
+    registerColumn(sheet, "organization", "organization")
+    if (hrAccess) {
+      registerColumn(sheet, "street", "fibu.employee.street")
+      registerColumn(sheet, "zipCode", "fibu.employee.zipCode")
+      registerColumn(sheet, "city", "fibu.employee.city")
+      registerColumn(sheet, "country", "fibu.employee.country")
+    }
+    sheet.reset()
+    employeeService.findAllActive(false).forEach { employee ->
+      val row = sheet.createRow()
+      sheet.reset()
+      row.autoFillFromObject(employee.user, "staffNumber", "street", "zipCode", "city", "country")
+      if (hrAccess) {
+        row.getCell("staffNumber")?.setCellValue(employee.staffNumber)
+        row.getCell("street")?.setCellValue(employee.street)
+        row.getCell("zipCode")?.setCellValue(employee.zipCode)
+        row.getCell("city")?.setCellValue(employee.city)
+        row.getCell("country")?.setCellValue(employee.country)
+      }
+    }
+  }
+
+  private fun registerColumn(sheet: ExcelSheet, columnHead: String, i18nKey: String) {
+    val headRow = sheet.headRow!!
+    val translation = translate(i18nKey)
+    val colDef = sheet.getColumnDef(columnHead) ?: sheet.getColumnDef(translation)
+    if (colDef?.found() != true) {
+      sheet.registerColumn(columnHead, translation)
+      headRow.createCell().setCellValue(translation)
+    } else {
+      colDef.columnAliases = arrayOf(columnHead, translation)
+    }
   }
 }
