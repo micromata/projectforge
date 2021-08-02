@@ -391,7 +391,11 @@ open class MerlinRunner {
         val docReceiver = docReceivers[counter]
         val pdfReceiver = pdfReceivers[counter++]
         if (docReceiver.user != null || pdfReceiver.user != null) {
-          val receiver = docReceiver ?: pdfReceiver!!
+          val receiver = if (docReceiver.user != null) {
+            docReceiver
+          } else {
+            pdfReceiver
+          }
           try {
             zipEntry.name
             val personalBox = dataTransferAreaDao.ensurePersonalBox(receiver.userId)
