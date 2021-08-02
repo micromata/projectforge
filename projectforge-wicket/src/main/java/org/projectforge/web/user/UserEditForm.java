@@ -164,13 +164,13 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     fs.add(firstName);
   }
 
-  public static void createNickName(final GridBuilder gridBuilder, final PFUserDO user) {
+  public static void createNickname(final GridBuilder gridBuilder, final PFUserDO user) {
     // First name
-    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("nickName"));
-    final MaxLengthTextField nickName = new MaxLengthTextField(fs.getTextFieldId(),
-        new PropertyModel(user, "nickName"));
-    nickName.setMarkupId("nickName").setOutputMarkupId(true);
-    fs.add(nickName);
+    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("nickname"));
+    final MaxLengthTextField nickname = new MaxLengthTextField(fs.getTextFieldId(),
+        new PropertyModel(user, "nickname"));
+    nickname.setMarkupId("nickname").setOutputMarkupId(true);
+    fs.add(nickname);
   }
 
   public static void createLastName(final GridBuilder gridBuilder, final PFUserDO user) {
@@ -445,7 +445,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     }
     createFirstName(gridBuilder, data);
     createLastName(gridBuilder, data);
-    createNickName(gridBuilder, data);
+    createNickname(gridBuilder, data);
     createGender(gridBuilder, data);
     createOrganization(gridBuilder, data);
     createEMail(gridBuilder, data);
