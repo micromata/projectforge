@@ -169,7 +169,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @Convert(converter = GenderConverter::class)
     @get:Column
     // use the GenderConverter instead of @Enumerated to persist the correct ISO/IEC 5218 integer representation of the gender
-    open var gender: Gender? = null
+    open var gender: IsoGender? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.street")
     @Field

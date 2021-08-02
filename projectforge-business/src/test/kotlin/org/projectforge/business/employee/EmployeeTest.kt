@@ -29,7 +29,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.Gender
+import org.projectforge.business.fibu.IsoGender
 import org.projectforge.business.fibu.GenderConverter
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.GroupDao
@@ -135,26 +135,26 @@ class EmployeeTest : AbstractTestBase() {
         val e = employeeList[0]
         baseLog.info("Employee: $e")
         val historyEntriesBefore = employeeDao.getDisplayHistoryEntries(e)
-        e.gender = Gender.valueOf("NOT_KNOWN")
-        Assertions.assertEquals(e.gender, Gender.NOT_KNOWN)
-        Assertions.assertEquals(e.gender!!.i18nKey, Gender.NOT_KNOWN.i18nKey)
-        Assertions.assertEquals(e.gender!!.ordinal, Gender.NOT_KNOWN.ordinal)
-        Assertions.assertEquals(e.gender!!.isoCode, Gender.NOT_KNOWN.isoCode)
-        e.gender = Gender.MALE
-        Assertions.assertEquals(e.gender, Gender.MALE)
-        Assertions.assertEquals(e.gender!!.i18nKey, Gender.MALE.i18nKey)
-        Assertions.assertEquals(e.gender!!.ordinal, Gender.MALE.ordinal)
-        Assertions.assertEquals(e.gender!!.isoCode, Gender.MALE.isoCode)
-        e.gender = Gender.FEMALE
-        Assertions.assertEquals(e.gender, Gender.FEMALE)
-        Assertions.assertEquals(e.gender!!.i18nKey, Gender.FEMALE.i18nKey)
-        Assertions.assertEquals(e.gender!!.ordinal, Gender.FEMALE.ordinal)
-        Assertions.assertEquals(e.gender!!.isoCode, Gender.FEMALE.isoCode)
-        e.gender = Gender.NOT_APPLICABLE
-        Assertions.assertEquals(e.gender, Gender.NOT_APPLICABLE)
-        Assertions.assertEquals(e.gender!!.i18nKey, Gender.NOT_APPLICABLE.i18nKey)
-        Assertions.assertEquals(e.gender!!.ordinal, Gender.NOT_APPLICABLE.ordinal)
-        Assertions.assertEquals(e.gender!!.isoCode, Gender.NOT_APPLICABLE.isoCode)
+        e.gender = IsoGender.valueOf("NOT_KNOWN")
+        Assertions.assertEquals(e.gender, IsoGender.NOT_KNOWN)
+        Assertions.assertEquals(e.gender!!.i18nKey, IsoGender.NOT_KNOWN.i18nKey)
+        Assertions.assertEquals(e.gender!!.ordinal, IsoGender.NOT_KNOWN.ordinal)
+        Assertions.assertEquals(e.gender!!.isoCode, IsoGender.NOT_KNOWN.isoCode)
+        e.gender = IsoGender.MALE
+        Assertions.assertEquals(e.gender, IsoGender.MALE)
+        Assertions.assertEquals(e.gender!!.i18nKey, IsoGender.MALE.i18nKey)
+        Assertions.assertEquals(e.gender!!.ordinal, IsoGender.MALE.ordinal)
+        Assertions.assertEquals(e.gender!!.isoCode, IsoGender.MALE.isoCode)
+        e.gender = IsoGender.FEMALE
+        Assertions.assertEquals(e.gender, IsoGender.FEMALE)
+        Assertions.assertEquals(e.gender!!.i18nKey, IsoGender.FEMALE.i18nKey)
+        Assertions.assertEquals(e.gender!!.ordinal, IsoGender.FEMALE.ordinal)
+        Assertions.assertEquals(e.gender!!.isoCode, IsoGender.FEMALE.isoCode)
+        e.gender = IsoGender.NOT_APPLICABLE
+        Assertions.assertEquals(e.gender, IsoGender.NOT_APPLICABLE)
+        Assertions.assertEquals(e.gender!!.i18nKey, IsoGender.NOT_APPLICABLE.i18nKey)
+        Assertions.assertEquals(e.gender!!.ordinal, IsoGender.NOT_APPLICABLE.ordinal)
+        Assertions.assertEquals(e.gender!!.isoCode, IsoGender.NOT_APPLICABLE.isoCode)
 
         // test history
         employeeDao.update(e)
@@ -162,24 +162,24 @@ class EmployeeTest : AbstractTestBase() {
         Assertions.assertEquals(historyEntriesBefore.size + 1, historyEntriesAfter.size)
         val genderHistoryEntry = historyEntriesAfter[0]
         Assertions.assertEquals(genderHistoryEntry.propertyName, "gender")
-        Assertions.assertEquals(genderHistoryEntry.newValue, "[" + Gender.NOT_APPLICABLE.toString() + "]")
+        Assertions.assertEquals(genderHistoryEntry.newValue, "[" + IsoGender.NOT_APPLICABLE.toString() + "]")
     }
 
     @Test
     fun testGenderConverter() {
         val genderConverter = GenderConverter()
-        Assertions.assertEquals(genderConverter.convertToDatabaseColumn(null).toInt(), Gender.NOT_KNOWN.isoCode)
-        Assertions.assertEquals(genderConverter.convertToDatabaseColumn(Gender.NOT_KNOWN).toInt(), Gender.NOT_KNOWN.isoCode)
-        Assertions.assertEquals(genderConverter.convertToDatabaseColumn(Gender.MALE).toInt(), Gender.MALE.isoCode)
-        Assertions.assertEquals(genderConverter.convertToDatabaseColumn(Gender.FEMALE).toInt(), Gender.FEMALE.isoCode)
-        Assertions.assertEquals(genderConverter.convertToDatabaseColumn(Gender.NOT_APPLICABLE).toInt(), Gender.NOT_APPLICABLE.isoCode)
-        Assertions.assertEquals(genderConverter.convertToEntityAttribute(null), Gender.NOT_KNOWN)
-        Assertions.assertEquals(genderConverter.convertToEntityAttribute(Int.MAX_VALUE), Gender.NOT_KNOWN)
-        Assertions.assertEquals(genderConverter.convertToEntityAttribute(Int.MIN_VALUE), Gender.NOT_KNOWN)
-        Assertions.assertEquals(genderConverter.convertToEntityAttribute(0), Gender.NOT_KNOWN)
-        Assertions.assertEquals(genderConverter.convertToEntityAttribute(1), Gender.MALE)
-        Assertions.assertEquals(genderConverter.convertToEntityAttribute(2), Gender.FEMALE)
-        Assertions.assertEquals(genderConverter.convertToEntityAttribute(9), Gender.NOT_APPLICABLE)
+        Assertions.assertEquals(genderConverter.convertToDatabaseColumn(null).toInt(), IsoGender.NOT_KNOWN.isoCode)
+        Assertions.assertEquals(genderConverter.convertToDatabaseColumn(IsoGender.NOT_KNOWN).toInt(), IsoGender.NOT_KNOWN.isoCode)
+        Assertions.assertEquals(genderConverter.convertToDatabaseColumn(IsoGender.MALE).toInt(), IsoGender.MALE.isoCode)
+        Assertions.assertEquals(genderConverter.convertToDatabaseColumn(IsoGender.FEMALE).toInt(), IsoGender.FEMALE.isoCode)
+        Assertions.assertEquals(genderConverter.convertToDatabaseColumn(IsoGender.NOT_APPLICABLE).toInt(), IsoGender.NOT_APPLICABLE.isoCode)
+        Assertions.assertEquals(genderConverter.convertToEntityAttribute(null), IsoGender.NOT_KNOWN)
+        Assertions.assertEquals(genderConverter.convertToEntityAttribute(Int.MAX_VALUE), IsoGender.NOT_KNOWN)
+        Assertions.assertEquals(genderConverter.convertToEntityAttribute(Int.MIN_VALUE), IsoGender.NOT_KNOWN)
+        Assertions.assertEquals(genderConverter.convertToEntityAttribute(0), IsoGender.NOT_KNOWN)
+        Assertions.assertEquals(genderConverter.convertToEntityAttribute(1), IsoGender.MALE)
+        Assertions.assertEquals(genderConverter.convertToEntityAttribute(2), IsoGender.FEMALE)
+        Assertions.assertEquals(genderConverter.convertToEntityAttribute(9), IsoGender.NOT_APPLICABLE)
     }
 
     @Test
