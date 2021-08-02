@@ -53,6 +53,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.Gender;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -163,6 +164,15 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     fs.add(firstName);
   }
 
+  public static void createNickName(final GridBuilder gridBuilder, final PFUserDO user) {
+    // First name
+    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("nickName"));
+    final MaxLengthTextField nickName = new MaxLengthTextField(fs.getTextFieldId(),
+        new PropertyModel(user, "nickName"));
+    nickName.setMarkupId("nickName").setOutputMarkupId(true);
+    fs.add(nickName);
+  }
+
   public static void createLastName(final GridBuilder gridBuilder, final PFUserDO user) {
     // Last name
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("name"));
@@ -172,6 +182,22 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     WicketUtils.setStrong(name);
     fs.add(name);
   }
+
+  public static void createGender(final GridBuilder gridBuilder, final PFUserDO user) {
+    // Gender
+    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("gender"));
+    final LabelValueChoiceRenderer<Gender> genderChoiceRenderer = new LabelValueChoiceRenderer<Gender>();
+    genderChoiceRenderer.addValue(Gender.FEMALE, gridBuilder.getString("gender.female"));
+    genderChoiceRenderer.addValue(Gender.MALE, gridBuilder.getString("gender.male"));
+    genderChoiceRenderer.addValue(Gender.DIVERSE, gridBuilder.getString("gender.diverse"));
+    genderChoiceRenderer.addValue(Gender.UNKNOWN, gridBuilder.getString("gender.unknown"));
+    final DropDownChoice<Gender> genderChoice = new DropDownChoice<Gender>(fs.getDropDownChoiceId(),
+        new PropertyModel<Gender>(user, "gender"), genderChoiceRenderer.getValues(),
+        genderChoiceRenderer);
+    genderChoice.setNullValid(false);
+    fs.add(genderChoice);
+  }
+
 
   public static void createOrganization(final GridBuilder gridBuilder, final PFUserDO user) {
     // Organization
@@ -291,9 +317,6 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
       }
     };
     fs.add(localeChoice);
-  }
-
-  public static void createLanguage(final GridBuilder gridBuilder, final PFUserDO user) {
   }
 
   public static void createDateFormat(final GridBuilder gridBuilder, final PFUserDO user) {
@@ -422,6 +445,8 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     }
     createFirstName(gridBuilder, data);
     createLastName(gridBuilder, data);
+    createNickName(gridBuilder, data);
+    createGender(gridBuilder, data);
     createOrganization(gridBuilder, data);
     createEMail(gridBuilder, data);
     createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.CALENDAR_REST);

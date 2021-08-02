@@ -34,10 +34,20 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.I18nExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
+import org.projectforge.business.fibu.KontoDO;
+import org.projectforge.business.fibu.KundeFormatter;
+import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.ldap.LdapUserDao;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightValue;
+import org.projectforge.common.BeanHelper;
+import org.projectforge.export.DOListExcelExporter;
+import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.IUserRightId;
@@ -49,6 +59,7 @@ import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -220,6 +231,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
   {
     dataTable = createDataTable(createColumns(this, true), "username", SortOrder.ASCENDING);
     form.add(dataTable);
+    addExcelExport(getString("user.users"), getString("user.users"));
   }
 
   @Override
@@ -237,5 +249,58 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
   protected UserDao getUserDao()
   {
     return userDao;
+  }
+
+  /**
+   * @see org.projectforge.web.wicket.AbstractListPage#createExcelExporter(java.lang.String)
+   */
+  @Override
+  protected DOListExcelExporter createExcelExporter(final String filenameIdentifier)
+  {
+    return new DOListExcelExporter(filenameIdentifier)
+    {
+      @Override
+      protected List<ExportColumn> onBeforeSettingColumns(final ContentProvider sheetProvider,
+                                                          final List<ExportColumn> columns)
+      {
+        final List<ExportColumn> sortedColumns = reorderColumns(columns, "username", "jiraUsername", "localUser", "restrictedUser",
+            "deactivated", "firstname", "nickName", "gender",
+            "lastname","description", "email", "lastLogin", "locale", "timeZone", "organization", "lastPasswordChange", "lastWlanPasswordChange");
+        return removeColumns(sortedColumns, "password", "rights");
+      }
+
+      @Override
+      public void addMapping(final PropertyMapping mapping, final Object entry, final Field field)
+      {
+        /*if ("kunde".equals(field.getName()) == true) {
+          final RechnungDO rechnung = (RechnungDO) entry;
+          mapping.add(field.getName(),
+              KundeFormatter.formatKundeAsString(rechnung.getKunde(), rechnung.getKundeText()));
+        } else if ("konto".equals(field.getName()) == true) {
+          Integer kontoNummer = null;
+          final KontoDO konto = kontoCache.getKonto((RechnungDO) entry);
+          if (konto != null) {
+            kontoNummer = konto.getNummer();
+          }
+          mapping.add(field.getName(), kontoNummer != null ? kontoNummer : "");
+        } else {
+          super.addMapping(mapping, entry, field);
+        }*/
+        if ("deactivated".equals(field.getName())) {
+          mapping.add(field.getName(), !((PFUserDO)entry).getDeactivated()); // Displayed as "activated", so negate value.
+        } else {
+          super.addMapping(mapping, entry, field);
+        }
+      }
+
+      @Override
+      protected void addMappings(final PropertyMapping mapping, final Object entry)
+      {
+        final PFUserDO user = (PFUserDO) entry;
+        //mapping.add("kontoBezeichnung", kontoBezeichnung != null ? kontoBezeichnung : "");
+        //mapping.add("grossSum", invoice.getGrossSum());
+        //mapping.add("netSum", invoice.getNetSum());
+      }
+    };
   }
 }
