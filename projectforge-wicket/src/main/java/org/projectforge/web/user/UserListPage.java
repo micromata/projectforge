@@ -246,11 +246,6 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
     return userDao;
   }
 
-  protected UserDao getUserDao()
-  {
-    return userDao;
-  }
-
   /**
    * @see org.projectforge.web.wicket.AbstractListPage#createExcelExporter(java.lang.String)
    */
@@ -272,34 +267,11 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
       @Override
       public void addMapping(final PropertyMapping mapping, final Object entry, final Field field)
       {
-        /*if ("kunde".equals(field.getName()) == true) {
-          final RechnungDO rechnung = (RechnungDO) entry;
-          mapping.add(field.getName(),
-              KundeFormatter.formatKundeAsString(rechnung.getKunde(), rechnung.getKundeText()));
-        } else if ("konto".equals(field.getName()) == true) {
-          Integer kontoNummer = null;
-          final KontoDO konto = kontoCache.getKonto((RechnungDO) entry);
-          if (konto != null) {
-            kontoNummer = konto.getNummer();
-          }
-          mapping.add(field.getName(), kontoNummer != null ? kontoNummer : "");
-        } else {
-          super.addMapping(mapping, entry, field);
-        }*/
         if ("deactivated".equals(field.getName())) {
           mapping.add(field.getName(), !((PFUserDO)entry).getDeactivated()); // Displayed as "activated", so negate value.
         } else {
           super.addMapping(mapping, entry, field);
         }
-      }
-
-      @Override
-      protected void addMappings(final PropertyMapping mapping, final Object entry)
-      {
-        final PFUserDO user = (PFUserDO) entry;
-        //mapping.add("kontoBezeichnung", kontoBezeichnung != null ? kontoBezeichnung : "");
-        //mapping.add("grossSum", invoice.getGrossSum());
-        //mapping.add("netSum", invoice.getNetSum());
       }
     };
   }
