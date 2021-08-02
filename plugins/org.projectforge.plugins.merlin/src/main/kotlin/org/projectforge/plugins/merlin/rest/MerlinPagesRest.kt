@@ -140,7 +140,7 @@ class MerlinPagesRest :
           markdown = true
         )
       )
-    if (SystemStatus.isDevelopmentMode()) {
+    /*if (SystemStatus.isDevelopmentMode()) {
       layout.add(
         UIAlert(
           """'# TODO
@@ -149,7 +149,7 @@ class MerlinPagesRest :
           markdown = true
         )
       )
-    }
+    }*/
     layout.add(MerlinPlugin.createUserLogSubscriptionMenuItem())
     val examplesMenu = MenuItem("examples", i18nKey = "plugins.merlin.menu.examples")
     examplesMenu.add(

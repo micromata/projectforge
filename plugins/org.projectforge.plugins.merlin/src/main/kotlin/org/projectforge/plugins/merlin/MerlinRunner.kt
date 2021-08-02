@@ -24,6 +24,7 @@
 package org.projectforge.plugins.merlin
 
 import de.micromata.merlin.CoreI18n
+import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import de.micromata.merlin.excel.ExcelWriterContext
 import de.micromata.merlin.utils.ReplaceUtils.replace
@@ -186,7 +187,7 @@ open class MerlinRunner {
    * @param id Id of the MerlinTemplateDO
    * @return Pair of filename and byte array representing the Excel file.
    */
-  fun createSerialExcelTemplate(id: Int): Pair<String, ByteArray> {
+  fun createSerialExcelTemplate(id: Int, fill: (sheet: ExcelSheet) -> Unit): Pair<String, ByteArray> {
     val serialData = SerialData()
     val analysis = merlinHandler.analyze(id)
     serialData.templateDefinition = analysis.statistics.templateDefinition
@@ -219,6 +220,7 @@ open class MerlinRunner {
               translate("plugins.merlin.serial.variable.$i18nKey.info")
             )
           }
+          fill(variablesSheet)
           variablesSheet.autosize()
         }
       }
@@ -527,8 +529,8 @@ open class MerlinRunner {
       "#PersonalBoxAsPdf_Description" // This string is also used in MerlinI18nResources.properties.
 
     fun initTemplateRunContext(templateRunContext: TemplateRunContext) {
-      val contextUser = ThreadLocalUserContext.getUser()
-      templateRunContext.setLocale(DateFormats.getFormatString(DateFormatType.DATE), contextUser.locale)
+      val locale = ThreadLocalUserContext.getLocale()
+      templateRunContext.setLocale(DateFormats.getFormatString(DateFormatType.DATE), locale)
     }
   }
 }
