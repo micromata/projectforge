@@ -131,10 +131,10 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(length = 255)
     open var firstname: String? = null
 
-    @PropertyInfo(i18nKey = "nickName")
+    @PropertyInfo(i18nKey = "nickname")
     @Field
     @get:Column(name="nick_name", length = 255)
-    open var nickName: String? = null
+    open var nickname: String? = null
 
     @PropertyInfo(i18nKey = "name")
     @Field

@@ -259,7 +259,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
                                                           final List<ExportColumn> columns)
       {
         final List<ExportColumn> sortedColumns = reorderColumns(columns, "username", "jiraUsername", "localUser", "restrictedUser",
-            "deactivated", "firstname", "nickName", "gender",
+            "deactivated", "firstname", "nickname", "gender",
             "lastname","description", "email", "lastLogin", "locale", "timeZone", "organization", "lastPasswordChange", "lastWlanPasswordChange");
         return removeColumns(sortedColumns, "password", "rights");
       }
