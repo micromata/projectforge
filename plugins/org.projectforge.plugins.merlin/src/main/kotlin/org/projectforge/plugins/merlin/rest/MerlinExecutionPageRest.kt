@@ -360,6 +360,9 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     registerColumn(sheet, "organization", "organization")
     sheet.reset()
     userService.allActiveUsers.forEach { user ->
+      if (user.nickname.isNullOrBlank()) {
+        user.nickname = user.firstname
+      }
       sheet.createRow().autoFillFromObject(user)
     }
   }
@@ -386,7 +389,12 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     employeeService.findAllActive(false).forEach { employee ->
       val row = sheet.createRow()
       sheet.reset()
-      row.autoFillFromObject(employee.user, "staffNumber", "street", "zipCode", "city", "country")
+      employee.user?.let { user ->
+        if (user.nickname.isNullOrBlank()) {
+          user.nickname = user.firstname
+        }
+        row.autoFillFromObject(employee.user, "staffNumber", "street", "zipCode", "city", "country")
+      }
       if (hrAccess) {
         row.getCell("staffNumber")?.setCellValue(employee.staffNumber)
         row.getCell("street")?.setCellValue(employee.street)
