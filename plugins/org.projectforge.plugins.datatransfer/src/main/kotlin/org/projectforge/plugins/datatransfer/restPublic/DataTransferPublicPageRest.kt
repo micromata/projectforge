@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.datatransfer.restPublic
 
+import org.projectforge.common.NumberOfBytes
 import org.projectforge.framework.i18n.translate
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -140,21 +141,25 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     )
     val layout = UILayout("plugins.datatransfer.title.heading")
       .add(fieldSet)
-    fieldSet.add(
-      UIButton(
-        "downloadAll",
-        translate("plugins.datatransfer.button.downloadAll"),
-        UIColor.LINK,
-        tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
-        responseAction = ResponseAction(
-          RestResolver.getPublicRestUrl(
-            this.javaClass,
-            "downloadAll/datatransfer/${dataTransfer.id}"
-          ), targetType = TargetType.DOWNLOAD
-        ),
-        default = true
+    if (dataTransfer.attachmentsSize ?: 0 in 1..NumberOfBytes.GIGA_BYTES) {
+      // Download all not for attachments with size of more than 1 GB in total.
+      fieldSet.add(
+        UIButton(
+          "downloadAll",
+          translate("plugins.datatransfer.button.downloadAll"),
+          UIColor.LINK,
+          tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
+          responseAction = ResponseAction(
+            RestResolver.getPublicRestUrl(
+              this.javaClass,
+              "downloadAll/datatransfer/${dataTransfer.id}"
+            ), targetType = TargetType.DOWNLOAD
+          ),
+          default = true
+        )
       )
-    ).add(
+    }
+    fieldSet.add(
       UIButton(
         "logout",
         translate("menu.logout"),
