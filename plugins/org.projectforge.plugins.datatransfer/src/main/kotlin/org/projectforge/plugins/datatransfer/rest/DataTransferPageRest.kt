@@ -275,7 +275,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       // observe state of logged in user wasn't changed: do nothing.
       return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
-    val dbObj = result.first
+    val dbObj = dataTransferAreaDao.internalGetById(id) // Get entry including external access settings (see DataTransferDao#hasAccess).
     val newObservers = dbDto.observers?.toMutableList() ?: mutableListOf()
     if (postData.data.userWantsToObserve == true) {
       val user = User()

@@ -237,6 +237,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     }
     if (operationType == OperationType.SELECT) {
       em.detach(obj)
+      // Delete them due to security reasons:
       obj.externalAccessToken = null
       obj.externalPassword = null
       obj.externalAccessLogs = null
