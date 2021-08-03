@@ -56,6 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.InputStream
 import java.math.RoundingMode
 import java.util.zip.ZipEntry
@@ -239,7 +240,7 @@ open class MerlinRunner {
   /**
    * @return Pair of filename and pdf byte array.
    */
-  fun convertToPdf(wordBytes: ByteArray, filename: String): Pair<String, ByteArray> {
+  fun convertToPdf(wordBytes: ByteArray, filename: String): PDFDocument {
     ByteArrayInputStream(wordBytes).use { bais ->
       WordDocument(bais, filename).use { word ->
         val options = PdfOptions.create()
@@ -248,7 +249,7 @@ open class MerlinRunner {
           PdfConverter.getInstance().convert(word.document, baos, options)
           val pdfFilename = "${FilenameUtils.getBaseName(filename)}.pdf"
           log.info { "Converted to pdf: $pdfFilename" }
-          return Pair(pdfFilename, baos.toByteArray())
+          return PDFDocument(pdfFilename, baos.toByteArray())
         }
       }
     }
@@ -267,7 +268,7 @@ open class MerlinRunner {
     lastLogNumber: Long?,
     pdfExport: Boolean,
   ): ByteArray {
-    processPersonalBoxOfReceivers(zipByteArray, serialData, dto)
+    val convertedPdfDocuments = processPersonalBoxOfReceivers(zipByteArray, serialData, dto)
     ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
       ByteArrayOutputStream().use { baos ->
         ZipOutputStream(baos).use { zipOut ->
@@ -278,13 +279,18 @@ open class MerlinRunner {
             if (!zipEntry.isDirectory) {
               val ba = zipInputStream.readAllBytes()
               zipOut.write(ba)
-              if (pdfExport && zipEntry.name.endsWith(".docx")) {
-                val result = convertToPdf(ba, zipEntry.name)
-                val pdfFilename = result.first
-                val pdfByteArray = result.second
-                zipOut.closeEntry()
-                zipOut.putNextEntry(ZipEntry(pdfFilename))
-                zipOut.write(pdfByteArray)
+              if (zipEntry.name.endsWith(".docx")) {
+                // Test if filename was already generated to put in user's personal data transfer box:
+                var pdfFile = convertedPdfDocuments.find { FilenameUtils.getBaseName(it.filename) == FilenameUtils.getBaseName(zipEntry.name)  }
+                if (pdfFile == null && pdfExport) {
+                  // pdfExport is demanded, so generate it:
+                  pdfFile = convertToPdf(ba, zipEntry.name)
+                }
+                if (pdfFile != null) {
+                  zipOut.closeEntry()
+                  zipOut.putNextEntry(ZipEntry(pdfFile.filename))
+                  zipOut.write(pdfFile.content)
+                }
               }
             }
             zipOut.closeEntry()
@@ -327,7 +333,8 @@ open class MerlinRunner {
     }
   }
 
-  private fun processPersonalBoxOfReceivers(zipByteArray: ByteArray, serialData: SerialData, dto: MerlinTemplate) {
+  private fun processPersonalBoxOfReceivers(zipByteArray: ByteArray, serialData: SerialData, dto: MerlinTemplate): List<PDFDocument> {
+    val pdfDocuments = mutableListOf<PDFDocument>()
     if (serialData.entries.none {
         val personalBoxVariable = it.get(PERSONAL_BOX_VARIABLE)
         val personalBoxUsed =
@@ -340,11 +347,11 @@ open class MerlinRunner {
         personalBoxUsed || personalBoxAsPdfUsed
       }) {
       // No #PersonalBox value or #PersonalBoxAsPdf given. Nothing to do.
-      return
+      return pdfDocuments
     }
     if (!merlinHandler.dataTransferPluginAvailable()) {
       log.error { "No DataTransfer activated, can't use personal box. Please contact your administrator to activate the plugin 'DataTransfer'." }
-      return
+      return pdfDocuments
     }
     log.info { "Using $PERSONAL_BOX_VARIABLE/$PERSONAL_BOX_VARIABLE_AS_PDF for sending documents via DataTransfer." }
     // First, check all usernames:
@@ -380,7 +387,7 @@ open class MerlinRunner {
     }
     if (!validUsernames) {
       log.error { "Errors for personal box users occured. No document will be send to any personal user box. Aborting." }
-      return
+      return pdfDocuments
     }
     var counter = 0
     ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
@@ -396,7 +403,7 @@ open class MerlinRunner {
     }
     if (counter != docReceivers.size || pdfReceivers.size != counter) {
       log.warn { "Oups, number of generated Word documents doesn't match number of personal box receivers. Aborting: Don't send any document to any personal user's box." }
-      return
+      return pdfDocuments
     }
     counter = 0
     ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
@@ -444,26 +451,25 @@ open class MerlinRunner {
               }
             }
             if (pdfReceiver.user != null) {
-              val pdfResult = convertToPdf(wordBytes, zipEntry.name)
-              val pdfFilename = pdfResult.first
-              val pdfBytes = pdfResult.second
+              val pdfDocument = convertToPdf(wordBytes, zipEntry.name)
+              pdfDocuments.add(pdfDocument)
               try {
                 attachmentsService.addAttachment(
                   dataTransferAreaPagesRest.jcrPath!!,
                   fileInfo = FileInfo(
-                    pdfFilename,
-                    fileSize = pdfBytes.size.toLong(),
+                    pdfDocument.filename,
+                    fileSize = pdfDocument.content.size.toLong(),
                     description = pdfReceiver.attachmentDescription
                   ),
-                  content = pdfBytes,
+                  content = pdfDocument.content,
                   baseDao = dataTransferAreaDao,
                   obj = personalBox,
                   accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
                 )
-                log.info("Document '$pdfFilename' of size ${FormatterUtils.formatBytes(pdfBytes.size)} put in the personal box (DataTransfer) of '${receiver.userDisplayName}' with description '${pdfReceiver.attachmentDescription}'.")
+                log.info("Document '${pdfDocument.filename}' of size ${FormatterUtils.formatBytes(pdfDocument.content.size)} put in the personal box (DataTransfer) of '${receiver.userDisplayName}' with description '${pdfReceiver.attachmentDescription}'.")
               } catch (ex: Exception) {
                 log.error(
-                  "Can't put document '$pdfFilename' of size ${FormatterUtils.formatBytes(pdfBytes.size)} into user '${receiver.userFullname}' personal box: ${ex.message}",
+                  "Can't put document '${pdfDocument.filename}' of size ${FormatterUtils.formatBytes(pdfDocument.content.size)} into user '${receiver.userFullname}' personal box: ${ex.message}",
                   ex
                 )
               }
@@ -476,6 +482,7 @@ open class MerlinRunner {
       }
       zipInputStream.closeEntry()
     }
+    return pdfDocuments
   }
 
   private fun getUser(userObject: Any?): Pair<Boolean, PFUserDO?> {
@@ -557,4 +564,6 @@ open class MerlinRunner {
       templateRunContext.setLocale(DateFormats.getFormatString(DateFormatType.DATE), locale)
     }
   }
+
+  class PDFDocument(val filename: String, val content: ByteArray)
 }

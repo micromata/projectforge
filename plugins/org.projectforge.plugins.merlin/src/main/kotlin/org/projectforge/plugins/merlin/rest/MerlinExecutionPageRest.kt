@@ -105,8 +105,8 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     if (executionData.pdfFormat) {
       try {
         val pdfResult = merlinRunner.convertToPdf(wordBytes, filename)
-        filename = pdfResult.first
-        download = pdfResult.second
+        filename = pdfResult.filename
+        download = pdfResult.content
       } catch (ex: Throwable) {
         // Stackoverflow may occur.
         log.error("Error while converting to pdf (falling back to docx): ${ex.message}", ex)
