@@ -386,7 +386,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
       registerColumn(sheet, "country", "fibu.employee.country")
     }
     sheet.reset()
-    employeeService.findAllActive(false).forEach { employee ->
+    employeeService.findAllActive(false).filter { it.user?.hasSystemAccess() == true }.forEach { employee ->
       val row = sheet.createRow()
       sheet.reset()
       employee.user?.let { user ->
