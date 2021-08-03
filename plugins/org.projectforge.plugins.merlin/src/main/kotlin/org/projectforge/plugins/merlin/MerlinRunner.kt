@@ -106,6 +106,7 @@ open class MerlinRunner {
         val result = runner.run(variables)
         val filename = runner.createFilename(dto.fileNamePattern, variables)
         val byteArray = result.asByteArrayOutputStream.toByteArray()
+        log.info { "Document created: $filename" }
         return Pair(filename, byteArray)
       }
     }
@@ -206,19 +207,21 @@ open class MerlinRunner {
           log.error { "Oups, can't find head row of sheet '${variablesSheet.sheetName}'. Can't add #PersonalBox columns." }
         } else {
           val writerContext = ExcelWriterContext(CoreI18n(), workbook)
-          listOf(
-            PERSONAL_BOX_VARIABLE,
-            PERSONAL_BOX_VARIABLE_DESC,
-            PERSONAL_BOX_VARIABLE_AS_PDF,
-            PERSONAL_BOX_VARIABLE_AS_PDF_DESC
-          ).forEach {
-            val cell = headRow.createCell()
-            val i18nKey = it.substring(1) // Ignore trailing '#'
-            cell.setCellValue(it)
-            writerContext.cellHighlighter.setCellComment(
-              cell,
-              translate("plugins.merlin.serial.variable.$i18nKey.info")
-            )
+          if (analysis.dto.dataTransferUsage == true) {
+            listOf(
+              PERSONAL_BOX_VARIABLE,
+              PERSONAL_BOX_VARIABLE_DESC,
+              PERSONAL_BOX_VARIABLE_AS_PDF,
+              PERSONAL_BOX_VARIABLE_AS_PDF_DESC
+            ).forEach {
+              val cell = headRow.createCell()
+              val i18nKey = it.substring(1) // Ignore trailing '#'
+              cell.setCellValue(it)
+              writerContext.cellHighlighter.setCellComment(
+                cell,
+                translate("plugins.merlin.serial.variable.$i18nKey.info")
+              )
+            }
           }
           fill(variablesSheet)
           variablesSheet.autosize()
@@ -243,7 +246,9 @@ open class MerlinRunner {
         options.fontProvider(MerlinFontProvider(merlinFontService))
         ByteArrayOutputStream().use { baos ->
           PdfConverter.getInstance().convert(word.document, baos, options)
-          return Pair("${FilenameUtils.getBaseName(filename)}.pdf", baos.toByteArray())
+          val pdfFilename = "${FilenameUtils.getBaseName(filename)}.pdf"
+          log.info { "Converted to pdf: $pdfFilename" }
+          return Pair(pdfFilename, baos.toByteArray())
         }
       }
     }
@@ -280,7 +285,6 @@ open class MerlinRunner {
                 zipOut.closeEntry()
                 zipOut.putNextEntry(ZipEntry(pdfFilename))
                 zipOut.write(pdfByteArray)
-                log.info { "Converted to pdf: $pdfFilename" }
               }
             }
             zipOut.closeEntry()
@@ -301,7 +305,8 @@ open class MerlinRunner {
               headRow.getCell(index).setCellValue(it.columnHeadname).setCellStyle(boldStyle)
             }
             val logs =
-              MerlinPlugin.ensureUserLogSubscription().query(LogFilter(lastReceivedLogOrderNumber = lastLogNumber))
+              MerlinPlugin.ensureUserLogSubscription()
+                .query(LogFilter(lastReceivedLogOrderNumber = lastLogNumber, maxSize = 10000))
                 .sortedBy { it.id } // In ascending order.
             logs.forEach { logEntry ->
               val row = sheet.createRow()
@@ -346,7 +351,7 @@ open class MerlinRunner {
     val docReceivers = mutableListOf<PersonalBoxReceiver>()
     val pdfReceivers = mutableListOf<PersonalBoxReceiver>()
     var validUsernames = true
-    serialData.entries.forEach { variables ->
+    serialData.entries.forEachIndexed { index, variables ->
       val personalBoxUserResult = getUser(variables.get(PERSONAL_BOX_VARIABLE))
       val docReceiver = personalBoxUserResult.second
       val personalBoxAsPdfUserResult = getUser(variables.get(PERSONAL_BOX_VARIABLE_AS_PDF))
@@ -365,8 +370,8 @@ open class MerlinRunner {
         }
       }
       if (!error) {
-        docReceivers.add(PersonalBoxReceiver(docReceiver, variables, PERSONAL_BOX_VARIABLE_DESC))
-        pdfReceivers.add(PersonalBoxReceiver(pdfReceiver, variables, PERSONAL_BOX_VARIABLE_AS_PDF_DESC))
+        docReceivers.add(PersonalBoxReceiver(docReceiver, variables, PERSONAL_BOX_VARIABLE_DESC, index))
+        pdfReceivers.add(PersonalBoxReceiver(pdfReceiver, variables, PERSONAL_BOX_VARIABLE_AS_PDF_DESC, index))
         if (docReceiver != null && pdfReceiver != null && docReceiver != pdfReceiver) {
           validUsernames = false
           log.error { "Can't send Word® file and PDF file to different users: '${docReceiver.getFullname()}' != '${pdfReceiver.getFullname()}'!" }
@@ -384,9 +389,21 @@ open class MerlinRunner {
         if (zipEntry.isDirectory) {
           continue
         }
-        if (docReceivers.size <= counter || pdfReceivers.size <= counter) {
-          log.warn { "Oups, found more generated files than serial variables! Stopping #PersonalBox[AsPdf] processing" }
-          break
+        zipEntry = zipInputStream.nextEntry
+        ++counter
+      }
+      zipInputStream.closeEntry()
+    }
+    if (counter != docReceivers.size || pdfReceivers.size != counter) {
+      log.warn { "Oups, number of generated Word documents doesn't match number of personal box receivers. Aborting: Don't send any document to any personal user's box." }
+      return
+    }
+    counter = 0
+    ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
+      var zipEntry = zipInputStream.nextEntry
+      while (zipEntry != null) {
+        if (zipEntry.isDirectory) {
+          continue
         }
         val docReceiver = docReceivers[counter]
         val pdfReceiver = pdfReceivers[counter++]
@@ -515,7 +532,10 @@ open class MerlinRunner {
     return result
   }
 
-  class PersonalBoxReceiver(val user: PFUserDO?, variables: Variables, varname: String) {
+  /**
+   * @param counter Needed for ensuring each receiver gets only his documents.
+   */
+  class PersonalBoxReceiver(val user: PFUserDO?, variables: Variables, varname: String, val counter: Int) {
     val userId = user?.id ?: -1
     val userFullname = user?.getFullname() ?: "unknown"
     val userDisplayName = user?.displayName ?: "unknown"

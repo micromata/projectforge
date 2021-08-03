@@ -25,20 +25,17 @@ package org.projectforge.common.logging
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.spi.ILoggingEvent
-import org.apache.commons.lang3.StringUtils
 import org.projectforge.common.i18n.I18nEnum
 
 enum class LogLevel(val key: String): I18nEnum {
   ERROR("error"), WARN("warn"), INFO("info"), DEBUG("debug"), TRACE("trace");
 
   /**
-   * @param treshold
+   * @param threshold
    * @return True, if this log level is equals or higher than given treshold. ERROR is the highest and TRACE the lowest.
    */
-  fun matches(treshold: LogLevel?): Boolean {
-    return if (treshold == null) {
-      true
-    } else ordinal <= treshold.ordinal
+  fun matches(threshold: LogLevel?): Boolean {
+    return threshold == null || ordinal <= threshold.ordinal
   }
 
   /**
