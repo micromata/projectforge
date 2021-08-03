@@ -231,7 +231,9 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
   {
     dataTable = createDataTable(createColumns(this, true), "username", SortOrder.ASCENDING);
     form.add(dataTable);
-    addExcelExport(getString("user.users"), getString("user.users"));
+    if (accessChecker.isLoggedInUserMemberOfAdminGroup()) {
+      addExcelExport(getString("user.users"), getString("user.users"));
+    }
   }
 
   @Override
@@ -261,7 +263,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
         final List<ExportColumn> sortedColumns = reorderColumns(columns, "username", "jiraUsername", "localUser", "restrictedUser",
             "deactivated", "firstname", "nickname", "gender",
             "lastname","description", "email", "lastLogin", "locale", "timeZone", "organization", "lastPasswordChange", "lastWlanPasswordChange");
-        return removeColumns(sortedColumns, "password", "rights");
+        return removeColumns(sortedColumns, "password", "rights", "sshPublicKey");
       }
 
       @Override
