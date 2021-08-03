@@ -103,7 +103,8 @@ class MerlinPlugin :
         LogSubscription(
           title,
           user,
-          LogEventLoggerNameMatcher("de.micromata.merlin", "org.projectforge.plugins.merlin")
+          LogEventLoggerNameMatcher("de.micromata.merlin", "org.projectforge.plugins.merlin"),
+          maxSize = 10000,
         )
       })
     }
@@ -115,7 +116,7 @@ class MerlinPlugin :
       return MenuItem(
         "logViewer",
         i18nKey = "plugins.merlin.viewLogs",
-        url = PagesResolver.getDynamicPageUrl(LogViewerPageRest::class.java, id = ensureUserLogSubscription()!!.id),
+        url = PagesResolver.getDynamicPageUrl(LogViewerPageRest::class.java, id = ensureUserLogSubscription().id),
         type = MenuItemTargetType.REDIRECT,
       )
     }
