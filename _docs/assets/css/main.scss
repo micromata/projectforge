@@ -1,0 +1,118 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+
+// System fonts
+@import "system-font-css/_system-font";
+
+// Custom variables and variable overwrites.
+@import "theme/variables";
+
+// Import default variables and available mixins.
+@import "uikit/variables-theme";
+@import "uikit/mixins-theme";
+
+// Custom mixin overwrites.
+@import "theme/mixins";
+
+// Import UIkit.
+@import "theme/uikit";
+
+// Other vendor styles
+// @import "syntax-highlighting/cld";
+@import "syntax-highlighting/bw";
+
+// Own ProjectForge Styles
+// Overwrite Docs Theme Styles
+
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
+
+table {
+  width: auto;
+  
+  th {
+    background: #f2f2f2;
+  }
+  
+  th:first-child, td:first-child {
+    padding-left: 10px;
+  }
+  
+  th:last-child, td:last-child {
+    padding-right: 10px;
+  }
+}
+
+pre {
+  color: #b90505;
+  font-size: .775rem;
+  
+  &.highlight {
+    padding: 15px;
+    background: #f4f4f4;
+  }
+}
+
+.uk-navbar-item.uk-logo img {
+  width: 90px;
+  margin-right: 20px;
+}
+
+.uk-card.uk-card-default p {
+  font-size: 16px;
+}
+
+.uk-navbar-dropdown {
+  padding: 10px 20px;
+  top: 60px !important;
+}
+
+.uk-navbar-nav > li > a {
+  font-weight: 700;
+}
+
+.uk-container-xsmall {
+  h4 {
+    margin-bottom: 10px;
+  }
+  
+  * + p, * + ul, * + ol, * + dl, * + pre, * + address, * + fieldset, * + figure {
+    margin-top: 10px;
+  }
+}
+
+.uk-icon-link {
+  color: #686a75;
+}
+
+p.hero-image img {
+  height: 400px;
+  max-height: 400px;
+}
+
+p a,
+li a,
+table td a {
+  color: #BF4040;
+}
+
+// FAQ Layout
+
+#pf-faq .uk-section {
+  padding-top: 0;
+  padding-bottom: 20px;
+  
+  .uk-accordion {
+    
+    li a.uk-accordion-title {
+      border-bottom: 1px solid #ebecee !important;
+      font-weight: 600;
+      padding: 10px;
+      font-size: 16px;
+    }
+    
+    > :nth-child(n+2) {
+      margin-top: 10px;
+    }
+  }
+}
