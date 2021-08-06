@@ -944,12 +944,11 @@ Please import code style: `misc/IntelliJ/CodeStyle.xml`
 
 ## Working with different data bases for testing
 
-```docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link
-projectforge-postgres:postgres postgres:11.2 psql -h postgres -U
-projectforge
+`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge`
+
 ```
-```
-create user pf2 password *secret*; CREATE
-DATABASE pf2; GRANT ALL PRIVILEGES ON DATABASE pf2 TO pf2;
+create user pf2 password *secret*;
+CREATE DATABASE pf2;
+GRANT ALL PRIVILEGES ON DATABASE pf2 TO pf2;
 ```
 
