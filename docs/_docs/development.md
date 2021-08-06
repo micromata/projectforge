@@ -176,7 +176,9 @@ As example some parts of `AddressDO.kt` are shown and described below:
 </tbody>
 </table>
 
-**ContactStatus.java**
+ContactStatus.java
+
+```java
 
     public enum ContactStatus implements I18nEnum
     {
@@ -188,6 +190,7 @@ As example some parts of `AddressDO.kt` are shown and described below:
       }
       ...
     }
+```
 
 The enumerations of type `I18nEnum` are also designed for auto
 translation purposes. The field `contactStatus` will be presented as a
@@ -335,7 +338,9 @@ Available REST calls:
 
 ### Example of .json format
 
-**rs/address/initialList**
+rs/address/initialList
+
+```json
 
     {
       "ui": {
@@ -452,7 +457,7 @@ Available REST calls:
           "name": "People of Kassel"
         },
         ...
-
+```
 Explanation
 
 <table>
@@ -723,7 +728,9 @@ An example filter for querying a result set:
 
 ![](images/Books-magicfilter.png)
 
-**MagicFilter.json**
+MagicFilter.json
+
+```json
 
        "entries": [
           {
@@ -758,6 +765,7 @@ An example filter for querying a result set:
             ]
           }
         ]
+```
 
 Explanation for filter settings:
 
