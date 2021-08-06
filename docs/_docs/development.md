@@ -222,7 +222,6 @@ dynamic auto layout component for standard components, such as:
 For developing ProjectForge’s frontend, please refer:
 <https://github.com/micromata/projectforge/tree/develop/projectforge-webapp>
 
-|                   |                                                              |
 | ----------------- | ------------------------------------------------------------ |
 | Input             | Html input fields (text, date picker with text input etc.)   |
 | Select boxes      | For selecting values for e. g. enums (auto completion and asynchronous are calls supported.) |
