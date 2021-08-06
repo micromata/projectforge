@@ -126,7 +126,9 @@ base. As default, all modification of entity attributes are available in
 a history with the information about the modification (user, timestamp,
 old and new value).
 
-**AddressDO.kt**
+AddressDO.kt
+
+```kt
 
     open class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
 
@@ -145,6 +147,7 @@ old and new value).
         open var businessPhone: String? = null
         ...
     }
+ ```
 
 BaseDO classes must be declared as open as well as all properties.
 Otherwise JPA/Hibernate isn’t able to proxy these objects and lazy
@@ -933,8 +936,12 @@ Please import code style: `misc/IntelliJ/CodeStyle.xml`
 
 ## Working with different data bases for testing
 
-\`\`\` docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link
+```docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link
 projectforge-postgres:postgres postgres:11.2 psql -h postgres -U
-projectforge \`\`\` \`\`\` create user pf2 password *secret*; CREATE
-DATABASE pf2; GRANT ALL PRIVILEGES ON DATABASE pf2 TO pf2; \`\`\`
+projectforge
+```
+```
+create user pf2 password *secret*; CREATE
+DATABASE pf2; GRANT ALL PRIVILEGES ON DATABASE pf2 TO pf2;
+```
 
