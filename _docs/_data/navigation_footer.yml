@@ -1,0 +1,19 @@
+# Footer navigation links
+
+- title: Home
+  url: /
+  
+- title: Terms Of Use
+  url: /misc/terms-of-use
+  
+- title: Imprint
+  url: /misc/imprint
+
+- title: Privacy Policy
+  url: /misc/privacy-policy
+
+# - title: Blog
+  # url: /blog/
+
+# - title: Contact
+  # url: /contact/
