@@ -222,15 +222,16 @@ dynamic auto layout component for standard components, such as:
 For developing ProjectForge’s frontend, please refer:
 <https://github.com/micromata/projectforge/tree/develop/projectforge-webapp>
 
-| ----------------- | ------------------------------------------------ |
-| Input             | Html input fields (text, date picker with text input etc.) |
+|                   |                                                              |
+| ----------------- | ------------------------------------------------------------ |
+| Input             | Html input fields (text, date picker with text input etc.)   |
 | Select boxes      | For selecting values for e. g. enums (auto completion and asynchronous are calls supported.) |
 | Multi select      | Select field for selecting multi values (auto completion, asynchronous). This may be used for selecting values as well as of selecting entities assigned to current object, e. g. users may assigned to groups or calendars are selectable for displaying. |
 | Fieldset          | Fieldsets with titles and length settings (Bootstrap grid system is supported) |
-| Columns           | Columns with length settings (Bootstrap grid system is supported)| 
-| Tables            | For displaying result sets etc.                   |
+| Columns           | Columns with length settings (Bootstrap grid system is supported) |
+| Tables            | For displaying result sets etc.                              |
 | Customized fields | You may register customized UI components which will be used for displaying and modifiing values. Refer the image upload for addresses as an example. |
-| …                 | … |
+| …                 | …                                                            |
 
 ## Responsive
 
