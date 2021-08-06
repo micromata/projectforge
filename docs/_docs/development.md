@@ -153,26 +153,22 @@ loading isn’t supported.
 As example some parts of `AddressDO.kt` are shown and described below:
 
 <table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;"><p><code>@PropertyInfo</code></p></td>
-<td style="text-align: left;"><p>The given <code>i18nKey</code> is used for translating the field label and will be served for the frontend(s). The optional given <code>additionalI18nKey</code> is used for having an additional translated label, in the example there are different phone numbers, categorized as business or private.</p></td>
+<tr>
+<td><code>@PropertyInfo</code></td>
+<td>The given <code>i18nKey</code> is used for translating the field label and will be served for the frontend(s). The optional given <code>additionalI18nKey</code> is used for having an additional translated label, in the example there are different phone numbers, categorized as business or private.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>@Field</code></p></td>
-<td style="text-align: left;"><p>This database field will be indexed and available for a full text search as well as for specifying search values for this field by the user.</p></td>
+<tr>
+<td><code>@Field</code></td>
+<td>This database field will be indexed and available for a full text search as well as for specifying search values for this field by the user.</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>@get:Column(length=255)</code></p></td>
-<td style="text-align: left;"><p>JPA annotations. The JPA annotations are available as Meta information from all parts and will be served for the frontends, e. g. for defining the html field <code>max-length</code> of input fields.</p></td>
+<tr>
+<td><code>@get:Column(length=255)</code></td>
+<td>JPA annotations. The JPA annotations are available as Meta information from all parts and will be served for the frontends, e. g. for defining the html field <code>max-length</code> of input fields.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p>Property type</p></td>
-<td style="text-align: left;"><p>The property type is also available as Meta information also for the clients. The input fields of the frontend may be autodetected (string, date picker, user selectors, drop down choices for enums etc.)</p></td>
+<tr>
+<td>Property type</td>
+<td>The property type is also available as Meta information also for the clients. The input fields of the frontend may be autodetected (string, date picker, user selectors, drop down choices for enums etc.)</td>
 </tr>
 </tbody>
 </table>
@@ -221,42 +217,38 @@ For developing ProjectForge’s frontend, please refer:
 <https://github.com/micromata/projectforge/tree/develop/projectforge-webapp>
 
 <table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;"><p>Input</p></td>
-<td style="text-align: left;"><p>Html input fields (text, date picker with text input etc.)</p></td>
+<tr>
+<td>Input</td>
+<td>Html input fields (text, date picker with text input etc.)</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p>Select boxes</p></td>
-<td style="text-align: left;"><p>For selecting values for e. g. enums (auto completion and asynchronous are calls supported.)</p></td>
+<tr>
+<td>Select boxes</td>
+<td>For selecting values for e. g. enums (auto completion and asynchronous are calls supported.)</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p>Multi select</p></td>
-<td style="text-align: left;"><p>Select field for selecting multi values (auto completion, asynchronous). This may be used for selecting values as well as of selecting entities assigned to current object, e. g. users may assigned to groups or calendars are selectable for displaying.</p></td>
+<tr>
+<td>Multi select</td>
+<td>Select field for selecting multi values (auto completion, asynchronous). This may be used for selecting values as well as of selecting entities assigned to current object, e. g. users may assigned to groups or calendars are selectable for displaying.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p>Fieldset</p></td>
-<td style="text-align: left;"><p>Fieldsets with titles and length settings (Bootstrap grid system is supported)</p></td>
+<tr>
+<td>Fieldset</td>
+<td>Fieldsets with titles and length settings (Bootstrap grid system is supported)</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p>Columns</p></td>
-<td style="text-align: left;"><p>Columns with length settings (Bootstrap grid system is supported)</p></td>
+<tr>
+<td>Columns</td>
+<td>Columns with length settings (Bootstrap grid system is supported)</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p>Tables</p></td>
-<td style="text-align: left;"><p>For displaying result sets etc.</p></td>
+<tr>
+<td>Tables</td>
+<td>For displaying result sets etc.</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p>Customized fields</p></td>
-<td style="text-align: left;"><p>You may register customized UI components which will be used for displaying and modifiing values. Refer the image upload for addresses as an example.</p></td>
+<tr>
+<td>Customized fields</td>
+<td>You may register customized UI components which will be used for displaying and modifiing values. Refer the image upload for addresses as an example.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p>…</p></td>
-<td style="text-align: left;"><p>…</p></td>
+<tr>
+<td>…</td>
+<td>…</td>
 </tr>
 </tbody>
 </table>
@@ -270,73 +262,70 @@ Bootstrap is used and responsive layout control is fully supported.
 Available REST calls:
 
 <table>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
+<thead>
+<tr>
+<th>Rest call</th>
+<th>Description</th>
+<th>Return values</th>
+</tr>
+</thead>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;"><p>Rest call</p></td>
-<td style="text-align: left;"><p>Description</p></td>
-<td style="text-align: left;"><p>Return values</p></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>rs/address/initialList</code></p></td>
-<td style="text-align: left;"><p>Initial call for displaying a list including layout, recent filter settings, result data and favorites.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>UI layout (available filter options, columns of the result data, page menu items, …)</p></li>
-<li><p>Recent used filter settings by the user.</p></li>
-<li><p>Available personal favorites.</p></li>
-<li><p>Result set for recent filter.</p></li>
+<tr>
+<td><code>rs/address/initialList</code></td>
+<td>Initial call for displaying a list including layout, recent filter settings, result data and favorites.</td>
+<td><ul>
+<li>UI layout (available filter options, columns of the result data, page menu items, …)</li>
+<li>Recent used filter settings by the user.</li>
+<li>Available personal favorites.</li>
+<li>Result set for recent filter.</li>
 </ul></td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>rs/address/list</code></p></td>
-<td style="text-align: left;"><p>Call with current filter settings as POST parameter after clicking the search button.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>Result set matching the given filter settings.</p></li>
+<tr>
+<td><code>rs/address/list</code></td>
+<td>Call with current filter settings as POST parameter after clicking the search button.</td>
+<td><ul>
+<li>Result set matching the given filter settings.</li>
 </ul></td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>rs/address/filter/create</code></p></td>
-<td style="text-align: left;"><p>For creating a new favorite filter. The current filter settings of the UI including the specified name of the new filter are required.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>filter (new current filter)</p></li>
+<tr>
+<td><code>rs/address/filter/create</code></td>
+<td>For creating a new favorite filter. The current filter settings of the UI including the specified name of the new filter are required.</td>
+<td><ul>
+<li>filter (new current filter)</li>
 </ul></td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>rs/address/filter/select?id={filterId}</code></p></td>
-<td style="text-align: left;"><p>For selecting a previous stored favorite filter. Same parameter as for initialList will be returned.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>UI layout</p></li>
-<li><p>New filter settings from selected favorite.</p></li>
-<li><p>Result set matching the new selected filter.</p></li>
+<tr>
+<td><code>rs/address/filter/select?id={filterId}</code></td>
+<td>For selecting a previous stored favorite filter. Same parameter as for initialList will be returned.</td>
+<td><ul>
+<li>UI layout</li>
+<li>New filter settings from selected favorite.</li>
+<li>Result set matching the new selected filter.</li>
 </ul></td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>rs/address/filter/update</code></p></td>
-<td style="text-align: left;"><p>For updating the current filter with the new filter settings done by the user.</p></td>
-<td style="text-align: left;"></td>
+<tr>
+<td><code>rs/address/filter/update</code></td>
+<td>For updating the current filter with the new filter settings done by the user.</td>
+<td></td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>rs/address/filter/delete</code></p></td>
-<td style="text-align: left;"><p>For deleting a favorite filter.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>Modified list of available favorites.</p></li>
+<tr>
+<td><code>rs/address/filter/delete</code></td>
+<td>For deleting a favorite filter.</td>
+<td><ul>
+<li>Modified list of available favorites.</li>
 </ul></td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>rs/address/filter/reset</code></p></td>
-<td style="text-align: left;"><p>Resets the current filter by default values.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>The default filter.</p></li>
+<tr>
+<td><code>rs/address/filter/reset</code></td>
+<td>Resets the current filter by default values.</td>
+<td><ul>
+<li>The default filter.</li>
 </ul></td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>rs/address/reindexFull</code></p></td>
-<td style="text-align: left;"><p>For rebuilding the full search index for the enties (e. g. all addresses).</p></td>
-<td style="text-align: left;"></td>
+<tr>
+<td><code>rs/address/reindexFull</code></td>
+<td>For rebuilding the full search index for the enties (e. g. all addresses).</td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -464,42 +453,38 @@ Available REST calls:
 Explanation
 
 <table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;"><p><code>ui</code></p></td>
-<td style="text-align: left;"><p>Contains the page title and the layout information for the dynamic layout render engine (ReactJS).</p></td>
+<tr>
+<td><code>ui</code></td>
+<td>Contains the page title and the layout information for the dynamic layout render engine (ReactJS).</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>namedContainer</code></p></td>
-<td style="text-align: left;"><p>Contains containers usable by the front-end, such as search filter and filter options.</p></td>
+<tr>
+<td><code>namedContainer</code></td>
+<td>Contains containers usable by the front-end, such as search filter and filter options.</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>actions</code></p></td>
-<td style="text-align: left;"><p>The action buttons to display and handle by the front-end.</p></td>
+<tr>
+<td><code>actions</code></td>
+<td>The action buttons to display and handle by the front-end.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>translations</code></p></td>
-<td style="text-align: left;"><p>All required translations usable by the front-end for i18n.</p></td>
+<tr>
+<td><code>translations</code></td>
+<td>All required translations usable by the front-end for i18n.</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>pageMenu</code></p></td>
-<td style="text-align: left;"><p>The context menu to show on the list page including the actions to execute by the front-end.</p></td>
+<tr>
+<td><code>pageMenu</code></td>
+<td>The context menu to show on the list page including the actions to execute by the front-end.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>data</code></p></td>
-<td style="text-align: left;"><p>Contains the result set with all result data matching the current filter settings.</p></td>
+<tr>
+<td><code>data</code></td>
+<td>Contains the result set with all result data matching the current filter settings.</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>filterFavorites</code></p></td>
-<td style="text-align: left;"><p>List of personal named filter favorites customizable by the user.</p></td>
+<tr>
+<td><code>filterFavorites</code></td>
+<td>List of personal named filter favorites customizable by the user.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>key</code></p></td>
-<td style="text-align: left;"><p>The key attribute is a service for the React client: a unique key for elements of a collection is needed by ReactJS.</p></td>
+<tr>
+<td><code>key</code></td>
+<td>The key attribute is a service for the React client: a unique key for elements of a collection is needed by ReactJS.</td>
 </tr>
 </tbody>
 </table>
@@ -512,90 +497,87 @@ Please login in your browser first: <http://localhost:8080>
 Available REST calls:
 
 <table>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
+<thead>
+<tr>
+<th>Rest call</th>
+<th>Description</th>
+<th>Return values</th>
+</tr>
+</thead>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;"><p>Rest call</p></td>
-<td style="text-align: left;"><p>Description</p></td>
-<td style="text-align: left;"><p>Return values</p></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>rs/address/{id}</code></p></td>
-<td style="text-align: left;"><p>Only the entity with the given id will be returned (not used by React frontend).</p></td>
-<td style="text-align: left;"><ul>
-<li><p>The pure data object.</p></li>
+<tr>
+<td><code>rs/address/{id}</code></td>
+<td>Only the entity with the given id will be returned (not used by React frontend).</td>
+<td><ul>
+<li>The pure data object.</li>
 </ul></td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>rs/address/edit?id={id}</code></p></td>
-<td style="text-align: left;"><p>Initial call for editing. If id is not given, the layout for creating a new object is returned.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>UI layout including action buttons.</p></li>
-<li><p>The object data (default values for new objects or all values for editing existing objects).</p></li>
+<tr>
+<td><code>rs/address/edit?id={id}</code></td>
+<td>Initial call for editing. If id is not given, the layout for creating a new object is returned.</td>
+<td><ul>
+<li>UI layout including action buttons.</li>
+<li>The object data (default values for new objects or all values for editing existing objects).</li>
 </ul></td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>rs/address/history/{id}</code></p></td>
-<td style="text-align: left;"><p>For getting the complete history of changes of the given object.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>All entries of the history of changes.</p></li>
+<tr>
+<td><code>rs/address/history/{id}</code></td>
+<td>For getting the complete history of changes of the given object.</td>
+<td><ul>
+<li>All entries of the history of changes.</li>
 </ul></td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>rs/address/ac?property={property}&amp;search={search}</code></p></td>
-<td style="text-align: left;"><p>Autocompletion: for searching all used property values (e. g. used locations of time sheets).</p></td>
-<td style="text-align: left;"><ul>
-<li><p>All matching property values.</p></li>
+<tr>
+<td><code>rs/address/ac?property={property}&amp;search={search}</code></td>
+<td>Autocompletion: for searching all used property values (e. g. used locations of time sheets).</td>
+<td><ul>
+<li>All matching property values.</li>
 </ul></td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>rs/address/ac?&amp;search={search}</code></p></td>
-<td style="text-align: left;"><p>Autocompletion: for full text searching all objects matching the given search string.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>All matching objects (e. g. addresses).</p></li>
+<tr>
+<td><code>rs/address/ac?&amp;search={search}</code></td>
+<td>Autocompletion: for full text searching all objects matching the given search string.</td>
+<td><ul>
+<li>All matching objects (e. g. addresses).</li>
 </ul></td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>rs/address/history/{id}</code></p></td>
-<td style="text-align: left;"><p>For getting the complete history of changes of the given object.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>All entries of the history of changes.</p></li>
+<tr>
+<td><code>rs/address/history/{id}</code></td>
+<td>For getting the complete history of changes of the given object.</td>
+<td><ul>
+<li>All entries of the history of changes.</li>
 </ul></td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>rs/address/saveorupdate</code></p></td>
-<td style="text-align: left;"><p>For saving or updating objects.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>The new URL to redirect, if any.</p></li>
+<tr>
+<td><code>rs/address/saveorupdate</code></td>
+<td>For saving or updating objects.</td>
+<td><ul>
+<li>The new URL to redirect, if any.</li>
 </ul></td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>rs/address/clone</code></p></td>
-<td style="text-align: left;"><p>For cloning the current displayed object. Returns the initial UI layout for new objects including the create button instead of delete and update.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>UI layout including action buttons.</p></li>
-<li><p>The object as clone without id.</p></li>
+<tr>
+<td><code>rs/address/clone</code></td>
+<td>For cloning the current displayed object. Returns the initial UI layout for new objects including the create button instead of delete and update.</td>
+<td><ul>
+<li>UI layout including action buttons.</li>
+<li>The object as clone without id.</li>
 </ul></td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>rs/address/markAsDeleted</code></p></td>
-<td style="text-align: left;"><p>For marking historizable objects as deleted. Fails for non historizable entities.</p></td>
-<td style="text-align: left;"></td>
+<tr>
+<td><code>rs/address/markAsDeleted</code></td>
+<td>For marking historizable objects as deleted. Fails for non historizable entities.</td>
+<td></td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>rs/address/delete</code></p></td>
-<td style="text-align: left;"><p>For deleting objects from the data base without undo option. Fails for historizable entities.</p></td>
-<td style="text-align: left;"></td>
+<tr>
+<td><code>rs/address/delete</code></td>
+<td>For deleting objects from the data base without undo option. Fails for historizable entities.</td>
+<td></td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>rs/address/cancel</code></p></td>
-<td style="text-align: left;"><p>Cancel the edit page.</p></td>
-<td style="text-align: left;"><ul>
-<li><p>The new URL to redirect to.</p></li>
+<tr>
+<td><code>rs/address/cancel</code></td>
+<td>Cancel the edit page.</td>
+<td><ul>
+<li>The new URL to redirect to.</li>
 </ul></td>
 </tr>
 </tbody>
@@ -698,34 +680,30 @@ Available REST calls:
 Explanation
 
 <table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;"><p><code>data</code></p></td>
-<td style="text-align: left;"><p>Contains the result set with all result data matching the current filter settings.</p></td>
+<tr>
+<td><code>data</code></td>
+<td>Contains the result set with all result data matching the current filter settings.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>ui</code></p></td>
-<td style="text-align: left;"><p>Contains the page title and the layout information for the dynamic layout render engine (ReactJS).</p></td>
+<tr>
+<td><code>ui</code></td>
+<td>Contains the page title and the layout information for the dynamic layout render engine (ReactJS).</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>actions</code></p></td>
-<td style="text-align: left;"><p>The action buttons to display and handle by the front-end.</p></td>
+<tr>
+<td><code>actions</code></td>
+<td>The action buttons to display and handle by the front-end.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>pageMenu</code></p></td>
-<td style="text-align: left;"><p>The context menu to show on the list page including the actions to execute by the front-end.</p></td>
+<tr>
+<td><code>pageMenu</code></td>
+<td>The context menu to show on the list page including the actions to execute by the front-end.</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>translations</code></p></td>
-<td style="text-align: left;"><p>All required translations usable by the front-end for i18n.</p></td>
+<tr>
+<td><code>translations</code></td>
+<td>All required translations usable by the front-end for i18n.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>key</code></p></td>
-<td style="text-align: left;"><p>The key attribute is a service for the React client: a unique key for elements of a collection is needed by ReactJS.</p></td>
+<tr>
+<td><code>key</code></td>
+<td>The key attribute is a service for the React client: a unique key for elements of a collection is needed by ReactJS.</td>
 </tr>
 </tbody>
 </table>
@@ -780,34 +758,30 @@ An example filter for querying a result set:
 Explanation for filter settings:
 
 <table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;"><p><code>"search": "fin"</code></p></td>
-<td style="text-align: left;"><p>Full text search (for all fields) with standard <code>matchType=STARTS_WITH</code>: <code>fin*</code></p></td>
+<tr>
+<td><code>"search": "fin"</code></td>
+<td>Full text search (for all fields) with standard <code>matchType=STARTS_WITH</code>: <code>fin*</code></td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>"field": "modifiedByUser"</code></p></td>
-<td style="text-align: left;"><p>Selects all entries modified by the given user.</p></td>
+<tr>
+<td><code>"field": "modifiedByUser"</code></td>
+<td>Selects all entries modified by the given user.</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>"field": "title"</code></p></td>
-<td style="text-align: left;"><p>Selects entries with the matching title.</p></td>
+<tr>
+<td><code>"field": "title"</code></td>
+<td>Selects entries with the matching title.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>"field": "modifiedInterval"</code></p></td>
-<td style="text-align: left;"><p>Selects entries modified in the given time interval.</p></td>
+<tr>
+<td><code>"field": "modifiedInterval"</code></td>
+<td>Selects entries modified in the given time interval.</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><code>"field": "yearOfPublishing"</code></p></td>
-<td style="text-align: left;"><p>Selects entries with the <code>yearOfPublishing</code> 2010 and newer.</p></td>
+<tr>
+<td><code>"field": "yearOfPublishing"</code></td>
+<td>Selects entries with the <code>yearOfPublishing</code> 2010 and newer.</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><code>"field": "type"</code></p></td>
-<td style="text-align: left;"><p>Selects entries with the type matching one of the given values.</p></td>
+<tr>
+<td><code>"field": "type"</code></td>
+<td>Selects entries with the type matching one of the given values.</td>
 </tr>
 </tbody>
 </table>
@@ -841,30 +815,26 @@ automatically transformation of DTO and BaseDO.
 Simple example (books)
 
 <table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;"><p>Class (Link)</p></td>
-<td style="text-align: left;"><p>Description</p></td>
+<tr>
+<td>Class (Link)</td>
+<td>Description</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt"><code>BookDO.kt</code></a></p></td>
-<td style="text-align: left;"><p>Defines the entity</p></td>
+<tr>
+<td><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt"><code>BookDO.kt</code></a></td>
+<td>Defines the entity</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/book/BookDao.java"><code>BookDao.java</code></a></p></td>
-<td style="text-align: left;"><p>Defines access rights and special functionality for books</p></td>
+<tr>
+<td><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/book/BookDao.java"><code>BookDao.java</code></a></td>
+<td>Defines access rights and special functionality for books</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/BookRest.kt"><code>BookRest.kt</code></a></p></td>
-<td style="text-align: left;"><p>Books with support of ReactJS as well as REST API for CRUD operations</p></td>
+<tr>
+<td><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/BookRest.kt"><code>BookRest.kt</code></a></td>
+<td>Books with support of ReactJS as well as REST API for CRUD operations</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookStatus.kt"><code>BookStatus.kt</code></a></p></td>
-<td style="text-align: left;"><p>Enumeration of book status including i18n</p></td>
+<tr>
+<td><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookStatus.kt"><code>BookStatus.kt</code></a></td>
+<td>Enumeration of book status including i18n</td>
 </tr>
 </tbody>
 </table>
@@ -877,30 +847,26 @@ fieldsets and columns (supporting different screen resolutions,
 responsive).
 
 <table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;"><p>Class (Link)</p></td>
-<td style="text-align: left;"><p>Description</p></td>
+<tr>
+<td>Class (Link)</td>
+<td>Description</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/address/AddressDO.kt"><code>AddressDO.kt</code></a></p></td>
-<td style="text-align: left;"><p>Defines the entity</p></td>
+<tr>
+<td><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/address/AddressDO.kt"><code>AddressDO.kt</code></a></td>
+<td>Defines the entity</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/address/AddressDao.java"><code>AddressDao.java</code></a></p></td>
-<td style="text-align: left;"><p>Defines access rights and special functionality for addresses</p></td>
+<tr>
+<td><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/address/AddressDao.java"><code>AddressDao.java</code></a></td>
+<td>Defines access rights and special functionality for addresses</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;"><p><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/AddressRest.kt"><code>AddressRest.kt</code></a></p></td>
-<td style="text-align: left;"><p>Addresses with support of ReactJS (responsive) as well as REST API for CRUD operations</p></td>
+<tr>
+<td><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/AddressRest.kt"><code>AddressRest.kt</code></a></td>
+<td>Addresses with support of ReactJS (responsive) as well as REST API for CRUD operations</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;"><p><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt"><code>Address.kt</code></a></p></td>
-<td style="text-align: left;"><p>Data transfer object for the client. For simple objects, the BaseDO object may be used for the REST-CRUD functionality. For more complex objects providing special functionality, the usage of a DTO is required/recommended.</p></td>
+<tr>
+<td><a href="https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt"><code>Address.kt</code></a></td>
+<td>Data transfer object for the client. For simple objects, the BaseDO object may be used for the REST-CRUD functionality. For more complex objects providing special functionality, the usage of a DTO is required/recommended.</td>
 </tr>
 </tbody>
 </table>
