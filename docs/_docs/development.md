@@ -222,42 +222,15 @@ dynamic auto layout component for standard components, such as:
 For developing ProjectForge’s frontend, please refer:
 <https://github.com/micromata/projectforge/tree/develop/projectforge-webapp>
 
-<table>
-<tbody>
-<tr>
-<td>Input</td>
-<td>Html input fields (text, date picker with text input etc.)</td>
-</tr>
-<tr>
-<td>Select boxes</td>
-<td>For selecting values for e. g. enums (auto completion and asynchronous are calls supported.)</td>
-</tr>
-<tr>
-<td>Multi select</td>
-<td>Select field for selecting multi values (auto completion, asynchronous). This may be used for selecting values as well as of selecting entities assigned to current object, e. g. users may assigned to groups or calendars are selectable for displaying.</td>
-</tr>
-<tr>
-<td>Fieldset</td>
-<td>Fieldsets with titles and length settings (Bootstrap grid system is supported)</td>
-</tr>
-<tr>
-<td>Columns</td>
-<td>Columns with length settings (Bootstrap grid system is supported)</td>
-</tr>
-<tr>
-<td>Tables</td>
-<td>For displaying result sets etc.</td>
-</tr>
-<tr>
-<td>Customized fields</td>
-<td>You may register customized UI components which will be used for displaying and modifiing values. Refer the image upload for addresses as an example.</td>
-</tr>
-<tr>
-<td>…</td>
-<td>…</td>
-</tr>
-</tbody>
-</table>
+| ----------------- | ------------------------------------------------ |
+| Input             | Html input fields (text, date picker with text input etc.) |
+| Select boxes      | For selecting values for e. g. enums (auto completion and asynchronous are calls supported.) |
+| Multi select      | Select field for selecting multi values (auto completion, asynchronous). This may be used for selecting values as well as of selecting entities assigned to current object, e. g. users may assigned to groups or calendars are selectable for displaying. |
+| Fieldset          | Fieldsets with titles and length settings (Bootstrap grid system is supported) |
+| Columns           | Columns with length settings (Bootstrap grid system is supported)| 
+| Tables            | For displaying result sets etc.                   |
+| Customized fields | You may register customized UI components which will be used for displaying and modifiing values. Refer the image upload for addresses as an example. |
+| …                 | … |
 
 ## Responsive
 
