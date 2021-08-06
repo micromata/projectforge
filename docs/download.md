@@ -7,7 +7,7 @@ permalink: /download/
 
 ## Community Edition
 
-<p class="uk-text-lead">This community edition is full-featured and for free, there are no limitations!!</p>
+<p class="uk-text-lead">This community edition is full-featured and for free, there are no limitations!</p>
 
 An auto-update mechanism for the data-base on start-up of the web app is included for all previous public versions: Convenientupdates.
 
