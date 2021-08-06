@@ -330,7 +330,7 @@ Available REST calls:
 </tbody>
 </table>
 
-### Example of json format
+### Example of .json format
 
 **rs/address/initialList**
 
@@ -585,6 +585,7 @@ Available REST calls:
 
 ### Example of json format
 
+```json
     {
       "data": {
         "contactStatus": "ACTIVE",
@@ -676,8 +677,8 @@ Available REST calls:
           "file.upload.dropArea": "Select a file, or drop it here.",
           "label.historyOfChanges": "History of changes",
           ...
-
-Explanation
+```
+### Explanation
 
 <table>
 <tbody>
