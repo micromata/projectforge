@@ -45,6 +45,7 @@ import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateFormats
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
@@ -56,9 +57,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.InputStream
 import java.math.RoundingMode
+import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -180,6 +181,34 @@ open class MerlinRunner {
         lastLogNumber,
         dto.pdfExport == true
       )
+      if (merlinHandler.dataTransferPluginAvailable()) {
+        val receiver = ThreadLocalUserContext.getUser()
+        val personalBox = dataTransferAreaDao.ensurePersonalBox(receiver.id)
+        val personalBoxFilename = "${DateHelper.getFilenameFormatTimestamp(ThreadLocalUserContext.getTimeZone()).format(Date())}_${runner.zipFilename}"
+        personalBox?.let {
+          val description = translate("plugins.merlin.template.dataTransferUsage.resultZip")
+          try {
+            attachmentsService.addAttachment(
+              dataTransferAreaPagesRest.jcrPath!!,
+              fileInfo = FileInfo(
+                personalBoxFilename,
+                fileSize = zipByteArray.size.toLong(),
+                description = description
+              ),
+              content = zipByteArray,
+              baseDao = dataTransferAreaDao,
+              obj = it,
+              accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
+            )
+            log.info("Document '${personalBoxFilename}' of size ${FormatterUtils.formatBytes(zipByteArray.size)} put in the personal box (DataTransfer) of '${receiver.userDisplayName}' with description '$description'.")
+          } catch (ex: Exception) {
+            log.error(
+              "Can't put document '${personalBoxFilename}' of size ${FormatterUtils.formatBytes(zipByteArray.size)} into user '${receiver.userDisplayName}' personal box: ${ex.message}",
+              ex
+            )
+          }
+        }
+      }
       return Pair(runner.zipFilename, zipByteArray)
     }
   }
@@ -281,7 +310,9 @@ open class MerlinRunner {
               zipOut.write(ba)
               if (zipEntry.name.endsWith(".docx")) {
                 // Test if filename was already generated to put in user's personal data transfer box:
-                var pdfFile = convertedPdfDocuments.find { FilenameUtils.getBaseName(it.filename) == FilenameUtils.getBaseName(zipEntry.name)  }
+                var pdfFile = convertedPdfDocuments.find {
+                  FilenameUtils.getBaseName(it.filename) == FilenameUtils.getBaseName(zipEntry.name)
+                }
                 if (pdfFile == null && pdfExport) {
                   // pdfExport is demanded, so generate it:
                   pdfFile = convertToPdf(ba, zipEntry.name)
@@ -333,7 +364,11 @@ open class MerlinRunner {
     }
   }
 
-  private fun processPersonalBoxOfReceivers(zipByteArray: ByteArray, serialData: SerialData, dto: MerlinTemplate): List<PDFDocument> {
+  private fun processPersonalBoxOfReceivers(
+    zipByteArray: ByteArray,
+    serialData: SerialData,
+    dto: MerlinTemplate
+  ): List<PDFDocument> {
     val pdfDocuments = mutableListOf<PDFDocument>()
     if (serialData.entries.none {
         val personalBoxVariable = it.get(PERSONAL_BOX_VARIABLE)
