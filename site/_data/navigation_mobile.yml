@@ -3,15 +3,21 @@
 - title: Home
   url: /
 
-- title: Docs
-  url: /docs/installation/
-
-- title: Blog
-  url: /blog/
+- title: Features
+  url: /features/
 
 - title: Changelog
   url: /changelog-posts/
 
 - title: Download
   url: /download/
+
+- title: FAQ
+  url: /misc/faq
+
+- title: About
+  url: /about/
+
+- title: Search
+  url: /search/
 
