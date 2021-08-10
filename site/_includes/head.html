@@ -4,10 +4,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   {% seo %}
   <meta property="og:image" content="{% if site.logo contains 'http' %}{{ site.logo }}{% else %}{{ site.uploads | absolute_url }}{{ site.logo }}{% endif %}"/>
-  <link rel="stylesheet" href="{{ "https://micromata.github.io/projectforge/assets/css/main.css" | relative_url }}">
-  <link rel="shortcut icon" type="image/png" href="{{ "https://micromata.github.io/projectforge/uploads/favicon.png" | relative_url }}" >
+  <link rel="stylesheet" href="{{ "https://projectforge.org/assets/css/main.css" | relative_url }}">
+  <link rel="shortcut icon" type="image/png" href="{{ "https://projectforge.org/uploads/favicon.png" | relative_url }}" >
   <link rel="alternate" type="application/rss+xml" title="{{ site.title | escape }}" href="{{ "/feed.xml" | relative_url }}">
-  <script src="{{ "https://micromata.github.io/projectforge/assets/js/main.js" | relative_url }}"></script>
+  <script src="{{ "https://projectforge.org/assets/js/main.js" | relative_url }}"></script>
   {% if page.hero.search or site.navbar.search %}
     {% include search-js.html %}
   {% endif %}
