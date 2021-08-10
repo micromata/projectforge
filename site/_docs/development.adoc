@@ -519,7 +519,7 @@ Visit http://localhost:8080/rs/address/edit?id=128 for a full example. May-be an
 
 An example filter for querying a result set:
 
-image::images/Books-magicfilter.png[]
+image::/uploads/development/Books-magicfilter.png[]
 
 .MagicFilter.json
 [source,json]
