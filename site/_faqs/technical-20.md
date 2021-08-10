@@ -1,5 +1,5 @@
 ---
-Is there any support for other data bases?
+title: Is there any support for other data bases?
 categories: [technical]
 ---
 
