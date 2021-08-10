@@ -974,11 +974,10 @@ PostgreSQL is possible by using:
 
 === Restoring a backup
 
-[width="100%",cols="100%",]
-|===
-| +
+[source,brush:,sql]
+----
 psql -q -f projectforge_2008-05-12_02-00.sql -U postgres projectforge 2>&1 > log.txt
-|===
+----
 
 For further details concerning dropping and creating a new data base.  +
 Don't forget to create indices (thru admin web page)!
@@ -991,11 +990,12 @@ testing, it's recommended to set all e-mail addresses of the users to
 your developers e-mail. Also all passwords can be easily set
 to `test123` if you user folliwing sql statement in your test database
 (not productive!):
+____
 
 [source,brush:,sql]
 ----
 update t_pf_user SET password='SHA\{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', email='m.developer@acme.com/';
-____
+----
 
 === Automatical backup
 

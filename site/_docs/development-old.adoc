@@ -1,264 +1,27 @@
-[[wm-ipp-base]]
-[[wm-ipp]]
-[[wm-ipp-inside]]
-[[wm-logo]]
-http://web.archive.org/web/[image:http://web.archive.org/_static/images/toolbar/wayback-toolbar-logo-200.png[Wayback
-Machine]]
+---
+title: ProjectForge development (older stuff)
+author: kai
+tags: [development-old]
+---
+:hide-uri-scheme:
 
-[[wm-btns]]
-[[wm-save-snapshot-success]]
-success
+:toc:
+:toclevels: 4
 
-[[wm-save-snapshot-fail]]
-fail
+:last-update-label: Copyright (C) 2021, Last updated
 
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/#[[.iconochive-web]##]
-https://archive.org/account/login.php[[.iconochive-person]##]
-[#wm-save-snapshot-in-progress .iconochive-web]##
-http://faq.web.archive.org/[[.iconochive-question]##]
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/#close[[.iconochive-remove-circle]##]
+:sectnums:
 
-[[wm-share]]
-http://web.archive.org/web/20210120040851/http://web.archive.org/screenshot/https://www.projectforge.org/documentation/developer-guide.html[[.wm-icon-screen-shot]##]
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/#[[.iconochive-movies]##]
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/#[[.iconochive-facebook]##]
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/#[[.iconochive-twitter]##]
-
-http://web.archive.org/web/20201204052715/https://www.projectforge.org/documentation/developer-guide.html[*Dec*]
-
-JAN
-
-Feb
-
-http://web.archive.org/web/20201204052715/https://www.projectforge.org/documentation/developer-guide.html[image:http://web.archive.org/_static/images/toolbar/wm_tb_prv_on.png[Previous
-capture,width=14,height=16]]
-
-20
-
-image:http://web.archive.org/_static/images/toolbar/wm_tb_nxt_off.png[Next
-capture,width=14,height=16]
-
-2020
-
-2021
-
-2022
-
-[[wm-nav-captures]]
-http://web.archive.org/web/20210120040851*/https://www.projectforge.org/documentation/developer-guide.html[4
-captures]
-
-13 Aug 2020 - 20 Jan 2021
-
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/[]
-
-[[wm-ipp-sparkline]]
-
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/#expand[[#wm-expand-icon .iconochive-down-solid]##
-About this capture]
-
-[[wm-capinfo]]
-[[wm-capinfo-collected-by]]
-COLLECTED BY
-
-[[wm-collected-by-content]]
-[.c-logo]##
-
-Collection: https://archive.org/details/commoncrawl[[.wm-title]#Common
-Crawl#]
-
-Web crawl data from Common Crawl.
-
-[[wm-capinfo-timestamps]]
-TIMESTAMPS
-
-[[wm-capresources]]
-
-[[wm-capresources-loading]]
-image:http://web.archive.org/_static/images/loading.gif[loading]
-
-[[wm-ipp-print]]
-The Wayback Machine -
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html
-
-[[donato]]
-[[donato-base]]
-
-[[wrapper]]
-[[header]]
-[[mm_headerLogo]]
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/index.html[ProjectForge]
-
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#skipNavigation91[Skip
-navigation]
-
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/[Start]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news.html[News]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/features.html[Features]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation.html[Documentation]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/technologies.html[Technologies]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/installation.html[Installation]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/quickstart.html[Quickstart]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/user-guide.html[User
-Guide]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-faq.html[FAQ]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/video-tutorials.html[Video
-tutorials]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/administration-guide.html[Administration
-Guide]
-** [.active]#Developer Guide#
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/screenshots.html[Screenshots]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/download.html[Download]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/download/archive.html[Archive]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/download/convenient-updates.html[Convenient
-updates]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/download/translation-files.html[Translation
-files]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/support.html[Pricing
-and support]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/terms-of-use.html[Terms
-of Use]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/about.html[About]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact/privacy-policy.html[Privacy
-Policy]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact/imprint.html[Imprint]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact.html[Contact]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/Application/references.html[References]
-
-[#skipNavigation91 .invisible]# #
-
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#skipNavigation99[Skip
-navigation]
-
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/[Start]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news.html[News]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/features.html[Features]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation.html[Documentation]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/technologies.html[Technologies]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/installation.html[Installation]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/quickstart.html[Quickstart]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/user-guide.html[User
-Guide]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-faq.html[FAQ]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/video-tutorials.html[Video
-tutorials]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/administration-guide.html[Administration
-Guide]
-** [.active]#Developer Guide#
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/screenshots.html[Screenshots]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/download.html[Download]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/download/archive.html[Archive]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/download/convenient-updates.html[Convenient
-updates]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/download/translation-files.html[Translation
-files]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/support.html[Pricing
-and support]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/terms-of-use.html[Terms
-of Use]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/about.html[About]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact/privacy-policy.html[Privacy
-Policy]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact/imprint.html[Imprint]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact.html[Contact]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/Application/references.html[References]
-
-[#skipNavigation99 .invisible]# #
-
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/#mm_offCanvas[[.icon-align-justify]##]
-
-== Developer Guide
-
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge.html[ProjectForge]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation.html[Documentation]
-* Developer Guide
-
-[[container]]
-[[main]]
-[[documentation-developer-guide]]
-== Table of Content
-
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Introduction[Introduction]
-* link:documentation/developer-guide.html#Setting%20up%20the%20environment[Setting
-up the environment]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Quickstart[Quickstart]
-** link:documentation/developer-guide.html#Preparation%20of%20Eclipse[Preparation
-of Eclipse]
-** link:documentation/developer-guide.html#Eclipse%20project%20import[Eclipse
-project import]
-*** link:documentation/developer-guide.html#Run%20in%20eclipse[Run in
-eclipse]
-**** link:documentation/developer-guide.html#Additional%20eclipse%20plugins[Additional
-eclipse plugins]
-** link:documentation/developer-guide.html#Development%20Mode[Development
-Mode]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Configuration[Configuration]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Concepts[Concepts]
-** link:documentation/developer-guide.html#Hibernate%20history[Hibernate
-history]
-*** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#ShortDisplayNameCapable[ShortDisplayNameCapable]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Wicket[Wicket]
-*** link:documentation/developer-guide.html#List%20edit%20and%20standard-form%20pages[List,
-edit and standard-form pages]
-*** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#i18n[i18n]
-*** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#SearchPage[SearchPage]
-** link:documentation/developer-guide.html#Core%20DOs%20and%20Daos[Core
-DO's and Dao's]
-*** link:documentation/developer-guide.html#Adding%20a%20new%20Dao[Adding
-a new Dao]
-* link:documentation/developer-guide.html#Hibernate%20search[Hibernate
-search]
-* link:documentation/developer-guide.html#Excel%20export[Excel export]
-
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Plugins[Plugins]
-
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Plugin%20Template[PlugIn
-Template]
-
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Rest-API[Rest-API]
-
-* link:documentation/developer-guide.html#Use%20cases%20for%20Rest[Use
-cases for Rest]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#AddressDaoRest[AddressDaoRest]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Team-calendar[Team-calendar]
-** link:documentation/developer-guide.html#Get%20reminders%20of%20events[Get
-reminders of events]
-** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Calendars[Calendars]
-** link:documentation/developer-guide.html#Time%20sheet%20booking[Time
-sheet booking]
-
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Authentication[Authentication]
-
-link:documentation/developer-guide.html#Configurable%20Attributes[Configurable
-Attributes]
-
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Overview[Overview]
-* link:documentation/developer-guide.html#The%20attrschema.xml%20file[The
-attrschema.xml file]
-** link:documentation/developer-guide.html#Structure%20of%20the%20attrschema.xml%20file[Structure
-of the attrschema.xml file]
-
-[[Introduction]]
 == Introduction
 
-This document contains some useful information for developers of
+This document contains some older but may-be usefull information for developers of
 ProjectForge. Issues on how to set up the database etc. you will find in
 the AdministrationGuide.
 
-[cols=",",]
-|===
-|Figure 1: |Overview of all modules of Project__Forge__®. The source
-code of most modules is hosted on
-http://web.archive.org/web/20210120040851/http://github.com/micromata[GitHub].
-|===
-
-[[Setting up the environment]]
 == Setting up the environment
 
-[[Quickstart]]
 === Quickstart
 
-[[maincontent]]
 . Checkout: `git clone https://github.com/micromata/projectforge`
 . Build ProjectForge: `mvn -DskipTests=true install`
 . Run ProjectForge:
@@ -266,42 +29,36 @@ http://web.archive.org/web/20210120040851/http://github.com/micromata[GitHub].
 . Click "Start Server" in the launcher and open a browser via clicking
 the "Open Browser" button.
 
-[[Preparation of Eclipse]]
 === Preparation of Eclipse
 
 To get ready with projectforge in eclipse you simply check out the git
 repository as explained. Open eclipse (Important: Java 8 is required)
 and import the maven projects from the parent pom.
 
-[[Run in eclipse]]
 === Run in eclipse
 
-{empty}1. Open the project projectforge-launcher. +
+1. Open the project projectforge-launcher. +
 2. Run
 /projectforge-launcher/src/main/java/org/projectforge/launcher/PfiLauncherMain.java +
 3. You can add "-nogui" the the run configuration parameters to run
 projectforge in console mode
 
-[[Additional eclipse plugins]]
 === Additional eclipse plugins
 
-{empty}1. Install the Spring source tool suite eclipse plugin from
+1. Install the Spring source tool suite eclipse plugin from
 eclipse marketplace
 
-{empty}2. Install the TestNG plugin from eclipse marketplace
+2. Install the TestNG plugin from eclipse marketplace
 
-[[Development Mode]]
 === Development Mode
 
-[[maincontent]]
 . Please edit projectforge.properties and set the property
-developmentMode to true. The  development  parameter  can  be  get  over
+developmentMode to true. The  development  parameter  can  be  get  over
 WebConfiguration.isDevelopmentMode(). It's actually used for system
 administration menu for dumping data base to xml.
-. Please  edit log4j.properties and  set  the  debug  level for  all 
-or  the  special  categories  you want to debug.
+. Please  edit log4j.properties and  set  the  debug  level for  all
+or  the  special  categories  you want to debug.
 
-[[Configuration]]
 == Configuration
 
 *File*:
@@ -558,13 +315,10 @@ genome.logging.log4JToGenomeLogging=false
 genome.logging.typeId=log4j
 ----
 
-[[Concepts]]
 == Concepts
 
-[[Hibernate history]]
 === Hibernate history
 
-[[ShortDisplayNameCapable]]
 ==== ShortDisplayNameCapable
 
 Mark your data object as `ShortDisplayNameCapable` for manipulating the
@@ -585,10 +339,8 @@ public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable
 }
 ----
 
-[[Wicket]]
 === Wicket
 
-[[List, edit and standard-form pages]]
 ==== List, edit and standard-form pages
 
 ProjectForge uses RepeatingViews for having a floating layout of form
@@ -597,12 +349,11 @@ use the html code of their super classes.
 
 ==== i18n
 
-[[maincontent]]
 * Standard set of i18n keys (prefix is specified in constructor of the
 list and edit pages):
 `[prefix].title.add, [prefix].title.edit, [prefix].title.list`
 
-  +
+  +
 Default locale is English. Please refer class
 `org.projectforge.web.I18nCore` for administration of existing and new
 localizations. You can add additional languages and translations by
@@ -615,7 +366,7 @@ application you can put them in the external resource directory defined
 in projectforge.properties. +
 The application will search in this directory if the i18n-keys cannot be
 found in the deployed properties files. +
-  +
+  +
 `projectforge.base.dir=${user.home}/Projectforge` +
 `projectforge.resourcesDirectory=resources`
 
@@ -626,7 +377,6 @@ need to be named after this regular expression:
 `.*i18n(_.*)?.properties` The `_.*` can be omitted for the default
 translation.
 
-[[SearchPage]]
 ==== SearchPage
 
 The requirements of all objects which should be part of the SearchPage
@@ -650,7 +400,7 @@ public List<IColumn<AddressDO>> createColumns(final WebPage returnToPage, final 
     columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<String>(getString("modified")), getSortable("lastUpdate", sortable), "lastUpdate", ...
 ----
 
-{empty}1. The Dao method getList(BaseSearchFilter) should support the
+The Dao method getList(BaseSearchFilter) should support the
 generic BaseSearchFilter if the super method is overwritten:
 
 File: `AddressDao.java`
@@ -671,7 +421,7 @@ public List<AddressDO> getList(BaseSearchFilter filter)
 }
 ----
 
-{empty}2. Therefore the Filter should have the constructor which copies
+Therefore the Filter should have the constructor which copies
 all fields of the BaseSearchFilter to the special filter (if exist).
 
 File: `AddressFilter.java`
@@ -689,10 +439,8 @@ public AddressFilter(BaseSearchFilter filter)
 }
 ----
 
-[[Core DO's and Dao's]]
 === Core DO's and Dao's
 
-[[Adding a new Dao]]
 ==== Adding a new Dao
 
 . Add the Dao class to: `org.projectforge.registry.DaoRegistry.java`
@@ -701,12 +449,8 @@ public AddressFilter(BaseSearchFilter filter)
 . Add the DO to hibernate configuration
 in:`org.projectforge.database.HibernateCoreEntities.java`
 
-[[Hibernate search]]
 === Hibernate search
 
-//Hier Text eintragen
-
-[[Excel export]]
 === Excel export
 
 Excel downloads are quite simple:
@@ -756,10 +500,8 @@ sheetProvider.putFormat(Col.ID, "0");
 sheetProvider.putFormat(Col.BETRAG, "#,##0.00;[Red]-#,##0.00");
 ----
 
-[[Plugins]]
 == Plugins
 
-[[maincontent]]
 Extend ProjectForge with your own plugins or third party plugins. This
 chapter describes how easy it is to write own plugins. Enable the
 following features inside your plugins with a few lines of code:
@@ -808,22 +550,20 @@ migration scripts by simply clicking the update button.
 Your new plugin data are automatically available inside ProjectForge's
 scripting functionality.
 
-[[Plugin Template]]
 == PlugIn Template - Add your own plugin to ProjectForge
 
-[[maincontent]]
 It's easy to add your own functionality to ProjectForge by developing
-your own PF plugin. Gather your experience of the technologies such as
+your own PF plugin. Gather your experience of the technologies such as
 Spring, Wicket and Hibernate by developing your plugins step by step.
 
-. Download sourcecode
+=== Download sourcecode
 
 First of all you need the PF sourcecode. The sources are hosted at
 Github. Simply Clone, download or fork the repository:
 
-http://web.archive.org/web/20210120040851/https://github.com/micromata/projectforge/[https://github.com/micromata/projectforge/]
+https://github.com/micromata/projectforge/
 
-       2. Look at the plugin template
+=== Look at the plugin template
 
 We designed a plugin template which is placed in the plugin folder of
 the sources. There you have the main structure of a projectforge plugin.
@@ -831,41 +571,41 @@ It includes the main PF plugin functionality, which is recommend for PF
 to find the plugin. It also has a simple data object (DO), a data access
 object (DAO), a service, the wicket web UI and a exaple REST-Service.
 
-The PluginTemplatePlugin class is used to register all your components
+The PluginTemplatePlugin class is used to register all your components
 (data base object, data access object, menu entries, rest services and
 web pages) as well as the i18n resource bundle (e. g.
 PluginTemplateI18nResources.properties).
 
-      3. Data and data access object
+=== Data and data access object
 
 The data objects (DO) are plain JPA Pojos which the standard JPA
-annotation. We have build a DefaultBaseDO class, which provides some
+annotation. We have build a DefaultBaseDO class, which provides some
 fields like the PK, created-, modified-, deleted-flag and a tenant
-reference. There for you could look at the PluginTemplateDO class, which
-is a simple key/value pair data object. 
+reference. There for you could look at the PluginTemplateDO class, which
+is a simple key/value pair data object.
 
 The data access object (DAO) is used for reading data from the database.
-This also has a super class, which is named BaseDao. This base class
+This also has a super class, which is named BaseDao. This base class
 provides a lot of functionality for getting data in a list, getting
 single data, checking rights for selectin, inserting and modificating
 data. Most of the methods could be overritten to customize it for your
-own stuff. 
+own stuff.
 
 At the moment you can use two ways of getting data. The deprecated way
 is to use the hibernate template. The new way is to use JPA via
-the PfEmgrFactory. This could be autowired via Spring. In
-the PluginTemplateDao we show you the two options.
+the PfEmgrFactory. This could be autowired via Spring. In
+the PluginTemplateDao we show you the two options.
 
 The access to object is checked by the base dao
-class. ReferPluginTemplateRight class for defining which user should
+class. ReferPluginTemplateRight class for defining which user should
 have access to your data objects.
 
 For define your data-base setup and update scripts
-see PluginTemplatePluginUpdates class for how easy it is to define your
+see PluginTemplatePluginUpdates class for how easy it is to define your
 data-base setup and update scripts for any further release of your
 plugin.
 
-     4. Wicket web view
+=== Wicket web view
 
 Most of all PF web pages are in the same style. You have a list view,
 which could be filtered and also you have a create/edit view for single
@@ -874,7 +614,7 @@ form class. These two types have also super classes provided by PF. The
 filter is used for the filter view in the list page and also for
 database queries in the daos.
 
-    5. REST service
+=== REST service
 
 The last part of the plugin is a simple REST service. For all REST
 services we use jersey REST configuration. The REST class has standard
@@ -882,7 +622,7 @@ REST annotations. All rest servises, which are registred in jersey, are
 availeble at the context path http(s)://myurl.org/rest/*. It uses the
 RestUserFilter which checks for authentication.
 
-    6. Get it runnable
+=== Get it runnable
 
 Last point is the META-INF resource folder which is used for finding the
 plugin in the application classpath. Customize it for your own plugin.
@@ -893,24 +633,21 @@ ProjectForge web page under Administration -> Plugins.
 
 Note: For get the plugin runnable in your IDE (e.g. eclipse or intelliJ)
 you have to put the plugin project reference to the
-projectforge-application classpath. 
+projectforge-application classpath.
 
-[[Rest-API]]
 == Rest-API
 
-Please refer the Project__Forge__® repository `projectforge-jax-rs` on
-GitHub for getting example code for using Project__Forge__® within your
+Please refer the ProjectForge® repository `projectforge-jax-rs` on
+GitHub for getting example code for using ProjectForge® within your
 clients. Please refer the classes `AuthenticationRest` for description
 and the client demo applications `RestClientMain, AddressDaoClientMain`
 etc.
 
-[[Use cases for Rest]]
 == Use cases for Rest
 
 Some clients are already implemented, further Rest calls will be
 implemented when needed.
 
-[[AddressDaoRest]]
 == AddressDaoRest
 
 Rest-Call for AddressDao#getFavoriteVCards(). +
@@ -923,10 +660,8 @@ given modifiedSince date. +
 The use case is to get all v-cards initial and then get only new,
 modified or deleted entries every time interval (incremental update).
 
-[[Team-calendar]]
 == Team-calendar
 
-[[Get reminders of events]]
 === Get reminders of events
 
 Get future reminders for events by calling
@@ -934,22 +669,18 @@ TeamEventDaoRest.getReminderList(calendarIds, daysInFuture). You will
 receive a list with all events having reminders (alarm triggers e. g. 15
 minutes before the event).
 
-[[Calendars]]
 === Calendars
 
 in progress: get calendar list, get events, add and modify events with
 your mobile device (Android, iOS, Blackberry etc.) via native app.
 
-[[Time sheet booking]]
 === Time sheet booking
 
 in progress: get time sheets, add and modify time sheets with your
 mobile device (Android, iOS, Blackberry etc.) via native app.
 
-[[Authentication]]
 == Authentication
 
-[[maincontent]]
 It's recommended to avoid storing the user's username and password on
 the client (e. g. on the mobile phone) due to security reasons. Please
 store the user's id and authentication-token instead:
@@ -968,20 +699,18 @@ too old. This call is optional but good practice.
 authentication-token. The user-id is required for logging purposes e. g.
 for failed logins or brute-force attacks.
 
-[[Configurable Attributes]]
 == Configurable Attributes
 
 With configurable attributes it is possible to add additional
 (time-dependent) data fields and panels to existing pages just by
 editing a xml file and without changing the java code.
 
-[[Overview]]
 == Overview
 
 The following (red rectangle) shows an example of how the web interface
 can look like with configurable attributes.
 
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/files/projectforge_content/images/Configurable_Attributes_Screenshot.png[image:http://web.archive.org/web/20210120040851im_/https://www.projectforge.org/files/projectforge_content/images/Configurable_Attributes_Screenshot.png[image,width=700]]
+image::/uploads/adminguide/Configurable_Attributes_Screenshot.png[image]
 
 The following is an example of such a xml file:
 
@@ -1149,7 +878,6 @@ The following is an example of such a xml file:
 </beans>
 ----
 
-[[The attrschema.xml file]]
 == The attrschema.xml file
 
 The xml file must have the name attrschema.xml and must be located in
@@ -1200,7 +928,6 @@ and must be in the following format:
 </beans>
 ----
 
-[[Structure of the attrschema.xml file]]
 == Structure of the attrschema.xml file
 
 . `AttrSchema`: The `<entry>` element corresponds to a database entity.
@@ -1236,9 +963,7 @@ is used as the first part of the html ID of all input fields of the
 panel. Therefore it must follow the rules for valid html IDs.
 Furthermore it must be unique within each `AttrSchema` because it is
 used as a key in the database.
-* `<property name="i18nKey" value="..."/>` The value must be an i18n key
-(see
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/pf-en/i18n[i18n]).
+* `<property name="i18nKey" value="..."/>` The value must be an i18n key.
 It's translation is shown in the heading of the panel.
 * `<property name="i18nKeyStartTime" value="..."/>` This property is
 only required for `PERIOD` and `INSTANT_OF_TIME`. It is an i18n key
@@ -1294,91 +1019,3 @@ translated for the web interface. Furthermore this property must be set:
 This will create a date picker. The example above shows how the options
 can be added to it. Furthermore this property must be set:
 `<property name="type" value="java.util.Date"/>`.
-
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#skipNavigation108[Skip
-navigation]
-
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/technologies.html[Technologies]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/installation.html[Installation]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/quickstart.html[Quickstart]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/user-guide.html[User
-Guide]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-faq.html[FAQ]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/video-tutorials.html[Video
-tutorials]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/administration-guide.html[Administration
-Guide]
-* [.active]#Developer Guide#
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/screenshots.html[Screenshots]
-
-[#skipNavigation108 .invisible]# #
-
-== Latest News
-
-2018-07-17 14:19
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news/projectforge-6-22-0-released.html[ProjectForge
-6.22.0 released]
-
-2017-12-06 15:52
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news/projectforge-6-19-3-released.html[ProjectForge
-6.19.3 released]
-
-2017-11-06 12:00
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news/projectforge-6-18-0-released.html[ProjectForge
-6.18.0 released]
-
-2017-08-23 15:16
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news/projectforge-6171-released.html[ProjectForge
-6.17.1 released]
-
-2017-08-10 09:33
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news/projectforge-6161-released.html[ProjectForge
-6.16.1 released]
-
-== Links
-
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/video-tutorials.html[Video
-Tutorials]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/screenshots.html[Screenshots]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation.html[Documentation]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/download.html[Free
-Downloads]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/quickstart.html[Quickstart]
-* http://web.archive.org/web/20210120040851/https://github.com/micromata/projectforge/issues[GitHub
-Issue Tracker]
-* http://web.archive.org/web/20210120040851/https://sourceforge.net/projects/pforge/forums/forum/1268364[Help
-forum]
-* http://web.archive.org/web/20210120040851/https://labs.micromata.de/[More
-on Micromata Labs]
-* http://web.archive.org/web/20210120040851/https://sourceforge.net/projects/pforge/[ProjectForge
-on SourceForge]
-* http://web.archive.org/web/20210120040851/https://github.com/micromata/projectforge[ProjectForge
-on GitHub]
-
-== ProjectForge® is a registered trade mark.
-
-© 2001-2017 Kai Reinhard +
-Micromata GmbH +
-Marie-Calm-Str. 1-5 +
-D-34131 Kassel +
-Germany +
-http://web.archive.org/web/20210120040851/http://www.micromata.de/[www.micromata.de]
-
-[[mm_footerLinks]]
-* http://web.archive.org/web/20210120040851/https://www.xing.com/companies/micromatagmbh[[.icon-xing-sign .icon-2x]##]
-* http://web.archive.org/web/20210120040851/https://twitter.com/micromata[[.icon-twitter-sign .icon-2x]##]
-* http://web.archive.org/web/20210120040851/https://www.facebook.com/pages/Micromata/303133633035[[.icon-facebook-sign .icon-2x]##]
-
-* http://web.archive.org/web/20210120040851/http://www.micromata.de/[micromata.de]
-* http://web.archive.org/web/20210120040851/http://labs.micromata.de/[labs.micromata.de]
-* http://web.archive.org/web/20210120040851/http://jugh.de/[jugh.de]
-
-http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#skipNavigation90[Skip
-navigation]
-
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact.html[Contact]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact/imprint.html[Imprint]
-* http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact/privacy-policy.html[Privacy
-Policy]
-
-[#skipNavigation90 .invisible]# #
