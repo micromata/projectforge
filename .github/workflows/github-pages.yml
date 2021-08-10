@@ -3,7 +3,7 @@ name: GitHub Pages publication
 on:
   push:
     branches:
-      - develop
+      - github-pages
 
 jobs:
   jekyll:
@@ -30,3 +30,4 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         target_branch: 'gh-pages'
+        jekyll_src: 'site'
