@@ -16,7 +16,7 @@ lang:               en
 permalink:          /:title/
 
 # Site base hostname & protocol, e.g. http://example.com
-url:                https://kreinhard.github.io
+url:                https://projectforge.org
 
 # Site logo # e.g. logo.png, upload logo image file to /uploads/ folder
 logo:               logo_projectforge.gif
@@ -82,7 +82,7 @@ authors:
 # Social icons displayed in footer
 social:
   email:
-  website:        https://kreinhard.github.io
+  website:        https://projectforge.org
   facebook:
   flickr:
   dribbble:
