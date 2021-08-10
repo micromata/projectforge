@@ -2,8 +2,7 @@ name: GitHub Pages publication
 
 on:
   push:
-    branches:
-      - develop
+    branches: [ develop ]
     paths:
       - 'site/**'
       - '.github/workflows/**'
