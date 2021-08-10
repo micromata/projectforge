@@ -3,7 +3,10 @@ name: GitHub Pages publication
 on:
   push:
     branches:
-      - github-pages
+      - develop
+    paths:
+      - 'site/**'
+      - '.github/workflows/**'
 
 jobs:
   jekyll:
