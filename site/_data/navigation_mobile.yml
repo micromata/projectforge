@@ -10,8 +10,8 @@
   url: /blog/
 
 - title: Changelog
-  url: /changelog/
+  url: /changelog-posts/
 
-- title: Contact
-  url: /contact/
-  button: success
+- title: Download
+  url: /download/
+
