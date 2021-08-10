@@ -23,7 +23,7 @@ Your users only need a modern Internet browser. There is no need to install anyt
 
 == Main features
 
-[cols=2*,options="header"]
+[cols="1,3",options="header"]
 |===
 |Feature|Description
 |Time sheet booking|Convenient booking of the time sheets on your project tasks and issues. Templates support your team to book their work in seconds.
@@ -39,7 +39,7 @@ Your users only need a modern Internet browser. There is no need to install anyt
 
 == Project Management
 
-[cols=2*,options="header"]
+[cols="1,3",options="header"]
 |===
 |Feature |Description
 |Consumption|Track your project whenever you want. Consumption bars give you and your team members an overview: which tasks are on track and which tasks not.
@@ -49,7 +49,7 @@ Your users only need a modern Internet browser. There is no need to install anyt
 
 == Team work
 
-[cols=2*,options="header"]
+[cols="1,3",options="header"]
 |===
 |Feature |Description
 |Address book|A central address book provides an Excel export as well as v-card exports.
@@ -58,7 +58,7 @@ Your users only need a modern Internet browser. There is no need to install anyt
 
 == Plugins
 
-[cols=2*,options="header"]
+[cols="1,3",options="header"]
 |===
 |Feature |Description
 |Software License Management|A central address book provides an Excel export as well as v-card exportsYou may organize your Software licenses with ProjectForge (Adobe, Microsoft etc.). The administrators have full access to all licenses and keys, the users only to the keys of licenses to which they're assigned. You can track the history of changes easily. Try it (within the demo system on this web site or refer the AdministrationGuide for enabling this plugin).
@@ -66,7 +66,7 @@ Your users only need a modern Internet browser. There is no need to install anyt
 
 == Miscellaneous
 
-[cols=2*,options="header"]
+[cols="1,3",options="header"]
 |===
 |Feature |Description
 |Full text search|With the full text search engine which is built-in you can find your data in seconds. A query syntax is provided for a customized search.
@@ -78,7 +78,7 @@ Your users only need a modern Internet browser. There is no need to install anyt
 
 == Financial administration
 
-[cols=2*,options="header"]
+[cols="1,3",options="header"]
 |===
 |Feature |Description
 |Invoices|Organize your inbound and outbound invoices with ProjectForge. Assign the positions of your invoices to projects, releases etc.
