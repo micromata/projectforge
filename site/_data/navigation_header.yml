@@ -3,7 +3,7 @@
 left:
   - title: Home
     url: /
-    
+
   - title: Features
     url: /features/
 
@@ -15,26 +15,29 @@ left:
 
       - title: Installation
         url: /docs/installation/
-        
+
       - title: Deployment
         url: /docs/deployment/
-        
+
       - title: Development
         url: /docs/development/
-      
+
       - title: Technologies
         url: /docs/technologies/
-        
+
       - title: Migration
         url: /docs/migration/
-    
+
   - title: FAQ
     url: /misc/faq
-    
+
   - title: About
     url: /about/
 
-  # - title: Blog
+  - title: Search
+    url: /search/
+
+      # - title: Blog
   # url: /blog/
 
   # - title: Changelog

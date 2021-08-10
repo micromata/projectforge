@@ -23,7 +23,11 @@ logo:               logo_projectforge.gif
 
 navbar:
   sticky:         true
-  search:         true
+
+tipue_search:
+  include:
+    pages: true
+    collections: [docs,faqs,changelogs]
 
 asciidoc: {}
 asciidoctor:
@@ -31,7 +35,7 @@ asciidoctor:
   safe: unsafe
   attributes:
     - idseparator=_
-    - source-highlighter=coderay
+    - source-highlighter=rouge
     - icons=font
 
 # Default author settings
