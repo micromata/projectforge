@@ -1,0 +1,1384 @@
+[[wm-ipp-base]]
+[[wm-ipp]]
+[[wm-ipp-inside]]
+[[wm-logo]]
+http://web.archive.org/web/[image:http://web.archive.org/_static/images/toolbar/wayback-toolbar-logo-200.png[Wayback
+Machine]]
+
+[[wm-btns]]
+[[wm-save-snapshot-success]]
+success
+
+[[wm-save-snapshot-fail]]
+fail
+
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/#[[.iconochive-web]##]
+https://archive.org/account/login.php[[.iconochive-person]##]
+[#wm-save-snapshot-in-progress .iconochive-web]##
+http://faq.web.archive.org/[[.iconochive-question]##]
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/#close[[.iconochive-remove-circle]##]
+
+[[wm-share]]
+http://web.archive.org/web/20210120040851/http://web.archive.org/screenshot/https://www.projectforge.org/documentation/developer-guide.html[[.wm-icon-screen-shot]##]
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/#[[.iconochive-movies]##]
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/#[[.iconochive-facebook]##]
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/#[[.iconochive-twitter]##]
+
+http://web.archive.org/web/20201204052715/https://www.projectforge.org/documentation/developer-guide.html[*Dec*]
+
+JAN
+
+Feb
+
+http://web.archive.org/web/20201204052715/https://www.projectforge.org/documentation/developer-guide.html[image:http://web.archive.org/_static/images/toolbar/wm_tb_prv_on.png[Previous
+capture,width=14,height=16]]
+
+20
+
+image:http://web.archive.org/_static/images/toolbar/wm_tb_nxt_off.png[Next
+capture,width=14,height=16]
+
+2020
+
+2021
+
+2022
+
+[[wm-nav-captures]]
+http://web.archive.org/web/20210120040851*/https://www.projectforge.org/documentation/developer-guide.html[4
+captures]
+
+13 Aug 2020 - 20 Jan 2021
+
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/[]
+
+[[wm-ipp-sparkline]]
+
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/#expand[[#wm-expand-icon .iconochive-down-solid]##
+About this capture]
+
+[[wm-capinfo]]
+[[wm-capinfo-collected-by]]
+COLLECTED BY
+
+[[wm-collected-by-content]]
+[.c-logo]##
+
+Collection: https://archive.org/details/commoncrawl[[.wm-title]#Common
+Crawl#]
+
+Web crawl data from Common Crawl.
+
+[[wm-capinfo-timestamps]]
+TIMESTAMPS
+
+[[wm-capresources]]
+
+[[wm-capresources-loading]]
+image:http://web.archive.org/_static/images/loading.gif[loading]
+
+[[wm-ipp-print]]
+The Wayback Machine -
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html
+
+[[donato]]
+[[donato-base]]
+
+[[wrapper]]
+[[header]]
+[[mm_headerLogo]]
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/index.html[ProjectForge]
+
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#skipNavigation91[Skip
+navigation]
+
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/[Start]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news.html[News]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/features.html[Features]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation.html[Documentation]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/technologies.html[Technologies]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/installation.html[Installation]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/quickstart.html[Quickstart]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/user-guide.html[User
+Guide]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-faq.html[FAQ]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/video-tutorials.html[Video
+tutorials]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/administration-guide.html[Administration
+Guide]
+** [.active]#Developer Guide#
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/screenshots.html[Screenshots]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/download.html[Download]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/download/archive.html[Archive]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/download/convenient-updates.html[Convenient
+updates]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/download/translation-files.html[Translation
+files]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/support.html[Pricing
+and support]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/terms-of-use.html[Terms
+of Use]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/about.html[About]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact/privacy-policy.html[Privacy
+Policy]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact/imprint.html[Imprint]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact.html[Contact]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/Application/references.html[References]
+
+[#skipNavigation91 .invisible]# #
+
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#skipNavigation99[Skip
+navigation]
+
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/[Start]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news.html[News]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/features.html[Features]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation.html[Documentation]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/technologies.html[Technologies]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/installation.html[Installation]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/quickstart.html[Quickstart]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/user-guide.html[User
+Guide]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-faq.html[FAQ]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/video-tutorials.html[Video
+tutorials]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/administration-guide.html[Administration
+Guide]
+** [.active]#Developer Guide#
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/screenshots.html[Screenshots]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/download.html[Download]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/download/archive.html[Archive]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/download/convenient-updates.html[Convenient
+updates]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/download/translation-files.html[Translation
+files]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/support.html[Pricing
+and support]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/terms-of-use.html[Terms
+of Use]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/about.html[About]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact/privacy-policy.html[Privacy
+Policy]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact/imprint.html[Imprint]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact.html[Contact]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/Application/references.html[References]
+
+[#skipNavigation99 .invisible]# #
+
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/#mm_offCanvas[[.icon-align-justify]##]
+
+== Developer Guide
+
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge.html[ProjectForge]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation.html[Documentation]
+* Developer Guide
+
+[[container]]
+[[main]]
+[[documentation-developer-guide]]
+== Table of Content
+
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Introduction[Introduction]
+* link:documentation/developer-guide.html#Setting%20up%20the%20environment[Setting
+up the environment]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Quickstart[Quickstart]
+** link:documentation/developer-guide.html#Preparation%20of%20Eclipse[Preparation
+of Eclipse]
+** link:documentation/developer-guide.html#Eclipse%20project%20import[Eclipse
+project import]
+*** link:documentation/developer-guide.html#Run%20in%20eclipse[Run in
+eclipse]
+**** link:documentation/developer-guide.html#Additional%20eclipse%20plugins[Additional
+eclipse plugins]
+** link:documentation/developer-guide.html#Development%20Mode[Development
+Mode]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Configuration[Configuration]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Concepts[Concepts]
+** link:documentation/developer-guide.html#Hibernate%20history[Hibernate
+history]
+*** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#ShortDisplayNameCapable[ShortDisplayNameCapable]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Wicket[Wicket]
+*** link:documentation/developer-guide.html#List%20edit%20and%20standard-form%20pages[List,
+edit and standard-form pages]
+*** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#i18n[i18n]
+*** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#SearchPage[SearchPage]
+** link:documentation/developer-guide.html#Core%20DOs%20and%20Daos[Core
+DO's and Dao's]
+*** link:documentation/developer-guide.html#Adding%20a%20new%20Dao[Adding
+a new Dao]
+* link:documentation/developer-guide.html#Hibernate%20search[Hibernate
+search]
+* link:documentation/developer-guide.html#Excel%20export[Excel export]
+
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Plugins[Plugins]
+
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Plugin%20Template[PlugIn
+Template]
+
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Rest-API[Rest-API]
+
+* link:documentation/developer-guide.html#Use%20cases%20for%20Rest[Use
+cases for Rest]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#AddressDaoRest[AddressDaoRest]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Team-calendar[Team-calendar]
+** link:documentation/developer-guide.html#Get%20reminders%20of%20events[Get
+reminders of events]
+** http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Calendars[Calendars]
+** link:documentation/developer-guide.html#Time%20sheet%20booking[Time
+sheet booking]
+
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Authentication[Authentication]
+
+link:documentation/developer-guide.html#Configurable%20Attributes[Configurable
+Attributes]
+
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#Overview[Overview]
+* link:documentation/developer-guide.html#The%20attrschema.xml%20file[The
+attrschema.xml file]
+** link:documentation/developer-guide.html#Structure%20of%20the%20attrschema.xml%20file[Structure
+of the attrschema.xml file]
+
+[[Introduction]]
+== Introduction
+
+This document contains some useful information for developers of
+ProjectForge. Issues on how to set up the database etc. you will find in
+the AdministrationGuide.
+
+[cols=",",]
+|===
+|Figure 1: |Overview of all modules of Project__Forge__®. The source
+code of most modules is hosted on
+http://web.archive.org/web/20210120040851/http://github.com/micromata[GitHub].
+|===
+
+[[Setting up the environment]]
+== Setting up the environment
+
+[[Quickstart]]
+=== Quickstart
+
+[[maincontent]]
+. Checkout: `git clone https://github.com/micromata/projectforge`
+. Build ProjectForge: `mvn -DskipTests=true install`
+. Run ProjectForge:
+`java -jar ./projectforge-launcher/target/projectforge-launcher-6.0.1-SNAPSHOT.jar`
+. Click "Start Server" in the launcher and open a browser via clicking
+the "Open Browser" button.
+
+[[Preparation of Eclipse]]
+=== Preparation of Eclipse
+
+To get ready with projectforge in eclipse you simply check out the git
+repository as explained. Open eclipse (Important: Java 8 is required)
+and import the maven projects from the parent pom.
+
+[[Run in eclipse]]
+=== Run in eclipse
+
+{empty}1. Open the project projectforge-launcher. +
+2. Run
+/projectforge-launcher/src/main/java/org/projectforge/launcher/PfiLauncherMain.java +
+3. You can add "-nogui" the the run configuration parameters to run
+projectforge in console mode
+
+[[Additional eclipse plugins]]
+=== Additional eclipse plugins
+
+{empty}1. Install the Spring source tool suite eclipse plugin from
+eclipse marketplace
+
+{empty}2. Install the TestNG plugin from eclipse marketplace
+
+[[Development Mode]]
+=== Development Mode
+
+[[maincontent]]
+. Please edit projectforge.properties and set the property
+developmentMode to true. The  development  parameter  can  be  get  over
+WebConfiguration.isDevelopmentMode(). It's actually used for system
+administration menu for dumping data base to xml.
+. Please  edit log4j.properties and  set  the  debug  level for  all 
+or  the  special  categories  you want to debug.
+
+[[Configuration]]
+== Configuration
+
+*File*:
+
+* projectforge-application: application.properties or
+* projectforge-launcher: projectforge.propertie`s`
+
+[source,brush:,java]
+----
+#SPRING PROPERTIES
+spring.datasource.url=jdbc:hsqldb:mem:ProjectForgeTestDB
+spring.datasource.username=sa
+spring.datasource.password=
+spring.datasource.driver-class-name=org.hsqldb.jdbcDriver
+#spring.datasource.max-active=8
+#spring.datasource.max-idle=8
+#spring.datasource.min-idle=0
+#spring.datasource.max-wait=-1
+server.port=8080
+server.address=localhost
+# "HttpOnly" flag for the session cookie.
+server.session.cookie.http-only=true
+# this avoids session fixation via jsessionid in URL
+server.session.tracking-modes=cookie
+# Session timeout in seconds.
+server.session.timeout=14400
+
+#PROJECTFORGE PROPERTIES
+projectforge.base.dir=${user.home}/ProjectForge
+projectforge.domain=https://www.myserver.org
+projectforge.wicket.developmentMode=false
+projectforge.testsystemMode=false
+
+projectforge.support.mail=
+
+#LoginDefaultHandler LdapMasterLoginHandler LdapSlaveLoginHandler
+projectforge.login.handlerClass=LoginDefaultHandler
+hibernate.search.default.indexBase=${projectforge.base.dir}/hibernateSearch
+projectforge.resourcesDirectory=
+projectforge.fontsDirectory=
+projectforge.logoFile=Micromata.png
+projectforge.export.logoFile=Micromata.png
+
+
+#Hack, has to be reworked latter
+projectforge.servletContextPath=
+projectforge.security.passwordPepper=*******SECRET********
+projectforge.security.sqlConsoleAvailable=false
+projectforge.telephoneSystemUrl=http://asterisk/originatecall.php?source=#source&target=#target
+projectforge.telephoneSystemNumber=0123456789
+projectforge.smsUrl=http://asterisk/sms.php?number=#number&message=#message
+projectforge.receiveSmsKey=*******SECRET********
+projectforge.phoneLookupKey=*******SECRET********
+projectforge.keystoreFile=jssecacerts
+projectforge.keystorePassphrase=*******SECRET********
+projectforge.sendMail.charset=
+projectforge.testsystemColor=#ff6868
+projectforge.ldap.server=
+projectforge.ldap.baseDN=
+projectforge.ldap.managerUser=
+projectforge.ldap.managerPassword=
+projectforge.ldap.port=
+projectforge.ldap.sslCertificateFile=
+projectforge.ldap.groupBase=
+projectforge.ldap.userBase=
+projectforge.ldap.authentication=
+projectforge.ldap.posixAccountsDefaultGidNumber=
+projectforge.ldap.sambaAccountsSIDPrefix=
+projectforge.ldap.sambaAccountsPrimaryGroupSID=
+
+#Window state of the Launcher Main window. Valid values are Normal, Minimized, SystemTrayOnly
+windowSettings=Normal
+
+#Starting application also starts server
+startServerAtStartup=false
+
+#Starting the server will open a browser window
+startBrowserOnStartup=false
+
+#Enable LF5 Viewer in Main window
+enableLF5=false
+
+#Port the server listened
+genome.jetty.port=${server.port}
+
+#Hostname/IP to listen. If empty listen to all
+genome.jetty.listenHost=${server.address}
+
+#subpath the application will running (part of the url)
+genome.jetty.contextpath=${projectforge.servletContextPath}
+
+#Url the application is reachable
+genome.jetty.publicUrl=http://localhost:${server.port}
+
+#Session timout in seconds
+genome.jetty.sessionTimeout=${server.session.timeout}
+
+#If enabled JMX will be enabled
+genome.jetty.jmx.enabled=false
+
+#If enabled all request will be logged into local filesystem
+genome.jetty.requestlogging.enabled=false
+
+#Use server with HTTPS
+genome.jetty.sslEnabled=false
+
+#Port number for HTTPS
+genome.jetty.sslPort=8081
+
+#Use only HTTPS (no HTTP)
+genome.jetty.sslOnly=false
+
+#Location of your SSL Keystore
+genome.jetty.sslKeystorePath=${projectforge.base.dir}/SSL
+
+#Password for the SSL Keystore
+genome.jetty.sslKeystorePassword=test123
+
+#Password for the SSL Keystore
+genome.jetty.sslKeyManagerPassword=managerTest123
+
+#Path to trust store
+genome.jetty.trustStorePath=${projectforge.base.dir}/SSL
+
+#Password trust store
+genome.jetty.trustStorePassword=test123
+
+#Alias used from inside the key store
+genome.jetty.sslCertAlias=projectforge
+
+#Alias to public url
+cfg.public.url=http://localhost:8080
+mail.session.pfmailsession.name=pfmailsession
+mail.session.pfmailsession.emailEnabled=true
+
+#A standard sender email address. The application may use another one
+mail.session.pfmailsession.standardEmailSender=somesender@example.com
+#Mail protocol: Plain, StartTLS,SSL
+mail.session.pfmailsession.encryption=StartTLS
+
+#Hostname of the email server
+mail.session.pfmailsession.smtp.host=mail.example.com
+
+#Port number of the email server
+mail.session.pfmailsession.smtp.port=25
+
+#The email server needs authentification
+mail.session.pfmailsession.smtp.auth=false
+
+#Authentification by user name
+mail.session.pfmailsession.smtp.user=
+
+#Users password
+mail.session.pfmailsession.smtp.password=
+
+#Configurare Database schema update. Valid values are validate, update, create, create-drop
+hibernate.hbm2ddl.auto=
+
+#Show the executed sql on console
+hibernate.show_sql=false
+
+#Format the shown execute sql in formatted form
+hibernate.format_sql=false
+
+#Name of the Datasource
+db.ds.projectForgeDs.name=projectForgeDs
+
+
+#Standard JDBC for Genome
+
+#Internal ID of the connection type
+db.ds.projectForgeDs.jdbcConntextionTypeId=PostgreSQLJdbcProviderServiceImpl
+
+#JDBC Java class
+db.ds.projectForgeDs.drivername=${spring.datasource.driver-class-name}
+
+#Database user
+db.ds.projectForgeDs.username=${spring.datasource.username}
+
+#Database password for given user
+db.ds.projectForgeDs.password=${spring.datasource.password}
+
+#JDBC url to connect to DB
+db.ds.projectForgeDs.url=${spring.datasource.url}
+db.ds.projectForgeDs.extendedSettings=false
+
+#Sets the maximum number of active connections that can be allocated at the same time.
+#Use a negative value for no limit.
+db.ds.projectForgeDs.maxActive=8
+
+#Sets the maximum number of connections that can remain idle in the pool.
+db.ds.projectForgeDs.maxIdle=8
+
+# Sets the minimum number of idle connections in the pool.
+db.ds.projectForgeDs.minIdle=0
+
+#Max waiting while obtaining connection. Use -1 to make the pool wait indefinitely.
+db.ds.projectForgeDs.maxWait=-1
+
+#Sets the initial size of the connection pool.
+db.ds.projectForgeDs.intialSize=0
+
+#Sets the default catalog.
+db.ds.projectForgeDs.defaultCatalog=
+
+#Sets default auto-commit state of connections returned by this datasource.
+db.ds.projectForgeDs.defaultAutoCommit=
+
+#Validation query to test if connection is valid.
+db.ds.projectForgeDs.validationQuery=
+
+#Sets the validation query timeout, the amount of time, in seconds, that connection validation will wait for a response from the database when  executing a validation query.
+#Use a value less than or equal to 0 for  no timeout.
+db.ds.projectForgeDs.validationQueryTimeout=-1
+
+#Intern name of of the jndi
+jndi.bind.dsWeb.name=dsWeb
+
+#type of the jndi target value
+jndi.bind.dsWeb.type=DataSource
+
+#reference to the source of the jndi target value
+jndi.bind.dsWeb.source=projectForgeDs
+
+#JNDI name published the jndi value
+jndi.bind.dsWeb.target=java:comp/env/projectForge/jdbc/dsWeb
+
+#Enable Incoming Mail
+genome.email.receive.enabled=false
+
+#Hostname of the mail server
+genome.email.receive.host=localhost
+
+#Mail protocol
+genome.email.receive.protocol=imaps
+
+#Port number of the mail server
+genome.email.receive.port=993
+genome.email.receive.user=test
+genome.email.receive.defaultFolder=
+genome.email.receive.password=test
+genome.email.receive.auth=true
+genome.email.receive.starttls.enable=false
+genome.email.receive.enableSelfSignedCerts=false
+genome.email.receive.socketFactory.port=
+genome.email.receive.socketFactory.class=
+genome.email.receive.auth.plain.disable=false
+
+#javax.mail debugging enabled.
+genome.email.receive.debug=false
+genome.logging.log4JToGenomeLogging=false
+
+#Type of the used logging
+genome.logging.typeId=log4j
+----
+
+[[Concepts]]
+== Concepts
+
+[[Hibernate history]]
+=== Hibernate history
+
+[[ShortDisplayNameCapable]]
+==== ShortDisplayNameCapable
+
+Mark your data object as `ShortDisplayNameCapable` for manipulating the
+history output of a data object (e. g. TaskDO implements this
+interface). Implement the interface method in your data object:
+
+[source,brush:,java]
+----
+public class TaskDO extends DefaultBaseDO implements ShortDisplayNameCapable
+{
+  ...
+  @Transient
+  public String getShortDisplayName()
+  {
+    return this.getName() + " (#" + this.getId() + ")";
+  }
+  ...
+}
+----
+
+[[Wicket]]
+=== Wicket
+
+[[List, edit and standard-form pages]]
+==== List, edit and standard-form pages
+
+ProjectForge uses RepeatingViews for having a floating layout of form
+elements. Therefore the most standard pages needs no own html page, they
+use the html code of their super classes.
+
+==== i18n
+
+[[maincontent]]
+* Standard set of i18n keys (prefix is specified in constructor of the
+list and edit pages):
+`[prefix].title.add, [prefix].title.edit, [prefix].title.list`
+
+  +
+Default locale is English. Please refer class
+`org.projectforge.web.I18nCore` for administration of existing and new
+localizations. You can add additional languages and translations by
+adding the translation files and adding the new locale in the `I18nCore`
+class.
+
+For Plugins and Attribute-Schema extensions there is a new way to add
+ResourceBundles.Instead of deploying your i18n files with the
+application you can put them in the external resource directory defined
+in projectforge.properties. +
+The application will search in this directory if the i18n-keys cannot be
+found in the deployed properties files. +
+  +
+`projectforge.base.dir=${user.home}/Projectforge` +
+`projectforge.resourcesDirectory=resources`
+
+The resources path is defined as concatenation of base directory and
+resource directory. So the full resource path of this snippet is
+$\{user.home}/Projectforge/resources.The i18n files for this location
+need to be named after this regular expression:
+`.*i18n(_.*)?.properties` The `_.*` can be omitted for the default
+translation.
+
+[[SearchPage]]
+==== SearchPage
+
+The requirements of all objects which should be part of the SearchPage
+are:
+
+. The Dao should be added to the Registry (see DaoRegistry).
+. The registered ListPage must implement a the interface
+`IListPageColumnsCreator.` You should also support `returnToPage` and
+`sortable` (the tables should not be sortable on SearchPage).
+
+File: `AddressListPage.java`
+
+[source,brush:,java]
+----
+@SuppressWarnings("serial")
+public List<IColumn<AddressDO>> createColumns(final WebPage returnToPage, final boolean sortable)
+{
+  ...
+      view.add(new ListSelectActionPanel(view.newChildId(), rowModel, AddressEditPage.class, address.getId(), returnToPage, ...
+  ...
+    columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<String>(getString("modified")), getSortable("lastUpdate", sortable), "lastUpdate", ...
+----
+
+{empty}1. The Dao method getList(BaseSearchFilter) should support the
+generic BaseSearchFilter if the super method is overwritten:
+
+File: `AddressDao.java`
+
+[source,brush:,java]
+----
+@Override
+public List<AddressDO> getList(BaseSearchFilter filter)
+{
+  final AddressFilter myFilter;
+  if (filter instanceof AddressFilter) {
+    myFilter = (AddressFilter) filter;
+  } else {
+    myFilter = new AddressFilter(filter);
+  }
+  QueryFilter queryFilter = new QueryFilter(myFilter);
+  ...
+}
+----
+
+{empty}2. Therefore the Filter should have the constructor which copies
+all fields of the BaseSearchFilter to the special filter (if exist).
+
+File: `AddressFilter.java`
+
+[source,brush:,java]
+----
+public AddressFilter()
+{
+}
+
+public AddressFilter(BaseSearchFilter filter)
+{
+  super(filter);
+  ...
+}
+----
+
+[[Core DO's and Dao's]]
+=== Core DO's and Dao's
+
+[[Adding a new Dao]]
+==== Adding a new Dao
+
+. Add the Dao class to: `org.projectforge.registry.DaoRegistry.java`
+. Add the Dao to the spring configuration:
+`applicationContext-business.xml.`
+. Add the DO to hibernate configuration
+in:`org.projectforge.database.HibernateCoreEntities.java`
+
+[[Hibernate search]]
+=== Hibernate search
+
+//Hier Text eintragen
+
+[[Excel export]]
+=== Excel export
+
+Excel downloads are quite simple:
+
+File: `Kost1ListPage.java`
+
+[source,brush:,java]
+----
+private enum Col
+{
+  STATUS, KOST, DESCRIPTION;
+}
+
+void exportExcel()
+{
+  ...
+  final ExportWorkbook xls = new ExportWorkbook();
+  final ContentProvider contentProvider = new XlsContentProvider(xls);
+  xls.setContentProvider(contentProvider);
+  final ExportSheet sheet = xls.addSheet(sheetName);
+  final ExportColumn[] cols = new ExportColumn[] { //
+  new I18nExportColumn(Col.KOST, "fibu.kost1", 10), // Id, i18n key, length
+      new I18nExportColumn(Col.DESCRIPTION, "description", 30),
+      new I18nExportColumn(Col.STATUS, "status", 10)};
+  sheet.setColumns(cols);
+  // Insert here cell formats if needed.
+  final PropertyMapping mapping = new PropertyMapping();
+  for (final Kost1DO kost : kost1List) {
+    mapping.add(Col.KOST, kost.getFormattedNumber());
+    mapping.add(Col.STATUS, kost.getKostentraegerStatus());
+    mapping.add(Col.DESCRIPTION, kost.getDescription());
+    sheet.addRow(mapping.getMapping(), 0);
+  }
+  DownloadUtils.setDownloadTarget(xls.getAsByteArray(), filename);
+}
+----
+
+If you need your own cell formats, please try something like this:
+
+[source,brush:,java]
+----
+final ContentProvider sheetProvider = sheet.getContentProvider();
+sheetProvider.putFormat(Col.START_TIME, "yyyy-MM-dd HH:mm");
+sheetProvider.putFormat(Col.STOP_TIME, "HH:mm");
+sheetProvider.putFormat(Col.DURATION, "[h]:mm");
+sheetProvider.putFormat(Col.ID, "0");
+sheetProvider.putFormat(Col.BETRAG, "#,##0.00;[Red]-#,##0.00");
+----
+
+[[Plugins]]
+== Plugins
+
+[[maincontent]]
+Extend ProjectForge with your own plugins or third party plugins. This
+chapter describes how easy it is to write own plugins. Enable the
+following features inside your plugins with a few lines of code:
+
+* *Data-base objects*
+
+There is a convenient mapping from your Java classes to data-base
+entries.
+
+* *Full-text index*
+
+For all your data-base entries a full-text engine is automatically
+enabled for fast full-text search.
+
+* *History of changes*
+
+If required all changes of your data-base entries are persisted in a
+history of changes containing the user, time stamp, change (old and new
+value) etc.
+
+* *E-Mail templating*
+
+Send e-mail with the ProjectForge's built-in template mechanism.
+
+* *Mobile pages*
+
+It's so easy to provide web pages in your plugin which are optimized for
+mobile devices (iPhone, Android, BlackBerry, Windows phones etc).
+
+* *Access management*
+
+You can define your own access management. Therefore only those users
+are able to see or modify data they are authorized to. You can define
+rules or add your own rights to the central user management.
+
+* *Updating mechanisms*
+
+ProjectForge provides a convenient update mechanism. Every time the
+administrator starts a new version of ProjectForge or your plugin a
+check will be done during the start-up phase. If required, the
+administrator is able to update your data-base schema or required
+migration scripts by simply clicking the update button.
+
+* *Scripting*
+
+Your new plugin data are automatically available inside ProjectForge's
+scripting functionality.
+
+[[Plugin Template]]
+== PlugIn Template - Add your own plugin to ProjectForge
+
+[[maincontent]]
+It's easy to add your own functionality to ProjectForge by developing
+your own PF plugin. Gather your experience of the technologies such as
+Spring, Wicket and Hibernate by developing your plugins step by step.
+
+. Download sourcecode
+
+First of all you need the PF sourcecode. The sources are hosted at
+Github. Simply Clone, download or fork the repository:
+
+http://web.archive.org/web/20210120040851/https://github.com/micromata/projectforge/[https://github.com/micromata/projectforge/]
+
+       2. Look at the plugin template
+
+We designed a plugin template which is placed in the plugin folder of
+the sources. There you have the main structure of a projectforge plugin.
+It includes the main PF plugin functionality, which is recommend for PF
+to find the plugin. It also has a simple data object (DO), a data access
+object (DAO), a service, the wicket web UI and a exaple REST-Service.
+
+The PluginTemplatePlugin class is used to register all your components
+(data base object, data access object, menu entries, rest services and
+web pages) as well as the i18n resource bundle (e. g.
+PluginTemplateI18nResources.properties).
+
+      3. Data and data access object
+
+The data objects (DO) are plain JPA Pojos which the standard JPA
+annotation. We have build a DefaultBaseDO class, which provides some
+fields like the PK, created-, modified-, deleted-flag and a tenant
+reference. There for you could look at the PluginTemplateDO class, which
+is a simple key/value pair data object. 
+
+The data access object (DAO) is used for reading data from the database.
+This also has a super class, which is named BaseDao. This base class
+provides a lot of functionality for getting data in a list, getting
+single data, checking rights for selectin, inserting and modificating
+data. Most of the methods could be overritten to customize it for your
+own stuff. 
+
+At the moment you can use two ways of getting data. The deprecated way
+is to use the hibernate template. The new way is to use JPA via
+the PfEmgrFactory. This could be autowired via Spring. In
+the PluginTemplateDao we show you the two options.
+
+The access to object is checked by the base dao
+class. ReferPluginTemplateRight class for defining which user should
+have access to your data objects.
+
+For define your data-base setup and update scripts
+see PluginTemplatePluginUpdates class for how easy it is to define your
+data-base setup and update scripts for any further release of your
+plugin.
+
+     4. Wicket web view
+
+Most of all PF web pages are in the same style. You have a list view,
+which could be filtered and also you have a create/edit view for single
+data entries. For both views we have to class types: the page and the
+form class. These two types have also super classes provided by PF. The
+filter is used for the filter view in the list page and also for
+database queries in the daos.
+
+    5. REST service
+
+The last part of the plugin is a simple REST service. For all REST
+services we use jersey REST configuration. The REST class has standard
+REST annotations. All rest servises, which are registred in jersey, are
+availeble at the context path http(s)://myurl.org/rest/*. It uses the
+RestUserFilter which checks for authentication.
+
+    6. Get it runnable
+
+Last point is the META-INF resource folder which is used for finding the
+plugin in the application classpath. Customize it for your own plugin.
+To add the plugin to the main PF application you build the plugin jar
+file via maven and put it in the plugins directory next to the PF main
+jar file. Start the main application and activate the plugin on the
+ProjectForge web page under Administration -> Plugins.
+
+Note: For get the plugin runnable in your IDE (e.g. eclipse or intelliJ)
+you have to put the plugin project reference to the
+projectforge-application classpath. 
+
+[[Rest-API]]
+== Rest-API
+
+Please refer the Project__Forge__® repository `projectforge-jax-rs` on
+GitHub for getting example code for using Project__Forge__® within your
+clients. Please refer the classes `AuthenticationRest` for description
+and the client demo applications `RestClientMain, AddressDaoClientMain`
+etc.
+
+[[Use cases for Rest]]
+== Use cases for Rest
+
+Some clients are already implemented, further Rest calls will be
+implemented when needed.
+
+[[AddressDaoRest]]
+== AddressDaoRest
+
+Rest-Call for AddressDao#getFavoriteVCards(). +
+If modifiedSince is given then only those addresses will be returned: +
+The address was changed after the given modifiedSince date, or +
+the address was added to the user's personal address book after the
+given modifiedSince date, or +
+the address was removed from the user's personal address book after the
+given modifiedSince date. +
+The use case is to get all v-cards initial and then get only new,
+modified or deleted entries every time interval (incremental update).
+
+[[Team-calendar]]
+== Team-calendar
+
+[[Get reminders of events]]
+=== Get reminders of events
+
+Get future reminders for events by calling
+TeamEventDaoRest.getReminderList(calendarIds, daysInFuture). You will
+receive a list with all events having reminders (alarm triggers e. g. 15
+minutes before the event).
+
+[[Calendars]]
+=== Calendars
+
+in progress: get calendar list, get events, add and modify events with
+your mobile device (Android, iOS, Blackberry etc.) via native app.
+
+[[Time sheet booking]]
+=== Time sheet booking
+
+in progress: get time sheets, add and modify time sheets with your
+mobile device (Android, iOS, Blackberry etc.) via native app.
+
+[[Authentication]]
+== Authentication
+
+[[maincontent]]
+It's recommended to avoid storing the user's username and password on
+the client (e. g. on the mobile phone) due to security reasons. Please
+store the user's id and authentication-token instead:
+
+. On first start of your client (user-token isn't known yet), please
+call `AuthenticationRest.getToken()` for getting the user data (id,
+authentication-token and optional information) by sending the username
+and password the user typed in.
+. You may now store the user's id and authentication-token for the
+user's convenience on your client (e. g. mobile app).
+. Every time the user starts the client / app you should call
+`AuthenticationRest.initialContact(String)` for checking the server
+version. May-be the server version is too old or your client version is
+too old. This call is optional but good practice.
+. Every further rest call is done by authentication via user-id and
+authentication-token. The user-id is required for logging purposes e. g.
+for failed logins or brute-force attacks.
+
+[[Configurable Attributes]]
+== Configurable Attributes
+
+With configurable attributes it is possible to add additional
+(time-dependent) data fields and panels to existing pages just by
+editing a xml file and without changing the java code.
+
+[[Overview]]
+== Overview
+
+The following (red rectangle) shows an example of how the web interface
+can look like with configurable attributes.
+
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/files/projectforge_content/images/Configurable_Attributes_Screenshot.png[image:http://web.archive.org/web/20210120040851im_/https://www.projectforge.org/files/projectforge_content/images/Configurable_Attributes_Screenshot.png[image,width=700]]
+
+The following is an example of such a xml file:
+
+[source,brush:,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="attrSchemataMap" class="java.util.HashMap">
+    <constructor-arg>
+      <map>
+        <entry key="employee">
+          <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrSchema">
+            <constructor-arg>
+              <list>
+
+                <!-- health insurance -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="healthinsurance"/>
+                  <property name="i18nKey" value="fibu.employee.healthinsurance.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="name"/>
+                        <property name="i18nkey" value="fibu.employee.healthinsurance.name"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="maxLength" value="255"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="number"/>
+                        <property name="i18nkey" value="fibu.employee.healthinsurance.number"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="maxLength" value="40"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- wage tax -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="wagetax"/>
+                  <property name="i18nKey" value="fibu.employee.wagetax"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="taxbracket"/>
+                        <property name="i18nkey" value="fibu.employee.taxbracket"/>
+                        <property name="type" value="java.lang.Integer"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.IntegerAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="1"/>
+                        <property name="maxIntValue" value="6"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- weekend work -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="INSTANT_OF_TIME"/>
+                  <property name="name" value="weekendwork"/>
+                  <property name="i18nKey" value="fibu.employee.weekendwork.title"/>
+                  <property name="i18nKeyStartTime" value="attr.instantOfTime"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="weekendworkday"/>
+                        <property name="i18nkey" value="fibu.employee.weekendwork.day"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory">
+                            <property name="i18nKeyList">
+                              <list>
+                                <value>fibu.employee.weekendwork.saturday</value>
+                                <value>fibu.employee.weekendwork.sunday</value>
+                              </list>
+                            </property>
+                          </bean>
+                        </property>
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="workinghours"/>
+                        <property name="i18nkey" value="fibu.employee.weekendwork.workhours"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="10"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- nutrition -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="NOT_TIMEABLE"/>
+                  <property name="name" value="nutrition"/>
+                  <property name="i18nKey" value="fibu.employee.nutrition.title"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="nutrition"/>
+                        <property name="i18nkey" value="fibu.employee.nutrition.title"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory">
+                            <property name="i18nKeyList">
+                              <list>
+                                <value>fibu.employee.nutrition.omnivorous</value>
+                                <value>fibu.employee.nutrition.vegetarian</value>
+                                <value>fibu.employee.nutrition.vegan</value>
+                              </list>
+                            </property>
+                          </bean>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- end of probation -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="NOT_TIMEABLE"/>
+                  <property name="name" value="probation"/>
+                  <property name="i18nKey" value="fibu.employee.probation.title"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="probation"/>
+                        <property name="i18nkey" value="fibu.employee.probation.title"/>
+                        <property name="type" value="java.util.Date"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.DateAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+              </list>
+            </constructor-arg>
+          </bean>
+        </entry>
+      </map>
+    </constructor-arg>
+  </bean>
+</beans>
+----
+
+[[The attrschema.xml file]]
+== The attrschema.xml file
+
+The xml file must have the name attrschema.xml and must be located in
+the ProjectForge base directory, see [.gwikiLocalLink]#Configuration#.
+At the moment (version 6.1) it is only possible to extend the employee
+edit page with configurable attributes. It is a spring beans xml file
+and must be in the following format:
+
+[source,brush:,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="attrSchemataMap" class="java.util.HashMap">
+    <constructor-arg>
+      <map>
+
+        <entry key="employee">
+          <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrSchema">
+            <constructor-arg>
+              <list>
+
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property .../>
+                  ...
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property .../>
+                        ...
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+                ...
+
+              </list>
+            </constructor-arg>
+          </bean>
+        </entry>
+        ...
+
+      </map>
+    </constructor-arg>
+  </bean>
+</beans>
+----
+
+[[Structure of the attrschema.xml file]]
+== Structure of the attrschema.xml file
+
+. `AttrSchema`: The `<entry>` element corresponds to a database entity.
+At the moment only `employee` is supported.
+. `AttrGroup`: Within each `<entry>` element there is a `<list>` which
+can contain multiple
+`<bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">`
+elements. Each of these elements is shown as a panel in the
+corresponding edit page (see screenshot of the employee edit page). Each
+element has multiple `<property>` sub elements which are describing this
+group/panel:
+* `<property name="type" value="..."/>` valid values of the attribute
+`value` are `NOT_TIMEABLE`, `PERIOD` and `INSTANT_OF_TIME`. Both
+`PERIOD` and `INSTANT_OF_TIME` have in common that in the web interface
+you can add/change/delete multiple entries for different dates. Compared
+to `NOT_TIMEABLE` the panels of these two types have additional UI
+elements for these purposes.
+** `NOT_TIMEABLE`: This value is designated for a group of regular
+fields which are not time-dependent.
+** `PERIOD`: This value is designated for a group of fields whose values
+are valid for a certain period. This period starts at the date which is
+selected in the web interface and it ends at the date of the nearest
+successor entry. If there is no successor entry, than it's end is open.
+At the moment, the only granularity is day. _Example: An employee has
+the tax bracket 1 since 01.01.2016. As of 01.01.2017 it will have the
+tax bracket 4._
+** `INSTANT_OF_TIME` This value is designated for a group of fields
+whose values are valid for a certain instant of time, which is selected
+in the web interface. At the moment, the only granularity is day.
+_Example: An employee has worked on sunday 11.06.2016 for 10 hours._
+* `<property name="name" value="..."/>` The value must be a string. It
+is used as the first part of the html ID of all input fields of the
+panel. Therefore it must follow the rules for valid html IDs.
+Furthermore it must be unique within each `AttrSchema` because it is
+used as a key in the database.
+* `<property name="i18nKey" value="..."/>` The value must be an i18n key
+(see
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/pf-en/i18n[i18n]).
+It's translation is shown in the heading of the panel.
+* `<property name="i18nKeyStartTime" value="..."/>` This property is
+only required for `PERIOD` and `INSTANT_OF_TIME`. It is an i18n key
+whose translation is shown to the left of the datepicker in the panel.
+Typical values are `attr.validFrom` for `PERIOD` and
+`attr.instantOfTime` for `INSTANT_OF_TIME`.
+* `<property name="descriptions">` This is a `<list>` of
+`<bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">`
+elements, each of them describing one field of the panel.
+. `AttrDescription`: Each element has multiple `<property>` sub elements
+which are describing this field:
+* `<property name="propertyName" value="..."/>` The value must be a
+string. It is used as the second part of the html ID of this field.
+Therefore it must follow the rules for valid html IDs. Furthermore it
+must be unique within each `AttrGroup` for `PERIOD` and
+`INSTANT_OF_TIME` and unique within each `AttrSchema` for `NOT_TIMEABLE`
+because it is used as a key in the database.
+* `<property name="i18nkey" value="..."/>` This is the i18n key of the
+field. It is shown to it's left.
+* `<property name="required" value="..."/>` Valid values are `true` and
+`false`. This property is optional. If it is omitted is has the same
+effect as set to `false`.
+** `true`: The field must be filled in the web interface.
+** `false`: The field does not need to be filled.
+* `<property name="wicketComponentFactoryClass">` This describes what
+kind of field should be generated. These are the possible sub elements:
+** `<bean class="org.projectforge.web.common.timeattr.IntegerAttrWicketComponentFactory"/>`
+This will create a number field of type Integer. The following optional
+properties can be used to restrict the input:
+`<property name="minIntValue" value="..."/>` and
+`<property name="maxIntValue" value="..."/>` (see the example).
+Furthermore this property must be set:
+`<property name="type" value="java.lang.Integer"/>`.
+** `<bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>`
+This will create a number field of type BigDecimal. The following
+optional properties can be used to restrict the input:
+`<property name="minIntValue" value="..."/>` and
+`<property name="maxIntValue" value="..."/>` (see the example).
+Furthermore this property must be set:
+`<property name="type" value="java.math.BigDecimal"/>`.
+** `<bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>`
+This will create a text field of type String. The following optional
+property can be used to restrict the length of the input:
+`<property name="maxLength" value="..."/>` (see the example).
+Furthermore this property must be set:
+`<property name="type" value="java.lang.String"/>`.
+** `<bean class="org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory">`
+This will create a drop down menu. The example above shows how the
+options can be added to it. The options must be i18n keys which will be
+translated for the web interface. Furthermore this property must be set:
+`<property name="type" value="java.lang.String"/>`.
+** `<bean class="org.projectforge.web.common.timeattr.DateAttrWicketComponentFactory">`
+This will create a date picker. The example above shows how the options
+can be added to it. Furthermore this property must be set:
+`<property name="type" value="java.util.Date"/>`.
+
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#skipNavigation108[Skip
+navigation]
+
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/application/technologies.html[Technologies]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/installation.html[Installation]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/quickstart.html[Quickstart]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/user-guide.html[User
+Guide]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-faq.html[FAQ]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/video-tutorials.html[Video
+tutorials]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/administration-guide.html[Administration
+Guide]
+* [.active]#Developer Guide#
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/screenshots.html[Screenshots]
+
+[#skipNavigation108 .invisible]# #
+
+== Latest News
+
+2018-07-17 14:19
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news/projectforge-6-22-0-released.html[ProjectForge
+6.22.0 released]
+
+2017-12-06 15:52
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news/projectforge-6-19-3-released.html[ProjectForge
+6.19.3 released]
+
+2017-11-06 12:00
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news/projectforge-6-18-0-released.html[ProjectForge
+6.18.0 released]
+
+2017-08-23 15:16
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news/projectforge-6171-released.html[ProjectForge
+6.17.1 released]
+
+2017-08-10 09:33
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/projectforge-news/projectforge-6161-released.html[ProjectForge
+6.16.1 released]
+
+== Links
+
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/video-tutorials.html[Video
+Tutorials]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/screenshots.html[Screenshots]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation.html[Documentation]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/download.html[Free
+Downloads]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/quickstart.html[Quickstart]
+* http://web.archive.org/web/20210120040851/https://github.com/micromata/projectforge/issues[GitHub
+Issue Tracker]
+* http://web.archive.org/web/20210120040851/https://sourceforge.net/projects/pforge/forums/forum/1268364[Help
+forum]
+* http://web.archive.org/web/20210120040851/https://labs.micromata.de/[More
+on Micromata Labs]
+* http://web.archive.org/web/20210120040851/https://sourceforge.net/projects/pforge/[ProjectForge
+on SourceForge]
+* http://web.archive.org/web/20210120040851/https://github.com/micromata/projectforge[ProjectForge
+on GitHub]
+
+== ProjectForge® is a registered trade mark.
+
+© 2001-2017 Kai Reinhard +
+Micromata GmbH +
+Marie-Calm-Str. 1-5 +
+D-34131 Kassel +
+Germany +
+http://web.archive.org/web/20210120040851/http://www.micromata.de/[www.micromata.de]
+
+[[mm_footerLinks]]
+* http://web.archive.org/web/20210120040851/https://www.xing.com/companies/micromatagmbh[[.icon-xing-sign .icon-2x]##]
+* http://web.archive.org/web/20210120040851/https://twitter.com/micromata[[.icon-twitter-sign .icon-2x]##]
+* http://web.archive.org/web/20210120040851/https://www.facebook.com/pages/Micromata/303133633035[[.icon-facebook-sign .icon-2x]##]
+
+* http://web.archive.org/web/20210120040851/http://www.micromata.de/[micromata.de]
+* http://web.archive.org/web/20210120040851/http://labs.micromata.de/[labs.micromata.de]
+* http://web.archive.org/web/20210120040851/http://jugh.de/[jugh.de]
+
+http://web.archive.org/web/20210120040851/https://www.projectforge.org/documentation/developer-guide.html#skipNavigation90[Skip
+navigation]
+
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact.html[Contact]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact/imprint.html[Imprint]
+* http://web.archive.org/web/20210120040851/https://www.projectforge.org/contact/privacy-policy.html[Privacy
+Policy]
+
+[#skipNavigation90 .invisible]# #
