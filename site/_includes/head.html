@@ -8,8 +8,13 @@
   <link rel="shortcut icon" type="image/png" href="{{ "/uploads/favicon.png" | relative_url }}" >
   <link rel="alternate" type="application/rss+xml" title="{{ site.title | escape }}" href="{{ "/feed.xml" | relative_url }}">
   <script src="{{ "/assets/js/main.js" | relative_url }}"></script>
-  {% if page.hero.search or site.navbar.search %}
-    {% include search-js.html %}
+  {% if page.tipue_search_active or layout.tipue_search_active %}
+  <link rel="stylesheet" href="{{ "/assets/tipuesearch/css/normalize.css" | relative_url }}">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="{{ "/assets/tipuesearch/tipuesearch_content.js" | relative_url }}"></script>
+  <link rel="stylesheet" href="{{ "/assets/tipuesearch/css/tipuesearch.css" | relative_url }}">
+  <script src="{{ "/assets/tipuesearch/tipuesearch_set.js" | relative_url }}"></script>
+  <script src="{{ "/assets/tipuesearch/tipuesearch.min.js" | relative_url }}"></script>
   {% endif %}
   {% include hook-head.html %}
   {% if jekyll.environment == 'production' and site.google_analytics %}
