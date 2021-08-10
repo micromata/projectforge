@@ -1,7 +1,9 @@
 name: GitHub Pages publication
 
 on:
-  push
+  push:
+    branches:
+      - develop
 
 jobs:
   jekyll:
@@ -16,11 +18,6 @@ jobs:
         key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile') }}
         restore-keys: |
           ${{ runner.os }}-gems-
-
-    # Standard usage
-    - uses:  helaili/jekyll-action@v2
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
 
     # Specify the Jekyll source location as a parameter
     - uses: helaili/jekyll-action@v2
