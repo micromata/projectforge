@@ -16,6 +16,9 @@ left:
       - title: Installation
         url: /docs/installation/
 
+      - title: Administration guide
+        url: /docs/adminguide/
+
       - title: User guide
         url: /docs/userguide/
 
