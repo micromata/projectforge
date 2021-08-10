@@ -22,9 +22,6 @@ left:
       - title: User guide
         url: /docs/userguide/
 
-      - title: Deployment
-        url: /docs/deployment/
-
       - title: Development
         url: /docs/development/
 
