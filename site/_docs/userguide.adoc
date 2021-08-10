@@ -30,18 +30,18 @@ fields of the data objects are part of the index. (see figure 1).
 
 image::/uploads/userguide/searchfield.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 1: |Enter a free text in the search field to start a full text
 query. Part of words are as well supported as logical expressions.
 |===
 
 A detailed description of the possibilities may be find on Lucene
-page http://web.archive.org/web/20210119123248/http://lucene.apache.org/java/2_4_0/queryparsersyntax.html[lucene.apache.org/java/2_4_0/queryparsersyntax.html] .
+page https://lucene.apache.org/core/2_9_4/queryparsersyntax.html[window=_blank].
 
 The following table shows some common used queries.
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Expression |Function
 
@@ -76,7 +76,7 @@ entered term will be leaved untouched. Logical expressions of Lucene
 (the keywords AND, OR and NOT) will also be leaved untouched).
 ____
 
-[width="100%",cols="50%,50%",]
+[cols="1,3",]
 |===
 |Expression |Modification by ProjectForge
 
@@ -125,7 +125,7 @@ All other filter criterias will also be used. (see figure 2)
 
 image::/uploads/userguide/extendedFilter.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 2: |Through the extended search filter you may search for
 objects which were changed during a given time period.
@@ -161,7 +161,7 @@ default view is used with the recent parameters).
 
 image::/uploads/userguide/Bookmark-list.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 3: |This figure demonstrates the bookmarking functionality of
 the list views. The first link contains only a bookmark for the list
@@ -185,9 +185,9 @@ templates (e. g. in JIRA or e-mails).
 
 image::/uploads/userguide/Bookmark-edit.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
-|Figure 4: |
+|Figure 4: | Bookmarks
 |===
 
 === Stay logged-in
@@ -226,7 +226,7 @@ element of ProjectForge®. (see figure 5)
 
 image::/uploads/userguide/Zeitblaettern.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 5: |Quick-time-period selection with browse mode for months and
 weeks
@@ -248,14 +248,14 @@ change his time-zone if he travels through different time-zones.
 
 image::/uploads/userguide/PF-TeamCal-MonthView.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 6: |Month display mode of team calendar.
 |===
 
 image::/uploads/userguide/PF-TeamCal-Weekview-preview.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 7: |Week display mode of team calendar. The red line is the
 current time-line.
@@ -269,7 +269,7 @@ calendars different colors.
 
 image::/uploads/userguide/PF-TeamCal-filters-preview.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 8: |Customize your view filters with own colors etc. You may
 switch the view with only two clicks.
@@ -288,7 +288,7 @@ iCal.
 
 image::/uploads/userguide/PF-TeamCal-Subscription.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 9: |An example of subscribed calendars of ProjectForge in
 Apple's ical.
@@ -296,7 +296,7 @@ Apple's ical.
 
 image::/uploads/userguide/PF-TeamCal-ical.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 10: |An example of subscribed calendars of ProjectForge in
 Apple's ical.
@@ -310,7 +310,7 @@ single events or future events of recurrence events.
 
 image::/uploads/userguide/PF-TeamCal-RecurrenceDialog.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 11: |You may remove or modify single events or future events of
 recurrence events
@@ -331,7 +331,7 @@ of events such as title, notes etc. are removed and aren't visible.
 
 image::/uploads/userguide/PF-TeamCal-Access.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 12: |You may configure the access to any calendar for groups
 and/or users.
@@ -410,7 +410,7 @@ ____
 
 image::/uploads/userguide/AddressEdit-Favorites.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 13: |This figure demonstrates the possibility to mark addresses
 or phone numbers as favorites.
@@ -443,7 +443,7 @@ end tell
 
 You may export telephone numbers of addresses (marked in the address
 edit page by clicking the check-box '*', refer
-fig. http://web.archive.org/web/20210119123248/https://projectforge.org/pf-common/User_guide#label_fig:favorites[13] ).
+fig. 13).
 You may import phone numbers to your mobile device or system telephone
 (e. g. SNOM telephone) if vCard isn't supported.  +
 Via the button 'Export phone list' all' all marked phone numbers will be
@@ -489,7 +489,7 @@ now.
 
 image::/uploads/userguide/AddressList-NumberZoom.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 16: |Animated zoom of phone numbers
 |===
@@ -506,7 +506,7 @@ ProjectForge®.
 image::/uploads/userguide/Direktwahl-Adressbuch.png[image]
 
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 17: |shows the auto-completion functionality to initiate phone
 calls very easy.
@@ -521,7 +521,7 @@ ____
 
 image::/uploads/userguide/Direktwahl.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 18: |
 |===
@@ -541,14 +541,14 @@ a typical tree view of structure elements in ProjectForge®.
 
 image::/uploads/userguide/TaskTree.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 19: |Hierarchy of structure elements in ProjectForge®
 |===
 
 The following table describes the fields of structure elements:
 
-[cols=",",]
+[cols="1,3",]
 |===
 |Field |Description
 
@@ -603,7 +603,7 @@ is displayed as a tool tip.
 
 ==== Consumption bars for open structure elements
 
-[cols=",,",]
+[cols="1,3,3",]
 |===
 |Color |Meaning |Tool tip
 
@@ -626,7 +626,7 @@ bar.
 
 ==== Consumption bars for finished structure elements
 
-[cols=",,",]
+[cols="1,3,3",]
 |===
 |Color |Meaning |Tool tip
 | image:/uploads/userguide/Consumption-empty.png[image, width=100]
@@ -689,7 +689,7 @@ will be sent by e-mail including a quick link to the order, see figure
 
 image::/uploads/userguide/Auftragsbuch-Notification.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 20: |Order book with e-mail notification
 |===
@@ -942,8 +942,8 @@ You should use the English notation:
 |DD.MM.YYYY hh:mm |Date with time of day
 |DD.MM.YYYY hh:mm:ss |Date with time of day including seconds
 |0 |Normal output of number without thousands delimiter.
-|#,##0.00$ |Currency (Dollar)
-|#,##0.00$;[Red]-#,##0.00$ |Currency with red colored negative values.
+|+++#,##0.00$+++ |Currency (Dollar)
+|+++#,##0.00$;[Red]-#,##0.00$+++ |Currency with red colored negative values.
 |===
 
 ==== Excel and time periods
@@ -966,7 +966,7 @@ You may create charts using (www.jfree.org).
 
 image::/uploads/userguide/ExportJFreeChart.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 21: |Example of a script producing a chart
 |===
@@ -1028,7 +1028,7 @@ Figure 22 shows an example file.
 
 image::/uploads/userguide/Excel-import-example.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 22: |Example file for an Excel import
 |===
@@ -1132,7 +1132,7 @@ of payment.
 image::/uploads/userguide/PF-liquidity.png[image]
 
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 23: |Liquidity with forecast of the cash flow
 |===
@@ -1180,7 +1180,7 @@ Dateisystem selektiert. Anschließend wird die gewünschte Importfunktion
 image::/uploads/userguide/Datev-Import-step1.png[image]
 
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 24: |Datev-Import, Schritt 1: Auswahl der Importdatei
 |===
@@ -1197,7 +1197,7 @@ erkannt wurde.) Fehlerhafte Datensätze können bereits eingesehen werden
 
 image::/uploads/userguide/Datev-Import-step2.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 25: |Datev-Import, Schritt 2: Einlesen der Datei
 |===
@@ -1215,7 +1215,7 @@ neue und modifizierte Datensätze angezeigt.
 
 image::/uploads/userguide/Datev-Import-step3.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 26: |Datev-Import, Schritt 3: Verproben
 |===
@@ -1234,7 +1234,7 @@ werden.
 
 image::/uploads/userguide/Datev-Import-step4.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 27:__ |_Datev-Import, Schritt 4: Prüfen, Selektion und
 Übernahme_
@@ -1252,7 +1252,7 @@ zur Auswahl angeboten.
 
 image::/uploads/userguide/Datev-Import-step5.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 28: |Datev-Import, Schritt 5: Abschluss
 |===
@@ -1270,7 +1270,7 @@ Folgendes Format wird erwartet (see figure 29).
 
 image::/uploads/userguide/Datev-Import-Kontenplan.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 29: |Excelformat für Datev-Import des Kontenplans
 |===
@@ -1309,7 +1309,7 @@ Folgendes Format wird erwartet (see figure 30).
 image::/uploads/userguide/Datev-Import-Buchungssaetze.png[image]
 
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 30: |Excelformat für Datev-Import der Buchungssätze
 |===
@@ -1408,7 +1408,7 @@ cost assignements).
 
 image::/uploads/userguide/Zeitberichtsschutz.png[image]
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 31: |Time sheet protection for structure elements (incl.
 structure sub elements)
@@ -1435,7 +1435,7 @@ Figure 32 shows a structure element with the assigned project '5.200.00
 image::/uploads/userguide/Aufgabe_Kost2.png[image]
 
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 32: |Assigning cost2 units to structure elements.
 |===
@@ -1459,7 +1459,7 @@ a selection of a cost unit is required as shown in figure 33.
 image::/uploads/userguide/Zeitbericht_anlegen_kost2.png[image]
 
 
-[cols=",",]
+[cols="1,4",]
 |===
 |Figure 33: |Booking of time sheets to structure elements with given
 cost units
@@ -1530,9 +1530,9 @@ will not be modified (only the apostrophe itself is removed before
 evaluation).  +
 Examples:
 
-* "3.*" ->, "3\..*" (matches all strings beginning with "3.".
-* "*.02" ->, ".*.02" (matches all strings ending with ".02".
-* "'^5.02.*" ->, "^5.02.*" (matches all strings starting with "5?02".
+* +++"3.*"+++ -> +++"3\..*"+++ (matches all strings beginning with "3.".
+* +++"*.02"+++ -> +++".*.02"+++ (matches all strings ending with ".02".
+* +++"'^5.02.*"+++ -> +++"^5.02.*"+++ (matches all strings starting with "5?02".
 
 (This strategy of replacement is for convenience purposes because '.'
 means normally any character and '*' means a multiple occurence of the
@@ -1634,7 +1634,7 @@ several years ago for some financial terms. Nowadays English is the main
 language of the development (for Java classes, documentation etc.). Here
 you may find translation and description of common used terms.
 
-[width="100%",cols="34%,33%,33%",]
+[cols="1,1,3",]
 |===
 |German |English |Description
 
