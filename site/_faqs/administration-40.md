@@ -1,5 +1,5 @@
 ---
-title: Hypersonic: Could not insert entries to the data base.
+title: Hypersonic - Could not insert entries to the data base.
 categories: [administration]
 ---
 
