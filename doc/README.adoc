@@ -8,9 +8,20 @@ Micromata GmbH, Version {version}
 
 ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 
-:hide-uri-scheme:
+== Welcome to ProjectForge's world
 
-== Moved to https://projectforge.org/
+*_Enjoy ProjectForge!_*
 
-Local folder: `site/`
+== Documents
 
+Please, refer also https://www.projectforge.org/documentation.html[www.projectforge.org]
+
+[%autowidth, frame="topbot",options="header"]
+|=======
+|Document | Description
+|link:development{outfilesuffix}[Development]|Development docs.
+|link:migration{outfilesuffix}[Migration]|Migration guide.
+|link:installation{outfilesuffix}[Installation]|Installation docs.
+|link:deployment{outfilesuffix}[Deployment]|How to deploy a new release.
+|link:license{outfilesuffix}[License]| GNU GENERAL PUBLIC LICENSE, Version 3
+|=======
