@@ -23,7 +23,7 @@ An auto-update mechanism for the data-base on start-up of the web app is include
 | Windows / MacOS X / Other
 |https://sourceforge.net/projects/pforge/files/ProjectForge/[ProjectForge-application-X.X.X.jar,window=_blank]
 |130MB
-|Executable java archive |
+|Executable java archive
 
 |Docker hub|https://hub.docker.com/repository/docker/kreinhard/projectforge[Docker images,window=_blank]
 |530MB
