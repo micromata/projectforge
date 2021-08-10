@@ -245,8 +245,8 @@ ${JAVA} ... -Dloader.path=${HOME}/ProjectForge/resources/milton ${DEBUGOPTS} -ja
 3.2. SystemD: `systemctl restart nginx`
 4. Navigate to ProjectForge with your browser and finalize the setup.
 
-* Example start script: link:misc/startProjectForge.sh[startProjectForge.sh]
-* Example stop script: link:misc/stopProjectForge.sh[stopProjectForge.sh]
+* Example start script: link:/uploads/startProjectForge.sh[startProjectForge.sh]
+* Example stop script: link:/uploads/stopProjectForge.sh[stopProjectForge.sh]
 
 == Adding external plugins
 ProjectForge supports external 3rd party plugins:
