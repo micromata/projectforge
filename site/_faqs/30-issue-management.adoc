@@ -1,0 +1,8 @@
+---
+title: Do you provide Issue Management?
+categories: [faq]
+---
+
+Please refer the https://github.com/micromata/projectforge/issues/[GitHub system,window=_blank].
+You need a GitHub Account to create issues.
+

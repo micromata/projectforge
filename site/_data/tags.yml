@@ -1,0 +1,36 @@
+# Tags
+added:
+  text: Added
+  color: "#3778ff"
+
+changed:
+  text: Changed
+  color: "#3aaa55"
+
+deprecated:
+  text: Deprecated
+  color: "#333333"
+  
+improved:
+  text: Improved
+  color: "#68b037"
+
+removed:
+  text: Removed
+  color: "#17caf0"
+
+fixed:
+  text: Fixed
+  color: "#ff4772"
+
+security:
+  text: Security
+  color: "#fb3434"
+
+technology:
+  text: Technology
+  color: "#a037ff"
+  
+docker:
+  text: Docker
+  color: "#79433d"
