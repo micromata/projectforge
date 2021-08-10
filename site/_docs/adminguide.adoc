@@ -2,7 +2,7 @@
 title: Administration guide
 subtitle: Hints, tips and best practices for the administration of ProjectForge
 author: kai
-tags: [administrationguide]
+tags: [adminguide]
 ---
 :hide-uri-scheme:
 
@@ -13,15 +13,12 @@ tags: [administrationguide]
 
 :sectnums:
 
-[[Introduction]]
 == Introduction
 
 This documents describes the administration of ProjectForge®.
 
-[[ProjectForge Setup]]
 == ProjectForge Setup
 
-[[Database]]
 === Database
 
 [source,brush:,java]
@@ -72,7 +69,6 @@ spring.datasource.validation-query=
 spring.datasource.validation-query-timeout=-1
 ----
 
-[[Initialization, first login and set-up dialogue]]
 === Initialization, first login and set-up dialogue
 
 After the first start of ProjectForge® you will see
@@ -81,52 +77,12 @@ adminstrator's password and the target (empty data-base for a productive
 system or pre-filled with test data). You can configure or change all
 other settings such as time zone, e-mail addresses etc. any time later.
 
-[[PostgreSQL]]
 === PostgreSQL
 
-[[Mac OS X]]
-==== Mac OS X
 
-Install
-PostgreSQL http://web.archive.org/web/20210119121809/https://www.postgresql.org/download/[here] or
-via `brew install postgresql`. [.short_text]##For easy management of
-their
-database## use http://web.archive.org/web/20210119121809/https://www.pgadmin.org/download/index.php[pgAdmin].
-
-[[Configuration1]]
-==== Configuration
-
-[source,brush:,java]
-----
- Database administrative login by UNIX sockets
-local   projectforge projectforge                     ident sameuser
-
-# TYPE  DATABASE    USER        CIDR-ADDRESS          METHOD
-
-# "local" is for Unix domain socket connections only
-local   all         all                               md5
-local   all         all                               ident sameuser
-# IPv4 local connections:
-host    all         all         192.168.12.34/32      md5
-host    all         all         127.0.0.1/32          md5
-# IPv6 local connections:
-host    all         all         ::1/128               md5
-----
-
-[[Setting up the database]]
 ==== Setting up the database
 
-. Edit `postgresql.conf:`
-+
-[width="100%",cols="50%,50%",]
-|===
-|  |**File: **`postgresql.conf`
-|1 +
-2 +
-3 |... +
-max_connections =  50                   # (change requires restart) +
-...
-|===
+. Edit `postgresql.conf:` `max_connections =  50                   # (change requires restart)`
 . `createuser -U postgres -P projectforge` as e.g. admin user.
 . `createdb -U postgres -E UTF-8 -O projectforge projectforge` as e.g.
 admin user.
@@ -135,10 +91,8 @@ with: `dropdb projectforge` and `dropuser projectforge`
 . *Re-use of existing database (use a dump --> 5.5 or 5.6)*  +
 `psql -q -f projectforge_2008-04-02_02-00.sql -U postgres projectforge 2>&1 > log.txt`
 
-[[Configuration2]]
 == Configuration
 
-[[Base directory (application's home)]]
 === Base directory (application's home)
 
 ProjectForge® needs a base directory which is set
@@ -162,21 +116,18 @@ pdf renderers.
  +
 |===
 
-[[Configuration file application.properties]]
 === Configuration file application.properties
 
 ProjectForge® is a SpringBoot-Application, you can get more
-information http://web.archive.org/web/20210119121809/http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html[here].
+information http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html[here].
 
 The format of the file is:
 
 *File:* `application.properties`:
-http://web.archive.org/web/20210119121809/https://github.com/micromata/projectforge/blob/master/projectforge-application/application.properties[here]
+https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties[here]
 
-[[Customization]]
 === Customization
 
-[[Logo ant title in pdf outputs]]
 ==== Logo ant title in pdf outputs
 
 At default the pdf outputs file is not present. The logo is placed at
@@ -200,14 +151,12 @@ projectforge.export.logoFile=
 ...
 ----
 
-[[Configuration settings (web interface)]]
 === Configuration settings (web interface)
 
 Please go to this page for setting different parameters of
 ProjectForge® such as default time zone etc. You'll find the
 documentation there.
 
-[[Using ttf fonts for PDF render engine]]
 === Using ttf fonts for PDF render engine
 
 FOP is used as internal render engine. For enabling True Type Fonts
@@ -221,7 +170,6 @@ please refer the FOP documentation.
           org.apache.fop.fonts.apps.PFMReader <path>/<font>.pfm ttf<font>.xml
 |===
 
-[[HTML formatted E-Mail templates]]
 === HTML formatted E-Mail templates
 
 ProjectForge works with Groovy templates for generating e-mails (as
@@ -292,7 +240,6 @@ projectforge.receiveSmsKey=*******SECRET********
 
 ProjectForges ensures that messages will be imported only once.
 
-[[E-Mail]]
 === E-Mail
 
 ProjectForge can receive messages from a mail server (e. g. IMAP mail
@@ -327,7 +274,6 @@ mail.session.pfmailsession.smtp.user=
 mail.session.pfmailsession.smtp.password=
 ----
 
-[[Servlet-Call]]
 === Servlet-Call
 
 You can implement a servlet call whenever your system receives an
@@ -414,10 +360,8 @@ if(is_dir($SMS_DIR)) {
 ?>
 ----
 
-[[Asterisk connection: phone calls and texting with ProjectForge]]
 === Asterisk connection: phone calls and texting with ProjectForge
 
-[[Phone calls]]
 ==== Phone calls
 
 If configured the users are able to initiate phone calls directly by
@@ -497,7 +441,6 @@ projectforge.telephoneSystemNumber=0123456789
 ...
 ----
 
-[[Texting]]
 ==== Texting
 
 If configured the users are able to text by clicking on the SMS symbol
@@ -563,7 +506,6 @@ To use the full functionality of ProjectForge please configure the
 address book feature. Don't forget to configure your default country
 phone prefix in the configuration web page.
 
-[[PhoneLookupServlet]]
 ==== PhoneLookupServlet
 
 With the phone lookup servlet a telephony system (such as Asterix) may
@@ -578,7 +520,6 @@ projectforge.phoneLookupKey=*******SECRET********
 ...
 ----
 
-[[business assessment / BWA]]
 === business assessment / BWA
 
 If you work with accounting records (DATEV) you may be want to have
@@ -590,16 +531,13 @@ If the priorty of a row is not high, the row will not be shown in the
 short form of business assessments. The value defines row amounts which
 are calculated (see example below).
 
-[[SecurityConfig]]
 === SecurityConfig
 
-[[Secure passwords]]
 ==== Secure passwords
 
 Every password is stored in the database as SHA256 hashed password. For
 reducing brute force attacks several security mechanism are implemented.
 
-[[Protection against brute force attacks]]
 ==== Protection against brute force attacks
 
 If the user login failed (via web page or rest service) a penalty time
@@ -610,7 +548,6 @@ The same mechanism is used for failed login failures from an IP address
 (one second penalty per thousand failed logins).  +
 Please refer the source code for more information.
 
-[[Salted passwords]]
 ==== Salted passwords
 
 Since version 5.3 of ProjectForge® salted passwords are used. This
@@ -620,7 +557,6 @@ tables are useless for attacking passwords. After migrating to version
 5.3 every password is salted after login of the user or if the user is
 changing his password.
 
-[[Salted passwords with pepper]]
 ==== Salted passwords with pepper
 
 Since version 5.3 of ProjectForge® the administrator is able to
@@ -643,10 +579,8 @@ All passwords are automatically updated after any login of an user (if
 no pepper and/or salt was yet used for the user's password) or after any
 password change.
 
-[[LDAP]]
 === LDAP
 
-[[Requirements]]
 ==== Requirements
 
 The LDAP must support the following additional schemas (example of
@@ -659,8 +593,6 @@ slapd.conf of OpenLDAP):
 include /sw/etc/openldap/schema/inetorgperson.schema
 |===
 
-[[Configuration3]]
-[[configuration-1]]
 ==== Configuration
 
 The groupBase setting is only needed in master mode. The managerUser is
@@ -686,7 +618,6 @@ projectforge.ldap.sambaAccountsPrimaryGroupSID=
 ...
 ----
 
-[[Local (admin) users]]
 ==== Local (admin) users
 
 Please login by using the stay-logged-in checkbox on the login screen as
@@ -697,7 +628,6 @@ who should be authenticated against ProjectForge (instead of LDAP) and
 save them. Now the local users may log-in without LDAP credentials. This
 is especially use-ful for administrator users of ProjectForge.
 
-[[LDAP over SSL]]
 ==== LDAP over SSL
 
 `openssl s_client -showcerts -connect ldap.acme.priv:636 > ldap.pem` Copy
@@ -708,7 +638,6 @@ in `application.properties` or you can import the certificate to your
 java keystore. The first solution is independent of your JAVA version
 and is recommended first.
 
-[[ProjectForge as LDAP master]]
 ==== ProjectForge as LDAP master
 
 The LDAP master mode is the most tested mode of ProjectForge and is used
@@ -774,7 +703,6 @@ UserGroupCache) in the system web page or by restarting ProjectForge.
 Users will be added as `uniqueMember` entries in the LDAP groups if also
 assigned in ProjectForge to the same ProjectForge group.
 
-[[LDAP entries]]
 ==== LDAP entries
 
 See figures [.external-link]#3# and [.external-link]#4# for detailled
@@ -786,8 +714,7 @@ object classes.
 |Figure 3: |_ProjectForge uses the fields and object classes shown in
 this figure for users. The object class `posixAccount` with the
 fields `uidNumber, gidNumber, homeDirectory` and `loginShell` are only
-used and managed if configured
-(see http://web.archive.org/web/20210119121809/https://www.projectforge.org/pf-common/Administration_Guide#section4.11.5.2[4.11.5.2] ).
+used and managed if configured).
 The field `employeeNumber` is used by ProjectForge for storing the
 primary key of the ProjectForge user entry in LDAP (for a better
 syncronization). So the renaming of user names should work._
@@ -803,7 +730,6 @@ should work. +
 _
 |===
 
-[[Managing POSIX accounts]]
 ==== Managing POSIX accounts
 
 ProjectForge supports the management of POSIX accounts with the
@@ -827,8 +753,7 @@ highest used UID and increments it by one). If no such number found,
 . The GID number will be preset with the defaultGidNumber configured
 in `application.properties`.
 . The home directory will be the prefix `/home/` (configured
-in `application.properties`) followed by the user-name: e.
-g. `/home/kai`
+in `application.properties`) followed by the user-name: e. g. `/home/kai`
 . The login-shell will be preset with `/bin/bash` or any other which is
 configured in `application.properties`.
 +
@@ -840,7 +765,6 @@ fields the LDAP entries are update immediately.
 * Every LDAP entry gets the `object-class` `posixAccount` only if the
 POSIX account data were created in ProjectForge for this user.
 
-[[Managing Samba accounts]]
 ==== Managing Samba accounts
 
 *File:` ``application.properties:`*
@@ -877,7 +801,6 @@ fields the LDAP entries are update immediately.
 * Every LDAP entry gets the `object-class` `sambaSamAccount` only if the
 Samba account data were created in ProjectForge for this user.
 
-[[ProjectForge as LDAP client]]
 ==== ProjectForge as LDAP client
 
 This LDAP login handler acts as a LDAP slave, meaning, that LDAP will be
@@ -894,7 +817,6 @@ projectforge.login.handlerClass=LdapSlaveLoginHandler
 ...
 ----
 
-[[Simple mode]]
 ==== Simple mode
 
 The simple mode is assumed if no ldap managerUser is given in the
@@ -911,7 +833,6 @@ stay-logged-in-method! (If not acceptable please use the normal user
 mode instead.)
 * For local users any LDAP setting is ignored.
 
-[[Users mode]]
 ==== Users mode
 
 The normal user mode is assumed if a LDAP managerUser is given in
@@ -926,12 +847,10 @@ in ProjectForge's data-base. Any login after synchronizing isn't allowed
 * All known LDAP user fields of the users are synchronized (given name,
 surname, e-mail etc.).
 
-[[Users-groups mode]]
 ==== Users-groups mode
 
 This mode is not yet implemented, the users-mode is used instead.
 
-[[ProjectForge without LDAP]]
 ==== ProjectForge without LDAP
 
 You can also use PF without LADP.
@@ -945,10 +864,8 @@ projectforge.login.handlerClass= LoginDefaultHandler
 ...
 ----
 
-[[Maintenance]]
 == Maintenance
 
-[[Updating by simple clicks]]
 === Updating by simple clicks
 
 ProjectForge provides a very convenient method for updating to new
@@ -967,12 +884,10 @@ ProjectForge-Release detects something to up-date. Please select the
 check-box "Show old updates" to see, that your ProjectForge is
 completely up-to-date. You can update from any older version.
 
-[[Re-indexing the database]]
 === Re-indexing the database
 
 Should be done after setup: Use the adminstration menu.
 
-[[Analysing tools]]
 === Analysing tools
 
 Useful commandes are:
@@ -1000,7 +915,6 @@ Full thread dump Java HotSpot(TM) 64-Bit Server VM (1.6.0_03-b05 mixed mode):
 ...
 ----
 
-[[XML-backup and restore and data-base migration]]
 === XML-backup and restore and data-base migration ( BUG --> We guarantee no guarantee, but work on the solution of the problem )
 
 ProjectForge supports the import and export of its whole data-base as
@@ -1008,14 +922,12 @@ XML. It's independent from the data-base (Hypersonic, PostgreSQL, MySQL,
 Oracle etc.). You can choose this method to migrate your data-base from
 one data-base to any other data-base supported by ProjectForge.
 
-[[Export]]
 === Export
 
 It's possible to export an XML-Dump from your data-base using the system
 administration dialogue (web). This backup contains all data of
 ProjectForge in one zipped xml file.
 
-[[Import]]
 === Import
 
 . First you need a fresh data-base (without any tables and data).
@@ -1031,7 +943,6 @@ data-base objects (each single field of every object is compared.) Any
 inconsistency or difference is shown in the log file.
 . Now you can login into ProjectForge.
 
-[[Limitations]]
 === Limitations
 
 The limitation is the web servers memory. It's planned to support very
@@ -1040,7 +951,7 @@ this feature e. g. inside the help forum if needed. For migration
 without changing the data-base vendor the data-base specific dump and
 restore mechanism are recommended for large data-bases.
 
-[.confluence-embedded-file-wrapper]##image:http://web.archive.org/web/20210119121809im_/https://www.projectforge.org/files/projectforge_content/images/light32.gif[image]##**Hint**
+**Hint**
 
 ____
 Please note: After an import of a dump file into a new ProjectForge
@@ -1048,7 +959,6 @@ installation all primary keys are changed! ProjectForge ensures the
 integrity of all data including the history entries.
 ____
 
-[[Backup]]
 === Backup
 
 All datasets of ProjectForge® will be stored in the underlaying
@@ -1062,7 +972,6 @@ PostgreSQL is possible by using:
 |  |pg_dump -D -U projectforge -f pf_dump_`date '+%Y-%m-%d_%H-%M'`.sql
 |===
 
-[[Restoring a backup]]
 === Restoring a backup
 
 [width="100%",cols="100%",]
@@ -1071,12 +980,10 @@ PostgreSQL is possible by using:
 psql -q -f projectforge_2008-05-12_02-00.sql -U postgres projectforge 2>&1 > log.txt
 |===
 
-For further details concerning dropping and creating a new data base,
-see http://web.archive.org/web/20210119121809/https://www.projectforge.org/pf-common/Administration_Guide#section3.3.3[3.3.3] .  +
-Don't forget to create indices
-(see http://web.archive.org/web/20210119121809/https://www.projectforge.org/pf-common/Administration_Guide#section3.4[3.4] )!
+For further details concerning dropping and creating a new data base.  +
+Don't forget to create indices (thru admin web page)!
 
-[.confluence-embedded-file-wrapper]##image:http://web.archive.org/web/20210119121809im_/https://www.projectforge.org/files/projectforge_content/images/light32.gif[image]##**Hint**
+**Hint**
 
 ____
 If you want to use productive data in your develepment system for
@@ -1085,17 +992,13 @@ your developers e-mail. Also all passwords can be easily set
 to `test123` if you user folliwing sql statement in your test database
 (not productive!):
 
-[cols=",",]
-|===
-|
-|update t_pf_user SET password='SHA\{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', email='m.developer@http://web.archive.org/web/20210119121809/http://acme.com/[acme.com]';
-|===
+[source,brush:,sql]
+----
+update t_pf_user SET password='SHA\{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', email='m.developer@acme.com/';
 ____
 
-[[Automatical backup]]
 === Automatical backup
 
-[[Backup script]]
 ==== Backup script
 
 Install crontab entry as user projectforge on your ProjectForge®
@@ -1140,7 +1043,6 @@ the following line to:
 local projectforge projectforge ident sameuser
 ----
 
-[[Adding crontab]]
 ==== Adding crontab
 
 Adding following entry to the Unix crontab:
@@ -1152,7 +1054,6 @@ Adding following entry to the Unix crontab:
 0 2 * * * /home/projectforge/bin/pforgebackup.sh
 |===
 
-[[Remote backup]]
 ==== Remote backup
 
 For remote backup via `scp` you need to use key authorization:
@@ -1161,7 +1062,6 @@ For remote backup via `scp` you need to use key authorization:
 . Copy your public key, e. g. `identity.pub` to your backup server.
 . Add this key on the backup server to the authorized keys.
 
-[[Polling remote backup]]
 ==== Polling remote backup
 
 For security reasons it's also possible to get the backup files from the
@@ -1182,7 +1082,6 @@ add it to the authorized keys on your ProjectForge® server. +
 Add the following entry to your crontab on the backup server:
 # run every day at 3:00 am 0 3 * * * /home/projectforge/bin/pforgePollBackup.sh
 
-[[Monitoring]]
 === Monitoring
 
 You may monitor the login page with your monitoring tool (such as
@@ -1203,17 +1102,14 @@ embedded:
 |<-- ProjectForge is not full available (perhaps in maintenance mode or in start-up phase). -->
 |===
 
-[[Scheduler]]
 === Scheduler
 
-[[Data base search index]]
 ==== Data base search index
 
 The re-index job starts every night at 4 AM (UTC). If an error occurs an
 e-mail is sent to the admin e-mail addresses configured via web
 administration. If not configured, no e-mail is sent.
 
-[[Uninstalling ProjectForge]]
 === Uninstalling ProjectForge
 
 You only need to delete the Jar-File and the working directory you've
@@ -1222,21 +1118,20 @@ directory is located, please restart ProjectForge and see for the
 directory in the log output or configuration tab of the standalone
 version.
 
-[.confluence-embedded-file-wrapper]##image:http://web.archive.org/web/20210119121809im_/https://www.projectforge.org/files/projectforge_content/images/light32.gif[image]##**Hint**
+**Hint**
 
 Please note: If you delete the working directory, all your data base
 entries are deleted as well!
 
-[[Attre-Schema in  ProjectForge]]
-== Attre-Schema in ProjectForge
+== Attr-Schema in ProjectForge
 
-[[Overview]]
 === Overview
 
 The following (red rectangle) shows an example of how the web interface
 can look like with configurable attributes.
 
-http://web.archive.org/web/20210119121809/https://www.projectforge.org/files/projectforge_content/images/Configurable_Attributes_Screenshot.png[[.confluence-embedded-file-wrapper .confluence-embedded-manual-size]#image:http://web.archive.org/web/20210119121809im_/https://www.projectforge.org/files/projectforge_content/images/Configurable_Attributes_Screenshot.png[image,width=500]#]
+image::/uploads/adminguide/Configurable_Attributes_Screenshot.png[image]
+
 
 The following is an example of such a xml file:
 
@@ -1402,7 +1297,6 @@ The following is an example of such a xml file:
 </beans>
 ----
 
-[[The attrschema.xml file]]
 === The attrschema.xml file
 
 The xml file must have the name attrschema.xml and must be located in
@@ -1449,7 +1343,6 @@ beans xml file and must be in the following format:
 </beans>
 ----
 
-[[Structure of the attrschema.xml file]]
 === Structure of the attrschema.xml file
 
 . `AttrSchema`: The `<entry>` element corresponds to a database entity.
@@ -1486,8 +1379,7 @@ panel. Therefore it must follow the rules for valid html IDs.
 Furthermore it must be unique within each `AttrSchema` because it is
 used as a key in the database.
 .. `<property name="i18nKey" value="..."/>` The value must be an i18n
-key (see
-http://web.archive.org/web/20210119121809/https://www.projectforge.org/pf-en/i18n[i18n]).
+key.
 It's translation is shown in the heading of the panel.
 .. `<property name="i18nKeyStartTime" value="..."/>` This property is
 only required for `PERIOD` and `INSTANT_OF_TIME`. It is an i18n key
@@ -1546,7 +1438,6 @@ This will create a CheckBoxPanel. The example above shows how the
 options can be added to it. Furthermore this property must be set:
 `<property name="type" value="java.util.Boolean"/>`.
 
-[[Plugins]]
 == Plugins
 
 Some plugins which are part of the ProjectForge web app but not
@@ -1559,19 +1450,15 @@ The plugins are managed under Adminstration --> Plugins in the
 ProjectForge web app. After the activation, they have to restart
  ProjectForge.
 
-[[Liquidity planning]]
 === Liquidity planning
 
-[[Description1]]
 ==== Description
 
 This plugins supports the cash flow forecast for a very easy to use
 liquidity planning. Please refer the UserGuide for further information
 
-[[Software license management]]
 === Software license management
 
-[[Description2]]
 ==== Description
 
 In most companies you've to deal with lots of Software and license keys.
@@ -1591,10 +1478,8 @@ Planned features are:
 * Upload of license files.
 * Restricted entries (owners are only assignable by administrators).
 
-[[ExtendEmployeeData]]
 === ExtendEmployeeData
 
-[[Description3]]
 ==== Description
 
 This plugin supports the HR processing of the employee data as well as
@@ -1602,7 +1487,6 @@ in the monthly work with the employment office.
 
 [.short_text]#The new menu items are located in the HR menu.#
 
-[[List management]]
 ==== List management
 
 * Under the menu item list maintenance, you can carry out mass changes
@@ -1615,7 +1499,6 @@ change the data offline in Exel. ( [.short_text]#File format must be
 * Under the menu item list maintenance import you can import the
 exported and changed data quickly and easily. +
 
-[[Paying office]]
 ==== Paying office
 
 * You can export all available data for a month for the
@@ -1624,8 +1507,6 @@ item [.short_text]#paying-office#-export.
 * In the [.short_text]#paying-office-i#mport menu, you can import the
 columns for salary and remarks from [.short_text]#paying office# to PF.
 
-[[Configuration4]]
-[[configuration-2]]
 ==== Configuration
 
 * Here you can create special payments and perks that apply to all
@@ -1633,26 +1514,20 @@ employees. These records are always kept in time.
 * Furthermore, you can adjust the headings of
 the [.short_text]#paying-office-i#mport here.
 
-[[IHK Export]]
 === IHK Export
 
-[[Descriptio4]]
 ==== Description
 
 Export of working hours for the IHK
 
-[[Skillmatrix]]
 === Skillmatrix
 
-[[Description5]]
 ==== Description
 
 Capture and represent the skills of the employees
 
-[[ToDo]]
 === ToDo
 
-[[Description6]]
 ==== Description
 
 [source,tw-data-text,tw-ta,tw-text-small]
