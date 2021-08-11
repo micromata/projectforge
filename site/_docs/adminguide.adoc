@@ -162,13 +162,11 @@ documentation there.
 FOP is used as internal render engine. For enabling True Type Fonts
 please refer the FOP documentation.
 
-[width="100%",cols="50%,50%",]
-|===
-|1 +
-2
-|java -cp build/fop.jar:lib/avalon-framework-4.2.0.jar:lib/commons-logging-1.0.4.jar:lib/commons-io-1.3.1.jar \ +
+[source,brush:,java]
+----
+java -cp build/fop.jar:lib/avalon-framework-4.2.0.jar:lib/commons-logging-1.0.4.jar:lib/commons-io-1.3.1.jar \ +
           org.apache.fop.fonts.apps.PFMReader <path>/<font>.pfm ttf<font>.xml
-|===
+----
 
 === HTML formatted E-Mail templates
 
@@ -240,7 +238,7 @@ projectforge.receiveSmsKey=*******SECRET********
 
 ProjectForges ensures that messages will be imported only once.
 
-=== E-Mail
+==== E-Mail
 
 ProjectForge can receive messages from a mail server (e. g. IMAP mail
 account). The e-mails will be parsed as key-value:
@@ -274,7 +272,7 @@ mail.session.pfmailsession.smtp.user=
 mail.session.pfmailsession.smtp.password=
 ----
 
-=== Servlet-Call
+==== Servlet-Call
 
 You can implement a servlet call whenever your system receives an
 SMS:  +
@@ -367,19 +365,21 @@ if(is_dir($SMS_DIR)) {
 If configured the users are able to initiate phone calls directly by
 clicking on a phone number of an address or by entering a name or a
 phone number in the direct phone call
-page.[.confluence-embedded-file-wrapper]##
+page.
 
-[cols=",",]
+image::/uploads/adminguide/directCall.png[image]
+
+[cols="1,4",]
 |===
-|Figure 1: |_You can initiate a phone call by simply clicking on a phone
+|Figure 1: |You can initiate a phone call by simply clicking on a phone
 number of an address or by entering a name or number into the number
-field._
+field.
 |===
 
 Please deploy the following php script on your Asterisk web server (many
 thanks to Thomas Koch for this great work):
 
-**File:` `**`originatecall.php`:
+*File:* `originatecall.php`:
 
 [source,brush:,java]
 ----
@@ -445,12 +445,14 @@ projectforge.telephoneSystemNumber=0123456789
 
 If configured the users are able to text by clicking on the SMS symbol
 of an address or by entering a name or a cell phone
-number.[.confluence-embedded-file-wrapper]##
+number.
 
-[cols=",",]
+image::/uploads/adminguide/texting.png[image]
+
+[cols="1,4",]
 |===
-|Figure 2: |_You can send text messages by simply clicking on the SMS
-symbol of an address or by entering a name or cell phone number._
+|Figure 2: |You can send text messages by simply clicking on the SMS
+symbol of an address or by entering a name or cell phone number.
 |===
 
 Please deploy the following php script on your Asterisk web server (many
@@ -493,7 +495,7 @@ print("0\nok");
 Please check this servlet manually. It has to be available from your
 ProjectForge server. Then configure your servlet:
 
-*File:* `application.properties: `
+*File:* `application.properties:`
 
 [source,brush:,java]
 ----
@@ -511,7 +513,7 @@ phone prefix in the configuration web page.
 With the phone lookup servlet a telephony system (such as Asterix) may
 lookup incoming phone calls:
 
-*File: `application.properties`*:
+*File:* `application.properties`:
 
 [source,brush:,java]
 ----
@@ -566,7 +568,7 @@ password. Therefore no brute force attack is possible if an attacker has
 access to the database dump etc.  +
 Please configure the pepper string like this:
 
-*File:* *`application.properties:`*
+*File:* `application.properties:`
 
 [source,brush:,java]
 ----
@@ -586,19 +588,18 @@ password change.
 The LDAP must support the following additional schemas (example of
 slapd.conf of OpenLDAP):
 
-[width="100%",cols="50%,50%",]
-|===
-|1 +
-2 |include /sw/etc/openldap/schema/cosine.schema +
+[source,brush:,java]
+----
+include /sw/etc/openldap/schema/cosine.schema +
 include /sw/etc/openldap/schema/inetorgperson.schema
-|===
+----
 
 ==== Configuration
 
 The groupBase setting is only needed in master mode. The managerUser is
 not needed in simple slave mode. For further information see below.
 
-*File:* *`application.properties:`*
+*File:* `application.properties:`
 
 [source,brush:,java]
 ----
@@ -647,7 +648,7 @@ users. The ProjectForge user's will be synchronized in LDAP. If there is
 any conflict between LDAP and ProjectForge, the ProjectForge settings
 are used. The configuration of this mode is simple:
 
-*File:` ``application.properties:`*
+*File:* `application.properties:`
 
 [source,brush:,java]
 ----
@@ -703,34 +704,37 @@ UserGroupCache) in the system web page or by restarting ProjectForge.
 Users will be added as `uniqueMember` entries in the LDAP groups if also
 assigned in ProjectForge to the same ProjectForge group.
 
-==== LDAP entries
+===== LDAP entries
 
 See figures [.external-link]#3# and [.external-link]#4# for detailled
 information of how does ProjectForge stores and expect LDAP fields and
 object classes.
 
-[cols=",",]
+image::/uploads/adminguide/LDAP-user-entry.png[image]
+
+[cols="1,4",]
 |===
-|Figure 3: |_ProjectForge uses the fields and object classes shown in
+|Figure 3: |ProjectForge uses the fields and object classes shown in
 this figure for users. The object class `posixAccount` with the
 fields `uidNumber, gidNumber, homeDirectory` and `loginShell` are only
 used and managed if configured).
 The field `employeeNumber` is used by ProjectForge for storing the
 primary key of the ProjectForge user entry in LDAP (for a better
-syncronization). So the renaming of user names should work._
+syncronization). So the renaming of user names should work.
 |===
 
-[width="100%",cols="50%,50%",]
+image::/uploads/adminguide/LDAP-group-entry.png[image]
+
+[cols="1,4",]
 |===
-|Figure 4: |_ProjectForge uses the fields and object classes shown in
+|Figure 4: |ProjectForge uses the fields and object classes shown in
 this figure for groups. The field `businessCategory` is used by
 ProjectForge for storing the primary key of the ProjectForge group entry
 in LDAP (for a better syncronization). So the renaming of group names
-should work. +
-_
+should work.
 |===
 
-==== Managing POSIX accounts
+===== Managing POSIX accounts
 
 ProjectForge supports the management of POSIX accounts with the
 data `uidNumber,` `gidNumber,` `homeDirectory,` and `loginShell.`
@@ -739,10 +743,12 @@ You can adminster the POSIX account data in the UserEditPage after
 configuring the *`application.properties`* like the above example.
 Pleaser refer the tool-tips for further information:
 
-[cols=",",]
+image::/uploads/adminguide/LDAP-POSIX-accounts.png[image]
+
+[cols="1,4",]
 |===
-|Figure 5: |_ProjectForge is able to manage POSIX accounts in LDAP
-master mode._
+|Figure 5: |ProjectForge is able to manage POSIX accounts in LDAP
+master mode.
 |===
 
 * After clicking the Button `create` beside the UID number field
@@ -767,7 +773,7 @@ POSIX account data were created in ProjectForge for this user.
 
 ==== Managing Samba accounts
 
-*File:` ``application.properties:`*
+*File:* `application.properties:`
 
 [source,brush:,java]
 ----
@@ -777,10 +783,12 @@ projectforge.ldap.sambaAccountsPrimaryGroupSID=
 ...
 ----
 
-[cols=",",]
+image::/uploads/adminguide/LDAP-POSIX-SAMBA-Accounts.png[image]
+
+[cols="1,4",]
 |===
-|Figure 6: |_ProjectForge is able to manage POSIX and Samba accounts in
-LDAP master mode._
+|Figure 6: |ProjectForge is able to manage POSIX and Samba accounts in
+LDAP master mode.
 |===
 
 * After clicking the Button `create` beside the UID number field
@@ -808,7 +816,7 @@ accessed in read-only mode. There are 3 modes
 available: `simple,` `users` and `users-groups.` The configuration of
 this mode is simple:
 
-*File:* *`application.properties`*:
+*File:* `application.properties`:
 
 [source,brush:,java]
 ----
@@ -817,7 +825,7 @@ projectforge.login.handlerClass=LdapSlaveLoginHandler
 ...
 ----
 
-==== Simple mode
+===== Simple mode
 
 The simple mode is assumed if no ldap managerUser is given in the
 application.properties.
@@ -833,7 +841,7 @@ stay-logged-in-method! (If not acceptable please use the normal user
 mode instead.)
 * For local users any LDAP setting is ignored.
 
-==== Users mode
+===== Users mode
 
 The normal user mode is assumed if a LDAP managerUser is given in
 the `application.properties.`
@@ -847,7 +855,7 @@ in ProjectForge's data-base. Any login after synchronizing isn't allowed
 * All known LDAP user fields of the users are synchronized (given name,
 surname, e-mail etc.).
 
-==== Users-groups mode
+===== Users-groups mode
 
 This mode is not yet implemented, the users-mode is used instead.
 
@@ -855,7 +863,7 @@ This mode is not yet implemented, the users-mode is used instead.
 
 You can also use PF without LADP.
 
-*File:* *`application.properties:`*
+*File:* `application.properties:`
 
 [source,brush:,java]
 ----
@@ -868,21 +876,8 @@ projectforge.login.handlerClass= LoginDefaultHandler
 
 === Updating by simple clicks
 
-ProjectForge provides a very convenient method for updating to new
-versions (improved again since version 3.5.2). Please call the menu
-"Update system".
-
-[cols=",",]
-|===
-|Figure 7: |_ProjectForge provides a convenient method for system
-updates. The data base scheme will be updated and the data base will be
-migrated automatically by scripts._
-|===
-
-This dialog is called automatically on start-up if a new
-ProjectForge-Release detects something to up-date. Please select the
-check-box "Show old updates" to see, that your ProjectForge is
-completely up-to-date. You can update from any older version.
+ProjectForge provides automatically updates as built-in scripts with every new version.
+Refer the migration guide for required, manual changes.
 
 === Re-indexing the database
 
@@ -922,13 +917,13 @@ XML. It's independent from the data-base (Hypersonic, PostgreSQL, MySQL,
 Oracle etc.). You can choose this method to migrate your data-base from
 one data-base to any other data-base supported by ProjectForge.
 
-=== Export
+==== Export
 
 It's possible to export an XML-Dump from your data-base using the system
 administration dialogue (web). This backup contains all data of
 ProjectForge in one zipped xml file.
 
-=== Import
+==== Import
 
 . First you need a fresh data-base (without any tables and data).
 . Afterwards start ProjectForge with the connection data to your new
@@ -943,7 +938,7 @@ data-base objects (each single field of every object is compared.) Any
 inconsistency or difference is shown in the log file.
 . Now you can login into ProjectForge.
 
-=== Limitations
+==== Limitations
 
 The limitation is the web servers memory. It's planned to support very
 large ProjectForge data-bases using different xml files. Please request
@@ -1004,7 +999,7 @@ update t_pf_user SET password='SHA\{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', 
 Install crontab entry as user projectforge on your ProjectForge®
 server starting the following script:
 
-**File:` `**`pforgebackup.sh:`
+*File:* `pforgebackup.sh:`
 
 [source,brush:,java]
 ----
@@ -1047,12 +1042,11 @@ local projectforge projectforge ident sameuser
 
 Adding following entry to the Unix crontab:
 
-[width="100%",cols="50%,50%",]
-|===
-|1 +
-2 |# run every day at 2:00 am +
+[source,brush:,java]
+----
+# run every day at 2:00 am +
 0 2 * * * /home/projectforge/bin/pforgebackup.sh
-|===
+----
 
 ==== Remote backup
 
@@ -1088,19 +1082,18 @@ You may monitor the login page with your monitoring tool (such as
 Nagios). If ProjectForge® is up and running and is full available
 the following comment is included in the login page:
 
-[cols=",",]
-|===
-|  |<-- ProjectForge is alive. -->
-|===
+[source,brush:,]
+----
+<-- ProjectForge is alive. -->
+----
 
 If ProjectForge® isn't full available the following html comment is
 embedded:
 
-[cols=",",]
-|===
-|
-|<-- ProjectForge is not full available (perhaps in maintenance mode or in start-up phase). -->
-|===
+[source,brush:,]
+----
+<-- ProjectForge is not full available (perhaps in maintenance mode or in start-up phase). -->
+----
 
 === Scheduler
 
@@ -1525,12 +1518,3 @@ Export of working hours for the IHK
 ==== Description
 
 Capture and represent the skills of the employees
-
-=== ToDo
-
-==== Description
-
-[source,tw-data-text,tw-ta,tw-text-small]
-----
-Creation of task, with the possibility of assignment to certain employees
-----
