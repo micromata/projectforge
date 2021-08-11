@@ -5,7 +5,7 @@ controlling and managing work-break-down-structures (e. g. together with JIRA as
 
 == Express installation
 
-For a fast installation via docker or executable jar, please refer https://github.com/micromata/projectforge/blob/master/doc/installation.adoc[Installation].
+For a fast installation via docker or executable jar, please refer https://projectforge.org/docs/installation/[Installation].
 
 == Documentation
 
@@ -33,7 +33,7 @@ You only need the following steps for developing ProjectForge.
 If you just want to run it, please download it from https://sourceforge.net/projects/pforge/
 and simply start it `java -jar projectforge-application-X.X.X.jar`.
 
-Or simply use the fastest way: https://github.com/micromata/projectforge/blob/master/doc/installation.adoc[Installation as docker image]
+Or simply use the fastest way: https://projectforge.org/docs/installation/[Installation as docker image]
 ====
 
 1. Checkout: `git clone git@github.com:micromata/projectforge.git`
