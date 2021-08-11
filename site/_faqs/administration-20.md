@@ -1,6 +1,7 @@
 ---
 title: Projects, customers and some other functionalities aren't visible?
-categories: [administration]
+categories: [administration,faqs]
+permalink: /misc/faqs.html
 ---
 
 If you really need cost-unit accounting please activate this functionality via configuration web page (it's a config parameter. Please, don't forget to re-login, if the menu isn't up-to-date.) 

@@ -10,8 +10,8 @@ For a fast installation via docker or executable jar, please refer https://githu
 == Documentation
 
 === projectforge.org
-Full documentation on: https://www.projectforge.org/documentation.html
-Please visit: https://www.projectforge.org/documentation/developer-guide.html
+Full documentation on: https://projectforge.org/
+Please visit: https://projectforge.org/docs/development/
 
 === GitHub
 Further documentation for developers and adminstrators (for a first start), please refer
@@ -19,7 +19,7 @@ https://github.com/micromata/projectforge/tree/develop/doc
 
 == Version 7.0 is out now...
 
-The fastest way of installation of the newest version (7.0). you will find here: https://github.com/micromata/projectforge/blob/master/doc/installation.adoc[Installation]
+The fastest way of installation of the newest version (7.0). you will find here: https://projectforge.org/docs/installation/[Installation]
 
 This version contains a lot of cool stuff:
 
@@ -132,7 +132,7 @@ Please have a lock at all available config parameters: https://github.com/microm
 Refer
 
 * https://github.com/micromata/projectforge/tree/develop/doc[doc (Github)], or
-* https://www.projectforge.org/documentation.html[www.projectforge.org]
+* https://projectforge.org
 
 == Adding your own plugins
 ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.

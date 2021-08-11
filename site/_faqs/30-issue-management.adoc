@@ -1,6 +1,7 @@
 ---
 title: Do you provide Issue Management?
-categories: [faq]
+categories: [faqs]
+permalink: /misc/faqs.html
 ---
 
 Please refer the https://github.com/micromata/projectforge/issues/[GitHub system,window=_blank].

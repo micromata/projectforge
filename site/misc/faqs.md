@@ -5,7 +5,7 @@ hero:
     title: Frequently Asked Questions
     subtitle:
     image: faq.svg
-permalink: /misc/faq.html
+permalink: /misc/faqs.html
 ---
 
 

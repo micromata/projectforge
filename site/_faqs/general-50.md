@@ -1,6 +1,7 @@
 ---
 title: Problems with the orderbook for users in the Pf_ProjectManager group
-categories: [general]
+categories: [general,faqs]
+permalink: /misc/faqs.html
 ---
 
 
