@@ -1,5 +1,5 @@
 ---
-title: Installation of ProjectForge
+title: Installation
 subtitle: Easy and fast installation with an new setup wizard (test versions as well as productive setups)
 author: kai
 tags: [installation]

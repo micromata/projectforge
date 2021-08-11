@@ -1,6 +1,7 @@
 ---
 title: Do you provide free support for ProjectForge?
-categories: [faq]
+categories: [faqs]
+permalink: /misc/faqs.html
 ---
 
 ### Yes, support is free.

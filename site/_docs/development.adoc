@@ -1,5 +1,5 @@
 ---
-title: ProjectForge development
+title: Development
 author: kai
 tags: [development]
 ---

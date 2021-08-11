@@ -1,6 +1,7 @@
 ---
 title: Hypersonic - Could not insert entries to the data base.
-categories: [administration]
+categories: [administration,faqs]
+permalink: /misc/faqs.html
 ---
 
 If the user can't add new entries (contracts, Gantt charts, MEB entries etc.) to the data-base Hypersonic, please have a look in your ProjectForgeDB.script file. All create-table-statements should have the following entry for the primary key (pk): 

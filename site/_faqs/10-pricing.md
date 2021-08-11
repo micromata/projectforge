@@ -1,6 +1,7 @@
 ---
 title: How much does it cost to use ProjectForge?
-categories: [faq]
+categories: [faqs]
+permalink: /misc/faqs.html
 ---
 
 ## ProjectForge as OpenSource software without any limitations is for free.

@@ -1,6 +1,7 @@
 ---
 title: Reset passwords
-categories: [administration]
+categories: [administration,faqs]
+permalink: /misc/faqs.html
 ---
 
 As an administration user you can reset the user's passwords. If you've lost the administrator's password you can reset the password by updating the database entry like `update t_pf_user SET password='SHA{2F1E969683DE272AC96D5AA6033E93A8CB2F283F}', password_salt=null where username='admin';`
