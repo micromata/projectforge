@@ -13,10 +13,6 @@ For a fast installation via docker or executable jar, please refer https://githu
 Full documentation on: https://projectforge.org/
 Please visit: https://projectforge.org/docs/development/
 
-=== GitHub
-Further documentation for developers and adminstrators (for a first start), please refer
-https://github.com/micromata/projectforge/tree/develop/doc
-
 == Version 7.0 is out now...
 
 The fastest way of installation of the newest version (7.0). you will find here: https://projectforge.org/docs/installation/[Installation]
