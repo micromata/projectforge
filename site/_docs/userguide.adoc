@@ -422,7 +422,7 @@ Multiple exports of addresses may result in multiple note entries.
 Please use the following Apple script for removing such multiple note
 entries:
 
-[source,brush:,java]
+[source,linenums,applescript]
 ----
 tell application "Address Book"
 repeat with thisPerson in every person
@@ -706,7 +706,7 @@ A script editor is built-in in ProjectForge®.
 
 ==== Example: Hibernate criterion API
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import org.hibernate.criterion.*
 import org.projectforge.core.*
@@ -720,7 +720,7 @@ return "Number of found users: " + userList.size
 
 ==== Example: Usage of ProjectForge® filters
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import org.projectforge.core.*
 import org.projectforge.timesheet.*
@@ -749,7 +749,7 @@ time zone of the logged-in user is used).
 
 *Example*
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import org.projectforge.common.*
 
@@ -779,7 +779,7 @@ will result in a download. Check this out:
 
 ==== Example: Excel export of simple lists
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import org.hibernate.criterion.*
 import org.projectforge.core.*
@@ -801,7 +801,7 @@ return workbook
 
 ==== Example: Excel export of joined objects
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import org.projectforge.core.*
 import org.projectforge.excel.*
@@ -831,7 +831,7 @@ return workbook
 
 You may join database entities very simple:
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import org.fibu.*
 import org.fibu.kost.*
@@ -880,7 +880,7 @@ return workbook
 
 ==== Formats
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import org.projectforge.calendar.*
 import org.projectforge.common.*
@@ -911,7 +911,7 @@ are: `DAY, HOUR_OF_DAY, MINUTE_15, MINUTE, SECOND, MILLISECOND.`
 You may upload Excel files (stored in scripts) which you may modifiy
 inside your script.
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import org.hibernate.criterion.*
 import org.projectforge.core.*
@@ -951,7 +951,7 @@ You should use the English notation:
 Excel uses internally a fraction of 24 hours. For converting for example
 milliseconds to hours in Excel you may use the following code:
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 BigDecimal duration = new BigDecimal(durationInMillis / 1000); // Seconds +
 duration = duration.divide(new BigDecimal(60 * 60 * 24), 8, RoundingMode.HALF_UP); // Fraction of day (24 hours) +
@@ -971,7 +971,7 @@ image::/uploads/userguide/ExportJFreeChart.png[image]
 |Figure 21: |Example of a script producing a chart
 |===
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import org.jfree.chart.*
 import org.jfree.chart.plot.*
@@ -996,7 +996,7 @@ return export
 You may create zip files containing multiple files (Excel sheets and
 diagrams).
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import ...
 ExportZipArchive zip = new ExportZipArchive("my-first-archive") // File name will be: my-first-archive.zip
@@ -1011,7 +1011,7 @@ return zip
 
 You may use bean properties using the common used notation:
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 sheet.propertyNames = ["user.username", "description", "startTime", "stopTime", +
          "kost2.kost2Art.fakturiert"]
@@ -1033,7 +1033,7 @@ image::/uploads/userguide/Excel-import-example.png[image]
 |Figure 22: |Example file for an Excel import
 |===
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import java.text.*;
 import org.projectforge.excel.*
@@ -1060,7 +1060,7 @@ return result;
 
 The output is:
 
-[source,brush:,java]
+[source,linenums,shell]
 ----
  The amount of Susan is: £50.23
  The amount of Hugo is: £17.00
@@ -1338,7 +1338,7 @@ The following Excel format is assumed:
 The following script generates the database SQL-Statement for importing
 the salaries:
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import org.projectforge.core.*
 import org.projectforge.excel.*
@@ -1493,7 +1493,7 @@ fraction as 0,5.
 
 === Reporting via Report objectives (in progress)
 
-[source,brush:,xml]
+[source,xml,linenums]
 ----
 <ReportObjective title="Customer ACME" id="ACME" suppressOther="true" suppressDuplicates="true">
   <kost1-include>3.*</kost1-include>
@@ -1548,7 +1548,7 @@ ____
 
 You may access the ReportObjectives directly.
 
-[source,brush:,java]
+[source,java,linenums]
 ----
 import org.fibu.*
 import org.fibu.kost.*

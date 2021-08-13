@@ -265,7 +265,7 @@ purged after 30 days keeping each first monthly backup.
 === DB backup
 You may configure a purge job in `projectforge.properties`:
 
-[source]
+[source,shell,linenums]
 ----
 ### If purgeBackupDir is given and exists, ProjectForge will purge daily backups older than 30 days keeping each first monthly backup.
 ### The filenames must contain the date in ISO format (...yyyy-MM-dd....).

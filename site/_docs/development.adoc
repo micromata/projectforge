@@ -80,7 +80,7 @@ Please note: Kotlin must be compiled with target 1.8 (Java version) but is fully
 The BaseDO objects are the entities of ProjectForge stored in the data base. As default, all modification of entity attributes are available in a history with the information about the modification (user, timestamp, old and new value).
 
 .AddressDO.kt
-[source,java]
+[source,kotlin,linenums]
 ----
 open class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
 
@@ -119,7 +119,7 @@ defining the html field `max-length` of input fields.
 |===
 
 .ContactStatus.java
-[source,java]
+[source,java,linenums]
 ----
 public enum ContactStatus implements I18nEnum
 {
@@ -215,7 +215,7 @@ a|* The default filter.
 ==== Example of json format
 
 .rs/address/initialList
-[source,json]
+[source,json,linenums]
 ----
 {
   "ui": {
@@ -406,7 +406,7 @@ a|* The new URL to redirect to.
 ==== Example of json format
 
 .rs/address/edit?id={id}
-[source,json]
+[source,json,linenums]
 ----
 {
   "data": {
@@ -522,7 +522,7 @@ An example filter for querying a result set:
 image::/uploads/development/Books-magicfilter.png[]
 
 .MagicFilter.json
-[source,json]
+[source,json,linenums]
 ----
    "entries": [
       {
