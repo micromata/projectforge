@@ -44,6 +44,8 @@ import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.menu.MenuItem;
+import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.rest.ChangePasswordPageRest;
 import org.projectforge.rest.MyAccountPageRest;
@@ -92,6 +94,9 @@ public class NavTopPanel extends NavAbstractPanel {
   @SpringBean
   private WicketMenuBuilder menuBuilder;
 
+  @SpringBean
+  private MenuCreator menuCreator;
+
   /**
    * Cross site request forgery token.
    */
@@ -125,15 +130,35 @@ public class NavTopPanel extends NavAbstractPanel {
     }
     {
       add(new Label("user", ThreadLocalUserContext.getUser().getFullname()));
+
+      final RepeatingView pluginPersonalMenuEntriesRepeater = new RepeatingView("pluginPersonalMenuEntriesRepeater");
+      add(pluginPersonalMenuEntriesRepeater);
       if (accessChecker.isRestrictedUser() == true) {
         // Show ChangePaswordPage as my account for restricted users.
         final ExternalLink changePasswordLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(ChangePasswordPageRest.class));
         add(changePasswordLink);
         addVacationViewLink().setVisible(false);
+        pluginPersonalMenuEntriesRepeater.setVisible(false);
       } else {
         final ExternalLink myAccountLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(MyAccountPageRest.class, null, null, true));
         add(myAccountLink);
         addVacationViewLink();
+        for (MenuItem menu : menuCreator.getPersonalMenuPluginEntries()) {
+          // Now we add a new menu area (title with sub menus):
+          final WebMarkupContainer linkContainer = new WebMarkupContainer(pluginPersonalMenuEntriesRepeater.newChildId());
+          pluginPersonalMenuEntriesRepeater.add(linkContainer);
+          String link = menu.getUrl();
+          if (link != null && !link.startsWith("/")) {
+            link = "/" + link;
+          }
+          String title = menu.getTitle();
+          if (title == null) {
+            title = getString(menu.getI18nKey());
+          }
+          final ExternalLink menuLink = new ExternalLink("menuLink", link);
+          linkContainer.add(menuLink);
+          menuLink.add(new Label("menuLabel", title));
+        }
       }
       final BookmarkablePageLink<Void> documentationLink = new BookmarkablePageLink<Void>("documentationLink",
           DocumentationPage.class);

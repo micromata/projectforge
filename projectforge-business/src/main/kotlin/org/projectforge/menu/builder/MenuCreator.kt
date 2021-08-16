@@ -56,9 +56,9 @@ private val log = KotlinLogging.logger {}
 /**
  * The menu creator contain all menu entries and provides the method [build] for building the user's customized menu.
  */
+// open needed by Wicket components.
 @Component
-class MenuCreator {
-
+open class MenuCreator {
   internal class MenuItemDefHolder {
     internal val menuItems: MutableList<MenuItemDef> = mutableListOf()
     fun add(menuItem: MenuItemDef): MenuItemDef {
@@ -97,6 +97,13 @@ class MenuCreator {
   private lateinit var mebDao: MebDao
 
   private var initialized = false
+
+  /**
+   * Plugins may register entries for the user's personal menu at the top right.
+   */
+  // open needed by Wicket SpringBean.
+  open var personalMenuPluginEntries = mutableListOf<MenuItem>()
+    internal set
 
   companion object {
     /**
@@ -596,5 +603,9 @@ class MenuCreator {
 
   private fun isInGroup(vararg groups: ProjectForgeGroup): Boolean {
     return accessChecker.isLoggedInUserMemberOfGroup(*groups)
+  }
+
+  fun registerPluginMenu(i18nLabelKey: String, link: String) {
+    personalMenuPluginEntries.add(MenuItem(i18nKey =  i18nLabelKey, url = link))
   }
 }
