@@ -1,6 +1,6 @@
 ---
-title: ProjectForge 7.3 released
-date: 2021-08-14
+title: ProjectForge 7.2 released
+date: 2021-08-16
 ---
 :page-liquid:
 
