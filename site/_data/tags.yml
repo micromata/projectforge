@@ -3,6 +3,10 @@ added:
   text: Added
   color: "#3778ff"
 
+admin:
+  text: Admin
+  color: "#79433d"
+
 changed:
   text: Changed
   color: "#3aaa55"
@@ -10,7 +14,7 @@ changed:
 deprecated:
   text: Deprecated
   color: "#333333"
-  
+
 improved:
   text: Improved
   color: "#68b037"
@@ -23,6 +27,10 @@ fixed:
   text: Fixed
   color: "#ff4772"
 
+privacy:
+  text: Privacy
+  color: "#fb3434"
+
 security:
   text: Security
   color: "#fb3434"
@@ -30,7 +38,7 @@ security:
 technology:
   text: Technology
   color: "#a037ff"
-  
+
 docker:
   text: Docker
   color: "#79433d"

@@ -27,11 +27,12 @@ For test or small installations you may use the built-in data base (embedded).
 
 1. First start `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge micromata/projectforge`
 2. Follow setup wizard below.
-3. After finalization of setup page in browser, press `CTRL-C` for stopping container.
-4. Restart  `docker start projectforge`
-5. Enjoy.
+3. Enjoy.
 
 You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
+
+To stop and start use `docker start/stop projectforge`.
+
 
 ==== Running as stack (docker-compose)
 
@@ -40,10 +41,9 @@ In this docker-compose case ProjectForge is composed with a PostgreSQL docker co
 1. Copy and modify https://github.com/micromata/projectforge/blob/master/docker/compose/docker-compose.yml[docker-compose.yml] (change data base password).
 2. First start: `docker-compose run projectforge-app`
 3. Follow setup wizard below (choose PostgreSQL connection settings).
-4. ProjectForge stops automatically after setting up your ProjectForge directory. Restart `docker-compose up`
-5. After finalization of setup page in browser, press `CTRL-C` or `docker-compose down` for stopping container.
-6. Restart `docker-compose up`
-7. Enjoy.
+4. Enjoy.
+
+To stop and start user `docker-compose up/down`.
 
 You may monitor the log file: `tail -f ~/ProjectForge/logs/ProjectForge.log`
 
@@ -144,7 +144,7 @@ h|Feed-back | If this e-mail is given then a feedback panel will be shown if an 
 Just click finish to have your ready-to-use installation.
 
 [#img-setup-webpage-finished]
-.After initialization you will get this screen. Now restart a last time and also all activated plugins are now fully available.
+.After initialization you will get this screen. Enjoy it!
 [link=/uploads/setup-webpage-finished.png]
 image::/uploads/setup-webpage-finished.png[Setup finished,400]
 
@@ -152,8 +152,7 @@ image::/uploads/setup-webpage-finished.png[Setup finished,400]
 
 [NOTE]
 ====
-Wait until ProjectForge's initialization is finished and you are requested to restart ProjectForge. After restarting all activated plugins
-are also available.
+Wait until ProjectForge's initialization is finished and enjoy it!
 ====
 
 === Activation of built-in-plugins

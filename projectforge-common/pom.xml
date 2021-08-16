@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>7.1.3-SNAPSHOT</version><!-- projectforge.version -->
+    <version>7.2</version><!-- projectforge.version -->
   </parent>
   <properties>
     <timestamp>${maven.build.timestamp}</timestamp>
