@@ -22,10 +22,11 @@ link:index{outfilesuffix}[Top]
 6. If all tests are finished successfully and the test of the ProjectForge-Application works for new and existing databases), proceeed:
 7. Copy executable jar file from projectforge-application/target to SourceForge and tag this file as default for all platforms
 8. Building and pushing docker
-    a. `docker build -t micromata/projectforge:latest .`
-    b. `docker tag bc0459ed7d01 micromata/projectforge:$PF_NEW_VERSION` (use image id for tagging)
-    c. `docker push micromata/projectforge:PF_NEW_VERSION`
-    d. `docker push micromata/projectforge:latest`
+    a. `cp projectforge-application/target/projectforge-application*.jar .`
+    b. `docker build -t micromata/projectforge:latest .`
+    c. `docker tag bc0459ed7d01 micromata/projectforge:$PF_NEW_VERSION` (use image id for tagging)
+    d. `docker push micromata/projectforge:PF_NEW_VERSION`
+    e. `docker push micromata/projectforge:latest`
 9. Merge the release branch into the master and develop branch (Git Flow: Finish release)
 10. Tag master branch with version number
 11. Change to develop branch
