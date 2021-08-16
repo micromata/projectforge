@@ -81,6 +81,8 @@ class DataTransferPlugin :
       MenuItemDef(info.id, "plugins.datatransfer.menu", "${Const.REACT_APP_PATH}datatransfer")
     )
 
+    menuCreator.registerPluginMenu("plugins.datatransfer.personalBox", "${Const.REACT_APP_PATH}datatransferfiles/dynamic/-1")
+
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME)
 

@@ -95,7 +95,12 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-    val id = NumberHelper.parseInteger(idString) ?: throw IllegalAccessException("Parameter id not an int.")
+    var id = NumberHelper.parseInteger(idString)
+    if (id == -1) {
+      // personal box of logged-in user is requested:
+      id = dataTransferAreaDao.ensurePersonalBox(ThreadLocalUserContext.getUserId())?.id
+    }
+    id ?: throw IllegalAccessException("Parameter id not an int or no personal box found.")
     val pair = convertData(id)
     val dbObj = pair.first
     val dto = pair.second

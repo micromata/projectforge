@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
@@ -42,6 +43,9 @@ class MenuRest {
   class Menus(val mainMenu: Menu, val favoritesMenu: Menu, val myAccountMenu: Menu)
 
   @Autowired
+  private lateinit var accessChecker: AccessChecker
+
+  @Autowired
   private lateinit var menuCreator: MenuCreator
 
   @Autowired
@@ -59,9 +63,15 @@ class MenuRest {
     myAccountMenu.add(item)
     item.add(MenuItem(MenuItemDefId.FEEDBACK))
     item.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
-    if (ThreadLocalUserContext.getUserContext().employeeId != null) {
-      item.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
+    if (!accessChecker.isRestrictedUser) {
+      if (ThreadLocalUserContext.getUserContext().employeeId != null) {
+        item.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
+      }
+      menuCreator.personalMenuPluginEntries.forEach { menu ->
+        item.add(menu)
+      }
     }
+
     item.add(MenuItem(MenuItemDefId.LOGOUT, type = MenuItemTargetType.RESTCALL))
     item.subMenu?.forEach { it.postProcess() }
     return Menus(mainMenu, favoritesMenu, myAccountMenu)
