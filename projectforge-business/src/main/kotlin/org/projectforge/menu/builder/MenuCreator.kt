@@ -102,7 +102,7 @@ open class MenuCreator {
    * Plugins may register entries for the user's personal menu at the top right.
    */
   // open needed by Wicket SpringBean.
-  open var personalMenuPluginEntries = mutableListOf<MenuItem>()
+  open var personalMenuPluginEntries = mutableListOf<MenuItemDef>()
     internal set
 
   companion object {
@@ -605,7 +605,7 @@ open class MenuCreator {
     return accessChecker.isLoggedInUserMemberOfGroup(*groups)
   }
 
-  fun registerPluginMenu(i18nLabelKey: String, link: String) {
-    personalMenuPluginEntries.add(MenuItem(i18nKey =  i18nLabelKey, url = link))
+  fun registerPluginMenu(id: String, i18nLabelKey: String, link: String) {
+    personalMenuPluginEntries.add(MenuItemDef(id = id, i18nKey = i18nLabelKey, url = link))
   }
 }

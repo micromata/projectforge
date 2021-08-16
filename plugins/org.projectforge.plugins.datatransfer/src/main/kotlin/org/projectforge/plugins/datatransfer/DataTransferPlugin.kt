@@ -47,7 +47,11 @@ import org.springframework.beans.factory.annotation.Autowired
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class DataTransferPlugin :
-  AbstractPlugin(ID, PluginAdminService.PLUGIN_DATA_TRANSFER_ID, "Data transfer tool for sharing files with other users or customers.") {
+  AbstractPlugin(
+    ID,
+    PluginAdminService.PLUGIN_DATA_TRANSFER_ID,
+    "Data transfer tool for sharing files with other users or customers."
+  ) {
 
   @Autowired
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
@@ -81,7 +85,11 @@ class DataTransferPlugin :
       MenuItemDef(info.id, "plugins.datatransfer.menu", "${Const.REACT_APP_PATH}datatransfer")
     )
 
-    menuCreator.registerPluginMenu("plugins.datatransfer.personalBox", "${Const.REACT_APP_PATH}datatransferfiles/dynamic/-1")
+    menuCreator.registerPluginMenu(
+      "DataTransferPersonalBox",
+      "plugins.datatransfer.personalBox",
+      "${Const.REACT_APP_PATH}datatransferfiles/dynamic/-1"
+    )
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME)
@@ -110,10 +118,10 @@ class DataTransferPlugin :
   }
 
   override fun handleFavoriteMenu(menu: Menu, allMenuItems: List<MenuItem>) {
-   if (allMenuItems.any { it.id == info.id }) {
-     // DataTransfer menu already set in user's favorite menu.
-     return
-   }
+    if (allMenuItems.any { it.id == info.id }) {
+      // DataTransfer menu already set in user's favorite menu.
+      return
+    }
     menu.add(menuCreator.findById(PluginAdminService.PLUGIN_DATA_TRANSFER_ID))
   }
 

@@ -67,8 +67,8 @@ class MenuRest {
       if (ThreadLocalUserContext.getUserContext().employeeId != null) {
         item.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
       }
-      menuCreator.personalMenuPluginEntries.forEach { menu ->
-        item.add(menu)
+      menuCreator.personalMenuPluginEntries.forEach { menuItemDef ->
+        item.add(menuItemDef)
       }
     }
 
