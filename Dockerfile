@@ -14,12 +14,13 @@ WORKDIR /app
 # http://whitfin.io/speeding-up-maven-docker-builds/
 #RUN mvn dependency:go-offline -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B
 # -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B needed, otherwise log will be clipped (log limit reached)
-RUN mvn install -DskipTests -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B
+# RUN mvn install -DskipTests -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B
 # For test only: COPY projectforge-application-7.1.1.jar /app
+# mvn fails from time to time, so run mvn outside and copy projectforge-application/target/projectforge-application*.jar to current dir.
 RUN mkdir /dist
 WORKDIR /dist
 # For test only: RUN unzip /app/projectforge-application*.jar
-RUN unzip /app/projectforge-application/target/projectforge-application*.jar
+RUN unzip /app/projectforge-application-*.jar
 
 FROM openjdk:11-buster
 
