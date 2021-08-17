@@ -56,10 +56,7 @@ public class UserFilter implements Filter {
 
   private final static String SESSION_KEY_USER = "UserFilter.user";
 
-  private final static String MDC_IP = LogConstantsKt.MDC_IP;
-  private final static String MDC_SESSION = LogConstantsKt.MDC_SESSION;
   private final static String MDC_USER = LogConstantsKt.MDC_USER;
-  private final static String MDC_USER_AGENT = LogConstantsKt.MDC_USER_AGENT;
 
 
   @Autowired
@@ -170,9 +167,6 @@ public class UserFilter implements Filter {
     final HttpServletResponse response = (HttpServletResponse) resp;
     UserContext userContext = null;
     try {
-      MDC.put(MDC_IP, request.getRemoteAddr());
-      MDC.put(MDC_SESSION, request.getSession().getId());
-      MDC.put(MDC_USER_AGENT, request.getHeader("User-Agent"));
       if (ignoreFilterFor(request)) {
         // Ignore the filter for this request:
         chain.doFilter(request, response);
@@ -241,9 +235,6 @@ public class UserFilter implements Filter {
       }
     } finally {
       ThreadLocalUserContext.clear();
-      MDC.remove(MDC_IP);
-      MDC.remove(MDC_SESSION);
-      MDC.remove(MDC_USER_AGENT);
       final PFUserDO user = userContext != null ? userContext.getUser() : null;
       if (user != null) {
         MDC.remove(MDC_USER);
