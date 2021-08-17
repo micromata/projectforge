@@ -37,8 +37,6 @@ import org.projectforge.web.admin.ConfigurationListPage;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.core.SearchPage;
-import org.projectforge.web.doc.DocumentationPage;
-import org.projectforge.web.doc.TutorialPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartEditPage;
 import org.projectforge.web.gantt.GanttChartListPage;
@@ -314,7 +312,6 @@ public class WebRegistry
     addMountPage("calendar", CalendarPage.class);
     addMountPage("configuration", ConfigurationListPage.class);
     addMountPage("datevImport", DatevImportPage.class);
-    addMountPage("doc", DocumentationPage.class);
     addMountPage("error", ErrorPage.class);
     addMountPage("feedback", FeedbackPage.class);
     addMountPage("monthlyEmployeeReport", MonthlyEmployeeReportPage.class);
@@ -327,7 +324,6 @@ public class WebRegistry
     addMountPage("sendSms", SendSmsPage.class);
     addMountPage("setup", SetupPage.class);
     addMountPage("taskTree", TaskTreePage.class);
-    addMountPage("tutorial", TutorialPage.class);
 
     register("teamEvent", TeamEventListPage.class);
     addMountPage("teamCalendar", TeamCalCalendarPage.class);

@@ -63,18 +63,6 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
   @SpringBean
   private Kost2Dao kost2Dao;
 
-  /**
-   * Used by the TutorialPage.
-   *
-   * @param task
-   */
-  public TaskEditPage(final TaskDO task)
-  {
-    super(new PageParameters(), "task");
-    super.init(task);
-    addTopMenuPanel();
-  }
-
   public TaskEditPage(final PageParameters parameters)
   {
     super(parameters, "task");
