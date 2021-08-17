@@ -34,6 +34,7 @@ import org.projectforge.rest.config.CORSFilter;
 import org.projectforge.rest.config.LocaleFilter;
 import org.projectforge.rest.config.Rest;
 import org.projectforge.rest.config.RestUtils;
+import org.projectforge.security.LoggingFilter;
 import org.projectforge.security.SecurityHeaderFilter;
 import org.projectforge.web.OrphanedLinkFilter;
 import org.projectforge.web.debug.SessionSerializableChecker;
@@ -84,6 +85,7 @@ public class WebXMLInitializer implements ServletContextInitializer {
     pfMiltonInit.init(sc);
 
     boolean filterAfterInternal = false;
+    RestUtils.registerFilter(sc, "loggingFilter", LoggingFilter.class, false, "/*");
     RestUtils.registerFilter(sc, "UserFilter", UserFilter.class, filterAfterInternal, "/secure/*", "/wa/*");
     RestUtils.registerFilter(sc, "springContext", SpringThreadLocalFilter.class, filterAfterInternal, "/secure/*", "/wa/*");
 
