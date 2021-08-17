@@ -55,18 +55,6 @@ public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, Grou
   @SpringBean
   GroupDOConverter groupDOConverter;
 
-  /**
-   * Used by the TutorialPage.
-   *
-   * @param group
-   */
-  public GroupEditPage(final GroupDO group)
-  {
-    super(new PageParameters(), "group");
-    super.init(group);
-    selectProperty = null;
-  }
-
   public GroupEditPage(final PageParameters parameters)
   {
     this(parameters, null);

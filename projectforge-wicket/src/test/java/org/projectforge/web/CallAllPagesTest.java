@@ -30,7 +30,6 @@ import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.admin.SetupPage;
-import org.projectforge.web.doc.TutorialPage;
 import org.projectforge.web.registry.WebRegistry;
 import org.projectforge.web.scripting.ScriptExecutePage;
 import org.projectforge.web.wicket.MessagePage;
@@ -91,7 +90,6 @@ public class CallAllPagesTest extends WicketPageTestBase
       }
       testPage(entry.getValue());
     }
-    testPage(TutorialPage.class, MessagePage.class); // Tutorial page not available at default.
     logout();
   }
 

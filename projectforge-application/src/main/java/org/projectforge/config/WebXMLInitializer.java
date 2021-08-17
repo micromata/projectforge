@@ -28,6 +28,7 @@ import org.apache.wicket.spring.SpringWebApplicationFactory;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.caldav.config.PFMiltonInit;
 import org.projectforge.common.EmphasizedLogSupport;
+import org.projectforge.framework.access.AccessFilter;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.CORSFilter;
 import org.projectforge.rest.config.LocaleFilter;
@@ -36,7 +37,6 @@ import org.projectforge.rest.config.RestUtils;
 import org.projectforge.security.SecurityHeaderFilter;
 import org.projectforge.web.OrphanedLinkFilter;
 import org.projectforge.web.debug.SessionSerializableChecker;
-import org.projectforge.web.doc.TutorialFilter;
 import org.projectforge.web.filter.ResponseHeaderFilter;
 import org.projectforge.web.filter.SpringThreadLocalFilter;
 import org.projectforge.web.rest.RestCalendarSubscriptionUserFilter;
@@ -123,9 +123,6 @@ public class WebXMLInitializer implements ServletContextInitializer {
     expire.addMappingForUrlPatterns(null, false, "*.js");
     expire.addMappingForUrlPatterns(null, false, "*.png");
     expire.addMappingForUrlPatterns(null, false, "*.swf");
-
-    final FilterRegistration tutorialFilter = sc.addFilter("TutorialFilter", TutorialFilter.class);
-    tutorialFilter.addMappingForUrlPatterns(null, false, "/secure/doc/*");
 
     sc.addListener(SessionSerializableChecker.class);
   }

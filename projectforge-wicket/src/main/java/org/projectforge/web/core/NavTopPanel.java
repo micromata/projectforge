@@ -57,7 +57,6 @@ import org.projectforge.web.WicketMenuEntry;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.menuconfig.MenuConfig;
 import org.projectforge.web.dialog.ModalDialog;
-import org.projectforge.web.doc.DocumentationPage;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CsrfTokenHandler;
@@ -158,9 +157,6 @@ public class NavTopPanel extends NavAbstractPanel {
           menuLink.add(new Label("menuLabel", title));
         }
       }
-      final BookmarkablePageLink<Void> documentationLink = new BookmarkablePageLink<Void>("documentationLink",
-          DocumentationPage.class);
-      add(documentationLink);
       final Link<Void> logoutLink = new Link<Void>("logoutLink") {
         @Override
         public void onClick() {
