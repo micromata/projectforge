@@ -30,6 +30,7 @@ import org.projectforge.business.user.UserAuthenticationsService;
 import org.projectforge.business.user.UserTokenType;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.security.SecurityLogging;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.stereotype.Service;
@@ -64,18 +65,24 @@ public class CookieService {
       }
       final String[] values = value.split(":");
       if (values.length != 3) {
-        log.warn("Invalid cookie found: " + StringUtils.abbreviate(value, 10));
+        final String msg = "Invalid cookie found: " + StringUtils.abbreviate(value, 10);
+        log.warn(msg);
+        SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
         return null;
       }
       final String username = values[1];
       final String stayLoggedInKey = values[2];
       final PFUserDO user = userAuthenticationsService.getUserByToken(request, username, UserTokenType.STAY_LOGGED_IN_KEY, stayLoggedInKey);
       if (user == null) {
-        log.warn("Invalid cookie found (user not found, stay-logged-in key, maybe renewed and/or user password changed): " + StringUtils.abbreviate(value, 10));
+        final String msg = "Invalid cookie found (user not found, stay-logged-in key, maybe renewed and/or user password changed): " + StringUtils.abbreviate(value, 10);
+        log.warn(msg);
+        SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
         return null;
       }
       if (!Login.getInstance().checkStayLoggedIn(user)) {
-        log.warn("Stay-logged-in wasn't accepted by the login handler: " + user.getUserDisplayName());
+        final String msg = "Stay-logged-in wasn't accepted by the login handler: " + user.getUserDisplayName();
+        log.warn(msg);
+        SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
         return null;
       }
       // update the cookie, especially the max age

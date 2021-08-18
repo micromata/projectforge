@@ -24,6 +24,7 @@
 package org.projectforge.rest.pub
 
 import de.micromata.merlin.utils.ReplaceUtils
+import mu.KotlinLogging
 import net.fortuna.ical4j.model.Date
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.Description
@@ -58,6 +59,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
+import org.projectforge.security.SecurityLogging.logSecurityWarn
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
@@ -68,6 +70,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
+
+private val log = KotlinLogging.logger {}
 
 /**
  * This rest service should be available without login (public).
@@ -326,7 +330,6 @@ class CalendarSubscriptionServiceRest {
   }
 
   companion object {
-    private val log = LoggerFactory.getLogger(CalendarSubscriptionServiceRest::class.java)
     const val PARAM_EXPORT_REMINDER = "exportReminders"
 
     fun decryptRequestParams(
@@ -343,7 +346,10 @@ class CalendarSubscriptionServiceRest {
       // Parameters of q are encrypted by user's token for calendar subscriptions:
       val decryptedParams = userAuthenticationsService.decrypt(userId, UserTokenType.CALENDAR_REST, q)
         ?: run {
-          log.error("Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): ${request.queryString}")
+          val msg =
+            "Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): ${request.queryString}"
+          log.error(msg)
+          logSecurityWarn(this::class.java, "${UserTokenType.CALENDAR_REST.name} AUTHENTICATION FAILED", msg)
           return null
         }
       return StringHelper.getKeyValues(decryptedParams, "&")

@@ -167,9 +167,13 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
       return prop.value
     }
     if (PFUserDO::class.java.name == type) {
-      val user = getUser(userGroupCache, prop.value)
-      if (user != null) {
-        return user
+      val value = prop.value
+      if (!value.isNullOrBlank() && !value.contains(",")) {
+        // Single user expected.
+        val user = getUser(userGroupCache, prop.value)
+        if (user != null) {
+          return user
+        }
       }
     }
     if (EmployeeDO::class.java.name == type || AddressbookDO::class.java.name == type) {
