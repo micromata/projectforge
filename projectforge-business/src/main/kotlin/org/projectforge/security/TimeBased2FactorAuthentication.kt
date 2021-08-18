@@ -75,8 +75,8 @@ class TimeBased2FactorAuthentication(private val hmacCrypto: String = "HmacSHA1"
         if (code != lastCode) {
           lastCode = code
           println(code)
-          Thread.sleep(1000)
         }
+        Thread.sleep(1000)
       }
     }
   }
