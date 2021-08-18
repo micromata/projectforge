@@ -28,7 +28,9 @@ import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.caldav.service.SslSessionCache
+import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
 import org.projectforge.rest.utils.RequestLog
+import org.projectforge.security.SecurityLogging
 import org.projectforge.web.rest.RestAuthenticationInfo
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -77,7 +79,9 @@ class PFMiltonFilter : MiltonFilter() {
             restAuthenticationUtils.basicAuthentication(authInfo, UserTokenType.DAV_TOKEN, true) { userString, authenticationToken ->
                 val authenticatedUser = userAuthenticationsService.getUserByToken(authInfo.request, userString, UserTokenType.DAV_TOKEN, authenticationToken)
                 if (authenticatedUser == null) {
-                    log.error("Can't authenticate user '$userString' by given token. User name and/or token invalid (requestUri=${RequestLog.asString(authInfo.request)}.")
+                    val msg = "Can't authenticate user '$userString' by given token. User name and/or token invalid (requestUri=${RequestLog.asString(authInfo.request)}."
+                    log.error(msg)
+                    SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "${UserTokenType.DAV_TOKEN.name} AUTHENTICATION FAILED", msg)
                 } else {
                     sslSessionCache.registerSessionData(authInfo.request, authenticatedUser)
                 }

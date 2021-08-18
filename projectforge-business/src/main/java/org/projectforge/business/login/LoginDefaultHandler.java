@@ -32,6 +32,7 @@ import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.security.SecurityLogging;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -86,8 +87,10 @@ public class LoginDefaultHandler implements LoginHandler {
       try {
         final PFUserDO resUser = getUserWithJdbc(username, password);
         if (resUser == null || resUser.getUsername() == null) {
-          log.info("Admin login for maintenance (data-base update) failed for user '" + username
-              + "' (user/password not found).");
+          final String msg = "Admin login for maintenance (data-base update) failed for user '" + username
+              + "' (user/password not found).";
+          log.warn(msg);
+          SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
           return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
         }
         if (!isAdminUser(resUser)) {
@@ -104,13 +107,17 @@ public class LoginDefaultHandler implements LoginHandler {
     if (user != null) {
       log.info("User with valid username/password: " + username + "/****");
       if (!user.hasSystemAccess()) {
-        log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
+        final String msg = "User has no system access (is deleted/deactivated): " + user.getUserDisplayName();
+        log.warn(msg);
+        SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
         return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
       } else {
         return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(user);
       }
     } else {
-      log.info("User login failed: " + username + "/****");
+      final String msg = "User login failed: " + username + "/****";
+      log.warn(msg);
+      SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
       return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
     }
   }
@@ -140,7 +147,9 @@ public class LoginDefaultHandler implements LoginHandler {
     }
     final PasswordCheckResult passwordCheckResult = userService.checkPassword(user, password);
     if (!passwordCheckResult.isOK()) {
-      log.warn("Login for admin user '" + username + "' in maintenance mode failed, wrong password.");
+      final String msg = "Login for admin user '" + username + "' in maintenance mode failed, wrong password.";
+      log.warn(msg);
+      SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
       return null;
     }
     return user;
@@ -193,9 +202,11 @@ public class LoginDefaultHandler implements LoginHandler {
     sql = "select count(*) from t_group_user where group_id=? and user_id=?";
     final int count = jdbc.queryForObject(sql, new Object[]{adminGroupId, user.getId()}, Integer.class);
     if (count != 1) {
-      log.info("Admin login for maintenance (data-base update) failed for user '"
+      final String msg = "Admin login for maintenance (data-base update) failed for user '"
           + user.getUsername()
-          + "' (user not member of admin group).");
+          + "' (user not member of admin group).";
+      log.warn(msg);
+      SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
       return false;
     }
     return true;

@@ -33,15 +33,11 @@ import org.projectforge.common.logging.MDC_SESSION
 import org.projectforge.common.logging.MDC_USER
 import org.projectforge.common.logging.MDC_USER_AGENT
 import org.slf4j.MDC
-import org.springframework.http.server.ServletServerHttpRequest
-import org.springframework.web.util.UriComponentsBuilder
 import java.io.IOException
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
-
-private val accessLog = KotlinLogging.logger("de.micromata.projectforge.accessLog")
 
 /**
  * LoggingFilter called first for all requests. Puts IP, SESSION, USERx and USER_AGENT to MDC and logs access, if debug is enabled.
@@ -72,13 +68,13 @@ class LoggingFilter : Filter {
         }
         "ALL" -> {
           // Log all
-          if (!logSuspiciousURI(request, clientIp = clientIp, username = username, userAgent = userAgent)) {
+          if (!logSuspiciousURI(request)) {
             // If not logged as warning (suspicious uri), then log it as info (expected access):
-            accessLog.info { getLogMessage(request, clientIp = clientIp, username = username, userAgent = userAgent) }
+            SecurityLogging.logAccessInfo(request, this.javaClass)
           }
         }
         else -> {
-          logSuspiciousURI(request, clientIp = clientIp, username = username, userAgent = userAgent)
+          logSuspiciousURI(request)
         }
       }
       chain.doFilter(req, resp)
@@ -90,33 +86,31 @@ class LoggingFilter : Filter {
     }
   }
 
-  private fun logSuspiciousURI(request: HttpServletRequest, clientIp: String, username: String?, userAgent: String): Boolean {
-    val uri = request.requestURI
-    if (uri.isNullOrBlank() ||
-      uri.startsWith("/rs/") ||
-      uri.startsWith("/react/") ||
-      uri.startsWith("/wa/") || // Wicket
-      uri.startsWith("/rsPublic/") ||
-      uri == "/favicon.ico" ||
-      uri == "/favicon.png" ||
-      uri.startsWith("/static/") || // resources (css, images, js, ...)
-      uri.startsWith("/export/") || // ProjectForge.ics
-      uri.startsWith("/styles/") || // Used by Wicket pages
-      uri.startsWith("/fonts/") || // Used by Wicket pages
-      uri.startsWith("/images/") || // Used by Wicket pages
-      uri.startsWith("/include/") || // Used by Wicket pages
-      uri.startsWith("/scripts/") || // Used by Wicket pages
-      uri.startsWith("/secure/") || // Used by Wicket pages (/secure/Logo.png)
-      uri == "/wa" || // Wicket start page
-      DAVMethodsInterceptor.handledByMiltonFilter(request)
-    ) {
-      return false
+  companion object {
+    private fun logSuspiciousURI(request: HttpServletRequest): Boolean {
+      val uri = request.requestURI
+      if (uri.isNullOrBlank() ||
+        uri.startsWith("/rs/") ||
+        uri.startsWith("/react/") ||
+        uri.startsWith("/wa/") || // Wicket
+        uri.startsWith("/rsPublic/") ||
+        uri == "/favicon.ico" ||
+        uri == "/favicon.png" ||
+        uri.startsWith("/static/") || // resources (css, images, js, ...)
+        uri.startsWith("/export/") || // ProjectForge.ics
+        uri.startsWith("/styles/") || // Used by Wicket pages
+        uri.startsWith("/fonts/") || // Used by Wicket pages
+        uri.startsWith("/images/") || // Used by Wicket pages
+        uri.startsWith("/include/") || // Used by Wicket pages
+        uri.startsWith("/scripts/") || // Used by Wicket pages
+        uri.startsWith("/secure/") || // Used by Wicket pages (/secure/Logo.png)
+        uri == "/wa" || // Wicket start page
+        DAVMethodsInterceptor.handledByMiltonFilter(request)
+      ) {
+        return false
+      }
+      SecurityLogging.logWarn(request, this::class.java, "SUSPICIOUS REQUEST", logAccess = true, logSecurity = true)
+      return true
     }
-    accessLog.warn { "*** SUSPICIOUS REQUEST *** ${getLogMessage(request, clientIp = clientIp, username = username, userAgent = userAgent)}" }
-    return true
-  }
-
-  private fun getLogMessage(request: HttpServletRequest, clientIp: String, username: String?, userAgent: String): String {
-    return "ip=[$clientIp], user=[${username ?: "???"}], url=[${request.requestURL}], agent=[$userAgent]"
   }
 }

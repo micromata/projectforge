@@ -28,11 +28,28 @@
         </rollingPolicy>
     </appender>
 
+    <appender name="ROLLING-SECURITY-LOG"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+        <file>${LOG_HOME}/security.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>${LOG_HOME}/security.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+
     <appender name="MEMORY" class="org.projectforge.common.logging.LoggerMemoryAppender" />
 
     <logger name="de.micromata.projectforge.accessLog" level="INFO" additivity="false">
         <!-- additivity="false": do the access log only here, not in the root logger. -->
         <appender-ref ref="ROLLING-ACCESS-LOG"/>
+    </logger>
+
+    <logger name="de.micromata.projectforge.securityLog" level="INFO" additivity="false">
+        <!-- additivity="false": do the security log only here, not in the root logger. -->
+        <appender-ref ref="ROLLING-SECURITY-LOG"/>
     </logger>
 
     <root level="INFO">
