@@ -132,7 +132,7 @@ object SecurityLogging {
 
   private fun getLogInfo(request: HttpServletRequest): String {
     val username = UserFilter.getUserContext(request, false)?.user?.username
-    return "ip=[${request.remoteAddr}], user=[${username ?: "???"}], url=[${request.requestURL}], agent=[${
+    return "ip=[${request.remoteAddr}], user=[${username ?: "???"}], url=[${request.requestURL}], method=[${request.method}], agent=[${
       request.getHeader(
         "User-Agent"
       )
