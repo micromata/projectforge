@@ -38,6 +38,7 @@ import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.utils.RequestLog
+import org.projectforge.security.SecurityLogging
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -208,13 +209,11 @@ open class RestAuthenticationUtils {
       if (authInfo.resultCode == null) {
         // error not yet handled.
         if (required) {
-          log.info(
-            "User not found (by request params ${joinToString(userParams)}) and/or authentication tokens (by request params ${
-              joinToString(
-                tokenParams
-              )
-            }). Rest call denied."
-          )
+          logError(authInfo, "User not found (by request params ${joinToString(userParams)}) and/or authentication tokens (by request params ${
+            joinToString(
+              tokenParams
+            )
+          }). Rest call denied.")
           authInfo.resultCode = HttpStatus.BAD_REQUEST
         } else if (log.isDebugEnabled) {
           logDebug(
@@ -371,6 +370,7 @@ open class RestAuthenticationUtils {
 
   private fun logError(authInfo: RestAuthenticationInfo, msg: String) {
     log.error("$msg (requestUri=${RequestLog.asString(authInfo.request)})")
+    SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
   }
 
   private fun logDebug(authInfo: RestAuthenticationInfo, msg: String) {
