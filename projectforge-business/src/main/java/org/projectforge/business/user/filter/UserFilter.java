@@ -26,13 +26,11 @@ package org.projectforge.business.user.filter;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.Const;
 import org.projectforge.common.StringHelper;
-import org.projectforge.common.logging.LogConstantsKt;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.servlet.LogoServlet;
 import org.projectforge.web.servlet.SMSReceiverServlet;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
@@ -55,9 +53,6 @@ public class UserFilter implements Filter {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserFilter.class);
 
   private final static String SESSION_KEY_USER = "UserFilter.user";
-
-  private final static String MDC_USER = LogConstantsKt.MDC_USER;
-
 
   @Autowired
   private CookieService cookieService;
@@ -136,8 +131,17 @@ public class UserFilter implements Filter {
     return userContext != null ? userContext.getUser() : null;
   }
 
+  /**
+   * Creates a user session if not exist.
+   *
+   * @param request
+   */
   public static UserContext getUserContext(final HttpServletRequest request) {
-    final HttpSession session = request.getSession();
+    return getUserContext(request, true);
+  }
+
+  public static UserContext getUserContext(final HttpServletRequest request, final boolean createSession) {
+    final HttpSession session = request.getSession(createSession);
     if (session == null) {
       return null;
     }
@@ -214,7 +218,6 @@ public class UserFilter implements Filter {
         }
         final PFUserDO user = userContext != null ? userContext.getUser() : null;
         if (user != null) {
-          MDC.put(MDC_USER, user.getUsername());
           ThreadLocalUserContext.setUserContext(userContext);
           request = decorateWithLocale(request);
           chain.doFilter(request, response);
@@ -235,10 +238,6 @@ public class UserFilter implements Filter {
       }
     } finally {
       ThreadLocalUserContext.clear();
-      final PFUserDO user = userContext != null ? userContext.getUser() : null;
-      if (user != null) {
-        MDC.remove(MDC_USER);
-      }
       if (log.isDebugEnabled()) {
         StringBuilder sb = new StringBuilder();
         sb.append("doFilter finished for ");

@@ -139,6 +139,15 @@ open class ConfigurationService {
     protected set
 
   /**
+   * At default, an access log file will be written including all suspicious web access urls. You may define here
+   * 'ALL' for logging all request urls or 'NONE' for logging no access (not recommended in productive environments).
+   * @see LoggingFilter
+   */
+  @Value("\${projectforge.accessLogConfig}")
+  open var accessLogConfiguration: String? = null
+    protected set
+
+  /**
    * If configured then this logo file is used for displaying at the top of the navigation menu.
    *
    * @return The path of the configured logo (relative to the image dir of the application's resource path, at default:

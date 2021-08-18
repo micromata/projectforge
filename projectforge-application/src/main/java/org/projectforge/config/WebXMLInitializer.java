@@ -28,7 +28,6 @@ import org.apache.wicket.spring.SpringWebApplicationFactory;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.caldav.config.PFMiltonInit;
 import org.projectforge.common.EmphasizedLogSupport;
-import org.projectforge.framework.access.AccessFilter;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.CORSFilter;
 import org.projectforge.rest.config.LocaleFilter;
@@ -99,21 +98,21 @@ public class WebXMLInitializer implements ServletContextInitializer {
 
     if (webDevelopmentEnableCORSFilter) {
       new EmphasizedLogSupport(log)
-              .log("ATTENTION!")
-              .log("")
-              .log("Running in dev mode!")
-              .log("")
-              .log("Don't deliver this app in dev mode due to security reasons!")
-              .log("(cross origin allowed)")
-              .logEnd();
+          .log("ATTENTION!")
+          .log("")
+          .log("Running in dev mode!")
+          .log("")
+          .log("Don't deliver this app in dev mode due to security reasons!")
+          .log("(cross origin allowed)")
+          .logEnd();
       sc.addFilter("cors", new CORSFilter()).addMappingForUrlPatterns(null, false,
-              "/" + RestPaths.REST + "/*",
-              "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.
+          "/" + RestPaths.REST + "/*",
+          "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.
     }
 
     RestUtils.registerFilter(sc, "restUserFilter", RestUserFilter.class, false,
-            "/" + RestPaths.OLD_REST + "/*",
-            "/" + RestPaths.REST + "/*");
+        "/" + RestPaths.OLD_REST + "/*",
+        "/" + RestPaths.REST + "/*");
     RestUtils.registerFilter(sc, "calendarSubscriptionFilter", RestCalendarSubscriptionUserFilter.class, false, Rest.CALENDAR_EXPORT_BASE_URI);
 
     final FilterRegistration expire = sc.addFilter("expire", ResponseHeaderFilter.class);
