@@ -32,8 +32,10 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.UserObject
+import org.projectforge.rest.Authentication
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestResolver
+import org.projectforge.security.SecurityLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -42,6 +44,10 @@ import org.springframework.web.bind.annotation.RestController
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * This method supports mobile clients for faster initial authentication. A 2d barcode will be present
+ * by ProjectForge (MyAccount -> Rest token -> info) for scanning user credentials.
+ */
 @RestController
 @RequestMapping(Rest.PUBLIC_URL)
 open class AuthenticationPublicServicesRest {
@@ -78,12 +84,16 @@ open class AuthenticationPublicServicesRest {
         val uid = temporaryToken.uid
         val authenticationToken = userAuthenticationsDao.internalGetToken(uid, UserTokenType.REST_CLIENT)
         if (authenticationToken == null) {
-            log.error { "Oups, no authentication token found for user with id $uid." }
+            val msg = "Oups, no authentication token found for user with id $uid."
+            log.error(msg)
+            SecurityLogging.logSecurityWarn(this::class.java, "REST AUTHENTICATION FAILED", msg)
             throw IllegalArgumentException("Invalid call.")
         }
         val user = userDao.internalGetById(uid)
         if (user == null) {
-            log.error { "Oups, no user with id $uid found." }
+            val msg = "Oups, no user with id $uid found."
+            log.error(msg)
+            SecurityLogging.logSecurityWarn(this::class.java, "REST AUTHENTICATION FAILED", msg)
             throw IllegalArgumentException("Invalid call.")
         }
         return Credentials(user.username ?: "unknown", uid, authenticationToken, domainService.domain)
@@ -125,7 +135,9 @@ open class AuthenticationPublicServicesRest {
     internal fun checkQuery(q: String): TemporaryToken {
         cleanTemporaryToken()
         val temporaryToken = temporaryTokenList.firstOrNull { it.token == q } ?: run {
-            log.error { "Temporary token '$q' not found (expired or has been never exist)." }
+            val msg = "Temporary token '$q' not found (expired or has never been exist)."
+            log.error(msg)
+            SecurityLogging.logSecurityWarn(this::class.java, "REST AUTHENTICATION FAILED", msg)
             throw IllegalArgumentException("Invalid call.")
         }
         val delta = System.currentTimeMillis() - temporaryToken.systemTimeInMillis

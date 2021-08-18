@@ -28,6 +28,7 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.rest.Authentication
+import org.projectforge.security.SecurityLogging
 import org.springframework.beans.factory.annotation.Autowired
 
 private val log = KotlinLogging.logger {}
@@ -60,13 +61,9 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
         val requestURI = authInfo.request.requestURI
         // Don't log error for userStatus (used by React client for checking weather the user is logged in or not).
         if (requestURI == null || requestURI != "/rs/userStatus") {
-            log.error("Neither "
-                    + Authentication.AUTHENTICATION_USER_ID
-                    + " nor "
-                    + Authentication.AUTHENTICATION_USERNAME
-                    + "/"
-                    + Authentication.AUTHENTICATION_TOKEN
-                    + " is given for rest call: " + requestURI + " . Rest call forbidden.")
+            val msg = "Neither ${Authentication.AUTHENTICATION_USER_ID} nor ${Authentication.AUTHENTICATION_USERNAME}/${Authentication.AUTHENTICATION_TOKEN} is given for rest call: $requestURI. Rest call forbidden."
+            log.error(msg)
+            SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
         }
     }
 }
