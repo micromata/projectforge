@@ -24,24 +24,24 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
+import org.projectforge.rest.calendar.BarcodeServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.security.TimeBased2FactorAuthentication
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
+import kotlin.concurrent.thread
 
 private val log = KotlinLogging.logger {}
 
@@ -70,7 +70,24 @@ class My2FactorAuthentificationPageRest : AbstractDynamicPageRest() {
     val layout = UILayout("user.my2FactorAuthentication.title.edit")
     val userLC = LayoutContext(PFUserDO::class.java)
     val authenticationsLC = LayoutContext(UserAuthenticationsDO::class.java)
-
+    val key = TimeBased2FactorAuthentication.standard.generateSecretKey()
+    /*thread(start = true) {
+      var lastCode: String? = null
+      for (i in 0..1000) {
+        val code = TimeBased2FactorAuthentication.standard.getTOTPCode(key)
+        if (code != lastCode) {
+          lastCode = code
+          println(code)
+        }
+        Thread.sleep(1000)
+      }
+    }*/
+    val queryURL = TimeBased2FactorAuthentication.standard.getAuthenticatorUrl(
+      key,
+      ThreadLocalUserContext.getUser().username!!,
+      domainService.plainDomain ?: "unknown"
+    )
+    val barcodeUrl = BarcodeServicesRest.getBarcodeGetUrl(queryURL)
 
     layout.add(
       UIFieldset(12)
@@ -79,7 +96,7 @@ class My2FactorAuthentificationPageRest : AbstractDynamicPageRest() {
             .add(
               UICol(UILength(lg = 6))
                 .add(UIReadOnlyField("username", userLC))
-                .add(MyAccountPageRest.addAuthenticationToken(authenticationsLC, "authenticatorKey", UserTokenType.AUTHENTICATOR_KEY))
+                .add(UICustomized("image", mutableMapOf("src" to barcodeUrl, "alt" to barcodeUrl)))
             )
         )
     )
