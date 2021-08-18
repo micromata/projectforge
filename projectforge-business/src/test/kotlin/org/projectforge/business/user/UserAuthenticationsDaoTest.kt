@@ -73,7 +73,7 @@ class UserAuthenticationsDaoTest : AbstractTestBase() {
 
     @Test
     fun createTokenTest() {
-        val token = userAuthenticationsDao.createAuthenticationToken()
+        val token = userAuthenticationsDao.createAuthenticationToken(UserTokenType.REST_CLIENT)
         Assertions.assertEquals(19, token.length)
         Assertions.assertTrue(token.matches("[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}".toRegex()), "Token '$token' isn't of format xxxx-xxxx-xxxx-xxxx")
     }

@@ -28,4 +28,4 @@ package org.projectforge.business.user
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-enum class UserTokenType { CALENDAR_REST, DAV_TOKEN, REST_CLIENT, STAY_LOGGED_IN_KEY }
+enum class UserTokenType { CALENDAR_REST, DAV_TOKEN, REST_CLIENT, STAY_LOGGED_IN_KEY, AUTHENTICATOR_KEY }

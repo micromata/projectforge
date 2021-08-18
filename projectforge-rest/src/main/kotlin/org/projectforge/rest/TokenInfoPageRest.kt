@@ -67,6 +67,7 @@ class TokenInfoPageRest : AbstractDynamicPageRest() {
             UserTokenType.DAV_TOKEN -> "davToken"
             UserTokenType.REST_CLIENT -> "restClientToken"
             UserTokenType.STAY_LOGGED_IN_KEY -> "stayLoggedInKey"
+            UserTokenType.AUTHENTICATOR_KEY -> throw IllegalArgumentException("Authentication token is protected. Illegal access.")
         }
 
         val elementInfo = ElementsRegistry.getElementInfo(UserAuthenticationsDO::class.java, tokenId)

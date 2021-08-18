@@ -1116,6 +1116,14 @@ version.
 Please note: If you delete the working directory, all your data base
 entries are deleted as well!
 
+=== Security improvements
+
+==== Fail2ban
+
+`LoginDefaultHandler   : User login failed:`
+
+`LoginDefaultHandler[ \t]+\: User login failed\:`
+
 == Attr-Schema in ProjectForge
 
 === Overview
