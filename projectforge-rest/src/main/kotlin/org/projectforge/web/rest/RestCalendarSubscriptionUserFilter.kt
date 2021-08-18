@@ -23,11 +23,16 @@
 
 package org.projectforge.web.rest
 
+import mu.KotlinLogging
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
+import org.projectforge.rest.utils.RequestLog
+import org.projectforge.security.SecurityLogging
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+
+private val log = KotlinLogging.logger {}
 
 class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter(UserTokenType.CALENDAR_REST) {
     override fun authenticate(authInfo: RestAuthenticationInfo) {
@@ -36,7 +41,9 @@ class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter(UserTokenType.
                 ?: run {
                     if (authInfo.resultCode == null) {
                         // error not yet handled.
-                        log.info("UserId not found in request parameters ('user') or can't parse it as int value. Rest call denied.")
+                        val msg = "UserId not found in request parameters ('user') or can't parse it as int value. Rest call denied."
+                        log.error(msg)
+                        SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "${UserTokenType.CALENDAR_REST.name} AUTHENTICATION FAILED", msg)
                         authInfo.resultCode = HttpStatus.BAD_REQUEST
                     }
                     return
@@ -52,9 +59,5 @@ class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter(UserTokenType.
                 userParams = arrayOf("user"),
                 tokenParams = arrayOf("q[token]"),
                 userId = userId)
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(RestCalendarSubscriptionUserFilter::class.java)
     }
 }
