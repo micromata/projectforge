@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.user.entities.UserAuthenticationsD
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.projectforge.framework.utils.Crypt
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.security.TimeBased2FactorAuthentication
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -119,6 +120,10 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             UserTokenType.DAV_TOKEN -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_DAV_TOKEN
             UserTokenType.REST_CLIENT -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_REST_CLIENT_TOKEN
             UserTokenType.STAY_LOGGED_IN_KEY -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_STAY_LOGGED_IN_KEY
+            else -> {
+                log.error("Getting user by token of type $type not supported.")
+                return null
+            }
         }
         val user = ensureUniqueResult(em
                 .createNamedQuery(queryName, PFUserDO::class.java)
@@ -141,6 +146,10 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             UserTokenType.DAV_TOKEN -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_DAV_TOKEN
             UserTokenType.REST_CLIENT -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_REST_CLIENT_TOKEN
             UserTokenType.STAY_LOGGED_IN_KEY -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_STAY_LOGGED_IN_KEY
+            else -> {
+                log.error("Getting user by token of type $type not supported.")
+                return null
+            }
         }
         val user = ensureUniqueResult(em
                 .createNamedQuery(queryName, PFUserDO::class.java)
@@ -201,7 +210,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         val token = authentications.getToken(type)
         if (token.isNullOrBlank() || token.trim().length < 10) {
             log.info("Authentication token '$type' renewed for user: $userId")
-            authentications.setToken(type, createEncryptedAuthenticationToken())
+            authentications.setToken(type, createEncryptedAuthenticationToken(type))
             return true
         }
         return false
@@ -217,18 +226,22 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             log.warn("No user authentications object found for user $userId. Nothing to renew for token '$type'.")
             return
         }
-        authentications.setToken(type, createEncryptedAuthenticationToken())
+        authentications.setToken(type, createEncryptedAuthenticationToken(type))
         update(authentications)
         log.info("Authentication token '$type' renewed for user: $userId")
     }
 
-    internal fun createAuthenticationToken(): String {
-        val parts = Array(4) { _ -> NumberHelper.getSecureRandomReducedAlphanumeric(4) }
-        return parts.joinToString("-") { it }
+    internal fun createAuthenticationToken(type: UserTokenType): String {
+        if (type == UserTokenType.AUTHENTICATOR_KEY) {
+           throw IllegalArgumentException("Don't use this method for creation of 2FA tokens!")
+        } else {
+            val parts = Array(4) { _ -> NumberHelper.getSecureRandomReducedAlphanumeric(4) }
+            return parts.joinToString("-") { it }
+        }
     }
 
-    private fun createEncryptedAuthenticationToken(): String {
-        return encryptToken(createAuthenticationToken())
+    private fun createEncryptedAuthenticationToken(type: UserTokenType): String {
+        return encryptToken(createAuthenticationToken(type))
     }
 
     private fun encryptToken(token: String): String {
@@ -267,10 +280,10 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         if (authentications == null) {
             authentications = UserAuthenticationsDO()
             setUser(authentications, userId)
-            authentications.calendarExportToken = createEncryptedAuthenticationToken()
-            authentications.davToken = createEncryptedAuthenticationToken()
-            authentications.restClientToken = createEncryptedAuthenticationToken()
-            authentications.stayLoggedInKey = createEncryptedAuthenticationToken()
+            authentications.calendarExportToken = createEncryptedAuthenticationToken(UserTokenType.CALENDAR_REST)
+            authentications.davToken = createEncryptedAuthenticationToken(UserTokenType.DAV_TOKEN)
+            authentications.restClientToken = createEncryptedAuthenticationToken(UserTokenType.REST_CLIENT)
+            authentications.stayLoggedInKey = createEncryptedAuthenticationToken(UserTokenType.STAY_LOGGED_IN_KEY)
             if (checkAccess) {
                 save(authentications)
             } else {

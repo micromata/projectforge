@@ -63,6 +63,7 @@ class MenuRest {
     myAccountMenu.add(item)
     item.add(MenuItem(MenuItemDefId.FEEDBACK))
     item.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
+    item.add(MenuItemDef(MenuItemDefId.MY_2_FACTOR_AUTHENTICATION))
     if (!accessChecker.isRestrictedUser) {
       if (ThreadLocalUserContext.getUserContext().employeeId != null) {
         item.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))

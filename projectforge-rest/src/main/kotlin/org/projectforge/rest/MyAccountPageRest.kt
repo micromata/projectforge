@@ -226,26 +226,46 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
         return FormLayoutData(data, layout, createServerData(request))
     }
 
-    private fun addAuthenticationToken(lc: LayoutContext, id: String, token: UserTokenType, tooltip: String? = null): UIRow {
-        return UIRow()
-                .add(UICol(9)
-                        .add(UIReadOnlyField(id, lc, canCopy = true, coverUp = true))
+  companion object {
+    internal fun addAuthenticationToken(
+      lc: LayoutContext,
+      id: String,
+      token: UserTokenType,
+      tooltip: String? = null
+    ): UIRow {
+      return UIRow()
+        .add(
+          UICol(9)
+            .add(UIReadOnlyField(id, lc, canCopy = true, coverUp = true))
+        )
+        .add(
+          UICol(3)
+            .add(
+              UIButton(
+                "${id}-renew",
+                title = translate("user.authenticationToken.renew"),
+                tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
+                confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
+                color = UIColor.DANGER,
+                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.POST)
+              )
+            )
+            .add(
+              UIButton(
+                "${id}-access",
+                title = translate("user.authenticationToken.button.showUsage"),
+                tooltip = "user.authenticationToken.button.showUsage.tooltip",
+                color = UIColor.LINK,
+                responseAction = ResponseAction(
+                  PagesResolver.getDynamicPageUrl(
+                    TokenInfoPageRest::class.java,
+                    mapOf("token" to token), absolute = true
+                  ),
+                  targetType = TargetType.MODAL
                 )
-                .add(UICol(3)
-                        .add(UIButton("${id}-renew",
-                                title = translate("user.authenticationToken.renew"),
-                                tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
-                                confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
-                                color = UIColor.DANGER,
-                                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.POST)))
-                        .add(UIButton("${id}-access",
-                                title = translate("user.authenticationToken.button.showUsage"),
-                                tooltip = "user.authenticationToken.button.showUsage.tooltip",
-                                color = UIColor.LINK,
-                                responseAction = ResponseAction(
-                                        PagesResolver.getDynamicPageUrl(TokenInfoPageRest::class.java,
-                                                mapOf("token" to token), absolute = true),
-                                        targetType = TargetType.MODAL)))
-                )
+              )
+            )
+        )
     }
+  }
 }
