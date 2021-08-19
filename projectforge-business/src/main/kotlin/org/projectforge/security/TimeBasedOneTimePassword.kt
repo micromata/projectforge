@@ -33,6 +33,8 @@ import javax.crypto.spec.SecretKeySpec
 private val log = KotlinLogging.logger {}
 
 /**
+ * RFC6238 implementation of time-based one-time-passwords, used also by common authenticators such as
+ * Microsoft or Google authenticator.
  * https://datatracker.ietf.org/doc/html/rfc6238
  */
 class TimeBasedOneTimePassword(
