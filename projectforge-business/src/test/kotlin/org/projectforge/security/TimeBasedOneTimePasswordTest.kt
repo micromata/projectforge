@@ -118,4 +118,21 @@ class TimeBasedOneTimePasswordTest {
       }
     }
   }
+
+  companion object {
+    @JvmStatic
+    fun main(args: Array<String>) {
+      println(TimeBased2FactorAuthentication.standard.generateSecretKey())
+      val testKey = "DGIORGZZDGEMYJQULMOLU7U3KWIEVYBV"
+      var lastCode = ""
+      while (true) {
+        val code = TimeBased2FactorAuthentication.standard.getTOTPCode(testKey)
+        if (code != lastCode) {
+          lastCode = code
+          println(code)
+        }
+        Thread.sleep(1000)
+      }
+    }
+  }
 }

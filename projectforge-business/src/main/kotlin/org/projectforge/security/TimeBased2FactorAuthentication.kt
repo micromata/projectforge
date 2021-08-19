@@ -29,7 +29,9 @@ import java.net.URLEncoder
 import java.security.SecureRandom
 
 /**
- * Inspired by https://github.com/taimos/totp and
+ * RFC6238 implementation of time-based one-time-passwords, used also by common authenticators such as
+ * Microsoft or Google authenticator.
+ * https://datatracker.ietf.org/doc/html/rfc6238
  * https://medium.com/@ihorsokolyk/two-factor-authentication-with-java-and-google-authenticator-9d7ea15ffee6
  */
 class TimeBased2FactorAuthentication(private val hmacCrypto: String = "HmacSHA1", private val numberOfDigits: Int = 6) {
@@ -64,20 +66,5 @@ class TimeBased2FactorAuthentication(private val hmacCrypto: String = "HmacSHA1"
      */
     @JvmStatic
     val standard = TimeBased2FactorAuthentication(hmacCrypto = "HmacSHA1", numberOfDigits = 6)
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-      println(standard.generateSecretKey())
-      val testKey = "DGIORGZZDGEMYJQULMOLU7U3KWIEVYBV"
-      var lastCode = ""
-      while (true) {
-        val code = standard.getTOTPCode(testKey)
-        if (code != lastCode) {
-          lastCode = code
-          println(code)
-        }
-        Thread.sleep(1000)
-      }
-    }
   }
 }
