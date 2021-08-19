@@ -94,14 +94,14 @@ class SystemStatusRest {
         // Must be initialized on demand, LogServiceRest is not available on @PostConstruct in test cases.
         _publicSystemData = SystemData(
           appname = systemData.appname,
-          version = "?.?.?",
-          buildTimestamp = "1970-01-01 10:00:00",
-          buildDate = "1970-01-01 10:00:00",
-          releaseYear = "1970",
+          version = "<version>",
+          buildTimestamp = "<date>",
+          buildDate = "<date>",
+          releaseYear = "2001",
           scmId = "<scmId>",
           scmIdFull = "<scmIdFull>",
           messageOfTheDay = systemStatus.messageOfTheDay,
-          copyRightYears = "1970-2099",
+          copyRightYears = "2001-2099",
           logoUrl = LogoServiceRest.logoUrl,
           setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
           startTimeUTC = Date(0L)
