@@ -73,7 +73,6 @@ class TimeBased2FactorAuthentication(
   /**
    * Gets the current time-based one-time-password for the given secret key as number (digits). Only for
    * test cases.
-   * Use [TimeBasedOneTimePassword.validate] instead for validation of the OTP entered by the user.
    */
   internal fun getTOTPCode(secretKey: String): String {
     val base32 = Base32()
