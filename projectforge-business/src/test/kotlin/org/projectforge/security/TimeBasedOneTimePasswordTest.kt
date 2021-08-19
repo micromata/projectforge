@@ -79,7 +79,7 @@ class TimeBasedOneTimePasswordTest {
   fun getOTPTest() {
     testCryptos.forEach { crypto ->
       testData.filter { crypto.crypto == it.crypto }.forEach { data ->
-        val totp = TimeBasedOneTimePassword("Hmac${crypto.crypto}")
+        val totp = TimeBasedOneTimePassword("Hmac${crypto.crypto}", 8)
         Assertions.assertEquals(
           data.hexVal,
           TimeBasedOneTimePassword.asHex(TimeBasedOneTimePassword.getStep(data.timeInSeconds * 1000)),
@@ -104,7 +104,7 @@ class TimeBasedOneTimePasswordTest {
     // SHA1
 
     testCryptos.forEach { crypto ->
-      val totp = TimeBasedOneTimePassword("Hmac${crypto.crypto}")
+      val totp = TimeBasedOneTimePassword("Hmac${crypto.crypto}", 8)
       testData.filter { it.crypto == crypto.crypto }.forEach {
         Assertions.assertEquals(
           it.hexVal,

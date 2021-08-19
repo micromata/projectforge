@@ -60,6 +60,17 @@ class TimeBased2FactorAuthentication(
   }
 
   /**
+   * Gets the TOTP token for current time and one step before for the given secret key and compares it
+   * with the given otp.
+   * @param secretKey - secret credential key (HEX)
+   * @param otp - OTP to validate
+   * @return valid?
+   */
+  fun validate(secretKey: String, otp: String): Boolean {
+    return totp.validate(secretKey, otp)
+  }
+
+  /**
    * Gets the current time-based one-time-password for the given secret key as number (digits). Only for
    * test cases.
    * Use [TimeBasedOneTimePassword.validate] instead for validation of the OTP entered by the user.
