@@ -34,9 +34,23 @@ import java.security.SecureRandom
  * https://datatracker.ietf.org/doc/html/rfc6238
  * https://medium.com/@ihorsokolyk/two-factor-authentication-with-java-and-google-authenticator-9d7ea15ffee6
  */
-class TimeBased2FactorAuthentication(private val hmacCrypto: String = "HmacSHA1", private val numberOfDigits: Int = 6) {
+class TimeBased2FactorAuthentication(
+  /**
+   * Default algo is "HmacSHA1", but also "HmacSHA256" and "HmacSHA512" is supported. Use "HmacSHA1" for usage
+   * with Microsoft and Google authenticator.
+   */
+  private val hmacCrypto: String = "HmacSHA1",
+  /**
+   * Default number of digits of the OTP is 6 (used by Microsoft and Google authenticator).
+   */
+  private val numberOfDigits: Int = 6
+) {
   val totp = TimeBasedOneTimePassword(hmacCrypto = hmacCrypto, numberOfDigits = numberOfDigits)
 
+  /**
+   * Generates a OTP compatible secret key. Should be used for initial creation of a user's secret key or for
+   * setting a new secret key (for reset e. g. if the Smartphone was lost etc.).
+   */
   fun generateSecretKey(): String {
     val random = SecureRandom()
     val bytes = ByteArray(20)
@@ -45,13 +59,21 @@ class TimeBased2FactorAuthentication(private val hmacCrypto: String = "HmacSHA1"
     return base32.encodeToString(bytes)
   }
 
-  fun getTOTPCode(secretKey: String): String {
+  /**
+   * Gets the current time-based one-time-password for the given secret key as number (digits). Only for
+   * test cases.
+   * Use [TimeBasedOneTimePassword.validate] instead for validation of the OTP entered by the user.
+   */
+  internal fun getTOTPCode(secretKey: String): String {
     val base32 = Base32()
     val bytes = base32.decode(secretKey)
     val hexKey = Hex.encodeHexString(bytes)
     return totp.getOTP(hexKey)
   }
 
+  /**
+   * Gets the url for the 2d barcode, scanned by Microsoft or Google authenticator.
+   */
   fun getAuthenticatorUrl(secretKey: String, account: String, issuer: String): String {
     return "otpauth://totp/${encode("$issuer:$account")}?secret=${encode(secretKey)}&issuer=${encode(issuer)}"
   }

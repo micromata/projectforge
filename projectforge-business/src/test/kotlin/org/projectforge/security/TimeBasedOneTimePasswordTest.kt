@@ -87,12 +87,12 @@ class TimeBasedOneTimePasswordTest {
         )
         Assertions.assertEquals(
           TOTP_RFC6238.generateTOTP(crypto.seed, data.hexVal, "8", "Hmac${crypto.crypto}"),
-          totp.getOTP(step = TimeBasedOneTimePassword.getStep(data.timeInSeconds * 1000), key = crypto.seed),
+          totp.getOTP(step = TimeBasedOneTimePassword.getStep(data.timeInSeconds * 1000), secretKey = crypto.seed),
           "Crypto = '${crypto.crypto}, time=${data.timeInSeconds}"
         )
         Assertions.assertEquals(
           data.totp,
-          totp.getOTP(step = TimeBasedOneTimePassword.getStep(data.timeInSeconds * 1000), key = crypto.seed),
+          totp.getOTP(step = TimeBasedOneTimePassword.getStep(data.timeInSeconds * 1000), secretKey = crypto.seed),
           "Crypto = '${crypto.crypto}, time=${data.timeInSeconds}"
         )
       }

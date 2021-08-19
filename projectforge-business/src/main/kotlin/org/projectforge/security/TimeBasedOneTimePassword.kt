@@ -42,30 +42,33 @@ class TimeBasedOneTimePassword(
   private val numberOfDigits: Int = 8
 ) {
   /**
-   * @param key - secret credential key (HEX)
+   * Gets the TOTP token for current time for the given secret key.
+   * @param secretKey - secret credential key (HEX)
    * @return the OTP
    */
-  fun getOTP(key: String): String {
-    return getOTP(getStep(), key)
+  fun getOTP(secretKey: String): String {
+    return getOTP(getStep(), secretKey)
   }
 
   /**
-   * @param key - secret credential key (HEX)
+   * Gets the TOTP token for current time and one step before for the given secret key and compares it
+   * with the given otp.
+   * @param secretKey - secret credential key (HEX)
    * @param otp - OTP to validate
    * @return valid?
    */
-  fun validate(key: String, otp: String): Boolean {
-    return validate(getStep(), key, otp)
+  fun validate(secretKey: String, otp: String): Boolean {
+    return validate(getStep(), secretKey, otp)
   }
 
-  internal fun validate(step: Long, key: String, otp: String): Boolean {
-    return getOTP(step, key) == otp || getOTP(step - 1, key) == otp
+  internal fun validate(step: Long, secretKey: String, otp: String): Boolean {
+    return getOTP(step, secretKey) == otp || getOTP(step - 1, secretKey) == otp
   }
 
-  internal fun getOTP(step: Long, key: String): String {
+  internal fun getOTP(step: Long, secretKey: String): String {
     // Get the HEX in a Byte[]
     val msg = hexStr2Bytes(asHex(step))
-    val k = hexStr2Bytes(key)
+    val k = hexStr2Bytes(secretKey)
     val hash = hmacSHA(k, msg)
 
     // put selected bytes into result int
@@ -104,11 +107,17 @@ class TimeBasedOneTimePassword(
     private val DIGITS_POWER // 0 1  2   3    4     5      6       7        8
         = intArrayOf(1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000)
 
+    /**
+     * Get the 30 seconds step (epoch based).
+     */
     internal fun getStep(timeInMillis: Long = System.currentTimeMillis()): Long {
       // 30 seconds step(ID of TOTP)
       return timeInMillis / timeIntervalMillis
     }
 
+    /**
+     * Get the 30 seconds step (epoch based) as hex string (16 chars length).
+     */
     internal fun asHex(step: Long): String {
       // intervalNo as Hex string: "00000000033CB24E"
       return step.toString(16).toUpperCase().padStart(16, '0')
