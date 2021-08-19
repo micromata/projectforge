@@ -38,8 +38,15 @@ private val log = KotlinLogging.logger {}
  * https://datatracker.ietf.org/doc/html/rfc6238
  */
 class TimeBasedOneTimePassword(
+  /**
+   * Default algo is "HmacSHA1", but also "HmacSHA256" and "HmacSHA512" is supported. Use "HmacSHA1" for usage
+   * with Microsoft and Google authenticator.
+   */
   private val hmacCrypto: String = "HmacSHA1",
-  private val numberOfDigits: Int = 8
+  /**
+   * Default number of digits of the OTP is 6 (used by Microsoft and Google authenticator).
+   */
+  private val numberOfDigits: Int = 6
 ) {
   /**
    * Gets the TOTP token for current time for the given secret key.
