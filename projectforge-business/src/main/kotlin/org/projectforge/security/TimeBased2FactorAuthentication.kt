@@ -48,7 +48,7 @@ class TimeBased2FactorAuthentication(
   val totp = TimeBasedOneTimePassword(hmacCrypto = hmacCrypto, numberOfDigits = numberOfDigits)
 
   /**
-   * Generates a OTP compatible secret key. Should be used for initial creation of a user's secret key or for
+   * Generates an OTP compatible secret key. Should be used for initial creation of a user's secret key or for
    * setting a new secret key (for reset e. g. if the Smartphone was lost etc.).
    */
   fun generateSecretKey(): String {
