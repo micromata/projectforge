@@ -420,6 +420,14 @@ open class RestAuthenticationUtils {
     }
 
     /**
+     * Tries to get username or id from request parameters or header: Authentication-User-Id, Authentication-Username or
+     * oder authenticationUsername.
+     */
+    fun getUserInfo(req: HttpServletRequest): String? {
+      return getAttribute(req, *REQUEST_PARAMS_USER)
+    }
+
+    /**
      * @param req
      * @param keys Name of the parameter key. Additional keys may be given as alternative keys if first key isn't found.
      * Might be used for backwards compatibility.
