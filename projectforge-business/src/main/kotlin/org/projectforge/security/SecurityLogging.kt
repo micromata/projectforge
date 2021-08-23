@@ -132,7 +132,15 @@ object SecurityLogging {
 
   private fun getLogInfo(request: HttpServletRequest): String {
     val username = UserFilter.getUserContext(request, false)?.user?.username
-    return "ip=[${request.remoteAddr}], user=[${username ?: "???"}], url=[${request.requestURL}], method=[${request.method}], agent=[${
+    val url = request.requestURL
+    val uri = request.requestURI
+    val uriPart = if (!url.endsWith(uri)) {
+      // In some cases, url doesn't end with uri (differs), so give more information:
+      ", uri=[$uri]"
+    } else {
+      ""
+    }
+    return "ip=[${request.remoteAddr}], user=[${username ?: "???"}], url=[$url]$uriPart, method=[${request.method}], agent=[${
       request.getHeader(
         "User-Agent"
       )
@@ -141,7 +149,7 @@ object SecurityLogging {
 
   private fun getMessagePart(caller: Class<*>, info: String? = null): String {
     return if (info.isNullOrBlank()) {
-      "source=[${caller.name}]"
+      "source=[${caller.name.removeSuffix("\$Companion")}]" // Suffix $Companion sucks.
     } else {
       "info=[$info], source=[${caller.name}]"
     }
