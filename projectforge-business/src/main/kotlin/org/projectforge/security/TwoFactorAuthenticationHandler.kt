@@ -26,6 +26,7 @@ package org.projectforge.security
 import mu.KotlinLogging
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.model.rest.RestPaths
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
@@ -37,7 +38,9 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class TwoFactorAuthenticationHandler {
+  @Autowired
   internal lateinit var configuration: TwoFactorAuthenticationConfiguration // internal for test case
+
   private lateinit var expiryPeriods: Array<ExpiryPeriod>
 
   /**
@@ -103,6 +106,52 @@ open class TwoFactorAuthenticationHandler {
     )
   }
 
+  fun printConfiguration(): String {
+    val sb = StringBuilder()
+    expiryPeriods.forEach { period ->
+      sb.appendLine(period.expiryPeriod)
+      sb.appendLine("  config value=${period.regex}")
+      period.regexArray.forEach {
+        sb.appendLine("    $it")
+      }
+    }
+    return sb.toString()
+  }
+
+  /**
+   * For checking the configuration (user Administration -> System for checking).
+   */
+  fun printAllEndPoints(endpoints: List<String>): String {
+    val sorted = endpoints.filter { it.isNotBlank() }.sorted()
+    val map = mutableMapOf<String, MutableList<String>>()
+    val unmatched = mutableListOf<String>()
+    sorted.forEach { uri ->
+      val period = matches(uri)
+      if (period == null) {
+        unmatched.add(uri)
+      } else {
+        var list = map[period.expiryPeriod]
+        if (list == null) {
+          list = mutableListOf()
+          map[period.expiryPeriod] = list
+        }
+        list.add(uri)
+      }
+    }
+    val sb = StringBuilder()
+    expiryPeriods.forEach { period ->
+      sb.appendLine("  ${period.expiryPeriod}")
+      map[period.expiryPeriod]?.forEach { uri ->
+        sb.appendLine("  + ${uri}")
+      }
+    }
+    sb.appendLine("  unmatched")
+    unmatched.forEach { uri ->
+      sb.appendLine("  - ${uri}")
+    }
+    return sb.toString()
+  }
+
   companion object {
     /**
      * For getting the shortest matching url.
@@ -127,7 +176,7 @@ open class TwoFactorAuthenticationHandler {
     }
   }
 
-  internal class ExpiryPeriod(regex: String?, val expiryMillis: Long, expiryPeriod: String) {
+  internal class ExpiryPeriod(val regex: String?, val expiryMillis: Long, val expiryPeriod: String) {
     val regexArray: Array<Regex>
 
     init {
@@ -166,16 +215,17 @@ open class TwoFactorAuthenticationHandler {
       if (exp.startsWith("WRITE:")) {
         val entity = exp.removePrefix("WRITE:").trim()
         // Add all write access rest calls of entity:
-        list.add("/rs/$entity/${RestPaths.CLONE}")
-        list.add("/rs/$entity/${RestPaths.DELETE}")
-        list.add("/rs/$entity/${RestPaths.EDIT}")
-        list.add("/rs/$entity/${RestPaths.FORCE_DELETE}")
-        list.add("/rs/$entity/${RestPaths.MARK_AS_DELETED}")
-        list.add("/rs/$entity/${RestPaths.SAVE}")
-        list.add("/rs/$entity/${RestPaths.SAVE_OR_UDATE}")
-        list.add("/rs/$entity/${RestPaths.UNDELETE}")
-        list.add("/rs/$entity/${RestPaths.UPDATE}")
-        list.add("/rs/$entity/${RestPaths.WATCH_FIELDS}")
+        list.add("^/rs/$entity/${RestPaths.CLONE}.*")
+        list.add("^/rs/$entity/${RestPaths.DELETE}.*")
+        list.add("^/rs/$entity/${RestPaths.EDIT}.*")
+        list.add("^/rs/$entity/${RestPaths.FORCE_DELETE}.*")
+        list.add("^/rs/$entity/${RestPaths.MARK_AS_DELETED}.*")
+        list.add("^/rs/$entity/${RestPaths.SAVE}.*")
+        list.add("^/rs/$entity/${RestPaths.SAVE_OR_UDATE}.*")
+        list.add("^/rs/$entity/${RestPaths.UNDELETE}.*")
+        list.add("^/rs/$entity/${RestPaths.UPDATE}.*")
+        list.add("^/rs/$entity/${RestPaths.WATCH_FIELDS}.*")
+        return
       }
       if (exp.startsWith("/")) {
         list.add("^${exp.trim()}.*")
