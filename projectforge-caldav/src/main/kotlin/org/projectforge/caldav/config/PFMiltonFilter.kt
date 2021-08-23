@@ -105,6 +105,7 @@ class PFMiltonFilter : MiltonFilter() {
                 log.info { "DAV doesn't support PUT method (yet): ${request.requestURI}" }
                 response as HttpServletResponse
                 response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "PUT not (yet) supported by ProjectForge.")
+                return
             }
             log.info("Request with method=${request.method} for Milton (requestUri=${RequestLog.asString(request)})...")
             restAuthenticationUtils.doFilter(request,
