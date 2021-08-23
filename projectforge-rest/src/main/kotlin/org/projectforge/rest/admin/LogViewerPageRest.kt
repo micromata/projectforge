@@ -58,16 +58,16 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
   private lateinit var userPrefService: UserPrefService
 
   /**
-   * @param id If given, a [LogSubscription] is used by id, otherwise all log entries of the queues are used (for admins only).
+   * @param id Number of a [LogSubscription] is used by id, for -1 all log entries of the queues are used (for admins only).
    */
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, @RequestParam("id") id: Int?): FormLayoutData {
-    if (id == null) {
+  fun getForm(request: HttpServletRequest, @RequestParam("id") id: Int): FormLayoutData {
+    if (id == -1) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
     }
     val lc = LayoutContext(LogViewerEvent::class.java)
     val filterLc = LayoutContext(LogViewFilter::class.java)
-    val logViewFilter = if (id == null) {
+    val logViewFilter = if (id == -1) {
       getUserPref()
     } else {
       LogViewFilter(logSubscriptionId = id)
@@ -79,7 +79,7 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
       refreshIntervalSeconds = 5,
       autoRefreshFlag = "autoRefresh"
     )
-    if (id == null) {
+    if (id == -1) {
       logEntriesTable.add(lc, "timestamp", "level", "user", "message", "userAgent", "stackTrace", sortable = false)
     } else {
       // Don't bother normal user with technical stuff:
@@ -108,7 +108,7 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
           )
       )
 
-    if (id != null) {
+    if (id != -1) {
       layout.add(
         UIButton(
           "reset",
@@ -195,8 +195,8 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
   }
 
   private fun queryList(filter: LogViewFilter): List<LogViewerEvent> {
-    val logSubscriptionId = filter.logSubscriptionId
-    if (logSubscriptionId == null) {
+    val logSubscriptionId = filter.logSubscriptionId ?: -1
+    if (logSubscriptionId == -1) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
       return LoggerMemoryAppender.getInstance().query(filter.logFilter).map { LogViewerEvent(it) }
     }
