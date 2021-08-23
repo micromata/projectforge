@@ -39,8 +39,11 @@ private val log = KotlinLogging.logger {}
 open class TwoFactorAuthenticationHandler {
   internal lateinit var configuration: TwoFactorAuthenticationConfiguration // internal for test case
   private lateinit var expiryPeriods: Array<ExpiryPeriod>
-  private var uriMap = mutableMapOf<String, ExpiryPeriod>()
-  private var ignoreUris = mutableListOf<String>()
+
+  /**
+   * For caching matching urls.
+   */
+  internal var uriMap = mutableMapOf<String, ExpiryPeriod>()
 
   /**
    * Checks for the given request, if a 2FA is required and not expired. If a 2FA is required (because it's not yet given or expired
@@ -57,40 +60,35 @@ open class TwoFactorAuthenticationHandler {
     if (uri.isEmpty()) {
       return null
     }
-    synchronized(ignoreUris) {
-      if (ignoreUris.contains(uri)) {
-        return null
-      }
-    }
-    var result: ExpiryPeriod? = null
+    var result: ExpiryPeriod?
+    val paths = getParentPaths(uri)
     synchronized(uriMap) {
-      result = uriMap[uri]
-    }
-    if (result != null) {
-      return result
-    }
-    expiryPeriods.forEach { period ->
-      period.regexArray.forEach { regex ->
-        if (uri.matches(regex)) {
-          synchronized(uriMap) {
-            if (uriMap.size > 10000) {
-              // Clean uriMap from time to time to get rid of old uris, not used very often or faulty uris.
-              uriMap.clear()
-            }
-            uriMap[uri] = period
-          }
-          return period
+      paths.forEach { path ->
+        result = uriMap[path]
+        if (result != null) {
+          // uri or parent path matches:
+          return result
         }
       }
     }
-    synchronized(ignoreUris) {
-      if (ignoreUris.size > 100000) {
-        // Clean ignoreUris from time to time to get rid of old uris, not used very often or faulty uris.
-        ignoreUris.clear()
+    expiryPeriods.forEach { period ->
+      period.regexArray.forEach { regex ->
+        // Search for the shortest matching parent path:
+        paths.forEach { uriPath ->
+          if (uriPath.matches(regex)) {
+            synchronized(uriMap) {
+              if (uriMap.size > 10000) {
+                // Clean uriMap from time to time to get rid of old uris, not used very often or faulty uris.
+                uriMap.clear()
+              }
+              uriMap[uriPath] = period
+            }
+            return period
+          }
+        }
       }
-      ignoreUris.add(uri)
     }
-    return null;
+    return null
   }
 
   @PostConstruct
@@ -105,6 +103,30 @@ open class TwoFactorAuthenticationHandler {
     )
   }
 
+  companion object {
+    /**
+     * For getting the shortest matching url.
+     * /rs/user/save -> '/rs/user/save', '/rs/user', '/rs'
+     * @return Parent paths of uri including uri itself.
+     */
+    internal fun getParentPaths(uri: String): List<String> {
+      val result = mutableListOf<String>()
+      /*var pos = uri.lastIndexOf('/', uri.length - 1)
+      while (pos > 0) {
+        result.add(uri.substring(0, pos))
+        pos = uri.lastIndexOf('/', pos - 1)
+      }*/
+      var pos = uri.indexOf('/', 1)
+      while (pos >= 0 && pos < uri.length) {
+        result.add(uri.substring(0, pos))
+        pos = uri.indexOf('/', pos + 1)
+      }
+      result.add(uri)
+      // println("$uri: ${result.joinToString { it }}")
+      return result
+    }
+  }
+
   internal class ExpiryPeriod(regex: String?, val expiryMillis: Long, expiryPeriod: String) {
     val regexArray: Array<Regex>
 
@@ -113,11 +135,11 @@ open class TwoFactorAuthenticationHandler {
       regex?.split(';')?.forEach { value ->
         val exp = value.trim()
         // println("regex=$regex, exp=$exp")
-        if (!exp.isBlank()) {
+        if (exp.isNotBlank()) {
           if (!exp.startsWith("WRITE:") && exp[0].isUpperCase()) {
             // Proceed short cuts such as ADMIN, FINANCE, ...
-            var found = false;
-            TwoFactorAuthenticationConfiguration.shortCuts.forEach { shortCut, shortCutRegex ->
+            var found = false
+            TwoFactorAuthenticationConfiguration.shortCuts.forEach { (shortCut, shortCutRegex) ->
               if (!found && exp == shortCut) {
                 found = true
                 shortCutRegex.split(';').forEach { shortCutExp ->
@@ -140,7 +162,7 @@ open class TwoFactorAuthenticationHandler {
       regexArray = list.map { it.toRegex() }.toTypedArray()
     }
 
-    private fun addRegex(list: MutableList<String>, exp: String){
+    private fun addRegex(list: MutableList<String>, exp: String) {
       if (exp.startsWith("WRITE:")) {
         val entity = exp.removePrefix("WRITE:").trim()
         // Add all write access rest calls of entity:

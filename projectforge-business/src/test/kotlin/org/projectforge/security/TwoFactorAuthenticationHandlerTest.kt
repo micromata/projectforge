@@ -35,12 +35,26 @@ class TwoFactorAuthenticationHandlerTest {
     Assertions.assertEquals(AbstractCache.TICKS_PER_MINUTE, handler.matches("/react/changePassword")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_MINUTE, handler.matches("/react/changeWlanPassword")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matches("/wa/userEdit")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matches("/wa/userEdit/124")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matches("/wa/userEdit/125")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matches("/rs/user/${RestPaths.SAVE}")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matches("/react/myAccount")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 30, handler.matches("/wa/outgoingInvoice")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 90, handler.matches("/unknown-url")?.expiryMillis)
     handler = getHandler("PASSWORD; ACCESS", "", "ADMIN;MY_ACCOUNT")
     Assertions.assertNull(handler.matches("/unknown-url")?.expiryMillis)
+  }
+
+  @Test
+  fun getReducedPathsTest() {
+    Assertions.assertArrayEquals(arrayOf(""), TwoFactorAuthenticationHandler.getParentPaths("").toTypedArray())
+    Assertions.assertArrayEquals(arrayOf("/"), TwoFactorAuthenticationHandler.getParentPaths("/").toTypedArray())
+    Assertions.assertArrayEquals(arrayOf("/", "//"), TwoFactorAuthenticationHandler.getParentPaths("//").toTypedArray())
+    Assertions.assertArrayEquals(arrayOf("/rs"), TwoFactorAuthenticationHandler.getParentPaths("/rs").toTypedArray())
+    Assertions.assertArrayEquals(arrayOf("/rs", "/rs/"), TwoFactorAuthenticationHandler.getParentPaths("/rs/").toTypedArray())
+    Assertions.assertArrayEquals(arrayOf("/rs", "/rs/user"), TwoFactorAuthenticationHandler.getParentPaths("/rs/user").toTypedArray())
+    Assertions.assertArrayEquals(arrayOf("/rs", "/rs/user", "/rs/user/save"), TwoFactorAuthenticationHandler.getParentPaths("/rs/user/save").toTypedArray())
+    Assertions.assertArrayEquals(arrayOf("/rs", "/rs/", "/rs//user", "/rs//user/save"), TwoFactorAuthenticationHandler.getParentPaths("/rs//user/save").toTypedArray())
   }
 
   private fun getHandler(
