@@ -32,6 +32,7 @@ import org.projectforge.common.logging.MDC_IP
 import org.projectforge.common.logging.MDC_SESSION
 import org.projectforge.common.logging.MDC_USER
 import org.projectforge.common.logging.MDC_USER_AGENT
+import org.projectforge.web.rest.RestAuthenticationUtils
 import org.slf4j.MDC
 import java.io.IOException
 import javax.servlet.*
@@ -68,13 +69,13 @@ class LoggingFilter : Filter {
         }
         "ALL" -> {
           // Log all
-          if (!logSuspiciousURI(request)) {
+          if (!logSuspiciousURI(request, username)) {
             // If not logged as warning (suspicious uri), then log it as info (expected access):
             SecurityLogging.logAccessInfo(request, this.javaClass)
           }
         }
         else -> {
-          logSuspiciousURI(request)
+          logSuspiciousURI(request, username)
         }
       }
       chain.doFilter(req, resp)
@@ -87,7 +88,7 @@ class LoggingFilter : Filter {
   }
 
   companion object {
-    private fun logSuspiciousURI(request: HttpServletRequest): Boolean {
+    private fun logSuspiciousURI(request: HttpServletRequest, username: String?): Boolean {
       val uri = request.requestURI
       if (uri.isNullOrBlank() ||
         uri.startsWith("/rs/") ||
@@ -109,7 +110,13 @@ class LoggingFilter : Filter {
       ) {
         return false
       }
-      SecurityLogging.logWarn(request, this::class.java, "SUSPICIOUS REQUEST", logAccess = true, logSecurity = true)
+      val user = username ?: RestAuthenticationUtils.getUserInfo(request)
+      val title = if (user.isNullOrEmpty()) {
+        "ANONYMOUS SUSPICIOUS REQUEST"
+      } else {
+        "SUSPICIOUS REQUEST BY USER: $user"
+      }
+      SecurityLogging.logWarn(request, this::class.java, title, logAccess = true, logSecurity = true)
       return true
     }
   }
