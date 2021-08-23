@@ -39,6 +39,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -100,6 +101,11 @@ class PFMiltonFilter : MiltonFilter() {
             // Not for us:
             chain.doFilter(request, response)
         } else {
+            if (request.method == "PUT") {
+                log.info { "DAV doesn't support PUT method (yet): ${request.requestURI}" }
+                response as HttpServletResponse
+                response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "PUT not (yet) supported by ProjectForge.")
+            }
             log.info("Request with method=${request.method} for Milton (requestUri=${RequestLog.asString(request)})...")
             restAuthenticationUtils.doFilter(request,
                     response,
