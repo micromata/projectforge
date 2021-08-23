@@ -132,8 +132,8 @@ object SecurityLogging {
 
   private fun getLogInfo(request: HttpServletRequest): String {
     val username = UserFilter.getUserContext(request, false)?.user?.username
-    val url = request.requestURL
-    val uri = request.requestURI
+    val url = request.requestURL ?: "???" // Should only be null in test cases.
+    val uri = request.requestURI ?: "???" // Should only be null in test cases.
     val uriPart = if (!url.endsWith(uri)) {
       // In some cases, url doesn't end with uri (differs), so give more information:
       ", uri=[$uri]"
