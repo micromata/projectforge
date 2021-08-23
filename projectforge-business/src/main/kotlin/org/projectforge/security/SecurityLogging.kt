@@ -73,7 +73,7 @@ object SecurityLogging {
    * @param request Needed for logging client ip (remoteAddr), user-agent, username.
    * @param caller Source class
    * @param title The title of the message (start string encapsulated in *** <TITLE> ***.
-   * @param msg Optional message attached to the end of the logging message.
+   * @param message Optional message attached to the end of the logging message.
    * @return The build message including request infos.
    */
   @JvmStatic
@@ -81,21 +81,21 @@ object SecurityLogging {
     request: HttpServletRequest,
     caller: Class<*>,
     title: String,
-    msg: String? = null
+    message: String? = null
   ): String {
-    return logWarn(request, caller, title, logAccess = false, logSecurity = true, msg = msg)
+    return logWarn(request, caller, title, logAccess = false, logSecurity = true, message = message)
   }
 
   /**
    * Writes warn message to securityLog.
    * @param caller Source class
    * @param title The title of the message (start string encapsulated in *** <TITLE> ***.
-   * @param msg Optional message attached to the end of the logging message.
+   * @param message Optional message attached to the end of the logging message.
    * @return The build message including request infos.
    */
   @JvmStatic
-  fun logSecurityWarn(caller: Class<*>, title: String, msg: String? = null): String {
-    val msg = "*** $title *** ${getMessagePart(caller, msg)}"
+  fun logSecurityWarn(caller: Class<*>, title: String, message: String? = null): String {
+    val msg = "*** $title *** ${getMessagePart(caller, message)}"
     securityLog.warn(msg)
     return msg
   }
@@ -107,7 +107,7 @@ object SecurityLogging {
    * @param title The title of the message (start string encapsulated in *** <TITLE> ***.
    * @param logAccess If true, the log warn message will be written to accessLog.
    * @param logSecurity If true, the log warn message will be written to securityLog.
-   * @param msg Optional message attached to the end of the logging message.
+   * @param message Optional message attached to the end of the logging message.
    * @return The build message including request infos.
    */
   @JvmStatic
@@ -118,9 +118,9 @@ object SecurityLogging {
     title: String,
     logAccess: Boolean = false,
     logSecurity: Boolean = true,
-    msg: String? = null,
+    message: String? = null,
   ): String {
-    val msg = "*** $title *** ${getLogInfo(request)} ${getMessagePart(caller, msg)}"
+    val msg = "*** $title *** ${getLogInfo(request)} ${getMessagePart(caller, message)}"
     if (logAccess) {
       accessLog.warn(msg)
     }
@@ -132,7 +132,15 @@ object SecurityLogging {
 
   private fun getLogInfo(request: HttpServletRequest): String {
     val username = UserFilter.getUserContext(request, false)?.user?.username
-    return "ip=[${request.remoteAddr}], user=[${username ?: "???"}], url=[${request.requestURL}], method=[${request.method}], agent=[${
+    val url = request.requestURL ?: "???" // Should only be null in test cases.
+    val uri = request.requestURI ?: "???" // Should only be null in test cases.
+    val uriPart = if (!url.endsWith(uri)) {
+      // In some cases, url doesn't end with uri (differs), so give more information:
+      ", uri=[$uri]"
+    } else {
+      ""
+    }
+    return "ip=[${request.remoteAddr}], user=[${username ?: "???"}], url=[$url]$uriPart, method=[${request.method}], agent=[${
       request.getHeader(
         "User-Agent"
       )
@@ -141,7 +149,7 @@ object SecurityLogging {
 
   private fun getMessagePart(caller: Class<*>, info: String? = null): String {
     return if (info.isNullOrBlank()) {
-      "source=[${caller.name}]"
+      "source=[${caller.name.removeSuffix("\$Companion")}]" // Suffix $Companion sucks.
     } else {
       "info=[$info], source=[${caller.name}]"
     }
