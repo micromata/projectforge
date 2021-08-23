@@ -29,6 +29,8 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.security.TwoFactorAuthenticationConfiguration;
+import org.projectforge.security.TwoFactorAuthenticationHandler;
 import org.projectforge.web.servlet.LogoServlet;
 import org.projectforge.web.servlet.SMSReceiverServlet;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +58,9 @@ public class UserFilter implements Filter {
 
   @Autowired
   private CookieService cookieService;
+
+  @Autowired
+  private TwoFactorAuthenticationHandler twoFactorAuthenticationHandler;
 
   // private static String IGNORE_PREFIX_WICKET;
 
@@ -219,13 +224,17 @@ public class UserFilter implements Filter {
         final PFUserDO user = userContext != null ? userContext.getUser() : null;
         if (user != null) {
           ThreadLocalUserContext.setUserContext(userContext);
-          request = decorateWithLocale(request);
-          chain.doFilter(request, response);
+          if (twoFactorAuthenticationHandler.handleRequest(request)) {
+            request = decorateWithLocale(request);
+            chain.doFilter(request, response);
+          }
         } else {
           if (((HttpServletRequest) req).getRequestURI().startsWith(WICKET_PAGES_PREFIX)) {
             // Access-checking is done by Wicket, not by this filter:
-            request = decorateWithLocale(request);
-            chain.doFilter(request, response);
+            if (twoFactorAuthenticationHandler.handleRequest(request)) {
+              request = decorateWithLocale(request);
+              chain.doFilter(request, response);
+            }
           } else {
             String url = ((HttpServletRequest) req).getRequestURI();
             String queryString = ((HttpServletRequest) req).getQueryString();
