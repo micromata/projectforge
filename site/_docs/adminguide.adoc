@@ -581,6 +581,51 @@ All passwords are automatically updated after any login of an user (if
 no pepper and/or salt was yet used for the user's password) or after any
 password change.
 
+==== 2FA (two-factor-authentication)
+
+2FA (two factor autentication) is supported by using RFC6238, used by e. g. Google or Microsoft Authenticator.
+You may specify the expiry periods of 2FA for different expiry periods URL's by shortcuts for
+predefined sets of uri matchers and/or own regular expressions (as uri matchers).
+A web filter checks for every request, if there is a 2FA is required and
+if the last successfull 2FA of the current session is not older than the specified expiry period.
+The timestamp of a sucessfull 2FA is stored in the user's session as well as in any user's
+stay-logged-in-session.
+
+Recoomended example configuration:
+
+*File:* `application.properties:`
+
+[source,shell,linenums]
+----
+...
+# Recommended setup
+projectforge.2fa.expiryPeriod.minutes1=PASSWORD
+projectforge.2fa.expiryPeriod.hours1=ADMIN;MY_ACCOUNT
+projectforge.2fa.expiryPeriod.hours8=
+projectforge.2fa.expiryPeriod.days30=HR;FINANCE;ORGA;SCRIPTING
+# Every access requires at least valid 2FA every 90 days:
+projectforge.2fa.expiryPeriod.days90=/
+....
+----
+
+Rules
+
+* Expression starting with `/` means absolute path of uri.
+* If expressions do start with `/` they will be replaced by their regex: `/rs/user` -> `^/rs/user.+++*+++`:
+Any uri *starting* with `/rs/user` is matching.
+* Empty entries means: no 2nd factor
+* Regular expressions and shortcuts should be seperated by ';'.
+* Supported shortcuts are `ADMIN`, `HR`, `FINANCE`, `ORGA`, `SCRIPTING`, `MY_ACCOUNT`, `PASSWORD`
+containing a bunch of regex.
+* You may also use `WRITE:<entity-name>` for specifying all write access calls (Rest) of an entity.
+* You may also define own regex, such as: `ADMIN;/wa/report;WRITE:user`
+
+____
+Please refer the admin's web page -> configuration -> Export 2FA configuration for verifying your
+configuration.
+____
+
+
 === LDAP
 
 ==== Requirements
