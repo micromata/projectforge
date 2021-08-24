@@ -78,7 +78,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     MEB("menu.meb", "wa/mebList"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "wa/monthlyEmployeeReport"), //
     MY_ACCOUNT("menu.myAccount", getReactDynamicPageUrl("myAccount")), //
-    MY_2_FACTOR_AUTHENTICATION("menu.my2FactorAuthentication", getReactDynamicPageUrl("my2FactorAuthentication")), //
+    MY_2_FACTOR_AUTHENTICATION("menu.my2FactorAuthentication", getReactDynamicPageUrl(MenuItemDefId.TWO_FACTOR_AUTHENTIFICATION_SUB_URL)), //
     MY_PREFERENCES("menu.myPreferences", "wa/userPrefList"), //
     ORDER_LIST("menu.fibu.orderbook", "wa/orderBookList"), //
     OUTBOX_LIST("menu.orga.postausgang", getReactListUrl("outgoingMail")), //
@@ -111,6 +111,10 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
      */
     val id: String
         get() = name
+
+    companion object {
+        const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL = "my2FactorAuthentication"
+    }
 }
 
 private fun getReactListUrl(name: String): String {

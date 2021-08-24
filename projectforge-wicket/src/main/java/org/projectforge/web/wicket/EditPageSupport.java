@@ -24,18 +24,21 @@
 package org.projectforge.web.wicket;
 
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.projectforge.common.i18n.UserException;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
+import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ICorePersistenceService;
 import org.projectforge.framework.persistence.api.IManualIndex;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
+import org.projectforge.security.TwoFactorAuthenticationHandler;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.io.Serializable;
 
 public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICorePersistenceService<Integer, O>, P extends WebPage & IEditPage<O, D>>
-    implements Serializable
-{
+    implements Serializable {
   private static final long serialVersionUID = 5504452697069803264L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EditPageSupport.class);
@@ -46,19 +49,28 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
 
   private boolean updateAndNext;
 
-  public EditPageSupport(final P editPage, final D baseDao)
-  {
+  private String entity;
+
+  private TwoFactorAuthenticationHandler twoFactorAuthenticationHandler = ApplicationContextProvider.getApplicationContext().getBean(TwoFactorAuthenticationHandler.class);
+
+  public EditPageSupport(final P editPage, final D baseDao) {
     this.editPage = editPage;
     this.baseDao = baseDao;
+    this.entity = ((BaseDao) baseDao).getIdentifier();
+    if (this.entity.equals("pFUser")) {
+      this.entity = "user"; // Used by TwoFactorAuthenticationHandler.
+    }
   }
 
   /**
    * User has clicked the save button for storing a new item.
    */
-  public void create()
-  {
+  public void create() {
     if (log.isDebugEnabled() == true) {
       log.debug("create in " + editPage.getClass() + ": " + editPage.getData());
+    }
+    if (twoFactorAuthenticationHandler.twoFactorRequiredForWriteAccess(entity)) {
+      throw new RedirectToUrlException(TwoFactorAuthenticationHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {
@@ -111,10 +123,12 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
   /**
    * User has clicked the update button for updating an existing item.
    */
-  public void update()
-  {
+  public void update() {
     if (log.isDebugEnabled() == true) {
       log.debug("update in " + editPage.getClass() + ": " + editPage.getData());
+    }
+    if (twoFactorAuthenticationHandler.twoFactorRequiredForWriteAccess(entity)) {
+      throw new RedirectToUrlException(TwoFactorAuthenticationHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {
@@ -151,8 +165,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
   /**
    * User has clicked the update-and-next button for updating an existing item.
    */
-  public void updateAndNext()
-  {
+  public void updateAndNext() {
     if (log.isDebugEnabled() == true) {
       log.debug("update in " + editPage.getClass() + ": " + editPage.getData());
     }
@@ -164,26 +177,25 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
   /**
    * Update but do not leave the current edit page.
    */
-  public void updateAndStay()
-  {
+  public void updateAndStay() {
     update();
     editPage.setResponsePage(editPage);
   }
 
-  public boolean isUpdateAndNext()
-  {
+  public boolean isUpdateAndNext() {
     return updateAndNext;
   }
 
-  public void setUpdateAndNext(final boolean updateAndNext)
-  {
+  public void setUpdateAndNext(final boolean updateAndNext) {
     this.updateAndNext = updateAndNext;
   }
 
-  public void undelete()
-  {
+  public void undelete() {
     if (log.isDebugEnabled() == true) {
       log.debug("undelete in " + editPage.getClass() + ": " + editPage.getData());
+    }
+    if (twoFactorAuthenticationHandler.twoFactorRequiredForWriteAccess(entity)) {
+      throw new RedirectToUrlException(TwoFactorAuthenticationHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {
@@ -202,10 +214,12 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
     editPage.setResponsePage();
   }
 
-  public void markAsDeleted()
-  {
+  public void markAsDeleted() {
     if (log.isDebugEnabled() == true) {
       log.debug("Mark object as deleted in " + editPage.getClass() + ": " + editPage.getData());
+    }
+    if (twoFactorAuthenticationHandler.twoFactorRequiredForWriteAccess(entity)) {
+      throw new RedirectToUrlException(TwoFactorAuthenticationHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {
@@ -224,10 +238,12 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
     }
   }
 
-  public void delete()
-  {
+  public void delete() {
     if (log.isDebugEnabled() == true) {
       log.debug("delete in " + editPage.getClass() + ": " + editPage.getData());
+    }
+    if (twoFactorAuthenticationHandler.twoFactorRequiredForWriteAccess(entity)) {
+      throw new RedirectToUrlException(TwoFactorAuthenticationHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {

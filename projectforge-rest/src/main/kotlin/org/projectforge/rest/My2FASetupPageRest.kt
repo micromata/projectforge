@@ -30,9 +30,11 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
+import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.calendar.BarcodeServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.security.TimeBased2FactorAuthentication
 import org.projectforge.ui.*
@@ -41,13 +43,12 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
-import kotlin.concurrent.thread
 
 private val log = KotlinLogging.logger {}
 
 @RestController
-@RequestMapping("${Rest.URL}/my2FactorAuthentication")
-class My2FactorAuthentificationPageRest : AbstractDynamicPageRest() {
+@RequestMapping("${Rest.URL}/my2FASetup")
+class My2FASetupPageRest : AbstractDynamicPageRest() {
   class My2FactorAuthentificationData(
     var userId: Int? = null,
     var username: String? = null,
