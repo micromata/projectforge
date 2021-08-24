@@ -44,12 +44,11 @@ import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.menu.MenuItem;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.rest.ChangePasswordPageRest;
-import org.projectforge.rest.My2FactorAuthentificationPageRest;
+import org.projectforge.rest.My2FASetupPageRest;
 import org.projectforge.rest.MyAccountPageRest;
 import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.LoginService;
@@ -143,7 +142,7 @@ public class NavTopPanel extends NavAbstractPanel {
       } else {
         final ExternalLink myAccountLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(MyAccountPageRest.class, null, null, true));
         add(myAccountLink);
-        final ExternalLink my2FactorAuthentificationLink = new ExternalLink("my2FactorAuthentificationLink", PagesResolver.getDynamicPageUrl(My2FactorAuthentificationPageRest.class, null, null, true));
+        final ExternalLink my2FactorAuthentificationLink = new ExternalLink("my2FactorAuthentificationLink", PagesResolver.getDynamicPageUrl(My2FASetupPageRest.class, null, null, true));
         add(my2FactorAuthentificationLink);
         addVacationViewLink();
         for (MenuItemDef menu : menuCreator.getPersonalMenuPluginEntries()) {

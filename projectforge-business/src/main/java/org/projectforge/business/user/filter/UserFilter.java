@@ -224,14 +224,14 @@ public class UserFilter implements Filter {
         final PFUserDO user = userContext != null ? userContext.getUser() : null;
         if (user != null) {
           ThreadLocalUserContext.setUserContext(userContext);
-          if (twoFactorAuthenticationHandler.handleRequest(request)) {
+          if (twoFactorAuthenticationHandler.handleRequest(request, response)) {
             request = decorateWithLocale(request);
             chain.doFilter(request, response);
           }
         } else {
           if (((HttpServletRequest) req).getRequestURI().startsWith(WICKET_PAGES_PREFIX)) {
             // Access-checking is done by Wicket, not by this filter:
-            if (twoFactorAuthenticationHandler.handleRequest(request)) {
+            if (twoFactorAuthenticationHandler.handleRequest(request, response)) {
               request = decorateWithLocale(request);
               chain.doFilter(request, response);
             }

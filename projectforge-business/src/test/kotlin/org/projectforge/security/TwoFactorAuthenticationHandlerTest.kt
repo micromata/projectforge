@@ -32,17 +32,17 @@ class TwoFactorAuthenticationHandlerTest {
   @Test
   fun matchesTest() {
     var handler = getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPTING", "/")
-    Assertions.assertEquals(AbstractCache.TICKS_PER_MINUTE, handler.matches("/react/changePassword")?.expiryMillis)
-    Assertions.assertEquals(AbstractCache.TICKS_PER_MINUTE, handler.matches("/react/changeWlanPassword")?.expiryMillis)
-    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matches("/wa/userEdit")?.expiryMillis)
-    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matches("/wa/userEdit/124")?.expiryMillis)
-    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matches("/wa/userEdit/125")?.expiryMillis)
-    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matches("/rs/user/${RestPaths.SAVE}")?.expiryMillis)
-    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matches("/react/myAccount")?.expiryMillis)
-    Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 30, handler.matches("/wa/outgoingInvoice")?.expiryMillis)
-    Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 90, handler.matches("/unknown-url")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_MINUTE, handler.matchesUri("/react/changePassword")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_MINUTE, handler.matchesUri("/react/changeWlanPassword")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/wa/userEdit")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/wa/userEdit/124")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/wa/userEdit/125")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/rs/user/${RestPaths.SAVE}")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/react/myAccount")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 30, handler.matchesUri("/wa/outgoingInvoice")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 90, handler.matchesUri("/unknown-url")?.expiryMillis)
     handler = getHandler("PASSWORD; ACCESS", "", "ADMIN;MY_ACCOUNT")
-    Assertions.assertNull(handler.matches("/unknown-url")?.expiryMillis)
+    Assertions.assertNull(handler.matchesUri("/unknown-url")?.expiryMillis)
   }
 
   @Test
