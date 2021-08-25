@@ -29,6 +29,7 @@ import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.Crypt
+import org.projectforge.security.My2FAService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -90,6 +91,10 @@ open class UserAuthenticationsService {
         return userAuthenticationsDao.getToken(userId, type)
     }
 
+    open fun getAuthenticatorToken(): String? {
+        return userAuthenticationsDao.internalGetAuthenticatorToken()
+    }
+
     /**
      * @see UserAuthenticationsDao.getToken
      */
@@ -104,6 +109,18 @@ open class UserAuthenticationsService {
     open fun renewToken(userId: Int, tokenType: UserTokenType) {
         userAuthenticationsDao.renewToken(userId, tokenType)
         getUserAccessLogEntries(tokenType, userId)?.clear()
+    }
+
+    /**
+     * Creates a new authenticator token (2FA) for the logged-in user.
+     * @see UserAuthenticationsDao.createNewAuthenticatorToken
+     */
+    open fun createNewAuthenticatorToken() {
+        userAuthenticationsDao.createNewAuthenticatorToken()
+    }
+
+    open fun clearAuthenticatorToken() {
+        userAuthenticationsDao.clearAuthenticatorToken()
     }
 
     /**

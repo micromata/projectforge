@@ -24,39 +24,46 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.Const
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
-import org.projectforge.security.TwoFactorAuthenticationHandler
+import org.projectforge.security.My2FAService
 import org.projectforge.ui.*
-import org.springframework.http.HttpStatus
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
-
-private val log = KotlinLogging.logger {}
+import javax.servlet.http.HttpSession
 
 @RestController
 @RequestMapping("${Rest.URL}/${MenuItemDefId.TWO_FACTOR_AUTHENTIFICATION_SUB_URL}")
 class My2FAPageRest : AbstractDynamicPageRest() {
+  @Autowired
+  private lateinit var my2FAService: My2FAService
+
   class Code {
-    @PropertyInfo(i18nKey = "user.My2FACode.code")
+    @PropertyInfo(i18nKey = "user.My2FACode.code", tooltip = "user.My2FACode.code.info")
     var code: String? = null
   }
 
   @PostMapping
   fun check(request: HttpServletRequest, @RequestBody postData: PostData<Code>)
       : ResponseEntity<ResponseAction> {
-    validateCsrfToken(request, postData)?.let { return it }
     val code = postData.data.code
-
-    return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
+    if (code == null || my2FAService.validateOTP(code) != My2FAService.SUCCESS) {
+      return showValidationErrors(ValidationError("user.My2FACode.error.validation", "code"))
+    }
+    val redirectUrl = ExpiringSessionAttributes.getAttribute(request.session, ATTR_REDIRECT_URL) as? String
+    if (redirectUrl.isNullOrBlank()) {
+      return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
+    }
+    return ResponseEntity.ok(ResponseAction(redirectUrl))
   }
 
   @GetMapping("dynamic")
@@ -79,5 +86,13 @@ class My2FAPageRest : AbstractDynamicPageRest() {
       )
     LayoutUtils.process(layout)
     return FormLayoutData(data, layout, createServerData(request))
+  }
+
+  companion object {
+    fun registerRedirectUrlForUserSession(session: HttpSession, url: String) {
+      ExpiringSessionAttributes.setAttribute(session, ATTR_REDIRECT_URL, url, 10)
+    }
+
+    private const val ATTR_REDIRECT_URL = "My2FAPageRest:redirectUrl"
   }
 }

@@ -50,7 +50,7 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.jcr.JCRCheckSanityJob;
 import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.security.TwoFactorAuthenticationHandler;
+import org.projectforge.security.My2FARequestHandler;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -435,7 +435,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void export2FAConfiguration() {
     log.info("Administration: export 2FA configuration file config-2FA.txt.");
     checkAccess();
-    TwoFactorAuthenticationHandler twoFactorAuthenticationHandler = ApplicationContextProvider.getApplicationContext().getBean(TwoFactorAuthenticationHandler.class);
+    My2FARequestHandler my2FARequestHandler = ApplicationContextProvider.getApplicationContext().getBean(My2FARequestHandler.class);
     StringWriter out = new StringWriter();
     PrintWriter pw = new PrintWriter(out);
     pw.println("2FA configurationdfadfas");
@@ -443,7 +443,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     pw.println("");
     pw.println("1. effective configuration");
     pw.println("--------------------------");
-    pw.println(twoFactorAuthenticationHandler.printConfiguration());
+    pw.println(my2FARequestHandler.printConfiguration());
     pw.println("");
     pw.println("2. endpoints");
     pw.println("------------");
@@ -454,7 +454,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
             endpoints.add(info.getDirectPaths().iterator().next());
           }
         });
-    pw.println(twoFactorAuthenticationHandler.printAllEndPoints(endpoints));
+    pw.println(my2FARequestHandler.printAllEndPoints(endpoints));
     final String filename = "config-2FA" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
     DownloadUtils.setUTF8CharacterEncoding(getResponse());
     DownloadUtils.setDownloadTarget(out.toString().getBytes(), filename);
