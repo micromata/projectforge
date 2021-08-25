@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.model.rest.RestPaths
@@ -38,13 +39,12 @@ import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
-/**
- * Is called for all requests by UserFilter and ensure valid 2FA for every request configured in [My2FARequestConfiguration].
- */
 @Service
 open class My2FAService {
   @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+  enum class Unit { MINUTES, HOURS, DAYS }
 
   /**
    * @param 6 digits code displayed by the logged-in users Authenticator app.
@@ -63,6 +63,21 @@ open class My2FAService {
     // Update last
     ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
     return SUCCESS
+  }
+
+  /**
+   * Checks if the last successful 2FA of the logged-in user isn't older than the given time period.
+   * @return True, if a successful 2FA was done in the specified time period or false, if not.
+   */
+  fun checklastSuccessful2FA(timePeriod: Long, unit: Unit): Boolean {
+    val user = ThreadLocalUserContext.getUserContext()
+    val lastSuccessful2FA = user?.lastSuccessful2FA ?: return false
+    val timeAgo = when (unit) {
+      Unit.MINUTES -> timePeriod * TimeAgo.MINUTE
+      Unit.HOURS -> timePeriod * TimeAgo.HOUR
+      Unit.DAYS -> timePeriod * TimeAgo.DAY
+    }
+    return System.currentTimeMillis() - timeAgo < lastSuccessful2FA
   }
 
   companion object {

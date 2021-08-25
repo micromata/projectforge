@@ -70,7 +70,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
       log.debug("create in " + editPage.getClass() + ": " + editPage.getData());
     }
     if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(My2FARequestHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
+      throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {
@@ -128,7 +128,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
       log.debug("update in " + editPage.getClass() + ": " + editPage.getData());
     }
     if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(My2FARequestHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
+      throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {
@@ -195,7 +195,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
       log.debug("undelete in " + editPage.getClass() + ": " + editPage.getData());
     }
     if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(My2FARequestHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
+      throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {
@@ -219,7 +219,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
       log.debug("Mark object as deleted in " + editPage.getClass() + ": " + editPage.getData());
     }
     if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(My2FARequestHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
+      throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {
@@ -243,7 +243,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
       log.debug("delete in " + editPage.getClass() + ": " + editPage.getData());
     }
     if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(My2FARequestHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
+      throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {

@@ -254,6 +254,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         val authentications = ensureAuthentications(loggedInUser.id, false)
         authentications.authenticatorToken = encryptToken(TimeBased2FA.standard.generateSecretKey())
         update(authentications)
+        ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA() // Otherwise user will not see his authentication key.
         log.info("Authenticator token created for user '${loggedInUser.username}'.")
     }
 

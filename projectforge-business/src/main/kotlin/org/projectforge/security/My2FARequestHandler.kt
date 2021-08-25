@@ -229,7 +229,7 @@ open class My2FARequestHandler {
 
   companion object {
     @JvmField
-    val TWO_FACTOR_AUTHENTIFICATION_URL = MenuItemDefId.MY_2_FACTOR_AUTHENTICATION.url!!
+    val MY_2FA_URL = MenuItemDefId.MY_2FA.url!!
 
     /**
      * For getting the shortest matching url.
