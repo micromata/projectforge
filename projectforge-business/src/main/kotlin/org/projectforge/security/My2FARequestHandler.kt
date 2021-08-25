@@ -40,7 +40,7 @@ private val log = KotlinLogging.logger {}
  * Is called for all requests by UserFilter and ensure valid 2FA for every request configured in [My2FARequestConfiguration].
  */
 @Service
-open class TwoFactorAuthenticationHandler {
+open class My2FARequestHandler {
   @Autowired
   internal lateinit var configuration: My2FARequestConfiguration // internal for test case
 
@@ -62,7 +62,11 @@ open class TwoFactorAuthenticationHandler {
    * @return Remaining period in ms before expiring or 0, if expired. null if no 2FA is required.
    */
   fun getRemainingPeriod(request: HttpServletRequest): Long? {
-    val expiryPeriod = matchesUri(request.requestURI) ?: return null // No expiryPeriod matches: return null
+    return getRemainingPeriod(request.requestURI)
+  }
+
+  internal fun getRemainingPeriod(uri: String): Long? {
+    val expiryPeriod = matchesUri(uri) ?: return null // No expiryPeriod matches: return null
     return expiryPeriod.remainingPeriod()
   }
 

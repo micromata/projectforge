@@ -82,4 +82,9 @@ abstract class AbstractDynamicPageRest {
     errors.forEach { validationErrors.add(it) }
     return validationErrors
   }
+
+  protected fun showValidationErrors(vararg errors: ValidationError): ResponseEntity<ResponseAction> {
+    val validationErrors = createValidationErrors(*errors)
+    return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+  }
 }

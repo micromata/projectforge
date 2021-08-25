@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.user.entities.UserAuthenticationsD
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.projectforge.framework.utils.Crypt
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.security.TimeBased2FA
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -185,6 +186,18 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     }
 
     /**
+     * @return The authenticator token of the logged-in user
+     */
+    open fun internalGetAuthenticatorToken(): String? {
+        val userId = ThreadLocalUserContext.getUserId() ?: return null
+        val authentications = ensureAuthentications(userId, checkAccess = false)
+        if (authentications.authenticatorToken == null) {
+            return null
+        }
+        return decryptToken(authentications.authenticatorToken)
+    }
+
+    /**
      * Returns the user's authentication token if exists (must be not blank with a size >= 10). If not, a new token key
      * will be generated.
      */
@@ -228,6 +241,32 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         authentications.setToken(type, createEncryptedAuthenticationToken(type))
         update(authentications)
         log.info("Authentication token '$type' renewed for user: $userId")
+    }
+
+    /**
+     * Creates a new authenticator token for the logged-in user.
+     * @see TimeBased2FA.standard
+     * @see TimeBased2FA.generateSecretKey
+     */
+    open fun createNewAuthenticatorToken() {
+        accessChecker.checkRestrictedOrDemoUser() // Demo users are also not allowed to do this.
+        val loggedInUser = ThreadLocalUserContext.getUser()!!
+        val authentications = ensureAuthentications(loggedInUser.id, false)
+        authentications.authenticatorToken = encryptToken(TimeBased2FA.standard.generateSecretKey())
+        update(authentications)
+        log.info("Authenticator token created for user '${loggedInUser.username}'.")
+    }
+
+    /**
+     * Deletes the authentitor token for the logged-in user.
+     */
+    open fun clearAuthenticatorToken() {
+        accessChecker.checkRestrictedOrDemoUser() // Demo users are also not allowed to do this.
+        val loggedInUser = ThreadLocalUserContext.getUser()!!
+        val authentications = ensureAuthentications(loggedInUser.id, false)
+        authentications.authenticatorToken = null
+        update(authentications)
+        log.info("Authenticator token deleted for user '${loggedInUser.username}'.")
     }
 
     internal fun createAuthenticationToken(type: UserTokenType): String {

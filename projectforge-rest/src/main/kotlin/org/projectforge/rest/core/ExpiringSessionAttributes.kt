@@ -53,18 +53,14 @@ object ExpiringSessionAttributes {
 
     fun getAttribute(session: HttpSession, name: String): Any? {
         checkSession(session)
-        val value = session.getAttribute(name)
-        if (value == null)
-            return null
-        if (value is ExpiringAttribute)
-            return value.value
-        return value
+        val value = session.getAttribute(name) ?: return null
+        return if (value is ExpiringAttribute)
+             value.value
+        else value
     }
 
     fun removeAttribute(session: HttpSession, name: String) {
-        val value = getAttribute(session, name)
-        if (value == null)
-            return
+        val value = getAttribute(session, name) ?: return
         if (value is ExpiringAttribute) {
             synchronized(attributesMap) {
                 attributesMap.remove(value.index)

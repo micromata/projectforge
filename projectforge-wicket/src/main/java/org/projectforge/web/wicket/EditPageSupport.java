@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.api.ICorePersistenceService;
 import org.projectforge.framework.persistence.api.IManualIndex;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
-import org.projectforge.security.TwoFactorAuthenticationHandler;
+import org.projectforge.security.My2FARequestHandler;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.io.Serializable;
@@ -51,7 +51,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
 
   private String entity;
 
-  private TwoFactorAuthenticationHandler twoFactorAuthenticationHandler = ApplicationContextProvider.getApplicationContext().getBean(TwoFactorAuthenticationHandler.class);
+  private My2FARequestHandler my2FARequestHandler = ApplicationContextProvider.getApplicationContext().getBean(My2FARequestHandler.class);
 
   public EditPageSupport(final P editPage, final D baseDao) {
     this.editPage = editPage;
@@ -69,8 +69,8 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
     if (log.isDebugEnabled() == true) {
       log.debug("create in " + editPage.getClass() + ": " + editPage.getData());
     }
-    if (twoFactorAuthenticationHandler.twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(TwoFactorAuthenticationHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
+    if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
+      throw new RedirectToUrlException(My2FARequestHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {
@@ -127,8 +127,8 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
     if (log.isDebugEnabled() == true) {
       log.debug("update in " + editPage.getClass() + ": " + editPage.getData());
     }
-    if (twoFactorAuthenticationHandler.twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(TwoFactorAuthenticationHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
+    if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
+      throw new RedirectToUrlException(My2FARequestHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {
@@ -194,8 +194,8 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
     if (log.isDebugEnabled() == true) {
       log.debug("undelete in " + editPage.getClass() + ": " + editPage.getData());
     }
-    if (twoFactorAuthenticationHandler.twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(TwoFactorAuthenticationHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
+    if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
+      throw new RedirectToUrlException(My2FARequestHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {
@@ -218,8 +218,8 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
     if (log.isDebugEnabled() == true) {
       log.debug("Mark object as deleted in " + editPage.getClass() + ": " + editPage.getData());
     }
-    if (twoFactorAuthenticationHandler.twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(TwoFactorAuthenticationHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
+    if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
+      throw new RedirectToUrlException(My2FARequestHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {
@@ -242,8 +242,8 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
     if (log.isDebugEnabled() == true) {
       log.debug("delete in " + editPage.getClass() + ": " + editPage.getData());
     }
-    if (twoFactorAuthenticationHandler.twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(TwoFactorAuthenticationHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
+    if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
+      throw new RedirectToUrlException(My2FARequestHandler.TWO_FACTOR_AUTHENTIFICATION_URL);
     }
     synchronized (editPage.getData()) {
       if (editPage.isAlreadySubmitted() == true) {

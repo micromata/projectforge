@@ -53,6 +53,11 @@ class UserContext() : Serializable {
    * Last successful two factor authentification for this user (in session/stay-login) in epoch ms.
    */
   var lastSuccessful2FA: Long? = null
+    private set
+
+  fun updateLastSuccessful2FA() {
+    this.lastSuccessful2FA = System.currentTimeMillis()
+  }
 
   /**
    * See RestAuthenticationInfo of ProjectForge's rest module.

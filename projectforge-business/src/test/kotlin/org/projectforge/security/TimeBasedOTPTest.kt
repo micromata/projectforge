@@ -26,7 +26,7 @@ package org.projectforge.security
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class TimeBasedOneTimePasswordTest {
+class TimeBasedOTPTest {
 
   private class TestData(
     val timeInSeconds: Long,
@@ -70,7 +70,7 @@ class TimeBasedOneTimePasswordTest {
     testData.forEach {
       Assertions.assertArrayEquals(
         TOTP_RFC6238.hexStr2Bytes(it.hexVal),
-        TimeBasedOneTimePassword.hexStr2Bytes(it.hexVal)
+        TimeBasedOTP.hexStr2Bytes(it.hexVal)
       )
     }
   }
@@ -79,20 +79,20 @@ class TimeBasedOneTimePasswordTest {
   fun getOTPTest() {
     testCryptos.forEach { crypto ->
       testData.filter { crypto.crypto == it.crypto }.forEach { data ->
-        val totp = TimeBasedOneTimePassword("Hmac${crypto.crypto}", 8)
+        val totp = TimeBasedOTP("Hmac${crypto.crypto}", 8)
         Assertions.assertEquals(
           data.hexVal,
-          TimeBasedOneTimePassword.asHex(TimeBasedOneTimePassword.getStep(data.timeInSeconds * 1000)),
+          TimeBasedOTP.asHex(TimeBasedOTP.getStep(data.timeInSeconds * 1000)),
           "Crypto = '${crypto.crypto}, time=${data.timeInSeconds}"
         )
         Assertions.assertEquals(
           TOTP_RFC6238.generateTOTP(crypto.seed, data.hexVal, "8", "Hmac${crypto.crypto}"),
-          totp.getOTP(step = TimeBasedOneTimePassword.getStep(data.timeInSeconds * 1000), secretKey = crypto.seed),
+          totp.getOTP(step = TimeBasedOTP.getStep(data.timeInSeconds * 1000), secretHexKey = crypto.seed),
           "Crypto = '${crypto.crypto}, time=${data.timeInSeconds}"
         )
         Assertions.assertEquals(
           data.totp,
-          totp.getOTP(step = TimeBasedOneTimePassword.getStep(data.timeInSeconds * 1000), secretKey = crypto.seed),
+          totp.getOTP(step = TimeBasedOTP.getStep(data.timeInSeconds * 1000), secretHexKey = crypto.seed),
           "Crypto = '${crypto.crypto}, time=${data.timeInSeconds}"
         )
       }
@@ -100,19 +100,19 @@ class TimeBasedOneTimePasswordTest {
   }
 
   @Test
-  fun tbotpTest() {
+  fun tbOPTTest() {
     // SHA1
 
     testCryptos.forEach { crypto ->
-      val totp = TimeBasedOneTimePassword("Hmac${crypto.crypto}", 8)
+      val totp = TimeBasedOTP("Hmac${crypto.crypto}", 8)
       testData.filter { it.crypto == crypto.crypto }.forEach {
         Assertions.assertEquals(
           it.hexVal,
-          TimeBasedOneTimePassword.asHex(TimeBasedOneTimePassword.getStep(it.timeInSeconds * 1000))
+          TimeBasedOTP.asHex(TimeBasedOTP.getStep(it.timeInSeconds * 1000))
         )
         Assertions.assertEquals(
           "${it.totp}".padStart(6, '0'),
-          totp.getOTP(TimeBasedOneTimePassword.getStep(it.timeInSeconds * 1000), crypto.seed),
+          totp.getOTP(TimeBasedOTP.getStep(it.timeInSeconds * 1000), crypto.seed),
           "Testing crypto '${crypto.crypto}' for step ${it.timeInSeconds}"
         )
       }
@@ -122,8 +122,8 @@ class TimeBasedOneTimePasswordTest {
   companion object {
     @JvmStatic
     fun main(args: Array<String>) {
-      println(TimeBased2FA.standard.generateSecretKey())
-      val testKey = "DGIORGZZDGEMYJQULMOLU7U3KWIEVYBV"
+      val testKey = TimeBased2FA.standard.generateSecretKey()//"DGIORGZZDGEMYJQULMOLU7U3KWIEVYBV"
+      println("TestKey=$testKey")
       var lastCode = ""
       while (true) {
         val code = TimeBased2FA.standard.getTOTPCode(testKey)

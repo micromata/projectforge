@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
  * Microsoft or Google authenticator.
  * https://datatracker.ietf.org/doc/html/rfc6238
  */
-class TimeBasedOneTimePassword(
+class TimeBasedOTP(
   /**
    * Default algo is "HmacSHA1", but also "HmacSHA256" and "HmacSHA512" is supported. Use "HmacSHA1" for usage
    * with Microsoft and Google authenticator.
@@ -50,32 +50,32 @@ class TimeBasedOneTimePassword(
 ) {
   /**
    * Gets the TOTP token for current time for the given secret key.
-   * @param secretKey - secret credential key (HEX)
+   * @param secretHexKey - secret credential key (HEX)
    * @return the OTP
    */
-  fun getOTP(secretKey: String): String {
-    return getOTP(getStep(), secretKey)
+  fun getOTP(secretHexKey: String): String {
+    return getOTP(getStep(), secretHexKey)
   }
 
   /**
    * Gets the TOTP token for current time and one step before for the given secret key and compares it
    * with the given otp.
-   * @param secretKey - secret credential key (HEX)
+   * @param secretHexKey - secret credential key (HEX)
    * @param otp - OTP to validate
    * @return valid?
    */
-  fun validate(secretKey: String, otp: String): Boolean {
-    return validate(getStep(), secretKey, otp)
+  fun validate(secretHexKey: String, otp: String): Boolean {
+    return validate(getStep(), secretHexKey, otp)
   }
 
-  internal fun validate(step: Long, secretKey: String, otp: String): Boolean {
-    return getOTP(step, secretKey) == otp || getOTP(step - 1, secretKey) == otp
+  internal fun validate(step: Long, secretHexKey: String, otp: String): Boolean {
+    return getOTP(step, secretHexKey) == otp || getOTP(step - 1, secretHexKey) == otp
   }
 
-  internal fun getOTP(step: Long, secretKey: String): String {
+  internal fun getOTP(step: Long, secretHexKey: String): String {
     // Get the HEX in a Byte[]
     val msg = hexStr2Bytes(asHex(step))
-    val k = hexStr2Bytes(secretKey)
+    val k = hexStr2Bytes(secretHexKey)
     val hash = hmacSHA(k, msg)
 
     // put selected bytes into result int
