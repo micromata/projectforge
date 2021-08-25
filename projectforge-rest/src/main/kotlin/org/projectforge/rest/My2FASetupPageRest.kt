@@ -26,6 +26,7 @@ package org.projectforge.rest
 import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.filter.CookieService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -42,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
@@ -59,6 +61,9 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
 
   @Autowired
   private lateinit var authenticationsService: UserAuthenticationsService
+
+  @Autowired
+  private lateinit var cookieService: CookieService
 
   @Autowired
   private lateinit var my2FAService: My2FAService
@@ -104,10 +109,17 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    * For testing the Authenticator's code.
    */
   @PostMapping("checkOTP")
-  fun checkOTP(@Valid @RequestBody postData: PostData<My2FactorAuthentificationData>): ResponseAction {
+  fun checkOTP(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @Valid @RequestBody postData: PostData<My2FactorAuthentificationData>
+  ): ResponseAction {
     val otp = postData.data.testCode
     if (otp == null || my2FAService.validateOTP(otp) != My2FAService.SUCCESS) {
       return UIToast.createToast(translate("user.My2FA.setup.check.fail"), color = UIColor.DANGER)
+    }
+    ThreadLocalUserContext.getUserContext().lastSuccessful2FA?.let { lastSuccessful2FA ->
+      cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
     }
     return UIToast.createToast(translate("user.My2FA.setup.check.success"), color = UIColor.SUCCESS)
   }
@@ -221,6 +233,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
               color = UIColor.DANGER
             )
           )
+          data.showAuthenticatorKey = false // Uncheck the checkbox
         } else {
           fieldset.add(
             UIAlert(

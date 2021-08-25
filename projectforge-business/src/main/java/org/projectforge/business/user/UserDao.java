@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
+import org.projectforge.framework.utils.Crypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
@@ -417,5 +418,61 @@ public class UserDao extends BaseDao<PFUserDO> {
     return em.createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO.class)
             .setParameter("username", username)
             .getResultList();
+  }
+
+  /**
+   * Encrypts the given data with the user's password hash. If the user changes his password, decryption isn't possible
+   * anymore.
+   *
+   * @param data The data to encrypt.
+   * @return The encrypted data.
+   */
+  public String encrypt(String data) {
+    final String password = getPasswordOfUser(ThreadLocalUserContext.getUserId());
+    if (password == null) {
+      return null;
+    }
+    return Crypt.encrypt(password, data);
+  }
+
+  /**
+   * Decrypts the given data with the user's password hash. If the user changes his password, decryption isn't possible
+   * anymore.
+   *
+   * @param encrypted The data to encrypt.
+   * @return The decrypted data.
+   */
+  public String decrypt(String encrypted) {
+    return decrypt(encrypted, ThreadLocalUserContext.getUserId());
+  }
+
+  /**
+   * Decrypts the given data with the user's password hash. If the user changes his password, decryption isn't possible
+   * anymore.
+   *
+   * @param encrypted The data to encrypt.
+   * @param userId Use the password of the given user (used by CookieService, because user isn't yet logged-in).
+   * @return The decrypted data.
+   * @see UserDao#decrypt(String)
+   */
+  public String decrypt(String encrypted, Integer userId) {
+    final String password = getPasswordOfUser(userId);
+    if (password == null) {
+      return null;
+    }
+    return Crypt.decrypt(password, encrypted);
+  }
+
+  private String getPasswordOfUser(Integer userId) {
+    final PFUserDO user = super.internalGetById(userId);
+    if (user == null) {
+      log.warn("Can't encrypt data. logged-in user not found.");
+      return null;
+    }
+    if (StringUtils.isBlank(user.getPassword())) {
+      log.warn("Can't encrypt data. Password of logged-in user '" + user.getUsername() + "' not found.");
+      return null;
+    }
+    return user.getPassword();
   }
 }

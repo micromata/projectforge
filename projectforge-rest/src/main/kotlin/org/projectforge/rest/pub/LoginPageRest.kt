@@ -218,11 +218,7 @@ open class LoginPageRest {
     if (loginData.stayLoggedIn == true) {
       val loggedInUser = userService.internalGetById(user.id)
       val stayLoggedInKey = userAuthenticationsService.internalGetToken(user.id, UserTokenType.STAY_LOGGED_IN_KEY)
-      val cookie = Cookie(
-        Const.COOKIE_NAME_FOR_STAY_LOGGED_IN,
-        "${loggedInUser.id}:${loggedInUser.username}:$stayLoggedInKey"
-      )
-      cookieService.addStayLoggedInCookie(request, response, cookie)
+      cookieService.addStayLoggedInCookie(request, response, loggedInUser, stayLoggedInKey)
     }
     // Execute login:
     val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user)!!)

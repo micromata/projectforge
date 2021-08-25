@@ -549,4 +549,41 @@ public class UserService {
     LoginHandler.clearPassword(saltedAndPepperedPassword); // Clear array to to security reasons.
     return encryptedPassword;
   }
+
+  /**
+   * Encrypts the given data with the user's password hash. If the user changes his password, decryption isn't possible
+   * anymore.
+   *
+   * @param data The data to encrypt.
+   * @return The encrypted data.
+   * @see UserDao#encrypt(String)
+   */
+  public String encrypt(String data) {
+    return userDao.encrypt(data);
+  }
+
+  /**
+   * Decrypts the given data with the user's password hash. If the user changes his password, decryption isn't possible
+   * anymore.
+   *
+   * @param encrypted The data to encrypt.
+   * @return The decrypted data.
+   * @see UserDao#decrypt(String)
+   */
+  public String decrypt(String encrypted) {
+    return userDao.decrypt(encrypted);
+  }
+
+  /**
+   * Decrypts the given data with the user's password hash. If the user changes his password, decryption isn't possible
+   * anymore.
+   *
+   * @param encrypted The data to encrypt.
+   * @param userId Use the password of the given user (used by CookieService, because user isn't yet logged-in).
+   * @return The decrypted data.
+   * @see UserDao#decrypt(String)
+   */
+  public String decrypt(String encrypted, Integer userId) {
+    return userDao.decrypt(encrypted, userId);
+  }
 }

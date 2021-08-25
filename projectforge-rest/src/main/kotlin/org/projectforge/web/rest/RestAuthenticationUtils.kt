@@ -309,7 +309,13 @@ open class RestAuthenticationUtils {
     val user = authInfo.user!!
     val clientIpAddress = authInfo.clientIpAddress
     LoginProtection.instance().clearLoginTimeOffset(authInfo.userString, user.id, clientIpAddress, userTokenType?.name)
-    val userContext = ThreadLocalUserContext.setUser(user)
+    var userContext = UserFilter.getUserContext(request)
+    if (userContext != null) {
+      userContext.user = user // Replace by fresh user from authentication.
+      ThreadLocalUserContext.setUserContext(userContext)
+    } else {
+      userContext = ThreadLocalUserContext.setUser(user)
+    }
     userContext.loggedInByAuthenticationToken = authInfo.loggedInByAuthenticationToken
     val settings = getConnectionSettings(request)
     ConnectionSettings.set(settings)
