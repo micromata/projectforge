@@ -119,14 +119,13 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     layout.add(fieldset)
     val firstRow = UIRow()
     fieldset.add(firstRow)
-    firstRow.add(UICol(6).add(UIReadOnlyField("username", userLC)))
+    firstRow.add(UICol(md = 6).add(UIReadOnlyField("username", userLC)))
     firstRow.add(
-      UICol(6).add(UIInput("testCode", label = "user.My2FACode.code", tooltip = "user.My2FACode.code.info"))
+      UICol(md = 6).add(UIInput("testCode", label = "user.My2FACode.code", tooltip = "user.My2FACode.code.info"))
         .add(
           UIButton(
             "test",
-            title = translate("user.My2FA.setup.check.button"),
-            tooltip = "user.My2FA.setup.check.button.info",
+            title = translate("user.My2FACode.code.validate"),
             color = UIColor.PRIMARY,
             responseAction = ResponseAction("/rs/my2FASetup/checkOTP", targetType = TargetType.POST)
           )
@@ -147,20 +146,29 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
           color = UIColor.SUCCESS
         )
       )
-      fieldset.add(UIReadOnlyField("authenticatorKey", label = "user.My2FA.setup.athenticatorKey"))
       val queryURL = TimeBased2FA.standard.getAuthenticatorUrl(
         authenticatorKey,
         ThreadLocalUserContext.getUser().username!!,
         domainService.plainDomain ?: "unknown"
       )
       val barcodeUrl = BarcodeServicesRest.getBarcodeGetUrl(queryURL)
-      fieldset.add(UICustomized("image", mutableMapOf("src" to barcodeUrl, "alt" to barcodeUrl)))
       fieldset.add(
-        UIAlert(
-          message = "user.My2FA.setup.warning",
-          markdown = true,
-          color = UIColor.DANGER
-        )
+        UIRow()
+          .add(
+            UICol(md = 6)
+              .add(UICustomized("image", mutableMapOf("src" to barcodeUrl, "alt" to barcodeUrl)))
+          )
+          .add(
+            UICol(md = 6)
+              .add(UIReadOnlyField("authenticatorKey", label = "user.My2FA.setup.athenticatorKey"))
+              .add(
+                UIAlert(
+                  message = "user.My2FA.setup.warning",
+                  markdown = true,
+                  color = UIColor.DANGER
+                )
+              )
+          )
       )
     }
     layout.watchFields.add("showAuthenticatorKey")
