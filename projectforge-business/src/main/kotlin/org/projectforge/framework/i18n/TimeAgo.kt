@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.i18n
 
-import java.math.BigDecimal
 import java.util.*
 import kotlin.math.round
 
@@ -103,10 +102,10 @@ object TimeAgo {
     }
   }
 
-  private const val MINUTE = 60 * 1000L
-  private const val HOUR = 60 * MINUTE
-  private const val DAY = 24 * HOUR
-  private const val WEEK = 7 * DAY
-  private const val MONTH = 30 * DAY
-  private const val YEAR = 365 * DAY
+  const val MINUTE = 60 * 1000L
+  const val HOUR = 60 * MINUTE
+  const val DAY = 24 * HOUR
+  const val WEEK = 7 * DAY
+  const val MONTH = 30 * DAY
+  const val YEAR = 365 * DAY
 }

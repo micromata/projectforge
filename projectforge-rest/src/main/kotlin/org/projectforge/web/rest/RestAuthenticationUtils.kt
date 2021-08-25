@@ -305,14 +305,13 @@ open class RestAuthenticationUtils {
    * @param authInfo
    * @param userTokenType Only needed for checking time penalty of login protection.
    */
-  fun registerUser(request: ServletRequest, authInfo: RestAuthenticationInfo, userTokenType: UserTokenType?) {
+  fun registerUser(request: HttpServletRequest, authInfo: RestAuthenticationInfo, userTokenType: UserTokenType?) {
     val user = authInfo.user!!
     val clientIpAddress = authInfo.clientIpAddress
     LoginProtection.instance().clearLoginTimeOffset(authInfo.userString, user.id, clientIpAddress, userTokenType?.name)
     val userContext = ThreadLocalUserContext.setUser(user)
     userContext.loggedInByAuthenticationToken = authInfo.loggedInByAuthenticationToken
-    val req = request as HttpServletRequest
-    val settings = getConnectionSettings(req)
+    val settings = getConnectionSettings(request)
     ConnectionSettings.set(settings)
     val ip = request.getRemoteAddr()
     if (ip != null) {

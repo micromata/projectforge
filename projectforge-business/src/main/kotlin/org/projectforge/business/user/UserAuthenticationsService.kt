@@ -91,6 +91,9 @@ open class UserAuthenticationsService {
         return userAuthenticationsDao.getToken(userId, type)
     }
 
+    /**
+     * @return The authenticator token of the logged-in user if given, otherwise null.
+     */
     open fun getAuthenticatorToken(): String? {
         return userAuthenticationsDao.internalGetAuthenticatorToken()
     }
