@@ -65,7 +65,7 @@ class TwoFactorAuthenticationHandlerTest {
     days30: String? = null,
     days90: String? = null
   ): TwoFactorAuthenticationHandler {
-    val config = TwoFactorAuthenticationConfiguration()
+    val config = My2FARequestConfiguration()
     config.expiryPeriodMinutes1 = minutes1
     config.expiryPeriodMinutes10 = minutes10
     config.expiryPeriodHours1 = hours1

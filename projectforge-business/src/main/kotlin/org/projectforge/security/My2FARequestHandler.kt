@@ -37,12 +37,12 @@ import javax.servlet.http.HttpServletResponse
 private val log = KotlinLogging.logger {}
 
 /**
- * Is called for all requests by UserFilter and ensure valid 2FA for every request configured in [TwoFactorAuthenticationConfiguration].
+ * Is called for all requests by UserFilter and ensure valid 2FA for every request configured in [My2FARequestConfiguration].
  */
 @Service
 open class TwoFactorAuthenticationHandler {
   @Autowired
-  internal lateinit var configuration: TwoFactorAuthenticationConfiguration // internal for test case
+  internal lateinit var configuration: My2FARequestConfiguration // internal for test case
 
   private lateinit var expiryPeriods: Array<ExpiryPeriod>
 
@@ -263,7 +263,7 @@ open class TwoFactorAuthenticationHandler {
           if (!exp.startsWith("WRITE:") && exp[0].isUpperCase()) {
             // Proceed shortcuts such as ADMIN, FINANCE, ...
             var found = false
-            TwoFactorAuthenticationConfiguration.shortCuts.forEach { (shortCut, shortCutRegex) ->
+            My2FARequestConfiguration.shortCuts.forEach { (shortCut, shortCutRegex) ->
               if (!found && exp == shortCut) {
                 found = true
                 shortCutRegex.split(';').forEach { shortCutExp ->

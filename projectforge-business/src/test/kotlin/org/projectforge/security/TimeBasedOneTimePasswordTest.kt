@@ -122,11 +122,11 @@ class TimeBasedOneTimePasswordTest {
   companion object {
     @JvmStatic
     fun main(args: Array<String>) {
-      println(TimeBased2FactorAuthentication.standard.generateSecretKey())
+      println(TimeBased2FA.standard.generateSecretKey())
       val testKey = "DGIORGZZDGEMYJQULMOLU7U3KWIEVYBV"
       var lastCode = ""
       while (true) {
-        val code = TimeBased2FactorAuthentication.standard.getTOTPCode(testKey)
+        val code = TimeBased2FA.standard.getTOTPCode(testKey)
         if (code != lastCode) {
           lastCode = code
           println(code)

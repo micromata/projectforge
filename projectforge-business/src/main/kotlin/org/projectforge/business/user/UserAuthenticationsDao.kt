@@ -34,7 +34,6 @@ import org.projectforge.framework.persistence.user.entities.UserAuthenticationsD
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.projectforge.framework.utils.Crypt
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.security.TimeBased2FactorAuthentication
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -262,7 +261,9 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      */
     open fun decryptAllTokens(authentications: UserAuthenticationsDO) {
         UserTokenType.values().forEach { type ->
-            authentications.setToken(type, decryptToken(authentications.getToken(type)))
+            if (type != UserTokenType.AUTHENTICATOR_KEY) {
+                authentications.setToken(type, decryptToken(authentications.getToken(type)))
+            }
         }
     }
 
