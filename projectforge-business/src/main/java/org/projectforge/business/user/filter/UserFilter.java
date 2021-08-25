@@ -29,7 +29,6 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.security.TwoFactorAuthenticationConfiguration;
 import org.projectforge.security.TwoFactorAuthenticationHandler;
 import org.projectforge.web.servlet.LogoServlet;
 import org.projectforge.web.servlet.SMSReceiverServlet;

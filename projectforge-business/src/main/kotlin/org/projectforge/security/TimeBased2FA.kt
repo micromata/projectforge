@@ -34,7 +34,7 @@ import java.security.SecureRandom
  * https://datatracker.ietf.org/doc/html/rfc6238
  * https://medium.com/@ihorsokolyk/two-factor-authentication-with-java-and-google-authenticator-9d7ea15ffee6
  */
-class TimeBased2FactorAuthentication(
+class TimeBased2FA(
   /**
    * Default algo is "HmacSHA1", but also "HmacSHA256" and "HmacSHA512" is supported. Use "HmacSHA1" for usage
    * with Microsoft and Google authenticator.
@@ -97,6 +97,6 @@ class TimeBased2FactorAuthentication(
      * The standard setup, used by Microsoft and Google authenticator.
      */
     @JvmStatic
-    val standard = TimeBased2FactorAuthentication(hmacCrypto = "HmacSHA1", numberOfDigits = 6)
+    val standard = TimeBased2FA(hmacCrypto = "HmacSHA1", numberOfDigits = 6)
   }
 }

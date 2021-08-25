@@ -46,7 +46,7 @@ import org.springframework.context.annotation.Configuration
  * Second factors may be definied with different periods of expiry. If an uri matches multiples periods; the shortest period is used.
  */
 @Configuration
-open class TwoFactorAuthenticationConfiguration {
+open class My2FARequestConfiguration {
   /**
    * List of regular expressions. For matching uri's a 2nd factor is mandatory and the 2nd factor expires after 1 minute.
    * Empty means (no 2nd factor).

@@ -30,13 +30,11 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
-import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.calendar.BarcodeServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.security.TimeBased2FactorAuthentication
+import org.projectforge.security.TimeBased2FA
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -71,7 +69,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     val layout = UILayout("user.my2FactorAuthentication.title.edit")
     val userLC = LayoutContext(PFUserDO::class.java)
     val authenticationsLC = LayoutContext(UserAuthenticationsDO::class.java)
-    val key = TimeBased2FactorAuthentication.standard.generateSecretKey()
+    val key = TimeBased2FA.standard.generateSecretKey()
     /*thread(start = true) {
       var lastCode: String? = null
       for (i in 0..1000) {
@@ -83,7 +81,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         Thread.sleep(1000)
       }
     }*/
-    val queryURL = TimeBased2FactorAuthentication.standard.getAuthenticatorUrl(
+    val queryURL = TimeBased2FA.standard.getAuthenticatorUrl(
       key,
       ThreadLocalUserContext.getUser().username!!,
       domainService.plainDomain ?: "unknown"
