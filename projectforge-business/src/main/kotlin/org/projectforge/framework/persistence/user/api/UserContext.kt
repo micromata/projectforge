@@ -40,7 +40,6 @@ class UserContext() : Serializable {
    * @return the user
    */
   var user: PFUserDO? = null
-    private set
   val employeeId: Int?
     get() = UserGroupCache.getInstance().getEmployeeId(user?.id)
 

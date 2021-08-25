@@ -25,11 +25,12 @@ package org.projectforge.business.user.filter
 
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.Const
 import org.projectforge.business.login.Login
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO.Companion.createCopyWithoutSecretFields
 import org.projectforge.security.SecurityLogging.logSecurityWarn
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,10 +45,13 @@ private val log = KotlinLogging.logger {}
 @Service
 class CookieService {
   @Autowired
-  private val userAuthenticationsService: UserAuthenticationsService? = null
+  private lateinit var userAuthenticationsService: UserAuthenticationsService
 
   @Autowired
-  private val serverProperties: ServerProperties? = null
+  private lateinit var serverProperties: ServerProperties
+
+  @Autowired
+  private lateinit var userService: UserService
 
   /**
    * User is not logged. Checks a stay-logged-in-cookie.
@@ -61,20 +65,12 @@ class CookieService {
       if (StringUtils.isBlank(value)) {
         return null
       }
-      val values = value.split(":".toRegex()).toTypedArray()
-      if (values.size != 3) {
-        val msg = "Invalid cookie found: " + StringUtils.abbreviate(value, 10)
-        log.warn(msg)
-        logSecurityWarn(this.javaClass, "LOGIN FAILED", msg)
-        return null
-      }
-      val username = values[1]
-      val stayLoggedInKey = values[2]
-      val user = userAuthenticationsService!!.getUserByToken(
+      val cookieValue = StayLoggedInCookieValue.deserialize(value) ?: return null
+      val user = userAuthenticationsService.getUserByToken(
         request,
-        username,
+        cookieValue.username,
         UserTokenType.STAY_LOGGED_IN_KEY,
-        stayLoggedInKey
+        cookieValue.stayLoggedInKey
       )
       if (user == null) {
         val msg =
@@ -93,27 +89,26 @@ class CookieService {
         return null
       }
       // update the cookie, especially the max age
-      addStayLoggedInCookie(request, response, stayLoggedInCookie)
+      addCookie(request, response, stayLoggedInCookie, COOKIE_STAY_LOGGED_IN_MAX_AGE)
       log.info("User successfully logged in using stay-logged-in method: " + user.userDisplayName + " (request=" + request.requestURI + ").")
-      return UserContext(createCopyWithoutSecretFields(user)!!)
+      val userContext = UserContext(createCopyWithoutSecretFields(user)!!)
+      // Restore any last successful 2FA from cookie:
+      userContext.lastSuccessful2FA = getLast2FA(request, user.id)
+      return userContext
     }
     return null
   }
 
-  /**
-   * Adds or refresh the given cookie.
-   */
-  fun addStayLoggedInCookie(request: HttpServletRequest, response: HttpServletResponse, stayLoggedInCookie: Cookie) {
-    stayLoggedInCookie.maxAge = COOKIE_MAX_AGE
-    stayLoggedInCookie.path = "/"
-    if (request.isSecure || isSecureCookieConfigured) {
-      log.debug("Set secure cookie (request=" + request.requestURI + ").")
-      stayLoggedInCookie.secure = true
-    } else {
-      log.debug("Set unsecure cookie (request=" + request.requestURI + ").")
-    }
-    stayLoggedInCookie.isHttpOnly = true
-    response.addCookie(stayLoggedInCookie) // Refresh cookie.
+  fun addStayLoggedInCookie(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    loggedInUser: PFUserDO,
+    stayLoggedInKey: String?,
+  ) {
+    stayLoggedInKey ?: return
+    val info = StayLoggedInCookieValue("${loggedInUser.id}", loggedInUser.username ?: "???", stayLoggedInKey)
+    val cookie = Cookie(COOKIE_NAME_FOR_STAY_LOGGED_IN, info.serialize())
+    addCookie(request, response, cookie, COOKIE_STAY_LOGGED_IN_MAX_AGE)
   }
 
   /**
@@ -121,12 +116,49 @@ class CookieService {
    */
   private val isSecureCookieConfigured: Boolean
     get() {
-      val secure = serverProperties!!.servlet.session.cookie.secure
-      return secure != null && secure
+      val secure = serverProperties.servlet.session.cookie.secure
+      return (secure != null) && secure
     }
 
   fun getStayLoggedInCookie(request: HttpServletRequest): Cookie? {
-    return getCookie(request, Const.COOKIE_NAME_FOR_STAY_LOGGED_IN)
+    return getCookie(request, COOKIE_NAME_FOR_STAY_LOGGED_IN)
+  }
+
+  private fun getLast2FA(request: HttpServletRequest, userId: Int): Long? {
+    val cookie = getCookie(request, COOKIE_NAME_FOR_LAST_2FA) ?: return null
+    try {
+      val lastSuccessful2FA = userService.decrypt(cookie.value, userId) ?: return null
+      return lastSuccessful2FA.toLongOrNull()
+    } catch (ex: Exception) {
+      log.info { "Can't decrypt cookie value for last 2FA. Password changed?" }
+    }
+    return null
+  }
+
+  /**
+   * Adds or refresh the given cookie.
+   */
+  fun addLast2FACookie(request: HttpServletRequest, response: HttpServletResponse, lastSuccessful2FA: Long) {
+    val value = userService.encrypt(lastSuccessful2FA.toString())
+    val cookie = Cookie(COOKIE_NAME_FOR_LAST_2FA, value)
+    addCookie(request, response, cookie, COOKIE_LAST_2FA_MAX_AGE)
+  }
+
+  private fun addCookie(request: HttpServletRequest, response: HttpServletResponse, cookie: Cookie, maxAge: Int) {
+    cookie.maxAge = maxAge
+    cookie.path = "/"
+    if (request.isSecure || isSecureCookieConfigured) {
+      if (log.isDebugEnabled) {
+        log.debug("Set secure cookie (request=${request.requestURI}).")
+      }
+      cookie.secure = true
+    } else {
+      if (log.isDebugEnabled) {
+        log.debug("Set unsecure cookie (request=${request.requestURI}).")
+      }
+    }
+    cookie.isHttpOnly = true
+    response.addCookie(cookie) // Refresh cookie.
   }
 
   private fun getCookie(request: HttpServletRequest, name: String): Cookie? {
@@ -142,6 +174,9 @@ class CookieService {
   }
 
   companion object {
-    private const val COOKIE_MAX_AGE = 30 * 24 * 3600 // 30 days.
+    private const val COOKIE_STAY_LOGGED_IN_MAX_AGE = 30 * 24 * 3600 // 30 days.
+    private const val COOKIE_NAME_FOR_STAY_LOGGED_IN = "stayLoggedIn"
+    private const val COOKIE_LAST_2FA_MAX_AGE = 89 * 24 * 3600 // 90 days.
+    private const val COOKIE_NAME_FOR_LAST_2FA = "last2FA"
   }
 }

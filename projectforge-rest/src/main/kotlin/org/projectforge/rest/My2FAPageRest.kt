@@ -23,9 +23,10 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
+import org.projectforge.business.user.filter.CookieService
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -39,11 +40,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.HttpSession
 
 @RestController
 @RequestMapping("${Rest.URL}/${MenuItemDefId.TWO_FACTOR_AUTHENTIFICATION_SUB_URL}")
 class My2FAPageRest : AbstractDynamicPageRest() {
+  @Autowired
+  private lateinit var cookieService: CookieService
+
   @Autowired
   private lateinit var my2FAService: My2FAService
 
@@ -53,11 +58,14 @@ class My2FAPageRest : AbstractDynamicPageRest() {
   }
 
   @PostMapping
-  fun check(request: HttpServletRequest, @RequestBody postData: PostData<Code>)
+  fun check(request: HttpServletRequest, response: HttpServletResponse, @RequestBody postData: PostData<Code>)
       : ResponseEntity<ResponseAction> {
     val code = postData.data.code
     if (code == null || my2FAService.validateOTP(code) != My2FAService.SUCCESS) {
       return showValidationErrors(ValidationError("user.My2FACode.error.validation", "code"))
+    }
+    ThreadLocalUserContext.getUserContext().lastSuccessful2FA?.let { lastSuccessful2FA ->
+      cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
     }
     val redirectUrl = ExpiringSessionAttributes.getAttribute(request.session, ATTR_REDIRECT_URL) as? String
     if (redirectUrl.isNullOrBlank()) {
