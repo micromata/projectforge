@@ -64,25 +64,19 @@ public class LoginService {
   public void logout(final MySession mySession, final WebRequest request, final WebResponse response,
                      final UserXmlPreferencesCache userXmlPreferencesCache,
                      final UserPrefCache userPrefCache) {
-    final Cookie stayLoggedInCookie = cookieService.getStayLoggedInCookie(WicketUtils.getHttpServletRequest(request));
-    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache, userPrefCache);
-    if (stayLoggedInCookie != null) {
-      response.addCookie(stayLoggedInCookie);
-    }
+    cookieService.clearAllCookies(WicketUtils.getHttpServletRequest(request), WicketUtils.getHttpServletResponse(response));
+    logout(mySession, userXmlPreferencesCache, userPrefCache);
   }
 
   public void logout(final MySession mySession, final HttpServletRequest request,
                      final HttpServletResponse response,
                      final UserXmlPreferencesCache userXmlPreferencesCache,
                      final UserPrefCache userPrefCache) {
-    final Cookie stayLoggedInCookie = cookieService.getStayLoggedInCookie(request);
-    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache, userPrefCache);
-    if (stayLoggedInCookie != null) {
-      response.addCookie(stayLoggedInCookie);
-    }
+    cookieService.clearAllCookies(request, response);
+    logout(mySession, userXmlPreferencesCache, userPrefCache);
   }
 
-  private void logout(final MySession mySession, final Cookie stayLoggedInCookie,
+  private void logout(final MySession mySession,
                       final UserXmlPreferencesCache userXmlPreferencesCache,
                       final UserPrefCache userPrefCache) {
     final PFUserDO user = mySession.getUser();
@@ -93,10 +87,5 @@ public class LoginService {
       userPrefCache.clear(user.getId());
     }
     mySession.logout();
-    if (stayLoggedInCookie != null) {
-      stayLoggedInCookie.setMaxAge(0);
-      stayLoggedInCookie.setValue(null);
-      stayLoggedInCookie.setPath("/");
-    }
   }
 }
