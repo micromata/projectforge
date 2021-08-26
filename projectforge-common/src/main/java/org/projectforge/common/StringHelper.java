@@ -475,14 +475,25 @@ public class StringHelper {
      * +49 561 316793-0
      */
     public static boolean checkPhoneNumberFormat(final String value) {
+        return checkPhoneNumberFormat(value, true);
+    }
+
+    /**
+     * Valid characters are ''+'' as first char, ''-'', ''/'' and spaces.
+     * @param countryCodeRequired If true, The leading country code is mandatory, e. g.: +49 561 316793-0
+     */
+    public static boolean checkPhoneNumberFormat(final String value, final boolean countryCodeRequired) {
         if (StringUtils.isBlank(value)) {
             return true;
         }
         if (!StringUtils.containsOnly(value, "+1234567890 -/")
-                || !value.startsWith("+")
-                || value.length() < 2
-                || !Character.isDigit(value.charAt(1))
-                || value.indexOf('+', 1) != -1) {
+            || value.length() < 2
+            // + Only allowed as first char:
+            || value.indexOf('+', 1) != -1) {
+            return false;
+        }
+        if (countryCodeRequired &&
+            (!value.startsWith("+") || !Character.isDigit(value.charAt(1)))) {
             return false;
         }
         final String str = removeWhitespaces(value);

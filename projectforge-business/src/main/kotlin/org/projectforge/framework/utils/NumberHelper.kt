@@ -500,6 +500,24 @@ object NumberHelper {
      */
   }
 
+  /**
+   * Generates secure random String of the given length.
+   *
+   * @param length
+   * @return Secure random string.
+   */
+  @JvmStatic
+  fun getSecureRandomDigits(length: Int): String {
+    val random = SecureRandom()
+    val bytes = ByteArray(length)
+    random.nextBytes(bytes)
+    val sb = StringBuilder()
+    for (i in 0 until length) {
+      sb.append((bytes[i].toInt() and 0xFF) % 10)
+    }
+    return sb.toString()
+  }
+
   @JvmStatic
   fun checkSecureRandomAlphanumeric(token: String?, minLength: Int): Boolean {
     if (token.isNullOrBlank() || token.length < minLength) {
