@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.Year
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
@@ -101,7 +102,7 @@ class SystemStatusRest {
           scmId = "<scmId>",
           scmIdFull = "<scmIdFull>",
           messageOfTheDay = systemStatus.messageOfTheDay,
-          copyRightYears = "2001-2099",
+          copyRightYears = "2001-${Year.now()}",
           logoUrl = LogoServiceRest.logoUrl,
           setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
           startTimeUTC = Date(0L)
