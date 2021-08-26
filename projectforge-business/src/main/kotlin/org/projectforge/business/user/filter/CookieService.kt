@@ -120,12 +120,21 @@ class CookieService {
       return (secure != null) && secure
     }
 
-  fun getStayLoggedInCookie(request: HttpServletRequest): Cookie? {
+  fun clearAllCookies(request: HttpServletRequest, response: HttpServletResponse) {
+    clearCookie(response, getStayLoggedInCookie(request))
+    clearCookie(response, getLast2FACookie(request))
+  }
+
+  private fun getStayLoggedInCookie(request: HttpServletRequest): Cookie? {
     return getCookie(request, COOKIE_NAME_FOR_STAY_LOGGED_IN)
   }
 
+  private fun getLast2FACookie(request: HttpServletRequest): Cookie? {
+    return getCookie(request, COOKIE_NAME_FOR_LAST_2FA)
+  }
+
   private fun getLast2FA(request: HttpServletRequest, userId: Int): Long? {
-    val cookie = getCookie(request, COOKIE_NAME_FOR_LAST_2FA) ?: return null
+    val cookie = getLast2FACookie(request) ?: return null
     try {
       val lastSuccessful2FA = userService.decrypt(cookie.value, userId) ?: return null
       return lastSuccessful2FA.toLongOrNull()
@@ -171,6 +180,15 @@ class CookieService {
       }
     }
     return null
+  }
+
+  private fun clearCookie(response: HttpServletResponse, cookie: Cookie?) {
+    if (cookie != null) {
+      cookie.maxAge = 0
+      cookie.value = null
+      cookie.path = "/"
+      response.addCookie(cookie)
+    }
   }
 
   companion object {

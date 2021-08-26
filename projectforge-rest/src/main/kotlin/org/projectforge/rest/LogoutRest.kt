@@ -60,7 +60,6 @@ open class LogoutRest {
     fun logout(request: HttpServletRequest,
                response: HttpServletResponse)
             : ResponseAction {
-        val stayLoggedInCookie = cookieService.getStayLoggedInCookie(request)
         val user = UserFilter.getUser(request)
         if (user != null) {
             userXmlPreferencesCache.flushToDB(user.id)
@@ -69,14 +68,7 @@ open class LogoutRest {
             userPrefCache.clear(user.id)
         }
         UserFilter.logout(request)
-        if (stayLoggedInCookie != null) {
-            stayLoggedInCookie.maxAge = 0
-            stayLoggedInCookie.value = null
-            stayLoggedInCookie.path = "/"
-        }
-        if (stayLoggedInCookie != null) {
-            response.addCookie(stayLoggedInCookie)
-        }
+        cookieService.clearAllCookies(request, response)
         if (user != null) {
             log.info("User successfully logged out: ${user.username}")
         }
