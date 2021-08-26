@@ -31,11 +31,13 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.sms.SmsSenderConfig;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Date;
 import java.util.Map;
 
 public class SmsSender {
@@ -120,6 +122,22 @@ public class SmsSender {
       throw new RuntimeException(ex);
     } finally {
       method.releaseConnection();
+    }
+  }
+
+  public String getErrorMessage(HttpResponseCode responseCode) {
+    if (responseCode == null) {
+      return "address.sendSms.sendMessage.result.unknownError";
+    } else if (responseCode == SmsSender.HttpResponseCode.SUCCESS) {
+      return null;
+    } else if (responseCode == SmsSender.HttpResponseCode.MESSAGE_ERROR) {
+      return "address.sendSms.sendMessage.result.messageError";
+    } else if (responseCode == SmsSender.HttpResponseCode.NUMBER_ERROR) {
+      return "address.sendSms.sendMessage.result.wrongOrMissingNumber";
+    } else if (responseCode == SmsSender.HttpResponseCode.MESSAGE_TO_LARGE) {
+      return "address.sendSms.sendMessage.result.messageToLarge";
+    } else {
+      return "address.sendSms.sendMessage.result.unknownError";
     }
   }
 
