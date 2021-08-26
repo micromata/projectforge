@@ -114,6 +114,23 @@ class NumberHelperTest {
     }
   }
 
+  @Test
+  fun checkRandomDigitsTest() {
+    val digits = mutableSetOf<Char>()
+    for (i in 0..1000) {
+      val code = NumberHelper.getSecureRandomDigits(6)
+      Assertions.assertEquals(6, code.length, "Code '$code' not of size 6.")
+      code.forEach {ch ->
+        Assertions.assertTrue(ch.isDigit(), "Invalid character in '$code': '$ch'")
+        digits.add(ch)
+      }
+    }
+    Assertions.assertEquals(10, digits.size)
+    for (ch in '0'..'9') {
+      Assertions.assertTrue(digits.contains(ch), "Digit '$ch' not found!")
+    }
+  }
+
   fun randomAlphaNumericPerformanceTest() {
     val length = 1000
     val time = System.currentTimeMillis()

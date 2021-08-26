@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.jpa.metainf.EntityDependencies
 import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
@@ -39,6 +40,7 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.time.TimeNotation
@@ -161,6 +163,12 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @Field
     @get:Column(length = 255)
     open var email: String? = null
+
+    @PropertyInfo(i18nKey = "user.mobilePhone", tooltip = "user.mobilePhone.info")
+    @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
+    @Field
+    @get:Column(name = "mobile_phone", length = 255)
+    open var mobilePhone: String? = null
 
     /**
      * The saltString for giving salt to hashed password.

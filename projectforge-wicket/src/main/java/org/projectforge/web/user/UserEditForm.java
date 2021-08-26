@@ -217,6 +217,15 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     fs.add(email);
   }
 
+  public static void createMobilePhone(final GridBuilder gridBuilder, final PFUserDO user) {
+    // E-Mail
+    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.mobilePhone"), gridBuilder.getString("user.mobilePhone.info"));
+    MaxLengthTextField mobilePhone = new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(user, "mobilePhone"));
+    mobilePhone.setMarkupId("mobilePhone").setOutputMarkupId(true);
+    mobilePhone.setRequired(false);
+    fs.add(mobilePhone);
+  }
+
   @SuppressWarnings("serial")
   public static FieldsetPanel createAuthenticationToken(final GridBuilder gridBuilder, final PFUserDO user,
                                                         final UserAuthenticationsService userAuthenticationsService,
@@ -449,6 +458,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     createGender(gridBuilder, data);
     createOrganization(gridBuilder, data);
     createEMail(gridBuilder, data);
+    createMobilePhone(gridBuilder, data);
     createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.CALENDAR_REST);
     if (configurationService.isDAVServicesAvailable()) {
       createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.DAV_TOKEN);

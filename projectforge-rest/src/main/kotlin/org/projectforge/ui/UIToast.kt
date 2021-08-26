@@ -25,6 +25,8 @@ package org.projectforge.ui
 
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.translateMsg
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 
 /**
  * Helper for creating toast at client browser.
@@ -37,6 +39,10 @@ object UIToast {
         color = color
       ), targetType = TargetType.TOAST
     )
+  }
+
+  fun createToastResponseEntity(message: String, color: UIColor = UIColor.INFO): ResponseEntity<ResponseAction> {
+    return ResponseEntity(createToast(message, color), HttpStatus.OK)
   }
 
   fun createExceptionToast(ex: UserException): ResponseAction {
