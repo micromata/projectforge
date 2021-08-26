@@ -49,155 +49,218 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.URL}/addressView")
 class AddressViewPageRest : AbstractDynamicPageRest() {
-    @Autowired
-    private lateinit var addressDao: AddressDao
+  @Autowired
+  private lateinit var addressDao: AddressDao
 
-    @Autowired
-    private lateinit var configurationService: ConfigurationService
+  @Autowired
+  private lateinit var configurationService: ConfigurationService
 
-    @Autowired
-    private lateinit var smsSenderConfig: SmsSenderConfig
+  @Autowired
+  private lateinit var smsSenderConfig: SmsSenderConfig
 
-    enum class PhoneType { BUSINESS, MOBILE, PRIVATE, PRIVATE_MOBILE }
+  enum class PhoneType { BUSINESS, MOBILE, PRIVATE, PRIVATE_MOBILE }
 
-    class PhoneNumber(var addressId: Int,
-                      var number: String?,
-                      var phoneCallEnabled: Boolean,
-                      var phoneType: PhoneType,
-                      var sms: Boolean,
-                      var smsEnabled: Boolean)
+  class PhoneNumber(
+    var addressId: Int,
+    var number: String?,
+    var phoneCallEnabled: Boolean,
+    var phoneType: PhoneType,
+    var sms: Boolean,
+    var smsEnabled: Boolean
+  )
 
-    class EMail(var email: String?)
+  class EMail(var email: String?)
 
-    @GetMapping("dynamic")
-    fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-        val id = NumberHelper.parseInteger(idString)
-        val address = addressDao.getById(id) ?: AddressDO()
-        val layout = UILayout("address.view.title")
-        val fieldSet = UIFieldset(12, title = "'${address.fullNameWithTitleAndForm}")
-        layout.add(fieldSet)
-        if (address.image == true) {
-            fieldSet.add(UICustomized("image", mutableMapOf("src" to "address/image/${address.id}", "alt" to address.fullNameWithTitleAndForm)))
-        }
-        var row = UIRow()
-        fieldSet.add(row)
-
-        val col = UIFieldset(12, "address.phoneNumbers")
-        row.add(col)
-
-        val phoneCallEnabled = configurationService.isTelephoneSystemUrlConfigured
-        val smsEnabled = smsSenderConfig.isSmsConfigured()
-
-        addPhoneNumber(col,
-                "address.phoneType.business",
-                PhoneNumber(address.id, address.businessPhone, phoneCallEnabled, PhoneType.BUSINESS, false, smsEnabled))
-        addPhoneNumber(col,
-                "address.phoneType.mobile",
-                PhoneNumber(address.id, address.mobilePhone, phoneCallEnabled, PhoneType.MOBILE, true, smsEnabled))
-        addPhoneNumber(col,
-                "address.phoneType.private",
-                PhoneNumber(address.id, address.privatePhone, phoneCallEnabled, PhoneType.PRIVATE, false, smsEnabled))
-        addPhoneNumber(col,
-                "address.phoneType.mobile",
-                PhoneNumber(address.id, address.privateMobilePhone, phoneCallEnabled, PhoneType.PRIVATE_MOBILE, true, smsEnabled))
-
-        val emailsCol = UIFieldset(12, "address.emails")
-        row.add(emailsCol)
-        addEMail(emailsCol, "address.business", address.email)
-        addEMail(emailsCol, "address.private", address.privateEmail)
-
-        row = UIRow()
-        fieldSet.add(row)
-        var numberOfAddresses = 0
-        if (address.hasDefaultAddress()) ++numberOfAddresses
-        if (address.hasPrivateAddress()) ++numberOfAddresses
-        if (address.hasPostalAddress()) ++numberOfAddresses
-
-        if (address.hasDefaultAddress()) {
-            createAddressCol(
-                    row,
-                    numberOfAddresses,
-                    "address.heading.businessAddress",
-                    address.addressText,
-                    address.addressText2,
-                    address.zipCode,
-                    address.city,
-                    address.state,
-                    address.country)
-        }
-        if (address.hasPrivateAddress()) {
-            createAddressCol(
-                    row,
-                    numberOfAddresses,
-                    "address.heading.privateAddress",
-                    address.privateAddressText,
-                    address.privateAddressText2,
-                    address.privateZipCode,
-                    address.privateCity,
-                    address.privateState,
-                    address.privateCountry)
-        }
-        if (address.hasPostalAddress()) {
-            createAddressCol(
-                    row,
-                    numberOfAddresses,
-                    "address.heading.postalAddress",
-                    address.postalAddressText,
-                    address.postalAddressText2,
-                    address.postalZipCode,
-                    address.postalCity,
-                    address.postalState,
-                    address.postalCountry)
-        }
-        if (!address.comment.isNullOrBlank()) {
-            row.add(UIFieldset(12, "comment")
-                    .add(UILabel("'${address.comment}")))
-        }
-
-        layout.add(UIButton("back",
-                translate("back"),
-                UIColor.SUCCESS,
-                responseAction = ResponseAction(PagesResolver.getListPageUrl(AddressPagesRest::class.java, absolute = true), targetType = TargetType.REDIRECT),
-                default = true)
+  @GetMapping("dynamic")
+  fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
+    val id = NumberHelper.parseInteger(idString)
+    val address = addressDao.getById(id) ?: AddressDO()
+    val layout = UILayout("address.view.title")
+      val organization = if (address.organization.isNullOrBlank()) {
+        ""
+      } else {
+        " - ${address.organization}"
+      }
+    val fieldSet = UIFieldset(12, title = "'${address.fullNameWithTitleAndForm}$organization")
+    layout.add(fieldSet)
+    if (address.image == true) {
+      fieldSet.add(
+        UICustomized(
+          "image",
+          mutableMapOf("src" to "address/image/${address.id}", "alt" to address.fullNameWithTitleAndForm)
         )
+      )
+    }
+    var row = UIRow()
+    fieldSet.add(row)
 
-        layout.add(MenuItem("EDIT",
-                i18nKey = "address.title.edit",
-                url = PagesResolver.getEditPageUrl(AddressPagesRest::class.java, address.id),
-                type = MenuItemTargetType.REDIRECT))
-        LayoutUtils.process(layout)
-        layout.postProcessPageMenu()
-        return FormLayoutData(address, layout, createServerData(request))
+    val col = UIFieldset(12, "address.phoneNumbers")
+    row.add(col)
+
+    val phoneCallEnabled = configurationService.isTelephoneSystemUrlConfigured
+    val smsEnabled = smsSenderConfig.isSmsConfigured()
+
+    addPhoneNumber(
+      col,
+      "address.phoneType.business",
+      PhoneNumber(address.id, address.businessPhone, phoneCallEnabled, PhoneType.BUSINESS, false, smsEnabled)
+    )
+    addPhoneNumber(
+      col,
+      "address.phoneType.mobile",
+      PhoneNumber(address.id, address.mobilePhone, phoneCallEnabled, PhoneType.MOBILE, true, smsEnabled)
+    )
+    addPhoneNumber(
+      col,
+      "address.phoneType.private",
+      PhoneNumber(address.id, address.privatePhone, phoneCallEnabled, PhoneType.PRIVATE, false, smsEnabled)
+    )
+    addPhoneNumber(
+      col,
+      "address.phoneType.mobile",
+      PhoneNumber(address.id, address.privateMobilePhone, phoneCallEnabled, PhoneType.PRIVATE_MOBILE, true, smsEnabled)
+    )
+
+    val emailsCol = UIFieldset(12, "address.emails")
+    row.add(emailsCol)
+    addEMail(emailsCol, "address.business", address.email)
+    addEMail(emailsCol, "address.private", address.privateEmail)
+
+    row = UIRow()
+    fieldSet.add(row)
+    var numberOfAddresses = 0
+    if (address.hasDefaultAddress()) ++numberOfAddresses
+    if (address.hasPrivateAddress()) ++numberOfAddresses
+    if (address.hasPostalAddress()) ++numberOfAddresses
+
+    if (address.hasDefaultAddress()) {
+      createAddressCol(
+        row,
+        numberOfAddresses,
+        "address.heading.businessAddress",
+        address.addressText,
+        address.addressText2,
+        address.zipCode,
+        address.city,
+        address.state,
+        address.country
+      )
+    }
+    if (address.hasPrivateAddress()) {
+      createAddressCol(
+        row,
+        numberOfAddresses,
+        "address.heading.privateAddress",
+        address.privateAddressText,
+        address.privateAddressText2,
+        address.privateZipCode,
+        address.privateCity,
+        address.privateState,
+        address.privateCountry
+      )
+    }
+    if (address.hasPostalAddress()) {
+      createAddressCol(
+        row,
+        numberOfAddresses,
+        "address.heading.postalAddress",
+        address.postalAddressText,
+        address.postalAddressText2,
+        address.postalZipCode,
+        address.postalCity,
+        address.postalState,
+        address.postalCountry
+      )
+    }
+    if (!address.comment.isNullOrBlank()) {
+      row.add(
+        UIFieldset(12, "comment")
+          .add(UILabel("'${address.comment}"))
+      )
     }
 
-    private fun addPhoneNumber(col: UICol, title: String, number: PhoneNumber) {
-        if (number.number.isNullOrBlank()) {
-            return
-        }
-        val phoneNumber = PhoneNumber(number.addressId, number.number, number.phoneCallEnabled, number.phoneType, number.sms, number.smsEnabled)
-        col.add(UIRow()
-                .add(UICol(6).add(UILabel(title)))
-                .add(UICol(6).add(UICustomized("address.phoneNumber", mutableMapOf("data" to phoneNumber)))))
-    }
+    layout.add(
+      UIButton(
+        "back",
+        translate("back"),
+        UIColor.SUCCESS,
+        responseAction = ResponseAction(
+          PagesResolver.getListPageUrl(AddressPagesRest::class.java, absolute = true),
+          targetType = TargetType.REDIRECT
+        ),
+        default = true
+      )
+    )
 
-    private fun addEMail(col: UICol, title: String, email: String?) {
-        if (email.isNullOrBlank()) {
-            return
-        }
-        col.add(UIRow()
-                .add(UICol(6).add(UILabel(title)))
-                .add(UICol(6).add(UICustomized("email", mutableMapOf("data" to EMail(email))))))
-    }
+    layout.add(
+      MenuItem(
+        "EDIT",
+        i18nKey = "address.title.edit",
+        url = PagesResolver.getEditPageUrl(AddressPagesRest::class.java, address.id),
+        type = MenuItemTargetType.REDIRECT
+      )
+    )
+    LayoutUtils.process(layout)
+    layout.postProcessPageMenu()
+    return FormLayoutData(address, layout, createServerData(request))
+  }
 
-    private fun createAddressCol(row: UIRow, numberOfAddresses: Int, title: String, addressText: String?, addressText2: String?, zipCode: String?, city: String?, state: String?, country: String?) {
-        row.add(UIFieldset(UILength(md = 12 / numberOfAddresses), title = title)
-                .add(UICustomized("address.view",
-                        mutableMapOf(
-                                "address" to (addressText ?: ""),
-                                "address2" to (addressText2 ?: ""),
-                                "zipCode" to (zipCode ?: ""),
-                                "city" to (city ?: ""),
-                                "state" to (state ?: ""),
-                                "country" to (country ?: "")))))
+  private fun addPhoneNumber(col: UICol, title: String, number: PhoneNumber) {
+    if (number.number.isNullOrBlank()) {
+      return
     }
+    val phoneNumber = PhoneNumber(
+      number.addressId,
+      number.number,
+      number.phoneCallEnabled,
+      number.phoneType,
+      number.sms,
+      number.smsEnabled
+    )
+    col.add(
+      UIRow()
+        .add(UICol(6).add(UILabel(title)))
+        .add(UICol(6).add(UICustomized("address.phoneNumber", mutableMapOf("data" to phoneNumber))))
+    )
+  }
+
+  private fun addEMail(col: UICol, title: String, email: String?) {
+    if (email.isNullOrBlank()) {
+      return
+    }
+    col.add(
+      UIRow()
+        .add(UICol(6).add(UILabel(title)))
+        .add(UICol(6).add(UICustomized("email", mutableMapOf("data" to EMail(email)))))
+    )
+  }
+
+  private fun createAddressCol(
+    row: UIRow,
+    numberOfAddresses: Int,
+    title: String,
+    addressText: String?,
+    addressText2: String?,
+    zipCode: String?,
+    city: String?,
+    state: String?,
+    country: String?
+  ) {
+    row.add(
+      UIFieldset(UILength(md = 12 / numberOfAddresses), title = title)
+        .add(
+          UICustomized(
+            "address.view",
+            mutableMapOf(
+              "address" to (addressText ?: ""),
+              "address2" to (addressText2 ?: ""),
+              "zipCode" to (zipCode ?: ""),
+              "city" to (city ?: ""),
+              "state" to (state ?: ""),
+              "country" to (country ?: "")
+            )
+          )
+        )
+    )
+  }
 }
