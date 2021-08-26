@@ -61,191 +61,233 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.URL}/myAccount")
 class MyAccountPageRest : AbstractDynamicPageRest() {
-    @Autowired
-    private lateinit var authenticationsService: UserAuthenticationsService
+  @Autowired
+  private lateinit var authenticationsService: UserAuthenticationsService
 
-    @Autowired
-    private lateinit var employeeService: EmployeeService
+  @Autowired
+  private lateinit var employeeService: EmployeeService
 
-    @Autowired
-    private lateinit var groupService: GroupService
+  @Autowired
+  private lateinit var groupService: GroupService
 
-    @Autowired
-    private lateinit var userDao: UserDao
+  @Autowired
+  private lateinit var userDao: UserDao
 
-    @Autowired
-    private lateinit var userService: UserService
+  @Autowired
+  private lateinit var userService: UserService
 
-    class MyAccountData(
-            var userId: Int? = null,
-            var username: String? = null,
-            var firstname: String? = null,
-            var lastname: String? = null,
-            var calendarExportToken: String? = null,
-            var davToken: String? = null,
-            var restClientToken: String? = null,
-            var stayLoggedInKey: String? = null,
-            var groups: String? = null,
-            var lastLogin: String? = null,
-            var locale: Locale? = null,
-            var dateFormat: String? = null,
-            var excelDateFormat: String? = null,
-            var timeNotation: TimeNotation? = null,
-            var timeZone: TimeZone? = null,
-            var personalPhoneIdentifiers: String? = null,
-            var sshPublicKey: String? = null
-    ) {
-        var employee: Employee? = null
+  class MyAccountData(
+    var userId: Int? = null,
+    var username: String? = null,
+    var firstname: String? = null,
+    var lastname: String? = null,
+    var mobilePhone: String? = null,
+    var calendarExportToken: String? = null,
+    var davToken: String? = null,
+    var restClientToken: String? = null,
+    var stayLoggedInKey: String? = null,
+    var groups: String? = null,
+    var lastLogin: String? = null,
+    var locale: Locale? = null,
+    var dateFormat: String? = null,
+    var excelDateFormat: String? = null,
+    var timeNotation: TimeNotation? = null,
+    var timeZone: TimeZone? = null,
+    var personalPhoneIdentifiers: String? = null,
+    var sshPublicKey: String? = null
+  ) {
+    var employee: Employee? = null
+  }
+
+  @PostMapping
+  fun save(request: HttpServletRequest, @RequestBody postData: PostData<MyAccountData>)
+      : ResponseEntity<ResponseAction> {
+    validateCsrfToken(request, postData)?.let { return it }
+    val data = postData.data
+    check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, MyAccountEditPage is called with another than the logged in user!" }
+    val user = userDao.internalGetById(data.userId)
+    user.firstname = data.firstname ?: user.firstname
+    user.lastname = data.lastname ?: user.lastname
+    user.mobilePhone = data.mobilePhone ?: user.mobilePhone
+    user.locale = data.locale ?: user.locale
+    user.dateFormat = data.dateFormat
+    user.excelDateFormat = data.excelDateFormat
+    user.timeNotation = data.timeNotation ?: user.timeNotation
+    user.timeZone = data.timeZone ?: user.timeZone
+    user.personalPhoneIdentifiers = userService.getNormalizedPersonalPhoneIdentifiers(data.personalPhoneIdentifiers)
+    user.sshPublicKey = data.sshPublicKey
+    userService.updateMyAccount(user)
+    data.employee?.let { employee ->
+      val employeeDO = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId())
+      check(employeeDO?.userId == data.userId) { "Oups, MyAccountEditPage is called with another employee than the logged in employee!" }
+      val userId = data.userId
+      employeeService.updateAttribute(userId, employee.iban, "iban")
+      employeeService.updateAttribute(userId, employee.bic, "bic")
+      employeeService.updateAttribute(userId, employee.accountHolder, "accountHolder")
+      employeeService.updateAttribute(userId, employee.street, "street")
+      employeeService.updateAttribute(userId, employee.state, "state")
+      employeeService.updateAttribute(userId, employee.city, "city")
+      employeeService.updateAttribute(userId, employee.zipCode, "zipCode")
+      employeeService.updateAttribute(userId, employee.country, "country")
+      employeeService.updateAttribute(userId, employee.birthday, "birthday")
+    }
+    return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
+  }
+
+  @GetMapping("dynamic")
+  fun getForm(request: HttpServletRequest): FormLayoutData {
+    val userId = ThreadLocalUserContext.getUserId()
+    val user = userDao.getById(userId)
+    val data = MyAccountData(userId, user.username, user.firstname, user.lastname, user.mobilePhone)
+
+    val layout = UILayout("user.myAccount.title.edit")
+    val employeeLC = LayoutContext(EmployeeDO::class.java)
+    val userLC = LayoutContext(PFUserDO::class.java)
+    val authenticationsLC = LayoutContext(UserAuthenticationsDO::class.java)
+    data.calendarExportToken = authenticationsService.getToken(userId, UserTokenType.CALENDAR_REST)
+    data.davToken = authenticationsService.getToken(userId, UserTokenType.DAV_TOKEN)
+    data.restClientToken = authenticationsService.getToken(userId, UserTokenType.REST_CLIENT)
+    data.stayLoggedInKey = authenticationsService.getToken(userId, UserTokenType.STAY_LOGGED_IN_KEY)
+    data.groups = groupService.getGroupnames(userId)
+    data.locale = ThreadLocalUserContext.getLocale() ?: Locale("DEFAULT")
+    data.dateFormat = user.dateFormat
+    data.excelDateFormat = user.excelDateFormat
+    data.timeNotation = user.timeNotation
+    data.timeZone = user.timeZone
+    data.personalPhoneIdentifiers = user.personalPhoneIdentifiers
+    data.sshPublicKey = user.sshPublicKey
+
+    data.lastLogin = DateTimeFormatter.instance().getFormattedDateTime(user.lastLogin)
+
+    val employee = employeeService.getEmployeeByUserId(userId)
+    if (employee != null) {
+      data.employee = Employee()
+      data.employee!!.let {
+        it.street = employee.street
+        it.zipCode = employee.zipCode
+        it.city = employee.city
+        it.country = employee.country
+        it.state = employee.state
+        it.birthday = employee.birthday
+        it.accountHolder = employee.accountHolder
+        it.iban = employee.iban
+        it.bic = employee.bic
+      }
     }
 
-    @PostMapping
-    fun save(request: HttpServletRequest, @RequestBody postData: PostData<MyAccountData>)
-            : ResponseEntity<ResponseAction> {
-        validateCsrfToken(request, postData)?.let { return it }
-        val data = postData.data
-        check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, MyAccountEditPage is called with another than the logged in user!" }
-        val user = userDao.internalGetById(data.userId)
-        user.firstname = data.firstname ?: user.firstname
-        user.lastname = data.lastname ?: user.lastname
-        user.locale = data.locale ?: user.locale
-        user.dateFormat = data.dateFormat
-        user.excelDateFormat = data.excelDateFormat
-        user.timeNotation = data.timeNotation ?: user.timeNotation
-        user.timeZone = data.timeZone ?: user.timeZone
-        user.personalPhoneIdentifiers = userService.getNormalizedPersonalPhoneIdentifiers(data.personalPhoneIdentifiers)
-        user.sshPublicKey = data.sshPublicKey
-        userService.updateMyAccount(user)
-        data.employee?.let { employee ->
-            val employeeDO = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId())
-            check(employeeDO?.userId == data.userId) { "Oups, MyAccountEditPage is called with another employee than the logged in employee!" }
-            val userId = data.userId
-            employeeService.updateAttribute(userId, employee.iban, "iban")
-            employeeService.updateAttribute(userId, employee.bic, "bic")
-            employeeService.updateAttribute(userId, employee.accountHolder, "accountHolder")
-            employeeService.updateAttribute(userId, employee.street, "street")
-            employeeService.updateAttribute(userId, employee.state, "state")
-            employeeService.updateAttribute(userId, employee.city, "city")
-            employeeService.updateAttribute(userId, employee.zipCode, "zipCode")
-            employeeService.updateAttribute(userId, employee.country, "country")
-            employeeService.updateAttribute(userId, employee.birthday, "birthday")
-        }
-        return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
-    }
-
-    @GetMapping("dynamic")
-    fun getForm(request: HttpServletRequest): FormLayoutData {
-        val userId = ThreadLocalUserContext.getUserId()
-        val user = userDao.getById(userId)
-        val data = MyAccountData(userId, user.username, user.firstname, user.lastname)
-
-        val layout = UILayout("user.myAccount.title.edit")
-        val employeeLC = LayoutContext(EmployeeDO::class.java)
-        val userLC = LayoutContext(PFUserDO::class.java)
-        val authenticationsLC = LayoutContext(UserAuthenticationsDO::class.java)
-        data.calendarExportToken = authenticationsService.getToken(userId, UserTokenType.CALENDAR_REST)
-        data.davToken = authenticationsService.getToken(userId, UserTokenType.DAV_TOKEN)
-        data.restClientToken = authenticationsService.getToken(userId, UserTokenType.REST_CLIENT)
-        data.stayLoggedInKey = authenticationsService.getToken(userId, UserTokenType.STAY_LOGGED_IN_KEY)
-        data.groups = groupService.getGroupnames(userId)
-        data.locale = ThreadLocalUserContext.getLocale() ?: Locale("DEFAULT")
-        data.dateFormat = user.dateFormat
-        data.excelDateFormat = user.excelDateFormat
-        data.timeNotation = user.timeNotation
-        data.timeZone = user.timeZone
-        data.personalPhoneIdentifiers = user.personalPhoneIdentifiers
-        data.sshPublicKey = user.sshPublicKey
-
-        data.lastLogin = DateTimeFormatter.instance().getFormattedDateTime(user.lastLogin)
-
-        val employee = employeeService.getEmployeeByUserId(userId)
-        if (employee != null) {
-            data.employee = Employee()
-            data.employee!!.let {
-                it.street = employee.street
-                it.zipCode = employee.zipCode
-                it.city = employee.city
-                it.country = employee.country
-                it.state = employee.state
-                it.birthday = employee.birthday
-                it.accountHolder = employee.accountHolder
-                it.iban = employee.iban
-                it.bic = employee.bic
-            }
-        }
-
-        layout.add(UIFieldset(12)
-                .add(UIRow()
-                        .add(UICol(UILength(lg = 6))
-                                .add(UIReadOnlyField("username", userLC))
-                                .add(userLC, "firstname", "lastname")
-                                .add(addAuthenticationToken(authenticationsLC, "stayLoggedInKey",
-                                        UserTokenType.STAY_LOGGED_IN_KEY,
-                                        "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"))
-                                .add(addAuthenticationToken(authenticationsLC, "calendarExportToken", UserTokenType.CALENDAR_REST))
-                                .add(addAuthenticationToken(authenticationsLC, "davToken", UserTokenType.DAV_TOKEN))
-                                .add(addAuthenticationToken(authenticationsLC, "restClientToken", UserTokenType.REST_CLIENT))
-                        )
-                        .add(UserPagesRest.createUserSettingsCol(UILength(lg = 6)))
+    layout.add(
+      UIFieldset(12)
+        .add(
+          UIRow()
+            .add(
+              UICol(UILength(lg = 6))
+                .add(UIReadOnlyField("username", userLC))
+                .add(userLC, "firstname", "lastname", "mobilePhone")
+                .add(
+                  addAuthenticationToken(
+                    authenticationsLC, "stayLoggedInKey",
+                    UserTokenType.STAY_LOGGED_IN_KEY,
+                    "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"
+                  )
                 )
+                .add(addAuthenticationToken(authenticationsLC, "calendarExportToken", UserTokenType.CALENDAR_REST))
+                .add(addAuthenticationToken(authenticationsLC, "davToken", UserTokenType.DAV_TOKEN))
+                .add(addAuthenticationToken(authenticationsLC, "restClientToken", UserTokenType.REST_CLIENT))
+            )
+            .add(UserPagesRest.createUserSettingsCol(UILength(lg = 6)))
         )
-                .add(UIFieldset(12, "fibu.employee")
-                        .add(UIRow()
-                                .add(UICol(UILength(md = 4)).add(employeeLC, "employee.street", "employee.zipCode", "employee.city"))
-                                .add(UICol(UILength(md = 4)).add(employeeLC, "employee.country", "employee.state", "employee.birthday"))
-                                .add(UICol(UILength(md = 4)).add(employeeLC, "employee.accountHolder", "employee.iban", "employee.bic"))
-                        )
-                )
-                .add(UIFieldset(12)
-                        .add(UIReadOnlyField("groups", label = "user.assignedGroups"))
-                )
-                .add(UIFieldset(12)
-                        .add(UITextArea("sshPublicKey", userLC))
-                )
-                .addAction(UIButton("update",
-                        translate("update"),
-                        UIColor.SUCCESS,
-                        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
-                        default = true)
-                )
+    )
+      .add(
+        UIFieldset(12, "fibu.employee")
+          .add(
+            UIRow()
+              .add(UICol(UILength(md = 4)).add(employeeLC, "employee.street", "employee.zipCode", "employee.city"))
+              .add(UICol(UILength(md = 4)).add(employeeLC, "employee.country", "employee.state", "employee.birthday"))
+              .add(UICol(UILength(md = 4)).add(employeeLC, "employee.accountHolder", "employee.iban", "employee.bic"))
+          )
+      )
+      .add(
+        UIFieldset(12)
+          .add(UIReadOnlyField("groups", label = "user.assignedGroups"))
+      )
+      .add(
+        UIFieldset(12)
+          .add(UITextArea("sshPublicKey", userLC))
+      )
+      .addAction(
+        UIButton(
+          "update",
+          translate("update"),
+          UIColor.SUCCESS,
+          responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
+          default = true
+        )
+      )
 
-        layout.add(MenuItem("changePassword",
-                i18nKey = "menu.changePassword",
-                url = PagesResolver.getDynamicPageUrl(ChangePasswordPageRest::class.java),
-                type = MenuItemTargetType.REDIRECT))
-        if (Login.getInstance().isWlanPasswordChangeSupported(user)) {
-            layout.add(MenuItem("changeWlanPassword",
-                    i18nKey = "menu.changeWlanPassword",
-                    url = PagesResolver.getDynamicPageUrl(ChangeWlanPasswordPageRest::class.java),
-                    type = MenuItemTargetType.REDIRECT))
-        }
-
-        LayoutUtils.process(layout)
-
-        layout.postProcessPageMenu()
-
-        return FormLayoutData(data, layout, createServerData(request))
+    layout.add(
+      MenuItem(
+        "changePassword",
+        i18nKey = "menu.changePassword",
+        url = PagesResolver.getDynamicPageUrl(ChangePasswordPageRest::class.java),
+        type = MenuItemTargetType.REDIRECT
+      )
+    )
+    if (Login.getInstance().isWlanPasswordChangeSupported(user)) {
+      layout.add(
+        MenuItem(
+          "changeWlanPassword",
+          i18nKey = "menu.changeWlanPassword",
+          url = PagesResolver.getDynamicPageUrl(ChangeWlanPasswordPageRest::class.java),
+          type = MenuItemTargetType.REDIRECT
+        )
+      )
     }
 
-    private fun addAuthenticationToken(lc: LayoutContext, id: String, token: UserTokenType, tooltip: String? = null): UIRow {
-        return UIRow()
-                .add(UICol(9)
-                        .add(UIReadOnlyField(id, lc, canCopy = true, coverUp = true))
-                )
-                .add(UICol(3)
-                        .add(UIButton("${id}-renew",
-                                title = translate("user.authenticationToken.renew"),
-                                tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
-                                confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
-                                color = UIColor.DANGER,
-                                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.POST)))
-                        .add(UIButton("${id}-access",
-                                title = translate("user.authenticationToken.button.showUsage"),
-                                tooltip = "user.authenticationToken.button.showUsage.tooltip",
-                                color = UIColor.LINK,
-                                responseAction = ResponseAction(
-                                        PagesResolver.getDynamicPageUrl(TokenInfoPageRest::class.java,
-                                                mapOf("token" to token), absolute = true),
-                                        targetType = TargetType.MODAL)))
-                )
-    }
+    LayoutUtils.process(layout)
+
+    layout.postProcessPageMenu()
+
+    return FormLayoutData(data, layout, createServerData(request))
+  }
+
+  private fun addAuthenticationToken(
+    lc: LayoutContext,
+    id: String,
+    token: UserTokenType,
+    tooltip: String? = null
+  ): UIRow {
+    return UIRow()
+      .add(
+        UICol(9)
+          .add(UIReadOnlyField(id, lc, canCopy = true, coverUp = true))
+      )
+      .add(
+        UICol(3)
+          .add(
+            UIButton(
+              "${id}-renew",
+              title = translate("user.authenticationToken.renew"),
+              tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
+              confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
+              color = UIColor.DANGER,
+              responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.POST)
+            )
+          )
+          .add(
+            UIButton(
+              "${id}-access",
+              title = translate("user.authenticationToken.button.showUsage"),
+              tooltip = "user.authenticationToken.button.showUsage.tooltip",
+              color = UIColor.LINK,
+              responseAction = ResponseAction(
+                PagesResolver.getDynamicPageUrl(
+                  TokenInfoPageRest::class.java,
+                  mapOf("token" to token), absolute = true
+                ),
+                targetType = TargetType.MODAL
+              )
+            )
+          )
+      )
+  }
 }
