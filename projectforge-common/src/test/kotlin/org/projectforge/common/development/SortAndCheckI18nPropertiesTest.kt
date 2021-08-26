@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test
 
 class SortAndCheckI18nPropertiesTest {
   @Test
-  fun fixApostrophCharsAndReplaceUTFChars() {
+  fun fixApostrophCharsAndReplaceUTFCharTest() {
     check("", "")
     check("'", "'")
     check("'text", "'text")
@@ -39,7 +39,26 @@ class SortAndCheckI18nPropertiesTest {
     check("Field ''\${label}'' is", "Field ''\${label}'' is")
   }
 
+  @Test
+  fun multilineHandlingTest() {
+    assertEquals("", SortAndCheckI18nPropertiesMain.reduceMultiLine(""))
+    assertEquals("test", SortAndCheckI18nPropertiesMain.reduceMultiLine("test"))
+    assertEquals("test... (multiline)", SortAndCheckI18nPropertiesMain.reduceMultiLine("test\\\nline 2"))
+    println(multiline)
+    assertEquals(reducedMultiline, SortAndCheckI18nPropertiesMain.reduceMultiLine(multiline))
+
+    assertEquals("", SortAndCheckI18nPropertiesMain.commentMultiLine(""))
+    assertEquals("test", SortAndCheckI18nPropertiesMain.commentMultiLine("test"))
+    assertEquals("test\\\n#line 2", SortAndCheckI18nPropertiesMain.commentMultiLine("test\\\nline 2"))
+  }
+
   private fun check(expected: String, src: String) {
     assertEquals(expected, SortAndCheckI18nPropertiesMain.fixApostrophCharsAndReplaceUTFChars(src))
   }
+
+  private val multiline =
+    """### Two factor authentication\n\n1. Simply scan this barcode with your smartphone.\n\
+2. Your authenticator app should be opened.\n3. Done.\n\nEvery time ProjectForge requests a code, enter the displayed code in your Authenticator app.\n\nYou may setup others Authenticator apps on different devices as a backup, if you want.\n\n> 2FA are valid up to 30 days (depends on the security level of the used functionality), please use the stay-logge-in functionality on login to prevent annoying 2FA requests.\n"""
+  private val reducedMultiline =
+    """### Two factor authentication\n\n1. Simply scan this barcode with your smartphone.\n... (multiline)"""
 }
