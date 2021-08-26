@@ -86,10 +86,22 @@ object SortAndCheckI18nPropertiesMain {
       newBlock() // Initially a block of key-values is needed.
       println("Reading file '$basename$lang.properties'...")
       // Read file line by line:
+      var currentMultilineEntry: Entry? = null
       File("$basename$lang.properties").forEachLine() { line ->
-        if (line.indexOf('=') > 0 && line.trim()[0].isLetter()) {
+        if (currentMultilineEntry != null) {
+          currentMultilineEntry!!.addMultiline(line)
+          if (!line.trim().endsWith('\\')) {
+            currentMultilineEntry = null
+          }
+        } else if (line.indexOf('=') > 0 && line.trim()[0].isLetter()) {
           // This seems to be a key-value line with a translation.
-          add(Entry.from(line))
+          Entry.from(line).let { entry ->
+            if (line.trim().endsWith('\\')) {
+              // multiline entry
+              currentMultilineEntry = entry
+            }
+            add(entry)
+          }
         } else {
           // This seems to be a comment line or blank line.
           add(line)
@@ -174,7 +186,7 @@ object SortAndCheckI18nPropertiesMain {
             if (value == null) {
               // This entry of the masterFile is not part of this lang file.
               missedKeyInLang.add(key)
-              out.println("### not translated: $key=${entry.value}")
+              out.println("### not translated: $key=${commentMultiLine(entry.value)}")
             } else {
               // This entry is part of masterFile as well as of this lang file.
               writtenKeys.add(key)
@@ -216,7 +228,7 @@ object SortAndCheckI18nPropertiesMain {
             missedKeyInLang.forEach { key ->
               val entry = masterFile.entries.find { it.key == key }
               if (entry != null) {
-                out.println("# ${entry.key}=${entry.value}")
+                out.println("# ${entry.key}=${reduceMultiLine(entry.value)}")
               }
             }
             out.println()
@@ -233,6 +245,10 @@ object SortAndCheckI18nPropertiesMain {
    */
   data class Entry(val key: String) { // key as prop of this data class for equals/hashCode
     var value: String = ""          // value isn't a part of equals/hashcCde
+
+    fun addMultiline(line: String) {
+      value = "$value\n$line"
+    }
 
     companion object {
       fun from(line: String): Entry {
@@ -301,5 +317,20 @@ object SortAndCheckI18nPropertiesMain {
       sb.append("'")
     }
     return sb.toString()
+  }
+
+  internal fun reduceMultiLine(value: String): String {
+    if (value.contains("smartphone")) {
+      println(value)
+    }
+    return if (value.contains("\\\n")) {
+      return "${value.substringBefore("\\\n")}... (multiline)"
+    } else {
+      value
+    }
+  }
+
+  internal fun commentMultiLine(value: String): String {
+    return value.replace("\\\n", "\\\n#")
   }
 }
