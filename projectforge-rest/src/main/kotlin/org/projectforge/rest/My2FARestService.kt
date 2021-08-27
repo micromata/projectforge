@@ -25,11 +25,15 @@ package org.projectforge.rest
 
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
+import org.projectforge.business.vacation.service.VacationSendMailService
+import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.time.DateTimeFormatter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.mail.Mail
+import org.projectforge.mail.SendMail
 import org.projectforge.messaging.SmsSender
 import org.projectforge.messaging.SmsSender.HttpResponseCode
 import org.projectforge.rest.core.ExpiringSessionAttributes
@@ -44,6 +48,14 @@ private val log = KotlinLogging.logger {}
 
 @Service
 class My2FARestService {
+  /**
+   * Result of sending a code for the caller.
+   */
+  class Result(val success: Boolean, var message: String)
+
+  @Autowired
+  private lateinit var sendMail: SendMail
+
   @Autowired
   private lateinit var smsSenderConfig: SmsSenderConfig
 
@@ -52,21 +64,63 @@ class My2FARestService {
   val smsConfigured
     get() = SystemStatus.isDevelopmentMode() || smsSenderConfig.isSmsConfigured()
 
-  /**
-   * Creates a OTP (10 minutes valid) in [ExpiringSessionAttributes] and sends the code to the mobile number.
-   */
-  fun createAndSendOTP(request: HttpServletRequest, mobilePhone: String): SmsSender.HttpResponseCode {
-    val code = NumberHelper.getSecureRandomDigits(6)
-    ExpiringSessionAttributes.setAttribute(request.getSession(false), SESSSION_ATTRIBUTE, code, 10)
-    val msg = "Code: $code ${translate("address.sendSms.doNotReply")}"
-    if (SystemStatus.isDevelopmentMode()) {
-      log.info { "Text message would be sent in production mode to '$mobilePhone': $msg" }
-      return HttpResponseCode.SUCCESS
+  fun createAndSendOTP(request: HttpServletRequest, mobilePhone: String?): Result {
+    var error: String? = null
+    if (!mobilePhone.isNullOrBlank() && StringHelper.checkPhoneNumberFormat(mobilePhone, false)) {
+      val result = createAndTextOTP(request, mobilePhone)
+      if (result.success) {
+        return result
+      }
+      error = result.message
     }
-    return smsSender.send(mobilePhone, msg)
+    val result = createAndMailOTP(request)
+    if (error != null) {
+      result.message = "${result.message} ($error)"
+    }
+    return result
   }
 
-  fun getResultMessage(responseCode: HttpResponseCode, number: String): String {
+  /**
+   * Creates a OTP (2 minutes valid) in [ExpiringSessionAttributes] and sends the code to the mobile number.
+   */
+  private fun createAndTextOTP(request: HttpServletRequest, mobilePhone: String): Result {
+    val code = createOTP(request)
+    val msg = "${translateMsg("user.My2FACode.sendCode.mail.message", code)} ${translate("address.sendSms.doNotReply")}"
+    val responseCode = if (SystemStatus.isDevelopmentMode()) {
+      log.info { "Text message would be sent in production mode to '$mobilePhone': $msg" }
+      HttpResponseCode.SUCCESS
+    } else {
+      smsSender.send(mobilePhone, msg)
+    }
+    return Result(responseCode == HttpResponseCode.SUCCESS, getResultMessage(responseCode, mobilePhone))
+  }
+
+  /**
+   * Creates a OTP (2 minutes valid) in [ExpiringSessionAttributes] and sends the code to the mobile number.
+   */
+  private fun createAndMailOTP(request: HttpServletRequest): Result {
+    val code = createOTP(request)
+    val mail = Mail()
+    mail.setTo(ThreadLocalUserContext.getUser())
+    mail.subject = translate("user.My2FACode.sendCode.mail.title")
+    mail.contentType = Mail.CONTENTTYPE_HTML
+    val data: MutableMap<String, Any> = mutableMapOf("otp" to code)
+    mail.content = sendMail.renderGroovyTemplate(mail, "mail/otpMail.html", data,
+      mail.subject, ThreadLocalUserContext.getUser())
+    val response = sendMail.send(mail)
+    if (response) {
+      return Result(true, translateMsg("user.My2FACode.sendCode.mail.sentSuccessfully", ThreadLocalUserContext.getUser().email))
+    }
+    return Result(false, translate("mail.error.exception"))
+  }
+
+  private fun createOTP(request: HttpServletRequest): String {
+    val code = NumberHelper.getSecureRandomDigits(6)
+    ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_OTP, code, TTL_MINUTES)
+    return code
+  }
+
+  private fun getResultMessage(responseCode: HttpResponseCode, number: String): String {
     val errorKey = smsSender.getErrorMessage(responseCode)
     if (errorKey != null) {
       return translate(errorKey)
@@ -79,8 +133,23 @@ class My2FARestService {
    */
   fun checkOTP(request: HttpServletRequest, code: String): Boolean {
     val sessionCode =
-      ExpiringSessionAttributes.getAttribute(request.getSession(false), SESSSION_ATTRIBUTE) ?: return false
-    return sessionCode == code
+      ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_OTP, String::class.java) ?: return false
+    var counter = ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_FAILS_COUNTER, Int::class.java) ?: 0
+    if (counter > 3) {
+      log.warn { "User tries to enter otp 3 times without success. Removing OTP from user's session." }
+      ExpiringSessionAttributes.removeAttribute(request, SESSSION_ATTRIBUTE_FAILS_COUNTER)
+      ExpiringSessionAttributes.removeAttribute(request, SESSSION_ATTRIBUTE_OTP)
+      return false
+    }
+    return if (sessionCode == code) {
+      // Successful: invalidate it:
+      ExpiringSessionAttributes.removeAttribute(request, SESSSION_ATTRIBUTE_OTP)
+      ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
+      true
+    } else {
+      ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_FAILS_COUNTER, ++counter, TTL_MINUTES)
+      false
+    }
   }
 
   @PostConstruct
@@ -89,6 +158,8 @@ class My2FARestService {
   }
 
   companion object {
-    private const val SESSSION_ATTRIBUTE = "My2FARestService.otp"
+    private const val SESSSION_ATTRIBUTE_OTP = "My2FARestService.otp"
+    private const val SESSSION_ATTRIBUTE_FAILS_COUNTER = "My2FARestService.otpFails"
+    private const val TTL_MINUTES = 2
   }
 }
