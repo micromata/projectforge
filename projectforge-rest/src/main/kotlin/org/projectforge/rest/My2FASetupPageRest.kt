@@ -301,18 +301,26 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         )
     )
     if (smsConfigured) {
-      currentRow.add(UICol(md = 6)
-        .add(UIInput("mobilePhone", userLC))
-        .add(
-          UIButton(
-            "save",
-            title = translate("save"),
-            color = UIColor.LIGHT,
-            responseAction = ResponseAction("/rs/2FASetup/saveMobilePhone", targetType = TargetType.POST),
+      currentRow.add(
+        UICol(md = 6)
+          .add(UIInput("mobilePhone", userLC))
+          .add(
+            UIButton(
+              "save",
+              title = translate("save"),
+              color = UIColor.LIGHT,
+              responseAction = ResponseAction("/rs/2FASetup/saveMobilePhone", targetType = TargetType.POST),
+            )
           )
-        )
       )
     }
+    fieldset.add(
+      UIAlert(
+        message = "user.My2FA.setup.authenticator.intro",
+        markdown = true,
+        color = UIColor.LIGHT
+      )
+    )
     if (authenticatorKey.isNullOrBlank()) {
       fieldset.add(
         UIButton(
