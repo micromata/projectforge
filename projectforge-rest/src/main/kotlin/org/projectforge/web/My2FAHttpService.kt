@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest
+package org.projectforge.web
 
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
@@ -46,8 +46,11 @@ import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * 2FA/OTP services.
+ */
 @Service
-class My2FARestService {
+class My2FAHttpService {
   /**
    * Result of sending a code for the caller.
    */
@@ -64,6 +67,10 @@ class My2FARestService {
   val smsConfigured
     get() = SystemStatus.isDevelopmentMode() || smsSenderConfig.isSmsConfigured()
 
+  /**
+   * Creates a OTP (valid for 2 minutes), stores it in the user's session and text or mail this code to the user.
+   * @param mobilePhone If given (in a valid format), a text message with the OTP is sent to this number.
+   */
   fun createAndSendOTP(request: HttpServletRequest, mobilePhone: String?): Result {
     var error: String? = null
     if (!mobilePhone.isNullOrBlank() && StringHelper.checkPhoneNumberFormat(mobilePhone, false)) {
