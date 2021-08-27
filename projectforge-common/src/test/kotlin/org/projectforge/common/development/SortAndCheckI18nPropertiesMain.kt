@@ -247,7 +247,8 @@ object SortAndCheckI18nPropertiesMain {
     var value: String = ""          // value isn't a part of equals/hashcCde
 
     fun addMultiline(line: String) {
-      value = "$value\n$line"
+      val fixedLine = fixApostrophCharsAndReplaceUTFChars(line) ?: ""
+      value = "$value\n$fixedLine"
     }
 
     companion object {
