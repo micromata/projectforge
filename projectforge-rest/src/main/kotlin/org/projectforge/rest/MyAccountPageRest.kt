@@ -108,7 +108,6 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     val user = userDao.internalGetById(data.userId)
     user.firstname = data.firstname ?: user.firstname
     user.lastname = data.lastname ?: user.lastname
-    user.mobilePhone = data.mobilePhone ?: user.mobilePhone
     user.locale = data.locale ?: user.locale
     user.dateFormat = data.dateFormat
     user.excelDateFormat = data.excelDateFormat
@@ -182,7 +181,8 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
             .add(
               UICol(UILength(lg = 6))
                 .add(UIReadOnlyField("username", userLC))
-                .add(userLC, "firstname", "lastname", "mobilePhone")
+                .add(userLC, "firstname", "lastname")
+                .add(UIReadOnlyField("mobilePhone", userLC))
                 .add(
                   addAuthenticationToken(
                     authenticationsLC, "stayLoggedInKey",

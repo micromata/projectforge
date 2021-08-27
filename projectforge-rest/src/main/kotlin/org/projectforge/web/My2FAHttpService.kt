@@ -104,6 +104,10 @@ class My2FAHttpService {
     val msg = "${translateMsg("user.My2FACode.sendCode.mail.message", code)} ${translate("address.sendSms.doNotReply")}"
     if (SystemStatus.isDevelopmentMode()) {
       log.info { "Text message would be sent in production mode to '$mobilePhone': $msg" }
+      if (!smsConfigured) {
+        ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_MOBILE_OTP, code, TTL_MINUTES)
+        return Result(true, getResultMessage(HttpResponseCode.SUCCESS, mobilePhone))
+      }
     }
     val responseCode = smsSender.send(mobilePhone, msg)
     val result = Result(responseCode == HttpResponseCode.SUCCESS, getResultMessage(responseCode, mobilePhone))
