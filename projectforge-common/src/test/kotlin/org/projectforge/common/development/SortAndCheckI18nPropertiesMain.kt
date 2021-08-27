@@ -287,9 +287,8 @@ object SortAndCheckI18nPropertiesMain {
   internal fun fixApostrophCharsAndReplaceUTFChars(str: String?): String? {
     str ?: return null
     var result: String = str
-    umlaute.forEach { ch, umlaut ->
-      result = result.replace(ch, umlaut.utf8)
-      result = result.replace(umlaut.ascii, umlaut.utf8)
+    umlaute.forEach { umlaut ->
+      result = result.replace(umlaut.ch, umlaut.utf8)
     }
     if (!result.contains("{0}") && !result.contains("{1}") && !result.contains("\${")) {
       return result
@@ -332,17 +331,17 @@ object SortAndCheckI18nPropertiesMain {
     return value.replace("\\\n", "\\\n#")
   }
 
-  internal val umlaute = mapOf(
-    "ß" to Umlaut(225, "\\u00DF"),
-    "ä" to Umlaut(132, "\\u00E4"),
-    "ö" to Umlaut(148, "\\u00F6"),
-    "ü" to Umlaut(129, "\\u00FC"),
-    "Ä" to Umlaut(142, "\\u00C4"),
-    "Ö" to Umlaut(153, "\\u00D6"),
-    "Ü" to Umlaut(154, "\\u00DC"),
+  internal val umlaute = arrayOf(
+    Umlaut("ß", "DF"),
+    Umlaut("ä", "E4"),
+    Umlaut("ö", "F6"),
+    Umlaut("ü", "FC"),
+    Umlaut("Ä", "C4"),
+    Umlaut("Ö", "D6"),
+    Umlaut("Ü", "DC"),
   )
 
-  class Umlaut(asciiCode: Int, val utf8: String) {
-    val ascii = "${asciiCode.toChar()}"
+  class Umlaut(val ch: String, val asciiCode: String) {
+    val utf8 = "\\u00$asciiCode"
   }
 }
