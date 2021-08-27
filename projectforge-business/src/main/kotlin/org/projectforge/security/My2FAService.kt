@@ -48,12 +48,15 @@ open class My2FAService {
 
   /**
    * @param 6 digits code displayed by the logged-in users Authenticator app.
+   * @param suppressNoTokenWarnings If true, no warnings will be shown, if authenticator token isn't available for the logged-in user.
    * @return error message or "OK" if code was successfully validated.
    */
-  fun validateOTP(code: String): String {
+  fun validateOTP(code: String, suppressNoTokenWarnings: Boolean = false): String {
     val authenticatorToken = userAuthenticationsService.getAuthenticatorToken()
     if (authenticatorToken == null) {
-      log.warn { "Can't check OTP for user '${ThreadLocalUserContext.getUser()?.username}', no authenticator token configured." }
+      if (!suppressNoTokenWarnings) {
+        log.warn { "Can't check OTP for user '${ThreadLocalUserContext.getUser()?.username}', no authenticator token configured." }
+      }
       return ERROR_2FA_NOT_CONFIGURED
     }
     if (!TimeBased2FA.standard.validate(authenticatorToken, code)) {

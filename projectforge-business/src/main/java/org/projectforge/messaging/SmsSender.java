@@ -119,7 +119,7 @@ public class SmsSender {
       String errorKey = "Call failed. Please contact administrator.";
       log.error(errorKey + ": " + proceededUrl
               + StringHelper.hideStringEnding(String.valueOf(phoneNumber), 'x', 3));
-      throw new RuntimeException(ex);
+      return HttpResponseCode.UNKNOWN_ERROR;
     } finally {
       method.releaseConnection();
     }
