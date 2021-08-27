@@ -26,10 +26,11 @@ function Toasts({ onClear, onToastRemove, toasts }) {
             {toasts
                 .filter(({ dismissed }) => dismissed !== true)
                 .reverse()
+                .slice(0, 3)
                 .map((toast) => (
                     <Toast key={`toast-${toast.id}`}>
                         <ToastHeader toggle={handleDismissClick(toast.id)} icon={toast.color}>
-                            ProjectForge
+                            ProjectForge®
                         </ToastHeader>
                         <ToastBody>{toast.message}</ToastBody>
                     </Toast>

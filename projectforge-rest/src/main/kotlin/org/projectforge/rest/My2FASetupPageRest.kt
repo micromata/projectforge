@@ -40,6 +40,7 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.security.My2FAService
 import org.projectforge.security.TimeBased2FA
 import org.projectforge.ui.*
+import org.projectforge.web.My2FAHttpService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -71,7 +72,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
   private lateinit var my2FAService: My2FAService
 
   @Autowired
-  private lateinit var my2FARestService: My2FARestService
+  private lateinit var my2FAHttpService: My2FAHttpService
 
   @Autowired
   private lateinit var userDao: UserDao
@@ -121,7 +122,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
   ): ResponseAction {
     val otp = postData.data.testCode
     if (otp == null ||
-      (!my2FARestService.checkOTP(request, otp) && my2FAService.validateOTP(otp) != My2FAService.SUCCESS)
+      (!my2FAHttpService.checkOTP(request, otp) && my2FAService.validateOTP(otp) != My2FAService.SUCCESS)
     ) {
       return UIToast.createToast(translate("user.My2FA.setup.check.fail"), color = UIColor.DANGER)
     }
@@ -134,6 +135,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
   /**
    * Enables the 2FA for the logged-in user (if not already enabled). Fails, if authenticator token is already configured.
    */
+  @Suppress("UNUSED_PARAMETER")
   @PostMapping("enable")
   fun enable(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
     if (!authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
@@ -187,7 +189,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     @Valid @RequestBody postData: PostData<My2FAData>
   ): ResponseEntity<ResponseAction> {
     val mobilePhone = postData.data.mobilePhone
-    val result = my2FARestService.createAndSendOTP(request, mobilePhone = mobilePhone)
+    val result = my2FAHttpService.createAndSendOTP(request, mobilePhone = mobilePhone)
     val color = if (result.success) {
       UIColor.SUCCESS
     } else {
@@ -197,7 +199,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
   }
 
   private fun createLayout(data: My2FAData): UILayout {
-    val smsConfigured = my2FARestService.smsConfigured
+    val smsConfigured = my2FAHttpService.smsConfigured
     val phoneNumberFormatValid = StringHelper.checkPhoneNumberFormat(data.mobilePhone, false)
     val authenticatorKey = authenticationsService.getAuthenticatorToken()
     val layout = UILayout("user.My2FA.setup.title")
