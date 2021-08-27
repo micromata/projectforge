@@ -67,7 +67,7 @@ class My2FAPageRest : AbstractDynamicPageRest() {
     ThreadLocalUserContext.getUserContext().lastSuccessful2FA?.let { lastSuccessful2FA ->
       cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
     }
-    val redirectUrl = ExpiringSessionAttributes.getAttribute(request.session, ATTR_REDIRECT_URL) as? String
+    val redirectUrl = ExpiringSessionAttributes.getAttribute(request, ATTR_REDIRECT_URL) as? String
     if (redirectUrl.isNullOrBlank()) {
       return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }

@@ -31,7 +31,6 @@ import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.messaging.SmsSender
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.calendar.BarcodeServicesRest
 import org.projectforge.rest.config.Rest
@@ -121,10 +120,8 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     @Valid @RequestBody postData: PostData<My2FAData>
   ): ResponseAction {
     val otp = postData.data.testCode
-    if (otp == null || (!my2FARestService.checkOTP(
-        request,
-        otp
-      ) && my2FAService.validateOTP(otp) != My2FAService.SUCCESS)
+    if (otp == null ||
+      (!my2FARestService.checkOTP(request, otp) && my2FAService.validateOTP(otp) != My2FAService.SUCCESS)
     ) {
       return UIToast.createToast(translate("user.My2FA.setup.check.fail"), color = UIColor.DANGER)
     }
@@ -189,23 +186,14 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     request: HttpServletRequest,
     @Valid @RequestBody postData: PostData<My2FAData>
   ): ResponseEntity<ResponseAction> {
-    if (!my2FARestService.smsConfigured) {
-      throw IllegalArgumentException("Functionality (texting messages) not configured.")
-    }
     val mobilePhone = postData.data.mobilePhone
-    if (mobilePhone.isNullOrBlank() || !StringHelper.checkPhoneNumberFormat(mobilePhone, false)) {
-      return showValidationErrors(ValidationError(translate("user.mobilePhone.invalidFormat"), "mobilePhone"))
-    }
-    val responseCode = my2FARestService.createAndSendOTP(request, mobilePhone = mobilePhone)
-    val color = if (responseCode == SmsSender.HttpResponseCode.SUCCESS) {
+    val result = my2FARestService.createAndSendOTP(request, mobilePhone = mobilePhone)
+    val color = if (result.success) {
       UIColor.SUCCESS
     } else {
       UIColor.DANGER
     }
-    return UIToast.createToastResponseEntity(
-      my2FARestService.getResultMessage(responseCode, mobilePhone),
-      color = color
-    )
+    return UIToast.createToastResponseEntity(result.message, color = color)
   }
 
   private fun createLayout(data: My2FAData): UILayout {
