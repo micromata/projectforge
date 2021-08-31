@@ -37,13 +37,18 @@ class UILayout {
              */
             var insert: Boolean? = null,
             var update: Boolean? = null,
-            var delete: Boolean? = null
+            var delete: Boolean? = null,
+            /**
+             * Cancel button is visible for all users at default.
+             */
+            var cancel: Boolean? = true,
     ) {
         fun copyFrom(userAccess: UserAccess?) {
             this.history = userAccess?.history
             this.insert = userAccess?.insert
             this.update = userAccess?.update
             this.delete = userAccess?.delete
+            this.cancel = userAccess?.cancel ?: true
         }
         fun onlySelectAccess(): Boolean {
             return (insert != true && update != true && delete != true)

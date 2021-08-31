@@ -178,6 +178,9 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
    * LAYOUT Edit page: Only usable for attachments
    */
   override fun createEditLayout(dto: Auftrag, userAccess: UILayout.UserAccess): UILayout {
+    userAccess.delete = false
+    userAccess.update = false
+    userAccess.cancel = false
     val layout = super.createEditLayout(dto, userAccess)
       .add(
         UIRow()
