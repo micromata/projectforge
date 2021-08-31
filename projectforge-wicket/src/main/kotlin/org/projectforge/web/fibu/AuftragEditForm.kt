@@ -35,7 +35,6 @@ import org.apache.wicket.markup.repeater.RepeatingView
 import org.apache.wicket.model.CompoundPropertyModel
 import org.apache.wicket.model.Model
 import org.apache.wicket.model.PropertyModel
-import org.apache.wicket.request.flow.RedirectToUrlException
 import org.apache.wicket.spring.injection.annot.SpringBean
 import org.apache.wicket.util.convert.IConverter
 import org.projectforge.business.fibu.*
@@ -45,7 +44,12 @@ import org.projectforge.business.utils.CurrencyFormatter
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper.greaterZero
+import org.projectforge.rest.AttachmentsServicesRest
+import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.fibu.AuftragPagesRest
+import org.projectforge.web.URLHelper
 import org.projectforge.web.task.TaskSelectPanel
 import org.projectforge.web.user.UserSelectPanel
 import org.projectforge.web.wicket.AbstractEditForm
@@ -81,10 +85,16 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
   private lateinit var accessChecker: AccessChecker
 
   @SpringBean
+  private lateinit var attachmentsService: AttachmentsService
+
+  @SpringBean
   private lateinit var rechnungCache: RechnungCache
 
   @SpringBean
   private lateinit var auftragDao: AuftragDao
+
+  @SpringBean
+  private lateinit var auftragPagesRest: AuftragPagesRest
 
   override fun init() {
     super.init()
@@ -92,7 +102,6 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
 
     /* GRID8 - BLOCK */gridBuilder.newSplitPanel(GridSize.COL50)
     run {
-
       // Number
       val fs = gridBuilder.newFieldset(getString("fibu.auftrag.nummer"))
       val number = MinMaxNumberField(
@@ -109,6 +118,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         fs.addHelpIcon(getString("fibu.tooltip.nummerWirdAutomatischVergeben"))
       }
     }
+
     gridBuilder.newSplitPanel(GridSize.COL50)
     run {
 
@@ -417,31 +427,47 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         .setTooltip(getString("label.sendEMailNotification"))
     }
     run {
-
       // attachments
       val fs = gridBuilder.newFieldset(getString("attachments"))
-      fs.add(DivTextPanel(fs.newChildId(), data!!.attachmentsNames))
-      fs.add(SingleButtonPanel(fs.newChildId(), object : Button(SingleButtonPanel.WICKET_ID) {
-        override fun onSubmit() {
-          println("hurzel")
-          throw RedirectToUrlException("/react/order/" + data!!.id)
-        }
-      }, getString("attachments"), SingleButtonPanel.NORMAL))
+      var attachments = "-"
+      if ((data?.attachmentsCounter ?: 0) > 0) {
+        attachments = attachmentsService.getAttachments(
+          auftragPagesRest.jcrPath!!,
+          data!!.id!!,
+          auftragPagesRest.attachmentsAccessChecker
+        )
+          ?.joinToString(
+            "<br/>",
+            postfix = "<br/>"
+          ) {
+            "<a href=\"${
+              RestResolver.getRestUrl(
+                AuftragPagesRest::class.java,
+                AttachmentsServicesRest.getDownloadUrl(it, category = auftragPagesRest.category, id = data!!.id, listId = "attachments")
+              )
+            }\">${URLHelper.encode(it.name)} (${it.sizeHumanReadable})</a>"
+          }
+          ?: "-"
+      }
+      val divTextPanel = DivTextPanel(fs.newChildId(), attachments)
+      divTextPanel.setEscapeModelStringsInLabel(false)
+      fs.add(divTextPanel)
+      fs.add(ExternalLinkPanel(fs.newChildId(), "/react/order/edit/${data?.id}", getString("edit"), "_blank"))
     }
     add(periodOfPerformanceHelper.createValidator())
     setKundePmHobmAndSmIfEmpty(getData()!!.projekt, null)
   }
 
   private val erfassungsDatumProperties: FieldProperties<LocalDate>
-     get() = FieldProperties("fibu.auftrag.angebot.datum", PropertyModel(super.data, "angebotsDatum"))
+    get() = FieldProperties("fibu.auftrag.angebot.datum", PropertyModel(super.data, "angebotsDatum"))
   private val angebotsDatumProperties: FieldProperties<LocalDate>
-     get() = FieldProperties("fibu.auftrag.erfassung.datum", PropertyModel(super.data, "erfassungsDatum"))
+    get() = FieldProperties("fibu.auftrag.erfassung.datum", PropertyModel(super.data, "erfassungsDatum"))
   private val entscheidungsDatumProperties: FieldProperties<LocalDate>
-     get() = FieldProperties("fibu.auftrag.entscheidung.datum", PropertyModel(super.data, "entscheidungsDatum"))
+    get() = FieldProperties("fibu.auftrag.entscheidung.datum", PropertyModel(super.data, "entscheidungsDatum"))
   private val bindungsfristProperties: FieldProperties<LocalDate>
-     get() = FieldProperties("fibu.auftrag.bindungsFrist", PropertyModel(super.data, "bindungsFrist"))
+    get() = FieldProperties("fibu.auftrag.bindungsFrist", PropertyModel(super.data, "bindungsFrist"))
   private val beauftragungsDatumProperties: FieldProperties<LocalDate>
-     get() = FieldProperties("fibu.auftrag.beauftragungsdatum", PropertyModel(super.data, "beauftragungsDatum"))
+    get() = FieldProperties("fibu.auftrag.beauftragungsdatum", PropertyModel(super.data, "beauftragungsDatum"))
 
   fun setKundePmHobmAndSmIfEmpty(project: ProjektDO?, target: AjaxRequestTarget?) {
     if (project == null) {

@@ -40,7 +40,7 @@ import javax.annotation.PostConstruct
 
 @RestController
 @RequestMapping("${Rest.URL}/order")
-class AuftragPagesRest :
+open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying.
   AbstractDTOPagesRest<AuftragDO, Auftrag, AuftragDao>(AuftragDao::class.java, "fibu.auftrag.title") {
   override fun transformForDB(dto: Auftrag): AuftragDO {
     val auftragDO = AuftragDO()
