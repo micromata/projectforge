@@ -38,7 +38,7 @@ import java.util.List;
 @Repository
 public class PostausgangDao extends BaseDao<PostausgangDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_OUTGOING_MAIL;
-  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"empfaenger", "person", "inhalt"};
+  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"empfaenger", "person", "absender", "inhalt"};
 
   protected PostausgangDao() {
     super(PostausgangDO.class);

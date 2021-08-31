@@ -46,6 +46,11 @@ open class PostausgangDO : DefaultBaseDO() {
     @get:Column(nullable = false)
     open var datum: LocalDate? = null
 
+    @PropertyInfo(i18nKey = "orga.posteingang.absender")
+    @Field
+    @get:Column(length = 1000, nullable = false)
+    open var absender: String? = null
+
     @PropertyInfo(i18nKey = "orga.postausgang.empfaenger")
     @Field
     @get:Column(length = 1000, nullable = false)
