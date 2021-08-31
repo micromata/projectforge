@@ -60,8 +60,6 @@ class FavoritesMenuTest : AbstractTestBase() {
                 "        <item id=\"licenseManagement\">Lizenzen</item>\n" +
                 "    </item>\n" +
                 "    <item>Orga\n" +
-                "        <item id=\"INBOX_LIST\">Posteingang</item>\n" +
-                "        <item id=\"OUTBOX_LIST\">Postausgang</item>\n" +
                 "        <item id=\"CONTRACTS\">Verträge</item>\n" +
                 "        <item id=\"BOOK_LIST\">Bücher</item>\n" +
                 "    </item>\n" +

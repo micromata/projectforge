@@ -274,12 +274,6 @@ public class WebRegistry
     register(DaoConst.OUTGOING_INVOICE, RechnungListPage.class);
     addMountPages(DaoConst.OUTGOING_INVOICE, RechnungListPage.class, RechnungEditPage.class);
 
-    register(DaoConst.INCOMING_MAIL, PosteingangListPage.class);
-    addMountPages(DaoConst.INCOMING_MAIL, PosteingangListPage.class, PosteingangEditPage.class);
-
-    register(DaoConst.OUTGOING_MAIL, PostausgangListPage.class);
-    addMountPages(DaoConst.OUTGOING_MAIL, PostausgangListPage.class, PostausgangEditPage.class);
-
     register(DaoConst.ACCESS, AccessListPage.class);
     addMountPages(DaoConst.ACCESS, AccessListPage.class, AccessEditPage.class);
     register(DaoConst.ACCOUNT, KontoListPage.class);
