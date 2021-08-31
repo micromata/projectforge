@@ -177,6 +177,8 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         cellItemListener.populateItem(cellItem, componentId, rowModel);
       }
     });
+    columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("attachments.short"), null, "attachmentsSizeFormatted",
+        cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(
 
             getString("projectmanagement.personDays.short"),
