@@ -54,7 +54,7 @@ public class AbstractHistorizableBaseDOTest extends AbstractTestBase
 
     final AuftragDO order = new AuftragDO();
     set = HistoryServiceManager.get().getHistoryService().getNoHistoryProperties(emf, order.getClass());
-    Assertions.assertEquals(3, set.size());
+    Assertions.assertEquals(7, set.size());
     //    not, because ransient Assertions.assertTrue(set.contains("uiStatus"));
     Assertions.assertTrue(set.contains("uiStatusAsXml"));
     Assertions.assertFalse(set.contains("subject"));
