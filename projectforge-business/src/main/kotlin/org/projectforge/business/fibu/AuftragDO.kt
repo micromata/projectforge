@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.StringUtils
@@ -31,6 +32,7 @@ import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -65,7 +67,7 @@ import javax.persistence.*
         NamedQuery(name = AuftragDO.SELECT_MIN_MAX_DATE, query = "select min(angebotsDatum), max(angebotsDatum) from AuftragDO"),
         NamedQuery(name = AuftragDO.FIND_BY_NUMMER, query = "from AuftragDO where nummer=:nummer"),
         NamedQuery(name = AuftragDO.FIND_OTHER_BY_NUMMER, query = "from AuftragDO where nummer=:nummer and id!=:id"))
-open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
+open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
 
     private val log = org.slf4j.LoggerFactory.getLogger(AuftragDO::class.java)
 
@@ -269,6 +271,33 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "salesmanager_fk")
     open var salesManager: PFUserDO? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_names")
+    override var attachmentsNames: String? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_ids")
+    override var attachmentsIds: String? = null
+
+    @JsonIgnore
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_counter")
+    override var attachmentsCounter: Int? = null
+
+    @JsonIgnore
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_size")
+    override var attachmentsSize: Long? = null
+
+    @PropertyInfo(i18nKey = "attachment")
+    @JsonIgnore
+    @get:Column(length = 10000, name = "attachments_last_user_action")
+    override var attachmentsLastUserAction: String? = null
 
     /**
      * Adds all net sums of the positions (without not ordered positions) and return the total sum.
