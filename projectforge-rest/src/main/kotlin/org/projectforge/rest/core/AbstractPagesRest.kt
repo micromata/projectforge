@@ -147,7 +147,7 @@ constructor(
   /**
    * Category should be unique and is e. g. used as react path. At default it's the dir of the url definined in class annotation [RequestMapping].
    */
-  val category: String
+  open val category: String // open needed by Wicket's SpringBean for proxying.
     get() {
       if (_category == null) {
         _category = getRestPath().removePrefix("${Rest.URL}/")
@@ -1133,7 +1133,7 @@ constructor(
    * @return unique jcr path if attachments are supported or null, if no attachment support is given (download, upload and list).
    * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
    */
-  var jcrPath: String? = null
+  open var jcrPath: String? = null  // open needed by Wicket's SpringBean for proxying.
     protected set
 
   /**
@@ -1169,7 +1169,7 @@ constructor(
   /**
    * Might be initialized by [enableJcr] with default dao access checker.
    */
-  lateinit var attachmentsAccessChecker: AttachmentsAccessChecker
+  open lateinit var attachmentsAccessChecker: AttachmentsAccessChecker // open needed by Wicket's SpringBean for proxying.
     protected set
 
   /**
