@@ -429,7 +429,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
     run {
       // attachments
       val fs = gridBuilder.newFieldset(getString("attachments"))
-      var attachments = "-"
+      var attachments = ""
       if ((data?.attachmentsCounter ?: 0) > 0) {
         attachments = attachmentsService.getAttachments(
           auftragPagesRest.jcrPath!!,
@@ -438,21 +438,21 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         )
           ?.joinToString(
             "<br/>",
-            postfix = "<br/>"
+            postfix = "<br/><br/>"
           ) {
             "<a href=\"${
               RestResolver.getRestUrl(
-                AuftragPagesRest::class.java,
+                AttachmentsServicesRest::class.java,
                 AttachmentsServicesRest.getDownloadUrl(it, category = auftragPagesRest.category, id = data!!.id, listId = "attachments")
               )
             }\">${URLHelper.encode(it.name)} (${it.sizeHumanReadable})</a>"
           }
-          ?: "-"
+          ?: ""
       }
-      val divTextPanel = DivTextPanel(fs.newChildId(), attachments)
+      val editLink = "<a href=\"/react/order/edit/${data?.id}\" target=\"_blank\">${getString("edit")}</a>"
+      val divTextPanel = DivTextPanel(fs.newChildId(), "$attachments$editLink")
       divTextPanel.setEscapeModelStringsInLabel(false)
       fs.add(divTextPanel)
-      fs.add(ExternalLinkPanel(fs.newChildId(), "/react/order/edit/${data?.id}", getString("edit"), "_blank"))
     }
     add(periodOfPerformanceHelper.createValidator())
     setKundePmHobmAndSmIfEmpty(getData()!!.projekt, null)
