@@ -1,6 +1,6 @@
 ---
 title: Image pdf-logo.png not found while generating pdf files.
-categories: [administration,faqs]
+categories: [administration,faq]
 permalink: /misc/faqs.html
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: How can I create a structure element in the drop down box of a structure element field?
-categories: [general,faqs]
+categories: [general,faq]
 permalink: /misc/faqs.html
 ---
 

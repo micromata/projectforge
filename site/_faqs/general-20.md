@@ -1,6 +1,6 @@
 ---
 title: Calendar view changes time period on reload?
-categories: [general,faqs]
+categories: [general,faq]
 permalink: /misc/faqs.html
 ---
 
