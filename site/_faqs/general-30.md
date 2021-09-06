@@ -1,6 +1,6 @@
 ---
 title: Wrong dates for timepending attributes for timezones less than UTC+0
-categories: [general,faqs]
+categories: [general,faq]
 permalink: /misc/faqs.html
 ---
 

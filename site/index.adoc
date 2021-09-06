@@ -1,9 +1,11 @@
 ---
 layout: page
 width: expand
-title: ProjectForge
-subtitle: Improve your team work and keep track of budgets, deadlines, human resources and your financial management.
-image: Illustration_DevOps_omg.svg
+hero:
+    title: ProjectForge
+    subtitle: Improve your team work and keep track of budgets, deadlines, human resources and your financial management.
+    image: Illustration_DevOps_omg.svg
+    search: true
 ---
 :page-liquid:
 
@@ -16,7 +18,7 @@ image: Illustration_DevOps_omg.svg
 ++++
 
 ++++
-{% include faqs.html multiple="true" title="Frequently asked questions" category="faq" subtitle="Find quick answers to frequent questions asked by users" %}
+{% include faqs.html multiple="true" title="Frequently asked questions" category="faq-main" subtitle="Find quick answers to frequent questions asked by users" %}
 ++++
 
 ++++

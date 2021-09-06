@@ -1,6 +1,6 @@
 ---
 title: XML-backup and restore and data-base migration BUG
-categories: [general,faqs]
+categories: [general,faq]
 permalink: /misc/faqs.html
 ---
 

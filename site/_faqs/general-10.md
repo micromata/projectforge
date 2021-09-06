@@ -1,6 +1,6 @@
 ---
 title: My time sheets are not displayed in the calendar view?
-categories: [general,faqs]
+categories: [general,faq]
 permalink: /misc/faqs.html
 ---
 

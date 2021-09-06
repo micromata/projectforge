@@ -1,6 +1,6 @@
 ---
 title: Projects, customers and some other functionalities aren't visible?
-categories: [administration,faqs]
+categories: [administration,faq]
 permalink: /misc/faqs.html
 ---
 

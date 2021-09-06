@@ -1,6 +1,6 @@
 ---
 title: How much does it cost to use ProjectForge?
-categories: [faqs]
+categories: [faq-main]
 permalink: /misc/faqs.html
 ---
 
