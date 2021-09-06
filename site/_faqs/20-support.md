@@ -1,6 +1,6 @@
 ---
 title: Do you provide free support for ProjectForge?
-categories: [faq]
+categories: [faq-main]
 permalink: /misc/faqs.html
 ---
 
