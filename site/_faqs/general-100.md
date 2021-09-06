@@ -1,6 +1,6 @@
 ---
 title: Calendar view have different time of days than called time sheet edit page.
-categories: [general,faqs]
+categories: [general,faq]
 permalink: /misc/faqs.html
 ---
 

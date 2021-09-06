@@ -718,6 +718,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   @Override
+  protected ModificationStatus copyValues(AuftragDO src, AuftragDO dest, String... ignoreFields) {
+    return super.copyValues(src, dest, "uiStatus", "fakturiertSum");
+  }
+
+  @Override
   public AuftragDO newInstance() {
     return new AuftragDO();
   }

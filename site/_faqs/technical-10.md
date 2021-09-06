@@ -1,6 +1,6 @@
 ---
 title: Which browsers are supported?
-categories: [technical,faqs]
+categories: [technical,faq]
 permalink: /misc/faqs.html
 ---
 

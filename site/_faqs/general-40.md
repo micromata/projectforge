@@ -1,6 +1,6 @@
 ---
 title: Requirement for the vacationfeature
-categories: [general,faqs]
+categories: [general,faq]
 permalink: /misc/faqs.html
 ---
 	

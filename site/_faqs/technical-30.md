@@ -1,6 +1,6 @@
 ---
 title: Error messages in the log files of ProjectForge on start-up?
-categories: [technical,faqs]
+categories: [technical,faq]
 permalink: /misc/faqs.html
 ---
 

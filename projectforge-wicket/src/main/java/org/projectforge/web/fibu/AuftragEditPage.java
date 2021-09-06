@@ -25,6 +25,7 @@ package org.projectforge.web.fibu;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
@@ -153,6 +154,21 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
       getData().setKundeText(null);
     }
     return null;
+  }
+
+  @Override
+  protected void update() {
+    AuftragDO auftrag = getData();
+    AuftragDO dbObj = auftragDao.internalGetById(auftrag.getId());
+    if (dbObj != null) {
+      // Update attachments values (if modified in the mean time. They can't be modified on this Wicket page):
+      auftrag.setAttachmentsCounter(dbObj.getAttachmentsCounter());
+      auftrag.setAttachmentsNames(dbObj.getAttachmentsNames());
+      auftrag.setAttachmentsIds(dbObj.getAttachmentsIds());
+      auftrag.setAttachmentsSize(dbObj.getAttachmentsSize());
+      auftrag.setAttachmentsLastUserAction(dbObj.getAttachmentsLastUserAction());
+    }
+    super.update();
   }
 
   @Override

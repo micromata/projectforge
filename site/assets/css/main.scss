@@ -116,3 +116,21 @@ table td a {
     }
   }
 }
+
+// Code View Layout
+
+.listingblock {
+  pre code table {
+    margin: 0;
+  }
+  
+  pre code pre {
+    margin: 0;
+    border: none;
+  }
+
+  table.linenotable td {
+    margin: 0;
+    padding: 0;
+  }
+}

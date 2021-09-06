@@ -26,23 +26,28 @@ package org.projectforge.rest
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.PersonalAddressDO
+import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.Address
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.dto.PostData
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
 
@@ -54,6 +59,9 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
 
   @Autowired
   private lateinit var configurationService: ConfigurationService
+
+  @Autowired
+  private lateinit var personalAddressDao: PersonalAddressDao
 
   @Autowired
   private lateinit var smsSenderConfig: SmsSenderConfig
@@ -73,21 +81,25 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-    val id = NumberHelper.parseInteger(idString)
-    val address = addressDao.getById(id) ?: AddressDO()
+    val id = NumberHelper.parseInteger(idString) ?: throw IllegalArgumentException("id not given.")
+    val addressDO = addressDao.getById(id) ?: AddressDO()
+    val address = Address()
+    address.copyFrom(addressDO)
+    address.isFavoriteCard = personalAddressDao.getByAddressId(id)?.isFavoriteCard ?: false
+
     val layout = UILayout("address.view.title")
-      val organization = if (address.organization.isNullOrBlank()) {
-        ""
-      } else {
-        " - ${address.organization}"
-      }
-    val fieldSet = UIFieldset(12, title = "'${address.fullNameWithTitleAndForm}$organization")
+    val organization = if (address.organization.isNullOrBlank()) {
+      ""
+    } else {
+      " - ${address.organization}"
+    }
+    val fieldSet = UIFieldset(12, title = "'${addressDO.fullNameWithTitleAndForm}$organization")
     layout.add(fieldSet)
-    if (address.image == true) {
+    if (addressDO.image == true) {
       fieldSet.add(
         UICustomized(
           "image",
-          mutableMapOf("src" to "address/image/${address.id}", "alt" to address.fullNameWithTitleAndForm)
+          mutableMapOf("src" to "address/image/${address.id}", "alt" to addressDO.fullNameWithTitleAndForm)
         )
       )
     }
@@ -103,22 +115,22 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     addPhoneNumber(
       col,
       "address.phoneType.business",
-      PhoneNumber(address.id, address.businessPhone, phoneCallEnabled, PhoneType.BUSINESS, false, smsEnabled)
+      PhoneNumber(id, address.businessPhone, phoneCallEnabled, PhoneType.BUSINESS, false, smsEnabled)
     )
     addPhoneNumber(
       col,
       "address.phoneType.mobile",
-      PhoneNumber(address.id, address.mobilePhone, phoneCallEnabled, PhoneType.MOBILE, true, smsEnabled)
+      PhoneNumber(id, address.mobilePhone, phoneCallEnabled, PhoneType.MOBILE, true, smsEnabled)
     )
     addPhoneNumber(
       col,
       "address.phoneType.private",
-      PhoneNumber(address.id, address.privatePhone, phoneCallEnabled, PhoneType.PRIVATE, false, smsEnabled)
+      PhoneNumber(id, address.privatePhone, phoneCallEnabled, PhoneType.PRIVATE, false, smsEnabled)
     )
     addPhoneNumber(
       col,
       "address.phoneType.mobile",
-      PhoneNumber(address.id, address.privateMobilePhone, phoneCallEnabled, PhoneType.PRIVATE_MOBILE, true, smsEnabled)
+      PhoneNumber(id, address.privateMobilePhone, phoneCallEnabled, PhoneType.PRIVATE_MOBILE, true, smsEnabled)
     )
 
     val emailsCol = UIFieldset(12, "address.emails")
@@ -129,11 +141,11 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     row = UIRow()
     fieldSet.add(row)
     var numberOfAddresses = 0
-    if (address.hasDefaultAddress()) ++numberOfAddresses
-    if (address.hasPrivateAddress()) ++numberOfAddresses
-    if (address.hasPostalAddress()) ++numberOfAddresses
+    if (addressDO.hasDefaultAddress()) ++numberOfAddresses
+    if (addressDO.hasPrivateAddress()) ++numberOfAddresses
+    if (addressDO.hasPostalAddress()) ++numberOfAddresses
 
-    if (address.hasDefaultAddress()) {
+    if (addressDO.hasDefaultAddress()) {
       createAddressCol(
         row,
         numberOfAddresses,
@@ -146,7 +158,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         address.country
       )
     }
-    if (address.hasPrivateAddress()) {
+    if (addressDO.hasPrivateAddress()) {
       createAddressCol(
         row,
         numberOfAddresses,
@@ -159,7 +171,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         address.privateCountry
       )
     }
-    if (address.hasPostalAddress()) {
+    if (addressDO.hasPostalAddress()) {
       createAddressCol(
         row,
         numberOfAddresses,
@@ -178,6 +190,14 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
           .add(UILabel("'${address.comment}"))
       )
     }
+
+    fieldSet.add(
+      UICheckbox(
+        "isFavoriteCard",
+        label = "favorite",
+        tooltip = "address.favorites.info",
+      )
+    )
 
     layout.add(
       UIButton(
@@ -200,10 +220,39 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         type = MenuItemTargetType.REDIRECT
       )
     )
+    layout.watchFields.addAll(arrayOf("isFavoriteCard"))
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
     return FormLayoutData(address, layout, createServerData(request))
   }
+
+  /**
+   * Will be called, if the user wants to change his/her observeStatus.
+   */
+  @PostMapping(RestPaths.WATCH_FIELDS)
+  fun watchFields(@Valid @RequestBody postData: PostData<Address>): ResponseEntity<ResponseAction> {
+    val id = postData.data.id ?: throw IllegalAccessException("Parameter id not given.")
+    val favorite = postData.data.isFavoriteCard
+    val address = addressDao.getById(id) ?: throw IllegalAccessException("Address not found.")
+    val owner = ThreadLocalUserContext.getUser()
+    val personalAddress = personalAddressDao.getByAddressId(id, owner) ?: PersonalAddressDO()
+    if (personalAddress.id == null) {
+      if (!favorite) {
+        // Nothing to-do: favorite is false and now personal address entry found. Shouldn't really occur.
+        return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
+      }
+      personalAddress.address = address
+      personalAddressDao.setOwner(personalAddress, owner.id) // Set current logged in user as owner.
+      personalAddress.isFavoriteCard = true
+      personalAddressDao.saveOrUpdate(personalAddress)
+    } else if (favorite != personalAddress.isFavorite) {
+      // Update required:
+      personalAddress.isFavoriteCard = favorite
+      personalAddressDao.saveOrUpdate(personalAddress)
+    }
+    return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("data", postData.data))
+  }
+
 
   private fun addPhoneNumber(col: UICol, title: String, number: PhoneNumber) {
     if (number.number.isNullOrBlank()) {
