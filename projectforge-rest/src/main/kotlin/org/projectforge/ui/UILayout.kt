@@ -24,6 +24,7 @@
 package org.projectforge.ui
 
 import org.projectforge.framework.i18n.addTranslations
+import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
 
 class UILayout {
@@ -99,6 +100,16 @@ class UILayout {
      * All required translations for the frontend dependent on the logged-in-user's language.
      */
     val translations = mutableMapOf<String, String>()
+
+    /**
+     * Name of the history back button or null, if now history back button should be shown (default).
+     * Please use [enableHistoryBackButton] for enabling back button with localized button title.
+     */
+    var historyBackButton: String? = null
+
+    fun enableHistoryBackButton() {
+        historyBackButton = translate("back")
+    }
 
     /**
      * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.

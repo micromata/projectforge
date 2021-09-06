@@ -432,6 +432,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   @Override
+  protected void onChange(AuftragDO obj, AuftragDO dbObj) {
+    super.onChange(obj, dbObj);
+  }
+
+  @Override
   protected void onSaveOrModify(final AuftragDO obj) {
     if (obj.getNummer() == null) {
       throw new UserException("validation.required.valueNotPresent",
@@ -715,6 +720,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       }
     }
     return false;
+  }
+
+  @Override
+  protected ModificationStatus copyValues(AuftragDO src, AuftragDO dest, String... ignoreFields) {
+    return super.copyValues(src, dest, "uiStatus", "fakturiertSum");
   }
 
   @Override
