@@ -226,6 +226,17 @@ constructor(
           type = MenuItemTargetType.RESTCALL
         )
       )
+    gearMenu.add(
+      MenuItem(
+        "resetFilter",
+        i18nKey = "menu.resetFilter",
+        tooltip = "menu.resetFilter.info",
+        tooltipTitle = "menu.resetFilter",
+        url = getRestPath("filter/reset"),
+        type = MenuItemTargetType.RESTCALL
+      )
+    )
+
     ui.add(gearMenu)
     ui.addTranslations(
       "reset", "datatable.no-records-found", "date.begin", "date.end", "exportAsXls",
@@ -586,6 +597,16 @@ constructor(
     val favorites = getFilterFavorites()
     favorites.remove(id)
     return mapOf("filterFavorites" to getFilterFavorites().idTitleList)
+  }
+
+  /**
+   * Resets the current filter from the server.
+   */
+  @GetMapping("filter/reset")
+  fun resetListFilter(request: HttpServletRequest): ResponseAction {
+    saveCurrentFilter(MagicFilter())
+    return ResponseAction(targetType = TargetType.UPDATE)
+      .addVariable("filter", MagicFilter())
   }
 
   /**
