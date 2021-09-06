@@ -23,13 +23,14 @@
 
 package org.projectforge.web.wicket.components;
 
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.panel.Panel;
 
 /**
  * A simple &lt;a href="..."&gt;label&lt;a&gt;.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class ExternalLinkPanel extends Panel
 {
@@ -41,6 +42,19 @@ public class ExternalLinkPanel extends Panel
   {
     super(id);
     add(link = new ExternalLink("link", href, label));
+  }
+
+  public ExternalLinkPanel(final String id, final String href, final String label, final String target)
+  {
+    super(id);
+    add(link = new ExternalLink("link", href, label) {
+      @Override
+      protected void onComponentTag(ComponentTag tag)
+      {
+        super.onComponentTag(tag);
+        tag.put("target", target);
+      }
+    });
   }
 
   public ExternalLink getLink()

@@ -112,7 +112,6 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
 
 
   companion object {
-
     fun createAttachmentLayout(
       id: Int,
       category: String,
@@ -207,7 +206,7 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
           responseAction = ResponseAction(
             RestResolver.getRestUrl(
               restClass,
-              "download/$category/$id?fileId=$fileId&listId=$listId"
+              AttachmentsServicesRest.getDownloadUrl(attachment, category = category, id = id, listId = listId)
             ),
             targetType = TargetType.DOWNLOAD
           )

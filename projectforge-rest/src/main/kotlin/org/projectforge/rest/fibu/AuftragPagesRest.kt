@@ -40,7 +40,7 @@ import javax.annotation.PostConstruct
 
 @RestController
 @RequestMapping("${Rest.URL}/order")
-class AuftragPagesRest :
+open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying.
   AbstractDTOPagesRest<AuftragDO, Auftrag, AuftragDao>(AuftragDao::class.java, "fibu.auftrag.title") {
   override fun transformForDB(dto: Auftrag): AuftragDO {
     val auftragDO = AuftragDO()
@@ -178,6 +178,9 @@ class AuftragPagesRest :
    * LAYOUT Edit page: Only usable for attachments
    */
   override fun createEditLayout(dto: Auftrag, userAccess: UILayout.UserAccess): UILayout {
+    userAccess.delete = false
+    userAccess.update = false
+    userAccess.cancel = false
     val layout = super.createEditLayout(dto, userAccess)
       .add(
         UIRow()
@@ -201,7 +204,7 @@ class AuftragPagesRest :
         UIFieldset(title = "attachment.list")
           .add(UIAttachmentList(category, dto.id))
       )
-
+    //layout.enableHistoryBackButton()
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 
