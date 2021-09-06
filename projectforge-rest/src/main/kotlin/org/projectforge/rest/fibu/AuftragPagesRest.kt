@@ -204,7 +204,7 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
         UIFieldset(title = "attachment.list")
           .add(UIAttachmentList(category, dto.id))
       )
-
+    layout.enableHistoryBackButton()
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 
