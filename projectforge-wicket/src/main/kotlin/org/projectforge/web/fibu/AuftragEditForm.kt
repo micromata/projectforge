@@ -449,7 +449,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
           }
           ?: ""
       }
-      val editLink = "<a href=\"/react/order/edit/${data?.id}\" \">${getString("edit")}</a>"
+      val editLink = "<a href=\"/react/order/edit/${data?.id}\" target=\"_blank\" \">${getString("edit")}</a>"
       val divTextPanel = DivTextPanel(fs.newChildId(), "$attachments$editLink")
       divTextPanel.setEscapeModelStringsInLabel(false)
       fs.add(divTextPanel)
