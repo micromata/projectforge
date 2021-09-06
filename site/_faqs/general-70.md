@@ -1,6 +1,6 @@
 ---
 title: How can I remove favorite entries?
-categories: [general,faqs]
+categories: [general,faq]
 permalink: /misc/faqs.html
 ---
 

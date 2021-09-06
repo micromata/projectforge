@@ -1,6 +1,6 @@
 ---
 title: Is there any support for other data bases?
-categories: [technical,faqs]
+categories: [technical,faq]
 permalink: /misc/faqs.html
 ---
 
