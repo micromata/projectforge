@@ -59,7 +59,7 @@ private val log = KotlinLogging.logger {}
  * by Data transfer for registered users.
  */
 @RestController
-@RequestMapping("${Rest.URL}/attachments")
+@RequestMapping(AttachmentsServicesRest.REST_PATH)
 class AttachmentsServicesRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var attachmentsService: AttachmentsService
@@ -412,4 +412,13 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     val obj: ExtendedBaseDO<Int>? = null,
     val pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>? = null,
   )
+
+  companion object {
+    internal const val REST_PATH = "${Rest.URL}/attachments"
+    @JvmStatic
+    fun getDownloadUrl(attachment: Attachment, category: String, id: Any, listId: String? = null): String {
+      val listIdParam = if (listId.isNullOrBlank()) "" else "&listId=$listId"
+      return "download/$category/$id?fileId=${attachment.fileId}$listIdParam"
+    }
+  }
 }

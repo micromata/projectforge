@@ -1,6 +1,6 @@
 ---
 title: Do you provide Issue Management?
-categories: [faq]
+categories: [faq-main]
 permalink: /misc/faqs.html
 ---
 

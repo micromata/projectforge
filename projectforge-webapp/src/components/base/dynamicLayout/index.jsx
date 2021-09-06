@@ -7,7 +7,9 @@ import {
     defaultValues as dynamicLayoutContextDefaultValues,
     DynamicLayoutContext,
 } from './context';
+import history from '../../../utilities/history';
 import DynamicPageMenu from './DynamicPageMenu';
+import { Button } from '../../design';
 
 function DynamicLayout(
     {
@@ -23,6 +25,7 @@ function DynamicLayout(
         layout,
         title,
         pageMenu,
+        historyBackButton,
     } = ui;
 
     const {
@@ -82,6 +85,14 @@ function DynamicLayout(
             {children}
             {!disableLayoutRendering && renderLayout(layout)}
             {actionGroup}
+            {historyBackButton
+            && (
+                <Button
+                    onClick={history.goBack}
+                >
+                    <span id="back">{historyBackButton}</span>
+                </Button>
+            )}
         </DynamicLayoutContext.Provider>
     );
 }
@@ -93,6 +104,7 @@ DynamicLayout.propTypes = {
         layout: PropTypes.instanceOf(Array),
         title: PropTypes.string,
         pageMenu: PropTypes.arrayOf(menuItemPropType),
+        historyBackButton: PropTypes.string,
     }).isRequired,
     callAction: PropTypes.func,
     // Additional content to be displayed in the DynamicLayout context.
