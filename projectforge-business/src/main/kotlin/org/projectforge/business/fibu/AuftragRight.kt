@@ -133,8 +133,9 @@ class AuftragRight(accessChecker: AccessChecker?) : UserRightAccessCheck<Auftrag
       if (hasAccess) {
         if (!obj.isVollstaendigFakturiert) {
           return true
-        } else if (obj.angebotsDatum != null) {
-          val days = LocalDate.now().toEpochDay() - obj.angebotsDatum!!.toEpochDay()
+        }
+        (obj.periodOfPerformanceEnd ?: obj.angebotsDatum)?.let { endDate ->
+          val days = LocalDate.now().toEpochDay() - endDate.toEpochDay()
           return days <= MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER
         }
       }
