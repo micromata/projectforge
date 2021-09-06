@@ -69,8 +69,6 @@ import javax.persistence.*
         NamedQuery(name = AuftragDO.FIND_OTHER_BY_NUMMER, query = "from AuftragDO where nummer=:nummer and id!=:id"))
 open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
 
-    private val log = org.slf4j.LoggerFactory.getLogger(AuftragDO::class.java)
-
     override val displayName: String
         @Transient
         get() = "$nummer: $titel"
