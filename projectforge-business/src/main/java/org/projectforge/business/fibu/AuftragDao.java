@@ -432,11 +432,6 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   @Override
-  protected void onChange(AuftragDO obj, AuftragDO dbObj) {
-    super.onChange(obj, dbObj);
-  }
-
-  @Override
   protected void onSaveOrModify(final AuftragDO obj) {
     if (obj.getNummer() == null) {
       throw new UserException("validation.required.valueNotPresent",
