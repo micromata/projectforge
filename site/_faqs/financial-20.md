@@ -1,6 +1,6 @@
 ---
 title: Datev import - An internal error occurs while importing plenty of accounting entries.
-categories: [financial,faqs]
+categories: [financial,faq]
 permalink: /misc/faqs.html
 ---
 

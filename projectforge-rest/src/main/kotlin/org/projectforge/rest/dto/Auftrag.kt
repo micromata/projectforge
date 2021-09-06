@@ -26,6 +26,7 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.AuftragsStatus
+import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.utils.NumberFormatter
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -48,8 +49,11 @@ class Auftrag(
         var periodOfPerformanceBegin: LocalDate? = null,
         var periodOfPerformanceEnd: LocalDate? = null,
         var probabilityOfOccurrence: Int? = null,
-        var auftragsStatus: AuftragsStatus? = null
-) : BaseDTO<AuftragDO>() {
+        var auftragsStatus: AuftragsStatus? = null,
+        override var attachmentsCounter: Int? = null,
+        override var attachmentsSize: Long? = null,
+        override var attachments: List<Attachment>? = null,
+) : BaseDTO<AuftragDO>(), AttachmentsSupport {
     var pos: String? = null
 
     var formattedNettoSumme: String? = null

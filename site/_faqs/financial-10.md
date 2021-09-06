@@ -1,6 +1,6 @@
 ---
 title: Cost-unit accounting - Some working hours are only summarized partly (e. g. half)?
-categories: [financial,faqs]
+categories: [financial,faq]
 permalink: /misc/faqs.html
 ---
 

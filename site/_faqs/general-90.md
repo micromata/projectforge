@@ -1,6 +1,6 @@
 ---
 title: Navigation or browsing the structure tree doesn't work smoothly.
-categories: [general,faqs]
+categories: [general,faq]
 permalink: /misc/faqs.html
 ---
 

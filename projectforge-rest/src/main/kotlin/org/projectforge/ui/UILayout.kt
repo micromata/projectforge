@@ -24,6 +24,7 @@
 package org.projectforge.ui
 
 import org.projectforge.framework.i18n.addTranslations
+import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
 
 class UILayout {
@@ -37,13 +38,18 @@ class UILayout {
              */
             var insert: Boolean? = null,
             var update: Boolean? = null,
-            var delete: Boolean? = null
+            var delete: Boolean? = null,
+            /**
+             * Cancel button is visible for all users at default.
+             */
+            var cancel: Boolean? = true,
     ) {
         fun copyFrom(userAccess: UserAccess?) {
             this.history = userAccess?.history
             this.insert = userAccess?.insert
             this.update = userAccess?.update
             this.delete = userAccess?.delete
+            this.cancel = userAccess?.cancel ?: true
         }
         fun onlySelectAccess(): Boolean {
             return (insert != true && update != true && delete != true)
@@ -94,6 +100,16 @@ class UILayout {
      * All required translations for the frontend dependent on the logged-in-user's language.
      */
     val translations = mutableMapOf<String, String>()
+
+    /**
+     * Name of the history back button or null, if now history back button should be shown (default).
+     * Please use [enableHistoryBackButton] for enabling back button with localized button title.
+     */
+    var historyBackButton: String? = null
+
+    fun enableHistoryBackButton() {
+        historyBackButton = translate("back")
+    }
 
     /**
      * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.

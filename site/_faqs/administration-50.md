@@ -1,6 +1,6 @@
 ---
 title: Reset passwords
-categories: [administration,faqs]
+categories: [administration,faq]
 permalink: /misc/faqs.html
 ---
 

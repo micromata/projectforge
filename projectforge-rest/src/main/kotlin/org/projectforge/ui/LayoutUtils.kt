@@ -109,15 +109,17 @@ class LayoutUtils {
       pagesRest: AbstractPagesRest<O, *, out BaseDao<O>>
     )
         : UILayout {
-      layout.addAction(
-        UIButton(
-          "cancel",
-          color = UIColor.SECONDARY,
-          outline = true,
-          responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.CANCEL), targetType = TargetType.POST)
-        )
-      )
       val userAccess = layout.userAccess
+      if (userAccess.cancel != false) {
+        layout.addAction(
+          UIButton(
+            "cancel",
+            color = UIColor.SECONDARY,
+            outline = true,
+            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.CANCEL), targetType = TargetType.POST)
+          )
+        )
+      }
       if (pagesRest.isHistorizable()) {
         // 99% of the objects are historizable (undeletable):
         if (pagesRest.getId(dto) != null) {

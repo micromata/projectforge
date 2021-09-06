@@ -1,6 +1,6 @@
 ---
 title: Hypersonic - Could not insert entries to the data base.
-categories: [administration,faqs]
+categories: [administration,faq]
 permalink: /misc/faqs.html
 ---
 
