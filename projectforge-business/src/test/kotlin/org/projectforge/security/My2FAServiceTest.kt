@@ -26,6 +26,7 @@ package org.projectforge.security
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -51,7 +52,8 @@ class My2FAServiceTest : AbstractTestBase() {
       my2FAService.validateOTP("123456"),
       "User has no authenticator token, so OTP validation should fail."
     )
-    userAuthenticationsService.createNewAuthenticatorToken()
+    userAuthenticationsService.createNewAuthenticatorToken() // Will update last successful 2FA (otherwise use will not see his 2FA settings.
+    ThreadLocalUserContext.getUserContext().lastSuccessful2FA = null // So delete it for the next test.
     Assertions.assertEquals(
       My2FAService.ERROR_2FA_WRONG_CODE,
       my2FAService.validateOTP("123456"),
