@@ -187,17 +187,19 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
           .add(
             UICol()
               .add(UIReadOnlyField("nummer", lc))
+              .add(UIReadOnlyField("customer.displayName", lc, label = "fibu.kunde"))
           )
           .add(
             UICol()
-              .add(lc, "nettoSumme")
+              .add(UIReadOnlyField("formattedNettoSumme", lc, label = "fibu.auftrag.nettoSumme"))
+              .add(UIReadOnlyField("project.displayName", lc, label = "fibu.projekt"))
           )
       )
       .add(
         UIRow()
           .add(
             UICol()
-              .add(UIReadOnlyField("title", lc))
+              .add(UIReadOnlyField("titel", lc))
           )
       )
       .add(

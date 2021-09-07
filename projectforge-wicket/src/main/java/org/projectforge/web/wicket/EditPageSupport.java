@@ -23,6 +23,7 @@
 
 package org.projectforge.web.wicket;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.projectforge.common.i18n.UserException;
@@ -56,7 +57,12 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
   public EditPageSupport(final P editPage, final D baseDao) {
     this.editPage = editPage;
     this.baseDao = baseDao;
-    this.entity = ((BaseDao) baseDao).getIdentifier();
+    this.entity = "unknown";
+    if (baseDao instanceof BaseDao) {
+      this.entity = ((BaseDao) baseDao).getIdentifier();
+    } else {
+      this.entity = StringUtils.uncapitalize(StringUtils.removeEnd(baseDao.getEntityClass().getSimpleName(), "DO"));
+    }
     if (this.entity.equals("pFUser")) {
       this.entity = "user"; // Used by TwoFactorAuthenticationHandler.
     }
