@@ -4,8 +4,7 @@ width: small
 tipue_search_active: true
 hero:
     title: Search
-    subtitle: Improve your team work and keep track of budgets, deadlines, human resources and your financial management.
-    image: search.svg
+    subtitle:
 permalink: /search/
 ---
 
