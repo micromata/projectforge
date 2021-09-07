@@ -1,24 +1,33 @@
 ---
 layout: page
-title: Search
+width: small
 tipue_search_active: true
+hero:
+    title: Search
+    subtitle: Improve your team work and keep track of budgets, deadlines, human resources and your financial management.
+    image: search.svg
 permalink: /search/
 ---
+
 :page-liquid:
 
 ++++
-<form action="{{ page.url | relative_url }}">
-<div class="tipue_search_left"><img src="{{ "/assets/tipuesearch/search.png" | relative_url }}" class="tipue_search_icon"></div>
-<div class="tipue_search_right"><input type="text" name="q" id="tipue_search_input" pattern=".{3,}" title="At least 3 characters" required></div>
-<div style="clear: both;"></div>
-</form>
+<div class="section-hero">
+	<div class="hero-search">
+		<!-- Html Elements for Search -->
+		<div class="uk-position-relative">
+			<form action="{{ page.url | relative_url }}" class="uk-search uk-search-default uk-width-1-1" name="tipue_search_input">
+				<span class="uk-search-icon-flip" data-uk-search-icon></span>
+				<input class="uk-search-input uk-box-shadow-large" type="text" name="q" id="tipue_search_input" pattern=".{3,}" title="At least 3 characters" required>
+				<div id="tipue_search_content"></div>
+		</div>
 
-<div id="tipue_search_content"></div>
-
-<script>
-$(document).ready(function() {
-$('#tipue_search_input').tipuesearch();
-});
-</script>
+		<script>
+			$(document).ready(function() {
+			$('#tipue_search_input').tipuesearch();
+			});
+		</script>
+	</div>
+</div>
 ++++
 
