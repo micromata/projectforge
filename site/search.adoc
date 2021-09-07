@@ -5,7 +5,7 @@ tipue_search_active: true
 hero:
     title: Search
     subtitle:
-    image: search.svg
+    image: search.png
 permalink: /search/
 ---
 
