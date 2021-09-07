@@ -48,7 +48,7 @@ open class PostausgangDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "orga.posteingang.absender")
     @Field
-    @get:Column(length = 1000, nullable = false)
+    @get:Column(length = 1000, nullable = true)
     open var absender: String? = null
 
     @PropertyInfo(i18nKey = "orga.postausgang.empfaenger")
