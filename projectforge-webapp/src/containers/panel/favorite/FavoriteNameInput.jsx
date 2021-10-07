@@ -47,10 +47,12 @@ FavoriteNameInput.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     onSave: PropTypes.func.isRequired,
+    className: PropTypes.string,
     defaultValue: PropTypes.string,
 };
 
 FavoriteNameInput.defaultProps = {
+    className: '',
     defaultValue: '',
 };
 
