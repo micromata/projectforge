@@ -24,7 +24,7 @@ function DropdownSelectContent(
                     <span
                         onMouseOver={() => setSelected(index)}
                         onMouseLeave={() => setSelected(-1)}
-                        onClick={({target}) => select(index, target)}
+                        onClick={({ target }) => select(index, target)}
                         onFocus={() => {
                         }}
                         onKeyPress={() => {
@@ -51,6 +51,5 @@ DropdownSelectContent.defaultProps = {
     selectIndex: -1,
     values: [],
 };
-
 
 export default DropdownSelectContent;
