@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Collapse } from '../../../design';
+import { Collapse } from 'reactstrap';
 import style from '../Navigation.module.scss';
 import MenuBadge from './MenuBadge';
 
@@ -76,16 +76,16 @@ class Category extends React.Component {
 
         return (
             <div className={classNames(style.categoryContainer, className)} {...props}>
-                <div
+                <button
+                    type="button"
                     className={style.categoryTitle}
                     onClick={this.toggle}
-                    role="presentation"
                 >
                     {category.title}
                     {category.badge && (
                         <MenuBadge elementKey={category.key}>{category.badge.counter}</MenuBadge>
                     )}
-                </div>
+                </button>
                 <Collapse isOpen={collapse}>
                     <ul className={style.categoryLinks}>
                         {category.subMenu.map((item) => (
