@@ -54,7 +54,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "postbuild": "mv build/index.html build/react-app.html",
-    "eslint": "eslint src/"
+    "eslint": "eslint \"src/**/**/*.{js,jsx}\"",
+    "eslint.fix": "eslint \"src/**/**/*.{js,jsx}\" --fix"
   },
   "eslintConfig": {
     "extends": "react-app"

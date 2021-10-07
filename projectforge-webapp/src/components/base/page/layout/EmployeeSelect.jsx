@@ -44,7 +44,7 @@ function EmployeeSelect(props) {
             },
         )
             .then(handleHTTPErrors)
-            .then(response => response.json())
+            .then((response) => response.json())
             .then((json) => {
                 callback(json);
             });
@@ -65,7 +65,7 @@ function EmployeeSelect(props) {
                 translations={translations}
             />
             {(!value || value.id !== employee.id) && (
-                <React.Fragment>
+                <>
                     <Button
                         id="selectMe"
                         color="link"
@@ -83,7 +83,7 @@ function EmployeeSelect(props) {
                     <UncontrolledTooltip placement="right" target="selectMe">
                         {translations['tooltip.selectMe']}
                     </UncontrolledTooltip>
-                </React.Fragment>
+                </>
             )}
         </div>
     );

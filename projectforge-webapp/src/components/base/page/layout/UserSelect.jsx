@@ -44,7 +44,7 @@ function UserSelect(props) {
             },
         )
             .then(handleHTTPErrors)
-            .then(response => response.json())
+            .then((response) => response.json())
             .then((json) => {
                 callback(json);
             });
@@ -65,7 +65,7 @@ function UserSelect(props) {
                 translations={translations}
             />
             {(!value || value.id !== user.id) && (
-                <React.Fragment>
+                <>
                     <Button
                         id="selectMe"
                         color="link"
@@ -83,7 +83,7 @@ function UserSelect(props) {
                     <UncontrolledTooltip placement="right" target="selectMe">
                         {translations['tooltip.selectMe']}
                     </UncontrolledTooltip>
-                </React.Fragment>
+                </>
             )}
         </div>
     );
