@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.i18n
 
+import org.projectforge.framework.time.TimeUnit
 import java.util.*
 
 /**
@@ -50,13 +51,14 @@ object TimeLeft {
    * @param date Date in the future to compare with now. For past dates, a message of [TimeAgo] will be returned
    * @param locale Locale to use for translation.
    * @param pastMessage If given for dates in the past, the given past message is returned, otherwise [TimeAgo.getMessage] is called for past times.
+   * @param maxUnit If given (e. g. DAY then the highest unit used is days: "in 5 hours", "in 5 days", "in 720 days")
    * @return Time ago message or an empty string, if no date was given.
    */
   @JvmStatic
   @JvmOverloads
-  fun getMessage(date: Date?, locale: Locale? = null, pastMessage: String? = null): String {
+  fun getMessage(date: Date?, locale: Locale? = null, pastMessage: String? = null, maxUnit: TimeUnit? = null): String {
     date ?: return ""
-    val result = getI18nKey(date, pastMessage)
+    val result = getI18nKey(date, pastMessage, maxUnit)
     return if (result.first == pastMessage) {
       pastMessage
     } else {
@@ -64,15 +66,15 @@ object TimeLeft {
     }
   }
 
-  internal fun getI18nKey(date: Date, pastMessage: String? = null): Pair<String, Int> {
+  internal fun getI18nKey(date: Date, pastMessage: String? = null, maxUnit: TimeUnit?): Pair<String, Int> {
     val millis = date.time - System.currentTimeMillis()
     if (millis < 0) {
       return if (pastMessage != null) {
         Pair(pastMessage, -1)
       } else {
-        TimeAgo.getI18nKey(date, false)
+        TimeAgo.getI18nKey(date, false, maxUnit)
       }
     }
-    return TimeAgo.getUnit(millis)
+    return TimeAgo.getUnit(millis, maxUnit)
   }
 }
