@@ -23,7 +23,9 @@
 
 package org.projectforge.framework.i18n
 
+import org.projectforge.framework.time.TimeUnit
 import java.util.*
+import kotlin.math.max
 import kotlin.math.round
 
 /**
@@ -49,21 +51,22 @@ object TimeAgo {
   /**
    * @param date Date in the past to compare with now. For future dates, a message will be returned: 'in the future!'
    * @param locale Locale to use for translation.
+   * @param maxUnit If given (e. g. DAY then the highest unit used is days: "5 hours ago", "5 days ago", "720 day ago")
    * @return Time ago message or an empty string, if no date was given.
    */
   @JvmOverloads
   @JvmStatic
-  fun getMessage(date: Date?, locale: Locale? = null, allowFutureTimes: Boolean = false): String {
+  fun getMessage(date: Date?, locale: Locale? = null, allowFutureTimes: Boolean = false, maxUnit: TimeUnit? = null): String {
     date ?: return ""
-    return translate(getI18nKey(date, allowFutureTimes), "timeago", locale)
+    return translate(getI18nKey(date, allowFutureTimes, maxUnit), "timeago", locale)
   }
 
-  internal fun getI18nKey(date: Date, allowFutureTimes: Boolean): Pair<String, Int> {
+  internal fun getI18nKey(date: Date, allowFutureTimes: Boolean, maxUnit: TimeUnit? = null): Pair<String, Int> {
     val millis = (System.currentTimeMillis() - date.time)
     if (millis < 0 && allowFutureTimes) {
-      return TimeLeft.getI18nKey(date, null)
+      return TimeLeft.getI18nKey(date, null, maxUnit)
     }
-    return getUnit(millis)
+    return getUnit(millis, maxUnit)
   }
 
   internal fun translate(pair: Pair<String, Int>, prefix: String, locale: Locale?): String {
@@ -76,20 +79,24 @@ object TimeAgo {
     }
   }
 
-  internal fun getUnit(millis: Long): Pair<String, Int> {
+  internal fun getUnit(millis: Long, maxUnit: TimeUnit?): Pair<String, Int> {
     if (millis < 0) {
       return Pair("negative", -1)
     }
-    return getUnit(millis, 1, YEAR, "years")
-      ?: getUnit(millis, 1, MONTH, "months")
-      ?: getUnit(millis, 1, WEEK, "weeks")
-      ?: getUnit(millis, 1, DAY, "days")
-      ?: getUnit(millis, 1, HOUR, "hours")
-      ?: getUnit(millis, 1, MINUTE, "minutes")
+    return getUnit(millis, 1, TimeUnit.YEAR.millis, "years", maxUnit)
+      ?: getUnit(millis, 1, TimeUnit.MONTH.millis, "months", maxUnit)
+      ?: getUnit(millis, 1, TimeUnit.WEEK.millis, "weeks", maxUnit)
+      ?: getUnit(millis, 1, TimeUnit.DAY.millis, "days", maxUnit)
+      ?: getUnit(millis, 1, TimeUnit.HOUR.millis, "hours", maxUnit)
+      ?: getUnit(millis, 1, TimeUnit.MINUTE.millis, "minutes", maxUnit)
       ?: Pair("afewseconds", -1)
   }
 
-  private fun getUnit(millis: Long, minAmount: Int, unit: Long, unitString: String): Pair<String, Int>? {
+  private fun getUnit(millis: Long, minAmount: Int, unit: Long, unitString: String, maxUnit: TimeUnit?): Pair<String, Int>? {
+    if (maxUnit != null && maxUnit.millis < unit) {
+      // Current unit (e. g. YEAR) is higher than given maxUnit (e. g. DAY)
+      return null
+    }
     return if (millis >= minAmount * unit) {
       val amount = round(millis.toDouble() / unit).toInt()
       if (amount > 1) {
@@ -101,11 +108,4 @@ object TimeAgo {
       null
     }
   }
-
-  const val MINUTE = 60 * 1000L
-  const val HOUR = 60 * MINUTE
-  const val DAY = 24 * HOUR
-  const val WEEK = 7 * DAY
-  const val MONTH = 30 * DAY
-  const val YEAR = 365 * DAY
 }

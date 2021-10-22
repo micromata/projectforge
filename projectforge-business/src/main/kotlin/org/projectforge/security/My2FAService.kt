@@ -33,6 +33,7 @@ import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.model.rest.RestPaths
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.util.*
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -84,6 +85,11 @@ open class My2FAService {
   }
 
   companion object {
+    fun getLastSuccessful2FAAsTimeAgo(): String? {
+      return ThreadLocalUserContext.getUserContext()?.lastSuccessful2FA?.let {
+        TimeAgo.getMessage(Date(it))
+      }
+    }
     const val ERROR_2FA_NOT_CONFIGURED = "2FA not configured."
     const val ERROR_2FA_WRONG_CODE = "Wrong code."
     const val SUCCESS = "OK"

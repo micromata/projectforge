@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.TimeLeft
+import org.projectforge.framework.time.TimeUnit
 import java.util.*
 
 private const val SECOND = 1000L
@@ -86,6 +87,7 @@ class TimeAgoLeftTest {
     expectedCounter: Int,
     allowNegativeTimes: Boolean = false,
     message: String? = null,
+    maxUnit: TimeUnit? = null,
   ) {
     var pair = TimeAgo.getI18nKey(Date(System.currentTimeMillis() - millissOffset - 1000), allowNegativeTimes)
     Assertions.assertEquals(expectedI18nKey, pair.first, message)
@@ -93,7 +95,8 @@ class TimeAgoLeftTest {
 
     pair = TimeLeft.getI18nKey(
       Date(System.currentTimeMillis() + millissOffset + 1000),
-      if (allowNegativeTimes) null else "negative"
+      if (allowNegativeTimes) null else "negative",
+      maxUnit,
     )
     Assertions.assertEquals(expectedI18nKey, pair.first, message)
     Assertions.assertEquals(expectedCounter, pair.second, message)
