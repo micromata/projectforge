@@ -11,6 +11,7 @@ function DynamicButton(props) {
         id,
         title,
         tooltip,
+        disabled,
         responseAction,
         ...stylingProps
     } = props;
@@ -84,6 +85,7 @@ function DynamicButton(props) {
                 {...stylingProps}
                 onClick={handleClick}
                 type={type}
+                disabled={disabled}
             >
                 <span id={buttonId}>{title}</span>
             </Button>
@@ -103,6 +105,7 @@ DynamicButton.propTypes = {
     id: PropTypes.string,
     responseAction: PropTypes.shape({}),
     tooltip: PropTypes.string,
+    disabled: PropTypes.bool,
 };
 
 DynamicButton.defaultProps = {
@@ -111,6 +114,7 @@ DynamicButton.defaultProps = {
     id: undefined,
     responseAction: {},
     tooltip: undefined,
+    disabled: undefined,
 };
 
 export default DynamicButton;
