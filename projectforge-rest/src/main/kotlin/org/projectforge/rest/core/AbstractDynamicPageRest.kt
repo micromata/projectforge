@@ -77,14 +77,16 @@ abstract class AbstractDynamicPageRest {
     return domainService.getDomain(path)
   }
 
-  protected fun createValidationErrors(vararg errors: ValidationError): MutableList<ValidationError> {
-    val validationErrors = mutableListOf<ValidationError>()
-    errors.forEach { validationErrors.add(it) }
-    return validationErrors
-  }
+  companion object {
+    fun createValidationErrors(vararg errors: ValidationError): MutableList<ValidationError> {
+      val validationErrors = mutableListOf<ValidationError>()
+      errors.forEach { validationErrors.add(it) }
+      return validationErrors
+    }
 
-  protected fun showValidationErrors(vararg errors: ValidationError): ResponseEntity<ResponseAction> {
-    val validationErrors = createValidationErrors(*errors)
-    return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+    fun showValidationErrors(vararg errors: ValidationError): ResponseEntity<ResponseAction> {
+      val validationErrors = createValidationErrors(*errors)
+      return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+    }
   }
 }
