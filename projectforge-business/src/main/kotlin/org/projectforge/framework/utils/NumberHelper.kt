@@ -353,8 +353,8 @@ object NumberHelper {
   }
 
   @JvmStatic
-  fun matchesPhoneNumber(str: String): Boolean {
-    return str.matches("^\\+?[0-9/\\-()\\s]+$".toRegex()) && str.matches(".*\\d.*".toRegex())
+  fun matchesPhoneNumber(str: String?): Boolean {
+    return str != null && str.matches("^\\+?[0-9/\\-()\\s]+$".toRegex()) && str.matches(".*\\d.*".toRegex())
   }
 
   /**
