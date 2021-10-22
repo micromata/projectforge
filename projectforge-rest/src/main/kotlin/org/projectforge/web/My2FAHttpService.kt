@@ -74,7 +74,7 @@ class My2FAHttpService {
   private lateinit var smsSender: SmsSender
 
   val smsConfigured
-    get() = smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()
+    get() = my2FAService.smsConfigured
 
   /**
    * Creates a OTP (valid for 2 minutes), stores it in the user's session and text or mail this code to the user.
@@ -103,7 +103,7 @@ class My2FAHttpService {
     val code = createOTP(request)
     val msg = "${translateMsg("user.My2FACode.sendCode.mail.message", code)} ${translate("address.sendSms.doNotReply")}"
     if (SystemStatus.isDevelopmentMode()) {
-      log.info { "Text message would be sent in production mode to '$mobilePhone': $msg" }
+      log.info { "Development mode: Text message would be sent in production mode to '$mobilePhone': $msg" }
       if (!smsConfigured) {
         ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_MOBILE_OTP, code, TTL_MINUTES)
         return Result(true, getResultMessage(HttpResponseCode.SUCCESS, mobilePhone))

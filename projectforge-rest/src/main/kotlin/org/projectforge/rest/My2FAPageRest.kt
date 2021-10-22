@@ -24,14 +24,11 @@
 package org.projectforge.rest
 
 import org.projectforge.business.user.filter.CookieService
-import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.security.My2FAService
@@ -52,13 +49,11 @@ class My2FAPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var my2FAService: My2FAService
 
-  class Code {
-    @PropertyInfo(i18nKey = "user.My2FACode.code", tooltip = "user.My2FACode.code.info")
-    var code: String? = null
-  }
+  @Autowired
+  private lateinit var my2FAServicesRest: My2FAServicesRest
 
   @PostMapping
-  fun check(request: HttpServletRequest, response: HttpServletResponse, @RequestBody postData: PostData<Code>)
+  fun check(request: HttpServletRequest, response: HttpServletResponse, @RequestBody postData: PostData<My2FAData>)
       : ResponseEntity<ResponseAction> {
     val code = postData.data.code
     if (code == null || my2FAService.validateOTP(code) != My2FAService.SUCCESS) {
@@ -76,22 +71,11 @@ class My2FAPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
-    val data = Code()
+    val data = My2FAData()
+    data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val layout = UILayout("user.My2FACode.title")
-    val lc = LayoutContext(Code::class.java)
-    layout.add(
-      UIFieldset(12)
-        .add(lc, "code")
-    )
-      .addAction(
-        UIButton(
-          "check",
-          translate("check"),
-          UIColor.SUCCESS,
-          responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
-          default = true
-        )
-      )
+    my2FAServicesRest.fill2FA(layout, data, forceEMail2FA = true)
+
     LayoutUtils.process(layout)
     return FormLayoutData(data, layout, createServerData(request))
   }

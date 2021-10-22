@@ -24,19 +24,15 @@
 package org.projectforge.security
 
 import mu.KotlinLogging
+import org.projectforge.SystemStatus
 import org.projectforge.business.user.UserAuthenticationsService
-import org.projectforge.business.user.UserTokenType
-import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.menu.builder.MenuItemDefId
-import org.projectforge.model.rest.RestPaths
+import org.projectforge.framework.time.TimeUnit
+import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -44,6 +40,12 @@ private val log = KotlinLogging.logger {}
 open class My2FAService {
   @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+  @Autowired
+  private lateinit var smsSenderConfig: SmsSenderConfig
+
+  val smsConfigured
+    get() = smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()
 
   enum class Unit { MINUTES, HOURS, DAYS }
 
@@ -77,9 +79,9 @@ open class My2FAService {
     val user = ThreadLocalUserContext.getUserContext()
     val lastSuccessful2FA = user?.lastSuccessful2FA ?: return false
     val timeAgo = when (unit) {
-      Unit.MINUTES -> timePeriod * TimeAgo.MINUTE
-      Unit.HOURS -> timePeriod * TimeAgo.HOUR
-      Unit.DAYS -> timePeriod * TimeAgo.DAY
+      Unit.MINUTES -> timePeriod * TimeUnit.MINUTE.millis
+      Unit.HOURS -> timePeriod * TimeUnit.HOUR.millis
+      Unit.DAYS -> timePeriod * TimeUnit.DAY.millis
     }
     return System.currentTimeMillis() - timeAgo < lastSuccessful2FA
   }
@@ -87,9 +89,10 @@ open class My2FAService {
   companion object {
     fun getLastSuccessful2FAAsTimeAgo(): String? {
       return ThreadLocalUserContext.getUserContext()?.lastSuccessful2FA?.let {
-        TimeAgo.getMessage(Date(it))
+        TimeAgo.getMessage(Date(it), maxUnit = TimeUnit.DAY)
       }
     }
+
     const val ERROR_2FA_NOT_CONFIGURED = "2FA not configured."
     const val ERROR_2FA_WRONG_CODE = "Wrong code."
     const val SUCCESS = "OK"
