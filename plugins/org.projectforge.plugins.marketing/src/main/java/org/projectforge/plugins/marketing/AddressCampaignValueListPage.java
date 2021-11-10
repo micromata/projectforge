@@ -53,13 +53,11 @@ import java.util.*;
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @ListPage(editPage = AddressCampaignValueEditPage.class)
 public class AddressCampaignValueListPage extends AbstractListPage<AddressCampaignValueListForm, AddressDao, AddressDO>
     implements
-    IListPageColumnsCreator<AddressDO>
-{
+    IListPageColumnsCreator<AddressDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(AddressCampaignValueListPage.class);
 
@@ -81,39 +79,33 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
 
   Map<Integer, AddressCampaignValueDO> addressCampaignValueMap;
 
-  public AddressCampaignValueListPage(final PageParameters parameters)
-  {
+  public AddressCampaignValueListPage(final PageParameters parameters) {
     super(parameters, "plugins.marketing.addressCampaignValue");
     newItemMenuEntry.setVisibilityAllowed(false);
   }
 
   @Override
-  public List<IColumn<AddressDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
-  {
+  public List<IColumn<AddressDO, String>> createColumns(final WebPage returnToPage, final boolean sortable) {
     return createColumns(returnToPage, sortable, false);
   }
 
   public List<IColumn<AddressDO, String>> createColumns(final WebPage returnToPage, final boolean sortable,
-      final boolean massUpdateMode)
-  {
+                                                        final boolean massUpdateMode) {
     return createColumns(returnToPage, sortable, massUpdateMode, form.getSearchFilter(), personalAddressMap,
         addressCampaignValueMap);
   }
 
   @SuppressWarnings("serial")
   protected static final List<IColumn<AddressDO, String>> createColumns(final WebPage page, final boolean sortable,
-      final boolean massUpdateMode, final AddressCampaignValueFilter searchFilter,
-      final Map<Integer, PersonalAddressDO> personalAddressMap,
-      final Map<Integer, AddressCampaignValueDO> addressCampaignValueMap)
-  {
+                                                                        final boolean massUpdateMode, final AddressCampaignValueFilter searchFilter,
+                                                                        final Map<Integer, PersonalAddressDO> personalAddressMap,
+                                                                        final Map<Integer, AddressCampaignValueDO> addressCampaignValueMap) {
 
     final List<IColumn<AddressDO, String>> columns = new ArrayList<>();
-    final CellItemListener<AddressDO> cellItemListener = new CellItemListener<AddressDO>()
-    {
+    final CellItemListener<AddressDO> cellItemListener = new CellItemListener<AddressDO>() {
       @Override
       public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
-          final IModel<AddressDO> rowModel)
-      {
+                               final IModel<AddressDO> rowModel) {
         final AddressDO address = rowModel.getObject();
         final Serializable highlightedRowId;
         if (page instanceof AbstractListPage<?, ?, ?>) {
@@ -143,12 +135,10 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
           "created", cellItemListener));
     } else if (massUpdateMode && page instanceof AddressCampaignValueListPage) {
       final AddressCampaignValueListPage addressCampaignValueListPage = (AddressCampaignValueListPage) page;
-      columns.add(new CellItemListenerPropertyColumn<AddressDO>("", null, "selected", cellItemListener)
-      {
+      columns.add(new CellItemListenerPropertyColumn<AddressDO>("", null, "selected", cellItemListener) {
         @Override
         public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
-            final IModel<AddressDO> rowModel)
-        {
+                                 final IModel<AddressDO> rowModel) {
           final AddressDO address = rowModel.getObject();
           final CheckBoxPanel checkBoxPanel = new CheckBoxPanel(componentId,
               addressCampaignValueListPage.new SelectItemModel(address.getId()), null);
@@ -161,12 +151,10 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
       columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<>(page.getString("created")),
           getSortable("created",
               sortable),
-          "created", cellItemListener)
-      {
+          "created", cellItemListener) {
         @Override
         public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
-            final IModel<AddressDO> rowModel)
-        {
+                                 final IModel<AddressDO> rowModel) {
           final AddressDO address = rowModel.getObject();
           final AddressCampaignValueDO addressCampaignValue = addressCampaignValueMap.get(address.getId());
           final Integer addressCampaignValueId = addressCampaignValue != null ? addressCampaignValue.getId() : null;
@@ -196,12 +184,10 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
         new Model<>(page.getString("address.contactStatus")), getSortable(
         "contactStatus", sortable),
         "contactStatus", cellItemListener));
-    columns.add(new AbstractColumn<AddressDO, String>(new Model<>(page.getString("address.addressText")))
-    {
+    columns.add(new AbstractColumn<AddressDO, String>(new Model<>(page.getString("address.addressText"))) {
       @Override
       public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
-          final IModel<AddressDO> rowModel)
-      {
+                               final IModel<AddressDO> rowModel) {
         final AddressDO address = rowModel.getObject();
         final String addressText = StringHelper.listToString("|", address.getMailingAddressText(),
             address.getMailingZipCode()
@@ -218,16 +204,26 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
+    columns.add(new AbstractColumn<AddressDO, String>(new Model<>(page.getString("email"))) {
+      @Override
+      public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
+                               final IModel<AddressDO> rowModel) {
+        final AddressDO address = rowModel.getObject();
+        final String addressText = StringHelper.listToString(" | ",
+            address.getEmail(),
+            address.getPrivateEmail());
+        item.add(new Label(componentId, addressText));
+        cellItemListener.populateItem(item, componentId, rowModel);
+      }
+    });
     columns.add(new CellItemListenerPropertyColumn<>(
         new Model<>(page.getString("address.addressStatus")), getSortable(
         "addressStatus", sortable),
         "addressStatus", cellItemListener));
-    columns.add(new AbstractColumn<AddressDO, String>(new Model<>(page.getString("value")))
-    {
+    columns.add(new AbstractColumn<AddressDO, String>(new Model<>(page.getString("value"))) {
       @Override
       public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
-          final IModel<AddressDO> rowModel)
-      {
+                               final IModel<AddressDO> rowModel) {
         final AddressDO address = rowModel.getObject();
         final Integer id = address.getId();
         final AddressCampaignValueDO addressCampaignValue = addressCampaignValueMap.get(id);
@@ -240,12 +236,10 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
-    columns.add(new AbstractColumn<AddressDO, String>(new Model<>(page.getString("comment")))
-    {
+    columns.add(new AbstractColumn<AddressDO, String>(new Model<>(page.getString("comment"))) {
       @Override
       public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
-          final IModel<AddressDO> rowModel)
-      {
+                               final IModel<AddressDO> rowModel) {
         final AddressDO address = rowModel.getObject();
         final Integer id = address.getId();
         final AddressCampaignValueDO addressCampaignValue = addressCampaignValueMap.get(id);
@@ -262,8 +256,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   }
 
   @Override
-  protected void onNextSubmit()
-  {
+  protected void onNextSubmit() {
     if (CollectionUtils.isEmpty(this.selectedItems) || form.getSearchFilter().getAddressCampaign() == null) {
       return;
     }
@@ -274,31 +267,26 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   }
 
   @Override
-  public boolean isSupportsMassUpdate()
-  {
+  public boolean isSupportsMassUpdate() {
     return true;
   }
 
   @Override
-  protected void onBeforeRender()
-  {
+  protected void onBeforeRender() {
     addressCampaignValueDao.getAddressCampaignValuesByAddressId(addressCampaignValueMap, form.getSearchFilter());
     super.onBeforeRender();
   }
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     personalAddressMap = personalAddressDao.getPersonalAddressByAddressId();
     addressCampaignValueMap = new HashMap<>();
     {
       // Excel export
-      final SubmitLink excelExportLink = new SubmitLink(ContentMenuEntryPanel.LINK_ID, form)
-      {
+      final SubmitLink excelExportLink = new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           log.info("Exporting address list.");
           final List<AddressDO> list = getList();
           final byte[] xls = addressCampaignValueExport.export(list, personalAddressMap, addressCampaignValueMap,
@@ -324,8 +312,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
    * @see org.projectforge.web.wicket.AbstractListPage#buildList()
    */
   @Override
-  protected List<AddressDO> buildList()
-  {
+  protected List<AddressDO> buildList() {
     List<AddressDO> list = super.buildList();
     final String value = form.getSearchFilter().getAddressCampaignValue();
     if (!StringUtils.isEmpty(value)) {
@@ -350,16 +337,14 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   }
 
   @Override
-  protected void createDataTable()
-  {
+  protected void createDataTable() {
     final List<IColumn<AddressDO, String>> columns = createColumns(this, !isMassUpdateMode(), isMassUpdateMode());
     dataTable = createDataTable(columns, "name", SortOrder.ASCENDING);
     form.add(dataTable);
   }
 
   @Override
-  public void refresh()
-  {
+  public void refresh() {
     super.refresh();
     if (form.getSearchFilter().isNewest()
         && StringUtils.isBlank(form.getSearchFilter().getSearchString())) {
@@ -368,19 +353,16 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   }
 
   @Override
-  protected AddressCampaignValueListForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
-  {
+  protected AddressCampaignValueListForm newListForm(final AbstractListPage<?, ?, ?> parentPage) {
     return new AddressCampaignValueListForm(this);
   }
 
   @Override
-  public AddressDao getBaseDao()
-  {
+  public AddressDao getBaseDao() {
     return addressDao;
   }
 
-  protected AddressCampaignValueDao getAddressCampaignValueDao()
-  {
+  protected AddressCampaignValueDao getAddressCampaignValueDao() {
     return addressCampaignValueDao;
   }
 }
