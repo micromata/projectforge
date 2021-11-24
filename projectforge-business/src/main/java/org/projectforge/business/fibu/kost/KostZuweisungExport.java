@@ -74,6 +74,7 @@ public class KostZuweisungExport {
     KOST1("fibu.kost1", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), //
     KOST2("fibu.kost2", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), //
     TEXT("description", MyXlsContentProvider.LENGTH_EXTRA_LONG), //
+    BETREFF("fibu.rechnung.betreff", MyXlsContentProvider.LENGTH_EXTRA_LONG), //
     KORREKTUR("fibu.common.fehlBetrag", MyXlsContentProvider.LENGTH_CURRENCY);
 
     final String theTitle;
@@ -205,6 +206,7 @@ public class KostZuweisungExport {
       mapping.add(InvoicesCol.KOST1, zuweisung.getKost1() != null ? zuweisung.getKost1().getNummer() : "");
       mapping.add(InvoicesCol.KOST2, zuweisung.getKost2() != null ? zuweisung.getKost2().getNummer() : "");
       mapping.add(InvoicesCol.TEXT, text);
+      mapping.add(InvoicesCol.BETREFF, rechnung.getBetreff());
       mapping.add(InvoicesCol.KORREKTUR, korrektur);
       sheet.addRow(mapping.getMapping(), 0);
     }
