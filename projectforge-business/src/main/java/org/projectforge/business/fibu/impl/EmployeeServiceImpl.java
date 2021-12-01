@@ -296,34 +296,6 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     return newAttrRow;
   }
 
-
-  @Override
-  public String getStudentVacationCountPerDay(EmployeeDO currentEmployee) {
-    String vacationCountPerDay = "";
-    PFDateTime now = PFDateTime.now();
-    PFDateTime eintrittsDatum = PFDateTime.fromOrNull(currentEmployee.getEintrittsDatum());
-    PFDateTime deadLine = PFDateTime.now().minusMonths(7);
-
-    now = now.minusMonths(1);
-
-    if (eintrittsDatum != null && eintrittsDatum.isBefore(now)) {
-      if (eintrittsDatum.isBefore(deadLine)) {
-        if (now.getMonthValue() >= Month.JUNE.getValue()) {
-          vacationCountPerDay = vacationService
-                  .getStudentsVacationCount(now.getYear(), now.getMonthValue() - 5, now.getYear(), now.getMonthValue(),
-                          currentEmployee.getUser());
-        } else {
-          vacationCountPerDay = vacationService
-                  .getStudentsVacationCount(now.getYear() - 1, 12 - (6 - now.getMonthValue() + 1), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
-        }
-      } else {
-        vacationCountPerDay = vacationService
-                .getStudentsVacationCount(eintrittsDatum.getYear(), eintrittsDatum.getMonthValue(), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
-      }
-    }
-    return vacationCountPerDay;
-  }
-
   @Override
   public MonthlyEmployeeReport getReportOfMonth(final int year, final Integer month, final PFUserDO user) {
     MonthlyEmployeeReport monthlyEmployeeReport = new MonthlyEmployeeReport(this, vacationService, user, year, month);

@@ -213,6 +213,7 @@ public class MonthlyEmployeeReport implements Serializable {
     this.user = user;
     this.employeeService = employeeService;
     this.vacationService = vacationService;
+    setEmployee(employeeService.getEmployeeByUserId(user.getId()));
   }
 
   /**

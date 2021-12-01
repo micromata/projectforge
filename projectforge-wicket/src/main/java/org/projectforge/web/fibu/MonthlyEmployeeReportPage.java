@@ -39,6 +39,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Kost2Row;
+import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
@@ -53,6 +54,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.renderer.PdfRenderer;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
@@ -70,8 +72,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implements ISelectCallerPage
-{
+public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implements ISelectCallerPage {
   private static final long serialVersionUID = -136398850032685654L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MonthlyEmployeeReportPage.class);
@@ -100,13 +101,15 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
   private DateTimeFormatter dateTimeFormatter;
 
   @SpringBean
+  private EmployeeService employeeService;
+
+  @SpringBean
   private VacationService vacationService;
 
   private final GridBuilder gridBuilder;
 
   @SuppressWarnings("serial")
-  public MonthlyEmployeeReportPage(final PageParameters parameters)
-  {
+  public MonthlyEmployeeReportPage(final PageParameters parameters) {
     super(parameters);
     final boolean costConfigured = Configuration.getInstance().isCostConfigured();
     form = new MonthlyEmployeeReportForm(this);
@@ -125,11 +128,9 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     form.init();
     {
       final ContentMenuEntryPanel exportAsPdf = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-          new SubmitLink("link", form)
-          {
+          new SubmitLink("link", form) {
             @Override
-            public void onSubmit()
-            {
+            public void onSubmit() {
               exportAsPdf();
             }
           }, getString("exportAsPdf"));
@@ -140,14 +141,12 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     gridBuilder.newSplitPanel(gridSize);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.user")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         /**
          * @see org.apache.wicket.model.Model#getObject()
          */
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           final PFUserDO user = form.filter.getUser();
           return user != null ? user.getFullname() : "";
         }
@@ -156,14 +155,12 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     if (costConfigured == true) {
       gridBuilder.newSplitPanel(gridSize);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kost1")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         /**
          * @see org.apache.wicket.model.Model#getObject()
          */
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           if (report == null) {
             return "";
           }
@@ -175,89 +172,83 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     gridBuilder.newSplitPanel(gridSize);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.common.workingDays")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return report != null ? String.valueOf(report.getNumberOfWorkingDays()) : "";
         }
       }));
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
-      final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("fibu.common.workingDays"),
-          getString("fibu.monthlyEmployeeReport.withoutTimesheets"))
-      {
-        /**
-         * @see org.apache.wicket.Component#isVisible()
-         */
+      FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("fibu.common.workingDays"),
+          getString("fibu.monthlyEmployeeReport.withoutTimesheets")) {
         @Override
-        public boolean isVisible()
-        {
+        public boolean isVisible() {
           return report != null && StringUtils.isNotBlank(report.getFormattedUnbookedDays());
         }
       }.suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
-        /**
-         * @see org.apache.wicket.model.Model#getObject()
-         */
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return report.getFormattedUnbookedDays();
         }
       }, TextStyle.RED));
+
+      fs = new FieldsetPanel(gridBuilder.getPanel(), getString("statistics")).suppressLabelForWarning();
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+        @Override
+        public String getObject() {
+          final EmployeeDO employee = employeeService.getEmployeeByUserId(form.filter.getUserId());
+          PFDay startOfWorkContract = PFDay.now().getBeginOfMonth();
+          if (employee != null && employee.getEintrittsDatum() != null) {
+            startOfWorkContract = PFDay.from(employee.getEintrittsDatum());
+          }
+          PFDay currentMonth = PFDay.of(form.filter.getYear(), form.filter.getMonth(), 1);
+          return vacationService.getAverageWorkingTimeStats(form.filter.getUser(), startOfWorkContract, currentMonth).getLocalizedMessage();
+        }
+      }));
     }
     gridBuilder.newSplitPanel(GridSize.COL25);
     {
-      final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("vacation.annualleave"))
-      {
+      final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("vacation.annualleave")) {
         /**
          * @see org.apache.wicket.Component#isVisible()
          */
         @Override
-        public boolean isVisible()
-        {
+        public boolean isVisible() {
           return report != null && StringUtils.isNotBlank(report.getFormattedVacationCount()) && vacationService.hasAccessToVacationService(
               ThreadLocalUserContext.getUser(), false);
         }
       }.suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         /**
          * @see org.apache.wicket.model.Model#getObject()
          */
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return report.getFormattedVacationCount();
         }
       }));
     }
     gridBuilder.newSplitPanel(GridSize.COL25);
     {
-      final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("vacation.plandannualleave"))
-      {
+      final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("vacation.plandannualleave")) {
         /**
          * @see org.apache.wicket.Component#isVisible()
          */
         @Override
-        public boolean isVisible()
-        {
+        public boolean isVisible() {
           return report != null && StringUtils.isNotBlank(report.getFormattedVacationPlandCount()) && vacationService.hasAccessToVacationService(
               ThreadLocalUserContext.getUser(), false);
         }
       }.suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         /**
          * @see org.apache.wicket.model.Model#getObject()
          */
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return report.getFormattedVacationPlandCount();
         }
       }));
@@ -265,8 +256,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
   }
 
   @Override
-  public void onBeforeRender()
-  {
+  public void onBeforeRender() {
     if (table != null) {
       body.remove(table);
     }
@@ -280,8 +270,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     super.onBeforeRender();
   }
 
-  private void addReport()
-  {
+  private void addReport() {
     final RepeatingView headcolRepeater = new RepeatingView("headcolRepeater");
     table.add(headcolRepeater);
     if (!MapUtils.isEmpty(report.getKost2Rows())) {
@@ -396,16 +385,13 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
 
   @SuppressWarnings("serial")
   private WebMarkupContainer addLabelCols(final WebMarkupContainer row, final Kost2DO cost2, final TaskDO task,
-      final String searchString,
-      final PFUserDO user, final long startTime, final long stopTime)
-  {
+                                          final String searchString,
+                                          final PFUserDO user, final long startTime, final long stopTime) {
     final WebMarkupContainer result = new WebMarkupContainer("cost2");
     row.add(result);
-    final Link<String> link = new Link<String>("link")
-    {
+    final Link<String> link = new Link<String>("link") {
       @Override
-      public void onClick()
-      {
+      public void onClick() {
         final PageParameters params = new PageParameters();
         params.add("userId", user.getId());
         if (task != null) {
@@ -450,8 +436,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     return result;
   }
 
-  private Label addCostType(final WebMarkupContainer row, final String content)
-  {
+  private Label addCostType(final WebMarkupContainer row, final String content) {
     final WebMarkupContainer costTypeContainer = new WebMarkupContainer("costType");
     row.add(costTypeContainer);
     if (content == null) {
@@ -464,8 +449,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     }
   }
 
-  protected void exportAsPdf()
-  {
+  protected void exportAsPdf() {
     log.info(
         "Monthly employee report for " + form.filter.getUser().getFullname() + ": " + form.filter.getFormattedMonth());
     final StringBuffer buf = new StringBuffer();
@@ -514,20 +498,17 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
   }
 
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return getString("menu.monthlyEmployeeReport");
   }
 
   @Override
-  public void cancelSelection(final String property)
-  {
+  public void cancelSelection(final String property) {
     log.error("cancelSelection not supported. Property was '" + property + "'.");
   }
 
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     if ("user".equals(property)) {
       final Integer id;
       if (selectedValue instanceof String) {
@@ -545,8 +526,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
   }
 
   @Override
-  public void unselect(final String property)
-  {
+  public void unselect(final String property) {
     log.error("unselect not supported. Property was '" + property + "'.");
   }
 }

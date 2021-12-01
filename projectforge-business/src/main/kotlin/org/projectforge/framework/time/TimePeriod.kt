@@ -182,6 +182,6 @@ class TimePeriod @JvmOverloads constructor(var fromDate: Date? = null, var toDat
             return intArrayOf(days, hours, minutes)
         }
 
-        private val MILLIS_PER_HOUR = BigDecimal(1000 * 60 * 60)
+        val MILLIS_PER_HOUR = BigDecimal(1000 * 60 * 60)
     }
 }
