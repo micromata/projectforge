@@ -70,6 +70,11 @@ public class UserTest extends AbstractTestBase {
   @Autowired
   private UserGroupCache userGroupCache;
 
+  @Override
+  protected void afterAll() {
+    recreateDataBase();
+  }
+  
   @Test
   public void testUserDO() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
