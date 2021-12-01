@@ -812,13 +812,12 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         }
       }
     }
-    if (schedulesPanel.toggleStatus == ToggleStatus.OPENED) {
-      return (getString("fibu.auftrag.paymentschedule") + " ("
-          + (paymentSchedules?.size ?: "0") + ")")
-    }
+    val size = paymentSchedules?.count { !it.isDeleted } ?: 0
     val heading = StringBuffer()
-    heading.append(escapeHtml(getString("fibu.auftrag.paymentschedule"))).append(" (")
-      .append(paymentSchedules?.size ?: "0").append(")")
+    heading.append("${escapeHtml(getString("fibu.auftrag.paymentschedule"))} ($size)")
+    if (schedulesPanel.toggleStatus == ToggleStatus.OPENED) {
+      return heading.toString()
+    }
     heading.append(": ").append(CurrencyFormatter.format(ges)).append(" ").append(getString("fibu.fakturiert"))
       .append(" ")
       .append(CurrencyFormatter.format(invoiced))
