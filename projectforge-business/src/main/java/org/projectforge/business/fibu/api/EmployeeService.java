@@ -79,8 +79,6 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
    */
   EmployeeTimedDO addNewAnnualLeaveDays(final EmployeeDO employee, final LocalDate validfrom, final BigDecimal annualLeaveDays);
 
-  String getStudentVacationCountPerDay(EmployeeDO currentEmployee);
-
   /**
    *
    * @param year
