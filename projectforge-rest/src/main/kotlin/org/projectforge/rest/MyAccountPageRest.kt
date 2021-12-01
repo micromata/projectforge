@@ -94,7 +94,8 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     var timeNotation: TimeNotation? = null,
     var timeZone: TimeZone? = null,
     var personalPhoneIdentifiers: String? = null,
-    var sshPublicKey: String? = null
+    var gpgPublicKey: String? = null,
+    var sshPublicKey: String? = null,
   ) {
     var employee: Employee? = null
   }
@@ -114,6 +115,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     user.timeNotation = data.timeNotation ?: user.timeNotation
     user.timeZone = data.timeZone ?: user.timeZone
     user.personalPhoneIdentifiers = userService.getNormalizedPersonalPhoneIdentifiers(data.personalPhoneIdentifiers)
+    user.gpgPublicKey = data.gpgPublicKey
     user.sshPublicKey = data.sshPublicKey
     userService.updateMyAccount(user)
     data.employee?.let { employee ->
@@ -154,6 +156,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     data.timeNotation = user.timeNotation
     data.timeZone = user.timeZone
     data.personalPhoneIdentifiers = user.personalPhoneIdentifiers
+    data.gpgPublicKey = user.gpgPublicKey
     data.sshPublicKey = user.sshPublicKey
 
     data.lastLogin = DateTimeFormatter.instance().getFormattedDateTime(user.lastLogin)
@@ -212,6 +215,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
       )
       .add(
         UIFieldset(12)
+          .add(UITextArea("gpgPublicKey", userLC))
           .add(UITextArea("sshPublicKey", userLC))
       )
       .addAction(

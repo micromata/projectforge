@@ -411,11 +411,20 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     fs.add(description);
   }
 
+  public static void createGPGPublicKey(final GridBuilder gridBuilder, final PFUserDO user) {
+    // GPG public key
+    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.gpgPublicKey"));
+    MaxLengthTextArea gpgPublicKey = new MaxLengthTextArea(fs.getTextAreaId(),
+            new PropertyModel(user, "gpgPublicKey"));
+    gpgPublicKey.setMarkupId("gpgPublicKey").setOutputMarkupId(true);
+    fs.add(gpgPublicKey);
+  }
+
   public static void createSshPublicKey(final GridBuilder gridBuilder, final PFUserDO user) {
     // SSH public key
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.sshPublicKey"));
     MaxLengthTextArea sshPublicKey = new MaxLengthTextArea(fs.getTextAreaId(),
-            new PropertyModel<String>(user, "sshPublicKey"));
+        new PropertyModel<String>(user, "sshPublicKey"));
     sshPublicKey.setMarkupId("sshPublicKey").setOutputMarkupId(true);
     fs.add(sshPublicKey);
   }
@@ -495,6 +504,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     createTimeZone(gridBuilder, data);
     createPhoneIds(gridBuilder, data);
     createMEBPhoneNumbers(gridBuilder, data);
+    createGPGPublicKey(gridBuilder, data);
     createSshPublicKey(gridBuilder, data);
 
     gridBuilder.newGridPanel();
