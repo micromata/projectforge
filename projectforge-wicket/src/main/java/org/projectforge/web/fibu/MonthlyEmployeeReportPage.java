@@ -204,7 +204,12 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
           if (employee != null && employee.getEintrittsDatum() != null) {
             startOfWorkContract = PFDay.from(employee.getEintrittsDatum());
           }
-          PFDay currentMonth = PFDay.of(form.filter.getYear(), form.filter.getMonth(), 1);
+          PFDay currentMonth = null;
+          if (form.filter.getYear() != null && form.filter.getMonth() != null) {
+            currentMonth = PFDay.of(form.filter.getYear(), form.filter.getMonth(), 1);
+          } else {
+            currentMonth = PFDay.now();
+          }
           return vacationService.getAverageWorkingTimeStats(form.filter.getUser(), startOfWorkContract, currentMonth).getLocalizedMessage();
         }
       }));
