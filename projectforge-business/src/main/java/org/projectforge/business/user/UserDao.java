@@ -343,6 +343,7 @@ public class UserDao extends BaseDao<PFUserDO> {
     dbUser.setFirstname(user.getFirstname());
     dbUser.setLastname(user.getLastname());
     dbUser.setDescription(user.getDescription());
+    dbUser.setGpgPublicKey(user.getGpgPublicKey());
     dbUser.setSshPublicKey(user.getSshPublicKey());
     final ModificationStatus result = internalUpdate(dbUser);
     if (result != ModificationStatus.NONE) {

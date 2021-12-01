@@ -336,6 +336,13 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     open var sshPublicKey: String? = null
 
     /**
+     * The user's gpgPublicKey, if any.
+     */
+    @PropertyInfo(i18nKey = "user.gpgPublicKey")
+    @get:Column(name = "gpg_public_key", length = 4096)
+    open var gpgPublicKey: String? = null
+
+    /**
      * Gibt den Vor- und Nachnamen zurück, falls gegeben. Vor- und Nachname sind durch ein Leerzeichen getrennt.
      *
      * @return first name and last name, separated by space.
