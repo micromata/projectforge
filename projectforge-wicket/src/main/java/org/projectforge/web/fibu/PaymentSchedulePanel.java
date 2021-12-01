@@ -26,10 +26,7 @@ package org.projectforge.web.fibu;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -45,7 +42,10 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
+import org.projectforge.web.wicket.components.MaxLengthTextField;
+import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
@@ -59,8 +59,7 @@ import java.util.stream.Collectors;
 /**
  * @author Werner Feder (werner.feder@t-online.de)
  */
-public class PaymentSchedulePanel extends Panel
-{
+public class PaymentSchedulePanel extends Panel {
   private static final long serialVersionUID = 2669766778018430028L;
 
   private RepeatingView entrysRepeater;
@@ -72,8 +71,7 @@ public class PaymentSchedulePanel extends Panel
   @SpringBean
   private AccessChecker accessChecker;
 
-  public PaymentSchedulePanel(final String id, final IModel<AuftragDO> model, final PFUserDO user)
-  {
+  public PaymentSchedulePanel(final String id, final IModel<AuftragDO> model, final PFUserDO user) {
     super(id);
     this.model = model;
     this.user = user;
@@ -83,8 +81,7 @@ public class PaymentSchedulePanel extends Panel
    * @see org.apache.wicket.Component#onInitialize()
    */
   @Override
-  protected void onInitialize()
-  {
+  protected void onInitialize() {
     super.onInitialize();
     final WebMarkupContainer mainContainer = new WebMarkupContainer("main");
     add(mainContainer.setOutputMarkupId(true));
@@ -100,12 +97,14 @@ public class PaymentSchedulePanel extends Panel
   }
 
   @SuppressWarnings("serial")
-  void rebuildEntries()
-  {
+  void rebuildEntries() {
     final List<PaymentScheduleDO> entries = model.getObject().getPaymentSchedules();
     if (entries != null) {
       entrysRepeater.removeAll();
       for (final PaymentScheduleDO entry : entries) {
+        if (entry.isDeleted()) {
+          continue;
+        }
         final WebMarkupContainer item = new WebMarkupContainer(entrysRepeater.newChildId());
         entrysRepeater.add(item);
 
@@ -143,21 +142,31 @@ public class PaymentSchedulePanel extends Panel
         // reached
         item.add(new CheckBox("reached", new PropertyModel<>(entry, "reached")));
 
-        // vollstaendig fakturiert
+        // vollstaendig fakturiert | delete button
         if (accessChecker.hasRight(user, RechnungDao.USER_RIGHT_ID, UserRightValue.READWRITE)) {
-          final DivPanel checkBoxDiv = new DivPanel("vollstaendigFakturiert", DivType.BTN_GROUP);
-          checkBoxDiv.add(new CheckBoxButton(checkBoxDiv.newChildId(), new PropertyModel<>(entry, "vollstaendigFakturiert"),
+          final DivPanel vollstaendigFakturiertDiv = new DivPanel("vollstaendigFakturiert", DivType.BTN_GROUP);
+          vollstaendigFakturiertDiv.add(new CheckBoxButton(vollstaendigFakturiertDiv.newChildId(), new PropertyModel<>(entry, "vollstaendigFakturiert"),
               getString("fibu.auftrag.vollstaendigFakturiert")));
-          item.add(checkBoxDiv);
+          item.add(vollstaendigFakturiertDiv);
         } else {
           item.add(WicketUtils.getInvisibleComponent("vollstaendigFakturiert"));
         }
+        final DivPanel deleteButtonDiv = new DivPanel("delete");
+        Button deleteButton = new Button(SingleButtonPanel.WICKET_ID) {
+          @Override
+          public void onSubmit() {
+            entry.setDeleted(true);
+            rebuildEntries();
+          }
+        };
+        deleteButton.setDefaultFormProcessing(false); // No validation
+        deleteButtonDiv.add(new SingleButtonPanel(deleteButtonDiv.newChildId(), deleteButton, getString("delete"), SingleButtonPanel.DELETE));
+        item.add(deleteButtonDiv);
       }
     }
   }
 
-  private FormComponent<Short> createPositionColumn(final PaymentScheduleDO payment)
-  {
+  private FormComponent<Short> createPositionColumn(final PaymentScheduleDO payment) {
     final List<Short> availablePositionNumbers = payment.getAuftrag().getPositionenExcludingDeleted().stream()
         .map(AuftragsPositionDO::getNumber)
         .collect(Collectors.toList());
