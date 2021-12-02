@@ -23,9 +23,7 @@
 
 package org.projectforge.plugins.merlin.rest
 
-import org.projectforge.SystemStatus
 import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.MenuItem
@@ -67,13 +65,7 @@ class MerlinPagesRest :
   private lateinit var merlinHandler: MerlinHandler
 
   @Autowired
-  private lateinit var merlinRunner: MerlinRunner
-
-  @Autowired
   private lateinit var merlinTemplateDefinitionHandler: MerlinTemplateDefinitionHandler
-
-  @Autowired
-  private lateinit var userService: UserService
 
   @PostConstruct
   private fun postConstruct() {
@@ -106,8 +98,8 @@ class MerlinPagesRest :
     Group.restoreDisplayNames(dto.accessGroups, groupService)
 
     // Usernames needed by React client (for ReactSelect):
-    User.restoreDisplayNames(dto.admins, userService)
-    User.restoreDisplayNames(dto.accessUsers, userService)
+    User.restoreDisplayNames(dto.admins)
+    User.restoreDisplayNames(dto.accessUsers)
 
     dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
     buildAccessGroupAsString(dto)

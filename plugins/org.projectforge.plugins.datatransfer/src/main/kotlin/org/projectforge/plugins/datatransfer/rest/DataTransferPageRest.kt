@@ -24,7 +24,6 @@
 package org.projectforge.plugins.datatransfer.rest
 
 import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.service.UserService
 import org.projectforge.common.NumberOfBytes
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsService
@@ -67,9 +66,6 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
   @Autowired
   private lateinit var notificationMailService: NotificationMailService
-
-  @Autowired
-  private lateinit var userService: UserService
 
   @GetMapping("downloadAll/{id}")
   fun downloadAll(
@@ -280,7 +276,8 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       // observe state of logged in user wasn't changed: do nothing.
       return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
-    val dbObj = dataTransferAreaDao.internalGetById(id) // Get entry including external access settings (see DataTransferDao#hasAccess).
+    val dbObj =
+      dataTransferAreaDao.internalGetById(id) // Get entry including external access settings (see DataTransferDao#hasAccess).
     val newObservers = dbDto.observers?.toMutableList() ?: mutableListOf()
     if (postData.data.userWantsToObserve == true) {
       val user = User()
@@ -312,7 +309,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
   private fun convertData(id: Int): Pair<DataTransferAreaDO, DataTransferArea> {
     val dbObj = dataTransferAreaDao.getById(id)
-    val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService, userService)
+    val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService)
     if (!hasEditAccess(dto, dbObj)) {
       dto.externalPassword = null
     }

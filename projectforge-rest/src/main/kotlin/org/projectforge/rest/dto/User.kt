@@ -67,6 +67,8 @@ class User(
   companion object {
     private val userDao = ApplicationContextProvider.getApplicationContext().getBean(UserDao::class.java)
 
+    private val userService = ApplicationContextProvider.getApplicationContext().getBean(UserService::class.java)
+
     fun getUser(userId: Int?, minimal: Boolean = true): User? {
       userId ?: return null
       val userDO = userDao.getOrLoad(userId) ?: return null
@@ -106,17 +108,28 @@ class User(
      * Set display names of any existing user in the given list.
      * @see UserService.getUser
      */
-    fun restoreDisplayNames(users: List<User>?, userService: UserService) {
+    fun restoreDisplayNames(users: List<User>?) {
       users?.forEach { it.displayName = userService.getUser(it.id)?.displayName }
     }
 
     /**
      * Converts csv of user ids to list of user.
      */
-    fun toUserNames(userIds: String?, userService: UserService): String {
+    fun toUserNames(userIds: String?): String {
       val users = toUserList(userIds)
-      restoreDisplayNames(users, userService)
+      restoreDisplayNames(users)
       return users?.joinToString { it.displayName ?: "???" } ?: ""
+    }
+
+    fun toSearchString(userIds: String?): String {
+      val users = toUserList(userIds)
+      users?.forEach {
+        val user = userService.getUser(it.id)
+        it.firstname = user.firstname
+        it.lastname = user.lastname
+        it.username = user.username
+      }
+      return users?.joinToString { "${it.firstname} ${it.lastname} ${it.username}" } ?: ""
     }
   }
 }

@@ -23,21 +23,27 @@
 
 package org.projectforge.plugins.inventory
 
-import org.projectforge.business.user.UserRightAccessCheck
-import org.projectforge.business.user.UserRightCategory
-import org.projectforge.business.user.UserRightValue
-import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.rest.dto.BaseDTO
+import org.projectforge.rest.dto.User
 
 /**
- * Define the access rights.
- *
- * @author Kai Reinhard (k.reinhard@me.de)
+ * Data transfer object (DTO) for exchange with rest client (React app).
  */
-class InventoryRight(accessChecker: AccessChecker?) : UserRightAccessCheck<InventoryItemDO>(accessChecker, InventoryRightId.PLUGIN_INVENTORY, UserRightCategory.PLUGINS, UserRightValue.TRUE) {
-    override fun hasAccess(user: PFUserDO, obj: InventoryItemDO?, oldObj: InventoryItemDO?,
-                           operationType: OperationType): Boolean {
-        return true
-    }
+class InventoryItem(
+  var item: String? = null,
+  var owners: List<User>? = null,
+  var externalOwners: String? = null,
+  var comment: String? = null,
+) : BaseDTO<InventoryItemDO>() {
+  // The user and group ids are stored as csv list of integers in the data base.
+  override fun copyFrom(src: InventoryItemDO) {
+    super.copyFrom(src)
+    owners = User.toUserList(src.ownerIds)
+  }
+
+  // The user and group ids are stored as csv list of integers in the data base.
+  override fun copyTo(dest: InventoryItemDO) {
+    super.copyTo(dest)
+    dest.ownerIds = User.toIntList(owners)
+  }
 }

@@ -23,21 +23,30 @@
 
 package org.projectforge.plugins.inventory
 
-import org.projectforge.business.user.UserRightAccessCheck
-import org.projectforge.business.user.UserRightCategory
-import org.projectforge.business.user.UserRightValue
-import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.hibernate.search.bridge.TwoWayStringBridge
+import org.projectforge.rest.dto.User
 
 /**
- * Define the access rights.
+ * User names bridge for hibernate search to search in the user id's (comma separated values of user id's).
  *
- * @author Kai Reinhard (k.reinhard@me.de)
+ *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class InventoryRight(accessChecker: AccessChecker?) : UserRightAccessCheck<InventoryItemDO>(accessChecker, InventoryRightId.PLUGIN_INVENTORY, UserRightCategory.PLUGINS, UserRightValue.TRUE) {
-    override fun hasAccess(user: PFUserDO, obj: InventoryItemDO?, oldObj: InventoryItemDO?,
-                           operationType: OperationType): Boolean {
-        return true
+class HibernateSearchUsersBridge : TwoWayStringBridge {
+  /**
+   * Get all full names and user names of all users represented by the string of user id's.
+   */
+  override fun objectToString(value: Any): String {
+    if (value is String) return value
+    val item = value as InventoryItemDO
+    if (item.ownerIds.isNullOrBlank()) {
+      return ""
     }
+    return User.toSearchString(item.ownerIds)
+  }
+
+  override fun stringToObject(stringValue: String): Any? {
+    // Not supported.
+    return null
+  }
 }

@@ -23,14 +23,8 @@
 
 package org.projectforge.plugins.inventory
 
-import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.api.*
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.utils.NumberHelper
 import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
 
 /**
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,
@@ -39,27 +33,19 @@ import org.springframework.transaction.annotation.Transactional
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-open class InventoryEntryDao : BaseDao<InventoryEntryDO>(InventoryEntryDO::class.java) {
+open class InventoryItemDao : BaseDao<InventoryItemDO>(InventoryItemDO::class.java) {
 
     init {
         userRightId = InventoryRightId.PLUGIN_INVENTORY
     }
 
-    private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf("externalOwner", "item")
+    private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf("externalOwners", "item")
 
     override fun isAutocompletionPropertyEnabled(property: String): Boolean {
         return ENABLED_AUTOCOMPLETION_PROPERTIES.contains(property)
     }
 
-    override fun getAdditionalSearchFields(): Array<String> {
-        return InventoryEntryDao.ADDITIONAL_SEARCH_FIELDS
-    }
-
-    override fun newInstance(): InventoryEntryDO {
-        return InventoryEntryDO()
-    }
-
-    companion object {
-        private val ADDITIONAL_SEARCH_FIELDS = arrayOf("owner.username", "owner.firstname", "owner.lastname")
+    override fun newInstance(): InventoryItemDO {
+        return InventoryItemDO()
     }
 }
