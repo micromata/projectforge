@@ -46,6 +46,7 @@ object SortAndCheckI18nPropertiesMain {
     "plugins/org.projectforge.plugins.extendemployeedata/src/main/resources/ExtendEmployeeDataI18nResources",
     "plugins/org.projectforge.plugins.datatransfer/src/main/resources/DataTransferI18nResources",
     "plugins/org.projectforge.plugins.ihk/src/main/resources/IHKI18nResources",
+    "plugins/org.projectforge.plugins.inventory/src/main/resources/InventoryI18nResources",
     "plugins/org.projectforge.plugins.todo/src/main/resources/ToDoI18nResources",
     "plugins/org.projectforge.plugins.memo/src/main/resources/MemoI18nResources",
     "plugins/org.projectforge.plugins.merlin/src/main/resources/MerlinI18nResources",
