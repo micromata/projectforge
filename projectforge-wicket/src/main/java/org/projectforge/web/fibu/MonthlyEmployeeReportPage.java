@@ -210,7 +210,11 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
           } else {
             currentMonth = PFDay.now();
           }
-          return vacationService.getAverageWorkingTimeStats(form.filter.getUser(), startOfWorkContract, currentMonth).getLocalizedMessage();
+          final PFUserDO user = form.filter.getUser();
+          if (user == null) {
+            return "--";
+          }
+          return vacationService.getAverageWorkingTimeStats(user, startOfWorkContract, currentMonth).getLocalizedMessage();
         }
       }));
     }
