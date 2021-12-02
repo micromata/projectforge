@@ -26,7 +26,6 @@ package org.projectforge.plugins.datatransfer
 import org.projectforge.Const
 import org.projectforge.business.admin.SystemStatistics
 import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.service.UserService
 import org.projectforge.jcr.RepoBackupService
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
@@ -71,9 +70,6 @@ class DataTransferPlugin :
   @Autowired
   private lateinit var groupService: GroupService
 
-  @Autowired
-  private lateinit var userService: UserService
-
   override fun initialize() {
     repoBackupService.registerNodePathToIgnore(dataTransferAreaPagesRest.jcrPath!!)
 
@@ -111,7 +107,6 @@ class DataTransferPlugin :
       DataTransferStatisticsBuilder(
         dataTransferAreaDao,
         accessChecker,
-        userService,
         groupService
       )
     )

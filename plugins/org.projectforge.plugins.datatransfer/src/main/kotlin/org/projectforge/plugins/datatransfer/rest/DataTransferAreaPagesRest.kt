@@ -24,7 +24,6 @@
 package org.projectforge.plugins.datatransfer.rest
 
 import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.service.UserService
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.configuration.ConfigurationChecker
 import org.projectforge.framework.i18n.translate
@@ -67,9 +66,6 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
   @Autowired
   private lateinit var groupService: GroupService
 
-  @Autowired
-  private lateinit var userService: UserService
-
   @PostConstruct
   private fun postConstruct() {
     enableJcr(
@@ -84,7 +80,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
   }
 
   override fun transformFromDB(obj: DataTransferAreaDO, editMode: Boolean): DataTransferArea {
-    return DataTransferArea.transformFromDB(obj, baseDao, groupService, userService)
+    return DataTransferArea.transformFromDB(obj, baseDao, groupService)
   }
 
   /**
@@ -129,17 +125,19 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(lc, "areaName", "description")
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP, sortable = false))
           .add(UITableColumn("maxUploadSizeFormatted", "plugins.datatransfer.maxUploadSize", sortable = false))
-          .add(UITableColumn(
+          .add(
+            UITableColumn(
               "externalDownloadEnabled",
               "plugins.datatransfer.external.download.enabled.title",
-            sortable = false,
+              sortable = false,
             ).setStandardBoolean()
           )
-          .add(UITableColumn(
-            "externalUploadEnabled",
-            "plugins.datatransfer.external.upload.enabled.title",
-            sortable = false,
-          ).setStandardBoolean()
+          .add(
+            UITableColumn(
+              "externalUploadEnabled",
+              "plugins.datatransfer.external.upload.enabled.title",
+              sortable = false,
+            ).setStandardBoolean()
           )
           .add(lc, "expiryDays")
           .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins", sortable = false))
@@ -417,8 +415,10 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       dto.layoutUid = it
     }
     DataTransferAreaDao.ensureSecureExternalAccess(dto)
-    return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("ui", layout)
-      .addVariable("data", dto))
+    return ResponseEntity.ok(
+      ResponseAction(targetType = TargetType.UPDATE)
+        .addVariable("ui", layout)
+        .addVariable("data", dto)
+    )
   }
 }

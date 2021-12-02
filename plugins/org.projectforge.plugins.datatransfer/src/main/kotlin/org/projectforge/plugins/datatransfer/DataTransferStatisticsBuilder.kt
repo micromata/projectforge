@@ -27,7 +27,6 @@ import mu.KotlinLogging
 import org.projectforge.business.admin.SystemStatisticsData
 import org.projectforge.business.admin.SystemsStatisticsBuilderInterface
 import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -42,7 +41,6 @@ private val log = KotlinLogging.logger {}
 open class DataTransferStatisticsBuilder(
   private val dataTransferAreaDao: DataTransferAreaDao,
   private val accessChecker: AccessChecker,
-  private val userService: UserService,
   private val groupService: GroupService
 ) : SystemsStatisticsBuilderInterface {
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
@@ -57,8 +55,8 @@ open class DataTransferStatisticsBuilder(
       }
       val size = AttachmentsInfo.getAttachmentsSizeFormatted(dbo.attachmentsCounter, dbo.attachmentsSize)
 
-      val admins = User.toUserNames(dbo.adminIds, userService)
-      val accessUsers = User.toUserNames(dbo.accessUserIds, userService)
+      val admins = User.toUserNames(dbo.adminIds)
+      val accessUsers = User.toUserNames(dbo.accessUserIds)
       val accessUserString = if (accessUsers.isBlank()) "" else ", access users=[$accessUsers]"
       val accessGroups = Group.toGroupNames(dbo.accessGroupIds, groupService)
       val accessGroupString = if (accessGroups.isBlank()) "" else ", access groups=[$accessGroups]"
@@ -74,7 +72,7 @@ open class DataTransferStatisticsBuilder(
         "data transfer (part of JCR)",
         "'${dbo.areaName?.take(5)}...",
         "$size: admins=[$admins]$accessUserString$accessGroupString$externalAccess$expiryDays"
-          )
-        }
+      )
     }
   }
+}

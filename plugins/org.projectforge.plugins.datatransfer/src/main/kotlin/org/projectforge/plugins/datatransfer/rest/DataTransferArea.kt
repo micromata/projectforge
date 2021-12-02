@@ -25,7 +25,6 @@ package org.projectforge.plugins.datatransfer.rest
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.service.UserService
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.jcr.Attachment
@@ -139,7 +138,6 @@ class DataTransferArea(
       obj: DataTransferAreaDO,
       dataTransferAreaDao: DataTransferAreaDao,
       groupService: GroupService,
-      userService: UserService,
     ): DataTransferArea {
       val dto = DataTransferArea()
       dto.copyFrom(obj)
@@ -149,9 +147,9 @@ class DataTransferArea(
       Group.restoreDisplayNames(dto.accessGroups, groupService)
 
       // Usernames needed by React client (for ReactSelect):
-      User.restoreDisplayNames(dto.admins, userService)
-      User.restoreDisplayNames(dto.observers, userService)
-      User.restoreDisplayNames(dto.accessUsers, userService)
+      User.restoreDisplayNames(dto.admins)
+      User.restoreDisplayNames(dto.observers)
+      User.restoreDisplayNames(dto.accessUsers)
 
       dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
       dto.observersAsString = dto.observers?.joinToString { it.displayName ?: "???" } ?: ""

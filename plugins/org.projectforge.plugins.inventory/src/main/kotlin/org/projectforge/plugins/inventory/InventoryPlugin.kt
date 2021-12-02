@@ -41,19 +41,19 @@ private val log = KotlinLogging.logger {}
 class InventoryPlugin : AbstractPlugin(PluginAdminService.PLUGIN_INVENTORY_ID, "Inventory", "Manage your inventory of your company.") {
 
     @Autowired
-    private lateinit var inventoryEntryDao: InventoryEntryDao
+    private lateinit var inventoryItemDao: InventoryItemDao
 
     @Autowired
     private lateinit var menuCreator: MenuCreator
 
     override fun initialize() {
         // Register it:
-        register(id, InventoryEntryDao::class.java, inventoryEntryDao, "plugins.inventory")
+        register(id, InventoryItemDao::class.java, inventoryItemDao, "plugins.inventory")
 
         // Define the access management:
         registerRight(InventoryRight(accessChecker))
 
-        menuCreator.register(MenuItemDefId.PROJECT_MANAGEMENT, MenuItemDef(info.id, "plugins.inventory.menu", "${Const.REACT_APP_PATH}inventoryentry"));
+        menuCreator.register(MenuItemDefId.ADMINISTRATION, MenuItemDef(info.id, "plugins.inventory.menu", "${Const.REACT_APP_PATH}inventory"));
 
         // All the i18n stuff:
         addResourceBundle(RESOURCE_BUNDLE_NAME)

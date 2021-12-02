@@ -56,7 +56,7 @@ class InventoryServicesRest {
   }
 
   @Autowired
-  private lateinit var inventoryEntryDao: InventoryEntryDao
+  private lateinit var inventoryItemDao: InventoryItemDao
 
   /**
    * Exports favorites addresses.
