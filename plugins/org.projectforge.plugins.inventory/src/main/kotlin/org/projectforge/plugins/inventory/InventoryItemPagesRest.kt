@@ -23,14 +23,12 @@
 
 package org.projectforge.plugins.inventory
 
-import org.projectforge.business.user.service.UserService
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
@@ -42,15 +40,14 @@ class InventoryItemPagesRest() : AbstractDTOPagesRest<InventoryItemDO, Inventory
   "plugins.inventory.title",
   cloneSupport = CloneSupport.CLONE
 ) {
-  @Autowired
-  private lateinit var userService: UserService
 
   override fun transformFromDB(obj: InventoryItemDO, editMode: Boolean): InventoryItem {
-    val item = InventoryItem()
-    item.copyFrom(obj)
+    val dto = InventoryItem()
+    dto.copyFrom(obj)
     // Usernames needed by React client (for ReactSelect):
-    User.restoreDisplayNames(item.owners)
-    return item
+    User.restoreDisplayNames(dto.owners)
+    dto.ownersAsString = dto.owners?.joinToString { it.displayName ?: "???" } ?: ""
+    return dto
   }
 
   override fun transformForDB(dto: InventoryItem): InventoryItemDO {
@@ -74,7 +71,9 @@ class InventoryItemPagesRest() : AbstractDTOPagesRest<InventoryItemDO, Inventory
     val layout = super.createListLayout()
       .add(
         UITable.createUIResultSetTable()
-          .add(lc, "lastUpdate", "item", "ownerIds", "externalOwners", "comment")
+          .add(lc, "lastUpdate", "item")
+          .add(UITableColumn("ownersAsString", "plugins.inventory.owners"))
+          .add(lc, "externalOwners", "comment")
       )
 
     layout.add(
@@ -95,7 +94,7 @@ class InventoryItemPagesRest() : AbstractDTOPagesRest<InventoryItemDO, Inventory
   override fun createEditLayout(dto: InventoryItem, userAccess: UILayout.UserAccess): UILayout {
     val layout = super.createEditLayout(dto, userAccess)
       .add(UIInput("item", lc).enableAutoCompletion(this))
-      .add(UISelect.createUserSelect(lc, "ownerIds", multi = true))
+      .add(UISelect.createUserSelect(lc, "owners", multi = true))
       .add(UIInput("externalOwners", lc).enableAutoCompletion(this))
       .add(lc, "comment")
     return LayoutUtils.processEditPage(layout, dto, this)
