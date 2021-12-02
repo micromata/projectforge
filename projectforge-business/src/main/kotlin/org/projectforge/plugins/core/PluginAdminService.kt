@@ -208,6 +208,7 @@ open class PluginAdminService {
 
   companion object {
     const val PLUGIN_DATA_TRANSFER_ID = "datatransfer"
+    const val PLUGIN_INVENTORY_ID = "inventory"
     const val PLUGIN_LICENSE_MANAGEMENT_ID = "licenseManagementPlugin"
     const val PLUGIN_LIQUIDITY_PLANNING_ID = "liquididityplanning"
     const val PLUGIN_MEMO_ID = "memo"
@@ -217,6 +218,7 @@ open class PluginAdminService {
 
     val INITIAL_ACTIVATED_PLUGINS = listOf(
       PLUGIN_DATA_TRANSFER_ID,
+      PLUGIN_INVENTORY_ID,
       PLUGIN_LICENSE_MANAGEMENT_ID,
       PLUGIN_LIQUIDITY_PLANNING_ID,
       PLUGIN_MEMO_ID,

@@ -39,6 +39,7 @@ import org.hibernate.boot.archive.spi.*
 import org.hibernate.jpa.boot.internal.StandardJpaScanEnvironmentImpl
 import org.hibernate.jpa.boot.spi.PersistenceUnitDescriptor
 import org.projectforge.ProjectForgeApp
+import org.projectforge.plugins.core.PluginAdminService
 import java.io.File
 import java.io.IOException
 import java.net.MalformedURLException
@@ -54,16 +55,17 @@ import java.util.jar.JarInputStream
  * Plugins to load, if ProjectForge is started from IDE. If not started from IDE, all loaded jars will be scanned automatically.
  */
 private val embeddedPlugins4IDEStart = arrayOf(
-  "datatransfer",
+  PluginAdminService.PLUGIN_DATA_TRANSFER_ID,
   "extendedemployeedata",
   "ihk",
-  "licensemanagement",
-  "liquidityplanning",
+  PluginAdminService.PLUGIN_INVENTORY_ID,
+  PluginAdminService.PLUGIN_LICENSE_MANAGEMENT_ID,
+  PluginAdminService.PLUGIN_LIQUIDITY_PLANNING_ID,
   "marketing",
-  "memo",
-  "merlin",
-  "skillmatrix",
-  "todo"
+  PluginAdminService.PLUGIN_MEMO_ID,
+  PluginAdminService.PLUGIN_MERLIN_ID,
+  PluginAdminService.PLUGIN_SKILL_MATRIX_ID,
+  PluginAdminService.PLUGIN_TODO_ID,
 )
 
 private val log = KotlinLogging.logger {}
