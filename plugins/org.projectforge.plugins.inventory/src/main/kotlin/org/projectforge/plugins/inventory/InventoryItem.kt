@@ -32,6 +32,7 @@ import org.projectforge.rest.dto.User
 class InventoryItem(
   var item: String? = null,
   var owners: List<User>? = null,
+  var ownersAsString: String? = null,
   var externalOwners: String? = null,
   var comment: String? = null,
 ) : BaseDTO<InventoryItemDO>() {
