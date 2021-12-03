@@ -33,6 +33,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
+/**
+ * List page and edit page (REACT)
+ */
 @RestController
 @RequestMapping("${Rest.URL}/inventory")
 class InventoryItemPagesRest() : AbstractDTOPagesRest<InventoryItemDO, InventoryItem, InventoryItemDao>(
@@ -73,7 +76,7 @@ class InventoryItemPagesRest() : AbstractDTOPagesRest<InventoryItemDO, Inventory
         UITable.createUIResultSetTable()
           .add(lc, "lastUpdate", "item")
           .add(UITableColumn("ownersAsString", "plugins.inventory.owners"))
-          .add(lc, "externalOwners", "comment")
+          .add(lc, "externalOwners", "serialNo", "comment")
       )
 
     layout.add(
@@ -94,8 +97,9 @@ class InventoryItemPagesRest() : AbstractDTOPagesRest<InventoryItemDO, Inventory
   override fun createEditLayout(dto: InventoryItem, userAccess: UILayout.UserAccess): UILayout {
     val layout = super.createEditLayout(dto, userAccess)
       .add(UIInput("item", lc).enableAutoCompletion(this))
-      .add(UISelect.createUserSelect(lc, "owners", multi = true))
+      .add(UISelect.createUserSelect(lc, "owners", multi = true, label = "plugins.inventory.owners"))
       .add(UIInput("externalOwners", lc).enableAutoCompletion(this))
+      .add(UIInput("serialNo", lc))
       .add(lc, "comment")
     return LayoutUtils.processEditPage(layout, dto, this)
   }

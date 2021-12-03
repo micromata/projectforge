@@ -34,12 +34,13 @@ import javax.persistence.Entity
 import javax.persistence.Table
 
 /**
+ * Data object for exchanging data base entries.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
 @Indexed
 @ClassBridge(name = "owners", impl = HibernateSearchUsersBridge::class)
-@Table(name = "T_PLUGIN_INVENTORY_ITEM")
+@Table(name = "t_plugin_inventory_item")
 open class InventoryItemDO : DefaultBaseDO() {
 
   @PropertyInfo(i18nKey = "plugins.inventory.item")
