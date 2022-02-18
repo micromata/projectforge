@@ -62,6 +62,9 @@ class BackupMain {
             val repoBackupService = RepoBackupService()
             repoService.init(repositoryLocation)
             repoBackupService.repoService = repoService
+            val jcrCheckSanityJob = JCRCheckSanityJob()
+            jcrCheckSanityJob.repoService = repoService
+            repoBackupService.jcrCheckSanityJob = jcrCheckSanityJob
             return repoBackupService
         }
 
