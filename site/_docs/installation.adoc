@@ -16,6 +16,8 @@ tags: [installation]
 == Express installation
 You may choose now between Docker based installation or normal installation.
 
+Or, as a developer, you may also refer https://github.com/micromata/projectforge/[ProjectForge on GitHub].
+
 === Docker
 You may install ProjectForge as docker image.
 
@@ -260,6 +262,7 @@ b. Set the environment variable before starting ProjectForge: `export LOADER_HOM
 === JCR
 Attachments will be handled through the built-in JCR module. The backups are placed in `ProjectForge/backup`, the daily backups will
 purged after 30 days keeping each first monthly backup.
+
 
 === DB backup
 You may configure a purge job in `projectforge.properties`:
