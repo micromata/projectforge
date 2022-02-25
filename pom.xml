@@ -223,7 +223,7 @@
     <aspectjtools.version>1.9.6</aspectjtools.version>
     <flyway.version>6.3.2</flyway.version> <!-- 7.7.3 doesn't support PostgreSQL 9.4 -->
     <groovy.version>3.0.7</groovy.version>
-    <kotlin.version>1.4.32</kotlin.version>
+    <kotlin.version>1.6.10</kotlin.version>
     <kotlin-logging.version>2.0.6</kotlin-logging.version>
     <poi.version>4.1.2</poi.version>
     <spring.version>5.3.5</spring.version> <!-- Should match spring boot's parent pom -->
@@ -235,7 +235,7 @@
     <javax.jsp-api.version>2.3.3</javax.jsp-api.version>
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
     <javax.mail.version>1.4.7</javax.mail.version>
-    <jlf4j.version>1.7.30</jlf4j.version> <!-- should be the same as used in spring boot started. -->
+    <jlf4j.version>1.7.36</jlf4j.version> <!-- should be the same as used in spring boot started. -->
     <ical4j.version>2.0.0</ical4j.version> <!-- 2.2* needs source code modifications. -->
     <ical4j-vcard.version>1.0.5</ical4j-vcard.version>
     <joda-time.version>2.10.10</joda-time.version>
