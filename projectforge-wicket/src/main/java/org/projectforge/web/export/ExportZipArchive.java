@@ -23,6 +23,7 @@
 
 package org.projectforge.web.export;
 
+import de.micromata.merlin.excel.ExcelWorkbook;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.util.resource.AbstractResourceStreamWriter;
 import org.apache.wicket.util.resource.IResourceStream;
@@ -42,29 +43,25 @@ import java.util.zip.ZipOutputStream;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class ExportZipArchive
-{
+public class ExportZipArchive {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportZipArchive.class);
 
   private final Collection<ExportZipFile> zipFiles = new LinkedList<ExportZipFile>();
 
   private final String filename;
 
-  public ExportZipArchive()
-  {
+  public ExportZipArchive() {
     this.filename = "archive";
   }
 
   /**
    * @param filename The filename of the zip archive (without extension), default is "archive".
    */
-  public ExportZipArchive(final String filename)
-  {
+  public ExportZipArchive(final String filename) {
     this.filename = filename;
   }
 
-  public void write(final OutputStream out)
-  {
+  public void write(final OutputStream out) {
     final ZipOutputStream zipOut = new ZipOutputStream(out);
     try {
       zipOut.putNextEntry(new ZipEntry(filename + "/"));
@@ -72,6 +69,7 @@ public class ExportZipArchive
         final ZipEntry zipEntry = new ZipEntry(filename + "/" + file.getFilename());
         zipOut.putNextEntry(zipEntry);
         if (file.getExportObject() instanceof ExportWorkbook) {
+          // Older ProjectForge Excel library.
           final ExportWorkbook workbook = (ExportWorkbook) file.getExportObject();
           final byte[] xls = workbook.getAsByteArray();
           if (xls == null || xls.length == 0) {
@@ -79,6 +77,16 @@ public class ExportZipArchive
             continue;
           }
           zipOut.write(xls);
+        } else if (file.getExportObject() instanceof ExcelWorkbook) {
+          // Newer Merlin Excel library.
+          try (ExcelWorkbook workbook = (ExcelWorkbook) file.getExportObject()) {
+            final byte[] xls = workbook.getAsByteArrayOutputStream().toByteArray();
+            if (xls == null || xls.length == 0) {
+              log.error("Oups, xls has zero size. Filename: " + filename);
+              continue;
+            }
+            zipOut.write(xls);
+          }
         } else if (file.getExportObject() instanceof ExportJFreeChart) {
           final ExportJFreeChart exportJFreeChart = (ExportJFreeChart) file.getExportObject();
           exportJFreeChart.write(zipOut);
@@ -93,41 +101,44 @@ public class ExportZipArchive
     }
   }
 
-  public IResourceStream createResourceStreamWriter()
-  {
-    final IResourceStream iResourceStream = new AbstractResourceStreamWriter()
-    {
+  public IResourceStream createResourceStreamWriter() {
+    final IResourceStream iResourceStream = new AbstractResourceStreamWriter() {
       private static final long serialVersionUID = 7780552906708508709L;
 
       @Override
-      public String getContentType()
-      {
+      public String getContentType() {
         return "application/zip";
       }
 
       @Override
-      public void write(final OutputStream output)
-      {
+      public void write(final OutputStream output) {
         ExportZipArchive.this.write(output);
       }
     };
     return iResourceStream;
   }
 
-  public ExportZipArchive add(final String filename, final ExportWorkbook exportWorkbook)
-  {
+  public ExportZipArchive add(final String filename, final ExportWorkbook exportWorkbook) {
     zipFiles.add(new ExportZipFile(filename, exportWorkbook));
     return this;
   }
 
-  public ExportZipArchive add(final ExportWorkbook exportWorkbook)
-  {
+  public ExportZipArchive add(final ExportWorkbook exportWorkbook) {
     zipFiles.add(new ExportZipFile(exportWorkbook.getFilename(), exportWorkbook));
     return this;
   }
 
-  public ExportZipArchive add(final String filename, final ExportJFreeChart exportJFreeChart)
-  {
+  public ExportZipArchive add(final String filename, final ExcelWorkbook excelWorkbook) {
+    zipFiles.add(new ExportZipFile(filename, excelWorkbook));
+    return this;
+  }
+
+  public ExportZipArchive add(final ExcelWorkbook excelWorkbook) {
+    zipFiles.add(new ExportZipFile(excelWorkbook.getFilename(), excelWorkbook));
+    return this;
+  }
+
+  public ExportZipArchive add(final String filename, final ExportJFreeChart exportJFreeChart) {
     zipFiles.add(new ExportZipFile(filename, exportJFreeChart));
     return this;
   }
@@ -135,13 +146,11 @@ public class ExportZipArchive
   /**
    * @return the filename
    */
-  public String getFilename()
-  {
+  public String getFilename() {
     return filename;
   }
 
-  public Collection<ExportZipFile> getFiles()
-  {
+  public Collection<ExportZipFile> getFiles() {
     return zipFiles;
   }
 }
