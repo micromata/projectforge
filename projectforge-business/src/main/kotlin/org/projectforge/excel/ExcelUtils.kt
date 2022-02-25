@@ -24,12 +24,13 @@
 package org.projectforge.excel
 
 import de.micromata.merlin.excel.*
-import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.common.BeanHelper
+import org.projectforge.common.DateFormatType
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.DateFormats
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -49,7 +50,7 @@ object ExcelUtils {
     val workbook = ExcelWorkbook(ThreadLocalUserContext.getLocale())
     workbook.configuration.let { cfg ->
       cfg.setDateFormats(
-        ThreadLocalUserContext.getUser().excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE,
+        DateFormats.getExcelFormatString(DateFormatType.DATE),
         Configuration.TimeStampPrecision.DAY
       )
       cfg.intFormat = "#,##0"
