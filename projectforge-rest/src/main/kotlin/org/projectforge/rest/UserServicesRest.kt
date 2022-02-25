@@ -72,6 +72,7 @@ open class UserServicesRest {
             UserTokenType.DAV_TOKEN -> postData.data.davToken = newToken
             UserTokenType.REST_CLIENT -> postData.data.restClientToken = newToken
             UserTokenType.STAY_LOGGED_IN_KEY -> postData.data.stayLoggedInKey = newToken
+            else -> { throw UnsupportedOperationException() }
         }
 
         return ResponseAction(message = ResponseAction.Message("user.authenticationToken.renew.successful"), targetType = TargetType.UPDATE)

@@ -260,6 +260,8 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
             )
           )
         }
+        VariableType.DATE -> {
+        }
       }
 
       fieldset.add(
