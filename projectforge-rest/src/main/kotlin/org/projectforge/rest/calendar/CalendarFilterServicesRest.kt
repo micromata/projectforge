@@ -167,7 +167,7 @@ class CalendarFilterServicesRest {
             }
         }
 
-        listOfDefaultCalendars.sortBy { it.title?.toLowerCase() }
+        listOfDefaultCalendars.sortBy { it.title?.lowercase() }
         listOfDefaultCalendars.add(0, TeamCalendar(id = -1, title = translate("calendar.option.timesheets"))) // prepend time sheet pseudo calendar
         initial.listOfDefaultCalendars = listOfDefaultCalendars
 

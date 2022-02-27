@@ -135,10 +135,10 @@ open class VacationSendMailService {
 
         val i18nArgs = arrayOf(vacationInfo.employeeFullname,
                 vacationInfo.periodText,
-                translate(recipient, "vacation.mail.modType.${operationType.name.toLowerCase()}"))
+                translate(recipient, "vacation.mail.modType.${operationType.name.lowercase()}"))
         val subject = translate(recipient, "vacation.mail.action.short", *i18nArgs)
-        val operation = translate(recipient, "vacation.mail.modType.${operationType.name.toLowerCase()}")
-        val mode = vacationMode.name.toLowerCase()
+        val operation = translate(recipient, "vacation.mail.modType.${operationType.name.lowercase()}")
+        val mode = vacationMode.name.lowercase()
         val mailInfo = MailInfo(subject, operation, mode)
         val mail = Mail()
         mail.subject = subject

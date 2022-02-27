@@ -176,7 +176,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
             }
             var customerText = invoice.kundeText
             if (customerText != null) {
-                customerText = customerText.toLowerCase()
+                customerText = customerText.lowercase()
                 ensureAndAddDebitorPaymentValue("customer:$customerText", timeForPayment, amount)
                 if (customerText.length > 5) {
                     customerText = customerText.substring(0, 5)
@@ -212,7 +212,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
         }
         var customerText = invoice.kundeText
         if (customerText != null) {
-            customerText = customerText.toLowerCase()
+            customerText = customerText.lowercase()
             if (setExpectedDateOfPayment(entry, dateOfInvoice, "customer:$customerText", customerText)) {
                 return
             }
@@ -278,7 +278,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
             }
             var creditorText = invoice.kreditor
             if (creditorText != null) {
-                creditorText = creditorText.toLowerCase()
+                creditorText = creditorText.lowercase()
                 ensureAndAddCreditorPaymentValue("creditor:$creditorText", timeForPayment, amount)
                 if (creditorText.length > 5) {
                     creditorText = creditorText.substring(0, 5)
@@ -302,7 +302,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
         }
         var creditorText = invoice.kreditor
         if (creditorText != null) {
-            creditorText = creditorText.toLowerCase()
+            creditorText = creditorText.lowercase()
             if (setExpectedDateOfCreditorPayment(entry, dateOfInvoice, "creditor:$creditorText", creditorText)) {
                 return
             }

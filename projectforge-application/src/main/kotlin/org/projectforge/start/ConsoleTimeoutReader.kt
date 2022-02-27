@@ -67,7 +67,7 @@ constructor(
       val result = if (defaultAnswer != null && answer.isEmpty()) {
         defaultAnswer
       } else {
-        answer.trim { it <= ' ' }.toLowerCase()
+        answer.trim { it <= ' ' }.lowercase()
       }
       if (answerValid(result)) return result
     } while (true)

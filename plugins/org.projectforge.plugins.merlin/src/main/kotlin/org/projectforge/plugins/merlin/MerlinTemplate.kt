@@ -174,7 +174,7 @@ class MerlinTemplate(
     }
 
     fun extractDependentVariables(allVariables: List<MerlinVariable>): List<MerlinVariable> {
-      return allVariables.filter { it.dependent }.sortedBy { it.name.toLowerCase() }
+      return allVariables.filter { it.dependent }.sortedBy { it.name.lowercase() }
     }
   }
 }

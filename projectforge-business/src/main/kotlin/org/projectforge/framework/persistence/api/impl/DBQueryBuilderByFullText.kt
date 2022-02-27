@@ -313,7 +313,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                     queryBuilder.keyword().onField(fields[0])
                 }
             }
-            boolJunction = boolJunction.must(context.ignoreAnalyzer().matching(value.toLowerCase()).createQuery())
+            boolJunction = boolJunction.must(context.ignoreAnalyzer().matching(value.lowercase()).createQuery())
         }
     }
 

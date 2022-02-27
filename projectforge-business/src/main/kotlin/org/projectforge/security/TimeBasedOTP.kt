@@ -127,7 +127,7 @@ class TimeBasedOTP(
      */
     internal fun asHex(step: Long): String {
       // intervalNo as Hex string: "00000000033CB24E"
-      return step.toString(16).toUpperCase().padStart(16, '0')
+      return step.toString(16).uppercase().padStart(16, '0')
     }
 
     internal fun hexStr2Bytes(hex: String): ByteArray {
