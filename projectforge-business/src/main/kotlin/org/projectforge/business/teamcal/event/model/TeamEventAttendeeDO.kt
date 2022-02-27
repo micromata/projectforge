@@ -138,7 +138,7 @@ open class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO
   override fun compareTo(other: TeamEventAttendeeDO): Int {
     return if (this.id != null && this.id == other.id) {
       0
-    } else this.toString().toLowerCase().compareTo(other.toString().toLowerCase())
+    } else this.toString().lowercase().compareTo(other.toString().lowercase())
   }
 
   /**

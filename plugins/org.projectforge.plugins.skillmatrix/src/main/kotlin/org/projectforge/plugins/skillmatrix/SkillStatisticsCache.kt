@@ -131,7 +131,7 @@ open class SkillStatisticsCache : AbstractCache(), BaseDOChangedListener<SkillEn
                     entry.add(skillEntry)
                 }
         skillStatistics = skillStatisticsMap.values
-                .sortedBy { it.skill.toLowerCase() }
+                .sortedBy { it.skill.lowercase() }
                 .map { SkillStatistic(it.skill, it.totalCounter, it.ratingMean, it.interestMean) }
     }
 }

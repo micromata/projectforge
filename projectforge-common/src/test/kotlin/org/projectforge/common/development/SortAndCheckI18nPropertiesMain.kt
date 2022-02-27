@@ -274,7 +274,7 @@ object SortAndCheckI18nPropertiesMain {
      * Sort all translation entries by [Entry.key].
      */
     fun sort() {
-      entries.sortBy { it.key.toLowerCase() }
+      entries.sortBy { it.key.lowercase() }
     }
   }
 

@@ -254,7 +254,7 @@ class MerlinPagesRest :
         variables.add(UIBadge(it.name, it.uiColor))
       }
       val dependentVariables = UIBadgeList()
-      dto.dependentVariables.sortedBy { it.name.toLowerCase() }.forEach {
+      dto.dependentVariables.sortedBy { it.name.lowercase() }.forEach {
         dependentVariables.add(UIBadge(it.name, it.uiColor))
       }
       val lc = LayoutContext(MerlinTemplateDO::class.java)

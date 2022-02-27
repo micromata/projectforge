@@ -73,7 +73,7 @@ open class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachme
     override fun compareTo(other: TeamEventAttachmentDO): Int {
         return if (id != null && this.id == other.id) {
             0
-        } else this.toString().toLowerCase().compareTo(other.toString().toLowerCase())
+        } else this.toString().lowercase().compareTo(other.toString().lowercase())
     }
 
     /**

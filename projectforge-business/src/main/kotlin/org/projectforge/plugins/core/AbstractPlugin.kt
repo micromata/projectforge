@@ -182,7 +182,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
         log.info("Initializing flyway with locations for plugin '$id': ${flywayClasspath.joinToString(",") { it }}")
         val flyway = Flyway.configure()
                 .dataSource(dataSource)
-                .table("t_flyway_${id.toLowerCase()}_schema_version")
+                .table("t_flyway_${id.lowercase()}_schema_version")
                 .locations(*flywayClasspath)
                 .baselineVersion(flywayBaselineVersion)
                 .baselineOnMigrate(true)

@@ -224,11 +224,11 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   )
       : List<String> {
     if (property == "location") {
-      val toLowerSearch = searchString?.toLowerCase()
+      val toLowerSearch = searchString?.lowercase()
       if (toLowerSearch.isNullOrBlank()) {
         return timesheetRecentService.getRecentLocations()
       }
-      return timesheetRecentService.getRecentLocations().filter { it.toLowerCase().contains(toLowerSearch) }
+      return timesheetRecentService.getRecentLocations().filter { it.lowercase().contains(toLowerSearch) }
     }
     return super.getAutoCompletionForProperty(property, searchString)
   }

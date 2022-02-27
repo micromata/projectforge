@@ -370,7 +370,7 @@ class ProjectForgeHomeFinder {
       } catch (ex: IOException) {
         return false
       }
-      return "projectforge" == dir.name.toLowerCase()
+      return "projectforge" == dir.name.lowercase()
     }
 
     /**

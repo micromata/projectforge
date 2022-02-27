@@ -367,7 +367,7 @@ open class RestAuthenticationUtils {
     val settings = ConnectionSettings()
     val dateTimeFormatString = getAttribute(req, ConnectionSettings.DATE_TIME_FORMAT)
     if (dateTimeFormatString != null) {
-      val dateTimeFormat = DateTimeFormat.valueOf(dateTimeFormatString.toUpperCase())
+      val dateTimeFormat = DateTimeFormat.valueOf(dateTimeFormatString.uppercase())
       settings.dateTimeFormat = dateTimeFormat
     }
     return settings

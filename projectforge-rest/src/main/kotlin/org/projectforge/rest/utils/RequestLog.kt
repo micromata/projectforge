@@ -117,13 +117,13 @@ class RequestData(request: HttpServletRequest, longForm: Boolean = false) {
     private fun <T> handleSecret(request: HttpServletRequest, name: String?, value: T?): Any? {
         name ?: return null
         value ?: return null
-        if (name.toLowerCase() == "authorization" && value is String) {
+        if (name.lowercase() == "authorization" && value is String) {
             val basicAuthenticationData = BasicAuthenticationData(request, value)
             if (basicAuthenticationData.username != null) {
                 return basicAuthenticationData.toString()
             }
         }
-        return if (name.toLowerCase() == "authorization" ||
+        return if (name.lowercase() == "authorization" ||
                 RestAuthenticationUtils.REQUEST_PARAMS_TOKEN.contains(name)) {
             "***"
         } else {

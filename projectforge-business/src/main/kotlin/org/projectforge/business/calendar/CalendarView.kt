@@ -39,6 +39,6 @@ enum class CalendarView {
 
     companion object {
         fun from(name: String?) = if (name == null) null
-        else valueOf(name.toUpperCase())
+        else valueOf(name.uppercase())
     }
 }

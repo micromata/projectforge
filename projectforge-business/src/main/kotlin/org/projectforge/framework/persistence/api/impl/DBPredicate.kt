@@ -342,8 +342,8 @@ abstract class DBPredicate(
          * Convert this predicate to JPA criteria for where clause in select.
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
-            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [like] cb.like(cb.lower($field, ${queryString.toLowerCase()}))")
-            return ctx.cb.like(ctx.cb.lower(ctx.getField<String>(field!!)), queryString.toLowerCase())
+            if (log.isDebugEnabled) log.debug("Adding criteria search (${ctx.entityName}): [like] cb.like(cb.lower($field, ${queryString.lowercase()}))")
+            return ctx.cb.like(ctx.cb.lower(ctx.getField<String>(field!!)), queryString.lowercase())
         }
 
         override fun addTo(qb: DBQueryBuilderByFullText<*>) {

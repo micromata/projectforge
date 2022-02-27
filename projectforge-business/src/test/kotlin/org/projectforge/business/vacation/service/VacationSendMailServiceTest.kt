@@ -108,7 +108,7 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         val vacationInfo = VacationSendMailService.VacationInfo(employeeDao, vacation)
         val i18nArgs = arrayOf(vacationer.getFullname(),
                 vacationInfo.periodText,
-                i18n("vacation.mail.modType.${operationType.name.toLowerCase()}"))
+                i18n("vacation.mail.modType.${operationType.name.lowercase()}"))
         Assertions.assertEquals(i18n("vacation.mail.action.short", *i18nArgs), mail.subject)
         assertContent(mail, "${vacation.id}")
         assertContent(mail, vacationer.getFullname())

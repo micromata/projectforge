@@ -140,7 +140,7 @@ open class LantDirectoryBrowser(
         pathTextBox.text = CanonicalFileUtils.absolutePath(directory)
         directoryListBox.clearItems()
         val entries = directory.listFiles() ?: return
-        Arrays.sort(entries) { o1, o2 -> o1.name.toLowerCase().compareTo(o2.name.toLowerCase()) }
+        Arrays.sort(entries) { o1, o2 -> o1.name.lowercase().compareTo(o2.name.lowercase()) }
         val parentFile = CanonicalFileUtils.absolute(directory.absoluteFile.parentFile)
         if (parentFile != null) {
             directoryListBox.addItem("..") {
