@@ -102,12 +102,12 @@ open class AddressExport {
 
   private fun registerAddress(sheet: ExcelSheet, prefix: String) {
     // decapitalized only needed, if prefix is empty:
-    register(sheet, "${prefix}AddressText".decapitalize())
-    register(sheet, "${prefix}AddressText2".decapitalize())
-    register(sheet, "${prefix}ZipCode".decapitalize(), ExcelUtils.Size.ZIPCODE)
-    register(sheet, "${prefix}City".decapitalize())
-    register(sheet, "${prefix}Country".decapitalize())
-    register(sheet, "${prefix}State".decapitalize())
+    register(sheet, "${prefix}AddressText".replaceFirstChar { it.lowercase() })
+    register(sheet, "${prefix}AddressText2".replaceFirstChar { it.lowercase() })
+    register(sheet, "${prefix}ZipCode".replaceFirstChar { it.lowercase() }, ExcelUtils.Size.ZIPCODE)
+    register(sheet, "${prefix}City".replaceFirstChar { it.lowercase() })
+    register(sheet, "${prefix}Country".replaceFirstChar { it.lowercase() })
+    register(sheet, "${prefix}State".replaceFirstChar { it.lowercase() })
   }
 
   /**

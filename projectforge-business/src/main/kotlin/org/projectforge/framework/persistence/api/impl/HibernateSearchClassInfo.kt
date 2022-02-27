@@ -192,9 +192,9 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
     private fun isGetter(method: Method): FieldInfo? {
         if (Modifier.isPublic(method.modifiers) && method.parameterTypes.isEmpty()) {
             if (method.name.matches("^get[A-Z].*".toRegex()) && method.returnType != Void.TYPE)
-                return FieldInfo(method.name.substring(3).decapitalize(), method.returnType)
+                return FieldInfo(method.name.substring(3).replaceFirstChar { it.lowercase() }, method.returnType)
             if (method.name.matches("^is[A-Z].*".toRegex()) && method.returnType == Boolean::class.javaPrimitiveType)
-                return FieldInfo(method.name.substring(2).decapitalize(), method.returnType)
+                return FieldInfo(method.name.substring(2).replaceFirstChar { it.lowercase() }, method.returnType)
         }
         return null
     }
@@ -204,7 +204,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
                 method.returnType == Void.TYPE &&
                 method.parameterTypes.size == 1 &&
                 method.name.matches("^set[A-Z].*".toRegex())) {
-            return FieldInfo(method.name.substring(3).decapitalize(), method.parameterTypes[0])
+            return FieldInfo(method.name.substring(3).replaceFirstChar { it.lowercase() }, method.parameterTypes[0])
         }
         return null
     }
