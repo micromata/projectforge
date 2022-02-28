@@ -25,10 +25,9 @@ package org.projectforge.rest.scripting
 
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptDao
-import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.time.TimeNotation
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Script
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
@@ -85,6 +84,14 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
       )
     return LayoutUtils.processListPage(layout, this)
   }
+
+  /**
+   * @return the execution page.
+   */
+  override fun getStandardEditPage(): String {
+    return "${PagesResolver.getDynamicPageUrl(ScriptExecutePageRest::class.java)}:id"
+  }
+
 
   /**
    * LAYOUT Edit page
