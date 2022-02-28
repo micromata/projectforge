@@ -25,10 +25,13 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptParameterType
+import org.projectforge.framework.jcr.Attachment
 
 class Script(
         var name: String? = null,
+        var type: ScriptDO.ScriptType? = null,
         var description: String? = null,
+        var script: String? = null,
         var parameter1Name: String? = null,
         var parameter1Type: ScriptParameterType? = null,
         var parameter2Name: String? = null,
@@ -40,7 +43,15 @@ class Script(
         var parameter5Name: String? = null,
         var parameter5Type: ScriptParameterType? = null,
         var parameter6Name: String? = null,
-        var parameter6Type: ScriptParameterType? = null
-) : BaseDTO<ScriptDO>() {
+        var parameter6Type: ScriptParameterType? = null,
+        /**
+         * Filename of older scripts, managed by classic Wicket version:
+         */
+        var filename: String? = null,
+        var availableVariables: String? = "",
+        override var attachmentsCounter: Int? = null,
+        override var attachmentsSize: Long? = null,
+        override var attachments: List<Attachment>? = null,
+) : BaseDTO<ScriptDO>(), AttachmentsSupport {
     var parameter: String? = null
 }

@@ -33,6 +33,7 @@ import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.Store
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.UnsupportedEncodingException
 import javax.persistence.*
@@ -45,7 +46,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_SCRIPT")
-open class ScriptDO : BaseUserGroupRightsDO() {
+open class ScriptDO : BaseUserGroupRightsDO(), AttachmentsInfo {
     enum class ScriptType { KOTLIN, GROOVY }
 
     @PropertyInfo(i18nKey = "scripting.script.name")
@@ -83,7 +84,7 @@ open class ScriptDO : BaseUserGroupRightsDO() {
     @field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Type(type = "binary")
-    @get:Column(length = 2000)
+    @get:Column
     open var script: ByteArray? = null
 
     /**
@@ -92,7 +93,7 @@ open class ScriptDO : BaseUserGroupRightsDO() {
     @JsonIgnore
     @field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
-    @get:Column(name = "script_backup", length = 2000)
+    @get:Column(name = "script_backup")
     @get:Type(type = "binary")
     open var scriptBackup: ByteArray? = null
 
@@ -103,6 +104,7 @@ open class ScriptDO : BaseUserGroupRightsDO() {
     @get:Type(type = "binary")
     open var file: ByteArray? = null
 
+    @PropertyInfo(i18nKey = "file", tooltip = "scripting.script.editForm.file.tooltip")
     @Field
     @get:Column(name = "file_name", length = 255)
     open var filename: String? = null
@@ -181,6 +183,33 @@ open class ScriptDO : BaseUserGroupRightsDO() {
         set(scriptBackup) {
             this.scriptBackup = convert(scriptBackup)
         }
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_names")
+    override var attachmentsNames: String? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_ids")
+    override var attachmentsIds: String? = null
+
+    @JsonIgnore
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_counter")
+    override var attachmentsCounter: Int? = null
+
+    @JsonIgnore
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_size")
+    override var attachmentsSize: Long? = null
+
+    @PropertyInfo(i18nKey = "attachment")
+    @JsonIgnore
+    @get:Column(length = 10000, name = "attachments_last_user_action")
+    override var attachmentsLastUserAction: String? = null
 
     private fun convert(bytes: ByteArray?): String? {
         if (bytes == null) {
