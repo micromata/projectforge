@@ -638,3 +638,9 @@ div[class$="-multiValue"] {
 		padding-right: 1em;
 	}
 }
+
+// Needed for scripting editor (for correct placing of cursor).
+.ace_editor * {
+	font: 12px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace!important;
+}
+

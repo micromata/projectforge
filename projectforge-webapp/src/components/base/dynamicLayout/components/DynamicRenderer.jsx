@@ -20,6 +20,7 @@ import DynamicListPageTable from './table/DynamicListPageTable';
 import DynamicBadgeList from './DynamicBadgeList';
 import DynamicBadge from './DynamicBadge';
 import DynamicDropArea from './input/DynamicDropArea';
+import DynamicEditor from './input/DynamicEditor';
 
 const components = {};
 
@@ -85,3 +86,4 @@ registerComponent('CREATABLE_SELECT', DynamicReactCreatableSelect);
 registerComponent('TABLE', DynamicTable);
 registerComponent('TABLE_LIST_PAGE', DynamicListPageTable);
 registerComponent('TEXTAREA', DynamicTextArea);
+registerComponent('EDITOR', DynamicEditor);

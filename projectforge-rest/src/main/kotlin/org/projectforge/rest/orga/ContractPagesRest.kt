@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.orga
 
-import mu.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractDao
@@ -45,8 +44,6 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
-
-private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/contract")
