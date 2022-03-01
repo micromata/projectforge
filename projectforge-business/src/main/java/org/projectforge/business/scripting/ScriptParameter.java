@@ -61,6 +61,10 @@ public class ScriptParameter implements Serializable
 
   protected TimePeriod timePeriodValue;
 
+  public ScriptParameter()
+  {
+  }
+
   public ScriptParameter(final String parameterName, final ScriptParameterType type)
   {
     this.parameterName = parameterName;

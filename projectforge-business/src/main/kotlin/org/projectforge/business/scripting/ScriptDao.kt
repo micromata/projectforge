@@ -65,7 +65,7 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
   override fun onChange(obj: ScriptDO, dbObj: ScriptDO) {
     if (!Arrays.equals(dbObj.script, obj.script)) {
       obj.scriptBackup = dbObj.script
-      val suffix = if (obj.type == ScriptDO.ScriptType.KOTLIN) "kts" else "groovy"
+      val suffix = getScriptSuffix(obj)
       val filename = encodeFilename("${dbObj.name}_${now().isoStringSeconds}.$suffix", true)
       val backupDir = File(ConfigXml.getInstance().backupDirectory, "scripts")
       ConfigXml.ensureDir(backupDir)
@@ -77,6 +77,10 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
         log.error("Error while trying to save backup file of script '" + file.absolutePath + "': " + ex.message, ex)
       }
     }
+  }
+
+  fun getScriptSuffix(obj: ScriptDO): String {
+    return if (obj.type == ScriptDO.ScriptType.KOTLIN) "kts" else "groovy"
   }
 
   /**
