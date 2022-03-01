@@ -24,34 +24,44 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.scripting.ScriptDO
-import org.projectforge.business.scripting.ScriptParameterType
+import org.projectforge.business.scripting.ScriptParameter
 import org.projectforge.framework.jcr.Attachment
 
 class Script(
-        var name: String? = null,
-        var type: ScriptDO.ScriptType? = null,
-        var description: String? = null,
-        var script: String? = null,
-        var parameter1Name: String? = null,
-        var parameter1Type: ScriptParameterType? = null,
-        var parameter2Name: String? = null,
-        var parameter2Type: ScriptParameterType? = null,
-        var parameter3Name: String? = null,
-        var parameter3Type: ScriptParameterType? = null,
-        var parameter4Name: String? = null,
-        var parameter4Type: ScriptParameterType? = null,
-        var parameter5Name: String? = null,
-        var parameter5Type: ScriptParameterType? = null,
-        var parameter6Name: String? = null,
-        var parameter6Type: ScriptParameterType? = null,
-        /**
-         * Filename of older scripts, managed by classic Wicket version:
-         */
-        var filename: String? = null,
-        var availableVariables: String? = "",
-        override var attachmentsCounter: Int? = null,
-        override var attachmentsSize: Long? = null,
-        override var attachments: List<Attachment>? = null,
+  var name: String? = null,
+  var type: ScriptDO.ScriptType? = null,
+  var description: String? = null,
+  var script: String? = null,
+  var parameter1: ScriptParameter? = null,
+  var parameter2: ScriptParameter? = null,
+  var parameter3: ScriptParameter? = null,
+  var parameter4: ScriptParameter? = null,
+  var parameter5: ScriptParameter? = null,
+  var parameter6: ScriptParameter? = null,
+  /**
+   * Filename of older scripts, managed by classic Wicket version:
+   */
+  var filename: String? = null,
+  var availableVariables: String? = "",
+  override var attachmentsCounter: Int? = null,
+  override var attachmentsSize: Long? = null,
+  override var attachments: List<Attachment>? = null,
 ) : BaseDTO<ScriptDO>(), AttachmentsSupport {
-    var parameter: String? = null
+
+  override fun copyFrom(src: ScriptDO) {
+    super.copyFrom(src)
+    val list = src.getParameterList(true)
+    parameter1 = list[0]
+    parameter2 = list[1]
+    parameter3 = list[2]
+    parameter4 = list[3]
+    parameter5 = list[4]
+    parameter6 = list[5]
+  }
+
+  override fun copyTo(dest: ScriptDO) {
+    super.copyTo(dest)
+    val list = listOf(parameter1, parameter2, parameter3, parameter4, parameter5, parameter6)
+    dest.setParameterList(list)
+  }
 }

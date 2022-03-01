@@ -14,9 +14,6 @@ function DynamicEditor({ id, ...props }) {
 
     const value = Object.getByString(data, id) || '';
 
-    // eslint-disable-next-line no-console
-    console.log('data', value, id);
-
     // Only rerender input when data has changed
     return React.useMemo(() => {
         const handleInputChange = (newValue) => setData({ [id]: newValue });

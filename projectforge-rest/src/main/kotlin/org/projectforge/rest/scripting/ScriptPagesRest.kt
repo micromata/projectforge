@@ -23,16 +23,31 @@
 
 package org.projectforge.rest.scripting
 
+import de.micromata.merlin.utils.ReplaceUtils
+import mu.KotlinLogging
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptDao
+import org.projectforge.business.scripting.ScriptParameterType
+import org.projectforge.framework.time.DateHelper
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.rest.AddressServicesRest
+import org.projectforge.rest.MessageType
+import org.projectforge.rest.ResponseData
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Script
 import org.projectforge.ui.*
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
+import java.io.StringWriter
+import java.util.*
 import javax.annotation.PostConstruct
+
+private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/script")
@@ -65,7 +80,6 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     val script = Script()
     script.filename = obj.filename
     script.copyFrom(obj)
-    script.parameter = obj.getParameterNames(true)
     script.availableVariables = baseDao.getScriptVariableNames(obj).joinToString()
     script.script = obj.scriptAsString
     return script
@@ -134,18 +148,41 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
       )
       .add(UIEditor("script"))
       .add(UIReadOnlyField("availableVariables", label = "scripting.script.availableVariables"))
+
+    if (dto.id != null) {
+      layout.add(
+        MenuItem(
+          "scripting.scriptBackup",
+          i18nKey = "scripting.scriptBackup.show",
+          url = "${getRestPath()}/downloadBackupScript/${dto.id}",
+          type = MenuItemTargetType.DOWNLOAD
+        )
+      )
+    }
     return LayoutUtils.processEditPage(layout, dto, this)
+  }
+
+  @GetMapping("downloadBackupScript/{id}")
+  fun downloadBackupScript(@PathVariable("id") id: Int?): ResponseEntity<*> {
+    log.info("Downloading backup script of script with id=$id")
+    val scriptDO = baseDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+    val filename = ReplaceUtils.encodeFilename("${scriptDO.name}-backup.${baseDao.getScriptSuffix(scriptDO)}")
+    return RestUtils.downloadFile(filename, scriptDO.scriptBackupAsString ?: "")
   }
 
   private fun createParameterRow(number: Int): UIRow {
     return UIRow()
       .add(
         UICol()
-          .add(lc, "parameter${number}Name")
+          .add(UIInput("parameter$number.parameterName", label = "scripting.script.parameterName"))
       )
       .add(
         UICol()
-          .add(lc, "parameter${number}Type")
+          .add(
+            UISelect<ScriptParameterType>("parameter$number.type", required = false).buildValues(
+              ScriptParameterType::class.java
+            )
+          )
       )
   }
 }
