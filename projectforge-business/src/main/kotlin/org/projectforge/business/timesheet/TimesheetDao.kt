@@ -760,6 +760,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     if (StringUtils.isNotBlank(master.location)) {
       entry.location = master.location
     }
+    if (StringUtils.isNotBlank(master.reference)) {
+      entry.reference = master.reference
+    }
     return true
   }
 
