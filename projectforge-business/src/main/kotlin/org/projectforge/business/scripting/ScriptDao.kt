@@ -108,7 +108,7 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     val scriptVariables = getScriptVariables(script, parameters)
     var scriptContent = script.scriptAsString ?: ""
     if (script.type === ScriptDO.ScriptType.KOTLIN) {
-      return execute(scriptContent, scriptVariables, script.file, script.filename)
+      return execute(scriptContent, scriptVariables, script.file, script.filename, script.getParameterList())
     }
     if (scriptContent.contains("import org.projectforge.export")) {
       // Package was renamed in version 5.2 and 6.13:

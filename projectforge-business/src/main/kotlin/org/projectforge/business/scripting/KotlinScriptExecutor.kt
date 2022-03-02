@@ -68,7 +68,11 @@ object KotlinScriptExecutor {
     script: String,
     variables: Map<String, Any?>,
     file: ByteArray? = null,
-    filename: String? = null
+    filename: String? = null,
+    /**
+     * Required for defining bindings of null values.
+     */
+    inputParameters: List<ScriptParameter>? = null,
   ): ScriptExecutionResult {
     val engine = MyKotlinScriptEngineFactory().scriptEngine
     val bindings = engine.createBindings()
@@ -93,18 +97,18 @@ object KotlinScriptExecutor {
           sb.appendLine()
           sb.appendLine("// Auto generated bindings:")
           // Prepend bindings now before proceeding
+          val bindingsEntries = mutableListOf<String>()
           variables.forEach { name, value ->
-            if (name.isNotBlank() && value != null) {
-              val clazz = value::class.java
-              val clsName =  if (bindingsClassReplacements.containsKey(clazz.name)) {
-                bindingsClassReplacements[clazz.name]
-              } else if (value is ScriptingDao<*>) {
-                "ScriptingDao<${value.doClass.name}>"
-              } else {
-                clazz.name
-              }
-              sb.appendLine("val $name = bindings[\"$name\"] as $clsName")
+            addBinding(bindingsEntries, name, value)
+          }
+          inputParameters?.forEach { param ->
+            if (variables[param.parameterName] == null) {
+              // OK, null value wasn't added to variables. So we had to add them here:
+              addBinding(bindingsEntries, param.parameterName, param)
             }
+          }
+          bindingsEntries.sortedBy { it.lowercase() }.forEach {
+            sb.appendLine(it)
           }
           sb.appendLine()
           sb.appendLine()
@@ -129,7 +133,36 @@ object KotlinScriptExecutor {
   private val bindingsClassReplacements = mapOf(
     "java.lang.String" to "String",
     "java.lang.Integer" to "Int",
+    "java.util.HashMap" to "MutableMap<*, *>",
   )
+
+  private fun addBinding(bindingsEntries: MutableList<String>, name: String, value: Any?) {
+    if (name.isBlank()) {
+      return // Don't add blank variables (shouldn't occur).
+    }
+    var nullable = ""
+    val clazz = if (value != null) {
+      if (value is ScriptParameter) {
+        nullable = "?" // Script parameter not found as variable -> is null!
+        value.valueClass
+      } else {
+        value::class.java
+      }
+    } else {
+      Any::class.java
+    }
+    val clsName = if (bindingsClassReplacements.containsKey(clazz.name)) {
+      bindingsClassReplacements[clazz.name]
+    } else if (value is ScriptingDao<*>) {
+      "ScriptingDao<${value.doClass.name}>"
+    } else {
+      clazz.name
+    }
+    bindingsEntries.add("val $name = bindings[\"$name\"] as $clsName$nullable")
+    if (name[0].isUpperCase()) {
+      bindingsEntries.add("val ${name.replaceFirstChar { it.lowercase() }} = $name // Set alias")
+    }
+  }
 }
 
 fun main() {

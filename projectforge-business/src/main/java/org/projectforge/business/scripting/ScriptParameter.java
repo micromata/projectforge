@@ -114,6 +114,24 @@ public class ScriptParameter implements Serializable
     }
   }
 
+  public Class<?> getValueClass() {
+     if (type == ScriptParameterType.DECIMAL) {
+      return BigDecimal.class;
+    } else if (type == ScriptParameterType.DATE) {
+      return LocalDate.class;
+    } else if (type == ScriptParameterType.TIME_PERIOD) {
+      return TimePeriod.class;
+    } else if (type == ScriptParameterType.INTEGER) {
+      return Integer.class;
+    } else if (type == ScriptParameterType.TASK) {
+      return TaskDO.class;
+    } else if (type == ScriptParameterType.USER) {
+      return PFUserDO.class;
+    } else {
+       return String.class;
+    }
+  }
+
   public ScriptParameterType getType()
   {
     return type;
