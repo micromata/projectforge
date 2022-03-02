@@ -93,16 +93,23 @@ object KotlinScriptExecutor {
         } else {
           importBlock = false // End of import block.
           sb.appendLine("// Auto generated imports:")
-          sb.appendLine(autoImports.joinToString("\n"))
+          autoImports.forEach { importLine ->
+            if (!script.contains(importLine)) { // Don't add import twice
+              sb.appendLine(importLine)
+            }
+          }
           sb.appendLine()
           sb.appendLine("// Auto generated bindings:")
           // Prepend bindings now before proceeding
           val bindingsEntries = mutableListOf<String>()
           variables.forEach { name, value ->
-            addBinding(bindingsEntries, name, value)
+            if (!script.contains("bindings[\"$name\"]")) { // Don't add binding twice
+              addBinding(bindingsEntries, name, value)
+            }
           }
           inputParameters?.forEach { param ->
-            if (variables[param.parameterName] == null) {
+            if (variables[param.parameterName] == null &&
+              !script.contains("bindings[\"${param.parameterName}\"]")) { // Don't add binding twice
               // OK, null value wasn't added to variables. So we had to add them here:
               addBinding(bindingsEntries, param.parameterName, param)
             }
