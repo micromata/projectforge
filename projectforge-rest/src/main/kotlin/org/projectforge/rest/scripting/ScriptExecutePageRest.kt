@@ -74,8 +74,12 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
     val scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
     val script = Script()
     script.copyFrom(scriptDO)
-
     val variables = mutableMapOf<String, Any>()
+    val layout = getLayout(request, script, variables, scriptDO)
+    return FormLayoutData(script, layout, createServerData(request), variables)
+  }
+
+  private fun getLayout(request: HttpServletRequest, script: Script, variables: MutableMap<String, Any>, scriptDO: ScriptDO? = null, executionResults: String? = null): UILayout {
     userPrefService.getEntry(USER_PREF_AREA, USER_PREF_KEY, RecentScriptCalls::class.java)
       ?.getScriptCallData("${script.id}")?.let { scriptCallData ->
         scriptCallData.scriptParameter?.forEachIndexed { index, scriptParameter ->
@@ -90,13 +94,17 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
           }
         }
       }
+    var dbScript = scriptDO
+    if (dbScript == null) {
+      dbScript = scriptDao.getById(script.id) ?: throw IllegalArgumentException("Script not found.")
+    }
     // Update param names
-    script.parameter1?.name = scriptDO.parameter1Name
-    script.parameter2?.name = scriptDO.parameter2Name
-    script.parameter3?.name = scriptDO.parameter3Name
-    script.parameter4?.name = scriptDO.parameter4Name
-    script.parameter5?.name = scriptDO.parameter5Name
-    script.parameter6?.name = scriptDO.parameter6Name
+    script.parameter1?.name = dbScript.parameter1Name
+    script.parameter2?.name = dbScript.parameter2Name
+    script.parameter3?.name = dbScript.parameter3Name
+    script.parameter4?.name = dbScript.parameter4Name
+    script.parameter5?.name = dbScript.parameter5Name
+    script.parameter6?.name = dbScript.parameter6Name
 
     val layout = UILayout("scripting.script.execute")
     layout.add(UIReadOnlyField("name", label = "scripting.script.name"))
@@ -132,14 +140,15 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
       )
     )
 
-    layout.add(UIAlert(id = "results", title = "scripting.script.result", markdown = true, color = UIColor.INFO))
-    script.results = "---"
+    if (!executionResults.isNullOrBlank()) {
+      layout.add(UIAlert(executionResults, title = "scripting.script.result", markdown = true, color = UIColor.INFO))
+    }
 
     layout.add(
       MenuItem(
         "EDIT",
         i18nKey = "scripting.title.edit",
-        url = PagesResolver.getEditPageUrl(ScriptPagesRest::class.java, id),
+        url = PagesResolver.getEditPageUrl(ScriptPagesRest::class.java, script.id),
         type = MenuItemTargetType.REDIRECT
       )
     )
@@ -154,12 +163,12 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
 
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
-    return FormLayoutData(script, layout, createServerData(request), variables)
+    return layout
   }
 
   @PostMapping("execute")
-  fun execute(@Valid @RequestBody postData: PostData<Script>): ResponseAction {
-    val variables = mutableMapOf<String, Any?>()
+  fun execute(request: HttpServletRequest, @Valid @RequestBody postData: PostData<Script>): ResponseAction {
+    val variables = mutableMapOf<String, Any>()
     val script = postData.data
 
     val parameters = script.getParameters()
@@ -195,9 +204,10 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
         output.appendLine()
       }
     }
-    script.results = output.toString()
+    val executionResults = output.toString()
     return ResponseAction(targetType = TargetType.UPDATE, merge = true)
       .addVariable("data", script)
+      .addVariable("ui", getLayout(request, script, variables, executionResults = executionResults))
       .addVariable("variables", variables)
   }
 

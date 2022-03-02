@@ -51,10 +51,6 @@ class Script(
    */
   var filename: String? = null,
   var availableVariables: String? = "",
-  /**
-   * Script results after execution (markdown format).
-   */
-  var results: String? = null,
   override var attachmentsCounter: Int? = null,
   override var attachmentsSize: Long? = null,
   override var attachments: List<Attachment>? = null,
