@@ -174,7 +174,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     return UIRow()
       .add(
         UICol()
-          .add(UIInput("parameter$number.parameterName", label = "scripting.script.parameterName"))
+          .add(UIInput("parameter$number.name", label = "scripting.script.parameterName"))
       )
       .add(
         UICol()

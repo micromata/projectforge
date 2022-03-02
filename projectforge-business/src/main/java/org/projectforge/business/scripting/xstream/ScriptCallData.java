@@ -33,12 +33,15 @@ import java.util.List;
 
 /**
  * For storing the user's last script calls. The parameters will be stored per script.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @XStreamAlias("ScriptCall")
 public class ScriptCallData
 {
+  /**
+   * Since React version of scripting execution page, the id of the script is used as scriptName.
+   */
   @XStreamAsAttribute
   private String scriptName;
 
