@@ -52,7 +52,7 @@ public class ScriptingDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Show whole list of objects with select access (without deleted entries).
-   * 
+   *
    * @return
    */
   public List<O> getList()
@@ -75,5 +75,9 @@ public class ScriptingDao<O extends ExtendedBaseDO<Integer>>
   public O getById(Serializable id) throws AccessException
   {
     return __baseDao.getById(id);
+  }
+
+  public Class<?> getDOClass() {
+    return __baseDao.getEntityClass();
   }
 }
