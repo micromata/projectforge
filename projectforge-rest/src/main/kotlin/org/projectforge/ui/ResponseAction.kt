@@ -35,7 +35,7 @@ class ResponseAction(val url: String? = null,
                       */
                      var targetType: TargetType? = null,
                      /**
-                      * If true, than returned data (including UI, variables etc.) will be merged into current state.
+                      * If true, then the returned data (including UI, variables etc.) will be merged into current state.
                       * Otherwise a full update is done (for targetType=UPDATE and CLOSE_MODAL).
                       */
                      var merge: Boolean? = null,

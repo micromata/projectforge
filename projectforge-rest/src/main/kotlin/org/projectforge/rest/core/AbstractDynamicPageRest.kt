@@ -77,6 +77,20 @@ abstract class AbstractDynamicPageRest {
     return domainService.getDomain(path)
   }
 
+  /**
+   * Relative rest path (without leading /rs
+   */
+  fun getRestPath(subPath: String? = null): String {
+    return RestResolver.getRestUrl(this::class.java, subPath, true)
+  }
+
+  /**
+   * Relative rest path (without leading /rs
+   */
+  fun getRestRootPath(subPath: String? = null): String {
+    return getRestPath(subPath)
+  }
+
   companion object {
     fun createValidationErrors(vararg errors: ValidationError): MutableList<ValidationError> {
       val validationErrors = mutableListOf<ValidationError>()
