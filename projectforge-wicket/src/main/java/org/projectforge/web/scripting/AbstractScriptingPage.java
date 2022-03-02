@@ -24,9 +24,9 @@
 package org.projectforge.web.scripting;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.business.scripting.ExportJson;
 import org.projectforge.business.scripting.ScriptExecutionResult;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.web.export.ExportJson;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
 
@@ -35,27 +35,24 @@ import java.util.Date;
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  */
-public abstract class AbstractScriptingPage extends AbstractStandardFormPage
-{
+public abstract class AbstractScriptingPage extends AbstractStandardFormPage {
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractScriptingPage.class);
 
   protected ScriptExecutionResult scriptExecutionResult;
 
-  public AbstractScriptingPage(final PageParameters parameters)
-  {
+  public AbstractScriptingPage(final PageParameters parameters) {
     super(parameters);
   }
 
-  protected void jsonExport()
-  {
+  protected void jsonExport() {
     try {
       final ExportJson exportJson = (ExportJson) scriptExecutionResult.getResult();
       final StringBuilder sb = new StringBuilder();
       sb.append(exportJson.getJsonName()).append("_");
       sb.append(DateHelper.getTimestampAsFilenameSuffix(new Date())).append(".json");
       final String filename = sb.toString();
-      DownloadUtils.setDownloadTarget(filename, exportJson.createResourceStreamWriter());
+      DownloadUtils.setDownloadTarget(filename, ScriptingHelper.createResourceStreamWriter(exportJson));
     } catch (final Exception ex) {
       error(getLocalizedMessage("error", ex.getMessage()));
       log.error(ex.getMessage(), ex);

@@ -73,7 +73,9 @@ public class ScriptParameter implements Serializable
 
   public Object getValue()
   {
-    if (type == ScriptParameterType.STRING) {
+    if (type == null) {
+      return null;
+    } else if (type == ScriptParameterType.STRING) {
       return stringValue;
     } else if (type == ScriptParameterType.DECIMAL) {
       return decimalValue;
@@ -237,7 +239,7 @@ public class ScriptParameter implements Serializable
   {
     final StringBuilder buf = new StringBuilder();
     buf.append("[").append(parameterName).append(',').append(type).append(',');
-    if (type.isIn(ScriptParameterType.TASK, ScriptParameterType.USER)) {
+    if (type != null && type.isIn(ScriptParameterType.TASK, ScriptParameterType.USER)) {
       buf.append(intValue);
     } else {
       buf.append(getValue());

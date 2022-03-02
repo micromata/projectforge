@@ -21,25 +21,27 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.ui
+package org.projectforge.business.scripting
+
+import mu.KotlinLogging
+import org.projectforge.common.logging.LogLevel
+
+private val log = KotlinLogging.logger {}
 
 /**
- * For displaying message boxes.
+ * You may use loging functionality inside your scripts by using log.info(String) and log.error(String).
  */
-data class UIAlert(
-        /**
-         * message to display (static). For non static messages, please use id instead.
-         */
-        var message: String? = null,
-        var title: String? = null,
-        /**
-         * If given, the message will get of the data (field message is then ignored).
-         */
-        var id: String? = null,
-        val color: UIColor? = null,
-        /**
-         * If true, the client should preprocess the message as markdown content.
-         */
-        val markdown: Boolean? = null,
-        val icon: UIIconType? = null)
-        : UIElement(UIElementType.ALERT)
+class ScriptLogger {
+  class Message(val message: String?, val level: LogLevel)
+  val messages = mutableListOf<Message>()
+
+  fun info(msg: String?) {
+    log.info { msg }
+    messages.add(Message(msg, LogLevel.INFO))
+  }
+
+  fun error(msg: String?) {
+    log.error { msg }
+    messages.add(Message(msg, LogLevel.ERROR))
+  }
+}

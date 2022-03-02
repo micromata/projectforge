@@ -21,12 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.export;
+package org.projectforge.business.scripting;
 
 import de.micromata.merlin.excel.ExcelWorkbook;
 import org.apache.commons.io.IOUtils;
-import org.apache.wicket.util.resource.AbstractResourceStreamWriter;
-import org.apache.wicket.util.resource.IResourceStream;
 import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.export.ExportJFreeChart;
 import org.projectforge.export.ExportZipFile;
@@ -99,23 +97,6 @@ public class ExportZipArchive {
     } finally {
       IOUtils.closeQuietly(zipOut);
     }
-  }
-
-  public IResourceStream createResourceStreamWriter() {
-    final IResourceStream iResourceStream = new AbstractResourceStreamWriter() {
-      private static final long serialVersionUID = 7780552906708508709L;
-
-      @Override
-      public String getContentType() {
-        return "application/zip";
-      }
-
-      @Override
-      public void write(final OutputStream output) {
-        ExportZipArchive.this.write(output);
-      }
-    };
-    return iResourceStream;
   }
 
   public ExportZipArchive add(final String filename, final ExportWorkbook exportWorkbook) {

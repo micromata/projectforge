@@ -43,8 +43,6 @@ import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.FileHelper;
-import org.projectforge.web.export.ExportJson;
-import org.projectforge.web.export.ExportZipArchive;
 import org.projectforge.web.fibu.ReportObjectivesPage;
 import org.projectforge.web.fibu.ReportScriptingStorage;
 import org.projectforge.web.wicket.DownloadUtils;
@@ -54,8 +52,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 
-public class ScriptingPage extends AbstractScriptingPage
-{
+public class ScriptingPage extends AbstractScriptingPage {
   private static final long serialVersionUID = -1910145309628761662L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptingPage.class);
@@ -78,8 +75,7 @@ public class ScriptingPage extends AbstractScriptingPage
 
   protected transient ReportStorage reportStorage;
 
-  public ScriptingPage(final PageParameters parameters)
-  {
+  public ScriptingPage(final PageParameters parameters) {
     super(parameters);
     form = new ScriptingForm(this);
     body.add(form);
@@ -88,8 +84,7 @@ public class ScriptingPage extends AbstractScriptingPage
     body.add(imageResultContainer = (WebMarkupContainer) new WebMarkupContainer("imageResult").setVisible(false));
   }
 
-  private void initScriptVariables()
-  {
+  private void initScriptVariables() {
     if (scriptVariables != null) {
       // Already initialized.
       return;
@@ -127,8 +122,7 @@ public class ScriptingPage extends AbstractScriptingPage
     // }
   }
 
-  protected void execute()
-  {
+  protected void execute() {
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP);
     accessChecker.checkRestrictedOrDemoUser();
@@ -140,10 +134,10 @@ public class ScriptingPage extends AbstractScriptingPage
     scriptVariables.put("reportList", reportGeneratorList);
     if (StringUtils.isNotBlank(getReportScriptingStorage().getScript()) == true) {
       if (getReportScriptingStorage().getType() == ScriptDO.ScriptType.KOTLIN) {
-         scriptExecutionResult = KotlinScriptExecutor.execute(getReportScriptingStorage().getScript(), scriptVariables);
+        scriptExecutionResult = KotlinScriptExecutor.execute(getReportScriptingStorage().getScript(), scriptVariables);
       } else {
-        scriptExecutionResult = groovyExecutor.execute(new ScriptExecutionResult(), getReportScriptingStorage().getScript(),
-                scriptVariables);
+        scriptExecutionResult = groovyExecutor.execute(new ScriptExecutionResult(ScriptDao.getScriptLogger(scriptVariables)), getReportScriptingStorage().getScript(),
+            scriptVariables);
       }
       if (scriptExecutionResult.hasException() == true) {
         form.error(getLocalizedMessage("exception.scriptError", String.valueOf(scriptExecutionResult.getException())));
@@ -154,8 +148,8 @@ public class ScriptingPage extends AbstractScriptingPage
         final Object result = scriptExecutionResult.getResult();
         if (result instanceof ExportWorkbook == true) {
           excelExport(((ExportWorkbook) result));
-        } else  if (result instanceof ExcelWorkbook == true) {
-            excelExport(((ExcelWorkbook) result));
+        } else if (result instanceof ExcelWorkbook == true) {
+          excelExport(((ExcelWorkbook) result));
         } else if (scriptExecutionResult.getResult() instanceof ReportGeneratorList == true) {
           reportGeneratorList = (ReportGeneratorList) scriptExecutionResult.getResult();
           // jasperReport(reportGeneratorList);
@@ -172,8 +166,7 @@ public class ScriptingPage extends AbstractScriptingPage
     }
   }
 
-  protected void upload()
-  {
+  protected void upload() {
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP);
     accessChecker.checkRestrictedOrDemoUser();
@@ -264,8 +257,7 @@ public class ScriptingPage extends AbstractScriptingPage
   // log.error(ex.getMessage(), ex);
   // }
   // }
-  private void excelExport(ExportWorkbook workbook)
-  {
+  private void excelExport(ExportWorkbook workbook) {
     try {
       final StringBuffer buf = new StringBuffer();
       if (workbook.getFilename() != null) {
@@ -282,8 +274,7 @@ public class ScriptingPage extends AbstractScriptingPage
     }
   }
 
-  private void excelExport(ExcelWorkbook workbook)
-  {
+  private void excelExport(ExcelWorkbook workbook) {
     try {
       final StringBuffer buf = new StringBuffer();
       if (workbook.getFilename() != null) {
@@ -307,8 +298,7 @@ public class ScriptingPage extends AbstractScriptingPage
     }
   }
 
-  private void jFreeChartExport()
-  {
+  private void jFreeChartExport() {
     try {
       final ExportJFreeChart exportJFreeChart = (ExportJFreeChart) scriptExecutionResult.getResult();
       final StringBuilder sb = new StringBuilder();
@@ -338,15 +328,14 @@ public class ScriptingPage extends AbstractScriptingPage
     }
   }
 
-  private void zipExport()
-  {
+  private void zipExport() {
     try {
       final ExportZipArchive exportZipArchive = (ExportZipArchive) scriptExecutionResult.getResult();
       final StringBuilder sb = new StringBuilder();
       sb.append(exportZipArchive.getFilename()).append("_");
       sb.append(DateHelper.getTimestampAsFilenameSuffix(new Date())).append(".zip");
       final String filename = sb.toString();
-      DownloadUtils.setDownloadTarget(filename, exportZipArchive.createResourceStreamWriter());
+      DownloadUtils.setDownloadTarget(filename, ScriptingHelper.createResourceStreamWriter(exportZipArchive));
     } catch (final Exception ex) {
       error(getLocalizedMessage("error", ex.getMessage()));
       log.error(ex.getMessage(), ex);
@@ -356,16 +345,14 @@ public class ScriptingPage extends AbstractScriptingPage
   /**
    * @return Any existing user storage or null if not exist (wether in class nor in user's session).
    */
-  protected ReportStorage getReportStorage()
-  {
+  protected ReportStorage getReportStorage() {
     if (reportStorage != null) {
       return reportStorage;
     }
     return (ReportStorage) getUserPrefEntry(ReportObjectivesPage.KEY_REPORT_STORAGE);
   }
 
-  protected ReportScriptingStorage getReportScriptingStorage()
-  {
+  protected ReportScriptingStorage getReportScriptingStorage() {
     if (reportScriptingStorage != null) {
       return reportScriptingStorage;
     }
@@ -378,8 +365,7 @@ public class ScriptingPage extends AbstractScriptingPage
   }
 
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return getString("fibu.reporting.scripting");
   }
 }
