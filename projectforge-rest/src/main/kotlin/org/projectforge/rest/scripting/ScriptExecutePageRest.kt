@@ -47,7 +47,6 @@ import org.projectforge.rest.dto.Script
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
@@ -115,7 +114,8 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
         UIReadOnlyField(
           "downloadFilename",
           label = "attachment.fileName",
-          additionalLabel = "'$availableUntil"
+          additionalLabel = "'$availableUntil",
+          tooltip = "scripting.download.filename.info",
         )
       )
         .add(
@@ -238,7 +238,7 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
   @GetMapping("download")
   fun download(request: HttpServletRequest): ResponseEntity<*> {
     val downloadFile = scriptExecution.getDownloadFile(request)
-      ?: return RestUtils.badRequest("Download file not available (anymore).")
+      ?: return RestUtils.badRequest(translate("scripting.download.expired"))
     log.info("Downloading '${downloadFile.filename}' of size ${downloadFile.sizeHumanReadable}.")
     return RestUtils.downloadFile(downloadFile.filename, downloadFile.bytes)
   }
