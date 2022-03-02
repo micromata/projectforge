@@ -117,7 +117,11 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
         "import org.projectforge.export.*\nimport org.projectforge.business.excel"
       )
     }
-    return groovyExecutor.execute(ScriptExecutionResult(), scriptContent, scriptVariables)
+    return groovyExecutor.execute(
+      ScriptExecutionResult(getScriptLogger(scriptVariables)),
+      scriptContent,
+      scriptVariables
+    )
   }
 
   open fun getScriptVariableNames(script: ScriptDO): List<String> {
@@ -148,10 +152,8 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     val scriptVariables = mutableMapOf<String, Any?>()
     addScriptVariables(scriptVariables)
     scriptVariables["reportList"] = ReportGeneratorList()
-    if (parameters != null) {
-      for (param in parameters) {
-        scriptVariables[param.getParameterName()] = param.value
-      }
+    parameters?.filter { it.parameterName != null && it.value != null }?.forEach { param ->
+      scriptVariables[param.getParameterName()] = param.value
     }
     if (script.file != null) {
       val scriptVars: MutableMap<String, Any?> = HashMap()
@@ -172,12 +174,26 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     scriptVariables["appVersion"] = ProjectForgeVersion.VERSION_NUMBER
     scriptVariables["appRelease"] = ProjectForgeVersion.BUILD_DATE
     scriptVariables["taskTree"] = ScriptingTaskTree(taskTree)
+    scriptVariables["log"] = ScriptLogger()
     scriptVariables["reportList"] = null
     for (entry in Registry.getInstance().orderedList) {
       val scriptingDao = entry.scriptingDao
       if (scriptingDao != null) {
         val varName = StringUtils.uncapitalize(entry.id)
         scriptVariables[varName + "Dao"] = scriptingDao
+      }
+    }
+  }
+
+  companion object {
+    @JvmStatic
+    fun getScriptLogger(variables: Map<String, Any?>): ScriptLogger {
+      val scriptLogger = variables["log"]
+      if (scriptLogger != null && scriptLogger is ScriptLogger) {
+        return scriptLogger
+      } else {
+        log.warn { "Oups, can't find scriptLogger ('log') in script variables!" }
+        return ScriptLogger()
       }
     }
   }

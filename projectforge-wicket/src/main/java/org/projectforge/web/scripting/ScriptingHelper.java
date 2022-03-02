@@ -21,60 +21,56 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.export;
+package org.projectforge.web.scripting;
 
 import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.util.resource.AbstractResourceStreamWriter;
 import org.apache.wicket.util.resource.IResourceStream;
+import org.projectforge.business.scripting.ExportJson;
+import org.projectforge.business.scripting.ExportZipArchive;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
+ * @author kai
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  */
-public class ExportJson
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportJson.class);
+public abstract class ScriptingHelper {
 
-  private String jsonName;
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptingHelper.class);
 
-  private Object result;
-
-  public ExportJson(final Object result)
-  {
-    this.jsonName = "output";
-    this.result = result;
-  }
-
-  public ExportJson(final String jsonName, final Object result)
-  {
-    this.jsonName = jsonName;
-    this.result = result;
-  }
-
-  public String getJsonName()
-  {
-    return jsonName;
-  }
-
-  public IResourceStream createResourceStreamWriter()
-  {
+  public static IResourceStream createResourceStreamWriter(ExportZipArchive exportZipArchive) {
     final IResourceStream iResourceStream = new AbstractResourceStreamWriter() {
       private static final long serialVersionUID = 7780552906708508709L;
 
       @Override
-      public String getContentType()
-      {
+      public String getContentType() {
+        return "application/zip";
+      }
+
+      @Override
+      public void write(final OutputStream output) {
+        exportZipArchive.write(output);
+      }
+    };
+    return iResourceStream;
+  }
+
+  public static IResourceStream createResourceStreamWriter(ExportJson exportJson) {
+    final IResourceStream iResourceStream = new AbstractResourceStreamWriter() {
+      private static final long serialVersionUID = 7780552906708508709L;
+
+      @Override
+      public String getContentType() {
         return "application/json";
       }
 
       @Override
-      public void write(final OutputStream output)
-      {
+      public void write(final OutputStream output) {
         try {
-          IOUtils.write(new Gson().toJson(result), output);
+          IOUtils.write(new Gson().toJson(exportJson.getResult()), output);
         } catch (IOException ex) {
           log.error("Exception encountered " + ex, ex);
         }

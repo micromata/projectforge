@@ -57,12 +57,13 @@ public class GroovyExecutor
 
   public ScriptExecutionResult execute(final String script, final Map<String, Object> variables)
   {
+    ScriptExecutionResult scriptExecutionResult = new ScriptExecutionResult(ScriptDao.getScriptLogger(variables));
     if (script == null) {
-      return new ScriptExecutionResult();
+      return scriptExecutionResult;
     }
-    final Script groovyObject = compileGroovy(script, true);
+    final Script groovyObject = compileGroovy(scriptExecutionResult, script, true);
     if (groovyObject == null) {
-      return new ScriptExecutionResult();
+      return scriptExecutionResult;
     }
     return execute(groovyObject, variables);
   }
@@ -176,7 +177,7 @@ public class GroovyExecutor
     }
     if (bindScriptResult) {
       final Binding binding = groovyObject.getBinding();
-      final ScriptExecutionResult scriptResult = new ScriptExecutionResult();
+      final ScriptExecutionResult scriptResult = new ScriptExecutionResult(ScriptDao.getScriptLogger(binding.getVariables()));
       binding.setVariable("scriptResult", scriptResult);
     }
     return groovyObject;
@@ -201,14 +202,15 @@ public class GroovyExecutor
       }
     }
     if (result == null) {
-      result = new ScriptExecutionResult();
+      result = new ScriptExecutionResult(ScriptDao.getScriptLogger(variables));
     }
     Object res;
     try {
       res = groovyScript.run();
     } catch (final Exception ex) {
       log.info("Groovy-Execution-Exception: " + ex.getMessage(), ex);
-      return new ScriptExecutionResult(ex);
+      result.setException(ex);
+      return result;
     }
     result.setResult(res);
     return result;

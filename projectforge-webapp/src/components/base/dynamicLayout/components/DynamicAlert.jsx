@@ -4,22 +4,29 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { colorPropType } from '../../../../utilities/propTypes';
 import { Alert } from '../../../design';
+import { DynamicLayoutContext } from '../context';
 
 function DynamicAlert(props) {
     const {
         message,
         markdown,
         title,
+        id,
         color,
         icon,
     } = props;
 
-    let box = message;
+    const { data, setData } = React.useContext(DynamicLayoutContext);
+
+    const value = Object.getByString(data, id) || '';
+
+    let box = value || message;
+
     if (markdown === true) {
-        box = <ReactMarkdown>{message}</ReactMarkdown>;
+        box = <ReactMarkdown>{value || message}</ReactMarkdown>;
     }
 
-    return (
+    return React.useMemo(() => (
         <Alert color={color}>
             {title && (
                 <h4 className="alert-heading">
@@ -34,7 +41,7 @@ function DynamicAlert(props) {
             )}
             {box}
         </Alert>
-    );
+    ), [value, setData, id, props]);
 }
 
 DynamicAlert.propTypes = {

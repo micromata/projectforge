@@ -26,7 +26,7 @@ package org.projectforge.business.scripting
 import org.projectforge.business.utils.HtmlHelper
 import java.io.Serializable
 
-class ScriptExecutionResult : Serializable {
+class ScriptExecutionResult(val scriptLogger: ScriptLogger) : Serializable {
     @Transient
     var result: Any? = null
     @Transient
@@ -36,11 +36,6 @@ class ScriptExecutionResult : Serializable {
      * The effective script (including any auto-imports and bindings).
      */
     var script: String = ""
-
-    constructor() {}
-    constructor(ex: Exception?) {
-        exception = ex
-    }
 
     fun hasResult(): Boolean {
         return result != null

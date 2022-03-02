@@ -52,6 +52,11 @@ public class ScriptCallData
   {
   }
 
+  public ScriptCallData(final String name)
+  {
+    this(name, null);
+  }
+
   public ScriptCallData(final String name, final List<ScriptParameter> scriptParameters)
   {
     this.scriptName = name;

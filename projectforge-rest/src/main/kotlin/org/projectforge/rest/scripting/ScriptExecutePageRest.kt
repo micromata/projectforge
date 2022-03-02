@@ -23,16 +23,23 @@
 
 package org.projectforge.rest.scripting
 
+import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
-import org.projectforge.business.scripting.ScriptDao
-import org.projectforge.business.scripting.ScriptParameterType
+import org.projectforge.business.excel.ExportWorkbook
+import org.projectforge.business.scripting.*
 import org.projectforge.business.scripting.xstream.RecentScriptCalls
 import org.projectforge.business.scripting.xstream.ScriptCallData
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.common.logging.LogEventLoggerNameMatcher
+import org.projectforge.common.logging.LogSubscription
+import org.projectforge.export.ExportJFreeChart
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.rest.admin.LogViewerPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
@@ -43,6 +50,9 @@ import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -96,7 +106,8 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
     addParameterInput(layout, script.parameter4, 4)
     addParameterInput(layout, script.parameter5, 5)
     addParameterInput(layout, script.parameter6, 6)
-    layout.add(UIAlert("results", markdown = true, color = UIColor.LIGHT))
+    layout.add(UIAlert(id = "results", title = "scripting.script.result", markdown = true, color = UIColor.INFO))
+    script.results = "---"
     layout.add(
       UIButton(
         "back",
@@ -130,6 +141,15 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
         type = MenuItemTargetType.REDIRECT
       )
     )
+      .add(
+        MenuItem(
+          "logViewer",
+          i18nKey = "plugins.merlin.viewLogs",
+          url = PagesResolver.getDynamicPageUrl(LogViewerPageRest::class.java, id = ensureUserLogSubscription().id),
+          type = MenuItemTargetType.REDIRECT,
+        )
+      )
+
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
     return FormLayoutData(script, layout, createServerData(request), variables)
@@ -137,16 +157,11 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
 
   @PostMapping("execute")
   fun execute(@Valid @RequestBody postData: PostData<Script>): ResponseAction {
-    val variables = mutableMapOf<String, Any?>("result" to "Hurzel")
+    val variables = mutableMapOf<String, Any?>()
     val script = postData.data
-    val recentScriptCalls = userPrefService.ensureEntry(USER_PREF_AREA, USER_PREF_KEY, RecentScriptCalls())
-    var callData = recentScriptCalls.getScriptCallData("${script.id}")
-    if (callData == null) {
-      callData = ScriptCallData("${script.id}", null)
-      recentScriptCalls.append(callData)
-    }
-    callData.scriptParameter = script.getParameters()
-    callData.scriptParameter.forEach { scriptParameter ->
+
+    val parameters = script.getParameters()
+    parameters.forEach { scriptParameter ->
       if (scriptParameter.type === ScriptParameterType.TASK) {
         scriptParameter.intValue?.let { taskId ->
           TaskServicesRest.createTask(taskId)?.let { task ->
@@ -156,10 +171,130 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
         }
       }
     }
+    val result = execute(script, parameters)
+    val output = StringBuilder()
+    result.scriptLogger.messages.forEach { msg ->
+      output.appendLine("```")
+      output.appendLine(msg.message)
+      output.appendLine("```")
+    }
+    script.results = output.toString()
     return ResponseAction(targetType = TargetType.UPDATE, merge = true)
+      .addVariable("data", script)
       .addVariable("variables", variables)
   }
 
+  private fun execute(script: Script, parameters: List<ScriptParameter>): ScriptExecutionResult {
+    log.info { "Execute script '${script.name}' with params: ${parameters.filter { it.parameterName != null }.joinToString { it.asString }}" }
+
+    // Store as recent script call params:
+    val recentScriptCalls = userPrefService.ensureEntry(USER_PREF_AREA, USER_PREF_KEY, RecentScriptCalls())
+    val scriptCallData = ScriptCallData("${script.id}", parameters)
+    recentScriptCalls.append(scriptCallData)
+
+    val scriptDO = scriptDao.getById(script.id)
+    val scriptExecutionResult = scriptDao.execute(scriptDO, parameters)
+    if (scriptExecutionResult.hasException()) {
+      scriptExecutionResult.scriptLogger.error(scriptExecutionResult.exception.toString())
+      return scriptExecutionResult
+    }
+    scriptExecutionResult.result?.let { result ->
+      when (result) {
+        is ExportWorkbook -> {
+          exportExcel(result, scriptExecutionResult)
+        }
+        is ExcelWorkbook -> {
+          exportExcel(result, scriptExecutionResult)
+        }
+        is ExportJFreeChart -> {
+          exportJFreeChart(result, scriptExecutionResult)
+        }
+        is ExportZipArchive -> {
+          exportZipArchive(result, scriptExecutionResult)
+        }
+        is ExportJson -> {
+          exportJson(result, scriptExecutionResult)
+        }
+      }
+    }
+    return scriptExecutionResult
+  }
+
+  private fun exportExcel(workbook: ExportWorkbook, scriptExecutionResult: ScriptExecutionResult) {
+    val buf = StringBuffer()
+    if (workbook.filename != null) {
+      buf.append(workbook.filename).append("_")
+    } else {
+      buf.append("pf_scriptresult_")
+    }
+    buf.append(DateHelper.getTimestampAsFilenameSuffix(Date())).append(".xls")
+    val filename = buf.toString()
+    val xls = workbook.asByteArray
+    if (xls == null || xls.size == 0) {
+      scriptExecutionResult.scriptLogger.error("Oups, xls has zero size. Filename: $filename")
+      return
+    }
+    //DownloadUtils.setDownloadTarget(xls, filename)
+  }
+
+  private fun exportExcel(workbook: ExcelWorkbook, scriptExecutionResult: ScriptExecutionResult) {
+    try {
+      val buf = StringBuffer()
+      if (workbook.filename != null) {
+        buf.append(workbook.filenameWithoutExtension).append("_")
+      } else {
+        buf.append("pf_scriptresult_")
+      }
+      buf.append(DateHelper.getTimestampAsFilenameSuffix(Date())).append(".").append(workbook.filenameExtension)
+      val filename = buf.toString()
+      val xls = workbook.asByteArrayOutputStream.toByteArray()
+      if (xls == null || xls.size == 0) {
+        scriptExecutionResult.scriptLogger.error("Oups, xls has zero size. Filename: $filename")
+        return
+      }
+      //DownloadUtils.setDownloadTarget(xls, filename)
+    } finally {
+      workbook.close()
+    }
+  }
+
+  private fun exportJFreeChart(exportJFreeChart: ExportJFreeChart, scriptExecutionResult: ScriptExecutionResult) {
+    val sb = StringBuilder()
+    sb.append("pf_chart_")
+    sb.append(DateHelper.getTimestampAsFilenameSuffix(Date()))
+    val out = ByteArrayOutputStream()
+    val extension = exportJFreeChart.write(out)
+    sb.append('.').append(extension)
+    //DownloadUtils.setDownloadTarget(out.toByteArray(), sb.toString())
+  }
+
+  private fun exportZipArchive(exportZipArchive: ExportZipArchive, scriptExecutionResult: ScriptExecutionResult) {
+    try {
+      val filename = "${exportZipArchive.filename}_${DateHelper.getTimestampAsFilenameSuffix(Date())}.zip"
+      val file = File(filename)
+      file.outputStream().use { out ->
+        exportZipArchive.write(out)
+      }
+      log.info { "File ${file.absolutePath} written." }
+      //DownloadUtils.setDownloadTarget(filename, ScriptingHelper.createResourceStreamWriter(exportZipArchive))
+    } catch (ex: Exception) {
+      scriptExecutionResult.scriptLogger.error(ex.message)
+      log.error(ex.message, ex)
+    }
+  }
+
+  private fun exportJson(exportJson: ExportJson, scriptExecutionResult: ScriptExecutionResult) {
+    /*try {
+      val sb = StringBuilder()
+      sb.append(exportJson.jsonName).append("_")
+      sb.append(DateHelper.getTimestampAsFilenameSuffix(Date())).append(".json")
+      val filename = sb.toString()
+      DownloadUtils.setDownloadTarget(filename, ScriptingHelper.createResourceStreamWriter(exportJson))
+    } catch (ex: java.lang.Exception) {
+      error(getLocalizedMessage("error", ex.message))
+      log.error(ex.message, ex)
+    }*/
+  }
 
   private fun addParameterInput(layout: UILayout, parameter: Script.Param?, index: Int) {
     parameter?.type ?: return
@@ -206,6 +341,21 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
         ScriptParameterType.DATE -> UIInput("parameter$index.dateValue", label = label, dataType = UIDataType.DATE)
       }
     )
+  }
+
+  private fun ensureUserLogSubscription(): LogSubscription {
+    val username = ThreadLocalUserContext.getUser().username ?: throw InternalError("User not given")
+    return LogSubscription.ensureSubscription(
+      title = "Scripting",
+      user = username,
+      create = { title, user ->
+        LogSubscription(
+          title,
+          user,
+          LogEventLoggerNameMatcher("org.projectforge.rest.scripting", "org.projectforge.business.scripting"),
+          maxSize = 10000,
+        )
+      })
   }
 
   private val USER_PREF_AREA = "ScriptExecution:"

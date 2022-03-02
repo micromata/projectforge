@@ -45,8 +45,8 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.web.export.ExportJson;
-import org.projectforge.web.export.ExportZipArchive;
+import org.projectforge.business.scripting.ExportJson;
+import org.projectforge.business.scripting.ExportZipArchive;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractListPage;
@@ -248,7 +248,7 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
       sb.append(exportZipArchive.getFilename()).append("_");
       sb.append(DateHelper.getTimestampAsFilenameSuffix(new Date())).append(".zip");
       final String filename = sb.toString();
-      DownloadUtils.setDownloadTarget(filename, exportZipArchive.createResourceStreamWriter());
+      DownloadUtils.setDownloadTarget(filename, ScriptingHelper.createResourceStreamWriter(exportZipArchive));
     } catch (final Exception ex) {
       error(getLocalizedMessage("error", ex.getMessage()));
       log.error(ex.getMessage(), ex);

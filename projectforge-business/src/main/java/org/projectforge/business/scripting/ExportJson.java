@@ -21,25 +21,33 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.ui
+package org.projectforge.business.scripting;
 
 /**
- * For displaying message boxes.
+ * @author Johannes Unterstein (j.unterstein@micromata.de)
  */
-data class UIAlert(
-        /**
-         * message to display (static). For non static messages, please use id instead.
-         */
-        var message: String? = null,
-        var title: String? = null,
-        /**
-         * If given, the message will get of the data (field message is then ignored).
-         */
-        var id: String? = null,
-        val color: UIColor? = null,
-        /**
-         * If true, the client should preprocess the message as markdown content.
-         */
-        val markdown: Boolean? = null,
-        val icon: UIIconType? = null)
-        : UIElement(UIElementType.ALERT)
+public class ExportJson {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportJson.class);
+
+  private String jsonName;
+
+  private Object result;
+
+  public ExportJson(final Object result) {
+    this.jsonName = "output";
+    this.result = result;
+  }
+
+  public ExportJson(final String jsonName, final Object result) {
+    this.jsonName = jsonName;
+    this.result = result;
+  }
+
+  public String getJsonName() {
+    return jsonName;
+  }
+
+  public Object getResult() {
+    return result;
+  }
+}

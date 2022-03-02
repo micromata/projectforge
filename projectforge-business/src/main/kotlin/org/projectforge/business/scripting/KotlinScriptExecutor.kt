@@ -49,11 +49,12 @@ object KotlinScriptExecutor {
     "import org.projectforge.business.fibu.*",
     "import org.projectforge.business.task.*",
     "import org.projectforge.business.timesheet.*",
+    "import org.projectforge.business.scripting.ExportZipArchive",
+    "import org.projectforge.business.scripting.ExportJson",
     "import org.projectforge.business.scripting.ScriptDO",
     "import org.projectforge.business.scripting.ScriptingDao",
     "import org.projectforge.common.*",
     "import org.projectforge.excel.ExcelUtils",
-    "import org.projectforge.web.export.ExportZipArchive",
     )
 
   /**
@@ -82,15 +83,15 @@ object KotlinScriptExecutor {
     sb.appendLine(autoImports.joinToString("\n"))
     sb.append(script)
     val effectiveScript = sb.toString()
+    val result = ScriptExecutionResult(ScriptDao.getScriptLogger(variables))
     try {
-      val result = ScriptExecutionResult()
       result.script = effectiveScript
       result.result = engine.eval(effectiveScript, bindings)
-      return result
     } catch (ex: Exception) {
       log.info("Exception on Kotlin script execution: ${ex.message}", ex)
-      return ScriptExecutionResult(ex)
+      result.exception = ex
     }
+    return result
   }
 }
 
