@@ -177,8 +177,7 @@ public class GroovyExecutor
     }
     if (bindScriptResult) {
       final Binding binding = groovyObject.getBinding();
-      final ScriptExecutionResult scriptResult = new ScriptExecutionResult(ScriptDao.getScriptLogger(binding.getVariables()));
-      binding.setVariable("scriptResult", scriptResult);
+      binding.setVariable("scriptResult", result);
     }
     return groovyObject;
   }
