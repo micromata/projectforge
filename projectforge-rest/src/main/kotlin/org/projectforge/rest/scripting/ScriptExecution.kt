@@ -223,9 +223,9 @@ class ScriptExecution {
   internal fun createDownloadFilename(filename: String?, extension: String): String {
     val suffix = "${DateHelper.getTimestampAsFilenameSuffix(Date())}.$extension"
     return if (filename.isNullOrBlank()) {
-      "${filename}_$suffix"
-    } else {
       "pf_scriptresult_$suffix"
+    } else {
+      "${filename}_$suffix"
     }
   }
 
