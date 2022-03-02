@@ -31,6 +31,7 @@ import org.projectforge.business.scripting.xstream.RecentScriptCalls
 import org.projectforge.business.scripting.xstream.ScriptCallData
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
+import org.projectforge.common.logging.LogLevel
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.export.ExportJFreeChart
 import org.projectforge.framework.i18n.translate
@@ -106,8 +107,6 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
     addParameterInput(layout, script.parameter4, 4)
     addParameterInput(layout, script.parameter5, 5)
     addParameterInput(layout, script.parameter6, 6)
-    layout.add(UIAlert(id = "results", title = "scripting.script.result", markdown = true, color = UIColor.INFO))
-    script.results = "---"
     layout.add(
       UIButton(
         "back",
@@ -132,6 +131,9 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
         default = true
       )
     )
+
+    layout.add(UIAlert(id = "results", title = "scripting.script.result", markdown = true, color = UIColor.INFO))
+    script.results = "---"
 
     layout.add(
       MenuItem(
@@ -173,10 +175,25 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
     }
     val result = execute(script, parameters)
     val output = StringBuilder()
+    result.exception?.let { ex ->
+      output.appendLine("---") // Horizontal rule
+      output.appendLine("${ex::class.java.name}:")
+      output.appendLine("```") // Code
+      output.appendLine(ex.message)
+      output.appendLine("```") // Code
+    }
     result.scriptLogger.messages.forEach { msg ->
-      output.appendLine("```")
-      output.appendLine(msg.message)
-      output.appendLine("```")
+      if (msg.level == LogLevel.ERROR) {
+        msg.message?.lines()?.forEach { line ->
+          if (line.isNotBlank()) {
+            output.appendLine("** ${line}")
+            output.appendLine()
+          }
+        }
+      } else {
+        output.appendLine(msg.message)
+        output.appendLine()
+      }
     }
     script.results = output.toString()
     return ResponseAction(targetType = TargetType.UPDATE, merge = true)
@@ -185,7 +202,11 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
   }
 
   private fun execute(script: Script, parameters: List<ScriptParameter>): ScriptExecutionResult {
-    log.info { "Execute script '${script.name}' with params: ${parameters.filter { it.parameterName != null }.joinToString { it.asString }}" }
+    log.info {
+      "Execute script '${script.name}' with params: ${
+        parameters.filter { it.parameterName != null }.joinToString { it.asString }
+      }"
+    }
 
     // Store as recent script call params:
     val recentScriptCalls = userPrefService.ensureEntry(USER_PREF_AREA, USER_PREF_KEY, RecentScriptCalls())
@@ -278,7 +299,7 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
       log.info { "File ${file.absolutePath} written." }
       //DownloadUtils.setDownloadTarget(filename, ScriptingHelper.createResourceStreamWriter(exportZipArchive))
     } catch (ex: Exception) {
-      scriptExecutionResult.scriptLogger.error(ex.message)
+      scriptExecutionResult.exception = ex
       log.error(ex.message, ex)
     }
   }

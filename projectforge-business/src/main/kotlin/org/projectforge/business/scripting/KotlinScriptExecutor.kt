@@ -55,7 +55,7 @@ object KotlinScriptExecutor {
     "import org.projectforge.business.scripting.ScriptingDao",
     "import org.projectforge.common.*",
     "import org.projectforge.excel.ExcelUtils",
-    )
+  )
 
   /**
    * @param script Common imports will be prepended.
@@ -80,8 +80,40 @@ object KotlinScriptExecutor {
       bindings["filename"] = filename
     }
     val sb = StringBuilder()
-    sb.appendLine(autoImports.joinToString("\n"))
-    sb.append(script)
+    var importBlock = true
+    script.lines().forEach { line ->
+      if (importBlock) {
+        if (line.startsWith("import ") || line.isBlank() || line.startsWith("//")) {
+          // Inside import block
+          sb.appendLine(line)
+        } else {
+          importBlock = false // End of import block.
+          sb.appendLine("// Auto generated imports:")
+          sb.appendLine(autoImports.joinToString("\n"))
+          sb.appendLine()
+          sb.appendLine("// Auto generated bindings:")
+          // Prepend bindings now before proceeding
+          variables.forEach { name, value ->
+            if (name.isNotBlank() && value != null) {
+              val clazz = value::class.java
+              val clsName =  if (bindingsClassReplacements.containsKey(clazz.name)) {
+                bindingsClassReplacements[clazz.name]
+              } else if (value is ScriptingDao<*>) {
+                "ScriptingDao<${value.doClass.name}>"
+              } else {
+                clazz.name
+              }
+              sb.appendLine("val $name = bindings[\"$name\"] as $clsName")
+            }
+          }
+          sb.appendLine()
+          sb.appendLine()
+        }
+      }
+      if (!importBlock) { // Don't use else! (see importBlock = false)
+        sb.appendLine(line)
+      }
+    }
     val effectiveScript = sb.toString()
     val result = ScriptExecutionResult(ScriptDao.getScriptLogger(variables))
     try {
@@ -93,6 +125,11 @@ object KotlinScriptExecutor {
     }
     return result
   }
+
+  private val bindingsClassReplacements = mapOf(
+    "java.lang.String" to "String",
+    "java.lang.Integer" to "Int",
+  )
 }
 
 fun main() {
