@@ -33,10 +33,9 @@ import kotlin.concurrent.timer
  * in the user's session and the session terminates after several hours.
  */
 object ExpiringSessionAttributes {
-  /** Store all session attributes for deleting content after expire time. Key is the index
-   * of the ExpirintAttribute. */
-  private val attributesMap = mutableMapOf<Long, ExpiringAttribute>()
-  private var counter = 0L
+  /** Store all session attributes for deleting content after expire time. Key SSESSION_ID and the name
+   * of the ExpiringAttribute. */
+  private val attributesMap = mutableMapOf<String, ExpiringAttribute>()
 
   init {
     timer("ExpiringSessionAttributesTime", period = 60000) {
@@ -52,7 +51,7 @@ object ExpiringSessionAttributes {
     val attribute = ExpiringAttribute(System.currentTimeMillis(), value, ttlMinutes)
     session.setAttribute(name, attribute)
     synchronized(attributesMap) {
-      attributesMap[attribute.index] = attribute
+      attributesMap[getMapKey(session, name)] = attribute
     }
   }
 
@@ -85,31 +84,37 @@ object ExpiringSessionAttributes {
     val value = getAttribute(session, name) ?: return
     if (value is ExpiringAttribute) {
       synchronized(attributesMap) {
-        attributesMap.remove(value.index)
+        attributesMap.remove(getMapKey(session, name))
       }
     }
     session.removeAttribute(name)
   }
 
+  /**
+   * Tidy up expired session attributes. Will be called on each user's session access.
+   */
   private fun checkSession(session: HttpSession) {
     val current = System.currentTimeMillis()
-    session.attributeNames.iterator().forEach {
-      val value = session.getAttribute(it)
+    session.attributeNames.iterator().forEach { name ->
+      val value = session.getAttribute(name)
       if (value is ExpiringAttribute) {
         if (current - value.timestamp > value.ttlMillis) {
           synchronized(attributesMap) {
-            attributesMap.remove(value.index)
+            attributesMap.remove(getMapKey(session, name))
           }
-          session.removeAttribute(it)
+          session.removeAttribute(name)
         }
       }
     }
   }
 
+  /**
+   * Interval check: Set values of expired session attributes to null for saving memory.
+   */
   private fun check() {
     val current = System.currentTimeMillis()
     synchronized(attributesMap) {
-      val attributesToRemove = mutableListOf<Long>()
+      val attributesToRemove = mutableListOf<String>()
       attributesMap.forEach {
         val attribute = it.value
         if (current - attribute.timestamp > attribute.ttlMillis) {
@@ -123,8 +128,11 @@ object ExpiringSessionAttributes {
     }
   }
 
+  private fun getMapKey(session: HttpSession, name: String): String {
+    return "${session.id}.$name"
+  }
+
   private class ExpiringAttribute(val timestamp: Long, var value: Any?, ttlMinutes: Int) {
     val ttlMillis = ttlMinutes * 60000
-    val index = ++counter
   }
 }
