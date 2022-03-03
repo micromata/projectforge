@@ -103,9 +103,9 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     return ScriptDO()
   }
 
-  open fun execute(script: ScriptDO, parameters: List<ScriptParameter>?): ScriptExecutionResult {
+  open fun execute(script: ScriptDO, parameters: List<ScriptParameter>?, variables: Map<String, Any>): ScriptExecutionResult {
     hasLoggedInUserSelectAccess(script, true)
-    val scriptVariables = getScriptVariables(script, parameters)
+    val scriptVariables = getScriptVariables(script, parameters, variables)
     var scriptContent = script.scriptAsString ?: ""
     if (script.type === ScriptDO.ScriptType.KOTLIN) {
       return execute(scriptContent, scriptVariables, script.file, script.filename, script.getParameterList())
@@ -124,7 +124,7 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     )
   }
 
-  open fun getScriptVariableNames(script: ScriptDO): List<String> {
+  open fun getScriptVariableNames(script: ScriptDO, additionalVariables: List<String>): List<String> {
     val scriptVariables = getScriptVariables(script, null)
     val result = mutableListOf<String>()
     scriptVariables.forEach { variable ->
@@ -145,11 +145,17 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     script.parameter4Name?.let { result.add(it) }
     script.parameter5Name?.let { result.add(it) }
     script.parameter6Name?.let { result.add(it) }
+    additionalVariables.let {
+      result.addAll(it)
+    }
     return result.filter { it.isNotBlank() }.sortedBy { it.lowercase() }
   }
 
-  open fun getScriptVariables(script: ScriptDO, parameters: List<ScriptParameter>?): Map<String, Any?> {
+  open fun getScriptVariables(script: ScriptDO, parameters: List<ScriptParameter>?, variables: Map<String, Any>? = null): Map<String, Any?> {
     val scriptVariables = mutableMapOf<String, Any?>()
+    variables?.let {
+      scriptVariables.putAll(it)
+    }
     addScriptVariables(scriptVariables)
     scriptVariables["reportList"] = ReportGeneratorList()
     parameters?.filter { it.parameterName != null && it.value != null }?.forEach { param ->

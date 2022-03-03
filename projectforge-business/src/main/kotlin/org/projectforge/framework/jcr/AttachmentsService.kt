@@ -265,6 +265,7 @@ open class AttachmentsService {
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null,
     password: String? = null,
+    allowDuplicateFiles: Boolean = false,
   )
       : Attachment {
     return addAttachment(
@@ -275,7 +276,8 @@ open class AttachmentsService {
       obj,
       accessChecker,
       subPath = subPath,
-      password = password
+      password = password,
+      allowDuplicateFiles = allowDuplicateFiles,
     )
   }
 

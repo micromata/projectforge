@@ -37,8 +37,6 @@ import org.projectforge.web.humanresources.HRPlanningListPage;
 import org.projectforge.web.meb.MebListPage;
 import org.projectforge.web.orga.ContractListPage;
 import org.projectforge.web.orga.VisitorbookListPage;
-import org.projectforge.web.scripting.ScriptListPage;
-import org.projectforge.web.scripting.ScriptingPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
 import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
@@ -108,8 +106,6 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.COST1_LIST, Kost1ListPage.class);
     register(MenuItemDefId.COST2_LIST, Kost2ListPage.class);
     register(MenuItemDefId.COST2_TYPE_LIST, Kost2ArtListPage.class);
-    register(MenuItemDefId.SCRIPT_LIST, ScriptListPage.class);
-    register(MenuItemDefId.SCRIPTING, ScriptingPage.class);
     register(MenuItemDefId.REPORT_OBJECTIVES, ReportObjectivesPage.class);
     register(MenuItemDefId.ACCOUNTING_RECORD_LIST, AccountingRecordListPage.class);
     register(MenuItemDefId.DATEV_IMPORT, DatevImportPage.class);

@@ -393,12 +393,6 @@ open class MenuCreator {
       )
       .add(
         MenuItemDef(
-          MenuItemDefId.SCRIPTING,
-          requiredGroups = arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
-        )
-      )
-      .add(
-        MenuItemDef(
           MenuItemDefId.REPORT_OBJECTIVES,
           requiredGroups = arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
         )

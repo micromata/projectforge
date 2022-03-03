@@ -106,29 +106,6 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
     addParameterInput(layout, script.parameter4, 4)
     addParameterInput(layout, script.parameter5, 5)
     addParameterInput(layout, script.parameter6, 6)
-    scriptExecution.getDownloadFile(request)?.let { download ->
-      script.downloadFilename = download.filename
-      script.downloadFileSize = download.sizeHumanReadable
-      val availableUntil = translateMsg("scripting.download.filename.additional", download.availableUntil)
-      layout.add(
-        UIReadOnlyField(
-          "downloadFilename",
-          label = "attachment.fileName",
-          additionalLabel = "'$availableUntil",
-          tooltip = "scripting.download.filename.info",
-        )
-      )
-        .add(
-          UIButton(
-            id = "download", translate("download"),
-            UIColor.SECONDARY,
-            responseAction = ResponseAction(
-              url = "${getRestPath()}/download",
-              targetType = TargetType.DOWNLOAD
-            )
-          )
-        )
-    }
     layout.add(
       UIButton(
         "back",
@@ -159,6 +136,32 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
 
     if (!executionResults.isNullOrBlank()) {
       layout.add(UIAlert(executionResults, title = "scripting.script.result", markdown = true, color = UIColor.INFO))
+    }
+
+    scriptExecution.getDownloadFile(request)?.let { download ->
+      script.scriptDownload = Script.ScriptDownload(download.filename, download.sizeHumanReadable)
+      val availableUntil = translateMsg("scripting.download.filename.additional", download.availableUntil)
+      layout.add(
+        UIRow().add(
+          UIFieldset(title = "scripting.download.filename.info").add(
+            UIReadOnlyField(
+              "scriptDownload.filenameAndSize",
+              label = "scripting.download.filename",
+              additionalLabel = "'$availableUntil",
+            )
+          )
+            .add(
+              UIButton(
+                id = "download", translate("download"),
+                UIColor.SECONDARY,
+                responseAction = ResponseAction(
+                  url = "${getRestPath()}/download",
+                  targetType = TargetType.DOWNLOAD
+                )
+              )
+            )
+        )
+      )
     }
 
     layout.add(

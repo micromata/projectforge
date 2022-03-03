@@ -89,8 +89,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     PROJECT_LIST("menu.fibu.projekte", "wa/projectList"), //
     REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "wa/reportObjectives"), //
     SEND_SMS("menu.sendSms", "wa/sendSms"), //
-    SCRIPT_LIST("menu.scriptList", "wa/scriptList"), //
-    SCRIPTING("menu.scripting", "wa/scripting"), //
+    SCRIPT_LIST("menu.scriptList", getReactListUrl("script")), //
     SEARCH("menu.search", "wa/search"), //
     TASK_TREE("menu.taskTree", "wa/taskTree"), //
     TIMESHEET_LIST("menu.timesheetList", "wa/timesheetList"), //

@@ -18,6 +18,15 @@ But there are some really small changes e. g. in config files etc. which have to
 
 ====
 
+=== Version 7.2.1
+
+. Scripting
+.. The scripting functionality is fully migrated to React. Multiple attachmentes are now supported. Therefore the files
+has to be addressed via ``files.file` instead of `file` (Kotlin) or `script.file` (Groovy) or by `files.getFile("abcdef.xlsx")`.
+Also filenames will be accessible via 'files.filename' instead of `filename' (Kotlin) or `script.filename`. All bindings
+will be done automatically for the Kotlin script (of not already there). Multiple imports will be prevented by auto-inserting of
+imports (and bindings).
+
 === Version 6.x to version 7
 
 . Configurationparameters changed
