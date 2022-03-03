@@ -28,24 +28,23 @@ import mu.KotlinLogging
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptDao
 import org.projectforge.business.scripting.ScriptParameterType
-import org.projectforge.framework.time.DateHelper
+import org.projectforge.jcr.FileInfo
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
-import org.projectforge.rest.AddressServicesRest
-import org.projectforge.rest.MessageType
-import org.projectforge.rest.ResponseData
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Script
 import org.projectforge.ui.*
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
-import java.io.StringWriter
-import java.util.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import javax.annotation.PostConstruct
+import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -80,7 +79,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     val script = Script()
     script.filename = obj.filename
     script.copyFrom(obj)
-    script.availableVariables = baseDao.getScriptVariableNames(obj).joinToString()
+    script.availableVariables = baseDao.getScriptVariableNames(obj, listOf("files")).joinToString()
     script.script = obj.scriptAsString
     return script
   }
@@ -169,6 +168,21 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     val scriptDO = baseDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
     val filename = ReplaceUtils.encodeFilename("${scriptDO.name}-backup.${baseDao.getScriptSuffix(scriptDO)}")
     return RestUtils.downloadFile(filename, scriptDO.scriptBackupAsString ?: "")
+  }
+
+  override fun onBeforeUpdate(request: HttpServletRequest, obj: ScriptDO, postData: PostData<Script>) {
+    super.onBeforeUpdate(request, obj, postData)
+    if (!obj.filename.isNullOrBlank()) {
+      obj.file?.let { bytes ->
+        // Migration of field script.file to DataTransfer
+        val fileInfo = FileInfo(obj.filename, fileSize = bytes.size.toLong())
+        attachmentsService.addAttachment(
+          jcrPath!!, fileInfo, bytes, baseDao, obj, attachmentsAccessChecker, allowDuplicateFiles = true
+        )
+        obj.file = null
+        obj.filename = null
+      }
+    }
   }
 
   private fun createParameterRow(number: Int): UIRow {

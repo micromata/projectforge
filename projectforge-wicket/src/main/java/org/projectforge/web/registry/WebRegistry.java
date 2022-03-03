@@ -46,10 +46,6 @@ import org.projectforge.web.humanresources.HRPlanningListPage;
 import org.projectforge.web.meb.MebEditPage;
 import org.projectforge.web.meb.MebListPage;
 import org.projectforge.web.orga.*;
-import org.projectforge.web.scripting.ScriptEditPage;
-import org.projectforge.web.scripting.ScriptExecutePage;
-import org.projectforge.web.scripting.ScriptListPage;
-import org.projectforge.web.scripting.ScriptingPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskListPage;
@@ -299,7 +295,6 @@ public class WebRegistry
     addMountPages(DaoConst.GANTT, GanttChartListPage.class, GanttChartEditPage.class);
     addMountPages(DaoConst.HR_PLANNING, HRPlanningListPage.class, HRPlanningEditPage.class);
     addMountPage(DaoConst.HR_LIST, HRListPage.class);
-    addMountPages(DaoConst.SCRIPT, ScriptListPage.class, ScriptEditPage.class);
     addMountPages(DaoConst.USER_PREF, UserPrefListPage.class, UserPrefEditPage.class);
 
     addMountPage("admin", AdminPage.class);
@@ -312,8 +307,6 @@ public class WebRegistry
     addMountPage("personalStatistics", PersonalStatisticsPage.class);
     addMountPage("phoneCall", PhoneCallPage.class);
     addMountPage("reportObjectives", ReportObjectivesPage.class);
-    addMountPage("scriptExecute", ScriptExecutePage.class);
-    addMountPage("scripting", ScriptingPage.class);
     addMountPage("search", SearchPage.class);
     addMountPage("sendSms", SendSmsPage.class);
     addMountPage("setup", SetupPage.class);

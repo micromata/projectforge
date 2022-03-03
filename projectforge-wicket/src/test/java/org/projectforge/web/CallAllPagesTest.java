@@ -31,8 +31,6 @@ import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.registry.WebRegistry;
-import org.projectforge.web.scripting.ScriptExecutePage;
-import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketPageTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -53,7 +51,7 @@ public class CallAllPagesTest extends WicketPageTestBase
   @SuppressWarnings("unchecked")
   private final Class<? extends WebPage>[] skipPages = new Class[] { //
       // Not yet checked:
-      ScriptExecutePage.class };
+  };
 
   @Override
   protected void afterAll() {
