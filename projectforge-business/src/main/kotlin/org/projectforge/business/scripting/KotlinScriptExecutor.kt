@@ -47,6 +47,7 @@ object KotlinScriptExecutor {
     "import org.projectforge.framework.time.*",
     "import org.projectforge.framework.utils.*",
     "import org.projectforge.business.fibu.*",
+    "import org.projectforge.business.fibu.kost.*",
     "import org.projectforge.business.task.*",
     "import org.projectforge.business.timesheet.*",
     "import org.projectforge.business.scripting.ExportZipArchive",
@@ -165,10 +166,7 @@ object KotlinScriptExecutor {
     } else {
       clazz.name
     }
-    bindingsEntries.add("val $name = bindings[\"$name\"] as $clsName$nullable")
-    if (name[0].isUpperCase()) {
-      bindingsEntries.add("val ${name.replaceFirstChar { it.lowercase() }} = $name // Set alias")
-    }
+    bindingsEntries.add("val ${name.replaceFirstChar { it.lowercase() }} = bindings[\"$name\"] as $clsName$nullable")
   }
 }
 
