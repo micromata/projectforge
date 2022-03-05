@@ -35,6 +35,9 @@ object KotlinScriptExecutor {
     "import java.math.BigDecimal",
     "import java.math.RoundingMode",
     "import java.time.format.DateTimeFormatter",
+    "import java.time.LocalDate",
+    "import java.time.Month",
+    "import org.apache.poi.ss.usermodel.IndexedColors",
     "import de.micromata.merlin.I18n",
     "import de.micromata.merlin.excel.ExcelCell",
     "import de.micromata.merlin.excel.ExcelRow",
@@ -54,10 +57,16 @@ object KotlinScriptExecutor {
     "import org.projectforge.business.scripting.ExportJson",
     "import org.projectforge.business.scripting.ScriptDO",
     "import org.projectforge.business.scripting.ScriptingDao",
+    "import org.projectforge.business.scripting.support.*",
     "import org.projectforge.common.*",
     "import org.projectforge.excel.ExcelUtils",
   )
-
+/*
+  import org.projectforge.business.fibu.kost.*
+  import org.projectforge.framework.utils.NumberFormatter
+  import java.math.BigDecimal
+  import java.math.RoundingMode
+*/
   /**
    * @param script Common imports will be prepended.
    * @param variables Variables to bind. Variables are usable via binding["key"] or directly, if #autobind# is part of script.
