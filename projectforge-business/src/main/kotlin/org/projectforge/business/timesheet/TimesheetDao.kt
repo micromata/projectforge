@@ -35,14 +35,15 @@ import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserDao
+import org.projectforge.common.i18n.MessageParam
+import org.projectforge.common.i18n.UserException
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.common.task.TimesheetBookingStatus
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.Configuration
-import org.projectforge.common.i18n.MessageParam
-import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -68,6 +69,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import java.util.*
+import javax.annotation.PostConstruct
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -82,6 +84,25 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
   @Autowired
   private lateinit var taskTree: TaskTree
+
+  /**
+   * Return list of configured tags including any already given tag in time sheet.
+   */
+  @JvmOverloads
+  fun getTags(currentTag: String? = null): List<String>? {
+    val tags = Configuration.instance.getStringValue(ConfigurationParam.TIMESHEET_TAGS)?.split(";")
+    if (currentTag.isNullOrBlank()) {
+      return tags
+    }
+    if (tags.isNullOrEmpty()) {
+      return listOf(currentTag)
+    }
+    return if (tags.contains(currentTag)) {
+      tags
+    } else {
+      tags + currentTag
+    }
+  }
 
   open fun showTimesheetsOfOtherUsers(): Boolean {
     return accessChecker.isLoggedInUserMemberOfGroup(

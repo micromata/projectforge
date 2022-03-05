@@ -174,6 +174,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       }
       sheet.location = recentEntry.location
       sheet.reference = recentEntry.reference
+      sheet.tag = recentEntry.tag
       sheet.description = recentEntry.description
       if (sheet.user == null && recentEntry.userId != null) {
         sheet.user = User.getUser(recentEntry.userId)
@@ -245,21 +246,24 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
    */
   override fun createListLayout(): UILayout {
     lc.idPrefix = "timesheet."
+    val table = UITable.createUIResultSetTable()
+      .add(lc, "user")
+      .add(UITableColumn("timesheet.kost2.project.customer", "fibu.kunde", formatter = Formatter.CUSTOMER))
+      .add(UITableColumn("timesheet.kost2.project", "fibu.projekt", formatter = Formatter.PROJECT))
+      .add(lc, "task")
+      .add(UITableColumn("timesheet.kost2", "fibu.kost2", formatter = Formatter.COST2))
+      .add(UITableColumn("weekOfYear", "calendar.weekOfYearShortLabel"))
+      .add(UITableColumn("dayName", "calendar.dayOfWeekShortLabel"))
+      .add(UITableColumn("timePeriod", "timePeriod"))
+      .add(UITableColumn("duration", "timesheet.duration"))
+      .add(lc, "location", "reference")
+    if (!baseDao.getTags().isNullOrEmpty()) {
+      table.add(lc, "tag")
+    }
+    table.add(lc, "description")
     val layout = super.createListLayout()
       .add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
-      .add(
-        UITable.createUIResultSetTable()
-          .add(lc, "user")
-          .add(UITableColumn("timesheet.kost2.project.customer", "fibu.kunde", formatter = Formatter.CUSTOMER))
-          .add(UITableColumn("timesheet.kost2.project", "fibu.projekt", formatter = Formatter.PROJECT))
-          .add(lc, "task")
-          .add(UITableColumn("timesheet.kost2", "fibu.kost2", formatter = Formatter.COST2))
-          .add(UITableColumn("weekOfYear", "calendar.weekOfYearShortLabel"))
-          .add(UITableColumn("dayName", "calendar.dayOfWeekShortLabel"))
-          .add(UITableColumn("timePeriod", "timePeriod"))
-          .add(UITableColumn("duration", "timesheet.duration"))
-          .add(lc, "location", "reference", "description")
-      )
+      .add(table)
     layout.getTableColumnById("timesheet.user").formatter = Formatter.USER
     layout.getTableColumnById("timesheet.task").formatter = Formatter.TASK_PATH
     return LayoutUtils.processListPage(layout, this)
@@ -286,8 +290,14 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       .add(dayRange)
       .add(UICustomized("task.consumption"))
       .add(UIInput("location", lc).enableAutoCompletion(this))
-      .add(referenceField)
-      .add(descriptionArea)
+    val tags = timesheetDao.getTags(dto.tag)
+    val row = UIRow()
+    layout.add(row)
+    if (!tags.isNullOrEmpty()) {
+      row.add(UICol(md = 6).add(UISelect("tag", lc, required = false, values = tags.map { UISelectValue(it, it) })))
+    }
+    row.add(UICol(md = 6).add(referenceField))
+    layout.add(descriptionArea)
     JiraSupport.createJiraElement(dto.description, descriptionArea)?.let { layout.add(UIRow().add(UICol().add(it))) }
     Favorites.addTranslations(layout.translations)
     layout.addAction(
@@ -309,6 +319,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       "timesheet.location",
       "timesheet.reference",
       "timesheet.recent",
+      "timesheet.tag",
       "until"
     )
     return LayoutUtils.processEditPage(layout, dto, this)
@@ -324,6 +335,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     val timesheets = recentTimesheets.map {
       val ts = Timesheet()
       ts.location = it.location
+      ts.tag = it.tag
       ts.reference = it.reference
       ts.description = it.description
       val task = taskTree.getTaskById(it.taskId)

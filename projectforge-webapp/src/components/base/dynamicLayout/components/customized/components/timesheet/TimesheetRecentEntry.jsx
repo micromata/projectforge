@@ -8,6 +8,8 @@ const filterRecent = (
         kost2,
         task,
         location,
+        tag,
+        reference,
         description,
     },
 ) => {
@@ -17,7 +19,7 @@ const filterRecent = (
     const projektName = projekt ? projekt.name : '';
     const kundeName = kunde ? kunde.name : '';
     const taskTitle = task ? task.title : '';
-    const str = `${taskTitle}|${kost2Number}|${projektName}|${kundeName}|${location}|${description}`.toLocaleLowerCase();
+    const str = `${taskTitle}|${kost2Number}|${projektName}|${kundeName}|${location}|${tag}|${reference}|${description}`.toLocaleLowerCase();
     return str.includes(search.toLocaleLowerCase());
 };
 
@@ -33,6 +35,8 @@ function TimesheetRecentEntry(
         kost2,
         task,
         location,
+        tag,
+        reference,
         description,
     } = recent;
 
@@ -71,6 +75,8 @@ function TimesheetRecentEntry(
             )}
             <td>{task ? task.title : ''}</td>
             <td>{location || ''}</td>
+            <td>{tag || ''}</td>
+            <td>{reference || ''}</td>
             <td>{description || ''}</td>
         </tr>
     );
@@ -88,6 +94,8 @@ TimesheetRecentEntry.propTypes = {
             title: PropTypes.string,
         }),
         location: PropTypes.string,
+        tag: PropTypes.string,
+        reference: PropTypes.string,
         description: PropTypes.string,
     }).isRequired,
     cost2Visible: PropTypes.bool,

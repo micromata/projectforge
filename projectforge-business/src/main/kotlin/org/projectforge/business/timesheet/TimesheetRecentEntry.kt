@@ -45,6 +45,8 @@ constructor(
         @XStreamAsAttribute
         var reference: String? = null,
         @XStreamAsAttribute
+        var tag: String? = null,
+        @XStreamAsAttribute
         var description: String? = null) {
 
     constructor(timesheet: TimesheetDO) : this(
@@ -53,5 +55,6 @@ constructor(
             kost2Id = timesheet.kost2Id,
             location = timesheet.location,
             reference = timesheet.reference,
+            tag = timesheet.tag,
             description = timesheet.description)
 }

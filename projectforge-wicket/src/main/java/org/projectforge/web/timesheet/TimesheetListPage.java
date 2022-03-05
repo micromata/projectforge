@@ -63,6 +63,7 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.framework.utils.MyBeanComparator;
 import org.projectforge.jira.JiraUtils;
+import org.projectforge.registry.Registry;
 import org.projectforge.renderer.custom.Formatter;
 import org.projectforge.renderer.custom.FormatterFactory;
 import org.projectforge.web.task.TaskPropertyColumn;
@@ -452,6 +453,11 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("timesheet.reference"),
         getSortable("reference", sortable),
         "reference", cellItemListener));
+    if (!CollectionUtils.isEmpty(Registry.getInstance().getDao(TimesheetDao.class).getTags())) {
+      columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("timesheet.tag"),
+          getSortable("tag", sortable),
+          "tag", cellItemListener));
+    }
     return columns;
   }
 

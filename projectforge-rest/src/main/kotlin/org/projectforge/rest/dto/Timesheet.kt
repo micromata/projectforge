@@ -31,6 +31,7 @@ import java.util.*
 class Timesheet(var task: Task? = null,
                 var location: String? = null,
                 var reference: String? = null,
+                var tag: String? = null,
                 var description: String? = null,
                 var user: User? = null,
                 var kost2: Kost2? = null,
