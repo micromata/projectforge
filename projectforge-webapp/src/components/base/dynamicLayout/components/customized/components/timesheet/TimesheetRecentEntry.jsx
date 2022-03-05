@@ -27,7 +27,6 @@ function TimesheetRecentEntry(
     {
         callback,
         cost2Visible,
-        data,
         recent,
     },
 ) {
@@ -50,7 +49,6 @@ function TimesheetRecentEntry(
                 Accept: 'application/json',
             },
             body: JSON.stringify({
-                ...data,
                 ...recent,
             }),
         },
@@ -84,7 +82,6 @@ function TimesheetRecentEntry(
 
 TimesheetRecentEntry.propTypes = {
     callback: PropTypes.func.isRequired,
-    data: PropTypes.shape({}).isRequired,
     recent: PropTypes.shape({
         kost2: PropTypes.shape({
             formattedNumber: PropTypes.string,

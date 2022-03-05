@@ -74,7 +74,7 @@ class TimesheetFavorite(
       timesheet.user = user
     }
     timesheet.location = location ?: ""
-    timesheet.tag = tag
+    timesheet.tag = tag ?: "" // Overwrite client's value.
     timesheet.reference = reference ?: ""
     timesheet.description = description ?: ""
     if (cost2Id != null) {

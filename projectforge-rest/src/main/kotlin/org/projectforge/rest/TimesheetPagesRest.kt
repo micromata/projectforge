@@ -379,6 +379,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   @PostMapping("selectRecent")
   fun selectRecent(@RequestBody timesheet: Timesheet): ResponseAction {
     val task = TaskServicesRest.createTask(timesheet.task?.id)
+    timesheet.tag = timesheet.tag ?: "" // "" Needed for overwriting clients data.tag if already defined.
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("task", task)
       .addVariable("data", timesheet)
