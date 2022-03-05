@@ -46,8 +46,18 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_SCRIPT")
+@NamedQueries(
+  NamedQuery(name = ScriptDO.SELECT_BY_NAME, query = "from ScriptDO where lower(name) like :name")
+)
 open class ScriptDO : BaseUserGroupRightsDO(), AttachmentsInfo {
-  enum class ScriptType { KOTLIN, GROOVY }
+  enum class ScriptType {
+    KOTLIN, GROOVY,
+
+    /**
+     * Script sniplet may only be included by other and are not executable itself.
+     */
+    INCLUDE
+  }
 
   @PropertyInfo(i18nKey = "scripting.script.name")
   @Field
@@ -334,5 +344,7 @@ open class ScriptDO : BaseUserGroupRightsDO(), AttachmentsInfo {
 
     @JsonIgnore
     private val log = org.slf4j.LoggerFactory.getLogger(ScriptDO::class.java)
+
+    internal const val SELECT_BY_NAME = "ScriptDO_SelectByName"
   }
 }
