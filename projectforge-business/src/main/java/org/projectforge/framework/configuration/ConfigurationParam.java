@@ -90,6 +90,10 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   HR_MAILADDRESS("hr.emailaddress", ConfigurationType.STRING),//
   /**
+   * Globally defined, optional tags, the users may add to their time sheets.
+   */
+  TIMESHEET_TAGS("timesheetTags", ConfigurationType.STRING), //
+  /**
    * End date vacation lastr year configuration param.
    */
   END_DATE_VACATION_LAST_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, "31.03."),

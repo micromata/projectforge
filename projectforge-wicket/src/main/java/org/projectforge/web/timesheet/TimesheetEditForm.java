@@ -60,6 +60,7 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskSelectPanel;
@@ -378,6 +379,20 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       final AbstractFieldsetPanel<?> fs = timesheetPageSupport.addLocation(timesheetRecentService, filter);
       locationTextField = (PFAutoCompleteMaxLengthTextField) fs.getStoreObject();
       locationTextField.withDeletableItem(true);
+    }
+    final List<String> tags = timesheetDao.getTags(data.getTag());
+    if (CollectionUtils.isNotEmpty(tags)) {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.tag"));
+      // Tags
+      final LabelValueChoiceRenderer<String> tagChoiceRenderer = new LabelValueChoiceRenderer<>();
+      tags.forEach(tag -> {
+        tagChoiceRenderer.addValue(tag, tag);
+      });
+      final DropDownChoice<String> tagChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+          new PropertyModel<String>(data, "tag"), tagChoiceRenderer.getValues(),
+          tagChoiceRenderer);
+      tagChoice.setNullValid(true);
+      fs.add(tagChoice);
     }
     {
       // Reference

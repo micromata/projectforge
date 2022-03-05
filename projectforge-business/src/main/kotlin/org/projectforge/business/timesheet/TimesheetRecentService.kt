@@ -118,6 +118,7 @@ open class TimesheetRecentService {
         userId = timesheet.userId,
         kost2Id = timesheet.kost2Id,
         location = timesheet.location,
+        tag = timesheet.tag,
         reference = timesheet.reference,
         description = timesheet.description
       )

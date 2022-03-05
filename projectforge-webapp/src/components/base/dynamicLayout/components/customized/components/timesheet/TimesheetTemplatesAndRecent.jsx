@@ -146,6 +146,8 @@ function TimesheetTemplatesAndRecent() {
                                                 )}
                                                 <th>{ui.translations.task}</th>
                                                 <th>{ui.translations['timesheet.location']}</th>
+                                                <th>{ui.translations['timesheet.tag']}</th>
+                                                <th>{ui.translations['timesheet.reference']}</th>
                                                 <th>{ui.translations['timesheet.description']}</th>
                                             </tr>
                                         </thead>

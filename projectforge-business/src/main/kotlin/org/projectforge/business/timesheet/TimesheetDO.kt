@@ -116,6 +116,14 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
   @get:Column(length = 1000)
   open var reference: String? = null
 
+  /**
+   *
+   */
+  @PropertyInfo(i18nKey = "timesheet.tag")
+  @Field
+  @get:Column(length = 1000)
+  open var tag: String? = null
+
   @PropertyInfo(i18nKey = "timesheet.description")
   @UserPrefParameter(i18nKey = "description", multiline = true)
   @Field
