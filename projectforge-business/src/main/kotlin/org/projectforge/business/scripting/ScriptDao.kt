@@ -36,6 +36,7 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.projectforge.registry.Registry
 import org.springframework.beans.factory.annotation.Autowired
@@ -103,11 +104,17 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     return ScriptDO()
   }
 
-  open fun execute(script: ScriptDO, parameters: List<ScriptParameter>?, variables: Map<String, Any>): ScriptExecutionResult {
+  open fun execute(
+    script: ScriptDO,
+    parameters: List<ScriptParameter>?,
+    variables: Map<String, Any>
+  ): ScriptExecutionResult {
+    val scriptLogger = ScriptLogger()
     hasLoggedInUserSelectAccess(script, true)
     val scriptVariables = getScriptVariables(script, parameters, variables)
-    var scriptContent = script.scriptAsString ?: ""
-    if (script.type === ScriptDO.ScriptType.KOTLIN) {
+    scriptVariables["log"] = scriptLogger
+    var scriptContent = resolveInputs(scriptLogger, script)
+    if (script.type == ScriptDO.ScriptType.KOTLIN) {
       return execute(scriptContent, scriptVariables, script.file, script.filename, script.getParameterList())
     }
     if (scriptContent.contains("import org.projectforge.export")) {
@@ -118,15 +125,57 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
       )
     }
     return groovyExecutor.execute(
-      ScriptExecutionResult(getScriptLogger(scriptVariables)),
+      ScriptExecutionResult(scriptLogger),
       scriptContent,
       scriptVariables
     )
   }
 
+  /**
+   * Resolve #INCLUDE "<Name of snippet or DB id of snippet>" by replacing it by snippet.
+   * Snippets may also include other snippets (recursive).
+   */
+  private fun resolveInputs(scriptLogger: ScriptLogger, script: ScriptDO, callers: List<ScriptDO> = emptyList()): String {
+    if (callers.any { it.id == script.id }) {
+      val error = "Endless recursion detected: ${callers.joinToString(" -> ") { it.name ?: "untitled" }}"
+      scriptLogger.error(error)
+      throw IllegalArgumentException(error)
+    }
+    val scriptContent = script.scriptAsString ?: return ""
+    return regex.replace(scriptContent) { m ->
+      val snippetNameOrId = m.groupValues[1]
+      val snippet = loadByNameOrId(snippetNameOrId)
+      if (snippet == null) {
+        scriptLogger.error("Can't load snippet und name/id '$snippetNameOrId'.")
+        ""
+      } else {
+        log.info { "Including script '${snippet.name}'" }
+        resolveInputs(scriptLogger, snippet, callers + script)
+      }
+    }
+  }
+
+  /**
+   * @param name of script (case insensitive)
+   */
+  open fun loadByNameOrId(name: String): ScriptDO? {
+    name.toIntOrNull()?.let { id ->
+      return getById(id)
+    }
+    val script = ensureUniqueResult(
+      em.createNamedQuery(
+        ScriptDO.SELECT_BY_NAME,
+        ScriptDO::class.java
+      )
+        .setParameter("name", "%${name.trim().lowercase()}%")
+    )
+    hasLoggedInUserSelectAccess(script, true)
+    return script
+  }
+
   open fun getScriptVariableNames(script: ScriptDO, additionalVariables: List<String>): List<String> {
     val scriptVariables = getScriptVariables(script, null)
-    val result = mutableListOf<String>()
+    val result = mutableListOf("log")
     scriptVariables.forEach { variable ->
       val key = variable.key
       val value = variable.value
@@ -151,7 +200,11 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     return result.filter { it.isNotBlank() }.sortedBy { it.lowercase() }
   }
 
-  open fun getScriptVariables(script: ScriptDO, parameters: List<ScriptParameter>?, variables: Map<String, Any>? = null): Map<String, Any?> {
+  open fun getScriptVariables(
+    script: ScriptDO,
+    parameters: List<ScriptParameter>?,
+    variables: Map<String, Any>? = null
+  ): MutableMap<String, Any?> {
     val scriptVariables = mutableMapOf<String, Any?>()
     variables?.let {
       scriptVariables.putAll(it)
@@ -202,5 +255,7 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
         return ScriptLogger()
       }
     }
+
+    private val regex = """#INCLUDE\s*"(.+)"""".toRegex() // #INCLUDE "<Name of Snippet or DB-ID>"
   }
 }

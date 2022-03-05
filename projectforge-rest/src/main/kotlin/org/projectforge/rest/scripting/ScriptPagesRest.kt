@@ -114,6 +114,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     val langs = listOf(
       UISelectValue(ScriptDO.ScriptType.KOTLIN, "Kotlin script"),
       UISelectValue(ScriptDO.ScriptType.GROOVY, "Groovy script"),
+      UISelectValue(ScriptDO.ScriptType.INCLUDE, "Snippet for including"),
     )
     val layout = super.createEditLayout(dto, userAccess)
       .add(
@@ -137,16 +138,19 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     if (!dto.filename.isNullOrBlank()) {
       layout.add(lc, "filename")
     }
-    for (i in 1..6) {
-      layout.add(createParameterRow(i))
+    if (dto.type != ScriptDO.ScriptType.INCLUDE) {
+      for (i in 1..6) {
+        layout.add(createParameterRow(i))
+      }
     }
-    layout
-      .add(lc, "description")
-      .add(
+    layout.add(lc, "description")
+    if (dto.type != ScriptDO.ScriptType.INCLUDE) {
+      layout.add(
         UIFieldset(title = "attachment.list")
           .add(UIAttachmentList(category, dto.id))
       )
-      .add(UIEditor("script"))
+    }
+    layout.add(UIEditor("script"))
       .add(UIReadOnlyField("availableVariables", label = "scripting.script.availableVariables"))
 
     if (dto.id != null) {
