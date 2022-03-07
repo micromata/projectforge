@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.scripting
 
-import de.micromata.merlin.utils.ReplaceUtils
 import mu.KotlinLogging
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptDao
@@ -187,22 +186,26 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
           type = MenuItemTargetType.REDIRECT,
         )
       )
-   /*   .add(
-        MenuItem(
-          "showEffectiveScript",
-          i18nKey = "scripting.script.downloadEffectiveScript",
-          url = "${getRestPath()}/downloadEffectiveScript/${script.id}",
-          type = MenuItemTargetType.DOWNLOAD
-        )
-      )
-*/
+    /*   .add(
+         MenuItem(
+           "showEffectiveScript",
+           i18nKey = "scripting.script.downloadEffectiveScript",
+           url = "${getRestPath()}/downloadEffectiveScript/${script.id}",
+           type = MenuItemTargetType.DOWNLOAD
+         )
+       )
+ */
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
     return layout
   }
 
   @PostMapping("execute")
-  fun execute(request: HttpServletRequest, @Valid @RequestBody postData: PostData<Script>): ResponseAction {
+  fun execute(
+    request: HttpServletRequest,
+    @Valid @RequestBody postData: PostData<Script>
+  ): ResponseEntity<ResponseAction> {
+    validateCsrfToken(request, postData)?.let { return it }
     val variables = mutableMapOf<String, Any>()
     val script = postData.data
 
@@ -246,10 +249,12 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
       }
     }
     val executionResults = output.toString()
-    return ResponseAction(targetType = TargetType.UPDATE, merge = true)
-      .addVariable("data", script)
-      .addVariable("ui", getLayout(request, script, variables, executionResults = executionResults))
-      .addVariable("variables", variables)
+    return ResponseEntity.ok(
+      ResponseAction(targetType = TargetType.UPDATE, merge = true)
+        .addVariable("data", script)
+        .addVariable("ui", getLayout(request, script, variables, executionResults = executionResults))
+        .addVariable("variables", variables)
+    )
   }
 
   @GetMapping("download")

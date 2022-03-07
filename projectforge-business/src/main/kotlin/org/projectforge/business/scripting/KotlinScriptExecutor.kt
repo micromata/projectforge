@@ -28,130 +28,74 @@ import javax.script.ScriptEngineManager
 
 private val log = KotlinLogging.logger {}
 
-object KotlinScriptExecutor {
+class KotlinScriptExecutor : ScriptExecutor() {
 
-  val autoImports = listOf(
-    "import java.io.ByteArrayInputStream",
-    "import java.math.BigDecimal",
-    "import java.math.RoundingMode",
-    "import java.time.format.DateTimeFormatter",
-    "import java.time.LocalDate",
-    "import java.time.Month",
-    "import org.apache.poi.ss.usermodel.IndexedColors",
-    "import de.micromata.merlin.I18n",
-    "import de.micromata.merlin.excel.ExcelCell",
-    "import de.micromata.merlin.excel.ExcelRow",
-    "import de.micromata.merlin.excel.ExcelSheet",
-    "import de.micromata.merlin.excel.ExcelWorkbook",
-    "import de.micromata.merlin.excel.ExcelWriterContext",
-    "import org.projectforge.framework.calendar.*",
-    "import org.projectforge.framework.i18n.translate",
-    "import org.projectforge.framework.i18n.translateMsg",
-    "import org.projectforge.framework.time.*",
-    "import org.projectforge.framework.utils.*",
-    "import org.projectforge.business.fibu.*",
-    "import org.projectforge.business.fibu.kost.*",
-    "import org.projectforge.business.task.*",
-    "import org.projectforge.business.timesheet.*",
-    "import org.projectforge.business.scripting.ExportZipArchive",
-    "import org.projectforge.business.scripting.ExportJson",
-    "import org.projectforge.business.scripting.ScriptDO",
-    "import org.projectforge.business.scripting.ScriptingDao",
-    "import org.projectforge.business.scripting.support.*",
-    "import org.projectforge.common.*",
-    "import org.projectforge.excel.ExcelUtils",
-  )
-/*
-  import org.projectforge.business.fibu.kost.*
-  import org.projectforge.framework.utils.NumberFormatter
-  import java.math.BigDecimal
-  import java.math.RoundingMode
-*/
+  companion object {
+
+    private val bindingsClassReplacements = mapOf(
+      "java.lang.String" to "String",
+      "java.lang.Integer" to "Int",
+      "java.lang.Boolean" to "Boolean",
+      "java.util.HashMap" to "MutableMap<*, *>",
+    )
+
+    private val kotlinImports = listOf(
+      "import org.projectforge.framework.i18n.translate",
+      "import org.projectforge.framework.i18n.translateMsg",
+    )
+  }
+
   /**
    * @param script Common imports will be prepended.
    * @param variables Variables to bind. Variables are usable via binding["key"] or directly, if #autobind# is part of script.
    * @see GroovyExecutor.executeTemplate
    */
-  @JvmStatic
-  @JvmOverloads
-  fun execute(
-    script: String,
-    variables: Map<String, Any?>,
-    file: ByteArray? = null,
-    filename: String? = null,
-    /**
-     * Required for defining bindings of null values.
-     */
-    inputParameters: List<ScriptParameter>? = null,
-  ): ScriptExecutionResult {
+  override fun execute(): ScriptExecutionResult {
     val engine = MyKotlinScriptEngineFactory().scriptEngine
     val bindings = engine.createBindings()
     variables.forEach {
       bindings[it.key] = it.value
     }
-    if (file != null) {
-      bindings["file"] = file
-      bindings["filename"] = filename
+    scriptParameterValues.forEach {
+      bindings[it.key] = it.value
     }
-    val sb = StringBuilder()
-    var importBlock = true
-    script.lines().forEach { line ->
-      if (importBlock) {
-        if (line.startsWith("import ") || line.isBlank() || line.startsWith("//")) {
-          // Inside import block
-          sb.appendLine(line)
-        } else {
-          importBlock = false // End of import block.
-          sb.appendLine("// Auto generated imports:")
-          autoImports.forEach { importLine ->
-            if (!script.contains(importLine)) { // Don't add import twice
-              sb.appendLine(importLine)
-            }
-          }
-          sb.appendLine()
-          sb.appendLine("// Auto generated bindings:")
-          // Prepend bindings now before proceeding
-          val bindingsEntries = mutableListOf<String>()
-          variables.forEach { name, value ->
-            if (!script.contains("bindings[\"$name\"]")) { // Don't add binding twice
-              addBinding(bindingsEntries, name, value)
-            }
-          }
-          inputParameters?.forEach { param ->
-            if (variables[param.parameterName] == null &&
-              !script.contains("bindings[\"${param.parameterName}\"]")) { // Don't add binding twice
-              // OK, null value wasn't added to variables. So we had to add them here:
-              addBinding(bindingsEntries, param.parameterName, param)
-            }
-          }
-          bindingsEntries.sortedBy { it.lowercase() }.forEach {
-            sb.appendLine(it)
-          }
-          sb.appendLine()
-          sb.appendLine()
-        }
-      }
-      if (!importBlock) { // Don't use else! (see importBlock = false)
-        sb.appendLine(line)
-      }
-    }
-    val effectiveScript = sb.toString()
-    val result = ScriptExecutionResult(ScriptDao.getScriptLogger(variables))
     try {
-      result.script = effectiveScript
-      result.result = engine.eval(effectiveScript, bindings)
+      scriptExecutionResult.result = engine.eval(effectiveScript, bindings)
     } catch (ex: Exception) {
       log.info("Exception on Kotlin script execution: ${ex.message}", ex)
-      result.exception = ex
+      scriptExecutionResult.exception = ex
     }
-    return result
+    return scriptExecutionResult
   }
 
-  private val bindingsClassReplacements = mapOf(
-    "java.lang.String" to "String",
-    "java.lang.Integer" to "Int",
-    "java.util.HashMap" to "MutableMap<*, *>",
-  )
+  override fun autoImports(): List<String> {
+    return autoImports + kotlinImports
+  }
+
+  override fun appendBlockAfterImports(sb: StringBuilder) {
+    sb.appendLine("// Auto generated bindings:")
+    // Prepend bindings now before proceeding
+    val bindingsEntries = mutableListOf<String>()
+    val script = resolvedScript ?: source
+    variables.forEach { (name, value) ->
+      if (!(resolvedScript ?: source).contains("bindings[\"$name\"]")) { // Don't add binding twice
+        addBinding(bindingsEntries, name, value)
+      }
+    }
+    scriptParameterValues.forEach { param ->
+      if (variables[param.key] == null &&
+        !script.contains("bindings[\"${param.key}\"]")
+      ) { // Don't add binding twice
+        // OK, null value wasn't added to variables. So we had to add them here:
+        addBinding(bindingsEntries, param.key, param.value)
+      }
+    }
+    bindingsEntries.sortedBy { it.lowercase() }.forEach {
+      sb.appendLine(it)
+    }
+    sb.appendLine()
+    sb.appendLine()
+  }
 
   private fun addBinding(bindingsEntries: MutableList<String>, name: String, value: Any?) {
     if (name.isBlank()) {
@@ -177,6 +121,8 @@ object KotlinScriptExecutor {
     }
     bindingsEntries.add("val ${name.replaceFirstChar { it.lowercase() }} = bindings[\"$name\"] as $clsName$nullable")
   }
+
+
 }
 
 fun main() {

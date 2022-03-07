@@ -86,7 +86,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     val script = Script()
     script.filename = obj.filename
     script.copyFrom(obj)
-    script.availableVariables = baseDao.getScriptVariableNames(obj, listOf("files")).joinToString()
+    script.availableVariables = baseDao.getScriptVariableNames(obj, ScriptExecution.additionalVariables).joinToString()
     script.script = obj.scriptAsString
     return script
   }

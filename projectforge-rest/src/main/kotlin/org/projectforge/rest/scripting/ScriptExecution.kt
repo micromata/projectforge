@@ -103,8 +103,8 @@ class ScriptExecution {
     recentScriptCalls.append(scriptCallData)
 
     val scriptFileAccessor = ScriptFileAccessor(attachmentsService, scriptPagesRest, scriptDO)
-    val variables = mutableMapOf("files" to scriptFileAccessor)
-    val scriptExecutionResult = scriptDao.execute(scriptDO, parameters, variables)
+    val additionalVariables = mutableMapOf("files" to scriptFileAccessor)
+    val scriptExecutionResult = scriptDao.execute(scriptDO, parameters, additionalVariables)
     if (scriptExecutionResult.hasException()) {
       scriptExecutionResult.scriptLogger.error(scriptExecutionResult.exception.toString())
       return scriptExecutionResult
@@ -243,10 +243,16 @@ class ScriptExecution {
       get() = NumberHelper.formatBytes(bytes.size)
   }
 
-  private val USER_PREF_AREA = "ScriptExecution:"
-  private val USER_PREF_KEY = "recentCalls"
+  companion object {
+    /**
+     * Names of additional variables used on script executions.
+     */
+    val additionalVariables = mapOf<String, Any?>("files" to "<ScriptFileAccessor>")
+    private val USER_PREF_AREA = "ScriptExecution:"
+    private val USER_PREF_KEY = "recentCalls"
 
-  private val DOWNLOAD_EXPIRY_MINUTES = 5
+    private val DOWNLOAD_EXPIRY_MINUTES = 5
 
-  private val EXPIRING_SESSION_ATTRIBUTE = "${this::class.java.name}.downloadFile"
+    private val EXPIRING_SESSION_ATTRIBUTE = "${this::class.java.name}.downloadFile"
+  }
 }
