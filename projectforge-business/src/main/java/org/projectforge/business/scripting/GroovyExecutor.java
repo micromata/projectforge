@@ -55,19 +55,6 @@ public class GroovyExecutor
   @Autowired
   private RefactoringService refService;
 
-  public ScriptExecutionResult execute(final String script, final Map<String, Object> variables)
-  {
-    ScriptExecutionResult scriptExecutionResult = new ScriptExecutionResult(ScriptDao.getScriptLogger(variables));
-    if (script == null) {
-      return scriptExecutionResult;
-    }
-    final Script groovyObject = compileGroovy(scriptExecutionResult, script, true);
-    if (groovyObject == null) {
-      return scriptExecutionResult;
-    }
-    return execute(groovyObject, variables);
-  }
-
   public ScriptExecutionResult execute(final ScriptExecutionResult result, final String script, final Map<String, Object> variables)
   {
     if (script == null) {
@@ -201,7 +188,7 @@ public class GroovyExecutor
       }
     }
     if (result == null) {
-      result = new ScriptExecutionResult(ScriptDao.getScriptLogger(variables));
+      result = new ScriptExecutionResult(new ScriptLogger());
     }
     Object res;
     try {
