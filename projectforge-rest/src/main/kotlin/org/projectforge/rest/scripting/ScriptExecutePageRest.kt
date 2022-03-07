@@ -231,6 +231,11 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
         output.appendLine()
       }
     }
+    result.result?.let {
+      if (it is String) {
+        output.appendLine(it)
+      }
+    }
     val executionResults = output.toString()
     return ResponseAction(targetType = TargetType.UPDATE, merge = true)
       .addVariable("data", script)
