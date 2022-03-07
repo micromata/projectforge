@@ -120,6 +120,7 @@ class Script(
     var stringValue: String? = null,
     var intValue: Int? = null,
     var decimalValue: BigDecimal? = null,
+    var booleanValue: Boolean? = null,
     var dateValue: LocalDate? = null,
     var toDateValue: LocalDate? = null,
     var userValue: User? = null,
@@ -133,6 +134,7 @@ class Script(
         ScriptParameterType.STRING -> result.stringValue = this.stringValue
         ScriptParameterType.INTEGER -> result.intValue = this.intValue
         ScriptParameterType.DECIMAL -> result.decimalValue = this.decimalValue
+        ScriptParameterType.BOOLEAN -> result.booleanValue = this.booleanValue
         ScriptParameterType.DATE ->
           result.dateValue = this.dateValue
         ScriptParameterType.TIME_PERIOD ->
@@ -174,6 +176,7 @@ class Script(
             ScriptParameterType.STRING -> result.stringValue = parameter.stringValue
             ScriptParameterType.INTEGER -> result.intValue = parameter.intValue
             ScriptParameterType.DECIMAL -> result.decimalValue = parameter.decimalValue
+            ScriptParameterType.BOOLEAN -> result.booleanValue = parameter.booleanValue
             ScriptParameterType.DATE ->
               result.dateValue = parameter.dateValue
             ScriptParameterType.TIME_PERIOD -> {

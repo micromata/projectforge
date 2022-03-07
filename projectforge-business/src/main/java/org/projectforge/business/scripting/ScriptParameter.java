@@ -53,6 +53,9 @@ public class ScriptParameter implements Serializable
   protected BigDecimal decimalValue;
 
   @XStreamAsAttribute
+  protected Boolean booleanValue;
+
+  @XStreamAsAttribute
   protected LocalDate dateValue;
 
   protected transient TaskDO task;
@@ -85,6 +88,8 @@ public class ScriptParameter implements Serializable
       return timePeriodValue;
     } else if (type == ScriptParameterType.INTEGER) {
       return intValue;
+    } else if (type == ScriptParameterType.BOOLEAN) {
+      return booleanValue;
     } else if (type == ScriptParameterType.TASK) {
       return task;
     } else if (type == ScriptParameterType.USER) {
@@ -105,6 +110,8 @@ public class ScriptParameter implements Serializable
       timePeriodValue = (TimePeriod) value;
     } else if (type == ScriptParameterType.INTEGER) {
       intValue = (Integer) value;
+    } else if (type == ScriptParameterType.BOOLEAN) {
+      booleanValue = (Boolean) value;
     } else if (type == ScriptParameterType.TASK) {
       setTask((TaskDO) value);
     } else if (type == ScriptParameterType.USER) {
@@ -123,6 +130,8 @@ public class ScriptParameter implements Serializable
       return TimePeriod.class;
     } else if (type == ScriptParameterType.INTEGER) {
       return Integer.class;
+     } else if (type == ScriptParameterType.BOOLEAN) {
+       return Boolean.class;
     } else if (type == ScriptParameterType.TASK) {
       return TaskDO.class;
     } else if (type == ScriptParameterType.USER) {
@@ -150,7 +159,7 @@ public class ScriptParameter implements Serializable
   public void setStringValue(String stringValue)
   {
     if (type != ScriptParameterType.STRING) {
-      throw new IllegalArgumentException("Cannot set date for non string parameter: " + type);
+      throw new IllegalArgumentException("Cannot set value for non string parameter: " + type);
     }
     this.stringValue = stringValue;
   }
@@ -163,7 +172,7 @@ public class ScriptParameter implements Serializable
   public void setIntValue(Integer intValue)
   {
     if (type != ScriptParameterType.INTEGER) {
-      throw new IllegalArgumentException("Cannot set date for non integer parameter: " + type);
+      throw new IllegalArgumentException("Cannot set value for non integer parameter: " + type);
     }
     this.intValue = intValue;
   }
@@ -176,9 +185,20 @@ public class ScriptParameter implements Serializable
   public void setDecimalValue(BigDecimal decimalValue)
   {
     if (type != ScriptParameterType.DECIMAL) {
-      throw new IllegalArgumentException("Cannot set date for non decimal parameter: " + type);
+      throw new IllegalArgumentException("Cannot set value for non decimal parameter: " + type);
     }
     this.decimalValue = decimalValue;
+  }
+
+  public Boolean getBooleanValue() {
+    return booleanValue;
+  }
+
+  public void setBooleanValue(Boolean booleanValue) {
+    if (type != ScriptParameterType.BOOLEAN) {
+      throw new IllegalArgumentException("Cannot set value for non boolean parameter: " + type);
+    }
+    this.booleanValue = booleanValue;
   }
 
   public LocalDate getDateValue()
@@ -202,7 +222,7 @@ public class ScriptParameter implements Serializable
   public void setTimePeriodValue(TimePeriod timePeriodValue)
   {
     if (type != ScriptParameterType.TIME_PERIOD) {
-      throw new IllegalArgumentException("Cannot set date for non time period parameter: " + type);
+      throw new IllegalArgumentException("Cannot set value for non time period parameter: " + type);
     }
     this.timePeriodValue = timePeriodValue;
   }

@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.scripting
 
+import de.micromata.merlin.utils.ReplaceUtils
 import mu.KotlinLogging
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptDao
@@ -178,7 +179,7 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
       .add(
         MenuItem(
           "logViewer",
-          i18nKey = "plugins.merlin.viewLogs",
+          i18nKey = "system.admin.logViewer.title",
           url = PagesResolver.getDynamicPageUrl(
             LogViewerPageRest::
             class.java, id = ensureUserLogSubscription().id
@@ -186,7 +187,15 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
           type = MenuItemTargetType.REDIRECT,
         )
       )
-
+   /*   .add(
+        MenuItem(
+          "showEffectiveScript",
+          i18nKey = "scripting.script.downloadEffectiveScript",
+          url = "${getRestPath()}/downloadEffectiveScript/${script.id}",
+          type = MenuItemTargetType.DOWNLOAD
+        )
+      )
+*/
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
     return layout
@@ -265,6 +274,7 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
           "parameter$index.decimalValue",
           label = label, dataType = UIDataType.DECIMAL
         )
+        ScriptParameterType.BOOLEAN -> UICheckbox("parameter$index.booleanValue", label = label)
         ScriptParameterType.TASK -> UIInput(
           "parameter$index.taskValue",
           label = label, dataType = UIDataType.TASK
@@ -297,6 +307,16 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
       }
     )
   }
+
+  /*
+  @GetMapping("downloadEffectiveScript/{id}")
+  fun downloadEffectiveScript(@PathVariable("id") id: Int?): ResponseEntity<*> {
+    log.info("Downloading effective script of script with id=$id")
+    val scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+    val filename = ReplaceUtils.encodeFilename("${scriptDO.name}-backup.${scriptDao.getScriptSuffix(scriptDO)}")
+    return RestUtils.downloadFile(filename, scriptDO.scriptBackupAsString ?: "")
+  }
+*/
 
   private fun ensureUserLogSubscription(): LogSubscription {
     val username = ThreadLocalUserContext.getUser().username ?: throw InternalError("User not given")
