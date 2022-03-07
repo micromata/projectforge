@@ -53,6 +53,9 @@ public class UserPrefAreaRegistry
 
   public UserPrefArea getEntry(final String id)
   {
+    if (id == null) {
+      return null;
+    }
     for (final UserPrefArea area : set) {
       if (id.equals(area.getId())) {
         return area;

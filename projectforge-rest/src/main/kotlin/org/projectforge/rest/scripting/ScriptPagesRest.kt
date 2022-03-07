@@ -35,6 +35,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Script
 import org.projectforge.ui.*
@@ -60,6 +61,12 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
      * Enable attachments for this entity.
      */
     enableJcr()
+  }
+
+  override fun newBaseDO(request: HttpServletRequest?): ScriptDO {
+    val script = ScriptDO()
+    script.type = ScriptDO.ScriptType.KOTLIN
+    return script
   }
 
   override fun transformForDB(dto: Script): ScriptDO {
@@ -164,6 +171,26 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
       )
     }
     return LayoutUtils.processEditPage(layout, dto, this)
+  }
+
+  /**
+   * Redirect to execution page after modification.
+   */
+  override fun afterOperationRedirectTo(obj: ScriptDO, postData: PostData<Script>, event: RestButtonEvent): String {
+    return if (event == RestButtonEvent.DELETE) {
+      // Stay on edit page after saving for uploading Word template and Excel template definition.
+      PagesResolver.getListPageUrl(
+        ScriptPagesRest::class.java,
+        absolute = true
+      )
+    } else {
+      // Return to execution page
+      PagesResolver.getDynamicPageUrl(
+        ScriptExecutePageRest::class.java,
+        id = obj.id,
+        absolute = true
+      )
+    }
   }
 
   @GetMapping("downloadBackupScript/{id}")

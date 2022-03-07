@@ -46,8 +46,9 @@ object ExcelUtils {
    * @return workbook configured with date formats of the logged-in user and number formats.
    */
   @JvmStatic
-  fun prepareWorkbook(): ExcelWorkbook {
+  fun prepareWorkbook(filename: String? = null): ExcelWorkbook {
     val workbook = ExcelWorkbook(ThreadLocalUserContext.getLocale())
+    filename?.let { workbook.filename = it }
     workbook.configuration.let { cfg ->
       cfg.setDateFormats(
         DateFormats.getExcelFormatString(DateFormatType.DATE),
