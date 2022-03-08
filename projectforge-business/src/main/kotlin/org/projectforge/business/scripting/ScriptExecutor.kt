@@ -240,16 +240,24 @@ abstract class ScriptExecutor(
     }
 
     fun createScriptExecutor(scriptDO: ScriptDO): ScriptExecutor {
+      return if (getScriptType(scriptDO) == ScriptDO.ScriptType.GROOVY) {
+        GroovyScriptExecutor()
+      } else {
+        KotlinScriptExecutor()
+      }
+    }
+
+    fun getScriptType(scriptDO: ScriptDO): ScriptDO.ScriptType {
       if (scriptDO.type == ScriptDO.ScriptType.KOTLIN) {
-        return KotlinScriptExecutor()
+        return ScriptDO.ScriptType.KOTLIN
       } else if (scriptDO.type == ScriptDO.ScriptType.GROOVY) {
-        return GroovyScriptExecutor()
+        return ScriptDO.ScriptType.GROOVY
       }
       val script = scriptDO.scriptAsString ?: ""
       return if (script.contains(KOTLIN_REGEX)) {
-        KotlinScriptExecutor()
+        ScriptDO.ScriptType.KOTLIN
       } else {
-        GroovyScriptExecutor()
+        ScriptDO.ScriptType.GROOVY
       }
     }
 

@@ -186,15 +186,7 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
           type = MenuItemTargetType.REDIRECT,
         )
       )
-    /*   .add(
-         MenuItem(
-           "showEffectiveScript",
-           i18nKey = "scripting.script.downloadEffectiveScript",
-           url = "${getRestPath()}/downloadEffectiveScript/${script.id}",
-           type = MenuItemTargetType.DOWNLOAD
-         )
-       )
- */
+
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
     return layout
@@ -312,16 +304,6 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
       }
     )
   }
-
-  /*
-  @GetMapping("downloadEffectiveScript/{id}")
-  fun downloadEffectiveScript(@PathVariable("id") id: Int?): ResponseEntity<*> {
-    log.info("Downloading effective script of script with id=$id")
-    val scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
-    val filename = ReplaceUtils.encodeFilename("${scriptDO.name}-backup.${scriptDao.getScriptSuffix(scriptDO)}")
-    return RestUtils.downloadFile(filename, scriptDO.scriptBackupAsString ?: "")
-  }
-*/
 
   private fun ensureUserLogSubscription(): LogSubscription {
     val username = ThreadLocalUserContext.getUser().username ?: throw InternalError("User not given")
