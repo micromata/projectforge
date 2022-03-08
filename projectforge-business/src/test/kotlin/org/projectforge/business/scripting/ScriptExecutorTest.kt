@@ -36,6 +36,8 @@ class ScriptExecutorTest {
     script.scriptAsString = SCRIPT2
     Assertions.assertTrue(ScriptExecutor.createScriptExecutor(script) is KotlinScriptExecutor)
     script.scriptAsString = SCRIPT3
+    Assertions.assertTrue(ScriptExecutor.createScriptExecutor(script) is KotlinScriptExecutor)
+    script.scriptAsString = SCRIPT4
     Assertions.assertTrue(ScriptExecutor.createScriptExecutor(script) is GroovyScriptExecutor)
   }
 
@@ -60,6 +62,11 @@ filter.setTo(bisKJ.year, bisKJ.monthValue)
 /"""
 
   val SCRIPT3 = """#INCLUDE "33143255" // Basisfunctions
+  fun test() {
+  
+/"""
+
+  val SCRIPT4 = """#INCLUDE "33143255" // Basisfunctions
 
 // Pauschalstundensatz MA (für Monate ohne Buchungssätze)
 BigDecimal stundensatz = BigDecimal(47.29) // Wird mit Zeitbuchungen zu Projektkosten berechnet.

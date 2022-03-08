@@ -148,7 +148,7 @@ abstract class ScriptExecutor(
       throw IllegalArgumentException(error)
     }
     val scriptContent = script.scriptAsString ?: return ""
-    return regex.replace(scriptContent) { m ->
+    return INCLUDE_REGEX.replace(scriptContent) { m ->
       val snippetNameOrId = m.groupValues[1]
       val snippet = scriptDao.loadByNameOrId(snippetNameOrId)
       if (snippet == null) {
@@ -199,12 +199,13 @@ abstract class ScriptExecutor(
   }
 
   protected open fun autoImports(): List<String> {
-    return autoImports
+    return AUTO_IMPORTS
   }
 
   companion object {
-    private val VAL_REGEX = """^\s*val """.toRegex(RegexOption.MULTILINE)
-    private val VAR_REGEX = """^\s*var """.toRegex(RegexOption.MULTILINE)
+    private val KOTLIN_REGEX= """^\s*(val|var|fun) """.toRegex(RegexOption.MULTILINE)
+
+    private val INCLUDE_REGEX = """#INCLUDE\s*"(.+)"""".toRegex() // #INCLUDE "<Name of Snippet or DB-ID>"
 
     fun createScriptExecutor(scriptDO: ScriptDO): ScriptExecutor {
       if (scriptDO.type == ScriptDO.ScriptType.KOTLIN) {
@@ -213,14 +214,14 @@ abstract class ScriptExecutor(
         return GroovyScriptExecutor()
       }
       val script = scriptDO.scriptAsString ?: ""
-      return if (script.contains(VAL_REGEX) || script.contains(VAR_REGEX)) {
+      return if (script.contains(KOTLIN_REGEX)) {
         KotlinScriptExecutor()
       } else {
         GroovyScriptExecutor()
       }
     }
 
-    val autoImports = listOf(
+    val AUTO_IMPORTS = listOf(
       "import java.io.ByteArrayInputStream",
       "import java.math.BigDecimal",
       "import java.math.RoundingMode",
@@ -249,7 +250,5 @@ abstract class ScriptExecutor(
       "import org.projectforge.common.*",
       "import org.projectforge.excel.ExcelUtils",
     )
-
-    private val regex = """#INCLUDE\s*"(.+)"""".toRegex() // #INCLUDE "<Name of Snippet or DB-ID>"
   }
 }
