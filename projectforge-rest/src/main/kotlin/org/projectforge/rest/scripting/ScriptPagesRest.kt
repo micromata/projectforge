@@ -25,9 +25,7 @@ package org.projectforge.rest.scripting
 
 import de.micromata.merlin.utils.ReplaceUtils
 import mu.KotlinLogging
-import org.projectforge.business.scripting.ScriptDO
-import org.projectforge.business.scripting.ScriptDao
-import org.projectforge.business.scripting.ScriptParameterType
+import org.projectforge.business.scripting.*
 import org.projectforge.jcr.FileInfo
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -164,12 +162,21 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     if (dto.id != null) {
       layout.add(
         MenuItem(
-          "scripting.scriptBackup",
-          i18nKey = "scripting.scriptBackup.show",
-          url = "${getRestPath()}/downloadBackupScript/${dto.id}",
+          "downloadBackups",
+          i18nKey = "scripting.script.downloadEffectiveScript.info",
+          tooltipTitle = "scripting.script.downloadEffectiveScript.info",
+          url = "${getRestPath()}/downloadBackupScripts/${dto.id}",
+          type = MenuItemTargetType.DOWNLOAD
+        )
+      ).add(
+        MenuItem(
+          "downloadEffectiveScript",
+          i18nKey = "scripting.script.downloadEffectiveScript",
+          url = "${getRestPath()}/downloadEffectiveScript/${dto.id}",
           type = MenuItemTargetType.DOWNLOAD
         )
       )
+
     }
     return LayoutUtils.processEditPage(layout, dto, this)
   }
@@ -194,12 +201,29 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     }
   }
 
-  @GetMapping("downloadBackupScript/{id}")
-  fun downloadBackupScript(@PathVariable("id") id: Int?): ResponseEntity<*> {
+  @GetMapping("downloadBackupScripts/{id}")
+  fun downloadBackupScripts(@PathVariable("id") id: Int?): ResponseEntity<*> {
     log.info("Downloading backup script of script with id=$id")
     val scriptDO = baseDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
-    val filename = ReplaceUtils.encodeFilename("${scriptDO.name}-backup.${baseDao.getScriptSuffix(scriptDO)}")
-    return RestUtils.downloadFile(filename, scriptDO.scriptBackupAsString ?: "")
+    val zip = ExportZipArchive("${scriptDO.name}-backups.zip")
+    zip.add(
+      ReplaceUtils.encodeFilename("${scriptDO.name}-backup.${baseDao.getScriptSuffix(scriptDO)}"),
+      scriptDO.scriptBackupAsString ?: "// empty"
+    )
+    baseDao.getBackupFiles(scriptDO)?.forEach { file ->
+      zip.add(file.name, file.readBytes())
+    }
+    return RestUtils.downloadFile(zip.filename, zip.asByteArray())
+  }
+
+  @GetMapping("downloadEffectiveScript/{id}")
+  fun downloadEffectiveScript(@PathVariable("id") id: Int?): ResponseEntity<*> {
+    log.info("Downloading effective script of script with id=$id")
+    val script = baseDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+    val scriptExecutor = ScriptExecutor.createScriptExecutor(script)
+    scriptExecutor.init(script, baseDao, ScriptExecution.additionalVariables)
+    val filename = ReplaceUtils.encodeFilename("${script.name}-effective.${baseDao.getScriptSuffix(script)}")
+    return RestUtils.downloadFile(filename, scriptExecutor.effectiveScript ?: "")
   }
 
   override fun onBeforeUpdate(request: HttpServletRequest, obj: ScriptDO, postData: PostData<Script>) {

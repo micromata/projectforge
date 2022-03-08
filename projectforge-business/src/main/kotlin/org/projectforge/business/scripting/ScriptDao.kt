@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.stereotype.Repository
 import java.io.File
+import java.io.FilenameFilter
 import java.io.IOException
 import java.util.*
 
@@ -53,8 +54,8 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     if (!Arrays.equals(dbObj.script, obj.script)) {
       obj.scriptBackup = dbObj.script
       val suffix = getScriptSuffix(obj)
-      val filename = encodeFilename("${dbObj.name}_${now().isoStringSeconds}.$suffix", true)
-      val backupDir = File(ConfigXml.getInstance().backupDirectory, "scripts")
+      val filename = encodeFilename("${getBackupBasefilename(dbObj)}_${obj.name}_${now().isoStringSeconds}.$suffix", true)
+      val backupDir = getBackupDir()
       ConfigXml.ensureDir(backupDir)
       val file = File(backupDir, filename)
       try {
@@ -66,8 +67,30 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     }
   }
 
+  fun getBackupFiles(obj: ScriptDO): Array<File>? {
+    val baseFilename = getBackupBasefilename(obj)
+    val oldBaseFilename = getOldBackupBasefilename(obj)
+    val backupDir = getBackupDir()
+    if (!backupDir.exists()) {
+      return null
+    }
+    return backupDir.listFiles(FilenameFilter { _: File, name: String -> name.startsWith(baseFilename) || name.startsWith(oldBaseFilename) })
+  }
+
+  private fun getBackupDir(): File {
+    return File(ConfigXml.getInstance().backupDirectory, "scripts")
+  }
+
+  private fun getBackupBasefilename(obj: ScriptDO): String {
+    return "script-${obj.id}_"
+  }
+
+  private fun getOldBackupBasefilename(obj: ScriptDO): String {
+    return encodeFilename("${obj.name}_", true)
+  }
+
   fun getScriptSuffix(obj: ScriptDO): String {
-    return if (obj.type == ScriptDO.ScriptType.KOTLIN) "kts" else "groovy"
+    return if (ScriptExecutor.getScriptType(obj) == ScriptDO.ScriptType.GROOVY) "groovy" else "kts"
   }
 
   /**
