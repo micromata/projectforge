@@ -56,8 +56,8 @@ class KotlinScriptExecutor : ScriptExecutor() {
     variables.forEach {
       bindings[it.key] = it.value
     }
-    scriptParameterValues.forEach {
-      bindings[it.key] = it.value
+    scriptParameterList?.forEach {
+      bindings[it.parameterName] = it.value
     }
     try {
       scriptExecutionResult.result = engine.eval(effectiveScript, bindings)
@@ -82,12 +82,10 @@ class KotlinScriptExecutor : ScriptExecutor() {
         addBinding(bindingsEntries, name, value)
       }
     }
-    scriptParameterValues.forEach { param ->
-      if (variables[param.key] == null &&
-        !script.contains("bindings[\"${param.key}\"]")
-      ) { // Don't add binding twice
+    scriptParameterList?.forEach { param ->
+      if (!script.contains("bindings[\"${param.parameterName}\"]")) { // Don't add binding twice
         // OK, null value wasn't added to variables. So we had to add them here:
-        addBinding(bindingsEntries, param.key, param.value)
+        addBinding(bindingsEntries, param.parameterName, param)
       }
     }
     bindingsEntries.sortedBy { it.lowercase() }.forEach {

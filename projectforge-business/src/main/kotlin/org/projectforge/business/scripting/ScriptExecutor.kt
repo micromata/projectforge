@@ -47,8 +47,11 @@ abstract class ScriptExecutor(
 
   val scriptParameterValues = mutableMapOf<String, Any?>()
 
+  var scriptParameterList: List<ScriptParameter>? = null
+
   val allVariables: Map<String, Any?>
     get() = variables + scriptParameterValues
+
 
   /**
    * script with resolved #INCLUDEs.
@@ -102,7 +105,7 @@ abstract class ScriptExecutor(
     /**
      * List of script parameter values, given by user form.
      */
-    scriptParameters: List<ScriptParameter>? = null,
+    inputValues: List<ScriptParameter>? = null,
   ) {
     this.scriptDao = scripDao
     source = scriptDO.scriptAsString ?: ""
@@ -114,23 +117,23 @@ abstract class ScriptExecutor(
       variables["script"] = mutableMapOf("file" to scriptDO.file, "filename" to scriptDO.filename)
     }
     variables.putAll(additionalVariables)
-    putScriptParameters(scriptDO.getParameterList())
-    putScriptParameters(scriptParameters)
-    resolvedScript = resolveInputs(scriptLogger, scriptDO)
-    buildEffectiveScript()
-  }
-
-  private fun putScriptParameters(params: List<ScriptParameter>?) {
-    params?.filter { it.parameterName != null }?.forEach { param ->
-      val paramName = param.parameterName.replaceFirstChar { it.lowercase() } // decapitalize script params.
-      val paramValue = param.value
-      if (paramValue == null && param.type == ScriptParameterType.BOOLEAN) {
+    scriptParameterList = scriptDO.getParameterList()
+    // Assign input values to script parameters.
+    scriptParameterList?.forEach { param ->
+      val value = inputValues?.find { it.parameterName == param.parameterName }?.value
+      if (value != null) {
+        param.value = value
+      } else if (param.type == ScriptParameterType.BOOLEAN) {
         // Put false instead of null value for boolean values:
-        scriptParameterValues[paramName] = false
-      } else {
-        scriptParameterValues[paramName] = param.value
+        param.value = false
       }
     }
+    scriptParameterValues.clear()
+    scriptParameterList?.forEach {
+      scriptParameterValues[it.parameterName] = it.value
+    }
+    resolvedScript = resolveInputs(scriptLogger, scriptDO)
+    buildEffectiveScript()
   }
 
   /**
@@ -203,7 +206,7 @@ abstract class ScriptExecutor(
   }
 
   companion object {
-    private val KOTLIN_REGEX= """^\s*(val|var|fun) """.toRegex(RegexOption.MULTILINE)
+    private val KOTLIN_REGEX = """^\s*(val|var|fun) """.toRegex(RegexOption.MULTILINE)
 
     private val INCLUDE_REGEX = """#INCLUDE\s*"(.+)"""".toRegex() // #INCLUDE "<Name of Snippet or DB-ID>"
 
