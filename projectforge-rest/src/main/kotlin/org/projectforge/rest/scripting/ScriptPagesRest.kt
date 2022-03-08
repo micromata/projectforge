@@ -102,6 +102,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
           .add(UITableColumn("parameter", title = "scripting.script.parameter"))
           .add(UITableColumn("type", title = "scripting.script.type"))
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
+          .add(lc, "lastUpdate")
       )
     return LayoutUtils.processListPage(layout, this)
   }
