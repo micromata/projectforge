@@ -45,7 +45,7 @@ abstract class ScriptExecutor(
    */
   var variables = mutableMapOf<String, Any?>()
 
-  val scriptParameterValues = mutableMapOf<String, Any?>()
+  private val scriptParameterValues = mutableMapOf<String, Any?>()
 
   var scriptParameterList: List<ScriptParameter>? = null
 
@@ -130,7 +130,7 @@ abstract class ScriptExecutor(
     }
     scriptParameterValues.clear()
     scriptParameterList?.forEach {
-      scriptParameterValues[it.parameterName] = it.value
+      scriptParameterValues[createValidIdentifier(it.parameterName)] = it.value
     }
     resolvedScript = resolveInputs(scriptLogger, scriptDO)
     buildEffectiveScript()
@@ -209,6 +209,35 @@ abstract class ScriptExecutor(
     private val KOTLIN_REGEX = """^\s*(val|var|fun) """.toRegex(RegexOption.MULTILINE)
 
     private val INCLUDE_REGEX = """#INCLUDE\s*"(.+)"""".toRegex() // #INCLUDE "<Name of Snippet or DB-ID>"
+
+    /**
+     * Create a valid Java identifier name of given parameterName, with first char in lowercase.
+     * All unallowed chars will be replaced by '_'.
+     * @see Character.isJavaIdentifierStart
+     * @see Character.isJavaIdentifierPart
+     */
+    fun createValidIdentifier(parameterName: String?): String {
+      parameterName ?: return "_null_"
+      if (parameterName.isEmpty()) {
+        return "_empty_"
+      }
+      val sb = StringBuilder()
+      for (i in parameterName.indices) {
+        val ch = parameterName.get(i)
+        if (i == 0) {
+          if (Character.isJavaIdentifierStart(ch)) {
+            sb.append(ch.lowercase())
+          } else {
+            sb.append("_")
+          }
+        } else if (Character.isJavaIdentifierPart(ch)) {
+          sb.append(ch)
+        } else {
+          sb.append("_")
+        }
+      }
+      return sb.toString()
+    }
 
     fun createScriptExecutor(scriptDO: ScriptDO): ScriptExecutor {
       if (scriptDO.type == ScriptDO.ScriptType.KOTLIN) {

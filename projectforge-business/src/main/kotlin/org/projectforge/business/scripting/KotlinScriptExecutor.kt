@@ -57,7 +57,7 @@ class KotlinScriptExecutor : ScriptExecutor() {
       bindings[it.key] = it.value
     }
     scriptParameterList?.forEach {
-      bindings[it.parameterName] = it.value
+      bindings[createValidIdentifier(it.parameterName)] = it.value
     }
     try {
       scriptExecutionResult.result = engine.eval(effectiveScript, bindings)
@@ -102,7 +102,9 @@ class KotlinScriptExecutor : ScriptExecutor() {
     var nullable = ""
     val clazz = if (value != null) {
       if (value is ScriptParameter) {
-        nullable = "?" // Script parameter not found as variable -> is null!
+        if (value.type != ScriptParameterType.BOOLEAN) {
+          nullable = "?" // Script parameter not found as variable -> is null!
+        }
         value.valueClass
       } else {
         value::class.java
@@ -117,7 +119,8 @@ class KotlinScriptExecutor : ScriptExecutor() {
     } else {
       clazz.name
     }
-    bindingsEntries.add("val ${name.replaceFirstChar { it.lowercase() }} = bindings[\"$name\"] as $clsName$nullable")
+    val identifier = createValidIdentifier(name)
+    bindingsEntries.add("val $identifier = bindings[\"$identifier\"] as $clsName$nullable")
   }
 
 

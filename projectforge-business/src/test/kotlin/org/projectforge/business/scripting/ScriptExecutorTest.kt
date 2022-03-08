@@ -25,8 +25,20 @@ package org.projectforge.business.scripting
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.testng.Assert
 
 class ScriptExecutorTest {
+
+  @Test
+  fun createValidIdentifier() {
+    Assert.assertEquals(ScriptExecutor.createValidIdentifier(null), "_null_")
+    Assert.assertEquals(ScriptExecutor.createValidIdentifier(""), "_empty_")
+    Assert.assertEquals(ScriptExecutor.createValidIdentifier("i"), "i")
+    Assert.assertEquals(ScriptExecutor.createValidIdentifier("I"), "i")
+    Assert.assertEquals(ScriptExecutor.createValidIdentifier("5"), "_")
+    Assert.assertEquals(ScriptExecutor.createValidIdentifier("55"), "_5")
+    Assert.assertEquals(ScriptExecutor.createValidIdentifier("Hello world!"), "hello_world_")
+  }
 
   @Test
   fun createScriptExecutor() {
