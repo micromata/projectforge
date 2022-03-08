@@ -69,7 +69,7 @@ class KotlinScriptExecutor : ScriptExecutor() {
   }
 
   override fun autoImports(): List<String> {
-    return autoImports + kotlinImports
+    return AUTO_IMPORTS + kotlinImports
   }
 
   override fun appendBlockAfterImports(sb: StringBuilder) {
