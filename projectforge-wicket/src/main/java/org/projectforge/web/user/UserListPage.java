@@ -167,7 +167,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
     columns.add(new CellItemListenerPropertyColumn<PFUserDO>(getString("description"),
         getSortable("description", sortable), "description",
         cellItemListener));
-    if (updateAccess == true) {
+    if (updateAccess ) {
       // Show these columns only for admin users:
       columns.add(new AbstractColumn<PFUserDO, String>(new Model<String>(getString("user.assignedGroups")))
       {
@@ -222,6 +222,10 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
             .add(new CellItemListenerPropertyColumn<PFUserDO>(getString("user.ldapValues"), "ldapValues", "ldapValues",
                 cellItemListener));
       }
+    } else {
+      columns.add(new CellItemListenerPropertyColumn<PFUserDO>(getString("user.sshPublicKey"),
+          getSortable("sshPublicKey", sortable), "sshPublicKey",
+          cellItemListener));
     }
     return columns;
   }
