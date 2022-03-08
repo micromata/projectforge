@@ -102,6 +102,15 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
           .add(lc, "lastUpdate")
       )
+    layout.add(
+      MenuItem(
+        "exeute",
+        i18nKey = "scripting.script.execute",
+        url = PagesResolver.getDynamicPageUrl(
+          ScriptExecutePageRest::class.java,
+        )
+      )
+    )
     return LayoutUtils.processListPage(layout, this)
   }
 

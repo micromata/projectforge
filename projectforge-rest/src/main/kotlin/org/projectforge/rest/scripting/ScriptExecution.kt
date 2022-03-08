@@ -96,14 +96,25 @@ class ScriptExecution {
       }"
     }
 
-    val scriptDO = scriptDao.getById(script.id)
+    val scriptDO: ScriptDO
+    if (script.id != null) {
+      // Exceuting db script:
+      scriptDO = scriptDao.getById(script.id)
+    } else {
+      // Executing ad-hoc script (from editor instead of data base).
+      scriptDO = ScriptDO()
+      script.copyTo(scriptDO)
+      scriptDO.scriptAsString = script.script
+    }
     // Store as recent script call params:
     val recentScriptCalls = userPrefService.ensureEntry(USER_PREF_AREA, USER_PREF_KEY, RecentScriptCalls())
     val scriptCallData = ScriptCallData("${script.id}", parameters)
     recentScriptCalls.append(scriptCallData)
 
-    val scriptFileAccessor = ScriptFileAccessor(attachmentsService, scriptPagesRest, scriptDO)
-    val additionalVariables = mutableMapOf("files" to scriptFileAccessor)
+    val additionalVariables = mutableMapOf<String, Any>()
+    if (script.id != null) {
+      additionalVariables["files"] = ScriptFileAccessor(attachmentsService, scriptPagesRest, scriptDO)
+    }
     val scriptExecutionResult = scriptDao.execute(scriptDO, parameters, additionalVariables)
     if (scriptExecutionResult.hasException()) {
       scriptExecutionResult.scriptLogger.error(scriptExecutionResult.exception.toString())

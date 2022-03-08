@@ -65,10 +65,15 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-    val id = NumberHelper.parseInteger(idString) ?: throw IllegalArgumentException("id not given.")
-    val scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+    var scriptDO: ScriptDO? = null
     val script = Script()
-    script.copyFrom(scriptDO)
+    val id = NumberHelper.parseInteger(idString)
+    if (id != null) {
+      scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+      script.copyFrom(scriptDO)
+    } else {
+      script.availableVariables = scriptDao.getScriptVariableNames(ScriptDO(), emptyMap<String, Any>()).joinToString()
+    }
     val variables = mutableMapOf<String, Any>()
     val layout = getLayout(request, script, variables, scriptDO)
     return FormLayoutData(script, layout, createServerData(request), variables)
@@ -78,34 +83,37 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
     request: HttpServletRequest,
     script: Script,
     variables: MutableMap<String, Any>,
-    scriptDO: ScriptDO? = null,
+    scriptDO: ScriptDO?,
     executionResults: String? = null
   ): UILayout {
-    scriptExecution.updateFromRecentCall(script)?.let { task ->
-      // Task must be added to variables for displaying it:
-      variables["task"] = task
-    }
-    var dbScript = scriptDO
-    if (dbScript == null) {
-      dbScript = scriptDao.getById(script.id) ?: throw IllegalArgumentException("Script not found.")
-    }
-    // Update param names
-    script.parameter1?.name = dbScript.parameter1Name
-    script.parameter2?.name = dbScript.parameter2Name
-    script.parameter3?.name = dbScript.parameter3Name
-    script.parameter4?.name = dbScript.parameter4Name
-    script.parameter5?.name = dbScript.parameter5Name
-    script.parameter6?.name = dbScript.parameter6Name
-
     val layout = UILayout("scripting.script.execute")
-    layout.add(UIReadOnlyField("name", label = "scripting.script.name"))
-    layout.add(UIReadOnlyField("description", label = "description"))
-    addParameterInput(layout, script.parameter1, 1)
-    addParameterInput(layout, script.parameter2, 2)
-    addParameterInput(layout, script.parameter3, 3)
-    addParameterInput(layout, script.parameter4, 4)
-    addParameterInput(layout, script.parameter5, 5)
-    addParameterInput(layout, script.parameter6, 6)
+    if (scriptDO != null) {
+      // DB-Script execution
+      scriptExecution.updateFromRecentCall(script)?.let { task ->
+        // Task must be added to variables for displaying it:
+        variables["task"] = task
+      }
+      // Update param names
+      script.parameter1?.name = scriptDO.parameter1Name
+      script.parameter2?.name = scriptDO.parameter2Name
+      script.parameter3?.name = scriptDO.parameter3Name
+      script.parameter4?.name = scriptDO.parameter4Name
+      script.parameter5?.name = scriptDO.parameter5Name
+      script.parameter6?.name = scriptDO.parameter6Name
+      layout.add(UIReadOnlyField("name", label = "scripting.script.name"))
+      layout.add(UIReadOnlyField("description", label = "description"))
+      addParameterInput(layout, script.parameter1, 1)
+      addParameterInput(layout, script.parameter2, 2)
+      addParameterInput(layout, script.parameter3, 3)
+      addParameterInput(layout, script.parameter4, 4)
+      addParameterInput(layout, script.parameter5, 5)
+      addParameterInput(layout, script.parameter6, 6)
+    } else {
+      // Editing and executing ad-hoc script
+      layout.add(UIEditor("script"))
+        .add(UIReadOnlyField("availableVariables", label = "scripting.script.availableVariables"))
+    }
+
     layout.add(
       UIButton(
         "back",
@@ -164,28 +172,30 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
       )
     }
 
-    layout.add(
-      MenuItem(
-        "EDIT",
-        i18nKey = "scripting.title.edit",
-        url = PagesResolver.getEditPageUrl(
-          ScriptPagesRest::
-          class.java, script.id
-        ),
-        type = MenuItemTargetType.REDIRECT
-      )
-    )
-      .add(
+    if (scriptDO != null) {
+      layout.add(
         MenuItem(
-          "logViewer",
-          i18nKey = "system.admin.logViewer.title",
-          url = PagesResolver.getDynamicPageUrl(
-            LogViewerPageRest::
-            class.java, id = ensureUserLogSubscription().id
+          "EDIT",
+          i18nKey = "scripting.title.edit",
+          url = PagesResolver.getEditPageUrl(
+            ScriptPagesRest::
+            class.java, script.id
           ),
-          type = MenuItemTargetType.REDIRECT,
+          type = MenuItemTargetType.REDIRECT
         )
       )
+    }
+    layout.add(
+      MenuItem(
+        "logViewer",
+        i18nKey = "system.admin.logViewer.title",
+        url = PagesResolver.getDynamicPageUrl(
+          LogViewerPageRest::
+          class.java, id = ensureUserLogSubscription().id
+        ),
+        type = MenuItemTargetType.REDIRECT,
+      )
+    )
 
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
@@ -241,10 +251,11 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
       }
     }
     val executionResults = output.toString()
+    val scriptDO = scriptDao.getById(script.id) // null, if script.id is null.
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE, merge = true)
         .addVariable("data", script)
-        .addVariable("ui", getLayout(request, script, variables, executionResults = executionResults))
+        .addVariable("ui", getLayout(request, script, variables, scriptDO, executionResults = executionResults))
         .addVariable("variables", variables)
     )
   }
