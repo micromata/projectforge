@@ -44,6 +44,7 @@ object ExampleScripts {
 
   val exampleFiles = listOf(
     ExampleScript("helloWorld.kts", "Simple hello world."),
-    ExampleScript("excelExport.kts", "Simple Excel® export."),
+    ExampleScript("simpleExcelExport.kts", "Simple Excel® export."),
+    ExampleScript("advancedExcelExport.kts", "Advanced Excel® export."),
   )
 }
