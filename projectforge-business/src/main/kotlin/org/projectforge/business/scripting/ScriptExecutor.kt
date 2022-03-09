@@ -248,13 +248,16 @@ abstract class ScriptExecutor(
     }
 
     fun getScriptType(scriptDO: ScriptDO): ScriptDO.ScriptType {
-      if (scriptDO.type == ScriptDO.ScriptType.KOTLIN) {
+      return getScriptType(scriptDO.scriptAsString, scriptDO.type)
+    }
+
+    fun getScriptType(script: String?, type: ScriptDO.ScriptType? = null): ScriptDO.ScriptType {
+      if (type == ScriptDO.ScriptType.KOTLIN) {
         return ScriptDO.ScriptType.KOTLIN
-      } else if (scriptDO.type == ScriptDO.ScriptType.GROOVY) {
+      } else if (type == ScriptDO.ScriptType.GROOVY) {
         return ScriptDO.ScriptType.GROOVY
       }
-      val script = scriptDO.scriptAsString ?: ""
-      return if (script.contains(KOTLIN_REGEX)) {
+      return if (script?.contains(KOTLIN_REGEX) == true) {
         ScriptDO.ScriptType.KOTLIN
       } else {
         ScriptDO.ScriptType.GROOVY

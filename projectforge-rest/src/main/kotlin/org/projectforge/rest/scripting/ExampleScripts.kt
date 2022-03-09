@@ -21,25 +21,29 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.ui
+package org.projectforge.rest.scripting
 
-import org.projectforge.business.scripting.ScriptDO
+import mu.KotlinLogging
+import org.apache.commons.io.IOUtils
 
-/**
- * UIEditor is used for e. g. source code editing (Kotlin/Groovy-scripts).
- */
-class UIEditor(
-  val id: String,
-  var mode: String = "kotlin",
-  type: ScriptDO.ScriptType? = null,
-) : UIElement(UIElementType.EDITOR) {
-  init {
-    type?.let {
-      mode = if (type == ScriptDO.ScriptType.GROOVY) {
-        "groovy"
-      } else {
-        "kotlin"
-      }
+private val log = KotlinLogging.logger {}
+
+object ExampleScripts {
+  class ExampleScript(val filename: String, val title: String)
+
+  fun loadScript(idx: Int): String {
+    val example = exampleFiles[idx]
+    val resourcePath = "example-scripts/${example.filename}"
+    val resourceStream = ExampleScripts::class.java.classLoader.getResourceAsStream(resourcePath)
+    if (resourceStream == null) {
+      log.error("Internal error: Can't read initial config data from class path: $resourcePath")
+      return "// ${example.filename} not found."
     }
+    return IOUtils.toString(resourceStream, "UTF-8")
   }
+
+  val exampleFiles = listOf(
+    ExampleScript("helloWorld.kts", "Simple hello world."),
+    ExampleScript("excelExport.kts", "Simple Excel® export."),
+  )
 }
