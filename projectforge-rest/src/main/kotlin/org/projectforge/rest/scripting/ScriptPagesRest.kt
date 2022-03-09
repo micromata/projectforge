@@ -165,7 +165,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
           .add(UIAttachmentList(category, dto.id))
       )
     }
-    layout.add(UIEditor("script"))
+    layout.add(UIEditor("script", type = ScriptExecutor.getScriptType(dto.script, dto.type)))
       .add(UIReadOnlyField("availableVariables", label = "scripting.script.availableVariables"))
 
     if (dto.id != null) {

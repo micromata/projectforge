@@ -4,12 +4,13 @@ import AceEditor from 'react-ace';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
 
-import 'ace-builds/src-noconflict/mode-java';
-import 'ace-builds/src-noconflict/theme-github';
+import 'ace-builds/src-noconflict/mode-kotlin';
+import 'ace-builds/src-noconflict/mode-groovy';
+import 'ace-builds/src-noconflict/theme-monokai';
 // import 'ace-builds/src-noconflict/theme-github';
 import 'ace-builds/src-noconflict/ext-language_tools';
 
-function DynamicEditor({ id, ...props }) {
+function DynamicEditor({ id, mode, ...props }) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     const value = Object.getByString(data, id) || '';
@@ -21,9 +22,9 @@ function DynamicEditor({ id, ...props }) {
         return (
             <DynamicValidationManager id={id}>
                 <AceEditor
-                    mode="java"
-                    theme="github"
-                    height="800px"
+                    mode={mode || 'kotlin'}
+                    theme="monokai"
+                    height="600px"
                     width="1024px"
                     value={value}
                     onChange={handleInputChange}
@@ -45,6 +46,7 @@ function DynamicEditor({ id, ...props }) {
 
 DynamicEditor.propTypes = {
     id: PropTypes.string.isRequired,
+    mode: PropTypes.string,
 };
 
 DynamicEditor.defaultProps = {

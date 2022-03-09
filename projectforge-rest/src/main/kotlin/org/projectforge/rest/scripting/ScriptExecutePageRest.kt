@@ -26,6 +26,7 @@ package org.projectforge.rest.scripting
 import mu.KotlinLogging
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptDao
+import org.projectforge.business.scripting.ScriptExecutor
 import org.projectforge.business.scripting.ScriptParameterType
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogLevel
@@ -64,15 +65,30 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
   private lateinit var scriptExecution: ScriptExecution
 
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
+  fun getForm(
+    request: HttpServletRequest,
+    @RequestParam("id") idString: String?,
+    @RequestParam("example") example: Int?
+  ): FormLayoutData {
     var scriptDO: ScriptDO? = null
     val script = Script()
-    val id = NumberHelper.parseInteger(idString)
+    var id: Int? = null
+    var exampleIdx: Int? = null // fix, because idString is like ?example=#
+    if (example != null) {
+      exampleIdx = example
+    } else if (idString?.startsWith("?example=") == true) {
+      exampleIdx = idString.removePrefix("?example=").toIntOrNull()
+    } else {
+      id = NumberHelper.parseInteger(idString)
+    }
     if (id != null) {
       scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
       script.copyFrom(scriptDO)
     } else {
       script.availableVariables = scriptDao.getScriptVariableNames(ScriptDO(), emptyMap<String, Any>()).joinToString()
+      if (exampleIdx != null) {
+        script.script = ExampleScripts.loadScript(exampleIdx)
+      }
     }
     val variables = mutableMapOf<String, Any>()
     val layout = getLayout(request, script, variables, scriptDO)
@@ -110,7 +126,7 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
       addParameterInput(layout, script.parameter6, 6)
     } else {
       // Editing and executing ad-hoc script
-      layout.add(UIEditor("script"))
+      layout.add(UIEditor("script", type = ScriptExecutor.getScriptType(script.script, script.type)))
         .add(UIReadOnlyField("availableVariables", label = "scripting.script.availableVariables"))
     }
 
@@ -182,6 +198,20 @@ class ScriptExecutePageRest : AbstractDynamicPageRest() {
             class.java, script.id
           ),
           type = MenuItemTargetType.REDIRECT
+        )
+      )
+    }
+    val examplesMenu = MenuItem("examples", translate("scripting.script.examples"))
+    layout.add(examplesMenu)
+    ExampleScripts.exampleFiles.forEachIndexed { index, exampleScript ->
+      examplesMenu.add(
+        MenuItem(
+          id = "example$index",
+          title = exampleScript.title,
+          url = PagesResolver.getDynamicPageUrl(
+            ScriptExecutePageRest::class.java,
+            params = mapOf("example" to index),
+          ),
         )
       )
     }
