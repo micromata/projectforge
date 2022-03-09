@@ -14,11 +14,7 @@ Most migrations (data base as well as data base content) will be done automatica
 
 But there are some really small changes e. g. in config files etc. which have to be done manually, as described below.
 
-====
-
-====
-
-=== Version 7.2.1
+=== Version 7.2 -> 7.3
 
 . Scripting
 .. The scripting functionality is fully migrated to React. Multiple attachmentes are now supported. Therefore the files
