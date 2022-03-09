@@ -25,7 +25,7 @@ An auto-update mechanism for the data-base on start-up of the web app is include
 |130MB
 |Executable java archive
 
-|Docker hub|https://hub.docker.com/r/micromata/projectforgee[Docker images,window=_blank]
+|Docker hub|https://hub.docker.com/r/micromata/projectforge[Docker images,window=_blank]
 |530MB
 |Docker images for running as single container as well as docker compose stack.
 
