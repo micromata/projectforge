@@ -11,8 +11,10 @@ val workbook = ExcelUtils.prepareWorkbook("Advanced.xlsx")
 val sheet = workbook.createOrGetSheet("list of users")
 // Define new number format under name 'integer':
 workbook.createOrGetCellStyle("integer").dataFormat = workbook.createDataFormat().getFormat("#0")
+workbook.createOrGetCellStyle("bold12", font = workbook.createOrGetFont("bold112", bold = true, heightInPoints = 12))
+
 sheet.registerColumns(
-  "Username|20", // Column with length 20
+  "Username|20|:bold12", // Column with length 20 and bold font with size 12.
   "Full name|fullname|30", // Column with text 'Full name' and user property fullname.
   "Email|30",
   "Gender|10",
