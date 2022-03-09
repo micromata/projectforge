@@ -47,7 +47,7 @@ Updates through simple clicks
 
 ProjectForge provides a very convenient method for updating your ProjectForge installation. Since version 6 any required updates or migrations will be done automatically by simply starting a new version.
 
-Some versions need manual updates (e. g. of config files): https://github.com/micromata/projectforge/blob/develop/doc/migration.adoc[Migration,window=_blank].
+Some versions need manual updates (e. g. of config files): https://projectforge.org/docs/migration/[Migration,window=_blank].
 
 If you need to update versions older 6, you'll need to download the latest version 5 and use the older update mechanism by simply clicking through the updates.
 
