@@ -704,65 +704,48 @@ A script editor is built-in in ProjectForge®.
 
 === Examples
 
-==== Example: Hibernate criterion API
+You may use some predefined scripts for getting an idea how powerful the scripting
+in ProjectForge® is.
 
-[source,java,linenums]
+==== Example: Easy Excel-file generation
+
+[source,kotlin,linenums]
 ----
-import org.hibernate.criterion.*
-import org.projectforge.core.*
-
-QueryFilter filter = new QueryFilter()         // Define a query
-filter.addOrder(Order.asc("username"))         // Set order attribute
-List userList = userDao.getList(filter)        // Get all users
-
-return "Number of found users: " + userList.size
+// Simple otlin script
+val users = userDao.getList()
+val workbook = ExcelUtils.prepareWorkbook("Userlist.xlsx")
+val sheet = workbook.createOrGetSheet("Users")
+sheet.registerColumns(
+  "Username|20", // Title Username is also property name, length = 20
+  "Full name|fullname|30", // Title differs from property name
+  "Email|30",
+  "Id|10|:integer",
+  "Description|50",
+)
+sheet.createRow().fillHeadRow()
+users.forEach { user ->
+  val row = sheet.createRow()
+  ExcelUtils.autoFill(row, user)
+}
+sheet.setAutoFilter() // optional Excel auto filter
+workbook
 ----
 
 ==== Example: Usage of ProjectForge® filters
 
-[source,java,linenums]
+[source,kotlin,linenums]
 ----
-import org.projectforge.core.*
-import org.projectforge.timesheet.*
-import org.projectforge.common.*
+val filter = TimesheetFilter()
+filter.startTime = PFDateTime.withDate(2022, Month.JANUARY, 1).utilDate
+filter.stopTime = PFDateTime.withDate(2022, Month.JUNE, 30).utilDate
+val list = timesheetDao.getList(filter)
 
-DateHolder date = new DateHolder() // Using the user's current time zone
-
-TimesheetFilter tf = new TimesheetFilter()
-date.setDate(2009, Calendar.JANUARY, 01, 00, 00, 00)
-tf.setStartTime(date.date)
-date.setDate(2009, Calendar.JANUARY, 31, 23, 59, 59)
-tf.setStopTime(date.date)
-tf.setUserId(17)
-List timesheetList = timesheetDao.getList(tf)
-
-return "Number of found time sheets: " + timesheetList.size
+"Number of found time sheets: ${list?.size}"
 ----
 
-=== Usage of date values
+PFDateTime and PFDay uses automatically the time zone of the current logged-in
+user as default.
 
-ProjectForge® uses everytime the time zone of the logged-in user.
-Internally all dates and times are stored as UTC! Therefore all queries
-needs to be executed with the correct time zone. The
-class `DateHolder` and `DayHolder` does everything for you (the correct
-time zone of the logged-in user is used).
-
-*Example*
-
-[source,java,linenums]
-----
-import org.projectforge.common.*
-
-DateHolder date = new DateHolder() // user's current time zone / locale
-
-date.setDate(2009, Calendar.JANUARY, 01) // CET: 01.01.2009 00:00
-String result = "UTC: " + date.date // UTC: Wed Dec 31 23:00:00 UTC 2008
-
-date.setDate(2009, Calendar.APRIL, 01, 17, 03) // CEST: 01.04.2009 17:03
-result += ", UTC: " + date.date // UTC: Wed Apr 01 15:03:00 UTC 2009
-
-return result
-----
 
 === Access rights (DAOs)
 
@@ -772,193 +755,6 @@ such entities are returned for those the user has access to. All
 entities without the user's access are removed by the DAOs of the result
 lists.
 
-=== Creation of Excel sheets
-
-If a script returns an `ExportWorkbook,` a Excel file is created and
-will result in a download. Check this out:
-
-==== Example: Excel export of simple lists
-
-[source,java,linenums]
-----
-import org.hibernate.criterion.*
-import org.projectforge.core.*
-import org.projectforge.excel.*
-
-QueryFilter filter = new QueryFilter()         // Defines a query
-filter.addOrder(Order.asc("username"))         // Sets sort order
-List userList = userDao.getList(filter)        // Gets the user's list
-
-ExportWorkbook workbook = new ExportWorkbook();// Creates a new Excel work book
-ExportSheet sheet = workbook.addSheet("Users") // Creates a new Excel sheet
-sheet.contentProvider.colWidths = [10, 20]     // Sets the width of the first two columns.
-sheet.propertyNames = ["username", "lastname"] // Defines the properties to export.
-sheet.addRow().setCapitalizedValues(sheet.propertyNames)  // Creates a heading row.
-sheet.addRows(userList)                        // Add all user's, one per row.
-
-return workbook
-----
-
-==== Example: Excel export of joined objects
-
-[source,java,linenums]
-----
-import org.projectforge.core.*
-import org.projectforge.excel.*
-import org.projectforge.timesheet.*
-import java.text.SimpleDateFormat
-
-TimesheetFilter tf = new TimesheetFilter()
-SimpleDateFormat df = new SimpleDateFormat("dd.MM.yyyy HH:mm")
-tf.setStartTime(df.parse("01.01.2009 00:00"))
-tf.setStopTime(df.parse("31.01.2009 23:59"))
-tf.setUserId(17)
-List timesheetList = timesheetDao.getList(tf)
-
-ExportWorkbook workbook = new ExportWorkbook();
-ExportSheet sheet = workbook.addSheet("Timesheets")
-sheet.contentProvider.colWidths = [10, 20, 15, 10]
-sheet.contentProvider.putFormat(java.sql.Timestamp.class,"DD.MM.YYYY hh:mm") // Defines the format for all time stamps
-sheet.contentProvider.putFormat("stopTime","hh:mm")             // Defines the format for the property 'stopTime'
-sheet.addRow().setValues("Username", "Beschreibung", "StartDate", "StopDate", "fakturiert")
-sheet.propertyNames = ["user.username", "description", "startTime", "stopTime", "kost2.kost2Art.fakturiert"]
-sheet.addRows(timesheetList)
-
-return workbook
-----
-
-==== Own join objects
-
-You may join database entities very simple:
-
-[source,java,linenums]
-----
-import org.fibu.*
-import org.fibu.kost.*
-import org.projectforge.excel.*
-import org.projectforge.core.*
-
-class JoinedObject {
-  BuchungssatzDO satz
-  EmployeeDO employee
-}
-
-// Load list of account records (BuchungssatzDO):
-BuchungssatzFilter filter = new BuchungssatzFilter();
-filter.setFrom(2008, 0) // Januar
-filter.setTo(2008, 11)  // Dezember
-
-def buchungssaetze = buchungssatzDao.getList(filter)
-buchungssaetze = buchungssaetze.findAll{ satz -> (5000..5999).contains(satz.konto.nummer) }
-
-// Load list of employees
-def employees = employeeDao.getList().findAll{it.kost1 != null}
-
-def result = new ArrayList()
-buchungssaetze.each{bs ->
-  el = new JoinedObject()
-  el.satz = bs
-  el.employee = employees.find{employee -> employee.kost1Id == bs.kost1.id}
-  result.add(el)
-}
-
-// Generate Excel work book:
-ExportWorkbook workbook = new ExportWorkbook();
-ExportSheet sheet = workbook.addSheet("Result")
-sheet.contentProvider.colWidths = [10, 10, 8, 8, 10, 10, 20, 20]
-sheet.addRow().setValues("Datum", "Betrag", "Konto", "Gegen-konto", "Kost1", "Kost2", "Name")
-sheet.contentProvider.putFormat("satz.datum", "DD.MM.YYYY")
-sheet.contentProvider.putFormat("satz.betrag", "#,##0.00$;[Red]-#,##0.00$") // English format
-sheet.contentProvider.putFormat("satz.konto.nummer", "0")
-sheet.contentProvider.putFormat("satz.gegenKonto.nummer", "0")
-sheet.propertyNames = ["satz.datum", "satz.betrag", "satz.konto.nummer", "satz.gegenKonto.nummer",
-  "satz.kost1.formattedNumber", "satz.kost2.formattedNumber", "employee.user.fullname"]
-sheet.addRows(result)
-
-return workbook
-----
-
-==== Formats
-
-[source,java,linenums]
-----
-import org.projectforge.calendar.*
-import org.projectforge.common.*
-import org.projectforge.core.*
-import org.projectforge.excel.*
-
-ExportWorkbook workbook = new ExportWorkbook();// Creates new work book
-ExportSheet sheet = workbook.addSheet("Test") // Creates new sheet
-sheet.contentProvider.colWidths = [20, 20, 20]
-sheet.addRow().setValues("Typ", "Precision", "Value")
-sheet.addRow().setValues("DayHolder", "Day", new DayHolder())
-sheet.addRow().setValues("DateHolder", "Day", new DateHolder().setPrecision(DatePrecision.DAY))
-sheet.addRow().setValues("DateHolder", "Minutes", new DateHolder().setPrecision(DatePrecision.MINUTE))
-sheet.addRow().setValues("DateHolder", "Seconds", new DateHolder().setPrecision(DatePrecision.SECOND))
-sheet.addRow().setValues("DateHolder", "Millis", new DateHolder().setPrecision(DatePrecision.MILLISECOND))
-
-return workbook
-----
-
-ProjectForge® uses the precision of DateHolder objects for the
-output as default, e. g. for precision SECOND the date with time stamp
-including seconds is used, for precision DAY only the date without any
-time stamp is used. Supported precisions
-are: `DAY, HOUR_OF_DAY, MINUTE_15, MINUTE, SECOND, MILLISECOND.`
-
-==== Modification of existing Excel files
-
-You may upload Excel files (stored in scripts) which you may modifiy
-inside your script.
-
-[source,java,linenums]
-----
-import org.hibernate.criterion.*
-import org.projectforge.core.*
-import org.projectforge.excel.*
-
-QueryFilter filter = new QueryFilter()         // Defines a query
-filter.addOrder(Order.asc("username"))         // Sets sort order
-List userList = userDao.getList(filter)        // Gets the user list
-
-ExportWorkbook workbook = new ExportWorkbook(script.file)
-ExportSheet sheet = workbook.addSheet("Users") // Creates a new sheet
-sheet.contentProvider.colWidths = [10, 20]     // Sets the width of the first two columns.
-sheet.propertyNames = ["username", "lastname"] // Defines the properties to export.
-sheet.addRow().setCapitalizedValues(sheet.propertyNames)  // Creates a heading row.
-sheet.addRows(userList)                        // Add all user's, one per row.
-
-return workbook
-----
-
-==== Cell formats
-
-You should use the English notation:
-
-**Example**
-
-[cols=",",]
-|===
-|DD.MM.YYYY hh:mm |Date with time of day
-|DD.MM.YYYY hh:mm:ss |Date with time of day including seconds
-|0 |Normal output of number without thousands delimiter.
-|+++#,##0.00$+++ |Currency (Dollar)
-|+++#,##0.00$;[Red]-#,##0.00$+++ |Currency with red colored negative values.
-|===
-
-==== Excel and time periods
-
-Excel uses internally a fraction of 24 hours. For converting for example
-milliseconds to hours in Excel you may use the following code:
-
-[source,java,linenums]
-----
-BigDecimal duration = new BigDecimal(durationInMillis / 1000); // Seconds +
-duration = duration.divide(new BigDecimal(60 * 60 * 24), 8, RoundingMode.HALF_UP); // Fraction of day (24 hours) +
-double excelDuration = duration.doubleValue();
-----
-
-You may use `"[h]:mm"` as cell format.
 
 === Creation of diagrams and charts
 
