@@ -40,6 +40,55 @@ public class LdapUtils
 {
   private static final String ATTRIBUTE_SEPARATOR_CHAR = ",";
 
+  // https://github.com/ESAPI/esapi-java-legacy/blob/develop/src/main/java/org/owasp/esapi/reference/DefaultEncoder.java
+  public static String encodeForLDAP(String input) {
+    return encodeForLDAP(input, true);
+  }
+
+  /**
+   * '\' -> "\5c", '(' -> "\\28", ')' -> "\\29", '\0' -> "\00"
+   * If encodeWildcads == true: '*' -> "\2a"
+   * @param input
+   * @param encodeWildcards Default ist true
+   * @return encode input string.
+   * https://github.com/ESAPI/esapi-java-legacy/blob/develop/src/main/java/org/owasp/esapi/reference/DefaultEncoder.java
+   */
+  public static String encodeForLDAP(String input, boolean encodeWildcards) {
+    if (input == null) {
+      return null;
+    }
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < input.length(); i++) {
+      char c = input.charAt(i);
+
+      switch (c) {
+        case '\\':
+          sb.append("\\5c");
+          break;
+        case '*':
+          if (encodeWildcards) {
+            sb.append("\\2a");
+          } else {
+            sb.append(c);
+          }
+
+          break;
+        case '(':
+          sb.append("\\28");
+          break;
+        case ')':
+          sb.append("\\29");
+          break;
+        case '\0':
+          sb.append("\\00");
+          break;
+        default:
+          sb.append(c);
+      }
+    }
+    return sb.toString();
+  }
+
   /**
    * Escapes the following characters: , (comma), = (equals), + (plus), < (less than), > (greater than), # (number sign), ; (semicolon), \
    * (backslash), and " (quotation mark).

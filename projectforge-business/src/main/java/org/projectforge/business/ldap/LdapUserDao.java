@@ -464,7 +464,13 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
     }
   }
 
-  public LdapUser findByUsername(final Object username, final String... organizationalUnits) {
+  public LdapUser findByUsername(final String username, final String... organizationalUnits) {
+    if (StringUtils.isBlank(username)) {
+      log.warn("No username given.");
+      return null;
+    }
+    // Xanatizer-findings, thanx to Felix Tschentscher and Sergej Michel, Micromata:
+    final String encodedUsername = LdapUtils.encodeForLDAP(username);
     return (LdapUser) new LdapTemplate(ldapConnector) {
       @Override
       protected Object call() throws NameNotFoundException, Exception {
@@ -472,7 +478,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
         final SearchControls controls = new SearchControls();
         controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
         final String searchBase = getSearchBase(organizationalUnits);
-        results = ctx.search(searchBase, "(&(objectClass=" + getObjectClass() + ")(uid=" + username + "))", controls);
+        results = ctx.search(searchBase, "(&(objectClass=" + getObjectClass() + ")(uid=" + encodedUsername + "))", controls);
         if (!results.hasMore()) {
           return null;
         }
@@ -480,7 +486,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
         final String dn = searchResult.getName();
         final Attributes attributes = searchResult.getAttributes();
         if (results.hasMore()) {
-          log.error("Oups, found entries with multiple id's: " + getObjectClass() + "." + username);
+          log.error("Oups, found entries with multiple id's: " + getObjectClass() + "." + encodedUsername);
         }
         return mapToObject(dn, searchBase, attributes);
       }
