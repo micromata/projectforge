@@ -82,9 +82,12 @@ public class LdapConnector implements ConfigurationListener {
     final String authentication = ldapConfig.getAuthentication();
     if (StringUtils.isNotBlank(authentication)) {
       env.put(Context.SECURITY_AUTHENTICATION, ldapConfig.getAuthentication());
-      if (!"none".equals(authentication) && user != null && password != null) {
-        env.put(Context.SECURITY_PRINCIPAL, user);
-        env.put(Context.SECURITY_CREDENTIALS, password);
+      if (!"none".equals(authentication)) {
+        // Avoid null-value-attack (thanx to Sergej Michel, Micromata):
+        final String userNotEmpty = StringUtils.isNotBlank(user) ? user : "<no-user>";
+        final char[] passwordNotEmpty = password != null && password.length > 0 ? password : "<no-password>".toCharArray();
+        env.put(Context.SECURITY_PRINCIPAL, userNotEmpty);
+        env.put(Context.SECURITY_CREDENTIALS, passwordNotEmpty);
       }
     }
     if (ldapConfig != null && StringUtils.isNotBlank(ldapConfig.getSslCertificateFile())) {

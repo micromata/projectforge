@@ -34,6 +34,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 public class LdapUtilsTest
 {
   @Test
+  void encodeLdap() {
+    assertNull(LdapUtils.encodeForLDAP(null));
+    assertEquals("", LdapUtils.encodeForLDAP(""));
+    assertEquals("abc", LdapUtils.encodeForLDAP("abc"));
+    assertEquals("\\2a", LdapUtils.encodeForLDAP("*"));
+    //   * '\' -> "\5c", '(' -> "\\28", ')' -> "\\29", '\0' -> "\00"
+    assertEquals("Test \\5c \\28\\2a\\29 \\00", LdapUtils.encodeForLDAP("Test \\ (*) \0"));
+  }
+
+  @Test
   void toJsonStringTest() {
     LdapUser user = new LdapUser();
     user.setSurname("Reinhard");
