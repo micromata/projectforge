@@ -26,10 +26,43 @@ package org.projectforge.framework.utils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.*
 
 object NumberFormatter {
+    /**
+     * @param value Format this value.
+     * @param pattern The format string for [DecimalFormat].
+     * @param roundingMode [RoundingMode.HALF_UP] is default.
+     * @return The formatted number or empty string if value is null.
+     * @see ThreadLocalUserContext.getLocale
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun format(value: Number?, pattern: String, roundingMode: RoundingMode = RoundingMode.HALF_UP): String {
+        value ?: return ""
+        return format(value, pattern, ThreadLocalUserContext.getLocale(), roundingMode)
+    }
+
+    /**
+     * @param value Format this value.
+     * @param pattern The format string for [DecimalFormat].
+     * @param locale The locale to use.
+     * @param roundingMode [RoundingMode.HALF_UP] is default.
+     * @return The formatted number or empty string if value is null.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun format(value: Number?, pattern: String, locale: Locale, roundingMode: RoundingMode = RoundingMode.HALF_UP): String {
+        value ?: return ""
+        val df = DecimalFormat.getInstance(locale) as DecimalFormat
+        df.applyPattern(pattern);
+        df.roundingMode = roundingMode
+        return df.format(value)
+    }
+
     /**
      * Returns the given integer value as String representation.
      *

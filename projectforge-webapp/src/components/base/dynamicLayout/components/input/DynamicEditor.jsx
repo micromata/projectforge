@@ -7,7 +7,7 @@ import DynamicValidationManager from './DynamicValidationManager';
 import 'ace-builds/src-noconflict/mode-kotlin';
 import 'ace-builds/src-noconflict/mode-groovy';
 import 'ace-builds/src-noconflict/theme-monokai';
-// import 'ace-builds/src-noconflict/theme-github';
+import 'ace-builds/src-noconflict/ext-searchbox';
 import 'ace-builds/src-noconflict/ext-language_tools';
 
 function DynamicEditor({ id, mode, ...props }) {
