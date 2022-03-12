@@ -172,8 +172,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
       layout.add(
         MenuItem(
           "downloadBackups",
-          i18nKey = "scripting.script.downloadEffectiveScript.info",
-          tooltipTitle = "scripting.script.downloadEffectiveScript.info",
+          i18nKey = "scripting.script.downloadBackups",
           url = "${getRestPath()}/downloadBackupScripts/${dto.id}",
           type = MenuItemTargetType.DOWNLOAD
         )
@@ -181,6 +180,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
         MenuItem(
           "downloadEffectiveScript",
           i18nKey = "scripting.script.downloadEffectiveScript",
+          tooltipTitle = "scripting.script.downloadEffectiveScript.info",
           url = "${getRestPath()}/downloadEffectiveScript/${dto.id}",
           type = MenuItemTargetType.DOWNLOAD
         )
