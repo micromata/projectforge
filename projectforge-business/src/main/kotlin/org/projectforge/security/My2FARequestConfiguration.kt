@@ -105,7 +105,7 @@ open class My2FARequestConfiguration {
             "WRITE:incomingInvoice;WRITE:outgoingInvoice;/wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice",
         "ORGA" to
             "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract",
-        "SCRIPT" to "/wa/script",
+        "SCRIPT" to "/react/script",
         "MY_ACCOUNT" to "/react/tokenInfo;/react/myAccount;/rs/tokenInfo;/rs/user/renewToken",
         "PASSWORD" to "/react/change.*Password"
       )

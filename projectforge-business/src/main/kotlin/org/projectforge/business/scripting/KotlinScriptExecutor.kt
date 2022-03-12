@@ -42,6 +42,8 @@ class KotlinScriptExecutor : ScriptExecutor() {
     private val kotlinImports = listOf(
       "import org.projectforge.framework.i18n.translate",
       "import org.projectforge.framework.i18n.translateMsg",
+      "import org.projectforge.framework.utils.NumberFormatter.format",
+      "import org.projectforge.framework.utils.NumberFormatter.formatCurrency",
     )
   }
 
