@@ -31,7 +31,6 @@ private val log = KotlinLogging.logger {}
 class KotlinScriptExecutor : ScriptExecutor() {
 
   companion object {
-
     private val bindingsClassReplacements = mapOf(
       "java.lang.String" to "String",
       "java.lang.Integer" to "Int",
@@ -71,7 +70,7 @@ class KotlinScriptExecutor : ScriptExecutor() {
   }
 
   override fun autoImports(): List<String> {
-    return AUTO_IMPORTS + kotlinImports
+    return AUTO_IMPORTS.map{ it.replace("import static", "import") } + kotlinImports
   }
 
   override fun appendBlockAfterImports(sb: StringBuilder) {
