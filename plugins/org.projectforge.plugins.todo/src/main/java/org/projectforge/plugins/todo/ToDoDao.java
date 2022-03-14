@@ -30,7 +30,6 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserDao;
-import org.projectforge.continuousdb.Table;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
@@ -56,8 +55,6 @@ public class ToDoDao extends BaseDao<ToDoDO> {
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"reporter.username", "reporter.firstname",
           "reporter.lastname",
           "assignee.username", "assignee.firstname", "assignee.lastname", "task.title", "task.taskpath", "group.name"};
-
-  private final Table table = new Table(ToDoDO.class);
 
   @Autowired
   private DataSource dataSource;
@@ -287,8 +284,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
   int internalGetOpenEntries(final Integer userId) {
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     try {
-      return jdbc.queryForObject("SELECT COUNT(*) FROM "
-              + table.getName()
+      return jdbc.queryForObject("SELECT COUNT(*) FROM T_PLUGIN_TODO"
               + " where assignee_fk="
               + userId
               + " and recent=true and deleted=false", Integer.class);

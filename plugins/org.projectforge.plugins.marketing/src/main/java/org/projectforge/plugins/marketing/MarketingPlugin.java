@@ -24,7 +24,6 @@
 package org.projectforge.plugins.marketing;
 
 import org.projectforge.business.address.AddressDao;
-import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
@@ -73,8 +72,6 @@ public class MarketingPlugin extends AbstractPlugin {
 
   @Override
   protected void initialize() {
-    // DatabaseUpdateDao is needed by the updater:
-    MarketingPluginUpdates.databaseService = databaseService;
     // Register it:
     register(ADDRESS_CAMPAIGN_ID, AddressCampaignDao.class, addressCampaignDao, "plugins.marketing.addressCampaign");
     register(ADDRESS_CAMPAIGN_VALUE_ID, AddressCampaignValueDao.class, addressCampaignValueDao,
@@ -99,18 +96,5 @@ public class MarketingPlugin extends AbstractPlugin {
     addResourceBundle(RESOURCE_BUNDLE_NAME);
 
     addressDao.register(new MarketingPluginAddressDeletionListener(addressCampaignDao));
-  }
-
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
-   */
-  @Override
-  public List<UpdateEntry> getUpdateEntries() {
-    return MarketingPluginUpdates.getUpdateEntries();
-  }
-
-  @Override
-  public UpdateEntry getInitializationUpdateEntry() {
-    return MarketingPluginUpdates.getInitializationUpdateEntry();
   }
 }

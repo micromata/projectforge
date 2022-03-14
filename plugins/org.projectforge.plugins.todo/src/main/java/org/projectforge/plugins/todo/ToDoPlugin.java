@@ -24,7 +24,6 @@
 package org.projectforge.plugins.todo;
 
 import org.projectforge.business.user.UserPrefAreaRegistry;
-import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
@@ -67,7 +66,6 @@ public class ToDoPlugin extends AbstractPlugin {
   @Override
   protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
-    ToDoPluginUpdates.databaseService = databaseService;
     final RegistryEntry entry = new RegistryEntry(ID, ToDoDao.class, toDoDao, "plugins.todo");
     // The ToDoDao is automatically available by the scripting engine!
     register(entry); // Insert at second position after Address entry (for SearchPage).
@@ -88,13 +86,5 @@ public class ToDoPlugin extends AbstractPlugin {
 
     USER_PREF_AREA = new UserPrefArea("TODO_FAVORITE", ToDoDO.class, "todo.favorite");
     UserPrefAreaRegistry.instance().register(USER_PREF_AREA);
-  }
-
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
-   */
-  @Override
-  public UpdateEntry getInitializationUpdateEntry() {
-    return ToDoPluginUpdates.getInitializationUpdateEntry();
   }
 }

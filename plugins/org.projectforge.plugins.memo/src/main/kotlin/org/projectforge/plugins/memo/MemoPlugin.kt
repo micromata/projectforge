@@ -24,7 +24,6 @@
 package org.projectforge.plugins.memo
 
 import org.projectforge.Const
-import org.projectforge.continuousdb.UpdateEntry
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -52,7 +51,6 @@ class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
 
     override fun initialize() {
         // DatabaseUpdateDao is needed by the updater:
-        MemoPluginUpdates.databaseService = databaseService
         // Register it:
         register(MemoDao::class.java, memoDao, "plugins.memo")
 
@@ -72,9 +70,6 @@ class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
         // All the i18n stuff:
         addResourceBundle(RESOURCE_BUNDLE_NAME)
     }
-
-    override val initializationUpdateEntry: UpdateEntry?
-        get() = MemoPluginUpdates.getInitializationUpdateEntry()
 
     companion object {
         const val ID = PluginAdminService.PLUGIN_MEMO_ID

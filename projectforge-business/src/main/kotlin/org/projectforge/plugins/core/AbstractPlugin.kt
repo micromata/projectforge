@@ -29,7 +29,6 @@ import org.flywaydb.core.Flyway
 import org.projectforge.business.user.UserRight
 import org.projectforge.business.user.UserXmlPreferencesDao
 import org.projectforge.common.DatabaseDialect
-import org.projectforge.continuousdb.UpdateEntry
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.UserRightService
@@ -217,26 +216,6 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
 
     open fun handleFavoriteMenu(menu: Menu, allMenuItems: List<MenuItem>) {
     }
-
-    /**
-     * Override this method if an update entry for initialization does exist. This will be called, if the plugin runs the
-     * first time.
-     *
-     * @return null at default.
-     *
-     */
-    @get:Deprecated("Since version 6.18.0 please use flyway db migration.")
-    open val initializationUpdateEntry: UpdateEntry?
-        get() = null
-
-    /**
-     * Override this method if update entries does exist for this plugin.
-     *
-     * @return null at default.
-     */
-    @get:Deprecated("Since version 6.18.0 please use flyway db migration.")
-    open val updateEntries: List<UpdateEntry>?
-        get() = null
 
     @Deprecated("")
     fun onBeforeRestore(xstreamSavingConverter: XStreamSavingConverter, obj: Any) {

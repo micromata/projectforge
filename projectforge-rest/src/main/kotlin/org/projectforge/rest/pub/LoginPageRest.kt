@@ -260,7 +260,7 @@ open class LoginPageRest {
       //    result.loginResultStatus.isSecondFARequiredAfterLogin = true
       //  }
       // }
-      result.loginResultStatus.isSecondFARequiredAfterLogin = true // Test
+      //result.loginResultStatus.isSecondFARequiredAfterLogin = true // Test
     } else if (result.loginResultStatus == LoginResultStatus.FAILED) {
       loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)
     }
