@@ -94,7 +94,6 @@ object NumberFormatter {
      * @param value The integer value to convert.
      */
     @JvmStatic
-    @JvmOverloads
     fun formatCurrency(value: Number?): String {
         return internalFormat(value, 2) ?: ""
     }
