@@ -53,7 +53,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.net.URLDecoder
 import javax.servlet.ServletRequest
-import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -75,6 +74,12 @@ open class LoginPageRest {
 
   @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+  //@Autowired
+  //private lateinit var my2FARequestConfiguration: My2FARequestConfiguration
+
+  //@Autowired
+  //private lateinit var my2FAService: My2FAService
 
   @Autowired
   private lateinit var cookieService: CookieService
@@ -123,7 +128,9 @@ open class LoginPageRest {
       } else if (request.getHeader("Referer").contains("/public/login")) {
         redirectUrl = "/${Const.REACT_APP_PATH}calendar"
       }
-
+      // ***2FA*** if (loginResultStatus.isSecondFARequiredAfterLogin) {
+      //  return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = "/${Const.REACT_APP_PATH}2FA/dynamic/?url=$redirectUrl")
+      //}
       return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
     }
 
@@ -210,10 +217,6 @@ open class LoginPageRest {
     if (user == null || loginResult.loginResultStatus != LoginResultStatus.SUCCESS) {
       return loginResult.loginResultStatus
     }
-    if (UserFilter.isUpdateRequiredFirst()) {
-      log.warn("******* Update of ProjectForge required first. Please login via old login page. LoginService should be used instead.")
-      return LoginResultStatus.FAILED
-    }
     log.info("User successfully logged in: " + user.userDisplayName)
     if (loginData.stayLoggedIn == true) {
       val loggedInUser = userService.internalGetById(user.id)
@@ -222,6 +225,9 @@ open class LoginPageRest {
     }
     // Execute login:
     val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user)!!)
+    // ***2FA***
+    // Copy 2FA status of LoginResult to UserContext:
+    // userContext.secondFARequiredAfterLogin = loginResult.loginResultStatus.isSecondFARequiredAfterLogin
     AbstractRestUserFilter.executeLogin(request, userContext)
     return LoginResultStatus.SUCCESS
   }
@@ -247,6 +253,14 @@ open class LoginPageRest {
     LoginHandler.clearPassword(loginData.password)
     if (result.loginResultStatus == LoginResultStatus.SUCCESS) {
       loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
+      // ***2FA***
+      // Check 2FA
+      //my2FARequestConfiguration.loginExpiryDays?.let { days ->
+      //  if (!my2FAService.checklastSuccessful2FA(days.toLong(), My2FAService.Unit.DAYS)) {
+      //    result.loginResultStatus.isSecondFARequiredAfterLogin = true
+      //  }
+      // }
+      result.loginResultStatus.isSecondFARequiredAfterLogin = true // Test
     } else if (result.loginResultStatus == LoginResultStatus.FAILED) {
       loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)
     }

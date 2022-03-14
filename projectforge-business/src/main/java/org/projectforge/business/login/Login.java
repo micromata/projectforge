@@ -159,10 +159,6 @@ public class Login
 
   public void afterUserGroupCacheRefresh(final List<PFUserDO> users, final List<GroupDO> groups)
   {
-    if (UserFilter.isUpdateRequiredFirst()) {
-      // Don't run e. g. LDAP synchronization because user and groups may not be available!
-      return;
-    }
     if (loginHandler == null) {
       log.warn("No login handler is defined yet, so can't call afterUserGroupCacheRefresh.");
       return;

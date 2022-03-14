@@ -75,8 +75,6 @@ public class UserFilter implements Filter {
 
   private static String CONTEXT_PATH;
 
-  private static boolean updateRequiredFirst = false;
-
   @Override
   public void init(final FilterConfig filterConfig) throws ServletException {
     WebApplicationContext springContext = WebApplicationContextUtils
@@ -90,14 +88,6 @@ public class UserFilter implements Filter {
     // IGNORE_PREFIX_SITE_DOC = contextPath + "/secure/site";
     IGNORE_PREFIX_LOGO = CONTEXT_PATH + "/" + LogoServlet.BASE_URL;
     IGNORE_PREFIX_SMS_REVEIVE_SERVLET = CONTEXT_PATH + "/" + SMSReceiverServlet.URL;
-  }
-
-  public static void setUpdateRequiredFirst(final boolean value) {
-    updateRequiredFirst = value;
-  }
-
-  public static boolean isUpdateRequiredFirst() {
-    return updateRequiredFirst;
   }
 
   /**
@@ -182,16 +172,13 @@ public class UserFilter implements Filter {
         // final boolean sessionTimeout = request.isRequestedSessionIdValid() == false;
         userContext = (UserContext) request.getSession().getAttribute(SESSION_KEY_USER);
         if (userContext != null) {
-          if (!updateRequiredFirst) {
-            // Get the fresh user from the user cache (not in maintenance mode because user group cache is perhaps not initialized correctly
-            // if updates of e. g. the user table are necessary.
-            userContext.refreshUser();
-          }
+          // Get the fresh user from the user cache (not in maintenance mode because user group cache is perhaps not initialized correctly
+          // if updates of e. g. the user table are necessary.
+          userContext.refreshUser();
           if (log.isDebugEnabled()) {
             log.debug("User found in session: " + request.getRequestURI());
           }
-        } else if (!updateRequiredFirst) {
-          // Ignore stay-logged-in if redirect to update page is required.
+        } else {
           userContext = cookieService.checkStayLoggedIn(request, response);
           if (log.isDebugEnabled()) {
             final Cookie[] cookies = request.getCookies();
@@ -216,14 +203,15 @@ public class UserFilter implements Filter {
             if (log.isDebugEnabled()) {
               log.debug("User's stay logged-in cookie found: " + request.getRequestURI());
             }
-            userContext.setStayLoggedIn(true); // Used by MenuMobilePage.
             UserFilter.login(request, userContext);
           }
         }
         final PFUserDO user = userContext != null ? userContext.getUser() : null;
         if (user != null) {
           ThreadLocalUserContext.setUserContext(userContext);
+          //if (!userContext.getSecondFARequiredAfterLogin() && my2FARequestHandler.handleRequest(request, response)) {
           if (my2FARequestHandler.handleRequest(request, response)) {
+            // No 2FA is required:
             request = decorateWithLocale(request);
             chain.doFilter(request, response);
           }

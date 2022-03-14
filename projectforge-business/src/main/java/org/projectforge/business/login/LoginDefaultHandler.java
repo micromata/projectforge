@@ -28,7 +28,6 @@ import org.apache.commons.collections.PredicateUtils;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -66,44 +65,15 @@ public class LoginDefaultHandler implements LoginHandler {
   @Autowired
   private GroupService groupService;
 
-  /**
-   * @see org.projectforge.business.login.LoginHandler#initialize(org.projectforge.registry.Registry)
-   */
   @Override
   public void initialize() {
     //Nothing to do
   }
 
-  /**
-   * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, char[], boolean)
-   */
   @Override
   public LoginResult checkLogin(final String username, final char[] password) {
     final LoginResult loginResult = new LoginResult();
-    PFUserDO user = null;
-    if (UserFilter.isUpdateRequiredFirst()) {
-      // Only administrator login is allowed. The login is checked without Hibernate because the data-base schema may be out-dated thus
-      // Hibernate isn't functioning.
-      try {
-        final PFUserDO resUser = getUserWithJdbc(username, password);
-        if (resUser == null || resUser.getUsername() == null) {
-          final String msg = "Admin login for maintenance (data-base update) failed for user '" + username
-              + "' (user/password not found).";
-          log.warn(msg);
-          SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
-          return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
-        }
-        if (!isAdminUser(resUser)) {
-          return loginResult.setLoginResultStatus(LoginResultStatus.ADMIN_LOGIN_REQUIRED);
-        }
-        userGroupCache.internalSetAdminUser(resUser); // User is now marked as admin user.
-        return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(resUser);
-      } catch (final Exception ex) {
-        log.error(ex.getMessage(), ex);
-      }
-    } else {
-      user = userService.authenticateUser(username, password);
-    }
+    PFUserDO user = userService.authenticateUser(username, password);
     if (user != null) {
       log.info("User with valid username/password: " + username + "/****");
       if (!user.hasSystemAccess()) {
@@ -112,6 +82,7 @@ public class LoginDefaultHandler implements LoginHandler {
         SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
         return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
       } else {
+        //
         return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(user);
       }
     } else {
@@ -266,9 +237,7 @@ public class LoginDefaultHandler implements LoginHandler {
 
   /**
    * Do nothing.
-   *
-   * @see org.projectforge.business.login.LoginHandler#afterUserGroupCacheRefresh(java.util.List, java.util.List)
-   */
+   -*/
   @Override
   public void afterUserGroupCacheRefresh(final Collection<PFUserDO> users, final Collection<GroupDO> groups) {
   }

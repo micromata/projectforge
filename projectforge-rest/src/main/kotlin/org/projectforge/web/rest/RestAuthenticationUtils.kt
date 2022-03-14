@@ -268,11 +268,6 @@ open class RestAuthenticationUtils {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
       return
     }
-    if (UserFilter.isUpdateRequiredFirst()) {
-      log.warn("Update of the system is required first. Login via Rest not available. Administrators login required.")
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
-      return
-    }
     val authInfo = RestAuthenticationInfo(request, response)
     authenticate(authInfo)
     if (!authInfo.success) {
