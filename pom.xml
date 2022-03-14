@@ -222,7 +222,7 @@
     <commons-collections.version>4.4</commons-collections.version>
     <aspectjtools.version>1.9.6</aspectjtools.version>
     <flyway.version>6.3.2</flyway.version> <!-- 7.7.3 doesn't support PostgreSQL 9.4 -->
-    <groovy.version>3.0.7</groovy.version>
+    <groovy.version>3.0.10</groovy.version>
     <kotlin.version>1.6.10</kotlin.version>
     <kotlin-logging.version>2.0.6</kotlin-logging.version>
     <poi.version>4.1.2</poi.version>
