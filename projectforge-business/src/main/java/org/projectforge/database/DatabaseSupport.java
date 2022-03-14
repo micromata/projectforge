@@ -21,9 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.continuousdb;
+package org.projectforge.database;
 
-import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.DatabaseDialect;
 
 /**

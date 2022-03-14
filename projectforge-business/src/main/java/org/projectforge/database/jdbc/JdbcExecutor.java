@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.continuousdb.jdbc;
+package org.projectforge.database.jdbc;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -30,7 +30,7 @@ import java.sql.SQLException;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public abstract class JdbcExecutor
 {

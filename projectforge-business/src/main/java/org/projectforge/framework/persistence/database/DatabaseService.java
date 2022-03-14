@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.database;
 
-import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.login.Login;
@@ -32,11 +31,10 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.*;
 import org.projectforge.common.DatabaseDialect;
 import org.projectforge.common.task.TaskStatus;
-import org.projectforge.continuousdb.DatabaseExecutor;
-import org.projectforge.continuousdb.DatabaseResultRow;
-import org.projectforge.continuousdb.DatabaseResultRowEntry;
-import org.projectforge.continuousdb.DatabaseSupport;
-import org.projectforge.continuousdb.jdbc.DatabaseExecutorImpl;
+import org.projectforge.database.DatabaseExecutor;
+import org.projectforge.database.DatabaseResultRow;
+import org.projectforge.database.DatabaseSupport;
+import org.projectforge.database.jdbc.DatabaseExecutorImpl;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessCheckerImpl;
 import org.projectforge.framework.access.AccessException;
@@ -48,7 +46,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -57,8 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Persistence;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Table;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;

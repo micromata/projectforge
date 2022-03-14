@@ -32,7 +32,7 @@ import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.common.task.TimesheetBookingStatus;
-import org.projectforge.continuousdb.DatabaseSupport;
+import org.projectforge.database.DatabaseSupport;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;

@@ -21,53 +21,28 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.continuousdb.jdbc;
+package org.projectforge.database;
 
-import org.projectforge.continuousdb.DatabaseResultRow;
-import org.projectforge.continuousdb.DatabaseResultRowEntry;
-
-import java.util.LinkedList;
+import javax.sql.DataSource;
 import java.util.List;
 
 /**
+ * For manipulating the database (patching data etc.)
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
-public class DatabaseResultRowImpl implements DatabaseResultRow
+public interface DatabaseExecutor
 {
-  private List<DatabaseResultRowEntry> entries = new LinkedList<>();
+  public void setDataSource(DataSource dataSource);
 
-  @Override
-  public List<DatabaseResultRowEntry> getEntries()
-  {
-    return entries;
-  }
+  public DataSource getDataSource();
 
-  @Override
-  public DatabaseResultRowEntry getEntry(int index)
-  {
-    return entries.get(index);
-  }
+  public void execute(String sql, boolean ignoreErrors);
 
-  @Override
-  public DatabaseResultRowEntry getEntry(String name)
-  {
-    String lower = name.toLowerCase();
-    for (DatabaseResultRowEntry entry : entries) {
-      if (entry.getName() == null) {
-        continue;
-      }
-      if (lower.equals(entry.getName().toLowerCase())) {
-        return entry;
-      }
-    }
-    return null;
-  }
+  public int queryForInt(String sql, Object... args);
 
-  @Override
-  public void add(DatabaseResultRowEntry entry)
-  {
-    entries.add(entry);
-  }
+  public List<DatabaseResultRow> query(String sql, Object... args);
 
+  public int update(String sql, Object... args);
 }
