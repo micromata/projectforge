@@ -281,7 +281,6 @@ abstract class ScriptExecutor(
       "import org.projectforge.framework.calendar.*",
       "import org.projectforge.framework.time.*",
       "import org.projectforge.framework.utils.CurrencyFormatter",
-      "import org.projectforge.framework.utils.NumberFormatter",
       "import org.projectforge.framework.utils.NumberHelper",
       "import org.projectforge.framework.utils.RoundUtils",
       "import org.projectforge.business.fibu.*",
@@ -295,6 +294,8 @@ abstract class ScriptExecutor(
       "import org.projectforge.business.scripting.support.*",
       "import org.projectforge.common.*",
       "import org.projectforge.excel.ExcelUtils",
+      // "import static org.projectforge.framework.utils.NumberFormatter.format", // ambigous for Groovy!?
+      // "import static org.projectforge.framework.utils.NumberFormatter.formatCurrency", // ambigous for Groovy!?
     )
   }
 }
