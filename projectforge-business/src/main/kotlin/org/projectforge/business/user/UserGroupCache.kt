@@ -497,7 +497,6 @@ open class UserGroupCache() : AbstractCache() {
 
   @Synchronized
   fun internalSetAdminUser(adminUser: PFUserDO) {
-    check(UserFilter.isUpdateRequiredFirst()) { "Can't set admin user internally! This method is only available if system is under maintenance (update required first is true)!" }
     checkRefresh()
     adminUsers!!.add(adminUser.id)
   }

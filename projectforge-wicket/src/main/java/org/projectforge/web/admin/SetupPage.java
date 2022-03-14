@@ -150,10 +150,6 @@ public class SetupPage extends AbstractUnsecureBasePage
     configure(ConfigurationParam.FEEDBACK_E_MAIL, setupForm.getFeedbackEMail());
     pluginAdminService.afterSetup();
 
-    if (databaseService.getSystemUpdater().isUpdated() == true) {
-      // Update status:
-      UserFilter.setUpdateRequiredFirst(false);
-    }
     setResponsePage(new MessagePage(message));
     log.info("Set-up finished.");
   }

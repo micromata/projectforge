@@ -48,7 +48,6 @@ import org.projectforge.Const;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
-import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -82,8 +81,7 @@ import java.util.Map;
  * @see org.projectforge.start.AbstractStartHelper.demo.Start#main(String[])
  */
 @Controller
-public class WicketApplication extends WebApplication implements WicketApplicationInterface/* , SmartLifecycle */
-{
+public class WicketApplication extends WebApplication implements WicketApplicationInterface/* , SmartLifecycle */ {
   public static final String RESOURCE_BUNDLE_NAME = Const.RESOURCE_BUNDLE_NAME;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketApplication.class);
@@ -126,30 +124,25 @@ public class WicketApplication extends WebApplication implements WicketApplicati
   /**
    * Constructor
    */
-  public WicketApplication()
-  {
+  public WicketApplication() {
     super();
   }
 
-  public static Boolean getTestsystemMode()
-  {
+  public static Boolean getTestsystemMode() {
     return testsystemMode;
   }
 
   @Value("${projectforge.testsystemMode}")
-  public void setTestsystemMode(Boolean testsystemMode)
-  {
+  public void setTestsystemMode(Boolean testsystemMode) {
     WicketApplication.testsystemMode = testsystemMode;
   }
 
-  public static String getTestsystemColor()
-  {
+  public static String getTestsystemColor() {
     return testsystemColor;
   }
 
   @Value("${projectforge.testsystemColor}")
-  public void setTestsystemColor(String testsystemColor)
-  {
+  public void setTestsystemColor(String testsystemColor) {
     WicketApplication.testsystemColor = testsystemColor;
   }
 
@@ -158,8 +151,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
    * {@link #isDevelopmentSystem()} instead.<br/>
    * Please use {@link WebConfiguration#isDevelopmentMode()}.
    */
-  public static Boolean internalIsDevelopmentMode()
-  {
+  public static Boolean internalIsDevelopmentMode() {
     return developmentMode;
   }
 
@@ -168,8 +160,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
    *
    * @return
    */
-  public static Class<? extends WebPage> internalGetDefaultPage()
-  {
+  public static Class<? extends WebPage> internalGetDefaultPage() {
     return DEFAULT_PAGE;
   }
 
@@ -178,25 +169,21 @@ public class WicketApplication extends WebApplication implements WicketApplicati
    *
    * @param defaultPage
    */
-  public static void setDefaultPage(final Class<? extends WebPage> defaultPage)
-  {
+  public static void setDefaultPage(final Class<? extends WebPage> defaultPage) {
     DEFAULT_PAGE = defaultPage;
   }
 
-  public static String getBookmarkableMountPath(final Class<? extends Page> pageClass)
-  {
+  public static String getBookmarkableMountPath(final Class<? extends Page> pageClass) {
     return mountedPages.get(pageClass);
   }
 
   @Deprecated
-  public static long getStartTime()
-  {
+  public static long getStartTime() {
     return startTime;
   }
 
   @Value("${projectforge.wicket.developmentMode}")
-  public void setDevelopmentMode(Boolean developmentMode)
-  {
+  public void setDevelopmentMode(Boolean developmentMode) {
     WicketApplication.developmentMode = developmentMode;
   }
 
@@ -207,32 +194,28 @@ public class WicketApplication extends WebApplication implements WicketApplicati
    * @see org.apache.wicket.protocol.http.WebApplication#getConfigurationType()
    */
   @Override
-  public RuntimeConfigurationType getConfigurationType()
-  {
+  public RuntimeConfigurationType getConfigurationType() {
     if (isDevelopmentSystem() == true) {
       return RuntimeConfigurationType.DEVELOPMENT;
     }
     return RuntimeConfigurationType.DEPLOYMENT;
   }
 
-  private void addPluginResources()
-  {
+  private void addPluginResources() {
     for (AbstractPlugin plugin : pluginAdminService.getActivePlugins()) {
       final List<String> resourceBundleNames = plugin.getResourceBundleNames();
       resourceBundleNames.forEach(this::addResourceBundle);
     }
   }
 
-  private void addResourceBundle(String bundleName)
-  {
+  private void addResourceBundle(String bundleName) {
     // Prepend the resource bundle for overwriting some Wicket default localizations (such as StringValidator.*)
     getResourceSettings().getStringResourceLoaders().add(new BundleStringResourceLoader(bundleName));
     I18nHelper.addBundleName(bundleName);
   }
 
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
     getComponentInstantiationListeners().add(
         new SpringComponentInjector(this, applicationContext));
@@ -245,8 +228,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     addPluginResources();
     getResourceSettings().getStringResourceLoaders().add(new ExternalResourceLoader());
     // Own error page for deployment mode and UserException and AccessException.
-    getRequestCycleListeners().add(new AbstractRequestCycleListener()
-    {
+    getRequestCycleListeners().add(new AbstractRequestCycleListener() {
       /**
        * Log only non ProjectForge exceptions.
        *
@@ -254,8 +236,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
        *      java.lang.Exception)
        */
       @Override
-      public IRequestHandler onException(final RequestCycle cycle, final Exception ex)
-      {
+      public IRequestHandler onException(final RequestCycle cycle, final Exception ex) {
         // in case of expired session, please redirect to home page
         if (ex instanceof PageExpiredException) {
           return super.onException(cycle, ex);
@@ -349,10 +330,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
       final UserContext internalSystemAdminUserContext = UserContext
           .__internalCreateWithSpecialUser(DatabaseService.__internalGetSystemAdminPseudoUser());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
-      if (databaseService.getSystemUpdater().isUpdated() == false) {
-        // Force redirection to update page:
-        UserFilter.setUpdateRequiredFirst(true);
-      }
     } finally {
       ThreadLocalUserContext.clear();
     }
@@ -373,24 +350,20 @@ public class WicketApplication extends WebApplication implements WicketApplicati
   /**
    * Initializes the page store.
    */
-  private void initPageStore()
-  {
+  private void initPageStore() {
     //pf.configuration.web.cachedPagesPerSession", 10);
     getStoreSettings().setInmemoryCacheSize(10);
 
     // Set custom page store
-    setPageManagerProvider(new DefaultPageManagerProvider(this)
-    {
+    setPageManagerProvider(new DefaultPageManagerProvider(this) {
       @Override
-      protected IPageStore newPageStore(IDataStore dataStore)
-      {
+      protected IPageStore newPageStore(IDataStore dataStore) {
         return new InMemoryPageStore();
       }
     });
   }
 
-  private void mountPageWithPageParameterAwareness(final String path, final Class<? extends WebPage> pageClass)
-  {
+  private void mountPageWithPageParameterAwareness(final String path, final Class<? extends WebPage> pageClass) {
     mount(new PageParameterAwareMountedMapper(path, pageClass));
   }
 
@@ -398,8 +371,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
    * @return True if configured as servlet context param.
    */
   @Override
-  public boolean isDevelopmentSystem()
-  {
+  public boolean isDevelopmentSystem() {
     if (developmentMode == null) {
       final String value = getServletContext().getInitParameter("development");
       developmentMode = "true".equals(value);
@@ -408,8 +380,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
   }
 
   @Override
-  public boolean isStripWicketTags()
-  {
+  public boolean isStripWicketTags() {
     if (stripWicketTags == null) {
       if (isDevelopmentSystem() == false) {
         stripWicketTags = true;
@@ -425,8 +396,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
    * @see org.apache.wicket.Application#getHomePage()
    */
   @Override
-  public Class<? extends WebPage> getHomePage()
-  {
+  public Class<? extends WebPage> getHomePage() {
     return WicketUtils.getDefaultPage();
   }
 
@@ -442,8 +412,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
    * org.apache.wicket.protocol.http.HttpSessionStore(this); }
    */
   @Override
-  public Session newSession(final Request request, final Response response)
-  {
+  public Session newSession(final Request request, final Response response) {
     final MySession mySession = new MySession(request);
     return mySession;
   }
@@ -452,8 +421,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
    *
    */
   @Override
-  protected IConverterLocator newConverterLocator()
-  {
+  protected IConverterLocator newConverterLocator() {
     final ConverterLocator converterLocator = new ConverterLocator();
     converterLocator.set(LocalDate.class, new MyLocalDateConverter());
     converterLocator.set(java.util.Date.class, new MyDateConverter());
