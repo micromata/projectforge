@@ -332,7 +332,6 @@
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
             <version>${groovy.version}</version>
-            <scope>compile</scope>
             <type>pom</type>
         </dependency>
         <dependency>
