@@ -93,7 +93,7 @@ class CookieService {
       log.info("User successfully logged in using stay-logged-in method: " + user.userDisplayName + " (request=" + request.requestURI + ").")
       val userContext = UserContext(createCopyWithoutSecretFields(user)!!)
       // Restore any last successful 2FA from cookie:
-      userContext.lastSuccessful2FA = getLast2FA(request, user.id)
+      // *** 2FA userContext.lastSuccessful2FA = getLast2FA(request, user.id)
       return userContext
     }
     return null

@@ -209,11 +209,14 @@ open class RestAuthenticationUtils {
       if (authInfo.resultCode == null) {
         // error not yet handled.
         if (required) {
-          logError(authInfo, "User not found (by request params ${joinToString(userParams)}) and/or authentication tokens (by request params ${
-            joinToString(
-              tokenParams
-            )
-          }). Rest call denied.")
+          logError(
+            authInfo,
+            "User not found (by request params ${joinToString(userParams)}) and/or authentication tokens (by request params ${
+              joinToString(
+                tokenParams
+              )
+            }). Rest call denied."
+          )
           authInfo.resultCode = HttpStatus.BAD_REQUEST
         } else if (log.isDebugEnabled) {
           logDebug(
@@ -309,7 +312,7 @@ open class RestAuthenticationUtils {
       userContext.user = user // Replace by fresh user from authentication.
       ThreadLocalUserContext.setUserContext(userContext)
     } else {
-      userContext = ThreadLocalUserContext.setUser(user)
+      userContext = ThreadLocalUserContext.setUser(user)!!
     }
     userContext.loggedInByAuthenticationToken = authInfo.loggedInByAuthenticationToken
     val settings = getConnectionSettings(request)
@@ -382,10 +385,8 @@ open class RestAuthenticationUtils {
   }
 
   companion object {
-    fun executeLogin(
-      request: HttpServletRequest?,
-      userContext: UserContext?
-    ) { // Wicket part: (page.getSession() as MySession).login(userContext, page.getRequest())
+    fun executeLogin(request: HttpServletRequest, userContext: UserContext) {
+      // Wicket part: (page.getSession() as MySession).login(userContext, page.getRequest())
       UserFilter.login(request, userContext)
     }
 
