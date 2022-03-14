@@ -27,7 +27,6 @@ import org.apache.wicket.Page;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
-import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
@@ -71,7 +70,6 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin {
    */
   @Override
   protected void initialize() {
-    ExtendedEmployeeDataPluginUpdates.databaseService = databaseService;
     // Register it:
     register(EmployeeDao.class, employeeDao, "plugins.extendemployeedata");
 
@@ -98,21 +96,4 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin {
     menuEntry.setRequiredUserRightValues(userRightValues);
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.HR, menuEntry, pageClass);
   }
-
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
-   */
-  @Override
-  public UpdateEntry getInitializationUpdateEntry() {
-    return ExtendedEmployeeDataPluginUpdates.getInitializationUpdateEntry();
-  }
-
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
-   */
-  @Override
-  public List<UpdateEntry> getUpdateEntries() {
-    return ExtendedEmployeeDataPluginUpdates.getUpdateEntries();
-  }
-
 }

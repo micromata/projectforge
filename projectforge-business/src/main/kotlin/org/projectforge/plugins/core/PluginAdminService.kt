@@ -29,7 +29,6 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.entities.ConfigurationDO
-import org.projectforge.framework.persistence.database.DatabaseService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
@@ -51,9 +50,6 @@ open class PluginAdminService {
 
   @Autowired
   private lateinit var applicationContext: ApplicationContext
-
-  @Autowired
-  private lateinit var databaseService: DatabaseService
 
   /**
    * All plugins registered as Spring components (activated as well as not activated ones).
@@ -172,7 +168,6 @@ open class PluginAdminService {
     factory.autowireBean(plugin)
     PluginsRegistry.instance().register(plugin)
     plugin.init()
-    setSystemUpdater(plugin)
     for (callback in afterCreatedActivePluginsCallback) {
       callback.call(plugin)
     }
@@ -180,26 +175,6 @@ open class PluginAdminService {
 
   open fun addExecuteAfterActivePluginCreated(run: PluginCallback) {
     afterCreatedActivePluginsCallback.add(run)
-  }
-
-  private fun setSystemUpdater(plugin: AbstractPlugin) {
-    val systemUpdater = databaseService.systemUpdater
-    val updateEntry = plugin.initializationUpdateEntry
-    if (updateEntry != null) {
-      if (!updateEntry.isInitial) {
-        log.error("The given UpdateEntry returned by plugin.getInitializationUpdateEntry() is not initial! Please use constructor without parameter version: ${plugin.javaClass}")
-      }
-      systemUpdater.register(updateEntry)
-    }
-    val updateEntries = plugin.updateEntries
-    if (updateEntries != null) {
-      for (entry in updateEntries) {
-        if (entry.isInitial) {
-          log.error("The given UpdateEntry returned by plugin.getUpdateEntries() is initial! Please use constructor with parameter version: ${plugin.javaClass}: ${entry.description}")
-        }
-      }
-      systemUpdater.register(updateEntries)
-    }
   }
 
   interface PluginCallback {

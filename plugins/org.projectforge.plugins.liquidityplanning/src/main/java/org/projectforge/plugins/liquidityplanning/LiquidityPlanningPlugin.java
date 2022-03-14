@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.menu.builder.MenuItemDef;
@@ -69,8 +68,6 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
    */
   @Override
   protected void initialize() {
-    // DatabaseUpdateDao is needed by the updater:
-    LiquidityPlanningPluginUpdates.databaseService = databaseService;
     final RegistryEntry entry = new RegistryEntry(ID, LiquidityEntryDao.class, liquidityEntryDao,
             "plugins.liquidityplanning");
     register(entry);
@@ -97,13 +94,5 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
 
   public void setLiquidityEntryDao(final LiquidityEntryDao liquidityEntryDao) {
     this.liquidityEntryDao = liquidityEntryDao;
-  }
-
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
-   */
-  @Override
-  public UpdateEntry getInitializationUpdateEntry() {
-    return LiquidityPlanningPluginUpdates.getInitializationUpdateEntry();
   }
 }
