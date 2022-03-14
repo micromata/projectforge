@@ -21,19 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.continuousdb;
+package org.projectforge.database;
 
 
 /**
  * For storing the ResultSet.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public interface DatabaseResultRowEntry
 {
   public int getType();
-  
+
   public Object getValue();
-  
+
   public String getName();
 }

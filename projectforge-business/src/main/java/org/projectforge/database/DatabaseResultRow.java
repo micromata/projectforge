@@ -21,28 +21,26 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.continuousdb;
+package org.projectforge.database;
 
-import javax.sql.DataSource;
 import java.util.List;
 
 /**
- * For manipulating the database (patching data etc.)
- * 
+ * For storing the ResultSet.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
-public interface DatabaseExecutor
+public interface DatabaseResultRow
 {
-  public void setDataSource(DataSource dataSource);
+  public List<DatabaseResultRowEntry> getEntries();
 
-  public DataSource getDataSource();
+  /**
+   * @param index Starts with 0.
+   */
+  public DatabaseResultRowEntry getEntry(int index);
 
-  public void execute(String sql, boolean ignoreErrors);
+  public DatabaseResultRowEntry getEntry(String name);
 
-  public int queryForInt(String sql, Object... args);
+  public void add(DatabaseResultRowEntry entry);
 
-  public List<DatabaseResultRow> query(String sql, Object... args);
-
-  public int update(String sql, Object... args);
 }

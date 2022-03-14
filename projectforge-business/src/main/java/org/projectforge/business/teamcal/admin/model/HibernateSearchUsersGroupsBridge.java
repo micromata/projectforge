@@ -31,7 +31,7 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UsersComparator;
 import org.projectforge.common.DatabaseDialect;
 import org.projectforge.common.StringHelper;
-import org.projectforge.continuousdb.DatabaseSupport;
+import org.projectforge.database.DatabaseSupport;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 

@@ -21,13 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.continuousdb.jdbc;
+package org.projectforge.database.jdbc;
 
-import org.projectforge.continuousdb.DatabaseResultRowEntry;
+import org.projectforge.database.DatabaseResultRowEntry;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class DatabaseResultRowEntryImpl implements DatabaseResultRowEntry
 {
@@ -36,7 +36,7 @@ public class DatabaseResultRowEntryImpl implements DatabaseResultRowEntry
   private Object value;
 
   private String name;
-  
+
   public DatabaseResultRowEntryImpl(int type, String name, Object value)
   {
     this.type = type;

@@ -21,26 +21,53 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.continuousdb;
+package org.projectforge.database.jdbc;
 
+import org.projectforge.database.DatabaseResultRow;
+import org.projectforge.database.DatabaseResultRowEntry;
+
+import java.util.LinkedList;
 import java.util.List;
 
 /**
- * For storing the ResultSet.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
-public interface DatabaseResultRow
+public class DatabaseResultRowImpl implements DatabaseResultRow
 {
-  public List<DatabaseResultRowEntry> getEntries();
+  private List<DatabaseResultRowEntry> entries = new LinkedList<>();
 
-  /**
-   * @param index Starts with 0.
-   */
-  public DatabaseResultRowEntry getEntry(int index);
+  @Override
+  public List<DatabaseResultRowEntry> getEntries()
+  {
+    return entries;
+  }
 
-  public DatabaseResultRowEntry getEntry(String name);
+  @Override
+  public DatabaseResultRowEntry getEntry(int index)
+  {
+    return entries.get(index);
+  }
 
-  public void add(DatabaseResultRowEntry entry);
+  @Override
+  public DatabaseResultRowEntry getEntry(String name)
+  {
+    String lower = name.toLowerCase();
+    for (DatabaseResultRowEntry entry : entries) {
+      if (entry.getName() == null) {
+        continue;
+      }
+      if (lower.equals(entry.getName().toLowerCase())) {
+        return entry;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void add(DatabaseResultRowEntry entry)
+  {
+    entries.add(entry);
+  }
 
 }

@@ -29,7 +29,7 @@ import de.micromata.genome.db.jpa.history.impl.HistoryServiceImpl;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
 import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
-import org.projectforge.continuousdb.DatabaseSupport;
+import org.projectforge.database.DatabaseSupport;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;

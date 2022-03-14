@@ -21,10 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.continuousdb.jdbc;
+package org.projectforge.database.jdbc;
 
-import org.projectforge.continuousdb.DatabaseExecutor;
-import org.projectforge.continuousdb.DatabaseResultRow;
+import org.projectforge.database.DatabaseExecutor;
+import org.projectforge.database.DatabaseResultRow;
 
 import javax.sql.DataSource;
 import java.sql.PreparedStatement;
@@ -37,9 +37,9 @@ import java.util.List;
 /**
  * Using plain jdbc for executing jdbc commands. DON'T USE THIS CLASS FOR PRODUCTION! This class is only for
  * demonstration purposes, because there is no connection pooling and connections may loose!!!!!
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class DatabaseExecutorImpl implements DatabaseExecutor
 {
