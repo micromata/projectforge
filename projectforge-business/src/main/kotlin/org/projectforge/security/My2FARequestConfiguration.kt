@@ -107,7 +107,8 @@ open class My2FARequestConfiguration {
             "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract",
         "SCRIPT" to "/react/script",
         "MY_ACCOUNT" to "/react/tokenInfo;/react/myAccount;/rs/tokenInfo;/rs/user/renewToken",
-        "PASSWORD" to "/react/change.*Password"
+        "PASSWORD" to "/react/change.*Password",
+        "ALL" to "/",
       )
   }
 }
