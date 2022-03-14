@@ -90,7 +90,7 @@ open class My2FARequestHandler {
     if (expiryPeriod.valid(request.requestURI)) {
       return true
     }
-    response.sendRedirect("/react/2FA")
+    response.sendRedirect("/react/2FA/dynamic")
     return false
   }
 

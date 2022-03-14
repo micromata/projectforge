@@ -23,20 +23,21 @@
 
 package org.projectforge.web.rest
 
-import org.projectforge.business.login.LoginProtection
+import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.rest.utils.RequestLog
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Does the authentication stuff for restful requests.
@@ -45,47 +46,51 @@ import javax.servlet.http.HttpServletRequest
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 abstract class AbstractRestUserFilter(val userTokenType: UserTokenType) : Filter {
-    private lateinit var springContext: WebApplicationContext
-    @Autowired
-    lateinit var restAuthenticationUtils: RestAuthenticationUtils
-    @Autowired
-    lateinit var userAuthenticationsService: UserAuthenticationsService
-    @Autowired
-    lateinit var userService: UserService
+  private lateinit var springContext: WebApplicationContext
 
-    @Throws(ServletException::class)
-    override fun init(filterConfig: FilterConfig) {
-        springContext = WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.servletContext)
-        val beanFactory = springContext.getAutowireCapableBeanFactory()
-        beanFactory.autowireBean(this)
+  @Autowired
+  lateinit var restAuthenticationUtils: RestAuthenticationUtils
+
+  @Autowired
+  lateinit var userAuthenticationsService: UserAuthenticationsService
+
+  @Autowired
+  lateinit var userService: UserService
+
+  @Throws(ServletException::class)
+  override fun init(filterConfig: FilterConfig) {
+    springContext = WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.servletContext)
+    val beanFactory = springContext.getAutowireCapableBeanFactory()
+    beanFactory.autowireBean(this)
+  }
+
+  abstract fun authenticate(authInfo: RestAuthenticationInfo)
+
+  /**
+   * @see javax.servlet.Filter.doFilter
+   */
+  @Throws(IOException::class, ServletException::class)
+  override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+    if (log.isDebugEnabled) {
+      log.debug("Processing request ${RequestLog.asString(request as HttpServletRequest)}...")
     }
+    restAuthenticationUtils.doFilter(request,
+      response,
+      userTokenType,
+      authenticate = { authInfo -> authenticate(authInfo) },
+      doFilter = { -> chain.doFilter(request, response) }
+    )
+  }
 
-    abstract fun authenticate(authInfo: RestAuthenticationInfo)
+  override fun destroy() { // NOOP
+  }
 
-    /**
-     * @see javax.servlet.Filter.doFilter
-     */
-    @Throws(IOException::class, ServletException::class)
-    override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-        if (log.isDebugEnabled) {
-            log.debug("Processing request ${RequestLog.asString(request as HttpServletRequest)}...")
-        }
-        restAuthenticationUtils.doFilter(request,
-                response,
-                userTokenType,
-                authenticate = { authInfo -> authenticate(authInfo) },
-                doFilter = { -> chain.doFilter(request, response) }
-        )
+  companion object {
+    fun executeLogin(
+      request: HttpServletRequest,
+      userContext: UserContext
+    ) { // Wicket part: (page.getSession() as MySession).login(userContext, page.getRequest())
+      UserFilter.login(request, userContext)
     }
-
-    override fun destroy() { // NOOP
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(AbstractRestUserFilter::class.java)
-
-        fun executeLogin(request: HttpServletRequest?, userContext: UserContext?) { // Wicket part: (page.getSession() as MySession).login(userContext, page.getRequest())
-            UserFilter.login(request, userContext)
-        }
-    }
+  }
 }
