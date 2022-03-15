@@ -52,6 +52,8 @@ private val log = KotlinLogging.logger {}
 
 @Service
 open class LoginService {
+  private val logoutListeners = mutableListOf<LogoutListener>()
+
   @Autowired
   private lateinit var applicationContext: ApplicationContext
 
@@ -189,10 +191,13 @@ open class LoginService {
    * @param response Needed for clearing cookies.
    */
   fun logout(request: HttpServletRequest, response: HttpServletResponse) {
-    val session = request.session
-    session.removeAttribute(SESSION_KEY_USER)
-    session.invalidate()
-
+    logoutListeners.forEach {
+      it.logout(request, response)
+    }
+    request.getSession(false)?.let { session ->
+      session.removeAttribute(SESSION_KEY_USER)
+      session.invalidate()
+    }
     cookieService.clearAllCookies(request, response)
     getUser(request)?.let { user ->
       userXmlPreferencesCache.flushToDB(user.id)
@@ -203,6 +208,13 @@ open class LoginService {
     }
   }
 
+  fun register(listener: LogoutListener) {
+    if (logoutListeners.contains(listener)) {
+      log.warn { "Don't register listener twice: ${listener::class.java}." }
+    } else {
+      logoutListeners.add(listener)
+    }
+  }
 
   private fun checkStayLoggedIn(request: HttpServletRequest, response: HttpServletResponse): UserContext? {
     val userContext = cookieService.checkStayLoggedIn(request, response) ?: return null

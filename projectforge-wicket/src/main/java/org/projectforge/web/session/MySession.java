@@ -236,7 +236,12 @@ public class MySession extends WebSession {
     this.ignoreMobileUserAgent = ignoreMobileUserAgent;
   }
 
-  public void login(final UserContext userContext, final Request request) {
+  /**
+   * Only used by SetupPage.
+   * @param userContext
+   * @param request
+   */
+  public void internalLogin(final UserContext userContext, final Request request) {
     super.replaceSession();
     this.userContext = userContext;
     final PFUserDO user = userContext != null ? userContext.getUser() : null;
@@ -263,14 +268,10 @@ public class MySession extends WebSession {
     setLocale(ThreadLocalUserContext.getLocale(request.getLocale()));
   }
 
-  public void logout() {
-    PFUserDO user = userContext != null ? userContext.getUser() : null;
-    if (user != null) {
-      log.info("User logged out: " + user.getDisplayName());
-      user = null;
-    }
-    ThreadLocalUserContext.clear();
-    userContext = null;
+  /**
+   * Only used by SetupPage and on logout button in Wicket context.
+   */
+  public void internalLogout() {
     super.clear();
     super.invalidateNow();
   }

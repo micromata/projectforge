@@ -156,7 +156,7 @@ public class SetupPage extends AbstractUnsecureBasePage
   {
     //Login admin user
     final UserContext userContext = new UserContext(adminUser);
-    ((MySession) getSession()).login(userContext, getRequest());
+    ((MySession) getSession()).internalLogin(userContext, getRequest());
     LoginService.internalLogin(WicketUtils.getHttpServletRequest(getRequest()), userContext);
   }
 
@@ -221,7 +221,7 @@ public class SetupPage extends AbstractUnsecureBasePage
         }
       }.start();
       if (counter > 0) {
-        ((MySession) getSession()).logout();
+        ((MySession) getSession()).internalLogout();
         WicketUtils.redirectToLogin(this);
       } else {
         error(getString("administration.setup.error.import"));
@@ -242,7 +242,7 @@ public class SetupPage extends AbstractUnsecureBasePage
   {
     if (databaseService.databaseTablesWithEntriesExists() == true) {
       log.error("Couldn't call set-up page, because the data-base isn't empty!");
-      ((MySession) getSession()).logout();
+      ((MySession) getSession()).internalLogout();
       throw new RestartResponseException(WicketUtils.getDefaultPage());
     }
   }

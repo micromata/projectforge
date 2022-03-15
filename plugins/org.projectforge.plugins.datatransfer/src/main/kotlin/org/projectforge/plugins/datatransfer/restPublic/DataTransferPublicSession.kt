@@ -211,7 +211,7 @@ class DataTransferPublicSession {
     val map = getSessionMap(request)
     if (map != null) {
       log.info { "External user logged-out: ${ToStringUtil.toJsonString(map)}, ip=${RestUtils.getClientIp(request)}" }
-      request.session?.invalidate()
+      request.getSession(false)?.invalidate()
     }
   }
 
