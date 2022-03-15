@@ -41,7 +41,7 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
 
   override fun authenticate(authInfo: RestAuthenticationInfo) {
     // Try to get the user by session id:
-    loginService.getLogin(authInfo.request, authInfo.response)?.let { userContext ->
+    loginService.checkLogin(authInfo.request, authInfo.response)?.let { userContext ->
       authInfo.user = userContext.user
       if (authInfo.success) {
         return

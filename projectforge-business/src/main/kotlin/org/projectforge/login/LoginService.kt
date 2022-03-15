@@ -101,11 +101,12 @@ open class LoginService {
    * Checks, if the user is logged-in (session) or has a valid stay-logge-in cookie. If not logged-in and a valid
    * stay-logged-in-cookie is found, the user will be logged-in by this method.
    */
-  fun getLogin(request: HttpServletRequest, response: HttpServletResponse): UserContext? {
+  fun checkLogin(request: HttpServletRequest, response: HttpServletResponse): UserContext? {
     var userContext = request.session.getAttribute(SESSION_KEY_USER) as? UserContext?
     if (userContext != null) {
       // Get the fresh user from the user cache.
       userContext.refreshUser()
+      // Check 2FA if session is kept alive for a longer time:
       userContext.secondFARequiredAfterLogin = check2FARequiredAfterLogin(userContext)
       if (log.isDebugEnabled) {
         log.debug("User found in session: ${request.requestURI}")
@@ -119,12 +120,16 @@ open class LoginService {
     return userContext
   }
 
-  fun login(
+  /**
+   * Tries to authenticate the user with the given credentials. Stay-logged-in flag will also be handled.
+   * Brute force attacks will be prevented by using [LoginProtection].
+   */
+  fun authenticate(
     request: HttpServletRequest,
     response: HttpServletResponse,
     loginData: LoginData
   ): LoginResultStatus {
-    val loginResult = checkLogin(request, loginData)
+    val loginResult = authenticate(request, loginData)
     val user = loginResult.user
     if (user == null || loginResult.loginResultStatus != LoginResultStatus.SUCCESS) {
       return loginResult.loginResultStatus
@@ -139,11 +144,11 @@ open class LoginService {
     val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user)!!)
     // Copy 2FA status of LoginResult to UserContext:
     userContext.secondFARequiredAfterLogin = loginResult.loginResultStatus.isSecondFARequiredAfterLogin
-    login(request, userContext)
+    internalLogin(request, userContext)
     return LoginResultStatus.SUCCESS
   }
 
-  fun checkLogin(request: HttpServletRequest, loginData: LoginData): LoginResult {
+  private fun authenticate(request: HttpServletRequest, loginData: LoginData): LoginResult {
     if (loginData.username == null || loginData.password == null) {
       return LoginResult().setLoginResultStatus(LoginResultStatus.FAILED)
     }
@@ -207,7 +212,7 @@ open class LoginService {
         log.debug("Cookie found: ${cookie.name}, path=${cookie.path}, value=${cookie.value}, secure=${cookie.version}, maxAge=${cookie.maxAge}, domain=${cookie.domain}")
       }
     }
-    login(request, userContext)
+    internalLogin(request, userContext)
     return userContext
   }
 
@@ -228,11 +233,13 @@ open class LoginService {
     private const val SESSION_KEY_USER = "UserFilter.user"
 
     /**
+     * Used for storing given userContext in user's session. A new session id is generated (avoids attack with session fixation).
+     * Should only be used internally by [LoginService] itself and setup page.
      * @param request
      * @param userContext
      */
     @JvmStatic
-    fun login(request: HttpServletRequest, userContext: UserContext?) {
+    fun internalLogin(request: HttpServletRequest, userContext: UserContext?) {
       // Session Fixation: Change JSESSIONID after login (due to security reasons / XSS attack on login page)
       request.getSession(false)?.let { session ->
         if (!session.isNew) {
@@ -250,17 +257,12 @@ open class LoginService {
     }
 
     /**
-     * Creates a user session if not exist.
-     *
      * @param request
+     * @param createSession Default is false (no new session is created if none existing).
      */
     @JvmStatic
-    fun getUserContext(request: HttpServletRequest): UserContext? {
-      return getUserContext(request, true)
-    }
-
-    @JvmStatic
-    fun getUserContext(request: HttpServletRequest, createSession: Boolean): UserContext? {
+    @JvmOverloads
+    fun getUserContext(request: HttpServletRequest, createSession: Boolean = false): UserContext? {
       val session = request.getSession(createSession) ?: return null
       val userContext = session.getAttribute(SESSION_KEY_USER) as? UserContext?
       if (log.isDebugEnabled) {

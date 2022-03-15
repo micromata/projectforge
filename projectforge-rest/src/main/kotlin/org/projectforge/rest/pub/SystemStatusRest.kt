@@ -125,7 +125,7 @@ class SystemStatusRest {
       systemData.setupRedirectUrl = null
       publicSystemData.setupRedirectUrl = null
     }
-    return if (LoginService.getUserContext(request, false)?.user != null) {
+    return if (LoginService.getUserContext(request)?.user != null) {
       systemData
     } else {
       publicSystemData

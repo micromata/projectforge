@@ -26,7 +26,6 @@ package org.projectforge.security
 import mu.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
-import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.caldav.config.DAVMethodsInterceptor
 import org.projectforge.common.logging.MDC_IP
 import org.projectforge.common.logging.MDC_SESSION
@@ -58,7 +57,7 @@ class LoggingFilter : Filter {
       MDC.put(MDC_IP, clientIp)
       MDC.put(MDC_SESSION, sessionId ?: "")
       MDC.put(MDC_USER_AGENT, userAgent)
-      val username = LoginService.getUserContext(request, false)?.user?.username
+      val username = LoginService.getUserContext(request)?.user?.username
       MDC.put(MDC_USER, username ?: "")
 
       if (log.isDebugEnabled) {

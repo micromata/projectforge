@@ -23,7 +23,6 @@
 
 package org.projectforge.business.login;
 
-import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 

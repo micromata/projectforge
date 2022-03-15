@@ -27,7 +27,6 @@ import mu.KotlinLogging
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.login.Login
-import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.UserRightService

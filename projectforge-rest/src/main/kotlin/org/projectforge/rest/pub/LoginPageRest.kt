@@ -86,7 +86,7 @@ open class LoginPageRest {
     @RequestBody postData: PostData<LoginData>
   )
       : ResponseAction {
-    val loginResultStatus = loginService.login(request, response, postData.data)
+    val loginResultStatus = loginService.authenticate(request, response, postData.data)
 
     if (loginResultStatus == LoginResultStatus.SUCCESS) {
       var redirectUrl: String? = null
