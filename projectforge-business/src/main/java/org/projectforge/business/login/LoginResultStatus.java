@@ -27,9 +27,9 @@ import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public enum LoginResultStatus implements I18nEnum
 {
@@ -39,6 +39,8 @@ public enum LoginResultStatus implements I18nEnum
   private String key;
 
   private Object[] msgParams;
+
+  private boolean secondFARequiredAfterLogin = false;
 
   /**
    * The key will be used e. g. for i18n.
@@ -95,5 +97,16 @@ public enum LoginResultStatus implements I18nEnum
   public Object[] getMsgParams()
   {
     return msgParams;
+  }
+
+  /**
+   * @return true, if a 2FA is required before any action.
+   */
+  public boolean isSecondFARequiredAfterLogin() {
+    return secondFARequiredAfterLogin;
+  }
+
+  public void setSecondFARequiredAfterLogin(boolean secondFARequiredAfterLogin) {
+    this.secondFARequiredAfterLogin = secondFARequiredAfterLogin;
   }
 }

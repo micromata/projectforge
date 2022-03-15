@@ -29,9 +29,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.common.DatabaseDialect;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationDao;
@@ -44,6 +42,7 @@ import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.login.LoginService;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
@@ -52,7 +51,6 @@ import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 
-import javax.ws.rs.HEAD;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
@@ -159,7 +157,7 @@ public class SetupPage extends AbstractUnsecureBasePage
     //Login admin user
     final UserContext userContext = new UserContext(adminUser);
     ((MySession) getSession()).login(userContext, getRequest());
-    UserFilter.login(WicketUtils.getHttpServletRequest(getRequest()), userContext);
+    LoginService.login(WicketUtils.getHttpServletRequest(getRequest()), userContext);
   }
 
   private ConfigurationDO getConfigurationDO(final ConfigurationParam param)

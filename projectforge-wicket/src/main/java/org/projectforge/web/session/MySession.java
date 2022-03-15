@@ -23,7 +23,6 @@
 
 package org.projectforge.web.session;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.core.request.ClientInfo;
 import org.apache.wicket.protocol.http.ClientProperties;
@@ -33,19 +32,16 @@ import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.projectforge.Version;
-import org.projectforge.business.user.filter.UserFilter;
-import org.projectforge.business.user.service.UserPreferencesHelper;
 import org.projectforge.framework.ToStringUtil;
-import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.login.LoginService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.TimeZone;
 
@@ -113,7 +109,7 @@ public class MySession extends WebSession {
       userContext = ThreadLocalUserContext.getUserContext();
       if (userContext != null && userContext.getUser() != null) {
         final HttpServletRequest request = ((ServletWebRequest) RequestCycle.get().getRequest()).getContainerRequest();
-        final UserContext sessionUserContext = UserFilter.getUserContext(request);
+        final UserContext sessionUserContext = LoginService.getUserContext(request);
         if (sessionUserContext == null || sessionUserContext.getUser() == null) {
           log.warn("******* User is given in ThreadLocalUserContext, but not given in session. This paranoia setting shouldn't occur. User: "
                   + ToStringUtil.toJsonString(userContext));

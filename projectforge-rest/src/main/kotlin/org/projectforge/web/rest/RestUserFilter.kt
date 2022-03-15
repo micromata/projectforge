@@ -25,8 +25,7 @@ package org.projectforge.web.rest
 
 import mu.KotlinLogging
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.business.user.filter.CookieService
-import org.projectforge.business.user.filter.UserFilter
+import org.projectforge.login.LoginService
 import org.projectforge.rest.Authentication
 import org.projectforge.security.SecurityLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,36 +36,29 @@ private val log = KotlinLogging.logger {}
  * Filter ensures logged-in user. Is active for /rs (new Rest services) and /rest (old Rest services).
  */
 class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
-    @Autowired
-    private lateinit var cookieService: CookieService
+  @Autowired
+  private lateinit var loginService: LoginService
 
-    override fun authenticate(authInfo: RestAuthenticationInfo) {
-        // Try to get the user by session id:
-        authInfo.user = UserFilter.getUser(authInfo.request)
-        if (authInfo.success) {
-            return
-        }
-        restAuthenticationUtils.tokenAuthentication(authInfo, UserTokenType.REST_CLIENT, false)
-        if (authInfo.success) {
-            return
-        }
-        val userContext = cookieService.checkStayLoggedIn(authInfo.request, authInfo.response)
-        if (userContext != null) {
-            if (log.isDebugEnabled) {
-                log.debug("User's stay logged-in cookie found: ${authInfo.request.requestURI}")
-            }
-            RestAuthenticationUtils.executeLogin(authInfo.request, userContext)
-            authInfo.user = userContext.user
-        }
-        if (authInfo.success) {
-            return
-        }
-        val requestURI = authInfo.request.requestURI
-        // Don't log error for userStatus (used by React client for checking weather the user is logged in or not).
-        if (requestURI == null || requestURI != "/rs/userStatus") {
-            val msg = "Neither ${Authentication.AUTHENTICATION_USER_ID} nor ${Authentication.AUTHENTICATION_USERNAME}/${Authentication.AUTHENTICATION_TOKEN} is given for rest call: $requestURI. Rest call forbidden."
-            log.error(msg)
-            SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
-        }
+  override fun authenticate(authInfo: RestAuthenticationInfo) {
+    // Try to get the user by session id:
+    var userContext = loginService.checkLogin(authInfo.request, authInfo.response)
+    userContext?.let {
+      authInfo.user = it.user
+      if (authInfo.success) {
+        return
+      }
     }
+    restAuthenticationUtils.tokenAuthentication(authInfo, UserTokenType.REST_CLIENT, false)
+    if (authInfo.success) {
+      return
+    }
+    val requestURI = authInfo.request.requestURI
+    // Don't log error for userStatus (used by React client for checking weather the user is logged in or not).
+    if (requestURI == null || requestURI != "/rs/userStatus") {
+      val msg =
+        "Neither ${Authentication.AUTHENTICATION_USER_ID} nor ${Authentication.AUTHENTICATION_USERNAME}/${Authentication.AUTHENTICATION_TOKEN} is given for rest call: $requestURI. Rest call forbidden."
+      log.error(msg)
+      SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
+    }
+  }
 }

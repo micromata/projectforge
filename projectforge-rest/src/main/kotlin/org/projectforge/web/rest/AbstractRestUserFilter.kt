@@ -26,9 +26,9 @@ package org.projectforge.web.rest
 import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.login.LoginService
 import org.projectforge.rest.utils.RequestLog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.WebApplicationContext
@@ -90,7 +90,7 @@ abstract class AbstractRestUserFilter(val userTokenType: UserTokenType) : Filter
       request: HttpServletRequest,
       userContext: UserContext
     ) { // Wicket part: (page.getSession() as MySession).login(userContext, page.getRequest())
-      UserFilter.login(request, userContext)
+      LoginService.login(request, userContext)
     }
   }
 }

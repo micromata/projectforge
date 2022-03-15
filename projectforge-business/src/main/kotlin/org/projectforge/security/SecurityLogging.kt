@@ -24,7 +24,7 @@
 package org.projectforge.security
 
 import mu.KotlinLogging
-import org.projectforge.business.user.filter.UserFilter
+import org.projectforge.login.LoginService
 import javax.servlet.http.HttpServletRequest
 
 private val accessLog = KotlinLogging.logger("de.micromata.projectforge.accessLog")
@@ -131,7 +131,7 @@ object SecurityLogging {
   }
 
   private fun getLogInfo(request: HttpServletRequest): String {
-    val username = UserFilter.getUserContext(request, false)?.user?.username
+    val username = LoginService.getUserContext(request, false)?.user?.username
     val url = request.requestURL ?: "???" // Should only be null in test cases.
     val uri = request.requestURI ?: "???" // Should only be null in test cases.
     val uriPart = if (!url.endsWith(uri)) {

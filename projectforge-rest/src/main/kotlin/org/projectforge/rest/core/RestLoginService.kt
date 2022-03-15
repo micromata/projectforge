@@ -24,6 +24,7 @@
 package org.projectforge.rest.core
 
 import mu.KotlinLogging
+import org.projectforge.SystemStatus
 import org.projectforge.business.login.LoginHandler
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.login.LoginResult
@@ -34,12 +35,13 @@ import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.login.LoginHandlerService
+import org.projectforge.login.LoginService
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.pub.LoginPageRest
 import org.projectforge.security.My2FARequestConfiguration
 import org.projectforge.security.My2FAService
 import org.projectforge.web.rest.AbstractRestUserFilter
+import org.projectforge.web.rest.RestAuthenticationUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import javax.servlet.ServletRequest
@@ -54,7 +56,7 @@ private val log = KotlinLogging.logger {}
 @Service
 class RestLoginService {
   @Autowired
-  private lateinit var loginHandlerService: LoginHandlerService
+  private lateinit var loginService: LoginService
 
   @Autowired
   private lateinit var userService: UserService
@@ -71,7 +73,11 @@ class RestLoginService {
   @Autowired
   private lateinit var cookieService: CookieService
 
-  fun login(request: HttpServletRequest, response: HttpServletResponse, loginData: LoginPageRest.LoginData): LoginResultStatus {
+  fun login(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    loginData: LoginPageRest.LoginData
+  ): LoginResultStatus {
     val loginResult = checkLogin(request, loginData)
     val user = loginResult.user
     if (user == null || loginResult.loginResultStatus != LoginResultStatus.SUCCESS) {
@@ -108,18 +114,21 @@ class RestLoginService {
         numberOfFailedAttempts.toString()
       )
     }
-    val result = loginHandlerService.loginHandler.checkLogin(loginData.username, loginData.password)
+    val result = loginService.loginHandler.checkLogin(loginData.username, loginData.password)
     LoginHandler.clearPassword(loginData.password)
     if (result.loginResultStatus == LoginResultStatus.SUCCESS) {
       loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
-      // ***2FA***
       // Check 2FA
-      //my2FARequestConfiguration.loginExpiryDays?.let { days ->
-      //  if (!my2FAService.checklastSuccessful2FA(days.toLong(), My2FAService.Unit.DAYS)) {
-      //    result.loginResultStatus.isSecondFARequiredAfterLogin = true
-      //  }
-      // }
-      //result.loginResultStatus.isSecondFARequiredAfterLogin = true // Test
+      my2FARequestConfiguration.loginExpiryDays?.let { days ->
+        if (!my2FAService.checklastSuccessful2FA(days.toLong(), My2FAService.Unit.DAYS)) {
+          log.info { "User is forced for 2FA after login: ${result.user?.username}." }
+          result.loginResultStatus.isSecondFARequiredAfterLogin = true
+        }
+      }
+      if (SystemStatus.isDevelopmentMode()) {
+        log.warn { "********* Force 2FA after login in test system." }
+        result.loginResultStatus.isSecondFARequiredAfterLogin = true
+      }
     } else if (result.loginResultStatus == LoginResultStatus.FAILED) {
       loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)
     }
