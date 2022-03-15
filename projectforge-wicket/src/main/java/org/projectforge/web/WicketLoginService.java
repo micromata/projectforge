@@ -31,6 +31,7 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,6 +41,11 @@ public class WicketLoginService {
   @Autowired
   private LoginService loginService;
 
+  @PostConstruct
+  private void init() {
+    loginService.register(new WicketLogoutListener());
+  }
+
   public void logout(final MySession mySession, final WebRequest request, final WebResponse response) {
     logout(mySession, WicketUtils.getHttpServletRequest(request), WicketUtils.getHttpServletResponse(response));
   }
@@ -47,6 +53,6 @@ public class WicketLoginService {
   public void logout(final MySession mySession, final HttpServletRequest request,
                      final HttpServletResponse response) {
     loginService.logout(request, response);
-    mySession.logout();
+    mySession.internalLogout();
   }
 }

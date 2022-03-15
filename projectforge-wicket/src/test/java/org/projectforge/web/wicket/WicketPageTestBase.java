@@ -167,7 +167,7 @@ public class WicketPageTestBase extends AbstractTestBase {
   public void login(final String username, final char[] password, final boolean checkDefaultPage) {
     final LoginResult result = loginHandler.checkLogin(username, password);
     UserContext userContext = new UserContext(PFUserDO.createCopyWithoutSecretFields(result.getUser()));
-    ((MySession) tester.getSession()).login(userContext, null);
+    ((MySession) tester.getSession()).internalLogin(userContext, null);
     ((MySession) tester.getSession()).setAttribute("UserFilter.user", userContext);
   }
 
