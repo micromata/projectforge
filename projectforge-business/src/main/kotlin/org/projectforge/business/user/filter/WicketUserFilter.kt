@@ -45,7 +45,7 @@ private val log = KotlinLogging.logger {}
  * Ensures that an user is logged in and put the user id, locale and ip to the logging mdc.
  */
 @Suppress("SpringJavaAutowiredMembersInspection")
-class UserFilter : Filter {
+class WicketUserFilter : Filter {
   @Autowired
   private lateinit var loginService: LoginService
 
@@ -66,7 +66,7 @@ class UserFilter : Filter {
     }
     try {
       response as HttpServletResponse
-      val userContext = loginService.getLogin(request, response)
+      val userContext = loginService.checkLogin(request, response)
       val user = userContext?.user
       if (user != null) {
         ThreadLocalUserContext.setUserContext(userContext)

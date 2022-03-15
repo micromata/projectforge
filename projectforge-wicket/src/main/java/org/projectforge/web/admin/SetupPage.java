@@ -157,7 +157,7 @@ public class SetupPage extends AbstractUnsecureBasePage
     //Login admin user
     final UserContext userContext = new UserContext(adminUser);
     ((MySession) getSession()).login(userContext, getRequest());
-    LoginService.login(WicketUtils.getHttpServletRequest(getRequest()), userContext);
+    LoginService.internalLogin(WicketUtils.getHttpServletRequest(getRequest()), userContext);
   }
 
   private ConfigurationDO getConfigurationDO(final ConfigurationParam param)
