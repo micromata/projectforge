@@ -110,14 +110,6 @@ open class ConfigurationService {
     protected set
 
   /**
-   * The SMS receiver verifies this key given as get parameter to the servlet call. <br></br>
-   * The key should be an alpha numeric random value with at least 6 characters for security reasons.
-   */
-  @Value("\${projectforge.receiveSmsKey}")
-  open var receiveSmsKey: String? = null
-    protected set
-
-  /**
    * The reverse phone lookup service verifies the key given as parameter to the servlet call against this key. The key
    * should be an alpha numeric random value with at least 6 characters for security reasons.
    *
