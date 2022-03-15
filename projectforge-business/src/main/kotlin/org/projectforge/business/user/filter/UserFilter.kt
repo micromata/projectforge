@@ -42,9 +42,10 @@ import javax.servlet.http.HttpServletResponse
 private val log = KotlinLogging.logger {}
 
 /**
- * UserFilter is used for Wicket pages. For all rest calls (used e. g. by React client) please refer [org.projectforge.web.rest.RestUserFilter]
+ * UserFilter is used for Wicket pages. For all rest calls (used e. g. by React client) please refer org.projectforge.web.rest.RestUserFilter.
  * Ensures that an user is logged in and put the user id, locale and ip to the logging mdc.
  */
+@Suppress("SpringJavaAutowiredMembersInspection")
 class UserFilter : Filter {
   @Autowired
   private lateinit var cookieService: CookieService
@@ -56,11 +57,6 @@ class UserFilter : Filter {
   override fun init(filterConfig: FilterConfig) {
     WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.servletContext)
       .autowireCapableBeanFactory.autowireBean(this)
-    CONTEXT_PATH = filterConfig.servletContext.contextPath
-  }
-
-  override fun destroy() {
-    // do nothing
   }
 
   @Throws(IOException::class, ServletException::class)
@@ -146,7 +142,6 @@ class UserFilter : Filter {
 
   companion object {
     private const val SESSION_KEY_USER = "UserFilter.user"
-    private var CONTEXT_PATH: String? = null
 
     /**
      * @param request
