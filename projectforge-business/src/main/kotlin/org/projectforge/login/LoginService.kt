@@ -29,6 +29,8 @@ import org.projectforge.business.ldap.LdapSlaveLoginHandler
 import org.projectforge.business.login.Login
 import org.projectforge.business.login.LoginDefaultHandler
 import org.projectforge.business.login.LoginHandler
+import org.projectforge.business.user.UserPrefCache
+import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -46,6 +48,12 @@ private val log = KotlinLogging.logger {}
 open class LoginService {
   @Autowired
   private lateinit var applicationContext: ApplicationContext
+
+  @Autowired
+  private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
+
+  @Autowired
+  private lateinit var userPrefCache: UserPrefCache
 
   @Autowired
   private lateinit var cookieService: CookieService
@@ -90,6 +98,26 @@ open class LoginService {
     return userContext
   }
 
+  /**
+   * @param request
+   * @param response Needed for clearing cookies.
+   */
+  fun logout(request: HttpServletRequest, response: HttpServletResponse) {
+    val session = request.session
+    session.removeAttribute(SESSION_KEY_USER)
+    session.invalidate()
+
+    cookieService.clearAllCookies(request, response)
+    getUser(request)?.let { user ->
+      userXmlPreferencesCache.flushToDB(user.id)
+      userXmlPreferencesCache.clear(user.id)
+      userPrefCache.flushToDB(user.id)
+      userPrefCache.clear(user.id)
+      log.info("User '${user.username}' logged out.")
+    }
+  }
+
+
   private fun checkStayLoggedIn(request: HttpServletRequest, response: HttpServletResponse): UserContext? {
     val userContext = cookieService.checkStayLoggedIn(request, response) ?: return null
     log.info("User's stay logged-in cookie found: ${request.requestURI}")
@@ -120,17 +148,6 @@ open class LoginService {
       val session = request.getSession(true) // create the session
       // do the login (store the user in the session, or whatever)
       session.setAttribute(SESSION_KEY_USER, userContext)
-    }
-
-    /**
-     * @param request
-     */
-    @JvmStatic
-    fun logout(request: HttpServletRequest) {
-      val session = request.session
-      session.removeAttribute(SESSION_KEY_USER)
-      session.invalidate()
-      log.info("User logged out.")
     }
 
     @JvmStatic

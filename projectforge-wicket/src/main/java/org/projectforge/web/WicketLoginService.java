@@ -25,10 +25,7 @@ package org.projectforge.web;
 
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
-import org.projectforge.business.user.UserPrefCache;
-import org.projectforge.business.user.UserXmlPreferencesCache;
-import org.projectforge.business.user.filter.CookieService;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.login.LoginService;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.WicketUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,29 +36,17 @@ import javax.servlet.http.HttpServletResponse;
 
 @Service
 public class WicketLoginService {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketLoginService.class);
 
   @Autowired
-  private CookieService cookieService;
+  private LoginService loginService;
 
-  public void logout(final MySession mySession, final WebRequest request, final WebResponse response,
-                     final UserXmlPreferencesCache userXmlPreferencesCache,
-                     final UserPrefCache userPrefCache) {
-    logout(mySession, WicketUtils.getHttpServletRequest(request), WicketUtils.getHttpServletResponse(response), userXmlPreferencesCache, userPrefCache);
+  public void logout(final MySession mySession, final WebRequest request, final WebResponse response) {
+    logout(mySession, WicketUtils.getHttpServletRequest(request), WicketUtils.getHttpServletResponse(response));
   }
 
   public void logout(final MySession mySession, final HttpServletRequest request,
-                     final HttpServletResponse response,
-                     final UserXmlPreferencesCache userXmlPreferencesCache,
-                     final UserPrefCache userPrefCache) {
-    cookieService.clearAllCookies(request, response);
-    final PFUserDO user = mySession.getUser();
-    if (user != null) {
-      userXmlPreferencesCache.flushToDB(user.getId());
-      userXmlPreferencesCache.clear(user.getId());
-      userPrefCache.flushToDB(user.getId());
-      userPrefCache.clear(user.getId());
-    }
+                     final HttpServletResponse response) {
+    loginService.logout(request, response);
     mySession.logout();
   }
 }

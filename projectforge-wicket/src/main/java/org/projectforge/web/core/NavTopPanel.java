@@ -40,7 +40,6 @@ import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -54,7 +53,6 @@ import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.WicketLoginService;
 import org.projectforge.web.WicketMenuBuilder;
 import org.projectforge.web.WicketMenuEntry;
-import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.menuconfig.MenuConfig;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.session.MySession;
@@ -76,9 +74,6 @@ public class NavTopPanel extends NavAbstractPanel {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NavTopPanel.class);
 
   private static final long serialVersionUID = -7858806882044188339L;
-
-  @SpringBean
-  private UserXmlPreferencesCache userXmlPreferencesCache;
 
   private BookmarkDialog bookmarkDialog;
 
@@ -162,8 +157,7 @@ public class NavTopPanel extends NavAbstractPanel {
       final Link<Void> logoutLink = new Link<Void>("logoutLink") {
         @Override
         public void onClick() {
-          loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(),
-              userXmlPreferencesCache, WicketSupport.getUserPrefCache());
+          loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse());
           WicketUtils.redirectToLogin(this);
         }
       };

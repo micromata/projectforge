@@ -40,7 +40,6 @@ import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginResult;
-import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -48,7 +47,6 @@ import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.WicketLoginService;
-import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,9 +63,6 @@ public class WicketPageTestBase extends AbstractTestBase {
   protected static final String KEY_LOGINPAGE_BUTTON_LOGIN = "loginButton:button";
 
   protected WicketTester tester;
-
-  @Autowired
-  private UserXmlPreferencesCache userXmlPreferencesCache;
 
   @Autowired
   private PluginAdminService pluginAdminService;
@@ -296,15 +291,14 @@ public class WicketPageTestBase extends AbstractTestBase {
    */
   public Component findComponentByAccessKey(final WicketTester tester, final String containerPath, final char accessKey) {
     return findComponentByAccessKey((MarkupContainer) tester.getComponentFromLastRenderedPage(containerPath),
-            accessKey);
+        accessKey);
   }
 
   /**
    * Logs out any current logged-in user and calls log-in page.
    */
   protected void logout() {
-    loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse(),
-            userXmlPreferencesCache, WicketSupport.getUserPrefCache());
+    loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse());
   }
 
 }
