@@ -46,7 +46,6 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.*
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
@@ -181,7 +180,7 @@ constructor(
   private lateinit var historyService: HistoryService
 
   @Autowired
-  private lateinit var sessionCsrfCache: SessionCsrfCache
+  private lateinit var sessionCsrfService: SessionCsrfService
 
   @Autowired
   private lateinit var userPrefService: UserPrefService
@@ -326,12 +325,8 @@ constructor(
     return validationErrors
   }
 
-  fun validate(request: HttpServletRequest, dbObj: O, postData: PostData<DTO>): List<ValidationError>? {
+  fun validate(dbObj: O, postData: PostData<DTO>): List<ValidationError>? {
     val validationErrors = validate(dbObj)
-    RestUtils.checkCsrfToken(request, sessionCsrfCache, postData.serverData?.csrfToken, "Upsert", postData.data)?.let {
-      validationErrors.add(it)
-      return validationErrors
-    }
     val dto = postData.data
     validate(validationErrors, dto)
     if (validationErrors.isEmpty()) return null
@@ -723,7 +718,7 @@ constructor(
     val ui = createEditLayout(dto, userAccess)
     ui.addTranslations("changes", "tooltip.selectMe")
     ui.postProcessPageMenu()
-    val serverData = ServerData(csrfToken = sessionCsrfCache.ensureAndGetToken(request))
+    val serverData = sessionCsrfService.createServerData(request)
     val result = FormLayoutData(dto, ui, serverData)
     onGetItemAndLayout(request, dto, result)
     val additionalVariables = addVariablesForEditPage(dto)
@@ -930,8 +925,9 @@ constructor(
     request: HttpServletRequest,
     @Valid @RequestBody postData: PostData<DTO>
   ): ResponseEntity<ResponseAction> {
+    sessionCsrfService.validateCsrfToken(request, postData, "Upsert")?.let { return it }
     val dbObj = transformForDB(postData.data)
-    return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(request, dbObj, postData))
+    return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(dbObj, postData))
   }
 
   /**
@@ -942,8 +938,9 @@ constructor(
     request: HttpServletRequest,
     @Valid @RequestBody postData: PostData<DTO>
   ): ResponseEntity<ResponseAction> {
+    sessionCsrfService.validateCsrfToken(request, postData, "Undelete")?.let { return it }
     val dbObj = transformForDB(postData.data)
-    return undelete(request, baseDao, dbObj, postData, this, validate(request, dbObj, postData))
+    return undelete(request, baseDao, dbObj, postData, this, validate(dbObj, postData))
   }
 
   /**
@@ -955,8 +952,9 @@ constructor(
     request: HttpServletRequest,
     @Valid @RequestBody postData: PostData<DTO>
   ): ResponseEntity<ResponseAction> {
+    sessionCsrfService.validateCsrfToken(request, postData, "Mark as deleted")?.let { return it }
     val dbObj = transformForDB(postData.data)
-    return markAsDeleted(request, baseDao, dbObj, postData, this, validate(request, dbObj, postData))
+    return markAsDeleted(request, baseDao, dbObj, postData, this, validate(dbObj, postData))
   }
 
   /**
@@ -978,8 +976,9 @@ constructor(
    */
   @DeleteMapping(RestPaths.DELETE)
   fun delete(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseEntity<ResponseAction> {
+    sessionCsrfService.validateCsrfToken(request, postData, "Delete")?.let { return it }
     val dbObj = transformForDB(postData.data)
-    return delete(request, baseDao, dbObj, postData, this, validate(request, dbObj, postData))
+    return delete(request, baseDao, dbObj, postData, this, validate(dbObj, postData))
   }
 
   /**
