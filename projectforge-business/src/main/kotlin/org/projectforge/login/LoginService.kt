@@ -191,6 +191,7 @@ open class LoginService {
    * @param response Needed for clearing cookies.
    */
   fun logout(request: HttpServletRequest, response: HttpServletResponse) {
+    val user = getUser(request)
     logoutListeners.forEach {
       it.logout(request, response)
     }
@@ -199,7 +200,7 @@ open class LoginService {
       session.invalidate()
     }
     cookieService.clearAllCookies(request, response)
-    getUser(request)?.let { user ->
+    user?.let { user ->
       userXmlPreferencesCache.flushToDB(user.id)
       userXmlPreferencesCache.clear(user.id)
       userPrefCache.flushToDB(user.id)
