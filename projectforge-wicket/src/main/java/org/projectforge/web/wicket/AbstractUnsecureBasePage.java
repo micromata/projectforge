@@ -48,8 +48,8 @@ import org.projectforge.business.systeminfo.SystemService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.rest.pub.LogoServiceRest;
 import org.projectforge.web.WebConfiguration;
-import org.projectforge.web.servlet.LogoServlet;
 import org.projectforge.web.session.MySession;
 
 import java.text.MessageFormat;
@@ -106,9 +106,9 @@ public abstract class AbstractUnsecureBasePage extends WebPage {
     }
 
     add(body);
-    final String logoServlet = LogoServlet.getBaseUrl();
-    if (logoServlet != null) {
-      body.add(new ContextImage("logoLeftImage", logoServlet));
+    final String logoFile = LogoServiceRest.getLogoUrl();
+    if (logoFile != null) {
+      body.add(new ContextImage("logoLeftImage", "/rsPublic/" + logoFile));
     } else {
       body.add(new Label("logoLeftImage", "[invisible]").setVisible(false));
     }
