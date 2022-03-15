@@ -31,7 +31,6 @@ import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.humanresources.HRPlanningDao
 import org.projectforge.business.login.Login
-import org.projectforge.business.meb.MebDao
 import org.projectforge.business.orga.ContractDao
 import org.projectforge.business.orga.PostausgangDao
 import org.projectforge.business.orga.PosteingangDao
@@ -92,9 +91,6 @@ open class MenuCreator {
 
   @Autowired
   private lateinit var auftragDao: AuftragDao
-
-  @Autowired
-  private lateinit var mebDao: MebDao
 
   private var initialized = false
 
@@ -223,11 +219,6 @@ open class MenuCreator {
     }
     if (smsSenderConfig.isSmsConfigured())
       commonMenu.add(MenuItemDef(MenuItemDefId.SEND_SMS))
-    if (Configuration.instance.isMebConfigured)
-      commonMenu.add(
-        MenuItemDef(MenuItemDefId.MEB,
-          badgeCounter = { mebDao.getRecentMEBEntries(null) })
-      ) // MenuNewCounterMeb
     commonMenu.add(MenuItemDef(MenuItemDefId.SEARCH))
 
     //////////////////////////////////////

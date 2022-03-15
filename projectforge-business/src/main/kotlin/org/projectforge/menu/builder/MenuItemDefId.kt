@@ -75,7 +75,6 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", "wa/incomingInvoiceList"), //
     LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("logViewer")}/-1"), //
     LOGOUT("menu.logout", url = "logout"), //
-    MEB("menu.meb", "wa/mebList"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "wa/monthlyEmployeeReport"), //
     MY_ACCOUNT("menu.myAccount", getReactDynamicPageUrl("myAccount")), //
     MY_2FA("menu.2FA", getReactDynamicPageUrl(MenuItemDefId.TWO_FACTOR_AUTHENTIFICATION_SUB_URL)), //

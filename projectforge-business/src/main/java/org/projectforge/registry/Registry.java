@@ -33,7 +33,6 @@ import org.projectforge.business.fibu.kost.*;
 import org.projectforge.business.gantt.GanttChartDao;
 import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
-import org.projectforge.business.meb.MebDao;
 import org.projectforge.business.orga.ContractDao;
 import org.projectforge.business.orga.PostausgangDao;
 import org.projectforge.business.orga.PosteingangDao;
@@ -145,7 +144,6 @@ public class Registry
     register(DaoConst.HR_PLANNING, HRPlanningDao.class, applicationContext.getBean(HRPlanningDao.class), "hr.planning") //
         .setNestedDOClasses(HRPlanningEntryDO.class).setSearchable(false);
 
-    register(DaoConst.MEB, MebDao.class, applicationContext.getBean(MebDao.class), "meb");
     register(DaoConst.SCRIPT, ScriptDao.class, applicationContext.getBean(ScriptDao.class), "scripting")
         .setSearchable(false);
     register(DaoConst.USER_PREF, UserPrefDao.class, applicationContext.getBean(UserPrefDao.class)).setSearchable(false);

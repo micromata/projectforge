@@ -78,10 +78,6 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   DEFAULT_COUNTRY_PHONE_PREFIX("countryPhonePrefix", ConfigurationType.STRING, "+49"), //
   /**
-   * Meb sms receiving phone number configuration param.
-   */
-  MEB_SMS_RECEIVING_PHONE_NUMBER("mebSMSReceivingPhoneNumber", ConfigurationType.STRING), //
-  /**
    * Plugin activated configuration param.
    */
   PLUGIN_ACTIVATED("pluginsActivated", ConfigurationType.STRING), //

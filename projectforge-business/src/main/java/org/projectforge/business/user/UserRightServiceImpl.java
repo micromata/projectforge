@@ -30,7 +30,6 @@ import org.projectforge.business.fibu.AuftragRight;
 import org.projectforge.business.fibu.ProjektRight;
 import org.projectforge.business.gantt.GanttChartRight;
 import org.projectforge.business.humanresources.HRPlanningRight;
-import org.projectforge.business.meb.MebRight;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.event.right.CalEventRight;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
@@ -130,7 +129,6 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     addRight(UserRightCategory.ORGA, UserRightId.ORGA_VISITORBOOK, FALSE_READONLY_READWRITE, ProjectForgeGroup.ORGA_TEAM);
     addRight(new ProjektRight(accessChecker));
     addRight(new AuftragRight(accessChecker));
-    addRight(new MebRight(accessChecker));
     addRight(new GanttChartRight(accessChecker));
     addRight(new HRPlanningRight(accessChecker));
     addRight(new TeamCalRight(accessChecker));

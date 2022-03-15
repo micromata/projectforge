@@ -59,9 +59,7 @@ import javax.persistence.*
         NamedQuery(name = PFUserDO.FIND_BY_USERNAME,
                 query = "from PFUserDO where username=:username"),
         NamedQuery(name = PFUserDO.FIND_OTHER_USER_BY_USERNAME,
-                query = "from PFUserDO where username=:username and id<>:id"),
-        NamedQuery(name = PFUserDO.SELECT_ID_MEB_MOBILE_NUMBERS,
-                query = "select id, personalMebMobileNumbers from PFUserDO where deleted=false and personalMebMobileNumbers is not null"))
+                query = "from PFUserDO where username=:username and id<>:id"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
@@ -81,7 +79,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     open var username: String? = null
 
     /**
-     * JIRA user name (if differ from the ProjectForge's user name) is used e. g. in MEB for creating new issues.
+     * JIRA user name (if differ from the ProjectForge's user name).
      */
     @PropertyInfo(i18nKey = "user.jiraUsername")
     @Field
@@ -298,15 +296,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(name = "personal_phone_identifiers", length = 255)
     open var personalPhoneIdentifiers: String? = null
 
-    /**
-     * A comma separated list of all personal mobile numbers from which SMS can be send. Those SMS will be assigned to
-     * this user. <br></br>
-     * This is a feature from the Mobile Enterprise Blogging.
-     */
-    @PropertyInfo(i18nKey = "user.personalMebMobileNumbers")
-    @get:Column(name = "personal_meb_identifiers", length = 255)
-    open var personalMebMobileNumbers: String? = null
-
     @PropertyInfo(i18nKey = "access.rights")
     @get:OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "user")
     open var rights: MutableSet<UserRightDO>? = HashSet()
@@ -517,8 +506,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         private const val NOPASSWORD = "--- none ---"
 
         const val FIND_BY_USERNAME = "PFUserDO_FindByUsername"
-
-        const val SELECT_ID_MEB_MOBILE_NUMBERS = "PFUserDO_SelectIdMebMobilenumbers"
 
         /**
          * For detecting the existing of given username in the database for other user than given. Avoids duplicate usernames.

@@ -67,8 +67,6 @@ public class DaoConst
 
   public static final String INCOMING_MAIL = "incomingMail";
 
-  public static final String MEB = "meb";
-
   public static final String ORDERBOOK = "orderBook";
 
   public static final String OUTGOING_INVOICE = "outgoingInvoice";

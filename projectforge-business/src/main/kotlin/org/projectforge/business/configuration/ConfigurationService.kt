@@ -28,7 +28,6 @@ import mu.KotlinLogging
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.ProjectForgeApp
-import org.projectforge.business.meb.MebMailClient
 import org.projectforge.business.orga.ContractType
 import org.projectforge.framework.configuration.*
 import org.projectforge.framework.configuration.entities.ConfigurationDO
@@ -83,9 +82,6 @@ open class ConfigurationService {
 
   @Autowired
   private lateinit var sendMailConfiguration: SendMailConfig
-
-  @Autowired
-  private lateinit var mebMailClient: MebMailClient
 
   /**
    * Default value: "resources/fonts" (absolute path).
@@ -354,12 +350,6 @@ open class ConfigurationService {
     get() = configXml.contractTypes
   open val isSecurityConfigured: Boolean
     get() = StringUtils.isNotBlank(securityConfig.passwordPepper)
-
-  /**
-   * @return true if meb mail account with hostname is configured, otherwise false.
-   */
-  open val isMebMailAccountConfigured: Boolean
-    get() = mebMailClient.isMailAccountAvailable
 
   private fun setupKeyStores() {
     if (!StringUtils.isBlank(keystoreFileName)) {

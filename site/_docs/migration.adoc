@@ -16,6 +16,11 @@ But there are some really small changes e. g. in config files etc. which have to
 
 === Version 7.2 -> 7.3
 
+. MEB plugin removed
+
+Please remove JIRA configuration (`jiraConfig`) in config.xml (if existing). Creation of JIRA issues through ProjectForge via incoming SMS isn't supported anymore.
+You should also remove `projectforge.receiveSmsKey` and `projectforge.cron.mebPolling` from your `projectforge.properties`, if configured. The SMSReceiverServlet is removed as well.
+
 . Scripting
 .. The scripting functionality is fully migrated to React. Multiple attachmentes are now supported. Therefore the files
 has to be addressed via ``files.file` instead of `file` (Kotlin) or `script.file` (Groovy) or by `files.getFile("abcdef.xlsx")`.

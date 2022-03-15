@@ -33,7 +33,6 @@ import org.projectforge.SystemAlertMessage;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
-import org.projectforge.business.meb.MebMailClient;
 import org.projectforge.business.systeminfo.SystemService;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserXmlPreferencesCache;
@@ -89,9 +88,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   private HibernateSearchReindexer hibernateSearchReindexer;
 
   @SpringBean
-  private MebMailClient mebMailClient;
-
-  @SpringBean
   private UserXmlPreferencesCache userXmlPreferencesCache;
 
   @SpringBean
@@ -123,7 +119,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     addDatabaseActionsMenu();
     addCachesMenu();
     addConfigurationMenu();
-    addMEBMenu();
     addMiscMenu();
     addDevelopmentMenu();
   }
@@ -292,41 +287,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   }
 
   @SuppressWarnings("serial")
-  protected void addMEBMenu() {
-    if (Configuration.getInstance().isMebConfigured() == false) {
-      // Do nothing.
-      return;
-    }
-    // Mobile enterprise blogging
-    final ContentMenuEntryPanel mebMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-        getString("meb.title.heading"));
-    addContentMenuEntry(mebMenu);
-    // Check unseen meb mails
-    final Link<Void> checkUnseenMebMailsLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
-      @Override
-      public void onClick() {
-        checkUnseenMebMails();
-      }
-    };
-    final ContentMenuEntryPanel checkUnseenMebMailsLinkMenuItem = new ContentMenuEntryPanel(mebMenu.newSubMenuChildId(),
-        checkUnseenMebMailsLink, getString("system.admin.button.checkUnseenMebMails"))
-        .setTooltip(getString("system.admin.button.checkUnseenMebMails.tooltip"));
-    mebMenu.addSubMenuEntry(checkUnseenMebMailsLinkMenuItem);
-
-    // Import all meb mails.
-    final Link<Void> importAllMebMailsLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
-      @Override
-      public void onClick() {
-        importAllMebMails();
-      }
-    };
-    final ContentMenuEntryPanel importAllMebMailsLinkMenuItem = new ContentMenuEntryPanel(mebMenu.newSubMenuChildId(),
-        importAllMebMailsLink, getString("system.admin.button.importAllMebMails"))
-        .setTooltip(getString("system.admin.button.importAllMebMails.tooltip"));
-    mebMenu.addSubMenuEntry(importAllMebMailsLinkMenuItem);
-  }
-
-  @SuppressWarnings("serial")
   protected void addDevelopmentMenu() {
     if (WebConfiguration.isDevelopmentMode() == false) {
       // Do nothing.
@@ -365,22 +325,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   @Override
   protected String getTitle() {
     return getString("system.admin.title");
-  }
-
-  protected void checkUnseenMebMails() {
-    log.info("Administration: check for new MEB mails.");
-    checkAccess();
-    final int counter = mebMailClient.getNewMessages(true, true);
-    setResponsePage(new MessagePage("message.successfullCompleted",
-        "check for new MEB mails, " + counter + " new messages imported."));
-  }
-
-  protected void importAllMebMails() {
-    log.info("Administration: import all MEB mails.");
-    checkAccess();
-    final int counter = mebMailClient.getNewMessages(false, false);
-    setResponsePage(new MessagePage("message.successfullCompleted",
-        "import all MEB mails, " + counter + " new messages imported."));
   }
 
   protected void checkSystemIntegrity() {

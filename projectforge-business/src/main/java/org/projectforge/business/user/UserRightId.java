@@ -62,8 +62,6 @@ public enum UserRightId implements IUserRightId
   FIBU_ACCOUNTS("FIBU_ACCOUNTS", "fibu7",
       "access.right.fibu.accounts"),
 
-  MISC_MEB("MISC_MEB", "misc1", "access.right.misc.meb"),
-
   MISC_ADDRESSBOOK("MISC_ADDRESSBOOK", "misc2", "access.right.misc.addressbook"),
 
   PM_GANTT("PM_GANTT", "pm1", "access.right.pm.gantt"),

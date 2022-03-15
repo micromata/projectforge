@@ -43,8 +43,6 @@ import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
 import org.projectforge.web.humanresources.HRPlanningEditPage;
 import org.projectforge.web.humanresources.HRPlanningListPage;
-import org.projectforge.web.meb.MebEditPage;
-import org.projectforge.web.meb.MebListPage;
 import org.projectforge.web.orga.*;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
 import org.projectforge.web.task.TaskEditPage;
@@ -286,8 +284,6 @@ public class WebRegistry
     addMountPages(DaoConst.CUSTOMER, CustomerListPage.class, CustomerEditPage.class);
     register(DaoConst.EMPLOYEE, EmployeeListPage.class);
     addMountPages(DaoConst.EMPLOYEE, EmployeeListPage.class, EmployeeEditPage.class);
-    register(DaoConst.MEB, MebListPage.class);
-    addMountPages(DaoConst.MEB, MebListPage.class, MebEditPage.class);
     register(DaoConst.PROJECT, ProjektListPage.class);
     addMountPages(DaoConst.PROJECT, ProjektListPage.class, ProjektEditPage.class);
 

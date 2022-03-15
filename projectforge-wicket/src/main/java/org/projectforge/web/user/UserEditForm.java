@@ -380,28 +380,6 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     }
   }
 
-  /**
-   * If no MEB is configured in config.xml nothing will be done.
-   *
-   * @param gridBuilder
-   * @param user
-   */
-  public static void createMEBPhoneNumbers(final GridBuilder gridBuilder, final PFUserDO user) {
-    if (Configuration.getInstance().isMebConfigured() == true) {
-      // MEB mobile phone numbers
-      final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.personalMebMobileNumbers"));
-      MaxLengthTextField personalMebMobileNumbers = new MaxLengthTextField(fs.getTextFieldId(),
-              new PropertyModel<String>(user, "personalMebMobileNumbers"));
-      personalMebMobileNumbers.setMarkupId("personalMebMobileNumbers").setOutputMarkupId(true);
-      fs.add(personalMebMobileNumbers);
-      fs.addHelpIcon(
-              new ResourceModel("user.personalMebMobileNumbers.tooltip.title"),
-              Model.of(gridBuilder.getString("user.personalMebMobileNumbers.tooltip.content")
-                      + " "
-                      + gridBuilder.getString("user.personalMebMobileNumbers.format")));
-    }
-  }
-
   public static void createDescription(final GridBuilder gridBuilder, final PFUserDO user) {
     // Description
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("description"));
@@ -503,7 +481,6 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     createTimeNotation(gridBuilder, data);
     createTimeZone(gridBuilder, data);
     createPhoneIds(gridBuilder, data);
-    createMEBPhoneNumbers(gridBuilder, data);
     createGPGPublicKey(gridBuilder, data);
     createSshPublicKey(gridBuilder, data);
 
