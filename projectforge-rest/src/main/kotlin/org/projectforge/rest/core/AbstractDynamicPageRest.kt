@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
  */
 abstract class AbstractDynamicPageRest {
   @Autowired
-  protected lateinit var sessionCsrfCache: SessionCsrfCache
+  protected lateinit var sessionCsrfService: SessionCsrfService
 
   @Autowired
   protected lateinit var domainService: DomainService
@@ -51,21 +51,14 @@ abstract class AbstractDynamicPageRest {
    * Creates new server data object with csrfToken.
    */
   protected fun createServerData(request: HttpServletRequest): ServerData {
-    return ServerData(csrfToken = sessionCsrfCache.ensureAndGetToken(request))
+    return sessionCsrfService.createServerData(request)
   }
 
   protected fun validateCsrfToken(request: HttpServletRequest, postData: PostData<*>): ResponseEntity<ResponseAction>? {
-    if (sessionCsrfCache.checkToken(request, postData.serverData?.csrfToken)) {
-      // Check OK.
-      return null
-    }
-    log.warn("Check of CSRF token failed, a validation error will be shown. Upsert of data declined: ${postData.data}")
-    val validationErrors = mutableListOf<ValidationError>()
-    validationErrors.add(ValidationError.create("errorpage.csrfError"))
-    return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+    return sessionCsrfService.validateCsrfToken(request, postData)
   }
 
-  protected fun processErrorKeys(errorMsgKeys: List<I18nKeyAndParams>): ResponseEntity<ResponseAction>? {
+  protected fun processErrorKeys(errorMsgKeys: List<I18nKeyAndParams>?): ResponseEntity<ResponseAction>? {
     if (errorMsgKeys.isNullOrEmpty()) {
       return null
     }
