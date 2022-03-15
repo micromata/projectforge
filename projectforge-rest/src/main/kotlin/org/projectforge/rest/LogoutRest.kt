@@ -26,7 +26,6 @@ package org.projectforge.rest
 import mu.KotlinLogging
 import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.UserXmlPreferencesCache
-import org.projectforge.business.user.filter.CookieService
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestResolver
@@ -47,31 +46,15 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.URL}/logout")
 open class LogoutRest {
-    @Autowired
-    private lateinit var cookieService: CookieService
+  @Autowired
+  private lateinit var loginService: LoginService
 
-    @Autowired
-    private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
-
-    @Autowired
-    private lateinit var userPrefCache: UserPrefCache
-
-    @GetMapping
-    fun logout(request: HttpServletRequest,
-               response: HttpServletResponse)
-            : ResponseAction {
-        val user = LoginService.getUser(request)
-        if (user != null) {
-            userXmlPreferencesCache.flushToDB(user.id)
-            userXmlPreferencesCache.clear(user.id)
-            userPrefCache.flushToDB(user.id)
-            userPrefCache.clear(user.id)
-        }
-        LoginService.logout(request)
-        cookieService.clearAllCookies(request, response)
-        if (user != null) {
-            log.info("User successfully logged out: ${user.username}")
-        }
-        return ResponseAction(url = "/${RestResolver.REACT_PUBLIC_PATH}/login", targetType = TargetType.CHECK_AUTHENTICATION)
-    }
+  @GetMapping
+  fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseAction {
+    loginService.logout(request, response)
+    return ResponseAction(
+      url = "/${RestResolver.REACT_PUBLIC_PATH}/login",
+      targetType = TargetType.CHECK_AUTHENTICATION
+    )
+  }
 }
