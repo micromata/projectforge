@@ -31,8 +31,8 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.login.LoginService
 import org.projectforge.rest.Authentication
 import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
@@ -307,7 +307,7 @@ open class RestAuthenticationUtils {
     val user = authInfo.user!!
     val clientIpAddress = authInfo.clientIpAddress
     LoginProtection.instance().clearLoginTimeOffset(authInfo.userString, user.id, clientIpAddress, userTokenType?.name)
-    var userContext = UserFilter.getUserContext(request)
+    var userContext = LoginService.getUserContext(request)
     if (userContext != null) {
       userContext.user = user // Replace by fresh user from authentication.
       ThreadLocalUserContext.setUserContext(userContext)
@@ -385,11 +385,6 @@ open class RestAuthenticationUtils {
   }
 
   companion object {
-    fun executeLogin(request: HttpServletRequest, userContext: UserContext) {
-      // Wicket part: (page.getSession() as MySession).login(userContext, page.getRequest())
-      UserFilter.login(request, userContext)
-    }
-
     /**
      * "Authentication-User-Id" and "authenticationUserId".
      */

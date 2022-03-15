@@ -26,11 +26,11 @@ package org.projectforge.rest.pub
 import mu.KotlinLogging
 import org.projectforge.Const
 import org.projectforge.business.login.LoginResultStatus
-import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestLoginService
 import org.projectforge.rest.core.RestResolver
@@ -65,7 +65,7 @@ open class LoginPageRest {
     request: HttpServletRequest,
     @RequestParam url: String? = null
   ): FormLayoutData {
-    val form = if (UserFilter.getUserContext(request) != null) {
+    val form = if (LoginService.getUserContext(request) != null) {
       // User is already logged-in:
       UILayout("login.title")
         .add(
@@ -101,13 +101,13 @@ open class LoginPageRest {
       } else if (request.getHeader("Referer").contains("/public/login")) {
         redirectUrl = "/${Const.REACT_APP_PATH}calendar"
       }
-      // **** 2FA
-      //if (loginResultStatus.isSecondFARequiredAfterLogin) {
-      //  return ResponseAction(
-      //    targetType = TargetType.CHECK_AUTHENTICATION,
-      //    url = "/${Const.REACT_APP_PATH}2FA/dynamic/?url=$redirectUrl"
-      //  )
-      //}
+      // 2FA
+      if (loginResultStatus.isSecondFARequiredAfterLogin) {
+        return ResponseAction(
+          targetType = TargetType.CHECK_AUTHENTICATION,
+          url = "/${Const.REACT_APP_PATH}2FA/dynamic/?url=$redirectUrl"
+        )
+      }
       return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
     }
 

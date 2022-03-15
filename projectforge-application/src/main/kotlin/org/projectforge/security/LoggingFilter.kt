@@ -32,6 +32,7 @@ import org.projectforge.common.logging.MDC_IP
 import org.projectforge.common.logging.MDC_SESSION
 import org.projectforge.common.logging.MDC_USER
 import org.projectforge.common.logging.MDC_USER_AGENT
+import org.projectforge.login.LoginService
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.slf4j.MDC
 import java.io.IOException
@@ -57,7 +58,7 @@ class LoggingFilter : Filter {
       MDC.put(MDC_IP, clientIp)
       MDC.put(MDC_SESSION, sessionId ?: "")
       MDC.put(MDC_USER_AGENT, userAgent)
-      val username = UserFilter.getUserContext(request, false)?.user?.username
+      val username = LoginService.getUserContext(request, false)?.user?.username
       MDC.put(MDC_USER, username ?: "")
 
       if (log.isDebugEnabled) {

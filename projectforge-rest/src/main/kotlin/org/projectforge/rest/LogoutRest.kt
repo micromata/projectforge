@@ -27,7 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
-import org.projectforge.business.user.filter.UserFilter
+import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.ui.ResponseAction
@@ -60,14 +60,14 @@ open class LogoutRest {
     fun logout(request: HttpServletRequest,
                response: HttpServletResponse)
             : ResponseAction {
-        val user = UserFilter.getUser(request)
+        val user = LoginService.getUser(request)
         if (user != null) {
             userXmlPreferencesCache.flushToDB(user.id)
             userXmlPreferencesCache.clear(user.id)
             userPrefCache.flushToDB(user.id)
             userPrefCache.clear(user.id)
         }
-        UserFilter.logout(request)
+        LoginService.logout(request)
         cookieService.clearAllCookies(request, response)
         if (user != null) {
             log.info("User successfully logged out: ${user.username}")

@@ -26,8 +26,7 @@ package org.projectforge.business.user.filter
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.UserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.login.LoginService
 import org.projectforge.security.My2FARequestHandler
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.support.WebApplicationContextUtils
@@ -48,7 +47,7 @@ private val log = KotlinLogging.logger {}
 @Suppress("SpringJavaAutowiredMembersInspection")
 class UserFilter : Filter {
   @Autowired
-  private lateinit var cookieService: CookieService
+  private lateinit var loginService: LoginService
 
   @Autowired
   private lateinit var my2FARequestHandler: My2FARequestHandler
@@ -67,27 +66,7 @@ class UserFilter : Filter {
     }
     try {
       response as HttpServletResponse
-      // final boolean sessionTimeout = request.isRequestedSessionIdValid() == false;
-      var userContext = request.session.getAttribute(SESSION_KEY_USER) as? UserContext?
-      if (userContext != null) {
-        // Get the fresh user from the user cache (not in maintenance mode because user group cache is perhaps not initialized correctly
-        // if updates of e. g. the user table are necessary.
-        userContext.refreshUser()
-        if (log.isDebugEnabled) {
-          log.debug("User found in session: ${request.requestURI}")
-        }
-      } else {
-        userContext = cookieService.checkStayLoggedIn(request, response)
-        if (log.isDebugEnabled) {
-          debugLogStayLoggedInCookie(request)
-        }
-        userContext?.let {
-          if (log.isDebugEnabled) {
-            log.debug("User's stay logged-in cookie found: ${request.requestURI}")
-          }
-          login(request, it)
-        }
-      }
+      val userContext = loginService.checkLogin(request, response)
       val user = userContext?.user
       if (user != null) {
         ThreadLocalUserContext.setUserContext(userContext)
@@ -130,70 +109,7 @@ class UserFilter : Filter {
     chain.doFilter(decoratedWithLocale, response)
   }
 
-  private fun debugLogStayLoggedInCookie(request: HttpServletRequest) {
-    request.cookies?.forEach { cookie ->
-      log.debug("Cookie found: ${cookie.name}, path=${cookie.path}, value=${cookie.value}, secure=${cookie.version}, maxAge=${cookie.maxAge}, domain=${cookie.domain}")
-    }
-  }
-
   private fun logDebugRequest(request: HttpServletRequest) {
     log.debug("doFilter finished for ${request.requestURI}, session=${request.getSession(false)?.id}")
-  }
-
-  companion object {
-    private const val SESSION_KEY_USER = "UserFilter.user"
-
-    /**
-     * @param request
-     * @param userContext
-     */
-    @JvmStatic
-    fun login(request: HttpServletRequest, userContext: UserContext?) {
-      // Session Fixation: Change JSESSIONID after login (due to security reasons / XSS attack on login page)
-      request.getSession(false)?.let { session ->
-        if (!session.isNew) {
-          session.invalidate()
-        }
-      }
-      val session = request.getSession(true) // create the session
-      // do the login (store the user in the session, or whatever)
-      session.setAttribute(SESSION_KEY_USER, userContext)
-    }
-
-    /**
-     * @param request
-     */
-    @JvmStatic
-    fun logout(request: HttpServletRequest) {
-      val session = request.session
-      session.removeAttribute(SESSION_KEY_USER)
-      session.invalidate()
-      log.info("User logged out.")
-    }
-
-    @JvmStatic
-    fun getUser(request: HttpServletRequest): PFUserDO? {
-      return getUserContext(request)?.user
-    }
-
-    /**
-     * Creates a user session if not exist.
-     *
-     * @param request
-     */
-    @JvmStatic
-    fun getUserContext(request: HttpServletRequest): UserContext? {
-      return getUserContext(request, true)
-    }
-
-    @JvmStatic
-    fun getUserContext(request: HttpServletRequest, createSession: Boolean): UserContext? {
-      val session = request.getSession(createSession) ?: return null
-      val userContext = session.getAttribute(SESSION_KEY_USER) as? UserContext?
-      if (log.isDebugEnabled) {
-        log.debug("User '${userContext?.user?.username}' successfully restored from http session (request=${request.requestURI}).")
-      }
-      return userContext
-    }
   }
 }

@@ -24,7 +24,7 @@
 package org.projectforge.rest.pub
 
 import org.projectforge.SystemStatus
-import org.projectforge.business.user.filter.UserFilter
+import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -125,7 +125,7 @@ class SystemStatusRest {
       systemData.setupRedirectUrl = null
       publicSystemData.setupRedirectUrl = null
     }
-    return if (UserFilter.getUserContext(request, false)?.user != null) {
+    return if (LoginService.getUserContext(request, false)?.user != null) {
       systemData
     } else {
       publicSystemData

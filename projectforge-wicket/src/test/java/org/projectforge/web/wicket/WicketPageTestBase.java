@@ -47,7 +47,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.web.LoginService;
+import org.projectforge.web.WicketLoginService;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
@@ -73,7 +73,7 @@ public class WicketPageTestBase extends AbstractTestBase {
   private PluginAdminService pluginAdminService;
 
   @Autowired
-  private LoginService loginService;
+  private WicketLoginService loginService;
 
   @Autowired
   private LoginDefaultHandler loginHandler;

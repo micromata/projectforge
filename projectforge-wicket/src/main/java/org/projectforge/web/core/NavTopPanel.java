@@ -51,7 +51,7 @@ import org.projectforge.rest.ChangePasswordPageRest;
 import org.projectforge.rest.My2FASetupPageRest;
 import org.projectforge.rest.MyAccountPageRest;
 import org.projectforge.rest.core.PagesResolver;
-import org.projectforge.web.LoginService;
+import org.projectforge.web.WicketLoginService;
 import org.projectforge.web.WicketMenuBuilder;
 import org.projectforge.web.WicketMenuEntry;
 import org.projectforge.web.WicketSupport;
@@ -89,7 +89,7 @@ public class NavTopPanel extends NavAbstractPanel {
   private VacationService vacationService;
 
   @SpringBean
-  private LoginService loginService;
+  private WicketLoginService loginService;
 
   @SpringBean
   private WicketMenuBuilder menuBuilder;

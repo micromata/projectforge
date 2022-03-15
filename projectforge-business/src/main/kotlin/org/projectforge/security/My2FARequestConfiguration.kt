@@ -47,6 +47,15 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 open class My2FARequestConfiguration {
+
+  /**
+   * If given, 2FA is required at least after given days, if stay-logged-in functionality is used. Without
+   * stay-logged-in 2FA is required on every log-in.
+   */
+  @Value("\${projectforge.2fa.loginExpiryDays}")
+  var loginExpiryDays: Int? = null
+    internal set // internal for test cases
+
   /**
    * List of regular expressions. For matching uri's a 2nd factor is mandatory and the 2nd factor expires after 1 minute.
    * Empty means (no 2nd factor).

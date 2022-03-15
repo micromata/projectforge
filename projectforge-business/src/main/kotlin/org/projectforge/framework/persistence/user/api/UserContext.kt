@@ -44,11 +44,6 @@ class UserContext() : Serializable {
     get() = UserGroupCache.getInstance().getEmployeeId(user?.id)
 
   /**
-   * @return the stayLoggedIn
-   */
-  var isStayLoggedIn = false
-
-  /**
    * Last successful two factor authentification for this user (in session/stay-login) in epoch ms.
    */
   var lastSuccessful2FA: Long? = null
@@ -56,6 +51,11 @@ class UserContext() : Serializable {
   fun updateLastSuccessful2FA() {
     this.lastSuccessful2FA = System.currentTimeMillis()
   }
+
+  /**
+   * If this flag is set, a second factor is required before any other action is allowed.
+   */
+  var secondFARequiredAfterLogin = false
 
   /**
    * See RestAuthenticationInfo of ProjectForge's rest module.
@@ -88,7 +88,6 @@ class UserContext() : Serializable {
    */
   fun logout(): UserContext {
     user = null
-    isStayLoggedIn = false
     return this
   }
 

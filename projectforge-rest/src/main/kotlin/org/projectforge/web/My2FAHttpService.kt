@@ -32,7 +32,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.login.LoginHandlerService
+import org.projectforge.login.LoginService
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
 import org.projectforge.messaging.SmsSender
@@ -60,7 +60,7 @@ class My2FAHttpService {
   enum class OTPCheckResult { SUCCESS, WRONG_LOGIN_PASSWORD, FAILED }
 
   @Autowired
-  private lateinit var loginHandlerService: LoginHandlerService
+  private lateinit var loginService: LoginService
 
   @Autowired
   private lateinit var my2FAService: My2FAService
@@ -177,7 +177,7 @@ class My2FAHttpService {
         }
       }
       // Check password as an additional security factor (because OTP was sent by e-mail).
-      if (password == null || password.isEmpty() || loginHandlerService.loginHandler.checkLogin(
+      if (password == null || password.isEmpty() || loginService.loginHandler.checkLogin(
           ThreadLocalUserContext.getUser().username,
           password
         ).loginResultStatus != LoginResultStatus.SUCCESS

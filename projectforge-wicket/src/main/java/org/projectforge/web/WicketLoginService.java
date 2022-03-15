@@ -25,47 +25,29 @@ package org.projectforge.web;
 
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
-import org.projectforge.business.login.LoginHandler;
-import org.projectforge.business.user.UserAuthenticationsService;
-import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserPrefCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.filter.CookieService;
-import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.login.LoginHandlerService;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.WicketUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Service
-public class LoginService {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LoginService.class);
-
-  @Autowired
-  private UserService userService;
-
-  @Autowired
-  private UserAuthenticationsService userAuthenticationsService;
+public class WicketLoginService {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketLoginService.class);
 
   @Autowired
   private CookieService cookieService;
 
-  @Autowired
-  private LoginHandlerService loginHandlerService;
-
-  private LoginHandler loginHandler;
-
   public void logout(final MySession mySession, final WebRequest request, final WebResponse response,
                      final UserXmlPreferencesCache userXmlPreferencesCache,
                      final UserPrefCache userPrefCache) {
-    cookieService.clearAllCookies(WicketUtils.getHttpServletRequest(request), WicketUtils.getHttpServletResponse(response));
-    logout(mySession, userXmlPreferencesCache, userPrefCache);
+    logout(mySession, WicketUtils.getHttpServletRequest(request), WicketUtils.getHttpServletResponse(response), userXmlPreferencesCache, userPrefCache);
   }
 
   public void logout(final MySession mySession, final HttpServletRequest request,
@@ -73,12 +55,6 @@ public class LoginService {
                      final UserXmlPreferencesCache userXmlPreferencesCache,
                      final UserPrefCache userPrefCache) {
     cookieService.clearAllCookies(request, response);
-    logout(mySession, userXmlPreferencesCache, userPrefCache);
-  }
-
-  private void logout(final MySession mySession,
-                      final UserXmlPreferencesCache userXmlPreferencesCache,
-                      final UserPrefCache userPrefCache) {
     final PFUserDO user = mySession.getUser();
     if (user != null) {
       userXmlPreferencesCache.flushToDB(user.getId());
