@@ -24,21 +24,27 @@
 package org.projectforge.login
 
 import mu.KotlinLogging
+import org.projectforge.SystemStatus
 import org.projectforge.business.ldap.LdapMasterLoginHandler
 import org.projectforge.business.ldap.LdapSlaveLoginHandler
-import org.projectforge.business.login.Login
-import org.projectforge.business.login.LoginDefaultHandler
-import org.projectforge.business.login.LoginHandler
+import org.projectforge.business.login.*
+import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserPrefCache
+import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
+import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.security.My2FARequestConfiguration
+import org.projectforge.security.My2FAService
+import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
+import javax.servlet.ServletRequest
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -50,13 +56,25 @@ open class LoginService {
   private lateinit var applicationContext: ApplicationContext
 
   @Autowired
-  private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
+  private lateinit var cookieService: CookieService
+
+  @Autowired
+  private lateinit var my2FAService: My2FAService
+
+  @Autowired
+  private lateinit var my2FARequestConfiguration: My2FARequestConfiguration
 
   @Autowired
   private lateinit var userPrefCache: UserPrefCache
 
   @Autowired
-  private lateinit var cookieService: CookieService
+  private lateinit var userService: UserService
+
+  @Autowired
+  private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+  @Autowired
+  private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
 
   /**
    * If given then this login handler will be used instead of [LoginDefaultHandler]. For ldap please use e. g.
@@ -83,19 +101,82 @@ open class LoginService {
    * Checks, if the user is logged-in (session) or has a valid stay-logge-in cookie. If not logged-in and a valid
    * stay-logged-in-cookie is found, the user will be logged-in by this method.
    */
-  fun checkLogin(request: HttpServletRequest, response: HttpServletResponse): UserContext? {
+  fun getLogin(request: HttpServletRequest, response: HttpServletResponse): UserContext? {
     var userContext = request.session.getAttribute(SESSION_KEY_USER) as? UserContext?
     if (userContext != null) {
-      // Get the fresh user from the user cache (not in maintenance mode because user group cache is perhaps not initialized correctly
-      // if updates of e. g. the user table are necessary.
+      // Get the fresh user from the user cache.
       userContext.refreshUser()
+      userContext.secondFARequiredAfterLogin = check2FARequiredAfterLogin(userContext)
       if (log.isDebugEnabled) {
         log.debug("User found in session: ${request.requestURI}")
       }
       return userContext
     }
     userContext = checkStayLoggedIn(request, response)
+    userContext?.let {
+      it.secondFARequiredAfterLogin = check2FARequiredAfterLogin(it)
+    }
     return userContext
+  }
+
+  fun login(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    loginData: LoginData
+  ): LoginResultStatus {
+    val loginResult = checkLogin(request, loginData)
+    val user = loginResult.user
+    if (user == null || loginResult.loginResultStatus != LoginResultStatus.SUCCESS) {
+      return loginResult.loginResultStatus
+    }
+    log.info("User successfully logged in: " + user.userDisplayName)
+    if (loginData.stayLoggedIn == true) {
+      val loggedInUser = userService.internalGetById(user.id)
+      val stayLoggedInKey = userAuthenticationsService.internalGetToken(user.id, UserTokenType.STAY_LOGGED_IN_KEY)
+      cookieService.addStayLoggedInCookie(request, response, loggedInUser, stayLoggedInKey)
+    }
+    // Execute login:
+    val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user)!!)
+    // Copy 2FA status of LoginResult to UserContext:
+    userContext.secondFARequiredAfterLogin = loginResult.loginResultStatus.isSecondFARequiredAfterLogin
+    login(request, userContext)
+    return LoginResultStatus.SUCCESS
+  }
+
+  fun checkLogin(request: HttpServletRequest, loginData: LoginData): LoginResult {
+    if (loginData.username == null || loginData.password == null) {
+      return LoginResult().setLoginResultStatus(LoginResultStatus.FAILED)
+    }
+    val loginProtection = LoginProtection.instance()
+    val clientIpAddress = getClientIp(request)
+    val offset = loginProtection.getFailedLoginTimeOffsetIfExists(loginData.username, clientIpAddress)
+    if (offset > 0) {
+      val seconds = (offset / 1000).toString()
+      log.warn("The account for '${loginData.username}' is locked for $seconds seconds due to failed login attempts. Please try again later.")
+
+      val numberOfFailedAttempts = loginProtection.getNumberOfFailedLoginAttempts(loginData.username, clientIpAddress)
+      return LoginResult().setLoginResultStatus(LoginResultStatus.LOGIN_TIME_OFFSET).setMsgParams(
+        seconds,
+        numberOfFailedAttempts.toString()
+      )
+    }
+    val result = loginHandler.checkLogin(loginData.username, loginData.password)
+    LoginHandler.clearPassword(loginData.password)
+    if (result.loginResultStatus == LoginResultStatus.SUCCESS) {
+      loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
+      // Check 2FA
+      if (SystemStatus.isDevelopmentMode()) {
+        log.warn { "********* Force 2FA after login in test system." }
+        result.loginResultStatus.isSecondFARequiredAfterLogin = true
+      }
+    } else if (result.loginResultStatus == LoginResultStatus.FAILED) {
+      loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)
+    }
+    return result
+  }
+
+  private fun getClientIp(request: ServletRequest): String? {
+    return WebUtils.getClientIp(request)
   }
 
   /**
@@ -128,6 +209,19 @@ open class LoginService {
     }
     login(request, userContext)
     return userContext
+  }
+
+  /**
+   * @return true, if 2FA is required after login, otherwise false.
+   */
+  private fun check2FARequiredAfterLogin(userContext: UserContext): Boolean {
+    my2FARequestConfiguration.loginExpiryDays?.let { days ->
+      if (!my2FAService.checklastSuccessful2FA(days.toLong(), My2FAService.Unit.DAYS, userContext)) {
+        log.info { "User is forced for 2FA after login: ${userContext.user?.username}." }
+        return true
+      }
+    }
+    return false
   }
 
   companion object {

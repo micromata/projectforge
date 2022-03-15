@@ -66,7 +66,7 @@ class UserFilter : Filter {
     }
     try {
       response as HttpServletResponse
-      val userContext = loginService.checkLogin(request, response)
+      val userContext = loginService.getLogin(request, response)
       val user = userContext?.user
       if (user != null) {
         ThreadLocalUserContext.setUserContext(userContext)

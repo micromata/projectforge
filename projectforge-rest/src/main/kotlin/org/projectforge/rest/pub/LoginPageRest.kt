@@ -30,9 +30,9 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.login.LoginData
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.RestLoginService
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -52,13 +52,8 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/login")
 open class LoginPageRest {
-  /**
-   * Password as char array for security reasons (don't wait for the garbage collector).
-   */
-  class LoginData(var username: String? = null, var password: CharArray? = null, var stayLoggedIn: Boolean? = null)
-
   @Autowired
-  private lateinit var restLoginService: RestLoginService
+  private lateinit var loginService: LoginService
 
   @GetMapping("dynamic")
   fun getForm(
@@ -91,7 +86,7 @@ open class LoginPageRest {
     @RequestBody postData: PostData<LoginData>
   )
       : ResponseAction {
-    val loginResultStatus = restLoginService.login(request, response, postData.data)
+    val loginResultStatus = loginService.login(request, response, postData.data)
 
     if (loginResultStatus == LoginResultStatus.SUCCESS) {
       var redirectUrl: String? = null

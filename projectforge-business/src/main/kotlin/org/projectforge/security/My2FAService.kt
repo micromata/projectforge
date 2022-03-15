@@ -28,6 +28,7 @@ import org.projectforge.SystemStatus
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.time.TimeUnit
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
@@ -75,8 +76,12 @@ open class My2FAService {
    * Checks if the last successful 2FA of the logged-in user isn't older than the given time period.
    * @return True, if a successful 2FA was done in the specified time period or false, if not.
    */
-  fun checklastSuccessful2FA(timePeriod: Long, unit: Unit): Boolean {
-    val user = ThreadLocalUserContext.getUserContext()
+  @JvmOverloads
+  fun checklastSuccessful2FA(
+    timePeriod: Long,
+    unit: Unit,
+    user: UserContext? = ThreadLocalUserContext.getUserContext()
+  ): Boolean {
     val lastSuccessful2FA = user?.lastSuccessful2FA ?: return false
     val timeAgo = when (unit) {
       Unit.MINUTES -> timePeriod * TimeUnit.MINUTE.millis
