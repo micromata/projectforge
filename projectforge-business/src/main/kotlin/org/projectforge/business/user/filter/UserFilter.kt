@@ -31,7 +31,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.security.My2FARequestHandler
-import org.projectforge.web.servlet.LogoServlet
 import org.projectforge.web.servlet.SMSReceiverServlet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.support.WebApplicationContextUtils
@@ -47,8 +46,9 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Ensures that an user is logged in and put the user id, locale and ip to the logging mdc.
- * Ignores login for: /ProjectForge/wa/resources/ * with the suffixes: *.js, *.css, *.gif, *.png. <br></br>
- * Don't forget to call setServletContext on applications start-up!
+ * Ignores login for: /ProjectForge/wa/resources/ * with the suffixes: *.js, *.css, *.gif, *.png.
+ *
+ *
  */
 class UserFilter : Filter {
   @Autowired
@@ -63,7 +63,6 @@ class UserFilter : Filter {
       .autowireCapableBeanFactory.autowireBean(this)
     CONTEXT_PATH = filterConfig.servletContext.contextPath
     WICKET_PAGES_PREFIX = "$CONTEXT_PATH/${Const.WICKET_APPLICATION_PATH}"
-    IGNORE_PREFIX_LOGO = "$CONTEXT_PATH/${LogoServlet.BASE_URL}"
     IGNORE_PREFIX_SMS_REVEIVE_SERVLET = "$CONTEXT_PATH/${SMSReceiverServlet.URL}"
   }
 
@@ -177,8 +176,8 @@ class UserFilter : Filter {
       // No access checking for documentation (including site doc).
       // return true;
       // } else
-      if (StringHelper.startsWith(uri, IGNORE_PREFIX_LOGO, IGNORE_PREFIX_SMS_REVEIVE_SERVLET)) {
-        // No access checking for logo and sms receiver servlet.
+      if (StringHelper.startsWith(uri, IGNORE_PREFIX_SMS_REVEIVE_SERVLET)) {
+        // No access checking for sms receiver servlet.
         // The sms receiver servlet has its own authentication (key).
         if (log.isDebugEnabled) {
           log.debug("Ignoring UserFilter for '$uri'. No authentication needed.")
@@ -201,7 +200,6 @@ class UserFilter : Filter {
 
   companion object {
     private const val SESSION_KEY_USER = "UserFilter.user"
-    private var IGNORE_PREFIX_LOGO: String? = null
     private var IGNORE_PREFIX_SMS_REVEIVE_SERVLET: String? = null
     private var WICKET_PAGES_PREFIX: String? = null
     private var CONTEXT_PATH: String? = null

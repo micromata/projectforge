@@ -23,12 +23,12 @@
 
 package org.projectforge.rest.pub
 
+import mu.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.rest.config.Rest
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.io.File
 import java.io.IOException
 
+private val log = KotlinLogging.logger {}
 
 /**
  * This rest service should be available without login (public).
@@ -44,70 +45,69 @@ import java.io.IOException
 @RestController
 @RequestMapping(Rest.PUBLIC_URL)
 class LogoServiceRest {
-    @Autowired
-    private lateinit var configurationService: ConfigurationService
+  @GetMapping(value = arrayOf("logo.jpg"), produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
+  @ResponseBody
+  @Throws(IOException::class)
+  fun getJpgLogo(): ByteArray {
+    return getLogo()
+  }
 
-    @GetMapping(value = arrayOf("logo.jpg"), produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
-    @ResponseBody
-    @Throws(IOException::class)
-    fun getJpgLogo(): ByteArray {
-        return getLogo()
+  @GetMapping(value = arrayOf("logo.png"), produces = arrayOf(MediaType.IMAGE_PNG_VALUE))
+  @ResponseBody
+  @Throws(IOException::class)
+  fun getPngLogo(): ByteArray {
+    return getLogo()
+  }
+
+  @GetMapping(value = arrayOf("logo.gif"), produces = arrayOf(MediaType.IMAGE_GIF_VALUE))
+  @ResponseBody
+  @Throws(IOException::class)
+  fun getGifLogo(): ByteArray {
+    return getLogo()
+  }
+
+  private fun getLogo(): ByteArray {
+    if (logoFile == null) {
+      log.error("Logo not configured. Can't download logo. You may configure a logo in projectforge.properties via projectforge.logoFile=logo.png.")
+      throw IOException("Logo not configured. Refer log files for further information.")
     }
-
-    @GetMapping(value = arrayOf("logo.png"), produces = arrayOf(MediaType.IMAGE_PNG_VALUE))
-    @ResponseBody
-    @Throws(IOException::class)
-    fun getPngLogo(): ByteArray {
-        return getLogo()
+    try {
+      return FileUtils.readFileToByteArray(logoFile)
+    } catch (ex: IOException) {
+      log.error("Error while reading logo file '${CanonicalFileUtils.absolutePath(logoFile)}': ${ex.message}")
+      throw ex
     }
+  }
 
-    @GetMapping(value = arrayOf("logo.gif"), produces = arrayOf(MediaType.IMAGE_GIF_VALUE))
-    @ResponseBody
-    @Throws(IOException::class)
-    fun getGifLogo(): ByteArray {
-        return getLogo()
-    }
-
-    private fun getLogo(): ByteArray {
-        if (logoFile == null) {
-            log.error("Logo not configured. Can't download logo. You may configure a logo in projectforge.properties via projectforge.logoFile=logo.png.")
-            throw IOException("Logo not configured. Refer log files for further information.")
+  companion object {
+    private var logoUrlInitialized = false
+    private var _logoUrl: String? = null
+    @JvmStatic
+    val logoUrl: String? // Rest url for downloading the logo if configured.
+      get() {
+        val configurationService =
+          ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
+        if (!logoUrlInitialized) {
+          _logoUrl = configurationService.syntheticLogoName
+          if (!_logoUrl.isNullOrBlank() && !configurationService.isLogoFileValid) {
+            log.error("Logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFile)}'.")
+          }
+          logoUrlInitialized = true
         }
-        try {
-            return FileUtils.readFileToByteArray(logoFile)
-        } catch (ex: IOException) {
-            log.error("Error while reading logo file '${CanonicalFileUtils.absolutePath(logoFile)}': ${ex.message}")
-            throw ex
+        return if (configurationService.isLogoFileValid) _logoUrl else null
+      }
+
+    private var logoFileInitialized = false
+    private var _logoFile: File? = null
+    private val logoFile: File?
+      get() {
+        if (!logoFileInitialized) {
+          val configurationService =
+            ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
+          _logoFile = configurationService.logoFileObject
+          logoFileInitialized = true
         }
-    }
-
-    companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(LogoServiceRest::class.java)
-        private var logoUrlInitialized = false
-        private var _logoUrl: String? = null
-        internal val logoUrl: String? // Rest url for downloading the logo if configured.
-            get() {
-                val configurationService = ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
-                if (!logoUrlInitialized) {
-                    _logoUrl = configurationService.syntheticLogoName
-                    if (!_logoUrl.isNullOrBlank() && !configurationService.isLogoFileValid) {
-                        log.error("Logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFile)}'.")
-                    }
-                    logoUrlInitialized = true
-                }
-                return if (configurationService.isLogoFileValid) _logoUrl else null
-            }
-
-        private var logoFileInitialized = false
-        private var _logoFile: File? = null
-        private val logoFile: File?
-            get() {
-                if (!logoFileInitialized) {
-                    val configurationService = ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
-                    _logoFile = configurationService.logoFileObject
-                    logoFileInitialized = true
-                }
-                return _logoFile
-            }
-    }
+        return _logoFile
+      }
+  }
 }
