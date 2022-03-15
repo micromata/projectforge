@@ -25,13 +25,10 @@ package org.projectforge.business.user.filter
 
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.Const
-import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.security.My2FARequestHandler
-import org.projectforge.web.servlet.SMSReceiverServlet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
@@ -45,10 +42,8 @@ import javax.servlet.http.HttpServletResponse
 private val log = KotlinLogging.logger {}
 
 /**
+ * UserFilter is used for Wicket pages. For all rest calls (used e. g. by React client) please refer [org.projectforge.web.rest.RestUserFilter]
  * Ensures that an user is logged in and put the user id, locale and ip to the logging mdc.
- * Ignores login for: /ProjectForge/wa/resources/ * with the suffixes: *.js, *.css, *.gif, *.png.
- *
- *
  */
 class UserFilter : Filter {
   @Autowired
@@ -62,8 +57,6 @@ class UserFilter : Filter {
     WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.servletContext)
       .autowireCapableBeanFactory.autowireBean(this)
     CONTEXT_PATH = filterConfig.servletContext.contextPath
-    WICKET_PAGES_PREFIX = "$CONTEXT_PATH/${Const.WICKET_APPLICATION_PATH}"
-    IGNORE_PREFIX_SMS_REVEIVE_SERVLET = "$CONTEXT_PATH/${SMSReceiverServlet.URL}"
   }
 
   override fun destroy() {
@@ -77,14 +70,6 @@ class UserFilter : Filter {
       log.debug("doFilter ${request.requestURI}: ${request.session.id}")
     }
     try {
-      if (ignoreFilterFor(request)) {
-        // Ignore the filter for this request:
-        if (log.isDebugEnabled) {
-          log.debug("ignoring ${request.requestURI}: ${request.session.id}")
-        }
-        chain.doFilter(request, response)
-        return
-      }
       response as HttpServletResponse
       // final boolean sessionTimeout = request.isRequestedSessionIdValid() == false;
       var userContext = request.session.getAttribute(SESSION_KEY_USER) as? UserContext?
@@ -116,19 +101,12 @@ class UserFilter : Filter {
           doFilterDecoratedWithLocale(request, response, chain)
         }
       } else {
-        if (request.requestURI.startsWith(WICKET_PAGES_PREFIX!!)) {
-          // Access-checking is done by Wicket, not by this filter:
-          if (my2FARequestHandler.handleRequest(request, response)) {
-            doFilterDecoratedWithLocale(request, response, chain)
-          }
-        } else {
-          var url = request.requestURI
-          val queryString = request.queryString
-          if (StringUtils.isNotBlank(queryString)) {
-            url = "$url?${URLEncoder.encode(queryString, "UTF-8")}"
-          }
-          response.sendRedirect("/react/public/login?url=$url")
+        var url = request.requestURI
+        val queryString = request.queryString
+        if (StringUtils.isNotBlank(queryString)) {
+          url = "$url?${URLEncoder.encode(queryString, "UTF-8")}"
         }
+        response.sendRedirect("/react/public/login?url=$url")
       }
     } finally {
       ThreadLocalUserContext.clear()
@@ -156,38 +134,6 @@ class UserFilter : Filter {
     chain.doFilter(decoratedWithLocale, response)
   }
 
-  /**
-   * Will be called by doFilter.
-   *
-   * @param request from do Filter.
-   * @return true, if the filter should ignore this request, otherwise false.
-   */
-  private fun ignoreFilterFor(request: ServletRequest): Boolean {
-    request as HttpServletRequest
-    val uri = request.requestURI
-    // If you have an NPE you have probably forgotten to call setServletContext on applications start-up.
-    // Paranoia setting. May-be there could be a vulnerability with request parameters:
-    if (!uri.contains("?")) {
-      // if (uri.startsWith(IGNORE_PREFIX_WICKET) && StringHelper.endsWith(uri, ".js", ".css", ".gif", ".png") == true) {
-      // No access checking for Wicket resources.
-      // return true;
-      // } else if (StringHelper.startsWith(uri, IGNORE_PREFIX_DOC, IGNORE_PREFIX_SITE_DOC) == true
-      // && StringHelper.endsWith(uri, ".html", ".pdf", ".js", ".css", ".gif", ".png") == true) {
-      // No access checking for documentation (including site doc).
-      // return true;
-      // } else
-      if (StringHelper.startsWith(uri, IGNORE_PREFIX_SMS_REVEIVE_SERVLET)) {
-        // No access checking for sms receiver servlet.
-        // The sms receiver servlet has its own authentication (key).
-        if (log.isDebugEnabled) {
-          log.debug("Ignoring UserFilter for '$uri'. No authentication needed.")
-        }
-        return true
-      }
-    }
-    return false
-  }
-
   private fun debugLogStayLoggedInCookie(request: HttpServletRequest) {
     request.cookies?.forEach { cookie ->
       log.debug("Cookie found: ${cookie.name}, path=${cookie.path}, value=${cookie.value}, secure=${cookie.version}, maxAge=${cookie.maxAge}, domain=${cookie.domain}")
@@ -200,8 +146,6 @@ class UserFilter : Filter {
 
   companion object {
     private const val SESSION_KEY_USER = "UserFilter.user"
-    private var IGNORE_PREFIX_SMS_REVEIVE_SERVLET: String? = null
-    private var WICKET_PAGES_PREFIX: String? = null
     private var CONTEXT_PATH: String? = null
 
     /**

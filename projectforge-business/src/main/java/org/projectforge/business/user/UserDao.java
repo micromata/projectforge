@@ -338,7 +338,6 @@ public class UserDao extends BaseDao<PFUserDO> {
     dbUser.setTimeNotation(user.getTimeNotation());
     dbUser.setLocale(user.getLocale());
     dbUser.setPersonalPhoneIdentifiers(user.getPersonalPhoneIdentifiers());
-    dbUser.setPersonalMebMobileNumbers(user.getPersonalMebMobileNumbers());
     dbUser.setSshPublicKey(user.getSshPublicKey());
     dbUser.setFirstname(user.getFirstname());
     dbUser.setLastname(user.getLastname());

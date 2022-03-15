@@ -85,9 +85,8 @@ public class WebXMLInitializer implements ServletContextInitializer {
 
     boolean filterAfterInternal = false;
     RestUtils.registerFilter(sc, "loggingFilter", LoggingFilter.class, false, "/*");
-    // Path secure is used by SMSReceiverServlet
-    RestUtils.registerFilter(sc, "UserFilter", UserFilter.class, filterAfterInternal, "/secure/*", "/wa/*");
-    RestUtils.registerFilter(sc, "springContext", SpringThreadLocalFilter.class, filterAfterInternal, "/secure/*", "/wa/*");
+    RestUtils.registerFilter(sc, "UserFilter", UserFilter.class, filterAfterInternal, "/wa/*");
+    RestUtils.registerFilter(sc, "springContext", SpringThreadLocalFilter.class, filterAfterInternal, "/wa/*");
 
     final FilterRegistration wicketApp = RestUtils.registerFilter(sc, "wicket.app", WicketFilter.class, filterAfterInternal, "/wa/*");
     wicketApp.setInitParameter(WicketFilter.APP_FACT_PARAM, SpringWebApplicationFactory.class.getName());

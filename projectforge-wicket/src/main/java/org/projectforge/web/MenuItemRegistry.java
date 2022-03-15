@@ -34,7 +34,6 @@ import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
 import org.projectforge.web.humanresources.HRPlanningListPage;
-import org.projectforge.web.meb.MebListPage;
 import org.projectforge.web.orga.ContractListPage;
 import org.projectforge.web.orga.VisitorbookListPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
@@ -83,7 +82,6 @@ public class MenuItemRegistry implements Serializable {
 
     register(MenuItemDefId.PHONE_CALL, PhoneCallPage.class);
     register(MenuItemDefId.SEND_SMS, SendSmsPage.class);
-    register(MenuItemDefId.MEB, MebListPage.class);
     // createdMenuEntry.setNewCounterModel(new MenuNewCounterMeb());
     register(MenuItemDefId.SEARCH, SearchPage.class);
     register(MenuItemDefId.TASK_TREE, TaskTreePage.class);

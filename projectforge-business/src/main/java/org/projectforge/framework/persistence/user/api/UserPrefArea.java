@@ -29,7 +29,6 @@ import org.projectforge.business.fibu.ProjektFavorite;
 import org.projectforge.business.task.LegacyTaskFavorite;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.user.UserFavorite;
-import org.projectforge.jira.JiraProject;
 
 import java.io.Serializable;
 
@@ -62,8 +61,6 @@ public class UserPrefArea implements Serializable, Comparable<UserPrefArea>
 
   public static final UserPrefArea USER_FAVORITE = new UserPrefArea("USER_FAVORITE", UserFavorite.class,
       "user.favorite");
-
-  public static final UserPrefArea JIRA_PROJECT = new UserPrefArea("JIRA_PROJECT", JiraProject.class, "jira.project");
 
   private final String id;
 

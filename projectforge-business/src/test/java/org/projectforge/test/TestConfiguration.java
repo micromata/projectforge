@@ -34,7 +34,6 @@ import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.web.servlet.SMSReceiverServlet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -141,11 +140,6 @@ public class TestConfiguration {
             .url(datasourceUrl)
             .driverClassName(datasourceDriver)
             .build();
-  }
-
-  @Bean
-  public SMSReceiverServlet smsReceiverServlet() {
-    return new SMSReceiverServlet();
   }
 
   @Bean

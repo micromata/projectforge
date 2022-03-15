@@ -48,9 +48,6 @@ class Configuration(private val configurationService: ConfigurationService) : Ab
   val defaultTimeZone
     get() = getValue(ConfigurationParam.DEFAULT_TIMEZONE) as TimeZone? ?: TimeZone.getDefault()
 
-  val isMebConfigured
-    get() = !getStringValue(ConfigurationParam.MEB_SMS_RECEIVING_PHONE_NUMBER).isNullOrBlank() || configurationService.isMebMailAccountConfigured
-
   /**
    * @return The first entry of [.getDateFormats] if exists, otherwise yyyy-MM-dd (ISO date format).
    */

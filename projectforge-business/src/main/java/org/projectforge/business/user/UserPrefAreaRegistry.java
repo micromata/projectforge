@@ -90,6 +90,5 @@ public class UserPrefAreaRegistry
     set.add(UserPrefArea.TASK_FAVORITE);
     set.add(UserPrefArea.TIMESHEET_TEMPLATE);
     set.add(UserPrefArea.USER_FAVORITE);
-    set.add(UserPrefArea.JIRA_PROJECT);
   }
 }

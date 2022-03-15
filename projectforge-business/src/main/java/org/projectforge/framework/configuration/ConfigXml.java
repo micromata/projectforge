@@ -37,8 +37,6 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.framework.xmlstream.*;
-import org.projectforge.jira.JiraConfig;
-import org.projectforge.jira.JiraIssueType;
 import org.projectforge.storage.StorageConfig;
 
 import java.io.File;
@@ -69,8 +67,6 @@ public class ConfigXml {
   private transient final List<ConfigurationListener> listeners = new ArrayList<>();
 
   private String applicationHomeDir;
-
-  private JiraConfig jiraConfig;
 
   private String jiraBrowseBaseUrl;
 
@@ -118,7 +114,6 @@ public class ConfigXml {
   }
 
   private void reset() {
-    jiraConfig = null;
     jiraBrowseBaseUrl = null;
     telephoneSystemOperatorPanelUrl = null;
     holidays = null;
@@ -269,7 +264,6 @@ public class ConfigXml {
     reader.initialize(ConfigXml.class);
     reader.initialize(ConfigureHoliday.class);
     reader.initialize(ContractType.class);
-    reader.initialize(JiraIssueType.class);
     AccountingConfig.registerXmlObjects(reader, aliasMap);
     return reader;
   }
@@ -386,10 +380,6 @@ public class ConfigXml {
    */
   public void setJiraBrowseBaseUrl(final String jiraBrowseBaseUrl) {
     this.jiraBrowseBaseUrl = jiraBrowseBaseUrl;
-  }
-
-  public JiraConfig getJiraConfig() {
-    return jiraConfig;
   }
 
   /**

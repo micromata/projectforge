@@ -24,7 +24,6 @@
 package org.projectforge.business.jobs
 
 import mu.KotlinLogging
-import org.projectforge.business.meb.MebJobExecutor
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -43,9 +42,6 @@ class CronNightlyJob {
     @Autowired
     private lateinit var hibernateSearchReindexer: HibernateSearchReindexer
 
-    @Autowired
-    private var mebJobExecutor: MebJobExecutor? = null
-
     //@Scheduled(cron = "0 30 2 * * *")
     @Scheduled(cron = "\${projectforge.cron.nightly}")
     fun execute() {
@@ -55,13 +51,6 @@ class CronNightlyJob {
             hibernateSearchReindexer.execute()
         } catch (ex: Throwable) {
             log.error("While executing hibernate search re-index job: " + ex.message, ex)
-        }
-        if (mebJobExecutor != null) {
-            try {
-                mebJobExecutor!!.execute(true)
-            } catch (ex: Throwable) {
-                log.error("While executing MEB job: " + ex.message, ex)
-            }
         }
 
         log.info("Nightly job job finished.")

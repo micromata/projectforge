@@ -33,6 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Filter ensures logged-in user. Is active for /rs (new Rest services) and /rest (old Rest services).
+ */
 class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
     @Autowired
     private lateinit var cookieService: CookieService
