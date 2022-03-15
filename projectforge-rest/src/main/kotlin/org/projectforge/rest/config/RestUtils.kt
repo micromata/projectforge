@@ -25,6 +25,7 @@ package org.projectforge.rest.config
 
 import mu.KotlinLogging
 import org.projectforge.common.StringHelper
+import org.projectforge.web.WebUtils
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.InputStreamResource
 import org.springframework.core.io.Resource
@@ -67,27 +68,7 @@ object RestUtils {
 
   @JvmStatic
   fun getClientIp(request: ServletRequest): String? {
-    var remoteAddr: String? = null
-    if (request is HttpServletRequest) {
-      remoteAddr = request.getHeader("X-Forwarded-For")
-    }
-    if (remoteAddr != null) {
-      if (remoteAddr.contains(",")) {
-        // sometimes the header is of form client ip,proxy 1 ip,proxy 2 ip,...,proxy n ip,
-        // we just want the client
-        remoteAddr = remoteAddr.split(',')[0].trim({ it <= ' ' })
-      }
-      try {
-        // If ip4/6 address string handed over, simply does pattern validation.
-        InetAddress.getByName(remoteAddr)
-      } catch (e: UnknownHostException) {
-        remoteAddr = request.remoteAddr
-      }
-
-    } else {
-      remoteAddr = request.remoteAddr
-    }
-    return remoteAddr
+    return WebUtils.getClientIp(request)
   }
 
   fun downloadFile(filename: String, inputStream: InputStream): ResponseEntity<InputStreamResource> {
