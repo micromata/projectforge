@@ -38,6 +38,7 @@ import org.projectforge.security.TimeBased2FA
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import java.util.*
 import javax.annotation.PostConstruct
 
 /**
@@ -222,7 +223,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         val token = authentications.getToken(type)
         if (token.isNullOrBlank() || token.trim().length < 10) {
             log.info("Authentication token '$type' renewed for user: $userId")
-            authentications.setToken(type, createEncryptedAuthenticationToken(type))
+            authentications.setToken(type, createEncryptedAuthenticationToken(type), true)
             return true
         }
         return false
@@ -238,7 +239,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             log.warn("No user authentications object found for user $userId. Nothing to renew for token '$type'.")
             return
         }
-        authentications.setToken(type, createEncryptedAuthenticationToken(type))
+        authentications.setToken(type, createEncryptedAuthenticationToken(type), true)
         update(authentications)
         log.info("Authentication token '$type' renewed for user: $userId")
     }
@@ -253,6 +254,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         val loggedInUser = ThreadLocalUserContext.getUser()!!
         val authentications = ensureAuthentications(loggedInUser.id, false)
         authentications.authenticatorToken = encryptToken(TimeBased2FA.standard.generateSecretKey())
+        authentications.authenticatorTokenCreationDate = Date()
         update(authentications)
         ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA() // Otherwise user will not see his authentication key.
         log.info("Authenticator token created for user '${loggedInUser.username}'.")
@@ -266,6 +268,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         val loggedInUser = ThreadLocalUserContext.getUser()!!
         val authentications = ensureAuthentications(loggedInUser.id, false)
         authentications.authenticatorToken = null
+        authentications.authenticatorTokenCreationDate = null
         update(authentications)
         log.info("Authenticator token deleted for user '${loggedInUser.username}'.")
     }
@@ -321,10 +324,9 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         if (authentications == null) {
             authentications = UserAuthenticationsDO()
             setUser(authentications, userId)
-            authentications.calendarExportToken = createEncryptedAuthenticationToken(UserTokenType.CALENDAR_REST)
-            authentications.davToken = createEncryptedAuthenticationToken(UserTokenType.DAV_TOKEN)
-            authentications.restClientToken = createEncryptedAuthenticationToken(UserTokenType.REST_CLIENT)
-            authentications.stayLoggedInKey = createEncryptedAuthenticationToken(UserTokenType.STAY_LOGGED_IN_KEY)
+            listOf(UserTokenType.CALENDAR_REST, UserTokenType.DAV_TOKEN, UserTokenType.REST_CLIENT, UserTokenType.STAY_LOGGED_IN_KEY).forEach { type ->
+                authentications.setToken(type, createEncryptedAuthenticationToken(type), true)
+            }
             if (checkAccess) {
                 save(authentications)
             } else {
