@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.login.Login
+import org.projectforge.business.user.UserAuthenticationsDao
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
@@ -83,9 +84,13 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     var lastname: String? = null,
     var mobilePhone: String? = null,
     var calendarExportToken: String? = null,
+    var calendarExportTokenCreationDate: String? = null,
     var davToken: String? = null,
+    var davTokenCreationDate: String? = null,
     var restClientToken: String? = null,
+    var restClientTokenCreationDate: String? = null,
     var stayLoggedInKey: String? = null,
+    var stayLoggedInKeyCreationDate: String? = null,
     var groups: String? = null,
     var lastLogin: String? = null,
     var locale: Locale? = null,
@@ -145,10 +150,9 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     val employeeLC = LayoutContext(EmployeeDO::class.java)
     val userLC = LayoutContext(PFUserDO::class.java)
     val authenticationsLC = LayoutContext(UserAuthenticationsDO::class.java)
-    data.calendarExportToken = authenticationsService.getToken(userId, UserTokenType.CALENDAR_REST)
-    data.davToken = authenticationsService.getToken(userId, UserTokenType.DAV_TOKEN)
-    data.restClientToken = authenticationsService.getToken(userId, UserTokenType.REST_CLIENT)
-    data.stayLoggedInKey = authenticationsService.getToken(userId, UserTokenType.STAY_LOGGED_IN_KEY)
+    UserAuthenticationsDao.TOKEN_LIST.forEach { tokenType ->
+      UserServicesRest.setToken(data, tokenType, authenticationsService.getTokenData(userId, tokenType))
+    }
     data.groups = groupService.getGroupnames(userId)
     data.locale = ThreadLocalUserContext.getLocale() ?: Locale("DEFAULT")
     data.dateFormat = user.dateFormat
@@ -177,38 +181,50 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
       }
     }
 
+    val firstCol = UICol(lg = 6)
+    firstCol.add(UIReadOnlyField("username", userLC))
+      .add(userLC, "firstname", "lastname")
+      .add(UIReadOnlyField("mobilePhone", userLC))
+
     layout.add(
       UIFieldset(12)
         .add(
           UIRow()
+            .add(firstCol)
             .add(
-              UICol(UILength(lg = 6))
-                .add(UIReadOnlyField("username", userLC))
-                .add(userLC, "firstname", "lastname")
-                .add(UIReadOnlyField("mobilePhone", userLC))
-                .add(
-                  addAuthenticationToken(
-                    authenticationsLC, "stayLoggedInKey",
-                    UserTokenType.STAY_LOGGED_IN_KEY,
-                    "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"
-                  )
-                )
-                .add(addAuthenticationToken(authenticationsLC, "calendarExportToken", UserTokenType.CALENDAR_REST))
-                .add(addAuthenticationToken(authenticationsLC, "davToken", UserTokenType.DAV_TOKEN))
-                .add(addAuthenticationToken(authenticationsLC, "restClientToken", UserTokenType.REST_CLIENT))
+              UserPagesRest.createUserSettingsCol(UILength(lg = 6))
             )
-            .add(UserPagesRest.createUserSettingsCol(UILength(lg = 6)))
         )
     )
-      .add(
-        UIFieldset(12, "fibu.employee")
-          .add(
-            UIRow()
-              .add(UICol(UILength(md = 4)).add(employeeLC, "employee.street", "employee.zipCode", "employee.city"))
-              .add(UICol(UILength(md = 4)).add(employeeLC, "employee.country", "employee.state", "employee.birthday"))
-              .add(UICol(UILength(md = 4)).add(employeeLC, "employee.accountHolder", "employee.iban", "employee.bic"))
-          )
-      )
+
+    val leftTokenCol = UICol(lg = 6)
+    val rightTokenCol = UICol(lg = 6)
+    addAuthenticationToken(
+      leftTokenCol,
+      authenticationsLC, "stayLoggedInKey",
+      UserTokenType.STAY_LOGGED_IN_KEY,
+      "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"
+    )
+    addAuthenticationToken(leftTokenCol, authenticationsLC, "calendarExportToken", UserTokenType.CALENDAR_REST)
+    addAuthenticationToken(rightTokenCol, authenticationsLC, "davToken", UserTokenType.DAV_TOKEN)
+    addAuthenticationToken(rightTokenCol, authenticationsLC, "restClientToken", UserTokenType.REST_CLIENT)
+    layout.add(
+      UIFieldset(12)
+        .add(
+          UIRow()
+            .add(leftTokenCol)
+            .add(rightTokenCol)
+        )
+    )
+    layout.add(
+      UIFieldset(12, "fibu.employee")
+        .add(
+          UIRow()
+            .add(UICol(UILength(md = 4)).add(employeeLC, "employee.street", "employee.zipCode", "employee.city"))
+            .add(UICol(UILength(md = 4)).add(employeeLC, "employee.country", "employee.state", "employee.birthday"))
+            .add(UICol(UILength(md = 4)).add(employeeLC, "employee.accountHolder", "employee.iban", "employee.bic"))
+        )
+    )
       .add(
         UIFieldset(12)
           .add(UIReadOnlyField("groups", label = "user.assignedGroups"))
@@ -255,43 +271,53 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
   }
 
   private fun addAuthenticationToken(
+    col: UICol,
     lc: LayoutContext,
     id: String,
     token: UserTokenType,
     tooltip: String? = null
-  ): UIRow {
-    return UIRow()
-      .add(
-        UICol(9)
-          .add(UIReadOnlyField(id, lc, canCopy = true, coverUp = true))
-      )
-      .add(
-        UICol(3)
-          .add(
-            UIButton(
-              "${id}-renew",
-              title = translate("user.authenticationToken.renew"),
-              tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
-              confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
-              color = UIColor.DANGER,
-              responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.POST)
-            )
-          )
-          .add(
-            UIButton(
-              "${id}-access",
-              title = translate("user.authenticationToken.button.showUsage"),
-              tooltip = "user.authenticationToken.button.showUsage.tooltip",
-              color = UIColor.LINK,
-              responseAction = ResponseAction(
-                PagesResolver.getDynamicPageUrl(
-                  TokenInfoPageRest::class.java,
-                  mapOf("token" to token), absolute = true
-                ),
-                targetType = TargetType.MODAL
+  ) {
+    col.add(
+      UIRow()
+        .add(
+          UICol(9)
+            .add(UIReadOnlyField(id, lc, canCopy = true, coverUp = true))
+        )
+    )
+    col.add(
+      UIRow()
+        .add(
+          UICol(9)
+            .add(UIReadOnlyField("${id}CreationDate", lc))
+        )
+        .add(
+          UICol(3)
+            .add(
+              UIButton(
+                "${id}-renew",
+                title = translate("user.authenticationToken.renew"),
+                tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
+                confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
+                color = UIColor.DANGER,
+                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.POST)
               )
             )
-          )
-      )
+            .add(
+              UIButton(
+                "${id}-access",
+                title = translate("user.authenticationToken.button.showUsage"),
+                tooltip = "user.authenticationToken.button.showUsage.tooltip",
+                color = UIColor.LINK,
+                responseAction = ResponseAction(
+                  PagesResolver.getDynamicPageUrl(
+                    TokenInfoPageRest::class.java,
+                    mapOf("token" to token), absolute = true
+                  ),
+                  targetType = TargetType.MODAL
+                )
+              )
+            )
+        )
+    )
   }
 }
