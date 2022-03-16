@@ -484,7 +484,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     }
 
     /**
-     * @return If any of the secret fields is given (password, passwordSalt, stayLoggedInKey or authenticationToken).
+     * @return If any of the secret fields is given (password, passwordSalt).
      */
     fun hasSecretFieldValues(): Boolean {
         return (!this.password.isNullOrEmpty()
@@ -492,7 +492,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     }
 
     /**
-     * Clears any given secret field (password, passwordSalt, stayLoggedInKey or authenticationToken) by setting them to null.
+     * Clears any given secret field (password, passwordSalt) by setting them to null.
      */
     fun clearSecretFields() {
         this.password = null
@@ -513,8 +513,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         internal const val FIND_OTHER_USER_BY_USERNAME = "PFUserDO_FindOtherUserByUsername"
 
         /**
-         * @return A copy of the given user without copying the secret fields (password, passwordSalt, stayLoggedInKey or
-         * authenticationToken).
+         * @return A copy of the given user without copying the secret fields (password, passwordSalt).
          */
         @JvmStatic
         fun createCopyWithoutSecretFields(srcUser: PFUserDO?): PFUserDO? {

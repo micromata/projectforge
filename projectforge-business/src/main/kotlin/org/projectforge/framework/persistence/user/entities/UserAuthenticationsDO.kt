@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.user.entities
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import java.util.*
 import javax.persistence.*
 
 /**
@@ -114,6 +115,16 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
   open var calendarExportToken: String? = null
 
   /**
+   * Date of creation for information.
+   */
+  @PropertyInfo(
+    i18nKey = "user.authenticationToken.calendar_rest",
+    additionalI18nKey = "created"
+  )
+  @get:Column(name = "calendar_export_token_creation_date", nullable = true)
+  open var calendarExportTokenCreationDate: Date? = null
+
+  /**
    * Token used for CalDAV and CardDAV clients.
    */
   @PropertyInfo(
@@ -122,6 +133,16 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
   )
   @get:Column(name = "dav_token", length = 100, nullable = true)
   open var davToken: String? = null
+
+  /**
+   * Date of creation for information.
+   */
+  @PropertyInfo(
+    i18nKey = "user.authenticationToken.dav_token",
+    additionalI18nKey = "created"
+  )
+  @get:Column(name = "dav_token_creation_date", nullable = true)
+  open var davTokenCreationDate: Date? = null
 
   /**
    * Token used for CalDAV and CardDAV clients.
@@ -134,6 +155,16 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
   open var restClientToken: String? = null
 
   /**
+   * Date of creation for expiration purposes.
+   */
+  @PropertyInfo(
+    i18nKey = "user.authenticationToken.rest_client",
+    additionalI18nKey = "created"
+  )
+  @get:Column(name = "rest_client_token_creation_date", nullable = true)
+  open var restClientTokenCreationDate: Date? = null
+
+  /**
    * Token used for Authenticators (2FA), such as Google or Microsoft authenticator.
    */
   @PropertyInfo(
@@ -142,6 +173,16 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
   )
   @get:Column(name = "authenticator_key", length = 100, nullable = true)
   open var authenticatorToken: String? = null
+
+  /**
+   * Date of creation for information.
+   */
+  @PropertyInfo(
+    i18nKey = "user.authenticationToken.authenticator_key",
+    additionalI18nKey = "created"
+  )
+  @get:Column(name = "authenticator_key_creation_date", nullable = true)
+  open var authenticatorTokenCreationDate: Date? = null
 
   /**
    * Key stored in the cookies for the functionality of stay logged in.
@@ -153,6 +194,16 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
   @get:Column(name = "stay_logged_in_key", length = 255)
   open var stayLoggedInKey: String? = null
 
+  /**
+   * Date of creation for information.
+   */
+  @PropertyInfo(
+    i18nKey = "user.authenticationToken.stay_logged_in_key",
+    additionalI18nKey = "created"
+  )
+  @get:Column(name = "stay_logged_in_key_creation_date", nullable = true)
+  open var stayLoggedInKeyCreationDate: Date? = null
+
   internal fun getToken(type: UserTokenType): String? {
     return when (type) {
       UserTokenType.CALENDAR_REST -> calendarExportToken
@@ -163,16 +214,36 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
     }
   }
 
-  internal fun setToken(type: UserTokenType, token: String?) {
+  internal fun setToken(type: UserTokenType, token: String?, updateCreationTime: Boolean = false) {
     if (!token.isNullOrEmpty() && token.trim().length < 10) {
       log.warn("Token '$type' to short, will not be set for user ${user?.id}.")
       return
     }
     when (type) {
-      UserTokenType.CALENDAR_REST -> calendarExportToken = token
-      UserTokenType.DAV_TOKEN -> davToken = token
-      UserTokenType.REST_CLIENT -> restClientToken = token
-      UserTokenType.STAY_LOGGED_IN_KEY -> stayLoggedInKey = token
+      UserTokenType.CALENDAR_REST -> {
+        calendarExportToken = token
+        if (updateCreationTime) {
+          calendarExportTokenCreationDate = Date()
+        }
+      }
+      UserTokenType.DAV_TOKEN -> {
+        davToken = token
+        if (updateCreationTime) {
+          davTokenCreationDate = Date()
+        }
+      }
+      UserTokenType.REST_CLIENT -> {
+        restClientToken = token
+        if (updateCreationTime) {
+          restClientTokenCreationDate = Date()
+        }
+      }
+      UserTokenType.STAY_LOGGED_IN_KEY -> {
+        stayLoggedInKey = token
+        if (updateCreationTime) {
+          stayLoggedInKeyCreationDate = Date()
+        }
+      }
       UserTokenType.AUTHENTICATOR_KEY -> throw IllegalArgumentException("Authentication token is protected. Illegal access.")
     }
   }
