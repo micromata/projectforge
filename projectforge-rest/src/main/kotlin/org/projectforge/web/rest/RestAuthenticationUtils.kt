@@ -322,7 +322,7 @@ open class RestAuthenticationUtils {
     } else { // Only null in test case:
       MDC.put("ip", "unknown")
     }
-    MDC.put("session", request.session?.id)
+    MDC.put("session", request.getSession(false)?.id)
     MDC.put("user", user.username)
     MDC.put("userAgent", request.getHeader("User-Agent"))
     log.info("User: ${user.username} calls RestURL: ${request.requestURI} with ip: $clientIpAddress")

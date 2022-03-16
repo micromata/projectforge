@@ -86,7 +86,7 @@ class RequestData(request: HttpServletRequest, longForm: Boolean = false) {
     val serverName = if (longForm) request.serverName else null
     val serverPort: Int? = if (longForm) request.serverPort else null
     val servletPath: String? = if (longForm) request.servletPath else null
-    val sessionId: String? = request.session?.id
+    val sessionId: String? = request.getSession(false)?.id
     val userPrincipal: Principal? = request.userPrincipal
 
 

@@ -199,7 +199,7 @@ class TaskServicesRest {
       : Result {
     @Suppress("UNCHECKED_CAST")
     val openNodes = userPrefService.ensureEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Int>())
-    val filter = listFilterService.getSearchFilter(request.session, TaskFilter::class.java) as TaskFilter
+    val filter = listFilterService.getSearchFilter(request.getSession(false), TaskFilter::class.java) as TaskFilter
 
     if (initial != true) {
       // User filter settings not on initial call.

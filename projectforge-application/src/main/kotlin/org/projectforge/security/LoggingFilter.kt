@@ -61,7 +61,7 @@ class LoggingFilter : Filter {
       MDC.put(MDC_USER, username ?: "")
 
       if (log.isDebugEnabled) {
-        log.debug("doFilter " + request.requestURI + ": " + request.session.id)
+        log.debug("doFilter " + request.requestURI + ": " + request.getSession(false)?.id)
       }
       when (ConfigurationServiceAccessor.get().accessLogConfiguration) {
         "NONE" -> {
