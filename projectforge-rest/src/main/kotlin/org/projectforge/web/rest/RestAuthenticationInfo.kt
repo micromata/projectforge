@@ -45,11 +45,6 @@ class RestAuthenticationInfo(var request: HttpServletRequest,
     var clientIpAddress: String = request.remoteAddr ?: "unkown"
     var resultCode: HttpStatus? = null
     var lockedByTimePenalty = false
-    /**
-     * If this flag is set, a second factor is required before any other action is allowed.
-     */
-    var secondFARequiredAfterLogin = false
-
 
     /**
      * Will be set, if the user is authenticated by an authentication token inside a rest call (not by session or password).

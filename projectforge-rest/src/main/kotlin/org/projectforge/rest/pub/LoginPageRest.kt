@@ -96,13 +96,6 @@ open class LoginPageRest {
       } else if (request.getHeader("Referer").contains("/public/login")) {
         redirectUrl = "/${Const.REACT_APP_PATH}calendar"
       }
-      // 2FA
-      if (loginResultStatus.isSecondFARequiredAfterLogin) {
-        return ResponseAction(
-          targetType = TargetType.CHECK_AUTHENTICATION,
-          url = "/${Const.REACT_APP_PATH}2FA/dynamic/?url=$redirectUrl"
-        )
-      }
       return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
     }
 
