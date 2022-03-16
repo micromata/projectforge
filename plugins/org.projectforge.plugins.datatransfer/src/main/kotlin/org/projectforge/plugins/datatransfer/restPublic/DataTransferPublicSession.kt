@@ -271,7 +271,7 @@ class DataTransferPublicSession {
   private fun getSessionMap(request: HttpServletRequest): MutableMap<Int, TransferAreaData>? {
     @Suppress("UNCHECKED_CAST")
     val map: MutableMap<Int, TransferAreaData>? =
-      request.session?.getAttribute(SESSION_ATTRIBUTE) as? MutableMap<Int, TransferAreaData>
+      request.getSession(false)?.getAttribute(SESSION_ATTRIBUTE) as? MutableMap<Int, TransferAreaData>
     return map
   }
 

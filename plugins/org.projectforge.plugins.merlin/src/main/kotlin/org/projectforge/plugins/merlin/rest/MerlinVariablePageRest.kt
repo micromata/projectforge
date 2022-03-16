@@ -60,7 +60,7 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
     @RequestParam("id", required = true) id: Int,
     request: HttpServletRequest
   ): FormLayoutData {
-    val dto = ExpiringSessionAttributes.getAttribute(request.session, "${this::class.java.name}:$id")
+    val dto = ExpiringSessionAttributes.getAttribute(request.getSession(false), "${this::class.java.name}:$id")
     if (dto == null || dto !is MerlinTemplate) {
       throw InternalError("Please try again.")
     }
@@ -87,7 +87,7 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
       newVariable
     }
     // 10 minutes (if user reloads page)
-    ExpiringSessionAttributes.setAttribute(request.session, "${this::class.java.name}:${dto.id}", dto, 10)
+    ExpiringSessionAttributes.setAttribute(request.getSession(false), "${this::class.java.name}:${dto.id}", dto, 10)
     return ResponseEntity.ok()
       .body(
         ResponseAction(

@@ -87,7 +87,7 @@ class AddressImageServicesRest {
     fileSizeStandardChecker.checkSize(FileInfo(filename, fileSize = file.size), displayUserMessage = false)
     val bytes = file.bytes
     if (id == null || id < 0) {
-      val session = request.session
+      val session = request.getSession(false)
       ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, bytes, 1)
     } else {
       addressImageDao.saveOrUpdate(id, bytes)
@@ -122,7 +122,7 @@ class AddressImageServicesRest {
    */
   @DeleteMapping("deleteImage/{id}")
   fun deleteImage(request: HttpServletRequest, @PathVariable("id") id: Int?): ResponseEntity<String> {
-    val session = request.session
+    val session = request.getSession(false)
     ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
     if (id != null && id > 0) {
       addressImageDao.delete(id)

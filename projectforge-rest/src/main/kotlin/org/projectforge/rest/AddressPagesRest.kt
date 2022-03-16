@@ -141,7 +141,7 @@ class AddressPagesRest
   }
 
   override fun onGetItemAndLayout(request: HttpServletRequest, dto: Address, formLayoutData: FormLayoutData) {
-    ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
+    ExpiringSessionAttributes.removeAttribute(request.getSession(false), SESSION_IMAGE_ATTR)
   }
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -211,7 +211,7 @@ class AddressPagesRest
     personalAddressDao.setOwner(personalAddress, getUserId()) // Set current logged in user as owner.
     personalAddressDao.saveOrUpdate(personalAddress)
 
-    val session = request.session
+    val session = request.getSession(false)
     val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
     if (bytes != null && bytes is ByteArray) {
       // The user uploaded an image, so

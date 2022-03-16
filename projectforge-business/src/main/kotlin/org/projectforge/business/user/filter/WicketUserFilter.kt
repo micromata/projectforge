@@ -62,7 +62,7 @@ class WicketUserFilter : Filter {
   override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
     request as HttpServletRequest
     if (log.isDebugEnabled) {
-      log.debug("doFilter ${request.requestURI}: ${request.session.id}")
+      log.debug("doFilter ${request.requestURI}: ${request.getSession(false)?.id}")
     }
     try {
       response as HttpServletResponse

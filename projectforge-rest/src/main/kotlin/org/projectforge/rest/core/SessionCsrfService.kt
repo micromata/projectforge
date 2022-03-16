@@ -92,7 +92,7 @@ open class SessionCsrfService
 
   fun checkToken(request: HttpServletRequest, token: String?): Boolean {
     if (token.isNullOrEmpty() || token.trim().length < 30) {
-      log.info { "Token to short, check faild for session id '${request.session.id}'." }
+      log.info { "Token to short, check faild for session id '${request.getSession(false)?.id}'." }
       return false
     }
     return super.getSessionData(request) == token
