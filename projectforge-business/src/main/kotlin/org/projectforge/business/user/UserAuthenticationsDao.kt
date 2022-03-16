@@ -23,6 +23,7 @@
 
 package org.projectforge.business.user
 
+import mu.KotlinLogging
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.framework.access.AccessException
@@ -40,6 +41,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import java.util.*
 import javax.annotation.PostConstruct
+
+private val log = KotlinLogging.logger {}
 
 /**
  * The authentication tokens are used to prevent the usage of the user's password for services as calendar subscription of CardDAV/CalDAVServices as well
@@ -170,10 +173,20 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * @throws AccessException if logged in user isn't either admin user nor owner of this token.
      */
     open fun getToken(userId: Int, type: UserTokenType): String? {
+        return getTokenData(userId, type)?.token
+    }
+
+    /**
+     * Returns the user's authentication token if exists (must be not blank with a size >= 10). If not, a new token key
+     * will be generated.
+     * @return The decrypted token and date of creation.
+     * @throws AccessException if logged in user isn't either admin user nor owner of this token.
+     */
+    open fun getTokenData(userId: Int, type: UserTokenType): UserTokenData? {
         if (ThreadLocalUserContext.getUserId() != userId) { // Only admin users are able to renew authentication token of other users:
             accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         }
-        return internalGetToken(userId, type)
+        return internalGetTokenData(userId, type)
     }
 
     /**
@@ -182,8 +195,17 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * @return The decrypted token.
      */
     open fun internalGetToken(userId: Int, type: UserTokenType): String? {
+        return internalGetTokenData(userId, type)?.token
+    }
+
+    /**
+     * Returns the user's authentication token if exists (must be not blank with a size >= 10). If not, a new token key
+     * will be generated. Without check access.
+     * @return The decrypted token including type and creation date.
+     */
+    open fun internalGetTokenData(userId: Int, type: UserTokenType): UserTokenData? {
         val authentications = ensureAuthentications(userId, checkAccess = false)
-        return decryptToken(authentications.getToken(type))
+        return UserTokenData(decryptToken(authentications.getToken(type)), type, authentications.getCreationDate(type))
     }
 
     /**
@@ -324,7 +346,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         if (authentications == null) {
             authentications = UserAuthenticationsDO()
             setUser(authentications, userId)
-            listOf(UserTokenType.CALENDAR_REST, UserTokenType.DAV_TOKEN, UserTokenType.REST_CLIENT, UserTokenType.STAY_LOGGED_IN_KEY).forEach { type ->
+            TOKEN_LIST.forEach { type ->
                 authentications.setToken(type, createEncryptedAuthenticationToken(type), true)
             }
             if (checkAccess) {
@@ -345,6 +367,9 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(UserAuthenticationsDao::class.java)
+        /**
+         * List of all tokens without authenticator token: [UserTokenType.CALENDAR_REST], [UserTokenType.DAV_TOKEN], [UserTokenType.REST_CLIENT], [UserTokenType.STAY_LOGGED_IN_KEY]
+         */
+        val TOKEN_LIST = listOf(UserTokenType.CALENDAR_REST, UserTokenType.DAV_TOKEN, UserTokenType.REST_CLIENT, UserTokenType.STAY_LOGGED_IN_KEY)
     }
 }

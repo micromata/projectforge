@@ -118,8 +118,8 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
    * Date of creation for information.
    */
   @PropertyInfo(
-    i18nKey = "user.authenticationToken.calendar_rest",
-    additionalI18nKey = "created"
+    additionalI18nKey = "user.authenticationToken.calendar_rest",
+    i18nKey = "lastUpdate"
   )
   @get:Column(name = "calendar_export_token_creation_date", nullable = true)
   open var calendarExportTokenCreationDate: Date? = null
@@ -138,8 +138,8 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
    * Date of creation for information.
    */
   @PropertyInfo(
-    i18nKey = "user.authenticationToken.dav_token",
-    additionalI18nKey = "created"
+    additionalI18nKey = "user.authenticationToken.dav_token",
+    i18nKey = "lastUpdate"
   )
   @get:Column(name = "dav_token_creation_date", nullable = true)
   open var davTokenCreationDate: Date? = null
@@ -158,8 +158,8 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
    * Date of creation for expiration purposes.
    */
   @PropertyInfo(
-    i18nKey = "user.authenticationToken.rest_client",
-    additionalI18nKey = "created"
+    additionalI18nKey = "user.authenticationToken.rest_client",
+    i18nKey = "lastUpdate"
   )
   @get:Column(name = "rest_client_token_creation_date", nullable = true)
   open var restClientTokenCreationDate: Date? = null
@@ -178,8 +178,8 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
    * Date of creation for information.
    */
   @PropertyInfo(
-    i18nKey = "user.authenticationToken.authenticator_key",
-    additionalI18nKey = "created"
+    additionalI18nKey = "user.authenticationToken.authenticator_key",
+    i18nKey = "lastUpdate"
   )
   @get:Column(name = "authenticator_key_creation_date", nullable = true)
   open var authenticatorTokenCreationDate: Date? = null
@@ -198,8 +198,8 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
    * Date of creation for information.
    */
   @PropertyInfo(
-    i18nKey = "user.authenticationToken.stay_logged_in_key",
-    additionalI18nKey = "created"
+    additionalI18nKey = "user.authenticationToken.stay_logged_in_key",
+    i18nKey = "lastUpdate"
   )
   @get:Column(name = "stay_logged_in_key_creation_date", nullable = true)
   open var stayLoggedInKeyCreationDate: Date? = null
@@ -211,6 +211,16 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
       UserTokenType.REST_CLIENT -> restClientToken
       UserTokenType.STAY_LOGGED_IN_KEY -> stayLoggedInKey
       UserTokenType.AUTHENTICATOR_KEY -> throw IllegalArgumentException("Authentication token is protected. Illegal access.")
+    }
+  }
+
+  internal fun getCreationDate(type: UserTokenType): Date? {
+    return when (type) {
+      UserTokenType.CALENDAR_REST -> calendarExportTokenCreationDate
+      UserTokenType.DAV_TOKEN -> davTokenCreationDate
+      UserTokenType.REST_CLIENT -> restClientTokenCreationDate
+      UserTokenType.STAY_LOGGED_IN_KEY -> stayLoggedInKeyCreationDate
+      UserTokenType.AUTHENTICATOR_KEY -> authenticatorTokenCreationDate
     }
   }
 

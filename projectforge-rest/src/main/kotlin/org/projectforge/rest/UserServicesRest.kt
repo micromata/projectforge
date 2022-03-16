@@ -26,8 +26,11 @@ package org.projectforge.rest
 import mu.KotlinLogging
 import org.projectforge.business.user.UserAccessLogEntries
 import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.business.user.UserTokenData
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.dto.PostData
@@ -36,6 +39,7 @@ import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -67,15 +71,7 @@ open class UserServicesRest {
     userAuthenticationsService.renewToken(ThreadLocalUserContext.getUserId(), tokenType)
     val newToken = userAuthenticationsService.getToken(ThreadLocalUserContext.getUserId(), tokenType)
 
-    when (tokenType) {
-      UserTokenType.CALENDAR_REST -> postData.data.calendarExportToken = newToken
-      UserTokenType.DAV_TOKEN -> postData.data.davToken = newToken
-      UserTokenType.REST_CLIENT -> postData.data.restClientToken = newToken
-      UserTokenType.STAY_LOGGED_IN_KEY -> postData.data.stayLoggedInKey = newToken
-      else -> {
-        throw UnsupportedOperationException()
-      }
-    }
+    renewToken(postData.data, tokenType, newToken)
 
     return ResponseEntity.ok(
       ResponseAction(
@@ -90,5 +86,41 @@ open class UserServicesRest {
   fun getTokenAccess(@RequestParam("token", required = true) tokenString: String): AccessLogEntries {
     val tokenType = UserTokenType.valueOf(tokenString)
     return AccessLogEntries(userAuthenticationsService.getUserAccessLogEntries(tokenType))
+  }
+
+  companion object {
+
+    fun setToken(data: MyAccountPageRest.MyAccountData, tokenType: UserTokenType, tokenData: UserTokenData?) {
+      when (tokenType) {
+        UserTokenType.CALENDAR_REST -> {
+          data.calendarExportToken = tokenData?.token
+          data.calendarExportTokenCreationDate = getDateString(tokenData?.creationDate)
+        }
+        UserTokenType.DAV_TOKEN -> {
+          data.davToken = tokenData?.token
+          data.davTokenCreationDate = getDateString(tokenData?.creationDate)
+        }
+        UserTokenType.REST_CLIENT -> {
+          data.restClientToken = tokenData?.token
+          data.restClientTokenCreationDate = getDateString(tokenData?.creationDate)
+        }
+        UserTokenType.STAY_LOGGED_IN_KEY -> {
+          data.stayLoggedInKey = tokenData?.token
+          data.stayLoggedInKeyCreationDate = getDateString(tokenData?.creationDate)
+        }
+        else -> {
+          throw UnsupportedOperationException()
+        }
+      }
+    }
+
+    fun renewToken(data: MyAccountPageRest.MyAccountData, tokenType: UserTokenType, newToken: String?) {
+      setToken(data, tokenType, UserTokenData(newToken, tokenType, Date()))
+    }
+
+    fun getDateString(date: Date? = Date()): String {
+      date ?: return ""
+      return "${PFDateTime.from(date).format()} (${TimeAgo.getMessage(date)})"
+    }
   }
 }
