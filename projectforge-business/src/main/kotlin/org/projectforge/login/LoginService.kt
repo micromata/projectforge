@@ -109,15 +109,19 @@ open class LoginService {
       // Get the fresh user from the user cache.
       userContext.refreshUser()
       // Check 2FA if session is kept alive for a longer time:
-      userContext.secondFARequiredAfterLogin = check2FARequiredAfterLogin(userContext)
+      if (SystemStatus.isDevelopmentMode()) {
+        log.warn { "***** TODO: Implementation of 2FA after login" }
+      }
+      // TODO: check2FARequiredAfterLogin(userContext)
       if (log.isDebugEnabled) {
         log.debug("User found in session: ${request.requestURI}")
       }
       return userContext
     }
     userContext = checkStayLoggedIn(request, response)
-    userContext?.let {
-      it.secondFARequiredAfterLogin = check2FARequiredAfterLogin(it)
+    // TODO: check2FARequiredAfterLogin(userContext)
+    if (SystemStatus.isDevelopmentMode()) {
+      log.warn { "***** TODO: Implementation of 2FA after login" }
     }
     return userContext
   }
@@ -144,8 +148,10 @@ open class LoginService {
     }
     // Execute login:
     val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user)!!)
-    // Copy 2FA status of LoginResult to UserContext:
-    userContext.secondFARequiredAfterLogin = loginResult.loginResultStatus.isSecondFARequiredAfterLogin
+    // TODO: check2FARequiredAfterLogin(userContext)
+    if (SystemStatus.isDevelopmentMode()) {
+      log.warn { "***** TODO: Implementation of 2FA after login" }
+    }
     internalLogin(request, userContext)
     return LoginResultStatus.SUCCESS
   }
@@ -172,9 +178,9 @@ open class LoginService {
     if (result.loginResultStatus == LoginResultStatus.SUCCESS) {
       loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
       // Check 2FA
+      // TODO: check2FARequiredAfterLogin(userContext)
       if (SystemStatus.isDevelopmentMode()) {
-        log.warn { "********* Force 2FA after login in test system." }
-        result.loginResultStatus.isSecondFARequiredAfterLogin = true
+        log.warn { "***** TODO: Implementation of 2FA after login" }
       }
     } else if (result.loginResultStatus == LoginResultStatus.FAILED) {
       loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)

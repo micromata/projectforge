@@ -53,11 +53,6 @@ class UserContext() : Serializable {
   }
 
   /**
-   * If this flag is set, a second factor is required before any other action is allowed.
-   */
-  var secondFARequiredAfterLogin = false
-
-  /**
    * See RestAuthenticationInfo of ProjectForge's rest module.
    */
   var loggedInByAuthenticationToken = false
