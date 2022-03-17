@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,6 @@ package org.projectforge.plugins.todo
 
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.Priority
@@ -34,7 +33,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -42,12 +41,12 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_TODO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_todo_assignee_fk", columnList = "assignee_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_reporter_fk", columnList = "reporter_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_task_id", columnList = "task_id"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_TODO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_todo_assignee_fk", columnList = "assignee_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_reporter_fk", columnList = "reporter_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_task_id", columnList = "task_id")])
 open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.todo.subject")
     @UserPrefParameter(i18nKey = "plugins.todo.subject")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = Constants.LENGTH_TITLE)
     open var subject: String? = null
 
@@ -132,15 +131,13 @@ open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "dueDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "due_date")
-    open var dueDate: Date? = null
+    open var dueDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "resubmissionOnDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
-    open var resubmission: Date? = null
+    open var resubmission: LocalDate? = null
 
     val reporterId: Int?
         @Transient

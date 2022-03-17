@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,11 @@
 
 package org.projectforge.web.user;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.ldap.PFUserDOConverter;
 import org.projectforge.business.login.Login;
-import org.projectforge.business.multitenancy.TenantDao;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightDao;
@@ -42,10 +35,14 @@ import org.projectforge.business.user.UserRightVO;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @EditPage(defaultReturnPage = UserListPage.class)
 public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserDao>
@@ -58,32 +55,10 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
   private GroupDao groupDao;
 
   @SpringBean
-  private TenantDao tenantDao;
-
-  @SpringBean
   private UserService userService;
 
   @SpringBean
   private UserRightDao userRightDao;
-
-  protected boolean tutorialMode;
-
-  protected List<Integer> tutorialGroupsToAdd;
-
-  /**
-   * Used by the TutorialPage.
-   *
-   * @param tutorialUser
-   * @param tutorialGroupsToAdd
-   */
-  public UserEditPage(final PFUserDO tutorialUser, final List<Integer> tutorialGroupsToAdd)
-  {
-    super(new PageParameters(), "user");
-    this.tutorialGroupsToAdd = tutorialGroupsToAdd;
-    this.tutorialMode = true;
-    super.init(tutorialUser);
-    myInit();
-  }
 
   public UserEditPage(final PageParameters parameters)
   {
@@ -132,25 +107,6 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
         form.assignGroupsListHelper.getItemsToUnassign(), false);
     long end = System.currentTimeMillis();
     log.info("Finish assign groups. Took: " + (end - start) / 1000 + " sec.");
-    if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true) {
-      log.info("Start assign tenants (user member of admin group)");
-      start = System.currentTimeMillis();
-      tenantDao
-          .assignTenants(getData(), form.assignTenantsListHelper.getItemsToAssign(),
-              form.assignTenantsListHelper.getItemsToUnassign());
-      end = System.currentTimeMillis();
-      log.info("Finish assign tenants (user member of admin group). Took: " + (end - start) / 1000 + " sec.");
-      //No tenant is selected but the user has to assignd at least to default tenant
-      if (tenantDao.hasAssignedTenants(getData()) == false) {
-        log.info("Start assign tenants");
-        start = System.currentTimeMillis();
-        Set<TenantDO> tenantsToAssign = new HashSet<>();
-        tenantsToAssign.add(tenantDao.getDefaultTenant());
-        tenantDao.internalAssignTenants(getData(), tenantsToAssign, null, false, true);
-        end = System.currentTimeMillis();
-        log.info("Finish assign tenants. Took: " + (end - start) / 1000 + " sec.");
-      }
-    }
     if (form.rightsData != null) {
       log.info("Start updating user rights");
       start = System.currentTimeMillis();
@@ -162,7 +118,7 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
     if (form.getPasswordUser() != null) {
       log.info("Start password change");
       start = System.currentTimeMillis();
-      Login.getInstance().passwordChanged(getData(), form.getPassword());
+      Login.getInstance().passwordChanged(getData(), form.getPassword().toCharArray());
       end = System.currentTimeMillis();
       log.info("Finish password change. Took: " + (end - start) / 1000 + " sec.");
     }
@@ -170,7 +126,7 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
     if (StringUtils.isNotEmpty(form.getWlanPassword())) {
       log.info("Start WLAN password change");
       start = System.currentTimeMillis();
-      Login.getInstance().wlanPasswordChanged(getData(), form.getWlanPassword());
+      Login.getInstance().wlanPasswordChanged(getData(), form.getWlanPassword().toCharArray());
       end = System.currentTimeMillis();
       log.info("Finish WLAN password change. Took: " + (end - start) / 1000 + " sec.");
     }
@@ -178,7 +134,6 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
     //Only one time reload user group cache
     log.info("Start force reload user group cache.");
     start = System.currentTimeMillis();
-    TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().forceReload();
     end = System.currentTimeMillis();
     log.info("Finish force reload user group cache. Took: " + (end - start) / 1000 + " sec.");
     // Force to reload Menu directly (if the admin user modified himself), otherwise menu is

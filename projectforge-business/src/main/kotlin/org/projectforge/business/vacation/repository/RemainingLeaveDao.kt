@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,7 +37,6 @@ import java.math.BigDecimal
 import java.time.Year
 
 /**
- * Not multi tenant proven.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
@@ -75,7 +74,7 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
      */
     open fun getRemainingLeaveFromPreviousYear(employeeId: Int, year: Int): BigDecimal? {
         if (year > Year.now().value) {
-            throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
+            return BigDecimal.ZERO // Can't determine remaining vacation days for future years, assuming 0.
         }
         return internalGet(employeeId, year)?.remainingFromPreviousYear
     }

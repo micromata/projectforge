@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,9 +25,10 @@ package org.projectforge.business.ldap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginDefaultHandler;
+import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -66,15 +67,16 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-public class LdapSlaveLoginHandler extends LdapLoginHandler
-{
+public class LdapSlaveLoginHandler extends LdapLoginHandler {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapSlaveLoginHandler.class);
 
   @Autowired
   PFUserDOConverter pfUserDOConverter;
 
-  enum Mode
-  {
+  @Autowired
+  private UserGroupCache userGroupCache;
+
+  enum Mode {
     SIMPLE, USERS, USER_GROUPS
   }
 
@@ -87,8 +89,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    *
    * @param mode
    */
-  void setMode(final Mode mode)
-  {
+  void setMode(final Mode mode) {
     this.mode = mode;
   }
 
@@ -96,8 +97,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.ldap.LdapLoginHandler#initialize()
    */
   @Override
-  public void initialize()
-  {
+  public void initialize() {
     super.initialize();
     if (StringUtils.isBlank(ldapConfig.getManagerUser())) {
       mode = Mode.SIMPLE;
@@ -121,18 +121,17 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   }
 
   /**
-   * Uses the standard implementation {@link LoginDefaultHandler#checkLogin(String, String)} for local users. For all
+   * Uses the standard implementation {@link LoginDefaultHandler#checkLogin(String, char[])} for local users. For all
    * other users a LDAP authentication is checked. If the LDAP authentication fails then
    * {@link LoginResultStatus#FAILED} is returned. If successful then {@link LoginResultStatus#SUCCESS} is returned with
    * the user settings of ProjectForge database. If the user doesn't yet exist in ProjectForge's data-base, it will be
    * created after and then returned.
    *
-   * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, java.lang.String, boolean)
+   * @see LoginHandler#checkLogin(String, char[])
    */
   @Override
-  public LoginResult checkLogin(final String username, final String password)
-  {
-    PFUserDO user = userService.getByUsername(username);
+  public LoginResult checkLogin(final String username, final char[] password) {
+    PFUserDO user = userService.getInternalByUsername(username);
     if (user != null && user.getLocalUser()) {
       return loginDefaultHandler.checkLogin(username, password);
     }
@@ -144,7 +143,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
       return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
     }
     log.info("LDAP authentication was successful for: " + username);
-    user = userService.getByUsername(username); // Get again (may-be the user does no exist since last call of getInternalByName(String).
+    user = userService.getInternalByUsername(username); // Get again (may-be the user does no exist since last call of getInternalByName(String).
     if (user == null) {
       log.info("LDAP user '" + username + "' doesn't yet exist in ProjectForge's data base. Creating new user...");
       user = pfUserDOConverter.convert(ldapUser);
@@ -180,8 +179,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#getAllGroups()
    */
   @Override
-  public List<GroupDO> getAllGroups()
-  {
+  public List<GroupDO> getAllGroups() {
     final List<GroupDO> groups = loginDefaultHandler.getAllGroups();
     return groups;
   }
@@ -193,14 +191,12 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#getAllUsers()
    */
   @Override
-  public List<PFUserDO> getAllUsers()
-  {
+  public List<PFUserDO> getAllUsers() {
     final List<PFUserDO> users = loginDefaultHandler.getAllUsers();
     return users;
   }
 
-  private PFUserDO getUser(final Collection<PFUserDO> col, final String username)
-  {
+  private PFUserDO getUser(final Collection<PFUserDO> col, final String username) {
     if (col == null || username == null) {
       return null;
     }
@@ -217,14 +213,12 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#isPasswordChangeSupported(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
-  public boolean isPasswordChangeSupported(final PFUserDO user)
-  {
+  public boolean isPasswordChangeSupported(final PFUserDO user) {
     return user.getLocalUser();
   }
 
   @Override
-  public boolean isWlanPasswordChangeSupported(PFUserDO user)
-  {
+  public boolean isWlanPasswordChangeSupported(PFUserDO user) {
     return false;
   }
 
@@ -234,16 +228,13 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#afterUserGroupCacheRefresh(java.util.List, java.util.List)
    */
   @Override
-  public void afterUserGroupCacheRefresh(final Collection<PFUserDO> users, final Collection<GroupDO> groups)
-  {
+  public void afterUserGroupCacheRefresh(final Collection<PFUserDO> users, final Collection<GroupDO> groups) {
     if (mode == Mode.SIMPLE || refreshInProgress) {
       return;
     }
-    new Thread()
-    {
+    new Thread() {
       @Override
-      public void run()
-      {
+      public void run() {
         synchronized (LdapSlaveLoginHandler.this) {
           if (refreshInProgress) {
             return;
@@ -251,7 +242,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
           try {
             refreshInProgress = true;
             updateLdap(users, groups);
-            TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().internalGetNumberOfUsers(); // Force refresh of UserGroupCache.
+            userGroupCache.internalGetNumberOfUsers(); // Force refresh of UserGroupCache.
           } finally {
             refreshInProgress = false;
           }
@@ -263,18 +254,14 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   /**
    * @return true if currently a cache refresh is running, otherwise false.
    */
-  public boolean isRefreshInProgress()
-  {
+  public boolean isRefreshInProgress() {
     return refreshInProgress;
   }
 
-  private void updateLdap(final Collection<PFUserDO> users, final Collection<GroupDO> groups)
-  {
-    new LdapTemplate(ldapConnector)
-    {
+  private void updateLdap(final Collection<PFUserDO> users, final Collection<GroupDO> groups) {
+    new LdapTemplate(ldapConnector) {
       @Override
-      protected Object call() throws NameNotFoundException, Exception
-      {
+      protected Object call() throws NameNotFoundException, Exception {
         log.info("Updating LDAP...");
         final List<LdapUser> ldapUsers = getAllLdapUsers(ctx);
         final List<PFUserDO> dbUsers = userService.internalLoadAll();
@@ -288,7 +275,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
             PFUserDO dbUser = getUser(dbUsers, user.getUsername());
             if (dbUser == null) {
               // Double check if added between internalLoadAll() and here:
-              dbUser = userService.getByUsername(user.getUsername());
+              dbUser = userService.getInternalByUsername(user.getUsername());
             }
             if (dbUser != null) {
               if (dbUser.getLocalUser()) {

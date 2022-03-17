@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -62,7 +62,7 @@ public class MonthHolder {
   }
 
   public MonthHolder(final PFDateTime dateTime) {
-    calculate(PFDay.from(dateTime));
+    calculate(PFDay.fromOrNow(dateTime));
   }
 
 
@@ -83,7 +83,7 @@ public class MonthHolder {
   }
 
   public MonthHolder(final Date date) {
-    calculate(PFDay.from(date));
+    calculate(PFDay.fromOrNow(date));
   }
 
   public MonthHolder(final int year, final Month month) {

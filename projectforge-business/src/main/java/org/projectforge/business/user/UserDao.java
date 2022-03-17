@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,8 +29,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.login.Login;
-import org.projectforge.business.multitenancy.TenantChecker;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.AccessType;
@@ -40,16 +38,14 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.framework.utils.Crypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -59,11 +55,7 @@ import java.util.*;
 public class UserDao extends BaseDao<PFUserDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserDao.class);
 
-  private static final short AUTHENTICATION_TOKEN_LENGTH = 20;
-
   private static final SortProperty[] DEFAULT_SORT_PROPERTIES = new SortProperty[]{new SortProperty("firstname"), new SortProperty("lastname")};
-
-  private final List<UserChangedListener> userChangedListeners = new LinkedList<>();
 
   @Autowired
   private ApplicationContext applicationContext;
@@ -82,17 +74,8 @@ public class UserDao extends BaseDao<PFUserDO> {
     return result;
   }
 
-  /**
-   * Register given listener. The listener is called every time a user was inserted, updated or deleted.
-   *
-   * @param userChangedListener
-   */
-  public void register(final UserChangedListener userChangedListener) {
-    userChangedListeners.add(userChangedListener);
-  }
-
   public QueryFilter getDefaultFilter() {
-    final QueryFilter queryFilter = new QueryFilter(null, false);
+    final QueryFilter queryFilter = new QueryFilter(null);
     queryFilter.add(QueryFilter.eq("deleted", false));
     return queryFilter;
   }
@@ -102,11 +85,7 @@ public class UserDao extends BaseDao<PFUserDO> {
    */
   @Override
   public QueryFilter createQueryFilter(final BaseSearchFilter filter) {
-    final boolean superAdmin = TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser());
-    if (!superAdmin) {
-      return super.createQueryFilter(filter);
-    }
-    return new QueryFilter(filter, true);
+    return new QueryFilter(filter);
   }
 
   @Override
@@ -149,16 +128,6 @@ public class UserDao extends BaseDao<PFUserDO> {
         }
       }
     }
-    if (applicationContext.getBean(TenantService.class).isMultiTenancyAvailable()
-            && !TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser())) {
-      final List<PFUserDO> origList = list;
-      list = new LinkedList<>();
-      for (final PFUserDO user : origList) {
-        if (tenantChecker.isPartOfTenant(ThreadLocalUserContext.getUserContext().getCurrentTenant(), user)) {
-          list.add(user);
-        }
-      }
-    }
     return list;
   }
 
@@ -183,17 +152,6 @@ public class UserDao extends BaseDao<PFUserDO> {
   @Override
   public List<PFUserDO> internalLoadAll() {
     return copyUsersWithoutSecrectFields(super.internalLoadAll());
-  }
-
-  /**
-   * Removes secret fields for security reasons by copying all users without secret fields.
-   * Result elements are evicted.
-   *
-   * @see BaseDao#internalLoadAll(TenantDO)
-   */
-  @Override
-  public List<PFUserDO> internalLoadAll(TenantDO tenant) {
-    return copyUsersWithoutSecrectFields(super.internalLoadAll(tenant));
   }
 
   /**
@@ -228,23 +186,17 @@ public class UserDao extends BaseDao<PFUserDO> {
     return PFUserDO.createCopyWithoutSecretFields(super.getOrLoad(id));
   }
 
-  public Collection<Integer> getAssignedGroups(final PFUserDO user) {
-    return getUserGroupCache().getUserGroups(user);
+  /**
+   * Removes secret fields for security reasons. Without access checks.
+   *
+   * @see BaseDao#getOrLoad(Integer)
+   */
+  public PFUserDO internalGetOrLoad(Integer id) {
+    return PFUserDO.createCopyWithoutSecretFields(super.internalGetById(id));
   }
 
-  public Collection<Integer> getAssignedTenants(final PFUserDO user) {
-    final List<TenantDO> list = em
-            .createNamedQuery(TenantDO.FIND_ASSIGNED_TENANTS, TenantDO.class)
-            .setParameter("user", user)
-            .getResultList();
-
-    final Set<Integer> result = new HashSet<>();
-    if (list != null) {
-      for (final TenantDO tenant : list) {
-        result.add(tenant.getId());
-      }
-    }
-    return result;
+  public Collection<Integer> getAssignedGroups(final PFUserDO user) {
+    return getUserGroupCache().getUserGroups(user);
   }
 
   public List<UserRightDO> getUserRights(final Integer userId) {
@@ -257,50 +209,6 @@ public class UserDao extends BaseDao<PFUserDO> {
   @Override
   protected void onChange(final PFUserDO obj, final PFUserDO dbObj) {
     super.onChange(obj, dbObj);
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterSave(ExtendedBaseDO)
-   */
-  @Override
-  protected void afterSave(final PFUserDO obj) {
-    super.afterSave(obj);
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(obj, OperationType.INSERT);
-    }
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterUpdate(ExtendedBaseDO, ExtendedBaseDO)
-   */
-  @Override
-  protected void afterUpdate(final PFUserDO obj, final PFUserDO dbObj) {
-    super.afterUpdate(obj, dbObj);
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(obj, OperationType.UPDATE);
-    }
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterUndelete(ExtendedBaseDO)
-   */
-  @Override
-  protected void afterUndelete(final PFUserDO obj) {
-    super.afterUndelete(obj);
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(obj, OperationType.UPDATE);
-    }
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterDelete(ExtendedBaseDO)
-   */
-  @Override
-  protected void afterDelete(final PFUserDO obj) {
-    super.afterDelete(obj);
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(obj, OperationType.DELETE);
-    }
   }
 
   /**
@@ -373,7 +281,7 @@ public class UserDao extends BaseDao<PFUserDO> {
     PfEmgrFactory.get().runInTrans((emgr) -> {
       CriteriaUpdate<PFUserDO> cu = CriteriaUpdate.createUpdate(PFUserDO.class);
       cu
-              .set("lastLogin", new Timestamp(new Date().getTime()))
+              .set("lastLogin", new Date())
               .set("loginFailures", 0)
               .addWhere(Clauses.equal("id", user.getId()));
       return emgr.update(cu);
@@ -388,24 +296,6 @@ public class UserDao extends BaseDao<PFUserDO> {
               .addWhere(Clauses.equal("username", userName));
       return emgr.update(cu);
     });
-  }
-
-  @SuppressWarnings("unchecked")
-  public PFUserDO getUserByStayLoggedInKey(final String username, final String stayLoggedInKey) {
-    final List<PFUserDO> list = em
-            .createNamedQuery(PFUserDO.FIND_BY_USERNAME_AND_STAYLOGGEDINKEY, PFUserDO.class)
-            .setParameter("username", username)
-            .setParameter("stayLoggedInKey", stayLoggedInKey)
-            .getResultList();
-    PFUserDO user = null;
-    if (list != null && !list.isEmpty() && list.get(0) != null) {
-      user = list.get(0);
-    }
-    if (user != null && !user.hasSystemAccess()) {
-      log.warn("Deleted/deactivated user tried to login (via stay-logged-in): " + user);
-      return null;
-    }
-    return user;
   }
 
   /**
@@ -424,55 +314,6 @@ public class UserDao extends BaseDao<PFUserDO> {
               .setParameter("id", user.getId()));
     }
     return dbUser != null;
-  }
-
-  public PFUserDO getUserByAuthenticationToken(final Integer userId, final String authKey) {
-    final PFUserDO user = SQLHelper.ensureUniqueResult(em
-            .createNamedQuery(PFUserDO.FIND_BY_USERID_AND_AUTHENTICATIONTOKEN, PFUserDO.class)
-            .setParameter("id", userId)
-            .setParameter("authenticationToken", authKey));
-    if (user != null && !user.hasSystemAccess()) {
-      log.warn("Deleted user tried to login (via authentication token): " + user);
-      return null;
-    }
-    return user;
-  }
-
-  /**
-   * Returns the user's authentication token if exists (must be not blank with a size >= 10). If not, a new token key
-   * will be generated.
-   */
-  public String getAuthenticationToken(final Integer userId) {
-    final PFUserDO user = internalGetById(userId);
-    if (StringUtils.isBlank(user.getAuthenticationToken()) || user.getAuthenticationToken().trim().length() < 10) {
-      user.setAuthenticationToken(createAuthenticationToken());
-      log.info("Authentication token renewed for user: " + userId + "" + user.getUsername());
-      for (final UserChangedListener userChangedListener : userChangedListeners) {
-        userChangedListener.afterUserChanged(user, OperationType.UPDATE);
-      }
-    }
-    return user.getAuthenticationToken();
-  }
-
-  /**
-   * Renews the user's authentication token (random string sequence).
-   */
-  public void renewAuthenticationToken(final Integer userId) {
-    if (!ThreadLocalUserContext.getUserId().equals(userId)) {
-      // Only admin users are able to renew authentication token of other users:
-      accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-    }
-    accessChecker.checkRestrictedOrDemoUser(); // Demo users are also not allowed to do this.
-    final PFUserDO user = internalGetById(userId);
-    user.setAuthenticationToken(createAuthenticationToken());
-    log.info("Authentication token renewed for user: " + userId + "" + user.getUsername());
-    for (final UserChangedListener userChangedListener : userChangedListeners) {
-      userChangedListener.afterUserChanged(user, OperationType.UPDATE);
-    }
-  }
-
-  private String createAuthenticationToken() {
-    return NumberHelper.getSecureRandomUrlSaveString(AUTHENTICATION_TOKEN_LENGTH);
   }
 
   public PFUserDO getInternalByName(final String username) {
@@ -497,11 +338,12 @@ public class UserDao extends BaseDao<PFUserDO> {
     dbUser.setTimeNotation(user.getTimeNotation());
     dbUser.setLocale(user.getLocale());
     dbUser.setPersonalPhoneIdentifiers(user.getPersonalPhoneIdentifiers());
-    dbUser.setPersonalMebMobileNumbers(user.getPersonalMebMobileNumbers());
     dbUser.setSshPublicKey(user.getSshPublicKey());
     dbUser.setFirstname(user.getFirstname());
     dbUser.setLastname(user.getLastname());
     dbUser.setDescription(user.getDescription());
+    dbUser.setGpgPublicKey(user.getGpgPublicKey());
+    dbUser.setSshPublicKey(user.getSshPublicKey());
     final ModificationStatus result = internalUpdate(dbUser);
     if (result != ModificationStatus.NONE) {
       log.info("Object updated: " + dbUser.toString());
@@ -576,5 +418,61 @@ public class UserDao extends BaseDao<PFUserDO> {
     return em.createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO.class)
             .setParameter("username", username)
             .getResultList();
+  }
+
+  /**
+   * Encrypts the given data with the user's password hash. If the user changes his password, decryption isn't possible
+   * anymore.
+   *
+   * @param data The data to encrypt.
+   * @return The encrypted data.
+   */
+  public String encrypt(String data) {
+    final String password = getPasswordOfUser(ThreadLocalUserContext.getUserId());
+    if (password == null) {
+      return null;
+    }
+    return Crypt.encrypt(password, data);
+  }
+
+  /**
+   * Decrypts the given data with the user's password hash. If the user changes his password, decryption isn't possible
+   * anymore.
+   *
+   * @param encrypted The data to encrypt.
+   * @return The decrypted data.
+   */
+  public String decrypt(String encrypted) {
+    return decrypt(encrypted, ThreadLocalUserContext.getUserId());
+  }
+
+  /**
+   * Decrypts the given data with the user's password hash. If the user changes his password, decryption isn't possible
+   * anymore.
+   *
+   * @param encrypted The data to encrypt.
+   * @param userId Use the password of the given user (used by CookieService, because user isn't yet logged-in).
+   * @return The decrypted data.
+   * @see UserDao#decrypt(String)
+   */
+  public String decrypt(String encrypted, Integer userId) {
+    final String password = getPasswordOfUser(userId);
+    if (password == null) {
+      return null;
+    }
+    return Crypt.decrypt(password, encrypted);
+  }
+
+  private String getPasswordOfUser(Integer userId) {
+    final PFUserDO user = super.internalGetById(userId);
+    if (user == null) {
+      log.warn("Can't encrypt data. logged-in user not found.");
+      return null;
+    }
+    if (StringUtils.isBlank(user.getPassword())) {
+      log.warn("Can't encrypt data. Password of logged-in user '" + user.getUsername() + "' not found.");
+      return null;
+    }
+    return user.getPassword();
   }
 }

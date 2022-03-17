@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,6 +31,7 @@ import org.projectforge.business.calendar.TeamCalendar
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.utils.NumberHelper
@@ -138,15 +139,18 @@ class CalendarServicesRest {
         var url: String
         var category: String? = categoryParam
         if (action == "slotSelected") {
-            val defaultCalendarId = calendarFilterServicesRest.getCurrentFilter().defaultCalendarId
+            val currentFilter = calendarFilterServicesRest.getCurrentFilter()
+            val defaultCalendarId = currentFilter.defaultCalendarId
             category = if (defaultCalendarId != null && defaultCalendarId > 0) {
                 if (useNewCalendarEvents) "calEvent" else "teamEvent"
             } else {
                 "timesheet"
             }
-            url = "$category/edit?startDate=$startDate&endDate=$endDate"
+            url = "/$category/edit?startDate=$startDate&endDate=$endDate"
             if (defaultCalendarId != null && defaultCalendarId > 0) {
                 url = "$url&calendar=$defaultCalendarId"
+            } else {
+                url = "$url&userId=${currentFilter.timesheetUserId ?: ThreadLocalUserContext.getUserId()}"
             }
         } else if (action == "resize" || action == "dragAndDrop") {
             val origStartDate = if (startDate != null) RestHelper.parseJSDateTime(origStartDateParam)?.javaScriptString else null
@@ -154,7 +158,7 @@ class CalendarServicesRest {
             val dbId = NumberHelper.parseInteger(dbIdParam)
             val dbIdString = if (dbId != null && dbId >= 0) "$dbId" else ""
             val uidString = if (uidParam.isNullOrBlank()) "" else URLEncoder.encode(uidParam, "UTF-8")
-            url = "$category/edit/$dbIdString$uidString?startDate=$startDate&endDate=$endDate"
+            url = "/$category/edit/$dbIdString$uidString?startDate=$startDate&endDate=$endDate"
             if (category != "timesheet" && origStartDate != null) {
                 url = "$url&origStartDate=$origStartDate&origEndDate=$origEndDate"
             }
@@ -174,8 +178,8 @@ class CalendarServicesRest {
         if (filter.updateState == true) {
             calendarFilterServicesRest.updateCalendarFilter(filter.start, view, filter)
         }
-        val range = DateTimeRange(PFDateTime.from(filter.start, timeZone = timeZone)!!,
-                PFDateTime.from(filter.end, timeZone = timeZone))
+        val range = DateTimeRange(PFDateTime.fromOrNow(filter.start, timeZone = timeZone),
+                PFDateTime.fromOrNull(filter.end, timeZone = timeZone))
         adjustRange(range, view)
         timesheetsProvider.addTimesheetEvents(range.start, range.end!!, filter.timesheetUserId, events)
         var visibleCalendarIds = filter.activeCalendarIds
@@ -217,7 +221,7 @@ class CalendarServicesRest {
                 val date = entry.key
                 val specialDay = entry.value
                 if (specialDay.holidayTitle.isNotBlank()) {
-                    val dateTime = PFDateTime.from(date)!!
+                    val dateTime = PFDateTime.from(date) // not null
                     events.add(BigCalendarEvent(
                             title = specialDay.holidayTitle,
                             start = dateTime.beginOfDay.utilDate,

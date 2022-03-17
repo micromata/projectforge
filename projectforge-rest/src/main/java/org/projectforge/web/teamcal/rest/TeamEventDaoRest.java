@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,10 +39,10 @@ import org.projectforge.business.teamcal.event.ical.ICalHandler;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.model.rest.CalendarEventObject;
 import org.projectforge.model.rest.RestPaths;
-import org.projectforge.rest.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -51,7 +51,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.sql.Timestamp;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -266,10 +265,10 @@ public class TeamEventDaoRest
 
     TeamEventDO eventDO = new TeamEventDO();
 
-    eventDO.setEndDate(new Timestamp(src.getEndDate().getTime()));
+    eventDO.setEndDate(new Date(src.getEndDate().getTime()));
     eventDO.setLocation(src.getLocation());
     eventDO.setNote(src.getNote());
-    eventDO.setStartDate(new Timestamp(src.getStartDate().getTime()));
+    eventDO.setStartDate(new Date(src.getStartDate().getTime()));
     eventDO.setSubject(src.getSubject());
     eventDO.setUid(src.getUid());
     eventDO.setAllDay(src.getAllDay());
@@ -295,7 +294,7 @@ public class TeamEventDaoRest
       event.setReminderDuration(src.getReminderDuration());
       final ReminderDurationUnit unit = src.getReminderDurationUnit();
       event.setReminderUnit(unit.toString());
-      PFDateTime dateTime = PFDateTime.from(src.getStartDate());
+      PFDateTime dateTime = PFDateTime.from(src.getStartDate()); // not null
       if (unit == ReminderDurationUnit.MINUTES) {
         dateTime.minus(src.getReminderDuration(), ChronoUnit.MINUTES);
         event.setReminder(dateTime.getUtilDate());

@@ -23,10 +23,10 @@ function CustomizedBookLendOutComponent({ user, jsTimestampFormatMinutes }) {
 
     return React.useMemo(
         () => (
-            <React.Fragment>
+            <>
                 {data.lendOutBy && data.lendOutDate
                     ? (
-                        <React.Fragment>
+                        <>
                             <span className="mr-4">
                                 {`${data.lendOutBy.displayName}, ${moment(data.lendOutDate).format(jsTimestampFormatMinutes)}`}
                             </span>
@@ -37,13 +37,13 @@ function CustomizedBookLendOutComponent({ user, jsTimestampFormatMinutes }) {
                                     </Button>
                                 )
                                 : undefined}
-                        </React.Fragment>
+                        </>
                     )
                     : undefined}
                 <Button color="link" onClick={lendOut}>
                     {ui.translations['book.lendOut']}
                 </Button>
-            </React.Fragment>
+            </>
         ),
         [data.lendOutBy, data.lendOutDate],
     );
@@ -60,6 +60,5 @@ const mapStateToProps = ({ authentication }) => ({
     user: authentication.user,
     jsTimestampFormatMinutes: authentication.user.jsTimestampFormatMinutes,
 });
-
 
 export default connect(mapStateToProps)(CustomizedBookLendOutComponent);

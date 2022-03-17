@@ -1,0 +1,16 @@
+# Boxes include navigation
+
+- title: Scalable
+  desc: A professional project management, financial and adminstrative controlling platform for teams from small to large.
+  icon: settings
+  #doc: installation
+
+- title: Easy
+  desc: It's easy to use, convenient and multi-lingual. Users do not need to install any software.
+  icon: code
+  #doc: hero
+
+- title: Best of two worlds
+  desc: Protection of investments cause of open source software and professional support and services.
+  icon: world
+  #doc: customize

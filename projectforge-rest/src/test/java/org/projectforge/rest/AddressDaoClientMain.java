@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.rest;
 
+import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.model.rest.AddressObject;
 import org.projectforge.model.rest.RestPaths;
@@ -50,7 +51,7 @@ public class AddressDaoClientMain {
     //modifiedSince = null; // Uncomment this for testing modifiedSince paramter.
 
     // http://localhost:8080/ProjectForge/rest/task/tree // userId / token
-    WebTarget webResource = client.target(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.ADDRESS))
+    WebTarget webResource = client.target(RestClientMain.getUrl() + RestPaths.buildOldListPath(RestPaths.ADDRESS))
             .queryParam("search", "");
     if (modifiedSince != null) {
       webResource = webResource.queryParam("modifiedSince", "" + modifiedSince);

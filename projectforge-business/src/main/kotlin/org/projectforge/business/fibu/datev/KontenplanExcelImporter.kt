@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,7 @@ import de.micromata.merlin.excel.importer.ImportLogger
 import de.micromata.merlin.excel.importer.ImportStorage
 import de.micromata.merlin.excel.importer.ImportedSheet
 import org.projectforge.business.fibu.KontoDO
-import org.projectforge.framework.i18n.UserException
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.utils.MyImportedElement
 import org.slf4j.LoggerFactory
 
@@ -59,12 +59,11 @@ class KontenplanExcelImporter {
             storage.logger.info("Ignoring sheet '$NAME_OF_EXCEL_SHEET' for importing Buchungssätze, no valid head row found.")
             return
         }
-        val importedSheet = ImportedSheet<KontoDO>(storage, sheet, ImportLogger.Level.WARN, "'${sheet.excelWorkbook.filename}':", log)
+        val importedSheet = ImportedSheet(storage, sheet, ImportLogger.Level.WARN, "'${sheet.excelWorkbook.filename}':", log)
         storage.addSheet(importedSheet)
         importedSheet.name = NAME_OF_EXCEL_SHEET
         importedSheet.logger.addValidationErrors(sheet)
         val it = sheet.dataRowIterator
-        val year = 0
         while (it.hasNext()) {
             val row = it.next()
             val element = MyImportedElement(importedSheet, row.rowNum, KontoDO::class.java,

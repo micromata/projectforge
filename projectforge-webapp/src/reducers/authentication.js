@@ -1,7 +1,7 @@
 import { USER_LOGIN_BEGIN, USER_LOGIN_FAILURE, USER_LOGIN_SUCCESS } from '../actions';
 
 const initialState = {
-    loading: false,
+    loading: true,
     error: null,
     user: null,
 };
@@ -22,7 +22,7 @@ const reducer = (state = initialState, { type, payload }) => {
                 error: null,
                 user: payload.user,
                 version: payload.version,
-                releaseTimestamp: payload.releaseTimestamp,
+                buildTimestamp: payload.buildTimestamp,
                 alertMessage: payload.alertMessage,
             };
         case USER_LOGIN_FAILURE:

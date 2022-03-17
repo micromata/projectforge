@@ -2,23 +2,39 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import BookLendOut from './components/BookLendOut';
 import CalendarEventRecurrency from './components/CalendarEventRecurrence';
+import CustomizedAddressView from './components/CustomizedAddressView';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedAddressPhoneNumbers from './components/CustomizedAddressPhoneNumbers';
+import CustomizedAddressPhoneNumber from './components/CustomizedAddressPhoneNumber';
 import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
-import CustomizedImageDataPreview from './components/ImageDataPreview';
+import CustomizedEMail from './components/CustomizedEMail';
+import CustomizedImage from './components/CustomizedImage';
 import DayRange from './components/DayRange';
+import CustomizedImageDataPreview from './components/ImageDataPreview';
+import JiraIssuesLinks from './components/JiraIssuesLinks';
 import TimesheetEditTaskAndKost2 from './components/timesheet/TimesheetEditTaskAndKost2';
-import TimesheetTemplatesAndRecents from './components/timesheet/TimesheetTemplatesAndRecents';
+import TimesheetTemplatesAndRecent from './components/timesheet/TimesheetTemplatesAndRecent';
 import CalendarEventReminder from './components/CalendarEventReminder';
 import CalendarEditExternalSubscription from './components/CalendarEditExternalSubscription';
 import CalendarSubscriptionInfo from './components/CalendarSubscriptionInfo';
-import VacationEntries from './components/VacationEntries';
-import VacationStatistics from './components/VacationStatistics';
+import CostNumberComponent from './components/CostNumberComponent';
+import AccessTableComponent from './components/AccessTableComponent';
+import InvoicePositionsComponent from './components/OutgoingInvoicePositionsComponent';
+import IncomingInvoicePositionsComponent from './components/IncomingInvoicePositionsComponent';
+import VacationStatistics from './components/vacation/VacationStatistics';
+import VacationTable from './components/vacation/VacationTable';
+import CostNumber24Component from './components/CostNumber24Component';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
 
     switch (id) {
+        case 'access.table':
+            Tag = AccessTableComponent;
+            break;
+        case 'address.view':
+            Tag = CustomizedAddressView;
+            break;
         case 'address.edit.image':
             Tag = CustomizedAddressImage;
             break;
@@ -27,6 +43,12 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'address.phoneNumbers':
             Tag = CustomizedAddressPhoneNumbers;
+            break;
+        case 'address.phoneNumber':
+            Tag = CustomizedAddressPhoneNumber;
+            break;
+        case 'email':
+            Tag = CustomizedEMail;
             break;
         case 'book.lendOutComponent':
             Tag = BookLendOut;
@@ -43,8 +65,26 @@ function DynamicCustomized({ id, ...props }) {
         case 'calendar.subscriptionInfo':
             Tag = CalendarSubscriptionInfo;
             break;
+        case 'cost.number':
+            Tag = CostNumberComponent;
+            break;
+        case 'cost.number24':
+            Tag = CostNumber24Component;
+            break;
         case 'dayRange':
             Tag = DayRange;
+            break;
+        case 'image':
+            Tag = CustomizedImage;
+            break;
+        case 'invoice.incomingPosition':
+            Tag = IncomingInvoicePositionsComponent;
+            break;
+        case 'invoice.outgoingPosition':
+            Tag = InvoicePositionsComponent;
+            break;
+        case 'jira.issuesLinks':
+            Tag = JiraIssuesLinks;
             break;
         case 'task.consumption':
             Tag = CustomizedConsumptionBar;
@@ -52,11 +92,11 @@ function DynamicCustomized({ id, ...props }) {
         case 'timesheet.edit.taskAndKost2':
             Tag = TimesheetEditTaskAndKost2;
             break;
-        case 'timesheet.edit.templatesAndRecents':
-            Tag = TimesheetTemplatesAndRecents;
+        case 'timesheet.edit.templatesAndRecent':
+            Tag = TimesheetTemplatesAndRecent;
             break;
         case 'vacation.entries':
-            Tag = VacationEntries;
+            Tag = VacationTable;
             break;
         case 'vacation.statistics':
             Tag = VacationStatistics;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,9 @@
 
 package org.projectforge.web.admin;
 
-import java.util.List;
-
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.model.Model;
-import org.projectforge.plugins.core.AvailablePlugin;
+import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -35,78 +33,71 @@ import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 
+import java.util.List;
+
 /**
- * 
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
  */
-public class PluginListForm extends AbstractStandardForm<PluginListForm, PluginListPage>
-{
+public class PluginListForm extends AbstractStandardForm<PluginListForm, PluginListPage> {
   private static final long serialVersionUID = 5241668711103233356L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PluginListForm.class);
   private PluginAdminService pluginAdminService;
 
-  public PluginListForm(PluginListPage parentPage, PluginAdminService pluginAdminService)
-  {
+  public PluginListForm(PluginListPage parentPage, PluginAdminService pluginAdminService) {
     super(parentPage);
     this.pluginAdminService = pluginAdminService;
   }
 
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
-    List<AvailablePlugin> availabl = pluginAdminService.getAvailablePlugins();
+    List<AbstractPlugin> availables = pluginAdminService.getAvailablePlugins();
+    List<String> activatedPlugins = pluginAdminService.getActivatedPluginsFromConfiguration();
 
-    for (AvailablePlugin pp : availabl) {
+    gridBuilder.newFormHeading("Please note: (de)activation of plugins will take effect only after restart!");
+
+    for (AbstractPlugin plugin : availables) {
       gridBuilder.newGridPanel();
       gridBuilder.newSplitPanel(GridSize.SPAN2);
       DivPanel section = gridBuilder.getPanel();
-      DivTextPanel pluginId = new DivTextPanel(section.newChildId(), new Model<String>()
-      {
+      DivTextPanel pluginId = new DivTextPanel(section.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
-          return pp.getProjectForgePluginService().getPluginId();
+        public String getObject() {
+          return plugin.getInfo().getId();
         }
       });
       section.add(pluginId);
       gridBuilder.newSplitPanel(GridSize.SPAN8);
       section = gridBuilder.getPanel();
-      pluginId = new DivTextPanel(section.newChildId(), new Model<String>()
-      {
+      pluginId = new DivTextPanel(section.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
-          return pp.getProjectForgePluginService().getPluginDescription();
+        public String getObject() {
+          return plugin.getInfo().getDescription();
         }
       });
       section.add(pluginId);
       gridBuilder.newSplitPanel(GridSize.SPAN2);
       section = gridBuilder.getPanel();
-      final Button button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>())
-      {
+      final Button button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>()) {
         @Override
-        public final void onSubmit()
-        {
-          pluginAdminService.storePluginToBeActivated(pp.getProjectForgePluginService().getPluginId(),
-              pp.isActivated() == false);
+        public final void onSubmit() {
+          pluginAdminService.storePluginToBeActivated(plugin.getInfo().getId(), !isActivated(activatedPlugins, plugin));
           setResponsePage(new PluginListPage(getPage().getPageParameters()));
         }
       };
       final SingleButtonPanel buttonPanel = new SingleButtonPanel(section.newChildId(), button,
-          pp.isActivated() ? getString("system.pluginAdmin.button.deactivate")
+          isActivated(activatedPlugins, plugin) ? getString("system.pluginAdmin.button.deactivate")
               : getString("system.pluginAdmin.button.activate"),
           SingleButtonPanel.DANGER);
-      if (pp.isActivated() == true) {
+      if (isActivated(activatedPlugins, plugin)) {
         buttonPanel.setClassnames(SingleButtonPanel.SUCCESS);
-      }
-      if (pp.isBuildIn() == true) {
-        buttonPanel.setEnabled(false);
-        button.setEnabled(false);
       }
       section.add(buttonPanel);
     }
+  }
+
+  private boolean isActivated(List<String> activatedPlugins, AbstractPlugin plugin) {
+    return activatedPlugins.contains(plugin.getInfo().getId());
   }
 }

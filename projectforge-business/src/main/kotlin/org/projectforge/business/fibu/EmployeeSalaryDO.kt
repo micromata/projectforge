@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -44,8 +44,7 @@ import javax.persistence.*
 @Indexed
 @Table(name = "T_FIBU_EMPLOYEE_SALARY",
         uniqueConstraints = [UniqueConstraint(columnNames = ["employee_id", "year", "month"])],
-        indexes = [Index(name = "idx_fk_t_fibu_employee_salary_employee_id", columnList = "employee_id"),
-            Index(name = "idx_fk_t_fibu_employee_salary_tenant_id", columnList = "tenant_id")])
+        indexes = [Index(name = "idx_fk_t_fibu_employee_salary_employee_id", columnList = "employee_id")])
 @NamedQueries(
         NamedQuery(name = EmployeeSalaryDO.SELECT_MIN_MAX_YEAR, query = "select min(year), max(year) from EmployeeSalaryDO"))
 open class EmployeeSalaryDO : DefaultBaseDO() {

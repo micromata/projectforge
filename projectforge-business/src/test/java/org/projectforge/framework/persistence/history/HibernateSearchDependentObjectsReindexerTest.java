@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -47,12 +47,13 @@ public class HibernateSearchDependentObjectsReindexerTest
     assertEntry(list.get(0), TaskDO.class, "responsibleUser");
     reindexer.register(GroupDO.class);
     assertEquals(1, reindexer.map.size());
-    assertEquals(2, list.size());
+    assertEquals(3, list.size());
     assertEntry(list.get(1), GroupDO.class, "assignedUsers");
+    assertEntry(list.get(2), GroupDO.class, "groupOwner");
     reindexer.register(UserPrefDO.class);
     assertEquals(1, reindexer.map.size());
-    assertEquals(3, list.size());
-    assertEntry(list.get(2), UserPrefDO.class, "user");
+    assertEquals(4, list.size());
+    assertEntry(list.get(3), UserPrefDO.class, "user");
   }
 
   private void assertEntry(final HibernateSearchDependentObjectsReindexer.Entry entry, final Class<?> clazz,

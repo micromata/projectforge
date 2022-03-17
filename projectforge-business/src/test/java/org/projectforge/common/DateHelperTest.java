@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,8 +39,7 @@ import java.util.TimeZone;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DateHelperTest extends AbstractTestBase {
-  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
-          .getLogger(KeyValuePairWriterTest.class);
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DateHelperTest.class);
 
   @Test
   public void testTimeZone() throws ParseException {

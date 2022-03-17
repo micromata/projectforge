@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,7 +38,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @ClassBridge(name = "nummer", impl = HibernateSearchKost1Bridge::class)
-@Table(name = "T_FIBU_KOST1", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_kost1_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_FIBU_KOST1", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer"])])
 @WithHistory
 @NamedQueries(
         NamedQuery(name = Kost1DO.FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,7 @@
 package org.projectforge.plugins.todo;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.AppVersion;
+import org.projectforge.ProjectForgeVersion;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.common.i18n.Priority;
@@ -56,7 +56,7 @@ public class GroovyEngineTest extends AbstractTestBase {
   protected void beforeAll() {
     I18nHelper.addBundleName(WicketApplication.RESOURCE_BUNDLE_NAME);
     WebRegistry.getInstance().init();
-    pluginAdminService.initializeAllPluginsForUnittest();
+    pluginAdminService.initializeAllPluginsForUnitTest();
   }
 
   @Test
@@ -66,7 +66,7 @@ public class GroovyEngineTest extends AbstractTestBase {
 
     final String res = engine.executeTemplate("Hallo $name, your locale is '<%= pf.getI18nString(\"locale.de\") %>'.");
     assertEquals("Hallo Kai, your locale is 'Deutsch'.", res);
-    assertEquals("Hallo Kai, your locale is 'Deutsch'. " + AppVersion.APP_ID + " Finished: Englisch", engine
+    assertEquals("Hallo Kai, your locale is 'Deutsch'. " + ProjectForgeVersion.APP_ID + "\n Finished: Englisch", engine
             .executeTemplateFile("scripting/template.txt"));
   }
 
@@ -80,7 +80,10 @@ public class GroovyEngineTest extends AbstractTestBase {
     ToDoDO todo = new ToDoDO();
     todo.setType(ToDoType.IMPROVEMENT);
     todo.setPriority(Priority.HIGH);
+    todo.setReporter(user);
+    todo.setAssignee(user);
     engine.putVariable("todo", todo);
+    engine.putVariable("title", "ToDo");
     engine.putVariable("history", new ArrayList<DisplayHistoryEntry>());
     engine.putVariable("requestUrl", "https://localhost:8443/wa/toDoEditPage/id/42");
     final String result = engine.executeTemplateFile("mail/todoChangeNotification.html");

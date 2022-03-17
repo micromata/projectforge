@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,8 +31,6 @@ import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Kost2Row;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.calendar.MonthHolder;
@@ -49,7 +47,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Month;
 import java.util.*;
 
 /**
@@ -67,6 +64,8 @@ public class EmployeeSalaryExportDao {
   private MonthlyEmployeeReportDao monthlyEmployeeReportDao;
   @Autowired
   private EmployeeDao employeeDao;
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   /**
    * Exports the filtered list as table with almost all fields.
@@ -172,7 +171,7 @@ public class EmployeeSalaryExportDao {
 
     for (final EmployeeSalaryDO salary : list) {
       final PropertyMapping mapping = new PropertyMapping();
-      final PFUserDO user = getUserGroupCache().getUser(salary.getEmployee().getUserId());
+      final PFUserDO user = userGroupCache.getUser(salary.getEmployee().getUserId());
       Validate.isTrue(year == salary.getYear());
       Validate.isTrue(month == salary.getMonth());
       final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month, user);
@@ -224,7 +223,7 @@ public class EmployeeSalaryExportDao {
       addEmployeeRow(employeeSheet, salary.getEmployee(), numberOfWorkingDays, netDuration, report);
     }
     for (final EmployeeDO employee : missedEmployees) {
-      final PFUserDO user = getUserGroupCache().getUser(employee.getUserId());
+      final PFUserDO user = userGroupCache.getUser(employee.getUserId());
       final PropertyMapping mapping = new PropertyMapping();
       mapping.add(ExcelColumn.MITARBEITER, user.getFullname());
       mapping.add(ExcelColumn.SUMME, "***");
@@ -248,7 +247,7 @@ public class EmployeeSalaryExportDao {
 
   private void addEmployeeRow(final ExportSheet sheet, final EmployeeDO employee, final BigDecimal numberOfWorkingDays, final BigDecimal totalDuration,
                               final MonthlyEmployeeReport report) {
-    final PFUserDO user = getUserGroupCache().getUser(employee.getUserId());
+    final PFUserDO user = userGroupCache.getUser(employee.getUserId());
     final ExportRow row = sheet.addRow();
     row.addCell(0, user.getFullname());
     // Wochenstunden
@@ -269,14 +268,6 @@ public class EmployeeSalaryExportDao {
     row.addCell(4, differenz, "STUNDEN");
     row.addCell(5, report.getUnbookedDays().size());
     row.addCell(6, report.getFormattedUnbookedDays());
-  }
-
-  public TenantRegistry getTenantRegistry() {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  public UserGroupCache getUserGroupCache() {
-    return getTenantRegistry().getUserGroupCache();
   }
 
   private enum ExcelColumn {

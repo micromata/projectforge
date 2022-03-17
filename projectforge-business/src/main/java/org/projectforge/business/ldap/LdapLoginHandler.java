@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,7 +35,7 @@ import javax.naming.directory.DirContext;
 import java.util.List;
 
 public abstract class LdapLoginHandler implements LoginHandler {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapSlaveLoginHandler.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapLoginHandler.class);
 
   @Autowired
   protected LdapConnector ldapConnector;
@@ -108,14 +108,14 @@ public abstract class LdapLoginHandler implements LoginHandler {
    * Does nothing at default.
    *
    * @see org.projectforge.business.login.LoginHandler#passwordChanged(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   * java.lang.String)
+   * char[])
    */
   @Override
-  public void passwordChanged(final PFUserDO user, final String newPassword) {
+  public void passwordChanged(final PFUserDO user, final char[] newPassword) {
   }
 
   @Override
-  public void wlanPasswordChanged(final PFUserDO user, final String newPassword) {
+  public void wlanPasswordChanged(final PFUserDO user, final char[] newPassword) {
     // Do nothing. The wlan password input field is not visible if this handler is used.
   }
 

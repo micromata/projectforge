@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -44,9 +44,6 @@ public enum UserRightId implements IUserRightId
   //For test fix. Has to be removed.
   TEST("", "", ""),
 
-  ADMIN_TENANT("ADMIN_TENANT", "admin",
-      "access.right.admin.multitenancy"),
-
   ADMIN_CORE("ADMIN_CORE", "admin",
       "access.right.admin.core"),
 
@@ -64,8 +61,6 @@ public enum UserRightId implements IUserRightId
 
   FIBU_ACCOUNTS("FIBU_ACCOUNTS", "fibu7",
       "access.right.fibu.accounts"),
-
-  MISC_MEB("MISC_MEB", "misc1", "access.right.misc.meb"),
 
   MISC_ADDRESSBOOK("MISC_ADDRESSBOOK", "misc2", "access.right.misc.addressbook"),
 

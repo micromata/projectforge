@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,12 +41,7 @@ import org.projectforge.web.admin.TaskWizardPage;
 import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.user.UserPrefListPage;
-import org.projectforge.web.wicket.AbstractEditPage;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.AbstractReindexTopRightMenu;
-import org.projectforge.web.wicket.AbstractSecuredPage;
-import org.projectforge.web.wicket.WebConstants;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 

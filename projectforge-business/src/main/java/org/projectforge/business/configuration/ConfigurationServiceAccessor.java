@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,7 +33,7 @@ public class ConfigurationServiceAccessor {
   private static ConfigurationService configurationService;
 
   public static void internalInitJunitTestMode() {
-    ConfigurationServiceImpl cfg = new ConfigurationServiceImpl();
+    ConfigurationService cfg = new ConfigurationService();
     cfg.setDefaultLocale(Locale.ENGLISH);
     cfg.setDefaultFirstDayOfWeek(DayOfWeek.MONDAY);
     cfg.setCurrencySymbol("€");
@@ -41,7 +41,11 @@ public class ConfigurationServiceAccessor {
   }
 
   public static void internalSetLocaleForJunitTests(Locale defaultLocale) {
-    ((ConfigurationServiceImpl)get()).setDefaultLocale(defaultLocale);
+    ((ConfigurationService) get()).setDefaultLocale(defaultLocale);
+  }
+
+  public static void internalSetMinimalDaysInFirstWeekForJunitTests(Integer minimalDaysInFirstWeek) {
+    ((ConfigurationService) get()).setMinimalDaysInFirstWeek(minimalDaysInFirstWeek);
   }
 
   public static ConfigurationService get() {

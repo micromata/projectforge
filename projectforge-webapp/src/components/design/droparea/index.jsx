@@ -64,7 +64,7 @@ class DropArea extends React.Component {
 
             newFiles = Array.of(
                 ...files,
-                fileList.filter(file => !files.find(cf => DropArea.areFilesEqual(file, cf))),
+                fileList.filter((file) => !files.find((cf) => DropArea.areFilesEqual(file, cf))),
             );
         } else {
             newFiles = [fileList[0]];
@@ -78,7 +78,13 @@ class DropArea extends React.Component {
     }
 
     render() {
-        const { children, multiple } = this.props;
+        const {
+            children,
+            multiple,
+            noStyle,
+            title,
+            id,
+        } = this.props;
         const { inDrag } = this.state;
 
         const inputProps = {};
@@ -91,11 +97,15 @@ class DropArea extends React.Component {
 
         return (
             <div
+                id={id}
                 role="button"
                 onKeyDown={() => {
                 }}
                 onClick={() => this.input.current.click()}
-                className={classNames(style.dropArea, { [style.inDrag]: inDrag })}
+                className={classNames(style.dropArea, {
+                    [style.inDrag]: inDrag,
+                    [style.noStyle]: noStyle,
+                })}
                 tabIndex={-1}
             >
                 <div
@@ -114,8 +124,9 @@ class DropArea extends React.Component {
                     />
                     <span className={style.info}>
                         <FontAwesomeIcon icon={faUpload} className={style.icon} />
-                        {children}
+                        {title}
                     </span>
+                    {children}
                 </div>
             </div>
         );
@@ -125,13 +136,19 @@ class DropArea extends React.Component {
 DropArea.propTypes = {
     children: PropTypes.node,
     multiple: PropTypes.bool,
+    noStyle: PropTypes.bool,
     setFiles: PropTypes.func,
+    title: PropTypes.string,
+    id: PropTypes.string,
 };
 
 DropArea.defaultProps = {
-    children: 'Select a file, or drop one here.',
+    children: undefined,
     multiple: false,
+    noStyle: false,
     setFiles: undefined,
+    title: 'Select a file, or drop one here.',
+    id: undefined,
 };
 
 export default DropArea;

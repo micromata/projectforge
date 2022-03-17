@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.web.task;
 
-import java.io.Serializable;
-
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.tree.TreeTableNode;
+
+import java.io.Serializable;
 
 
 /**

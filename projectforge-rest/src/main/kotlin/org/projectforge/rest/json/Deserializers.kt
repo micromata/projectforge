@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,29 +32,13 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
 
-
-/**
- * Deserialization for PFUserDO.
- */
-class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): PFUserDO? {
-        val node: JsonNode = p.getCodec().readTree(p)
-        val id = (node.get("id") as IntNode).numberValue() as Int
-        val user = PFUserDO()
-        user.id = id
-        return user
-    }
-}
-
-
 /**
  * Deserialization for Integers.
  */
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 class IntDeserializer : StdDeserializer<Integer>(Integer::class.java) {
-
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Integer? {
-        val str = p.getText()
+        val str = p.text
         if (StringUtils.isBlank(str)) {
             return null
         }
@@ -72,7 +56,7 @@ class IntDeserializer : StdDeserializer<Integer>(Integer::class.java) {
 class BigDecimalDeserializer : StdDeserializer<BigDecimal>(BigDecimal::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): BigDecimal? {
-        val str = p.getText()
+        val str = p.text
         if (StringUtils.isBlank(str)) {
             return null
         }
@@ -94,14 +78,27 @@ class BigDecimalDeserializer : StdDeserializer<BigDecimal>(BigDecimal::class.jav
  */
 class TextDeserializer : StdDeserializer<String>(String::class.java) {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): String? {
-        var text = p.getText() ?: return null
+        var text = p.text ?: return null
 
         // erases all the ASCII control characters
         text = text.replace("[\\p{Cntrl}&&[^\r\n\t]]".toRegex(), "")
 
         // removes non-printable characters from Unicode
-        text = text.replace("\\p{C}".toRegex(), "")
+        text = text.replace("[\\p{C}&&[^\r\n\t]]".toRegex(), "")
 
         return text.trim { it <= ' ' }
+    }
+}
+
+/**
+ * Deserialization of PFUserDO.
+ */
+class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): PFUserDO? {
+        val node: JsonNode = p.codec.readTree(p)
+        val id = (node.get("id") as IntNode).numberValue() as Int
+        val user = PFUserDO()
+        user.id = id
+        return user
     }
 }

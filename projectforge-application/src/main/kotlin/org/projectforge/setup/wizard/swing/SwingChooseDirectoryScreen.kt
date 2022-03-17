@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -69,8 +69,8 @@ class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizard
             chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
             chooser.isAcceptAllFileFilterUsed = false
             if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                var dir = File(chooser.selectedFile, "ProjectForge")
-                context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(dir)
+                val selectedDir = File(chooser.selectedFile, "ProjectForge")
+                context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(selectedDir)
                 redraw()
                 nextIfDirExists()
             }
@@ -84,7 +84,7 @@ class SwingChooseDirectoryScreen(context: SwingGUIContext) : SwingAbstractWizard
         val prevApplicationHomeDir = CanonicalFileUtils.absolute(context.setupData.applicationHomeDir)
         var prevApplicationHomeDirInList = false
         var index = 0
-        for (dir in ProjectForgeHomeFinder.getSuggestedDirectories()) {
+        for (dir in ProjectForgeHomeFinder.suggestedDirectories) {
             listModel.addElement(CanonicalFileUtils.absolutePath(dir))
             if (dir == prevApplicationHomeDir) {
                 jlist.selectedIndex = index

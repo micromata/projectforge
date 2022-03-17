@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,13 +24,12 @@
 package org.projectforge.plugins.marketing;
 
 import org.projectforge.business.address.AddressDao;
-import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -39,7 +38,6 @@ import java.util.List;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
 public class MarketingPlugin extends AbstractPlugin {
   public static final String ADDRESS_CAMPAIGN_ID = "addressCampaign";
 
@@ -65,10 +63,15 @@ public class MarketingPlugin extends AbstractPlugin {
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  @Autowired
+  private PfEmgrFactory emgrFactory;
+
+  public MarketingPlugin() {
+    super("marketing", "Marketing", "Marketing plugin for address campaigns.");
+  }
+
   @Override
   protected void initialize() {
-    // DatabaseUpdateDao is needed by the updater:
-    MarketingPluginUpdates.databaseService = databaseService;
     // Register it:
     register(ADDRESS_CAMPAIGN_ID, AddressCampaignDao.class, addressCampaignDao, "plugins.marketing.addressCampaign");
     register(ADDRESS_CAMPAIGN_VALUE_ID, AddressCampaignValueDao.class, addressCampaignValueDao,
@@ -91,18 +94,7 @@ public class MarketingPlugin extends AbstractPlugin {
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);
-  }
 
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
-   */
-  @Override
-  public List<UpdateEntry> getUpdateEntries() {
-    return MarketingPluginUpdates.getUpdateEntries();
-  }
-
-  @Override
-  public UpdateEntry getInitializationUpdateEntry() {
-    return MarketingPluginUpdates.getInitializationUpdateEntry();
+    addressDao.register(new MarketingPluginAddressDeletionListener(addressCampaignDao));
   }
 }

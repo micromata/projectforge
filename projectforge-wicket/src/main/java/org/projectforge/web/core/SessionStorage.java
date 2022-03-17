@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,14 @@
 
 package org.projectforge.web.core;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
-
-import javax.servlet.http.HttpSession;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
 
 /**
  * Handler for storing objects in the user's http session. Use this handler instead of session.setAttribute(String,

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.annotations.ListIndexBase
@@ -31,8 +32,8 @@ import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.utils.StringComparator
 import java.math.BigDecimal
 import javax.persistence.*
@@ -46,8 +47,7 @@ import javax.persistence.*
 @Indexed
 @Table(name = "t_fibu_eingangsrechnung",
         indexes = [
-            Index(name = "idx_fk_t_fibu_eingangsrechnung_konto_id", columnList = "konto_id"),
-            Index(name = "idx_fk_t_fibu_eingangsrechnung_tenant_id", columnList = "tenant_id")
+            Index(name = "idx_fk_t_fibu_eingangsrechnung_konto_id", columnList = "konto_id")
         ])
 // @AssociationOverride(name="positionen", joinColumns=@JoinColumn(name="eingangsrechnung_fk"))
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [EingangsrechnungsPositionDO::class])
@@ -102,11 +102,12 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
     @get:Column
     open var customernr: String? = null
 
+    @JsonManagedReference
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, mappedBy = "eingangsrechnung", targetEntity = EingangsrechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    open var positionen: MutableList<EingangsrechnungsPositionDO>? = null
+    override open var positionen: MutableList<EingangsrechnungsPositionDO>? = null
 
     override val abstractPositionen: List<AbstractRechnungsPositionDO>?
         @Transient
@@ -126,7 +127,7 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
     }
 
 
-    override fun setRechnung(position: AbstractRechnungsPositionDO) {
+    override fun setAbstractRechnung(position: AbstractRechnungsPositionDO) {
         position as EingangsrechnungsPositionDO
         position.eingangsrechnung = this
     }

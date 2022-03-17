@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,26 +32,30 @@ import org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest
 class PageResolverTest {
     @Test
     fun resolveTest() {
-        assertEquals("/react/address", PagesResolver.getListPageUrl(AddressPagesRest::class.java))
-        assertEquals("/react/address?str=test", PagesResolver.getListPageUrl(AddressPagesRest::class.java, mapOf("str" to "test")))
+        assertEquals("react/address", PagesResolver.getListPageUrl(AddressPagesRest::class.java))
+        assertEquals("react/address?str=test", PagesResolver.getListPageUrl(AddressPagesRest::class.java, mapOf("str" to "test")))
 
         var result = PagesResolver.getListPageUrl(AddressPagesRest::class.java, mapOf("str" to "test", "id" to 5))
-        assertEquals("/react/address?str=test&id=5".length, result.length)
+        assertEquals("react/address?str=test&id=5".length, result.length)
+        // Order of params may differ:
         assertTrue(result.contains("str=test"))
         assertTrue(result.contains("id=5"))
-        assertTrue(result.startsWith("/react/address?"))
+        assertTrue(result.startsWith("react/address?"))
         assertTrue(result.contains("&"))
 
-        assertEquals("/react/address/edit", PagesResolver.getEditPageUrl(AddressPagesRest::class.java))
-        assertEquals("/react/address/edit?id=42", PagesResolver.getEditPageUrl(AddressPagesRest::class.java, 42))
+        assertEquals("react/address/edit", PagesResolver.getEditPageUrl(AddressPagesRest::class.java))
+        assertEquals("react/address/edit/42", PagesResolver.getEditPageUrl(AddressPagesRest::class.java, 42))
 
-        result = PagesResolver.getEditPageUrl(AddressPagesRest::class.java, 42, mapOf("str" to "test"))
-        assertEquals("/react/address/edit?id=42&str=test".length, result.length)
+        result = PagesResolver.getEditPageUrl(AddressPagesRest::class.java, 42, mapOf("str" to "test", "p2" to "test2"))
+        assertEquals("react/address/edit/42?str=test&p2=test2".length, result.length)
+        // Order of params may differ:
         assertTrue(result.contains("str=test"))
-        assertTrue(result.contains("id=42"))
-        assertTrue(result.startsWith("/react/address/edit?"))
+        assertTrue(result.contains("p2=test2"))
+        assertTrue(result.startsWith("react/address/edit/42?"))
         assertTrue(result.contains("&"))
 
-        assertEquals("/react/dynamic/calendarSubscription", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java))
+        assertEquals("react/calendarSubscription/dynamic", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, trailingSlash = false))
+        assertEquals("react/calendarSubscription/dynamic/", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java))
+        assertEquals("react/calendarSubscription/dynamic/123", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, id = 123))
     }
 }

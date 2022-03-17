@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,8 @@
 
 package org.projectforge.web.wicket.flowlayout;
 
-import java.util.LinkedList;
-
+import name.fraser.neil.plaintext.DiffMatchPatch;
+import name.fraser.neil.plaintext.DiffMatchPatch.Diff;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,8 +40,7 @@ import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.WicketUtils;
 
-import name.fraser.neil.plaintext.DiffMatchPatch;
-import name.fraser.neil.plaintext.DiffMatchPatch.Diff;
+import java.util.LinkedList;
 
 /**
  * Represents a text panel showing the difference between two texts. The old and new version of the text is shown in a

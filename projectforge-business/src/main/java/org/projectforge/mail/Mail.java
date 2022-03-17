@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,6 +25,7 @@ package org.projectforge.mail;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.projectforge.framework.ToStringUtil;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import javax.mail.Message;
@@ -66,6 +67,8 @@ public class Mail implements Comparable<Mail>
   private List<InternetAddress> to = new ArrayList<>();
 
   private String toRealname;
+
+  private List<InternetAddress> cc = new ArrayList<>();
 
   private String subject;
 
@@ -198,13 +201,18 @@ public class Mail implements Comparable<Mail>
   public void setTo(PFUserDO user)
   {
     if (user == null || user.getEmail() == null) {
-      log.warn("Could not set email receiver for PFUserDO. User or email is null.");
+      log.warn("Could not set e-mail receiver for PFUserDO. User or e-mail is null.");
       return;
     }
     addTo(user.getEmail());
     if (StringUtils.isBlank(getToRealname())) {
       setToRealname(user.getFullname());
     }
+  }
+
+  public void setTo(String mailAdress)
+  {
+    setTo(mailAdress, null);
   }
 
   public void setTo(String mailAdress, String realName)
@@ -223,6 +231,38 @@ public class Mail implements Comparable<Mail>
   public void setToRealname(String toRealname)
   {
     this.toRealname = toRealname;
+  }
+
+  public void addCC(String cc)
+  {
+    if(cc == null) {
+      log.warn("Could not create InternetAddress from mail. Mail address is null");
+      return;
+    }
+    try {
+      this.cc.add(new InternetAddress(cc));
+    } catch (AddressException e) {
+      log.warn("Could not create InternetAddress from mail: " + cc);
+    }
+  }
+
+  public List<InternetAddress> getCC()
+  {
+    return cc;
+  }
+
+  public void setCC(PFUserDO user)
+  {
+    if (user == null || user.getEmail() == null) {
+      log.warn("Could not set e-mail receiver for PFUserDO. User or e-mail is null.");
+      return;
+    }
+    addCC(user.getEmail());
+  }
+
+  public void setCC(String mailAdress)
+  {
+    addCC(mailAdress);
   }
 
   public String getSubject()
@@ -286,33 +326,7 @@ public class Mail implements Comparable<Mail>
   @Override
   public String toString()
   {
-    ToStringBuilder sb = new ToStringBuilder(this);
-    sb.append("from", getFrom());
-    sb.append("fromRealname", getFromRealname());
-    sb.append("to", getTo());
-    sb.append("toRealname", getToRealname());
-    sb.append("subject", getSubject());
-    sb.append("contentType", getContentType());
-    sb.append("charset", getCharset());
-    if (content != null) {
-      sb.append("content", getContent());
-    }
-    if (messageNumber != -1) {
-      sb.append("no", getMessageNumber());
-    }
-    if (date != null) {
-      sb.append("date", getDate());
-    }
-    if (deleted) {
-      sb.append("deleted", isDeleted());
-    }
-    if (recent) {
-      sb.append("recent", isRecent());
-    }
-    if (seen) {
-      sb.append("seen", isSeen());
-    }
-    return sb.toString();
+    return ToStringUtil.toJsonString(this);
   }
 
   @Override

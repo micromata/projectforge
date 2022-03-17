@@ -6,13 +6,15 @@ import FormattedTimeRange
 
 function MagicTimeStampInput(
     {
+        filterType,
         id,
         onChange,
         selectors,
+        translations,
         value,
     },
 ) {
-    const fragment = <React.Fragment />;
+    const fragment = <></>;
 
     if (value.to === undefined || value.from === undefined) {
         onChange({
@@ -31,12 +33,12 @@ function MagicTimeStampInput(
     }
 
     // TODO CHECK IF FROM IS AFTER TO (AND VICE VERSA)
-    const setFrom = from => onChange({
+    const setFrom = (from) => onChange({
         ...value,
         from,
     });
 
-    const setTo = to => onChange({
+    const setTo = (to) => onChange({
         ...value,
         to,
     });
@@ -44,12 +46,14 @@ function MagicTimeStampInput(
     return (
         <div style={{ width: 700 }}>
             <DateTimeRange
+                hideTimeInput={filterType === 'DATE'}
                 id={id}
                 onChange={onChange}
                 {...value}
                 setFrom={setFrom}
                 setTo={setTo}
                 selectors={selectors}
+                translations={translations}
             />
         </div>
     );
@@ -61,27 +65,30 @@ const dateType = PropTypes.oneOfType([
 ]);
 
 MagicTimeStampInput.propTypes = {
+    filterType: PropTypes.oneOf(['TIMESTAMP', 'DATE']).isRequired,
     id: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
-    selectors: PropTypes.arrayOf(PropTypes.string).isRequired,
     value: PropTypes.shape({
         from: dateType,
         to: dateType,
     }).isRequired,
+    selectors: PropTypes.arrayOf(PropTypes.string),
+    translations: PropTypes.shape({}),
 };
 
-MagicTimeStampInput.defaultProps = {};
+MagicTimeStampInput.defaultProps = {
+    selectors: undefined,
+    translations: {},
+};
 
 MagicTimeStampInput.isEmpty = ({ from, to }) => !(from || to);
 
-MagicTimeStampInput.getLabel = (label, { from, to }, { id }) => {
-    if (from && to && typeof from !== 'string' && typeof to !== 'string') {
+MagicTimeStampInput.getLabel = (label, { from, to }) => {
+    if (from && to) {
         return (
             <FormattedTimeRange
-                childrenAsPrefix
-                id={`magic-time-stamp-input-${id}`}
-                from={from}
-                to={to}
+                from={typeof from === 'string' ? new Date(from) : from}
+                to={typeof to === 'string' ? new Date(to) : to}
             >
                 {`${label}: `}
             </FormattedTimeRange>

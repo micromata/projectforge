@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,7 +34,7 @@ import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.framework.persistence.utils.MyImportedElement
-import org.projectforge.framework.time.PFDay.Companion.from
+import org.projectforge.framework.time.PFDay
 import org.slf4j.LoggerFactory
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -71,7 +71,7 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
     }
 
     private fun importBuchungssaetze(workbook: ExcelWorkbook, idx: Int): ImportedSheet<BuchungssatzDO>? {
-        val sheet = workbook.getSheet(idx)!!
+        val sheet = workbook.getSheet(idx)
         sheet.autotrimCellValues = true
         val name = sheet.sheetName
         var month: Int? = null
@@ -127,9 +127,9 @@ class BuchungssatzExcelImporter(private val storage: ImportStorage<BuchungssatzD
             val satz = BuchungssatzDO()
             element.value = satz
             ImportHelper.fillBean(satz, excelSheet, row.rowNum)
-            val day = from(dateValidator.getDate(excelSheet.getCell(row, Cols.DATUM)))
+            val day = PFDay.fromOrNull(dateValidator.getDate(excelSheet.getCell(row, Cols.DATUM)))
             if (day != null) {
-                satz.datum = day.sqlDate
+                satz.datum = day.localDate
                 if (year == 0) {
                     year = day.year
                 } else if (year != day.year) {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,6 @@ import org.projectforge.model.rest.CalendarEventObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 @Service
@@ -85,8 +84,8 @@ public class CalEventService
   public CalEventDO getTeamEventICSDO (CalendarEventObject calendarEventObject) {
     CalEventDO calEventDO = new CalEventDO();
     calEventDO.setCalendar(teamCalCache.getCalendar(calendarEventObject.getCalendarId()));
-    calEventDO.setStartDate((Timestamp) calendarEventObject.getStartDate());
-    calEventDO.setEndDate((Timestamp) calendarEventObject.getEndDate());
+    calEventDO.setStartDate(calendarEventObject.getStartDate());
+    calEventDO.setEndDate(calendarEventObject.getEndDate());
     calEventDO.setLocation(calendarEventObject.getLocation());
     calEventDO.setNote(calendarEventObject.getNote());
     calEventDO.setSubject(calendarEventObject.getSubject());

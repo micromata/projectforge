@@ -4,7 +4,7 @@ import { UncontrolledTooltip } from './index';
 
 function DiffText({ id, children, oldValue }) {
     return (
-        <React.Fragment>
+        <>
             <span id={id}>{children}</span>
             <UncontrolledTooltip
                 placement="top"
@@ -12,7 +12,7 @@ function DiffText({ id, children, oldValue }) {
             >
                 {oldValue}
             </UncontrolledTooltip>
-        </React.Fragment>
+        </>
     );
 }
 

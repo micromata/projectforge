@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,25 +24,24 @@
 package org.projectforge.ui
 
 class UIFieldset(
-        /**
-         * Length in grid system (1-12)
-         */
-        length: Int? = null,
-        /**
-         * Length for small screens (1-12)
-         */
-        smLength: Int? = null,
-        /**
-         * Length for large screens (1-12)
-         */
-        mdLength: Int? = null,
-        /**
-         * Length for large screens (1-12)
-         */
-        lgLength: Int? = null,
-        /**
-         * Length for large screens (1-12)
-         */
-        xlLength: Int? = null,
-        var title: String? = null) :
-        UICol(length, smLength, mdLength, lgLength, xlLength, type = UIElementType . FIELDSET)
+  /**
+   * Length in grid system
+   */
+  length: UILength? = null,
+  /**
+   * Offset in grid system
+   */
+  offset: UILength? = null,
+  var title: String? = null,
+  /**
+   * Useless, if length is already given.
+   */
+  xs: Int? = null,
+  sm: Int? = null,
+  md: Int? = null,
+  lg: Int? = null,
+) :
+  UICol(length ?: UILength(xs = xs, sm = sm, md = md, lg = lg), offset, type = UIElementType.FIELDSET) {
+
+  constructor(xsLength: Int, title: String? = null) : this(length = UILength(xsLength), title = title)
+}

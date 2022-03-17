@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,7 @@ package org.projectforge.plugins.eed.model;
 
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
-import de.micromata.genome.db.jpa.tabattr.entities.TimeableBaseDO;
+import org.projectforge.framework.persistence.entities.PFTimeableBaseDO;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -33,22 +33,20 @@ import java.util.Map;
 
 @Entity
 @Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMED",
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "employee_configuration_id", "group_name", "start_time" })
-    },
-    indexes = {
-        @Index(name = "idx_plugin_employee_configuration_timed_start_time", columnList = "start_time")
-    })
-public class EmployeeConfigurationTimedDO extends TimeableBaseDO<EmployeeConfigurationTimedDO, Integer>
-{
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"employee_configuration_id", "group_name", "start_time"})
+        },
+        indexes = {
+                @Index(name = "idx_plugin_employee_configuration_timed_start_time", columnList = "start_time")
+        })
+public class EmployeeConfigurationTimedDO extends PFTimeableBaseDO<EmployeeConfigurationTimedDO> {
   private EmployeeConfigurationDO employeeConfiguration;
 
   @Id
   @GeneratedValue
   @Column(name = "pk")
   @Override
-  public Integer getPk()
-  {
+  public Integer getPk() {
     return pk;
   }
 
@@ -57,56 +55,48 @@ public class EmployeeConfigurationTimedDO extends TimeableBaseDO<EmployeeConfigu
    */
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "employee_configuration_id", nullable = false)
-  public EmployeeConfigurationDO getEmployeeConfiguration()
-  {
+  public EmployeeConfigurationDO getEmployeeConfiguration() {
     return employeeConfiguration;
   }
 
-  public void setEmployeeConfiguration(final EmployeeConfigurationDO employeeConfiguration)
-  {
+  public void setEmployeeConfiguration(final EmployeeConfigurationDO employeeConfiguration) {
     this.employeeConfiguration = employeeConfiguration;
   }
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "parent", targetEntity = EmployeeConfigurationTimedAttrDO.class,
-      orphanRemoval = true,
-      fetch = FetchType.EAGER)
+          orphanRemoval = true,
+          fetch = FetchType.EAGER)
   @MapKey(name = "propertyName")
   @Override
-  public Map<String, JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, Integer>> getAttributes()
-  {
+  public Map<String, JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, Integer>> getAttributes() {
     return super.getAttributes();
   }
 
   @Override
   @Transient
-  public Class<? extends JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, ? extends Serializable>> getAttrEntityClass()
-  {
+  public Class<? extends JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, ? extends Serializable>> getAttrEntityClass() {
     return EmployeeConfigurationTimedAttrDO.class;
   }
 
   @Override
   @Transient
-  public Class<? extends JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, ? extends Serializable>> getAttrEntityWithDataClass()
-  {
+  public Class<? extends JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, ? extends Serializable>> getAttrEntityWithDataClass() {
     return EmployeeConfigurationTimedAttrWithDataDO.class;
   }
 
   @Override
   @Transient
-  public Class<? extends JpaTabAttrDataBaseDO<? extends JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, Integer>, Integer>> getAttrDataEntityClass()
-  {
+  public Class<? extends JpaTabAttrDataBaseDO<? extends JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, Integer>, Integer>> getAttrDataEntityClass() {
     return EmployeeConfigurationTimedAttrDataDO.class;
   }
 
   @Override
-  public JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, Integer> createAttrEntity(final String key, final char type, final String value)
-  {
+  public JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, Integer> createAttrEntity(final String key, final char type, final String value) {
     return new EmployeeConfigurationTimedAttrDO(this, key, type, value);
   }
 
   @Override
-  public JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, Integer> createAttrEntityWithData(final String key, final char type, final String value)
-  {
+  public JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, Integer> createAttrEntityWithData(final String key, final char type, final String value) {
     return new EmployeeConfigurationTimedAttrWithDataDO(this, key, type, value);
   }
 }

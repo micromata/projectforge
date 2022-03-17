@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,35 +29,22 @@ import org.apache.wicket.markup.html.WebPage;
 import org.projectforge.framework.persistence.DaoConst;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.registry.Registry;
-import org.projectforge.web.LoginPage;
 import org.projectforge.web.access.AccessEditPage;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.*;
 import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.admin.ConfigurationListPage;
 import org.projectforge.web.admin.SetupPage;
-import org.projectforge.web.admin.SystemUpdatePage;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.core.SearchPage;
-import org.projectforge.web.doc.DocumentationPage;
-import org.projectforge.web.doc.TutorialPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartEditPage;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
 import org.projectforge.web.humanresources.HRPlanningEditPage;
 import org.projectforge.web.humanresources.HRPlanningListPage;
-import org.projectforge.web.meb.MebEditPage;
-import org.projectforge.web.meb.MebListPage;
-import org.projectforge.web.multitenancy.TenantEditPage;
-import org.projectforge.web.multitenancy.TenantListPage;
 import org.projectforge.web.orga.*;
-import org.projectforge.web.scripting.ScriptEditPage;
-import org.projectforge.web.scripting.ScriptExecutePage;
-import org.projectforge.web.scripting.ScriptListPage;
-import org.projectforge.web.scripting.ScriptingPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
-import org.projectforge.web.statistics.SystemStatisticsPage;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskTreePage;
@@ -84,12 +71,6 @@ import java.util.Map;
 public class WebRegistry
 {
   public static final WebRegistry instance = new WebRegistry();
-
-  public static final String BOOKMARK_LOGIN = "login";
-
-  private static final String BOOKMARK_MOBILE_PREFIX = "m-";
-
-  public static final String BOOKMARK_MOBILE_LOGIN = BOOKMARK_MOBILE_PREFIX + BOOKMARK_LOGIN;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WebRegistry.class);
 
@@ -269,9 +250,6 @@ public class WebRegistry
     register(DaoConst.TIMESHEET, TimesheetListPage.class);
     addMountPages(DaoConst.TIMESHEET, TimesheetListPage.class, TimesheetEditPage.class);
 
-    register(DaoConst.TENANT, TenantListPage.class);
-    addMountPages(DaoConst.TENANT, TenantListPage.class, TenantEditPage.class);
-
     register(DaoConst.USER, UserListPage.class);
     addMountPages(DaoConst.USER, UserListPage.class, UserEditPage.class);
 
@@ -290,12 +268,6 @@ public class WebRegistry
     register(DaoConst.OUTGOING_INVOICE, RechnungListPage.class);
     addMountPages(DaoConst.OUTGOING_INVOICE, RechnungListPage.class, RechnungEditPage.class);
 
-    register(DaoConst.INCOMING_MAIL, PosteingangListPage.class);
-    addMountPages(DaoConst.INCOMING_MAIL, PosteingangListPage.class, PosteingangEditPage.class);
-
-    register(DaoConst.OUTGOING_MAIL, PostausgangListPage.class);
-    addMountPages(DaoConst.OUTGOING_MAIL, PostausgangListPage.class, PostausgangEditPage.class);
-
     register(DaoConst.ACCESS, AccessListPage.class);
     addMountPages(DaoConst.ACCESS, AccessListPage.class, AccessEditPage.class);
     register(DaoConst.ACCOUNT, KontoListPage.class);
@@ -312,8 +284,6 @@ public class WebRegistry
     addMountPages(DaoConst.CUSTOMER, CustomerListPage.class, CustomerEditPage.class);
     register(DaoConst.EMPLOYEE, EmployeeListPage.class);
     addMountPages(DaoConst.EMPLOYEE, EmployeeListPage.class, EmployeeEditPage.class);
-    register(DaoConst.MEB, MebListPage.class);
-    addMountPages(DaoConst.MEB, MebListPage.class, MebEditPage.class);
     register(DaoConst.PROJECT, ProjektListPage.class);
     addMountPages(DaoConst.PROJECT, ProjektListPage.class, ProjektEditPage.class);
 
@@ -321,32 +291,22 @@ public class WebRegistry
     addMountPages(DaoConst.GANTT, GanttChartListPage.class, GanttChartEditPage.class);
     addMountPages(DaoConst.HR_PLANNING, HRPlanningListPage.class, HRPlanningEditPage.class);
     addMountPage(DaoConst.HR_LIST, HRListPage.class);
-    addMountPages(DaoConst.SCRIPT, ScriptListPage.class, ScriptEditPage.class);
     addMountPages(DaoConst.USER_PREF, UserPrefListPage.class, UserPrefEditPage.class);
 
     addMountPage("admin", AdminPage.class);
     addMountPage("calendar", CalendarPage.class);
-    addMountPage("changePassword", ChangePasswordPage.class);
     addMountPage("configuration", ConfigurationListPage.class);
     addMountPage("datevImport", DatevImportPage.class);
-    addMountPage("doc", DocumentationPage.class);
     addMountPage("error", ErrorPage.class);
     addMountPage("feedback", FeedbackPage.class);
-    addMountPage(BOOKMARK_LOGIN, LoginPage.class);
     addMountPage("monthlyEmployeeReport", MonthlyEmployeeReportPage.class);
-    addMountPage("myAccount", MyAccountEditPage.class);
     addMountPage("personalStatistics", PersonalStatisticsPage.class);
     addMountPage("phoneCall", PhoneCallPage.class);
     addMountPage("reportObjectives", ReportObjectivesPage.class);
-    addMountPage("scriptExecute", ScriptExecutePage.class);
-    addMountPage("scripting", ScriptingPage.class);
     addMountPage("search", SearchPage.class);
     addMountPage("sendSms", SendSmsPage.class);
     addMountPage("setup", SetupPage.class);
-    addMountPage("systemStatistics", SystemStatisticsPage.class);
-    addMountPage("systemUpdate", SystemUpdatePage.class);
     addMountPage("taskTree", TaskTreePage.class);
-    addMountPage("tutorial", TutorialPage.class);
 
     register("teamEvent", TeamEventListPage.class);
     addMountPage("teamCalendar", TeamCalCalendarPage.class);

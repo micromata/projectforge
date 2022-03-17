@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,14 +26,12 @@ package org.projectforge.business.user;
 import com.thoughtworks.xstream.XStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.refactoring.RefactoringService;
 import org.projectforge.business.scripting.xstream.RecentScriptCalls;
 import org.projectforge.business.scripting.xstream.ScriptCallData;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskFilter;
-import org.projectforge.business.timesheet.TimesheetPrefData;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -42,7 +40,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.GZIPHelper;
-import org.projectforge.framework.xstream.XStreamHelper;
+import org.projectforge.framework.xmlstream.XStreamHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
@@ -72,14 +70,11 @@ public class UserXmlPreferencesDao {
   @Autowired
   private RefactoringService refService;
   @Autowired
-  private TenantDao tenantDao;
-  @Autowired
   private PfEmgrFactory emgrFactory;
 
   @PostConstruct
   private void init() {
-    xstream.processAnnotations(new Class<?>[]{UserXmlPreferencesMap.class, TaskFilter.class, TimesheetPrefData.class,
-            ScriptCallData.class, RecentScriptCalls.class});
+    xstream.processAnnotations(new Class<?>[]{UserXmlPreferencesMap.class, TaskFilter.class, ScriptCallData.class, RecentScriptCalls.class});
     registerConverter(UserDao.class, PFUserDO.class, 20);
     registerConverter(GroupDao.class, GroupDO.class, 19);
     registerConverter(TaskDao.class, TaskDO.class, 18);
@@ -274,7 +269,6 @@ public class UserXmlPreferencesDao {
     if (userPrefs == null) {
       isNew = true;
       userPrefs = new UserXmlPreferencesDO();
-      userPrefs.setTenant(tenantDao.getDefaultTenant());
       userPrefs.setCreated(date);
       userPrefs.setUser(userDao.internalGetById(userId));
       userPrefs.setKey(key);

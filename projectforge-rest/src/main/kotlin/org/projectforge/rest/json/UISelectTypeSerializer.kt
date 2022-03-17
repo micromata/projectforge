@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -57,10 +57,10 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
         if (!value.values.isNullOrEmpty()) {
             jgen.writeArrayFieldStart("values")
             value.values?.forEach {
-                if (it.value != null) {
+                if (it.id != null) {
                     jgen.writeStartObject()
-                    JacksonUtils.writeField(jgen, value.valueProperty, it.value) // Custom serialization needed.
-                    jgen.writeStringField(value.labelProperty, it.label)         // Custom serialization needed.
+                    JacksonUtils.writeField(jgen, value.valueProperty, it.id) // Custom serialization needed.
+                    jgen.writeStringField(value.labelProperty, it.displayName)         // Custom serialization needed.
                     jgen.writeEndObject()
                 }
             }
@@ -83,6 +83,7 @@ class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) 
             val ac = value.autoCompletion
             JacksonUtils.writeField(jgen, "minChars", ac?.minChars)
             JacksonUtils.writeField(jgen, "url", ac?.url)
+            JacksonUtils.writeStringMapField(jgen, "urlParams", ac?.urlParams)
             JacksonUtils.writeField(jgen, "type", ac?.type)
             writeEntries(jgen, ac?.values, "values", value.valueProperty, value.labelProperty) // See above.
             jgen.writeEndObject()

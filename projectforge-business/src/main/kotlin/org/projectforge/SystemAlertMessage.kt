@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,23 +23,11 @@
 
 package org.projectforge
 
-import org.projectforge.business.user.filter.UserFilter
-
 /**
  * For displaying an alert message, such as: "Attention: ProjectForge will be under maintenance between 10:00 and 10:30 am!."
  * This message will be displayed for all logged-in users on all pages and may be set and cleared on the admin page.
  * Any alert message will be lost after restart.
  */
 object SystemAlertMessage {
-    var alertMessage: String? = null
-        /**
-         * Returns the alert message, if exists. The alert message will be displayed on every screen (red on top) and is
-         * edit-able via Administration -> System.
-         */
-        get() =
-            if (UserFilter.isUpdateRequiredFirst()) {
-                "Maintenance mode: Please restart ProjectForge after finishing." + if (field != null) " $field" else ""
-            } else {
-                field
-            }
+  var alertMessage: String? = null
 }

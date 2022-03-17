@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,6 +28,10 @@ enum class MenuItemTargetType {
      * The client should redirect to the given url. If no type is given, REDIRECT is used as default.
      */
     REDIRECT,
+    /**
+     * The client should open a model with the given url.
+     */
+    MODAL,
     /**
      * The client will receive a download file after calling the rest service with the given url.
      */

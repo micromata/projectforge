@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,7 +26,7 @@ package org.projectforge.business.ldap;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +56,7 @@ import java.util.*;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-public class LdapMasterLoginHandler extends LdapLoginHandler
-{
+public class LdapMasterLoginHandler extends LdapLoginHandler {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapMasterLoginHandler.class);
 
   private boolean refreshInProgress;
@@ -68,12 +67,14 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   @Autowired
   private PFUserDOConverter pfUserDOConverter;
 
+  @Autowired
+  private UserGroupCache userGroupCache;
+
   /**
    * @see org.projectforge.business.ldap.LdapLoginHandler#initialize()
    */
   @Override
-  public void initialize()
-  {
+  public void initialize() {
     super.initialize();
     ldapOrganizationalUnitDao.createIfNotExist(userBase, "ProjectForge's user base.");
     ldapOrganizationalUnitDao.createIfNotExist(LdapUserDao.DEACTIVATED_SUB_CONTEXT,
@@ -86,11 +87,10 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   }
 
   /**
-   * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, java.lang.String, boolean)
+   * @see org.projectforge.business.login.LoginHandler#checkLogin(String, char[])
    */
   @Override
-  public LoginResult checkLogin(final String username, final String password)
-  {
+  public LoginResult checkLogin(final String username, final char[] password) {
     final LoginResult loginResult = loginDefaultHandler.checkLogin(username, password);
     if (loginResult.getLoginResultStatus() != LoginResultStatus.SUCCESS) {
       return loginResult;
@@ -116,8 +116,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#getAllGroups()
    */
   @Override
-  public List<GroupDO> getAllGroups()
-  {
+  public List<GroupDO> getAllGroups() {
     final List<GroupDO> groups = loginDefaultHandler.getAllGroups();
     return groups;
   }
@@ -126,8 +125,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#getAllUsers()
    */
   @Override
-  public List<PFUserDO> getAllUsers()
-  {
+  public List<PFUserDO> getAllUsers() {
     final List<PFUserDO> users = loginDefaultHandler.getAllUsers();
     return users;
   }
@@ -138,13 +136,10 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#afterUserGroupCacheRefresh(java.util.List, java.util.List)
    */
   @Override
-  public void afterUserGroupCacheRefresh(final Collection<PFUserDO> users, final Collection<GroupDO> groups)
-  {
-    new Thread()
-    {
+  public void afterUserGroupCacheRefresh(final Collection<PFUserDO> users, final Collection<GroupDO> groups) {
+    new Thread() {
       @Override
-      public void run()
-      {
+      public void run() {
         synchronized (LdapMasterLoginHandler.this) {
           try {
             refreshInProgress = true;
@@ -160,18 +155,14 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   /**
    * @return true if currently a cache refresh is running, otherwise false.
    */
-  public boolean isRefreshInProgress()
-  {
+  public boolean isRefreshInProgress() {
     return refreshInProgress;
   }
 
-  private void updateLdap(final Collection<PFUserDO> users, final Collection<GroupDO> groups)
-  {
-    new LdapTemplate(ldapConnector)
-    {
+  private void updateLdap(final Collection<PFUserDO> users, final Collection<GroupDO> groups) {
+    new LdapTemplate(ldapConnector) {
       @Override
-      protected Object call() throws Exception
-      {
+      protected Object call() throws Exception {
         log.info("Updating LDAP...");
         // First, get set of all ldap entries:
         final List<LdapUser> ldapUsers = getAllLdapUsers(ctx);
@@ -184,7 +175,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
             final LdapUser ldapUser = getLdapUser(ldapUsers, user);
             if (ldapUser == null) {
               updatedLdapUser.setOrganizationalUnit(userBase);
-              if (!user.isDeleted() && !user.getLocalUser()) {
+              if (!user.isDeleted() && !user.getLocalUser() && StringUtils.isNotBlank(user.getUsername())) {
                 // Do not add deleted or local users.
                 // TODO: if (ldapConfig.isSupportPosixAccounts() == true &&) {
                 // updatedLdapUser.addObjectClass(LdapUserDao.OBJECT_CLASS_POSIX_ACCOUNT);
@@ -320,11 +311,10 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
 
   /**
    * @see org.projectforge.business.login.LoginHandler#passwordChanged(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   * java.lang.String)
+   * char[])
    */
   @Override
-  public void passwordChanged(final PFUserDO user, final String newPassword)
-  {
+  public void passwordChanged(final PFUserDO user, final char[] newPassword) {
     final LdapUser ldapUser = ldapUserDao.findById(user.getId());
     if (user.isDeleted() || user.getLocalUser()) {
       // Don't change passwords of such users.
@@ -340,8 +330,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   }
 
   @Override
-  public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
-  {
+  public void wlanPasswordChanged(final PFUserDO user, final char[] newPassword) {
     final LdapUser ldapUser = ldapUserDao.findById(user.getId());
     if (user.isDeleted() || user.getLocalUser()) {
       // Don't change passwords of such users.
@@ -360,14 +349,12 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#isPasswordChangeSupported(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
-  public boolean isPasswordChangeSupported(final PFUserDO user)
-  {
+  public boolean isPasswordChangeSupported(final PFUserDO user) {
     return true;
   }
 
   @Override
-  public boolean isWlanPasswordChangeSupported(PFUserDO user)
-  {
+  public boolean isWlanPasswordChangeSupported(PFUserDO user) {
     return true;
   }
 
@@ -377,8 +364,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
    * @param ldapUserMap
    */
   private void setMembers(final LdapGroup updatedLdapGroup, final Set<PFUserDO> assignedUsers,
-      final Map<Integer, LdapUser> ldapUserMap)
-  {
+                          final Map<Integer, LdapUser> ldapUserMap) {
     updatedLdapGroup.clearMembers();
     if (assignedUsers == null) {
       // No user to assign.
@@ -387,8 +373,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
     for (final PFUserDO assignedUser : assignedUsers) {
       final LdapUser ldapUser = ldapUserMap.get(assignedUser.getId());
       if (ldapUser == null) {
-        final PFUserDO cachedUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-            .getUser(assignedUser.getId());
+        final PFUserDO cachedUser = userGroupCache.getUser(assignedUser.getId());
         if (cachedUser == null || !cachedUser.isDeleted()) {
           log.warn("Can't assign ldap user to group: "
               + updatedLdapGroup.getCommonName()
@@ -405,8 +390,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
     }
   }
 
-  private Map<Integer, LdapUser> getUserMap(final Collection<LdapUser> users)
-  {
+  private Map<Integer, LdapUser> getUserMap(final Collection<LdapUser> users) {
     final Map<Integer, LdapUser> map = new HashMap<>();
     if (users == null) {
       return map;
@@ -422,8 +406,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
     return map;
   }
 
-  private LdapUser getLdapUser(final List<LdapUser> ldapUsers, final PFUserDO user)
-  {
+  private LdapUser getLdapUser(final List<LdapUser> ldapUsers, final PFUserDO user) {
     for (final LdapUser ldapUser : ldapUsers) {
       if (StringUtils.equals(ldapUser.getUid(), user.getUsername())
           || StringUtils.equals(ldapUser.getEmployeeNumber(), PFUserDOConverter.buildEmployeeNumber(user))) {
@@ -433,8 +416,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
     return null;
   }
 
-  private LdapGroup getLdapGroup(final List<LdapGroup> ldapGroups, final GroupDO group)
-  {
+  private LdapGroup getLdapGroup(final List<LdapGroup> ldapGroups, final GroupDO group) {
     for (final LdapGroup ldapGroup : ldapGroups) {
       if (StringUtils.equals(ldapGroup.getBusinessCategory(), groupDOConverter.buildBusinessCategory(group))) {
         return ldapGroup;

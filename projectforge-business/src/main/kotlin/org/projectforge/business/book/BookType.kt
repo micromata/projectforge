@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -43,7 +43,6 @@ enum class BookType(
     /**
      * @return The full i18n key including the i18n prefix "book.type.".
      */
-    override fun getI18nKey(): String {
-        return "book.type.$key"
-    }
+    override val i18nKey: String
+        get() = "book.type.$key"
 }

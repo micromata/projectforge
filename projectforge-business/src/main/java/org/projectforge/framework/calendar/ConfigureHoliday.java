@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,8 +24,8 @@
 package org.projectforge.framework.calendar;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlField;
+import org.projectforge.framework.xmlstream.XmlObject;
 
 import java.math.BigDecimal;
 

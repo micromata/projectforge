@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,7 +26,7 @@ package org.projectforge.framework.renderer;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fop.apps.*;
-import org.projectforge.AppVersion;
+import org.projectforge.ProjectForgeVersion;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.framework.configuration.Configuration;
@@ -55,8 +55,7 @@ import java.util.Map;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-public class PdfRenderer
-{
+public class PdfRenderer {
   private static final Logger log = LoggerFactory.getLogger(PdfRenderer.class);
 
   public final static String DEFAULT_FO_STYLE = "default-style-fo.xsl";
@@ -69,8 +68,7 @@ public class PdfRenderer
 
   private String fontResourcePath;
 
-  private String getFontResourcePath()
-  {
+  private String getFontResourcePath() {
     if (fontResourcePath == null) {
       final File dir = new File(configurationService.getFontsDir());
       if (!dir.exists()) {
@@ -81,27 +79,26 @@ public class PdfRenderer
     return fontResourcePath;
   }
 
-  public byte[] render(final String stylesheet, final String groovyXml, final Map<String, Object> data)
-  {
+  public byte[] render(final String stylesheet, final String groovyXml, final Map<String, Object> data) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     data.put("createdLabel", ThreadLocalUserContext.getLocalizedString("created"));
     data.put("loggedInUser", user);
-    data.put("baseDir", configurationService.getResourceDir());
-    data.put("logoFile", configurationService.getResourceDir() + "/images/" + logoFileName);
-    data.put("appId", AppVersion.APP_ID);
-    data.put("appVersion", AppVersion.NUMBER);
+    data.put("baseDir", configurationService.getResourceDirName());
+    data.put("logoFile", configurationService.getResourceDirName() + "/images/" + logoFileName);
+    data.put("appId", ProjectForgeVersion.APP_ID);
+    data.put("appVersion", ProjectForgeVersion.VERSION_NUMBER);
     data.put("organization",
-        StringUtils.defaultString(Configuration.getInstance().getStringValue(ConfigurationParam.ORGANIZATION),
-            AppVersion.APP_ID));
+            StringUtils.defaultString(Configuration.getInstance().getStringValue(ConfigurationParam.ORGANIZATION),
+                    ProjectForgeVersion.APP_ID));
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     log.info("stylesheet="
-        + stylesheet
-        + ", jellyXml="
-        + groovyXml
-        + ", baseDir="
-        + configurationService.getResourceDir()
-        + ", fontBaseDir="
-        + getFontResourcePath());
+            + stylesheet
+            + ", jellyXml="
+            + groovyXml
+            + ", baseDir="
+            + configurationService.getResourceDirName()
+            + ", fontBaseDir="
+            + getFontResourcePath());
 
     // configure fopFactory as desired
     final FopFactory fopFactory = FopFactory.newInstance(new File(getFontResourcePath()).toURI());
@@ -147,7 +144,7 @@ public class PdfRenderer
       // First run jelly through xmlData:
       result = configurationService.getResourceContentAsString(groovyXml);
       final GroovyEngine groovyEngine = new GroovyEngine(configurationService, data, ThreadLocalUserContext.getLocale(),
-          ThreadLocalUserContext.getTimeZone());
+              ThreadLocalUserContext.getTimeZone());
       final String groovyXmlInput = groovyEngine.preprocessGroovyXml((String) result[0]);
       final String xmlData = groovyEngine.executeTemplate(groovyXmlInput);
 

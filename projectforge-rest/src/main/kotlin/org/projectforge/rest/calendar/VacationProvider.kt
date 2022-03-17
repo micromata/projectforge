@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,53 +23,64 @@
 
 package org.projectforge.rest.calendar
 
+import mu.KotlinLogging
 import org.projectforge.business.vacation.VacationCache
+import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Provides the vacation days of the employees. You may filter the vacation by ProjectForge groups.
  */
 @Component
 open class VacationProvider {
-    @Autowired
-    private lateinit var vacationCache: VacationCache
+  @Autowired
+  private lateinit var vacationCache: VacationCache
 
-    open fun addEvents(start: PFDateTime,
-                       end: PFDateTime,
-                       events: MutableList<BigCalendarEvent>,
-                       /**
-                        * Vacation days will only be displayed for employees (users) who are member of at least one of the following groups:
-                        */
-                       groupIds: Set<Int>?,
-                       userIds: Set<Int>?,
-                       bgColor: String? = null,
-                       fgColor: String? = null) {
-        if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
-            return // Nothing to do
-        }
-
-        val vacations = vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
-        vacations.forEach { vacation ->
-            val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()}"
-            if (!events.any { it.title == title && BigCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) }) {
-                // Event doesn't yet exist:
-                events.add(BigCalendarEvent(
-                        title = title,
-                        start = vacation.startDate!!,
-                        end = vacation.endDate!!,
-                        allDay = true,
-                        category = "vacation",
-                        cssClass = "vacation-event",
-                        dbId = vacation.id,
-                        readOnly = true))
-            }
-        }
+  open fun addEvents(
+    start: PFDateTime,
+    end: PFDateTime,
+    events: MutableList<BigCalendarEvent>,
+    /**
+     * Vacation days will only be displayed for employees (users) who are member of at least one of the following groups:
+     */
+    groupIds: Set<Int>?,
+    userIds: Set<Int>?,
+    bgColor: String? = null,
+    fgColor: String? = null
+  ) {
+    if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
+      return // Nothing to do
     }
 
-    companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(VacationProvider::class.java)
+    val vacations =
+      vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
+    vacations.forEach { vacation ->
+      val endDate = PFDay.fromOrNull(vacation.endDate)?.format() ?: ""
+      val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()} ${translate("date.until")} $endDate"
+      if (!events.any {
+          it.title == title && BigCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) &&
+              vacation.status != VacationStatus.REJECTED
+        }) {
+        // Event doesn't yet exist:
+        events.add(
+          BigCalendarEvent(
+            title = title,
+            start = vacation.startDate!!,
+            end = vacation.endDate!!,
+            allDay = true,
+            category = "vacation",
+            cssClass = "vacation-event",
+            dbId = vacation.id,
+            readOnly = true
+          )
+        )
+      }
     }
+  }
 }

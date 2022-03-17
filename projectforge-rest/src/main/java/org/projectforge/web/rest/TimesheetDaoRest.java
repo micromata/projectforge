@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,10 +24,11 @@
 package org.projectforge.web.rest;
 
 import org.projectforge.business.task.*;
+import org.projectforge.framework.json.JsonUtils;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.TaskObject;
-import org.projectforge.rest.JsonUtils;
 import org.projectforge.web.rest.converter.TaskDOConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -56,10 +57,13 @@ public class TimesheetDaoRest
   private TaskDao taskDao;
 
   @Autowired
+  private TaskTree taskTree;
+
+  @Autowired
   private TaskDOConverter taskDOConverter;
 
   /**
-   * Rest-Call für: {@link TaskDao#getList(org.projectforge.core.BaseSearchFilter)}
+   * Rest-Call für: {@link TaskDao#getList(BaseSearchFilter)}
    *
    * @param searchTerm
    */
@@ -85,7 +89,7 @@ public class TimesheetDaoRest
   }
 
   /**
-   * Rest-Call für: {@link TaskDao#getList(org.projectforge.core.BaseSearchFilter)}
+   * Rest-Call für: {@link TaskDao#getList(BaseSearchFilter)}
    *
    * @param searchTerm
    */
@@ -139,7 +143,6 @@ public class TimesheetDaoRest
     if (tasks == null || tasks.isEmpty()) {
       return topLevelTasks;
     }
-    final TaskTree taskTree = taskDao.getTaskTree();
     final Map<Integer, TaskObject> rtaskMap = new HashMap<>();
     for (final TaskDO task : tasks) {
       final TaskObject rtask = createRTask(task);
@@ -191,7 +194,7 @@ public class TimesheetDaoRest
       log.error("Oups, task is null.");
       return task;
     }
-    final TaskNode taskNode = taskDao.getTaskTree().getTaskNodeById(taskDO.getId());
+    final TaskNode taskNode = taskTree.getTaskNodeById(taskDO.getId());
     if (taskNode == null) {
       log.error("Oups, task node with id '" + taskDO.getId() + "' not found in taskTree.");
       return task;

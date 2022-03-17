@@ -13,9 +13,13 @@ function CustomizedAddressImage() {
 
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(undefined);
-    const [src, setSrc] = React.useState(
-        getServiceURL(`address/image/${data.id}?${new Date().getTime()}`),
-    );
+    const [src, setSrc] = React.useState('');
+
+    React.useEffect(() => {
+        if (data.id !== undefined) {
+            setSrc(getServiceURL(`address/image/${data.id}?${new Date().getTime()}`));
+        }
+    }, [data.id]);
 
     return React.useMemo(
         () => {
@@ -63,7 +67,7 @@ function CustomizedAddressImage() {
                 fetch(
                     // Delete the image with id -1, so the stored image in the session will be
                     // removed.
-                    getServiceURL('address/deleteImage/-1'),
+                    getServiceURL(`address/deleteImage/${data.id || -1}`),
                     {
                         credentials: 'include',
                         method: 'DELETE',
@@ -71,13 +75,13 @@ function CustomizedAddressImage() {
                 )
                     .then(handleHTTPErrors)
                     .then(() => setData({ imageData: undefined }))
-                    .catch(fetchError => setError(fetchError))
+                    .catch((fetchError) => setError(fetchError))
                     .finally(() => setLoading(false));
             };
 
             if (data.imageData) {
                 image = (
-                    <React.Fragment>
+                    <>
                         <img
                             className={style.addressImage}
                             src={src}
@@ -90,7 +94,7 @@ function CustomizedAddressImage() {
                             <FontAwesomeIcon icon={faTrash} />
                             {` ${ui.translations.delete}`}
                         </Button>
-                    </React.Fragment>
+                    </>
                 );
             }
 
@@ -107,13 +111,22 @@ function CustomizedAddressImage() {
                         )
                         : undefined}
                     {image}
-                    <DropArea setFiles={changeFile}>
-                        {ui.translations['file.upload.dropArea']}
-                    </DropArea>
+                    <DropArea
+                        setFiles={changeFile}
+                        title={ui.translations['file.upload.dropArea']}
+                    />
                 </LoadingContainer>
             );
         },
-        [data.id, data.imageData, data.firstName, data.name, data.organization, setData, loading],
+        [
+            data.imageData,
+            data.firstName,
+            data.name,
+            data.organization,
+            setData,
+            loading,
+            src,
+        ],
     );
 }
 

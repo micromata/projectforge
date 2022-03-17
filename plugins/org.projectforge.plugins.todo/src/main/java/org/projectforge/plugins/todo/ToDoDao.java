@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,10 +27,9 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserDao;
-import org.projectforge.continuousdb.Table;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
@@ -56,8 +55,6 @@ public class ToDoDao extends BaseDao<ToDoDO> {
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"reporter.username", "reporter.firstname",
           "reporter.lastname",
           "assignee.username", "assignee.firstname", "assignee.lastname", "task.title", "task.taskpath", "group.name"};
-
-  private final Table table = new Table(ToDoDO.class);
 
   @Autowired
   private DataSource dataSource;
@@ -150,8 +147,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
   /**
    * Sends an e-mail to the projekt manager if exists and is not equals to the logged in user.
    */
-  public void sendNotification(final ToDoDO todo, final String requestUrl)
-  {
+  public void sendNotification(final ToDoDO todo, final String requestUrl) {
     if (!configurationService.isSendMailConfigured()) {
       // Can't send e-mail because no send mail is configured.
       return;
@@ -186,8 +182,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
   }
 
   private void sendNotification(final PFUserDO recipient, final ToDoDO toDo, final Map<String, Object> data,
-      final boolean checkAccess)
-  {
+                                final boolean checkAccess) {
     if (checkAccess && !hasUserSelectAccess(recipient, toDo, false)) {
       log.info("Recipient '"
               + recipient.getFullname()
@@ -209,15 +204,18 @@ public class ToDoDao extends BaseDao<ToDoDO> {
     subject.append(I18nHelper.getLocalizedMessage(locale, "plugins.todo.todo")).append(": ");
     subject.append(toDo.getSubject());
     msg.setProjectForgeSubject(subject.toString());
-    final String content = sendMail.renderGroovyTemplate(msg, "mail/todoChangeNotification.html", data, recipient);
+    final String content = sendMail.renderGroovyTemplate(msg,
+            "mail/todoChangeNotification.html",
+            data,
+            I18nHelper.getLocalizedMessage("plugins.todo.todo"),
+            recipient);
     msg.setContent(content);
     msg.setContentType(Mail.CONTENTTYPE_HTML);
     sendMail.send(msg, null, null);
   }
 
   @Override
-  protected void onSave(final ToDoDO obj)
-  {
+  protected void onSave(final ToDoDO obj) {
     if (!Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId())) {
       // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
       obj.setRecent(true);
@@ -225,8 +223,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
   }
 
   @Override
-  protected void onChange(final ToDoDO obj, final ToDoDO dbObj)
-  {
+  protected void onChange(final ToDoDO obj, final ToDoDO dbObj) {
     if (!Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId())) {
       // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
       final ToDoDO copyOfDBObj = new ToDoDO();
@@ -287,8 +284,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
   int internalGetOpenEntries(final Integer userId) {
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     try {
-      return jdbc.queryForObject("SELECT COUNT(*) FROM "
-              + table.getName()
+      return jdbc.queryForObject("SELECT COUNT(*) FROM T_PLUGIN_TODO"
               + " where assignee_fk="
               + userId
               + " and recent=true and deleted=false", Integer.class);

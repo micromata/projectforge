@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,65 +28,95 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.TimeNotation
+import java.util.*
 
-class User(id: Int? = null,
-           displayName: String? = null,
-           var username: String? = null,
-           var firstname: String? = null,
-           var lastname: String? = null,
-           var description: String? = null,
-           var email: String? = null,
-           var deactivated: Boolean = false
+class User(
+  id: Int? = null,
+  displayName: String? = null,
+  var username: String? = null,
+  var firstname: String? = null,
+  var lastname: String? = null,
+  var description: String? = null,
+  var email: String? = null,
+  var deactivated: Boolean = false,
+  var timeZone: TimeZone? = null,
+  var locale: Locale? = null,
+  var dateFormat: String? = null,
+  var excelDateFormat: String? = null,
+  var timeNotation: TimeNotation? = null,
+  var personalPhoneIdentifiers: String? = null
 ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
-    override fun copyFromMinimal(src: PFUserDO) {
-        super.copyFromMinimal(src)
-        this.username = src.username
+
+  /**
+   * @see copyFromMinimal
+   */
+  constructor(src: PFUserDO) : this() {
+    copyFromMinimal(src)
+  }
+
+  override fun copyFromMinimal(src: PFUserDO) {
+    super.copyFromMinimal(src)
+    this.username = src.username
+  }
+
+  fun initialize(obj: PFUserDO) {
+    copyFrom(obj)
+  }
+
+  companion object {
+    private val userDao = ApplicationContextProvider.getApplicationContext().getBean(UserDao::class.java)
+
+    fun getUser(userId: Int?, minimal: Boolean = true): User? {
+      userId ?: return null
+      val userDO = userDao.getOrLoad(userId) ?: return null
+      val user = User()
+      if (minimal) {
+        user.copyFromMinimal(userDO)
+      } else {
+        user.copyFrom(userDO)
+      }
+      return user
     }
 
-    companion object {
-        private val userDao = ApplicationContextProvider.getApplicationContext().getBean(UserDao::class.java)
-
-        fun getUser(userId: Int?, minimal: Boolean = true): User? {
-            userId ?: return null
-            val userDO = userDao.getOrLoad(userId) ?: return null
-            val user = User()
-            if (minimal) {
-                user.copyFromMinimal(userDO)
-            } else {
-                user.copyFrom(userDO)
-            }
-            return user
-        }
-
-        /**
-         * Converts csv of user ids to list of user (only with id and displayName = "???", no other content).
-         */
-        fun toUserList(str: String?): List<User>? {
-            if (str.isNullOrBlank()) return null
-            return toIntArray(str)?.map {  User(it, "???") }
-        }
-
-        /**
-         * Converts csv of user ids to list of user id's.
-         */
-        fun toIntArray(str: String?): IntArray? {
-            if (str.isNullOrBlank()) return null
-            return StringHelper.splitToInts(str, ",", false)
-        }
-
-        /**
-         * Converts user list to ints (of format supported by [toUserList]).
-         */
-        fun toIntList(users: List<User>?): String? {
-            return users?.joinToString { "${it.id}" }
-        }
-
-        /**
-         * Set display names of any existing user in the given list.
-         * @see UserService.getUser
-         */
-        fun restoreDisplayNames(users: List<User>?, userService: UserService) {
-            users?.forEach { it.displayName = userService.getUser(it.id)?.displayName }
-        }
+    /**
+     * Converts csv of user ids to list of user (only with id and displayName = "???", no other content).
+     */
+    fun toUserList(str: String?): List<User>? {
+      if (str.isNullOrBlank()) return null
+      return toIntArray(str)?.map { User(it, "???") }
     }
+
+    /**
+     * Converts csv of user ids to list of user id's.
+     */
+    fun toIntArray(str: String?): IntArray? {
+      if (str.isNullOrBlank()) return null
+      return StringHelper.splitToInts(str, ",", false)
+    }
+
+    /**
+     * Converts user list to ints (of format supported by [toUserList]).
+     */
+    fun toIntList(users: List<User>?): String? {
+      return users?.filter { it.id != null }?.joinToString { "${it.id}" }
+    }
+
+    /**
+     * Set display names of any existing user in the given list.
+     * @see UserService.getUser
+     */
+    fun restoreDisplayNames(users: List<User>?, userService: UserService) {
+      users?.forEach { it.displayName = userService.getUser(it.id)?.displayName }
+    }
+
+    /**
+     * Converts csv of user ids to list of user.
+     */
+    fun toUserNames(userIds: String?, userService: UserService): String {
+      val users = toUserList(userIds)
+      restoreDisplayNames(users, userService)
+      return users?.joinToString { it.displayName ?: "???" } ?: ""
+    }
+  }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.Tuple;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -55,7 +56,7 @@ public class PosteingangDao extends BaseDao<PosteingangDO> {
    */
   public int[] getYears() {
     final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(PosteingangDO.SELECT_MIN_MAX_DATE, Tuple.class));
-    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
+    return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
   }
 
   @Override

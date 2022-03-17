@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,12 +29,13 @@ import net.sf.mpxj.mspdi.MSPDIWriter;
 import net.sf.mpxj.writer.ProjectWriter;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDayUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +98,7 @@ public class ExportMSProject {
     //
     ganttChart.recalculate();
     final ProjectHeader header = file.getProjectHeader();
-    header.setStartDate(ganttChart.getCalculatedStartDate());
+    header.setStartDate(PFDayUtils.convertToUtilDate(ganttChart.getCalculatedStartDate()));
 
     //
     // Add a default calendar called "Standard"
@@ -105,7 +106,7 @@ public class ExportMSProject {
     final ProjectCalendar calendar = file.addDefaultBaseCalendar();
     calendar.setWorkingDay(Day.SATURDAY, false);
     calendar.setWorkingDay(Day.SUNDAY, false);
-    PFDateTime dt = PFDateTime.from(ganttChart.getCalculatedStartDate());
+    PFDateTime dt = PFDateTime.from(ganttChart.getCalculatedStartDate()); // not null
     for (int i = 0; i < 3000; i++) { // Endless loop protection (paranoia)
       dt = dt.plusDays(1);
       Holidays holidays = Holidays.getInstance();
@@ -117,7 +118,7 @@ public class ExportMSProject {
           log.debug("Add holiday: " + date);
         }
       }
-      PFDateTime dtEnd = PFDateTime.from(ganttChart.getCalculatedEndDate());
+      PFDateTime dtEnd = PFDateTime.from(ganttChart.getCalculatedEndDate()); // not null
       if (!dt.isBefore(dtEnd)) {
         break;
       }
@@ -157,10 +158,10 @@ public class ExportMSProject {
     taskMap.put(ganttTask.getId(), task);
     task.setName(ganttTask.getTitle());
     if (ganttTask.getStartDate() != null) {
-      task.setStart(ganttTask.getStartDate());
+      task.setStart(PFDayUtils.convertToUtilDate(ganttTask.getStartDate()));
     }
     if (ganttTask.getEndDate() != null) {
-      task.setFinish(ganttTask.getEndDate());
+      task.setFinish(PFDayUtils.convertToUtilDate(ganttTask.getEndDate()));
     }
     final BigDecimal duration = ganttTask.getDuration();
     final double value;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.utils.ReflectionToString
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -39,7 +39,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @ClassBridge(name = "owners", impl = HibernateSearchUsersBridge::class)
-@Table(name = "T_PLUGIN_LM_LICENSE", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_lm_license_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_LM_LICENSE")
 open class LicenseDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "organization")
@@ -100,14 +100,12 @@ open class LicenseDO : DefaultBaseDO() {
     open var status: LicenseStatus? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.validSince")
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "valid_since")
-    open var validSince: Date? = null
+    open var validSince: LocalDate? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.validUntil")
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "valid_until")
-    open var validUntil: Date? = null
+    open var validUntil: LocalDate? = null
 
     @field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)

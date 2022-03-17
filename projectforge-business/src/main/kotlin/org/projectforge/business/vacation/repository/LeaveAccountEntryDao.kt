@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,10 @@ import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
+import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDayUtils
 import org.springframework.stereotype.Repository
@@ -63,11 +66,12 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
                 .setParameter("toDate", periodEnd).resultList
     }
 
-    override fun getList(filter: BaseSearchFilter): List<LeaveAccountEntryDO?>? {
-        val queryFilter = createQueryFilter(filter)
-        queryFilter.addOrder(asc("employee.user.firstname"))
-        queryFilter.addOrder(asc("date"))
-        return getList(queryFilter)
+    override fun getList(queryFilter: QueryFilter, customResultFilters: List<CustomResultFilter<LeaveAccountEntryDO>>?): List<LeaveAccountEntryDO?>? {
+        if (queryFilter.sortProperties.isNullOrEmpty()) {
+            queryFilter.addOrder(desc("date"))
+            queryFilter.addOrder(asc("employee.user.firstname"))
+        }
+        return super.getList(queryFilter, customResultFilters)
     }
 
     override fun hasAccess(user: PFUserDO?, obj: LeaveAccountEntryDO?, oldObj: LeaveAccountEntryDO?, operationType: OperationType?, throwException: Boolean): Boolean {

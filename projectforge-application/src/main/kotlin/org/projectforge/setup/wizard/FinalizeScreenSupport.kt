@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,6 +30,7 @@ import org.projectforge.setup.SetupData
 import org.projectforge.start.ProjectForgeApplication
 import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
+import java.time.DayOfWeek
 
 
 object FinalizeScreenSupport {
@@ -95,13 +96,13 @@ object FinalizeScreenSupport {
     )
 
     val listOfWeekdays = listOf(
-            LabelValueBean("Sunday", 1),
-            LabelValueBean("Monday", 2),
-            LabelValueBean("Tuesday", 3),
-            LabelValueBean("Wednesday", 4),
-            LabelValueBean("Thursday", 5),
-            LabelValueBean("Friday", 6),
-            LabelValueBean("Saturday", 7)
+            LabelValueBean("Monday", DayOfWeek.MONDAY),
+            LabelValueBean("Tuesday", DayOfWeek.TUESDAY),
+            LabelValueBean("Wednesday", DayOfWeek.WEDNESDAY),
+            LabelValueBean("Thursday", DayOfWeek.THURSDAY),
+            LabelValueBean("Friday", DayOfWeek.FRIDAY),
+            LabelValueBean("Saturday", DayOfWeek.SATURDAY),
+            LabelValueBean("Sunday", DayOfWeek.SUNDAY)
     )
 
     val listOfDatabases = listOf(

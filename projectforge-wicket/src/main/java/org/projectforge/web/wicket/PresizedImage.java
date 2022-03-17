@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,23 +23,20 @@
 
 package org.projectforge.web.wicket;
 
-import java.awt.Dimension;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.image.ContextImage;
 import org.projectforge.framework.configuration.Configuration;
-import org.projectforge.framework.xstream.AliasMap;
-import org.projectforge.framework.xstream.XmlObjectReader;
+import org.projectforge.framework.xmlstream.AliasMap;
+import org.projectforge.framework.xmlstream.XmlObjectReader;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.core.ImageDimension;
+
+import java.awt.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.List;
 
 public class PresizedImage extends ContextImage
 {

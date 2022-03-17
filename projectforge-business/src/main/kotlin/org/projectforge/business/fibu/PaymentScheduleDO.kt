@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,14 +30,14 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
  * @author Werner Feder (werner.feder@t-online.de)
  */
 @Entity
-@Table(name = "T_FIBU_PAYMENT_SCHEDULE", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_id", "number"])], indexes = [Index(name = "idx_fk_t_fibu_payment_schedule_auftrag_id", columnList = "auftrag_id"), Index(name = "idx_fk_t_fibu_payment_schedule_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_FIBU_PAYMENT_SCHEDULE", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_id", "number"])], indexes = [Index(name = "idx_fk_t_fibu_payment_schedule_auftrag_id", columnList = "auftrag_id")])
 open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String
@@ -62,9 +62,9 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column
     open var number: Short = 0
 
-    @PropertyInfo(i18nKey = "date")
+    @PropertyInfo(i18nKey = "fibu.rechnung.datum.short")
     @get:Column(name = "schedule_date")
-    open var scheduleDate: Date? = null
+    open var scheduleDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.common.betrag")
     @get:Column(scale = 2, precision = 12)

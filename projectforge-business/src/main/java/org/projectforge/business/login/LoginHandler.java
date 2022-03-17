@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,6 +27,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -36,8 +37,7 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-public interface LoginHandler
-{
+public interface LoginHandler {
   /**
    * A login handler will be initialized by ProjectForge during start-up.
    */
@@ -45,10 +45,11 @@ public interface LoginHandler
 
   /**
    * @param username
-   * @param password
+   * @param password As char array due to security reasons (don't wait for the garbage collector to remove the
+   *                 password in memory).
    * @return {@link LoginResultStatus#SUCCESS} only and only if the login credentials were accepted.
    */
-  LoginResult checkLogin(final String username, final String password);
+  LoginResult checkLogin(final String username, final char[] password);
 
   /**
    * The simplest implementation is: UserRights.getAccessChecker().isUserMemberOfAdminGroup(user). The default login
@@ -100,15 +101,17 @@ public interface LoginHandler
    * @param user
    * @param newPassword
    */
-  void passwordChanged(PFUserDO user, String newPassword);
+  void passwordChanged(PFUserDO user, char[] newPassword);
 
   /**
    * Will be called while changing the user's WLAN password. The access and password quality is already checked.
+   * <p>
+   * Only supported by {@link org.projectforge.business.ldap.LdapMasterLoginHandler}
    *
    * @param user
    * @param newPassword
    */
-  void wlanPasswordChanged(PFUserDO user, String newPassword);
+  void wlanPasswordChanged(PFUserDO user, char[] newPassword);
 
   /**
    * If the functionality of changing passwords isn't supported for a given user then the password change functionality
@@ -129,4 +132,13 @@ public interface LoginHandler
    * otherwise false.
    */
   boolean isWlanPasswordChangeSupported(PFUserDO user);
+
+  /**
+   * Should be called after checking login due to security reasons (for not having the passwords e. g. in heap dumps etc.).
+   *
+   * @param password The password array will be cleared (filled with '*').
+   */
+  static void clearPassword(char[] password) {
+    Arrays.fill(password, '*'); // Clear password due to security reasons.
+  }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -65,7 +65,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -112,10 +111,17 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
    * Gets all names of entries of the given area for the current logged in user
    */
   public String[] getPrefNames(final UserPrefArea area) {
+    return getPrefNames(area.getId());
+  }
+
+  /**
+   * Gets all names of entries of the given area for the current logged in user
+   */
+  public String[] getPrefNames(final String area) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     List<String> names = em.createNamedQuery(UserPrefDO.FIND_NAMES_BY_USER_AND_AREA, String.class)
             .setParameter("userId", user.getId())
-            .setParameter("area", area.getId())
+            .setParameter("area", area)
             .getResultList();
     final String[] result = new String[names.size()];
     int i = 0;
@@ -232,10 +238,9 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     return selectUnique(list);
   }
 
-  public List<UserPrefDO> getUserPrefs() {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+  public List<UserPrefDO> getUserPrefs(Integer userId) {
     final List<UserPrefDO> list = em.createNamedQuery(UserPrefDO.FIND_BY_USER_ID, UserPrefDO.class)
-            .setParameter("userId", user.getId())
+            .setParameter("userId", userId)
             .getResultList();
     return selectUnique(list);
   }
@@ -551,7 +556,10 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
    */
   @Override
   public Serializable internalSaveOrUpdate(UserPrefDO obj) {
-    Validate.notNull(obj.getUser());
+    if (obj.getUser() == null) {
+      log.warn("User of UserPrefDO is null (can't save it): " + obj);
+      return null;
+    }
     synchronized (this) { // Avoid parallel insert, update, delete operations.
       final UserPrefDO dbUserPref = (UserPrefDO) internalQuery(obj.getUser().getId(), obj.getArea(), obj.getName());
       if (dbUserPref == null) {
@@ -665,9 +673,6 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
 
     module.addSerializer(java.util.Date.class, new UtilDateSerializer(UtilDateFormat.ISO_DATE_TIME_SECONDS));
     module.addDeserializer(java.util.Date.class, new UtilDateDeserializer());
-
-    module.addSerializer(Timestamp.class, new TimestampSerializer(UtilDateFormat.ISO_DATE_TIME_MILLIS));
-    module.addDeserializer(Timestamp.class, new TimestampDeserializer());
 
     module.addSerializer(java.sql.Date.class, new SqlDateSerializer());
     module.addDeserializer(java.sql.Date.class, new SqlDateDeserializer());

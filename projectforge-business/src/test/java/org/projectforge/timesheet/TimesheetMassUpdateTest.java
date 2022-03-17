@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,7 +35,7 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.PFDateTime;
@@ -73,7 +73,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase {
 
   @BeforeEach
   public void setUp() {
-    date = PFDateTime.from(new Date(), false, null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15);
+    date = PFDateTime.from(new Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15);
   }
 
   @Test
@@ -282,7 +282,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase {
     projektDao.setTask(projekt2, t2.getId());
     projektDao.update(projekt2);
     final PFDateTime dateTime = PFDateTime.withDate(2009, Month.DECEMBER, 31);
-    t2.setProtectTimesheetsUntil(dateTime.getUtilDate());
+    t2.setProtectTimesheetsUntil(dateTime.getLocalDate());
     taskDao.update(t2);
     initTestDB.addTask(prefix + "2.1", prefix + "2");
     initTestDB.addTask(prefix + "2.2", prefix + "2");

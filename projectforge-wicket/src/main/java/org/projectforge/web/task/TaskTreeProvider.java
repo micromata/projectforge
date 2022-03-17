@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,6 @@
 
 package org.projectforge.web.task;
 
-import java.io.Serializable;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -39,9 +31,12 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskFilter;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.web.wicket.flowlayout;
 
-import java.util.List;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -43,6 +41,8 @@ import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.web.dialog.ModalQuestionDialog;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.DownloadUtils;
+
+import java.util.List;
 
 /**
  * Represents an upload field of a form. If configured it also provides a delete button and the file name with download link.

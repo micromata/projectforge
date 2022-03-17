@@ -5,8 +5,7 @@ import TaskTreeContext from '../TaskTreeContext';
 import styles from '../TaskTreePanel.module.scss';
 import TaskTreeTableEntry from './TaskTreeTableEntry';
 
-
-function TaskTreeTable({ nodes }) {
+function TaskTreeTable({ nodes, consumptionBarClickable }) {
     const {
         columnsVisibility,
         shortForm,
@@ -14,7 +13,7 @@ function TaskTreeTable({ nodes }) {
     } = React.useContext(TaskTreeContext);
 
     return (
-        <React.Fragment>
+        <>
             <Table striped hover responsive className={styles.tasks}>
                 <thead>
                     <tr>
@@ -29,8 +28,7 @@ function TaskTreeTable({ nodes }) {
                         <th>{translations.shortDescription}</th>
 
                         {!shortForm && (
-                            <React.Fragment>
-
+                            <>
                                 {columnsVisibility.protectionUntil
                                 && <th>{translations['task.protectTimesheetsUntil.short']}</th>}
 
@@ -45,27 +43,33 @@ function TaskTreeTable({ nodes }) {
                                 {columnsVisibility.assignedUser
                                 && <th>{translations['task.assignedUser']}</th>}
 
-                            </React.Fragment>
+                            </>
                         )}
                     </tr>
                 </thead>
                 <tbody>
-                    {nodes.map(task => (
+                    {nodes.map((task) => (
                         <TaskTreeTableEntry
                             key={`task-tree-table-body-row-${task.id}`}
                             task={task}
+                            consumptionBarClickable={consumptionBarClickable}
                         />
                     ))}
                 </tbody>
             </Table>
             {/* TODO TRANSLATION */}
             {nodes.length === 0 && <span>[Keine Tasks gefunden]</span>}
-        </React.Fragment>
+        </>
     );
 }
 
 TaskTreeTable.propTypes = {
     nodes: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
+    consumptionBarClickable: PropTypes.bool,
+};
+
+TaskTreeTable.defaultProps = {
+    consumptionBarClickable: undefined,
 };
 
 export default TaskTreeTable;

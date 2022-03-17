@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.core.importstorage;
 
-import java.util.Map;
-import java.util.Set;
-
 import de.micromata.merlin.excel.importer.ImportStorage;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
@@ -38,6 +35,9 @@ import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
+
+import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractImportForm<F, P extends AbstractImportPage<?>, S extends AbstractImportStoragePanel<?>> extends AbstractStandardForm<F, P>
 {

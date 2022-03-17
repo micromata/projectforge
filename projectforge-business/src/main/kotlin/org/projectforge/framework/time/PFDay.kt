@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -52,14 +52,11 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         get() = date
 
     /**
-     * Uses the locale configured in projectforge.properties. Ensures, that every user of ProjectForge uses same week-of-year-algorithm.
+     * Uses the locale configured in projectforge.properties or, if minimalDaysInFirstWeek is configured by minimalDaysInFirstWeek and defaultFirstDayOfWeek.
+     * Ensures, that every user of ProjectForge uses same week-of-year-algorithm.
      */
     override val weekOfYear: Int
-        get() {
-            val systemLocale = ConfigurationServiceAccessor.get().defaultLocale
-            val weekFields = WeekFields.of(systemLocale)
-            return date.get(weekFields.weekOfWeekBasedYear())
-        }
+        get() = date.get(weekFields.weekOfWeekBasedYear())
 
     override val dayOfMonth: Int
         get() = date.dayOfMonth
@@ -130,12 +127,20 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         return PFDayUtils.withDayOfWeek(this, dayOfWeek)
     }
 
+    override fun withDayOfWeek(dayOfWeek: DayOfWeek): PFDay {
+        return withDayOfWeek(dayOfWeek.value)
+    }
+
     override fun isBefore(other: PFDay): Boolean {
         return date.isBefore(other.date)
     }
 
     fun isBefore(other: java.sql.Date): Boolean {
-        return isBefore(from(other)!!)
+        return isBefore(from(other))
+    }
+
+    fun isBefore(other: LocalDate): Boolean {
+        return date.isBefore(other)
     }
 
     override fun isAfter(other: PFDay): Boolean {
@@ -144,6 +149,10 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
 
     override fun daysBetween(other: PFDay): Long {
         return ChronoUnit.DAYS.between(date, other.date)
+    }
+
+    fun daysBetween(other: LocalDate): Long {
+        return ChronoUnit.DAYS.between(date, other)
     }
 
     override fun plusDays(days: Long): PFDay {
@@ -202,6 +211,9 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         return date.compareTo(other.date)
     }
 
+    /**
+     * Formats current date in user's date format.
+     */
     fun format(): String {
         val formatter = DateFormats.getDateTimeFormatter(DateFormatType.DATE)
         return format(formatter)
@@ -222,6 +234,7 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
     }
 
     private var _utilDate: Date? = null
+
     /**
      * @return The date as java.util.Date. java.util.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
@@ -229,12 +242,19 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
     override val utilDate: Date
         get() {
             if (_utilDate == null) {
-                _utilDate = PFDateTime.from(date)!!.utilDate
+                _utilDate = PFDateTime.from(date).utilDate
             }
             return _utilDate!!
         }
 
+    /**
+     * @return [java.sql.Date] ignoring any user's or system's time zone.
+     */
+    val utilDateUTC: Date
+        get() = java.sql.Date.valueOf(date)
+
     private var _sqlDate: java.sql.Date? = null
+
     /**
      * @return The date as java.sql.Date. java.sql.Date is only calculated, if this getter is called and it
      * will be calculated only once, so multiple calls of getter will not result in multiple calculations.
@@ -249,50 +269,127 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
 
     companion object {
         /**
-         * Creates mindnight [LocalDate] from given [LocalDate].
+         * @param localDate Date to use (not null).
+         * @return PFDay from given value...
+         * @throws java.lang.IllegalStateException if date is null.
          */
         @JvmStatic
-        @JvmOverloads
-        fun from(localDate: LocalDate?, nowIfNull: Boolean = false): PFDay? {
-            if (localDate == null)
-                return if (nowIfNull) now() else null
+        fun from(localDate: LocalDate): PFDay {
             return PFDay(localDate)
         }
 
         /**
-         * @param date Date of type java.util.Date or java.sql.Date.
-         * @param nowIfNull If date is null: If true now is returned, otherwise null.
+         * @param localDate Date to use (or null).
+         * @return PFDay from given value or today if [localDate] is null...
+         */
+        @JvmStatic
+        fun fromOrNow(localDate: LocalDate?): PFDay {
+            localDate ?: return now()
+            return PFDay(localDate)
+        }
+
+        /**
+         * @param localDate Date to use (or null).
+         * @return PFDay from given value or null if [localDate] is null...
+         */
+        @JvmStatic
+        fun fromOrNull(localDate: LocalDate?): PFDay? {
+            localDate ?: return null
+            return PFDay(localDate)
+        }
+
+        /**
+         * Date "2020-02-09 **:**:**" (UTC) results in 2020-02-09 independant of user's or system timezoone.
+         * Convenient method of fromOrNull] with time zone UTC.
+         */
+        @JvmStatic
+        fun fromOrNullUTC(date: Date?): PFDay? {
+            return fromOrNull(date, PFDateTimeUtils.TIMEZONE_UTC)
+        }
+
+        /**
+         * @param date Date of type java.util.Date or java.sql.Date (not null).
          * @param timeZone If not given, the context user's time zone will be used.
-         * Creates mindnight [LocalDate] from given [date].
+         * @return PFDay (midnight) from given value...
+         * @throws java.lang.IllegalStateException if date is null.
          */
         @JvmStatic
         @JvmOverloads
-        fun from(date: Date?, nowIfNull: Boolean = false, timeZone: TimeZone? = PFDateTime.getUsersTimeZone()): PFDay? {
-            if (date == null)
-                return if (nowIfNull) now() else null
+        fun from(date: Date, timeZone: TimeZone? = null): PFDay {
             if (date is java.sql.Date) {
                 return PFDay(date.toLocalDate())
             }
-            val dateTime = PFDateTime.from(date, false, timeZone)!!
+            val dateTime = PFDateTime.from(date, timeZone)
             val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
             return PFDay(localDate)
         }
 
         /**
-         * @param dateTime Date of type [Date] or [java.sql.Date].
-         * Creates mindnight [LocalDate] from given [date].
+         * @param date Date of type java.util.Date or java.sql.Date (or null).
+         * @param timeZone If not given, the context user's time zone will be used.
+         * @return PFDay (midnight) from given value or now if [localDate] is null...
          */
         @JvmStatic
-        fun from(dateTime: PFDateTime?): PFDay? {
-            if (dateTime == null)
-                return null
+        @JvmOverloads
+        fun fromOrNow(date: Date?, timeZone: TimeZone? = null): PFDay {
+            date ?: return now()
+            return from(date, timeZone)
+        }
+
+        /**
+         * @param date Date of type java.util.Date or java.sql.Date (or null).
+         * @param timeZone If not given, the context user's time zone will be used.
+         * @return PFDay (midnight) from given value or null if [localDate] is null...
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun fromOrNull(date: Date?, timeZone: TimeZone? = null): PFDay? {
+            date ?: return null
+            return from(date, timeZone)
+        }
+
+        /**
+         * @param dateTime Date to convert (not null).
+         * @return PFDay (midnight) from given value...
+         * @throws java.lang.IllegalStateException if date is null.
+         */
+        @JvmStatic
+        fun from(dateTime: PFDateTime): PFDay {
             val localDate = LocalDate.of(dateTime.year, dateTime.month, dateTime.dayOfMonth)
             return PFDay(localDate)
+        }
+
+        /**
+         * @param dateTime Date to convert (or null).
+         * @return PFDay (midnight) from given value or now if [dateTime] is null...
+         */
+        @JvmStatic
+        fun fromOrNow(dateTime: PFDateTime?): PFDay {
+            dateTime ?: return now()
+            return from(dateTime)
+        }
+
+        /**
+         * @param dateTime Date to convert (or null).
+         * @return PFDay (midnight) from given value or null if [dateTime] is null...
+         */
+        @JvmStatic
+        fun fromOrNull(dateTime: PFDateTime?): PFDay? {
+            dateTime ?: return null
+            return from(dateTime)
         }
 
         @JvmStatic
         fun now(): PFDay {
             return PFDay(LocalDate.now())
+        }
+
+        /**
+         * Alias for [now].
+         */
+        @JvmStatic
+        fun today(): PFDay {
+            return now()
         }
 
         /**
@@ -326,5 +423,21 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
         }
 
         internal val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+        internal val weekFields: WeekFields
+        get() {
+            if (_weekFields == null) {
+                val minimalDaysInFirstWeek = ConfigurationServiceAccessor.get().minimalDaysInFirstWeek
+                _weekFields = if (minimalDaysInFirstWeek == null) {
+                    val systemLocale = ConfigurationServiceAccessor.get().defaultLocale
+                    WeekFields.of(systemLocale)
+                } else {
+                    val firstDayOfWeek = ConfigurationServiceAccessor.get().defaultFirstDayOfWeek
+                    WeekFields.of(firstDayOfWeek, minimalDaysInFirstWeek)
+                }
+            }
+            return _weekFields!!
+        }
+        internal var _weekFields: WeekFields? = null
     }
 }

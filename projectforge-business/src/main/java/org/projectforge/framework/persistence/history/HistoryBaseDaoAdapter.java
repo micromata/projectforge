@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -154,13 +154,18 @@ public class HistoryBaseDaoAdapter {
 
   public static void createHistoryEntry(Object entity, Number id, String user, String property,
                                         Class<?> valueClass, Object oldValue, Object newValue) {
+    createHistoryEntry(entity, id, EntityOpType.Update, user, property, valueClass, oldValue, newValue);
+  }
+
+  public static void createHistoryEntry(Object entity, Number id, EntityOpType opType, String user, String property,
+                                        Class<?> valueClass, Object oldValue, Object newValue) {
     //long begin = System.currentTimeMillis();
     String oldVals = histValueToString(valueClass, oldValue);
     String newVals = histValueToString(valueClass, newValue);
 
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     emf.runInTrans((emgr) -> {
-      HistoryServiceManager.get().getHistoryService().insertManualEntry(emgr, EntityOpType.Update,
+      HistoryServiceManager.get().getHistoryService().insertManualEntry(emgr, opType,
               entity.getClass().getName(),
               id, user, property, valueClass.getName(), oldVals, newVals);
       return null;
@@ -238,7 +243,11 @@ public class HistoryBaseDaoAdapter {
     props.forEach(
             (pk, p) -> {
               if (p.oldProps != null && p.newProps != null) {
-                historyService.internalOnUpdate(emgr, p.entClassName, pk, p.oldProps, p.newProps);
+                try {
+                  historyService.internalOnUpdate(emgr, p.entClassName, pk, p.oldProps, p.newProps);
+                } catch (Exception ex) {
+                  log.error("Error while writing history entry (" + p.entClassName + ":" + pk + ", '" + p.oldProps + "'->'" + p.newProps + "': " + ex.getMessage(), ex);
+                }
               }
             }
     );

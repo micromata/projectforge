@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
@@ -43,18 +43,6 @@ public class ConfigurationXmlBeforePersistListener implements JpaXmlBeforePersis
   @Override
   public Object preparePersist(EntityMetadata entityMetadata, Object entity, XmlDumpRestoreContext ctx)
   {
-    final ConfigurationDO configurationDO = (ConfigurationDO) entity;
-    if (configurationDO.getConfigurationType() != ConfigurationType.TASK) {
-      return null;
-    }
-    final Integer oldTaskId = configurationDO.getTaskId();
-    Integer newTaskId = ctx.findNewPkForOldPk(oldTaskId, TaskDO.class, Integer.class);
-    if (newTaskId == null) {
-      LOG.warn("Cannot find TaskDO with oldPk: " + oldTaskId);
-      return null;
-    }
-    configurationDO.setTaskId(newTaskId);
-
     return null;
   }
 

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,9 @@
 
 package org.projectforge.web.tree;
 
-import java.io.Serializable;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
+
+import java.io.Serializable;
 
 /**
  * The table component which uses the TreeTable implementation should implement this interface for receiving events from the TreeIconsActionPanel.

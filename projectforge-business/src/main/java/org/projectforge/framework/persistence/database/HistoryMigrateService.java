@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,7 +45,6 @@ import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -107,7 +106,7 @@ public class HistoryMigrateService
             Integer pk = rs.getInt("id");
             String className = rs.getString("classname");
             Integer entPk = rs.getInt("modified_id");
-            Timestamp date = rs.getTimestamp("timestamp");
+            Date date = rs.getTimestamp("timestamp");
             String comment = rs.getString("user_comment");
             //        Integer modifiedId = rs.getInt("modified_id");
             String userName = rs.getString("username");
@@ -118,8 +117,8 @@ public class HistoryMigrateService
             EntityOpType opType = opTypeFrom(optyp);
             hm.setModifiedBy(userName);
             hm.setCreatedBy(userName);
-            hm.setCreatedAt(new Date(date.getTime()));
-            hm.setModifiedAt(new Date(date.getTime()));
+            hm.setCreatedAt(date);
+            hm.setModifiedAt(date);
             hm.setEntityOpType(opType);
             String entityName = emfac.getMetadataRepository().getEntityMetaDataBySimpleClassName(className).getJavaType().getName();
             hm.setEntityName(entityName);

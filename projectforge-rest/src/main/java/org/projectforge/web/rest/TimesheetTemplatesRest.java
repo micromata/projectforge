@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,11 +25,11 @@ package org.projectforge.web.rest;
 
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.user.UserPrefDao;
+import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.TimesheetTemplateObject;
-import org.projectforge.rest.JsonUtils;
 import org.projectforge.web.rest.converter.TimesheetTemplateConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

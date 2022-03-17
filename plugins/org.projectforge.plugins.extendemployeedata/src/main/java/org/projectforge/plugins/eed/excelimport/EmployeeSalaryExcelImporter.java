@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,7 +35,7 @@ import org.projectforge.business.fibu.EmployeeSalaryType;
 import org.projectforge.business.fibu.api.EmployeeSalaryService;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.utils.MyImportedElement;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
@@ -49,7 +49,7 @@ import java.util.*;
 
 public class EmployeeSalaryExcelImporter
 {
-  private static final Logger log = LoggerFactory.getLogger(EmployeeBillingExcelRow.class);
+  private static final Logger log = LoggerFactory.getLogger(EmployeeSalaryExcelImporter.class);
 
   private static final String NAME_OF_EXCEL_SHEET = "employeeSalaries";
 
@@ -137,7 +137,7 @@ public class EmployeeSalaryExcelImporter
   private ImportedElement<EmployeeSalaryDO> convertRowToDo(final ImportedSheet<EmployeeSalaryDO> importedSheet, final EmployeeSalaryExcelRow row)
   {
     final MyImportedElement<EmployeeSalaryDO> element = new MyImportedElement<>(importedSheet, -1, EmployeeSalaryDO.class, DIFF_PROPERTIES);
-    PFDateTime selectedDateTime = PFDateTime.from(this.dateToSelectAttrRow);
+    PFDateTime selectedDateTime = PFDateTime.fromOrNull(this.dateToSelectAttrRow);
     EmployeeDO employee;
     EmployeeSalaryDO employeeSalary = null;
     if (row.getStaffnumber() != null) {

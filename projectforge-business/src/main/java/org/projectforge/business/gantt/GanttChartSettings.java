@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package org.projectforge.business.gantt;
 
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlField;
+import org.projectforge.framework.xmlstream.XmlObject;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Set;
 
 @XmlObject(alias = "ganttChartSettings")
@@ -38,12 +38,12 @@ public class GanttChartSettings implements Serializable
   @XmlField(defaultStringValue = "Gantt diagram by ProjectForge®")
   private String title = "Gantt diagram by ProjectForge®";
 
-  private Date fromDate;
+  private LocalDate fromDate;
 
-  private Date toDate;
-  
+  private LocalDate toDate;
+
   private boolean showOnlyVisibles;
-  
+
   private Set<Serializable> openNodes;
 
   /**
@@ -63,12 +63,12 @@ public class GanttChartSettings implements Serializable
   /**
    * If not set then the start date of the Gantt diagram will be automatically calculated.
    */
-  public Date getFromDate()
+  public LocalDate getFromDate()
   {
     return fromDate;
   }
 
-  public GanttChartSettings setFromDate(Date fromDate)
+  public GanttChartSettings setFromDate(LocalDate fromDate)
   {
     this.fromDate = fromDate;
     return this;
@@ -77,28 +77,28 @@ public class GanttChartSettings implements Serializable
   /**
    * If not set then the end date of the Gantt diagram will be automatically calculated.
    */
-  public Date getToDate()
+  public LocalDate getToDate()
   {
     return toDate;
   }
 
-  public GanttChartSettings setToDate(Date toDate)
+  public GanttChartSettings setToDate(LocalDate toDate)
   {
     this.toDate = toDate;
     return this;
   }
-  
+
   public boolean isShowOnlyVisibles()
   {
     return showOnlyVisibles;
   }
-  
+
   public GanttChartSettings setShowOnlyVisibles(boolean showOnlyVisibles)
   {
     this.showOnlyVisibles = showOnlyVisibles;
     return this;
   }
-  
+
   /**
    * Persist the tree status (which tree nodes are open?).
    * @return
@@ -107,7 +107,7 @@ public class GanttChartSettings implements Serializable
   {
     return openNodes;
   }
-  
+
   public void setOpenNodes(Set<Serializable> openNodes)
   {
     this.openNodes = openNodes;

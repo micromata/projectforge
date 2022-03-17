@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -89,6 +89,8 @@ interface IPFDate<T> : Comparable<T> {
      * 7 - last day of week.
      */
     fun withDayOfWeek(dayOfWeek: Int): T
+
+    fun withDayOfWeek(dayOfWeek: DayOfWeek): T
 
     fun isBefore(other: T): Boolean
     fun isAfter(other: T): Boolean

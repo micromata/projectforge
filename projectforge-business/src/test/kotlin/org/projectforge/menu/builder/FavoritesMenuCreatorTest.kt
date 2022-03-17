@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -60,8 +60,6 @@ class FavoritesMenuTest : AbstractTestBase() {
                 "        <item id=\"licenseManagement\">Lizenzen</item>\n" +
                 "    </item>\n" +
                 "    <item>Orga\n" +
-                "        <item id=\"INBOX_LIST\">Posteingang</item>\n" +
-                "        <item id=\"OUTBOX_LIST\">Postausgang</item>\n" +
                 "        <item id=\"CONTRACTS\">Verträge</item>\n" +
                 "        <item id=\"BOOK_LIST\">Bücher</item>\n" +
                 "    </item>\n" +

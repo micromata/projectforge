@@ -1,13 +1,14 @@
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import styles from './AutoCompletion.module.scss';
 
-function Completion({ displayName, ...props }) {
+function Completion({ displayName, selected, ...props }) {
     return (
         <li
-            className={styles.entry}
+            className={classNames(styles.entry, { [styles.selected]: selected })}
             role="option"
             aria-selected="false"
             {...props}
@@ -23,8 +24,11 @@ function Completion({ displayName, ...props }) {
 
 Completion.propTypes = {
     displayName: PropTypes.string.isRequired,
+    selected: PropTypes.bool,
 };
 
-Completion.defaultProps = {};
+Completion.defaultProps = {
+    selected: false,
+};
 
 export default Completion;

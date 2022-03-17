@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,18 +30,17 @@ import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.i18n.MessageParam;
-import org.projectforge.framework.i18n.MessageParamType;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.MessageParam;
+import org.projectforge.common.i18n.MessageParamType;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.xstream.XmlObjectWriter;
+import org.projectforge.framework.xmlstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -105,7 +104,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
    */
   public int[] getYears() {
     final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(RechnungDO.SELECT_MIN_MAX_DATE, Tuple.class));
-    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
+    return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
   }
 
   public RechnungsStatistik buildStatistik(final List<RechnungDO> list) {
@@ -127,7 +126,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
     if (rechnung.getDatum() == null) {
       return null;
     }
-    PFDateTime dateTime = PFDateTime.from(rechnung.getDatum());
+    PFDateTime dateTime = PFDateTime.from(rechnung.getDatum()); // not null
     dateTime = dateTime.plusDays(days);
     return dateTime.getUtilDate();
   }
@@ -166,12 +165,12 @@ public class RechnungDao extends BaseDao<RechnungDO> {
         rechnung.setNummer(getNextNumber(rechnung));
 
         final PFDateTime day = PFDateTime.now();
-        rechnung.setDatum(day.getSqlDate());
+        rechnung.setDatum(day.getLocalDate());
 
         Integer zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
         if (zahlungsZielInTagen != null) {
           PFDateTime faelligkeitDay = day.plusDays(zahlungsZielInTagen);
-          rechnung.setFaelligkeit(faelligkeitDay.getSqlDate());
+          rechnung.setFaelligkeit(faelligkeitDay.getLocalDate());
         }
       }
     }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,7 +38,7 @@ import javax.persistence.*
 
 @Entity
 @Indexed
-@Table(name = "T_FIBU_KONTO", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_konto_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_FIBU_KONTO", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer"])])
 @WithHistory
 @NamedQueries(
         NamedQuery(name = KontoDO.FIND_BY_NUMMER, query = "from KontoDO where nummer=:nummer"))
@@ -46,7 +46,7 @@ open class KontoDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String
         @Transient
-        get() = "$nummer"
+        get() = "$nummer - $bezeichnung"
 
     @PropertyInfo(i18nKey = "fibu.konto.nummer")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))

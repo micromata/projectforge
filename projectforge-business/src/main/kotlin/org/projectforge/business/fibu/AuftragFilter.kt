@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,6 +29,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
+import java.time.LocalDate
 import java.util.*
 
 /**
@@ -39,13 +40,13 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
 
     var user: PFUserDO? = null
 
-    var startDate: Date? = null
+    var startDate: LocalDate? = null
 
-    var endDate: Date? = null
+    var endDate: LocalDate? = null
 
-    private var periodOfPerformanceStartDate: Date? = null
+    override var periodOfPerformanceStartDate: LocalDate? = null
 
-    private var periodOfPerformanceEndDate: Date? = null
+    override var periodOfPerformanceEndDate: LocalDate? = null
 
     val auftragsStatuses = mutableListOf<AuftragsStatus>()
 
@@ -68,24 +69,7 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
     var auftragsPositionsPaymentType: AuftragsPositionsPaymentType? = null
 
     @JvmOverloads
-    constructor(filter: BaseSearchFilter? = null) : super(filter) {
-    }
-
-    override fun getPeriodOfPerformanceStartDate(): Date? {
-        return periodOfPerformanceStartDate
-    }
-
-    fun setPeriodOfPerformanceStartDate(periodOfPerformanceStartDate: Date?) {
-        this.periodOfPerformanceStartDate = periodOfPerformanceStartDate
-    }
-
-    override fun getPeriodOfPerformanceEndDate(): Date? {
-        return periodOfPerformanceEndDate
-    }
-
-    fun setPeriodOfPerformanceEndDate(periodOfPerformanceEndDate: Date?) {
-        this.periodOfPerformanceEndDate = periodOfPerformanceEndDate
-    }
+    constructor(filter: BaseSearchFilter? = null) : super(filter)
 
     override fun reset(): AuftragFilter {
         searchString = ""
@@ -112,10 +96,12 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
     private fun checkFakturiert(auftrag: AuftragDO): Boolean {
         val orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert
 
-        val vollstaendigFakturiert = AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus
+        val filterVollstaendigFakturiert = AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus
         // special case
         if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
-                !vollstaendigFakturiert && auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
+                !filterVollstaendigFakturiert && (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN) ||
+                        auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN)) {
+            // Don't remember why only Non-HSQLDB is supported...
 
             // if order is completed and not all positions are completely invoiced
             if (auftrag.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN && !orderIsCompletelyInvoiced) {
@@ -136,6 +122,6 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
             }
             return false
         }
-        return orderIsCompletelyInvoiced == vollstaendigFakturiert
+        return orderIsCompletelyInvoiced == filterVollstaendigFakturiert
     }
 }

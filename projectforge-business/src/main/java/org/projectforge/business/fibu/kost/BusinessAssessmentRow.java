@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,7 +27,7 @@ import groovy.lang.Script;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.business.scripting.GroovyExecutor;
-import org.projectforge.business.scripting.GroovyResult;
+import org.projectforge.business.scripting.ScriptExecutionResult;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.utils.IntRanges;
@@ -93,7 +93,7 @@ public class BusinessAssessmentRow implements Serializable
 
   /**
    * Addiert den Kontoumsatz und falls setStoreBuchungsaetze(true) gesetzt wurde, wird der Buchungssatz intern hinzugefügt.
-   * @param satz
+   * @param record
    */
   public void addAccountRecord(final BuchungssatzDO record)
   {
@@ -214,7 +214,7 @@ public class BusinessAssessmentRow implements Serializable
     amount = BigDecimal.ZERO;
     final Map<String, Object> vars = new HashMap<>();
     BusinessAssessment.putBusinessAssessmentRows(vars, businessAssessment);
-    final GroovyResult result = new GroovyExecutor().execute(groovyScript, vars);
+    final ScriptExecutionResult result = new GroovyExecutor().execute(groovyScript, vars);
     final Object rval = result.getResult();
     if (rval instanceof BigDecimal) {
       amount = (BigDecimal)rval;

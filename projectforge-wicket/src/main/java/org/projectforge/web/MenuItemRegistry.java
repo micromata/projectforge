@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,21 +34,13 @@ import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
 import org.projectforge.web.humanresources.HRPlanningListPage;
-import org.projectforge.web.meb.MebListPage;
 import org.projectforge.web.orga.ContractListPage;
-import org.projectforge.web.orga.PostausgangListPage;
-import org.projectforge.web.orga.PosteingangListPage;
 import org.projectforge.web.orga.VisitorbookListPage;
-import org.projectforge.web.scripting.ScriptListPage;
-import org.projectforge.web.scripting.ScriptingPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
-import org.projectforge.web.statistics.SystemStatisticsPage;
 import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.*;
-import org.projectforge.web.vacation.VacationAccountPage;
-import org.projectforge.web.vacation.VacationListPage;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -86,12 +78,10 @@ public class MenuItemRegistry implements Serializable {
    */
   private void initialize(final MenuItemRegistry reg) {
     register(MenuItemDefId.CALENDAR, TeamCalCalendarPage.class);
-    register(MenuItemDefId.VACATION, VacationListPage.class);
     // createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
 
     register(MenuItemDefId.PHONE_CALL, PhoneCallPage.class);
     register(MenuItemDefId.SEND_SMS, SendSmsPage.class);
-    register(MenuItemDefId.MEB, MebListPage.class);
     // createdMenuEntry.setNewCounterModel(new MenuNewCounterMeb());
     register(MenuItemDefId.SEARCH, SearchPage.class);
     register(MenuItemDefId.TASK_TREE, TaskTreePage.class);
@@ -114,20 +104,12 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.COST1_LIST, Kost1ListPage.class);
     register(MenuItemDefId.COST2_LIST, Kost2ListPage.class);
     register(MenuItemDefId.COST2_TYPE_LIST, Kost2ArtListPage.class);
-    register(MenuItemDefId.SCRIPT_LIST, ScriptListPage.class);
-    register(MenuItemDefId.SCRIPTING, ScriptingPage.class);
     register(MenuItemDefId.REPORT_OBJECTIVES, ReportObjectivesPage.class);
     register(MenuItemDefId.ACCOUNTING_RECORD_LIST, AccountingRecordListPage.class);
     register(MenuItemDefId.DATEV_IMPORT, DatevImportPage.class);
-    register(MenuItemDefId.OUTBOX_LIST, PostausgangListPage.class);
-    register(MenuItemDefId.INBOX_LIST, PosteingangListPage.class);
     register(MenuItemDefId.CONTRACTS, ContractListPage.class);
     register(MenuItemDefId.VISITORBOOK, VisitorbookListPage.class);
-    register(MenuItemDefId.MY_ACCOUNT, MyAccountEditPage.class);
-    register(MenuItemDefId.VACATION_ACCOUNT, VacationAccountPage.class);
     register(MenuItemDefId.MY_PREFERENCES, UserPrefListPage.class);
-    register(MenuItemDefId.CHANGE_PASSWORD, ChangePasswordPage.class);
-    register(MenuItemDefId.CHANGE_WLAN_PASSWORD, ChangeWlanPasswordPage.class);
     register(MenuItemDefId.USER_LIST, UserListPage.class);
     register(MenuItemDefId.GROUP_LIST, GroupListPage.class);
     register(MenuItemDefId.ACCESS_LIST, AccessListPage.class);
@@ -135,8 +117,6 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.SQL_CONSOLE, SqlConsolePage.class);
     register(MenuItemDefId.GROOVY_CONSOLE, GroovyConsolePage.class);
     register(MenuItemDefId.LUCENE_CONSOLE, LuceneConsolePage.class);
-    register(MenuItemDefId.SYSTEM_UPDATE, SystemUpdatePage.class);
-    register(MenuItemDefId.SYSTEM_STATISTICS, SystemStatisticsPage.class);
     register(MenuItemDefId.CONFIGURATION, ConfigurationListPage.class);
     register(MenuItemDefId.PLUGIN_ADMIN, PluginListPage.class);
   }

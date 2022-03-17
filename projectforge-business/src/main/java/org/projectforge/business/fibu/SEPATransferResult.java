@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.business.fibu;
 
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.SEPATransferGenerator;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,33 +32,27 @@ import java.util.Map;
  *
  * @author Stefan Niemczyk (s.niemczyk@micromata.de)
  */
-public class SEPATransferResult
-{
+public class SEPATransferResult {
   private byte[] xml;
   private Map<EingangsrechnungDO, List<SEPATransferGenerator.SEPATransferError>> errors;
 
-  protected SEPATransferResult()
-  {
+  protected SEPATransferResult() {
     errors = new HashMap<>();
   }
 
-  public boolean isSuccessful()
-  {
+  public boolean isSuccessful() {
     return xml != null;
   }
 
-  public byte[] getXml()
-  {
+  public byte[] getXml() {
     return xml;
   }
 
-  public void setXml(final byte[] xml)
-  {
+  public void setXml(final byte[] xml) {
     this.xml = xml;
   }
 
-  public Map<EingangsrechnungDO, List<SEPATransferGenerator.SEPATransferError>> getErrors()
-  {
+  public Map<EingangsrechnungDO, List<SEPATransferGenerator.SEPATransferError>> getErrors() {
     return errors;
   }
 }

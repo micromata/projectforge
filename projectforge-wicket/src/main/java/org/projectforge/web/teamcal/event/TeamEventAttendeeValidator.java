@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.web.teamcal.event;
 
-import java.util.Collection;
-
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.framework.i18n.I18nHelper;
+
+import java.util.Collection;
 
 public class TeamEventAttendeeValidator implements IValidator<Collection<TeamEventAttendeeDO>>
 {

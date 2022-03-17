@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -41,11 +38,14 @@ import org.projectforge.business.fibu.kost.BusinessAssessmentTable;
 import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
 import org.projectforge.business.utils.CurrencyFormatter;
+import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.utils.LabelValueBean;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.web.wicket.components.PlainLabel;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 public class ReportObjectivesPanel extends Panel
 {

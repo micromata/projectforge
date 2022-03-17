@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.web.statistics;
 
-import java.text.NumberFormat;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -38,6 +36,8 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.statistics.TimesheetDisciplineChartBuilder;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.JFreeChartImage;
+
+import java.text.NumberFormat;
 
 public class PersonalStatisticsPage extends AbstractSecuredPage
 {
@@ -63,7 +63,7 @@ public class PersonalStatisticsPage extends AbstractSecuredPage
     body.add(timesheetDisciplineChartTitle);
     final EmployeeDO employee = employeeDao.findByUserId(ThreadLocalUserContext.getUserId());
     double workingHoursPerDay = 8;
-    if (employee != null && NumberHelper.isGreaterZero(employee.getWeeklyWorkingHours()) == true) {
+    if (employee != null && NumberHelper.isGreaterZero(employee.getWeeklyWorkingHours())) {
       workingHoursPerDay = employee.getWeeklyWorkingHours().doubleValue() / 5;
     }
     final TimesheetDisciplineChartBuilder chartBuilder = new TimesheetDisciplineChartBuilder();
@@ -85,7 +85,7 @@ public class PersonalStatisticsPage extends AbstractSecuredPage
     timesheetDisciplineChart1Legend.setEscapeModelStrings(false);
     body.add(timesheetDisciplineChart1Legend);
 
-    final JFreeChart chart2 = chartBuilder.create(timesheetDao, getUser().getId(), LAST_N_DAYS, true);
+    final JFreeChart chart2 = chartBuilder.create(timesheetDao, getUser().getId(), 0, LAST_N_DAYS, false);
     image = new JFreeChartImage("timesheetStatisticsImage2", chart2, IMAGE_WIDTH, IMAGE_HEIGHT);
     image.add(AttributeModifier.replace("width", String.valueOf(IMAGE_WIDTH)));
     image.add(AttributeModifier.replace("height", String.valueOf(IMAGE_HEIGHT)));

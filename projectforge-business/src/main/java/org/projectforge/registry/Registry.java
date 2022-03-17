@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,8 +33,6 @@ import org.projectforge.business.fibu.kost.*;
 import org.projectforge.business.gantt.GanttChartDao;
 import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
-import org.projectforge.business.meb.MebDao;
-import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.orga.ContractDao;
 import org.projectforge.business.orga.PostausgangDao;
 import org.projectforge.business.orga.PosteingangDao;
@@ -92,7 +90,6 @@ public class Registry
     register(DaoConst.CONFIGURATION, ConfigurationDao.class, applicationContext.getBean(ConfigurationDao.class),
         "administration.configuration")
             .setSearchable(false);
-    register(DaoConst.TENANT, TenantDao.class, applicationContext.getBean(TenantDao.class), "tenant");
     register(DaoConst.USER, UserDao.class, applicationContext.getBean(UserDao.class), "user");
     register(DaoConst.GROUP, GroupDao.class, applicationContext.getBean(GroupDao.class), "group");
     register(DaoConst.TASK, TaskDao.class, applicationContext.getBean(TaskDao.class), "task"); // needs PFUserDO
@@ -147,7 +144,6 @@ public class Registry
     register(DaoConst.HR_PLANNING, HRPlanningDao.class, applicationContext.getBean(HRPlanningDao.class), "hr.planning") //
         .setNestedDOClasses(HRPlanningEntryDO.class).setSearchable(false);
 
-    register(DaoConst.MEB, MebDao.class, applicationContext.getBean(MebDao.class), "meb");
     register(DaoConst.SCRIPT, ScriptDao.class, applicationContext.getBean(ScriptDao.class), "scripting")
         .setSearchable(false);
     register(DaoConst.USER_PREF, UserPrefDao.class, applicationContext.getBean(UserPrefDao.class)).setSearchable(false);
@@ -239,6 +235,11 @@ public class Registry
   public RegistryEntry getEntry(final Class<? extends BaseDao<?>> daoClass)
   {
     return mapByDao.get(daoClass);
+  }
+
+  public <T extends BaseDao<?>> T getDao(final Class<T> daoClass)
+  {
+    return (T)mapByDao.get(daoClass).getDao();
   }
 
   public RegistryEntry getEntryByDO(final Class<? extends BaseDO<?>> doClass)

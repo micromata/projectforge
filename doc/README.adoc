@@ -1,5 +1,4 @@
-ProjectForge documentation
-==========================
+= ProjectForge documentation
 Micromata GmbH, Version {version}
 :toc:
 :toclevels: 4
@@ -8,20 +7,9 @@ Micromata GmbH, Version {version}
 
 ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 
-== Welcome to ProjectForge's world
+:hide-uri-scheme:
 
-*_Enjoy ProjectForge!_*
+== Moved to https://projectforge.org/
 
-== Documents
+Local folder: `site/`
 
-Please, refer also https://www.projectforge.org/documentation.html[www.projectforge.org]
-
-[%autowidth, frame="topbot",options="header"]
-|=======
-|Document | Description
-|link:development{outfilesuffix}[Development]|Development docs.
-|link:migration{outfilesuffix}[Migration]|Migration guide.
-|link:installation{outfilesuffix}[Installation]|Installation docs.
-|link:deployment{outfilesuffix}[Deployment]|How to deploy a new release.
-|link:license{outfilesuffix}[License]| GNU GENERAL PUBLIC LICENSE, Version 3
-|=======

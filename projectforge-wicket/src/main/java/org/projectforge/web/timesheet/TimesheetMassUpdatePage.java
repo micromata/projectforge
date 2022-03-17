@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,33 +23,39 @@
 
 package org.projectforge.web.timesheet;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DefaultDataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlDateTimeFormatter;
+import org.projectforge.common.logging.LogEventLoggerNameMatcher;
+import org.projectforge.common.logging.LogSubscription;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.MyBeanComparator;
+import org.projectforge.rest.admin.LogViewerPageRest;
+import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractMassEditPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
+import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
-public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISelectCallerPage
-{
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+
+public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISelectCallerPage {
   private static final long serialVersionUID = -5549904132530779884L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetMassUpdatePage.class);
@@ -67,9 +73,13 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
 
   private final TimesheetMassUpdateForm form;
 
-  public TimesheetMassUpdatePage(final AbstractSecuredPage callerPage, final List<TimesheetDO> timesheets)
-  {
+  public TimesheetMassUpdatePage(final AbstractSecuredPage callerPage, final List<TimesheetDO> timesheets) {
     super(new PageParameters(), callerPage);
+    final String username = ThreadLocalUserContext.getUser().getUsername();
+    final LogSubscription logSubscription = LogSubscription.ensureSubscription("Timesheet mass update", username,
+        (title, user) -> new LogSubscription(title, user, new LogEventLoggerNameMatcher("org.projectforge.business.timesheet.TimesheetDao", "org.projectforge.framework.persistence.api.BaseDaoSupport|TimesheetDO")
+        .withBlocked("org.projectforge.business.timesheet.TimesheetDao|TimesheetDao.hasTimeOverlap")));
+
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     this.timesheets = timesheets;
     form = new TimesheetMassUpdateForm(this);
@@ -88,17 +98,18 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
     }
     body.add(form);
     form.init();
+
+    final ExternalLink logViewerLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(LogViewerPageRest.class, null, logSubscription.getId(), true));
+    addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), logViewerLink, getString("system.admin.logViewer.title")));
+
     final List<IColumn<TimesheetDO, String>> columns = TimesheetListPage.createColumns(getUserGroupCache(), this,
         false, true,
         null,
         taskTree,
         userFormatter, dateTimeFormatter);
-    @SuppressWarnings("serial")
-    final SortableDataProvider<TimesheetDO, String> sortableDataProvider = new SortableDataProvider<TimesheetDO, String>()
-    {
+    @SuppressWarnings("serial") final SortableDataProvider<TimesheetDO, String> sortableDataProvider = new SortableDataProvider<TimesheetDO, String>() {
       @Override
-      public Iterator<TimesheetDO> iterator(final long first, final long count)
-      {
+      public Iterator<TimesheetDO> iterator(final long first, final long count) {
         final SortParam sp = getSort();
         final Comparator<TimesheetDO> comp = new MyBeanComparator<TimesheetDO>(sp.getProperty().toString(),
             sp.isAscending());
@@ -107,19 +118,15 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
       }
 
       @Override
-      public long size()
-      {
+      public long size() {
         return timesheets != null ? timesheets.size() : 0;
       }
 
       @Override
-      public IModel<TimesheetDO> model(final TimesheetDO object)
-      {
-        return new Model<TimesheetDO>()
-        {
+      public IModel<TimesheetDO> model(final TimesheetDO object) {
+        return new Model<TimesheetDO>() {
           @Override
-          public TimesheetDO getObject()
-          {
+          public TimesheetDO getObject() {
             return object;
           }
         };
@@ -133,14 +140,12 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
   }
 
   @Override
-  public void cancelSelection(final String property)
-  {
+  public void cancelSelection(final String property) {
     // Do nothing.
   }
 
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     if ("taskId".equals(property) == true) {
       timesheetDao.setTask(form.data, (Integer) selectedValue);
       form.refresh();
@@ -150,8 +155,7 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
   }
 
   @Override
-  public void unselect(final String property)
-  {
+  public void unselect(final String property) {
     if ("taskId".equals(property) == true) {
       form.data.setTask(null);
       form.refresh();
@@ -161,8 +165,7 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
   }
 
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return getString("timesheet.massupdate.title");
   }
 
@@ -170,8 +173,7 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
    * @see org.projectforge.web.wicket.AbstractMassEditPage#updateAll()
    */
   @Override
-  protected void updateAll()
-  {
+  protected void updateAll() {
     if (form.updateTask == false) {
       form.data.setTask(null);
     }

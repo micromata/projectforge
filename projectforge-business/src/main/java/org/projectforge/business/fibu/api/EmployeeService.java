@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,7 +35,6 @@ import org.projectforge.framework.time.PFDateTime;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.Collection;
 import java.util.List;
 
@@ -79,8 +78,6 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
    * @param annualLeaveDays
    */
   EmployeeTimedDO addNewAnnualLeaveDays(final EmployeeDO employee, final LocalDate validfrom, final BigDecimal annualLeaveDays);
-
-  String getStudentVacationCountPerDay(EmployeeDO currentEmployee);
 
   /**
    *

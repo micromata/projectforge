@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,7 @@ data class LayoutContext(
          */
         val dataObjectClazz: Class<*>?,
         var idPrefix: String? = null) {
-    private val log = org.slf4j.LoggerFactory.getLogger(ElementsRegistry::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(LayoutContext::class.java)
 
     private val listElements = mutableMapOf<String, ElementInfo>()
 

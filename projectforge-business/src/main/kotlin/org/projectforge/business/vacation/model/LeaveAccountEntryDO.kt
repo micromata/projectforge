@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -46,10 +46,9 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "t_employee_leave_account_entry",
-        indexes = [javax.persistence.Index(name = "idx_fk_t_leave_account_employee_id", columnList = "employee_id"),
-            javax.persistence.Index(name = "idx_fk_t_leave_account_tenant_id", columnList = "tenant_id")])
+        indexes = [javax.persistence.Index(name = "idx_fk_t_leave_account_employee_id", columnList = "employee_id")])
 @NamedQueries(NamedQuery(name = LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD,
-        query = "from LeaveAccountEntryDO where employee.id=:employeeId and date>=:fromDate and date<=:toDate and deleted=false"))
+        query = "from LeaveAccountEntryDO where employee.id=:employeeId and date>=:fromDate and date<=:toDate and deleted=false order by date desc"))
 open class LeaveAccountEntryDO : DefaultBaseDO() {
     /**
      * The employee.

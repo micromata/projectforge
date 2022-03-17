@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,6 @@
 package org.projectforge.business.user;
 
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -43,6 +42,9 @@ public class UserRightDao extends BaseDao<UserRightDO> {
 
   @Autowired
   private UserRightService userRightService;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   protected UserRightDao() {
     super(UserRightDO.class);
@@ -98,8 +100,8 @@ public class UserRightDao extends BaseDao<UserRightDO> {
     for (final UserRightDO rightDO : dbList) {
       String rightId = rightDO.getRightIdString();
       UserRight right = userRightService.getRight(rightId);
-      if (!right.isAvailable(userGroupCache, user)
-              || !right.isAvailable(userGroupCache, user, rightDO.getValue())) {
+      if (right != null && (!right.isAvailable(userGroupCache, user)
+              || !right.isAvailable(userGroupCache, user, rightDO.getValue()))) {
         rightDO.setValue(null);
         update(rightDO);
       }
@@ -114,9 +116,17 @@ public class UserRightDao extends BaseDao<UserRightDO> {
   }
 
   @Override
-  protected void afterSaveOrModify(final UserRightDO obj) {
-    super.afterSaveOrModify(obj);
-    TenantRegistryMap.getInstance().getTenantRegistry(obj).getUserGroupCache().setExpired();
+  protected void afterUpdate(UserRightDO obj, UserRightDO dbObj, boolean isModified) {
+    super.afterUpdate(obj, dbObj, isModified);
+    if (isModified) {
+      userGroupCache.setExpired();
+    }
+  }
+
+  @Override
+  protected void afterSave(UserRightDO obj) {
+    super.afterSave(obj);
+    userGroupCache.setExpired();
   }
 
   private void copy(final UserRightDO dest, final UserRightVO src) {

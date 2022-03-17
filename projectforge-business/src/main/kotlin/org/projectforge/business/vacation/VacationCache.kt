@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,30 +23,30 @@
 
 package org.projectforge.business.vacation
 
+import mu.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDate
-import javax.persistence.EntityManager
-import javax.persistence.LockModeType
+
+private val log = KotlinLogging.logger {}
 
 /**
- * The kost2 entries will be cached.
+ * The vacation entries will be cached.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
 open class VacationCache : AbstractCache() {
     @Autowired
-    private lateinit var em: EntityManager
+    private lateinit var vacationDao: VacationDao
 
     @Autowired
-    private lateinit var vacationDao: VacationDao
+    private lateinit var userGroupCache: UserGroupCache
 
     private lateinit var vacationSet: Set<VacationDO>
 
@@ -54,21 +54,20 @@ open class VacationCache : AbstractCache() {
      * Checks also the select access of the logged in user.
      */
     open fun getVacationForPeriodAndUsers(startVacationDate: LocalDate, endVacationDate: LocalDate,
-                                     groupIds: Set<Int>?, userIds: Set<Int>?): List<VacationDO> {
+                                          groupIds: Set<Int>?, userIds: Set<Int>?): List<VacationDO> {
         checkRefresh()
         val result = mutableListOf<VacationDO>()
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
             log.info("No groups given, therefore no vacation will be returned.")
             return result
         }
-        val userGroupCache = UserGroupCache.tenantInstance
         val loggedInUser = ThreadLocalUserContext.getUser()
         for (vacation in vacationSet) {
-            if (vacation.endDate?.isBefore(startVacationDate) ?: false ||
-                    vacation.startDate?.isAfter(endVacationDate) ?: false   ) {
+            if (vacation.endDate?.isBefore(startVacationDate) == true ||
+                    vacation.startDate?.isAfter(endVacationDate) == true) {
                 continue
             }
-            if (!vacationDao.hasSelectAccess(vacation, loggedInUser, false)) {
+            if (!vacationDao.hasSelectAccess(vacation, loggedInUser)) {
                 continue
             }
             val employeeUser = vacation.employee?.user ?: continue
@@ -78,7 +77,7 @@ open class VacationCache : AbstractCache() {
                 } ?: false // Null doesn't match.
             } ?: false // Null doesn't match
             if (!match) { // Search for users
-                match = userIds?.any {uid ->
+                match = userIds?.any { uid ->
                     uid == employeeUser.id // The employee matches with one given user.
                 } ?: false // Null doesn't match
             }
@@ -93,22 +92,15 @@ open class VacationCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     override fun refresh() {
-        log.info("Initializing VacationCache ...")
+        log.info("Refreshing VacationCache ...")
         // This method must not be synchronized because it works with a new copy of maps.
         val set = mutableSetOf<VacationDO>()
-        val list = em.createQuery("from VacationDO t", VacationDO::class.java)
-                .setLockMode(LockModeType.NONE)
-                .resultList
-        list.forEach {
+        vacationDao.internalLoadAll().forEach {
             if (!it.isDeleted) {
                 set.add(it)
             }
         }
         vacationSet = set
-        log.info("Initializing of VacationCache done.")
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(VacationCache::class.java)
+        log.info("Refreshing of VacationCache done.")
     }
 }

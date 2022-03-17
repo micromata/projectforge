@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,7 +36,6 @@
 package net.ftlines.wicket.fullcalendar.callback;
 
 import net.ftlines.wicket.fullcalendar.FullCalendar;
-
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 
 abstract class AbstractAjaxCallback extends AbstractDefaultAjaxBehavior {

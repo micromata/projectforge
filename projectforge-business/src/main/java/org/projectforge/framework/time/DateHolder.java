@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,8 +28,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
 import java.util.Date;
@@ -101,7 +101,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param precision
    */
   public DateHolder(final Date date, final DatePrecision precision) {
-    this.dateTime = PFDateTime.from(date, true);
+    this.dateTime = PFDateTime.fromOrNow(date);
     setPrecision(precision);
   }
 
@@ -111,7 +111,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param date
    */
   public DateHolder(final Date date, final DatePrecision precision, final Locale locale) {
-    this.dateTime = PFDateTime.from(date, true, ThreadLocalUserContext.getTimeZone(), locale);
+    this.dateTime = PFDateTime.fromOrNow(date, ThreadLocalUserContext.getTimeZone(), locale);
     setPrecision(precision);
   }
 
@@ -119,7 +119,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Ensures the precision.
    */
   public DateHolder(final Date date, final DatePrecision precision, final TimeZone timeZone, final Locale locale) {
-    this.dateTime = PFDateTime.from(date, true, timeZone, locale);
+    this.dateTime = PFDateTime.fromOrNow(date, timeZone, locale);
     setPrecision(precision);
   }
 
@@ -127,7 +127,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Ensures the precision.
    */
   public DateHolder(final Date date) {
-    this.dateTime = PFDateTime.from(date, true);
+    this.dateTime = PFDateTime.fromOrNow(date);
     ensurePrecision();
   }
 
@@ -135,12 +135,12 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Initializes calendar with given date and uses the given time zone and the locale of the ContextUser if exists.
    */
   public DateHolder(final Date date, final TimeZone timeZone) {
-    this.dateTime = PFDateTime.from(date, true, timeZone);
+    this.dateTime = PFDateTime.fromOrNow(date, timeZone);
     ensurePrecision();
   }
 
   public DateHolder(final Date date, final TimeZone timeZone, final Locale locale) {
-    this.dateTime = PFDateTime.from(date, true, timeZone, locale);
+    this.dateTime = PFDateTime.fromOrNow(date, timeZone, locale);
     ensurePrecision();
   }
 
@@ -156,28 +156,28 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * Ensures the precision.
    */
   public DateHolder(final Date date, final Locale locale) {
-    this.dateTime = PFDateTime.from(date, true, ThreadLocalUserContext.getTimeZone(), locale);
+    this.dateTime = PFDateTime.fromOrNow(date, ThreadLocalUserContext.getTimeZone(), locale);
     ensurePrecision();
   }
 
   public boolean before(final DateHolder date) {
-    return this.getDate().before(date.getDate());
+    return this.getUtilDate().before(date.getUtilDate());
   }
 
   public boolean before(final Date date) {
-    return this.getDate().before(date);
+    return this.getUtilDate().before(date);
   }
 
   public boolean after(final DateHolder date) {
-    return this.getDate().after(date.getDate());
+    return this.getUtilDate().after(date.getUtilDate());
   }
 
   public boolean after(final Date date) {
-    return this.getDate().after(date);
+    return this.getUtilDate().after(date);
   }
 
   public boolean isBetween(final Date from, final Date to) {
-    final Date date = getDate();
+    final Date date = getUtilDate();
     if (from == null) {
       if (to == null) {
         return false;
@@ -191,8 +191,8 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
   }
 
   public boolean isBetween(final DateHolder from, final DateHolder to) {
-    final Date fromDate = from != null ? from.getDate() : null;
-    final Date toDate = to != null ? to.getDate() : null;
+    final Date fromDate = from != null ? from.getUtilDate() : null;
+    final Date toDate = to != null ? to.getUtilDate() : null;
     return isBetween(fromDate, toDate);
   }
 
@@ -203,7 +203,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     if (date == null) {
       return this;
     }
-    this.dateTime = PFDateTime.from(date, false, dateTime.getTimeZone(), dateTime.getLocale());
+    this.dateTime = PFDateTime.from(date, dateTime.getTimeZone(), dateTime.getLocale());
     ensurePrecision();
     return this;
   }
@@ -214,7 +214,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @param millis UTC millis
    */
   public DateHolder setDate(final long millis) {
-    this.dateTime = PFDateTime.from(millis, false, dateTime.getZone(), dateTime.getLocale());
+    this.dateTime = PFDateTime.from(millis, dateTime.getZone(), dateTime.getLocale());
     ensurePrecision();
     return this;
   }
@@ -251,9 +251,8 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * java.sql.Date should be 21.11.1970! <br/>
    * This methods transforms first the day into UTC and then into java.sql.Date.
    */
-
-  public java.sql.Date getSQLDate() {
-    return this.dateTime.getSqlDate();
+  public LocalDate getLocalDate() {
+    return this.dateTime.getLocalDate();
   }
 
   /**
@@ -263,7 +262,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @return
    */
   public boolean isSameDay(final Date date) {
-    final PFDateTime other = PFDateTime.from(date, false, this.dateTime.getTimeZone(), this.dateTime.getLocale());
+    final PFDateTime other = PFDateTime.from(date, this.dateTime.getTimeZone(), this.dateTime.getLocale());
     return this.dateTime.isSameDay(other);
   }
 
@@ -370,7 +369,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
     return this;
   }
 
-  public Date getDate() {
+  public Date getUtilDate() {
     return this.dateTime.getUtilDate();
   }
 
@@ -381,10 +380,6 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    */
   public long getTimeOfDay() {
     return getHourOfDay() * 3600 + getMinute() * 60 + getSecond();
-  }
-
-  public Timestamp getTimestamp() {
-    return new Timestamp(getDate().getTime());
   }
 
   public int getYear() {
@@ -505,7 +500,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
    * @return other.days - this.days.
    */
   public long daysBetween(final Date other) {
-    PFDateTime otherDay = PFDateTime.from(other, false, this.dateTime.getTimeZone(), this.dateTime.getLocale());
+    PFDateTime otherDay = PFDateTime.fromOrNull(other, this.dateTime.getTimeZone(), this.dateTime.getLocale());
     return this.dateTime.daysBetween(otherDay);
   }
 
@@ -541,7 +536,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
 
   @Override
   public String toString() {
-    return DateHelper.formatAsUTC(getDate()) + ", time zone=" + dateTime.getZone() + ", date=" + this.dateTime;
+    return DateHelper.formatAsUTC(getUtilDate()) + ", time zone=" + dateTime.getZone() + ", date=" + this.dateTime;
   }
 
   @Override

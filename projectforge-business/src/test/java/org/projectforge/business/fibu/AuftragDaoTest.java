@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,12 +28,12 @@ import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserRightDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
+import org.projectforge.common.i18n.UserException;
+import org.projectforge.framework.ToStringUtil;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
-import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,12 +47,12 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AuftragDaoTest extends AbstractTestBase
-{
+public class AuftragDaoTest extends AbstractTestBase {
   private static int dbNumber = 0;
 
   @Override
   protected void beforeAll() {
+    recreateDataBase(); // Remove any orders created by other tests before.
     dbNumber = auftragDao.getNextNumber();
   }
 
@@ -71,8 +71,7 @@ public class AuftragDaoTest extends AbstractTestBase
   private final Random random = new Random();
 
   @Test
-  public void getNextNumber()
-  {
+  public void getNextNumber() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     AuftragDO auftrag = new AuftragDO();
     auftrag.setNummer(auftragDao.getNextNumber(auftrag));
@@ -87,8 +86,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void checkAccess()
-  {
+  public void checkAccess() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     AuftragDO auftrag1 = new AuftragDO();
     auftrag1.setNummer(auftragDao.getNextNumber(auftrag1));
@@ -115,8 +113,8 @@ public class AuftragDaoTest extends AbstractTestBase
     AuftragDO auftrag3 = new AuftragDO();
     auftrag3.setNummer(auftragDao.getNextNumber(auftrag3));
     auftragDao.setContactPerson(auftrag3, getUserId(AbstractTestBase.TEST_PROJECT_MANAGER_USER));
-    final PFDateTime dateTime = PFDateTime.now().minusYears(6); // 6 years old.
-    auftrag3.setAngebotsDatum(dateTime.getSqlDate());
+    final PFDay dateTime = PFDay.now().minusYears(6); // 6 years old.
+    auftrag3.setAngebotsDatum(dateTime.getLocalDate());
     auftrag3.setAuftragsStatus(AuftragsStatus.ABGESCHLOSSEN);
     final AuftragsPositionDO position = new AuftragsPositionDO();
     position.setVollstaendigFakturiert(true);
@@ -135,7 +133,7 @@ public class AuftragDaoTest extends AbstractTestBase
     auftragDao.getById(id2);
     try {
       auftragDao.getById(id3);
-      fail("AccessException expected: Projectmanager should not have access to 2 years old orders.");
+      fail("AccessException expected: Projectmanager should not have access to older orders than " + AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER + " days.");
     } catch (final AccessException ex) {
       // OK
     }
@@ -152,8 +150,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void checkAccess2()
-  {
+  public void checkAccess2() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     final GroupDO group1 = initTestDB.addGroup("AuftragDaoTest.ProjectManagers1", AbstractTestBase.TEST_PROJECT_ASSISTANT_USER);
     final GroupDO group2 = initTestDB.addGroup("AuftragDaoTest.ProjectManagers2", AbstractTestBase.TEST_PROJECT_MANAGER_USER);
@@ -206,8 +203,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void checkPartlyReadwriteAccess()
-  {
+  public void checkPartlyReadwriteAccess() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     PFUserDO user = initTestDB.addUser("AuftragDaoCheckPartlyReadWriteAccess");
     GroupDO financeGroup = getGroup(AbstractTestBase.FINANCE_GROUP);
@@ -267,8 +263,7 @@ public class AuftragDaoTest extends AbstractTestBase
     auftrag = auftragDao.getById(id);
   }
 
-  private void checkHasUpdateAccess(final Serializable auftragsId)
-  {
+  private void checkHasUpdateAccess(final Serializable auftragsId) {
     AuftragDO auftrag = auftragDao.getById(auftragsId);
     final String value = String.valueOf(random.nextLong());
     auftrag.setBemerkung(value);
@@ -277,8 +272,7 @@ public class AuftragDaoTest extends AbstractTestBase
     assertEquals(value, auftrag.getBemerkung());
   }
 
-  private void checkNoAccess(final String who)
-  {
+  private void checkNoAccess(final String who) {
     try {
       final AuftragFilter filter = new AuftragFilter();
       auftragDao.getList(filter);
@@ -288,8 +282,7 @@ public class AuftragDaoTest extends AbstractTestBase
     }
   }
 
-  private void checkNoAccess(final Serializable auftragsId, final String who)
-  {
+  private void checkNoAccess(final Serializable auftragsId, final String who) {
     try {
       auftragDao.getById(auftragsId);
       fail("AccessException expected: " + who + " users should not have select access to orders.");
@@ -298,15 +291,13 @@ public class AuftragDaoTest extends AbstractTestBase
     }
   }
 
-  private void checkNoAccess(final Serializable id, final AuftragDO auftrag, final String who)
-  {
+  private void checkNoAccess(final Serializable id, final AuftragDO auftrag, final String who) {
     checkNoAccess(who);
     checkNoAccess(id, who);
     checkNoWriteAccess(id, auftrag, who);
   }
 
-  private void checkNoWriteAccess(final Serializable id, final AuftragDO auftrag, final String who)
-  {
+  private void checkNoWriteAccess(final Serializable id, final AuftragDO auftrag, final String who) {
     try {
       final AuftragDO auf = new AuftragDO();
       final int number = auftragDao.getNextNumber(auf);
@@ -326,8 +317,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void checkVollstaendigFakturiert()
-  {
+  public void checkVollstaendigFakturiert() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     AuftragDO auftrag1 = new AuftragDO();
     auftrag1.setNummer(auftragDao.getNextNumber(auftrag1));
@@ -372,8 +362,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void checkEmptyAuftragsPositionen()
-  {
+  public void checkEmptyAuftragsPositionen() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     AuftragDO auftrag = new AuftragDO();
     auftrag.setNummer(auftragDao.getNextNumber(auftrag));
@@ -404,14 +393,13 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition()
-  {
+  public void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition() {
     final AuftragDO auftrag = new AuftragDO();
     final List<AuftragsPositionDO> auftragsPositions = auftrag.ensureAndGetPositionen();
     final List<PaymentScheduleDO> paymentSchedules = auftrag.ensureAndGetPaymentSchedules();
 
-    auftrag.setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(2017, 5, 1)));
-    auftrag.setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(2017, 6, 30)));
+    auftrag.setPeriodOfPerformanceBegin(LocalDate.of(2017, 5, 1));
+    auftrag.setPeriodOfPerformanceEnd(LocalDate.of(2017, 6, 30));
 
     AuftragsPositionDO pos1 = new AuftragsPositionDO();
     pos1.setNumber((short) 1);
@@ -419,39 +407,39 @@ public class AuftragDaoTest extends AbstractTestBase
     AuftragsPositionDO pos2 = new AuftragsPositionDO();
     pos2.setNumber((short) 2);
     pos2.setPeriodOfPerformanceType(PeriodOfPerformanceType.OWN);
-    pos2.setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(2017, 5, 24)));
-    pos2.setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(2017, 5, 25)));
+    pos2.setPeriodOfPerformanceBegin(LocalDate.of(2017, 5, 24));
+    pos2.setPeriodOfPerformanceEnd(LocalDate.of(2017, 5, 25));
 
     auftragsPositions.add(pos1);
     auftragsPositions.add(pos2);
 
     PaymentScheduleDO paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 1);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 1)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 5, 1));
 
     paymentSchedules.add(paymentSchedule);
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 1);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 20)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 5, 20));
 
     paymentSchedules.add(paymentSchedule);
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 1);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 6, 30)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 6, 30));
 
     paymentSchedules.add(paymentSchedule);
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 2);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 24)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 5, 24));
 
     paymentSchedules.add(paymentSchedule);
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 2);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 25)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 5, 25));
 
     paymentSchedules.add(paymentSchedule);
 
@@ -465,13 +453,14 @@ public class AuftragDaoTest extends AbstractTestBase
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 1);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 4, 30)));
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 4, 30));
 
     paymentSchedules.add(paymentSchedule);
 
     paymentSchedule = new PaymentScheduleDO();
     paymentSchedule.setPositionNumber((short) 2);
-    paymentSchedule.setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 26)));
+    // Later than end of performance plus 3 months:
+    paymentSchedule.setScheduleDate(LocalDate.of(2017, 8, 26));
 
     paymentSchedules.add(paymentSchedule);
 
@@ -486,8 +475,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition()
-  {
+  public void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition() {
     final AuftragDO auftrag = new AuftragDO();
     final List<AuftragsPositionDO> auftragsPositions = auftrag.ensureAndGetPositionen();
     final List<PaymentScheduleDO> paymentSchedules = auftrag.ensureAndGetPaymentSchedules();
@@ -558,8 +546,7 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
-  public void testPeriodOfPerformanceFilter()
-  {
+  public void testPeriodOfPerformanceFilter() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
 
     auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 4, 1, 2017, 4, 30));
@@ -594,21 +581,19 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   private void setPeriodOfPerformanceStartDateAndEndDate(final AuftragFilter auftragFilter, final int startYear, final int startMonth, final int startDay,
-      final int endYear, final int endMonth, final int endDay)
-  {
-    auftragFilter.setPeriodOfPerformanceStartDate(PFDay.withDate(startYear, startMonth, startDay).getSqlDate());
-    auftragFilter.setPeriodOfPerformanceEndDate(PFDay.withDate(endYear, endMonth, endDay).getSqlDate());
+                                                         final int endYear, final int endMonth, final int endDay) {
+    auftragFilter.setPeriodOfPerformanceStartDate(PFDay.withDate(startYear, startMonth, startDay).getLocalDate());
+    auftragFilter.setPeriodOfPerformanceEndDate(PFDay.withDate(endYear, endMonth, endDay).getLocalDate());
   }
 
   private AuftragDO createAuftragWithPeriodOfPerformance(final int beginYear, final int beginMonth, final int beginDay, final int endYear, final int endMonth,
-      final int endDay)
-  {
+                                                         final int endDay) {
     final AuftragDO auftrag = new AuftragDO();
     auftrag.setNummer(auftragDao.getNextNumber(auftrag));
     dbNumber++;
     auftrag.addPosition(new AuftragsPositionDO());
-    auftrag.setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(beginYear, beginMonth, beginDay)));
-    auftrag.setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(endYear, endMonth, endDay)));
+    auftrag.setPeriodOfPerformanceBegin(LocalDate.of(beginYear, beginMonth, beginDay));
+    auftrag.setPeriodOfPerformanceEnd(LocalDate.of(endYear, endMonth, endDay));
     return auftrag;
   }
 }

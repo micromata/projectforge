@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -74,7 +74,7 @@ class AddressBookPagesRest : AbstractDTOPagesRest<AddressbookDO, Addressbook, Ad
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "title", "description", "owner", "accessright", "last_update"))
         layout.getTableColumnById("owner").formatter = Formatter.USER
         layout.getTableColumnById("last_update").formatter = Formatter.TIMESTAMP_MINUTES
@@ -87,14 +87,14 @@ class AddressBookPagesRest : AbstractDTOPagesRest<AddressbookDO, Addressbook, Ad
     override fun createEditLayout(dto: Addressbook, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
                 .add(UIRow()
-                        .add(UICol(length = 6)
+                        .add(UICol(6)
                                 .add(UIInput("title", lc))
                                 .add(lc, "owner")))
                 .add(UIRow()
-                        .add(UIFieldset(length = 6, title = "access.users")
-                                .add(UISelect.creatUserSelect(lc, "fullAccessUsers", true, "addressbook.fullAccess", tooltip = "addressbook.fullAccess.tooltip"))
-                                .add(UISelect.creatUserSelect(lc, "readonlyAccessUsers", true, "addressbook.readonlyAccess", tooltip = "addressbook.readonlyAccess.tooltip")))
-                        .add(UIFieldset(length = 6, title = "access.groups")
+                        .add(UIFieldset(6, title = "access.users")
+                                .add(UISelect.createUserSelect(lc, "fullAccessUsers", true, "addressbook.fullAccess", tooltip = "addressbook.fullAccess.tooltip"))
+                                .add(UISelect.createUserSelect(lc, "readonlyAccessUsers", true, "addressbook.readonlyAccess", tooltip = "addressbook.readonlyAccess.tooltip")))
+                        .add(UIFieldset(6, title = "access.groups")
                                 .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "addressbook.fullAccess", tooltip = "addressbook.fullAccess.tooltip"))
                                 .add(UISelect.createGroupSelect(lc, "readonlyAccessGroups", true, "addressbook.readonlyAccess", tooltip = "addressbook.readonlyAccess.tooltip"))))
                 .add(lc, "description")

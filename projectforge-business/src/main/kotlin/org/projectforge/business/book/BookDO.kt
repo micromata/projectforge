@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,7 +32,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import java.util.*
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -43,10 +43,9 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_BOOK",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["signature", "tenant_id"])],
+        uniqueConstraints = [UniqueConstraint(columnNames = ["signature"])],
         indexes = [javax.persistence.Index(name = "idx_fk_t_book_lend_out_by",
-                columnList = "lend_out_by"), javax.persistence.Index(name = "idx_fk_t_book_tenant_id",
-                columnList = "tenant_id"), javax.persistence.Index(name = "t_book_pkey", columnList = "pk")])
+                columnList = "lend_out_by"), javax.persistence.Index(name = "t_book_pkey", columnList = "pk")])
 @NamedQueries(
         NamedQuery(name = BookDO.FIND_BY_SIGNATURE, query = "from BookDO where signature=:signature"),
         NamedQuery(name = BookDO.FIND_OTHER_BY_SIGNATURE, query = "from BookDO where signature=:signature and id<>:id"))
@@ -73,10 +72,9 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable {
     open var lendOutBy: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "date")
-    @Field(index = Index.YES, analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+    @Field(analyze = Analyze.NO)
     @get:Column(name = "lend_out_date")
-    open var lendOutDate: Date? = null
+    open var lendOutDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "book.lendOutNote")
     @Field

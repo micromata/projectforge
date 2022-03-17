@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,20 +45,10 @@ public class ProjectForgeRestConfiguration {
   public static final String REST_WEB_APP_PUBLIC_URL = Rest.PUBLIC_URL + "/";
 
   @Bean
-  public ServletRegistrationBean publicJersey() {
-    ServletRegistrationBean publicJersey
-            = new ServletRegistrationBean(new ServletContainer(new RestPublicConfiguration()));
-    publicJersey.addUrlMappings("/" + RestPaths.PUBLIC_REST + "/*");
-    publicJersey.setName("RestPublic");
-    publicJersey.setLoadOnStartup(0);
-    return publicJersey;
-  }
-
-  @Bean
   public ServletRegistrationBean privateJersey() {
     ServletRegistrationBean privateJersey
-            = new ServletRegistrationBean(new ServletContainer(new RestPrivateConfiguration()));
-    privateJersey.addUrlMappings("/" + RestPaths.REST + "/*");
+        = new ServletRegistrationBean(new ServletContainer(new RestPrivateConfiguration()));
+    privateJersey.addUrlMappings("/" + RestPaths.OLD_REST + "/*");
     privateJersey.setName("RestPrivate");
     privateJersey.setLoadOnStartup(0);
     return privateJersey;
@@ -67,7 +57,7 @@ public class ProjectForgeRestConfiguration {
   @Bean
   public FilterRegistrationBean<RestUserFilter> webAppJersey() {
     FilterRegistrationBean<RestUserFilter> registrationBean
-            = new FilterRegistrationBean<>();
+        = new FilterRegistrationBean<>();
     registrationBean.setFilter(new RestUserFilter());
     registrationBean.addUrlPatterns(Rest.URL + "*");
     return registrationBean;

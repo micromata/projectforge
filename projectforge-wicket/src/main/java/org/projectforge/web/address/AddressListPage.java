@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,17 +35,14 @@ import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.SubmitLink;
-import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.DynamicImageResource;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.*;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -58,7 +55,6 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.components.ExternalLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
-import org.projectforge.web.wicket.flowlayout.ImagePanel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -176,48 +172,6 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
       }
     });
 
-    columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<String>(getString("imageFile")), null,
-            "imageFile", cellItemListener) {
-      /**
-       * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
-       *      java.lang.String, org.apache.wicket.model.IModel)
-       */
-      @Override
-      public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
-                               final IModel<AddressDO> rowModel) {
-        final AddressDO address = rowModel.getObject();
-        final RepeatingView view = new RepeatingView(componentId);
-        item.add(view);
-
-        final NonCachingImage img = new NonCachingImage("image", new AbstractReadOnlyModel<DynamicImageResource>() {
-          @Override
-          public DynamicImageResource getObject() {
-            final DynamicImageResource dir = new DynamicImageResource() {
-              @Override
-              protected byte[] getImageData(final Attributes attributes) {
-                byte[] result = address.getImageDataPreview();
-                if (result == null || result.length < 1) {
-                  try {
-                    result = IOUtils
-                            .toByteArray(getClass().getClassLoader().getResource("images/noImage.png").openStream());
-                  } catch (final IOException ex) {
-                    log.error("Exception encountered " + ex, ex);
-                  }
-
-                }
-                return result;
-              }
-            };
-            dir.setFormat("image/png");
-            return dir;
-          }
-        });
-        img.add(new AttributeModifier("height", Integer.toString(25)));
-        view.add(new ImagePanel("imagePanel", img));
-        cellItemListener.populateItem(item, componentId, rowModel);
-      }
-    });
-
     columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<String>(getString("name")),
             getSortable("name", sortable), "name",
             cellItemListener));
@@ -275,19 +229,10 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
                 final RepeatingView view = new RepeatingView(componentId);
                 item.add(view);
                 final Integer id = address.getId();
-                boolean first = addPhoneNumber(view, id, PhoneType.BUSINESS, address.getBusinessPhone(),
-                        (personalAddress != null && personalAddress.isFavoriteBusinessPhone() == true), false,
-                        IconType.BUILDING, true);
-                first = addPhoneNumber(view, id, PhoneType.MOBILE, address.getMobilePhone(),
-                        (personalAddress != null && personalAddress.isFavoriteMobilePhone() == true), true, IconType.TABLET,
-                        first);
-                first = addPhoneNumber(view, id, PhoneType.PRIVATE, address.getPrivatePhone(),
-                        (personalAddress != null && personalAddress.isFavoritePrivatePhone() == true), false, IconType.HOME,
-                        first);
-                first = addPhoneNumber(view, id, PhoneType.PRIVATE_MOBILE, address.getPrivateMobilePhone(),
-                        (personalAddress != null && personalAddress.isFavoritePrivateMobilePhone() == true), true,
-                        IconType.TABLET,
-                        first);
+                boolean first = addPhoneNumber(view, id, PhoneType.BUSINESS, address.getBusinessPhone(), false, IconType.BUILDING, true);
+                first = addPhoneNumber(view, id, PhoneType.MOBILE, address.getMobilePhone(),true, IconType.TABLET, first);
+                first = addPhoneNumber(view, id, PhoneType.PRIVATE, address.getPrivatePhone(), false, IconType.HOME, first);
+                first = addPhoneNumber(view, id, PhoneType.PRIVATE_MOBILE, address.getPrivateMobilePhone(), true, IconType.TABLET, first);
                 cellItemListener.populateItem(item, componentId, rowModel);
                 item.add(AttributeModifier.append("style", new Model<String>("white-space: nowrap;")));
               }
@@ -389,7 +334,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
             return;
           }
           final String filename = "ProjectForge-AddressExport_" + DateHelper.getDateAsFilenameSuffix(new Date())
-                  + ".xls";
+                  + ".xlsx";
           DownloadUtils.setDownloadTarget(xls, filename);
         }
       };
@@ -398,32 +343,6 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
               getString("address.book.export")).setTooltip(getString("address.book.export"),
               getString("address.book.export.tooltip"));
       exportMenu.addSubMenuEntry(excelExportButton);
-    }
-    {
-      // Phone list export
-      final SubmitLink exportPhoneListLink = new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
-        @Override
-        public void onSubmit() {
-          log.info("Exporting phone list");
-          final List<PersonalAddressDO> list = addressDao.getFavoritePhoneEntries();
-          if (CollectionUtils.isEmpty(list) == true) {
-            form.addError("address.book.hasNoPhoneNumbers");
-            return;
-          }
-          final String filename = "ProjectForge-PersonalPhoneList_" + DateHelper.getDateAsFilenameSuffix(new Date())
-                  + ".txt";
-          final StringWriter writer = new StringWriter();
-          addressDao.exportFavoritePhoneList(writer, list);
-          DownloadUtils.setUTF8CharacterEncoding(getResponse());
-          DownloadUtils.setDownloadTarget(writer.toString().getBytes(), filename);
-        }
-      };
-      final ContentMenuEntryPanel exportPhoneListButton = new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(),
-              exportPhoneListLink,
-              getString("address.book.exportFavoritePhoneList")).setTooltip(
-              getString("address.book.exportFavoritePhoneList.tooltip.title"),
-              getString("address.book.exportFavoritePhoneList.tooltip.content"));
-      exportMenu.addSubMenuEntry(exportPhoneListButton);
     }
     {
       final ContentMenuEntryPanel extendedMenu = contentMenuBarPanel.ensureAndAddExtendetMenuEntry();
@@ -458,7 +377,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
 
   private boolean addPhoneNumber(final RepeatingView view, final Integer addressId, final PhoneType phoneType,
                                  final String phoneNumber,
-                                 final boolean favoriteNumber, final boolean sendSms, final IconType icon, final boolean first) {
+                                 final boolean sendSms, final IconType icon, final boolean first) {
     if (StringUtils.isBlank(phoneNumber) == true) {
       return first;
     }
@@ -467,7 +386,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
     }
     final AddressListPhoneNumberPanel phoneNumberPanel = new AddressListPhoneNumberPanel(view.newChildId(), this,
             addressId, phoneType,
-            phoneNumber, favoriteNumber, sendSms, icon, first);
+            phoneNumber, sendSms, icon, first);
     view.add(phoneNumberPanel);
     return false;
   }

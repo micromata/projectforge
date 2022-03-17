@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import org.projectforge.framework.i18n.RequiredFieldIsEmptyException
-import org.projectforge.framework.i18n.UserException
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.and
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.between
@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import java.util.*
 
 object AuftragAndRechnungDaoHelper {
@@ -42,8 +42,8 @@ object AuftragAndRechnungDaoHelper {
     fun createCriterionForPeriodOfPerformance(myFilter: SearchFilterWithPeriodOfPerformance): Optional<DBPredicate> {
         val popBeginName = "periodOfPerformanceBegin"
         val popEndName = "periodOfPerformanceEnd"
-        val startDate = PFDay.from(myFilter.periodOfPerformanceStartDate)?.sqlDate
-        val endDate = PFDay.from(myFilter.periodOfPerformanceEndDate)?.sqlDate
+        val startDate = myFilter.periodOfPerformanceStartDate
+        val endDate = myFilter.periodOfPerformanceEndDate
         if (startDate != null && endDate != null) {
             return Optional.of(
                     and(ge(popEndName, startDate),
@@ -66,10 +66,8 @@ object AuftragAndRechnungDaoHelper {
     @JvmStatic
     fun createQueryFilterWithDateRestriction(myFilter: RechnungFilter): QueryFilter {
         val dateName = "datum"
-        val from = myFilter.getFromDate()
-        val to = myFilter.getToDate()
-        val fromDate = if (from is Date) from else PFDay.from(from)?.sqlDate
-        val toDate = if (to is Date) to else PFDay.from(to)?.sqlDate
+        val fromDate = myFilter.getFromDate()
+        val toDate = myFilter.getToDate()
         val queryFilter = QueryFilter(myFilter)
         if (fromDate != null && toDate != null) {
             queryFilter.add(between(dateName, fromDate, toDate))
@@ -92,11 +90,11 @@ object AuftragAndRechnungDaoHelper {
     private fun checkAndCalculateFaelligkeit(rechnung: AbstractRechnungDO) {
         val zahlungsZiel = rechnung.zahlungsZielInTagen
         if (rechnung.faelligkeit == null && zahlungsZiel != null) {
-            val rechnungsDatum: java.util.Date? = rechnung.datum
+            val rechnungsDatum: LocalDate? = rechnung.datum
             if (rechnungsDatum != null) {
-                var day = PFDateTime.from(rechnungsDatum)
-                day = day!!.plusDays(zahlungsZiel.toLong())
-                rechnung.faelligkeit = day.sqlDate
+                var day = PFDateTime.from(rechnungsDatum) // not null
+                day = day.plusDays(zahlungsZiel.toLong())
+                rechnung.faelligkeit = day.localDate
             }
         }
     }
@@ -104,11 +102,11 @@ object AuftragAndRechnungDaoHelper {
     private fun checkAndCalculateDiscountMaturity(rechnung: AbstractRechnungDO) {
         val discountZahlungsZiel = rechnung.discountZahlungsZielInTagen
         if (rechnung.discountMaturity == null && discountZahlungsZiel != null) {
-            val rechnungsDatum: java.util.Date? = rechnung.datum
+            val rechnungsDatum: LocalDate? = rechnung.datum
             if (rechnungsDatum != null) {
-                var day = PFDateTime.from(rechnungsDatum)
-                day = day!!.plusDays(discountZahlungsZiel.toLong())
-                rechnung.discountMaturity = day.sqlDate
+                var day = PFDay.from(rechnungsDatum)
+                day = day.plusDays(discountZahlungsZiel.toLong())
+                rechnung.discountMaturity = day.localDate
             }
         }
     }
@@ -120,7 +118,7 @@ object AuftragAndRechnungDaoHelper {
     }
 
     private fun validateBezahlDatumAndZahlBetrag(rechnung: AbstractRechnungDO) {
-        val bezahlDatum: java.util.Date? = rechnung.bezahlDatum
+        val bezahlDatum: LocalDate? = rechnung.bezahlDatum
         val zahlBetrag = rechnung.zahlBetrag
         val zahlBetragExists = zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0
         if (bezahlDatum != null && !zahlBetragExists) {

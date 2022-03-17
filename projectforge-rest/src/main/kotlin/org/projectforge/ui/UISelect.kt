@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -66,7 +66,7 @@ class UISelect<T>(val id: String,
     class Favorite<T>(val id: T, val name: String)
 
     @Transient
-    private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(UISelect::class.java)
 
 
     fun buildValues(i18nEnum: Class<out Enum<*>>): UISelect<T> {
@@ -88,8 +88,8 @@ class UISelect<T>(val id: String,
     private fun getEnumValues(enumClass: Class<out Enum<*>>): Array<out Enum<*>> = enumClass.enumConstants
 
     companion object {
-        fun creatUserSelect(lc: LayoutContext,id:String, multi: Boolean, label: String? = null, additionalLabel: String? = null, tooltip: String? = null,
-                            showOnlyActiveUsers: Boolean = true): UISelect<Int> {
+        fun createUserSelect(lc: LayoutContext? = null, id:String, multi: Boolean = false, label: String? = null, additionalLabel: String? = null, tooltip: String? = null,
+                             showOnlyActiveUsers: Boolean = true): UISelect<Int> {
             return UISelect<Int>(id,
                     lc,
                     multi = multi,
@@ -106,6 +106,26 @@ class UISelect<T>(val id: String,
                     label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
                     additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
                     autoCompletion = AutoCompletion.getAutoCompletion4Groups(),
+                    tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey)
+        }
+
+        fun createCustomerSelect(lc: LayoutContext,id:String, multi: Boolean, label: String? = null, additionalLabel: String? = null, tooltip: String? = null): UISelect<Int> {
+            return UISelect<Int>(id,
+                    lc,
+                    multi = multi,
+                    label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
+                    additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
+                    autoCompletion = AutoCompletion.getAutoCompletion4Customers(),
+                    tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey)
+        }
+
+        fun createProjectSelect(lc: LayoutContext,id:String, multi: Boolean, label: String? = null, additionalLabel: String? = null, tooltip: String? = null): UISelect<Int> {
+            return UISelect<Int>(id,
+                    lc,
+                    multi = multi,
+                    label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
+                    additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
+                    autoCompletion = AutoCompletion.getAutoCompletion4Projects(),
                     tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey)
         }
     }

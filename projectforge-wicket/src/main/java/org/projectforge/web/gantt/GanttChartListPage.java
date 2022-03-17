@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.gantt;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -37,15 +34,13 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.gantt.GanttChartDO;
 import org.projectforge.business.gantt.GanttChartDao;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.web.task.TaskPropertyColumn;
 import org.projectforge.web.user.UserPropertyColumn;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ListPage(editPage = GanttChartEditPage.class)
 public class GanttChartListPage extends AbstractListPage<GanttChartListForm, GanttChartDao, GanttChartDO>
@@ -58,6 +53,9 @@ public class GanttChartListPage extends AbstractListPage<GanttChartListForm, Gan
   @SpringBean
   private UserFormatter userFormatter;
 
+  @SpringBean
+  private TaskTree taskTree;
+
   public GanttChartListPage(final PageParameters parameters)
   {
     super(parameters, "gantt");
@@ -68,7 +66,6 @@ public class GanttChartListPage extends AbstractListPage<GanttChartListForm, Gan
   protected void init()
   {
     final List<IColumn<GanttChartDO, String>> columns = new ArrayList<IColumn<GanttChartDO, String>>();
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     final CellItemListener<GanttChartDO> cellItemListener = new CellItemListener<GanttChartDO>()
     {
       @Override

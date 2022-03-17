@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,8 @@
 
 package org.projectforge.web.teamcal.event.importics;
 
-import org.projectforge.web.wicket.components.DropFileContainer;
-
 import net.fortuna.ical4j.model.Calendar;
+import org.projectforge.web.wicket.components.DropFileContainer;
 
 /**
  * Adaption of {@link DropFileContainer} for dropped {@link Calendar} files.

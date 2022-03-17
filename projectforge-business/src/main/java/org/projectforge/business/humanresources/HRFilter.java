@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,13 +26,13 @@ package org.projectforge.business.humanresources;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.time.TimePeriod;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 
 /**
  * Is not synchronized.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class HRFilter extends BaseSearchFilter
 {
@@ -51,45 +51,45 @@ public class HRFilter extends BaseSearchFilter
   private boolean showBookedTimesheets;
 
   /**
-   * @return the startTime
+   * @return the startDay
    */
-  public Date getStartTime()
+  public LocalDate getStartDay()
   {
-    return getTimePeriod().getFromDate();
+    return getTimePeriod().getFromDay();
   }
 
   /**
-   * @param startTime the startTime to set
+   * @param startDay the startDay to set
    */
-  public void setStartTime(Date startTime)
+  public void setStartDay(LocalDate startDay)
   {
-    getTimePeriod().setFromDate(startTime);
+    getTimePeriod().setFromDay(startDay);
   }
 
   /**
-   * @return the stopTime
+   * @return the stopDay
    */
-  public Date getStopTime()
+  public LocalDate getStopDay()
   {
-    return getTimePeriod().getToDate();
+    return getTimePeriod().getToDay();
   }
 
   /**
-   * @param stopTime the stopTime to set
+   * @param stopDay the stopDay to set
    */
-  public void setStopTime(Date stopTime)
+  public void setStopDay(LocalDate stopDay)
   {
-    getTimePeriod().setToDate(stopTime);
+    getTimePeriod().setToDay(stopDay);
   }
 
   /**
-   * Gets start and stop time from timePeriod.
+   * Gets start and stop day from timePeriod.
    * @param timePeriod
    */
   public void setTimePeriod(final TimePeriod timePeriod)
   {
-    setStartTime(timePeriod.getFromDate());
-    setStopTime(timePeriod.getToDate());
+    setStartDay(timePeriod.getFromDay());
+    setStopDay(timePeriod.getToDay());
   }
 
   private TimePeriod getTimePeriod()

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,46 +23,54 @@
 
 package org.projectforge.ui
 
+/**
+ * Twelve column grid system.
+ */
 open class UICol(
-        /**
-         * Length in grid system (1-12)
-         */
-        val length: Int? = null,
-        /**
-         * Length for small screens (1-12)
-         */
-        val smLength: Int? = null,
-        /**
-         * Length for middle sized screens (1-12)
-         */
-        val mdLength: Int? = null,
-        /**
-         * Length for large screens (1-12)
-         */
-        val lgLength: Int? = null,
-        /**
-         * Length for large screens (1-12)
-         */
-        val xlLength: Int? = null,
-        val content: MutableList<UIElement> = mutableListOf(),
-        type: UIElementType = UIElementType.COL)
-    : UIElement(type) {
-    fun add(element: UIElement): UICol {
-        content.add(element)
-        return this
-    }
+  /**
+   * Length in grid system
+   */
+  var length: UILength? = null,
+  /**
+   * Offset in grid system
+   */
+  val offset: UILength? = null,
+  val content: MutableList<UIElement> = mutableListOf(),
+  type: UIElementType = UIElementType.COL,
+  /**
+   * Useless, if length is already given.
+   */
+  xs: Int? = null,
+  sm: Int? = null,
+  md: Int? = null,
+  lg: Int? = null,
+  var collapseTitle: String? = null,
+) : UIElement(type) {
 
-    /**
-     * Convenient method for adding a bunch of UIInput fields with the given ids.
-     * @param createRowCol If true (default), the elements will be surrounded with [UIRow] and [UICol] each, otherwise not.
-     */
-    fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UICol {
-        ids.forEach {
-            val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
-            if (element != null) {
-                add(LayoutUtils.prepareElementToAdd(element, createRowCol))
-            }
-        }
-        return this
+  constructor(xsLength: Int) : this(length = UILength(xsLength))
+
+  init {
+    if (length == null) {
+      length = UILength(xs = xs, sm = sm, md = md, lg = lg)
     }
+  }
+
+  fun add(element: UIElement): UICol {
+    content.add(element)
+    return this
+  }
+
+  /**
+   * Convenient method for adding a bunch of UIInput fields with the given ids.
+   * @param createRowCol If true (default), the elements will be surrounded with [UIRow] and [UICol] each, otherwise not.
+   */
+  fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UICol {
+    ids.forEach {
+      val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
+      if (element != null) {
+        add(LayoutUtils.prepareElementToAdd(element, createRowCol))
+      }
+    }
+    return this
+  }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,6 +41,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.TimesheetPagesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.TeamEvent
 import org.projectforge.rest.dto.Timesheet
@@ -58,7 +59,7 @@ import javax.validation.Valid
 class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEventDao>(
         TeamEventDao::class.java,
         "plugins.teamcal.event.title",
-        cloneSupported = true) {
+        cloneSupport = CloneSupport.AUTOSAVE) {
 
     private val log = org.slf4j.LoggerFactory.getLogger(TeamEventPagesRest::class.java)
 
@@ -91,8 +92,6 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: TeamEvent) {
-        if (dto.calendar == null)
-            validationErrors.add(ValidationError.createFieldRequired(baseDao.doClass, fieldId = "calendar"))
         if (dto.subject.isNullOrBlank())
             validationErrors.add(ValidationError.createFieldRequired(baseDao.doClass, fieldId = "subject"))
         if (dto.id != null && dto.hasRecurrence && dto.seriesModificationMode == null) {
@@ -137,7 +136,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
         if (endDate != null) dto.endDate = endDate.sqlTimestamp
     }
 
-    override fun beforeDatabaseAction(request: HttpServletRequest, obj: TeamEventDO, postData: PostData<TeamEvent>, operation: OperationType) {
+    override fun onBeforeDatabaseAction(request: HttpServletRequest, obj: TeamEventDO, postData: PostData<TeamEvent>, operation: OperationType) {
         if (obj.calendarId != null) {
             // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
             // is needed by the access checker.
@@ -145,7 +144,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
         }
     }
 
-    override fun afterEdit(obj: TeamEventDO, postData: PostData<TeamEvent>): ResponseAction {
+    override fun onAfterEdit(obj: TeamEventDO, postData: PostData<TeamEvent>, event: RestButtonEvent): ResponseAction {
         return ResponseAction("/${Const.REACT_APP_PATH}calendar")
                 .addVariable("date", postData.data.startDate)
                 .addVariable("id", obj.id ?: -1)
@@ -223,6 +222,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
         return ResponseAction(url = "/${Const.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
+                .addVariable("serverData", editLayoutData.serverData)
                 .addVariable("variables", editLayoutData.variables)
     }
 
@@ -231,7 +231,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "subject"))
         return LayoutUtils.processListPage(layout, this)
     }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,104 +23,99 @@
 
 package org.projectforge.framework.persistence.api
 
-import org.projectforge.business.multitenancy.TenantRegistry
-import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.favorites.AbstractFavorite
 
 class MagicFilter(
-        /**
-         * Optional entries for searching (keywords, field search, range search etc.)
-         */
-        var entries: MutableList<MagicFilterEntry> = mutableListOf(),
-        var sortAndLimitMaxRowsWhileSelect: Boolean = true,
-        var maxRows: Int = 50,
-        /**
-         * If true, only deleted entries will be shown. If false, no deleted entries will be shown. If null, all entries will be shown.
-         */
-        var deleted: Boolean? = false,
-        /**
-         * Optional full text search on all indexed fields.
-         */
-        var searchString: String? = null,
-        var searchHistory: String? = null,
-        /**
-         * If true, any searchstring (alphanumeric) without wildcard will be changed to '<searchString>*'.
-         */
-        var autoWildcardSearch: Boolean = false,
-        /**
-         * Extend the filter by additional variables and settings.
-         */
-        var extended: MutableMap<String, Any> = mutableMapOf(),
-        name: String? = null,
-        id: Int? = null
+  /**
+   * Optional entries for searching (keywords, field search, range search etc.)
+   */
+  var entries: MutableList<MagicFilterEntry> = mutableListOf(),
+  var sortAndLimitMaxRowsWhileSelect: Boolean = true,
+  var maxRows: Int = 50,
+  /**
+   * If true, only deleted entries will be shown. If false, no deleted entries will be shown. If null, all entries will be shown.
+   */
+  var deleted: Boolean? = false,
+  /**
+   * Optional full text search on all indexed fields.
+   */
+  var searchString: String? = null,
+  var searchHistory: String? = null,
+  /**
+   * If true, any searchstring (alphanumeric) without wildcard will be changed to '<searchString>*'.
+   */
+  var autoWildcardSearch: Boolean = false,
+  /**
+   * Extend the filter by additional variables and settings.
+   */
+  var extended: MutableMap<String, Any> = mutableMapOf(),
+  name: String? = null,
+  id: Int? = null
 ) : AbstractFavorite(name, id) {
 
-    @Transient
-    internal val log = org.slf4j.LoggerFactory.getLogger(MagicFilter::class.java)
+  @Transient
+  internal val log = org.slf4j.LoggerFactory.getLogger(MagicFilter::class.java)
 
-    var sortProperties = mutableListOf<SortProperty>()
+  var sortProperties = mutableListOf<SortProperty>()
 
-    /**
-     * After deserialization from data base (prefs) this method should be called to rebuild some information needed by the
-     * clients.
-     */
-    fun init() {
-        entries.forEach {
-            if (it.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
-                it.value.label = getUserGroupCache().getUser(it.value.value?.toInt())?.username
-            }
+  /**
+   * After deserialization from data base (prefs) this method should be called to rebuild some information needed by the
+   * clients.
+   */
+  fun init() {
+    entries.forEach { entry ->
+      if (entry.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
+        // If user id is saved as prop id (by React-client), then copy it to value property:
+        entry.value.id?.let { id ->
+          entry.value.value = id.toString()
         }
-        entries.removeIf { it.field.isNullOrBlank() } // Former filter versions (7.0-SNAPSHOT in 2019 supported entries with no values. This is now replaced by searchString.
+        // client may use label or displayName:
+        entry.value.displayName =
+          UserGroupCache.getInstance().getUser(entry.value.id ?: entry.value.value?.toInt())?.getFullname()
+        entry.value.label = entry.value.displayName
+      }
     }
+    entries.removeIf { it.field.isNullOrBlank() } // Former filter versions (7.0-SNAPSHOT in 2019 supported entries with no values. This is now replaced by searchString.
+  }
 
-    fun reset() {
-        entries.clear()
-        sortProperties.clear()
-        sortAndLimitMaxRowsWhileSelect = true
-        deleted = false
-        searchHistory = null
-        extended.clear()
+  fun reset() {
+    entries.clear()
+    sortProperties.clear()
+    sortAndLimitMaxRowsWhileSelect = true
+    deleted = false
+    searchHistory = null
+    extended.clear()
+  }
+
+  @Suppress("SENSELESS_COMPARISON")
+  fun isModified(other: MagicFilter): Boolean {
+    if (this.name != other.name) return true
+    if (this.id != other.id) return true
+
+    val entries1 = this.entries
+    val entries2 = other.entries
+    if (entries1 == null) { // Might be null after deserialization
+      return entries2 != null
     }
-
-    @Suppress("SENSELESS_COMPARISON")
-    fun isModified(other: MagicFilter): Boolean {
-        if (this.name != other.name) return true
-        if (this.id != other.id) return true
-
-        val entries1 = this.entries
-        val entries2 = other.entries
-        if (entries1 == null) { // Might be null after deserialization
-            return entries2 != null
-        }
-        if (entries2 == null) { // Might be null after deserialization
-            return true
-        }
-        if (entries1.size != entries2.size) {
-            return true
-        }
-        entries1.forEachIndexed { i, value ->
-            if (entries2[i].isModified(value)) {
-                return true
-            }
-        }
-        return false
+    if (entries2 == null) { // Might be null after deserialization
+      return true
     }
-
-    fun clone(): MagicFilter {
-        val mapper = UserPrefDao.getObjectMapper()
-        val json = mapper.writeValueAsString(this)
-        return mapper.readValue(json, MagicFilter::class.java)
+    if (entries1.size != entries2.size) {
+      return true
     }
-
-    companion object {
-        private fun getTenantRegistry(): TenantRegistry {
-            return TenantRegistryMap.getInstance().tenantRegistry
-        }
-
-        private fun getUserGroupCache(): UserGroupCache {
-            return getTenantRegistry().userGroupCache
-        }
+    entries1.forEachIndexed { i, value ->
+      if (entries2[i].isModified(value)) {
+        return true
+      }
     }
+    return false
+  }
+
+  fun clone(): MagicFilter {
+    val mapper = UserPrefDao.getObjectMapper()
+    val json = mapper.writeValueAsString(this)
+    return mapper.readValue(json, MagicFilter::class.java)
+  }
 }

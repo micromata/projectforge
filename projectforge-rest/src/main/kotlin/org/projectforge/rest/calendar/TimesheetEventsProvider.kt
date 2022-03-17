@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -40,7 +40,7 @@ import java.time.Month
 import java.time.ZonedDateTime
 
 @Component
-class TimesheetEventsProvider() {
+class TimesheetEventsProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(TimesheetEventsProvider::class.java)
 
     @Autowired
@@ -78,15 +78,16 @@ class TimesheetEventsProvider() {
             ctx.firstDayOfMonth = dayInCurrentMonth.withDayOfMonth(1)
         }
 
-        //var lastStopTime: LocalDateTime? = null
-        for (timesheet in timesheets) {
-            val startTime = PFDateTime.from(timesheet.startTime, true)
-            val stopTime = PFDateTime.from(timesheet.stopTime, true)
-            if (stopTime!!.isBefore(start) || startTime!!.isAfter(end) == true) {
-                // Time sheet doesn't match time period start - end.
-                continue
-            }
-            if (showBreaks) {
+        if (timesheets != null) {
+            //var lastStopTime: LocalDateTime? = null
+            for (timesheet in timesheets) {
+                val startTime = PFDateTime.fromOrNow(timesheet.startTime)
+                val stopTime = PFDateTime.fromOrNow(timesheet.stopTime)
+                if (stopTime.isBefore(start) || startTime.isAfter(end)) {
+                    // Time sheet doesn't match time period start - end.
+                    continue
+                }
+                if (showBreaks) {
 /*                    if (lastStopTime != null
                             && DateHelper.isSameDay(stopTime, lastStopTime) == true
                             && startTime.millis - lastStopTime.millis > 60000) {
@@ -104,33 +105,47 @@ class TimesheetEventsProvider() {
                         breaksMap.put(breakId, breakTimesheet)
                     }
                     lastStopTime = stopTime*/
-            }
-            var title: String = CalendarHelper.getTitle(timesheet)
-            var tooltip: String? = null
-            var formattedDuration: String? = formatDuration(timesheet.getDuration(), false)
-            var description: String? = null//getToolTip(timesheet)
-            var outOfRange: Boolean? = null
-            //if (ctx.longFormat) {
-            // }
-            if (ctx.month != null && startTime.month != ctx.month && stopTime.month != ctx.month) {
-                outOfRange = true
-            }
-            //val link = "timesheet/edit/${timesheet.id}"
-            events.add(BigCalendarEvent(title, timesheet.startTime!!, timesheet.stopTime!!, null,
-                    location = timesheet.location, desc = description, tooltip = tooltip, formattedDuration = formattedDuration, outOfRange = outOfRange,
-                    cssClass = "timesheet", category = "timesheet", dbId = timesheet.id))
+                }
+                val title: String = CalendarHelper.getTitle(timesheet)
+                val tooltip: String? = null
+                val formattedDuration = formatDuration(timesheet.getDuration(), false)
+                val description: String? = null//getToolTip(timesheet)
+                var outOfRange: Boolean? = null
+                //if (ctx.longFormat) {
+                // }
+                if (ctx.month != null && startTime.month != ctx.month && stopTime.month != ctx.month) {
+                    outOfRange = true
+                }
+                //val link = "timesheet/edit/${timesheet.id}"
+                events.add(
+                    BigCalendarEvent(
+                        title,
+                        timesheet.startTime!!,
+                        timesheet.stopTime!!,
+                        null,
+                        location = timesheet.location,
+                        desc = description,
+                        tooltip = tooltip,
+                        formattedDuration = formattedDuration,
+                        outOfRange = outOfRange,
+                        cssClass = "timesheet",
+                        category = "timesheet",
+                        dbId = timesheet.id
+                    )
+                )
 
-            val duration = timesheet.getDuration()
-            if (ctx.month == null || ctx.month == startTime.month) {
-                ctx.totalDuration += duration
-                ctx.addDurationOfDay(startTime.dayOfMonth, duration)
-            }
-            val dayOfYear = startTime.dayOfYear
-            ctx.addDurationOfDayOfYear(dayOfYear, duration)
-            //event.setTooltip(
-            //        getString("timesheet"),
-            //        arrayOf(arrayOf(title), arrayOf(timesheet.location, getString("timesheet.location")), arrayOf(KostFormatter.formatLong(timesheet.kost2), getString("fibu.kost2")), arrayOf(WicketTaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.PLAIN), getString("task")), arrayOf(timesheet.description, getString("description"))))
+                val duration = timesheet.getDuration()
+                if (ctx.month == null || ctx.month == startTime.month) {
+                    ctx.totalDuration += duration
+                    ctx.addDurationOfDay(startTime.dayOfMonth, duration)
+                }
+                val dayOfYear = startTime.dayOfYear
+                ctx.addDurationOfDayOfYear(dayOfYear, duration)
+                //event.setTooltip(
+                //        getString("timesheet"),
+                //        arrayOf(arrayOf(title), arrayOf(timesheet.location, getString("timesheet.location")), arrayOf(KostFormatter.formatLong(timesheet.kost2), getString("fibu.kost2")), arrayOf(WicketTaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.PLAIN), getString("task")), arrayOf(timesheet.description, getString("description"))))
 
+            }
         }
         if (showStatistics) { // Show statistics: duration of every day is shown as all day event.
             var day = start

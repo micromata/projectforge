@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Class used by {@link LoginProtection} for handling maps, time offsets etc.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class LoginProtectionMap
 {
@@ -60,8 +60,8 @@ public class LoginProtectionMap
   /**
    * Call this before checking the login credentials. If a long > 0 is returned please don't proceed the login-procedure. Please display a
    * user message that the login was denied due previous failed login attempts. The user should try it later again (after x seconds).
-   * @param userId This could be the client's ip address, the login name etc.
-   * @return 0 if no active time offset was found, otherwise the time offset left until the account is opened again for login.
+   * @param id This could be the client's ip address, the login name etc.
+   * @return 0 if no active time offset was found, otherwise the time offset (in ms) left until the account is opened again for login.
    */
   public long getFailedLoginTimeOffsetIfExists(final String id)
   {
@@ -132,6 +132,14 @@ public class LoginProtectionMap
       this.loginFailedAttemptsMap.remove(id);
       this.lastFailedLoginMap.remove(id);
     }
+  }
+
+  /**
+   * @param id This could be the client's ip address, the login name etc.
+   * @return true if failed logins are registered for given id, otherwise false.
+   */
+  public boolean exists(final String id) {
+    return this.loginFailedAttemptsMap.containsKey(id) || this.lastFailedLoginMap.containsKey(id);
   }
 
   /**

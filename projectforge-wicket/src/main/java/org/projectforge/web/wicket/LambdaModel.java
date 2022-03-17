@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.web.wicket;
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.lang.Args;
+
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Backport of the LambdaModel of Wicket 8. If we upgrade to Wicket 8, we can remove this class.

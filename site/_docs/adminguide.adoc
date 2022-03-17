@@ -1,0 +1,1594 @@
+---
+title: Administration guide
+subtitle: Hints, tips and best practices for the administration of ProjectForge
+author: kai
+tags: [adminguide]
+---
+:hide-uri-scheme:
+
+:toc:
+:toclevels: 4
+
+:last-update-label: Copyright (C) 2021, Last updated
+
+:sectnums:
+
+== Introduction
+
+This documents describes the administration of ProjectForge®.
+
+== ProjectForge Setup
+
+=== Database
+
+[source,shell,linenums]
+----
+#JDBC Java class
+spring.datasource.driver-class-name=org.hsqldb.jdbcDriver
+#spring.datasource.driver-class-name=org.postgresql.Driver
+
+#Database user
+spring.datasource.username=sa
+
+#Database password for given user
+spring.datasource.password=
+
+#JDBC url to connect to DB
+spring.datasource.url=jdbc:hsqldb:file:projectforge;shutdown=true
+#spring.datasource.url=jdbc:hsqldb:mem:projectforge
+#spring.datasource.url=jdbc:postgresql://localhost:5432/projectforge
+db.ds.projectForgeDs.extendedSettings=false
+
+#Sets the maximum number of active connections that can be allocated at the same time.
+#Use a negative value for no limit.
+spring.datasource.maxActive=8
+
+#Sets the maximum number of connections that can remain idle in the pool.
+spring.datasource.maxIdle=8
+
+# Sets the minimum number of idle connections in the pool.
+spring.datasource.minIdle=0
+
+#Max milleseconds waiting while obtaining connection. Use -1 to make the pool wait indefinitely.
+spring.datasource.maxWait=-1
+
+#Sets the initial size of the connection pool.
+spring.datasource.intialSize=0
+
+#Sets the default catalog.
+spring.datasource.default-catalog=
+
+#Sets default auto-commit state of connections returned by this datasource.
+spring.datasource.defaultAutoCommit=true
+
+#Validation query to test if connection is valid.
+spring.datasource.validation-query=
+
+#Sets the validation query timeout, the amount of time, in seconds, that connection validation will wait for a response from the database when executing a validation query.
+#Use a value less than or equal to 0 for no timeout.
+spring.datasource.validation-query-timeout=-1
+----
+
+=== Initialization, first login and set-up dialogue
+
+After the first start of ProjectForge® you will see
+ProjectForge®'s set-up dialogue. Please configure at minimum the
+adminstrator's password and the target (empty data-base for a productive
+system or pre-filled with test data). You can configure or change all
+other settings such as time zone, e-mail addresses etc. any time later.
+
+=== PostgreSQL
+
+
+==== Setting up the database
+
+. Edit `postgresql.conf:` `max_connections =  50                   # (change requires restart)`
+. `createuser -U postgres -P projectforge` as e.g. admin user.
+. `createdb -U postgres -E UTF-8 -O projectforge projectforge` as e.g.
+admin user.
+. You can drop any existing user and database
+with: `dropdb projectforge` and `dropuser projectforge`
+. *Re-use of existing database (use a dump --> 5.5 or 5.6)*  +
+`psql -q -f projectforge_2008-04-02_02-00.sql -U postgres projectforge 2>&1 > log.txt`
+
+== Configuration
+
+=== Base directory (application's home)
+
+ProjectForge® needs a base directory which is set
+in `application.properties` of the web server. By default it
+is `${user.home}/ProjectForge` . You should prepare this directory for
+use-age of ProjectForge®. The following directories will be created
+if not exist:
+
+[width="100%",cols="50%,50%",]
+|===
+|`ProjectForge/hibernate-search` |Here the lucene indices are stored. If
+corrupted, delete all files and directories in this directory and
+re-build data base indices via the web admin console.
+
+|`ProjectForge/resources/fonts` |For additional fonts used e. g. by the
+pdf renderers.
+
+|`ProjectForge/resources/images` |For images e. g. by the pdf renderers.
+
+|`ProjectForge/work` |For uploaded files etc. +
+ +
+|===
+
+=== Configuration file application.properties
+
+ProjectForge® is a SpringBoot-Application, you can get more
+information http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html[here].
+
+The format of the file is:
+
+*File:* `application.properties`:
+https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties[here]
+
+=== Customization
+
+==== Logo ant title in pdf outputs
+
+At default the pdf outputs file is not present. The logo is placed at
+the top right.  +
+Under the configuration menu of the web application you can enter your
+organization name. This name will be used as headline for the pdf
+outputs.
+
+[source,shell,linenums]
+----
+The files must be located in the Resources/Images folder.
+----
+
+*File:* `application.properties`:
+
+[source,shell,linenums]
+----
+...
+projectforge.logoFile=
+projectforge.export.logoFile=
+...
+----
+
+=== Configuration settings (web interface)
+
+Please go to this page for setting different parameters of
+ProjectForge® such as default time zone etc. You'll find the
+documentation there.
+
+=== Using ttf fonts for PDF render engine
+
+FOP is used as internal render engine. For enabling True Type Fonts
+please refer the FOP documentation.
+
+[source,shell,linenums]
+----
+java -cp build/fop.jar:lib/avalon-framework-4.2.0.jar:lib/commons-logging-1.0.4.jar:lib/commons-io-1.3.1.jar \ +
+          org.apache.fop.fonts.apps.PFMReader <path>/<font>.pfm ttf<font>.xml
+----
+
+=== HTML formatted E-Mail templates
+
+ProjectForge works with Groovy templates for generating e-mails (as
+notifications). You'll find the templates inside your web archive of the
+ProjectForge
+installation: `plugins/projectforge-business-X.X.X.jar/mail/.` You can
+modify any template of this directory if needed by simply copiing the
+file(s) you want to modify into your ProjectForge application dir, which
+is also the destination of `application.properties:`
+
+    cp projectforge-business-X.X.X.jar/mail/
+
+Afterwards you can edit this file. ProjectForge looks first in this
+ProjectForge app directory for loading templates and if not found it
+uses the resources path.
+
+The templates are internationalized with the locale of the receiving
+user.
+
+[source,html,linenums]
+----
+<html>
+<html>
+#INCLUDE{mail/mailHead.html}
+<body>
+#INCLUDE{mail/mailOpening.html}
+<br />
+Here you can place content (don't forget to use i18n keys for supporting internationalized e-mails).
+...
+<br />
+<%= pf.getString("link") %>: <a href="${requestUrl}">${requestUrl}</a>
+<br />
+This is an example of using dynamic data (here a list of positions will be printed):
+<table>
+  <% for (position in order.positions) { %>
+    <tr>
+      <th><%= pf.getString("title") %></th>
+      <td>${position.title}</td>
+      ...
+    </tr>
+  <% } %>
+</table>
+
+#INCLUDE{mail/mailHistoryTable.html}
+
+#INCLUDE{mail/mailClosing.html}
+#INCLUDE{mail/mailFooter.html}
+</body>
+</html>
+----
+
+If you don't like html-formatted e-mails, you can simply remove all html
+tags (ignore the html suffix then).
+
+=== Configuration of Mobile Enterprise Blogging (MEB)
+
+ProjectForge supports two ways of receiving SMS: e-mail and/or
+servlet-call. You can use both or at least one of the two ways:
+
+*File:* `application.properties`
+
+[source,shell,linenums]
+----
+...
+projectforge.receiveSmsKey=*******SECRET********
+...
+----
+
+ProjectForges ensures that messages will be imported only once.
+
+==== E-Mail
+
+ProjectForge can receive messages from a mail server (e. g. IMAP mail
+account). The e-mails will be parsed as key-value:
+
+[source,shell,linenums]
+----
+#Alias to public url
+cfg.public.url=http://localhost:8080
+mail.session.pfmailsession.name=pfmailsession
+mail.session.pfmailsession.emailEnabled=true
+
+#A standard sender email address. The application may use another one
+mail.session.pfmailsession.standardEmailSender=sender@yourserver.org
+
+#Mail protocol: Plain, StartTLS,SSL
+mail.session.pfmailsession.encryption=Plain
+
+#Hostname of the email server
+mail.session.pfmailsession.smtp.host=mail.yourserver.org
+
+#Port number of the email server
+mail.session.pfmailsession.smtp.port=25
+
+#The email server needs authentification
+mail.session.pfmailsession.smtp.auth=false
+
+#Authentification by user name
+mail.session.pfmailsession.smtp.user=
+
+#Users password
+mail.session.pfmailsession.smtp.password=
+----
+
+==== Servlet-Call
+
+You can implement a servlet call whenever your system receives an
+SMS:  +
+`https://pf.acme.com/secure/SMSReceiver?key=kds8uijkqw6idg&date=20101105171233&sender=01234567&msg=Hello...`  +
+The format of the values are the same as described above. The encoding
+should be UTF-8. The key is a communication key and should be configured
+in your  (see above).  +
+Please deploy the following php script on your Asterisk web server (many
+thanks to Thomas Koch for this great work):
+
+[source,php,linenums]
+----
+#!/usr/bin/php
+<?
+# SMS2ProjectForge
+
+$SMS_DIR="/var/spool/asterisk/sms/mtrx/";
+$PF_EMAIL="projectforge@change-to-your-domain.de";
+$FROM="smsgateway@change-to-your-domain.de";
+$PF_URL="https://change-to-your-domain.de/secure/SMSReceiver?key=<change-to-your-key>&date=%s&sender=%s&msg=%s";
+
+function parseFile($file, $recipient) {
+
+  if(!$file)
+    return;
+  if(is_file($file)) {
+    $content = file($file);
+  } else {
+    print("$file is missing\n");
+    return;
+  }
+  foreach($content as $line) {
+    if(preg_match("/oa=(\d+)/", $line, $match)) {
+#print("Absender " . $match[1] . "\n");
+      $oa = $match[1];
+    }
+    if(preg_match("/ud=(.*)/", $line, $match)) {
+#print("Text " . $match[1] . "\n");
+      $text = $match[1];
+    }
+  }
+  if($recipient == "pf") {
+    $time = time();
+#$mailtext = sprintf("date=%s\nsender=%s\nmsg=%s\n", time(), $oa, utf8_encode($text));
+    $mailtext = sprintf("date=%s\nsender=%s\nmsg=%s\n", time(), $oa, $text);
+    mail($PF_EMAIL, "SMS", $mailtext, "From: smsgateway <$FROM>");
+    $url = sprintf($PF_URL),
+        $time,
+        $oa,
+        urlencode($text));
+    $pig = fopen($url, "r");
+    # XXX check answer!
+    #$ret = stream_get_contents($pig);
+  }
+  return(1);
+}
+
+function getRecipient($file) {
+  if(!$file)
+    return;
+  # pf.2010-05-04T16:46:01-11
+  if(preg_match("/(\w+)\.\d\d\d\d-\d\d-\d\d.\d\d:\d\d:\d\d-\d+/", $file, $match)) {
+    return($match[1]);
+  }
+  return;
+}
+
+##
+# Main
+#
+$content = array();
+if(is_dir($SMS_DIR)) {
+  if($dh = opendir($SMS_DIR)) {
+    while(($file = readdir($dh)) !== false) {
+      if($file != "." && $file != "..") {
+        if(parseFile($SMS_DIR . $file, getRecipient($file))) {
+          unlink($SMS_DIR . $file);
+        }
+      }
+    }
+  }
+}
+?>
+----
+
+=== Asterisk connection: phone calls and texting with ProjectForge
+
+==== Phone calls
+
+If configured the users are able to initiate phone calls directly by
+clicking on a phone number of an address or by entering a name or a
+phone number in the direct phone call
+page.
+
+image::/uploads/adminguide/directCall.png[image]
+
+[cols="1,4",]
+|===
+|Figure 1: |You can initiate a phone call by simply clicking on a phone
+number of an address or by entering a name or number into the number
+field.
+|===
+
+Please deploy the following php script on your Asterisk web server (many
+thanks to Thomas Koch for this great work):
+
+*File:* `originatecall.php`:
+
+[source,php,linenums]
+----
+<?
+# originates call from ProjectForge
+# 03/09 by t.koch@micromata.de
+
+$USERNAME = "admin";
+$PASSWORD = "secret";
+
+function doCall($source, $target) {
+  global $USERNAME, $PASSWORD;
+  $socket = fsockopen("127.0.0.1","5038", $errno, $errstr, $timeout);
+  if(!$socket) {
+    return(1);
+  }
+  fputs($socket, "Action: Login\r\n");
+  fputs($socket, "UserName: $USERNAME\r\n");
+  fputs($socket, "Secret: $PASSWORD\r\n\r\n");
+  fputs($socket, sprintf("Action: Originate\r\nChannel: Local/%s@intern\r\nContext: intern\r\nExten: %s\r\nPriority: 1\r\nCallerid: %s\r\nTimeout: 8000\r\nVariable: var1=23|var2=24|var3=25\r\nActionID: ABC45678901234567890\r\n\r\nAction: Logoff\r\n\r\n", $source, $target, $source));
+  return(0);
+
+  if($debug) {
+    while (!feof($socket)) {
+      print(fread($socket, 8192));
+    }
+    fclose($socket);
+  }
+}
+
+$SOURCE = $_GET{source};
+$TARGET = $_GET{target};
+
+if(!is_numeric($SOURCE)) {
+  print(2);
+  exit(2);
+}
+if(!is_numeric($TARGET)) {
+  print(3);
+  exit(3);
+}
+if(doCall($SOURCE, $TARGET))
+  print(1);
+else
+  print(0);
+?>
+----
+
+Please check this servlet manually. It has to be available from your
+ProjectForge server. Then configure your servlet:
+
+*File:* `application.properties:`
+
+[source,shell,linenums]
+----
+...
+projectforge.telephoneSystemUrl=http://asterisk.yourserver.org/originatecall.php?source=#source&target=#target
+projectforge.telephoneSystemNumber=0123456789
+...
+----
+
+==== Texting
+
+If configured the users are able to text by clicking on the SMS symbol
+of an address or by entering a name or a cell phone
+number.
+
+image::/uploads/adminguide/texting.png[image]
+
+[cols="1,4",]
+|===
+|Figure 2: |You can send text messages by simply clicking on the SMS
+symbol of an address or by entering a name or cell phone number.
+|===
+
+Please deploy the following php script on your Asterisk web server (many
+thanks to Thomas Koch for this great work):
+
+*File:* `sms.php`:
+
+[source,php,linenums]
+----
+<?
+/*
+   Texting with ProjectForge and Asterisk
+   07.09.2009 by t.koch@micromata.de v1
+*/
+
+$NUMBER = $_REQUEST{number};
+$MESSAGE = $_REQUEST{message};
+
+if(!is_numeric($NUMBER)) {
+  print("2\nwrong destination number");
+  return(2);
+}
+if(!$MESSAGE) {
+  print("1\nmissing message");
+  return(1);
+}
+if(strlen($MESSAGE) > 160) {
+  print("3\nmessage > 160");
+  return(3);
+}
+$rand = rand(100000, 4000000);
+usleep($rand);
+
+# XXX concurrent == maximum number of b channels
+system(sprintf("/usr/sbin/smsq '--concurrent=8' '--spool-dir=/var/spool/asterisk/' '--motx-channel=DIALOGICDIVA/contr1/0193010' '--da=%s' '--motx-callerid=<callerid>' '--ud=%s' >/tmp/sms.$rand 2>/tmp/sms.$rand", $NUMBER, $MESSAGE));
+print("0\nok");
+?>
+----
+
+Please check this servlet manually. It has to be available from your
+ProjectForge server. Then configure your servlet:
+
+*File:* `application.properties:`
+
+[source,shell,linenums]
+----
+...
+projectforge.smsUrl=http://asterisk.yourserver.org/sms.php?number=#number&message=#message
+...
+----
+
+To use the full functionality of ProjectForge please configure the
+address book feature. Don't forget to configure your default country
+phone prefix in the configuration web page.
+
+==== PhoneLookupServlet
+
+With the phone lookup servlet a telephony system (such as Asterix) may
+lookup incoming phone calls:
+
+*File:* `application.properties`:
+
+[source,shell,linenums]
+----
+...
+projectforge.phoneLookupKey=*******SECRET********
+...
+----
+
+=== business assessment / BWA
+
+If you work with accounting records (DATEV) you may be want to have
+business assessments (BWA in German). The business assessments of DATEV
+constist of rows. Each row has a line number (no) and a title (for
+displaying). The `accountRange` defines which DATEV accounts matches the
+row. Please note, that a record is assigned to the first row found.  +
+If the priorty of a row is not high, the row will not be shown in the
+short form of business assessments. The value defines row amounts which
+are calculated (see example below).
+
+=== SecurityConfig
+
+==== Secure passwords
+
+Every password is stored in the database as SHA256 hashed password. For
+reducing brute force attacks several security mechanism are implemented.
+
+==== Protection against brute force attacks
+
+If the user login failed (via web page or rest service) a penalty time
+is given for usernames and IP addresses. For every failed login for an
+username the penalty time is increased by one second before the next try
+of an username/password combination for that username is allowed.  +
+The same mechanism is used for failed login failures from an IP address
+(one second penalty per thousand failed logins).  +
+Please refer the source code for more information.
+
+==== Salted passwords
+
+Since version 5.3 of ProjectForge® salted passwords are used. This
+means, that every password is first concatenated with an salt value
+(random string per user) and then hashed. Therefore so called rainbow
+tables are useless for attacking passwords. After migrating to version
+5.3 every password is salted after login of the user or if the user is
+changing his password.
+
+==== Salted passwords with pepper
+
+Since version 5.3 of ProjectForge® the administrator is able to
+configure a pepper string in the `application.properties`. Before
+hashing a password the pepper string is concatenated to the salt and
+password. Therefore no brute force attack is possible if an attacker has
+access to the database dump etc.  +
+Please configure the pepper string like this:
+
+*File:* `application.properties:`
+
+[source,shell,linenums]
+----
+...
+projectforge.security.passwordPepper=*******SECRET********
+....
+----
+
+All passwords are automatically updated after any login of an user (if
+no pepper and/or salt was yet used for the user's password) or after any
+password change.
+
+==== 2FA (two-factor-authentication)
+
+2FA (two factor autentication) is supported by using RFC6238, used by e. g. Google or Microsoft Authenticator.
+You may specify the expiry periods of 2FA for different expiry periods URL's by shortcuts for
+predefined sets of uri matchers and/or own regular expressions (as uri matchers).
+A web filter checks for every request, if there is a 2FA is required and
+if the last successfull 2FA of the current session is not older than the specified expiry period.
+The timestamp of a sucessfull 2FA is stored in the user's session as well as in any user's
+stay-logged-in-session.
+
+Recoomended example configuration:
+
+*File:* `application.properties:`
+
+[source,shell,linenums]
+----
+...
+# Recommended setup
+projectforge.2fa.expiryPeriod.minutes1=PASSWORD
+projectforge.2fa.expiryPeriod.hours1=ADMIN;MY_ACCOUNT
+projectforge.2fa.expiryPeriod.hours8=
+projectforge.2fa.expiryPeriod.days30=HR;FINANCE;ORGA;SCRIPTING
+# Every access requires at least valid 2FA every 90 days:
+projectforge.2fa.expiryPeriod.days90=/
+....
+----
+
+Rules
+
+* Expression starting with `/` means absolute path of uri.
+* If expressions do start with `/` they will be replaced by their regex: `/rs/user` -> `^/rs/user.+++*+++`:
+Any uri *starting* with `/rs/user` is matching.
+* Empty entries means: no 2nd factor
+* Regular expressions and shortcuts should be seperated by ';'.
+* Supported shortcuts are `ADMIN`, `HR`, `FINANCE`, `ORGA`, `SCRIPTING`, `MY_ACCOUNT`, `PASSWORD`
+containing a bunch of regex.
+* You may also use `WRITE:<entity-name>` for specifying only all write access calls of an entity (rest calls of React and
+Wicket actions). Reading of entities / detail
+view is not affected.
+* For entities (also) available in Wicket version, use `/wa/user` for specifying read/write access and `/wa/userEdit` for specifying
+detail view and write access.
+such entities is allowed. For specifying all entity activities, use `/rs/<entity-name>` instead.
+* You may also define own regex, such as: `ADMIN;/wa/report;WRITE:user`
+
+____
+Please refer the admin's web page -> configuration -> Export 2FA configuration for verifying your
+configuration.
+____
+
+
+=== LDAP
+
+==== Requirements
+
+The LDAP must support the following additional schemas (example of
+slapd.conf of OpenLDAP):
+
+[source,shell,linenums]
+----
+include /sw/etc/openldap/schema/cosine.schema +
+include /sw/etc/openldap/schema/inetorgperson.schema
+----
+
+==== Configuration
+
+The groupBase setting is only needed in master mode. The managerUser is
+not needed in simple slave mode. For further information see below.
+
+*File:* `application.properties:`
+
+[source,shell,linenums]
+----
+...
+projectforge.ldap.server=
+projectforge.ldap.baseDN=
+projectforge.ldap.managerUser=
+projectforge.ldap.managerPassword=
+projectforge.ldap.port=
+projectforge.ldap.sslCertificateFile=
+projectforge.ldap.groupBase=
+projectforge.ldap.userBase=
+projectforge.ldap.authentication=
+projectforge.ldap.posixAccountsDefaultGidNumber=
+projectforge.ldap.sambaAccountsSIDPrefix=
+projectforge.ldap.sambaAccountsPrimaryGroupSID=
+...
+----
+
+==== Local (admin) users
+
+Please login by using the stay-logged-in checkbox on the login screen as
+administrator (no LDAP should be configured). Restart ProjectForge with
+LDAP configured and use the same browser. You should be logged-in.
+Please go to the user list and select option local user for every user
+who should be authenticated against ProjectForge (instead of LDAP) and
+save them. Now the local users may log-in without LDAP credentials. This
+is especially use-ful for administrator users of ProjectForge.
+
+==== LDAP over SSL
+
+`openssl s_client -showcerts -connect ldap.acme.priv:636 > ldap.pem` Copy
+the lines
+including `-----BEGIN CERTIFICATE-----` until `-----END CERTIFICATE-----` (including)
+to a file called `ldap.cert.` Now you can configure the certificate file
+in `application.properties` or you can import the certificate to your
+java keystore. The first solution is independent of your JAVA version
+and is recommended first.
+
+==== ProjectForge as LDAP master
+
+The LDAP master mode is the most tested mode of ProjectForge and is used
+in production mode at the ProjectForge developer's company. In this
+mode, ProjectForge needs a LDAP user with write access to groups and
+users. The ProjectForge user's will be synchronized in LDAP. If there is
+any conflict between LDAP and ProjectForge, the ProjectForge settings
+are used. The configuration of this mode is simple:
+
+*File:* `application.properties:`
+
+[source,shell,linenums]
+----
+...
+projectforge.login.handlerClass=LdapMasterLoginHandler
+...
+----
+
+. This LDAP login handler has read-write access to the LDAP server and
+acts as master of the user and group data. All changes of ProjectForge's
+users and groups will be written through.
+. Any change of the LDAP server will be ignored and may be overwritten
+by ProjectForge.
+. *Passwords*  +
+After each successful login-in at ProjectForge (via LoginForm)
+ProjectForges tries to authenticate the user with the given
+username/password credentials at LDAP. If the LDAP authentication fails
+ProjectForge changes the password with the actual password of the user
+(given in the LoginForm). If the user changes his password (my account
+-> change password), the LDAP password will be changed respectively. In
+LDAP master mode, the user is also able to change his "WLAN/Samba
+password" (my account -> change password). The password entered there,
+will be written to the LDAP attribute "sambaNTPassword".
+. *Deactivated users*  +
+Deactivated users will be moved to an sub userbase called "deactivated".
+The e-mail will be invalidated and the password will be deleted. Deleted
+and deactivated users are removed from any LDAP group. After
+reactivating the user, the password has to be reset if the user logins
+the next time via LoginForm.
+. *Deleted Users*  +
+Deleted users will not be synchronized and removed in LDAP if exist.
+. *New users*  +
+New users (created with ProjectForge's UserEditPage) will be created
+first without password in the LDAP system directly but with "WLAN/Samba
+password". Such users need to log-in first at ProjectForge, otherwise
+their LDAP passwords aren't set (no log-in at any other system
+connecting to the LDAP is possible until the first log-in at
+ProjectForge).
+. *Modifiing fields in LDAP*  +
+ProjectForge does only modify supported fields of known LDAP users. If
+any modification is done in LDAP of fields and users/groups known by
+ProjectForge they will be overwritten by ProjectForge during the next
+synchronization run. If any modification in other fields of LDAP users
+are done, the should be left untouched by ProjectForge.
+. *Synchronization*  +
+After any modification of any ProjectForge user or group, the
+synchronization is started for all LDAP users and groups. If no
+modification is done, the synchronization is done approximately hourly,
+but only if any user activity is detected in ProjectForge. You can force
+a synchronization by refreshing all caches (including the
+UserGroupCache) in the system web page or by restarting ProjectForge.
+. *Groups and assigned users*  +
+Users will be added as `uniqueMember` entries in the LDAP groups if also
+assigned in ProjectForge to the same ProjectForge group.
+
+===== LDAP entries
+
+See figures [.external-link]#3# and [.external-link]#4# for detailled
+information of how does ProjectForge stores and expect LDAP fields and
+object classes.
+
+image::/uploads/adminguide/LDAP-user-entry.png[image]
+
+[cols="1,4",]
+|===
+|Figure 3: |ProjectForge uses the fields and object classes shown in
+this figure for users. The object class `posixAccount` with the
+fields `uidNumber, gidNumber, homeDirectory` and `loginShell` are only
+used and managed if configured).
+The field `employeeNumber` is used by ProjectForge for storing the
+primary key of the ProjectForge user entry in LDAP (for a better
+syncronization). So the renaming of user names should work.
+|===
+
+image::/uploads/adminguide/LDAP-group-entry.png[image]
+
+[cols="1,4",]
+|===
+|Figure 4: |ProjectForge uses the fields and object classes shown in
+this figure for groups. The field `businessCategory` is used by
+ProjectForge for storing the primary key of the ProjectForge group entry
+in LDAP (for a better syncronization). So the renaming of group names
+should work.
+|===
+
+===== Managing POSIX accounts
+
+ProjectForge supports the management of POSIX accounts with the
+data `uidNumber,` `gidNumber,` `homeDirectory,` and `loginShell.`
+
+You can adminster the POSIX account data in the UserEditPage after
+configuring the *`application.properties`* like the above example.
+Pleaser refer the tool-tips for further information:
+
+image::/uploads/adminguide/LDAP-POSIX-accounts.png[image]
+
+[cols="1,4",]
+|===
+|Figure 5: |ProjectForge is able to manage POSIX accounts in LDAP
+master mode.
+|===
+
+* After clicking the Button `create` beside the UID number field
+ProjectForge will prefill all POSIX account fields:
+. The UID number will be the next free number (ProjectForge searches the
+highest used UID and increments it by one). If no such number found,
+1,000 is assumed.
+. The GID number will be preset with the defaultGidNumber configured
+in `application.properties`.
+. The home directory will be the prefix `/home/` (configured
+in `application.properties`) followed by the user-name: e. g. `/home/kai`
+. The login-shell will be preset with `/bin/bash` or any other which is
+configured in `application.properties`.
++
+Don't forge to save this user by clicking the save or update button on
+the bottom of the edit page. After changing any of these POSIX account
+fields the LDAP entries are update immediately.
+* ProjectForge presets a new UID number automatically (see above).
+* ProjectForge assures that no UID number is given twice.
+* Every LDAP entry gets the `object-class` `posixAccount` only if the
+POSIX account data were created in ProjectForge for this user.
+
+==== Managing Samba accounts
+
+*File:* `application.properties:`
+
+[source,shell,linenums]
+----
+...
+projectforge.ldap.sambaAccountsSIDPrefix=
+projectforge.ldap.sambaAccountsPrimaryGroupSID=
+...
+----
+
+image::/uploads/adminguide/LDAP-POSIX-SAMBA-Accounts.png[image]
+
+[cols="1,4",]
+|===
+|Figure 6: |ProjectForge is able to manage POSIX and Samba accounts in
+LDAP master mode.
+|===
+
+* After clicking the Button `create` beside the UID number field
+ProjectForge will prefill all SAMBA account fields:
+. The UID number will be the next free number (ProjectForge searches the
+highest used UID and increments it by one). If no such number found,
+1,000 is assumed.
+. The GID number will be preset with the defaultSambaPrimaryGroupSID
+configured in `application.properties`.
+. Parallel usage with *POSIX, which is recommended:*  +
+Please click the 'create' button near to the UID of the POSIX account,
+the suffix of SAMBASID will be the same UID. ProjectForge's tries first
+to get the same UID for SAMBA as for POSIX if no conflict was found.
++
+Don't forge to save this user by clicking the save or update button on
+the bottom of the edit page. After changing any of these Samba account
+fields the LDAP entries are update immediately.
+* Every LDAP entry gets the `object-class` `sambaSamAccount` only if the
+Samba account data were created in ProjectForge for this user.
+
+==== ProjectForge as LDAP client
+
+This LDAP login handler acts as a LDAP slave, meaning, that LDAP will be
+accessed in read-only mode. There are 3 modes
+available: `simple,` `users` and `users-groups.` The configuration of
+this mode is simple:
+
+*File:* `application.properties`:
+
+[source,shell,linenums]
+----
+...
+projectforge.login.handlerClass=LdapSlaveLoginHandler
+...
+----
+
+===== Simple mode
+
+The simple mode is assumed if no ldap managerUser is given in the
+application.properties.
+
+* Simple means that only username and password is checked, all other
+user settings such as assigned groups and user name etc. are managed by
+ProjectForge.
+* No ldap user is needed for accessing users or groups of LDAP, only the
+user's login-name and password is checked by trying to authenticate!
+* If a user is deactivated in LDAP the user has the possibility to work
+with ProjectForge unlimited as long as he uses his
+stay-logged-in-method! (If not acceptable please use the normal user
+mode instead.)
+* For local users any LDAP setting is ignored.
+
+===== Users mode
+
+The normal user mode is assumed if a LDAP managerUser is given in
+the `application.properties.`
+
+* Normal means that username and password is checked and all other user
+settings such as user name etc. are read by a given LDAP manager user.
+* If a user is deleted in LDAP the user will be marked as deleted also
+in ProjectForge's data-base. Any login after synchronizing isn't allowed
+(the stay-logged-in-feature fails also for deleted users).
+* For local users any LDAP setting is ignored.
+* All known LDAP user fields of the users are synchronized (given name,
+surname, e-mail etc.).
+
+===== Users-groups mode
+
+This mode is not yet implemented, the users-mode is used instead.
+
+==== ProjectForge without LDAP
+
+You can also use PF without LADP.
+
+*File:* `application.properties:`
+
+[source,shell,linenums]
+----
+...
+projectforge.login.handlerClass=LoginDefaultHandler
+...
+----
+
+== Maintenance
+
+=== Updating by simple clicks
+
+ProjectForge provides automatically updates as built-in scripts with every new version.
+Refer the migration guide for required, manual changes.
+
+=== Re-indexing the database
+
+Should be done after setup: Use the adminstration menu.
+
+=== Analysing tools
+
+Useful commandes are:
+
+[source,shell,linenums]
+----
+...
+projectforge@vprojectforge:~$ jps
+19533 Bootstrap
+2261 Jps
+projectforge@vprojectforge:~$ jstack 19533
+2008-02-14 09:58:28
+Full thread dump Java HotSpot(TM) 64-Bit Server VM (1.6.0_03-b05 mixed mode):
+
+"Attach Listener" daemon prio=10 tid=0x00002aaaf4a6e800 nid=0x8fa waiting on condition [0x0000000000000000..0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"http-8443-10" daemon prio=10 tid=0x00002aaaf4a94800 nid=0x716c in Object.wait() [0x0000000041f47000..0x0000000041f47e40]
+   java.lang.Thread.State: WAITING (on object monitor)
+  at java.lang.Object.wait(Native Method)
+  - waiting on <0x00002aaaee262530> (a org.apache.tomcat.util.net.JIoEndpoint$Worker)
+  at java.lang.Object.wait(Object.java:485)
+  at org.apache.tomcat.util.net.JIoEndpoint$Worker.await(JIoEndpoint.java:416)
+
+...
+----
+
+=== XML-backup and restore and data-base migration ( BUG --> We guarantee no guarantee, but work on the solution of the problem )
+
+ProjectForge supports the import and export of its whole data-base as
+XML. It's independent from the data-base (Hypersonic, PostgreSQL, MySQL,
+Oracle etc.). You can choose this method to migrate your data-base from
+one data-base to any other data-base supported by ProjectForge.
+
+==== Export
+
+It's possible to export an XML-Dump from your data-base using the system
+administration dialogue (web). This backup contains all data of
+ProjectForge in one zipped xml file.
+
+==== Import
+
+. First you need a fresh data-base (without any tables and data).
+. Afterwards start ProjectForge with the connection data to your new
+data-base.
+. Upload the XML or zipped XML file inside the setup-page (which is
+shown automatically in your web-browser for empty data-bases). Leave any
+other input fields such as password etc. untouched.
+. Press the upload button.
+. Watch the results in the log messages. ProjectForge will verify each
+single entry by comparing each object of the XML file with the imported
+data-base objects (each single field of every object is compared.) Any
+inconsistency or difference is shown in the log file.
+. Now you can login into ProjectForge.
+
+==== Limitations
+
+The limitation is the web servers memory. It's planned to support very
+large ProjectForge data-bases using different xml files. Please request
+this feature e. g. inside the help forum if needed. For migration
+without changing the data-base vendor the data-base specific dump and
+restore mechanism are recommended for large data-bases.
+
+**Hint**
+
+____
+Please note: After an import of a dump file into a new ProjectForge
+installation all primary keys are changed! ProjectForge ensures the
+integrity of all data including the history entries.
+____
+
+=== Backup
+
+All datasets of ProjectForge® will be stored in the underlaying
+database (e. g. PostgreSQL).  +
+You should install an Unix cron script making frequently a backup of the
+database. A dump of containing table entries as SQL statements for
+PostgreSQL is possible by using:
+
+[cols=",",]
+|===
+|  |pg_dump -D -U projectforge -f pf_dump_`date '+%Y-%m-%d_%H-%M'`.sql
+|===
+
+=== Restoring a backup
+
+==== Data base
+
+[source,shell,linenums]
+----
+psql -q -f projectforge_2008-05-12_02-00.sql -U postgres projectforge 2>&1 > log.txt
+----
+
+For further details concerning dropping and creating a new data base.  +
+Don't forget to create indices (thru admin web page)!
+
+**Hint**
+
+____
+If you want to use productive data in your develepment system for
+testing, it's recommended to set all e-mail addresses of the users to
+your developers e-mail. Also all passwords can be easily set
+to `test123` if you user folliwing sql statement in your test database
+(not productive!):
+____
+
+[source,sql,linenums]
+----
+update t_pf_user SET password='SHA\{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', email='m.developer@acme.com/';
+----
+
+==== JCR repository
+
+The JCR repository contains all uploaded files (contracts, orders etc.). The file of the data transfer boxes is not included (it's normally to large for backup). The data transfer boxes are used for exchanging very large
+files between users and/or customers.
+
+For restoring a JCR backup you may use:
+[source,shell,linenums]
+----
+mv ./ProjectForge/jcr ./ProjectForge/jcr.old
+mkdir ./ProjectForge/jcr
+java -cp projectforge-application-version.jar -Dloader.main=org.projectforge.jcr.RestoreMain org.springframework.boot.loader.PropertiesLauncher /home/$user/ProjectForge/jcr/ projectforge-jcr-backup.zip
+----
+
+
+=== Automatical backup
+
+==== Backup script
+
+Install crontab entry as user projectforge on your ProjectForge®
+server starting the following script:
+
+*File:* `pforgebackup.sh:`
+
+[source,shell,linenums]
+----
+#!/bin/bash
+
+PGSQL_DIR=/usr/bin
+BACKUPDIR=/home/projectforge/backup
+BASENAME=projectforge PASSWD=...
+
+echo Starting backup of ProjectForge ...
+BACKUPFILE=$BACKUPDIR/${BASENAME}_`date '+%Y-%m-%d_%H-%M'`.sql
+
+echo Using filename $BACKUPFILE ...
+echo Exporting ...
+$PGSQL_DIR/pg_dump -D -U projectforge -W $PASSWD -f $BACKUPFILE
+
+echo Zipping backupfile ...
+gzip $BACKUPFILE
+
+# For using scp for remote backup:
+#scp $BACKUPFILE <user>@backup.mydomain:backup/
+
+echo Deleting backups older than 14 days
+find $BACKUPDIR -mtime +14 | xargs rm
+
+echo Backup of ProjectForge finished.
+----
+
+For allowing `pg_dump` without prompting password (if set), you can add
+the following line to:
+
+*File:* `pg_hba.conf:`
+
+[source,shell,linenums]
+----
+local projectforge projectforge ident sameuser
+----
+
+==== Adding crontab
+
+Adding following entry to the Unix crontab:
+
+[source,shell,linenums]
+----
+# run every day at 2:00 am +
+0 2 * * * /home/projectforge/bin/pforgebackup.sh
+----
+
+==== Remote backup
+
+For remote backup via `scp` you need to use key authorization:
+
+. Generate keys (using empty password) ssh-keygen
+. Copy your public key, e. g. `identity.pub` to your backup server.
+. Add this key on the backup server to the authorized keys.
+
+==== Polling remote backup
+
+For security reasons it's also possible to get the backup files from the
+ProjectForge® server with a cronjob starting e. g. one hour later:
+
+*File:* `pforgePollBackup.sh`:
+
+....
+#!/bin/bash
+SERVER=projectforge.mydomain
+DIR=/home/projectforge/backup
+REMOTE_DIR=backup REMOTE_USER=projectforge
+rsync -avz -e "ssh -P" -C $REMOTE_USER@$SERVER:$REMOTE_DIR $DIR
+....
+
+In that case you have to generate ssh key on your backup server and to
+add it to the authorized keys on your ProjectForge® server. +
+Add the following entry to your crontab on the backup server:
+# run every day at 3:00 am 0 3 * * * /home/projectforge/bin/pforgePollBackup.sh
+
+=== Monitoring
+
+You may monitor the login page with your monitoring tool (such as
+Nagios). If ProjectForge® is up and running and is full available
+the following comment is included in the login page:
+
+[source,shell,linenums]
+----
+<-- ProjectForge is alive. -->
+----
+
+If ProjectForge® isn't full available the following html comment is
+embedded:
+
+[source,shell,linenums]
+----
+<-- ProjectForge is not full available (perhaps in maintenance mode or in start-up phase). -->
+----
+
+=== Scheduler
+
+==== Data base search index
+
+The re-index job starts every night at 4 AM (UTC). If an error occurs an
+e-mail is sent to the admin e-mail addresses configured via web
+administration. If not configured, no e-mail is sent.
+
+=== Uninstalling ProjectForge
+
+You only need to delete the Jar-File and the working directory you've
+chosen / configured. If you're not sure, where ProjectForge's working
+directory is located, please restart ProjectForge and see for the
+directory in the log output or configuration tab of the standalone
+version.
+
+**Hint**
+
+Please note: If you delete the working directory, all your data base
+entries are deleted as well!
+
+=== Security improvements
+
+==== Fail2ban
+
+`LoginDefaultHandler   : User login failed:`
+
+`LoginDefaultHandler[ \t]+\: User login failed\:`
+
+== Attr-Schema in ProjectForge
+
+=== Overview
+
+The following (red rectangle) shows an example of how the web interface
+can look like with configurable attributes.
+
+image::/uploads/adminguide/Configurable_Attributes_Screenshot.png[image]
+
+
+The following is an example of such a xml file:
+
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="attrSchemataMap" class="java.util.HashMap">
+    <constructor-arg>
+      <map>
+        <entry key="employee">
+          <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrSchema">
+            <constructor-arg>
+              <list>
+
+                <!-- health insurance -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="healthinsurance"/>
+                  <property name="i18nKey" value="fibu.employee.healthinsurance.title"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="name"/>
+                        <property name="i18nkey" value="fibu.employee.healthinsurance.name"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="maxLength" value="255"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="number"/>
+                        <property name="i18nkey" value="fibu.employee.healthinsurance.number"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="maxLength" value="40"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- wage tax -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="wagetax"/>
+                  <property name="i18nKey" value="fibu.employee.wagetax"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="taxbracket"/>
+                        <property name="i18nkey" value="fibu.employee.taxbracket"/>
+                        <property name="type" value="java.lang.Integer"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.IntegerAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="1"/>
+                        <property name="maxIntValue" value="6"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- weekend work -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="INSTANT_OF_TIME"/>
+                  <property name="name" value="weekendwork"/>
+                  <property name="i18nKey" value="fibu.employee.weekendwork.title"/>
+                  <property name="i18nKeyStartTime" value="attr.instantOfTime"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="weekendworkday"/>
+                        <property name="i18nkey" value="fibu.employee.weekendwork.day"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory">
+                            <property name="i18nKeyList">
+                              <list>
+                                <value>fibu.employee.weekendwork.saturday</value>
+                                <value>fibu.employee.weekendwork.sunday</value>
+                              </list>
+                            </property>
+                          </bean>
+                        </property>
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="workinghours"/>
+                        <property name="i18nkey" value="fibu.employee.weekendwork.workhours"/>
+                        <property name="type" value="java.math.BigDecimal"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>
+                        </property>
+                        <property name="minIntValue" value="0"/>
+                        <property name="maxIntValue" value="10"/>
+                        <property name="required" value="true"/>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- nutrition -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="NOT_TIMEABLE"/>
+                  <property name="name" value="nutrition"/>
+                  <property name="i18nKey" value="fibu.employee.nutrition.title"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="nutrition"/>
+                        <property name="i18nkey" value="fibu.employee.nutrition.title"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory">
+                            <property name="i18nKeyList">
+                              <list>
+                                <value>fibu.employee.nutrition.omnivorous</value>
+                                <value>fibu.employee.nutrition.vegetarian</value>
+                                <value>fibu.employee.nutrition.vegan</value>
+                              </list>
+                            </property>
+                          </bean>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+                <!-- end of probation -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="NOT_TIMEABLE"/>
+                  <property name="name" value="probation"/>
+                  <property name="i18nKey" value="fibu.employee.probation.title"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="probation"/>
+                        <property name="i18nkey" value="fibu.employee.probation.title"/>
+                        <property name="type" value="java.util.Date"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.DateAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+              </list>
+            </constructor-arg>
+          </bean>
+        </entry>
+      </map>
+    </constructor-arg>
+  </bean>
+</beans>
+----
+
+=== The attrschema.xml file
+
+The xml file must have the name attrschema.xml and must be located in
+the ProjectForge base directory[.gwikiLocalLink]## ##. It is a spring
+beans xml file and must be in the following format:
+
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="attrSchemataMap" class="java.util.HashMap">
+    <constructor-arg>
+      <map>
+
+        <entry key="employee">
+          <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrSchema">
+            <constructor-arg>
+              <list>
+
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property .../>
+                  ...
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property .../>
+                        ...
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+                ...
+
+              </list>
+            </constructor-arg>
+          </bean>
+        </entry>
+        ...
+
+      </map>
+    </constructor-arg>
+  </bean>
+</beans>
+----
+
+=== Structure of the attrschema.xml file
+
+. `AttrSchema`: The `<entry>` element corresponds to a database entity.
+At the moment only `employee` is supported.
+. `AttrGroup`: Within each `<entry>` element there is a `<list>` which
+can contain multiple
+`<bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">`
+elements. Each of these elements is shown as a panel in the
+corresponding edit page (see screenshot of the employee edit page). Each
+element has multiple `<property>` sub elements which are describing this
+group/panel:
+.. `<property name="type" value="..."/>` valid values of the attribute
+`value` are `NOT_TIMEABLE`, `PERIOD` and `INSTANT_OF_TIME`. Both
+`PERIOD` and `INSTANT_OF_TIME` have in common that in the web interface
+you can add/change/delete multiple entries for different dates. Compared
+to `NOT_TIMEABLE` the panels of these two types have additional UI
+elements for these purposes.
+... `NOT_TIMEABLE`: This value is designated for a group of regular
+fields which are not time-dependent.
+... `PERIOD`: This value is designated for a group of fields whose
+values are valid for a certain period. This period starts at the date
+which is selected in the web interface and it ends at the date of the
+nearest successor entry. If there is no successor entry, than it's end
+is open. At the moment, the only granularity is day. _Example: An
+employee has the tax bracket 1 since 01.01.2016. As of 01.01.2017 it
+will have the tax bracket 4._
+... `INSTANT_OF_TIME` This value is designated for a group of fields
+whose values are valid for a certain instant of time, which is selected
+in the web interface. At the moment, the only granularity is day.
+_Example: An employee has worked on sunday 11.06.2016 for 10 hours._
+.. `<property name="name" value="..."/>` The value must be a string. It
+is used as the first part of the html ID of all input fields of the
+panel. Therefore it must follow the rules for valid html IDs.
+Furthermore it must be unique within each `AttrSchema` because it is
+used as a key in the database.
+.. `<property name="i18nKey" value="..."/>` The value must be an i18n
+key.
+It's translation is shown in the heading of the panel.
+.. `<property name="i18nKeyStartTime" value="..."/>` This property is
+only required for `PERIOD` and `INSTANT_OF_TIME`. It is an i18n key
+whose translation is shown to the left of the datepicker in the panel.
+Typical values are `attr.validFrom` for `PERIOD` and
+`attr.instantOfTime` for `INSTANT_OF_TIME`.
+.. `<property name="descriptions">` This is a `<list>` of
+`<bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">`
+elements, each of them describing one field of the panel.
+. `AttrDescription`: Each element has multiple `<property>` sub elements
+which are describing this field:
+.. `<property name="propertyName" value="..."/>` The value must be a
+string. It is used as the second part of the html ID of this field.
+Therefore it must follow the rules for valid html IDs. Furthermore it
+must be unique within each `AttrGroup` for `PERIOD` and
+`INSTANT_OF_TIME` and unique within each `AttrSchema` for `NOT_TIMEABLE`
+because it is used as a key in the database.
+.. `<property name="i18nkey" value="..."/>` This is the i18n key of the
+field. It is shown to it's left.
+.. `<property name="required" value="..."/>` Valid values are `true` and
+`false`. This property is optional. If it is omitted is has the same
+effect as set to `false`.
+... `true`: The field must be filled in the web interface.
+... `false`: The field does not need to be filled.
+.. `<property name="wicketComponentFactoryClass">` This describes what
+kind of field should be generated. These are the possible sub elements:
+... `<bean class="org.projectforge.web.common.timeattr.IntegerAttrWicketComponentFactory"/>`
+This will create a number field of type Integer. The following optional
+properties can be used to restrict the input:
+`<property name="minIntValue" value="..."/>` and
+`<property name="maxIntValue" value="..."/>` . Furthermore this property
+must be set: `<property name="type" value="java.lang.Integer"/>`.
+... `<bean class="org.projectforge.web.common.timeattr.BigDecimalAttrWicketComponentFactory"/>`
+This will create a number field of type BigDecimal. The following
+optional properties can be used to restrict the input:
+`<property name="minIntValue" value="..."/>` and
+`<property name="maxIntValue" value="..."/>`. Furthermore this property
+must be set: `<property name="type" value="java.math.BigDecimal"/>`.
+... `<bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>`
+This will create a text field of type String. The following optional
+property can be used to restrict the length of the input:
+`<property name="maxLength" value="..."/>` (see the example).
+Furthermore this property must be set:
+`<property name="type" value="java.lang.String"/>`.
+... `<bean class="org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory">`
+This will create a drop down menu. The example above shows how the
+options can be added to it. The options must be i18n keys which will be
+translated for the web interface. Furthermore this property must be set:
+`<property name="type" value="java.lang.String"/>`.
+... `<bean class="org.projectforge.web.common.timeattr.DateAttrWicketComponentFactory">`
+This will create a date picker. The example above shows how the options
+can be added to it. Furthermore this property must be set:
+`<property name="type" value="java.util.Date"/>`.
+... `<bean class="org.projectforge.web.common.timeattr.BooleanAttrWicketComponentFactory">`
+This will create a CheckBoxPanel. The example above shows how the
+options can be added to it. Furthermore this property must be set:
+`<property name="type" value="java.util.Boolean"/>`.
+
+== Plugins
+
+Some plugins which are part of the ProjectForge web app but not
+automatically enabled are described here.
+
+The plugins-jar must be in another folder(plugins) next to the
+ProcetForgeJar.
+
+The plugins are managed under Adminstration --> Plugins in the
+ProjectForge web app. After the activation, they have to restart
+ ProjectForge.
+
+=== Liquidity planning
+
+==== Description
+
+This plugins supports the cash flow forecast for a very easy to use
+liquidity planning. Please refer the UserGuide for further information
+
+=== Software license management
+
+==== Description
+
+In most companies you've to deal with lots of Software and license keys.
+This plugin allows administrators and users to organize license keys:
+
+* Every user is able to add a Software entry with license keys.
+* The administrator is able to view and edit all license keys.
+* Only users which are assigned to a Software entry (owners) are able to
+see the license key.
+* The history of every entry allows to track license usage over time by
+the users.
+* The history of changes is only visible for administrators and software
+owners.
+
+Planned features are:
+
+* Upload of license files.
+* Restricted entries (owners are only assignable by administrators).
+
+=== ExtendEmployeeData
+
+==== Description
+
+This plugin supports the HR processing of the employee data as well as
+in the monthly work with the employment office.
+
+[.short_text]#The new menu items are located in the HR menu.#
+
+==== List management
+
+* Under the menu item list maintenance, you can carry out mass changes
+on all data records in your system. You only have to select one category
+and then you can change it for all records.  +
+Furthermore, an Exel export of the selected category can be used to
+change the data offline in Exel. ( [.short_text]#File format must be
+.xls# ) +
+
+* Under the menu item list maintenance import you can import the
+exported and changed data quickly and easily. +
+
+==== Paying office
+
+* You can export all available data for a month for the
+[.short_text]#paying office# in the menu
+item [.short_text]#paying-office#-export.
+* In the [.short_text]#paying-office-i#mport menu, you can import the
+columns for salary and remarks from [.short_text]#paying office# to PF.
+
+==== Configuration
+
+* Here you can create special payments and perks that apply to all
+employees. These records are always kept in time.
+* Furthermore, you can adjust the headings of
+the [.short_text]#paying-office-i#mport here.
+
+=== IHK Export
+
+==== Description
+
+Export of working hours for the IHK
+
+=== Skillmatrix
+
+==== Description
+
+Capture and represent the skills of the employees

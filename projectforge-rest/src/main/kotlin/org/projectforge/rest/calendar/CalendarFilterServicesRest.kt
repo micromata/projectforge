@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -108,9 +108,11 @@ class CalendarFilterServicesRest {
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
 
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
+
     @GetMapping("initial")
     fun getInitialCalendar(): CalendarInit {
-        val userGroupCache = UserGroupCache.tenantInstance
         val initial = CalendarInit()
         val calendars = getCalendars()
         val currentFilter = getCurrentFilter()
@@ -129,7 +131,7 @@ class CalendarFilterServicesRest {
         initial.teamCalendars = StyledTeamCalendar.map(calendars, styleMap) // Add the styles of the styleMap to the exported calendars.
 
         val state = getFilterState()
-        initial.date = PFDateTime.from(state.startDate)
+        initial.date = PFDateTime.fromOrNow(state.startDate)
         initial.view = state.view
 
         initial.activeCalendars = getActiveCalendars(currentFilter, calendars, styleMap)
@@ -165,7 +167,7 @@ class CalendarFilterServicesRest {
             }
         }
 
-        listOfDefaultCalendars.sortBy { it.title?.toLowerCase() }
+        listOfDefaultCalendars.sortBy { it.title?.lowercase() }
         listOfDefaultCalendars.add(0, TeamCalendar(id = -1, title = translate("calendar.option.timesheets"))) // prepend time sheet pseudo calendar
         initial.listOfDefaultCalendars = listOfDefaultCalendars
 
@@ -279,8 +281,11 @@ class CalendarFilterServicesRest {
         return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
     }
 
+    /**
+     * @param userIdString Change user for displaying time sheets if allowed. If null, no time sheets will be displayed.
+     */
     @GetMapping("changeTimesheetUser")
-    fun changeTimesheetUser(@RequestParam("userId", required = true) userIdString: String): Map<String, Any> {
+    fun changeTimesheetUser(@RequestParam("userId") userIdString: String?): Map<String, Any> {
         val currentFilter = getCurrentFilter()
         val userId = NumberHelper.parseInteger(userIdString)
         if (timesheetDao.showTimesheetsOfOtherUsers()) {
@@ -400,7 +405,7 @@ class CalendarFilterServicesRest {
     }
 
     internal fun getCurrentFilter(): CalendarFilter {
-        var currentFilter = Companion.getCurrentFilter(userPrefService)
+        var currentFilter = getCurrentFilter(userPrefService)
         if (currentFilter == null) {
             // Creating empty filter (user has no filter list yet):
             currentFilter = CalendarFilter()
@@ -441,7 +446,7 @@ class CalendarFilterServicesRest {
         getFilterState().updateCalendarFilter(startDate, view)
         val currentFilter = getCurrentFilter()
         val activeCalendarIds = restFilter.activeCalendarIds
-        if (!activeCalendarIds.isNullOrEmpty()) {
+        activeCalendarIds?.let {
             currentFilter.calendarIds = activeCalendarIds.toMutableSet()
         }
         //currentFilter.showVacations = restFilter.showVacations

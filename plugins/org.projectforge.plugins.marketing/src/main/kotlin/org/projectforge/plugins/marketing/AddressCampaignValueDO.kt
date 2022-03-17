@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,42 +38,59 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_MARKETING_ADDRESS_CAMPAIGN_VALUE", uniqueConstraints = [UniqueConstraint(columnNames = ["address_fk", "address_campaign_fk"])], indexes = [Index(name = "idx_fk_t_plugin_marketing_address_campaign_value_address_campai", columnList = "address_campaign_fk"), Index(name = "idx_fk_t_plugin_marketing_address_campaign_value_address_fk", columnList = "address_fk"), Index(name = "idx_fk_t_plugin_marketing_address_campaign_value_tenant_id", columnList = "tenant_id")])
+@Table(
+  name = "T_PLUGIN_MARKETING_ADDRESS_CAMPAIGN_VALUE",
+  uniqueConstraints = [UniqueConstraint(columnNames = ["address_fk", "address_campaign_fk"])],
+  indexes = [Index(
+    name = "idx_fk_t_plugin_marketing_address_campaign_value_address_campai",
+    columnList = "address_campaign_fk"
+  ), Index(name = "idx_fk_t_plugin_marketing_address_campaign_value_address_fk", columnList = "address_fk")]
+)
 @NamedQueries(
-        NamedQuery(name = AddressCampaignValueDO.FIND_BY_ADDRESS_AND_CAMPAIGN,
-                query = "from AddressCampaignValueDO where address.id=:addressId and addressCampaign.id=:addressCampaignId"),
-        NamedQuery(name = AddressCampaignValueDO.FIND_BY_CAMPAIGN,
-                query = "from AddressCampaignValueDO where addressCampaign.id=:addressCampaignId and deleted=false"))
+  NamedQuery(
+    name = AddressCampaignValueDO.DELETE_BY_ADDRESS,
+    query = "delete from AddressCampaignValueDO where address.id=:addressId"
+  ),
+  NamedQuery(
+    name = AddressCampaignValueDO.FIND_BY_ADDRESS_AND_CAMPAIGN,
+    query = "from AddressCampaignValueDO where address.id=:addressId and addressCampaign.id=:addressCampaignId"
+  ),
+  NamedQuery(
+    name = AddressCampaignValueDO.FIND_BY_CAMPAIGN,
+    query = "from AddressCampaignValueDO where addressCampaign.id=:addressCampaignId and deleted=false"
+  )
+)
 open class AddressCampaignValueDO : DefaultBaseDO() {
 
-    @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "address_campaign_fk", nullable = false)
-    open var addressCampaign: AddressCampaignDO? = null
+  @IndexedEmbedded(depth = 1)
+  @get:ManyToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "address_campaign_fk", nullable = false)
+  open var addressCampaign: AddressCampaignDO? = null
 
-    @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "address_fk", nullable = false)
-    open var address: AddressDO? = null
+  @IndexedEmbedded(depth = 1)
+  @get:ManyToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "address_fk", nullable = false)
+  open var address: AddressDO? = null
 
-    @PropertyInfo(i18nKey = "value")
-    @get:Column(length = AddressCampaignDO.MAX_VALUE_LENGTH)
-    open var value: String? = null
+  @PropertyInfo(i18nKey = "value")
+  @get:Column(length = AddressCampaignDO.MAX_VALUE_LENGTH)
+  open var value: String? = null
 
-    @PropertyInfo(i18nKey = "comment")
-    @get:Column(length = Constants.LENGTH_COMMENT)
-    open var comment: String? = null
+  @PropertyInfo(i18nKey = "comment")
+  @get:Column(length = Constants.LENGTH_COMMENT)
+  open var comment: String? = null
 
-    val addressCampaignId: Int?
-        @Transient
-        get() = if (addressCampaign != null) addressCampaign!!.id else null
+  val addressCampaignId: Int?
+    @Transient
+    get() = if (addressCampaign != null) addressCampaign!!.id else null
 
-    val addressId: Int?
-        @Transient
-        get() = if (this.address != null) this.address!!.id else null
+  val addressId: Int?
+    @Transient
+    get() = if (this.address != null) this.address!!.id else null
 
-    companion object {
-        internal const val FIND_BY_ADDRESS_AND_CAMPAIGN = "AddressCampaignValueDO_FindByAddressAndCampaign"
-        internal const val FIND_BY_CAMPAIGN = "AddressCampaignValueDO_FindByCampaign"
-    }
+  companion object {
+    internal const val DELETE_BY_ADDRESS = "AddressCampaignValueDO_DeleteByAddress"
+    internal const val FIND_BY_ADDRESS_AND_CAMPAIGN = "AddressCampaignValueDO_FindByAddressAndCampaign"
+    internal const val FIND_BY_CAMPAIGN = "AddressCampaignValueDO_FindByCampaign"
+  }
 }

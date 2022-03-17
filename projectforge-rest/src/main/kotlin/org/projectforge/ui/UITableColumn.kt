@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,12 +25,36 @@ package org.projectforge.ui
 
 data class UITableColumn(var id: String,
                          var title: String? = null,
-                         @Transient
-                         var protectTitle: Boolean = false,
+                         var titleIcon: UIIconType? = null,
+                         var tooltip: String? = null,
                          var dataType: UIDataType = UIDataType.STRING,
                          var sortable: Boolean = true,
-                         var formatter: Formatter? = null)
-    : UIElement(UIElementType.TABLE_COLUMN)
+                         var formatter: Formatter? = null,
+                         var valueIconMap: Map<Any, UIIconType?>? = null)
+    : UIElement(UIElementType.TABLE_COLUMN) {
+
+    /**
+     * Helper method for setting properties. Null values are ignored.
+     * @return this for chaining.
+     */
+    fun set(title: String? = null, tooltip: String? = null, dataType: UIDataType? = null, sortable: Boolean? = null, formatter: Formatter? = null): UITableColumn {
+        title?.let { this.title = it }
+        tooltip?.let { this.tooltip = it }
+        dataType?.let { this.dataType = it }
+        sortable?.let { this.sortable = it }
+        formatter?.let { this.formatter = it }
+        return this
+    }
+
+    /**
+     * @return this for chaining.
+     */
+    fun setStandardBoolean(): UITableColumn {
+        valueIconMap = mapOf(true to UIIconType.CHECKED, false to null)
+        dataType = UIDataType.BOOLEAN
+        return this
+    }
+}
 
 enum class Formatter {
     ADDRESS_BOOK,
@@ -43,6 +67,7 @@ enum class Formatter {
     GROUP,
     KONTO,
     PROJECT,
+    RATING,
     TASK_PATH,
     TIMESTAMP_MINUTES,
     USER

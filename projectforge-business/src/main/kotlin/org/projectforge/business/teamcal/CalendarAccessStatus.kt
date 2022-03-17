@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,8 +34,6 @@ enum class CalendarAccessStatus(val key: String) : I18nEnum {
     /**
      * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
      */
-    override fun getI18nKey(): String {
-        return "plugins.teamcal.$key"
-    }
-
+    override val i18nKey: String
+        get() = "plugins.teamcal.$key"
 }

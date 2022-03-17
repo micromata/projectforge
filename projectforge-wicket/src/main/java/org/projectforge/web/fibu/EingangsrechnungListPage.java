@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,13 +39,11 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.excel.*;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.KostZuweisungExport;
-import org.projectforge.business.fibu.SEPATransferGenerator;
-import org.projectforge.business.fibu.SEPATransferResult;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.configuration.Configuration;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;

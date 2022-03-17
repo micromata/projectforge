@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.business.password;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -85,7 +87,7 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
    * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
    */
   @Override
-  public List<I18nKeyAndParams> checkPasswordQuality(final String password)
+  public List<I18nKeyAndParams> checkPasswordQuality(final char[] password)
   {
     return this.validate(password, null, false);
   }
@@ -98,18 +100,18 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
    * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
    */
   @Override
-  public List<I18nKeyAndParams> checkPasswordQuality(final String oldPassword, final String newPassword)
+  public List<I18nKeyAndParams> checkPasswordQuality(final char[] oldPassword, final char[] newPassword)
   {
     return validate(newPassword, oldPassword, true);
   }
 
-  private List<I18nKeyAndParams> validate(final String newPassword, final String oldPassword, final boolean checkOldPassword)
+  private List<I18nKeyAndParams> validate(final char[] newPassword, final char[] oldPassword, final boolean checkOldPassword)
   {
     final List<I18nKeyAndParams> result = new ArrayList<>();
 
     // check min length
     final int minPasswordLength = configurationService.getMinPasswordLength();
-    if (newPassword == null || newPassword.length() < minPasswordLength) {
+    if (newPassword == null || newPassword.length< minPasswordLength) {
       result.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, configurationService.getMinPasswordLength()));
 
       if (newPassword == null) {
@@ -126,19 +128,19 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
     }
 
     // compare old and new password
-    if (configurationService.getFlagCheckPasswordChange() && StringUtils.equals(oldPassword, newPassword)) {
+    if (configurationService.getFlagCheckPasswordChange() && Arrays.equals(oldPassword, newPassword)) {
       result.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR));
     }
 
     return result;
   }
 
-  private void checkForCharsInPassword(final String password, final List<I18nKeyAndParams> result)
+  private void checkForCharsInPassword(final char[] password, final List<I18nKeyAndParams> result)
   {
     boolean letter = false;
     boolean nonLetter = false;
-    for (int i = 0; i < password.length(); i++) {
-      final char ch = password.charAt(i);
+    for (int i = 0; i < password.length; i++) {
+      final char ch = password[i];
       if (!letter && Character.isLetter(ch)) {
         letter = true;
       } else if (!nonLetter && !Character.isLetter(ch)) {

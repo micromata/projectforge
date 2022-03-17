@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -52,7 +52,7 @@ class CalendarFilterState {
     fun updateCalendarFilter(startDate: Date?,
                              view: CalendarView?) {
         if (startDate != null) {
-            var startDay = PFDateTime.from(startDate)!!.localDate
+            var startDay = PFDateTime.from(startDate).localDate
             if (view == CalendarView.MONTH && startDay.dayOfMonth != 1) {
                 // Adjusting the begin of month (startDate might be a day of the end of the previous month, if shown.
                 startDay = startDay.withDayOfMonth(1).plusMonths(1)

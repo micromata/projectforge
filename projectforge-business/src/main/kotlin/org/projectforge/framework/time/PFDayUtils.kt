@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,7 +26,7 @@ package org.projectforge.framework.time
 import org.apache.commons.lang3.Validate
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.calendar.Holidays
-import org.projectforge.framework.i18n.UserException
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.math.BigDecimal
 import java.time.DayOfWeek
@@ -37,6 +37,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
+import java.util.*
 import kotlin.math.absoluteValue
 
 class PFDayUtils {
@@ -161,12 +162,21 @@ class PFDayUtils {
         }
 
         /**
+         * Including limits.
+         */
+        @JvmStatic
+        fun <T : IPFDate<T>> isBetween(date: T, from: T?, to: T?): Boolean {
+            return PFDateTimeUtils.isBetween(date, from, to)
+        }
+
+
+        /**
          * Determines the number of working days in the given period. Please note: there might be also half working days
          * (e. g. on Xmas or New Years Eve), so a BigDecimal is returned.
          */
         @JvmStatic
         fun getNumberOfWorkingDays(from: LocalDate, to: LocalDate): BigDecimal {
-            return getNumberOfWorkingDays(PFDay.from(from)!!, PFDay.from(to)!!)
+            return getNumberOfWorkingDays(PFDay.from(from), PFDay.from(to))
         }
 
         /**
@@ -247,11 +257,11 @@ class PFDayUtils {
          * @return The given date, if already a working day, otherwise the first working day after given date.
          */
         fun getNextWorkingDay(date: LocalDate): LocalDate {
-            return getNextWorkingDay(PFDay.from(date)!!).localDate
+            return getNextWorkingDay(PFDay.from(date)).localDate
         }
 
         /**
-         * Parses the given date.
+         * Parses the given date (of iso type yyyy-MM-dd or user's date format [DateFormatType.DATE] or [DateFormatType.DATE_SHORT].
          * @throws DateTimeParseException if the text cannot be parsed
          */
         @JvmStatic
@@ -267,7 +277,14 @@ class PFDayUtils {
             if (date != null) {
                 return date
             }
-            return parseDate(dateString, PFDateTimeUtils.ensureUsersDateTimeFormat(DateFormatType.DATE_SHORT))
+            date = parseDate(dateString, PFDateTimeUtils.ensureUsersDateTimeFormat(DateFormatType.DATE_SHORT))
+            if (date != null) {
+                return date
+            }
+            // Try to parse with time of day, but use local date in user's time zone independant of given time zone.
+            // e. g. Fronend sends 2019-10-04T22:00:00.000Z in user's time zone Europe/Berlin. This should result in 1999-10-05.
+            date = PFDateTimeUtils.parse(dateString)?.withZoneSameInstant(ThreadLocalUserContext.getZoneId())?.localDate
+            return date
         }
 
         fun parseDate(str: String?, dateTimeFormatter: DateTimeFormatter): LocalDate? {
@@ -290,6 +307,11 @@ class PFDayUtils {
         @JvmStatic
         fun getYear(date: LocalDate?): Int {
             return date?.year ?: -1
+        }
+
+        @JvmStatic
+        fun convertToUtilDate(date: LocalDate): Date {
+            return PFDateTime.from(date).utilDate
         }
 
         /**

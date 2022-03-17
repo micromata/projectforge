@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { Popover, PopoverBody } from '../../../components/design';
 import style from '../../../components/design/input/Input.module.scss';
 import { useClickOutsideHandler } from '../../../utilities/hooks';
@@ -25,6 +25,7 @@ function FavoritesPanel(
 ) {
     const [open, setOpen] = React.useState(false);
     const popperRef = React.useRef(null);
+    const [maxListHeight, setMaxListHeight] = React.useState('300px');
 
     const toggle = () => setOpen(!open);
 
@@ -39,8 +40,14 @@ function FavoritesPanel(
 
     useClickOutsideHandler(popperRef, setOpen, open);
 
+    useLayoutEffect(() => {
+        if (popperRef.current) {
+            setMaxListHeight(`calc(100vh - ${popperRef.current.getBoundingClientRect().top}px - 10rem)`);
+        }
+    }, [open]);
+
     return (
-        <React.Fragment>
+        <>
             <FavoritesButton
                 toggle={toggle}
                 id={htmlId}
@@ -57,33 +64,40 @@ function FavoritesPanel(
                 }}
             >
                 <PopoverBody>
-                    <ul className={style.favoritesList} ref={popperRef}>
-                        {onFavoriteCreate ? (
-                            <li className={style.addFavorite}>
-                                <FavoriteNameInput
-                                    id="newFilterName"
-                                    onSave={onFavoriteCreate}
-                                    label={translations['favorite.addNew'] || 'Add new'}
-                                />
-                            </li>
-                        ) : undefined}
-                        {favorites.map(favorite => (
-                            <FavoriteEntry
-                                key={favorite.id}
-                                {...favorite}
-                                currentFavoriteId={currentFavoriteId}
-                                isModified={isModified}
-                                onFavoriteDelete={onFavoriteDelete}
-                                onFavoriteRename={onFavoriteRename}
-                                onFavoriteSelect={handleFavoriteSelect}
-                                onFavoriteUpdate={onFavoriteUpdate}
-                                translations={translations}
+                    <div
+                        ref={popperRef}
+                        style={{
+                            maxHeight: maxListHeight,
+                            overflow: 'scroll',
+                        }}
+                    >
+                        {onFavoriteCreate && (
+                            <FavoriteNameInput
+                                className={style.favoritesName}
+                                id="newFilterName"
+                                onSave={onFavoriteCreate}
+                                label={translations['favorite.addNew'] || 'Add new'}
                             />
-                        ))}
-                    </ul>
+                        )}
+                        <ul className={style.favoritesList}>
+                            {favorites.map((favorite) => (
+                                <FavoriteEntry
+                                    key={favorite.id}
+                                    {...favorite}
+                                    currentFavoriteId={currentFavoriteId}
+                                    isModified={isModified}
+                                    onFavoriteDelete={onFavoriteDelete}
+                                    onFavoriteRename={onFavoriteRename}
+                                    onFavoriteSelect={handleFavoriteSelect}
+                                    onFavoriteUpdate={onFavoriteUpdate}
+                                    translations={translations}
+                                />
+                            ))}
+                        </ul>
+                    </div>
                 </PopoverBody>
             </Popover>
-        </React.Fragment>
+        </>
     );
 }
 
@@ -95,7 +109,7 @@ FavoritesPanel.propTypes = {
     currentFavoriteId: PropTypes.number,
     favoriteButtonText: PropTypes.string,
     favorites: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.any,
+        id: PropTypes.number,
         name: PropTypes.string,
     })),
     htmlId: PropTypes.string,

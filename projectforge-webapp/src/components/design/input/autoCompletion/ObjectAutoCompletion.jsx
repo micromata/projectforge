@@ -75,7 +75,9 @@ ObjectAutoCompletion.propTypes = {
     onSelect: PropTypes.func.isRequired,
     icon: PropTypes.shape({}),
     inputProps: PropTypes.shape({}),
-    value: PropTypes.shape({}),
+    value: PropTypes.shape({
+        displayName: PropTypes.string,
+    }),
 };
 
 ObjectAutoCompletion.defaultProps = {

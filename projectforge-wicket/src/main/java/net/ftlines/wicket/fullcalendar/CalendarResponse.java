@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,10 +35,10 @@
 
 package net.ftlines.wicket.fullcalendar;
 
-import java.util.Date;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.util.string.Strings;
+
+import java.util.Date;
 
 public class CalendarResponse {
 	private final FullCalendar calendar;

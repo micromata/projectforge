@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,7 @@ package org.projectforge.model.rest;
 
 import org.projectforge.common.StringHelper;
 
-import java.time.LocalDate;
+import java.sql.Date;
 import java.util.Locale;
 
 /**
@@ -108,7 +108,7 @@ public class AddressObject extends AbstractBaseObject {
 
   private String comment;
 
-  private LocalDate birthday;
+  private Date birthday;
 
   private String image;
 
@@ -246,11 +246,11 @@ public class AddressObject extends AbstractBaseObject {
     this.postalState = postalState;
   }
 
-  public LocalDate getBirthday() {
+  public Date getBirthday() {
     return birthday;
   }
 
-  public void setBirthday(final LocalDate birthday) {
+  public void setBirthday(final Date birthday) {
     this.birthday = birthday;
   }
 

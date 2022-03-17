@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.*;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.LabeledWebMarkupContainer;
@@ -32,7 +31,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.resource.loader.BundleStringResourceLoader;
 import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
@@ -40,14 +38,15 @@ import org.apache.wicket.util.tester.FormTester;
 import org.apache.wicket.util.tester.WicketTester;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
-import org.projectforge.business.user.UserXmlPreferencesCache;
+import org.projectforge.business.login.LoginDefaultHandler;
+import org.projectforge.business.login.LoginResult;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.persistence.user.api.UserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.web.LoginPage;
-import org.projectforge.web.LoginService;
-import org.projectforge.web.WicketSupport;
+import org.projectforge.web.WicketLoginService;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,13 +65,13 @@ public class WicketPageTestBase extends AbstractTestBase {
   protected WicketTester tester;
 
   @Autowired
-  private UserXmlPreferencesCache userXmlPreferencesCache;
-
-  @Autowired
   private PluginAdminService pluginAdminService;
 
   @Autowired
-  private LoginService loginService;
+  private WicketLoginService loginService;
+
+  @Autowired
+  private LoginDefaultHandler loginHandler;
 
   /**
    * don't know why, but we chache it...
@@ -85,18 +84,18 @@ public class WicketPageTestBase extends AbstractTestBase {
 
     @Override
     protected void init() {
-      log.info("Init WicketTestApplication");
+      baseLog.info("Init WicketTestApplication");
       super.init();
       getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext));
       if (!initialized) {
         // Only on first initialization.
-        log.info("Init resource loader");
+        baseLog.info("Init resource loader");
         addResourceBundle(WicketApplication.RESOURCE_BUNDLE_NAME);
         resourceSettings = getResourceSettings();
         addPluginResources();
         initialized = true;
       } else {
-        log.info("Restore resource settings from last initialization");
+        baseLog.info("Restore resource settings from last initialization");
         setResourceSettings(resourceSettings);
       }
     }
@@ -128,7 +127,7 @@ public class WicketPageTestBase extends AbstractTestBase {
     }
 
     private void addPluginResources() {
-      for (AbstractPlugin plugin : pluginAdminService.getActivePlugin()) {
+      for (AbstractPlugin plugin : pluginAdminService.getActivePlugins()) {
         for (String bundleName : plugin.getResourceBundleNames()) {
           addResourceBundle(bundleName);
         }
@@ -154,7 +153,7 @@ public class WicketPageTestBase extends AbstractTestBase {
    * @param username
    * @param password not encrypted.
    */
-  public void login(final String username, final String password) {
+  public void login(final String username, final char[] password) {
     login(username, password, true);
   }
 
@@ -165,22 +164,11 @@ public class WicketPageTestBase extends AbstractTestBase {
    * @param username
    * @param password not encrypted.
    */
-  public void login(final String username, final String password, final boolean checkDefaultPage) {
-    // start and render the test page
-    tester.startPage(new LoginPage(new PageParameters()));
-    if (ClassUtils.isAssignable(tester.getLastRenderedPage().getClass(), WicketUtils.getDefaultPage()) == true) {
-      // Already logged-in.
-      return;
-    }
-    // assert rendered page class
-    tester.assertRenderedPage(LoginPage.class);
-    final FormTester form = tester.newFormTester("body:form");
-    form.setValue(findComponentByLabel(form, "username"), username);
-    form.setValue(findComponentByLabel(form, "password"), password);
-    form.submit(KEY_LOGINPAGE_BUTTON_LOGIN);
-    if (checkDefaultPage == true) {
-      tester.assertRenderedPage(WicketUtils.getDefaultPage());
-    }
+  public void login(final String username, final char[] password, final boolean checkDefaultPage) {
+    final LoginResult result = loginHandler.checkLogin(username, password);
+    UserContext userContext = new UserContext(PFUserDO.createCopyWithoutSecretFields(result.getUser()));
+    ((MySession) tester.getSession()).internalLogin(userContext, null);
+    ((MySession) tester.getSession()).setAttribute("UserFilter.user", userContext);
   }
 
   public void loginTestAdmin() {
@@ -303,17 +291,14 @@ public class WicketPageTestBase extends AbstractTestBase {
    */
   public Component findComponentByAccessKey(final WicketTester tester, final String containerPath, final char accessKey) {
     return findComponentByAccessKey((MarkupContainer) tester.getComponentFromLastRenderedPage(containerPath),
-            accessKey);
+        accessKey);
   }
 
   /**
    * Logs out any current logged-in user and calls log-in page.
    */
   protected void logout() {
-    loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse(),
-            userXmlPreferencesCache, WicketSupport.getUserPrefCache());
-    tester.startPage(LoginPage.class);
-    tester.assertRenderedPage(LoginPage.class);
+    loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse());
   }
 
 }

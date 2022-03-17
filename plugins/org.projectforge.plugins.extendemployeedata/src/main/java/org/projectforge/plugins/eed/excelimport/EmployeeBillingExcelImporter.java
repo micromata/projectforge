@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 
 public class EmployeeBillingExcelImporter
 {
-  private static final Logger log = LoggerFactory.getLogger(EmployeeBillingExcelRow.class);
+  private static final Logger log = LoggerFactory.getLogger(EmployeeBillingExcelImporter.class);
 
   private static final String NAME_OF_EXCEL_SHEET = "employees";
 

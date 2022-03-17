@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -111,6 +111,10 @@ public class AddressTest extends AbstractTestBase {
     addressbookDao.internalSave(testAddressbook);
     Set<AddressbookDO> addressbookSet = new HashSet<>();
     addressbookSet.add(testAddressbook);
+
+    AddressbookDO globalAddressbook = addressbookDao.getGlobalAddressbook();
+    globalAddressbook.setFullAccessUserIds("" + getUser(AbstractTestBase.TEST_USER).getId());
+    addressbookDao.internalUpdate(globalAddressbook, false);
 
     AddressDO a1 = new AddressDO();
     a1.setName("testa1");
@@ -223,6 +227,7 @@ public class AddressTest extends AbstractTestBase {
     addressbookSet.add(addressbookWithUserAccess);
     addressbookSet.add(addressbookWithoutUserAccess);
 
+    logon(testUser);
     AddressDO address = new AddressDO();
     address.setName("Kai Reinhard");
     address.setAddressbookList(addressbookSet);

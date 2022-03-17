@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { connect } from 'react-redux';
-import { sortList } from '../../../../../actions/list/filter';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import AnimatedChevron from '../../../../design/input/chevron/Animated';
 import style from './DynamicTable.module.scss';
 
@@ -12,6 +11,7 @@ function DynamicTableHead(
         direction,
         dispatchSort,
         title,
+        titleIcon,
     },
 ) {
     const handleHeadClick = () => {
@@ -20,9 +20,11 @@ function DynamicTableHead(
         }
     };
 
+    const head = titleIcon ? <FontAwesomeIcon icon={titleIcon} /> : title;
+
     return (
         <th onClick={handleHeadClick} className={sortable ? style.clickableTableHead : ''}>
-            {title}
+            {head}
             {sortable && <AnimatedChevron direction={direction} />}
         </th>
     );
@@ -31,7 +33,8 @@ function DynamicTableHead(
 DynamicTableHead.propTypes = {
     id: PropTypes.string.isRequired,
     dispatchSort: PropTypes.func.isRequired,
-    title: PropTypes.string.isRequired,
+    title: PropTypes.string,
+    titleIcon: PropTypes.arrayOf(PropTypes.string),
     direction: PropTypes.string,
     sortable: PropTypes.bool,
 };
@@ -39,18 +42,8 @@ DynamicTableHead.propTypes = {
 DynamicTableHead.defaultProps = {
     sortable: false,
     direction: undefined,
+    title: undefined,
+    titleIcon: undefined,
 };
 
-const mapStateToProps = ({ list }, { id }) => ({
-    direction: (Array.findByField(
-        list.categories[list.currentCategory].filter.sortProperties,
-        'property',
-        id,
-    ) || {}).sortOrder,
-});
-
-const actions = {
-    dispatchSort: sortList,
-};
-
-export default connect(mapStateToProps, actions)(DynamicTableHead);
+export default DynamicTableHead;

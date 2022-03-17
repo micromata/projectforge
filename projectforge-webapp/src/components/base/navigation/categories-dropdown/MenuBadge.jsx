@@ -18,7 +18,7 @@ function MenuBadge(
     const id = `menu-badge-${elementKey}`;
 
     return (
-        <React.Fragment>
+        <>
             <span
                 className={classNames(style.badge, { [style.isFlying]: isFlying }, style[color])}
                 id={id}
@@ -33,7 +33,7 @@ function MenuBadge(
                     </UncontrolledTooltip>
                 )
                 : undefined}
-        </React.Fragment>
+        </>
     );
 }
 

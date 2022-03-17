@@ -1,37 +1,53 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { Button, UncontrolledCollapse } from 'reactstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { contentPropType } from '../../../../utilities/propTypes';
 import { Col, FormGroup, Row } from '../../../design';
 import { DynamicLayoutContext } from '../context';
+import style from '../../../design/list/List.module.scss';
+
+export const buildLengthForColumn = (length, offset = undefined) => (offset
+    ? Object.keys(length)
+        .reduce((previousValue, key) => ({
+            ...previousValue,
+            [key]: {
+                size: length[key],
+                offset: offset[key],
+            },
+        }), {})
+    : length);
 
 // A Component to put a tag around dynamic layout content
 function DynamicGroup(props) {
     const {
         content,
         length,
+        offset,
         type,
-        smLength,
-        mdLength,
-        lgLength,
-        xlLength,
+        collapseTitle,
     } = props;
 
     // Get renderLayout function from context.
     const { renderLayout } = React.useContext(DynamicLayoutContext);
 
     return React.useMemo(() => {
-        const groupProperties = {};
+        let groupProperties = {};
 
         // Determine the needed tag.
         let Tag;
         switch (type) {
             case 'COL':
                 Tag = Col;
-                groupProperties.xs = length;
-                groupProperties.sm = smLength;
-                groupProperties.md = mdLength;
-                groupProperties.lg = lgLength;
-                groupProperties.xl = xlLength;
+
+                if (length) {
+                    groupProperties = {
+                        ...groupProperties,
+                        ...(buildLengthForColumn(length, offset)),
+                    };
+                }
+
                 break;
             case 'FRAGMENT':
                 Tag = React.Fragment;
@@ -48,6 +64,20 @@ function DynamicGroup(props) {
                 Tag = React.Fragment;
         }
 
+        if (collapseTitle) {
+            const id = String.idify(collapseTitle);
+            return (
+                <Tag {...groupProperties}>
+                    <Button id={id} color="link">
+                        {collapseTitle}
+                        <FontAwesomeIcon icon={faChevronDown} className={style.chevron} />
+                    </Button>
+                    <UncontrolledCollapse toggler={`#${id}`}>
+                        {renderLayout(content)}
+                    </UncontrolledCollapse>
+                </Tag>
+            );
+        }
         // Render tag and further content
         return (
             <Tag {...groupProperties}>
@@ -56,6 +86,14 @@ function DynamicGroup(props) {
         );
     }, [props]);
 }
+
+export const lengthPropType = PropTypes.shape({
+    extraSmall: PropTypes.number,
+    small: PropTypes.number,
+    medium: PropTypes.number,
+    large: PropTypes.number,
+    extraLarge: PropTypes.number,
+});
 
 DynamicGroup.propTypes = {
     content: PropTypes.arrayOf(contentPropType).isRequired,
@@ -66,19 +104,14 @@ DynamicGroup.propTypes = {
         'GROUP',
         'ROW',
     ]).isRequired,
-    length: PropTypes.number,
-    smLength: PropTypes.number,
-    mdLength: PropTypes.number,
-    lgLength: PropTypes.number,
-    xlLength: PropTypes.number,
+    length: lengthPropType,
+    offset: lengthPropType,
+    collapseTitle: PropTypes.string,
 };
 
 DynamicGroup.defaultProps = {
     length: undefined,
-    smLength: undefined,
-    mdLength: undefined,
-    lgLength: undefined,
-    xlLength: undefined,
+    offset: undefined,
 };
 
 export default DynamicGroup;

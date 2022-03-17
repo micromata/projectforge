@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,6 +34,7 @@ import org.projectforge.framework.time.PFDayUtils
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -42,7 +43,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "t_fibu_buchungssatz", uniqueConstraints = [UniqueConstraint(columnNames = ["year", "month", "satznr", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_gegenkonto_id", columnList = "gegenkonto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_konto_id", columnList = "konto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost1_id", columnList = "kost1_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost2_id", columnList = "kost2_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_tenant_id", columnList = "tenant_id")])
+@Table(name = "t_fibu_buchungssatz", uniqueConstraints = [UniqueConstraint(columnNames = ["year", "month", "satznr"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_gegenkonto_id", columnList = "gegenkonto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_konto_id", columnList = "konto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost1_id", columnList = "kost1_id"), javax.persistence.Index(name = "idx_fk_t_fibu_buchungssatz_kost2_id", columnList = "kost2_id")])
 @WithHistory
 @NamedQueries(
         NamedQuery(name = BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
@@ -104,9 +105,8 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     open var gegenKonto: KontoDO? = null
 
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
-    open var datum: java.sql.Date? = null
+    open var datum: LocalDate? = null
 
     /** Je nach Buchungssatz: Belegnummer / Referenznummer / Rechnungsnummer.  */
     @PropertyInfo(i18nKey = "fibu.buchungssatz.beleg")

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,6 +29,7 @@ import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 public class LiquidityEntriesStatistics implements Serializable
@@ -41,13 +42,13 @@ public class LiquidityEntriesStatistics implements Serializable
 
   private int counter;
 
-  private final Date today;
+  private final LocalDate today;
 
   public LiquidityEntriesStatistics()
   {
     paid = open = total = BigDecimal.ZERO;
     counter = counterPaid = 0;
-    today = PFDateTime.now().getUtilDate();
+    today = LocalDate.now();
   }
 
   public void add(final LiquidityEntryDO entry)
@@ -59,7 +60,7 @@ public class LiquidityEntriesStatistics implements Serializable
       counterPaid++;
     } else {
       this.open = NumberHelper.add(open, amount);
-      if (entry.getDateOfPayment() != null && entry.getDateOfPayment().before(today)) {
+      if (entry.getDateOfPayment() != null && entry.getDateOfPayment().isBefore(today)) {
         this.overdue = NumberHelper.add(overdue, amount);
       }
     }

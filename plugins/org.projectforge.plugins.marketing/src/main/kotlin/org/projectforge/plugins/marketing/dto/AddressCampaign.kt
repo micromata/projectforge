@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,15 +25,13 @@ package org.projectforge.plugins.marketing.dto
 
 import org.projectforge.plugins.marketing.AddressCampaignDO
 import org.projectforge.rest.dto.BaseDTO
-import org.projectforge.rest.dto.Tenant
 import java.util.*
 
 class AddressCampaign(id: Int? = null,
                       deleted: Boolean = false,
                       created: Date? = null,
                       lastUpdate: Date? = null,
-                      tenant: Tenant? = null,
-                      title: String? = null,
-                      values: String? = null,
-                      comment: String? = null)
-    : BaseDTO<AddressCampaignDO>(id, deleted, created, lastUpdate, tenant)
+                      var title: String? = null,
+                      var values: String? = null,
+                      var comment: String? = null)
+    : BaseDTO<AddressCampaignDO>(id, deleted, created, lastUpdate)

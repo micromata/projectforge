@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.web.wicket.autocompletion;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.web.wicket.converter.I18nEnumConverter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Autocompletion field that represents localized enum values.

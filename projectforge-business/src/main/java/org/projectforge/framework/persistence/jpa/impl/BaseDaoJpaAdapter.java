@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -43,7 +43,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.poi.ss.formula.functions.T;
+import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxy;
+import org.projectforge.framework.ToStringUtil;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO;
@@ -51,7 +54,7 @@ import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.jpa.PfEmgr;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +63,7 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -114,7 +118,7 @@ public class BaseDaoJpaAdapter {
   }
 
   @SuppressWarnings("unchecked")
-  public static ModificationStatus copyValues(final BaseDO src, final BaseDO dest, final String... ignoreFields) {
+  public static ModificationStatus copyValues(BaseDO src, final BaseDO dest, final String... ignoreFields) {
     if (!ClassUtils.isAssignable(src.getClass(), dest.getClass())) {
       throw new RuntimeException("Try to copyValues from different BaseDO classes: this from type "
               + dest.getClass().getName()
@@ -124,6 +128,11 @@ public class BaseDaoJpaAdapter {
     }
     if (src.getId() != null && (ignoreFields == null || !ArrayUtils.contains(ignoreFields, "id"))) {
       dest.setId(src.getId());
+    }
+    Hibernate.initialize(src);
+    if (src instanceof HibernateProxy) {
+      src = (BaseDO) ((HibernateProxy) src).getHibernateLazyInitializer()
+          .getImplementation();
     }
     return copyDeclaredFields(src.getClass(), src, dest, ignoreFields);
   }
@@ -370,15 +379,28 @@ public class BaseDaoJpaAdapter {
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
             }
           } else {
-            log.error("Can't get id though can't copy the BaseDO (see error message above about HHH-3502).");
+            log.error("Can't get id though can't copy the BaseDO (see error message above about HHH-3502), or id not given for "
+                    + srcFieldValue.getClass() + ": " + ToStringUtil.toJsonString(srcFieldValue));
+          }
+        } else if (srcFieldValue instanceof LocalDate) {
+          if (destFieldValue == null) {
+            field.set(dest, srcFieldValue);
+            modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
+          } else {
+            final PFDay srcDay = PFDay.from((LocalDate) srcFieldValue);
+            final PFDay destDay = PFDay.from((LocalDate) destFieldValue);
+            if (!srcDay.isSameDay(destDay)) {
+              field.set(dest, srcDay.getLocalDate());
+              modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
+            }
           }
         } else if (srcFieldValue instanceof java.sql.Date) {
           if (destFieldValue == null) {
             field.set(dest, srcFieldValue);
             modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
           } else {
-            final DayHolder srcDay = new DayHolder((Date) srcFieldValue);
-            final DayHolder destDay = new DayHolder((Date) destFieldValue);
+            final PFDay srcDay = PFDay.from((java.sql.Date) srcFieldValue);
+            final PFDay destDay = PFDay.from((Date) destFieldValue);
             if (!srcDay.isSameDay(destDay)) {
               field.set(dest, srcDay.getSqlDate());
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
@@ -445,9 +467,6 @@ public class BaseDaoJpaAdapter {
     }
     if (Modifier.isStatic(field.getModifiers())) {
       // transients.
-      return false;
-    }
-    if ("created".equals(field.getName()) || "lastUpdate".equals(field.getName())) {
       return false;
     }
     return true;

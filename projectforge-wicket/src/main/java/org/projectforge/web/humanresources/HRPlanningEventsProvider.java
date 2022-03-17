@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,7 @@
 
 package org.projectforge.web.humanresources;
 
-import java.math.BigDecimal;
-import java.util.List;
-
+import net.ftlines.wicket.fullcalendar.Event;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.projectforge.business.humanresources.HRPlanningDO;
@@ -34,10 +32,13 @@ import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.business.humanresources.HRPlanningFilter;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
-import net.ftlines.wicket.fullcalendar.Event;
+import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Creates events corresponding to the hr planning entries.
@@ -85,8 +86,12 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
       timesheetUserId = ThreadLocalUserContext.getUserId();
     }
     filter.setUserId(timesheetUserId);
-    filter.setStartTime(start.toDate());
-    filter.setStopTime(end.toDate());
+
+    PFDay startDay = PFDay.fromOrNow(start.toDate());
+    PFDay endDay = PFDay.fromOrNow(end.toDate());
+
+    filter.setStartDay(startDay.getLocalDate());
+    filter.setStopDay(endDay.getLocalDate());
     final List<HRPlanningDO> list = hrPlanningDao.getList(filter);
     if (list == null) {
       return;
@@ -95,7 +100,7 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
       if (planning.getEntries() == null) {
         continue;
       }
-      final DateTime week = new DateTime(planning.getWeek(), ThreadLocalUserContext.getDateTimeZone());
+      final DateTime week = new DateTime(PFDateTime.from(planning.getWeek()).getUtilDate(), ThreadLocalUserContext.getDateTimeZone());
       for (final HRPlanningEntryDO entry : planning.getEntries()) {
         if (entry.isDeleted() == true) {
           continue;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,12 @@
 
 package org.projectforge.web.fibu;
 
-import java.io.Serializable;
-import java.util.Date;
-
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.framework.time.DateHolder;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.io.Serializable;
+import java.util.Date;
 
 @XStreamAlias("ReportObjectivesFilter")
 public class ReportObjectivesFilter implements Serializable
@@ -50,7 +49,7 @@ public class ReportObjectivesFilter implements Serializable
     }
     final DateHolder day = new DateHolder(from);
     day.setBeginOfMonth();
-    this.from = day.getDate();
+    this.from = day.getUtilDate();
   }
 
   public Date getFromDate()
@@ -70,7 +69,7 @@ public class ReportObjectivesFilter implements Serializable
     }
     final DateHolder day = new DateHolder(to);
     day.setEndOfMonth();
-    this.to = day.getDate();
+    this.to = day.getUtilDate();
   }
 
   public Date getToDate()

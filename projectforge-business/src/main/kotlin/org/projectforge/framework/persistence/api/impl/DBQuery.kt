@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,11 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import org.projectforge.business.multitenancy.TenantChecker
-import org.projectforge.business.multitenancy.TenantService
+import mu.KotlinLogging
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
-import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
@@ -39,19 +37,17 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import javax.persistence.EntityManager
 
+private val log = KotlinLogging.logger {}
+
 @Service
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 open class DBQuery {
-    private val log = LoggerFactory.getLogger(DBQuery::class.java)
 
     @Autowired
     private lateinit var emgrFactory: PfEmgrFactory
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
-
-    @Autowired
-    private lateinit var tenantService: TenantService
 
     /**
      * Gets the list filtered by the given filter.
@@ -63,8 +59,7 @@ open class DBQuery {
     open fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>,
                                                filter: QueryFilter,
                                                customResultFilters: List<CustomResultFilter<O>>?,
-                                               checkAccess: Boolean = true,
-                                               ignoreTenant: Boolean = false)
+                                               checkAccess: Boolean = true)
             : List<O> {
         if (checkAccess) {
             baseDao.checkLoggedInUserSelectAccess()
@@ -83,9 +78,8 @@ open class DBQuery {
             val dbFilter = filter.createDBFilter()
             return emgrFactory.runRoTrans { emgr ->
                 val em = emgr.entityManager
-                val queryBuilder = DBQueryBuilder(baseDao, em, tenantService, filter, dbFilter,
+                val queryBuilder = DBQueryBuilder(baseDao, em, filter, dbFilter)
                         // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
-                        ignoreTenant = ignoreTenant)
 
                 val dbResultIterator: DBResultIterator<O>
                 dbResultIterator = queryBuilder.result()
@@ -102,8 +96,8 @@ open class DBQuery {
                 list
             }
         } catch (ex: Exception) {
-            log.error("Error while querying: ${ex.message}. Magicfilter: ${filter}.", ex)
-            return mutableListOf()
+            log.error("Error while querying: ${ex.message}. Magicfilter: ${filter}.")
+            return emptyList()
         }
     }
 
@@ -116,7 +110,6 @@ open class DBQuery {
                                                      historSearchParams: DBHistorySearchParams,
                                                      checkAccess: Boolean)
             : List<O> {
-        val superAdmin = TenantChecker.isSuperAdmin<ExtendedBaseDO<Int>>(ThreadLocalUserContext.getUser())
         val loggedInUser = ThreadLocalUserContext.getUser()
 
         val list = mutableListOf<O>()
@@ -139,10 +132,11 @@ open class DBQuery {
                 if (!ensureUniqueSet.contains(next.id)) {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
-                    if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin))
+                    if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser))
                             && baseDao.containsLong(idSet, next)
                             && match(list, customResultFilters, resultPredicates, next)) {
                         // Current result object fits the modified query:
+                        baseDao.afterLoad(next)
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
                             break
@@ -157,7 +151,8 @@ open class DBQuery {
                 if (!ensureUniqueSet.contains(next.id)) {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(next.id) // Mark current object as already proceeded (ensure uniqueness)
-                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser, superAdmin) && match(list, customResultFilters, resultPredicates, next)) {
+                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser) && match(list, customResultFilters, resultPredicates, next)) {
+                        baseDao.afterLoad(next)
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
                             break

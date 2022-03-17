@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.business.teamcal;
 
-import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationData;
 
@@ -45,7 +44,7 @@ public class TeamCalConfig implements ConfigurationData
   public static TeamCalConfig get()
   {
     if (config == null) {
-      config = (TeamCalConfig) ConfigXml.getInstance().getPluginConfig(TeamCalConfig.class);
+      config = new TeamCalConfig();
     }
     return config;
   }

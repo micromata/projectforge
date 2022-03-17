@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,7 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PersonalAddressTest extends AbstractTestBase {
   @Autowired
@@ -61,8 +62,6 @@ public class PersonalAddressTest extends AbstractTestBase {
     personalAddress.setAddress(a);
     personalAddress.setOwner(getUser(AbstractTestBase.ADMIN));
     personalAddress.setFavoriteCard(true);
-    personalAddress.setFavoriteBusinessPhone(true);
-    personalAddress.setFavoriteMobilePhone(true);
     personalAddressDao.saveOrUpdate(personalAddress);
 
     CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -73,10 +72,9 @@ public class PersonalAddressTest extends AbstractTestBase {
     assertEquals(personalAddress.getAddressId(), addressIds[0]);
     assertEquals(personalAddress.getOwnerId(), getUser(AbstractTestBase.ADMIN).getId());
     assertTrue(personalAddress.isFavoriteCard());
-    assertTrue(personalAddress.isFavoriteBusinessPhone());
-    assertTrue(personalAddress.isFavoriteMobilePhone());
-    assertFalse(personalAddress.isFavoritePrivatePhone());
-    assertFalse(personalAddress.isFavoriteFax());
+
+    PersonalAddressDO obj = personalAddressDao.getByAddressUid(personalAddress.getAddress().getUid());
+    assertEquals(personalAddress.getId(), obj.getId());
 
     /*
      * txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW); txTemplate.execute(new

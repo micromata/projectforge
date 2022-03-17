@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -56,7 +56,7 @@ class ForecastExportTest : AbstractTestBase() {
                 baseDate.plusMonths(2), baseDate.plusMonths(3), baseDate.plusMonths(4))
         //order1.addPaymentSchedule()
 
-        val order2 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
+        createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
                 1000.0, baseDate,
                 baseDate.plusMonths(1), baseDate.plusMonths(4),
                 baseDate.plusMonths(2), baseDate.plusMonths(3))
@@ -64,29 +64,29 @@ class ForecastExportTest : AbstractTestBase() {
         val order3 = createOrder(today, AuftragsStatus.IN_ERSTELLUNG,
                 today.plusMonths(1), today.plusMonths(5))
         //order1.addPaymentSchedule()
-        val pos3_1 = addPosition(order3, 1, AuftragsPositionsStatus.IN_ERSTELLUNG, 4000.00, AuftragsPositionsPaymentType.FESTPREISPAKET)
+        addPosition(order3, 1, AuftragsPositionsStatus.IN_ERSTELLUNG, 4000.00, AuftragsPositionsPaymentType.FESTPREISPAKET)
         auftragDao.save(order3)
 
         val filter = AuftragFilter()
-        filter.periodOfPerformanceStartDate = baseDate.sqlDate
+        filter.periodOfPerformanceStartDate = baseDate.localDate
         val ba = forecastExport.export(filter)
         val excelFile = WorkFileHelper.getWorkFile("forecast.xlsx")
-        log.info("Writing forecast Excel file to work directory: " + excelFile.absolutePath)
+        baseLog.info("Writing forecast Excel file to work directory: " + excelFile.absolutePath)
         FileUtils.writeByteArrayToFile(excelFile, ba)
 
-        val workbook = ExcelWorkbook(ByteArrayInputStream(ba), excelFile.name)
-        val forecastSheet = workbook.getSheet(ForecastExport.Sheet.FORECAST.title)!!
-        val monthCols = Array(12) {
-            forecastSheet.registerColumn(ForecastExport.formatMonthHeader(baseDate.plusMonths(it.toLong())))
-        }
-        val firstRow = 9
-        forecastSheet.headRow // Enforce analyzing the column definitions.
+        ExcelWorkbook(ByteArrayInputStream(ba), excelFile.name).use { workbook ->
+            val forecastSheet = workbook.getSheet(ForecastExport.Sheet.FORECAST.title)!!
+            val monthCols = Array(12) {
+                forecastSheet.registerColumn(ForecastExport.formatMonthHeader(baseDate.plusMonths(it.toLong())))
+            }
+            val firstRow = 9
+            forecastSheet.headRow // Enforce analyzing the column definitions.
 
-        // order 1
-        Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[3])!!.stringCellValue.isNullOrBlank())
-        val amount = forecastSheet.getCell(firstRow + 1, monthCols[4])!!.numericCellValue
-        assertAmount(order1.getPosition(1)!!.nettoSumme!!.divide(BigDecimal(4)), amount)
-        workbook.close()
+            // order 1
+            Assertions.assertTrue(forecastSheet.getCell(firstRow + 1, monthCols[3])!!.stringCellValue.isNullOrBlank())
+            val amount = forecastSheet.getCell(firstRow + 1, monthCols[4])!!.numericCellValue
+            assertAmount(order1.getPosition(1)!!.nettoSumme!!.divide(BigDecimal(4)), amount)
+        }
     }
 
     private fun createTimeAndMaterials(orderStatus: AuftragsStatus, posStatus: AuftragsPositionsStatus,
@@ -114,9 +114,9 @@ class ForecastExportTest : AbstractTestBase() {
         val order = AuftragDO()
         order.nummer = auftragDao.nextNumber
         order.auftragsStatus = status
-        order.angebotsDatum = date.sqlDate
-        order.periodOfPerformanceBegin = periodOfPerformanceBegin?.sqlDate
-        order.periodOfPerformanceEnd = periodOfPerformanceEnd?.sqlDate
+        order.angebotsDatum = date.localDate
+        order.periodOfPerformanceBegin = periodOfPerformanceBegin?.localDate
+        order.periodOfPerformanceEnd = periodOfPerformanceEnd?.localDate
         order.probabilityOfOccurrence = probability
         return order
     }
@@ -134,8 +134,8 @@ class ForecastExportTest : AbstractTestBase() {
         pos.status = status
         pos.paymentType = paymentType
         pos.nettoSumme = BigDecimal(netSum)
-        pos.periodOfPerformanceBegin = periodOfPerformanceBegin?.sqlDate
-        pos.periodOfPerformanceEnd = periodOfPerformanceEnd?.sqlDate
+        pos.periodOfPerformanceBegin = periodOfPerformanceBegin?.localDate
+        pos.periodOfPerformanceEnd = periodOfPerformanceEnd?.localDate
         pos.periodOfPerformanceType = periodOfPerformanceType
         order.addPosition(pos)
         return pos
@@ -144,8 +144,8 @@ class ForecastExportTest : AbstractTestBase() {
     private fun createInvoice(date: PFDay): RechnungDO {
         val invoice = RechnungDO()
         invoice.nummer = rechnungDao.nextNumber
-        invoice.datum = date.sqlDate
-        invoice.faelligkeit = date.plusDays(30).sqlDate
+        invoice.datum = date.localDate
+        invoice.faelligkeit = date.plusDays(30).localDate
         invoice.status = RechnungStatus.GESTELLT
         invoice.typ = RechnungTyp.RECHNUNG
         invoice.kundeText = "ACME Inc."

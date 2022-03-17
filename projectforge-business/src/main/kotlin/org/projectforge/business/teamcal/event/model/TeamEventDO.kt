@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,6 +25,7 @@ package org.projectforge.business.teamcal.event.model
 
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.db.jpa.history.api.WithHistory
+import mu.KotlinLogging
 import net.fortuna.ical4j.model.DateTime
 import net.fortuna.ical4j.model.Recur
 import net.fortuna.ical4j.model.WeekDay
@@ -46,10 +47,11 @@ import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.RecurrenceFrequency
 import org.projectforge.framework.time.TimePeriod
-import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.persistence.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Overview of used (and may-be planned) fields:
@@ -73,9 +75,15 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_CALENDAR_EVENT", uniqueConstraints = [UniqueConstraint(name = "unique_t_plugin_calendar_event_uid_calendar_fk", columnNames = ["uid", "calendar_fk"])], indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_calendar_fk", columnList = "calendar_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_tenant_id", columnList = "tenant_id"), javax.persistence.Index(name = "idx_plugin_team_cal_end_date", columnList = "calendar_fk, end_date"), javax.persistence.Index(name = "idx_plugin_team_cal_start_date", columnList = "calendar_fk, start_date"), javax.persistence.Index(name = "idx_plugin_team_cal_time", columnList = "calendar_fk, start_date, end_date")])
+@Table(name = "T_PLUGIN_CALENDAR_EVENT", uniqueConstraints = [UniqueConstraint(name = "unique_t_plugin_calendar_event_uid_calendar_fk", columnNames = ["uid", "calendar_fk"])], indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_calendar_fk", columnList = "calendar_fk"), javax.persistence.Index(name = "idx_plugin_team_cal_end_date", columnList = "calendar_fk, end_date"), javax.persistence.Index(name = "idx_plugin_team_cal_start_date", columnList = "calendar_fk, start_date"), javax.persistence.Index(name = "idx_plugin_team_cal_time", columnList = "calendar_fk, start_date, end_date")])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [TeamEventAttendeeDO::class])
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
+@NamedQueries(
+    NamedQuery(
+        name = TeamEventDO.SELECT_ENTRIES_IN_THE_PAST_TO_PURGE,
+        query = "from TeamEventDO where calendar.id=:calendarId and endDate<:endDate"
+    ),
+)
 open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     @PropertyInfo(i18nKey = "plugins.teamcal.event.subject")
     @Field
@@ -95,22 +103,22 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "start_date")
-    override var startDate: Timestamp? = null
+    override var startDate: Date? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.event.endDate")
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "end_date")
-    override var endDate: Timestamp? = null
+    override var endDate: Date? = null
 
     @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.SECOND, encoding = EncodingType.STRING)
     @field:NoHistory
     @get:Column(name = "last_email")
-    open var lastEmail: Timestamp? = null
+    open var lastEmail: Date? = null
 
     @get:Column(name = "dt_stamp")
-    open var dtStamp: Timestamp? = null
+    open var dtStamp: Date? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.calendar")
     @IndexedEmbedded(depth = 1)
@@ -271,7 +279,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
         get() {
             val user = this.creator ?: return DateHelper.UTC
 
-            return user.timeZoneObject
+            return user.timeZone
         }
 
     /**
@@ -991,6 +999,6 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     }
 
     companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(TeamEventDO::class.java)
+        internal const val SELECT_ENTRIES_IN_THE_PAST_TO_PURGE = "TeamEventDO_selectEntriesInThePastToPurge"
     }
 }

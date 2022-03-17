@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,28 +23,21 @@
 
 package org.projectforge.web.teamcal.event;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-
+import net.ftlines.wicket.fullcalendar.Event;
+import net.ftlines.wicket.fullcalendar.callback.EventDroppedCallbackScriptGenerator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.Period;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamCalEventId;
-import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -60,8 +53,7 @@ import org.projectforge.framework.time.RecurrenceFrequency;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
-import net.ftlines.wicket.fullcalendar.Event;
-import net.ftlines.wicket.fullcalendar.callback.EventDroppedCallbackScriptGenerator;
+import java.util.*;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)

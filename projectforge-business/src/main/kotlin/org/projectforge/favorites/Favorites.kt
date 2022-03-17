@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -122,7 +122,7 @@ open class Favorites<T : AbstractFavorite>() {
     private fun fixNamesAndIds() {
         val namesSet = mutableSetOf<String>()
         val idSet = mutableSetOf<Int>()
-        var maxId: Int = set.maxBy { it.id ?: 0 }?.id ?: 0
+        var maxId: Int = set.maxByOrNull { it.id ?: 0 }?.id ?: 0
         set.forEach {
             var id = it.id
             if (id == null || idSet.contains(id)) {

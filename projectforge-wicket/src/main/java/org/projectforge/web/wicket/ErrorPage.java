@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,12 +32,12 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
+import org.projectforge.common.ProjectForgeException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.api.ProjectForgeException;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.i18n.InternalErrorException;
-import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.web.SendFeedback;
@@ -178,9 +178,12 @@ public class ErrorPage extends AbstractSecuredPage {
     body.add(feedbackPanel);
 
     if (throwable == null ||
-            throwable instanceof ComponentNotFoundException) {
+        throwable instanceof ComponentNotFoundException) {
       // Do nothing, this Exception can't be avoided. It occurs if the user clicks and navigates throw the
       // AddressListPage, then image components will be removed.
+      log.error("ErrorPage shown for user, but no message sent to support team: " + throwable.getMessage());
+    } else if (rootCause instanceof UserException) {
+      // Do nothing. The UserException is already presented to the user.
       log.error("ErrorPage shown for user, but no message sent to support team: " + throwable.getMessage());
     } else {
       sendProactiveMessageToSupportTeam();
@@ -189,7 +192,7 @@ public class ErrorPage extends AbstractSecuredPage {
 
   private void sendProactiveMessageToSupportTeam() {
     if (StringUtils.isBlank(configService.getPfSupportMailAddress()) == Boolean.FALSE
-            && configService.getSendMailConfiguration() != null) {
+        && configService.getSendMailConfiguration() != null) {
       log.info("Sending proactive mail to support.");
       Calendar cal = Calendar.getInstance();
       Date date = cal.getTime();
@@ -200,10 +203,10 @@ public class ErrorPage extends AbstractSecuredPage {
       errorData.setReceiver(configService.getPfSupportMailAddress());
       errorData.setSubject("Error occured: #" + form.data.getMessageNumber() + " on " + domainService.getDomain());
       errorData.setDescription("Error occured at: " + dateString + "(" + cal.getTimeZone().getID()
-              + ") with number: #" + form.data.getMessageNumber()
-              + " from user: " + form.data.getSender() + " \n "
-              + "Exception stack trace: \n" +
-              form.data.getRootCauseStackTrace() + "\n");
+          + ") with number: #" + form.data.getMessageNumber()
+          + " from user: " + form.data.getSender() + " \n "
+          + "Exception stack trace: \n" +
+          form.data.getRootCauseStackTrace() + "\n");
       sendFeedback.send(errorData);
     } else {
       log.info("No messaging for proactive support configured.");

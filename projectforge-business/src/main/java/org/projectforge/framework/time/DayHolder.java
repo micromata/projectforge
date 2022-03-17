@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,8 +28,12 @@ import org.projectforge.framework.calendar.Holidays;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.Month;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * Please use PFDate instead.
@@ -83,11 +87,11 @@ public class DayHolder {
    * @param date
    */
   public DayHolder(final Date date) {
-    this.date = PFDay.from(date, true);
+    this.date = PFDay.fromOrNow(date);
   }
 
   public DayHolder(final Date date, final TimeZone timeZone) {
-    this.date = PFDay.from(date, true, timeZone);
+    this.date = PFDay.fromOrNow(date, timeZone);
   }
 
   public DayHolder(final DayHolder dateHolder) {
@@ -137,7 +141,7 @@ public class DayHolder {
    * @return other.days - this.days.
    */
   public long daysBetween(final Date other) {
-    PFDay otherDay = PFDay.from(other);
+    PFDay otherDay = PFDay.from(other); // not null
     return this.date.daysBetween(otherDay);
   }
 
@@ -172,7 +176,7 @@ public class DayHolder {
   }
 
   public boolean isSameDay(Date other) {
-    return date.isSameDay(PFDay.from(other));
+    return date.isSameDay(PFDay.from(other)); // not null
   }
 
   public boolean isSameDay(DayHolder other) {
@@ -311,8 +315,8 @@ public class DayHolder {
     return date.getUtilDate();
   }
 
-  public java.sql.Date getSqlDate() {
-    return date.getSqlDate();
+  public LocalDate getLocalDate() {
+    return date.getLocalDate();
   }
 
   @Override

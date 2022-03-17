@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,12 @@
 
 package org.projectforge.web.common.timeattr;
 
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-
 import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
+import org.projectforge.web.wicket.components.MaxLengthTextField;
+import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+import org.projectforge.web.wicket.flowlayout.InputPanel;
 
 /**
  * A String input field.

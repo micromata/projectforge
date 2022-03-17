@@ -1,4 +1,4 @@
-<h1><%= pf.getI18nString("label.historyOfChanges") %></h1>
+<h3><%= pf.getI18nString("label.historyOfChanges") %></h3>
 <table class="history">
   <tr>
     <th><%= pf.getI18nString("timestamp") %></th>
@@ -9,7 +9,7 @@
     <th><%= pf.getI18nString("history.oldValue") %></th>
   </tr>
   <%
-    int row = 0; 
+    int row = 0;
     for (entry in history) {
       String style = (row++ % 2 == 0) ? "even" : "odd"; %>
     <tr class="${style}">

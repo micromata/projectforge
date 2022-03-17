@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,7 +39,7 @@ import javax.persistence.Table
 
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTACHMENT", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attachment_team_event_fk2", columnList = "team_event_fk2"), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attachment_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTACHMENT", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attachment_team_event_fk2", columnList = "team_event_fk2")])
 open class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachmentDO>, MailAttachment {
 
     private var filename: String? = null
@@ -73,7 +73,7 @@ open class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachme
     override fun compareTo(other: TeamEventAttachmentDO): Int {
         return if (id != null && this.id == other.id) {
             0
-        } else this.toString().toLowerCase().compareTo(other.toString().toLowerCase())
+        } else this.toString().lowercase().compareTo(other.toString().lowercase())
     }
 
     /**

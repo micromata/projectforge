@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,7 +32,7 @@ import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -46,13 +46,10 @@ import javax.persistence.*
 //@Cache(region = "invoices", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 //@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Table(name = "t_fibu_rechnung",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])],
         indexes = [
             javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_konto_id", columnList = "konto_id"),
             javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_kunde_id", columnList = "kunde_id"),
-            javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_projekt_id", columnList = "projekt_id"),
-            javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_tenant_id", columnList = "tenant_id")
-        ])
+            javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_projekt_id", columnList = "projekt_id")])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"],
         nestedEntities = [RechnungsPositionDO::class])
 @NamedQueries(
@@ -78,7 +75,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     /**
      * Freitextfeld, falls Kunde nicht aus Liste gewählt werden kann bzw. für Rückwärtskompatibilität mit alten Kunden.
      */
-    @PropertyInfo(i18nKey = "fibu.kunde")
+    @PropertyInfo(i18nKey = "fibu.kunde.text")
     @Field
     @get:Column(name = "kunde_text")
     open var kundeText: String? = null
@@ -118,15 +115,13 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
-    open var periodOfPerformanceBegin: Date? = null
+    open var periodOfPerformanceBegin: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
-    open var periodOfPerformanceEnd: Date? = null
+    open var periodOfPerformanceEnd: LocalDate? = null
 
     /**
      * (this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
@@ -156,7 +151,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @get:OneToMany(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER, mappedBy = "rechnung", targetEntity = RechnungsPositionDO::class)
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
-    open var positionen: MutableList<RechnungsPositionDO>? = null
+    override open var positionen: MutableList<RechnungsPositionDO>? = null
 
     override val abstractPositionen: List<AbstractRechnungsPositionDO>?
         @Transient
@@ -175,7 +170,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
         position.rechnung = this
     }
 
-    override fun setRechnung(position: AbstractRechnungsPositionDO) {
+    override fun setAbstractRechnung(position: AbstractRechnungsPositionDO) {
         position as RechnungsPositionDO
         position.rechnung = this
     }

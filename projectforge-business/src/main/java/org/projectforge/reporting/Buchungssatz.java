@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,7 +26,7 @@ package org.projectforge.reporting;
 import org.projectforge.business.fibu.kost.SHType;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 
 
 /**
@@ -37,50 +37,50 @@ import java.util.Date;
 public interface Buchungssatz
 {
   /** Synthetischer, eindeutiger Datenbankschlüssel. */
-  public Integer getId();
+  Integer getId();
 
   /** @return Jahr des Buchungsmonats. */
-  public Integer getYear();
+  Integer getYear();
 
   /** @return Zugehöriger Buchungsmonat. 1-January, ..., 12-December. */
-  public Integer getMonth();
+  Integer getMonth();
 
   /** @return Zugehöriger Buchungsmonat zweistellig formatiert 01-12: 01-Januar, 02-Februar bis 12-Dezember. */
-  public String getFormattedMonth();
+  String getFormattedMonth();
 
   /** @return Satznr des Buchungssatzes innerhalb des Buchungsmonats. */
-  public Integer getSatznr();
+  Integer getSatznr();
 
   /** @return Buchungsdatum */
-  public Date getDatum();
+  LocalDate getDatum();
 
-  public BigDecimal getBetrag();
+  BigDecimal getBetrag();
 
   /** @return Soll/Haben */
-  public SHType getSh();
+  SHType getSh();
 
   /** @return Buchungskonto */
-  public Konto getKonto();
+  Konto getKonto();
 
   /** @return Buchungsgegenkonto. */
-  public Konto getGegenKonto();
+  Konto getGegenKonto();
 
   /** @return Belegtext (Freitext) */
-  public String getBeleg();
+  String getBeleg();
 
   /** @return Freitext */
-  public String getText();
+  String getText();
 
   /** @return Freitext */
-  public String getMenge();
+  String getMenge();
 
-  public Kost1 getKost1();
+  Kost1 getKost1();
 
-  public Kost2 getKost2();
+  Kost2 getKost2();
 
   /**
    * Kommt nicht über die Buchhaltung, sondern kann nachträglich über ProjectForge angelegt werden.
    * @return Freitext.
    */
-  public String getComment();
+  String getComment();
 }

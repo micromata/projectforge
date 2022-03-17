@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,7 +32,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -66,7 +65,7 @@ public class EmployeeAttrTest extends AbstractTestBase
     e.setComment("EmployeeAttrTest");
     final EmployeeTimedDO et = employeeDao.newEmployeeTimeAttrRow(e);
     et.setGroupName("PERIOD");
-    et.setStartTime(new Timestamp(new Date().getTime()));
+    et.setStartTime(new Date());
     et.putAttribute("hollydays", 42);
     et.putAttribute("longValue", longValue);
     et.putAttribute("longValue2", longValue);

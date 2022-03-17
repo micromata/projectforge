@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,7 +26,7 @@ package org.projectforge.rest.dto
 import org.projectforge.business.gantt.GanttObjectType
 import org.projectforge.business.gantt.GanttRelationType
 import org.projectforge.business.task.TaskDO
-import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.business.task.TaskTree
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.common.task.TimesheetBookingStatus
@@ -60,6 +60,13 @@ class Task(id: Int? = null,
            var ganttPredecessor: Task? = null
 ) : BaseDTODisplayObject<TaskDO>(id, displayName = displayName) {
 
+    /**
+     * @see copyFromMinimal
+     */
+    constructor(src: TaskDO): this() {
+        copyFromMinimal(src)
+    }
+
     override fun copyFromMinimal(src: TaskDO) {
         super.copyFromMinimal(src)
         title = src.title
@@ -70,12 +77,9 @@ class Task(id: Int? = null,
     }
 
     companion object {
-        /**
-         * @param dbObj Needed to get the right tenant.
-         */
-        fun getTask(taskId: Int?, doObj: BaseDO<*>, minimal: Boolean = true): Task? {
+        fun getTask(taskId: Int?, minimal: Boolean = true): Task? {
             taskId ?: return null
-            val taskDO = TaskTreeHelper.getTaskTree(doObj).getTaskById(taskId)
+            val taskDO = TaskTree.getInstance().getTaskById(taskId) ?: return null
             val task = Task()
             if (minimal) {
                 task.copyFromMinimal(taskDO)

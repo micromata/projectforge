@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.setup
 
+import mu.KotlinLogging
 import org.projectforge.ProjectForgeApp
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.common.CanonicalFileUtils
@@ -30,87 +31,116 @@ import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.common.StringModifier
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl
+import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.start.ProjectForgeApplication
 import org.projectforge.start.ProjectForgeApplication.giveUpAndSystemExit
 import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
 import java.util.regex.Matcher
 
+private val log = KotlinLogging.logger {}
+
 object ProjectForgeInitializer {
-    private val log = org.slf4j.LoggerFactory.getLogger(ProjectForgeInitializer::class.java)
+  @JvmStatic
+  fun initialize(setupData: SetupData?): File? {
+    val applicationHomeDir = setupData?.applicationHomeDir
+      ?: return giveUpAndSystemExit("No directory configured in wizard.")
 
-    @JvmStatic
-    fun initialize(setupData: SetupData?): File? {
-        val applicationHomeDir = setupData?.applicationHomeDir
-                ?: return giveUpAndSystemExit("No directory configured in wizard.")
+    if (ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(applicationHomeDir)) {
+      giveUpAndSystemExit("ProjectForge shouldn't use source code repository as home directory: $applicationHomeDir")
+    }
 
-        if (ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(applicationHomeDir)) {
-            giveUpAndSystemExit("ProjectForge shouldn't use source code repository as home directory: $applicationHomeDir")
+    val emphasizedLog =
+      EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL, EmphasizedLogSupport.Alignment.LEFT)
+        .log("Checking ProjectForge installation...")
+
+    var counter = 0
+    if (!applicationHomeDir.exists()) {
+      emphasizedLog.log("  ${++counter}. Creating directory: ${CanonicalFileUtils.absolutePath(applicationHomeDir)}...")
+      applicationHomeDir.mkdirs()
+      if (!applicationHomeDir.exists() && !applicationHomeDir.isDirectory) {
+        emphasizedLog.log("    Error while creating directory: ${CanonicalFileUtils.absolutePath(applicationHomeDir)}")
+          .logEnd()
+        giveUpAndSystemExit("Error while creating directory: ${CanonicalFileUtils.absolutePath(applicationHomeDir)}")
+      }
+    }
+
+    val serverPort = if (setupData.serverPort in 1..65535) setupData.serverPort else 8080
+    val serverAddress = setupData.serverAdress
+
+    val domainService = DomainService.internalCreate(setupData.domain)
+    counter = ensureConfigFile(applicationHomeDir,
+      ProjectForgeApplication.CLASSPATH_INITIAL_PROPERTIES_FILENAME,
+      ProjectForgeApplication.PROPERTIES_FILENAME,
+      counter,
+      emphasizedLog,
+      StringModifier {
+        var result = replace(it, "server.address", "$serverAddress")
+        result = replace(result, "server.port", "$serverPort")
+        result = replace(result, "projectforge.domain", domainService.domain)
+        result = replace(result, "projectforge.servletContextPath", domainService.contextPath)
+        result = replace(result, "projectforge.currencySymbol", setupData.currencySymbol)
+        result = replace(result, "projectforge.defaultLocale", setupData.defaultLocale)
+        result = replace(result, "projectforge.defaultTimeNotation", setupData.defaultTimeNotation)
+        result = replace(result, "projectforge.defaultFirstDayOfWeek", setupData.defaultFirstDayOfWeek)
+        if (setupData.developmentMode) {
+          result = replace(result, "projectforge.web.development.enableCORSFilter", "true")
         }
-
-        val emphasizedLog = EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL, EmphasizedLogSupport.Alignment.LEFT)
-                .log("Checking ProjectForge installation...")
-
-        var counter = 0
-        if (!applicationHomeDir.exists()) {
-            emphasizedLog.log("  ${++counter}. Creating directory: ${CanonicalFileUtils.absolutePath(applicationHomeDir)}...")
-            applicationHomeDir.mkdirs()
-            if (!applicationHomeDir.exists() && !applicationHomeDir.isDirectory) {
-                emphasizedLog.log("    Error while creating directory: ${CanonicalFileUtils.absolutePath(applicationHomeDir)}").logEnd()
-                giveUpAndSystemExit("Error while creating directory: ${CanonicalFileUtils.absolutePath(applicationHomeDir)}")
-            }
+        val jdbc = setupData.jdbcSettings
+        if (!setupData.useEmbeddedDatabase && jdbc != null) {
+          result = replace(result, "spring.datasource.url", jdbc.jdbcUrl)
+          result = replace(result, "spring.datasource.username", jdbc.user)
+          result = replace(result, "spring.datasource.password", jdbc.password)
+          result = replace(result, "spring.datasource.driver-class-name", "org.postgresql.Driver")
         }
-
-        val serverPort = if (setupData.serverPort in 1..65535) setupData.serverPort else 8080
-
-        val domainService = DomainService.internalCreate(setupData.domain)
-        counter = ensureConfigFile(applicationHomeDir,
-                ProjectForgeApplication.CLASSPATH_INITIAL_PROPERTIES_FILENAME, ProjectForgeApplication.PROPERTIES_FILENAME, counter, emphasizedLog,
-                StringModifier {
-                    var result = replace(it, "server.port", "$serverPort")
-                    result = replace(result, "projectforge.domain", domainService.domain)
-                    result = replace(result, "projectforge.servletContextPath", domainService.contextPath)
-                    result = replace(result, "projectforge.currencySymbol", setupData.currencySymbol)
-                    result = replace(result, "projectforge.defaultLocale", setupData.defaultLocale)
-                    result = replace(result, "projectforge.defaultTimeNotation", setupData.defaultTimeNotation)
-                    result = replace(result, "projectforge.defaultFirstDayOfWeek", setupData.defaultFirstDayOfWeek)
-                    if (setupData.developmentMode) {
-                        result = replace(result, "projectforge.web.development.enableCORSFilter", "true")
-                    }
-                    val jdbc = setupData.jdbcSettings
-                    if (!setupData.useEmbeddedDatabase && jdbc != null) {
-                        result = replace(result, "spring.datasource.url", jdbc.jdbcUrl)
-                        result = replace(result, "spring.datasource.username", jdbc.user)
-                        result = replace(result, "spring.datasource.password", jdbc.password)
-                        result = replace(result, "spring.datasource.driver-class-name","org.postgresql.Driver")
-                    }
-                    result
-                }
+        result = replace(result, "projectforge.security.passwordPepper", NumberHelper.getSecureRandomAlphanumeric(20))
+        result = replace(
+          result,
+          "projectforge.security.authenticationTokenEncryptionKey",
+          NumberHelper.getSecureRandomAlphanumeric(20)
         )
-        counter = ensureConfigFile(applicationHomeDir,
-                ConfigXml.CLASSPATH_INITIAL_CONFIG_XML_FILE, ConfigXml.CONFIG_XML_FILE, counter, emphasizedLog)
-        counter = ensureConfigFile(applicationHomeDir,
-                AttrSchemaServiceSpringBeanImpl.CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE, AttrSchemaServiceSpringBeanImpl.ATTR_SCHEMA_CONFIG_FILE, counter, emphasizedLog)
-        emphasizedLog.logEnd()
-        if (!setupData.startServer) {
-            giveUpAndSystemExit("Initialization of ProjectForge's home directory done. Autostart wasn't selected. Please restart the server manually.")
-        }
-        return setupData.applicationHomeDir
+        result
+      }
+    )
+    counter = ensureConfigFile(
+      applicationHomeDir,
+      ConfigXml.CLASSPATH_INITIAL_CONFIG_XML_FILE, ConfigXml.CONFIG_XML_FILE, counter, emphasizedLog
+    )
+    @Suppress("UNUSED_VALUE")
+    counter = ensureConfigFile(
+      applicationHomeDir,
+      AttrSchemaServiceSpringBeanImpl.CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE,
+      AttrSchemaServiceSpringBeanImpl.ATTR_SCHEMA_CONFIG_FILE,
+      counter,
+      emphasizedLog
+    )
+    emphasizedLog.logEnd()
+    if (!setupData.startServer) {
+      giveUpAndSystemExit("Initialization of ProjectForge's home directory done. Autostart wasn't selected. Please restart the server manually.")
     }
+    PluginAdminService.registerFirstStart()
+    return setupData.applicationHomeDir
+  }
 
-    private fun replace(text: String, property: String, value: Any?): String {
-        return text.replaceFirst("^#?+$property=.*$".toRegex(RegexOption.MULTILINE), Matcher.quoteReplacement("$property=$value"))
-    }
+  private fun replace(text: String, property: String, value: Any?): String {
+    return text.replaceFirst(
+      "^#?+$property=.*$".toRegex(RegexOption.MULTILINE),
+      Matcher.quoteReplacement("$property=$value")
+    )
+  }
 
-    private fun ensureConfigFile(baseDir: File, initialClasspathFilename: String, filename: String, counter: Int,
-                                 emphasizedLog: EmphasizedLogSupport, modifier: StringModifier? = null): Int {
-        if (File(baseDir, filename).exists())
-            return counter
-        emphasizedLog.log("  $counter. Creating config file: $filename...")
-        if (!ProjectForgeApp.ensureInitialConfigFile(baseDir, initialClasspathFilename, filename, false, modifier)) {
-            emphasizedLog.logEnd()
-            giveUpAndSystemExit("Error while creating config file '$filename'.")
-        }
-        return counter + 1
+  private fun ensureConfigFile(
+    baseDir: File, initialClasspathFilename: String, filename: String, counter: Int,
+    emphasizedLog: EmphasizedLogSupport, modifier: StringModifier? = null
+  ): Int {
+    if (File(baseDir, filename).exists())
+      return counter
+    emphasizedLog.log("  $counter. Creating config file: $filename...")
+    if (!ProjectForgeApp.ensureInitialConfigFile(baseDir, initialClasspathFilename, filename, false, modifier)) {
+      emphasizedLog.logEnd()
+      giveUpAndSystemExit("Error while creating config file '$filename'.")
     }
+    return counter + 1
+  }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -44,10 +44,10 @@ public class RecentScriptCalls
 
   public ScriptCallData getScriptCallData(final String scriptName)
   {
-    if (recentQueue.getRecents() == null) {
+    if (recentQueue.getRecent() == null) {
       return null;
     }
-    for (final ScriptCallData data : recentQueue.getRecents()) {
+    for (final ScriptCallData data : recentQueue.getRecentList()) {
       if (scriptName.equals(data.getScriptName())) {
         return data;
       }

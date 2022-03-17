@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,23 +23,21 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import org.projectforge.business.multitenancy.TenantService
+import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 import javax.persistence.EntityManager
 
+private val log = KotlinLogging.logger {}
 
 class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         private val baseDao: BaseDao<O>,
         private val entityManager: EntityManager,
-        tenantService: TenantService,
         private val queryFilter: QueryFilter,
-        dbFilter: DBFilter,
-        ignoreTenant: Boolean = false) {
+        dbFilter: DBFilter) {
 
     enum class Mode {
         /**
@@ -57,7 +55,6 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
         CRITERIA
     }
 
-    private val log = LoggerFactory.getLogger(DBQueryBuilder::class.java)
     private var _dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>? = null
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
         get() {
@@ -99,17 +96,6 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
                 else
                     Mode.CRITERIA // Criteria search (no full text search entries found).
 
-        if (!ignoreTenant && tenantService.isMultiTenancyAvailable) {
-            val userContext = ThreadLocalUserContext.getUserContext()
-            userContext.currentTenant?.let { currentTenant ->
-                if (currentTenant.isDefault) {
-                    addMatcher(DBPredicate.Or(DBPredicate.Equal("tenant", currentTenant),
-                            DBPredicate.IsNull("tenant")))
-                } else {
-                    addMatcher(DBPredicate.Equal("tenant", currentTenant))
-                }
-            }
-        }
         dbFilter.predicates.forEach {
             addMatcher(it)
         }

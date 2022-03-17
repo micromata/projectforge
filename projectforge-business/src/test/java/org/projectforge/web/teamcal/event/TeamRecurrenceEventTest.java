@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,6 @@ import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -60,12 +59,12 @@ public class TeamRecurrenceEventTest
     assertDateTime("2013-01-06 10:30", recurEvent.getEndDate(), timeZone);
   }
 
-  private Timestamp getTimestamp(final String dateString, final TimeZone timeZone)
+  private Date getTimestamp(final String dateString, final TimeZone timeZone)
   {
     final DateFormat df = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES);
     df.setTimeZone(timeZone);
     try {
-      return new Timestamp(df.parse(dateString).getTime());
+      return new Date(df.parse(dateString).getTime());
     } catch (final ParseException ex) {
       fail("Can't parse date '" + dateString + "': " + ex.getMessage());
       return null;

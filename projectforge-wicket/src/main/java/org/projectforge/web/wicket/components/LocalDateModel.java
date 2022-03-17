@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,10 +24,11 @@
 package org.projectforge.web.wicket.components;
 
 import org.apache.wicket.model.IModel;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 
-import java.util.Date;
 import java.time.LocalDate;
+import java.util.Date;
 
 /**
  * https://stackoverflow.com/questions/39162334/how-can-i-bring-wicket-7-to-work-with-java-time-from-java-8
@@ -42,10 +43,10 @@ public class LocalDateModel implements IModel<Date> {
 
   @Override
   public Date getObject() {
-    LocalDate result = model.getObject();
+    final PFDateTime result = PFDateTime.fromOrNullAny(model.getObject());
     if (result == null)
       return null;
-    return PFDay.from(result).getSqlDate();
+    return result.getSqlDate();
   }
 
   @Override

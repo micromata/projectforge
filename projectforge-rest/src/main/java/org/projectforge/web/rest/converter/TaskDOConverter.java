@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,7 +26,7 @@ package org.projectforge.web.rest.converter;
 import org.hibernate.Hibernate;
 import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTree;
 import org.projectforge.model.rest.TaskObject;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +47,7 @@ public class TaskDOConverter
     }
     if (!Hibernate.isInitialized(taskDO)) {
       final Integer taskId = taskDO.getId();
-      taskDO = TaskTreeHelper.getTaskTree().getTaskById(taskId);
+      taskDO = TaskTree.getInstance().getTaskById(taskId);
       if (taskDO == null) {
         log.error("Oups, task with id '" + taskId + "' not found.");
         return null;

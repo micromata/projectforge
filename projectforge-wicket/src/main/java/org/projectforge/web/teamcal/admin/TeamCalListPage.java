@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -22,9 +22,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 package org.projectforge.web.teamcal.admin;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -48,15 +45,13 @@ import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.service.CalendarFeedService;
 import org.projectforge.web.calendar.AbstractICSExportDialog;
 import org.projectforge.web.teamcal.dialog.TeamCalICSExportDialog;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.AjaxIconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)

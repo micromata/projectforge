@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -44,7 +44,7 @@ class UserPrefRestService {
     private lateinit var userPrefService: UserPrefService
 
     fun putEntry(request: HttpServletRequest, area: String, name: String, value: Any?, persistent: Boolean) {
-        putEntry(request.session, area, name, value, persistent)
+        putEntry(request.getSession(false), area, name, value, persistent)
     }
 
     /**
@@ -73,7 +73,7 @@ class UserPrefRestService {
     }
 
     fun getEntry(request: HttpServletRequest, area: String, name: String): Any? {
-        return getEntry(request.session, area, name)
+        return getEntry(request.getSession(false), area, name)
     }
 
     /**
@@ -113,7 +113,7 @@ class UserPrefRestService {
     }
 
     fun <T : Class<*>> getEntry(request: HttpServletRequest, expectedType: Class<T>, area: String, name: String): T? {
-        return getEntry(request.session, expectedType, area, name)
+        return getEntry(request.getSession(false), expectedType, area, name)
     }
 
     /**

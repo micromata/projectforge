@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,6 +30,8 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
+import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.plugins.core.PluginsRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -54,6 +56,9 @@ open class FavoritesMenuCreator {
     fun getFavoriteMenu(): Menu {
         val favMenuAsUserPrefString = userXmlPreferencesService.getEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY) as String?
         val menu = getFavoriteMenu(favMenuAsUserPrefString)
+        PluginsRegistry.instance().plugins.forEach {activePlugin ->
+            activePlugin.handleFavoriteMenu(menu, menu.getAllDescendants())
+        }
         menu.postProcess() // Build badges of top menus.
         return menu
     }
@@ -84,6 +89,7 @@ open class FavoritesMenuCreator {
             menu.add(menuCreator.findById(MenuItemDefId.TASK_TREE))
             menu.add(menuCreator.findById(MenuItemDefId.CALENDAR))
             menu.add(menuCreator.findById(MenuItemDefId.ADDRESS_LIST))
+            menu.add(menuCreator.findById(PluginAdminService.PLUGIN_DATA_TRANSFER_ID))
         }
         return menu
     }

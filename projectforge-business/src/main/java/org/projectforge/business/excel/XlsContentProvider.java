@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,6 +28,7 @@ import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 
 import java.util.*;
 
@@ -201,7 +202,7 @@ public class XlsContentProvider implements ContentProvider
   }
 
   /**
-   * Override this method if you need to convert complex data types, e. g. value is a DateHolder object you may return value.getDate().
+   * Override this method if you need to convert complex data types, e. g. value is a DateHolder object you may return value.getUtilDate().
    * Please note, that only some object types are supported by {@link Cell} and by this implementation.
    *
    * @param value
@@ -225,6 +226,10 @@ public class XlsContentProvider implements ContentProvider
         poiCell.setCellValue((Calendar) customizedValue);
       } else if (customizedValue instanceof Date) {
         poiCell.setCellValue((Date) customizedValue);
+      } else if (customizedValue instanceof PFDateTime) {
+        poiCell.setCellValue(((PFDateTime) customizedValue).getCalendar());
+      } else if (customizedValue instanceof PFDay) {
+        poiCell.setCellValue(((PFDay) customizedValue).getLocalDate());
       } else if (customizedValue instanceof String) {
         poiCell.setCellValue((String) customizedValue);
       } else {
@@ -236,6 +241,10 @@ public class XlsContentProvider implements ContentProvider
       poiCell.setCellValue((Date) value);
     } else if (value instanceof Calendar) {
       poiCell.setCellValue((Calendar) value);
+    } else if (customizedValue instanceof PFDateTime) {
+      poiCell.setCellValue(((PFDateTime) customizedValue).getCalendar());
+    } else if (customizedValue instanceof PFDay) {
+      poiCell.setCellValue(((PFDay) customizedValue).getLocalDate());
     } else if (value instanceof Boolean) {
       poiCell.setCellValue((Boolean) value);
     } else if (value instanceof Number) {

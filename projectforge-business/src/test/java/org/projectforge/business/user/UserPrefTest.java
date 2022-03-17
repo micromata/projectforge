@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,7 +39,6 @@ import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,7 +53,7 @@ public class UserPrefTest extends AbstractTestBase {
     Locale locale;
     TimeZone timeZone;
     Date lastPasswordChange;
-    Timestamp lastLogin;
+    Date lastLogin;
 
     static User createTestUser() {
       User user = new User();

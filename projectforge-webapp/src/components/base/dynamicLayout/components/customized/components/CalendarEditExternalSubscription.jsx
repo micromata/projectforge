@@ -4,14 +4,14 @@ import { Col, Row } from 'reactstrap';
 import { Input } from '../../../../../design';
 import CheckBox from '../../../../../design/input/CheckBox';
 import { DynamicLayoutContext } from '../../../context';
-import ReactSelect from '../../../../../design/ReactSelect';
+import ReactSelect from '../../../../../design/react-select/ReactSelect';
 
 function CalendarEditExternalSubscription({ values }) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     const { intervals } = values;
 
-    const defaultInterval = intervals.find(element => element.id
+    const defaultInterval = intervals.find((element) => element.id
         === data.externalSubscriptionUpdateInterval) || values.intervals[0];
 
     const handleInputChange = (event) => {
@@ -28,7 +28,7 @@ function CalendarEditExternalSubscription({ values }) {
 
     return React.useMemo(
         () => (
-            <React.Fragment>
+            <>
                 <Row>
                     <Col sm={3}>
                         <CheckBox
@@ -69,8 +69,9 @@ function CalendarEditExternalSubscription({ values }) {
                                     />
                                 </Col>
                             </Row>
-                        ) : undefined}
-            </React.Fragment>
+                        ) : undefined
+                }
+            </>
         ),
         [data.externalSubscription,
             data.externalSubscriptionUrl,

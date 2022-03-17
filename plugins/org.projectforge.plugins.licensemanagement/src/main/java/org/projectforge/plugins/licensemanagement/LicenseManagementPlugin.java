@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,22 +23,20 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
 public class LicenseManagementPlugin extends AbstractPlugin {
   public static final String ID = "licenseManagement";
 
@@ -57,13 +55,15 @@ public class LicenseManagementPlugin extends AbstractPlugin {
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  public LicenseManagementPlugin() {
+    super(PluginAdminService.PLUGIN_LICENSE_MANAGEMENT_ID, "LicenseManagementPlugin", "For managing software licenses, keys and usage.");
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
   protected void initialize() {
-    // DatabaseUpdateDao is needed by the updater:
-    LicenseManagementPluginUpdates.databaseService = databaseService;
     final RegistryEntry entry = new RegistryEntry(ID, LicenseDao.class, licenseDao,
             "plugins.licensemanagement");
     // The LicenseDao is automatically available by the scripting engine!
@@ -81,21 +81,5 @@ public class LicenseManagementPlugin extends AbstractPlugin {
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);
-  }
-
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
-   */
-  @Override
-  public List<UpdateEntry> getUpdateEntries() {
-    return LicenseManagementPluginUpdates.getUpdateEntries();
-  }
-
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
-   */
-  @Override
-  public UpdateEntry getInitializationUpdateEntry() {
-    return LicenseManagementPluginUpdates.getInitializationUpdateEntry();
   }
 }

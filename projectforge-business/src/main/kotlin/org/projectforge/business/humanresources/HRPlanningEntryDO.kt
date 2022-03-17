@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,7 +45,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_HR_PLANNING_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_planning_fk", columnList = "planning_fk"), javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_projekt_fk", columnList = "projekt_fk"), javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_HR_PLANNING_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_planning_fk", columnList = "planning_fk"), javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_projekt_fk", columnList = "projekt_fk")])
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
 

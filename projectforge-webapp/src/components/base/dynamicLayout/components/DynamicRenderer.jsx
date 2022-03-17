@@ -1,16 +1,26 @@
 import React from 'react';
 import DynamicCustomized from './customized';
+import DynamicAlert from './DynamicAlert';
+import DynamicAttachmentList from './input/DynamicAttachmentList';
+import DynamicButton from './DynamicButton';
 import DynamicFieldset from './DynamicFieldset';
 import DynamicGroup from './DynamicGroup';
 import DynamicLabel from './DynamicLabel';
+import DynamicList from './DynamicList';
 import DynamicCheckbox from './input/DynamicCheckbox';
 import DynamicInputResolver from './input/DynamicInputResolver';
 import DynamicRadioButton from './input/DynamicRadioButton';
-import DynamicTextArea from './input/DynamicTextArea';
+import DynamicRating from './input/DynamicRating';
 import DynamicReadonlyField from './input/DynamicReadonlyField';
-import DynamicList from './DynamicList';
+import DynamicTextArea from './input/DynamicTextArea';
+import DynamicReactCreatableSelect from './select/DynamicReactCreatableSelect';
 import DynamicReactSelect from './select/DynamicReactSelect';
 import DynamicTable from './table/DynamicTable';
+import DynamicListPageTable from './table/DynamicListPageTable';
+import DynamicBadgeList from './DynamicBadgeList';
+import DynamicBadge from './DynamicBadge';
+import DynamicDropArea from './input/DynamicDropArea';
+import DynamicEditor from './input/DynamicEditor';
 
 const components = {};
 
@@ -21,11 +31,12 @@ export const registerComponent = (type, tag) => {
 // Renders the components out of a content array.
 export default (content) => {
     if (!content) {
-        return <React.Fragment />;
+        return <></>;
     }
 
     return (
-        <React.Fragment>
+        <>
+            {/* eslint-disable-next-line react/destructuring-assignment */}
             {content.map(({ type, key, ...props }) => {
                 const Tag = components[type];
                 const componentKey = `dynamic-layout-${key}`;
@@ -46,13 +57,19 @@ export default (content) => {
                     />
                 );
             })}
-        </React.Fragment>
+        </>
     );
 };
 
 // register default components
+registerComponent('ALERT', DynamicAlert);
+registerComponent('ATTACHMENT_LIST', DynamicAttachmentList);
+registerComponent('BADGE', DynamicBadge);
+registerComponent('BADGE_LIST', DynamicBadgeList);
+registerComponent('BUTTON', DynamicButton);
 registerComponent('CHECKBOX', DynamicCheckbox);
 registerComponent('COL', DynamicGroup);
+registerComponent('DROP_AREA', DynamicDropArea);
 registerComponent('FRAGMENT', DynamicGroup);
 registerComponent('GROUP', DynamicGroup);
 registerComponent('LIST', DynamicList);
@@ -62,7 +79,11 @@ registerComponent('CUSTOMIZED', DynamicCustomized);
 registerComponent('FIELDSET', DynamicFieldset);
 registerComponent('INPUT', DynamicInputResolver);
 registerComponent('LABEL', DynamicLabel);
+registerComponent('RATING', DynamicRating);
 registerComponent('READONLY_FIELD', DynamicReadonlyField);
 registerComponent('SELECT', DynamicReactSelect);
+registerComponent('CREATABLE_SELECT', DynamicReactCreatableSelect);
 registerComponent('TABLE', DynamicTable);
+registerComponent('TABLE_LIST_PAGE', DynamicListPageTable);
 registerComponent('TEXTAREA', DynamicTextArea);
+registerComponent('EDITOR', DynamicEditor);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,36 +28,36 @@ package org.projectforge.model.rest;
  */
 public class RestPaths
 {
-  public static String buildPath(final String... pathElements)
+  public static String buildOldPath(final String... pathElements)
   {
     if (pathElements == null) {
       return "";
     }
     final StringBuilder sb = new StringBuilder();
-    sb.append("/" + REST);
+    sb.append("/" + OLD_REST);
     for (final String pathElement : pathElements) {
       sb.append("/").append(pathElement);
     }
     return sb.toString();
   }
 
-  public static final String buildListPath(final String path)
+  public static final String buildOldListPath(final String path)
   {
-    return "/" + REST + "/" + path + "/" + LIST;
+    return "/" + OLD_REST + "/" + path + "/" + LIST;
   }
 
   public static final String buildTreePath(final String path)
   {
-    return "/" + REST + "/" + path + "/" + TREE;
+    return "/" + OLD_REST + "/" + path + "/" + TREE;
   }
 
-  public static final String REST = "rest";
+  public static final String OLD_REST = "rest";
 
-  public static final String PUBLIC_REST = "publicRest";
+  public static final String OLD_PUBLIC_REST = "publicRest";
 
-  public static final String REST_WEB_APP = "rs";
+  public static final String REST = "rs";
 
-  public static final String REST_WEB_APP_PUBLIC = "rsPublic";
+  public static final String REST_PUBLIC = "rsPublic";
 
   public static final String ADDRESS = "address";
 
@@ -93,6 +93,8 @@ public class RestPaths
 
   public static final String MARK_AS_DELETED = "markAsDeleted";
 
+  public static final String FORCE_DELETE = "forceDelete";
+
   public static final String UNDELETE = "undelete";
 
   public static final String CLONE = "clone";
@@ -102,8 +104,6 @@ public class RestPaths
   public static final String TEAMCAL = "teamcal";
 
   public static final String TEAMEVENTS = "teamevents";
-
-  public static final String VERSION_CHECK = "versionCheck";
 
   public static final String WATCH_FIELDS = "watchFields";
 

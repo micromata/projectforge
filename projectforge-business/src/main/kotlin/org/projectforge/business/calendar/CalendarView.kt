@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,6 +39,6 @@ enum class CalendarView {
 
     companion object {
         fun from(name: String?) = if (name == null) null
-        else valueOf(name.toUpperCase())
+        else valueOf(name.uppercase())
     }
 }

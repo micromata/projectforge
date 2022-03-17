@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,17 +32,17 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.i18n.MessageParam;
-import org.projectforge.framework.i18n.MessageParamType;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.common.i18n.MessageParam;
+import org.projectforge.common.i18n.MessageParamType;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.api.impl.DBPredicate;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.XmlObjectWriter;
+import org.projectforge.framework.xmlstream.XmlObjectWriter;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,8 +50,9 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.Tuple;
 import javax.persistence.criteria.JoinType;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -83,7 +84,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   @Autowired
   private SendMail sendMail;
 
-  private Integer abgeschlossenNichtFakturiert;
+  private Integer toBeInvoicedCounter;
 
   @Autowired
   private TaskDao taskDao;
@@ -122,7 +123,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
    */
   public int[] getYears() {
     final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(AuftragDO.SELECT_MIN_MAX_DATE, Tuple.class));
-    return SQLHelper.getYears((java.sql.Date) minMaxDate.get(0), (java.sql.Date) minMaxDate.get(1));
+    return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
   }
 
   /**
@@ -271,19 +272,21 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     return auftrag != null ? auftrag.getPosition(positionNummer) : null;
   }
 
-  public synchronized int getAbgeschlossenNichtFakturiertAnzahl() {
-    if (abgeschlossenNichtFakturiert != null) {
-      return abgeschlossenNichtFakturiert;
+  /**
+   * Number of all orders (finished, signed or escalated) which has to be invoiced.
+   */
+  public synchronized int getToBeInvoicedCounter() {
+    if (toBeInvoicedCounter != null) {
+      return toBeInvoicedCounter;
     }
     final AuftragFilter filter = new AuftragFilter();
-    filter.getAuftragsStatuses().add(AuftragsStatus.ABGESCHLOSSEN);
-    filter.setAuftragFakturiertFilterStatus(AuftragFakturiertFilterStatus.NICHT_FAKTURIERT);
+    filter.setAuftragFakturiertFilterStatus(AuftragFakturiertFilterStatus.ZU_FAKTURIEREN);
     try {
       final List<AuftragDO> list = getList(filter, false);
-      abgeschlossenNichtFakturiert = list != null ? list.size() : 0;
-      return abgeschlossenNichtFakturiert;
+      toBeInvoicedCounter = list != null ? list.size() : 0;
+      return toBeInvoicedCounter;
     } catch (final Exception ex) {
-      log.error("Exception ocurred while getting number of closed and not invoiced orders: " + ex.getMessage(), ex);
+      log.error("Exception occured while getting number of closed and not invoiced orders: " + ex.getMessage(), ex);
       // Exception e. g. if data-base update is needed.
       return 0;
     }
@@ -304,7 +307,21 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     final QueryFilter queryFilter = new QueryFilter(myFilter);
 
-    addCriterionForAuftragsStatuses(myFilter, queryFilter);
+    boolean positionStatusAlreadyFilterd = false;
+    queryFilter.createJoin("positionen");
+    if (myFilter.getAuftragFakturiertFilterStatus() == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
+      // Show all orders to be invoiced (ignore status values on orders and their positions).
+      queryFilter.createJoin("paymentSchedules", JoinType.LEFT);
+      queryFilter.add(
+              QueryFilter.or(
+                      QueryFilter.eq("auftragsStatus", AuftragsStatus.ABGESCHLOSSEN),
+                      QueryFilter.eq("positionen.status", AuftragsPositionsStatus.ABGESCHLOSSEN),
+                      QueryFilter.eq("paymentSchedules.reached", true)
+              ));
+    } else {
+      addCriterionForAuftragsStatuses(myFilter, queryFilter);
+      positionStatusAlreadyFilterd = true;
+    }
 
     if (myFilter.getUser() != null) {
       queryFilter.add(
@@ -332,24 +349,14 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     list = myFilter.filterFakturiert(list);
 
-    filterPositionsArten(myFilter, list);
-
-    if (myFilter.getAuftragsPositionsPaymentType() != null) {
-      CollectionUtils.filter(list, object -> {
-        final AuftragDO auftrag = (AuftragDO) object;
-        boolean match = false;
-        if (myFilter.getAuftragsPositionsPaymentType() != null) {
-          if (CollectionUtils.isNotEmpty(auftrag.getPositionenExcludingDeleted())) {
-            for (final AuftragsPositionDO position : auftrag.getPositionenExcludingDeleted()) {
-              if (myFilter.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
-                match = true;
-                break;
-              }
-            }
-          }
-        }
-        return match;
-      });
+    if (myFilter.getAuftragFakturiertFilterStatus() != AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
+      // Don't use filter for orders to be invoiced.
+      list = new ArrayList(list); // Make mutable list of Kotlin's immutable list.
+      filterPositionsArten(myFilter, list);
+      if (!positionStatusAlreadyFilterd) { // Don't filter position status' again.
+        filterPositionsStatus(myFilter, list);
+      }
+      filterPositionsPaymentTypes(myFilter, list);
     }
 
     return list;
@@ -361,19 +368,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       // nothing to do
       return;
     }
-
     final List<DBPredicate> orCriterions = new ArrayList<>();
+
     orCriterions.add(QueryFilter.isIn("auftragsStatus", auftragsStatuses));
 
-    queryFilter.createJoin("positionen")
-            .createJoin("paymentSchedules", JoinType.LEFT);
-
     orCriterions.add(QueryFilter.isIn("positionen.status", myFilter.getAuftragsPositionStatuses()));
-
-    // special case
-    if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
-      orCriterions.add(QueryFilter.eq("paymentSchedules.reached", true));
-    }
 
     queryFilter.add(QueryFilter.or(orCriterions.toArray(new DBPredicate[orCriterions.size()])));
 
@@ -384,10 +383,8 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   private Optional<DBPredicate> createCriterionForErfassungsDatum(final AuftragFilter myFilter) {
-    final PFDay startDay = PFDay.from(myFilter.getStartDate());
-    final PFDay endDay = PFDay.from(myFilter.getEndDate());
-    final java.sql.Date startDate = startDay != null ? startDay.getSqlDate() : null;
-    final java.sql.Date endDate = endDay != null ? endDay.getSqlDate() : null;
+    final LocalDate startDate = myFilter.getStartDate();
+    final LocalDate endDate = myFilter.getEndDate();
 
     if (startDate != null && endDate != null) {
       return Optional.of(
@@ -411,18 +408,27 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   private void filterPositionsArten(final AuftragFilter myFilter, final List<AuftragDO> list) {
-    final Collection<AuftragsPositionsArt> auftragsPositionsArten = myFilter.getAuftragsPositionsArten();
-
-    if (CollectionUtils.isNotEmpty(auftragsPositionsArten)) {
-      CollectionUtils.filter(list, object -> {
-        final List<AuftragsPositionDO> positionen = ((AuftragDO) object).getPositionenExcludingDeleted();
-
-        // check if any of the current positions contains at least one AuftragsPositionsArt of the auftragsPositionsArten of the filter
-        return CollectionUtils.isNotEmpty(positionen) && positionen.stream()
-                .map(AuftragsPositionDO::getArt)
-                .anyMatch(positionsArt -> auftragsPositionsArten.stream().anyMatch(art -> art == positionsArt));
-      });
+    if (CollectionUtils.isEmpty(myFilter.getAuftragsPositionsArten())) {
+      return;
     }
+    final AuftragsPositionsArtFilter artFilter = new AuftragsPositionsArtFilter(myFilter.getAuftragsPositionsArten());
+    CollectionUtils.filter(list, object -> artFilter.match(list, (AuftragDO) object));
+  }
+
+  private void filterPositionsStatus(final AuftragFilter myFilter, final List<AuftragDO> list) {
+    if (CollectionUtils.isEmpty(myFilter.getAuftragsPositionStatuses())) {
+      return;
+    }
+    final AuftragsPositionsStatusFilter statusFilter = new AuftragsPositionsStatusFilter(myFilter.getAuftragsPositionStatuses());
+    CollectionUtils.filter(list, object -> statusFilter.match(list, (AuftragDO) object));
+  }
+
+  private void filterPositionsPaymentTypes(final AuftragFilter myFilter, final List<AuftragDO> list) {
+    if (myFilter.getAuftragsPositionsPaymentType() == null) {
+      return;
+    }
+    final AuftragsPositionsPaymentTypeFilter paymentTypeFilter = AuftragsPositionsPaymentTypeFilter.create(myFilter.getAuftragsPositionsPaymentType());
+    CollectionUtils.filter(list, object -> paymentTypeFilter.match(list, (AuftragDO) object));
   }
 
   @Override
@@ -463,7 +469,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
         position.checkVollstaendigFakturiert();
       }
     }
-    abgeschlossenNichtFakturiert = null;
+    toBeInvoicedCounter = null;
     final String uiStatusAsXml = XmlObjectWriter.writeAsXml(obj.getUiStatus());
     obj.setUiStatusAsXml(uiStatusAsXml);
     final List<PaymentScheduleDO> paymentSchedules = obj.getPaymentSchedules();
@@ -492,14 +498,20 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
     final List<Short> positionsWithDatesNotWithinPop = new ArrayList<>();
     for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
-      final Date periodOfPerformanceBegin = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceBegin() : auftrag.getPeriodOfPerformanceBegin();
-      final Date periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
+      final LocalDate periodOfPerformanceBegin = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceBegin() : auftrag.getPeriodOfPerformanceBegin();
+      LocalDate periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
+      if (periodOfPerformanceEnd != null) {
+        // Payments milestones are allowed inside period of performance plus 3 months:
+        periodOfPerformanceEnd = periodOfPerformanceEnd.plusMonths(3);
+      }
+      final LocalDate lastInvoiceDate = periodOfPerformanceEnd;
 
       final boolean hasDateNotInRange = paymentSchedules.stream()
               .filter(payment -> payment.getPositionNumber() == pos.getNumber())
               .map(PaymentScheduleDO::getScheduleDate)
               .filter(Objects::nonNull)
-              .anyMatch(date -> date.before(periodOfPerformanceBegin) || date.after(periodOfPerformanceEnd));
+              .anyMatch(date -> (periodOfPerformanceBegin != null && date.isBefore(periodOfPerformanceBegin))
+                  || (lastInvoiceDate != null && date.isAfter(lastInvoiceDate)));
 
       if (hasDateNotInRange) {
         positionsWithDatesNotWithinPop.add(pos.getNumber());
@@ -530,7 +542,8 @@ public class AuftragDao extends BaseDao<AuftragDO> {
               .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
 
       final BigDecimal netSum = pos.getNettoSumme();
-      if (netSum != null && sumOfAmountsForCurrentPosition.compareTo(netSum) > 0) {
+      if (netSum != null && netSum.compareTo(BigDecimal.ZERO) > 0 && sumOfAmountsForCurrentPosition.compareTo(netSum) > 0) {
+        // Only for positive netSum's:
         throw new UserException("fibu.auftrag.error.amountsInPaymentScheduleAreGreaterThanNetSumOfPosition", pos.getNumber());
       }
     }
@@ -598,7 +611,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     }
     msg.setProjectForgeSubject(subject);
     data.put("subject", subject);
-    final String content = sendMail.renderGroovyTemplate(msg, "mail/orderChangeNotification.html", data, contactPerson);
+    final String content = sendMail.renderGroovyTemplate(msg, "mail/orderChangeNotification.html", data, I18nHelper.getLocalizedMessage("fibu.auftrag"), contactPerson);
     msg.setContent(content);
     msg.setContentType(Mail.CONTENTTYPE_HTML);
     return sendMail.send(msg, null, null);
@@ -702,6 +715,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       }
     }
     return false;
+  }
+
+  @Override
+  protected ModificationStatus copyValues(AuftragDO src, AuftragDO dest, String... ignoreFields) {
+    return super.copyValues(src, dest, "uiStatus", "fakturiertSum");
   }
 
   @Override

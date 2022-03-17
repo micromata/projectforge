@@ -2,30 +2,23 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route, Router, Switch } from 'react-router-dom';
-import { loadUserStatus, loginUser } from '../actions';
-import LoginView from '../components/authentication/LoginView';
+import { loadUserStatus } from '../actions';
 import Footer from '../components/base/footer';
-import GlobalNavigation from '../components/base/navigation/GlobalNavigation';
+import Toasts from '../components/base/Toasts';
 import TopBar from '../components/base/topbar';
-import { Alert } from '../components/design';
+import LoadingContainer from '../components/design/loading-container';
 import history from '../utilities/history';
 import prefix from '../utilities/prefix';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
-import CalendarPage from './page/calendar/CalendarPage';
-import DynamicPage from './page/DynamicPage';
-import EditPage from './page/edit/EditPage';
-import IndexPage from './page/IndexPage';
-import ListPage from './page/list/ListPage';
-import TaskTreePage from './page/TaskTreePage';
+import AuthorizedRoutes, { publicRoute, wicketRoute } from './AuthorizedRoutes';
+import FormPage from './page/form/FormPage';
 import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
+import ModalRoutes from './ModalRoutes';
 
 function ProjectForge(
     {
-        alertMessage,
         user,
-        loginUser: login,
         loginInProgress,
-        loginError,
         loadUserStatus: checkAuthentication,
     },
 ) {
@@ -34,9 +27,9 @@ function ProjectForge(
     React.useEffect(() => {
         checkAuthentication();
 
-        fetch(getServiceURL('../rsPublic/systemStatus'))
+        fetch(getServiceURL('/rsPublic/systemStatus'))
             .then(handleHTTPErrors)
-            .then(response => response.json())
+            .then((response) => response.json())
             .then((json) => {
                 const { setupRedirectUrl } = json;
                 setSystemStatus(json);
@@ -46,87 +39,44 @@ function ProjectForge(
             });
     }, []);
 
-    const wicketRoute = (
-        <Route
-            path="/wa"
-            component={({ location }) => {
-                if (process.env.NODE_ENV === 'development') {
-                    return (
-                        <a href={getServiceURL(`..${location.pathname}`)}>
-                            Redirect to Wicket
-                        </a>
-                    );
-                }
-
-                window.location.reload();
-                return <React.Fragment />;
-            }}
-        />
-    );
     let content;
 
     if (user) {
+        content = <AuthorizedRoutes />;
+    } else if (loginInProgress) {
         content = (
-            <React.Fragment>
-                <GlobalNavigation />
-                {alertMessage ? (
-                    <Alert color="danger">
-                        {alertMessage}
-                    </Alert>
-                ) : undefined}
-                <Switch>
-                    {wicketRoute}
-                    <Route
-                        exact
-                        path={prefix}
-                        component={IndexPage}
-                    />
-                    <Route
-                        path={`${prefix}calendar`}
-                        component={CalendarPage}
-                    />
-                    <Route
-                        path={`${prefix}taskTree`}
-                        component={TaskTreePage}
-                    />
-                    <Route
-                        path={`${prefix}dynamic/:page`}
-                        component={DynamicPage}
-                    />
-                    <Route
-                        path={`${prefix}:category/edit/:id?`}
-                        component={EditPage}
-                    />
-                    <Route
-                        path={`${prefix}:category`}
-                        component={ListPage}
-                    />
-                </Switch>
-            </React.Fragment>
+            <LoadingContainer loading>
+                <h1>Logging in...</h1>
+            </LoadingContainer>
         );
     } else {
-        content = (
-            <Switch>
+        const getRoutesWithLocation = (switchLocation) => (
+            <Switch location={switchLocation}>
                 {wicketRoute}
-                <Route
-                    path={`${prefix}:restPrefix/:page`}
-                    component={DynamicPage}
-                />
+                {publicRoute}
                 <Route
                     path={prefix}
-                    render={props => (
-                        <LoginView
-                            // TODO REPLACE OLD LOGIN VIEW WITH DYNAMIC PAGE
+                    render={({ match, location, ...props }) => (
+                        <FormPage
                             {...props}
-                            motd="[Please try user demo with password demo123. Have a lot of fun!]"
-                            login={login}
-                            loading={loginInProgress}
-                            error={loginError}
+                            location={location}
+                            isPublic
+                            match={{
+                                ...match,
+                                // Disable FormPage Tabs
+                                url: location.pathname,
+                                // Set Category to login
+                                params: {
+                                    category: 'login',
+                                },
+                            }}
                         />
                     )}
                 />
             </Switch>
         );
+
+        content = <ModalRoutes getRoutesWithLocation={getRoutesWithLocation} />;
     }
 
     return (
@@ -141,34 +91,27 @@ function ProjectForge(
                 {content}
             </Router>
             <Footer />
+            <Toasts />
         </SystemStatusContext.Provider>
     );
 }
 
 ProjectForge.propTypes = {
-    loginUser: PropTypes.func.isRequired,
     loadUserStatus: PropTypes.func.isRequired,
     loginInProgress: PropTypes.bool.isRequired,
-    alertMessage: PropTypes.string,
-    loginError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     user: PropTypes.shape({}),
 };
 
 ProjectForge.defaultProps = {
-    alertMessage: undefined,
-    loginError: undefined,
     user: undefined,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
     loginInProgress: state.authentication.loading,
-    loginError: state.authentication.error,
     user: state.authentication.user,
-    alertMessage: state.authentication.alertMessage,
 });
 
 const actions = {
-    loginUser,
     loadUserStatus,
 };
 

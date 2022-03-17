@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -277,7 +277,18 @@ public class StringHelperTest {
     assertEquals("value", map.get("param"));
   }
 
-  private void testBlank(final boolean expectedValue, final String... strs) {
+  @Test
+  public void normalize() {
+    assertEquals("", StringHelper.normalize(null));
+    assertEquals("", StringHelper.normalize(""));
+    assertEquals("", StringHelper.normalize(" "));
+    assertEquals("", StringHelper.normalize("  "));
+    assertEquals("Beau oßt", StringHelper.normalize(" Béäü \t ößt\n"));
+    assertEquals("beau oßt", StringHelper.normalize(" Béäü \t ößt\n", true));
+    assertEquals("c++", StringHelper.normalize("C++", true));
+  }
+
+    private void testBlank(final boolean expectedValue, final String... strs) {
     assertEquals(expectedValue, StringHelper.isBlank(strs));
     assertEquals(!expectedValue, StringHelper.isNotBlank(strs));
   }

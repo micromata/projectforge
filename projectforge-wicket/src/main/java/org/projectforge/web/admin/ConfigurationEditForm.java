@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import java.math.BigDecimal;
-import java.util.TimeZone;
-
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
@@ -34,7 +31,6 @@ import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.Configuration;
@@ -42,7 +38,6 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.ConfigurationType;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
@@ -51,13 +46,12 @@ import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.TimeZonePanel;
 import org.projectforge.web.wicket.converter.BigDecimalPercentConverter;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2Choice;
+
+import java.math.BigDecimal;
+import java.util.TimeZone;
 
 public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, ConfigurationEditPage>
 {
@@ -73,9 +67,6 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
   private TaskDO task;
 
   private TeamCalDO calendar;
-
-  @SpringBean
-  private TaskDao taskDao;
 
   @SpringBean
   private TeamCalCache teamCalCache;
@@ -148,14 +139,6 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
             new PropertyModel<TimeZone>(data, "timeZone"));
         fs.add(timeZonePanel);
         valueField = timeZonePanel.getTextField();
-      } else if (data.getConfigurationType() == ConfigurationType.TASK) {
-        if (data.getTaskId() != null) {
-          this.task = taskDao.getById(data.getTaskId());
-        }
-        final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new PropertyModel<TaskDO>(this, "task"),
-            parentPage, "taskId");
-        fs.add(taskSelectPanel);
-        taskSelectPanel.init();
       } else if (data.getConfigurationType() == ConfigurationType.CALENDAR) {
         if (data.getCalendarId() != null) {
           this.calendar = teamCalCache.getCalendar(data.getCalendarId());
@@ -178,30 +161,6 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("description")).suppressLabelForWarning();
       fs.add(new DivTextPanel(fs.newChildId(),
           getString("administration.configuration.param." + data.getParameter() + ".description")));
-    }
-  }
-
-  public TaskDO getTask()
-  {
-    return task;
-  }
-
-  public void setTask(final TaskDO task)
-  {
-    this.task = task;
-    if (task != null) {
-      data.setTaskId(task.getId());
-    } else {
-      data.setTaskId(null);
-    }
-  }
-
-  public void setTask(final Integer taskId)
-  {
-    if (taskId != null) {
-      setTask(taskDao.getById(taskId));
-    } else {
-      setTask((TaskDO) null);
     }
   }
 

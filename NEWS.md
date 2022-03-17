@@ -1,5 +1,11 @@
 Release 7.0
+
 * REST API for full CRUD functionality for all entities implemented.
+* Docker support
+* Data transfer tool
+* Easy installation (docker, setup wizard (console and GUI), ...)
+* JCR support (attachments for contracts)
+* Forecasts (Excel exports)
 * Update frontend component (React introduced).
 * Kotlin as development language introduced.
 * Update backend REST Api.

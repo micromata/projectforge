@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,17 +26,17 @@ package org.projectforge.rest.dto
 /**
  * This object is used by the client to post data for save, update etc.
  */
-class PostData<DTO: Any>(var data: DTO,
-                         /**
-                          * Used for watched fields by the client.
-                          */
-                         var watchFieldsTriggered: Array<String>?,
-                         /**
-                          * If given, after editing/finishing the current page, the frontend should redirect to this caller.
-                          */
-                         var returnToCaller: String?,
-                         /**
-                          * If given, after editing/finishing the current page, the frontend should redirect to the caller
-                          * specified by [returnToCaller] with this query params.
-                          */
-                         var returnToCallerParams: Map<String, String>?)
+class PostData<DTO : Any>(
+        /**
+         * The data object of the edit page.
+         */
+        var data: DTO,
+        /**
+         * Used for watched fields by the client.
+         */
+        var watchFieldsTriggered: Array<String>?,
+        /**
+         * Server data such as csrf token to exchange between client and server.
+         */
+        var serverData: ServerData?
+)

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -61,7 +61,7 @@ public class CalendarHelper
   public static int getCalenderData(final Date date, int calendarData)
   {
     if(date != null) {
-      PFDateTime tmp_date = PFDateTime.from(date);
+      PFDateTime tmp_date = PFDateTime.from(date); // not null
       return tmp_date.getCalendar().get(calendarData);
     } else {
       return -1;

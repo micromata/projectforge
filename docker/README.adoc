@@ -1,0 +1,32 @@
+= ProjectForge - project management solution
+
+ProjectForge is a web-based solution for project management including time tracking, team calendar, gantt-charting, financial administration, issue management,
+controlling and managing work-break-down-structures (e. g. together with JIRA as issue management system).
+
+== Documentation of Docker (in progress)
+
+=== With built-in data base HsqlDB:
+1. Checkout: +
+   https://github.com/micromata/projectforge.git
+2. Build ProjectForge in main directory: +
+   `docker build -t micromata/projectforge:latest .`
+3. Run ProjectForge and enjoy: +
+   `docker run -t -i -p 127.0.0.1:8080:8080 -v ~/ProjectForgeDocker:/ProjectForge --name projectforge micromata/projectforge`
+
+=== With external PostgreSQL
+tbd.
+
+=== Putting all together (ProjectForge, Nginx and PostgreSQL)
+1. Go to sub-directory +
+   `cd compose`
+
+tbd.
+
+
+
+=== FAQ
+
+- *Can't access port 8080?* +
+  The built-in main `application.properties` defines `server.address=localhost`, therefore this port can't be exported to the host system. The Dockerfile of
+  ProjectForge attaches an additional `application.properties` to the container which overrides `server.address=0.0.0.0`. +
+  Through the `docker run` option `-p 8080:8080` the port is exported to the host.

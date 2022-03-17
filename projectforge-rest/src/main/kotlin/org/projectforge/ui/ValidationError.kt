@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.ui
 
+import org.projectforge.framework.i18n.I18nKeyAndParams
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 
@@ -35,6 +36,14 @@ data class ValidationError(var message: String? = null,
             validationError.fieldId = fieldId
             validationError.messageId = i18nKey
             validationError.message = translate(i18nKey)
+            return validationError
+        }
+
+        fun create(i18nKeyAndParams: I18nKeyAndParams, fieldId: String? = null): ValidationError {
+            val validationError = ValidationError()
+            validationError.fieldId = fieldId
+            validationError.messageId = i18nKeyAndParams.key
+            validationError.message = translateMsg(i18nKeyAndParams.key, *i18nKeyAndParams.params)
             return validationError
         }
 

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,7 +26,6 @@ package org.projectforge.business.user
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
 import de.micromata.genome.jpa.DbRecord
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.user.entities.TenantDO
 import java.io.Serializable
 import java.util.*
 import javax.persistence.*
@@ -38,7 +37,7 @@ import javax.persistence.*
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
-@Table(name = "T_USER_XML_PREFS", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "key", "tenant_id"])], indexes = [Index(name = "idx_fk_t_user_xml_prefs_user_id", columnList = "user_id"), Index(name = "idx_fk_t_user_xml_prefs_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_USER_XML_PREFS", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "key"])], indexes = [Index(name = "idx_fk_t_user_xml_prefs_user_id", columnList = "user_id")])
 @JpaXmlPersist(beforePersistListener = [UserXmlPreferenceXmlBeforePersistListener::class])
 class UserXmlPreferencesDO : Serializable, DbRecord<Int> {
 
@@ -46,10 +45,6 @@ class UserXmlPreferencesDO : Serializable, DbRecord<Int> {
     @get:GeneratedValue
     @get:Column(name = "pk")
     var id: Int? = null
-
-    @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "tenant_id")
-    var tenant: TenantDO? = null
 
     /**
      * The owner of this preference.
@@ -88,13 +83,6 @@ class UserXmlPreferencesDO : Serializable, DbRecord<Int> {
      */
     @get:Column
     var version: Int = 0
-
-    /**
-     * @see org.projectforge.framework.persistence.api.BaseDO.getTenantId
-     */
-    val tenantId: Int?
-        @Transient
-        get() = if (tenant != null) tenant!!.id else null
 
     val userId: Int?
         @Transient

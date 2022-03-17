@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -67,11 +67,11 @@ import javax.persistence.*
 @Entity
 @Indexed
 @HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "employee")
-@Table(name = "t_fibu_employee", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_employee_kost1_id", columnList = "kost1_id"), javax.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id"), javax.persistence.Index(name = "idx_fk_t_fibu_employee_tenant_id", columnList = "tenant_id")])
+@Table(name = "t_fibu_employee", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_employee_kost1_id", columnList = "kost1_id"), javax.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id")])
 @AUserRightId("HR_EMPLOYEE")
 @NamedQueries(
-        NamedQuery(name = EmployeeDO.FIND_BY_USER_ID, query = "from EmployeeDO where user.id=:userId and tenant.id=:tenantId"),
-        NamedQuery(name = EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, query = "select id from EmployeeDO where user.id=:userId and tenant.id=:tenantId"),
+        NamedQuery(name = EmployeeDO.FIND_BY_USER_ID, query = "from EmployeeDO where user.id=:userId"),
+        NamedQuery(name = EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, query = "select id from EmployeeDO where user.id=:userId"),
         NamedQuery(name = EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, query = "from EmployeeDO where user.lastname=:lastname and user.firstname=:firstname"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any>,
@@ -114,13 +114,11 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
 
     @PropertyInfo(i18nKey = "fibu.employee.eintrittsdatum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "eintritt")
     open var eintrittsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.austrittsdatum")
     @Field
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "austritt")
     open var austrittsDatum: LocalDate? = null
 
@@ -148,7 +146,6 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
 
     @PropertyInfo(i18nKey = "fibu.employee.birthday")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
     open var birthday: LocalDate? = null
 
@@ -172,7 +169,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
     @Convert(converter = GenderConverter::class)
     @get:Column
     // use the GenderConverter instead of @Enumerated to persist the correct ISO/IEC 5218 integer representation of the gender
-    open var gender: Gender? = null
+    open var gender: IsoGender? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.street")
     @Field

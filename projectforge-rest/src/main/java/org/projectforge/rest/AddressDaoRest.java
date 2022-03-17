@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,6 +32,7 @@ import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
+import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.model.rest.AddressObject;
@@ -62,6 +63,9 @@ public class AddressDaoRest {
 
   @Autowired
   private AddressDao addressDao;
+
+  @Autowired
+  private AddressImageDao addressImageDao;
 
   @Autowired
   private PersonalAddressDao personalAddressDao;
@@ -111,7 +115,7 @@ public class AddressDaoRest {
     if (modifiedSince == null && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
             ProjectForgeGroup.MARKETING_GROUP)) {
       for (AddressDO addressDO : list) {
-        final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
+        final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressImageDao, addressDO,
                 BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
         result.add(address);
       }
@@ -143,7 +147,7 @@ public class AddressDaoRest {
             // Export only personal favorites due to data-protection.
             continue;
           }
-          final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
+          final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressImageDao, addressDO,
                   BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
           result.add(address);
         }
@@ -154,7 +158,7 @@ public class AddressDaoRest {
           if (personalAddress.getLastUpdate() != null
                   && !personalAddress.getLastUpdate().before(modifiedSinceDate)) {
             final AddressDO addressDO = addressDao.getById(personalAddress.getAddressId());
-            final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
+            final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressImageDao, addressDO,
                     BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
             if (!personalAddress.isFavorite()) {
               // This address was may-be removed by the user from the personal address book, so add this address as deleted to the result
@@ -182,6 +186,7 @@ public class AddressDaoRest {
     String uid = addressObject.getUid() != null ? addressObject.getUid().replace("urn:uuid:", "") : UUID.randomUUID().toString();
     addressObject.setUid(uid);
     AddressDO addressDORequest = AddressDOConverter.getAddressDO(addressObject);
+    byte[] image = AddressDOConverter.getAddressImageDO(addressObject);
     AddressDO addressDOOrig = null;
     boolean isNew = false;
     try {
@@ -226,6 +231,8 @@ public class AddressDaoRest {
 
     addressDao.saveOrUpdate(addressDORequest);
 
+    addressImageDao.saveOrUpdate(addressDORequest.getId(), image);
+
     AddressDO dbAddress = addressDao.findByUid(uid);
 
     if (isNew) {
@@ -237,7 +244,7 @@ public class AddressDaoRest {
       personalAddressDao.saveOrUpdate(personalAddress);
     }
 
-    final String json = JsonUtils.toJson(AddressDOConverter.getAddressObject(addressDao, dbAddress,
+    final String json = JsonUtils.toJson(AddressDOConverter.getAddressObject(addressDao, addressImageDao, dbAddress,
             false, true));
     log.info("Save or update address REST call finished.");
     return Response.ok(json).build();

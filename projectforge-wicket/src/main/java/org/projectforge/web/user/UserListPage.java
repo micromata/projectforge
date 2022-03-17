@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,6 @@
 
 package org.projectforge.web.user;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -38,29 +34,35 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.I18nExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
+import org.projectforge.business.fibu.KontoDO;
+import org.projectforge.business.fibu.KundeFormatter;
+import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.ldap.LdapUserDao;
-import org.projectforge.business.multitenancy.TenantChecker;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightValue;
+import org.projectforge.common.BeanHelper;
+import org.projectforge.export.DOListExcelExporter;
+import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.RowCssClass;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @ListPage(editPage = UserEditPage.class)
 public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUserDO>
@@ -82,9 +84,6 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
 
   @SpringBean
   private GroupService groupService;
-
-  @SpringBean
-  private TenantService tenantService;
 
   public UserListPage(final PageParameters parameters)
   {
@@ -110,9 +109,6 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
       {
         final PFUserDO user = rowModel.getObject();
         appendCssClasses(item, user.getId(), user.hasSystemAccess() == false);
-        if (TenantChecker.isSuperAdmin(user) == true) {
-          appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
-        }
       }
     };
     columns.add(new CellItemListenerPropertyColumn<PFUserDO>(getString("user.username"),
@@ -171,7 +167,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
     columns.add(new CellItemListenerPropertyColumn<PFUserDO>(getString("description"),
         getSortable("description", sortable), "description",
         cellItemListener));
-    if (updateAccess == true) {
+    if (updateAccess ) {
       // Show these columns only for admin users:
       columns.add(new AbstractColumn<PFUserDO, String>(new Model<String>(getString("user.assignedGroups")))
       {
@@ -221,27 +217,15 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
           cellItemListener.populateItem(cellItem, componentId, rowModel);
         }
       });
-      if (TenantChecker.isSuperAdmin(getUser()) == true) {
-        columns.add(new AbstractColumn<PFUserDO, String>(new Model<String>(getString("multitenancy.assignedTenants")))
-        {
-          @Override
-          public void populateItem(final Item<ICellPopulator<PFUserDO>> cellItem, final String componentId,
-              final IModel<PFUserDO> rowModel)
-          {
-            final PFUserDO user = rowModel.getObject();
-            final Collection<TenantDO> tenants = tenantService.getTenantsOfUser(user.getId());
-            final String tenantNames = tenantService.getTenantShortNames(tenants);
-            final Label label = new Label(componentId, new Model<String>(tenantNames));
-            cellItem.add(label);
-            cellItemListener.populateItem(cellItem, componentId, rowModel);
-          }
-        });
-      }
       if (ldapUserDao.isPosixAccountsConfigured() == true) {
         columns
             .add(new CellItemListenerPropertyColumn<PFUserDO>(getString("user.ldapValues"), "ldapValues", "ldapValues",
                 cellItemListener));
       }
+    } else {
+      columns.add(new CellItemListenerPropertyColumn<PFUserDO>(getString("user.sshPublicKey"),
+          getSortable("sshPublicKey", sortable), "sshPublicKey",
+          cellItemListener));
     }
     return columns;
   }
@@ -251,6 +235,9 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
   {
     dataTable = createDataTable(createColumns(this, true), "username", SortOrder.ASCENDING);
     form.add(dataTable);
+    if (accessChecker.isLoggedInUserMemberOfAdminGroup()) {
+      addExcelExport(getString("user.users"), getString("user.users"));
+    }
   }
 
   @Override
@@ -265,8 +252,33 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
     return userDao;
   }
 
-  protected UserDao getUserDao()
+  /**
+   * @see org.projectforge.web.wicket.AbstractListPage#createExcelExporter(java.lang.String)
+   */
+  @Override
+  protected DOListExcelExporter createExcelExporter(final String filenameIdentifier)
   {
-    return userDao;
+    return new DOListExcelExporter(filenameIdentifier)
+    {
+      @Override
+      protected List<ExportColumn> onBeforeSettingColumns(final ContentProvider sheetProvider,
+                                                          final List<ExportColumn> columns)
+      {
+        final List<ExportColumn> sortedColumns = reorderColumns(columns, "username", "jiraUsername", "localUser", "restrictedUser",
+            "deactivated", "firstname", "nickname", "gender",
+            "lastname","description", "email", "lastLogin", "locale", "timeZone", "organization", "lastPasswordChange", "lastWlanPasswordChange");
+        return removeColumns(sortedColumns, "password", "rights", "sshPublicKey");
+      }
+
+      @Override
+      public void addMapping(final PropertyMapping mapping, final Object entry, final Field field)
+      {
+        if ("deactivated".equals(field.getName())) {
+          mapping.add(field.getName(), !((PFUserDO)entry).getDeactivated()); // Displayed as "activated", so negate value.
+        } else {
+          super.addMapping(mapping, entry, field);
+        }
+      }
+    };
   }
 }

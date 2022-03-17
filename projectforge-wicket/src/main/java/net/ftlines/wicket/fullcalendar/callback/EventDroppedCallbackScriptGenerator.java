@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package net.ftlines.wicket.fullcalendar.callback;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.util.template.PackageTextTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Just the Javascript generator helper class to provide the event dropped javascript

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import AutoCompletion from '../../../../../../components/design/input/AutoCompletion';
+import ObjectSelect from '../../../../../../components/design/input/autoCompletion/ObjectSelect';
 
 function MagicObjectInput(
     {
@@ -8,32 +8,25 @@ function MagicObjectInput(
         onChange,
         translations,
         value,
+        ...props
     },
 ) {
     return (
-        <div
-            style={{
-                width: 350,
-                minHeight: 200,
-            }}
-        >
-            <AutoCompletion
-                {...autoCompletion}
-                label={translations['select.placeholder'] || ''}
-                // Wrap the onChange because it only accepts one argument
-                onChange={newValue => onChange(newValue)}
-                value={{
-                    label: (value && value.label) || '',
-                    value: (value && value.value) || '',
-                }}
-            />
-        </div>
+        <ObjectSelect
+            onSelect={onChange}
+            translations={translations}
+            value={value}
+            {...props}
+            type={autoCompletion.type}
+            url={autoCompletion.url}
+        />
     );
 }
 
 MagicObjectInput.propTypes = {
     autoCompletion: PropTypes.shape({
         url: PropTypes.string.isRequired,
+        type: PropTypes.string,
     }).isRequired,
     onChange: PropTypes.func.isRequired,
     translations: PropTypes.shape({
@@ -52,8 +45,8 @@ MagicObjectInput.defaultProps = {
     value: {},
 };
 
-MagicObjectInput.isEmpty = () => false;
+MagicObjectInput.isEmpty = ({ id }) => id === undefined;
 
-MagicObjectInput.getLabel = (label, { label: valueLabel }) => `${label}: ${valueLabel}`;
+MagicObjectInput.getLabel = (label, { displayName }) => `${label}: ${displayName}`;
 
 export default MagicObjectInput;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,24 +27,25 @@ import net.fortuna.ical4j.util.CompatibilityHints;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.projectforge.business.configuration.DomainService;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.systeminfo.SystemInfoCache;
-import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.common.StringModifier;
-import org.projectforge.continuousdb.DatabaseSupport;
+import org.projectforge.database.DatabaseSupport;
 import org.projectforge.export.MyXlsExportContext;
+import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
+import org.projectforge.jcr.RepoBackupService;
+import org.projectforge.jcr.RepoService;
 import org.projectforge.registry.Registry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -57,7 +58,7 @@ import java.io.InputStream;
 import java.util.TimeZone;
 
 /**
- * Doing some initialization stuff and stuff on shutdown (planned). Most stuff is yet done by WicketApplication.
+ * Doing some initialization stuff and stuff on shutdown (planned). Most stuff is yet done by SrpingApplication.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -66,6 +67,18 @@ public class ProjectForgeApp {
   public static final String CLASSPATH_INITIAL_BASEDIR_FILES = "initialBaseDirFiles";
 
   public static final String CONFIG_PARAM_BASE_DIR = "projectforge.base.dir";
+
+  /**
+   * "postgres" for setup wizard without embedded db option (useful for docker-compose with PostgreSQL) or null.
+   */
+  public static final String PROJECTFORGE_SETUP = "projectforge.setup";
+
+  /**
+   * If given, ProjectForge runs in docker. Values are: stack (for docker compose or single).
+   */
+  public static final String DOCKER_MODE = "docker";
+
+  public static final String CONFIG_PLUGINS_DIR = "projectforge.plugins.dir";
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApp.class);
 
@@ -77,6 +90,10 @@ public class ProjectForgeApp {
   public static void internalSetJunitTestMode() {
     junitTestMode = true;
   }
+
+  private static ConfigurableApplicationContext springApplicationRunContext;
+
+  private static Class<?> springApplication;
 
   private boolean upAndRunning;
 
@@ -90,11 +107,25 @@ public class ProjectForgeApp {
 
   private Environment environment;
 
+  private RepoService repoService;
+
+  private RepoBackupService repoBackupService;
+
   private UserXmlPreferencesCache userXmlPreferencesCache;
 
   private SystemInfoCache systemInfoCache;
 
   private SystemStatus systemStatus;
+
+  /**
+   * Will be called by SpringApplication main class (ProjectForgeApplication).
+   *
+   * @param ctx The context returned by run.
+   */
+  public static void setSpringApplicationRunContext(ConfigurableApplicationContext ctx, Class<?> springApplicationClass) {
+    springApplicationRunContext = ctx;
+    springApplication = springApplicationClass;
+  }
 
   @Autowired
   ProjectForgeApp(ApplicationContext applicationContext,
@@ -102,12 +133,16 @@ public class ProjectForgeApp {
                   DomainService domainService,
                   Environment environment,
                   UserXmlPreferencesCache userXmlPreferencesCache,
+                  RepoService repoService,
+                  RepoBackupService repoBackupService,
                   SystemInfoCache systemInfoCache,
                   SystemStatus systemStatus) {
     this.applicationContext = applicationContext;
     this.databaseService = databaseService;
     this.domainService = domainService;
     this.environment = environment;
+    this.repoService = repoService;
+    this.repoBackupService = repoBackupService;
     this.userXmlPreferencesCache = userXmlPreferencesCache;
     this.systemInfoCache = systemInfoCache;
     this.systemStatus = systemStatus;
@@ -116,6 +151,10 @@ public class ProjectForgeApp {
   @PostConstruct
   void postConstruct() {
     Registry.getInstance().init(applicationContext);
+    if (!junitTestMode) { // On test cases on repo will be used, if any.
+      repoService.init(new File(ConfigXml.getInstance().getJcrDirectory()));
+    }
+    repoBackupService.initBackupDir(new File(ConfigXml.getInstance().getBackupDirectory()));
   }
 
   @EventListener(ApplicationReadyEvent.class)
@@ -135,7 +174,7 @@ public class ProjectForgeApp {
    * Flag upAndRunning will be set to true.
    */
   private void finalizeInitialization() {
-    log.info(AppVersion.APP_ID + " " + AppVersion.NUMBER + " (" + AppVersion.RELEASE_TIMESTAMP + ") initialized.");
+    log.info(ProjectForgeVersion.APP_ID + " " + ProjectForgeVersion.VERSION_NUMBER + " initialized.");
     // initialize ical4j to be more "relaxed"
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_PARSING, true);
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_UNFOLDING, true);
@@ -143,9 +182,9 @@ public class ProjectForgeApp {
     this.upAndRunning = true;
     systemStatus.setUpAndRunning(true);
     new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
-            .log("ProjectForge is now available (up and running): localhost:" + environment.getProperty("server.port"))
-            .log("Configured domain: " + domainService.getDomainWithContextPath())
-            .logEnd();
+        .log("ProjectForge is now available (up and running): localhost:" + environment.getProperty("server.port"))
+        .log("Configured domain: " + domainService.getDomainWithContextPath())
+        .logEnd();
   }
 
   private void internalInit() {
@@ -154,9 +193,9 @@ public class ProjectForgeApp {
     log.info("Default TimeZone is: " + TimeZone.getDefault());
     if (!"UTC".equals(TimeZone.getDefault().getID())) {
       new EmphasizedLogSupport(log, EmphasizedLogSupport.Alignment.LEFT)
-              .log("It's highly recommended to start ProjectForge with TimeZone UTC. This default TimeZone has to be")
-              .log("set before any initialization of Hibernate!!!! You may do this through JAVA_OPTS etc.")
-              .logEnd();
+          .log("It's highly recommended to start ProjectForge with TimeZone UTC. This default TimeZone has to be")
+          .log("set before any initialization of Hibernate!!!! You may do this through JAVA_OPTS etc.")
+          .logEnd();
     }
     log.info("user.timezone is: " + System.getProperty("user.timezone"));
 
@@ -173,25 +212,30 @@ public class ProjectForgeApp {
     SystemInfoCache.internalInitialize(systemInfoCache);
   }
 
-  private TenantRegistry getTenantRegistry() {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  private UserGroupCache getUserGroupCache() {
-    return getTenantRegistry().getUserGroupCache();
-  }
-
   private void internalShutdown() {
     log.info("Shutdown...");
     upAndRunning = false;
     try {
       final UserContext internalSystemAdminUserContext = UserContext
-              .__internalCreateWithSpecialUser(DatabaseService
-                      .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
+          .__internalCreateWithSpecialUser(DatabaseService.__internalGetSystemAdminPseudoUser());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
       databaseService.shutdownDatabase();
     } finally {
       ThreadLocalUserContext.clear();
+    }
+    File tmpDir = new File(System.getProperty("java.io.tmpdir"));
+    log.info("Cleaning up tmp directory: " + tmpDir.getAbsolutePath());
+    File[] files = tmpDir.listFiles();
+    for (File file: files) {
+      String name = file.getName();
+      if (file.isDirectory() && name.startsWith("tomcat.") || name.startsWith("projectforge-application")) {
+        try {
+          FileUtils.deleteDirectory(file);
+          log.info("Deleting tmp directory: " + file.getAbsolutePath());
+        } catch (IOException ex) {
+          log.error("Error while deleting tmp directory '" + file.getAbsolutePath() + "': " + ex.getMessage(), ex);
+        }
+      }
     }
     log.info("Shutdown completed.");
   }

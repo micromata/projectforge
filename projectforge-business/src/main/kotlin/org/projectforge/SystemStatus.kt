@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,8 +24,8 @@
 package org.projectforge
 
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
-import org.projectforge.framework.configuration.GlobalConfiguration
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -45,9 +45,11 @@ class SystemStatus {
 
     val appname = ProjectForgeVersion.APP_ID
     val version = ProjectForgeVersion.VERSION_STRING
-    val releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP
-    val releaseDate = ProjectForgeVersion.RELEASE_DATE
+    val buildTimestamp = ProjectForgeVersion.BUILD_TIMESTAMP
+    val buildDate = ProjectForgeVersion.BUILD_DATE
     val releaseYear = ProjectForgeVersion.YEAR
+    val scmIdFull = ProjectForgeVersion.SCM_ID_FULL
+    val scmId = ProjectForgeVersion.SCM_ID
     var messageOfTheDay: String? = null
         private set
     var logoFile: String? = null
@@ -66,11 +68,21 @@ class SystemStatus {
 
     @PostConstruct
     private fun postConstruct() {
-        messageOfTheDay = GlobalConfiguration.getInstance()
+        messageOfTheDay = Configuration.instance
                 .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
-        logoFile = configurationService.logoFile
+        logoFile = configurationService.syntheticLogoName
         if (!databaseService.databaseTablesWithEntriesExists())
             setupRequiredFirst = true
+        devMode = developmentMode
+    }
+
+    companion object {
+        private var devMode: Boolean? = null
+
+        @JvmStatic
+        fun isDevelopmentMode(): Boolean {
+            return devMode == true
+        }
     }
 }
 

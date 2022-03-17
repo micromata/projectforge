@@ -2,8 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import FavoritesPanel from '../../../../../containers/panel/favorite/FavoritesPanel';
 import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
-import { resolveJSON } from '../../../../design/input/AutoCompletion';
-import ReactSelect from '../../../../design/ReactSelect';
+import ReactSelect from '../../../../design/react-select/ReactSelect';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from '../input/DynamicValidationManager';
 
@@ -11,6 +10,7 @@ export const extractDataValue = (
     {
         data,
         id,
+        labelProperty,
         multi,
         valueProperty,
         values,
@@ -21,13 +21,17 @@ export const extractDataValue = (
         // For react-select it seems to be important, that the current selected element matches
         // its value of the values list.
         const valueOfArray = (typeof dataValue === 'object') ? dataValue[valueProperty] : dataValue;
-        dataValue = values.find(it => it[valueProperty] === valueOfArray);
+        const value = values.find((it) => it[valueProperty] === valueOfArray);
+
+        if (value) {
+            dataValue = value;
+        }
     }
 
     if (typeof dataValue === 'string') {
         return {
-            label: dataValue,
-            value: dataValue,
+            [labelProperty || 'displayName']: dataValue,
+            [valueProperty || 'id']: dataValue,
         };
     }
 
@@ -46,6 +50,14 @@ function DynamicReactSelect(props) {
     } = props;
 
     const value = extractDataValue({ data, ...props });
+
+    const autoCompletionData = {};
+
+    if (autoCompletion && autoCompletion.urlParams) {
+        Object.keys(autoCompletion.urlParams).forEach((key) => {
+            autoCompletionData[key] = Object.getByString(data, autoCompletion.urlParams[key]);
+        });
+    }
 
     return React.useMemo(() => {
         const onChange = (newValue) => {
@@ -66,8 +78,10 @@ function DynamicReactSelect(props) {
         };
 
         const loadOptions = (search, callback) => fetch(
-            // TODO CHANGE URL TO NEW URL REPLACEMENT FORMAT
-            getServiceURL(`${autoCompletion.url}${search}`),
+            getServiceURL(
+                autoCompletion.url.replace(':search', encodeURIComponent(search)),
+                autoCompletionData,
+            ),
             {
                 method: 'GET',
                 credentials: 'include',
@@ -77,8 +91,8 @@ function DynamicReactSelect(props) {
             },
         )
             .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then(resolveJSON(callback, autoCompletion.type));
+            .then((response) => response.json())
+            .then(callback);
 
         const url = autoCompletion ? autoCompletion.url : undefined;
 
@@ -89,13 +103,13 @@ function DynamicReactSelect(props) {
                     onFavoriteSelect={onFavoriteSelect}
                     favorites={favorites}
                     translations={ui.translations}
-                    htmlId={`dynamicFavoritesPopover-${id}`}
+                    htmlId={`dynamicFavoritesPopover-${ui.uid}-${id}`}
                 />
             );
         }
 
         return (
-            <React.Fragment>
+            <>
                 <DynamicValidationManager id={id}>
                     <ReactSelect
                         className="invalid"
@@ -107,9 +121,9 @@ function DynamicReactSelect(props) {
                     />
                     {favoritesElement}
                 </DynamicValidationManager>
-            </React.Fragment>
+            </>
         );
-    }, [data[id], value, setData, values]);
+    }, [data[id], value, setData, values, autoCompletionData]);
 }
 
 DynamicReactSelect.propTypes = {
@@ -120,6 +134,7 @@ DynamicReactSelect.propTypes = {
     additionalLabel: PropTypes.string,
     autoCompletion: PropTypes.shape({
         url: PropTypes.string,
+        urlParams: PropTypes.shape({}),
     }),
     className: PropTypes.string,
     getOptionLabel: PropTypes.func,

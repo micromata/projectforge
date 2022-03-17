@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -153,24 +153,14 @@ public class SendSmsPage extends AbstractStandardFormPage {
       log.error("Servlet url for sending sms not configured. SMS not supported.");
       return;
     }
-    String errorKey = null;
     result = "";
     SmsSender smsSender = new SmsSender(smsSenderConfig);
-    SmsSender.HttpResponseCode response = smsSender.send(number, getData().getMessage());
-    if (response == null) {
-      errorKey = "address.sendSms.sendMessage.result.unknownError";
-    } else if (response == SmsSender.HttpResponseCode.SUCCESS) {
+    SmsSender.HttpResponseCode responseCode = smsSender.send(number, getData().getMessage());
+    String errorKey = smsSender.getErrorMessage(responseCode);
+    if (errorKey == null) {
       result = getLocalizedMessage("address.sendSms.sendMessage.result.successful", number,
-              DateTimeFormatter.instance()
-                      .getFormattedDateTime(new Date()));
-    } else if (response == SmsSender.HttpResponseCode.MESSAGE_ERROR) {
-      errorKey = "address.sendSms.sendMessage.result.messageError";
-    } else if (response == SmsSender.HttpResponseCode.NUMBER_ERROR) {
-      errorKey = "address.sendSms.sendMessage.result.wrongOrMissingNumber";
-    } else if (response == SmsSender.HttpResponseCode.MESSAGE_TO_LARGE) {
-      errorKey = "address.sendSms.sendMessage.result.messageToLarge";
-    } else {
-      errorKey = "address.sendSms.sendMessage.result.unknownError";
+          DateTimeFormatter.instance()
+              .getFormattedDateTime(new Date()));
     }
     if (errorKey != null) {
       form.addError(errorKey);

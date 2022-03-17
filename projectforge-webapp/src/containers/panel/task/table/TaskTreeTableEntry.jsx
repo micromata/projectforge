@@ -7,7 +7,7 @@ import TaskTreeContext from '../TaskTreeContext';
 import styles from '../TaskTreePanel.module.scss';
 import TaskTreeTableEntryIcon from './TaskTreeTableEntryIcon';
 
-function TaskTreeTableEntry({ task }) {
+function TaskTreeTableEntry({ task, consumptionBarClickable }) {
     const {
         columnsVisibility,
         highlightTaskId,
@@ -34,7 +34,7 @@ function TaskTreeTableEntry({ task }) {
             <td>
                 <ConsumptionBar
                     progress={task.consumption}
-                    taskId={id}
+                    taskId={consumptionBarClickable ? id : undefined}
                     identifier="task-tree-entry-consumption-bar"
                 />
             </td>
@@ -46,7 +46,7 @@ function TaskTreeTableEntry({ task }) {
             <td>{task.shortDescription}</td>
 
             {!shortForm ? (
-                <React.Fragment>
+                <>
 
                     {columnsVisibility.protectionUntil ? (
                         <td>
@@ -68,7 +68,7 @@ function TaskTreeTableEntry({ task }) {
                         <td>{task.responsibleUser ? task.responsibleUser.fullname : ''}</td>
                     ) : undefined}
 
-                </React.Fragment>
+                </>
             ) : undefined}
         </tr>
     );
@@ -87,7 +87,15 @@ TaskTreeTableEntry.propTypes = {
         }),
         shortDescription: PropTypes.string,
         status: PropTypes.string,
+        reference: PropTypes.string,
+        priority: PropTypes.string,
     }).isRequired,
+    /* If clickable a click on the consumption bar redirects to task view. */
+    consumptionBarClickable: PropTypes.bool,
+};
+
+TaskTreeTableEntry.defaultProps = {
+    consumptionBarClickable: undefined,
 };
 
 export default TaskTreeTableEntry;

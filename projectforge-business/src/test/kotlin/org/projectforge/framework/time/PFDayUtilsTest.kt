@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -51,7 +51,7 @@ class PFDayUtilsTest {
 
     private fun checkNextWorkingDay(date: LocalDate, year: Int, month: Month, dayOfMonth: Int) {
         checkDate(PFDayUtils.getNextWorkingDay(date), year, month, dayOfMonth)
-        checkDate(PFDayUtils.getNextWorkingDay(PFDay.from(date)!!).localDate, year, month, dayOfMonth)
+        checkDate(PFDayUtils.getNextWorkingDay(PFDay.from(date)).localDate, year, month, dayOfMonth)
 
     }
 

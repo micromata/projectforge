@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -67,8 +67,6 @@ public class DaoConst
 
   public static final String INCOMING_MAIL = "incomingMail";
 
-  public static final String MEB = "meb";
-
   public static final String ORDERBOOK = "orderBook";
 
   public static final String OUTGOING_INVOICE = "outgoingInvoice";
@@ -82,8 +80,6 @@ public class DaoConst
   public static final String SCRIPT = "script";
 
   public static final String TASK = "task";
-
-  public static final String TENANT = "tenant";
 
   public static final String TIMESHEET = "timesheet";
 

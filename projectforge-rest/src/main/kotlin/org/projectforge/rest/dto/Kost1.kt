@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,4 +35,12 @@ class Kost1(id: Int? = null,
             var kostentraegerStatus: KostentraegerStatus? = null,
             var description: String? = null,
             var formattedNumber: String? = null
-) : BaseDTODisplayObject<Kost1DO>(id, displayName = displayName)
+) : BaseDTODisplayObject<Kost1DO>(id, displayName = displayName) {
+
+    /**
+     * @see copyFromMinimal
+     */
+    constructor(src: Kost1DO) : this() {
+        copyFromMinimal(src)
+    }
+}

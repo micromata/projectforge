@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -42,7 +42,6 @@ import org.projectforge.framework.time.RecurrenceFrequency;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -182,8 +181,8 @@ public class TeamEventDaoTest extends AbstractTestBase {
 
   private TeamEventDO createEvent(final TimeZone timeZone, final String startDate, final String endDate,
                                   final RecurrenceFrequency frequency, final int interval, final String recurrenceUntil, final String recurrenceUntilInTimeZone) {
-    final Timestamp startTimestamp = new Timestamp(parseDateTime(startDate, timeZone).getTime());
-    final Timestamp endTimestamp = new Timestamp(parseDateTime(endDate, timeZone).getTime());
+    final Date startTimestamp = new Date(parseDateTime(startDate, timeZone).getTime());
+    final Date endTimestamp = new Date(parseDateTime(endDate, timeZone).getTime());
     final TeamEventDO event = new TeamEventDO();
     event.setStartDate(startTimestamp);
     event.setEndDate(endTimestamp);
@@ -256,6 +255,6 @@ public class TeamEventDaoTest extends AbstractTestBase {
 
   net.fortuna.ical4j.model.Date getDate(final String dateString, final TimeZone timeZone) {
     final java.util.Date date = DateHelper.parseIsoDate(dateString, timeZone);
-    return ICal4JUtils.getICal4jDate(date, timeZone);
+    return ICal4JUtils.getICal4jDateTime(date, timeZone);
   }
 }

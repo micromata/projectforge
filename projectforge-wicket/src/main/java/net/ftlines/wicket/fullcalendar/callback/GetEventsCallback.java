@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,7 +37,6 @@ package net.ftlines.wicket.fullcalendar.callback;
 
 import net.ftlines.wicket.fullcalendar.EventProvider;
 import net.ftlines.wicket.fullcalendar.EventSource;
-
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.handler.TextRequestHandler;
 import org.apache.wicket.util.collections.MicroMap;

@@ -1,8 +1,11 @@
+/* eslint-disable no-alert */
+import { faHistory } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHistory } from '@fortawesome/free-solid-svg-icons';
+import { loadUserStatus } from '../../../actions';
 import history from '../../../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { NavLink, UncontrolledTooltip } from '../../design';
@@ -18,7 +21,7 @@ class NavigationAction extends React.Component {
     handleClick(event) {
         event.preventDefault();
 
-        const { type, url } = this.props;
+        const { type, url, loadUserStatus: checkLogin } = this.props;
 
         if (type === 'RESTCALL') {
             fetch(
@@ -29,11 +32,18 @@ class NavigationAction extends React.Component {
                 },
             )
                 .then(handleHTTPErrors)
-                .then(response => response.json())
+                .then((response) => response.json())
                 .then(({ targetType, url: redirectUrl }) => {
                     switch (targetType) {
                         case 'REDIRECT':
                             history.push(redirectUrl);
+                            break;
+                        case 'CHECK_AUTHENTICATION':
+                            checkLogin();
+
+                            if (redirectUrl) {
+                                history.push(redirectUrl);
+                            }
                             break;
                         default:
                             // TODO: HANDLE TOAST MESSAGE
@@ -89,7 +99,7 @@ class NavigationAction extends React.Component {
         switch (type) {
             case 'RESTCALL':
                 return (
-                    <React.Fragment>
+                    <>
                         <NavLink
                             id={id}
                             onClick={this.handleClick}
@@ -99,35 +109,56 @@ class NavigationAction extends React.Component {
                             {content}
                         </NavLink>
                         {tooltipElement}
-                    </React.Fragment>
+                    </>
                 );
             case 'DOWNLOAD':
                 return (
-                    <React.Fragment>
-                        <NavLink id={id} href={getServiceURL(url)} target="_blank" rel="noopener noreferrer">
+                    <>
+                        <NavLink
+                            id={id}
+                            href={getServiceURL(url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
                             {content}
                         </NavLink>
                         {tooltipElement}
-                    </React.Fragment>
+                    </>
                 );
             case 'LINK':
+            case 'MODAL':
             case 'REDIRECT':
                 return (
-                    <React.Fragment>
-                        <NavLink id={id} tag={Link} to={`/${url}`}>
+                    <>
+                        <NavLink
+                            id={id}
+                            tag={Link}
+                            to={{
+                                pathname: `/${url}`,
+                                state: {
+                                    background: type === 'MODAL' ? history.location : undefined,
+                                },
+                            }}
+                        >
                             {content}
                         </NavLink>
                         {tooltipElement}
-                    </React.Fragment>
+                    </>
                 );
             case 'TEXT':
             default:
-                return <span className="nav-link" id={id}>{content}{tooltipElement}</span>;
+                return (
+                    <span className="nav-link" id={id}>
+                        {content}
+                        {tooltipElement}
+                    </span>
+                );
         }
     }
 }
 
 NavigationAction.propTypes = {
+    loadUserStatus: PropTypes.func.isRequired,
     title: PropTypes.string.isRequired,
     badge: PropTypes.shape({
         counter: PropTypes.number,
@@ -135,15 +166,16 @@ NavigationAction.propTypes = {
     badgeIsFlying: PropTypes.bool,
     entryKey: PropTypes.string,
     id: PropTypes.string,
+    tooltip: PropTypes.string,
     type: PropTypes.oneOf([
-        'REDIRECT',
-        'RESTCALL',
         'DOWNLOAD',
         'LINK',
+        'MODAL',
+        'REDIRECT',
+        'RESTCALL',
         'TEXT',
     ]),
     url: PropTypes.string,
-    tooltip: PropTypes.string,
 };
 
 NavigationAction.defaultProps = {
@@ -151,9 +183,11 @@ NavigationAction.defaultProps = {
     badgeIsFlying: true,
     entryKey: undefined,
     id: undefined,
+    tooltip: undefined,
     type: 'LINK',
     url: '',
-    tooltip: undefined,
 };
 
-export default NavigationAction;
+const actions = { loadUserStatus };
+
+export default connect(undefined, actions)(NavigationAction);

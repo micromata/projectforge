@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.web.timesheet;
 
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
@@ -32,16 +30,20 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
+import org.projectforge.business.timesheet.TimesheetRecentService;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.wicket.AbstractMassEditForm;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.projectforge.web.wicket.flowlayout.InputPanel;
 
-public class TimesheetMassUpdateForm extends AbstractMassEditForm<TimesheetDO, TimesheetMassUpdatePage>
-{
+import java.util.List;
+
+public class TimesheetMassUpdateForm extends AbstractMassEditForm<TimesheetDO, TimesheetMassUpdatePage> {
   private static final long serialVersionUID = -6785832818308468337L;
 
   private DropDownChoice<Integer> kost2Choice;
@@ -55,22 +57,23 @@ public class TimesheetMassUpdateForm extends AbstractMassEditForm<TimesheetDO, T
   @SpringBean
   private TimesheetDao timesheetDao;
 
+  @SpringBean
+  private TimesheetRecentService timesheetRecentService;
+
   protected boolean updateTask;
 
   protected boolean updateKost2;
 
   private TimesheetPageSupport timesheetPageSupport;
 
-  public TimesheetMassUpdateForm(final TimesheetMassUpdatePage parentPage)
-  {
+  public TimesheetMassUpdateForm(final TimesheetMassUpdatePage parentPage) {
     super(parentPage);
     data = new TimesheetDO();
   }
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     timesheetPageSupport = new TimesheetPageSupport(parentPage, gridBuilder, timesheetDao, data);
@@ -85,11 +88,9 @@ public class TimesheetMassUpdateForm extends AbstractMassEditForm<TimesheetDO, T
       taskSelectPanel.init();
     }
     {
-      kost2Fieldset = new FieldsetPanel(gridBuilder.getPanel(), getString("fibu.kost2"))
-      {
+      kost2Fieldset = new FieldsetPanel(gridBuilder.getPanel(), getString("fibu.kost2")) {
         @Override
-        public boolean isVisible()
-        {
+        public boolean isVisible() {
           return CollectionUtils.isNotEmpty(kost2List);
         }
       };
@@ -103,20 +104,27 @@ public class TimesheetMassUpdateForm extends AbstractMassEditForm<TimesheetDO, T
       kost2Fieldset.add(kost2Choice);
     }
     {
-      timesheetPageSupport.addLocation();
+      timesheetPageSupport.addLocation(timesheetRecentService);
+    }
+    {
+      {
+        // Reference
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.reference"));
+        final MaxLengthTextField referenceTextField = new MaxLengthTextField(InputPanel.WICKET_ID,
+            new PropertyModel<>(data, "reference"));
+        fs.add(referenceTextField);
+      }
     }
   }
 
-  protected void refresh()
-  {
+  protected void refresh() {
     kost2List = timesheetDao.getKost2List(data);
     final LabelValueChoiceRenderer<Integer> kost2ChoiceRenderer = getKost2LabelValueChoiceRenderer();
     kost2Choice.setChoiceRenderer(kost2ChoiceRenderer);
     kost2Choice.setChoices(kost2ChoiceRenderer.getValues());
   }
 
-  private LabelValueChoiceRenderer<Integer> getKost2LabelValueChoiceRenderer()
-  {
+  private LabelValueChoiceRenderer<Integer> getKost2LabelValueChoiceRenderer() {
     return TimesheetEditForm.getCost2LabelValueChoiceRenderer(timesheetDao, kost2List, data, kost2Choice);
   }
 }

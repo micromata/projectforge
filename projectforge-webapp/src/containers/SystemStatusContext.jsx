@@ -12,11 +12,15 @@ export const systemStatusContextDefaultValues = {
     /**
      * @type {String} Timestamp when the release was built.
      */
-    releaseTimestamp: undefined,
+    buildTimestamp: undefined,
     /**
-     * @type {String} Date when the release was published.
+     * @type {String} Date when the release was built.
      */
-    releaseDate: undefined,
+    buildDate: undefined,
+    /**
+     * @type {String} Git commit (branch and id).
+     */
+    scmId: undefined,
     /**
      * @type {String} Message of the day for the login screen.
      */

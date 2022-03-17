@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/group")
-class GroupPagesRest() : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::class.java, "group.title") {
+class GroupPagesRest: AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::class.java, "group.title") {
 
     @Autowired
     private lateinit var userService: UserService
@@ -61,12 +61,15 @@ class GroupPagesRest() : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao
         return groupDO
     }
 
+    override val classicsLinkListUrl: String?
+        get() = "wa/groupList"
+
     /**
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "name", "organization", "description", "assignedUsers", "ldapValues"))
         return LayoutUtils.processListPage(layout, this)
     }
@@ -80,7 +83,7 @@ class GroupPagesRest() : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao
                         .add(UICol()
                                 .add(lc, "name", "organization", "description"))
                         .add(UICol()
-                                .add(UISelect.creatUserSelect(lc, "assignedUsers", true, "group.assignedUsers", "access.users"))))
+                                .add(UISelect.createUserSelect(lc, "assignedUsers", true, "group.assignedUsers"))))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 

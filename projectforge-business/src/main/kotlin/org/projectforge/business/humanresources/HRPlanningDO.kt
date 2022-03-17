@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,8 +35,9 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.DayHolder
+import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
 
@@ -46,7 +47,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_HR_PLANNING", uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "week", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_hr_planning_user_fk", columnList = "user_fk"), javax.persistence.Index(name = "idx_fk_t_hr_planning_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_HR_PLANNING", uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "week"])], indexes = [javax.persistence.Index(name = "idx_fk_t_hr_planning_user_fk", columnList = "user_fk")])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [HRPlanningEntryDO::class])
 @NamedQueries(
         NamedQuery(name = HRPlanningDO.FIND_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week"),
@@ -57,7 +58,7 @@ open class HRPlanningDO : DefaultBaseDO() {
     /**
      * The employee assigned to this planned week.
      */
-    @PropertyInfo(i18nKey = "user")
+    @PropertyInfo(i18nKey = "timesheet.user")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)
@@ -66,10 +67,10 @@ open class HRPlanningDO : DefaultBaseDO() {
     /**
      * @return The first day of the week.
      */
+    @PropertyInfo(i18nKey = "calendar.year")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "week", nullable = false)
-    open var week: Date? = null
+    open var week: LocalDate? = null
 
     /**
      * Get the entries for this planned week.
@@ -245,7 +246,7 @@ open class HRPlanningDO : DefaultBaseDO() {
      * @param week
      * @see .getFirstDayOfWeek
      */
-    fun setFirstDayOfWeek(week: Date) {
+    fun setFirstDayOfWeek(week: LocalDate) {
         this.week = getFirstDayOfWeek(week)
     }
 
@@ -352,10 +353,10 @@ open class HRPlanningDO : DefaultBaseDO() {
          * first working day of the week.
          * @see DayHolder.setBeginOfWeek
          */
-        fun getFirstDayOfWeek(date: Date): Date {
-            val day = DayHolder(date, DateHelper.UTC)
-            day.setBeginOfWeek()
-            return day.sqlDate
+        fun getFirstDayOfWeek(date: LocalDate): LocalDate {
+            var day = PFDay.from(date)
+            day = day.beginOfWeek
+            return day.localDate
         }
 
         /**
@@ -364,10 +365,10 @@ open class HRPlanningDO : DefaultBaseDO() {
          * first working day of the week.
          * @see DayHolder.setBeginOfWeek
          */
-        fun getFirstDayOfWeek(date: java.util.Date): Date {
+        fun getFirstDayOfWeek(date: Date): Date {
             val day = DayHolder(date, DateHelper.UTC)
             day.setBeginOfWeek()
-            return day.sqlDate
+            return day.utilDate
         }
     }
 }

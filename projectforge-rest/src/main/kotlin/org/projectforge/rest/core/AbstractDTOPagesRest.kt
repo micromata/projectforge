@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,8 +41,8 @@ abstract class AbstractDTOPagesRest<
         B : BaseDao<O>>(
         baseDaoClazz: Class<B>,
         i18nKeyPrefix: String,
-        cloneSupported: Boolean = false)
-    : AbstractPagesRest<O, DTO, B>(baseDaoClazz, i18nKeyPrefix, cloneSupported) {
+        cloneSupport: CloneSupport = CloneSupport.NONE)
+    : AbstractPagesRest<O, DTO, B>(baseDaoClazz, i18nKeyPrefix, cloneSupport) {
 
     /**
      * @return New result set of dto's, transformed from data base objects.

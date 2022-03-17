@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,20 @@
 
 package org.projectforge.web.admin;
 
-import java.util.List;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.utils.HtmlHelper;
-import org.projectforge.continuousdb.DatabaseResultRow;
-import org.projectforge.continuousdb.DatabaseResultRowEntry;
+import org.projectforge.database.DatabaseResultRow;
+import org.projectforge.database.DatabaseResultRowEntry;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
+
+import java.util.List;
 
 public class SqlConsolePage extends AbstractStandardFormPage
 {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,21 +41,17 @@ import de.micromata.genome.jpa.metainf.EntityMetadata;
 import de.micromata.mgc.jpa.hibernatesearch.impl.SearchEmgr;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressbookDao;
-import org.projectforge.business.multitenancy.TenantDao;
-import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserDao;
-import org.projectforge.business.user.UserXmlPreferencesDO;
 import org.projectforge.business.user.UserXmlPreferencesDao;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -108,12 +104,6 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
 
   @Autowired
   private UserXmlPreferencesDao userXmlPrefDao;
-
-  @Autowired
-  private TenantService tenantService;
-
-  @Autowired
-  private TenantDao tenantDao;
 
   @Autowired
   private AddressDao addressDao;
@@ -217,8 +207,6 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
     xstream.registerConverter(new SkippUnkownElementsCollectionConverter(xstream.getMapper()),
             XStream.PRIORITY_VERY_HIGH);
 
-    TenantDO defaultTenant = tenantService.getDefaultTenant();
-
     List<Object> objects = new ArrayList<>();
     Object result = xstream.fromXML(inputStream, objects);
     objects = (List<Object>) result;
@@ -226,31 +214,9 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
     List<Object> recObjects = recorder.getAllEnties();
     List<PFUserDO> users = new ArrayList<>();
 
-    // searching default tenant
-    if (defaultTenant == null) {
-      LOG.info("Default tenant is null, searching in XML dump");
-      for (Object o : recObjects) {
-        if (o instanceof TenantDO) {
-          TenantDO t = (TenantDO) o;
-          if (t.isDefault()) {
-            LOG.info("Found default tenant");
-            defaultTenant = t;
-            break;
-          }
-        }
-      }
-
-      if (defaultTenant == null) {
-        LOG.error("Default tenant is missing");
-        return 0;
-      }
-    }
-
-    // set default tenant
     for (Object o : recObjects) {
       if (o instanceof DefaultBaseDO) {
         DefaultBaseDO baseObject = (DefaultBaseDO) o;
-        baseObject.setTenant(defaultTenant);
         if (baseObject instanceof PFUserDO) {
           PFUserDO user = (PFUserDO) baseObject;
           users.add(user);
@@ -263,21 +229,12 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
       //  System.out.println(tdo.toString());
       //  System.out.println(System.identityHashCode(tdo));
       //}
-      if (o instanceof UserXmlPreferencesDO) {
-        UserXmlPreferencesDO pref = (UserXmlPreferencesDO) o;
-        pref.setTenant(defaultTenant);
-      }
     }
 
     XmlDumpRestoreContext ctx = createRestoreContext(fac, recObjects);
     if (restoreMode == RestoreMode.InsertAll) {
       LOG.info("Writing XML objects to database");
       insertAll(fac, ctx);
-      for (PFUserDO user : users) {
-        Set<TenantDO> tenantsToAssign = new HashSet<>();
-        tenantsToAssign.add(defaultTenant);
-        tenantDao.internalAssignTenants(user, tenantsToAssign, null, false, false);
-      }
     } else {
       throw new UnsupportedOperationException("restoreMode " + restoreMode + " currently not supported");
     }

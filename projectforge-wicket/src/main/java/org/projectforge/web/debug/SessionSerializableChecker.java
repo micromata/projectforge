@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,18 +26,17 @@
  */
 package org.projectforge.web.debug;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import org.apache.commons.lang3.ClassUtils;
+import org.projectforge.web.WebConfiguration;
+import org.projectforge.web.wicket.WicketApplication;
 
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionAttributeListener;
 import javax.servlet.http.HttpSessionBindingEvent;
-
-import org.apache.commons.lang3.ClassUtils;
-import org.projectforge.web.WebConfiguration;
-import org.projectforge.web.wicket.WicketApplication;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 /**
  * In production environment this checker does nothing.

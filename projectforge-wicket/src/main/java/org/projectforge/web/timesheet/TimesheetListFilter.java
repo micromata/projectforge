@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,9 +41,9 @@ public class TimesheetListFilter extends TimesheetFilter
     setUserId(ThreadLocalUserContext.getUserId());
     final DateHolder date = new DateHolder(DatePrecision.DAY);
     date.setBeginOfWeek();
-    setStartTime(date.getTimestamp());
+    setStartTime(date.getUtilDate());
     date.setEndOfWeek();
-    setStopTime(date.getTimestamp());
+    setStopTime(date.getUtilDate());
     return this;
   }
 }

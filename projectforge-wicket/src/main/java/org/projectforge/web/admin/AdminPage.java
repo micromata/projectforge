@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,31 +33,32 @@ import org.projectforge.SystemAlertMessage;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
-import org.projectforge.business.meb.MebMailClient;
 import org.projectforge.business.systeminfo.SystemService;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
-import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.jcr.JCRCheckSanityJob;
 import org.projectforge.plugins.core.PluginAdminService;
+import org.projectforge.security.My2FARequestHandler;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
@@ -81,10 +82,10 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   private DatabaseService databaseService;
 
   @SpringBean
-  private HibernateSearchReindexer hibernateSearchReindexer;
+  private JCRCheckSanityJob jcrCheckSanityJob;
 
   @SpringBean
-  private MebMailClient mebMailClient;
+  private HibernateSearchReindexer hibernateSearchReindexer;
 
   @SpringBean
   private UserXmlPreferencesCache userXmlPreferencesCache;
@@ -94,6 +95,9 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   @SpringBean
   private PfEmgrFactory emf;
+
+  @SpringBean
+  private TaskTree taskTree;
 
   @SpringBean
   PluginAdminService pluginAdminService;
@@ -115,7 +119,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     addDatabaseActionsMenu();
     addCachesMenu();
     addConfigurationMenu();
-    addMEBMenu();
     addMiscMenu();
     addDevelopmentMenu();
   }
@@ -124,7 +127,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void addConfigurationMenu() {
     // Configuration
     final ContentMenuEntryPanel configurationMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-            getString("system.admin.group.title.systemChecksAndFunctionality.configuration"));
+        getString("system.admin.group.title.systemChecksAndFunctionality.configuration"));
     addContentMenuEntry(configurationMenu);
     // Check re-read configuration
     final Link<Void> rereadConfigurationLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
@@ -134,9 +137,9 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       }
     };
     final ContentMenuEntryPanel rereadConfigurationLinkMenuItem = new ContentMenuEntryPanel(
-            configurationMenu.newSubMenuChildId(),
-            rereadConfigurationLink, getString("system.admin.button.rereadConfiguration"))
-            .setTooltip(getString("system.admin.button.rereadConfiguration.tooltip"));
+        configurationMenu.newSubMenuChildId(),
+        rereadConfigurationLink, getString("system.admin.button.rereadConfiguration"))
+        .setTooltip(getString("system.admin.button.rereadConfiguration.tooltip"));
     configurationMenu.addSubMenuEntry(rereadConfigurationLinkMenuItem);
 
     // Export configuration.
@@ -147,17 +150,30 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       }
     };
     final ContentMenuEntryPanel exportConfigurationLinkMenuItem = new ContentMenuEntryPanel(
-            configurationMenu.newSubMenuChildId(),
-            exportConfigurationLink, getString("system.admin.button.exportConfiguration"))
-            .setTooltip(getString("system.admin.button.exportConfiguration.tooltip"));
+        configurationMenu.newSubMenuChildId(),
+        exportConfigurationLink, getString("system.admin.button.exportConfiguration"))
+        .setTooltip(getString("system.admin.button.exportConfiguration.tooltip"));
     configurationMenu.addSubMenuEntry(exportConfigurationLinkMenuItem);
+
+    // Security configuration of 2FA.
+    final Link<Void> twoFactorExportConfigurationLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
+      @Override
+      public void onClick() {
+        export2FAConfiguration();
+      }
+    };
+    final ContentMenuEntryPanel twoFactorExportLinkMenuItem = new ContentMenuEntryPanel(
+        configurationMenu.newSubMenuChildId(),
+        twoFactorExportConfigurationLink, getString("system.admin.button.export2FAConfiguration"))
+        .setTooltip(getString("system.admin.button.export2FAConfiguration.tooltip"));
+    configurationMenu.addSubMenuEntry(twoFactorExportLinkMenuItem);
   }
 
   @SuppressWarnings("serial")
   protected void addCachesMenu() {
     // Caches
     final ContentMenuEntryPanel cachesMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-            getString("system.admin.group.title.systemChecksAndFunctionality.caches"));
+        getString("system.admin.group.title.systemChecksAndFunctionality.caches"));
     addContentMenuEntry(cachesMenu);
     // Refresh caches.
     final Link<Void> refreshCachesLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
@@ -167,9 +183,9 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       }
     };
     final ContentMenuEntryPanel refreshCachesLinkMenuItem = new ContentMenuEntryPanel(cachesMenu.newSubMenuChildId(),
-            refreshCachesLink,
-            getString("system.admin.button.refreshCaches"))
-            .setTooltip(getString("system.admin.button.refreshCaches.tooltip"));
+        refreshCachesLink,
+        getString("system.admin.button.refreshCaches"))
+        .setTooltip(getString("system.admin.button.refreshCaches.tooltip"));
     cachesMenu.addSubMenuEntry(refreshCachesLinkMenuItem);
   }
 
@@ -177,7 +193,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void addDatabaseActionsMenu() {
     // Data-base actions
     final ContentMenuEntryPanel databaseActionsMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-            getString("system.admin.group.title.databaseActions"));
+        getString("system.admin.group.title.databaseActions"));
     addContentMenuEntry(databaseActionsMenu);
     // Update all user preferences
     final Link<Void> updateUserPrefsLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
@@ -187,9 +203,9 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       }
     };
     final ContentMenuEntryPanel updateUserPrefsLinkMenuItem = new ContentMenuEntryPanel(
-            databaseActionsMenu.newSubMenuChildId(),
-            updateUserPrefsLink, getString("system.admin.button.updateUserPrefs"))
-            .setTooltip(getString("system.admin.button.updateUserPrefs.tooltip"));
+        databaseActionsMenu.newSubMenuChildId(),
+        updateUserPrefsLink, getString("system.admin.button.updateUserPrefs"))
+        .setTooltip(getString("system.admin.button.updateUserPrefs.tooltip"));
     databaseActionsMenu.addSubMenuEntry(updateUserPrefsLinkMenuItem);
 
     // Create missing data-base indices.
@@ -200,9 +216,9 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       }
     };
     final ContentMenuEntryPanel createMissingDatabaseIndicesLinkMenuItem = new ContentMenuEntryPanel(
-            databaseActionsMenu.newSubMenuChildId(), createMissingDatabaseIndicesLink,
-            getString("system.admin.button.createMissingDatabaseIndices"))
-            .setTooltip(getString("system.admin.button.createMissingDatabaseIndices.tooltip"));
+        databaseActionsMenu.newSubMenuChildId(), createMissingDatabaseIndicesLink,
+        getString("system.admin.button.createMissingDatabaseIndices"))
+        .setTooltip(getString("system.admin.button.createMissingDatabaseIndices.tooltip"));
     databaseActionsMenu.addSubMenuEntry(createMissingDatabaseIndicesLinkMenuItem);
     {
       // Dump data-base.
@@ -213,9 +229,9 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
         }
       };
       final ContentMenuEntryPanel dumpDatabaseLinkMenuItem = new ContentMenuEntryPanel(
-              databaseActionsMenu.newSubMenuChildId(),
-              dumpDatabaseLink, getString("system.admin.button.dump"))
-              .setTooltip(getString("system.admin.button.dump.tooltip"));
+          databaseActionsMenu.newSubMenuChildId(),
+          dumpDatabaseLink, getString("system.admin.button.dump"))
+          .setTooltip(getString("system.admin.button.dump.tooltip"));
       databaseActionsMenu.addSubMenuEntry(dumpDatabaseLinkMenuItem);
       dumpDatabaseLink.add(WicketUtils.javaScriptConfirmDialogOnClick(getString("system.admin.button.dump.question")));
     }
@@ -228,9 +244,9 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
         }
       };
       final ContentMenuEntryPanel schemaExportLinkMenuItem = new ContentMenuEntryPanel(
-              databaseActionsMenu.newSubMenuChildId(),
-              schemaExportLink, getString("system.admin.button.schemaExport"))
-              .setTooltip(getString("system.admin.button.schemaExport.tooltip"));
+          databaseActionsMenu.newSubMenuChildId(),
+          schemaExportLink, getString("system.admin.button.schemaExport"))
+          .setTooltip(getString("system.admin.button.schemaExport.tooltip"));
       databaseActionsMenu.addSubMenuEntry(schemaExportLinkMenuItem);
     }
   }
@@ -239,7 +255,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void addMiscMenu() {
     // Misc checks
     final ContentMenuEntryPanel miscChecksMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-            getString("system.admin.group.title.systemChecksAndFunctionality.miscChecks"));
+        getString("system.admin.group.title.systemChecksAndFunctionality.miscChecks"));
     addContentMenuEntry(miscChecksMenu);
     // Check system integrity
     final Link<Void> checkSystemIntegrityLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
@@ -249,45 +265,25 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       }
     };
     final ContentMenuEntryPanel checkSystemIntegrityLinkMenuItem = new ContentMenuEntryPanel(
-            miscChecksMenu.newSubMenuChildId(),
-            checkSystemIntegrityLink, getString("system.admin.button.checkSystemIntegrity"))
-            .setTooltip(getString("system.admin.button.checkSystemIntegrity.tooltip"));
+        miscChecksMenu.newSubMenuChildId(),
+        checkSystemIntegrityLink, getString("system.admin.button.checkSystemIntegrity"))
+        .setTooltip(getString("system.admin.button.checkSystemIntegrity.tooltip"));
     miscChecksMenu.addSubMenuEntry(checkSystemIntegrityLinkMenuItem);
-  }
 
-  @SuppressWarnings("serial")
-  protected void addMEBMenu() {
-    if (Configuration.getInstance().isMebConfigured() == false) {
-      // Do nothing.
-      return;
-    }
-    // Mobile enterprise blogging
-    final ContentMenuEntryPanel mebMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-            getString("meb.title.heading"));
-    addContentMenuEntry(mebMenu);
-    // Check unseen meb mails
-    final Link<Void> checkUnseenMebMailsLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
+    // JCR sanity check
+    // Check system integrity
+    final Link<Void> checkJCRSanityLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
       @Override
       public void onClick() {
-        checkUnseenMebMails();
+        checkJCRSanity();
       }
     };
-    final ContentMenuEntryPanel checkUnseenMebMailsLinkMenuItem = new ContentMenuEntryPanel(mebMenu.newSubMenuChildId(),
-            checkUnseenMebMailsLink, getString("system.admin.button.checkUnseenMebMails"))
-            .setTooltip(getString("system.admin.button.checkUnseenMebMails.tooltip"));
-    mebMenu.addSubMenuEntry(checkUnseenMebMailsLinkMenuItem);
+    final ContentMenuEntryPanel checkJCRSanityLinkMenuItem = new ContentMenuEntryPanel(
+        miscChecksMenu.newSubMenuChildId(),
+        checkJCRSanityLink, getString("system.admin.button.checkJCRSanity"))
+        .setTooltip(getString("system.admin.button.checkJCRSanity.tooltip"));
+    miscChecksMenu.addSubMenuEntry(checkJCRSanityLinkMenuItem);
 
-    // Import all meb mails.
-    final Link<Void> importAllMebMailsLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
-      @Override
-      public void onClick() {
-        importAllMebMails();
-      }
-    };
-    final ContentMenuEntryPanel importAllMebMailsLinkMenuItem = new ContentMenuEntryPanel(mebMenu.newSubMenuChildId(),
-            importAllMebMailsLink, getString("system.admin.button.importAllMebMails"))
-            .setTooltip(getString("system.admin.button.importAllMebMails.tooltip"));
-    mebMenu.addSubMenuEntry(importAllMebMailsLinkMenuItem);
   }
 
   @SuppressWarnings("serial")
@@ -307,9 +303,9 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       }
     };
     final ContentMenuEntryPanel checkI18nPropertiesLinkMenuItem = new ContentMenuEntryPanel(
-            developmentMenu.newSubMenuChildId(),
-            checkI18nPropertiesLink, getString("system.admin.button.checkI18nProperties"))
-            .setTooltip(getString("system.admin.button.checkI18nProperties.tooltip"));
+        developmentMenu.newSubMenuChildId(),
+        checkI18nPropertiesLink, getString("system.admin.button.checkI18nProperties"))
+        .setTooltip(getString("system.admin.button.checkI18nProperties.tooltip"));
     developmentMenu.addSubMenuEntry(checkI18nPropertiesLinkMenuItem);
     // Create test objects
     final Link<Void> createTestObjectsLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
@@ -319,32 +315,16 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       }
     };
     createTestObjectsLink.add(WicketUtils.javaScriptConfirmDialogOnClick(getLocalizedMessage(
-            "system.admin.development.testObjectsCreationQuestion", AdminPage.NUMBER_OF_TEST_OBJECTS_TO_CREATE, "BookDO")));
+        "system.admin.development.testObjectsCreationQuestion", AdminPage.NUMBER_OF_TEST_OBJECTS_TO_CREATE, "BookDO")));
     final ContentMenuEntryPanel createTestObjectsLinkMenuItem = new ContentMenuEntryPanel(
-            developmentMenu.newSubMenuChildId(),
-            createTestObjectsLink, "BookDO").setTooltip("Creates 100 books of type BookDO for testing.");
+        developmentMenu.newSubMenuChildId(),
+        createTestObjectsLink, "BookDO").setTooltip("Creates 100 books of type BookDO for testing.");
     developmentMenu.addSubMenuEntry(createTestObjectsLinkMenuItem);
   }
 
   @Override
   protected String getTitle() {
     return getString("system.admin.title");
-  }
-
-  protected void checkUnseenMebMails() {
-    log.info("Administration: check for new MEB mails.");
-    checkAccess();
-    final int counter = mebMailClient.getNewMessages(true, true);
-    setResponsePage(new MessagePage("message.successfullCompleted",
-            "check for new MEB mails, " + counter + " new messages imported."));
-  }
-
-  protected void importAllMebMails() {
-    log.info("Administration: import all MEB mails.");
-    checkAccess();
-    final int counter = mebMailClient.getNewMessages(false, false);
-    setResponsePage(new MessagePage("message.successfullCompleted",
-            "import all MEB mails, " + counter + " new messages imported."));
   }
 
   protected void checkSystemIntegrity() {
@@ -354,6 +334,15 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final String filename = "projectforge_check_report" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
   }
+
+  protected void checkJCRSanity() {
+    log.info("Administration: JCR sanity check.");
+    checkAccess();
+    JCRCheckSanityJob.CheckResult result = jcrCheckSanityJob.execute();
+    final String filename = "projectforge_jcr-sanity-check" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
+    DownloadUtils.setDownloadTarget(result.toText().getBytes(StandardCharsets.UTF_8), filename);
+  }
+
 
   protected void refreshCaches() {
     log.info("Administration: refresh of caches.");
@@ -367,8 +356,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void rereadConfiguration() {
     log.info("Administration: Reload all configurations (DB, XML)");
     checkAccess();
-    log.info("Administration: reload global configuration.");
-    GlobalConfiguration.getInstance().forceReload();
     log.info("Administration: reload configuration.");
     Configuration.getInstance().forceReload();
     log.info("Administration: reread configuration file config.xml.");
@@ -387,6 +374,34 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final String filename = "config-" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".xml";
     DownloadUtils.setUTF8CharacterEncoding(getResponse());
     DownloadUtils.setDownloadTarget(xml.getBytes(), filename);
+  }
+
+  protected void export2FAConfiguration() {
+    log.info("Administration: export 2FA configuration file config-2FA.txt.");
+    checkAccess();
+    My2FARequestHandler my2FARequestHandler = ApplicationContextProvider.getApplicationContext().getBean(My2FARequestHandler.class);
+    StringWriter out = new StringWriter();
+    PrintWriter pw = new PrintWriter(out);
+    pw.println("2FA configurationdfadfas");
+    pw.println("-----------------");
+    pw.println("");
+    pw.println("1. effective configuration");
+    pw.println("--------------------------");
+    pw.println(my2FARequestHandler.printConfiguration());
+    pw.println("");
+    pw.println("2. endpoints");
+    pw.println("------------");
+    List<String> endpoints = new ArrayList<>();
+    ApplicationContextProvider.getApplicationContext().getBean(RequestMappingHandlerMapping.class).getHandlerMethods()
+        .forEach((info, method) -> {
+          if (!info.getDirectPaths().isEmpty()) {
+            endpoints.add(info.getDirectPaths().iterator().next());
+          }
+        });
+    pw.println(my2FARequestHandler.printAllEndPoints(endpoints));
+    final String filename = "config-2FA" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
+    DownloadUtils.setUTF8CharacterEncoding(getResponse());
+    DownloadUtils.setDownloadTarget(out.toString().getBytes(), filename);
   }
 
   protected void checkI18nProperties() {
@@ -490,8 +505,8 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   public void select(final String property, final Object selectedValue) {
     if ("reindexFromDate".equals(property) == true) {
       // Date selected.
-      final Date date = (Date) selectedValue;
-      form.reindexFromDate = date;
+      final PFDateTime date = PFDateTime.fromAny(selectedValue);
+      form.reindexFromDate = date.getUtilDate();
       form.reindexFromDatePanel.markModelAsChanged();
     } else {
       log.error("Property '" + property + "' not supported for selection.");
@@ -576,11 +591,10 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   public void createTestBooks() {
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
     accessChecker.checkRestrictedOrDemoUser();
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     final List<BookDO> list = new ArrayList<BookDO>();
     int number = 1;
     while (databaseService
-            .queryForInt("select count(*) from t_book where title like 'title." + number + ".%'") > 0) {
+        .queryForInt("select count(*) from t_book where title like 'title." + number + ".%'") > 0) {
       number++;
     }
     for (int i = 1; i <= NUMBER_OF_TEST_OBJECTS_TO_CREATE; i++) {
@@ -600,8 +614,8 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     }
     bookDao.save(list);
     setResponsePage(
-            new MessagePage("system.admin.development.testObjectsCreated", String.valueOf(NUMBER_OF_TEST_OBJECTS_TO_CREATE),
-                    "BookDO"));
+        new MessagePage("system.admin.development.testObjectsCreated", String.valueOf(NUMBER_OF_TEST_OBJECTS_TO_CREATE),
+            "BookDO"));
   }
 
   private String get(final String basename, final int number, final int counter) {
@@ -628,7 +642,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
           properties.load(is);
         } catch (final IOException ex) {
           log.error("Error while loading resource properties '" + path + locale + ".properties: " + ex.getMessage(),
-                  ex);
+              ex);
           continue;
         }
       }
@@ -639,7 +653,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
         }
         map.put((String) key, value);
         if (value != null && (value.contains("{0") == true || value.contains("{1") == true)
-                && value.contains("'") == true) {
+            && value.contains("'") == true) {
           // Message, check for single quotes:
           char lastChar = ' ';
           for (int i = 0; i < value.length(); i++) {
@@ -647,8 +661,8 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
             if (lastChar == '\'') {
               if (ch != '\'') {
                 warnMessages.append("Key '").append(key).append("' (locale=").append(locale)
-                        .append(
-                                ") contains invalid message string (single quotes are not allowed and must be replaced by '').\n");
+                    .append(
+                        ") contains invalid message string (single quotes are not allowed and must be replaced by '').\n");
                 break;
               }
               lastChar = ' '; // Quotes were OK.

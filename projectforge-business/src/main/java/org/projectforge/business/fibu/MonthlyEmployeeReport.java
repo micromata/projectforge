@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -213,6 +213,7 @@ public class MonthlyEmployeeReport implements Serializable {
     this.user = user;
     this.employeeService = employeeService;
     this.vacationService = vacationService;
+    setEmployee(employeeService.getEmployeeByUserId(user.getId()));
   }
 
   /**
@@ -257,7 +258,7 @@ public class MonthlyEmployeeReport implements Serializable {
   }
 
   public void addTimesheet(final TimesheetDO sheet, final boolean hasSelectAccess) {
-    final PFDateTime day = PFDateTime.from(sheet.getStartTime());
+    final PFDateTime day = PFDateTime.from(sheet.getStartTime()); // not null
     bookedDays.add(day.getDayOfMonth());
     for (final MonthlyEmployeeReportWeek week : weeks) {
       if (week.matchWeek(sheet)) {

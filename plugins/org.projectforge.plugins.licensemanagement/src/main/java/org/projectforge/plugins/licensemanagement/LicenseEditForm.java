@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -40,6 +40,7 @@ import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -161,20 +162,18 @@ public class LicenseEditForm extends AbstractEditForm<LicenseDO, LicenseEditPage
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Valid since
+      final FieldProperties<LocalDate> props = getValidSinceProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.licensemanagement.validSince"));
-      final DatePanel validSinceDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "validSince"),
-          DatePanelSettings
-              .get().withTargetType(java.sql.Date.class).withSelectProperty("validSince"));
-      fs.add(validSinceDatePanel);
+      LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      fs.add(components);
     }
     gridBuilder.newSplitPanel(GridSize.COL33);
     {
       // Valid until
+      final FieldProperties<LocalDate> props = getValidUntilProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.licensemanagement.validUntil"));
-      final DatePanel validUntilDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "validUntil"),
-          DatePanelSettings
-              .get().withTargetType(java.sql.Date.class).withSelectProperty("validUntil"));
-      fs.add(validUntilDatePanel);
+      LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      fs.add(components);
     }
     gridBuilder.newGridPanel();
     {
@@ -235,6 +234,14 @@ public class LicenseEditForm extends AbstractEditForm<LicenseDO, LicenseEditPage
       fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "comment"))).setAutogrow();
     }
     addCloneButton();
+  }
+
+  private FieldProperties<LocalDate> getValidSinceProperties() {
+    return new FieldProperties<>("plugins.licensemanagement.validSince", new PropertyModel<>(super.getData(), "validSince"));
+  }
+
+  private FieldProperties<LocalDate> getValidUntilProperties() {
+    return new FieldProperties<>("plugins.licensemanagement.validUntil", new PropertyModel<>(super.getData(), "validUntil"));
   }
 
   @Override

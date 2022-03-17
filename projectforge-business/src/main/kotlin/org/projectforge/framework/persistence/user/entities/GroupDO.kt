@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,14 +25,15 @@ package org.projectforge.framework.persistence.user.entities
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.Hibernate
+import org.hibernate.annotations.ManyToAny
 import org.hibernate.search.annotations.ContainedIn
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.util.*
 import javax.persistence.*
@@ -42,7 +43,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_GROUP", uniqueConstraints = [UniqueConstraint(columnNames = ["name", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_group_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_GROUP", uniqueConstraints = [UniqueConstraint(columnNames = ["name"])])
 @AUserRightId("ADMIN_CORE")
 @NamedQueries(
         NamedQuery(name = GroupDO.FIND_BY_NAME, query = "from GroupDO where name=:name"),
@@ -130,6 +131,12 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
     @get:JoinTable(name = "T_GROUP_USER", joinColumns = [JoinColumn(name = "GROUP_ID")], inverseJoinColumns = [JoinColumn(name = "USER_ID")], indexes = [javax.persistence.Index(name = "idx_fk_t_group_user_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_group_user_user_id", columnList = "user_id")])
     open var assignedUsers: MutableSet<PFUserDO>? = null
 
+    @IndexedEmbedded(depth = 1)
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "group_owner_fk")
+    open var groupOwner: PFUserDO? = null
+
+
     /**
      * Returns the collection of assigned users only if initialized. Avoids a LazyInitializationException.
      *
@@ -181,6 +188,14 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
     }
 
     companion object {
+        /**
+         * Converts group list to comma separated int values.
+         * @return String with csv or null, if list of group's is null.
+         */
+        fun toIntList(users: List<GroupDO>?): String? {
+            return users?.filter { it.id != null }?.joinToString { "${it.id}" }
+        }
+
         internal const val FIND_BY_NAME = "GroupDO_FindByName"
         /**
          * For detecting other groups with same groupname.

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -65,7 +65,7 @@ class SqlDateDeserializer : StdDeserializer<java.sql.Date>(java.sql.Date::class.
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): java.sql.Date? {
         try {
-            return PFDay.from(PFDayUtils.parseDate(p.text))?.sqlDate
+            return PFDay.fromOrNull(PFDayUtils.parseDate(p.text))?.sqlDate
         } catch (e: ParseException) {
             throw JsonParseException(p, p.text, e);
         }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.plugins.ihk;
 
-import java.util.List;
-
 import org.projectforge.business.timesheet.TimesheetDao;
-import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.common.logging.LogEventLoggerNameMatcher;
+import org.projectforge.common.logging.LogSubscription;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * Created by mnuhn on 05.12.2019
  */
 public class IHKPlugin extends AbstractPlugin {
-  public static final String ID = "ihk";
 
   public static final String RESOURCE_BUNDLE_NAME = "IHKI18nResources";
 
@@ -51,6 +50,10 @@ public class IHKPlugin extends AbstractPlugin {
   @Autowired
   private TimesheetDao ihkDao;
 
+  public IHKPlugin() {
+    super("ihk", "IHK", "Plugin zur Generierung von Ausbildungsnachweise für Ausbildungsberufe der IHK.");
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
@@ -58,13 +61,13 @@ public class IHKPlugin extends AbstractPlugin {
   protected void initialize() {
 
     // Register it:
-    register(ID, TimesheetDao.class, ihkDao, "plugins.ihk");
+    register(getId(), TimesheetDao.class, ihkDao, "plugins.ihk");
 
     // Register the web part:
-    pluginWicketRegistrationService.registerWeb(ID);
+    pluginWicketRegistrationService.registerWeb(getId());
 
     // Register the menu entry as sub menu entry of the misc menu:
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(ID, "plugins.ihk.menu"),
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(getId(), "plugins.ihk.menu"),
             IHKPage.class);
 
     // Define the access management:
@@ -75,7 +78,22 @@ public class IHKPlugin extends AbstractPlugin {
 
   }
 
-
+  static LogSubscription ensureUserLogSubscription() {
+    String username = ThreadLocalUserContext.getUser().getUsername();
+    if (username == null) {
+      return null;
+    }
+    return LogSubscription.ensureSubscription(
+         "IHK-Plugin",
+         username,
+        (title, user) ->
+            new LogSubscription(
+                title,
+                user,
+                new LogEventLoggerNameMatcher("org.projectforge.plugins.ihk")
+            )
+        );
+  }
 
 
 }

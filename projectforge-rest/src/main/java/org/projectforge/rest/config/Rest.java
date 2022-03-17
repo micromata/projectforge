@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,6 +26,10 @@ package org.projectforge.rest.config;
 import org.projectforge.model.rest.RestPaths;
 
 public class Rest {
-  public static final String URL = "/" + RestPaths.REST_WEB_APP;
-  public static final String PUBLIC_URL = "/" + RestPaths.REST_WEB_APP_PUBLIC;
+  public static final String URL = "/" + RestPaths.REST;
+  public static final String PUBLIC_URL = "/" + RestPaths.REST_PUBLIC;
+
+  public static final String CALENDAR_EXPORT_BASE_URI = "/export/ProjectForge.ics"; // See CalendarFeedService
+
+  public static final String SMS_BASE_URI = "/export/sms"; // See MessagingServiceRet
 }

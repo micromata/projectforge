@@ -8,18 +8,18 @@ import SearchFilter from './searchFilter/SearchFilter';
 
 function ListPage(
     {
-        match,
-        location,
-        onCategoryChange,
         category,
+        location,
+        match,
+        onCategoryChange,
     },
 ) {
     // Only reload the list when the category or search string changes.
     React.useEffect(
         () => {
-            onCategoryChange(match.params.category);
+            onCategoryChange(match.params.category, true, (location.state || {}).variables);
         },
-        [match.params.category, location.search],
+        [match.params.category, location.search, location.state],
     );
 
     // TODO ADD ERROR HANDLING
@@ -31,7 +31,7 @@ function ListPage(
                     <DynamicLayout
                         ui={category.ui}
                         data={category.data}
-                        setData={category.setData}
+                        setData={undefined}
                         options={{
                             displayPageMenu: false,
                             setBrowserTitle: true,
@@ -60,7 +60,11 @@ ListPage.propTypes = {
         }).isRequired,
     }).isRequired,
     onCategoryChange: PropTypes.func.isRequired,
-    category: PropTypes.shape({}),
+    category: PropTypes.shape({
+        ui: PropTypes.shape({ }),
+        data: PropTypes.shape({ }),
+        variables: PropTypes.shape({ }),
+    }),
 };
 
 ListPage.defaultProps = {
