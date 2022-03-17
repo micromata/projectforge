@@ -117,7 +117,7 @@ public class SmsSender {
       return responseCode;
     } catch (final IOException ex) {
       String errorKey = "Call failed. Please contact administrator.";
-      log.error(errorKey + ": " + proceededUrl
+      log.error(errorKey + ": " + proceededUrl + " for number "
               + StringHelper.hideStringEnding(String.valueOf(phoneNumber), 'x', 3));
       return HttpResponseCode.UNKNOWN_ERROR;
     } finally {
