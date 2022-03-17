@@ -39,24 +39,19 @@ class My2FAServiceTest : AbstractTestBase() {
 
   @Test
   fun matchesTest() {
-    Assertions.assertEquals(
-      My2FAService.ERROR_2FA_NOT_CONFIGURED,
-      my2FAService.validateOTP("123456"),
-      "No logged-in user given, so OTP validation should fail."
-    )
     logon(TEST_USER)
     userAuthenticationsService.clearAuthenticatorToken()
     Assertions.assertNull(userAuthenticationsService.getAuthenticatorToken())
     Assertions.assertEquals(
-      My2FAService.ERROR_2FA_NOT_CONFIGURED,
-      my2FAService.validateOTP("123456"),
+      OTPCheckResult.NOT_CONFIGURED,
+      my2FAService.validateAuthenticatorOTP("123456"),
       "User has no authenticator token, so OTP validation should fail."
     )
     userAuthenticationsService.createNewAuthenticatorToken() // Will update last successful 2FA (otherwise use will not see his 2FA settings.
     ThreadLocalUserContext.getUserContext().lastSuccessful2FA = null // So delete it for the next test.
     Assertions.assertEquals(
-      My2FAService.ERROR_2FA_WRONG_CODE,
-      my2FAService.validateOTP("123456"),
+      OTPCheckResult.FAILED,
+      my2FAService.validateAuthenticatorOTP("123456"),
       "Invalid token, so OTP validation should fail."
     )
     val handler =
@@ -70,8 +65,8 @@ class My2FAServiceTest : AbstractTestBase() {
     Assertions.assertNotNull(secretKey)
     val code = TimeBased2FA.standard.getTOTPCode(secretKey!!)
     Assertions.assertEquals(
-      My2FAService.SUCCESS,
-      my2FAService.validateOTP(code),
+      OTPCheckResult.SUCCESS,
+      my2FAService.validateAuthenticatorOTP(code),
       "OTP validation should work."
     )
     My2FARequestHandlerTest.checkRemainingPeriod(handler.getRemainingPeriod4WriteAccess("user"), 1)

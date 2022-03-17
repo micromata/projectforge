@@ -34,6 +34,7 @@ import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.PostData
 import org.projectforge.security.My2FARequestConfiguration
 import org.projectforge.security.My2FAService
+import org.projectforge.security.OTPCheckResult
 import org.projectforge.ui.*
 import org.projectforge.web.My2FAHttpService
 import org.springframework.beans.factory.annotation.Autowired
@@ -80,7 +81,7 @@ class My2FAServicesRest {
       return UIToast.createToastResponseEntity(translate("user.My2FA.setup.check.fail"), color = UIColor.DANGER)
     }
     val otpCheck = my2FAHttpService.checkOTP(request, code = otp, password = password)
-    if (otpCheck == My2FAHttpService.OTPCheckResult.SUCCESS) {
+    if (otpCheck == OTPCheckResult.SUCCESS) {
       ThreadLocalUserContext.getUserContext().lastSuccessful2FA?.let { lastSuccessful2FA ->
         cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
       }
@@ -97,7 +98,12 @@ class My2FAServicesRest {
       }
     }
     // otp check wasn't successful:
-    if (otpCheck == My2FAHttpService.OTPCheckResult.WRONG_LOGIN_PASSWORD) {
+    otpCheck.userMessage?.let { msg ->
+      return AbstractDynamicPageRest.showValidationErrors(
+        ValidationError(msg)
+      )
+    }
+    if (otpCheck == OTPCheckResult.WRONG_LOGIN_PASSWORD) {
       return AbstractDynamicPageRest.showValidationErrors(
         ValidationError(
           translate("user.My2FACode.password.wrong"),
@@ -105,7 +111,12 @@ class My2FAServicesRest {
         )
       )
     }
-    return UIToast.createToastResponseEntity(translate("user.My2FA.setup.check.fail"), color = UIColor.DANGER)
+    return AbstractDynamicPageRest.showValidationErrors(
+      ValidationError(
+        translate("user.My2FACode.error.validation"),
+        "code"
+      )
+    )
   }
 
   /**
