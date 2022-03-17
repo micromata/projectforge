@@ -25,6 +25,10 @@ package org.projectforge.security
 
 import mu.KotlinLogging
 import org.projectforge.business.user.UserDao
+import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.security.My2FABruteForceProtection.Companion.MAX_RETRIES_BEFORE_DEACTIVATING_USER
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -32,17 +36,29 @@ private val log = KotlinLogging.logger {}
 
 /**
  * The number of failed OTP checks per user including last try is stored.
- * If the number of retries exceeds 5, the user is blocked for one hour after each three failed retries.
- * If the number of retries exceeds 10 ([MAX_RETRIES_BEFORE_DEACTIVATING_USER]), the user will be deactivated.
+ * If the number of retries exceeds 3, the user is blocked for one hour after each further three failed retries.
+ * If the number of retries exceeds 12 ([MAX_RETRIES_BEFORE_DEACTIVATING_USER]), the user will be deactivated.
  */
 @Service
 internal class My2FABruteForceProtection {
   @Autowired
-  private lateinit var userDao: UserDao
+  internal lateinit var userDao: UserDao
 
   private class OTPCheckData {
     var counter: Int = 0
     var lastFailedTry: Long? = null
+  }
+
+  private class UserChangeListener(val protection: My2FABruteForceProtection) : BaseDOChangedListener<PFUserDO> {
+    override fun afterSaveOrModifify(changedObject: PFUserDO, operationType: OperationType) {
+      val data = protection.getData(changedObject.id) ?: return
+      if (!changedObject.deactivated && data.counter >= MAX_RETRIES_BEFORE_DEACTIVATING_USER) {
+        // User is probably changed from deactivated to activated again (by an admin user).
+        // Reset the number of failed OTP retries for the user.
+        log.info { "User '${changedObject.username} was modified, so reset the brute force protection for OTPs." }
+        protection.registerOTPSuccess(changedObject.id)
+      }
+    }
   }
 
   private val otpFailures = mutableMapOf<Int, OTPCheckData>()
@@ -83,21 +99,27 @@ internal class My2FABruteForceProtection {
 
   fun isRetryAllowed(userId: Int): Boolean {
     val data = getData(userId) ?: return true
-    if (data.counter < 5) {
-      return true
-    }
-    data.lastFailedTry?.let {
-
-    }
+    val lastFailedTry = data.lastFailedTry ?: return true
+    val waitingMillis = getWaitingMillis(data.counter)
+    return (waitingMillis == 0L || System.currentTimeMillis() - waitingMillis > lastFailedTry)
   }
 
   fun getNumberOfFailures(userId: Int): Int {
     return getData(userId)?.counter ?: 0
   }
 
-  internal fun waitingMillis(userId: Int): Long {
-    val data = getData(userId) ?: return 0
-
+  internal fun getWaitingMillis(counter: Int): Long {
+    if (counter < MAX_RETRIES_BEFORE_TIME_PENALTY) {
+      return 0
+    }
+    if (counter >= MAX_RETRIES_BEFORE_DEACTIVATING_USER) {
+      return Long.MAX_VALUE
+    }
+    return if (counter.mod(3) == 0) {
+      3_600_000L
+    } else {
+      0L
+    }
   }
 
   private fun getData(userId: Int): OTPCheckData? {
@@ -106,7 +128,8 @@ internal class My2FABruteForceProtection {
     }
   }
 
-  companion object{
-    const val MAX_RETRIES_BEFORE_DEACTIVATING_USER = 10
+  companion object {
+    const val MAX_RETRIES_BEFORE_TIME_PENALTY = 3
+    const val MAX_RETRIES_BEFORE_DEACTIVATING_USER = 12
   }
 }
