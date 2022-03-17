@@ -24,7 +24,6 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -33,6 +32,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.PostData
+import org.projectforge.security.My2FARequestConfiguration
 import org.projectforge.security.My2FAService
 import org.projectforge.ui.*
 import org.projectforge.web.My2FAHttpService
@@ -63,7 +63,7 @@ class My2FAServicesRest {
   private lateinit var my2FAHttpService: My2FAHttpService
 
   @Autowired
-  private lateinit var userDao: UserDao
+  private lateinit var my2FARequestConfiguration: My2FARequestConfiguration
 
   /**
    * For validating the Authenticator's OTP, or OTP sent by sms or e-mail.
@@ -76,7 +76,7 @@ class My2FAServicesRest {
   ): ResponseEntity<ResponseAction> {
     val otp = postData.data.code
     val password = postData.data.password
-    if (otp == null) {
+    if (otp.isNullOrBlank()) {
       return UIToast.createToastResponseEntity(translate("user.My2FA.setup.check.fail"), color = UIColor.DANGER)
     }
     val otpCheck = my2FAHttpService.checkOTP(request, code = otp, password = password)
@@ -84,7 +84,17 @@ class My2FAServicesRest {
       ThreadLocalUserContext.getUserContext().lastSuccessful2FA?.let { lastSuccessful2FA ->
         cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
       }
-      return UIToast.createToastResponseEntity(translate("user.My2FA.setup.check.success"), color = UIColor.SUCCESS)
+      postData.data.let { data ->
+        data.code = ""
+        data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
+        return UIToast.createToastResponseEntity(
+          translate("user.My2FA.setup.check.success"),
+          color = UIColor.SUCCESS,
+          mutableMapOf("data" to postData.data),
+          merge = true,
+          targetType = TargetType.UPDATE
+        )
+      }
     }
     // otp check wasn't successful:
     if (otpCheck == My2FAHttpService.OTPCheckResult.WRONG_LOGIN_PASSWORD) {
@@ -99,15 +109,6 @@ class My2FAServicesRest {
   }
 
   /**
-   * Sends a OTP as code (text to mobile phone of logged-in user if given or as mail).
-   */
-  @GetMapping("sendCode")
-  fun sendCode(request: HttpServletRequest): ResponseEntity<ResponseAction> {
-    val mobilePhone = userDao.internalGetById(ThreadLocalUserContext.getUserId())?.mobilePhone
-    return sendCode(my2FAHttpService, request, mobilePhone)
-  }
-
-  /**
    * Sends a OTP as code (text to mobile phone of logged-in user).
    */
   @GetMapping("sendSmsCode")
@@ -118,7 +119,8 @@ class My2FAServicesRest {
       log.error { "User tried to send a text message, but sms isn't configured." }
       throw IllegalArgumentException("Internal error")
     }
-    return sendCode(my2FAHttpService, request, mobilePhone)
+    val result = my2FAHttpService.createAndTextOTP(request, mobilePhone)
+    return createResponseEntity(result)
   }
 
   /**
@@ -127,35 +129,27 @@ class My2FAServicesRest {
   @GetMapping("sendMailCode")
   fun sendMailCode(request: HttpServletRequest): ResponseEntity<ResponseAction> {
     ThreadLocalUserContext.getUser()?.email ?: throw IllegalArgumentException("E-mail not given.")
-    return sendCode(my2FAHttpService, request, null)
+    val result = my2FAHttpService.createAndMailOTP(request)
+    return createResponseEntity(result)
   }
 
-  /**
-   * @param forceEMail2FA If true, E-Mail 2FA with password and send code button is always shown, also, if sms is available.
-   */
-  fun fill2FA(layout: UILayout, my2FAData: My2FAData, forceEMail2FA: Boolean? = null) {
+  fun fill2FA(layout: UILayout, my2FAData: My2FAData) {
     val fieldset = UIFieldset(12, title = "user.My2FACode.title")
     layout.add(fieldset)
-    fill2FA(fieldset, my2FAData, forceEMail2FA)
+    fill2FA(fieldset, my2FAData)
   }
 
-  /**
-   * @param forceEMail2FA If true, E-Mail 2FA with password and send code button is always shown, also, if sms is available.
-   */
-  fun fill2FA(col: UICol, my2FAData: My2FAData, forceEMail2FA: Boolean? = null) {
+  fun fill2FA(col: UICol, my2FAData: My2FAData) {
     val row = UIRow()
     col.add(row)
-    fill2FA(row, my2FAData, forceEMail2FA)
+    fill2FA(row, my2FAData)
   }
 
-  /**
-   * @param forceEMail2FA If true, E-Mail 2FA with password and send code button is always shown, also, if sms is available.
-   */
-  fun fill2FA(row: UIRow, my2FAData: My2FAData, forceEMail2FA: Boolean? = null) {
+  fun fill2FA(row: UIRow, my2FAData: My2FAData) {
     val mobilePhone = ThreadLocalUserContext.getUser()?.mobilePhone
     my2FAData.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val smsAvailable = my2FAHttpService.smsConfigured && NumberHelper.matchesPhoneNumber(mobilePhone)
-    val showPasswordCol = forceEMail2FA == true || !smsAvailable
+    val showPasswordCol = my2FARequestConfiguration.checkLoginPasswordRequired4Mail2FA()
     val width = if (showPasswordCol) 4 else 6
 
     val codeCol = UICol(md = width)
@@ -177,10 +171,10 @@ class My2FAServicesRest {
         )
       )
     if (smsAvailable) {
-      codeCol.add(createSendButton(true))
+      codeCol.add(createSendButton(My2FAType.SMS))
     }
     if (showPasswordCol) {
-      // Enable E-Mail with passwort (required for security reasons, if attacker has access to local client)
+      // Enable E-Mail with password (required for security reasons, if attacker has access to local client)
       val passwordCol = UICol(md = width)
       row.add(passwordCol)
       passwordCol.add(
@@ -192,7 +186,9 @@ class My2FAServicesRest {
           autoComplete = UIInput.AutoCompleteType.OFF
         )
       )
-      passwordCol.add(createSendButton(false))
+      passwordCol.add(createSendButton(My2FAType.MAIL))
+    } else {
+      codeCol.add(createSendButton(My2FAType.MAIL))
     }
 
     val last2FACol = UICol(md = width)
@@ -201,27 +197,25 @@ class My2FAServicesRest {
   }
 
   /**
-   * @param sms If true, a button for sending the OTP via sms is created, otherwise mail is assumed.
+   * @param type [My2FAType.MAIL] and [My2FAType.SMS] supported.
    */
-  private fun createSendButton(sms: Boolean): UIButton {
-    val lowerType = if (sms) "sms" else "mail"
-    val type = if (sms) "Sms" else "Mail"
+  private fun createSendButton(type: My2FAType): UIButton {
+    val lowerType = type.name.lowercase()
+    val type = lowerType.replaceFirstChar { it.uppercase() }
     return UIButton(
       "send${type}Code",
       title = translate("user.My2FACode.sendCode.$lowerType"), // user.My2FACode.sendCode.mail
       tooltip = "user.My2FACode.sendCode.$lowerType.info",
       color = UIColor.SECONDARY,
-      responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java, "send${type}Code"), targetType = TargetType.GET),
+      responseAction = ResponseAction(
+        RestResolver.getRestUrl(this::class.java, "send${type}Code"),
+        targetType = TargetType.GET
+      ),
     )
   }
 
   companion object {
-    internal fun sendCode(
-      my2FAHttpService: My2FAHttpService,
-      request: HttpServletRequest,
-      mobilePhone: String?
-    ): ResponseEntity<ResponseAction> {
-      val result = my2FAHttpService.createAndSendOTP(request, mobilePhone = mobilePhone)
+    internal fun createResponseEntity(result: My2FAHttpService.Result): ResponseEntity<ResponseAction> {
       val color = if (result.success) {
         UIColor.SUCCESS
       } else {

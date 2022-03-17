@@ -38,6 +38,7 @@ import org.projectforge.mail.SendMail
 import org.projectforge.messaging.SmsSender
 import org.projectforge.messaging.SmsSender.HttpResponseCode
 import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.security.My2FARequestConfiguration
 import org.projectforge.security.My2FAService
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
@@ -57,13 +58,16 @@ class My2FAHttpService {
    */
   class Result(val success: Boolean, var message: String)
 
-  enum class OTPCheckResult { SUCCESS, WRONG_LOGIN_PASSWORD, FAILED }
+  enum class OTPCheckResult { SUCCESS, WRONG_LOGIN_PASSWORD, FAILED, MAXIMUM_RETRIES_EXCEEDED }
 
   @Autowired
   private lateinit var loginService: LoginService
 
   @Autowired
   private lateinit var my2FAService: My2FAService
+
+  @Autowired
+  private lateinit var my2FARequestConfiguration: My2FARequestConfiguration
 
   @Autowired
   private lateinit var sendMail: SendMail
@@ -77,40 +81,27 @@ class My2FAHttpService {
     get() = my2FAService.smsConfigured
 
   /**
-   * Creates a OTP (valid for 2 minutes), stores it in the user's session and text or mail this code to the user.
+   * Creates a OTP (2 minutes valid) in [ExpiringSessionAttributes] and sends the code to the mobile number.
    * @param mobilePhone If given (in a valid format), a text message with the OTP is sent to this number.
    */
-  fun createAndSendOTP(request: HttpServletRequest, mobilePhone: String?): Result {
-    var error: String? = null
-    if (smsConfigured && !mobilePhone.isNullOrBlank() && StringHelper.checkPhoneNumberFormat(mobilePhone, false)) {
-      val result = createAndTextOTP(request, mobilePhone)
-      if (result.success) {
-        return result
-      }
-      error = result.message
+  fun createAndTextOTP(request: HttpServletRequest, mobilePhone: String?): Result {
+    if (!smsConfigured) {
+      return Result(false, "SMS not configured.")
     }
-    val result = createAndMailOTP(request)
-    if (error != null) {
-      result.message = "${result.message} ($error)"
+    if (mobilePhone.isNullOrBlank() || !StringHelper.checkPhoneNumberFormat(mobilePhone, false)) {
+      return Result(false, "Invalid mobile phone format: $mobilePhone")
     }
-    return result
-  }
-
-  /**
-   * Creates a OTP (2 minutes valid) in [ExpiringSessionAttributes] and sends the code to the mobile number.
-   */
-  private fun createAndTextOTP(request: HttpServletRequest, mobilePhone: String): Result {
     val code = createOTP(request)
     val msg = "${translateMsg("user.My2FACode.sendCode.mail.message", code)} ${translate("address.sendSms.doNotReply")}"
-    if (SystemStatus.isDevelopmentMode()) {
-      log.info { "Development mode: Text message would be sent in production mode to '$mobilePhone': $msg" }
-      if (!smsConfigured) {
-        ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_MOBILE_OTP, code, TTL_MINUTES)
-        return Result(true, getResultMessage(HttpResponseCode.SUCCESS, mobilePhone))
-      }
-    }
     val responseCode = smsSender.send(mobilePhone, msg)
     val result = Result(responseCode == HttpResponseCode.SUCCESS, getResultMessage(responseCode, mobilePhone))
+    if (SystemStatus.isDevelopmentMode()) {
+      log.info { "Development mode: Text message would be sent in production mode to '$mobilePhone': $msg" }
+      if (!result.success) {
+        ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_MOBILE_OTP, code, TTL_MINUTES)
+        return Result(true, "Test system, sms not sent to $mobilePhone (OK)")
+      }
+    }
     if (result.success) {
       ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_MOBILE_OTP, code, TTL_MINUTES)
     }
@@ -118,9 +109,9 @@ class My2FAHttpService {
   }
 
   /**
-   * Creates a OTP (2 minutes valid) in [ExpiringSessionAttributes] and sends the code to the mobile number.
+   * Creates a OTP (valid for 2 minutes), stores it in the user's session and mails this code to the user.
    */
-  private fun createAndMailOTP(request: HttpServletRequest): Result {
+  fun createAndMailOTP(request: HttpServletRequest): Result {
     val code = createOTP(request)
     val mail = Mail()
     mail.setTo(ThreadLocalUserContext.getUser())
@@ -131,6 +122,9 @@ class My2FAHttpService {
       mail, "mail/otpMail.html", data,
       mail.subject, ThreadLocalUserContext.getUser()
     )
+    if (SystemStatus.isDevelopmentMode()) {
+      log.info { "Development mode: Text message would be sent in production mode to '${mail.to}'. Code is $code" }
+    }
     val response = sendMail.send(mail)
     if (response) {
       ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_MAIL_OTP, code, TTL_MINUTES)
@@ -164,6 +158,23 @@ class My2FAHttpService {
    * @param password Is only needed, if user received code by mail (due to security reasons).
    */
   fun checkOTP(request: HttpServletRequest, code: String, password: CharArray? = null): OTPCheckResult {
+    var counter =
+      ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_FAILS_COUNTER, Int::class.java) ?: 0
+    if (counter > 3) {
+      log.warn { "User tries to enter otp 3 times without success. Removing OTP from user's session." }
+      return OTPCheckResult.MAXIMUM_RETRIES_EXCEEDED
+    }
+    val resultCode = internalCheckOTP(request, code, password)
+    if (resultCode != OTPCheckResult.SUCCESS) {
+      ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_FAILS_COUNTER, ++counter, TTL_MINUTES)
+    }
+    return resultCode
+  }
+
+  /**
+   * Do the stuff without brute force protection.
+   */
+  private fun internalCheckOTP(request: HttpServletRequest, code: String, password: CharArray? = null): OTPCheckResult {
     var sessionCode =
       ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_MOBILE_OTP, String::class.java)
     if (sessionCode == null) {
@@ -176,21 +187,16 @@ class My2FAHttpService {
           OTPCheckResult.FAILED
         }
       }
-      // Check password as an additional security factor (because OTP was sent by e-mail).
-      if (password == null || password.isEmpty() || loginService.loginHandler.checkLogin(
-          ThreadLocalUserContext.getUser().username,
-          password
-        ).loginResultStatus != LoginResultStatus.SUCCESS
-      ) {
-        return OTPCheckResult.WRONG_LOGIN_PASSWORD
+      if (my2FARequestConfiguration.checkLoginPasswordRequired4Mail2FA()) {
+        // Check password as an additional security factor (because OTP was sent by e-mail).
+        if (password == null || password.isEmpty() || loginService.loginHandler.checkLogin(
+            ThreadLocalUserContext.getUser().username,
+            password
+          ).loginResultStatus != LoginResultStatus.SUCCESS
+        ) {
+          return OTPCheckResult.WRONG_LOGIN_PASSWORD
+        }
       }
-    }
-    var counter =
-      ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_FAILS_COUNTER, Int::class.java) ?: 0
-    if (counter > 3) {
-      log.warn { "User tries to enter otp 3 times without success. Removing OTP from user's session." }
-      removeAllAttributes(request)
-      return OTPCheckResult.FAILED
     }
     if (sessionCode == code) {
       // Successful: invalidate it:
@@ -203,7 +209,6 @@ class My2FAHttpService {
       removeAllAttributes(request)
       return OTPCheckResult.SUCCESS
     }
-    ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_FAILS_COUNTER, ++counter, TTL_MINUTES)
     return OTPCheckResult.FAILED
   }
 
