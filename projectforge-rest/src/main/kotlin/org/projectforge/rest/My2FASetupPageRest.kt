@@ -175,18 +175,6 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     return UIToast.createToastResponseEntity(translate("operation.updated"), color = UIColor.SUCCESS)
   }
 
-  /**
-   * Sends a OTP as code (text to mobile phone if given or as mail).
-   */
-  @PostMapping("sendCode")
-  fun sendCode(
-    request: HttpServletRequest,
-    @Valid @RequestBody postData: PostData<My2FAData>
-  ): ResponseEntity<ResponseAction> {
-    val mobilePhone = postData.data.mobilePhone
-    return My2FAServicesRest.sendCode(my2FAHttpService, request, mobilePhone)
-  }
-
   private fun createLayout(data: My2FAData): UILayout {
     data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val smsConfigured = my2FAHttpService.smsConfigured
@@ -202,7 +190,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         color = UIColor.LIGHT
       )
     )
-    my2FAServicesRest.fill2FA(fieldset, data, forceEMail2FA = true)
+    my2FAServicesRest.fill2FA(fieldset, data)
 
     val fieldsetLenth = if (smsConfigured) 6 else 12
 
