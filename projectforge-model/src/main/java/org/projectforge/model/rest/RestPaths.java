@@ -53,8 +53,6 @@ public class RestPaths
 
   public static final String OLD_REST = "rest";
 
-  public static final String OLD_PUBLIC_REST = "publicRest";
-
   public static final String REST = "rs";
 
   public static final String REST_PUBLIC = "rsPublic";

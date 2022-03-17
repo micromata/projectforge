@@ -33,20 +33,22 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import java.io.InputStream
-import java.net.InetAddress
 import java.net.URLEncoder
-import java.net.UnknownHostException
 import java.nio.charset.StandardCharsets
 import javax.servlet.Filter
 import javax.servlet.FilterRegistration
 import javax.servlet.ServletContext
 import javax.servlet.ServletRequest
-import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
 object RestUtils {
+  /**
+   * @param isMatchAfter    Should this filter be applied after any mappings
+   *                        defined in the deployment descriptor
+   *                        (<code>true</code>) or before?
+   */
   @JvmStatic
   fun registerFilter(
     sc: ServletContext,
