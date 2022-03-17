@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,24 +23,21 @@
 
 package org.projectforge.rest.config
 
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import springfox.documentation.builders.PathSelectors
-import springfox.documentation.builders.RequestHandlerSelectors
-import springfox.documentation.spi.DocumentationType
-import springfox.documentation.spring.web.plugins.Docket
-import springfox.documentation.swagger2.annotations.EnableSwagger2
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 
-@Configuration
-@EnableSwagger2
-open class SpringFoxConfig {
-  @Bean
-  open fun api(): Docket {
-    val docket = Docket(DocumentationType.SWAGGER_2)
-      .select()
-      .apis(RequestHandlerSelectors.any())
-      .paths(PathSelectors.any())
-      .build()
-    return docket
-  }
+class SecurityFilterTest {
+
+    @Test
+    fun urlNormalizingTest() {
+        assertEquals("/", SecurityFilter.normalizeUri(""))
+        assertEquals("/", SecurityFilter.normalizeUri("/"))
+        assertEquals("/react/", SecurityFilter.normalizeUri("/react/"))
+        assertEquals("/rs", SecurityFilter.normalizeUri("/react/../rs"))
+        assertEquals("<invalid>", SecurityFilter.normalizeUri("../rs"))
+        assertEquals("/", SecurityFilter.normalizeUri("/react/../rs/../"))
+        assertEquals("<invalid>", SecurityFilter.normalizeUri("/react/../rs/../.."))
+        assertEquals("<invalid>", SecurityFilter.normalizeUri("/react/../rs/../../"))
+        assertEquals("<invalid>", SecurityFilter.normalizeUri("/react/../rs/../../react"))
+    }
 }
