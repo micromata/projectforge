@@ -25,49 +25,38 @@ package org.projectforge.security
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.business.user.UserDao
+import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import javax.servlet.http.HttpServletResponse
 
 class My2FABruteForceProtectionTest {
   @Test
-  fun matchesTest() {
-    Assertions.assertEquals(
-      My2FAService.ERROR_2FA_NOT_CONFIGURED,
-      my2FAService.validateOTP("123456"),
-      "No logged-in user given, so OTP validation should fail."
-    )
-    logon(TEST_USER)
-    userAuthenticationsService.clearAuthenticatorToken()
-    Assertions.assertNull(userAuthenticationsService.getAuthenticatorToken())
-    Assertions.assertEquals(
-      My2FAService.ERROR_2FA_NOT_CONFIGURED,
-      my2FAService.validateOTP("123456"),
-      "User has no authenticator token, so OTP validation should fail."
-    )
-    userAuthenticationsService.createNewAuthenticatorToken() // Will update last successful 2FA (otherwise use will not see his 2FA settings.
-    ThreadLocalUserContext.getUserContext().lastSuccessful2FA = null // So delete it for the next test.
-    Assertions.assertEquals(
-      My2FAService.ERROR_2FA_WRONG_CODE,
-      my2FAService.validateOTP("123456"),
-      "Invalid token, so OTP validation should fail."
-    )
-    val handler =
-      My2FARequestHandlerTest.getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPTING", "/")
-    Assertions.assertEquals(
-      0L,
-      handler.getRemainingPeriod4WriteAccess("user"),
-      "2FA required, but no 2FA yet done by the logged-in user."
-    )
-    val secretKey = userAuthenticationsService.getAuthenticatorToken()
-    Assertions.assertNotNull(secretKey)
-    val code = TimeBased2FA.standard.getTOTPCode(secretKey!!)
-    Assertions.assertEquals(
-      My2FAService.SUCCESS,
-      my2FAService.validateOTP(code),
-      "OTP validation should work."
-    )
-    My2FARequestHandlerTest.checkRemainingPeriod(handler.getRemainingPeriod4WriteAccess("user"), 1)
+  fun bruteForceTest() {
+    val userDao = Mockito.mock(UserDao::class.java)
+    val protection = My2FABruteForceProtection()
+    protection.getWaitingMillis(0)
+    Mockito.`when`(userDao.internalGetOrLoad(42)).thenAnswer {
+      println("yeah")
+    }
+    Mockito.verify(userDao, Mockito.times(1)).internalGetOrLoad(0)
+  }
+
+  @Test
+  fun timePenaltiesTest() {
+    val protection = My2FABruteForceProtection()
+    arrayOf(0, 1, 2, 4, 5, 7, 8, 10, 11).forEach { counter ->
+      Assertions.assertEquals(0L, protection.getWaitingMillis(counter), "Expected offset 0 for counter=$counter")
+    }
+    arrayOf(3, 6, 9).forEach { counter ->
+      Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, protection.getWaitingMillis(counter), "Expected offset of ${AbstractCache.TICKS_PER_HOUR} for counter=$counter")
+    }
+    arrayOf(12, 13).forEach { counter ->
+      Assertions.assertEquals(Long.MAX_VALUE, protection.getWaitingMillis(counter), "Expected offset of ${Long.MAX_VALUE} for counter=$counter")
+    }
   }
 }
