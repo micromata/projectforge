@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,11 +31,13 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.sms.SmsSenderConfig;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Date;
 import java.util.Map;
 
 public class SmsSender {
@@ -117,9 +119,25 @@ public class SmsSender {
       String errorKey = "Call failed. Please contact administrator.";
       log.error(errorKey + ": " + proceededUrl
               + StringHelper.hideStringEnding(String.valueOf(phoneNumber), 'x', 3));
-      throw new RuntimeException(ex);
+      return HttpResponseCode.UNKNOWN_ERROR;
     } finally {
       method.releaseConnection();
+    }
+  }
+
+  public String getErrorMessage(HttpResponseCode responseCode) {
+    if (responseCode == null) {
+      return "address.sendSms.sendMessage.result.unknownError";
+    } else if (responseCode == SmsSender.HttpResponseCode.SUCCESS) {
+      return null;
+    } else if (responseCode == SmsSender.HttpResponseCode.MESSAGE_ERROR) {
+      return "address.sendSms.sendMessage.result.messageError";
+    } else if (responseCode == SmsSender.HttpResponseCode.NUMBER_ERROR) {
+      return "address.sendSms.sendMessage.result.wrongOrMissingNumber";
+    } else if (responseCode == SmsSender.HttpResponseCode.MESSAGE_TO_LARGE) {
+      return "address.sendSms.sendMessage.result.messageToLarge";
+    } else {
+      return "address.sendSms.sendMessage.result.unknownError";
     }
   }
 

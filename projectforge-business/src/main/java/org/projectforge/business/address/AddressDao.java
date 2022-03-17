@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,8 +26,7 @@ package org.projectforge.business.address;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.multitenancy.TenantService;
+import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessException;
@@ -38,12 +37,12 @@ import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -59,7 +58,15 @@ import java.util.*;
 @Repository
 public class AddressDao extends BaseDao<AddressDO> {
   private static final DateFormat V_CARD_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"addressText", "postalAddressText", "privateAddressText", "organization"};
+  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {
+          "addressText",
+          "addressText2",
+          "postalAddressText",
+          "postalAddressText2",
+          "privateAddressText",
+          "privateAddressText2",
+          "organization"
+  };
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressDao.class);
 
@@ -72,6 +79,9 @@ public class AddressDao extends BaseDao<AddressDO> {
   private AddressbookDao addressbookDao;
 
   @Autowired
+  private AddressbookCache addressbookCache;
+
+  @Autowired
   private UserRightService userRights;
 
   private transient AddressbookRight addressbookRight;
@@ -80,10 +90,29 @@ public class AddressDao extends BaseDao<AddressDO> {
   private PersonalAddressDao personalAddressDao;
 
   @Autowired
-  private TenantService tenantService;
+  private TeamEventDao teamEventDao;
+
+  private AddressCache addressCache;
+
+  private BirthdayCache birthdayCache;
+
+  private List<AddressDeletionListener> deletionListeners = new ArrayList<>();
 
   public AddressDao() {
     super(AddressDO.class);
+    forceDeletionSupport = true;
+  }
+
+  @PostConstruct
+  private void postConstruct() {
+    addressCache = new AddressCache(this);
+    birthdayCache = new BirthdayCache(this);
+  }
+
+  public void register(AddressDeletionListener listener) {
+    synchronized (deletionListeners) {
+      this.deletionListeners.add(listener);
+    }
   }
 
   public List<Locale> getUsedCommunicationLanguages() {
@@ -115,10 +144,10 @@ public class AddressDao extends BaseDao<AddressDO> {
   @Override
   public List<AddressDO> getList(QueryFilter filter) throws AccessException {
     final List<CustomResultFilter<AddressDO>> filters = new ArrayList<>();
-    if (filter.getExtendedBooleanValue("doublets") == true) {
+    if (filter.getExtendedBooleanValue("doublets")) {
       filters.add(new DoubletsResultFilter());
     }
-    if (filter.getExtendedBooleanValue("favorites") == true) {
+    if (filter.getExtendedBooleanValue("favorites")) {
       filters.add(new FavoritesResultFilter(personalAddressDao));
     }
     return super.getList(filter, filters);
@@ -259,8 +288,8 @@ public class AddressDao extends BaseDao<AddressDO> {
     }
     switch (operationType) {
       case SELECT:
-        for (AddressbookDO ab : obj.getAddressbookList()) {
-          if (addressbookRight.hasSelectAccess(user, ab)) {
+        for (AddressbookDO ab : addressCache.getAddressbooks(obj)) {
+          if (addressbookRight.checkGlobal(ab) || addressbookRight.getAccessType(ab, user.getId()).hasAnyAccess()) {
             return true;
           }
         }
@@ -269,28 +298,10 @@ public class AddressDao extends BaseDao<AddressDO> {
         }
         return false;
       case INSERT:
-        for (AddressbookDO ab : obj.getAddressbookList()) {
-          if (addressbookRight.hasInsertAccess(user, ab)) {
-            return true;
-          }
-        }
-        if (throwException) {
-          throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
-        }
-        return false;
       case UPDATE:
-        for (AddressbookDO ab : obj.getAddressbookList()) {
-          if (addressbookRight.hasUpdateAccess(user, ab, ab)) {
-            return true;
-          }
-        }
-        if (throwException) {
-          throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
-        }
-        return false;
       case DELETE:
         for (AddressbookDO ab : obj.getAddressbookList()) {
-          if (addressbookRight.hasDeleteAccess(user, ab, ab)) {
+          if (addressbookRight.checkGlobal(ab) || addressbookRight.hasFullAccess(addressbookCache.getAddressbook(ab), user.getId())) {
             return true;
           }
         }
@@ -336,6 +347,54 @@ public class AddressDao extends BaseDao<AddressDO> {
   }
 
   @Override
+  protected void onChange(AddressDO obj, AddressDO dbObj) {
+    // Don't modify the following fields:
+    if (obj.getTransientAttribute("Modify image modification data") != "true") {
+      obj.setImage(dbObj.getImage());
+      obj.setImageLastUpdate(dbObj.getImageLastUpdate());
+    }
+    super.onChange(obj, dbObj);
+  }
+
+  /**
+   * On force deletion all personal address references has to be deleted.
+   * @param obj The deleted object.
+   */
+  @Override
+  protected void onDelete(AddressDO obj) {
+    personalAddressDao.internalDeleteAll(obj);
+    teamEventDao.removeAttendeeByAddressIdFromAllEvents(obj);
+    emgrFactory.runInTrans(emgr -> {
+      int counter = emgr.getEntityManager()
+          .createNamedQuery(AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID)
+          .setParameter("addressId", obj.getId())
+          .executeUpdate();
+      if (counter > 0) {
+        log.info("Removed #" + counter + " address images of deleted address: " + obj);
+      }
+      return true;
+    });
+    synchronized (deletionListeners) {
+      for (AddressDeletionListener listener : deletionListeners) {
+        listener.onDelete(obj);
+      }
+    }
+  }
+
+  /**
+   * Mark the given address, so the image fields (image and imageLastUpdate) will be updated. imageLastUpdate will be
+   * set to now.
+   *
+   * @param address
+   * @param hasImage Is there an image or not?
+   */
+  void internalModifyImageData(AddressDO address, boolean hasImage) {
+    address.setTransientAttribute("Modify image modification data", "true");
+    address.setImage(hasImage);
+    address.setImageLastUpdate(new Date());
+  }
+
+  @Override
   protected void onSave(final AddressDO obj) {
     // create uid if empty
     if (StringUtils.isBlank(obj.getUid())) {
@@ -350,7 +409,7 @@ public class AddressDao extends BaseDao<AddressDO> {
    */
   @Override
   protected void afterSaveOrModify(AddressDO obj) {
-    TenantRegistryMap.getCache(BirthdayCache.class).setExpired();
+    birthdayCache.setExpired();
   }
 
   protected static String getNormalizedFullname(final AddressDO address) {
@@ -373,8 +432,7 @@ public class AddressDao extends BaseDao<AddressDO> {
    * @return The entries are ordered by date of year and name.
    */
   public Set<BirthdayAddress> getBirthdays(final Date fromDate, final Date toDate, final boolean all) {
-    BirthdayCache cache = TenantRegistryMap.getCache(BirthdayCache.class);
-    return cache.getBirthdays(fromDate, toDate, all, personalAddressDao.getFavoriteAddressIdList());
+    return birthdayCache.getBirthdays(fromDate, toDate, all, personalAddressDao.getFavoriteAddressIdList());
   }
 
   public List<PersonalAddressDO> getFavoriteVCards() {
@@ -443,10 +501,12 @@ public class AddressDao extends BaseDao<AddressDO> {
     print(pw, "TEL;TYPE=HOME:", addressDO.getPrivatePhone());
     print(pw, "TEL;TYPE=HOME;type=CELL:", addressDO.getPrivateMobilePhone());
 
-    if (isGiven(addressDO.getAddressText()) || isGiven(addressDO.getCity())
+    if (isGiven(addressDO.getAddressText()) || isGiven(addressDO.getAddressText2()) || isGiven(addressDO.getCity())
             || isGiven(addressDO.getZipCode())) {
-      pw.print("ADR;TYPE=WORK:;;");
+      pw.print("ADR;TYPE=WORK:;");
       out(pw, addressDO.getAddressText());
+      pw.print(';');
+      out(pw, addressDO.getAddressText2());
       pw.print(';');
       out(pw, addressDO.getCity());
       pw.print(";;");
@@ -456,10 +516,13 @@ public class AddressDao extends BaseDao<AddressDO> {
       pw.println();
     }
     if (isGiven(addressDO.getPrivateAddressText())
+            || isGiven(addressDO.getPrivateAddressText2())
             || isGiven(addressDO.getPrivateCity())
             || isGiven(addressDO.getPrivateZipCode())) {
-      pw.print("ADR;TYPE=HOME:;;");
+      pw.print("ADR;TYPE=HOME:;");
       out(pw, addressDO.getPrivateAddressText());
+      pw.print(';');
+      out(pw, addressDO.getPrivateAddressText2());
       pw.print(';');
       out(pw, addressDO.getPrivateCity());
       pw.print(";;");
@@ -514,56 +577,6 @@ public class AddressDao extends BaseDao<AddressDO> {
       buf.append(a.getTitle());
     }
     return buf.toString();
-  }
-
-  public List<PersonalAddressDO> getFavoritePhoneEntries() {
-    final List<PersonalAddressDO> list = personalAddressDao.getList();
-    final List<PersonalAddressDO> result = new ArrayList<>();
-    if (CollectionUtils.isNotEmpty(list)) {
-      for (final PersonalAddressDO entry : list) {
-        if (entry.isFavoriteBusinessPhone()
-                || entry.isFavoriteFax()
-                || entry.isFavoriteMobilePhone()
-                || entry.isFavoritePrivatePhone()) {
-          result.add(entry);
-        }
-      }
-    }
-    return result;
-  }
-
-  /**
-   * Throws UserException, if for example the phone list is empty.
-   */
-  public void exportFavoritePhoneList(final Writer out, final List<PersonalAddressDO> favorites) {
-    log.info("Exporting phone list");
-    final PrintWriter pw = new PrintWriter(out);
-    pw.println("\"Name\",\"Phone number\"");
-    for (final PersonalAddressDO entry : favorites) {
-      final AddressDO address = entry.getAddress();
-      String number = address.getBusinessPhone();
-      if (entry.isFavoriteBusinessPhone() && StringUtils.isNotBlank(number)) {
-        appendPhoneEntry(pw, address, "", number);
-      }
-      number = address.getFax();
-      if (entry.isFavoriteFax() && StringUtils.isNotBlank(number)) {
-        appendPhoneEntry(pw, address, "fax", number);
-      }
-      number = address.getMobilePhone();
-      if (entry.isFavoriteMobilePhone() && StringUtils.isNotBlank(number)) {
-        appendPhoneEntry(pw, address, "mobil", number);
-      }
-      number = address.getPrivateMobilePhone();
-      if (entry.isFavoritePrivateMobilePhone() && StringUtils.isNotBlank(number)) {
-        final String str = StringUtils.isNotBlank(address.getMobilePhone()) ? "mobil privat" : "mobil";
-        appendPhoneEntry(pw, address, str, number);
-      }
-      number = address.getPrivatePhone();
-      if (entry.isFavoritePrivatePhone() && StringUtils.isNotBlank(number)) {
-        appendPhoneEntry(pw, address, "privat", number);
-      }
-    }
-    pw.flush();
   }
 
   private void print(final PrintWriter pw, final String key, final String value) {
@@ -654,10 +667,8 @@ public class AddressDao extends BaseDao<AddressDO> {
   }
 
   public AddressDO findByUid(final String uid) {
-    final TenantDO tenant =
-            ThreadLocalUserContext.getUser().getTenant() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant();
     return emgrFactory.runRoTrans(emgr -> emgr.selectSingleAttached(AddressDO.class,
-            "SELECT a FROM AddressDO a WHERE a.uid = :uid AND tenant = :tenant", "uid", uid, "tenant", tenant));
+            "SELECT a FROM AddressDO a WHERE a.uid = :uid", "uid", uid));
   }
 
   public String internalPhoneLookUp(String phoneNumber) {
@@ -675,7 +686,7 @@ public class AddressDao extends BaseDao<AddressDO> {
         // More than one result, therefore find the newest one:
         buf.append("+"); // Mark that more than one entry does exist.
         for (final AddressDO matchingUser : resultList) {
-          if (matchingUser.getLastUpdate().after(result.getLastUpdate()) == true) {
+          if (matchingUser.getLastUpdate().after(result.getLastUpdate())) {
             result = matchingUser;
           }
         }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,6 +31,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
+import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.BeanUtils
 import java.lang.reflect.Field
@@ -91,9 +92,13 @@ object ElementsRegistry {
                         java.sql.Date::class.java,
                         java.sql.Timestamp::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
 
-                        PFUserDO::class.java, EmployeeDO::class.java, TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        PFUserDO::class.java, GroupDO::class.java, EmployeeDO::class.java, TaskDO::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
                         Integer::class.java, BigDecimal::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
-                        Locale::class.java -> UIInput(property, required = elementInfo.required, layoutContext = lc, dataType = dataType!!)
+                        Locale::class.java,
+                        TimeZone::class.java -> {
+                             UISelect<TimeZone>(property, required = elementInfo.required, layoutContext = lc,
+                                    autoCompletion = AutoCompletion<String>(url = "timeZones/ac?search=:search"))
+                        }
                         else -> null
                     }
         }
@@ -119,24 +124,11 @@ object ElementsRegistry {
     }
 
     private fun getDataType(elementInfo: ElementInfo): UIDataType? {
-        return when (elementInfo.propertyType) {
-            String::class.java -> UIDataType.STRING
-            Boolean::class.java, java.lang.Boolean::class.java -> UIDataType.BOOLEAN
-            Date::class.java -> UIDataType.TIMESTAMP
-            LocalDate::class.java,
-            java.sql.Date::class.java -> UIDataType.DATE
-            java.sql.Timestamp::class.java -> UIDataType.TIMESTAMP
-            PFUserDO::class.java -> UIDataType.USER
-            EmployeeDO::class.java -> UIDataType.EMPLOYEE
-            Integer::class.java -> UIDataType.INT
-            BigDecimal::class.java -> UIDataType.DECIMAL
-            TaskDO::class.java -> UIDataType.TASK
-            Locale::class.java -> UIDataType.LOCALE
-            else -> null
-        }
+        return UIDataTypeUtils.getDataType(elementInfo)
     }
 
-    internal fun getElementInfo(lc: LayoutContext, property: String): ElementInfo? {
+    internal fun getElementInfo(lc: LayoutContext?, property: String): ElementInfo? {
+        lc ?: return null
         val parts = property.split('.')
         if (!parts.isNullOrEmpty()) {
             val listElementInfo = lc.getListElementInfo(parts[0])

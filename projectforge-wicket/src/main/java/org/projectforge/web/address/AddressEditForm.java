@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,32 +23,21 @@
 
 package org.projectforge.web.address;
 
-import org.slf4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.address.AddressDao;
-import org.projectforge.business.address.AddressbookDO;
-import org.projectforge.business.address.AddressbookDao;
-import org.projectforge.business.address.PersonalAddressDao;
+import org.projectforge.business.address.*;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.web.address.AddressPageSupport.AddressParameters;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.FieldType;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.ImageUploadPanel;
-import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
-public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage>
-{
+public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage> {
   private static final long serialVersionUID = 3881031215413525517L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressEditForm.class);
-
-  private static final String PHONE_NUMBER_FAVORITE_LABEL = "*";
 
   protected AddressPageSupport addressEditSupport;
 
@@ -61,14 +50,12 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
   @SpringBean
   private AddressbookDao addressbookDao;
 
-  public AddressEditForm(final AddressEditPage parentPage, final AddressDO data)
-  {
+  public AddressEditForm(final AddressEditPage parentPage, final AddressDO data) {
     super(parentPage, data);
   }
 
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
     addressEditSupport = new AddressPageSupport(this, gridBuilder, (AddressDao) getBaseDao(), personalAddressDao, data);
     /* GRID8 - BLOCK */
@@ -77,9 +64,9 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
       // Addressbooks
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("address.addressbooks"));
       final Select2MultiChoice<AddressbookDO> calendarSelect = new Select2MultiChoice<>(
-          Select2MultiChoicePanel.WICKET_ID,
-          new PropertyModel<>(data, "addressbookList"),
-          new AddressbookWicketProvider(addressbookDao));
+              Select2MultiChoicePanel.WICKET_ID,
+              new PropertyModel<>(data, "addressbookList"),
+              new AddressbookWicketProvider(addressbookDao));
       calendarSelect.setRequired(true);
       calendarSelect.setMarkupId("addressbook-select").setOutputMarkupId(true);
       fs.add(new Select2MultiChoicePanel<>(fs.newChildId(), calendarSelect));
@@ -90,8 +77,8 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
     final FieldsetPanel fs = (FieldsetPanel) addressEditSupport.addFormOfAddress();
     final DivPanel checkBoxPanel = fs.addNewCheckBoxButtonDiv();
     checkBoxPanel.addCheckBoxButton(new PropertyModel<Boolean>(addressEditSupport.personalAddress, "favoriteCard"),
-        getString("favorite"),
-        getString("address.tooltip.vCardList"));
+            getString("favorite"),
+            getString("address.tooltip.vCardList"));
     addressEditSupport.addTitle();
     addressEditSupport.addWebsite();
 
@@ -119,15 +106,13 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
     // Phone numbers
     // /////////////////
     gridBuilder.newSubSplitPanel(GridSize.COL50);
-    addPhoneNumber("businessPhone", "address.phone", "address.business", "favoriteBusinessPhone", FieldType.PHONE_NO);
-    addPhoneNumber("fax", "address.phoneType.fax", "address.business", "favoriteFax", FieldType.PHONE_NO);
-    addPhoneNumber("mobilePhone", "address.phoneType.mobile", "address.business", "favoriteMobilePhone",
-        FieldType.MOBILE_PHONE_NO);
+    addressEditSupport.addPhoneNumber("businessPhone", "address.phone", "address.business", FieldType.PHONE_NO);
+    addressEditSupport.addPhoneNumber("fax", "address.phoneType.fax", "address.business", FieldType.PHONE_NO);
+    addressEditSupport.addPhoneNumber("mobilePhone", "address.phoneType.mobile", "address.business", FieldType.MOBILE_PHONE_NO);
 
     gridBuilder.newSubSplitPanel(GridSize.COL50);
-    addPhoneNumber("privatePhone", "address.phone", "address.private", "favoritePrivatePhone", FieldType.PHONE_NO);
-    addPhoneNumber("privateMobilePhone", "address.phoneType.mobile", "address.private", "favoritePrivateMobilePhone",
-        FieldType.MOBILE_PHONE_NO);
+    addressEditSupport.addPhoneNumber("privatePhone", "address.phone", "address.private", FieldType.PHONE_NO);
+    addressEditSupport.addPhoneNumber("privateMobilePhone", "address.phoneType.mobile", "address.private", FieldType.MOBILE_PHONE_NO);
 
     // /////////////////
     // Addresses
@@ -142,31 +127,12 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
     gridBuilder.newSubSplitPanel(GridSize.COL100);
     addressEditSupport.addFingerPrint();
     addressEditSupport.addPublicKey();
-
-    gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
-    final FieldsetPanel fs1 = gridBuilder.newFieldset(gridBuilder.getString("address.image"));
-    new ImageUploadPanel(fs1.newChildId(), fs1, this, new PropertyModel<>(data, "imageData"), this.configurationService.getMaxFileSizeImage());
-
-    gridBuilder.newGridPanel();
     addressEditSupport.addComment();
 
     addCloneButton();
   }
 
-  private void addPhoneNumber(final String property, final String labelKey, final String labelDescriptionKey,
-      final String favoriteProperty, final FieldType fieldType)
-  {
-    final FieldsetPanel fs = (FieldsetPanel) addressEditSupport.addPhoneNumber(property, labelKey,
-        labelDescriptionKey, fieldType);
-    final DivPanel checkBoxPanel = fs.addNewCheckBoxButtonDiv();
-    checkBoxPanel
-        .addCheckBoxButton(new PropertyModel<Boolean>(addressEditSupport.personalAddress, favoriteProperty),
-            PHONE_NUMBER_FAVORITE_LABEL)
-        .setTooltip(getString("address.tooltip.phonelist"));
-  }
-
-  private void addAddress(final AddressParameters params)
-  {
+  private void addAddress(final AddressParameters params) {
     addressEditSupport.addAddressText(params.addressType, params.addressTextProperty);
     gridBuilder.newSubSplitPanel(GridSize.COL50);
     addressEditSupport.addZipCode(params.zipCodeProperty);
@@ -177,14 +143,12 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 
   @Override
-  public boolean isNew()
-  {
+  public boolean isNew() {
     return super.isNew() || this.getParentPage().getCloneFlag();
   }
 }

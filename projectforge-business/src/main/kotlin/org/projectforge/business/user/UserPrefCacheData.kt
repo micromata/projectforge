@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -59,7 +59,7 @@ internal class UserPrefCacheData {
                 userPref.area = area
                 userPref.name = name
                 userPref.user = ThreadLocalUserContext.getUser()
-                cacheEntry = CacheEntry(userPref, persistent)
+                cacheEntry = CacheEntry(userPref, persistent, true)
                 entries.add(cacheEntry)
             }
             cacheEntry.userPrefDO.valueObject = value

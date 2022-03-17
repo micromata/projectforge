@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,10 +25,44 @@ package org.projectforge.framework.utils
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.*
 
 object NumberFormatter {
+    /**
+     * @param value Format this value.
+     * @param pattern The format string for [DecimalFormat].
+     * @param roundingMode [RoundingMode.HALF_UP] is default.
+     * @return The formatted number or empty string if value is null.
+     * @see ThreadLocalUserContext.getLocale
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun format(value: Number?, pattern: String, roundingMode: RoundingMode = RoundingMode.HALF_UP): String {
+        value ?: return ""
+        return format(value, pattern, ThreadLocalUserContext.getLocale(), roundingMode)
+    }
+
+    /**
+     * @param value Format this value.
+     * @param pattern The format string for [DecimalFormat].
+     * @param locale The locale to use.
+     * @param roundingMode [RoundingMode.HALF_UP] is default.
+     * @return The formatted number or empty string if value is null.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun format(value: Number?, pattern: String, locale: Locale, roundingMode: RoundingMode = RoundingMode.HALF_UP): String {
+        value ?: return ""
+        val df = DecimalFormat.getInstance(locale) as DecimalFormat
+        df.applyPattern(pattern);
+        df.roundingMode = roundingMode
+        return df.format(value)
+    }
+
     /**
      * Returns the given integer value as String representation.
      *
@@ -55,6 +89,16 @@ object NumberFormatter {
     }
 
     /**
+     * Returns the given integer value as String representation (scale = 2).
+     *
+     * @param value The integer value to convert.
+     */
+    @JvmStatic
+    fun formatCurrency(value: Number?): String {
+        return internalFormat(value, 2) ?: ""
+    }
+
+    /**
      * Returns the given integer value as String representation.
      *
      * @param value The integer value to convert.
@@ -76,7 +120,15 @@ object NumberFormatter {
             format.maximumFractionDigits = scale
             format.minimumFractionDigits = scale
         }
-        return format.format(value.toDouble())
+        return when (value) {
+            is BigDecimal -> format.format(value)
+            is BigInteger -> format.format(value)
+            is Double -> format.format(value)
+            is Float -> format.format(value)
+            is Int -> format.format(value)
+            is Long -> format.format(value)
+            else -> format.format(value.toDouble())
+        }
     }
 
     /**

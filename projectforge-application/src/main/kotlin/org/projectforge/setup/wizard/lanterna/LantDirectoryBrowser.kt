@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -110,8 +110,8 @@ open class LantDirectoryBrowser(
         return selectedFile
     }
 
-    protected open fun validResult(path: String, dir: String): File? {
-        val dir = File(pathTextBox.text, dirTextBox.text)
+    protected open fun validResult(pathString: String, dirString: String): File? {
+        val dir = File(pathString, dirString)
         if (!dir.exists() && dir.parentFile?.exists() != true) {
             MessageDialog.showMessageDialog(textGUI, Texts.ERROR_TITLE, Texts.ERROR_DIR_NOT_EXISTS, MessageDialogButton.OK)
             return null
@@ -140,7 +140,7 @@ open class LantDirectoryBrowser(
         pathTextBox.text = CanonicalFileUtils.absolutePath(directory)
         directoryListBox.clearItems()
         val entries = directory.listFiles() ?: return
-        Arrays.sort(entries) { o1, o2 -> o1.name.toLowerCase().compareTo(o2.name.toLowerCase()) }
+        Arrays.sort(entries) { o1, o2 -> o1.name.lowercase().compareTo(o2.name.lowercase()) }
         val parentFile = CanonicalFileUtils.absolute(directory.absoluteFile.parentFile)
         if (parentFile != null) {
             directoryListBox.addItem("..") {

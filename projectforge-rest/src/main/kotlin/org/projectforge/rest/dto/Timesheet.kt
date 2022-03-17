@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,18 +25,20 @@ package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.projectforge.business.timesheet.TimesheetDO
-import java.sql.Timestamp
+import java.util.*
 
-@JsonIgnoreProperties(value = arrayOf("reminderDuration", "reminderDurationUnit"))
+@JsonIgnoreProperties(value = ["reminderDuration", "reminderDurationUnit"])
 class Timesheet(var task: Task? = null,
                 var location: String? = null,
+                var reference: String? = null,
+                var tag: String? = null,
                 var description: String? = null,
                 var user: User? = null,
                 var kost2: Kost2? = null,
-                var startTime: Timestamp? = null,
-                var stopTime: Timestamp? = null,
+                var startTime: Date? = null,
+                var stopTime: Date? = null,
                 /**
-                 * An hash key built of location, description, kost2 and user, if needed by React frontend.
+                 * A counter (incremented by one for each recent entry) usable by React as key.
                  */
-                var hashKey: Int? = null
+                var counter: Int? = null
 ) : BaseDTO<TimesheetDO>()

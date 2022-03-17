@@ -1,6 +1,6 @@
 .label {
   font-size: 1.2em;
-  display: inline-block;
+  display: flex;
 }
 
 .quickSelectors {
@@ -29,24 +29,42 @@
   }
 }
 
-.tempTimeInput {
-  width: 5em;
-}
-
 .timeInput {
+  flex: 1;
 
-  .hourInput, .minuteInput {
-    border: none;
-    text-align: center;
-    width: 5em;
-    margin: 0 auto;
+  .container {
+    display: flex;
 
-    &:focus {
-      outline: none;
+    .hourInput, .minuteInput {
+      font-family: monospace;
+      border: none;
+      padding: 0 .5em;
+      background: none;
+      -moz-appearance:textfield;
+
+      &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
+        appearance: none;
+        margin: 0;
+      }
+
+      &:focus {
+        outline: none;
+      }
+    }
+
+    .hourInput {
+      text-align: right;
+      width: 3.125em;
+    }
+
+    .minuteInput {
+      width: 2.5em;
     }
   }
 
+
   .hours, .minutes {
+    font-size: .8em;
     display: inline-block;
     list-style: none;
     margin-block-start: 0;
@@ -59,17 +77,17 @@
       height: 2em;
       text-align: center;
       padding-top: .25em;
+      border-radius: 50%;
 
-      &:hover, &.selected {
-        background-color: #3b99fc;
-        border-radius: 50%;
+      &:hover {
+        background-color: #3a76d8;
         color: #fff;
       }
     }
   }
 
   .hours {
-    width: 2.5em;
+    width: 2em;
   }
 
   .minutes {
@@ -92,4 +110,60 @@
 
 .editMode {
   display: inline-block;
+}
+
+.dateInput {
+  display: inline-block;
+  position: relative;
+  font-size: 14px;
+  flex: 1;
+
+  input {
+    position: relative;
+    border: none;
+    padding: 0;
+    background: none;
+    outline: none;
+    width: 100%;
+  }
+
+  .placeholder {
+    position: absolute;
+    top: 0;
+    color: #999;
+    padding-left: 1px;
+  }
+
+  input, .placeholder {
+    font-family: monospace;
+  }
+}
+
+.timeRange {
+  display: flex;
+  justify-content: flex-start;
+
+  .from, .to {
+    flex: 0;
+    display: flex;
+  }
+
+  .from {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .to {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .deleteButton {
+    margin: 0 .5em;
+    cursor: pointer;
+
+    &:hover {
+      color: #333;
+    }
+  }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,7 @@
 package org.projectforge.web.core;
 
 import org.projectforge.framework.persistence.api.SearchFilter;
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlObject;
 
 @XmlObject(alias = "searchPageFilter")
 public class SearchPageFilter extends SearchFilter

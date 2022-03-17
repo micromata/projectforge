@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.database;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -38,13 +37,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class DatabaseServiceTestFork extends AbstractTestBase
 {
-  static final String DEFAULT_ADMIN_PASSWORD = "manage";
+  static final char[] DEFAULT_ADMIN_PASSWORD = "manage".toCharArray();
 
   @Autowired
   private DatabaseService databaseService;
 
   @Autowired
   private PfJpaXmlDumpService pfJpaXmlDumpService;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   @Override
   protected void initDb()
@@ -55,15 +57,13 @@ public class DatabaseServiceTestFork extends AbstractTestBase
   @Test
   public void initializeEmptyDatabase()
   {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-    TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired(); // Force reload (because it's may be expired due to previous tests).
-    getUserGroupCache().setExpired();
+    userGroupCache.setExpired();
     assertFalse(databaseService.databaseTablesWithEntriesExists());
     final PFUserDO admin = new PFUserDO();
     admin.setUsername(DatabaseService.DEFAULT_ADMIN_USER);
     admin.setId(1);
     userService.createEncryptedPassword(admin, DEFAULT_ADMIN_PASSWORD);
-    ThreadLocalUserContext.setUser(getUserGroupCache(), admin);
+    ThreadLocalUserContext.setUser(admin);
     pfJpaXmlDumpService.createTestDatabase();
     databaseService.updateAdminUser(admin, null);
     databaseService.afterCreatedTestDb(true);

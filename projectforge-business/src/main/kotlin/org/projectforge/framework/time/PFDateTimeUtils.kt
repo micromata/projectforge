@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,7 +26,6 @@ package org.projectforge.framework.time
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import java.sql.Timestamp
 import java.time.DateTimeException
@@ -117,8 +116,8 @@ class PFDateTimeUtils {
          */
         @JvmStatic
         fun getUTCBeginOfDay(date: Date?, timeZone: TimeZone?): PFDateTime {
-            val ud = from(date, false, timeZone)
-            return withDate(ud!!.year, ud.month, ud.dayOfMonth, 0, 0, 0, 0, ZONE_UTC)
+            val ud = PFDateTime.fromOrNow(date, timeZone)
+            return withDate(ud.year, ud.month, ud.dayOfMonth, 0, 0, 0, 0, ZONE_UTC)
         }
 
 
@@ -126,7 +125,7 @@ class PFDateTimeUtils {
          * Including limits.
          */
         @JvmStatic
-        fun isBetween(date: PFDateTime, from: PFDateTime?, to: PFDateTime?): Boolean {
+        fun <T : IPFDate<T>> isBetween(date: T, from: T?, to: T?): Boolean {
             if (from == null) {
                 return if (to == null) {
                     false

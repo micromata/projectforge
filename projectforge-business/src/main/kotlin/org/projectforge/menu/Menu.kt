@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -59,5 +59,14 @@ class Menu() {
         if (menuItemDef == null)
             return // Do nothing.
         add(MenuItem(menuItemDef))
+    }
+
+    fun getAllDescendants(): List<MenuItem> {
+        val result = mutableListOf<MenuItem>()
+        menuItems.forEach { child ->
+            result.add(child)
+            child.addDescendants(result)
+        }
+        return result
     }
 }

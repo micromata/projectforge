@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,6 @@
 package org.projectforge.web.user;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.ldap.GroupDOConverter;
@@ -35,10 +34,10 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.WicketUtils;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = GroupListPage.class)
-public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, GroupDao>
-{
+public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, GroupDao> implements ISelectCallerPage {
   /**
    * Parameter for pre-defining group name (e. g. used by a wizard for creating new groups).
    */
@@ -55,18 +54,6 @@ public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, Grou
 
   @SpringBean
   GroupDOConverter groupDOConverter;
-
-  /**
-   * Used by the TutorialPage.
-   *
-   * @param group
-   */
-  public GroupEditPage(final GroupDO group)
-  {
-    super(new PageParameters(), "group");
-    super.init(group);
-    selectProperty = null;
-  }
 
   public GroupEditPage(final PageParameters parameters)
   {
@@ -124,4 +111,19 @@ public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, Grou
   {
     return log;
   }
+
+    @Override
+    public void select(String property, Object selectedValue) {
+
+    }
+
+    @Override
+    public void unselect(String property) {
+
+    }
+
+    @Override
+    public void cancelSelection(String property) {
+
+    }
 }

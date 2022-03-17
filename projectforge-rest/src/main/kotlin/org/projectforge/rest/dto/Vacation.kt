@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -71,11 +71,11 @@ class Vacation(var employee: Employee? = null,
         } else {
             translate("no")
         }
-        startDate?.let {
-            startDateFormatted = PFDayUtils.format(it, DateFormatType.DATE)
+        startDateFormatted = startDate?.let {
+            PFDayUtils.format(it, DateFormatType.DATE)
         }
-        endDate?.let {
-            endDateFormatted = PFDayUtils.format(it, DateFormatType.DATE)
+        endDateFormatted = endDate?.let {
+            PFDayUtils.format(it, DateFormatType.DATE)
         }
     }
 

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,14 +28,13 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -44,17 +43,15 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
@@ -72,6 +69,9 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
 
   @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   @Autowired
   private AccessChecker accessChecker;
@@ -125,7 +125,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
    * @param week
    * @return If week or user id is not given, return false.
    */
-  public boolean doesEntryAlreadyExist(final Integer planningId, final Integer userId, final Date week) {
+  public boolean doesEntryAlreadyExist(final Integer planningId, final Integer userId, final LocalDate week) {
     if (week == null || userId == null) {
       return false;
     }
@@ -145,12 +145,12 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     return other != null;
   }
 
-  public HRPlanningDO getEntry(final PFUserDO user, final Date week) {
+  public HRPlanningDO getEntry(final PFUserDO user, final LocalDate week) {
     return getEntry(user.getId(), week);
   }
 
-  public HRPlanningDO getEntry(final Integer userId, final Date week) {
-    PFDay day = PFDay.from(week, false, DateHelper.UTC);
+  public HRPlanningDO getEntry(final Integer userId, final LocalDate week) {
+    PFDay day = PFDay.from(week);
     if (!day.isBeginOfWeek()) {
       log.error("Date is not begin of week, try to change date: " + day.getIsoString());
       day = day.getBeginOfWeek();
@@ -158,7 +158,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     final HRPlanningDO planning = SQLHelper.ensureUniqueResult(em
             .createNamedQuery(HRPlanningDO.FIND_BY_USER_AND_WEEK, HRPlanningDO.class)
             .setParameter("userId", userId)
-            .setParameter("week", day.getSqlDate()));
+            .setParameter("week", day.getLocalDate()));
     if (planning == null) {
       return null;
     }
@@ -172,9 +172,9 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
   @Override
   public List<HRPlanningDO> getList(final BaseSearchFilter filter) {
     final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
-    if (myFilter.getStopTime() != null) {
-      PFDateTime dateTime = PFDateTime.from(myFilter.getStopTime(), false, DateHelper.UTC, Locale.GERMANY).getEndOfDay();
-      myFilter.setStopTime(dateTime.getUtilDate());
+    if (myFilter.getStopDay() != null) {
+      PFDateTime dateTime = PFDateTime.fromOrNow(myFilter.getStopDay()).getEndOfDay();
+      myFilter.setStopDay(dateTime.getLocalDate());
     }
     final QueryFilter queryFilter = buildQueryFilter(myFilter);
     final List<HRPlanningDO> result = getList(queryFilter);
@@ -205,12 +205,12 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
       user.setId(filter.getUserId());
       queryFilter.add(QueryFilter.eq("user", user));
     }
-    if (filter.getStartTime() != null && filter.getStopTime() != null) {
-      queryFilter.add(QueryFilter.between("week", filter.getStartTime(), filter.getStopTime()));
-    } else if (filter.getStartTime() != null) {
-      queryFilter.add(QueryFilter.ge("week", filter.getStartTime()));
-    } else if (filter.getStopTime() != null) {
-      queryFilter.add(QueryFilter.le("week", filter.getStopTime()));
+    if (filter.getStartDay() != null && filter.getStopDay() != null) {
+      queryFilter.add(QueryFilter.between("week", filter.getStartDay(), filter.getStopDay()));
+    } else if (filter.getStartDay() != null) {
+      queryFilter.add(QueryFilter.ge("week", filter.getStartDay()));
+    } else if (filter.getStopDay() != null) {
+      queryFilter.add(QueryFilter.le("week", filter.getStopDay()));
     }
     if (filter.getProjektId() != null) {
       queryFilter.add(QueryFilter.eq("projekt.id", filter.getProjektId()));
@@ -230,11 +230,11 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
    */
   @Override
   protected void onSaveOrModify(final HRPlanningDO obj) {
-    PFDay day = PFDay.from(obj.getWeek(), false, DateHelper.UTC);
+    PFDay day = PFDay.from(obj.getWeek());
     if (!day.isBeginOfWeek()) {
       log.error("Date is not begin of week, try to change date: " + day.getIsoString());
       day = day.getBeginOfWeek();
-      obj.setWeek(day.getSqlDate());
+      obj.setWeek(day.getDate());
     }
 
     if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)) {
@@ -254,7 +254,6 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
             userHasRightForProject = true;
           }
 
-          final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
           if (projekt.getProjektManagerGroup() != null
                   && userGroupCache.isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId())) {
             userHasRightForProject = true;

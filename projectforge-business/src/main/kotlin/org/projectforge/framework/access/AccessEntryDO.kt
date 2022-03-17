@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,6 @@ import org.hibernate.search.annotations.Indexed
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
-import org.projectforge.framework.persistence.user.entities.TenantDO
 import java.io.Serializable
 import javax.persistence.*
 
@@ -40,12 +39,10 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_GROUP_TASK_ACCESS_ENTRY", uniqueConstraints = [UniqueConstraint(columnNames = ["group_task_access_fk", "access_type"])], indexes = [javax.persistence.Index(name = "idx_fk_t_group_task_access_entry_group_task_access_fk", columnList = "group_task_access_fk"), javax.persistence.Index(name = "idx_fk_t_group_task_access_entry_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_GROUP_TASK_ACCESS_ENTRY", uniqueConstraints = [UniqueConstraint(columnNames = ["group_task_access_fk", "access_type"])], indexes = [javax.persistence.Index(name = "idx_fk_t_group_task_access_entry_group_task_access_fk", columnList = "group_task_access_fk")])
 class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Int> {
 
     // private static final Logger log = Logger.getLogger(AccessEntryDO.class);
-
-    private var tenant: TenantDO? = null
 
     /**
      */
@@ -78,31 +75,6 @@ class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Int> {
 
     override fun setId(id: Int?) {
         this.id = id
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.api.BaseDO.getTenant
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tenant_id")
-    override fun getTenant(): TenantDO? {
-        return this.tenant
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.api.BaseDO.getTenantId
-     */
-    @Transient
-    override fun getTenantId(): Int? {
-        return if (tenant != null) tenant!!.id else null
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.api.BaseDO.setTenant
-     */
-    override fun setTenant(tenant: TenantDO?): AccessEntryDO {
-        this.tenant = tenant
-        return this
     }
 
     /**

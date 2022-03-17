@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,12 +29,14 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.renderer.BatikImageRenderer;
 import org.projectforge.framework.renderer.ImageFormat;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.TestSetup;
 import org.projectforge.test.WorkFileHelper;
 
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.Month;
 import java.util.Calendar;
 import java.util.Date;
@@ -90,13 +92,13 @@ public class GanttTest
     final GanttTaskImpl task1 = createGanttObject(phase1, "001", "Task 1", "10");
     final DayHolder day = new DayHolder();
     day.setDate(2010, Month.JUNE, 1);
-    task1.setStartDate(day.getUtilDate());
+    task1.setStartDate(day.getLocalDate());
     createGanttObject(phase1, "002", "Task 2 (finish-start)", "10", task1, GanttRelationType.FINISH_START, 10);
     final GanttTaskImpl task3 = createGanttObject(phase1, "003", "Task 3 (finish-start II)", "5", task1, null, 0);
     createGanttObject(phase1, "004", "Task 4 (finish-start, depth = 2)", "5", task3, null, -3);
     final GanttTaskImpl task5 = createGanttObject(phase1, "005", "Task 5", "5");
     day.add(Calendar.MONTH, 1);
-    task5.setStartDate(day.getUtilDate());
+    task5.setStartDate(day.getLocalDate());
     createGanttObject(phase1, "006", "Task 6 (finish-finish)", "3", task5, GanttRelationType.FINISH_FINISH, 0);
     createGanttObject(phase1, "007", "Task 7 (finish_finish)", "3", task5, GanttRelationType.FINISH_FINISH, -8);
     final GanttTaskImpl task8 = createGanttObject(phase1, "008", "Task 8 (finish_finish)", "3", task5,
@@ -106,13 +108,13 @@ public class GanttTest
     createGanttObject(phase1, "011", "Task 11 (start-start)", "3", task8, GanttRelationType.START_START, -5);
     final GanttTaskImpl task12 = createGanttObject(phase1, "012", "Task 12", "5");
     day.add(Calendar.WEEK_OF_YEAR, 3);
-    task12.setStartDate(day.getUtilDate());
+    task12.setStartDate(day.getLocalDate());
     createGanttObject(phase1, "013", "Task 13 (start-finish)", "3", task12, GanttRelationType.START_FINISH, -5);
     createGanttObject(phase1, "014", "Task 14 (start-finish)", "3", task12, GanttRelationType.START_FINISH, 5);
     createGanttObject(phase1, "015", "Task 15 (start-finish)", "3", task12, GanttRelationType.START_FINISH, 0);
     final GanttTaskImpl task16 = createGanttObject(phase1, "016", "Task 16", "6");
     day.add(Calendar.WEEK_OF_YEAR, 1);
-    task16.setStartDate(day.getUtilDate());
+    task16.setStartDate(day.getLocalDate());
     return phase1;
   }
 
@@ -147,9 +149,9 @@ public class GanttTest
     return node;
   }
 
-  private void assertDate(final int year, final Month month, final int day, final Date date)
+  private void assertDate(final int year, final Month month, final int day, final LocalDate date)
   {
-    final DayHolder dh = new DayHolder(date);
+    final PFDay dh = PFDay.from(date);
     assertEquals(year, dh.getYear());
     assertEquals(month, dh.getMonth());
     assertEquals(day, dh.getDayOfMonth());

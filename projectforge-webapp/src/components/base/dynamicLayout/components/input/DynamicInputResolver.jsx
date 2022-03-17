@@ -5,18 +5,29 @@ import DynamicTaskSelect from '../select/task';
 import DynamicAutoCompletion from './DynamicAutoCompletion';
 import DynamicDateInput from './DynamicDateInput';
 import DynamicInput from './DynamicInput';
+import DynamicTimeInput from './DynamicTimeInput';
 import DynamicTimestampInput from './DynamicTimestampInput';
 
 // All types of 'INPUT' will be resolved here.
-function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
+function DynamicInputResolver(
+    {
+        dataType,
+        autoCompletionUrl,
+        autoCompletionUrlParams,
+        type,
+        ...props
+    },
+) {
     let Tag;
-    const additionalProps = {};
+    const additionalProps = {
+        url: autoCompletionUrl,
+        urlParams: autoCompletionUrlParams,
+    };
 
     switch (dataType) {
         case 'STRING':
             if (autoCompletionUrl) {
                 Tag = DynamicAutoCompletion;
-                additionalProps.url = autoCompletionUrl;
             } else {
                 Tag = DynamicInput;
             }
@@ -31,7 +42,9 @@ function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
             Tag = DynamicTaskSelect;
             break;
         case 'USER':
+        case 'GROUP':
         case 'EMPLOYEE':
+        case 'KONTO':
             Tag = DynamicObjectSelect;
             additionalProps.type = dataType;
             break;
@@ -40,6 +53,13 @@ function DynamicInputResolver({ dataType, autoCompletionUrl, ...props }) {
         case 'NUMBER':
             Tag = DynamicInput;
             additionalProps.type = 'number';
+            break;
+        case 'PASSWORD':
+            Tag = DynamicInput;
+            additionalProps.type = 'password';
+            break;
+        case 'TIME':
+            Tag = DynamicTimeInput;
             break;
         default:
             return <span>{`${dataType} Input is not implemented.`}</span>;
@@ -60,14 +80,20 @@ DynamicInputResolver.propTypes = {
         'TASK',
         'USER',
         'INT',
+        'KONTO',
         'DECIMAL',
         'NUMBER',
+        'PASSWORD',
+        'TIME',
     ]).isRequired,
+    type: PropTypes.string.isRequired,
     autoCompletionUrl: PropTypes.string,
+    autoCompletionUrlParams: PropTypes.shape({}),
 };
 
 DynamicInputResolver.defaultProps = {
     autoCompletionUrl: undefined,
+    autoCompletionUrlParams: undefined,
 };
 
 export default DynamicInputResolver;

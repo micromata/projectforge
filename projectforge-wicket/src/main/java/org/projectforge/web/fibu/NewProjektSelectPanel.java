@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -33,12 +30,7 @@ import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.KundeDao;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.ProjektDao;
-import org.projectforge.business.fibu.ProjektFavorite;
-import org.projectforge.business.fibu.ProjektFormatter;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
@@ -49,6 +41,9 @@ import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.components.FavoritesChoicePanel;
 import org.projectforge.web.wicket.components.TooltipImage;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+
+import java.util.List;
+import java.util.Locale;
 
 /**
  * This panel shows the actual customer.
@@ -123,7 +118,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return getRecentProjects().getRecents();
+        return getRecentProjects().getRecentList();
       }
 
       @Override

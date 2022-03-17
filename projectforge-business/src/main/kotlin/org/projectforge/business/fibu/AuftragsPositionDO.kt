@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,11 +31,11 @@ import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -48,7 +48,7 @@ import javax.persistence.*
 @ClassBridge(name = "position", analyze = Analyze.NO, impl = HibernateSearchAuftragsPositionBridge::class)
 @Cache(region = "orders", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 //@Cacheable
-@Table(name = "t_fibu_auftrag_position", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_fk", "number"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_auftrag_fk", columnList = "auftrag_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_task_fk", columnList = "task_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_tenant_id", columnList = "tenant_id")])
+@Table(name = "t_fibu_auftrag_position", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_fk", "number"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_auftrag_fk", columnList = "auftrag_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_task_fk", columnList = "task_fk")])
 open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String
@@ -70,6 +70,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
     open var task: TaskDO? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.position.art")
+    @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "art", length = 30)
     open var art: AuftragsPositionsArt? = null
@@ -80,6 +81,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
     open var paymentType: AuftragsPositionsPaymentType? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.position.status")
+    @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "status", length = 30)
     open var status: AuftragsPositionsStatus? = null
@@ -90,10 +92,12 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
     open var titel: String? = null
 
     @PropertyInfo(i18nKey = "comment")
+    @Field
     @get:Column(length = 4000)
     open var bemerkung: String? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.nettoSumme")
+    @Field
     @get:Column(name = "netto_summe", scale = 2, precision = 12)
     open var nettoSumme: BigDecimal? = null
 
@@ -123,13 +127,11 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(name = "period_of_performance_type", length = 10)
     open var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
 
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
-    open var periodOfPerformanceBegin: Date? = null
+    open var periodOfPerformanceBegin: LocalDate? = null
 
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
-    open var periodOfPerformanceEnd: Date? = null
+    open var periodOfPerformanceEnd: LocalDate? = null
 
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "mode_of_payment_type", length = 13)

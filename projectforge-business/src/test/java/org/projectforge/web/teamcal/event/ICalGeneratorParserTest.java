@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,14 +33,15 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.*;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.test.AbstractTestBase;
 
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.*;
@@ -56,7 +57,7 @@ public class ICalGeneratorParserTest extends AbstractTestBase
     user.setFirstname("FirstName");
     user.setLastname("LastName");
     user.setTimeZone(DateHelper.EUROPE_BERLIN);
-    ThreadLocalUserContext.setUser(getUserGroupCache(), PFUserDO.Companion.createCopyWithoutSecretFields(user));
+    ThreadLocalUserContext.setUser(PFUserDO.Companion.createCopyWithoutSecretFields(user));
   }
 
   @Test
@@ -86,13 +87,13 @@ public class ICalGeneratorParserTest extends AbstractTestBase
     event.setSubject("subject");
 
     // set dt end
-    event.setEndDate(new Timestamp(DateHelper.parseIsoTimestamp("2017-07-31 00:00:00.000", DateHelper.EUROPE_BERLIN).getTime()));
+    event.setEndDate(new Date(DateHelper.parseIsoTimestamp("2017-07-31 00:00:00.000", DateHelper.EUROPE_BERLIN).getTime()));
 
     // set dt stamp
-    event.setDtStamp(new Timestamp(DateHelper.parseIsoTimestamp("2017-07-30 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime()));
+    event.setDtStamp(new Date(DateHelper.parseIsoTimestamp("2017-07-30 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime()));
 
     // set dt start
-    event.setStartDate(new Timestamp(DateHelper.parseIsoTimestamp("2017-07-31 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime()));
+    event.setStartDate(new Date(DateHelper.parseIsoTimestamp("2017-07-31 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime()));
 
     // set location
     event.setLocation("location");
@@ -300,9 +301,9 @@ public class ICalGeneratorParserTest extends AbstractTestBase
     attendee.setRsvp(true);
     event.addAttendee(attendee);
     event.setSubject("subject");
-    event.setEndDate(new Timestamp(DateHelper.parseIsoTimestamp("2017-07-31 00:00:00.000", DateHelper.EUROPE_BERLIN).getTime()));
-    event.setDtStamp(new Timestamp(DateHelper.parseIsoTimestamp("2017-07-30 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime()));
-    event.setStartDate(new Timestamp(DateHelper.parseIsoTimestamp("2017-07-31 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime()));
+    event.setEndDate(new Date(DateHelper.parseIsoTimestamp("2017-07-31 00:00:00.000", DateHelper.EUROPE_BERLIN).getTime()));
+    event.setDtStamp(new Date(DateHelper.parseIsoTimestamp("2017-07-30 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime()));
+    event.setStartDate(new Date(DateHelper.parseIsoTimestamp("2017-07-31 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime()));
     event.setLocation("location");
     event.setOrganizer("organizer");
     event.setSequence(5);
@@ -316,9 +317,9 @@ public class ICalGeneratorParserTest extends AbstractTestBase
 
     event.setAllDay(true);
     event.setSubject("subject");
-    event.setEndDate(new Timestamp(DateHelper.parseIsoTimestamp("2017-07-31 00:00:00.000", DateHelper.UTC).getTime()));
-    event.setDtStamp(new Timestamp(DateHelper.parseIsoTimestamp("2017-07-30 12:00:00.000", DateHelper.UTC).getTime()));
-    event.setStartDate(new Timestamp(DateHelper.parseIsoTimestamp("2017-08-31 00:00:00.000", DateHelper.UTC).getTime()));
+    event.setEndDate(new Date(DateHelper.parseIsoTimestamp("2017-07-31 00:00:00.000", DateHelper.UTC).getTime()));
+    event.setDtStamp(new Date(DateHelper.parseIsoTimestamp("2017-07-30 12:00:00.000", DateHelper.UTC).getTime()));
+    event.setStartDate(new Date(DateHelper.parseIsoTimestamp("2017-08-31 00:00:00.000", DateHelper.UTC).getTime()));
     event.setOrganizer("organizer");
     event.setSequence(5);
     event.setUid("uid string");

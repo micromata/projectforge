@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,7 +35,7 @@ import javax.persistence.MappedSuperclass
 import javax.persistence.Transient
 
 @MappedSuperclass
-abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable {
+abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable, IRechnungsPosition {
 
     override val displayName: String
         @Transient
@@ -51,15 +51,15 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable
 
     @PropertyInfo(i18nKey = "fibu.rechnung.menge")
     @get:Column(scale = 5, precision = 18)
-    open var menge: BigDecimal? = null
+    override var menge: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.position.einzelNetto")
     @get:Column(name = "einzel_netto", scale = 2, precision = 18)
-    open var einzelNetto: BigDecimal? = null
+    override var einzelNetto: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.mehrwertSteuerSatz")
     @get:Column(scale = 5, precision = 10)
-    open var vat: BigDecimal? = null
+    override var vat: BigDecimal? = null
 
     @get:Transient
     abstract var kostZuweisungen: MutableList<KostZuweisungDO>?
@@ -74,9 +74,9 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable
     fun addKostZuweisung(kostZuweisung: KostZuweisungDO) {
         val zuweisungen = this.ensureAndGetKostzuweisungen()
         // Get the highest used number + 1 or take 0 for the first position.
-        val nextIndex = zuweisungen.maxBy { it.index }?.index?.plus(1)?.toShort() ?: 0
+        val nextIndex = zuweisungen.maxByOrNull { it.index }?.index?.plus(1)?.toShort() ?: 0
         kostZuweisung.index = nextIndex
-        kostZuweisung.setRechnungsPosition(this)
+        kostZuweisung.setAbstractRechnungsPosition(this)
         zuweisungen.add(kostZuweisung)
     }
 
@@ -108,7 +108,7 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable
     abstract protected fun checkKostZuweisungId(zuweisung: KostZuweisungDO): Boolean
 
     @get:PropertyInfo(i18nKey = "fibu.common.netto")
-    val netSum: BigDecimal
+    override val netSum: BigDecimal
         @Transient
         get() = RechnungCalculator.calculateNetSum(this)
 

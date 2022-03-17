@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.ui
 
 import org.projectforge.framework.i18n.addTranslations
+import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
 
 class UILayout {
@@ -37,24 +38,36 @@ class UILayout {
              */
             var insert: Boolean? = null,
             var update: Boolean? = null,
-            var delete: Boolean? = null
+            var delete: Boolean? = null,
+            /**
+             * Cancel button is visible for all users at default.
+             */
+            var cancel: Boolean? = true,
     ) {
         fun copyFrom(userAccess: UserAccess?) {
             this.history = userAccess?.history
             this.insert = userAccess?.insert
             this.update = userAccess?.update
             this.delete = userAccess?.delete
+            this.cancel = userAccess?.cancel ?: true
         }
         fun onlySelectAccess(): Boolean {
             return (insert != true && update != true && delete != true)
         }
     }
 
-    constructor(title: String) {
+    /**
+     * @param restBaseUrl is needed, if [UIAttachmentList] is used.
+     */
+    constructor(title: String, restBaseUrl: String? = null) {
         this.title = LayoutUtils.getLabelTransformation(title)
+        this.restBaseUrl = restBaseUrl
     }
 
     var title: String?
+
+    var restBaseUrl: String? = null
+
     /**
      * UserAccess only for displaying purposes. The real user access will be definitely checked before persisting any
      * data.
@@ -74,12 +87,29 @@ class UILayout {
 
     val pageMenu = mutableListOf<MenuItem>()
 
+    var excelExportSupported = false
+
     val watchFields = mutableListOf<String>()
+
+    /**
+     * UID usable by the client for having unique dialoque ids.
+     */
+    var uid = "layout${System.currentTimeMillis()}"
 
     /**
      * All required translations for the frontend dependent on the logged-in-user's language.
      */
     val translations = mutableMapOf<String, String>()
+
+    /**
+     * Name of the history back button or null, if now history back button should be shown (default).
+     * Please use [enableHistoryBackButton] for enabling back button with localized button title.
+     */
+    var historyBackButton: String? = null
+
+    fun enableHistoryBackButton() {
+        historyBackButton = translate("back")
+    }
 
     /**
      * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
@@ -141,6 +171,7 @@ class UILayout {
      * Convenient method for adding a bunch of UIInput fields with the given ids.
      * @param createRowCol If true (default), the elements will be surrounded with [UIRow] and [UICol] each, otherwise not.
      */
+    @JvmOverloads
     fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UILayout {
         ids.forEach {
             val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)

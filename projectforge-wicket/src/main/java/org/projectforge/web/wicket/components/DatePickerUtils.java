@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.web.wicket.components;
 
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -33,6 +31,8 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.web.I18nCore;
+
+import java.util.Locale;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

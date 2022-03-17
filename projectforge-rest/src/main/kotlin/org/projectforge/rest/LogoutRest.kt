@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,12 @@
 
 package org.projectforge.rest
 
+import mu.KotlinLogging
 import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.UserXmlPreferencesCache
-import org.projectforge.business.user.filter.CookieService
-import org.projectforge.business.user.filter.UserFilter
+import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,44 +38,23 @@ import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+private val log = KotlinLogging.logger {}
+
 /**
  * This rest service should be available without login (public).
  */
 @RestController
 @RequestMapping("${Rest.URL}/logout")
 open class LogoutRest {
-    private val log = org.slf4j.LoggerFactory.getLogger(LogoutRest::class.java)
+  @Autowired
+  private lateinit var loginService: LoginService
 
-    @Autowired
-    private lateinit var cookieService: CookieService
-
-    @Autowired
-    private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
-
-    @Autowired
-    private lateinit var userPrefCache: UserPrefCache
-
-    @GetMapping
-    fun logout(request: HttpServletRequest,
-               response: HttpServletResponse)
-            : ResponseAction {
-        val stayLoggedInCookie = cookieService.getStayLoggedInCookie(request)
-        val user = UserFilter.getUser(request)
-        if (user != null) {
-            userXmlPreferencesCache.flushToDB(user.id)
-            userXmlPreferencesCache.clear(user.id)
-            userPrefCache.flushToDB(user.id)
-            userPrefCache.clear(user.id)
-        }
-        UserFilter.logout(request)
-        if (stayLoggedInCookie != null) {
-            stayLoggedInCookie.maxAge = 0
-            stayLoggedInCookie.value = null
-            stayLoggedInCookie.path = "/"
-        }
-        if (stayLoggedInCookie != null) {
-            response.addCookie(stayLoggedInCookie)
-        }
-        return ResponseAction(url = "/wa/login", targetType = TargetType.REDIRECT)
-    }
+  @GetMapping
+  fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseAction {
+    loginService.logout(request, response)
+    return ResponseAction(
+      url = "/${RestResolver.REACT_PUBLIC_PATH}/login",
+      targetType = TargetType.CHECK_AUTHENTICATION
+    )
+  }
 }

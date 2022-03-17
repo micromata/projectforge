@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,6 @@ import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
-import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
 
@@ -43,17 +42,6 @@ public class AccessEditPage extends AbstractEditPage<GroupTaskAccessDO, AccessEd
 
   @SpringBean
   private AccessDao accessDao;
-
-  /**
-   * Used by the TutorialPage.
-   * 
-   * @param groupTaskAccess
-   */
-  public AccessEditPage(final GroupTaskAccessDO groupTaskAccess)
-  {
-    super(new PageParameters(), "access");
-    super.init(groupTaskAccess);
-  }
 
   public AccessEditPage(final PageParameters parameters)
   {

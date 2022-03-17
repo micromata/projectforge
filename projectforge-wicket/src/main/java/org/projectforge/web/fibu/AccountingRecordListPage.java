@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -38,26 +35,16 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.business.fibu.kost.AccountingConfig;
-import org.projectforge.business.fibu.kost.BuchungssatzDO;
-import org.projectforge.business.fibu.kost.BuchungssatzDao;
-import org.projectforge.business.fibu.kost.BusinessAssessment;
-import org.projectforge.business.fibu.kost.BusinessAssessmentRow;
-import org.projectforge.business.fibu.kost.Kost1DO;
-import org.projectforge.business.fibu.kost.Kost2DO;
+import org.projectforge.business.fibu.kost.*;
 import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.CurrencyPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.*;
 import org.springframework.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ListPage(editPage = AccountingRecordEditPage.class)
 public class AccountingRecordListPage

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -52,7 +52,7 @@ public class ScriptingDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Show whole list of objects with select access (without deleted entries).
-   * 
+   *
    * @return
    */
   public List<O> getList()
@@ -75,5 +75,9 @@ public class ScriptingDao<O extends ExtendedBaseDO<Integer>>
   public O getById(Serializable id) throws AccessException
   {
     return __baseDao.getById(id);
+  }
+
+  public Class<?> getDOClass() {
+    return __baseDao.getEntityClass();
   }
 }

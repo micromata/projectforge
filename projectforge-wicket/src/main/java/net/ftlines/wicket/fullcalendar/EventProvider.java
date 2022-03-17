@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,10 +35,10 @@
 
 package net.ftlines.wicket.fullcalendar;
 
+import org.joda.time.DateTime;
+
 import java.io.Serializable;
 import java.util.Collection;
-
-import org.joda.time.DateTime;
 
 public interface EventProvider extends Serializable {
 	Collection<Event> getEvents(DateTime start, DateTime end);

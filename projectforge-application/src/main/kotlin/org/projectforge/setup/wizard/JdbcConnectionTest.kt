@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -53,5 +53,5 @@ object JdbcConnectionTest {
         }
     }
 
-    const val defaultJdbcUrl = "jdbc:postgresql://localhost:15432/projectforge"
+    var defaultJdbcUrl = "jdbc:postgresql://localhost:5432/projectforge"
 }

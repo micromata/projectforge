@@ -2,11 +2,11 @@ const getBackgroundColor = ({ style }) => ((style && style.bgColor) ? style.bgCo
 
 const getForegroundColor = ({ style }) => ((style && style.fgColor) ? style.fgColor : '#222');
 
-export const customStyles = {
-    control: styles => ({
+const customStyles = {
+    control: (styles) => ({
         ...styles,
     }),
-    container: base => ({
+    container: (base) => ({
         ...base,
         zIndex: '999',
     }),
@@ -47,3 +47,5 @@ export const customStyles = {
         },
     }), */
 };
+
+export default customStyles;

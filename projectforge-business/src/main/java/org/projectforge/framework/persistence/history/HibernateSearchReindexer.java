@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,11 +25,13 @@ package org.projectforge.framework.persistence.history;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
-import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseDao;
+import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.mail.Mail;
@@ -37,6 +39,10 @@ import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
@@ -48,6 +54,9 @@ public class HibernateSearchReindexer {
   private static final String ERROR_MSG = "Error while re-indexing data base: found lock files while re-indexing data-base. "
           + "Try to run re-index manually in the web administration menu and if occured again, "
           + "shutdown ProjectForge, delete lock file(s) in hibernate-search sub directory and restart.";
+
+  @PersistenceContext
+  private EntityManager em;
 
   @Autowired
   private SendMail sendMail;
@@ -69,7 +78,7 @@ public class HibernateSearchReindexer {
     final String result = rebuildDatabaseSearchIndices();
     if (result.contains("*")) {
       log.error(ERROR_MSG);
-      final String recipients = GlobalConfiguration.getInstance()
+      final String recipients = Configuration.getInstance()
               .getStringValue(ConfigurationParam.SYSTEM_ADMIN_E_MAIL);
       if (StringUtils.isNotBlank(recipients)) {
         log.info("Try to inform administrator about re-indexing error.");
@@ -122,6 +131,17 @@ public class HibernateSearchReindexer {
   }
 
   private void reindex(final Class<?> clazz, final ReindexSettings settings, final StringBuffer buf) {
+    try {
+      // Try to check, if class is available (entity of ProjectForge's core or of active plugin).
+      SQLHelper.ensureUniqueResult(em.createQuery(
+          "select t from " + clazz.getName() + " t where t.id = :id", clazz)
+              .setParameter("id", -1));
+    } catch(Exception ex) {
+      if (!PfHistoryMasterDO.class.equals(clazz)) {
+        log.info("Class '" + clazz + "' not available (OK for non-active plugins and PfHistoryMasterDO).");
+      }
+      return;
+    }
     // PF-378: Performance of run of full re-indexing the data-base is very slow for large data-bases
     // Single transactions needed, otherwise the full run will be very slow for large data-bases.
     try {

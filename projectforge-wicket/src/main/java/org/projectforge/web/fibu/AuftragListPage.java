@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -43,7 +43,7 @@ import org.projectforge.business.fibu.*;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.web.wicket.*;
@@ -177,6 +177,8 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         cellItemListener.populateItem(cellItem, componentId, rowModel);
       }
     });
+    columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("attachments.short"), null, "attachmentsSizeFormatted",
+        cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(
 
             getString("projectmanagement.personDays.short"),

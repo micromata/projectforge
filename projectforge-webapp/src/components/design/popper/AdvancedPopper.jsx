@@ -13,7 +13,10 @@ function AdvancedPopper(
         className,
         contentClassName,
         isOpen,
+        onBlur,
         setIsOpen,
+        withInput,
+        ...props
     },
 ) {
     const reference = React.useRef(null);
@@ -22,14 +25,22 @@ function AdvancedPopper(
     const [basicWidth, setBasicWidth] = React.useState(0);
     const [additionalHeight, setAdditionalHeight] = React.useState(0);
     const [additionalWidth, setAdditionalWidth] = React.useState(0);
+    const [currentTimeout, setCurrentTimeout] = React.useState(-1);
 
     useClickOutsideHandler(reference, setIsOpen, isOpen);
+
+    // Clear timeout on unmount
+    React.useEffect(() => () => {
+        if (currentTimeout >= 0) {
+            clearTimeout(currentTimeout);
+        }
+    }, []);
 
     React.useLayoutEffect(
         () => {
             if (basicReference.current) {
-                setBasicWidth(basicReference.current.clientWidth + 2);
-                setBasicHeight(basicReference.current.clientHeight + 10);
+                setBasicWidth(basicReference.current.clientWidth);
+                setBasicHeight(basicReference.current.clientHeight);
             }
         },
         [
@@ -42,8 +53,8 @@ function AdvancedPopper(
             if (reference.current) {
                 const { top, left } = reference.current.getBoundingClientRect();
 
-                setAdditionalHeight(window.innerHeight - top - basicHeight - 64);
-                setAdditionalWidth(window.innerWidth - left - basicWidth - 16);
+                setAdditionalHeight(document.body.clientHeight - top - 64);
+                setAdditionalWidth(document.body.clientWidth - left - 16);
             }
         },
         [
@@ -51,6 +62,33 @@ function AdvancedPopper(
             reference.current && Math.floor(reference.current.getBoundingClientRect().left),
         ],
     );
+
+    const handleBlur = (event) => {
+        if (reference.current) {
+            if (currentTimeout) {
+                clearTimeout(currentTimeout);
+            }
+
+            // Get new active element after blur
+            setCurrentTimeout(
+                setTimeout(() => {
+                    if (!reference.current.contains(document.activeElement)) {
+                        setIsOpen(false);
+                    }
+                }, 1),
+            );
+        }
+
+        if (onBlur) {
+            onBlur(event);
+        }
+    };
+
+    const handleClick = ({ target }) => {
+        if (basicReference.current && basicReference.current.contains(target)) {
+            setIsOpen(true);
+        }
+    };
 
     const additionalVisible = isOpen && children;
 
@@ -62,22 +100,32 @@ function AdvancedPopper(
                 { [style.isOpen]: additionalVisible },
                 className,
             )}
+            {...props}
+            onBlur={handleBlur}
+            role="menu"
+            onClick={handleClick}
+            onKeyDown={undefined}
+            tabIndex={0}
         >
             <div
-                className={classNames(style.content, contentClassName)}
-                role="menu"
+                className={classNames(
+                    style.content,
+                    { [style.noBorder]: withInput },
+                    contentClassName,
+                )}
                 ref={basicReference}
-                tabIndex={0}
-                onClick={() => setIsOpen(true)}
-                onKeyDown={undefined}
             >
                 {basic}
             </div>
             {additionalVisible && (
                 <div
-                    className={classNames(style.additional, additionalClassName)}
+                    className={classNames(
+                        style.additional,
+                        { [style.withInput]: withInput },
+                        additionalClassName,
+                    )}
                     style={{
-                        top: basicHeight,
+                        top: basicHeight + (withInput ? 0 : 10),
                         minWidth: basicWidth,
                         maxWidth: additionalWidth,
                         maxHeight: additionalHeight,
@@ -104,6 +152,8 @@ AdvancedPopper.propTypes = {
     className: PropTypes.string,
     contentClassName: PropTypes.string,
     isOpen: PropTypes.bool,
+    onBlur: PropTypes.func,
+    withInput: PropTypes.bool,
 };
 
 AdvancedPopper.defaultProps = {
@@ -113,6 +163,8 @@ AdvancedPopper.defaultProps = {
     className: undefined,
     contentClassName: undefined,
     isOpen: false,
+    onBlur: undefined,
+    withInput: false,
 };
 
 export default AdvancedPopper;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,33 +24,22 @@
 package org.projectforge.web.gantt;
 
 import org.apache.commons.collections.CollectionUtils;
-import java.util.Objects;
 import org.apache.wicket.Component;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.gantt.ExportMSProject;
-import org.projectforge.business.gantt.GanttChart;
-import org.projectforge.business.gantt.GanttChartDO;
-import org.projectforge.business.gantt.GanttChartDao;
-import org.projectforge.business.gantt.GanttChartData;
-import org.projectforge.business.gantt.GanttChartSettings;
-import org.projectforge.business.gantt.GanttChartStyle;
-import org.projectforge.business.gantt.GanttTask;
+import org.projectforge.business.gantt.*;
 import org.projectforge.common.MimeType;
 import org.projectforge.framework.renderer.BatikImageRenderer;
 import org.projectforge.framework.renderer.ImageFormat;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.wicket.AbstractEditPage;
-import org.projectforge.web.wicket.AbstractSecuredBasePage;
-import org.projectforge.web.wicket.BatikImage;
-import org.projectforge.web.wicket.DownloadUtils;
-import org.projectforge.web.wicket.EditPage;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.ImagePanel;
 import org.slf4j.Logger;
 import org.w3c.dom.Document;
+
+import java.util.Objects;
 
 @EditPage(defaultReturnPage = GanttChartListPage.class)
 public class GanttChartEditPage extends AbstractEditPage<GanttChartDO, GanttChartEditForm, GanttChartDao> implements ISelectCallerPage

@@ -38,20 +38,16 @@
           </ul>
         </div>
         <ul class="nav navbar-nav pull-right">
-          <li class="dropdown" wicket:id="currentTenant"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><span wicket:id="label">[Micromata]</span><b
-              class="caret"></b></a>
-            <ul class="dropdown-menu">
-              <li wicket:id="tenantsRepeater"><a wicket:id="changeTenantLink"><span wicket:id="label">[POLYAS]</span></a></li>
-            </ul></li>
           <li id="navuserpanel" class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><span wicket:id="user">[Kai Reinhard]</span><b
               class="caret"></b></a>
             <ul class="dropdown-menu">
               <li><a href="wa/feedback" wicket:id="feedbackLink"><wicket:message key="menu.gear.feedback" /></a></li>
               <li class="divider"></li>
               <li><a href="#" wicket:id="showBookmarkLink"><wicket:message key="menu.gear.showBookmark" /></a></li>
-              <li><a wicket:id="documentationLink" href="/myAccount"><wicket:message key="menu.documentation" /></a></li>
               <li><a wicket:id="myAccountLink" href="/myAccount"><wicket:message key="menu.myAccount" /></a></li>
-              <li><a wicket:id="vacationViewLink" href="/vacationOverview"><wicket:message key="menu.vacation.leaveaccount" /></a></li>
+              <li><a wicket:id="my2FactorAuthentificationLink" href="/myAccount"><wicket:message key="menu.2FASetup" /></a></li>
+              <li wicket:id="pluginPersonalMenuEntriesRepeater"><a wicket:id="menuLink" href="#"><span wicket:id="menuLabel">[plugin menu]</span></a></li>
+              <li><a wicket:id="vacationViewLink" href="/react/vacationAccount/dynamic"><wicket:message key="menu.vacation.leaveaccount" /></a></li>
               <li><a wicket:id="logoutLink" href="/login?logout=true"><wicket:message key="menu.logout" /></a></li>
             </ul></li>
         </ul>

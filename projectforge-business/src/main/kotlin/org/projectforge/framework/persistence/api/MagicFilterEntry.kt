@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,7 +31,12 @@ class MagicFilterEntry(
          * Optional name of a field for a field specific search. Null for global search.
          */
         var field: String? = null,
-        stringValue: String? = null) {
+        stringValue: String? = null,
+        /**
+         * Synthetic fields aren't handled automatically by [MagicFilterProcessor]. The handled manually (see AddressPagesRest).
+         */
+        @JsonIgnore
+        var synthetic: Boolean? = false) {
 
     class Value(
             var value: String? = null,
@@ -55,7 +60,15 @@ class MagicFilterEntry(
             /**
              * Label is returned by the React frontend but it will be ignored by the backend.
              */
-            var label: String? = null
+            var label: String? = null,
+            /**
+             * Sent/used by client for history search: changed by user (displayName and id).
+             */
+            var displayName: String? = null,
+            /**
+             * Sent by client for history search: changed by user (displayName and id).
+             */
+            var id: Int? = null,
     )
 
     var value: Value
@@ -95,6 +108,9 @@ class MagicFilterEntry(
     @JsonIgnore
     var isNew: Boolean? = false
         private set
+
+    val isTrueValue
+        get() = value.value == "true"
 
     fun isModified(other: MagicFilterEntry): Boolean {
         if (this.field != other.field) return true

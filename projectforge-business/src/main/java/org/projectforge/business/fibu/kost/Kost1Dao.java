@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,8 @@
 
 package org.projectforge.business.fibu.kost;
 
-import org.projectforge.business.fibu.ProjektStatus;
 import org.projectforge.business.user.UserRightId;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -85,7 +84,7 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
     } else if (myFilter.isEnded()) {
       queryFilter.add(QueryFilter.eq("kostentraegerStatus", KostentraegerStatus.ENDED));
     } else if (myFilter.isNotEnded()) {
-      queryFilter.add(QueryFilter.or(QueryFilter.ne("kostentraegerStatus", ProjektStatus.ENDED),
+      queryFilter.add(QueryFilter.or(QueryFilter.ne("kostentraegerStatus", KostentraegerStatus.ENDED),
               QueryFilter.isNull("kostentraegerStatus")));
     }
     queryFilter.addOrder(SortProperty.asc("nummernkreis")).addOrder(SortProperty.asc("bereich")).addOrder(SortProperty.asc("teilbereich"))
@@ -96,7 +95,8 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
   @SuppressWarnings("unchecked")
   @Override
   protected void onSaveOrModify(final Kost1DO obj) {
-    Kost1DO other = null;
+    Kost1DO other;
+    verifyKost(obj);
     if (obj.getId() == null) {
       // New entry
       other = getKost1(obj.getNummernkreis(), obj.getBereich(), obj.getTeilbereich(), obj.getEndziffer());
@@ -112,6 +112,20 @@ public class Kost1Dao extends BaseDao<Kost1DO> {
     if (other != null) {
       throw new UserException("fibu.kost.error.collision");
     }
+  }
+
+  private void verifyKost(Kost1DO obj) {
+    if (obj.getNummernkreis() < 0 || obj.getNummernkreis() > 9)
+      throw new UserException("fibu.kost.error.invalidKost");
+
+    if (obj.getBereich() < 0 || obj.getBereich() > 999)
+      throw new UserException("fibu.kost.error.invalidKost");
+
+    if (obj.getTeilbereich() < 0 || obj.getTeilbereich() > 99)
+      throw new UserException("fibu.kost.error.invalidKost");
+
+    if (obj.getEndziffer() < 0 || obj.getEndziffer() > 99)
+      throw new UserException("fibu.kost.error.invalidKost");
   }
 
   @Override

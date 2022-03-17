@@ -1,131 +1,153 @@
 @import '../../../assets/style/mixins';
 @import "../../../assets/style/theming";
 
-.inputField {
-  $transitionTime: .2s ease-out;
-  $offset: .25em;
+$transitionTime: .2s ease-out;
 
+.inputContainer {
   position: relative;
-  margin-top: 1em;
   font-size: 1.5rem;
   letter-spacing: .02em;
-  padding-bottom: 1em;
+  color: #333;
+  margin: 0;
+  cursor: text;
+  width: 100%;
+  padding: 1.5em 0 0 1rem;
+  background-color: #f9f9f9;
+  border-bottom: 2px solid #bbb;
+  border-radius: 5px 5px 0 0;
 
-  &.noLabel {
-    margin-top: 0;
+  &.withMargin {
+    margin-top: 1em;
   }
 
-  .icon {
-    position: absolute;
-    font-size: 1.25em;
+  &.isActive {
+    background-color: #f5f5f5;
+    border-color: #333;
 
-    & ~ label, & ~ .additionalLabel {
-      margin-left: 2rem;
-      width: calc(100% - 2rem);
+    .labelText {
+      color: #666;
+      transform: translateY(-.5em) scale(0.8);
+    }
+  }
+
+  &.readOnly, &.readOnly input {
+    border-bottom: none;
+    cursor: default;
+    border-radius: 5px;
+  }
+
+  &:hover:not(.readOnly):not(.noStyle) {
+    background-color: #eaeaea;
+  }
+
+  .labelText {
+    width: auto;
+    white-space: nowrap;
+    font-size: 1.1em;
+    transition: transform $transitionTime, color $transitionTime;
+    position: absolute;
+    top: .8em;
+    left: 1rem;
+    transform-origin: 0 0;
+    transform: translateY(0);
+  }
+
+  @mixin color($color) {
+    border-color: $color;
+
+    .labelText {
+      color: $color;
+    }
+  }
+
+  &.primary {
+    @include color(map_get($theme-colors, primary));
+  }
+
+  &.secondary {
+    @include color(map_get($theme-colors, secondary));
+  }
+
+  &.success {
+    @include color(map_get($theme-colors, success));
+  }
+
+  &.danger {
+    @include color(map_get($theme-colors, danger));
+  }
+
+  &.warning {
+    @include color(map_get($theme-colors, warning));
+  }
+
+  &.info {
+    @include color(map_get($theme-colors, info));
+  }
+}
+
+.additionalLabel {
+  margin-left: 1rem;
+  position: relative;
+  min-height: 1.25em;
+  display: block;
+  font-size: 0.9em;
+  color: #aaa;
+  font-style: italic;
+}
+
+.inputField {
+  &.noLabel {
+    label {
+      padding: 0;
     }
   }
 
   label {
-    position: relative;
-    color: #7a7a7a;
-    margin: 0;
-    cursor: text;
-    width: 100%;
 
-    &.isActive {
-      .labelText {
-        color: #a5a2a5;
-        transform: translateY(-1em) scale(0.8);
+    &.noStyle {
+      padding: 0;
+      background-color: transparent;
+      border: none;
+      border-radius: 0;
+
+      .icon {
+        font-size: 1.25em;
+        top: 0;
+        bottom: 0;
+        left: 0;
+
+        & ~ input, & ~ .labelText {
+          margin-left: 2.5rem;
+          width: calc(100% - 2.5rem);
+        }
       }
     }
+    .icon {
+      position: absolute;
+      font-size: 1.3em;
+      bottom: .5em;
+      left: .5em;
 
-    &.noLine {
-      input {
-        border: none;
+      & ~ input, & ~ .labelText {
+        margin-left: 2.75rem;
+      }
 
-        &:focus {
-          border: none;
-          box-shadow: none;
-        }
+      & ~ input {
+        width: calc(100% - 2.75rem);
       }
     }
 
     input {
       background-color: transparent;
       border: none;
-      border-bottom: 1px solid #deddde;
       border-radius: 0;
       outline: none;
       width: 100%;
       margin: 0;
-      padding: 0 0 0 $offset;
+      padding: 0;
       box-shadow: none;
       transition: box-shadow .3s;
-
-      &:focus {
-        border-bottom: 1px solid #007480;
-        box-shadow: 0 1px 0 0 #007480;
-      }
     }
-
-    .labelText {
-      font-size: 1.1em;
-      transition: transform $transitionTime, color $transitionTime;
-      position: absolute;
-      top: 0;
-      left: $offset;
-      transform-origin: 0 0;
-      transform: translateY(0);
-    }
-
-    @mixin color($color) {
-      input {
-        border-color: $color;
-
-        &:focus {
-          border-color: $color;
-          box-shadow: 0 1px 0 0 $color;
-        }
-      }
-
-      .labelText {
-        color: $color;
-      }
-    }
-
-    &.primary {
-      @include color(map_get($theme-colors, primary));
-    }
-
-    &.secondary {
-      @include color(map_get($theme-colors, secondary));
-    }
-
-    &.success {
-      @include color(map_get($theme-colors, success));
-    }
-
-    &.danger {
-      @include color(map_get($theme-colors, danger));
-    }
-
-    &.warning {
-      @include color(map_get($theme-colors, warning));
-    }
-
-    &.info {
-      @include color(map_get($theme-colors, info));
-    }
-  }
-
-  .additionalLabel {
-    margin-top: .5em;
-    padding-left: $offset;
-    position: relative;
-    min-height: 1.25em;
-    display: block;
-    font-size: 0.9em;
-    color: rgba(0, 0, 0, .54);
   }
 }
 
@@ -141,7 +163,7 @@
   position: relative;
   font-size: 1.5rem;
   letter-spacing: .02em;
-  margin-bottom: 13px;
+  margin-top: 13px;
 
   .checkboxLabel {
     position: relative;
@@ -320,7 +342,6 @@
   .textAreaLabel {
     width: 100%;
     display: block;
-    margin: 20px 0;
 
     .text {
       position: absolute;
@@ -416,22 +437,9 @@
   width: 30em;
 }
 
-[class^="css-"][class$="-control"] {
-  border: none;
-  border-bottom: 1px solid #deddde;
-  border-radius: 0;
-}
-
-form div[class^="css-"][class$="-container"] {
-  margin-bottom: 30px;
-}
-
-svg[class^="css-"] {
+.favoritesName svg {
+  margin: 0 5px;
   color: #009BA3;
-}
-
-[class$="-multiValue"] {
-  font-size: 120%;
 }
 
 .favoritesList {
@@ -510,6 +518,47 @@ svg[class^="css-"] {
           visibility: visible;
         }
       }
+    }
+  }
+}
+
+.readOnly {
+  .coverUp {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background: linear-gradient(to right, rgba(245,245,245,0), #f5f5f5 50%);
+  }
+
+  .value {
+    margin: 0;
+
+    span {
+      white-space: pre-wrap;
+    }
+  }
+
+  .icons {
+    position: absolute;
+    right: .5em;
+    bottom: .5em;
+    color: #777;
+
+    svg {
+      margin-right: .5em;
+
+      &:hover {
+        color: #000;
+      }
+    }
+
+    .success, .success:hover {
+      color: map_get($theme-colors, success);
+    }
+
+    .error, .error:hover {
+      color: map_get($theme-colors, danger);
     }
   }
 }

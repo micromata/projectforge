@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Collapse, Nav, Navbar, NavbarToggler, NavItem, } from '../../design';
+import { Collapse, Nav, Navbar, NavbarToggler, NavItem } from '../../design';
 import style from './Page.module.scss';
 
 class PageNavigation extends React.Component {
@@ -15,7 +15,7 @@ class PageNavigation extends React.Component {
     }
 
     toggleMobile() {
-        this.setState(state => ({
+        this.setState((state) => ({
             mobileIsOpen: !state.mobileIsOpen,
         }));
     }

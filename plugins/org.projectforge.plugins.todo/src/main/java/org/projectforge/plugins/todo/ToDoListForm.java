@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,7 +27,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
@@ -59,7 +60,7 @@ public class ToDoListForm extends AbstractListForm<ToDoFilter, ToDoListPage>
         @Override
         public PFUserDO getObject()
         {
-          return getTenantRegistry().getUserGroupCache().getUser(getSearchFilter().getAssigneeId());
+          return UserGroupCache.getInstance().getUser(getSearchFilter().getAssigneeId());
         }
 
         @Override
@@ -86,7 +87,7 @@ public class ToDoListForm extends AbstractListForm<ToDoFilter, ToDoListPage>
         @Override
         public PFUserDO getObject()
         {
-          return getTenantRegistry().getUserGroupCache().getUser(getSearchFilter().getReporterId());
+          return UserGroupCache.getInstance().getUser(getSearchFilter().getReporterId());
         }
 
         @Override

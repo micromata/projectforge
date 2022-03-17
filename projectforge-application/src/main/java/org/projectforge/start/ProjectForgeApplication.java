@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,17 +28,16 @@ import org.projectforge.ProjectForgeApp;
 import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.framework.time.DateHelper;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.ConnectorStartFailedException;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.util.Arrays;
-import java.util.List;
 import java.util.TimeZone;
 
 @SpringBootApplication(
@@ -59,26 +58,22 @@ public class ProjectForgeApplication {
 
   private static final String[] DIR_NAMES = {"ProjectForge", "Projectforge", "projectforge"};
 
+  private static ConfigurableApplicationContext context;
+
   public static void main(String[] args) {
     // Find application home or start the setup wizard, if not found:
     File baseDir = new ProjectForgeHomeFinder().findAndEnsureAppHomeDir();
-
     System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, CanonicalFileUtils.absolutePath(baseDir));
 
-    new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
-            .log("Using ProjectForge directory: " + CanonicalFileUtils.absolutePath(baseDir))
-            .logEnd();
-
-    log.info("Using Java version: " + System.getProperty("java.vendor") + " " + System.getProperty("java.version"));
-    log.info("Using Java home   : " + System.getProperty("java.home"));
-    RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-    List<String> arguments = runtimeMxBean.getInputArguments();
-    log.info("Using JVM opts    : " + StringUtils.join(arguments, " "));
     args = addDefaultAdditionalLocation(baseDir, args);
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
+
     try {
-      SpringApplication.run(ProjectForgeApplication.class, args);
+      final SpringApplication app = new SpringApplication(ProjectForgeApplication.class);
+      app.addListeners(new ProjectForgeStartupListener(baseDir));
+      context = app.run(args);
+      ProjectForgeApp.setSpringApplicationRunContext(context, ProjectForgeApplication.class);
     } catch (Exception ex) {
       log.error("Exception while running application: " + ex.getMessage(), ex);
       Throwable cause = ex;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -40,6 +40,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.TimesheetPagesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.dto.CalEvent
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.TeamEvent
@@ -57,7 +58,7 @@ import javax.validation.Valid
 class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventDao>(
         CalEventDao::class.java,
         "plugins.teamcal.event.title",
-        cloneSupported = true) {
+        cloneSupport = CloneSupport.AUTOSAVE) {
 
     private val log = org.slf4j.LoggerFactory.getLogger(CalEventPagesRest::class.java)
 
@@ -145,7 +146,7 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
         if (endDate != null) dto.endDate = endDate.sqlTimestamp
     }
 
-    override fun beforeDatabaseAction(request: HttpServletRequest, obj: CalEventDO, postData: PostData<CalEvent>, operation: OperationType) {
+    override fun onBeforeDatabaseAction(request: HttpServletRequest, obj: CalEventDO, postData: PostData<CalEvent>, operation: OperationType) {
         if (obj.calendar?.id != null) {
             // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
             // is needed by the access checker.
@@ -153,7 +154,7 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
         }
     }
 
-    override fun afterEdit(obj: CalEventDO, postData: PostData<CalEvent>): ResponseAction {
+    override fun onAfterEdit(obj: CalEventDO, postData: PostData<CalEvent>, event: RestButtonEvent): ResponseAction {
         return ResponseAction("/${Const.REACT_APP_PATH}calendar")
                 .addVariable("date", postData.data.startDate)
                 .addVariable("id", obj.id ?: -1)
@@ -239,7 +240,7 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "subject"))
         return LayoutUtils.processListPage(layout, this)
     }

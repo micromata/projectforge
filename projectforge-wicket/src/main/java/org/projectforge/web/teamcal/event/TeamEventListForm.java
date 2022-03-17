@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,6 @@
 
 package org.projectforge.web.teamcal.event;
 
-import java.util.Collection;
-import java.util.Date;
-
-import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -46,16 +42,17 @@ import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
-import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Date;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -71,9 +68,9 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
 
   MultiChoiceListHelper<TeamCalDO> calendarsListHelper;
 
-  protected DatePanel startDate;
+  protected LocalDatePanel startDate;
 
-  protected DatePanel endDate;
+  protected LocalDatePanel endDate;
 
   private final FormComponent<?>[] dependentFormComponents = new FormComponent<?>[2];
 
@@ -153,15 +150,14 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
   {
     {
       optionsFieldsetPanel.setOutputMarkupId(true);
-      startDate = new DatePanel(optionsFieldsetPanel.newChildId(),
-          new PropertyModel<Date>(getSearchFilter(), "startDate"),
-          DatePanelSettings.get().withSelectPeriodMode(true));
+      startDate = new LocalDatePanel(optionsFieldsetPanel.newChildId(),
+          new LocalDateModel(new PropertyModel<LocalDate>(getSearchFilter(), "startDate")),
+          DatePanelSettings.get().withSelectPeriodMode(true), true);
       optionsFieldsetPanel.add(dependentFormComponents[0] = startDate);
       optionsFieldsetPanel.setLabelFor(startDate);
       optionsFieldsetPanel.add(new DivTextPanel(optionsFieldsetPanel.newChildId(), " - "));
-      endDate = new DatePanel(optionsFieldsetPanel.newChildId(), new PropertyModel<Date>(getSearchFilter(), "endDate"),
-          DatePanelSettings
-              .get().withSelectPeriodMode(true));
+      endDate = new LocalDatePanel(optionsFieldsetPanel.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(getSearchFilter(), "endDate")),
+          DatePanelSettings.get().withSelectPeriodMode(true), true);
       optionsFieldsetPanel.add(dependentFormComponents[1] = endDate);
       {
         final SubmitLink unselectPeriod = new SubmitLink(IconLinkPanel.LINK_ID)

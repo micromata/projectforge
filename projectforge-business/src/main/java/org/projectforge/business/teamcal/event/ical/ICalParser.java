@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -109,7 +109,7 @@ public class ICalParser
       // parse calendar
       this.calendar = builder.build(iCalReader);
     } catch (IOException | ParserException e) {
-      log.error("An unknown error occurred while parsing an ICS file", e);
+      log.error("An unknown error occurred while parsing an ICS file: " + e.getMessage());
       return false;
     }
     return this.parse(this.calendar);

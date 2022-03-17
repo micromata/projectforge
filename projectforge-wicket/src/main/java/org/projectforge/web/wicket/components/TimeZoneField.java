@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,26 +23,26 @@
 
 package org.projectforge.web.wicket.components;
 
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.convert.IConverter;
+import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
+import org.projectforge.web.wicket.converter.TimeZoneConverter;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
-import org.projectforge.web.wicket.converter.TimeZoneConverter;
-
 /**
  * Text field contains a ajax autocompletion text field for choosing and displaying a time zone. The time zones of all
  * users will be shown as favorite list.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TimeZoneField extends PFAutoCompleteTextField<TimeZone>
 {
@@ -69,8 +69,8 @@ public class TimeZoneField extends PFAutoCompleteTextField<TimeZone>
     Arrays.sort(availableTimeZones);
     timeZones = getAsTimeZoneObjects(availableTimeZones);
     final List<String> favoritesIds = new ArrayList<String>();
-    for (final PFUserDO user : TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getAllUsers()) {
-      final String timeZone = user.getTimeZone();
+    for (final PFUserDO user : UserGroupCache.getInstance().getAllUsers()) {
+      final String timeZone = user.getTimeZoneString();
       if (timeZone == null) {
         continue;
       }

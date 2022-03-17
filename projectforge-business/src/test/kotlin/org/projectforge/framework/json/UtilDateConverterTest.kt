@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,7 +39,7 @@ class UtilDateConverterTest {
 
     @Test
     fun convertJson() {
-        val date = PFDateTime.from(LocalDateTime.of(2019, Month.JUNE, 26, 0, 44))!!.utilDate
+        val date = PFDateTime.from(LocalDateTime.of(2019, Month.JUNE, 26, 0, 44)).utilDate
         assertEquals("\"2019-06-26 00:44:00\"", createMapper(UtilDateFormat.ISO_DATE_TIME_SECONDS).writeValueAsString(date))
         assertEquals("\"2019-06-26 00:44:00.000\"", createMapper(UtilDateFormat.ISO_DATE_TIME_MILLIS).writeValueAsString(date))
         assertEquals("\"2019-06-26T00:44:00.000Z\"", createMapper(UtilDateFormat.JS_DATE_TIME_MILLIS).writeValueAsString(date))
@@ -62,7 +62,7 @@ class UtilDateConverterTest {
         @BeforeAll
         @JvmStatic
         fun setup() {
-            TestSetup.init().setTimeZone(PFDateTimeUtils.TIMEZONE_UTC)
+            TestSetup.init().timeZone = PFDateTimeUtils.TIMEZONE_UTC
         }
     }
 }

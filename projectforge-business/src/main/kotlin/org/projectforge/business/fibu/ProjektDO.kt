@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,15 +35,14 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import javax.persistence.*
 
 /**
- * Projekte sind Kunden zugeordnet und haben eine zweistellige Nummer. Sie sind Bestandteile von KOST2 (5. und 6.
- * Ziffer).
+ * Projekte sind Kunden zugeordnet und haben eine zweistellige Nummer. Sie sind Bestandteile von KOST2 (5. und 6. Ziffer).
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
 @Indexed
 @ClassBridge(name = "kost2", impl = HibernateSearchProjectKostBridge::class)
-@Table(name = "T_FIBU_PROJEKT", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "kunde_id", "tenant_id"]), UniqueConstraint(columnNames = ["nummer", "intern_kost2_4", "tenant_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_projekt_konto_id", columnList = "konto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_kunde_id", columnList = "kunde_id"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_projektmanager_group_fk", columnList = "projektmanager_group_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_projectManager_fk", columnList = "projectmanager_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_headofbusinessmanager_fk", columnList = "headofbusinessmanager_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_salesmanager_fk", columnList = "salesmanager_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_task_fk", columnList = "task_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_FIBU_PROJEKT", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "kunde_id"]), UniqueConstraint(columnNames = ["nummer", "intern_kost2_4"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_projekt_konto_id", columnList = "konto_id"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_kunde_id", columnList = "kunde_id"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_projektmanager_group_fk", columnList = "projektmanager_group_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_projectManager_fk", columnList = "projectmanager_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_headofbusinessmanager_fk", columnList = "headofbusinessmanager_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_salesmanager_fk", columnList = "salesmanager_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_projekt_task_fk", columnList = "task_fk")])
 @WithHistory
 @NamedQueries(
         NamedQuery(name = ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER, query = "from ProjektDO where internKost2_4=:internKost24 and nummer=:nummer"))

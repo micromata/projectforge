@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,9 +25,7 @@ package org.projectforge.business.humanresources;
 
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
@@ -39,6 +37,7 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,13 +54,19 @@ public class HRViewDao implements IDao<HRViewData> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRViewDao.class);
 
   @Autowired
-  private TimesheetDao timesheetDao;
-
-  @Autowired
   private HRPlanningDao hrPlanningDao;
 
   @Autowired
+  private TaskTree taskTree;
+
+  @Autowired
+  private TimesheetDao timesheetDao;
+
+  @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   /**
    * Rows contains the users and the last row contains the total sums. Columns of each rows are the man days of the
@@ -69,27 +74,23 @@ public class HRViewDao implements IDao<HRViewData> {
    */
   public HRViewData getResources(final HRFilter filter) {
     final HRViewData data = new HRViewData(filter);
-    if (filter.getStartTime() == null) {
-      final PFDateTime day = PFDateTime.now().getBeginOfWeek();
-      filter.setStartTime(day.getUtilDate());
+    if (filter.getStartDay() == null) {
+      filter.setStartDay(PFDay.today().getLocalDate());
     }
-    if (filter.getStopTime() == null) {
-      final PFDateTime day = PFDateTime.now().getEndOfWeek();
-      filter.setStartTime(day.getUtilDate());
+    if (filter.getStopDay() == null) {
+      filter.setStartDay(PFDay.today().getLocalDate());
     }
     if (filter.isShowBookedTimesheets()) {
       final TimesheetFilter tsFilter = new TimesheetFilter();
-      tsFilter.setStartTime(filter.getStartTime());
-      tsFilter.setStopTime(filter.getStopTime());
+      tsFilter.setStartTime(PFDateTime.fromOrNull(filter.getStartDay()).getBeginOfDay().getUtilDate());
+      tsFilter.setStopTime(PFDateTime.fromOrNull(filter.getStopDay()).getEndOfDay().getUtilDate());
       final List<TimesheetDO> sheets = timesheetDao.getList(tsFilter);
-      final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
       for (final TimesheetDO sheet : sheets) {
         final PFUserDO user = userGroupCache.getUser(sheet.getUserId());
         if (user == null) {
           log.error("Oups, user of time sheet is null or unknown? Ignoring entry: " + sheet);
           continue;
         }
-        final TaskTree taskTree = TaskTreeHelper.getTaskTree();
         final ProjektDO projekt = taskTree.getProjekt(sheet.getTaskId());
         final Object targetObject = getTargetObject(userGroupCache, filter, projekt);
         if (targetObject == null) {
@@ -106,12 +107,11 @@ public class HRViewDao implements IDao<HRViewData> {
     }
     if (filter.isShowPlanning()) {
       final HRPlanningFilter hrFilter = new HRPlanningFilter();
-      PFDateTime dateTime = PFDateTime.from(filter.getStartTime());
-      hrFilter.setStartTime(dateTime.getSqlDate()); // Considers the user's time zone.
-      dateTime = PFDateTime.from(filter.getStopTime());
-      hrFilter.setStopTime(dateTime.getSqlDate()); // Considers the user's time zone.
+      PFDay day = PFDay.fromOrNow(filter.getStartDay());
+      hrFilter.setStartDay(day.getLocalDate());
+      day = PFDay.fromOrNow(filter.getStopDay());
+      hrFilter.setStopDay(day.getLocalDate());
       final List<HRPlanningDO> plannings = hrPlanningDao.getList(hrFilter);
-      final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
       for (final HRPlanningDO planning : plannings) {
         if (planning.getEntries() == null) {
           continue;

@@ -1,3 +1,4 @@
+/* eslint-disable no-alert */
 import moment from 'moment-timezone';
 
 import 'moment/min/locales';
@@ -13,7 +14,7 @@ import { Route } from 'react-router-dom';
 import LoadingContainer from '../../../components/design/loading-container';
 import history from '../../../utilities/history';
 import { fetchJsonGet, fetchJsonPost } from '../../../utilities/rest';
-import EditModal from '../../page/edit/EditModal';
+import FormModal from '../../page/form/FormModal';
 import {
     dayStyle,
     renderAgendaEvent,
@@ -27,11 +28,11 @@ const localizer = momentLocalizer(moment);
 
 const DragAndDropCalendar = withDragAndDrop(Calendar);
 
-const convertJsonDates = e => Object.assign({}, e, {
+// eslint-disable-next-line prefer-object-spread
+const convertJsonDates = (e) => Object.assign({}, e, {
     start: new Date(e.start),
     end: new Date(e.end),
 });
-
 
 class CalendarPanel extends React.Component {
     static getDerivedStateFromProps({ location }, { prevLocation }) {
@@ -48,6 +49,18 @@ class CalendarPanel extends React.Component {
         }
 
         return newState;
+    }
+
+    static slotStyle(date) {
+        if (date.getMinutes() !== 0) {
+            return { style: { borderTop: '1px solid #ddd' } };
+        }
+
+        if (date.getHours() === 0) {
+            return {};
+        }
+
+        return { style: { borderTop: '2px solid #ddd' } };
     }
 
     constructor(props) {
@@ -239,7 +252,7 @@ class CalendarPanel extends React.Component {
             },
             (json) => {
                 const { url } = json;
-                history.push(`${match.url}/${url}`);
+                history.push(`${match.url}${url}`);
             });
     }
 
@@ -264,7 +277,6 @@ class CalendarPanel extends React.Component {
     }
 
     navigateToDay(e) {
-        console.log('*** ToDo: navigate to day.', e);
         this.setState({
             date: e,
             viewType: 'day',
@@ -274,7 +286,7 @@ class CalendarPanel extends React.Component {
     fetchEvents() {
         const { start, end, view } = this.state;
         const { activeCalendars, timesheetUserId } = this.props;
-        const activeCalendarIds = activeCalendars ? activeCalendars.map(obj => obj.id) : [];
+        const activeCalendarIds = activeCalendars ? activeCalendars.map((obj) => obj.id) : [];
         this.setState({ loading: true });
         fetchJsonPost('calendar/events',
             {
@@ -331,7 +343,7 @@ class CalendarPanel extends React.Component {
 
         const messages = {
             ...translations,
-            showMore: total => `+${total} ${translations['calendar.showMore']}`,
+            showMore: (total) => `+${total} ${translations['calendar.showMore']}`,
         };
 
         return (
@@ -358,8 +370,9 @@ class CalendarPanel extends React.Component {
                     onEventResize={this.onEventResize}
                     onEventDrop={this.onEventDrop}
                     selectable
+                    slotPropGetter={CalendarPanel.slotStyle}
                     eventPropGetter={this.eventStyle}
-                    dayPropGetter={day => dayStyle(day, specialDays)}
+                    dayPropGetter={(day) => dayStyle(day, specialDays)}
                     showMultiDayTimes
                     timeslots={1}
                     scrollToTime={initTime}
@@ -367,7 +380,7 @@ class CalendarPanel extends React.Component {
                         event: renderEvent,
                         month: {
                             event: renderMonthEvent,
-                            dateHeader: entry => renderDateHeader(entry,
+                            dateHeader: (entry) => renderDateHeader(entry,
                                 specialDays,
                                 this.navigateToDay),
                         },
@@ -382,8 +395,8 @@ class CalendarPanel extends React.Component {
                     messages={messages}
                 />
                 <Route
-                    path={`${match.url}/:category/edit/:id?`}
-                    render={props => <EditModal baseUrl={match.url} {...props} />}
+                    path={`${match.url}/:category/:type/:id?`}
+                    render={(props) => <FormModal baseUrl={match.url} {...props} />}
                 />
             </LoadingContainer>
         );
@@ -391,7 +404,13 @@ class CalendarPanel extends React.Component {
 }
 
 CalendarPanel.propTypes = {
-    activeCalendars: PropTypes.arrayOf(PropTypes.shape({})),
+    activeCalendars: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.number,
+        visible: PropTypes.bool,
+        style: PropTypes.shape({
+            bgColor: PropTypes.string,
+        }),
+    })),
     timesheetUserId: PropTypes.number,
     vacationGroups: PropTypes.arrayOf(PropTypes.shape({})),
     vacationUsers: PropTypes.arrayOf(PropTypes.shape({})),
@@ -402,11 +421,17 @@ CalendarPanel.propTypes = {
     defaultDate: PropTypes.instanceOf(Date),
     defaultView: PropTypes.string,
     gridSize: PropTypes.number,
-    translations: PropTypes.shape({}).isRequired,
+    translations: PropTypes.shape({
+        'calendar.showMore': PropTypes.string,
+    }).isRequired,
     match: PropTypes.shape({
         url: PropTypes.string.isRequired,
+        isExact: PropTypes.bool,
     }).isRequired,
-    location: PropTypes.shape({}).isRequired,
+    location: PropTypes.shape({
+        state: PropTypes.string,
+        pathname: PropTypes.string,
+    }).isRequired,
 };
 
 CalendarPanel.defaultProps = {

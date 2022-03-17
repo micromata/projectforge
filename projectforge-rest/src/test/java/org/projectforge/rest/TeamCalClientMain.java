@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.rest;
 
+import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.model.rest.CalendarEventObject;
 import org.projectforge.model.rest.CalendarObject;
 import org.projectforge.model.rest.RestPaths;
@@ -41,7 +42,7 @@ public class TeamCalClientMain {
     final Client client = ClientBuilder.newClient();
     final UserObject user = RestClientMain.authenticate(client);
 
-    WebTarget webResource = client.target(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.TEAMCAL));
+    WebTarget webResource = client.target(RestClientMain.getUrl() + RestPaths.buildOldListPath(RestPaths.TEAMCAL));
     Response response = RestClientMain.getClientResponse(webResource, user);
     if (response.getStatus() != Response.Status.OK.getStatusCode()) {
       throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
@@ -53,7 +54,7 @@ public class TeamCalClientMain {
       log.info(calendar.toString());
     }
 
-    webResource = client.target(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.TEAMEVENTS))
+    webResource = client.target(RestClientMain.getUrl() + RestPaths.buildOldListPath(RestPaths.TEAMEVENTS))
     // .queryParam("calendarIds", "1292975,1240526,1240528");
     ;
     response = RestClientMain.getClientResponse(webResource, user);

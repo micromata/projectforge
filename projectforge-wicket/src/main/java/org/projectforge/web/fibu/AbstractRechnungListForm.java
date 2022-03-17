@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,12 +33,7 @@ import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WebConstants;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
-import org.projectforge.web.wicket.flowlayout.TextStyle;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
 public abstract class AbstractRechnungListForm<F extends RechnungFilter, P extends AbstractListPage<?, ?, ?>> extends
@@ -57,6 +52,7 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
 
     // time period for Rechnungsdatum
     final F filter = getSearchFilter();
+    // TODO: What to do here?
     addTimePeriodPanel("fibu.rechnung.datum",
         LambdaModel.of(filter::getFromDate, filter::setFromDate),
         LambdaModel.of(filter::getToDate, filter::setToDate)

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,21 +30,20 @@ import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.common.DatabaseDialect;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
-import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
+import org.projectforge.framework.persistence.database.DatabaseInitTestDataService;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.database.PfJpaXmlDumpService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.LoginPage;
+import org.projectforge.login.LoginService;
+import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
@@ -71,7 +70,16 @@ public class SetupPage extends AbstractUnsecureBasePage
   private DatabaseService databaseService;
 
   @SpringBean
+  private DatabaseInitTestDataService databaseInitTestDataService;
+
+  @SpringBean
   private PfJpaXmlDumpService jpaXmlDumpService;
+
+  @SpringBean
+  private PluginAdminService pluginAdminService;
+
+  @SpringBean
+  private TaskTree taskTree;
 
   private final SetupForm setupForm;
 
@@ -97,8 +105,6 @@ public class SetupPage extends AbstractUnsecureBasePage
     PFUserDO adminUser = setupForm.getAdminUser();
     final String message;
 
-    //Init default tenant
-    databaseService.insertDefaultTenant();
     //Init global addressbook
     databaseService.insertGlobalAddressbook();
 
@@ -117,8 +123,9 @@ public class SetupPage extends AbstractUnsecureBasePage
       } catch (Exception e) {
         log.error("Exception occured while running test data insert script. Message: " + e.getMessage());
       }
-      GlobalConfiguration.getInstance().forceReload();
+      Configuration.getInstance().forceReload();
       adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
+      databaseInitTestDataService.initAdditionalTestData();
       databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";
       // refreshes the visibility of the costConfigured dependent menu items:
@@ -139,20 +146,18 @@ public class SetupPage extends AbstractUnsecureBasePage
     configure(ConfigurationParam.CALENDAR_DOMAIN, setupForm.getCalendarDomain());
     configure(ConfigurationParam.SYSTEM_ADMIN_E_MAIL, setupForm.getSysopEMail());
     configure(ConfigurationParam.FEEDBACK_E_MAIL, setupForm.getFeedbackEMail());
-    if (databaseService.getSystemUpdater().isUpdated() == true) {
-      // Update status:
-      UserFilter.setUpdateRequiredFirst(false);
-    }
-    setResponsePage(new MessagePage(message, adminUser.getUsername()));
+    pluginAdminService.afterSetup();
+
+    setResponsePage(new MessagePage(message));
     log.info("Set-up finished.");
   }
 
   private void loginAdminUser(PFUserDO adminUser)
   {
     //Login admin user
-    final UserContext userContext = new UserContext(adminUser, getUserGroupCache());
-    ((MySession) getSession()).login(userContext, getRequest());
-    UserFilter.login(WicketUtils.getHttpServletRequest(getRequest()), userContext);
+    final UserContext userContext = new UserContext(adminUser);
+    ((MySession) getSession()).internalLogin(userContext, getRequest());
+    LoginService.internalLogin(WicketUtils.getHttpServletRequest(getRequest()), userContext);
   }
 
   private ConfigurationDO getConfigurationDO(final ConfigurationParam param)
@@ -205,7 +210,6 @@ public class SetupPage extends AbstractUnsecureBasePage
 
       int counter = jpaXmlDumpService.restoreDb(PfEmgrFactory.get(), is, RestoreMode.InsertAll);
       Configuration.getInstance().setExpired();
-      final TaskTree taskTree = TaskTreeHelper.getTaskTree();
       taskTree.setExpired();
       getUserGroupCache().setExpired();
       new Thread()
@@ -217,8 +221,8 @@ public class SetupPage extends AbstractUnsecureBasePage
         }
       }.start();
       if (counter > 0) {
-        ((MySession) getSession()).logout();
-        setResponsePage(LoginPage.class);
+        ((MySession) getSession()).internalLogout();
+        WicketUtils.redirectToLogin(this);
       } else {
         error(getString("administration.setup.error.import"));
       }
@@ -238,7 +242,7 @@ public class SetupPage extends AbstractUnsecureBasePage
   {
     if (databaseService.databaseTablesWithEntriesExists() == true) {
       log.error("Couldn't call set-up page, because the data-base isn't empty!");
-      ((MySession) getSession()).logout();
+      ((MySession) getSession()).internalLogout();
       throw new RestartResponseException(WicketUtils.getDefaultPage());
     }
   }

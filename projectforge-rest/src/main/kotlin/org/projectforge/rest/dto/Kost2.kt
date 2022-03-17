@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,9 +37,17 @@ class Kost2(
         var endziffer: Int = 0,
         var kostentraegerStatus: KostentraegerStatus? = null,
         var description: String? = null,
-        var formattedNumber: String? = null
+        var formattedNumber: String? = null,
+        var project: Project? = null,
+        var kost2Art: Kost2Art? = null
 ) : BaseDTODisplayObject<Kost2DO>(id, displayName = displayName) {
-    var projekt: Projekt? = null
+
+    /**
+     * @see copyFromMinimal
+     */
+    constructor(src: Kost2DO) : this() {
+        copyFromMinimal(src)
+    }
 
     override fun copyFromMinimal(src: Kost2DO) {
         super.copyFromMinimal(src)
@@ -49,12 +57,22 @@ class Kost2(
         endziffer = src.kost2Art?.id ?: 0
         description = src.description
         formattedNumber = src.formattedNumber
+        this.project = src.projekt?.let {
+            val project = Project()
+            project.copyFromMinimal(it)
+            project
+        }
     }
 
     override fun copyFrom(src: Kost2DO) {
         super.copyFrom(src)
         endziffer = src.kost2Art?.id ?: 0
         formattedNumber = src.formattedNumber
+        this.project = src.projekt?.let {
+            val project = Project()
+            project.copyFromMinimal(it)
+            project
+        }
     }
 
     companion object {

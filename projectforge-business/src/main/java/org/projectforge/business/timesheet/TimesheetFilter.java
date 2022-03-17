@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -219,7 +219,7 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
     this.orderType = orderType;
   }
 
-  private TimePeriod getTimePeriod()
+  public TimePeriod getTimePeriod()
   {
     if (timePeriod == null) {
       timePeriod = new TimePeriod();

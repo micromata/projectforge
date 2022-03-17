@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,312 +38,402 @@ import org.projectforge.rest.core.AbstractPagesRest
  */
 class LayoutUtils {
 
-    companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
+  companion object {
+    private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
-        fun addCommonTranslations(translations: MutableMap<String, String>) {
-            addTranslations("select.placeholder", "calendar.today", "task.title.list.select", translations = translations)
-        }
-
-        /**
-         * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
-         * i18n-keys (by referring the [org.projectforge.common.anots.PropertyInfo] annotations of clazz).
-         * @return List of all elements used in the layout.
-         */
-        fun process(layout: UILayout): List<Any?> {
-            val elements = processAllElements(layout.getAllElements())
-            var counter = 0
-            layout.namedContainers.forEach {
-                it.key = "nc-${++counter}"
-            }
-            return elements
-        }
-
-        /**
-         * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
-         * i18n-keys (by referring the [org.projectforge.common.anots.PropertyInfo] annotations of clazz).
-         * <br>
-         * If no named container called "filter-options" is found, it will be attached automatically by calling [addListFilterContainer]
-         */
-        fun processListPage(layout: UILayout, pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>): UILayout {
-            var found = false
-            layout.namedContainers.forEach {
-                if (it.id == "filterOptions") {
-                    found = true // Container found. Don't attach it automatically.
-                }
-            }
-            if (!found) {
-                addListFilterContainer(layout)
-            }
-            layout
-                    .addAction(UIButton("reset",
-                            color = UIColor.SECONDARY,
-                            outline = true,
-                            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.FILTER_RESET), targetType = TargetType.GET)))
-                    .addAction(UIButton("search",
-                            color = UIColor.PRIMARY,
-                            default = true,
-                            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.LIST), targetType = TargetType.POST)))
-            process(layout)
-            layout.addTranslations("search")
-            addCommonTranslations(layout)
-            Favorites.addTranslations(layout.translations)
-            return layout
-        }
-
-        fun addListFilterContainer(layout: UILayout, vararg elements: Any, filterClass: Class<*>? = null, autoAppendDefaultSettings: Boolean? = true) {
-            val filterGroup = UIGroup()
-            elements.forEach {
-                when (it) {
-                    is UIElement -> {
-                        filterGroup.add(it)
-                        if (filterClass != null && it is UILabelledElement) {
-                            val property = getId(it)
-                            if (property != null) {
-                                val elementInfo = ElementsRegistry.getElementInfo(filterClass, property)
-                                it.label = elementInfo?.i18nKey
-                            }
-                        }
-                        /**
-                         * ID must be set as extended to store in extended map of MagicFilter.
-                         */
-                        if (it is UICheckbox) {
-                            it.id = "extended.${it.id}"
-                        }
-                    }
-                    is String -> {
-                        val element = buildLabelInputElement(LayoutContext(filterClass), it)
-                        if (element != null)
-                            filterGroup.add(element)
-                    }
-                    else -> log.error("Element of type '${it::class.java}' not supported as child of filterContainer.")
-                }
-            }
-            if (autoAppendDefaultSettings == true)
-                addListDefaultOptions(filterGroup)
-            layout.add(UINamedContainer("filterOptions").add(filterGroup))
-        }
-
-        /**
-         * Adds the both checkboxes "only deleted" and "search history" to the given group. This is automatically called
-         * by processListPage and appended to the first group found in named container "filter-options".
-         */
-        fun addListDefaultOptions(group: UIGroup) {
-            group
-                    .add(UICheckbox("deleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip", color = UIColor.DANGER))
-                    //.add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
-        }
-
-        /**
-         * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
-         * i18n-keys (by referring the @PropertColumn annotations of clazz).<br>
-         * Adds the action buttons (cancel, undelete, markAsDeleted, update and/or add dependent on the given data.<br>
-         * Calls also fun [process].
-         * @see LayoutUtils.process
-         */
-        fun <O : ExtendedBaseDO<Int>> processEditPage(layout: UILayout, dto: Any, pagesRest: AbstractPagesRest<O, *, out BaseDao<O>>)
-                : UILayout {
-            layout.addAction(UIButton("cancel",
-                    color = UIColor.SECONDARY,
-                    outline = true,
-                    responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.CANCEL), targetType = TargetType.POST)))
-            val userAccess = layout.userAccess
-            if (pagesRest.isHistorizable()) {
-                // 99% of the objects are historizable (undeletable):
-                if (pagesRest.getId(dto) != null) {
-                    if (userAccess.history == true) {
-                        layout.showHistory = true
-                    }
-                    if (pagesRest.isDeleted(dto)) {
-                        if (userAccess.insert == true) {
-                            layout.addAction(UIButton("undelete",
-                                    color = UIColor.PRIMARY,
-                                    responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.UNDELETE), targetType = TargetType.PUT)))
-                        }
-                    } else if (userAccess.delete == true) {
-                        layout.addAction(UIButton("markAsDeleted",
-                                color = UIColor.DANGER,
-                                outline = true,
-                                responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.MARK_AS_DELETED), targetType = TargetType.DELETE)))
-                    }
-                }
-            } else if (userAccess.delete == true) {
-                // MemoDO for example isn't historizable:
-                layout.addAction(UIButton("deleteIt",
-                        color = UIColor.DANGER,
-                        outline = true,
-                        responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE)))
-            }
-            if (pagesRest.getId(dto) != null) {
-                if (pagesRest.cloneSupported) {
-                    layout.addAction(UIButton("clone",
-                            color = UIColor.SECONDARY,
-                            outline = true,
-                            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.CLONE), targetType = TargetType.POST)))
-                }
-                if (!pagesRest.isDeleted(dto)) {
-                    if (userAccess.insert == true) {
-                        layout.addAction(UIButton("update",
-                                color = UIColor.PRIMARY,
-                                default = true,
-                                responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
-                    }
-                }
-            } else if (userAccess.insert == true) {
-                layout.addAction(UIButton("create",
-                        color = UIColor.SUCCESS,
-                        default = true,
-                        responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)))
-            }
-            process(layout)
-            layout.addTranslations("label.historyOfChanges")
-            addCommonTranslations(layout)
-            return layout
-        }
-
-        private fun addCommonTranslations(layout: UILayout) {
-            addCommonTranslations(layout.translations)
-        }
-
-        /**
-         * @param layoutSettings One element is returned including the label (e. g. UIInput).
-         */
-        internal fun buildLabelInputElement(layoutSettings: LayoutContext, id: String): UIElement? {
-            return ElementsRegistry.buildElement(layoutSettings, id)
-        }
-
-        /**
-         * @param createRowCol If true, a new [UIRow] containing a new [UICol] with the given element is returned,
-         * otherwise the element itself without any other operation.
-         * @return The element itself or the surrounding [UIRow].
-         */
-        internal fun prepareElementToAdd(element: UIElement, createRowCol: Boolean): UIElement {
-            return if (createRowCol) {
-                val row = UIRow()
-                val col = UICol()
-                row.add(col)
-                col.add(element)
-                row
-            } else {
-                element
-            }
-        }
-
-        internal fun setLabels(elementInfo: ElementInfo?, element: UILabelledElement) {
-            if (elementInfo == null)
-                return
-            if (!elementInfo.i18nKey.isNullOrEmpty())
-                element.label = elementInfo.i18nKey
-            if (!elementInfo.additionalI18nKey.isNullOrEmpty() && element.ignoreAdditionalLabel != true)
-                element.additionalLabel = elementInfo.additionalI18nKey
-            if (!elementInfo.tooltipI18nKey.isNullOrEmpty() && element.ignoreTooltip != true)
-                element.tooltip = elementInfo.tooltipI18nKey
-        }
-
-        /**
-         * Does translation of buttons and UILabels
-         * @param elements List of all elements used in the layout.
-         * @return The unmodified parameter elements.
-         * @see HibernateUtils.getPropertyLength
-         */
-        private fun processAllElements(elements: List<Any>): List<Any?> {
-            var counter = 0
-            elements.forEach {
-                if (it is UIElement) it.key = "el-${++counter}"
-                when (it) {
-                    is UILabelledElement -> {
-                        it.label = getLabelTransformation(it.label, it as UIElement)
-                        it.additionalLabel = getLabelTransformation(it.additionalLabel, it, additionalLabel = true)
-                        it.tooltip = getLabelTransformation(it.tooltip)
-                    }
-                    is UIFieldset -> {
-                        it.title = getLabelTransformation(it.title, it as UIElement)
-                    }
-                    is UITableColumn -> {
-                        val translation = getLabelTransformation(it.title)
-                        if (translation != null) it.title = translation
-                    }
-                    is UIButton -> {
-                        if (it.title == null) {
-                            val i18nKey = when (it.id) {
-                                "cancel" -> "cancel"
-                                "clone" -> "clone"
-                                "create" -> "create"
-                                "deleteIt" -> "delete"
-                                "markAsDeleted" -> "markAsDeleted"
-                                "reset" -> "reset"
-                                "search" -> "search"
-                                "undelete" -> "undelete"
-                                "update" -> "save"
-                                else -> null
-                            }
-                            if (i18nKey == null) {
-                                log.error("i18nKey not found for action button '${it.id}'.")
-                            } else {
-                                it.title = translate(i18nKey)
-                            }
-                        }
-                    }
-                    is UIList -> {
-                        // Translate position label
-                        it.positionLabel = translate(it.positionLabel)
-                    }
-                }
-            }
-            return elements
-        }
-
-        /**
-         * @return The id of the given element if supported.
-         */
-        internal fun getId(element: UIElement?, followLabelReference: Boolean = true): String? {
-            if (element == null) return null
-            if (followLabelReference && element is UILabel) {
-                return getId(element.reference)
-            }
-            return when (element) {
-                is UIInput -> element.id
-                is UICheckbox -> element.id
-                is UIRadioButton -> element.id
-                is UISelect<*> -> element.id
-                is UITextArea -> element.id
-                is UITableColumn -> element.id
-                else -> null
-            }
-        }
-
-        /**
-         * If the given label starts with "'" the label itself as substring after "'" will be returned: "'This is an text." -> "This is an text"<br>
-         * Otherwise method [translate] will be called and the result returned.
-         * @param label to process
-         * @return Modified label or unmodified label.
-         */
-        internal fun getLabelTransformation(label: String?, labelledElement: UIElement? = null, additionalLabel: Boolean = false): String? {
-            if (label == null) {
-                if (labelledElement is UILabelledElement) {
-                    if (additionalLabel && labelledElement.ignoreAdditionalLabel) {
-                        return null
-                    }
-                    val layoutSettings = labelledElement.layoutContext
-                    if (layoutSettings != null) {
-                        val id = getId(labelledElement)
-                        if (id != null) {
-                            var elementInfo = ElementsRegistry.getElementInfo(layoutSettings, id)
-                            if (!additionalLabel && elementInfo?.i18nKey != null) {
-                                return translate(elementInfo.i18nKey)
-                            }
-                            if (additionalLabel && elementInfo?.additionalI18nKey != null) {
-                                return translate(elementInfo.additionalI18nKey)
-                            }
-                        }
-                    }
-                }
-                return null
-            }
-            if (label.startsWith("'"))
-                return label.substring(1)
-            return translate(label)
-        }
-
+    @JvmStatic
+    fun addCommonTranslations(translations: MutableMap<String, String>) {
+      addTranslations("select.placeholder", "calendar.today", "task.title.list.select", translations = translations)
     }
+
+    /**
+     * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
+     * i18n-keys (by referring the [org.projectforge.common.anots.PropertyInfo] annotations of clazz).
+     * Calls [processAllElements].
+     * @return List of all elements used in the layout.
+     */
+    @JvmStatic
+    fun process(layout: UILayout): List<Any?> {
+      val elements = processAllElements(layout, layout.getAllElements())
+      var counter = 0
+      layout.namedContainers.forEach {
+        it.key = "nc-${++counter}"
+      }
+      return elements
+    }
+
+    /**
+     * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
+     * i18n-keys (by referring the [org.projectforge.common.anots.PropertyInfo] annotations of clazz).
+     */
+    @JvmStatic
+    fun processListPage(
+      layout: UILayout,
+      pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>
+    ): UILayout {
+      layout
+        .addAction(
+          UIButton(
+            "reset",
+            color = UIColor.SECONDARY,
+            outline = true,
+            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.FILTER_RESET), targetType = TargetType.GET)
+          )
+        )
+        .addAction(
+          UIButton(
+            "search",
+            color = UIColor.PRIMARY,
+            default = true,
+            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.LIST), targetType = TargetType.POST)
+          )
+        )
+      process(layout)
+      layout.addTranslations("search")
+      addCommonTranslations(layout)
+      Favorites.addTranslations(layout.translations)
+      return layout
+    }
+
+    /**
+     * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
+     * i18n-keys (by referring the @PropertColumn annotations of clazz).<br>
+     * Adds the action buttons (cancel, undelete, markAsDeleted, update and/or add dependent on the given data.<br>
+     * Calls also fun [process].
+     * @see LayoutUtils.process
+     */
+    @JvmStatic
+    fun <O : ExtendedBaseDO<Int>> processEditPage(
+      layout: UILayout,
+      dto: Any,
+      pagesRest: AbstractPagesRest<O, *, out BaseDao<O>>
+    )
+        : UILayout {
+      val userAccess = layout.userAccess
+      if (userAccess.cancel != false) {
+        layout.addAction(
+          UIButton(
+            "cancel",
+            color = UIColor.SECONDARY,
+            outline = true,
+            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.CANCEL), targetType = TargetType.POST)
+          )
+        )
+      }
+      if (pagesRest.isHistorizable()) {
+        // 99% of the objects are historizable (undeletable):
+        if (pagesRest.getId(dto) != null) {
+          if (userAccess.history == true) {
+            layout.showHistory = true
+          }
+          if (pagesRest.isDeleted(dto)) {
+            if (userAccess.insert == true) {
+              layout.addAction(
+                UIButton(
+                  "undelete",
+                  color = UIColor.PRIMARY,
+                  responseAction = ResponseAction(
+                    pagesRest.getRestPath(RestPaths.UNDELETE),
+                    targetType = TargetType.PUT
+                  )
+                )
+              )
+            }
+            addForceDeleteButton(pagesRest, layout, userAccess)
+          } else if (userAccess.delete == true) {
+            addForceDeleteButton(pagesRest, layout, userAccess)
+            layout.addAction(
+              UIButton(
+                "markAsDeleted",
+                color = UIColor.WARNING,
+                outline = true,
+                responseAction = ResponseAction(
+                  pagesRest.getRestPath(RestPaths.MARK_AS_DELETED),
+                  targetType = TargetType.DELETE
+                ),
+                confirmMessage = translate("question.markAsDeletedQuestion")
+              )
+            )
+            layout.addTranslations("yes", "cancel")
+          }
+        }
+      } else if (userAccess.delete == true) {
+        // MemoDO for example isn't historizable:
+        layout.addAction(
+          UIButton(
+            "deleteIt",
+            color = UIColor.DANGER,
+            outline = true,
+            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE),
+            confirmMessage = translate("question.deleteQuestion")
+          )
+        )
+
+        layout.addTranslations("yes", "cancel")
+      }
+      if (pagesRest.getId(dto) != null) {
+        if (pagesRest.cloneSupport != AbstractPagesRest.CloneSupport.NONE) {
+          layout.addAction(
+            UIButton(
+              "clone",
+              color = UIColor.SECONDARY,
+              outline = true,
+              responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.CLONE), targetType = TargetType.POST)
+            )
+          )
+        }
+        if (!pagesRest.isDeleted(dto)) {
+          if (userAccess.update == true) {
+            layout.addAction(
+              UIButton(
+                "update",
+                color = UIColor.PRIMARY,
+                default = true,
+                responseAction = ResponseAction(
+                  pagesRest.getRestPath(RestPaths.SAVE_OR_UDATE),
+                  targetType = TargetType.PUT
+                )
+              )
+            )
+          }
+        }
+      } else if (userAccess.insert == true) {
+        layout.addAction(
+          UIButton(
+            "create",
+            color = UIColor.SUCCESS,
+            default = true,
+            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)
+          )
+        )
+      }
+      process(layout)
+      layout.addTranslations("label.historyOfChanges")
+      addCommonTranslations(layout)
+      return layout
+    }
+
+    /**
+     * Will only be added, if user has delete access as well as the baseDao.isForceDeletionSupport == true.
+     */
+    private fun addForceDeleteButton(
+      pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
+      layout: UILayout,
+      userAccess: UILayout.UserAccess,
+    ) {
+      if (pagesRest.baseDao.isForceDeletionSupport && userAccess.delete == true) {
+        layout.addAction(
+          UIButton(
+            "forceDelete",
+            color = UIColor.DANGER,
+            outline = true,
+            responseAction = ResponseAction(
+              pagesRest.getRestPath(RestPaths.FORCE_DELETE),
+              targetType = TargetType.DELETE
+            ),
+            confirmMessage = translate("question.forceDeleteQuestion")
+          )
+        )
+      }
+    }
+
+    private fun addCommonTranslations(layout: UILayout) {
+      addCommonTranslations(layout.translations)
+    }
+
+    /**
+     * @param layoutSettings One element is returned including the label (e. g. UIInput).
+     */
+    internal fun buildLabelInputElement(layoutSettings: LayoutContext, id: String): UIElement? {
+      return ElementsRegistry.buildElement(layoutSettings, id)
+    }
+
+    /**
+     * @param createRowCol If true, a new [UIRow] containing a new [UICol] with the given element is returned,
+     * otherwise the element itself without any other operation.
+     * @return The element itself or the surrounding [UIRow].
+     */
+    internal fun prepareElementToAdd(element: UIElement, createRowCol: Boolean): UIElement {
+      return if (createRowCol) {
+        val row = UIRow()
+        val col = UICol()
+        row.add(col)
+        col.add(element)
+        row
+      } else {
+        element
+      }
+    }
+
+    internal fun setLabels(elementInfo: ElementInfo?, element: UILabelledElement) {
+      if (elementInfo == null)
+        return
+      if (!elementInfo.i18nKey.isNullOrEmpty())
+        element.label = elementInfo.i18nKey
+      if (!elementInfo.additionalI18nKey.isNullOrEmpty() && !element.ignoreAdditionalLabel)
+        element.additionalLabel = elementInfo.additionalI18nKey
+      if (!elementInfo.tooltipI18nKey.isNullOrEmpty() && !element.ignoreTooltip)
+        element.tooltip = elementInfo.tooltipI18nKey
+    }
+
+    /**
+     * Does translation of buttons and UILabels
+     * @param elements List of all elements used in the layout.
+     * @return The unmodified parameter elements.
+     * @see HibernateUtils.getPropertyLength
+     */
+    private fun processAllElements(layout: UILayout, elements: List<Any>): List<Any?> {
+      var counter = 0
+      elements.forEach {
+        if (it is UIElement) {
+          it.key = "el-${++counter}"
+        }
+        when (it) {
+          is UILabelledElement -> {
+            it.label = getLabelTransformation(it.label, it as UIElement)
+            it.additionalLabel = getLabelTransformation(it.additionalLabel, it, LabelType.ADDITIONAL_LABEL)
+            it.tooltip = getLabelTransformation(it.tooltip, it, LabelType.TOOLTIP)
+          }
+          is UIFieldset -> {
+            it.title = getLabelTransformation(it.title, it as UIElement)
+          }
+          is UITableColumn -> {
+            val translation = getLabelTransformation(it.title)
+            if (translation != null) it.title = translation
+          }
+          is UIAlert -> {
+            val title = getLabelTransformation(it.title)
+            if (title != null) it.title = title
+            val message = getLabelTransformation(it.message)
+            if (message != null) it.message = message
+          }
+          is UIButton -> {
+            if (it.title == null) {
+              val i18nKey = when (it.id) {
+                "cancel" -> "cancel"
+                "clone" -> "clone"
+                "create" -> "create"
+                "deleteIt" -> "delete"
+                "forceDelete" -> "forceDelete"
+                "markAsDeleted" -> "markAsDeleted"
+                "reset" -> "reset"
+                "search" -> "search"
+                "undelete" -> "undelete"
+                "update" -> "save"
+                else -> null
+              }
+              if (i18nKey == null) {
+                log.error("i18nKey not found for action button '${it.id}'.")
+              } else {
+                it.title = translate(i18nKey)
+              }
+            }
+            if (!it.confirmMessage.isNullOrBlank()) {
+              layout.addTranslations("cancel", "yes")
+            }
+            val tooltip = getLabelTransformation(it.tooltip)
+            if (tooltip != null) it.tooltip = tooltip
+
+          }
+          is UIList -> {
+            // Translate position label
+            it.positionLabel = translate(it.positionLabel)
+          }
+          is UIAttachmentList -> {
+            if (!layout.translations.containsKey("attachment.fileName")) {
+              layout.addTranslations(
+                "attachment.expires",
+                "attachment.fileName",
+                "attachment.onlyAvailableAfterSave",
+                "attachment.size",
+                "created",
+                "createdBy",
+                "delete",
+                "description",
+                "file.upload.dropArea",
+                "modified",
+                "modifiedBy",
+                "reload",
+              )
+            }
+          }
+          is UIDropArea -> {
+            it.title = getLabelTransformation(it.title, it as UIElement)
+            it.tooltip = getLabelTransformation(it.tooltip, it, LabelType.TOOLTIP)
+          }
+        }
+      }
+      return elements
+    }
+
+    /**
+     * @return The id of the given element if supported.
+     */
+    internal fun getId(element: UIElement?, followLabelReference: Boolean = true): String? {
+      if (element == null) return null
+      if (followLabelReference && element is UILabel) {
+        return getId(element.reference)
+      }
+      return when (element) {
+        is UIInput -> element.id
+        is UICheckbox -> element.id
+        is UICreatableSelect -> element.id
+        is UIRadioButton -> element.id
+        is UIReadOnlyField -> element.id
+        is UISelect<*> -> element.id
+        is UITextArea -> element.id
+        is UITableColumn -> element.id
+        else -> null
+      }
+    }
+
+    /**
+     * If the given label starts with "'" the label itself as substring after "'" will be returned: "'This is an text." -> "This is an text"<br>
+     * Otherwise method [translate] will be called and the result returned.
+     * @param label to process
+     * @return Modified label or unmodified label.
+     */
+    internal fun getLabelTransformation(
+      label: String?,
+      labelledElement: UIElement? = null,
+      labelType: LabelType? = null
+    ): String? {
+      if (label == null) {
+        if (labelledElement is UILabelledElement) {
+          val layoutSettings = labelledElement.layoutContext
+          if (layoutSettings != null) {
+            val id = getId(labelledElement)
+            if (id != null) {
+              val elementInfo = ElementsRegistry.getElementInfo(layoutSettings, id)
+              when (labelType) {
+                LabelType.ADDITIONAL_LABEL -> {
+                  if (labelledElement.ignoreAdditionalLabel) {
+                    return null
+                  } else if (elementInfo?.additionalI18nKey != null) {
+                    return translate(elementInfo.additionalI18nKey)
+                  }
+                }
+                LabelType.TOOLTIP -> {
+                  if (labelledElement.ignoreTooltip) {
+                    return null
+                  } else if (elementInfo?.tooltipI18nKey != null) {
+                    return translate(elementInfo.tooltipI18nKey)
+                  }
+                }
+                else -> {
+                  if (elementInfo?.i18nKey != null) {
+                    return translate(elementInfo.i18nKey)
+                  }
+                }
+              }
+            }
+          }
+        }
+        return null
+      }
+      return translate(label)
+    }
+  }
+
+  internal enum class LabelType { ADDITIONAL_LABEL, TOOLTIP }
 }

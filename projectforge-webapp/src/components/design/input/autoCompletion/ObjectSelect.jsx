@@ -6,14 +6,15 @@ import { UncontrolledTooltip } from '../../index';
 import styles from './AutoCompletion.module.scss';
 import ObjectAutoCompletion from './ObjectAutoCompletion';
 
-
 function ObjectSelect(
     {
+        dispatch,
         id,
         label,
         onSelect,
         translations,
         type,
+        url,
         user,
         value,
         ...props
@@ -34,8 +35,9 @@ function ObjectSelect(
         handleSelectMeHoverEnd();
     };
 
-    const hasSelectMe = (type === 'USER' && (!value || value.id !== user.id))
-        || (type === 'EMPLOYEE' && (!value || value.id !== user.employeeId));
+    const hasSelectMe = user
+        && ((type === 'USER' && (!value || value.id !== user.id))
+            || (type === 'EMPLOYEE' && (!value || value.id !== user.employeeId)));
 
     let inputProps = {
         label,
@@ -56,12 +58,12 @@ function ObjectSelect(
     }
 
     return (
-        <React.Fragment>
+        <>
             <ObjectAutoCompletion
                 inputId={id}
                 inputProps={inputProps}
                 onSelect={onSelect}
-                url={`${type.toLowerCase()}/autosearch?search=:search`}
+                url={url || `${type.toLowerCase()}/autosearch?search=:search`}
                 value={value}
                 {...props}
             />
@@ -70,36 +72,49 @@ function ObjectSelect(
                     {translations['tooltip.selectMe']}
                 </UncontrolledTooltip>
             )}
-        </React.Fragment>
+        </>
     );
 }
 
 ObjectSelect.propTypes = {
+    dispatch: PropTypes.func.isRequired,
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     onSelect: PropTypes.func.isRequired,
-    type: PropTypes.oneOf(['USER', 'EMPLOYEE']).isRequired,
-    user: PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        displayName: PropTypes.string.isRequired,
-    }).isRequired,
+    type: PropTypes.oneOf(['USER', 'EMPLOYEE', 'OTHER', 'KONTO']).isRequired,
     translations: PropTypes.shape({
         'tooltip.selectMe': PropTypes.string,
     }),
-    value: PropTypes.shape({}),
+    url: PropTypes.string,
+    user: PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        displayName: PropTypes.string.isRequired,
+        employeeId: PropTypes.number,
+    }),
+    value: PropTypes.shape({
+        id: PropTypes.string,
+    }),
 };
 
 ObjectSelect.defaultProps = {
     translations: undefined,
+    url: undefined,
+    user: undefined,
     value: undefined,
 };
 
-const mapStateToProps = ({ authentication }) => ({
-    user: {
-        id: authentication.user.userId,
-        employeeId: authentication.user.employeeId,
-        displayName: authentication.user.username,
-    },
-});
+const mapStateToProps = ({ authentication }) => {
+    if (authentication.user) {
+        return {
+            user: {
+                id: authentication.user.userId,
+                employeeId: authentication.user.employeeId,
+                displayName: authentication.user.username,
+            },
+        };
+    }
+
+    return {};
+};
 
 export default connect(mapStateToProps)(ObjectSelect);

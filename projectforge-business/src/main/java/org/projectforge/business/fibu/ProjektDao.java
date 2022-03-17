@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,6 +26,7 @@ package org.projectforge.business.fibu;
 import org.hibernate.Hibernate;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
+import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -55,6 +56,9 @@ public class ProjektDao extends BaseDao<ProjektDO> {
 
   @Autowired
   private TaskDao taskDao;
+
+  @Autowired
+  private TaskTree taskTree;
 
   @Autowired
   private PfEmgrFactory emgrFactory;
@@ -189,7 +193,7 @@ public class ProjektDao extends BaseDao<ProjektDO> {
   @Override
   protected void afterSaveOrModify(final ProjektDO projekt) {
     if (projekt.getTaskId() != null) {
-      taskDao.getTaskTree().internalSetProject(projekt.getTaskId(), projekt);
+      taskTree.internalSetProject(projekt.getTaskId(), projekt);
     }
     super.afterSaveOrModify(projekt);
   }
@@ -198,7 +202,7 @@ public class ProjektDao extends BaseDao<ProjektDO> {
   protected void afterUpdate(final ProjektDO obj, final ProjektDO dbObj) {
     if (dbObj.getTaskId() != null && obj.getTaskId() == null) {
       // Project task was removed:
-      taskDao.getTaskTree().internalSetProject(dbObj.getTaskId(), null);
+      taskTree.internalSetProject(dbObj.getTaskId(), null);
     }
     super.afterUpdate(obj, dbObj);
   }

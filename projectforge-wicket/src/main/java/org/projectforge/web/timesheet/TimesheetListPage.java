@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -22,13 +22,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 package org.projectforge.web.timesheet;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -51,7 +44,7 @@ import org.hibernate.Hibernate;
 import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetExport;
@@ -70,23 +63,19 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.framework.utils.MyBeanComparator;
 import org.projectforge.jira.JiraUtils;
+import org.projectforge.registry.Registry;
 import org.projectforge.renderer.custom.Formatter;
 import org.projectforge.renderer.custom.FormatterFactory;
 import org.projectforge.web.task.TaskPropertyColumn;
 import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.user.UserPropertyColumn;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.DownloadUtils;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.MyListPageSortableDataProvider;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 import org.springframework.util.CollectionUtils;
+
+import java.io.Serializable;
+import java.util.*;
 
 @ListPage(editPage = TimesheetEditPage.class)
 public class TimesheetListPage extends AbstractListPage<TimesheetListForm, TimesheetDao, TimesheetDO> implements
@@ -461,6 +450,14 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
         item.add(label);
       }
     });
+    columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("timesheet.reference"),
+        getSortable("reference", sortable),
+        "reference", cellItemListener));
+    if (!CollectionUtils.isEmpty(Registry.getInstance().getDao(TimesheetDao.class).getTags())) {
+      columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("timesheet.tag"),
+          getSortable("tag", sortable),
+          "tag", cellItemListener));
+    }
     return columns;
   }
 
@@ -537,7 +534,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     final TimesheetFilter filter = form.getSearchFilter();
     if (filter.getUserId() != null) {
       buf.append(FileHelper
-          .createSafeFilename(getTenantRegistry().getUserGroupCache().getUser(filter.getUserId()).getLastname(), 20))
+          .createSafeFilename(UserGroupCache.getInstance().getUser(filter.getUserId()).getLastname(), 20))
           .append("_");
     }
     if (filter.getTaskId() != null) {
@@ -610,11 +607,11 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
             if ("user.fullname".equals(sortProperty) == true) {
               PFUserDO user = t1.getUser();
               if (user != null && Hibernate.isInitialized(user) == false) {
-                t1.setUser(getTenantRegistry().getUserGroupCache().getUser(user.getId()));
+                t1.setUser(UserGroupCache.getInstance().getUser(user.getId()));
               }
               user = t2.getUser();
               if (user != null && Hibernate.isInitialized(user) == false) {
-                t2.setUser(getTenantRegistry().getUserGroupCache().getUser(user.getId()));
+                t2.setUser(UserGroupCache.getInstance().getUser(user.getId()));
               }
             } else if ("task.title".equals(sortProperty) == true) {
               TaskDO task = t1.getTask();

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.wicket.autocompletion;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -38,6 +35,9 @@ import org.apache.wicket.request.handler.TextRequestHandler;
 import org.apache.wicket.util.string.Strings;
 import org.projectforge.web.core.JsonBuilder;
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class PFAutoCompleteBehavior<T> extends AbstractDefaultAjaxBehavior
 {

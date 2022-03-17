@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,6 +28,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -42,8 +43,8 @@ class CalendarSubscriptionInfoPageRest {
     @Autowired
     private lateinit var calendarFeedService: CalendarFeedService
 
-    @GetMapping("layout")
-    fun getLayout(@RequestParam("type") type: String?): UILayout {
+    @GetMapping("dynamic")
+    fun getLayout(@RequestParam("type") type: String?): FormLayoutData {
         val subscriptionInfo = CalendarSubscriptionInfo()
         if (type == "HOLIDAYS") {
             subscriptionInfo.url = calendarFeedService.fullUrl4Holidays
@@ -58,12 +59,15 @@ class CalendarSubscriptionInfoPageRest {
         }
         val layout = UILayout("plugins.teamcal.subscription")
         layout.addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
-        layout.add(UIFieldset(mdLength = 12, lgLength = 12)
+        layout.add(UIFieldset(UILength(md = 12, lg = 12))
                 .add(UIRow()
                         .add(UICol()
                                 .add(UICustomized("calendar.subscriptionInfo",
                                         values = mutableMapOf("subscriptionInfo" to subscriptionInfo))))))
-        return layout
+
+        LayoutUtils.process(layout);
+
+        return FormLayoutData(null, layout, null)
     }
 
     companion object {

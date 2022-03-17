@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,9 +26,9 @@ package org.projectforge.rest.admin
 import org.projectforge.business.user.UserXmlPreferencesDO
 import org.projectforge.business.user.UserXmlPreferencesDao
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.GZIPHelper
-import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping

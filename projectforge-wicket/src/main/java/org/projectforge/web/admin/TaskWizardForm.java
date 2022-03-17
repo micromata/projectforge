@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,7 +32,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskSelectPanel;
@@ -41,12 +40,7 @@ import org.projectforge.web.user.GroupEditPage;
 import org.projectforge.web.user.NewGroupSelectPanel;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.Heading3Panel;
-import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
+import org.projectforge.web.wicket.flowlayout.*;
 
 public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWizardPage>
 {
@@ -95,7 +89,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
         protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
         {
           final PageParameters params = new PageParameters();
-          params.add(TaskEditPage.PARAM_PARENT_TASK_ID, getTaskTree().getRootTaskNode().getId());
+          params.add(TaskEditPage.PARAM_PARENT_TASK_ID, TaskTree.getInstance().getRootTaskNode().getId());
           final TaskEditPage editPage = new TaskEditPage(params);
           editPage.setReturnToPage(parentPage);
           setResponsePage(editPage);
@@ -194,13 +188,5 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
     fs.add(new IconLinkPanel(fs.newChildId(), IconType.PLUS_SIGN,
         new Model<String>(getString("task.wizard.button.createGroup.tooltip")), createGroupLink));
     return groupSelectPanel;
-  }
-
-  private TaskTree getTaskTree()
-  {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
   }
 }

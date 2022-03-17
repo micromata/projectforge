@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,8 +37,6 @@ import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
 
 class LantChooseDirectoryScreen(context: LantGUIContext) : LantAbstractWizardWindow(context, Texts.CD_SCREEN_TITLE) {
-    private val log = org.slf4j.LoggerFactory.getLogger(LantChooseDirectoryScreen::class.java)
-
     private lateinit var actionListBox: ActionListBox
 
     override fun getContentPanel(): Panel {
@@ -61,7 +59,7 @@ class LantChooseDirectoryScreen(context: LantGUIContext) : LantAbstractWizardWin
         val prevApplicationHomeDir = CanonicalFileUtils.absolute(context.setupData.applicationHomeDir)
         var prevApplicationHomeDirInList = false
         var index = 0
-        for (dir in ProjectForgeHomeFinder.getSuggestedDirectories()) {
+        for (dir in ProjectForgeHomeFinder.suggestedDirectories) {
             actionListBox.addItem(CanonicalFileUtils.absolutePath(dir)) {
                 context.setupData.applicationHomeDir = CanonicalFileUtils.absolute(dir)
                 context.setupMain.next()
@@ -96,8 +94,8 @@ class LantChooseDirectoryScreen(context: LantGUIContext) : LantAbstractWizardWin
                     preselectedDirname = preselectedDirname,
                     context = context
             ) {
-                override fun validResult(path: String, dir: String): File? {
-                    val dir = super.validResult(path, dir)
+                override fun validResult(pathString: String, dirString: String): File? {
+                    val dir = super.validResult(pathString, dirString)
                     if (dir != null && ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(dir)) {
                         MessageDialog.showMessageDialog(textGUI, Texts.ERROR_TITLE, Texts.ERROR_DIR_IS_SOURCE_REPO, MessageDialogButton.OK)
                         return null

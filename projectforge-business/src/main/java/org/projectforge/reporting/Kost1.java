@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,26 +33,26 @@ import org.projectforge.business.fibu.kost.KostentraegerStatus;
 public interface Kost1
 {
   /** Synthetischer, eindeutiger Datenbankschlüssel. */
-  public Integer getId();
+  Integer getId();
   
   /** Ist der Kostenträger aktiv? */
-  public KostentraegerStatus getKostentraegerStatus();
+  KostentraegerStatus getKostentraegerStatus();
 
   /** @return Die erste Ziffer des acht-stelligen Kostenträgers. */
-  public int getNummernkreis();
+  int getNummernkreis();
 
   /** @return Ziffer 2-4 des acht-stelligen Kostenträgers. */
-  public int getBereich();
+  int getBereich();
 
   /** @return Ziffer 5-6 des acht-stelligen Kostenträgers. */
-  public int getTeilbereich();
+  int getTeilbereich();
 
   /** @return Die letzten beiden Ziffern des Kostenträgers. */
-  public int getEndziffer();
+  int getEndziffer();
 
   /** @return Freitext. */
-  public String getDescription();
+  String getDescription();
 
   /** Gibt den Kostenträger als Zeichenkette in der Form 1.234.56.78 zurück. */
-  public String getFormattedString();
+  String getFormattedString();
 }

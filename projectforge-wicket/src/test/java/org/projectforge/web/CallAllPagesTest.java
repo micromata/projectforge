@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,10 +30,7 @@ import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.admin.SetupPage;
-import org.projectforge.web.doc.TutorialPage;
 import org.projectforge.web.registry.WebRegistry;
-import org.projectforge.web.scripting.ScriptExecutePage;
-import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketPageTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -54,7 +51,7 @@ public class CallAllPagesTest extends WicketPageTestBase
   @SuppressWarnings("unchecked")
   private final Class<? extends WebPage>[] skipPages = new Class[] { //
       // Not yet checked:
-      ScriptExecutePage.class };
+  };
 
   @Override
   protected void afterAll() {
@@ -67,7 +64,6 @@ public class CallAllPagesTest extends WicketPageTestBase
   {
     MenuCreator.Companion.setTestCase(true);
     _testAllMountedPages();
-    testPage(LoginPage.class);
     clearDatabase();
     testPage(SetupPage.class);
   }
@@ -92,7 +88,6 @@ public class CallAllPagesTest extends WicketPageTestBase
       }
       testPage(entry.getValue());
     }
-    testPage(TutorialPage.class, MessagePage.class); // Tutorial page not available at default.
     logout();
   }
 

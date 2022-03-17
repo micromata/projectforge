@@ -2,11 +2,11 @@ import { faCog } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { Button, Col, Container, Popover, PopoverBody, PopoverHeader, Row } from 'reactstrap';
+import { Button, Col, Container, Modal, ModalBody, ModalHeader, Row } from 'reactstrap';
 import ObjectSelect from '../../../components/design/input/autoCompletion/ObjectSelect';
 import CheckBox from '../../../components/design/input/CheckBox';
 import style from '../../../components/design/input/Input.module.scss';
-import ReactSelect from '../../../components/design/ReactSelect';
+import ReactSelect from '../../../components/design/react-select/ReactSelect';
 import { fetchJsonGet, fetchJsonPost } from '../../../utilities/rest';
 import { CalendarContext } from '../../page/calendar/CalendarContext';
 
@@ -16,7 +16,7 @@ import { CalendarContext } from '../../page/calendar/CalendarContext';
 class CalendarFilterSettings extends Component {
     static extractDefaultCalendarValue(props) {
         const { listOfDefaultCalendars, defaultCalendarId } = props;
-        return listOfDefaultCalendars.find(it => it.id === defaultCalendarId);
+        return listOfDefaultCalendars.find((it) => it.id === defaultCalendarId);
     }
 
     static loadVacationGroupsOptions(search, callback) {
@@ -38,7 +38,7 @@ class CalendarFilterSettings extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            popoverOpen: false,
+            isOpen: false,
         };
 
         this.handleDefaultCalendarChange = this.handleDefaultCalendarChange.bind(this);
@@ -46,7 +46,7 @@ class CalendarFilterSettings extends Component {
         this.handleVacationGroupsChange = this.handleVacationGroupsChange.bind(this);
         this.handleVacationUsersChange = this.handleVacationUsersChange.bind(this);
         this.handleGridSizeChange = this.handleGridSizeChange.bind(this);
-        this.togglePopover = this.togglePopover.bind(this);
+        this.toggle = this.toggle.bind(this);
         this.handleCheckBoxChange = this.handleCheckBoxChange.bind(this);
     }
 
@@ -124,14 +124,14 @@ class CalendarFilterSettings extends Component {
             });
     }
 
-    togglePopover() {
-        this.setState(prevState => ({
-            popoverOpen: !prevState.popoverOpen,
+    toggle() {
+        this.setState((prevState) => ({
+            isOpen: !prevState.isOpen,
         }));
     }
 
     render() {
-        const { popoverOpen } = this.state;
+        const { isOpen } = this.state;
         const {
             listOfDefaultCalendars,
             otherTimesheetUsersEnabled,
@@ -163,12 +163,11 @@ class CalendarFilterSettings extends Component {
         };
         const defaultCalendar = CalendarFilterSettings.extractDefaultCalendarValue(this.props);
         return (
-            <React.Fragment>
+            <>
                 <Button
-                    id="calendarSettingsPopover"
                     color="link"
                     className="selectPanelIconLinks"
-                    onClick={this.togglePopover}
+                    onClick={this.toggle}
                 >
                     <FontAwesomeIcon
                         icon={faCog}
@@ -176,17 +175,14 @@ class CalendarFilterSettings extends Component {
                         size="lg"
                     />
                 </Button>
-                <Popover
-                    placement="bottom-end"
-                    isOpen={popoverOpen}
-                    target="calendarSettingsPopover"
-                    toggle={this.togglePopover}
-                    trigger="legacy"
+                <Modal
+                    isOpen={isOpen}
+                    toggle={this.toggle}
                 >
-                    <PopoverHeader>
+                    <ModalHeader toggle={this.toggle}>
                         {translations.settings}
-                    </PopoverHeader>
-                    <PopoverBody>
+                    </ModalHeader>
+                    <ModalBody>
                         <Container>
                             <Row>
                                 <Col>
@@ -269,9 +265,9 @@ class CalendarFilterSettings extends Component {
                                 </Col>
                             </Row>
                         </Container>
-                    </PopoverBody>
-                </Popover>
-            </React.Fragment>
+                    </ModalBody>
+                </Modal>
+            </>
         );
     }
 }
@@ -290,7 +286,17 @@ CalendarFilterSettings.propTypes = {
     gridSize: PropTypes.number,
     otherTimesheetUsersEnabled: PropTypes.bool.isRequired,
     listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
-    translations: PropTypes.shape({}).isRequired,
+    translations: PropTypes.shape({
+        settings: PropTypes.string,
+        'calendar.defaultCalendar': PropTypes.string,
+        'calendar.defaultCalendar.tooltip': PropTypes.string,
+        'calendar.option.timesheets': PropTypes.string,
+        'calendar.filter.vacation.groups': PropTypes.string,
+        'calendar.filter.vacation.groups.tooltip': PropTypes.string,
+        'calendar.filter.vacation.users': PropTypes.string,
+        'calendar.filter.vacation.user.tooltip': PropTypes.string,
+        'calendar.option.gridSize': PropTypes.string,
+    }).isRequired,
     vacationGroups: PropTypes.arrayOf(PropTypes.shape({
         title: PropTypes.string,
         id: PropTypes.number,

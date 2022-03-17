@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -40,7 +40,7 @@ import java.util.Map;
  */
 @Component
 public class VacationMenuCounterCache extends AbstractCache {
-  private static Logger log = LoggerFactory.getLogger(org.projectforge.business.fibu.kost.KostCache.class);
+  private static Logger log = LoggerFactory.getLogger(VacationMenuCounterCache.class);
 
   @Autowired
   private VacationService vacationService;
@@ -64,8 +64,8 @@ public class VacationMenuCounterCache extends AbstractCache {
    */
   @Override
   protected void refresh() {
-    log.info("Initializing FFDeptCounterCache ...");
+    log.info("Initializing VacationMenuCounterCache ...");
     openMenuCounter.clear();
-    log.info("Initializing of FFDeptCounterCache done.");
+    log.info("Initializing of VacationMenuCounterCache done.");
   }
 }

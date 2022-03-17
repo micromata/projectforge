@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,6 +28,7 @@ import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.api.UserRightService;
@@ -72,7 +73,16 @@ public class PersonalAddressDao {
   @Autowired
   private UserRightService userRights;
 
+  private PersonalAddressCache personalAddressCache;
+
   private transient AddressbookRight addressbookRight;
+
+  private PersonalAddressCache getPersonalAddressCache() {
+    if (personalAddressCache == null) {
+      personalAddressCache = ApplicationContextProvider.getApplicationContext().getBean(PersonalAddressCache.class);
+    }
+    return personalAddressCache;
+  }
 
   /**
    * @param personalAddress
@@ -108,7 +118,7 @@ public class PersonalAddressDao {
     }
     Set<Integer> addressbookIDListForUser = getAddressbookIdsForUser(owner);
     Set<Integer> addressbookIDListFromAddress = obj.getAddress().getAddressbookList().stream().mapToInt(AddressbookDO::getId).boxed()
-            .collect(Collectors.toSet());
+        .collect(Collectors.toSet());
     if (Collections.disjoint(addressbookIDListForUser, addressbookIDListFromAddress)) {
       if (throwException) {
         throw new AccessException("address.accessException.userHasNoRightForAddressbook");
@@ -150,17 +160,31 @@ public class PersonalAddressDao {
       emgr.persist(obj);
       return null;
     });
+    getPersonalAddressCache().setAsExpired(obj.getOwnerId());
     log.info("New object added (" + obj.getId() + "): " + obj.toString());
     return obj.getId();
   }
 
+  /**
+   * Will be called, before an address is (forced) deleted. All references in personal address books have to be deleted first.
+   *
+   * @param addressDO
+   */
+  void internalDeleteAll(final AddressDO addressDO) {
+    emgrFactory.runInTrans(emgr -> {
+      int counter = emgr.getEntityManager()
+          .createNamedQuery(PersonalAddressDO.DELETE_ALL_BY_ADDRESS_ID)
+          .setParameter("addressId", addressDO.getId())
+          .executeUpdate();
+      if (counter > 0) {
+        log.info("Removed #" + counter + " personal address book entries of deleted address: " + addressDO);
+      }
+      return true;
+    });
+  }
+
   private boolean isEmpty(final PersonalAddressDO obj) {
-    return (!obj.isFavoriteCard())
-            && (!obj.isFavoriteBusinessPhone())
-            && (!obj.isFavoriteMobilePhone())
-            && (!obj.isFavoriteFax())
-            && (!obj.isFavoritePrivatePhone())
-            && (!obj.isFavoritePrivateMobilePhone());
+    return !obj.isFavoriteCard();
   }
 
   /**
@@ -187,11 +211,14 @@ public class PersonalAddressDao {
       final ModificationStatus modified = dbObj.copyValuesFrom(obj, "owner", "address", "id");
       if (modified == ModificationStatus.MAJOR) {
         dbObj.setLastUpdate();
+        em.merge(dbObj);
+        getPersonalAddressCache().setAsExpired(dbObj.getOwnerId());
         log.info("Object updated: " + dbObj.toString());
       }
       return true;
     });
   }
+
 
   /**
    * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
@@ -199,15 +226,40 @@ public class PersonalAddressDao {
   @SuppressWarnings("unchecked")
   public PersonalAddressDO getByAddressId(final Integer addressId) {
     final PFUserDO owner = ThreadLocalUserContext.getUser();
+    return getByAddressId(addressId, owner);
+  }
+
+  /**
+   * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
+   */
+  @SuppressWarnings("unchecked")
+  public PersonalAddressDO getByAddressId(final Integer addressId, final PFUserDO owner) {
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
     return SQLHelper.ensureUniqueResult(em
-                    .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID, PersonalAddressDO.class)
-                    .setParameter("ownerId", owner.getId())
-                    .setParameter("addressId", addressId),
-            true,
-            "Multiple personal address book entries for same user (" + owner.getId() + ") and same address ("
-                    + addressId + "). Should not occur?!");
+            .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID, PersonalAddressDO.class)
+            .setParameter("ownerId", owner.getId())
+            .setParameter("addressId", addressId),
+        true,
+        "Multiple personal address book entries for same user (" + owner.getId() + ") and same address ("
+            + addressId + "). Should not occur?!");
+  }
+
+  /**
+   * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
+   */
+  @SuppressWarnings("unchecked")
+  public PersonalAddressDO getByAddressUid(final String addressUid) {
+    final PFUserDO owner = ThreadLocalUserContext.getUser();
+    Validate.notNull(owner);
+    Validate.notNull(owner.getId());
+    return SQLHelper.ensureUniqueResult(em
+            .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_UID, PersonalAddressDO.class)
+            .setParameter("ownerId", owner.getId())
+            .setParameter("addressUid", addressUid),
+        true,
+        "Multiple personal address book entries for same user (" + owner.getId() + ") and same address ("
+            + addressUid + "). Should not occur?!");
   }
 
   /**
@@ -219,10 +271,10 @@ public class PersonalAddressDao {
     Validate.notNull(owner.getId());
     final long start = System.currentTimeMillis();
     List<PersonalAddressDO> list = em
-            .createNamedQuery(PersonalAddressDO.FIND_JOINED_BY_OWNER, PersonalAddressDO.class)
-            .setParameter("ownerId", owner.getId())
-            .getResultList();
-    log.info("PersonalDao.getList took " + (System.currentTimeMillis() - start) + "ms.");
+        .createNamedQuery(PersonalAddressDO.FIND_JOINED_BY_OWNER, PersonalAddressDO.class)
+        .setParameter("ownerId", owner.getId())
+        .getResultList();
+    log.info("PersonalDao.getList took " + (System.currentTimeMillis() - start) + "ms for user " + owner.getId() + ".");
     list = list.stream().filter(pa -> checkAccess(pa, false)).collect(Collectors.toList());
     return list;
   }
@@ -235,9 +287,9 @@ public class PersonalAddressDao {
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
     List<Integer> list = em
-            .createNamedQuery(PersonalAddressDO.FIND_FAVORITE_ADDRESS_IDS_BY_OWNER, Integer.class)
-            .setParameter("ownerId", owner.getId())
-            .getResultList();
+        .createNamedQuery(PersonalAddressDO.FIND_FAVORITE_ADDRESS_IDS_BY_OWNER, Integer.class)
+        .setParameter("ownerId", owner.getId())
+        .getResultList();
     return list;
   }
 
@@ -251,9 +303,9 @@ public class PersonalAddressDao {
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
     final List<PersonalAddressDO> list = em
-            .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER, PersonalAddressDO.class)
-            .setParameter("ownerId", owner.getId())
-            .getResultList();
+        .createNamedQuery(PersonalAddressDO.FIND_BY_OWNER, PersonalAddressDO.class)
+        .setParameter("ownerId", owner.getId())
+        .getResultList();
     final Map<Integer, PersonalAddressDO> result = new HashMap<>();
     for (final PersonalAddressDO entry : list) {
       if (entry.isFavorite() && checkAccess(entry, false)) {

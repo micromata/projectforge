@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,6 +27,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.*;
 import org.projectforge.business.converter.DOConverter;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.model.rest.AddressObject;
 
 import java.io.PrintWriter;
@@ -37,10 +38,12 @@ import java.io.StringWriter;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class AddressDOConverter
-{
-  public static AddressObject getAddressObject(final AddressDao addressDao, final AddressDO addressDO, boolean disableImageData, boolean disableVCard)
-  {
+public class AddressDOConverter {
+  public static AddressObject getAddressObject(final AddressDao addressDao,
+                                               final AddressImageDao addressImageDao,
+                                               final AddressDO addressDO,
+                                               boolean disableImageData,
+                                               boolean disableVCard) {
     if (addressDO == null) {
       return null;
     }
@@ -49,7 +52,10 @@ public class AddressDOConverter
     address.setUid(addressDO.getUid());
     address.setAddressStatus(addressDO.getAddressStatus() != null ? addressDO.getAddressStatus().toString() : null);
     address.setAddressText(addressDO.getAddressText());
-    address.setBirthday(addressDO.getBirthday());
+    final PFDay birthday = PFDay.fromOrNull(addressDO.getBirthday());
+    if (birthday != null) {
+      address.setBirthday(birthday.getSqlDate());
+    }
     address.setBusinessPhone(addressDO.getBusinessPhone());
     address.setCity(addressDO.getCity());
     address.setComment(addressDO.getComment());
@@ -85,7 +91,7 @@ public class AddressDOConverter
     address.setWebsite(addressDO.getWebsite());
     address.setZipCode(addressDO.getZipCode());
     if (!disableImageData) {
-      address.setImage(Base64.encodeBase64String(addressDO.getImageData()));
+      address.setImage(Base64.encodeBase64String(addressImageDao.getImage(addressDO.getId())));
     }
     if (!disableVCard) {
       final StringWriter writer = new StringWriter();
@@ -95,8 +101,7 @@ public class AddressDOConverter
     return address;
   }
 
-  public static AddressDO getAddressDO(final AddressObject addressObject)
-  {
+  public static AddressDO getAddressDO(final AddressObject addressObject) {
     if (addressObject == null) {
       return null;
     }
@@ -105,7 +110,10 @@ public class AddressDOConverter
     address.setUid(addressObject.getUid());
     address.setAddressStatus(addressObject.getAddressStatus() != null ? AddressStatus.valueOf(addressObject.getAddressStatus()) : null);
     address.setAddressText(addressObject.getAddressText());
-    address.setBirthday(addressObject.getBirthday());
+    final PFDay birthday = PFDay.fromOrNull(addressObject.getBirthday());
+    if (birthday != null) {
+      address.setBirthday(birthday.getLocalDate());
+    }
     address.setBusinessPhone(addressObject.getBusinessPhone());
     address.setCity(addressObject.getCity());
     address.setComment(addressObject.getComment());
@@ -140,9 +148,13 @@ public class AddressDOConverter
     address.setTitle(addressObject.getTitle());
     address.setWebsite(addressObject.getWebsite());
     address.setZipCode(addressObject.getZipCode());
-    if (!StringUtils.isEmpty(addressObject.getImage())) {
-      address.setImageData(Base64.decodeBase64(addressObject.getImage()));
-    }
     return address;
+  }
+
+  public static byte[] getAddressImageDO(final AddressObject addressObject) {
+    if (addressObject == null || StringUtils.isEmpty(addressObject.getImage())) {
+      return null;
+    }
+    return Base64.decodeBase64(addressObject.getImage());
   }
 }

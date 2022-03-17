@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,18 +29,18 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.business.scripting.GroovyExecutor;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.utils.IntRanges;
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
-import org.projectforge.framework.xstream.XmlOmitField;
+import org.projectforge.framework.xmlstream.XmlField;
+import org.projectforge.framework.xmlstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlOmitField;
 
 import java.io.Serializable;
 
 /**
  * Used in config.xml for the definition of the used business assessment schema. This object represents a single row of the business
  * assessment.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XmlObject(alias = "row")
 public class BusinessAssessmentRowConfig implements Serializable

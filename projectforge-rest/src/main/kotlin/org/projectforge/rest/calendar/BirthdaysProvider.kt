@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -111,7 +111,7 @@ object BirthdaysProvider {
             }
             day = day.plusDays(1)
             if (++paranoiaCounter > 1000) {
-                log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of getDate.")
+                log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of getUtilDate.")
                 break
             }
         } while (!day.isAfter(end))

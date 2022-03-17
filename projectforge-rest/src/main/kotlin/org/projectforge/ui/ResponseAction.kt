@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,6 +34,11 @@ class ResponseAction(val url: String? = null,
                       * Default value is [TargetType.REDIRECT] for given url, otherwise null.
                       */
                      var targetType: TargetType? = null,
+                     /**
+                      * If true, then the returned data (including UI, variables etc.) will be merged into current state.
+                      * Otherwise a full update is done (for targetType=UPDATE and CLOSE_MODAL).
+                      */
+                     var merge: Boolean? = null,
                      val validationErrors: List<ValidationError>? = null,
                      val message: Message? = null,
                      variables: MutableMap<String, Any>? = null) {
@@ -64,7 +69,7 @@ class ResponseAction(val url: String? = null,
     init {
         this.variables = variables
         if (message != null && targetType == null) {
-            targetType = TargetType.TOAST
+            targetType = TargetType.NOTHING
         } else if (!url.isNullOrEmpty() && targetType == null) {
             targetType = TargetType.REDIRECT
         }
@@ -87,17 +92,13 @@ class ResponseAction(val url: String? = null,
 
 enum class TargetType {
     /**
-     * The client should redirect to the given url. If no type is given, REDIRECT is used as default.
+     * The client should redirect to the given url(url should be absolute). If no type is given, REDIRECT is used as default.
      */
     REDIRECT,
     /**
      * The client will receive a download file after calling the rest service with the given url.
      */
     DOWNLOAD,
-    /**
-     * Show the result message as toast message.
-     */
-    TOAST,
     /**
      * The client should update all values / states. The values to update are given as variable.
      */
@@ -110,16 +111,39 @@ enum class TargetType {
      * The client should call the given url with http method PUT.
      */
     PUT,
+
     /**
      * The client should call the given url with http method POST.
      */
     POST,
+
     /**
      * The client should call the given url with http method DELETE.
      */
     DELETE,
+
+    /**
+     * The client should open the new url in a modal.
+     */
+    MODAL,
+
+    /**
+     * The client should close a modal, when one is open.
+     */
+    CLOSE_MODAL,
+
     /**
      * No action by the client required.
      */
-    NOTHING
+    NOTHING,
+
+    /**
+     * The client should show this toast message.
+     */
+    TOAST,
+
+    /**
+     * The client should fetch the user status to get more information about his current authentication status.
+     */
+    CHECK_AUTHENTICATION,
 }

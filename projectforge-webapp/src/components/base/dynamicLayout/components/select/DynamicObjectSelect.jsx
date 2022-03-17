@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import ObjectSelect from '../../../../design/input/autoCompletion/ObjectSelect';
 import { DynamicLayoutContext } from '../../context';
+import DynamicValidationManager from '../input/DynamicValidationManager';
 
 function DynamicObjectSelect(
     {
@@ -11,17 +12,18 @@ function DynamicObjectSelect(
 ) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
-    const handleSelect = completion => setData({ [id]: completion });
-
+    const handleSelect = (completion) => setData({ [id]: completion });
 
     return (
-        <ObjectSelect
-            id={id}
-            onSelect={handleSelect}
-            translations={ui.translations}
-            value={data[id] || {}}
-            {...props}
-        />
+        <DynamicValidationManager id={id}>
+            <ObjectSelect
+                id={`${ui.uid}-${id}`}
+                onSelect={handleSelect}
+                translations={ui.translations}
+                value={data[id] || {}}
+                {...props}
+            />
+        </DynamicValidationManager>
     );
 }
 

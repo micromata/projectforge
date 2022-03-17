@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -42,7 +42,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_MEMO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_memo_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_MEMO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk")])
 open class MemoDO : AbstractBaseDO<Int>() {
 
     @PropertyInfo(i18nKey = "id")
@@ -65,7 +65,7 @@ open class MemoDO : AbstractBaseDO<Int>() {
 
     val ownerId: Int?
         @Transient
-        get() = if (owner != null) owner!!.id else null
+        get() = owner?.id
 
     @Id
     @GeneratedValue

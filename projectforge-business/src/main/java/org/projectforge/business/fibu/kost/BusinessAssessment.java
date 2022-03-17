@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -47,13 +47,11 @@ import java.util.Map;
  * different accounting areas, such as for DATEV accounting records.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
-public class BusinessAssessment implements Serializable
-{
+public class BusinessAssessment implements Serializable {
   private static final long serialVersionUID = 1752437122374944451L;
 
-  private BusinessAssessmentConfig config;
+  private final BusinessAssessmentConfig config;
 
   private final List<BusinessAssessmentRow> rows = new ArrayList<>();
 
@@ -80,8 +78,7 @@ public class BusinessAssessment implements Serializable
    * @param map Key ist die Zeilen
    */
   public static void putBusinessAssessmentRows(final Map<String, Object> map,
-      final BusinessAssessment businessAssessment)
-  {
+                                               final BusinessAssessment businessAssessment) {
     for (final BusinessAssessmentRow row : businessAssessment.rows) {
       final double val = getDouble(row.getAmount());
       map.put("r" + row.getNo(), val);
@@ -91,16 +88,14 @@ public class BusinessAssessment implements Serializable
     }
   }
 
-  private static double getDouble(final BigDecimal amount)
-  {
+  private static double getDouble(final BigDecimal amount) {
     if (amount == null) {
       return 0.0;
     }
     return amount.doubleValue();
   }
 
-  public BusinessAssessment(final BusinessAssessmentConfig config)
-  {
+  public BusinessAssessment(final BusinessAssessmentConfig config) {
     this.config = config;
     if (config == null || config.getRows() == null) {
       return;
@@ -110,25 +105,21 @@ public class BusinessAssessment implements Serializable
     }
   }
 
-  public BusinessAssessment(final BusinessAssessmentConfig config, final List<BuchungssatzDO> records)
-  {
+  public BusinessAssessment(final BusinessAssessmentConfig config, final List<BuchungssatzDO> records) {
     this(config);
     setAccountRecords(records);
   }
 
   /**
-   *
    * @param month 1-January, ..., 12-December.
    */
-  public BusinessAssessment(final BusinessAssessmentConfig config, final int year, final Integer month)
-  {
+  public BusinessAssessment(final BusinessAssessmentConfig config, final int year, final Integer month) {
     this(config);
     this.year = year;
     this.month = PFDayUtils.validateMonthValue(month);
   }
 
-  public void setAccountRecords(final List<BuchungssatzDO> records)
-  {
+  public void setAccountRecords(final List<BuchungssatzDO> records) {
     if (CollectionUtils.isEmpty(rows)) {
       return;
     }
@@ -139,14 +130,12 @@ public class BusinessAssessment implements Serializable
         if (record.isIgnore()) {
           continue;
         }
-        final KontoDO account = record.getKonto();
-        if (account == null || account.getNummer() == null) {
+        if (record.getKonto() == null && record.getGegenKonto() == null) {
           continue;
         }
-        final int accountNumber = account.getNummer();
         boolean found = false;
         for (final BusinessAssessmentRow row : rows) {
-          if (row.doesMatch(accountNumber)) {
+          if (doesMatch(row, record)) {
             row.addAccountRecord(record);
             found = true;
             break;
@@ -161,8 +150,15 @@ public class BusinessAssessment implements Serializable
     }
   }
 
-  public void recalculate()
-  {
+  private boolean doesMatch(final BusinessAssessmentRow row, final BuchungssatzDO record) {
+    return doesMatch(row, record.getKonto()) || doesMatch(row, record.getGegenKonto());
+  }
+
+  private boolean doesMatch(final BusinessAssessmentRow row, final KontoDO account) {
+    return account != null && account.getNummer() != null && row.doesMatch(account.getNummer());
+  }
+
+  public void recalculate() {
     if (rows == null) {
       return;
     }
@@ -177,55 +173,47 @@ public class BusinessAssessment implements Serializable
   /**
    * @return the rows
    */
-  public List<BusinessAssessmentRow> getRows()
-  {
+  public List<BusinessAssessmentRow> getRows() {
     return rows;
   }
 
-  public BusinessAssessmentRow getOverallPerformanceRow()
-  {
+  public BusinessAssessmentRow getOverallPerformanceRow() {
     if (config == null) {
       return null;
     }
     return getRow(config.getOverallPerformance());
   }
 
-  public BigDecimal getOverallPerformanceRowAmount()
-  {
+  public BigDecimal getOverallPerformanceRowAmount() {
     final BusinessAssessmentRow row = getOverallPerformanceRow();
     return row != null ? row.getAmount() : null;
   }
 
-  public BusinessAssessmentRow getMerchandisePurchaseRow()
-  {
+  public BusinessAssessmentRow getMerchandisePurchaseRow() {
     if (config == null) {
       return null;
     }
     return getRow(config.getMerchandisePurchase());
   }
 
-  public BigDecimal getMerchandisePurchaseRowAmount()
-  {
+  public BigDecimal getMerchandisePurchaseRowAmount() {
     final BusinessAssessmentRow row = getMerchandisePurchaseRow();
     return row != null ? row.getAmount() : null;
   }
 
-  public BusinessAssessmentRow getPreliminaryResultRow()
-  {
+  public BusinessAssessmentRow getPreliminaryResultRow() {
     if (config == null) {
       return null;
     }
     return getRow(config.getPreliminaryResult());
   }
 
-  public BigDecimal getPreliminaryResultRowAmount()
-  {
+  public BigDecimal getPreliminaryResultRowAmount() {
     final BusinessAssessmentRow row = getPreliminaryResultRow();
     return row != null ? row.getAmount() : null;
   }
 
-  public String asHtml()
-  {
+  public String asHtml() {
     final StringBuffer buf = new StringBuffer();
     buf.append(getHeader(true));
     buf.append("<table class=\"business-assessment\">\n");
@@ -238,13 +226,11 @@ public class BusinessAssessment implements Serializable
     return buf.toString();
   }
 
-  public String getHeader()
-  {
+  public String getHeader() {
     return getHeader(false);
   }
 
-  public String getHeader(final boolean html)
-  {
+  public String getHeader(final boolean html) {
     final StringBuilder buf = new StringBuilder();
     if (html) {
       buf.append("<h3>");
@@ -269,8 +255,7 @@ public class BusinessAssessment implements Serializable
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     final StringBuffer buf = new StringBuffer();
     buf.append(getHeader());
     if (rows != null) {
@@ -282,9 +267,8 @@ public class BusinessAssessment implements Serializable
   }
 
   private void asLine(final StringBuffer buf, final String no, final String title, final BigDecimal amount,
-      final int indent,
-      final int scale, final String unit, final boolean html)
-  {
+                      final int indent,
+                      final int scale, final String unit, final boolean html) {
     if (html) {
       buf.append("  <tr><td>").append(no).append("</td><td class=\"indent-").append(indent).append("\">");
     } else {
@@ -322,8 +306,7 @@ public class BusinessAssessment implements Serializable
     }
   }
 
-  private void asLine(final StringBuffer buf, final BusinessAssessmentRow row, final boolean html)
-  {
+  private void asLine(final StringBuffer buf, final BusinessAssessmentRow row, final boolean html) {
     asLine(buf, row.getNo(), row.getTitle(), row.getAmount(), row.getIndent(), row.getScale(), row.getUnit(), html);
   }
 
@@ -331,8 +314,7 @@ public class BusinessAssessment implements Serializable
    * @param id id or number of the row.
    * @return The found row or null if not found.
    */
-  public BusinessAssessmentRow getRow(final String id)
-  {
+  public BusinessAssessmentRow getRow(final String id) {
     if (rows == null || id == null) {
       return null;
     }
@@ -344,18 +326,15 @@ public class BusinessAssessment implements Serializable
     return null;
   }
 
-  public String getShortname()
-  {
+  public String getShortname() {
     return shortname;
   }
 
-  public void setShortname(final String shortname)
-  {
+  public void setShortname(final String shortname) {
     this.shortname = shortname;
   }
 
-  public int getCounter()
-  {
+  public int getCounter() {
     return counter;
   }
 
@@ -363,21 +342,18 @@ public class BusinessAssessment implements Serializable
    * Dieses Objekt kann von der benutzenden Klasse als freies Feld genutzt werden. Z. B. wird dieses Feld benutzt, um
    * den Report zu erhalten, der diese BWA enthält
    */
-  public Object getReference()
-  {
+  public Object getReference() {
     return reference;
   }
 
-  public void setReference(final Object reference)
-  {
+  public void setReference(final Object reference) {
     this.reference = reference;
   }
 
   /**
    * @return true if the account records are stored in the rows.
    */
-  public boolean isStoreAccountRecordsInRows()
-  {
+  public boolean isStoreAccountRecordsInRows() {
     return storeAccountRecordsInRows;
   }
 
@@ -385,8 +361,7 @@ public class BusinessAssessment implements Serializable
    * @param storeAccountRecordsInRows the storeAccountRecordsInRows to set
    * @return this for chaining.
    */
-  public BusinessAssessment setStoreAccountRecordsInRows(final boolean storeAccountRecordsInRows)
-  {
+  public BusinessAssessment setStoreAccountRecordsInRows(final boolean storeAccountRecordsInRows) {
     this.storeAccountRecordsInRows = storeAccountRecordsInRows;
     for (final BusinessAssessmentRow row : this.rows) {
       row.setStoreAccountRecords(this.storeAccountRecordsInRows);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -43,7 +43,7 @@ import org.projectforge.business.humanresources.*;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.NewProjektSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
@@ -56,7 +56,11 @@ import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
@@ -159,16 +163,15 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Start Date
+      final FieldProperties<LocalDate> props = getWeekProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.startTime"));
-      final DatePanel weekDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "week"), DateTimePanelSettings.get()
-          .withSelectStartStopTime(false).withTargetType(java.sql.Date.class));
+      LocalDatePanel weekDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       weekDatePanel.setRequired(true);
       weekDatePanel.add((IValidator<Date>) iValidatable -> {
-        final Date date = iValidatable.getValue();
-        if (date != null) {
-          final DayHolder dh = new DayHolder(date);
-          dh.setBeginOfWeek();
-          data.setWeek(dh.getSqlDate());
+         PFDay day = PFDay.fromOrNull(iValidatable.getValue());
+        if (day != null) {
+          day = day.getBeginOfWeek();
+          data.setWeek(day.getLocalDate());
         }
         weekDatePanel.markModelAsChanged();
       });
@@ -276,6 +279,10 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       panel.add(addPositionButtonPanel);
     }
     WicketUtils.addShowDeleteRowQuestionDialog(this, hrPlanningEntryDao);
+  }
+
+  private FieldProperties<LocalDate> getWeekProperties() {
+    return new FieldProperties<>("week", new PropertyModel<>(super.data, "week"));
   }
 
   @SuppressWarnings("serial")
@@ -430,9 +437,9 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       final Integer userId = data.getUserId();
       if (userId != null) {
         // Get the entry from the predecessor week:
-        final DayHolder dh = new DayHolder(getData().getWeek());
-        dh.add(Calendar.WEEK_OF_YEAR, -1);
-        predecessor = hrPlanningDao.getEntry(userId, dh.getSqlDate());
+        PFDay dh = PFDay.from(getData().getWeek());
+        dh = dh.minusWeeks(1);
+        predecessor = hrPlanningDao.getEntry(userId, dh.getLocalDate());
       }
       predecessorUpdToDate = true;
     }

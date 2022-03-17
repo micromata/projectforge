@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,7 +37,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_GANTT_CHART", indexes = [Index(name = "idx_fk_t_gantt_chart_owner_fk", columnList = "owner_fk"), Index(name = "idx_fk_t_gantt_chart_task_fk", columnList = "task_fk"), Index(name = "idx_fk_t_gantt_chart_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_GANTT_CHART", indexes = [Index(name = "idx_fk_t_gantt_chart_owner_fk", columnList = "owner_fk"), Index(name = "idx_fk_t_gantt_chart_task_fk", columnList = "task_fk")])
 class GanttChartDO : AbstractBaseDO<Int>() {
 
     private var id: Int? = null

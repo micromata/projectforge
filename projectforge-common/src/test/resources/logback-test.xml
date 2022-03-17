@@ -5,4 +5,11 @@
   <logger name="de.micromata" level="error"/>
   <logger name="org.springframework" level="error"/>
   <logger name="org.hibernate" level="error"/>
+
+  <appender name="MEMORY" class="org.projectforge.common.logging.LoggerMemoryAppender" />
+
+  <root level="INFO">
+    <appender-ref ref="MEMORY"/>
+  </root>
+
 </configuration>

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,19 @@
 
 package org.projectforge.plugins.todo;
 
-import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
 public class ToDoPlugin extends AbstractPlugin {
   public static final String ID = "toDo";
 
@@ -57,14 +56,16 @@ public class ToDoPlugin extends AbstractPlugin {
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  public ToDoPlugin() {
+    super(PluginAdminService.PLUGIN_TODO_ID, "To-do", "To-do's may shared by users, groups etc. with notification per e-mail on changes.");
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
   protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
-    ToDoPluginUpdates.databaseService = databaseService;
-    toDoDao = (ToDoDao) applicationContext.getBean("toDoDao");
     final RegistryEntry entry = new RegistryEntry(ID, ToDoDao.class, toDoDao, "plugins.todo");
     // The ToDoDao is automatically available by the scripting engine!
     register(entry); // Insert at second position after Address entry (for SearchPage).
@@ -83,15 +84,7 @@ public class ToDoPlugin extends AbstractPlugin {
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);
 
-    // Register favorite entries (the user can modify these templates/favorites via 'own settings'):
-    USER_PREF_AREA = registerUserPrefArea("TODO_FAVORITE", ToDoDO.class, "todo.favorite");
-  }
-
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
-   */
-  @Override
-  public UpdateEntry getInitializationUpdateEntry() {
-    return ToDoPluginUpdates.getInitializationUpdateEntry();
+    USER_PREF_AREA = new UserPrefArea("TODO_FAVORITE", ToDoDO.class, "todo.favorite");
+    UserPrefAreaRegistry.instance().register(USER_PREF_AREA);
   }
 }

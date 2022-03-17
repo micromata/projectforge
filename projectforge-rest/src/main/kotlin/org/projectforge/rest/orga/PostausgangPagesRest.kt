@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.orga
 
-import org.projectforge.business.orga.PostFilter
 import org.projectforge.business.orga.PostType
 import org.projectforge.business.orga.PostausgangDO
 import org.projectforge.business.orga.PostausgangDao
@@ -38,56 +37,65 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/outgoingMail")
-class PostausgangPagesRest() : AbstractDOPagesRest<PostausgangDO, PostausgangDao>(PostausgangDao::class.java, "orga.postausgang.title") {
-    /**
-     * Initializes new outbox mails for adding.
-     */
-    override fun newBaseDO(request: HttpServletRequest?): PostausgangDO {
-        val outbox = super.newBaseDO(request)
-        outbox.datum = PFDay.now().sqlDate
-        outbox.type = PostType.BRIEF
-        return outbox
-    }
+class PostausgangPagesRest() :
+  AbstractDOPagesRest<PostausgangDO, PostausgangDao>(PostausgangDao::class.java, "orga.postausgang.title") {
+  /**
+   * Initializes new outbox mails for adding.
+   */
+  override fun newBaseDO(request: HttpServletRequest?): PostausgangDO {
+    val outbox = super.newBaseDO(request)
+    outbox.datum = PFDay.now().localDate
+    outbox.type = PostType.BRIEF
+    return outbox
+  }
 
-    override fun validate(validationErrors: MutableList<ValidationError>, dto: PostausgangDO) {
-        val date = PFDay.from(dto.datum)
-        if (date != null && PFDay.now().isBefore(date)) { // No dates in the future accepted.
-            validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "datum"))
-        }
+  override fun validate(validationErrors: MutableList<ValidationError>, dto: PostausgangDO) {
+    val date = PFDay.fromOrNull(dto.datum)
+    if (date != null && PFDay.now().isBefore(date)) { // No dates in the future accepted.
+      validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "datum"))
     }
+  }
 
-    /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
-                        .add(lc, "datum", "empfaenger", "person", "inhalt", "bemerkung", "type"))
-        layout.getTableColumnById("datum").formatter = Formatter.DATE
-        LayoutUtils.addListFilterContainer(layout, UILabel("'TODO: date range"),
-                filterClass = PostFilter::class.java)
-        return LayoutUtils.processListPage(layout, this)
-    }
+  override val classicsLinkListUrl: String?
+    get() = "wa/outgoingMailList"
 
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: PostausgangDO, userAccess: UILayout.UserAccess): UILayout {
-        val receiver = UIInput("empfaenger", lc) // Input-field instead of text-area (length > 255)
-        receiver.focus = true
-        receiver.enableAutoCompletion(this)
-        val person = UIInput("person", lc).enableAutoCompletion(this)
-        val inhalt = UIInput("inhalt", lc).enableAutoCompletion(this)
-        val layout = super.createEditLayout(dto, userAccess)
-                .add(UIRow()
-                        .add(UICol(length = 2)
-                                .add(lc, "datum"))
-                        .add(UICol(length = 10)
-                                .add(lc, "type")))
-                .add(receiver)
-                .add(person)
-                .add(inhalt)
-                .add(lc, "bemerkung")
-        return LayoutUtils.processEditPage(layout, dto, this)
-    }
+  /**
+   * LAYOUT List page
+   */
+  override fun createListLayout(): UILayout {
+    val layout = super.createListLayout()
+      .add(
+        UITable.createUIResultSetTable()
+          .add(lc, "datum", "empfaenger", "person", "absender", "inhalt", "bemerkung", "type")
+      )
+    layout.getTableColumnById("datum").formatter = Formatter.DATE
+    return LayoutUtils.processListPage(layout, this)
+  }
+
+  /**
+   * LAYOUT Edit page
+   */
+  override fun createEditLayout(dto: PostausgangDO, userAccess: UILayout.UserAccess): UILayout {
+    val receiver = UIInput("empfaenger", lc) // Input-field instead of text-area (length > 255)
+    receiver.focus = true
+    receiver.enableAutoCompletion(this)
+    val layout = super.createEditLayout(dto, userAccess)
+      .add(
+        UIRow()
+          .add(
+            UICol(2)
+              .add(lc, "datum")
+          )
+          .add(
+            UICol(10)
+              .add(lc, "type")
+          )
+      )
+      .add(receiver)
+      .add(UIInput("person", lc).enableAutoCompletion(this))
+      .add(UIInput("inhalt", lc).enableAutoCompletion(this))
+      .add(UIInput("absender", lc).enableAutoCompletion(this))
+      .add(lc, "bemerkung")
+    return LayoutUtils.processEditPage(layout, dto, this)
+  }
 }

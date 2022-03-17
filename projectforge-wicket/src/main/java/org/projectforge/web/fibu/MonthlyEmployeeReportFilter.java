@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -86,7 +86,7 @@ public class MonthlyEmployeeReportFilter implements Serializable
    */
   public Integer getMonth()
   {
-    if (month < 1) {
+    if (month == null || month < 1) {
       // May occur, if deserialized from old 0-based format.
       month = 1;
     }

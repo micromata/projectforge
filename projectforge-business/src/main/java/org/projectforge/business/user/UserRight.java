@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,8 @@
 
 package org.projectforge.business.user;
 
-import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.DisplayNameCapable;
+import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.io.Serializable;

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -47,9 +47,9 @@ class CalendarStyle(var bgColor: String = "#777") {
         internal fun hexToRGB(color: String?): RGB {
             if (color == null) return RGB(0, 0, 0)
             val hexColor = if (color.length == 4) {
-                shortHandRegex.replace(color.toLowerCase(), { m -> m.value + m.value })
+                shortHandRegex.replace(color.lowercase(), { m -> m.value + m.value })
             } else {
-                color.toLowerCase()
+                color.lowercase()
             }
             val matchResult = hexRegex.find(hexColor)
             try {

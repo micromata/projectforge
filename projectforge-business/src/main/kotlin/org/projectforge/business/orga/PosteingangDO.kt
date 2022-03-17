@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,7 +26,7 @@ package org.projectforge.business.orga
 import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -36,17 +36,15 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_ORGA_POSTEINGANG",
-        indexes = arrayOf(javax.persistence.Index(name = "idx_fk_t_orga_posteingang_tenant_id", columnList = "tenant_id")))
+@Table(name = "T_ORGA_POSTEINGANG")
 @NamedQueries(
         NamedQuery(name = PosteingangDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from PosteingangDO"))
 open class PosteingangDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "date")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
-    open var datum: Date? = null
+    open var datum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "orga.posteingang.absender")
     @Field

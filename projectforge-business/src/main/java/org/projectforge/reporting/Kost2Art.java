@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,46 +34,46 @@ public interface Kost2Art
    * Zweistellig (Endziffer 7-8 von Kost2-Kostenträgern).
    * @return
    */
-  public Integer getId();
+  Integer getId();
 
   /**
    * Name, der auch in Auswahlboxen etc. angezeigt wird.
    * @return
    */
-  public String getName();
+  String getName();
 
   /**
    * @return Freitext.
    */
-  public String getDescription();
+  String getDescription();
 
   /**
    * Sind Buchungssätze zu dieser Kostenart (über Kost2) an den Endkunden fakturiert?
    * @return
    */
-  public boolean isFakturiert();
+  boolean isFakturiert();
 
   /**
    * @return Zweistelliger id: 00, 01, ..., 99
    */
-  public String getFormattedId();
+  String getFormattedId();
 
-  public boolean isDeleted();
+  boolean isDeleted();
   
   /**
    * Used by ProjektListAction.
    * @return
    */
-  public boolean isSelected();
+  boolean isSelected();
 
   /**
    * Used by ProjektListAction: is this kost2art already defined for the project or not?
    */
-  public boolean isExistsAlready();
+  boolean isExistsAlready();
 
   /**
    * Kost2Arten, die als Projektstandard markiert werden, werden in der Projektübersicht und den Projektdetails besonders markiert.
    * @return
    */
-  public boolean isProjektStandard();
+  boolean isProjektStandard();
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class LiquidityPlanningPlugin extends AbstractPlugin {
   public static final String ACCOUNTING_RECORD = "accountingRecord";
 
-  public static final String ID = "liquididityplanning";
+  public static final String ID = PluginAdminService.PLUGIN_LIQUIDITY_PLANNING_ID;
 
   public static final String RESOURCE_BUNDLE_NAME = "LiquidityPlanningI18nResources";
 
@@ -59,13 +59,15 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  public LiquidityPlanningPlugin() {
+    super("liquidplanning", "Liquidity planning", "Liquidity planning based on expected payments and invoices with probabilities.");
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
   protected void initialize() {
-    // DatabaseUpdateDao is needed by the updater:
-    LiquidityPlanningPluginUpdates.databaseService = databaseService;
     final RegistryEntry entry = new RegistryEntry(ID, LiquidityEntryDao.class, liquidityEntryDao,
             "plugins.liquidityplanning");
     register(entry);
@@ -92,13 +94,5 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
 
   public void setLiquidityEntryDao(final LiquidityEntryDao liquidityEntryDao) {
     this.liquidityEntryDao = liquidityEntryDao;
-  }
-
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
-   */
-  @Override
-  public UpdateEntry getInitializationUpdateEntry() {
-    return LiquidityPlanningPluginUpdates.getInitializationUpdateEntry();
   }
 }

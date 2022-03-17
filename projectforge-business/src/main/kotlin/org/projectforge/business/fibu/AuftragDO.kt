@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.StringUtils
@@ -31,13 +32,14 @@ import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.framework.xstream.XmlObjectReader
+import org.projectforge.framework.xmlstream.XmlObjectReader
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
 
@@ -52,23 +54,20 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "t_fibu_auftrag",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "tenant_id"])],
+        uniqueConstraints = [UniqueConstraint(columnNames = ["nummer"])],
         indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_contact_person_fk", columnList = "contact_person_fk"),
             javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projectManager_fk", columnList = "projectmanager_fk"),
             javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_headofbusinessmanager_fk", columnList = "headofbusinessmanager_fk"),
             javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_salesmanager_fk", columnList = "salesmanager_fk"),
             javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_kunde_fk", columnList = "kunde_fk"),
-            javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projekt_fk", columnList = "projekt_fk"),
-            javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_tenant_id", columnList = "tenant_id")])
+            javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projekt_fk", columnList = "projekt_fk")])
 @WithHistory(noHistoryProperties = ["lastUpdate", "created"],
         nestedEntities = [AuftragsPositionDO::class, PaymentScheduleDO::class])
 @NamedQueries(
         NamedQuery(name = AuftragDO.SELECT_MIN_MAX_DATE, query = "select min(angebotsDatum), max(angebotsDatum) from AuftragDO"),
         NamedQuery(name = AuftragDO.FIND_BY_NUMMER, query = "from AuftragDO where nummer=:nummer"),
         NamedQuery(name = AuftragDO.FIND_OTHER_BY_NUMMER, query = "from AuftragDO where nummer=:nummer and id!=:id"))
-open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
-
-    private val log = org.slf4j.LoggerFactory.getLogger(AuftragDO::class.java)
+open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
 
     override val displayName: String
         @Transient
@@ -98,7 +97,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
     @get:ListIndexBase(1)
     open var positionen: MutableList<AuftragsPositionDO>? = null
 
-    @PropertyInfo(i18nKey = "fibu.auftrag.status")
+    @PropertyInfo(i18nKey = "status")
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "status", length = 30)
@@ -160,27 +159,23 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "fibu.auftrag.angebot.datum")
     @Field
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "angebots_datum")
-    open var angebotsDatum: Date? = null
+    open var angebotsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.erfassung.datum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "erfassungs_datum")
-    open var erfassungsDatum: Date? = null
+    open var erfassungsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.entscheidung.datum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "entscheidungs_datum")
-    open var entscheidungsDatum: Date? = null
+    open var entscheidungsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.bindungsFrist")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "bindungs_frist")
-    open var bindungsFrist: Date? = null
+    open var bindungsFrist: LocalDate? = null
 
     /**
      * Wer hat wann und wie beauftragt? Z. B. Beauftragung per E-Mail durch Herrn Müller.
@@ -194,7 +189,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.beauftragungsdatum")
     @get:Column(name = "beauftragungs_datum")
-    open var beauftragungsDatum: Date? = null
+    open var beauftragungsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.fakturiert")
     @get:Transient
@@ -245,15 +240,13 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_begin")
-    open var periodOfPerformanceBegin: Date? = null
+    open var periodOfPerformanceBegin: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "period_of_performance_end")
-    open var periodOfPerformanceEnd: Date? = null
+    open var periodOfPerformanceEnd: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.probabilityOfOccurrence")
     @get:Column(name = "probability_of_occurrence")
@@ -276,6 +269,33 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "salesmanager_fk")
     open var salesManager: PFUserDO? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_names")
+    override var attachmentsNames: String? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_ids")
+    override var attachmentsIds: String? = null
+
+    @JsonIgnore
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_counter")
+    override var attachmentsCounter: Int? = null
+
+    @JsonIgnore
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_size")
+    override var attachmentsSize: Long? = null
+
+    @PropertyInfo(i18nKey = "attachment")
+    @JsonIgnore
+    @get:Column(length = 10000, name = "attachments_last_user_action")
+    override var attachmentsLastUserAction: String? = null
 
     /**
      * Adds all net sums of the positions (without not ordered positions) and return the total sum.

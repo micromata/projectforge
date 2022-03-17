@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,13 +25,15 @@ package org.projectforge.setup.wizard.lanterna
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import org.projectforge.setup.SetupContext
 import org.projectforge.setup.wizard.AbstractSetupWizard
 import org.projectforge.setup.wizard.GUIContext
 
 class LantGUIContext(
         setupMain: AbstractSetupWizard,
         val textGUI: MultiWindowTextGUI,
-        var terminalSize: TerminalSize
+        var terminalSize: TerminalSize,
+        val setupContext: SetupContext
 ): GUIContext(Mode.CONSOLE, setupMain) {
     var windowSize: TerminalSize = TerminalSize.ZERO
         set(value) {

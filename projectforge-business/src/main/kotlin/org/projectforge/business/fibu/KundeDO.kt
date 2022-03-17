@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,15 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.apache.commons.lang3.StringUtils
 import org.apache.lucene.analysis.standard.ClassicAnalyzer
 import org.hibernate.search.annotations.Analyzer
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import javax.persistence.*
 
@@ -42,9 +43,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_FIBU_KUNDE",
-        indexes = [Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id"),
-            Index(name = "idx_fk_t_fibu_kunde_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_FIBU_KUNDE", indexes = [Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id")])
 @Analyzer(impl = ClassicAnalyzer::class)
 open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNameCapable {
 

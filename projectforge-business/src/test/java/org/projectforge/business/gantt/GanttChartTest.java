@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -47,16 +47,18 @@ public class GanttChartTest extends AbstractTestBase {
   @Autowired
   private TaskDao taskDao;
 
+  @Autowired
+  private TaskTree taskTree;
+
   @Test
   public void testReadWriteGanttObjects() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     final String prefix = "GantChartTest";
-    final TaskTree taskTree = taskDao.getTaskTree();
     final TaskDO rootTask = initTestDB.addTask(prefix, "root");
     final PFDateTime dt = PFDateTime.withDate(2010, Month.AUGUST, 3);
 
     TaskDO task = initTestDB.addTask(prefix + "1", prefix);
-    task.setStartDate(dt.getUtilDate());
+    task.setStartDate(dt.getLocalDate());
     task.setDuration(BigDecimal.TEN);
 
     taskDao.update(task);
@@ -94,8 +96,8 @@ public class GanttChartTest extends AbstractTestBase {
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);
     assertEquals(xml, ganttChartDO.getGanttObjectsAsXml());
     BigDecimal duration = findById(ganttObject, getTask(prefix + "1").getId()).getDuration();
-    assertTrue(BigDecimal.TEN.compareTo(duration) == 0, "duration " + duration + "!=10!");
-    assertEquals(dt.getUtilDate(), findById(ganttObject, getTask(prefix + "1").getId()).getStartDate(), "startDate");
+    assertEquals(0, BigDecimal.TEN.compareTo(duration), "duration " + duration + "!=10!");
+    assertEquals(dt.getLocalDate(), findById(ganttObject, getTask(prefix + "1").getId()).getStartDate(), "startDate");
 
     initTestDB.addTask(prefix + "II", "root");
 
@@ -160,7 +162,6 @@ public class GanttChartTest extends AbstractTestBase {
   public void testIgnoringOfNumberFields() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     final String prefix = "GanttTest3";
-    final TaskTree taskTree = taskDao.getTaskTree();
     final TaskDO rootTask = initTestDB.addTask(prefix, "root");
     final Integer id1 = addTask(prefix + "1", null, null);
     final Integer id2 = addTask(prefix + "2", null, null);

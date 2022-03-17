@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -51,7 +51,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_FIBU_KOST_ZUWEISUNG", uniqueConstraints = [UniqueConstraint(columnNames = ["index", "rechnungs_pos_fk", "kost1_fk", "kost2_fk"]), UniqueConstraint(columnNames = ["index", "eingangsrechnungs_pos_fk", "kost1_fk", "kost2_fk"]), UniqueConstraint(columnNames = ["index", "employee_salary_fk", "kost1_fk", "kost2_fk"])], indexes = [Index(name = "idx_fk_t_fibu_kost_zuweisung_eingangsrechnungs_pos_fk", columnList = "eingangsrechnungs_pos_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_employee_salary_fk", columnList = "employee_salary_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_kost1_fk", columnList = "kost1_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_kost2_fk", columnList = "kost2_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_rechnungs_pos_fk", columnList = "rechnungs_pos_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_FIBU_KOST_ZUWEISUNG", uniqueConstraints = [UniqueConstraint(columnNames = ["index", "rechnungs_pos_fk", "kost1_fk", "kost2_fk"]), UniqueConstraint(columnNames = ["index", "eingangsrechnungs_pos_fk", "kost1_fk", "kost2_fk"]), UniqueConstraint(columnNames = ["index", "employee_salary_fk", "kost1_fk", "kost2_fk"])], indexes = [Index(name = "idx_fk_t_fibu_kost_zuweisung_eingangsrechnungs_pos_fk", columnList = "eingangsrechnungs_pos_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_employee_salary_fk", columnList = "employee_salary_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_kost1_fk", columnList = "kost1_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_kost2_fk", columnList = "kost2_fk"), Index(name = "idx_fk_t_fibu_kost_zuweisung_rechnungs_pos_fk", columnList = "rechnungs_pos_fk")])
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
 
@@ -108,7 +108,7 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
             field = eingangsrechnungsPosition
         }
 
-    fun setRechnungsPosition(position: AbstractRechnungsPositionDO) {
+    fun setAbstractRechnungsPosition(position: AbstractRechnungsPositionDO) {
         if (position is RechnungsPositionDO)
             rechnungsPosition = position
         else

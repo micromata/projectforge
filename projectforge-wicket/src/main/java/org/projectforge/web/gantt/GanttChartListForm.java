@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,8 @@
 
 package org.projectforge.web.gantt;
 
-import org.slf4j.Logger;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.slf4j.Logger;
 
 public class GanttChartListForm extends AbstractListForm<GanttChartListFilter, GanttChartListPage>
 {

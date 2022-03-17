@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,24 +25,32 @@ package org.projectforge.setup
 
 import org.projectforge.framework.time.TimeNotation
 import java.io.File
-import java.util.*
+import java.time.DayOfWeek
 
 class SetupData(
-        var applicationHomeDir: File? = null,
-        var domain: String? = "http://localhost:8080",
-        var serverPort: Int = 8080,
-        var startServer: Boolean = true,
-        var developmentMode: Boolean = false,
-        var defaultLocale: String = "en",
-        var currencySymbol: String = "€",
-        var defaultTimeNotation: TimeNotation = TimeNotation.H24,
-        var defaultFirstDayOfWeek: Int = Calendar.MONDAY,
-        var useEmbeddedDatabase: Boolean = true,
-        var jdbcSettings: JdbcSettings? = null) {
+  var applicationHomeDir: File? = null,
+  var domain: String? = "http://localhost:8080",
+  var serverAdress: String = "localhost",
+  var serverPort: Int = 8080,
+  var startServer: Boolean = true,
+  var developmentMode: Boolean = false,
+  var defaultLocale: String = "en",
+  var currencySymbol: String = "€",
+  var defaultTimeNotation: TimeNotation = TimeNotation.H24,
+  var defaultFirstDayOfWeek: DayOfWeek = DayOfWeek.MONDAY,
+  var useEmbeddedDatabase: Boolean = true,
+  var jdbcSettings: JdbcSettings? = null
+) {
+  class JdbcSettings(
+    var jdbcUrl: String? = null,
+    var user: String? = null,
+    var password: String? = null,
+    var driverClass: String? = null
+  )
 
-    class JdbcSettings(var jdbcUrl: String? = null,
-                       var user: String? = null,
-                       var password: String? = null,
-                       var driverClass: String? = null)
+    fun incompleteJdbcSettings(): Boolean {
+      val settings = jdbcSettings
+      return !useEmbeddedDatabase && (settings == null || settings.password.isNullOrBlank())
+    }
 }
 

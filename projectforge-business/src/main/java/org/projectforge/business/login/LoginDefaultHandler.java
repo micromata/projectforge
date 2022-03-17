@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,12 +26,12 @@ package org.projectforge.business.login;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.projectforge.business.group.service.GroupService;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.filter.UserFilter;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.security.SecurityLogging;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,12 +46,14 @@ import java.util.Collection;
 import java.util.List;
 
 @Service
-public class LoginDefaultHandler implements LoginHandler
-{
+public class LoginDefaultHandler implements LoginHandler {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LoginDefaultHandler.class);
 
   @Autowired
   private UserService userService;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   /**
    * Only needed if the data-base needs an update first (may-be the PFUserDO can't be read because of unmatching
@@ -63,54 +65,30 @@ public class LoginDefaultHandler implements LoginHandler
   @Autowired
   private GroupService groupService;
 
-  /**
-   * @see org.projectforge.business.login.LoginHandler#initialize(org.projectforge.registry.Registry)
-   */
   @Override
-  public void initialize()
-  {
+  public void initialize() {
     //Nothing to do
   }
 
-  /**
-   * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, java.lang.String, boolean)
-   */
   @Override
-  public LoginResult checkLogin(final String username, final String password)
-  {
+  public LoginResult checkLogin(final String username, final char[] password) {
     final LoginResult loginResult = new LoginResult();
-    PFUserDO user = null;
-    if (UserFilter.isUpdateRequiredFirst()) {
-      // Only administrator login is allowed. The login is checked without Hibernate because the data-base schema may be out-dated thus
-      // Hibernate isn't functioning.
-      try {
-        final PFUserDO resUser = getUserWithJdbc(username, password);
-        if (resUser == null || resUser.getUsername() == null) {
-          log.info("Admin login for maintenance (data-base update) failed for user '" + username
-              + "' (user/password not found).");
-          return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
-        }
-        if (!isAdminUser(resUser)) {
-          return loginResult.setLoginResultStatus(LoginResultStatus.ADMIN_LOGIN_REQUIRED);
-        }
-        TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().internalSetAdminUser(resUser); // User is now marked as admin user.
-        return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(resUser);
-      } catch (final Exception ex) {
-        log.error(ex.getMessage(), ex);
-      }
-    } else {
-      user = userService.authenticateUser(username, password);
-    }
+    PFUserDO user = userService.authenticateUser(username, password);
     if (user != null) {
       log.info("User with valid username/password: " + username + "/****");
       if (!user.hasSystemAccess()) {
-        log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
+        final String msg = "User has no system access (is deleted/deactivated): " + user.getUserDisplayName();
+        log.warn(msg);
+        SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
         return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
       } else {
+        //
         return loginResult.setLoginResultStatus(LoginResultStatus.SUCCESS).setUser(user);
       }
     } else {
-      log.info("User login failed: " + username + "/****");
+      final String msg = "User login failed: " + username + "/****";
+      log.warn(msg);
+      SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
       return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
     }
   }
@@ -119,14 +97,12 @@ public class LoginDefaultHandler implements LoginHandler
    * Only administrator login is allowed. The login is checked without Hibernate because the data-base schema may be
    * out-dated thus Hibernate isn't functioning.
    *
-   * @param jdbc
    * @param username
    * @param password
    * @return
    * @throws SQLException
    */
-  private PFUserDO getUserWithJdbc(final String username, final String password) throws SQLException
-  {
+  private PFUserDO getUserWithJdbc(final String username, final char[] password) throws SQLException {
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     String sql = "select pk, firstname, lastname, password, password_salt from t_pf_user where username=? and deleted=false and deactivated=false and restricted_user=false";
     PFUserDO user = null;
@@ -142,29 +118,28 @@ public class LoginDefaultHandler implements LoginHandler
     }
     final PasswordCheckResult passwordCheckResult = userService.checkPassword(user, password);
     if (!passwordCheckResult.isOK()) {
-      log.warn("Login for admin user '" + username + "' in maintenance mode failed, wrong password.");
+      final String msg = "Login for admin user '" + username + "' in maintenance mode failed, wrong password.";
+      log.warn(msg);
+      SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
       return null;
     }
     return user;
   }
 
   /**
-   * @param user
-   * @param rs
+   * @param jdbc
+   * @param sql
    * @param username
    * @param withSaltString false before ProjectForge version 5.3.
    * @throws SQLException
    */
-  @SuppressWarnings({ "unchecked", "rawtypes" })
+  @SuppressWarnings({"unchecked", "rawtypes"})
   private PFUserDO loadUser(final JdbcTemplate jdbc, final String sql, final String username,
-      final boolean withSaltString)
-      throws SQLException
-  {
-    final PFUserDO user = (PFUserDO) jdbc.query(sql, new Object[] { username }, new ResultSetExtractor()
-    {
+                            final boolean withSaltString)
+      throws SQLException {
+    final PFUserDO user = (PFUserDO) jdbc.query(sql, new Object[]{username}, new ResultSetExtractor() {
       @Override
-      public Object extractData(final ResultSet rs) throws SQLException, DataAccessException
-      {
+      public Object extractData(final ResultSet rs) throws SQLException, DataAccessException {
         if (rs.next()) {
           final PFUserDO user = new PFUserDO();
           user.setUsername(username);
@@ -190,18 +165,19 @@ public class LoginDefaultHandler implements LoginHandler
   }
 
   @Override
-  public boolean isAdminUser(final PFUserDO user)
-  {
+  public boolean isAdminUser(final PFUserDO user) {
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     String sql = "select pk from t_group where name=?";
     final int adminGroupId = jdbc.queryForObject(
-        sql, new Object[] { ProjectForgeGroup.ADMIN_GROUP.getKey() }, Integer.class);
+        sql, new Object[]{ProjectForgeGroup.ADMIN_GROUP.getKey()}, Integer.class);
     sql = "select count(*) from t_group_user where group_id=? and user_id=?";
-    final int count = jdbc.queryForObject(sql, new Object[] { adminGroupId, user.getId() }, Integer.class);
+    final int count = jdbc.queryForObject(sql, new Object[]{adminGroupId, user.getId()}, Integer.class);
     if (count != 1) {
-      log.info("Admin login for maintenance (data-base update) failed for user '"
+      final String msg = "Admin login for maintenance (data-base update) failed for user '"
           + user.getUsername()
-          + "' (user not member of admin group).");
+          + "' (user not member of admin group).";
+      log.warn(msg);
+      SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
       return false;
     }
     return true;
@@ -211,8 +187,7 @@ public class LoginDefaultHandler implements LoginHandler
    * @see org.projectforge.business.login.LoginHandler#checkStayLoggedIn(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
-  public boolean checkStayLoggedIn(final PFUserDO user)
-  {
+  public boolean checkStayLoggedIn(final PFUserDO user) {
     final PFUserDO dbUser = userService.internalGetById(user.getId());
     if (dbUser != null && dbUser.hasSystemAccess()) {
       return true;
@@ -228,8 +203,7 @@ public class LoginDefaultHandler implements LoginHandler
    */
   @SuppressWarnings("unchecked")
   @Override
-  public List<GroupDO> getAllGroups()
-  {
+  public List<GroupDO> getAllGroups() {
     try {
       List<GroupDO> list = groupService.getAllGroups();
       if (list != null) {
@@ -237,7 +211,6 @@ public class LoginDefaultHandler implements LoginHandler
       }
       return list;
     } catch (final Exception ex) {
-      //Needed for migration, when tenant table not available.
       log.error(
           "******* Exception while getting groups from data-base (OK only in case of migration from older versions): "
               + ex.getMessage(),
@@ -250,12 +223,10 @@ public class LoginDefaultHandler implements LoginHandler
    * @see org.projectforge.business.login.LoginHandler#getAllUsers()
    */
   @Override
-  public List<PFUserDO> getAllUsers()
-  {
+  public List<PFUserDO> getAllUsers() {
     try {
       return userService.internalLoadAll();
     } catch (final Exception ex) {
-      //Needed for migration, when tenant table not available.
       log.error(
           "******* Exception while getting users from data-base (OK only in case of migration from older versions): "
               + ex.getMessage(),
@@ -266,16 +237,12 @@ public class LoginDefaultHandler implements LoginHandler
 
   /**
    * Do nothing.
-   *
-   * @see org.projectforge.business.login.LoginHandler#afterUserGroupCacheRefresh(java.util.List, java.util.List)
-   */
+   -*/
   @Override
-  public void afterUserGroupCacheRefresh(final Collection<PFUserDO> users, final Collection<GroupDO> groups)
-  {
+  public void afterUserGroupCacheRefresh(final Collection<PFUserDO> users, final Collection<GroupDO> groups) {
   }
 
-  protected List<?> selectUnique(final List<?> list)
-  {
+  protected List<?> selectUnique(final List<?> list) {
     final List<?> result = (List<?>) CollectionUtils.select(list, PredicateUtils.uniquePredicate());
     return result;
   }
@@ -287,8 +254,7 @@ public class LoginDefaultHandler implements LoginHandler
    * @see org.projectforge.business.login.LoginHandler#hasExternalUsermanagementSystem()
    */
   @Override
-  public boolean hasExternalUsermanagementSystem()
-  {
+  public boolean hasExternalUsermanagementSystem() {
     return false;
   }
 
@@ -296,17 +262,15 @@ public class LoginDefaultHandler implements LoginHandler
    * Do nothing.
    *
    * @see org.projectforge.business.login.LoginHandler#passwordChanged(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   * java.lang.String)
+   * char[])
    */
   @Override
-  public void passwordChanged(final PFUserDO user, final String newPassword)
-  {
+  public void passwordChanged(final PFUserDO user, final char[] newPassword) {
     // Do nothing.
   }
 
   @Override
-  public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
-  {
+  public void wlanPasswordChanged(final PFUserDO user, final char[] newPassword) {
     // Do nothing. The wlan password input field is not visible if this handler is used.
   }
 
@@ -315,14 +279,12 @@ public class LoginDefaultHandler implements LoginHandler
    * @see org.projectforge.business.login.LoginHandler#isPasswordChangeSupported(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
-  public boolean isPasswordChangeSupported(final PFUserDO user)
-  {
+  public boolean isPasswordChangeSupported(final PFUserDO user) {
     return true;
   }
 
   @Override
-  public boolean isWlanPasswordChangeSupported(PFUserDO user)
-  {
+  public boolean isWlanPasswordChangeSupported(PFUserDO user) {
     return false;
   }
 }

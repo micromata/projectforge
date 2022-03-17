@@ -8,23 +8,25 @@ const filterRecent = (
         kost2,
         task,
         location,
+        tag,
+        reference,
         description,
     },
-) => (
-    (kost2 && kost2.formattedNumber && kost2.formattedNumber.includes(search))
-    || (
-        task && task.title && task.title.toLowerCase()
-            .includes(search)
-    )
-    || (location && location.includes(search))
-    || (description && location.includes(search))
-);
+) => {
+    const kost2Number = kost2 ? kost2.formattedNumber : '';
+    const projekt = kost2 ? kost2.projekt : '';
+    const kunde = projekt ? projekt.kunde : '';
+    const projektName = projekt ? projekt.name : '';
+    const kundeName = kunde ? kunde.name : '';
+    const taskTitle = task ? task.title : '';
+    const str = `${taskTitle}|${kost2Number}|${projektName}|${kundeName}|${location}|${tag}|${reference}|${description}`.toLocaleLowerCase();
+    return str.includes(search.toLocaleLowerCase());
+};
 
 function TimesheetRecentEntry(
     {
         callback,
         cost2Visible,
-        data,
         recent,
     },
 ) {
@@ -32,6 +34,8 @@ function TimesheetRecentEntry(
         kost2,
         task,
         location,
+        tag,
+        reference,
         description,
     } = recent;
 
@@ -45,24 +49,32 @@ function TimesheetRecentEntry(
                 Accept: 'application/json',
             },
             body: JSON.stringify({
-                ...data,
                 ...recent,
             }),
         },
     )
         .then(handleHTTPErrors)
-        .then(body => body.json())
+        .then((body) => body.json())
         .then(callback)
-        .catch(error => alert(`Internal error: ${error}`));
+        // eslint-disable-next-line no-alert
+        .catch((error) => alert(`Internal error: ${error}`));
+
+    const projekt = kost2 ? kost2.projekt : undefined;
+    const kunde = projekt ? projekt.kunde : undefined;
 
     return (
         <tr onClick={handleRowClick}>
-            {cost2Visible && <td>{kost2 ? kost2.formattedNumber : ''}</td>}
-            {/* TODO ADD DATA */}
-            <td>???</td>
-            <td>???</td>
+            {cost2Visible && (
+                <>
+                    <td>{kost2 ? kost2.formattedNumber : ''}</td>
+                    <td>{kunde ? kunde.name : ''}</td>
+                    <td>{projekt ? projekt.name : ''}</td>
+                </>
+            )}
             <td>{task ? task.title : ''}</td>
             <td>{location || ''}</td>
+            <td>{tag || ''}</td>
+            <td>{reference || ''}</td>
             <td>{description || ''}</td>
         </tr>
     );
@@ -70,15 +82,17 @@ function TimesheetRecentEntry(
 
 TimesheetRecentEntry.propTypes = {
     callback: PropTypes.func.isRequired,
-    data: PropTypes.shape({}).isRequired,
     recent: PropTypes.shape({
         kost2: PropTypes.shape({
             formattedNumber: PropTypes.string,
+            projekt: PropTypes.string,
         }),
         task: PropTypes.shape({
             title: PropTypes.string,
         }),
         location: PropTypes.string,
+        tag: PropTypes.string,
+        reference: PropTypes.string,
         description: PropTypes.string,
     }).isRequired,
     cost2Visible: PropTypes.bool,

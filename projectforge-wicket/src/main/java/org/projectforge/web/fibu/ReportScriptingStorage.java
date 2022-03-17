@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,9 @@
 
 package org.projectforge.web.fibu;
 
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.scripting.ScriptDO;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +41,9 @@ public class ReportScriptingStorage
 
   private Map<String, String> fileMap;
 
-  private String groovyScript;
+  private String script;
+
+  private ScriptDO.ScriptType type = null;
 
   private String lastAddedFile;
 
@@ -79,12 +84,31 @@ public class ReportScriptingStorage
 
   public String getGroovyScript()
   {
-    return groovyScript;
+    return script;
   }
 
   public void setGroovyScript(final String groovyScript)
   {
-    this.groovyScript = groovyScript;
+    if (StringUtils.isNotEmpty(groovyScript)) {
+      // Don't overwrite script with null in deserialization.
+      this.script = groovyScript;
+    }
+  }
+
+  public String getScript() {
+    return script;
+  }
+
+  public void setScript(String script) {
+    this.script = script;
+  }
+
+  public ScriptDO.ScriptType getType() {
+    return type;
+  }
+
+  public void setType(ScriptDO.ScriptType type) {
+    this.type = type;
   }
 
   private Map<String, String> getFileMap()

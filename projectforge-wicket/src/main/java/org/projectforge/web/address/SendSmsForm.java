@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -22,9 +22,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 package org.projectforge.web.address;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -47,12 +44,10 @@ import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
-import org.projectforge.web.wicket.flowlayout.TextPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
 {
@@ -121,7 +116,7 @@ public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
       @Override
       protected List<String> getFavorites()
       {
-        return getRecentSearchTermsQueue().getRecents();
+        return getRecentSearchTermsQueue().getRecentList();
       }
     };
     numberTextField.withMatchContains(true).withMinChars(2).withFocus(true);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,19 +32,18 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.xstream.XmlObjectReader
+import org.projectforge.framework.xmlstream.XmlObjectReader
 import java.math.BigDecimal
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 @MappedSuperclass
 @JpaXmlPersist(beforePersistListener = [AbstractRechnungXmlBeforePersistListener::class], persistAfter = [Kost2ArtDO::class])
-abstract class AbstractRechnungDO : DefaultBaseDO() {
+abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     @PropertyInfo(i18nKey = "fibu.rechnung.datum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(nullable = false)
-    open var datum: Date? = null
+    open var datum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.betreff")
     @Field
@@ -63,14 +62,14 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
-    open var faelligkeit: Date? = null
+    open var faelligkeit: LocalDate? = null
 
     /**
      * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
      * werden.
      */
+    @PropertyInfo(i18nKey = "fibu.rechnung.zahlungsZiel")
     @Field(analyze = Analyze.NO)
     @get:Transient
     open var zahlungsZielInTagen: Int? = null
@@ -84,16 +83,15 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.bezahlDatum")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "bezahl_datum")
-    open var bezahlDatum: Date? = null
+    open var bezahlDatum: LocalDate? = null
 
     /**
      * Bruttobetrag, der tatsächlich bezahlt wurde.
      */
     @PropertyInfo(i18nKey = "fibu.rechnung.zahlBetrag", type = PropertyType.CURRENCY)
     @get:Column(name = "zahl_betrag", scale = 2, precision = 12)
-    open var zahlBetrag: BigDecimal? = null
+    override var zahlBetrag: BigDecimal? = null
 
     /**
      * This Datev account number is used for the exports of invoices. For debitor invoices (RechnungDO): If not given then
@@ -111,7 +109,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "fibu.rechnung.discountMaturity")
     @get:Column
-    open var discountMaturity: Date? = null
+    open var discountMaturity: LocalDate? = null
 
     @get:Transient
     abstract val abstractPositionen: List<AbstractRechnungsPositionDO>?
@@ -143,11 +141,11 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
         get() = RechnungCalculator.calculateGrossSum(this)
 
     @get:PropertyInfo(i18nKey = "fibu.common.netto")
-    val netSum: BigDecimal
+    override val netSum: BigDecimal
         @Transient
         get() = RechnungCalculator.calculateNetSum(this)
 
-    val vatAmountSum: BigDecimal
+    override val vatAmountSum: BigDecimal
         @Transient
         get() = RechnungCalculator.calculateVatAmountSum(this)
 
@@ -164,7 +162,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
                 return false
             }
             val today = PFDateTime.now()
-            return this.faelligkeit?.before(today.utilDate) ?: false
+            return this.faelligkeit?.isBefore(today.localDate) ?: false
         }
 
     val kontoId: Int?
@@ -183,14 +181,14 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
         get() = kostZuweisungenNetSum.subtract(netSum)
 
     override fun recalculate() {
-        val date = PFDateTime.from(this.datum)
+        val date = PFDateTime.fromOrNull(this.datum)
         // recalculate the transient fields
         if (date == null) {
             this.zahlungsZielInTagen = null
             this.discountZahlungsZielInTagen = null
             return
         }
-        val dueDate = this.faelligkeit
+        val dueDate = PFDateTime.fromOrNull(this.faelligkeit)
         this.zahlungsZielInTagen = if (dueDate == null) null else date.daysBetween(dueDate).toInt()
         val discount = this.discountMaturity
         this.discountZahlungsZielInTagen = if (discount == null) null else date.daysBetween(discount).toInt()
@@ -207,15 +205,15 @@ abstract class AbstractRechnungDO : DefaultBaseDO() {
     fun addPosition(position: AbstractRechnungsPositionDO) {
         ensureAndGetPositionen()
         // Get the highest used number + 1 or take 1 for the first position.
-        val nextNumber = abstractPositionen!!.maxBy { it.number }?.number?.plus(1)?.toShort() ?: 1
+        val nextNumber = abstractPositionen!!.maxByOrNull { it.number }?.number?.plus(1)?.toShort() ?: 1
         position.number = nextNumber
-        setRechnung(position)
+        setAbstractRechnung(position)
         addPositionWithoutCheck(position)
     }
 
     abstract protected fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO)
 
-    abstract fun setRechnung(position: AbstractRechnungsPositionDO)
+    abstract fun setAbstractRechnung(position: AbstractRechnungsPositionDO)
 
     abstract fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO>
 

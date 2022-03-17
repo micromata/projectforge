@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,7 @@
 
 package org.projectforge.web.teamcal.dialog;
 
-import java.sql.Timestamp;
-
+import de.micromata.wicket.ajax.AjaxCallback;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -38,7 +37,7 @@ import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 
-import de.micromata.wicket.ajax.AjaxCallback;
+import java.sql.Timestamp;
 
 /**
  * Dialog which appears, when a user tries to modify an recurrent event

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,7 +28,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
@@ -39,7 +39,7 @@ import java.util.Iterator;
 /**
  * The controler of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
  * class.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @EditPage(defaultReturnPage = AddressCampaignValueListPage.class)

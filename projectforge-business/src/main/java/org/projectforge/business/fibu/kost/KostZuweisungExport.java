@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -66,7 +66,7 @@ public class KostZuweisungExport {
 
   private enum InvoicesCol {
     BRUTTO("fibu.common.brutto", MyXlsContentProvider.LENGTH_CURRENCY), //
-    VAT("fibu.common.vat", MyXlsContentProvider.LENGTH_BOOLEAN), //
+    VAT("fibu.common.vat", MyXlsContentProvider.LENGTH_PERCENT), //
     KONTO("fibu.buchungssatz.konto", 14), //
     REFERENZ("fibu.common.reference", MyXlsContentProvider.LENGTH_STD), //
     DATE("date", MyXlsContentProvider.LENGTH_DATE), //
@@ -74,6 +74,7 @@ public class KostZuweisungExport {
     KOST1("fibu.kost1", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), //
     KOST2("fibu.kost2", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), //
     TEXT("description", MyXlsContentProvider.LENGTH_EXTRA_LONG), //
+    BETREFF("fibu.rechnung.betreff", MyXlsContentProvider.LENGTH_EXTRA_LONG), //
     KORREKTUR("fibu.common.fehlBetrag", MyXlsContentProvider.LENGTH_CURRENCY);
 
     final String theTitle;
@@ -145,6 +146,7 @@ public class KostZuweisungExport {
 
     final ContentProvider sheetProvider = sheet.getContentProvider();
     sheetProvider.putFormat(InvoicesCol.BRUTTO, "#,##0.00;[Red]-#,##0.00");
+    sheetProvider.putFormat(InvoicesCol.VAT, "#%");
     sheetProvider.putFormat(InvoicesCol.KORREKTUR, "#,##0.00;[Red]-#,##0.00");
     sheetProvider.putFormat(InvoicesCol.KOST1, "#");
     sheetProvider.putFormat(InvoicesCol.KOST2, "#");
@@ -179,7 +181,9 @@ public class KostZuweisungExport {
         }
       }
       mapping.add(InvoicesCol.BRUTTO, zuweisung.getBrutto());
-      mapping.add(InvoicesCol.VAT, NumberHelper.isNotZero(position.getVat()));
+      if (NumberHelper.isNotZero(position.getVat())) {
+        mapping.add(InvoicesCol.VAT, position.getVat());
+      }
       Integer kontoNummer = null;
       if (rechnung instanceof RechnungDO) {
         final KontoDO konto = kontoCache.getKonto(((RechnungDO) rechnung));
@@ -202,6 +206,7 @@ public class KostZuweisungExport {
       mapping.add(InvoicesCol.KOST1, zuweisung.getKost1() != null ? zuweisung.getKost1().getNummer() : "");
       mapping.add(InvoicesCol.KOST2, zuweisung.getKost2() != null ? zuweisung.getKost2().getNummer() : "");
       mapping.add(InvoicesCol.TEXT, text);
+      mapping.add(InvoicesCol.BETREFF, rechnung.getBetreff());
       mapping.add(InvoicesCol.KORREKTUR, korrektur);
       sheet.addRow(mapping.getMapping(), 0);
     }

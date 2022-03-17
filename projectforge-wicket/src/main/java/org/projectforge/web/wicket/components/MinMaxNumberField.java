@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.web.wicket.components;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.validator.RangeValidator;
+
+import java.io.Serializable;
 
 public class MinMaxNumberField<Z extends Comparable<Z> & Serializable> extends TextField<Z>
 {

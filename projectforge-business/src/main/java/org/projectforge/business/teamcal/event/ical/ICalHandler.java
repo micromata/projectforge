@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -259,7 +259,6 @@ public class ICalHandler
       event.setId(eventInDB.getPk());
       event.setCreated(eventInDB.getCreated());
       event.setLastUpdate();
-      event.setTenant(eventInDB.getTenant());
       event.setCreator(eventInDB.getCreator());
 
       final boolean isDeleted = eventInDB.isDeleted();

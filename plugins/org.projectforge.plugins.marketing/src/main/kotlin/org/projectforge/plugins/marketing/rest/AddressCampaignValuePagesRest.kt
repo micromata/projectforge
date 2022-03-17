@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -43,7 +43,7 @@ class AddressCampaignValuePagesRest: AbstractDOPagesRest<AddressCampaignValueDO,
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "address.name", "address.firstName", "address.organization",
                                 "address.contactStatus", "address.addressText", "address.addressStatus", "value", "comment"))
         return LayoutUtils.processListPage(layout, this)

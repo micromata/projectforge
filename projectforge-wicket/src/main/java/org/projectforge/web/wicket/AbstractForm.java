@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -38,14 +32,17 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.util.lang.Bytes;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServletRequest;
+import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractForm<F, P extends AbstractUnsecureBasePage> extends Form<F>
 {
@@ -56,8 +53,6 @@ public abstract class AbstractForm<F, P extends AbstractUnsecureBasePage> extend
   protected final P parentPage;
 
   private final ShinyFormVisitor shinyVisitor = new ShinyFormVisitor();
-
-  private transient TenantRegistry tenantRegistry;
 
   /**
    * Convenience method for creating a component which is in the mark-up file but should not be visible.
@@ -183,19 +178,6 @@ public abstract class AbstractForm<F, P extends AbstractUnsecureBasePage> extend
   public GridBuilder newGridBuilder(final WebMarkupContainer parent, final String id)
   {
     return new GridBuilder(parent, id);
-  }
-
-  /**
-   * For getting caches etc.
-   *
-   * @return The current tenantRegistry also for systems without tenants configured.
-   */
-  protected TenantRegistry getTenantRegistry()
-  {
-    if (tenantRegistry == null) {
-      tenantRegistry = TenantRegistryMap.getInstance().getTenantRegistry();
-    }
-    return tenantRegistry;
   }
 
   @Override

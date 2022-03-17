@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/book")
-class BookPagesRest() : AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, "book.title") {
+class BookPagesRest: AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, "book.title") {
 
     /**
      * Initializes new books for adding.
@@ -62,7 +62,7 @@ class BookPagesRest() : AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
         layout.getTableColumnById("lendOutBy").formatter = Formatter.USER
         return LayoutUtils.processListPage(layout, this)

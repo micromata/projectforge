@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,14 +37,18 @@ class LeaveAccountEntry(var employee: Employee? = null,
                         var amountFormatted: String? = null,
                         var description: String? = null
 ) : BaseDTO<LeaveAccountEntryDO>() {
+
+    /**
+     * @see copyFrom
+     */
     constructor(src: LeaveAccountEntryDO) : this() {
         this.copyFrom(src)
     }
 
     override fun copyFrom(src: LeaveAccountEntryDO) {
         super.copyFrom(src)
-        date?.let {
-            dateFormatted = PFDayUtils.format(it, DateFormatType.DATE)
+        dateFormatted = date?.let {
+            PFDayUtils.format(it, DateFormatType.DATE)
         }
         amountFormatted = VacationStats.format(amount)
     }

@@ -58,7 +58,6 @@ describe('login', () => {
     });
 
     it('creates USER_LOGIN_SUCCESS when fetching login has been done without keepSignedIn', () => {
-
         fetchMock
             .mock(
                 (url, options) => {
@@ -97,7 +96,6 @@ describe('login', () => {
     });
 
     it('creates USER_LOGIN_SUCCESS when fetching login has been done with keepSignedIn', () => {
-
         fetchMock
             .mock(
                 (url, options) => {

@@ -11,6 +11,7 @@ import {
     LIST_FILTER_SET,
     LIST_FILTER_SORT,
     LIST_INITIAL_CALL_BEGIN,
+    LIST_SWITCH_CATEGORY, USER_LOGIN_BEGIN,
 } from '../../actions';
 
 const initialState = {};
@@ -45,11 +46,17 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                 ...state,
                 isFetching: true,
                 error: undefined,
+                variables: {
+                    ...state.variables,
+                    ...payload.variables,
+                },
             };
         case LIST_CALL_SUCCESS:
             return {
                 ...state,
                 isFetching: false,
+                lastQueriedFilter: JSON.stringify(payload.response.filter || state.filter),
+                newlySwitched: false,
                 ...payload.response,
             };
         case LIST_FETCH_FAILURE:
@@ -73,6 +80,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                         },
                     ],
                 },
+                newlySwitched: false,
             };
         }
         case LIST_FILTER_REMOVE: {
@@ -85,6 +93,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                     entries: filter.entries
                         .filter(({ field }) => field !== payload.fieldId),
                 },
+                newlySwitched: false,
             };
         }
         case LIST_FILTER_RESET:
@@ -95,6 +104,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                     searchString: '',
                     entries: [],
                 },
+                newlySwitched: false,
             };
         case LIST_FILTER_SEARCH_STRING_CHANGED:
             return {
@@ -103,10 +113,10 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                     ...state.filter,
                     searchString: payload.searchString,
                 },
+                newlySwitched: false,
             };
         case LIST_FILTER_SET: {
             const { filter } = state;
-
 
             return {
                 ...state,
@@ -121,6 +131,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                         },
                     ],
                 },
+                newlySwitched: false,
             };
         }
         case LIST_FILTER_SORT: {
@@ -133,9 +144,9 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
                     sortProperties: [
                         payload.sortProperty,
                         ...(filter.sortProperties || [])
-                            .filter(entry => entry.property !== payload.column)
+                            .filter((entry) => entry.property !== payload.column)
                             .slice(0, 2),
-                    ].filter(entry => entry !== undefined),
+                    ].filter((entry) => entry !== undefined),
                 },
             };
         }
@@ -143,6 +154,11 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
             return {
                 ...state,
                 ...payload.response,
+            };
+        case LIST_SWITCH_CATEGORY:
+            return {
+                ...state,
+                newlySwitched: true,
             };
         default:
             return state;
@@ -152,6 +168,8 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
 const reducer = (state = initialState, action) => {
     const { type, payload } = action;
     switch (type) {
+        case USER_LOGIN_BEGIN:
+            return initialState;
         case LIST_DISMISS_ERROR:
         case LIST_INITIAL_CALL_BEGIN:
         case LIST_FETCH_DATA_BEGIN:
@@ -163,7 +181,8 @@ const reducer = (state = initialState, action) => {
         case LIST_FILTER_SEARCH_STRING_CHANGED:
         case LIST_FILTER_SET:
         case LIST_FILTER_SORT:
-        case LIST_FAVORITES_RECEIVED: {
+        case LIST_FAVORITES_RECEIVED:
+        case LIST_SWITCH_CATEGORY: {
             const { category } = payload;
 
             return {

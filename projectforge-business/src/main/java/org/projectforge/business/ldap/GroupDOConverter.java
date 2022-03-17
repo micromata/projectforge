@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,14 +25,14 @@ package org.projectforge.business.ldap;
 
 import org.apache.commons.collections.SetUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.ListHelper;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.XmlObjectReader;
-import org.projectforge.framework.xstream.XmlObjectWriter;
+import org.projectforge.framework.xmlstream.XmlObjectReader;
+import org.projectforge.framework.xmlstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +53,9 @@ public class GroupDOConverter
 
   @Autowired
   LdapUserDao ldapUserDao;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   static final String ID_PREFIX = "pf-id-";
 
@@ -99,8 +102,7 @@ public class GroupDOConverter
         if (ldapUser != null) {
           ldapGroup.addMember(ldapUser, baseDN);
         } else {
-          final PFUserDO cacheUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-              .getUser(user.getId());
+          final PFUserDO cacheUser = userGroupCache.getUser(user.getId());
           if (cacheUser == null || !cacheUser.isDeleted()) {
             log.warn("LDAP user with id '"
                 + user.getId()
@@ -122,7 +124,7 @@ public class GroupDOConverter
 
   /**
    * Sets the LDAP values such as posix account properties of the given ldapGroup configured in the given xml string.
-   * 
+   *
    * @param ldapGroup
    * @param ldapValuesAsXml Posix account values as xml.
    */
@@ -161,7 +163,7 @@ public class GroupDOConverter
 
   /**
    * Exports the LDAP values such as posix account properties of the given ldapGroup as xml string.
-   * 
+   *
    * @param ldapGroup
    */
   public String getLdapValuesAsXml(final LdapGroup ldapGroup)
@@ -180,7 +182,7 @@ public class GroupDOConverter
 
   /**
    * Exports the LDAP values such as posix account properties of the given ldapGroup as xml string.
-   * 
+   *
    * @param values
    */
   public String getLdapValuesAsXml(final LdapGroupValues values)
@@ -198,7 +200,7 @@ public class GroupDOConverter
 
   /**
    * Copies the fields shared with ldap.
-   * 
+   *
    * @param src
    * @param dest
    * @return true if any modification is detected, otherwise false.
@@ -211,7 +213,7 @@ public class GroupDOConverter
 
   /**
    * Copies the fields.
-   * 
+   *
    * @param src
    * @param dest
    * @return true if any modification is detected, otherwise false.

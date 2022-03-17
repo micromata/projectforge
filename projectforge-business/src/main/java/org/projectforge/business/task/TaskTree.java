@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,13 +45,15 @@ import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.i18n.InternalErrorException;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.StackTraceHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringWriter;
@@ -64,27 +66,47 @@ import java.util.*;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class TaskTree extends AbstractCache implements Serializable
-{
+@Service
+public class TaskTree extends AbstractCache implements Serializable {
   private static final long serialVersionUID = 3748005966442878168L;
 
   public static final String USER_PREFS_KEY_OPEN_TASKS = "openTasks";
 
+  @Autowired
   private TaskDao taskDao;
 
+  @Autowired
   private AccessDao accessDao;
 
+  @Autowired
   private ProjektDao projektDao;
 
+  @Autowired
   private KostCache kostCache;
 
+  @Autowired
   private AuftragDao auftragDao;
 
+  @Autowired
   private TimesheetDao timesheetDao;
 
-  private TenantDO tenant;
-
   private static final List<TaskNode> EMPTY_LIST = new ArrayList<>();
+
+  private static TaskTree INSTANCE;
+
+  public static TaskTree getInstance() {
+    return INSTANCE;
+  }
+
+  @PostConstruct
+  private void postConstruct() {
+    if (INSTANCE != null) {
+      log.warn("Oups, shouldn't instantiate TaskTree twice");
+      return;
+    }
+    INSTANCE = this;
+    auftragDao.registerTaskTree(this);
+  }
 
   /**
    * For log messages.
@@ -110,8 +132,7 @@ public class TaskTree extends AbstractCache implements Serializable
 
   private boolean orderPositionReferencesDirty = true;
 
-  public TaskNode getRootTaskNode()
-  {
+  public TaskNode getRootTaskNode() {
     checkRefresh();
     return this.root;
   }
@@ -119,8 +140,7 @@ public class TaskTree extends AbstractCache implements Serializable
   /**
    * Adds the given node as child of the given parent.
    */
-  private synchronized TaskNode addTaskNode(final TaskNode node, final TaskNode parent)
-  {
+  private synchronized TaskNode addTaskNode(final TaskNode node, final TaskNode parent) {
     checkRefresh();
     if (parent != null) {
       node.setParent(parent);
@@ -134,8 +154,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * Adds a new node with the given data. The given Task holds all data and the information (id) of the parent node of
    * the node to add. Will be called by TaskDAO after inserting a new task.
    */
-  TaskNode addTaskNode(final TaskDO task)
-  {
+  TaskNode addTaskNode(final TaskDO task) {
     checkRefresh();
     final TaskNode node = new TaskNode();
     node.setTask(task);
@@ -163,8 +182,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @return
    * @see TaskNode#getPathToAncestor(Integer)
    */
-  public List<TaskNode> getPath(final Integer taskId, final Integer ancestorTaskId)
-  {
+  public List<TaskNode> getPath(final Integer taskId, final Integer ancestorTaskId) {
     checkRefresh();
     if (taskId == null) {
       return EMPTY_LIST;
@@ -181,16 +199,59 @@ public class TaskTree extends AbstractCache implements Serializable
    *
    * @see #getPath(Integer, Integer)
    */
-  public List<TaskNode> getPathToRoot(final Integer taskId)
-  {
+  public List<TaskNode> getPathToRoot(final Integer taskId) {
     return getPath(taskId, null);
+  }
+
+  public List<Integer> getAncestorTaskIs(final Integer taskId) {
+    final List<TaskNode> resultList = getPathToRoot(taskId);
+    final List<Integer> result = new ArrayList<>();
+    int i = 0;
+    for (final TaskNode node : resultList) {
+      result.add(node.getId());
+    }
+    return result;
+  }
+
+  public List<Integer> getAncestorAndDescendantTaskIs(final Integer taskId, final boolean includeSelf) {
+    final List<Integer> result = getAncestorTaskIs(taskId);
+    result.addAll(getDescendantTaskIds(taskId, includeSelf));
+    return result;
+  }
+
+  public List<Integer> getDescendantTaskIds(final Integer taskId, final boolean includeSelf) {
+    final List<TaskNode> resultList = getDescendants(taskId, includeSelf);
+    final List<Integer> result = new ArrayList<>();
+    int i = 0;
+    for (final TaskNode node : resultList) {
+      result.add(node.getId());
+    }
+    return result;
+  }
+
+  public List<TaskNode> getDescendants(final Integer taskId, final boolean includeSelf) {
+    final List<TaskNode> resultList = new ArrayList<>();
+    final TaskNode node = getTaskNodeById(taskId);
+    if (node == null) {
+      return resultList;
+    }
+    if (includeSelf) {
+      resultList.add(node);
+    }
+    addDescendants(resultList, node);
+    return resultList;
+  }
+
+  private void addDescendants(final List<TaskNode> resultList, final TaskNode node) {
+    for (final TaskNode child : node.getChildren()) {
+      resultList.add(child);
+    }
   }
 
   /**
    * All task nodes are stored in an HashMap for faster searching.
    */
-  public TaskNode getTaskNodeById(final Integer id)
-  {
+  public TaskNode getTaskNodeById(final Integer id) {
     if (id == null) {
       return null;
     }
@@ -201,8 +262,7 @@ public class TaskTree extends AbstractCache implements Serializable
     return null;
   }
 
-  public TaskDO getTaskById(final Integer id)
-  {
+  public TaskDO getTaskById(final Integer id) {
     checkRefresh();
     final TaskNode node = getTaskNodeById(id);
     if (node != null) {
@@ -217,8 +277,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @param taskId
    * @return null, if now project is assigned to this task or ancestor tasks.
    */
-  public ProjektDO getProjekt(final Integer taskId)
-  {
+  public ProjektDO getProjekt(final Integer taskId) {
     if (taskId == null) {
       return null;
     }
@@ -230,8 +289,7 @@ public class TaskTree extends AbstractCache implements Serializable
     }
   }
 
-  public void internalSetProject(final Integer taskId, final ProjektDO projekt)
-  {
+  public void internalSetProject(final Integer taskId, final ProjektDO projekt) {
     final TaskNode node = getTaskNodeById(taskId);
     if (node == null) {
       throw new InternalErrorException("Could not found task with id " + taskId + " in internalSetProject");
@@ -246,8 +304,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @return
    * @see #getKost2List(Integer, boolean)
    */
-  public List<Kost2DO> getKost2List(final Integer taskId)
-  {
+  public List<Kost2DO> getKost2List(final Integer taskId) {
     final TaskNode node = getTaskNodeById(taskId);
     return getKost2List(node, true);
   }
@@ -262,8 +319,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @param recursive If true then search the ancestor task for cost definitions if current task haven't.
    * @return Available Kost2DOs or null, if no Kost2DO found.
    */
-  public List<Kost2DO> getKost2List(final Integer taskId, final boolean recursive)
-  {
+  public List<Kost2DO> getKost2List(final Integer taskId, final boolean recursive) {
     final TaskNode node = getTaskNodeById(taskId);
     return getKost2List(node, recursive);
   }
@@ -276,8 +332,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @return
    */
   public List<Kost2DO> getKost2List(ProjektDO projekt, final TaskDO task, final String[] blackWhiteList,
-      final boolean kost2IsBlackList)
-  {
+                                    final boolean kost2IsBlackList) {
     final List<Kost2DO> kost2List = new ArrayList<>();
     final boolean wildcard = blackWhiteList != null && blackWhiteList.length == 1 && "*".equals(blackWhiteList[0]);
     if (projekt != null && !Hibernate.isPropertyInitialized(projekt, "kunde")) {
@@ -344,8 +399,7 @@ public class TaskTree extends AbstractCache implements Serializable
     }
   }
 
-  private List<Kost2DO> getKost2List(final TaskNode node, final boolean recursive)
-  {
+  private List<Kost2DO> getKost2List(final TaskNode node, final boolean recursive) {
     if (node == null) {
       return null;
     }
@@ -368,8 +422,7 @@ public class TaskTree extends AbstractCache implements Serializable
    *
    * @param taskId
    */
-  public void resetTotalDuration(final Integer taskId)
-  {
+  public void resetTotalDuration(final Integer taskId) {
     final TaskNode node = getTaskNodeById(taskId);
     if (node == null) {
       log.error("Task id '" + taskId + "' not found.");
@@ -383,8 +436,7 @@ public class TaskTree extends AbstractCache implements Serializable
    *
    * @param task Updating the existing task in the taskTree. If not exist, a new task will be added.
    */
-  TaskNode addOrUpdateTaskNode(final TaskDO task)
-  {
+  TaskNode addOrUpdateTaskNode(final TaskDO task) {
     checkRefresh();
     Validate.notNull(task);
     Validate.notNull(task.getId());
@@ -414,8 +466,7 @@ public class TaskTree extends AbstractCache implements Serializable
    *
    * @see GroupTaskAccess
    */
-  public void setGroupTaskAccess(final GroupTaskAccessDO groupTaskAccess)
-  {
+  public void setGroupTaskAccess(final GroupTaskAccessDO groupTaskAccess) {
     checkRefresh();
     final Integer taskId = groupTaskAccess.getTaskId();
     final TaskNode node = taskMap.get(taskId);
@@ -428,22 +479,19 @@ public class TaskTree extends AbstractCache implements Serializable
    *
    * @see GroupTaskAccess
    */
-  public void removeGroupTaskAccess(final GroupTaskAccessDO groupTaskAccess)
-  {
+  public void removeGroupTaskAccess(final GroupTaskAccessDO groupTaskAccess) {
     checkRefresh();
     final Integer taskId = groupTaskAccess.getTaskId();
     final TaskNode node = taskMap.get(taskId);
     node.removeGroupTaskAccess(groupTaskAccess.getGroupId());
   }
 
-  public long getTimeOfLastModification()
-  {
+  public long getTimeOfLastModification() {
     return this.timeOfLastModification;
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     if (root == null) {
       return "<empty/>";
     }
@@ -469,62 +517,10 @@ public class TaskTree extends AbstractCache implements Serializable
     return result;
   }
 
-  public TaskTree()
-  {
+  public TaskTree() {
     super(AbstractCache.TICKS_PER_HOUR);
   }
 
-  public void setTaskDao(final TaskDao taskDao)
-  {
-    this.taskDao = taskDao;
-  }
-
-  TaskDao getTaskDao()
-  {
-    return taskDao;
-  }
-
-  public void setAccessDao(final AccessDao accessDao)
-  {
-    this.accessDao = accessDao;
-  }
-
-  public void setProjektDao(final ProjektDao projektDao)
-  {
-    this.projektDao = projektDao;
-  }
-
-  public void setKostCache(final KostCache kostCache)
-  {
-    this.kostCache = kostCache;
-  }
-
-  public void setTimesheetDao(TimesheetDao timesheetDao)
-  {
-    this.timesheetDao = timesheetDao;
-  }
-
-  public void setAuftragDao(final AuftragDao auftragDao)
-  {
-    this.auftragDao = auftragDao;
-    auftragDao.registerTaskTree(this);
-  }
-
-  /**
-   * @return the tenant
-   */
-  public TenantDO getTenant()
-  {
-    return tenant;
-  }
-
-  /**
-   * @param tenant the tenant to set
-   */
-  public void setTenant(final TenantDO tenant)
-  {
-    this.tenant = tenant;
-  }
 
   /**
    * Has the current logged in user select access to the given task?
@@ -532,16 +528,14 @@ public class TaskTree extends AbstractCache implements Serializable
    * @param node
    * @return
    */
-  public boolean hasSelectAccess(final TaskNode node)
-  {
+  public boolean hasSelectAccess(final TaskNode node) {
     return taskDao.hasLoggedInUserSelectAccess(node.getTask(), false);
   }
 
   /**
    * @see #isRootNode(TaskDO)
    */
-  public boolean isRootNode(final TaskNode node)
-  {
+  public boolean isRootNode(final TaskNode node) {
     Validate.notNull(node);
     return isRootNode(node.getTask());
   }
@@ -550,8 +544,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @param node
    * @return true, if the given task has the same id as the task tree's root node, otherwise false;
    */
-  public boolean isRootNode(final TaskDO task)
-  {
+  public boolean isRootNode(final TaskDO task) {
     Validate.notNull(task);
     if (root == null && task.getParentTaskId() == null) {
       // First task, so it should be the root node.
@@ -569,8 +562,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * Should be called after manipulations of any order position if a task reference was changed. This method declares
    * the reference map as dirty, therefore before the next usage the map will be rebuild from the database.
    */
-  public void refreshOrderPositionReferences()
-  {
+  public void refreshOrderPositionReferences() {
     synchronized (this) {
       this.orderPositionReferencesDirty = true;
     }
@@ -579,14 +571,12 @@ public class TaskTree extends AbstractCache implements Serializable
   /**
    * Does any order position entry with a task reference exist?
    */
-  public boolean hasOrderPositionsEntries()
-  {
+  public boolean hasOrderPositionsEntries() {
     checkRefresh();
     return (MapUtils.isNotEmpty(getOrderPositionEntries()));
   }
 
-  private Map<Integer, Set<AuftragsPositionVO>> getOrderPositionEntries()
-  {
+  private Map<Integer, Set<AuftragsPositionVO>> getOrderPositionEntries() {
     synchronized (this) {
       if (this.orderPositionReferencesDirty) {
         this.orderPositionReferences = auftragDao.getTaskReferences();
@@ -614,8 +604,7 @@ public class TaskTree extends AbstractCache implements Serializable
     }
   }
 
-  private void resetOrderPersonDays(final TaskNode node)
-  {
+  private void resetOrderPersonDays(final TaskNode node) {
     node.orderedPersonDays = null;
     if (node.hasChildren()) {
       for (final TaskNode child : node.getChildren()) {
@@ -628,8 +617,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @param taskId
    * @return Set of all order positions assigned to the given task.
    */
-  public Set<AuftragsPositionVO> getOrderPositionEntries(final Integer taskId)
-  {
+  public Set<AuftragsPositionVO> getOrderPositionEntries(final Integer taskId) {
     checkRefresh();
     return getOrderPositionEntries().get(taskId);
   }
@@ -638,15 +626,13 @@ public class TaskTree extends AbstractCache implements Serializable
    * @param taskId
    * @return
    */
-  public Set<AuftragsPositionVO> getOrderPositionsUpwards(final Integer taskId)
-  {
+  public Set<AuftragsPositionVO> getOrderPositionsUpwards(final Integer taskId) {
     final Set<AuftragsPositionVO> set = new TreeSet<>();
     addOrderPositionsUpwards(set, taskId);
     return set;
   }
 
-  private void addOrderPositionsUpwards(final Set<AuftragsPositionVO> set, final Integer taskId)
-  {
+  private void addOrderPositionsUpwards(final Set<AuftragsPositionVO> set, final Integer taskId) {
     final Set<AuftragsPositionVO> set2 = getOrderPositionEntries(taskId);
     if (CollectionUtils.isNotEmpty(set2)) {
       set.addAll(set2);
@@ -662,8 +648,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @param recursive if true also all descendant tasks will be searched for assigned order positions.
    * @return
    */
-  public boolean hasOrderPositions(final Integer taskId, final boolean recursive)
-  {
+  public boolean hasOrderPositions(final Integer taskId, final boolean recursive) {
     if (taskId == null) { // For new tasks.
       return false;
     }
@@ -687,8 +672,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @param taskId
    * @return True, if the given task has order positions or any ancestor task has an order position.
    */
-  public boolean hasOrderPositionsUpwards(final Integer taskId)
-  {
+  public boolean hasOrderPositionsUpwards(final Integer taskId) {
     if (hasOrderPositions(taskId, false)) {
       return true;
     }
@@ -703,8 +687,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @param taskId
    * @see #getPersonDays(TaskNode)
    */
-  public BigDecimal getPersonDays(final Integer taskId)
-  {
+  public BigDecimal getPersonDays(final Integer taskId) {
     final TaskNode node = getTaskNodeById(taskId);
     return getPersonDays(node);
   }
@@ -716,8 +699,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @see #getOrderedPersonDays(TaskNode)
    * @see TaskNode#getMaxHours()
    */
-  public BigDecimal getPersonDays(final TaskNode node)
-  {
+  public BigDecimal getPersonDays(final TaskNode node) {
     checkRefresh();
     if (node == null || node.isDeleted()) {
       return null;
@@ -749,8 +731,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @return The sum of all ordered person days. This method checks the given node and all sub-nodes for assigned order
    * positions.
    */
-  public BigDecimal getOrderedPersonDaysSum(final TaskNode node)
-  {
+  public BigDecimal getOrderedPersonDaysSum(final TaskNode node) {
     BigDecimal personDays = null;
     if (node.orderedPersonDays != null) {
       personDays = node.orderedPersonDays;
@@ -770,8 +751,7 @@ public class TaskTree extends AbstractCache implements Serializable
     return personDays;
   }
 
-  public TaskNode getPersonDaysNode(final TaskNode node)
-  {
+  public TaskNode getPersonDaysNode(final TaskNode node) {
     if (node == null) {
       return null;
     }
@@ -787,8 +767,7 @@ public class TaskTree extends AbstractCache implements Serializable
   /**
    * Reads the sum of all time sheet durations grouped by task id and set the total duration of found taskNodes.
    */
-  private void readTotalDurations()
-  {
+  private void readTotalDurations() {
     final List<Object[]> list = taskDao.readTotalDurations();
     for (final Object[] res : list) {
       final Integer taskId = (Integer) res[1];
@@ -808,8 +787,7 @@ public class TaskTree extends AbstractCache implements Serializable
   /**
    * Reads the sum of all time sheet durations grouped by task id and set the total duration of found taskNodes.
    */
-  public void readTotalDuration(final Integer taskId)
-  {
+  public void readTotalDuration(final Integer taskId) {
     final long duration = taskDao.readTotalDuration(taskId);
     final TaskNode node = getTaskNodeById(taskId);
     if (node == null) {
@@ -822,8 +800,7 @@ public class TaskTree extends AbstractCache implements Serializable
   /**
    * Should only called by test suite!
    */
-  public void clear()
-  {
+  public void clear() {
     this.root = null;
     this.setExpired();
   }
@@ -837,8 +814,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * @see org.projectforge.framework.cache.AbstractCache#refresh()
    */
   @Override
-  protected void refresh()
-  {
+  protected void refresh() {
     log.info("Initializing task tree ...");
     if (taskDao == null) {
       log.info("Can't initialize task tree, taskDao isn't set yet (shouldn't occur):");
@@ -850,11 +826,7 @@ public class TaskTree extends AbstractCache implements Serializable
     TaskNode newRoot = null;
     taskMap = new HashMap<>();
     final List<TaskDO> taskList;
-    if (tenant != null) {
-      taskList = taskDao.internalLoadAll(tenant);
-    } else {
-      taskList = taskDao.internalLoadAll();
-    }
+    taskList = taskDao.internalLoadAll();
     TaskNode node;
     log.debug("Loading list of tasks ...");
     for (final TaskDO task : taskList) {
@@ -876,16 +848,8 @@ public class TaskTree extends AbstractCache implements Serializable
 
     if (newRoot == null) {
       final TaskDO rootTask = new TaskDO();
-      if (tenant == null) {
-        log.error("OUPS, no task found (ProjectForge database not initialized?) OK, initialize it ...");
-        rootTask.setShortDescription("ProjectForge root task");
-      } else {
-        log.info("No task yet given for tenant: " + tenant.getId() + ". Creating root task.");
-        rootTask.setTenant(tenant);
-        rootTask.setShortDescription("ProjectForge root task of tenant #" + tenant.getId());
-      }
+      rootTask.setShortDescription("ProjectForge root task");
       rootTask.setTitle("root");
-      rootTask.setTenant(tenant);
       taskDao.internalSave(rootTask);
       newRoot = new TaskNode();
       newRoot.setTask(rootTask);
@@ -956,8 +920,7 @@ public class TaskTree extends AbstractCache implements Serializable
     log.info("Initializing task tree done.");
   }
 
-  private void updateTimeOfLastModification()
-  {
+  private void updateTimeOfLastModification() {
     this.timeOfLastModification = new Date().getTime();
   }
 }

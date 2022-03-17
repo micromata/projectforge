@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,10 +31,6 @@ import javax.swing.*
 
 internal object SwingUtils {
     private val log = org.slf4j.LoggerFactory.getLogger(SwingUtils::class.java)
-
-    fun addEmptySpace(panel: JPanel) {
-        //panel.add(EmptySpace(TerminalSize(0, 1)))
-    }
 
     fun constraints(x: Int, y: Int,
                     width: Int = 1,

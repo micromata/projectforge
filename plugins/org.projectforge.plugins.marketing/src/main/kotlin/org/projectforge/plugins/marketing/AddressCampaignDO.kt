@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,7 +41,7 @@ import javax.persistence.Transient
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_MARKETING_ADDRESS_CAMPAIGN", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_marketing_address_campaign_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_PLUGIN_MARKETING_ADDRESS_CAMPAIGN")
 open class AddressCampaignDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "title")

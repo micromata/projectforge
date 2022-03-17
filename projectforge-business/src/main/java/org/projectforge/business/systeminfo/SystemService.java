@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,29 +24,24 @@
 package org.projectforge.business.systeminfo;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.AppVersion;
 import org.projectforge.business.address.BirthdayCache;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.kost.KostCache;
 import org.projectforge.business.jsonRest.RestCallService;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
+import org.projectforge.business.task.TaskTree;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.database.SchemaExport;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.model.rest.VersionCheck;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides some system routines.
@@ -58,7 +53,13 @@ public class SystemService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemService.class);
 
   @Autowired
+  private UserGroupCache userGroupCache;
+
+  @Autowired
   private TaskDao taskDao;
+
+  @Autowired
+  private TaskTree taskTree;
 
   @Autowired
   private SystemInfoCache systemInfoCache;
@@ -72,90 +73,8 @@ public class SystemService {
   @Autowired
   private KostCache kostCache;
 
-  @Value("${projectforge.versioncheck.enable:true}")
-  private boolean enableVersionCheck;
-
-  private LocalDate lastVersionCheckDate;
-
-  @Value("${projectforge.versioncheck.url:https://projectforge.micromata.de/publicRest/versionCheck}")
-  private String versionCheckUrl;
-
-  private Boolean newPFVersionAvailable;
-
   @Autowired
   private RestCallService restCallService;
-
-  public VersionCheck getVersionCheckInformations() {
-    Locale locale = ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getLocale() != null ?
-            ThreadLocalUserContext.getUser().getLocale() :
-            ThreadLocalUserContext.getLocale();
-    TimeZone timeZone = ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getTimeZone() != null ?
-            TimeZone.getTimeZone(ThreadLocalUserContext.getUser().getTimeZone()) :
-            ThreadLocalUserContext.getTimeZone();
-    VersionCheck versionCheck = new VersionCheck(AppVersion.VERSION.toString(), locale, timeZone);
-    try {
-      versionCheck = restCallService.callRestInterfaceForUrl(versionCheckUrl, HttpMethod.POST, VersionCheck.class, versionCheck);
-    } catch (Exception ex) {
-      // System offline?
-    }
-    return versionCheck;
-  }
-
-  public boolean isNewPFVersionAvailable() {
-    LocalDate now = LocalDate.now();
-    if (lastVersionCheckDate == null) {
-      lastVersionCheckDate = LocalDate.now().minusDays(1);
-    }
-    if (enableVersionCheck && (now.isAfter(lastVersionCheckDate) || newPFVersionAvailable == null)) {
-      lastVersionCheckDate = LocalDate.now();
-      newPFVersionAvailable = Boolean.FALSE;
-      try {
-        VersionCheck versionCheckInformations = getVersionCheckInformations();
-        if (versionCheckInformations != null && StringUtils.isNotEmpty(versionCheckInformations.getSourceVersion()) && StringUtils
-                .isNotEmpty(versionCheckInformations.getTargetVersion())) {
-          String[] sourceVersionPartsWithoutMinus = versionCheckInformations.getSourceVersion().split("-");
-          String[] targetVersionPartsWithoutMinus = versionCheckInformations.getTargetVersion().split("-");
-          if (sourceVersionPartsWithoutMinus.length > 0 && targetVersionPartsWithoutMinus.length > 0) {
-            int[] sourceVersionPartsInteger = getIntegerVersionArray(sourceVersionPartsWithoutMinus[0].split("\\."));
-            int[] targetVersionPartsInteger = getIntegerVersionArray(targetVersionPartsWithoutMinus[0].split("\\."));
-            for (int i = 0; i < 4; i++) {
-              if (sourceVersionPartsInteger[i] < targetVersionPartsInteger[i]) {
-                newPFVersionAvailable = Boolean.TRUE;
-                return newPFVersionAvailable;
-              }
-              if (sourceVersionPartsInteger[i] > targetVersionPartsInteger[i]) {
-                newPFVersionAvailable = Boolean.FALSE;
-                return newPFVersionAvailable;
-              }
-            }
-          }
-        }
-      } catch (Exception e) {
-        log.error("An exception occured while checkin PF version: " + e.getMessage(), e);
-        return Boolean.FALSE;
-      }
-    }
-    if (newPFVersionAvailable == null) {
-      newPFVersionAvailable = Boolean.FALSE;
-    }
-    return newPFVersionAvailable;
-  }
-
-  private int[] getIntegerVersionArray(final String[] sourceVersionParts) {
-    int[] result = new int[4];
-    for (int i = 0; i < 4; i++) {
-      try {
-        result[i] = Integer.parseInt(sourceVersionParts[i]);
-      } catch (Exception e) {
-        result[i] = 0;
-      }
-    }
-    return result;
-  }
-
-  public void setLastVersionCheckDate(LocalDate newDateValue) {
-    lastVersionCheckDate = newDateValue;
-  }
 
   public String exportSchema() {
     final SchemaExport exp = new SchemaExport();
@@ -244,18 +163,13 @@ public class SystemService {
    * @return the name of the refreshed caches.
    */
   public String refreshCaches() {
-    final TenantRegistry tenantRegistry = TenantRegistryMap.getInstance().getTenantRegistry();
-    tenantRegistry.getUserGroupCache().forceReload();
-    tenantRegistry.getTaskTree().forceReload();
+    userGroupCache.forceReload();
+    taskTree.forceReload();
     kontoCache.forceReload();
     kostCache.forceReload();
     rechnungCache.forceReload();
     systemInfoCache.forceReload();
-    TenantRegistryMap.getCache(BirthdayCache.class).forceReload();
+    BirthdayCache.getInstance().forceReload();
     return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, SystemInfoCache, BirthdayCache";
-  }
-
-  public void setEnableVersionCheck(final boolean enableVersionCheck) {
-    this.enableVersionCheck = enableVersionCheck;
   }
 }

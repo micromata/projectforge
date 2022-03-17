@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -48,8 +48,7 @@ import java.util.List;
 import java.util.Map;
 
 @Entity
-@Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION",
-    uniqueConstraints = { @UniqueConstraint(columnNames = { "tenant_id" } /* only one entity per tenant allowed */) })
+@Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION")
 @WithHistory
 @AUserRightId("HR_EMPLOYEE_SALARY") // this is used for right check from CorePersistenceServiceImpl::update
 public class EmployeeConfigurationDO extends DefaultBaseWithAttrDO<EmployeeConfigurationDO>

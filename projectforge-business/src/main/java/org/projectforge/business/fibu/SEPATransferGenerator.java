@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,9 +24,12 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
+import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.generated.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
@@ -69,6 +72,12 @@ public class SEPATransferGenerator
 
   private Pattern patternBic;
   private Pattern patternIBAN;
+
+  @Value("${projectforge.fibu.sepa.defaultIBAN}")
+  private String defaultIBAN = "DE87200500001234567890";
+
+  @Value("${projectforge.fibu.sepa.defaultBIC}")
+  private String defaultBIC = "BANKDEFFXXX";
 
   public SEPATransferGenerator()
   {
@@ -115,7 +124,7 @@ public class SEPATransferGenerator
   {
     final SEPATransferResult result = new SEPATransferResult();
 
-    if (this.jaxbContext == null || invoices == null || invoices.isEmpty() || invoices.get(0).getTenant() == null) {
+    if (this.jaxbContext == null || invoices == null || invoices.isEmpty()) {
       String errorPrefix = "A problem accured while exporting invoices: ";
       String error = "";
       // if jaxb context is missing, generation is not possible
@@ -127,12 +136,6 @@ public class SEPATransferGenerator
         error = "Invoices are null or empty";
         log.warn(errorPrefix + error);
       }
-      if (invoices.get(0).getTenant() == null) {
-        error = "No debitor could be determined of the first invoice [" + (invoices.get(0).getBetreff() != null ?
-            invoices.get(0).getBetreff() :
-            "empty") + "]. Maybe it's not saved?";
-        log.warn(errorPrefix + error);
-      }
       throw new UserException("error", errorPrefix + error);
     }
 
@@ -140,7 +143,7 @@ public class SEPATransferGenerator
     GregorianCalendar gc = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     ObjectFactory factory = new ObjectFactory();
     String msgID = String.format("transfer-%s", this.formatter.format(new Date()));
-    String debitor = invoices.get(0).getTenant().getName(); // use tenant of first invoice
+    String debitor = Configuration.getInstance().getStringValue(ConfigurationParam.ORGANIZATION);
 
     // create document
     final Document document = factory.createDocument();
@@ -159,10 +162,10 @@ public class SEPATransferGenerator
     } catch (DatatypeConfigurationException e) {
       log.error("Exception occured while setting creDtTm property.", e);
     }
-    grpHdr.setNbOfTxs(String.valueOf(1));
+    grpHdr.setNbOfTxs(String.valueOf(invoices.size()));
     final PartyIdentificationSEPA1 partyIdentificationSEPA1 = factory.createPartyIdentificationSEPA1();
     grpHdr.setInitgPty(partyIdentificationSEPA1);
-    partyIdentificationSEPA1.setNm(debitor);
+    partyIdentificationSEPA1.setNm(SEPATransferGeneratorUtils.eraseUnsuportedChars(debitor));
 
     // create payment information
     PaymentInstructionInformationSCT pmtInf = factory.createPaymentInstructionInformationSCT();
@@ -171,7 +174,7 @@ public class SEPATransferGenerator
     pmtInf.setPmtInfId(msgID + "-1");
     pmtInf.setPmtMtd(PaymentMethodSCTCode.TRF);
     pmtInf.setBtchBookg(true);
-    pmtInf.setNbOfTxs("1");
+    pmtInf.setNbOfTxs(String.valueOf(invoices.size()));
     // the default value for most HBCI/FinTS is 01/01/1999 or the current date
     // pmtInf.setReqdExctnDt(XMLGregorianCalendarImpl.createDate(1999, 1, 1, 0));
     try {
@@ -190,21 +193,21 @@ public class SEPATransferGenerator
 
     // set debitor
     PartyIdentificationSEPA2 dbtr = factory.createPartyIdentificationSEPA2();
-    dbtr.setNm(debitor); // other fields should not be used
+    dbtr.setNm(SEPATransferGeneratorUtils.eraseUnsuportedChars(debitor)); // other fields should not be used
     pmtInf.setDbtr(dbtr);
 
     // set debitor iban
     CashAccountSEPA1 dbtrAcct = factory.createCashAccountSEPA1();
     AccountIdentificationSEPA id = factory.createAccountIdentificationSEPA();
     dbtrAcct.setId(id);
-    id.setIBAN("DE87200500001234567890"); // dummy iban, is replaced by external program afterwards
+    id.setIBAN(SEPATransferGeneratorUtils.eraseUnsuportedChars(defaultIBAN));
     pmtInf.setDbtrAcct(dbtrAcct);
 
     // set debitor bic
     BranchAndFinancialInstitutionIdentificationSEPA3 dbtrAgt = factory.createBranchAndFinancialInstitutionIdentificationSEPA3();
     FinancialInstitutionIdentificationSEPA3 finInstnId = factory.createFinancialInstitutionIdentificationSEPA3();
     dbtrAgt.setFinInstnId(finInstnId);
-    finInstnId.setBIC("BANKDEFFXXX"); // dummy bic, is replaced by external program afterwards
+    finInstnId.setBIC(SEPATransferGeneratorUtils.eraseUnsuportedChars(defaultBIC));
     pmtInf.setDbtrAgt(dbtrAgt);
 
     // create transaction
@@ -300,13 +303,13 @@ public class SEPATransferGenerator
 
     // set creditor
     PartyIdentificationSEPA2 cdtr = factory.createPartyIdentificationSEPA2();
-    cdtr.setNm(invoice.getReceiver());
+    cdtr.setNm(SEPATransferGeneratorUtils.eraseUnsuportedChars(invoice.getReceiver()));
     cdtTrfTxInf.setCdtr(cdtr);
 
     // set creditor iban
     CashAccountSEPA2 cdtrAcct = factory.createCashAccountSEPA2();
     AccountIdentificationSEPA cdtrAcctId = factory.createAccountIdentificationSEPA();
-    cdtrAcctId.setIBAN(iban);
+    cdtrAcctId.setIBAN(SEPATransferGeneratorUtils.eraseUnsuportedChars(iban));
     cdtrAcct.setId(cdtrAcctId);
     cdtTrfTxInf.setCdtrAcct(cdtrAcct);
 
@@ -316,13 +319,13 @@ public class SEPATransferGenerator
         .createBranchAndFinancialInstitutionIdentificationSEPA1();
       FinancialInstitutionIdentificationSEPA1 finInstId = factory.createFinancialInstitutionIdentificationSEPA1();
       cdtrAgt.setFinInstnId(finInstId);
-      finInstId.setBIC(invoice.getBic().toUpperCase());
+      finInstId.setBIC(SEPATransferGeneratorUtils.eraseUnsuportedChars(invoice.getBic().toUpperCase()));
       cdtTrfTxInf.setCdtrAgt(cdtrAgt);
     }
 
     // set remittance information (bemerkung/purpose)
     RemittanceInformationSEPA1Choice rmtInf = factory.createRemittanceInformationSEPA1Choice();
-    rmtInf.setUstrd(invoice.getReferenz());
+    rmtInf.setUstrd(SEPATransferGeneratorUtils.eraseUnsuportedChars(invoice.getReferenz()));
     cdtTrfTxInf.setRmtInf(rmtInf);
   }
 

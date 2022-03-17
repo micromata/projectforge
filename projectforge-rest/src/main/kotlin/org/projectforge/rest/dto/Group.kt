@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,45 +27,55 @@ import org.projectforge.business.group.service.GroupService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
-class Group(id: Int? = null,
-            displayName: String? = null,
-            var name: String? = null,
-            var assignedUsers: MutableSet<PFUserDO>? = null
+class Group(
+  id: Int? = null,
+  displayName: String? = null,
+  var name: String? = null,
+  var assignedUsers: MutableSet<PFUserDO>? = null
 ) : BaseDTODisplayObject<GroupDO>(id = id, displayName = displayName) {
-    override fun copyFromMinimal(src: GroupDO) {
-        super.copyFromMinimal(src)
-        name = src.name
+  override fun copyFromMinimal(src: GroupDO) {
+    super.copyFromMinimal(src)
+    name = src.name
+  }
+
+  companion object {
+    /**
+     * Converts csv of group ids to list of groups (only with id and displayName = "???", no other content).
+     */
+    fun toGroupList(str: String?): List<Group>? {
+      if (str.isNullOrBlank()) return null
+      return toIntArray(str)?.map { Group(it, "???") }
     }
 
-    companion object {
-        /**
-         * Converts csv of group ids to list of groups (only with id and displayName = "???", no other content).
-         */
-        fun toGroupList(str: String?): List<Group>? {
-            if (str.isNullOrBlank()) return null
-            return toIntArray(str)?.map {  Group(it, "???") }
-        }
-
-        /**
-         * Converts csv of group ids to list of user id's.
-         */
-        fun toIntArray(str: String?): IntArray? {
-            return User.toIntArray(str)
-        }
-
-        /**
-         * Converts group list to ints (of format supported by [toGroupList]).
-         */
-        fun toIntList(groups: List<Group>?): String? {
-            return groups?.joinToString { "${it.id}" }
-        }
-
-        /**
-         * Set display names of any existing group in the given list.
-         * @see GroupService.getDisplayName
-         */
-        fun restoreDisplayNames(groups: List<Group>?, groupService: GroupService) {
-            groups?.forEach { it.displayName = groupService.getDisplayName(it.id) }
-        }
+    /**
+     * Converts csv of group ids to list of user id's.
+     */
+    fun toIntArray(str: String?): IntArray? {
+      return User.toIntArray(str)
     }
+
+    /**
+     * Converts group list to ints (of format supported by [toGroupList]).
+     */
+    fun toIntList(groups: List<Group>?): String? {
+      return groups?.joinToString { "${it.id}" }
+    }
+
+    /**
+     * Set display names of any existing group in the given list.
+     * @see GroupService.getDisplayName
+     */
+    fun restoreDisplayNames(groups: List<Group>?, groupService: GroupService) {
+      groups?.forEach { it.displayName = groupService.getDisplayName(it.id) }
+    }
+
+    /**
+     * Converts csv of group ids to list of group names).
+     */
+    fun toGroupNames(groupIds: String?, groupService: GroupService): String {
+      val groups = toGroupList(groupIds)
+      Group.restoreDisplayNames(groups, groupService)
+      return groups?.joinToString { it.displayName ?: "???" } ?: ""
+    }
+  }
 }

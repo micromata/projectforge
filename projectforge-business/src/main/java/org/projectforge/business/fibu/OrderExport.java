@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,21 +25,21 @@ package org.projectforge.business.fibu;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.excel.*;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskNode;
+import org.projectforge.business.task.TaskTree;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -62,7 +62,8 @@ public class OrderExport
   @Autowired
   private AuftragDao auftragDao;
 
-  private transient TenantRegistry tenantRegistry;
+  @Autowired
+  private TaskTree taskTree;
 
   private ExportColumn[] createOrderColumns()
   {
@@ -132,7 +133,7 @@ public class OrderExport
     mapping.add(OrderCol.PERIOD_OF_PERFORMANCE_END, order.getPeriodOfPerformanceEnd());
     mapping.add(OrderCol.PROBABILITY_OF_OCCURRENCE, order.getProbabilityOfOccurrence());
 
-    final PFUserDO contactPerson = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getUser(order.getContactPersonId());
+    final PFUserDO contactPerson = UserGroupCache.getInstance().getUser(order.getContactPersonId());
     mapping.add(OrderCol.CONTACT_PERSON, contactPerson != null ? contactPerson.getFullname() : "");
     mapping.add(OrderCol.REFERENCE, order.getReferenz());
     mapping.add(OrderCol.COMMENT, order.getBemerkung());
@@ -212,7 +213,7 @@ public class OrderExport
     }
     mapping.add(OrderCol.PROBABILITY_OF_OCCURRENCE, order.getProbabilityOfOccurrence());
     mapping.add(OrderCol.CONTACT_PERSON, order.getContactPerson() != null ? order.getContactPerson().getFullname() : "");
-    final TaskNode node = getTenantRegistry().getTaskTree().getTaskNodeById(pos.getTaskId());
+    final TaskNode node = taskTree.getTaskNodeById(pos.getTaskId());
     mapping.add(PosCol.TASK, node != null ? node.getTask().getTitle() : "");
     mapping.add(PosCol.COMMENT, pos.getBemerkung());
   }
@@ -222,12 +223,12 @@ public class OrderExport
     if (order.getErfassungsDatum() == null) {
       if (order.getCreated() == null) {
         if (order.getAngebotsDatum() == null) {
-          order.setErfassungsDatum(new java.sql.Date(new Date().getTime()));
+          order.setErfassungsDatum(PFDay.now().getLocalDate());
         } else {
-          order.setErfassungsDatum(new java.sql.Date(order.getAngebotsDatum().getTime()));
+          order.setErfassungsDatum(order.getAngebotsDatum());
         }
       } else {
-        order.setErfassungsDatum(new java.sql.Date(order.getCreated().getTime()));
+        order.setErfassungsDatum(PFDay.from(order.getCreated()).getLocalDate());
       }
     }
     return order.getErfassungsDatum();
@@ -356,17 +357,6 @@ public class OrderExport
         new I18nExportColumn(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, "fibu.auftrag.vollstaendigFakturiert", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PaymentsCol.SCHEDULE_DATE, "date", MyXlsContentProvider.LENGTH_DATE)
     };
-  }
-
-  /**
-   * @return the tenantRegistry
-   */
-  public TenantRegistry getTenantRegistry()
-  {
-    if (tenantRegistry == null) {
-      tenantRegistry = TenantRegistryMap.getInstance().getTenantRegistry();
-    }
-    return tenantRegistry;
   }
 
   private enum OrderCol

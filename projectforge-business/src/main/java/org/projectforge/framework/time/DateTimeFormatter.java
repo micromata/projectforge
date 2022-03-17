@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -61,6 +61,14 @@ public class DateTimeFormatter extends AbstractFormatter {
    * @see DateHelper#getWeekOfYear(Date)
    */
   public static String formatWeekOfYear(final Date date) {
+    if (date == null) {
+      return "";
+    }
+    final int weekOfYear = DateHelper.getWeekOfYear(date);
+    return weekOfYear < 10 ? "0" + weekOfYear : String.valueOf(weekOfYear);
+  }
+
+  public static String formatWeekOfYear(final LocalDate date) {
     if (date == null) {
       return "";
     }

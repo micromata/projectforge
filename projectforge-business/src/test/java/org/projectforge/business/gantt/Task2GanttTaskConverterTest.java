@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,6 +26,7 @@ package org.projectforge.business.gantt;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
+import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,9 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
   @Autowired
   private TaskDao taskDao;
 
+  @Autowired
+  private TaskTree taskTree;
+
   @Test
   public void testConvertingTaskTree() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
@@ -65,7 +69,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     final PFDateTime day = PFDateTime.withDate(2010, Month.AUGUST, 16);
 
     TaskDO task = getTask(prefix + "2.1");
-    task.setStartDate(day.getUtilDate());
+    task.setStartDate(day.getLocalDate());
     task.setDuration(BigDecimal.TEN);
     taskDao.update(task);
 
@@ -94,7 +98,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     task.setDuration(BigDecimal.TEN);
     taskDao.update(task);
 
-    final GanttChartData ganttChartData = Task2GanttTaskConverter.convertToGanttObjectTree(taskDao.getTaskTree(),
+    final GanttChartData ganttChartData = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree,
             getTask(prefix + "1"));
     assertEquals(2, ganttChartData.getExternalObjects().size(),
             "Two external objects (2.1 and 2.2) exptected.");
@@ -125,7 +129,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
             + "</ganttObject>"
             + "<ganttObject id='{1.2}'><predecessor id='{2.3}'/>"
             + "<children>"
-            + "<ganttObject id='{1.2.1}'><predecessor id='{2.1}'/></ganttObject>" // Write external Gantt object only with id
+            + "<ganttObject id='{1.2.1}'><predecessor id='{2.1}'><endDate>2010-08-30</endDate></predecessor></ganttObject>" // Write external Gantt object only with id
             + "<ganttObject ref-id='0'/>"
             + "</children>"
             + "</ganttObject>"
@@ -147,19 +151,16 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
   private void assertExternalTasks(final GanttChartData ganttChartData, final String prefix) {
     GanttTask externalGanttTask = ganttChartData.getExternalObject(getTaskId(prefix + "2.1"));
     assertNull(externalGanttTask.getPredecessor(), "Predecessor should be null.");
-    assertDate("Start date unmodified.", 2010, Month.AUGUST.getValue(), 16, externalGanttTask.getStartDate());
-    assertDate("End date should have been calculated and set.", 2010, Month.AUGUST.getValue(), 30,
-            externalGanttTask.getEndDate());
+    assertLocalDate(externalGanttTask.getStartDate(), 2010, Month.AUGUST, 16);
+    assertLocalDate(externalGanttTask.getEndDate(),2010, Month.AUGUST, 30);
     externalGanttTask = ganttChartData.getExternalObject(getTaskId(prefix + "2.2"));
     assertNull(externalGanttTask.getPredecessor(), "Predecessor should be null.");
-    assertDate("Start date should have been calculated and set.", 2010, Month.AUGUST.getValue(), 30,
-            externalGanttTask.getStartDate());
-    assertDate("End date should have been calculated and set.", 2010, Month.SEPTEMBER.getValue(), 13,
-            externalGanttTask.getEndDate());
+    assertLocalDate(externalGanttTask.getStartDate(), 2010, Month.AUGUST, 30);
+    assertLocalDate(externalGanttTask.getEndDate(),2010, Month.SEPTEMBER, 13);
   }
 
   private void assertDate(final String message, final int year, final int month, final int dayOfMonth, final Date date) {
-    final PFDateTime dt = PFDateTime.from(date);
+    final PFDateTime dt = PFDateTime.from(date); // not null
     assertEquals(year, dt.getYear(), message);
     assertEquals(month, dt.getMonthValue(), message);
     assertEquals(dayOfMonth, dt.getDayOfMonth(), message);

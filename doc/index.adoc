@@ -1,5 +1,4 @@
-ProjectForge documentation
-==========================
+= ProjectForge documentation
 Micromata GmbH, Version {version}
 :toc:
 :toclevels: 4

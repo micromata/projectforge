@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,6 @@
 package org.projectforge.access;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -41,7 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,6 +57,9 @@ public class AccessTestFork extends AbstractTestBase
 
   @Autowired
   private TimesheetDao timesheetDao;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   @Test
   public void testAccessDO()
@@ -93,7 +95,6 @@ public class AccessTestFork extends AbstractTestBase
   public void checkTaskMoves()
   {
     logon(AbstractTestBase.TEST_ADMIN_USER);
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     // First check initialization:
     final PFUserDO user1 = getUser("user1");
     assertTrue(userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group1").getId()),
@@ -126,8 +127,8 @@ public class AccessTestFork extends AbstractTestBase
     timesheet.setLocation("Office");
     timesheet.setDescription("A lot of stuff done and more.");
     final long current = System.currentTimeMillis();
-    timesheet.setStartTime(new Timestamp(current));
-    timesheet.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
+    timesheet.setStartTime(new Date(current));
+    timesheet.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
     final Serializable id = timesheetDao.internalSave(timesheet);
 
     logon(user1); // user1 is in group1, but not in group3

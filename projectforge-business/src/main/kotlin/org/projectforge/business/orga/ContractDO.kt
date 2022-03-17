@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,17 @@
 
 package org.projectforge.business.orga
 
-import org.hibernate.search.annotations.*
+import com.fasterxml.jackson.annotation.JsonIgnore
+import de.micromata.genome.db.jpa.history.api.NoHistory
+import org.hibernate.search.annotations.Analyze
+import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.FieldBridge
+import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import java.sql.Date
+import java.time.LocalDate
 import javax.persistence.*
 
 /**
@@ -35,37 +41,31 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_CONTRACT",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["number", "tenant_id"])],
-        indexes = [javax.persistence.Index(name = "idx_fk_t_contract_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_CONTRACT")
 @NamedQueries(
         NamedQuery(name = ContractDO.FIND_OTHER_BY_NUMBER, query = "from ContractDO where number=:number and id<>:id"),
         NamedQuery(name = ContractDO.SELECT_MIN_MAX_DATE, query = "select min(date), max(date) from ContractDO"))
-open class ContractDO : DefaultBaseDO() {
+open class ContractDO : DefaultBaseDO(), AttachmentsInfo {
 
-    // TODO: Support int input field
-    @PropertyInfo(i18nKey = "legalAffaires.contract.number")
+    @PropertyInfo(i18nKey = "'C-", additionalI18nKey = "legalAffaires.contract.number", tooltip = "fibu.tooltip.nummerWirdAutomatischVergeben")
     @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(name = "number")
     open var number: Int? = null
 
     @PropertyInfo(i18nKey = "date")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "c_date")
-    open var date: Date? = null
+    open var date: LocalDate? = null
 
-    @PropertyInfo(i18nKey = "legalAffaires.contract.validity")
+    @PropertyInfo(i18nKey = "legalAffaires.contract.validity.from")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "valid_from")
-    open var validFrom: Date? = null
+    open var validFrom: LocalDate? = null
 
-    @PropertyInfo(i18nKey = "legalAffaires.contract.validity")
+    @PropertyInfo(i18nKey = "legalAffaires.contract.validity.until")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "valid_until")
-    open var validUntil: Date? = null
+    open var validUntil: LocalDate? = null
 
     @PropertyInfo(i18nKey = "title", required = true)
     @Field
@@ -104,9 +104,8 @@ open class ContractDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.signing")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "signing_date")
-    open var signingDate: Date? = null
+    open var signingDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "legalAffaires.contract.type")
     @Field
@@ -136,15 +135,40 @@ open class ContractDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "resubmissionOnDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "resubmission_on_date")
-    open var resubmissionOnDate: Date? = null
+    open var resubmissionOnDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "dueDate")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column(name = "due_date")
-    open var dueDate: Date? = null
+    open var dueDate: LocalDate? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_names")
+    override var attachmentsNames: String? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_ids")
+    override var attachmentsIds: String? = null
+
+    @JsonIgnore
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_counter")
+    override var attachmentsCounter: Int? = null
+
+    @JsonIgnore
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_size")
+    override var attachmentsSize: Long? = null
+
+    @PropertyInfo(i18nKey = "attachment")
+    @JsonIgnore
+    @get:Column(length = 10000, name = "attachments_last_user_action")
+    override var attachmentsLastUserAction: String? = null
 
     companion object {
         internal const val FIND_OTHER_BY_NUMBER = "ContractDO_FindOtherByNumber"

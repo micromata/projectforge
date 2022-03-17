@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,12 +27,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 @Service
 public class DomainService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DomainService.class);
 
   @Value("${projectforge.domain}")
   private String domain;
+  private String plainDomain;
   private String domainWithContextPath;
   @Value("${projectforge.servletContextPath}")
   private String contextPath;
@@ -44,6 +48,28 @@ public class DomainService {
    */
   public String getDomain() {
     return domain;
+  }
+
+  public String getPlainDomain() {
+    if (plainDomain == null) {
+      try {
+        URL url = new URL(domain);
+        plainDomain = url.getHost();
+      } catch (MalformedURLException ex) {
+        log.error("Can't parse domain '" + domain + "': " + ex.getMessage(), ex);
+        plainDomain = domain;
+      }
+    }
+    return plainDomain;
+  }
+
+  public String getDomain(final String subPath) {
+    final String path = (StringUtils.startsWith(subPath, "/")) ? subPath.substring(1) : subPath;
+    final String domainWithContextPath = getDomainWithContextPath();
+    if (StringUtils.endsWith(domainWithContextPath, "/")) {
+      return domainWithContextPath + path;
+    }
+    return domainWithContextPath + "/" + path;
   }
 
   /**

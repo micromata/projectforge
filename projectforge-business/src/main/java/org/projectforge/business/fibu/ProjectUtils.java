@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -36,21 +35,18 @@ import java.util.List;
 /**
  * Some useful helper methods. That are used in groovy scripts. The static methods are used here because groovy scripts
  * call them in static context.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class ProjectUtils
-{
+public class ProjectUtils {
   private static ProjektDao projektDao;
 
   /**
    * @param username
    * @return List of all projects of which the given user (by login name) is member of the project manager group.
    */
-  public static Collection<ProjektDO> getProjectsOfManager(final String username)
-  {
-    final PFUserDO user = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getUser(username);
+  public static Collection<ProjektDO> getProjectsOfManager(final String username) {
+    final PFUserDO user = UserGroupCache.getInstance().getUser(username);
     return getProjectsOfManager(user);
   }
 
@@ -58,9 +54,8 @@ public class ProjectUtils
    * @param userId
    * @return List of all projects of which the given user (by user id) is member of the project manager group.
    */
-  public static Collection<ProjektDO> getProjectsOfManager(final Integer userId)
-  {
-    final PFUserDO user = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getUser(userId);
+  public static Collection<ProjektDO> getProjectsOfManager(final Integer userId) {
+    final PFUserDO user = UserGroupCache.getInstance().getUser(userId);
     return getProjectsOfManager(user);
   }
 
@@ -68,8 +63,7 @@ public class ProjectUtils
    * @param user
    * @return List of all projects of which the given user is member of the project manager group.
    */
-  public static Collection<ProjektDO> getProjectsOfManager(final PFUserDO user)
-  {
+  public static Collection<ProjektDO> getProjectsOfManager(final PFUserDO user) {
     final Collection<ProjektDO> result = new LinkedList<>();
     final ProjektFilter filter = new ProjektFilter();
     if (projektDao == null) {
@@ -79,7 +73,7 @@ public class ProjectUtils
     if (CollectionUtils.isEmpty(projects)) {
       return result;
     }
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
+    final UserGroupCache userGroupCache = UserGroupCache.getInstance();
     for (final ProjektDO project : projects) {
       final Integer groupId = project.getProjektManagerGroupId();
       if (groupId == null) {

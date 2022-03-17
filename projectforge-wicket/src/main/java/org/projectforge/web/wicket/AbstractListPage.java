@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.web.wicket;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -44,7 +45,7 @@ import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.common.StringHelper;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.export.DOListExcelExporter;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;
 import org.projectforge.framework.utils.RecentQueue;
@@ -57,8 +58,7 @@ import java.io.Serializable;
 import java.util.*;
 
 public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D extends IDao<?>, O extends IdObject<?>>
-    extends AbstractSecuredPage implements ISelectCallerPage
-{
+        extends AbstractSecuredPage implements ISelectCallerPage {
   private static final long serialVersionUID = 622509418161777195L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractListPage.class);
@@ -82,13 +82,12 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    */
   protected Set<Integer> selectedItems;
 
-  protected static final String[] BOOKMARKABLE_INITIAL_PROPERTIES = new String[] { "f.searchString|s",
-      "f.useModificationFilter|mod",
-      "f.modifiedByUserId|mUser", "f.startTimeOfLastModification|mStart", "f.stopTimeOfLastModification|mStop",
-      "f.deleted|del", "pageSize" };
+  protected static final String[] BOOKMARKABLE_INITIAL_PROPERTIES = new String[]{"f.searchString|s",
+          "f.useModificationFilter|mod",
+          "f.modifiedByUserId|mUser", "f.startTimeOfLastModification|mStart", "f.stopTimeOfLastModification|mStop",
+          "f.deleted|del", "pageSize"};
 
-  protected static final String[] mergeStringArrays(final String[] a1, final String a2[])
-  {
+  protected static final String[] mergeStringArrays(final String[] a1, final String a2[]) {
     final String[] result = new String[a1.length + a2.length];
     int pos = 0;
     for (final String str : a1) {
@@ -135,8 +134,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   protected RecentQueue<String> recentSearchTermsQueue;
 
-  public static void addRowClick(final Item<?> cellItem)
-  {
+  public static void addRowClick(final Item<?> cellItem) {
     final Item<?> row = (cellItem.findParent(Item.class));
     WicketUtils.addRowClick(row);
   }
@@ -147,8 +145,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    *                   mass update, otherwise this method calls addRowClick(Item).
    * @see #addRowClick(Item)
    */
-  protected static void addRowClick(final Item<?> cellItem, final boolean massUpdate)
-  {
+  protected static void addRowClick(final Item<?> cellItem, final boolean massUpdate) {
     if (massUpdate == true) {
       final Item<?> row = (cellItem.findParent(Item.class));
       row.add(AttributeModifier.replace("onmousedown", "javascript:rowCheckboxClick(this, event);"));
@@ -157,20 +154,17 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     }
   }
 
-  protected AbstractListPage(final PageParameters parameters, final String i18nPrefix)
-  {
+  protected AbstractListPage(final PageParameters parameters, final String i18nPrefix) {
     this(parameters, null, null, i18nPrefix);
   }
 
-  protected AbstractListPage(final ISelectCallerPage caller, final String selectProperty, final String i18nPrefix)
-  {
+  protected AbstractListPage(final ISelectCallerPage caller, final String selectProperty, final String i18nPrefix) {
     this(new PageParameters(), caller, selectProperty, i18nPrefix);
   }
 
   protected AbstractListPage(final PageParameters parameters, final ISelectCallerPage caller,
-      final String selectProperty,
-      final String i18nPrefix)
-  {
+                             final String selectProperty,
+                             final String i18nPrefix) {
     super(parameters);
     if (parameters.get(PARAMETER_KEY_STORE_FILTER) != null) {
       final Boolean flag = WicketUtils.getAsBooleanObject(parameters, PARAMETER_KEY_STORE_FILTER);
@@ -194,8 +188,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    *
    * @param filter
    */
-  public void copySearchFieldsFrom(final BaseSearchFilter filter)
-  {
+  public void copySearchFieldsFrom(final BaseSearchFilter filter) {
     form.copySearchFieldsFrom(filter);
   }
 
@@ -203,8 +196,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * Is called before the form is initialized in constructor. Overwrite this method if any variables etc. should be set
    * before initialization.
    */
-  protected void setup()
-  {
+  protected void setup() {
   }
 
   /**
@@ -212,18 +204,15 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    *
    * @param highlightedRowId
    */
-  public void setHighlightedRowId(final Serializable highlightedRowId)
-  {
+  public void setHighlightedRowId(final Serializable highlightedRowId) {
     this.highlightedRowId = highlightedRowId;
   }
 
-  public Serializable getHighlightedRowId()
-  {
+  public Serializable getHighlightedRowId() {
     return highlightedRowId;
   }
 
-  private F getForm()
-  {
+  private F getForm() {
     if (form == null) {
       form = newListForm(this);
     }
@@ -238,9 +227,8 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @return
    */
   protected static void appendCssClasses(final Item<?> item, final Serializable rowDataId,
-      final Serializable highlightedRowId,
-      final boolean isDeleted)
-  {
+                                         final Serializable highlightedRowId,
+                                         final boolean isDeleted) {
     if (rowDataId == null) {
       return;
     }
@@ -263,8 +251,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @param isDeleted Is this entry deleted? Then the deleted style will be added.
    * @return
    */
-  protected void appendCssClasses(final Item<?> item, final Serializable rowDataId, final boolean isDeleted)
-  {
+  protected void appendCssClasses(final Item<?> item, final Serializable rowDataId, final boolean isDeleted) {
     appendCssClasses(item, rowDataId, this.highlightedRowId, isDeleted);
   }
 
@@ -273,8 +260,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @param rowCssClasses The css class to append to the given item.
    * @return
    */
-  protected static void appendCssClasses(final Item<?> item, final RowCssClass... rowCssClasses)
-  {
+  protected static void appendCssClasses(final Item<?> item, final RowCssClass... rowCssClasses) {
     WicketUtils.append(item, rowCssClasses);
   }
 
@@ -284,8 +270,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @see org.projectforge.web.wicket.AbstractSecuredPage#getBookmarkableInitialParameters()
    */
   @Override
-  public PageParameters getBookmarkableInitialParameters()
-  {
+  public PageParameters getBookmarkableInitialParameters() {
     final PageParameters pageParameters = super.getBookmarkableInitialParameters();
     WicketUtils.addOrReplaceParameter(pageParameters, PARAMETER_KEY_STORE_FILTER, false);
     return pageParameters;
@@ -295,8 +280,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @see org.projectforge.web.wicket.AbstractSecuredPage#getBookmarkableInitialProperties()
    */
   @Override
-  protected String[] getBookmarkableInitialProperties()
-  {
+  protected String[] getBookmarkableInitialProperties() {
     return BOOKMARKABLE_INITIAL_PROPERTIES;
   }
 
@@ -304,8 +288,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @see org.projectforge.web.wicket.AbstractSecuredPage#getFilterObjectForInitialParameters()
    */
   @Override
-  protected Object getFilterObjectForInitialParameters()
-  {
+  protected Object getFilterObjectForInitialParameters() {
     return form.getSearchFilter();
   }
 
@@ -314,8 +297,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @see org.projectforge.web.wicket.AbstractSecuredPage#getDataObjectForInitialParameters()
    */
   @Override
-  protected Object getDataObjectForInitialParameters()
-  {
+  protected Object getDataObjectForInitialParameters() {
     return form;
   }
 
@@ -323,48 +305,40 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @return This page as link with the page parameters of this page.
    */
   @Override
-  public String getPageAsLink()
-  {
+  public String getPageAsLink() {
     return getPageAsLink(new PageParameters());
   }
 
   @SuppressWarnings("serial")
-  private void preInit()
-  {
+  private void preInit() {
     getForm();
     body.add(form);
     form.init();
     if (isSelectMode() == false
-        && (accessChecker.isDemoUser() == true || getBaseDao().hasInsertAccess(getUser()) == true)) {
-      newItemMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), new Link<Object>("link")
-      {
+            && (accessChecker.isDemoUser() == true || getBaseDao().hasInsertAccess(getUser()) == true)) {
+      newItemMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), new Link<Object>("link") {
         @Override
-        public void onClick()
-        {
+        public void onClick() {
           redirectToEditPage(null);
         }
 
       }, IconType.PLUS);
       newItemMenuEntry.setAccessKey(WebConstants.ACCESS_KEY_ADD).setTooltip(
-          getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP_TITLE),
-          getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP));
+              getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP_TITLE),
+              getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP));
       contentMenuBarPanel.addMenuEntry(newItemMenuEntry);
     }
     final Label hintQuickSelectLabel = new Label("hintQuickSelect",
-        new Model<String>(getString("hint.selectMode.quickselect")))
-    {
+            new Model<String>(getString("hint.selectMode.quickselect"))) {
       @Override
-      public boolean isVisible()
-      {
+      public boolean isVisible() {
         return isSelectMode();
       }
     };
     if (isSupportsMassUpdate() == true) {
-      massUpdateMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), new Link<Object>("link")
-      {
+      massUpdateMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), new Link<Object>("link") {
         @Override
-        public void onClick()
-        {
+        public void onClick() {
           setMassUpdateMode(true);
         }
 
@@ -380,7 +354,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       link = new ExternalLink("link", "#");
       link.add(AttributeModifier.replace("onclick", "javascript:deselectAll();"));
       deselectAllMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), link,
-          getString("deselectAll"));
+              getString("deselectAll"));
       deselectAllMenuEntry.setVisible(false);
       contentMenuBarPanel.addMenuEntry(deselectAllMenuEntry);
     }
@@ -392,8 +366,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     createDataTable();
   }
 
-  protected String getMassUpdateLabel()
-  {
+  protected String getMassUpdateLabel() {
     return getString("massUpdate");
   }
 
@@ -405,8 +378,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   /**
    * For list pages which supports mass update, please implement this method.
    */
-  protected void createDataTable()
-  {
+  protected void createDataTable() {
   }
 
   /**
@@ -416,14 +388,13 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @return The edit page (response page). The return value has no effect. It's only useful for derived class methods
    * which calls super.onNewClick();
    */
-  protected AbstractEditPage<?, ?, ?> redirectToEditPage(PageParameters params)
-  {
+  protected AbstractEditPage<?, ?, ?> redirectToEditPage(PageParameters params) {
     if (params == null) {
       params = new PageParameters();
     }
     final Class<?> editPageClass = getClass().getAnnotation(ListPage.class).editPage();
     final AbstractEditPage<?, ?, ?> editPage = (AbstractEditPage<?, ?, ?>) ReflectionHelper.newInstance(editPageClass,
-        PageParameters.class, params);
+            PageParameters.class, params);
     editPage.setReturnToPage(AbstractListPage.this);
     setResponsePage(editPage);
     return editPage;
@@ -435,8 +406,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @return true, if response page is set for redirect (e. g. for successful quick selection), otherwise false.
    */
   @SuppressWarnings("unchecked")
-  protected boolean onSearchSubmit()
-  {
+  protected boolean onSearchSubmit() {
     log.debug("onSearchSubmit");
     refresh();
     if (isSelectMode() == true) {
@@ -464,8 +434,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     return false;
   }
 
-  protected void onResetSubmit()
-  {
+  protected void onResetSubmit() {
     log.debug("onResetSubmit");
     form.getSearchFilter().reset();
     refresh();
@@ -475,8 +444,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   /**
    * User has pressed the cancel button. If in selection mode then redirect to the caller.
    */
-  protected void onCancelSubmit()
-  {
+  protected void onCancelSubmit() {
     log.debug("onCancelSubmit");
     if (isSelectMode() == true && caller != null) {
       WicketUtils.setResponsePage(this, caller);
@@ -487,8 +455,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     }
   }
 
-  public void setMassUpdateMode(final boolean mode)
-  {
+  public void setMassUpdateMode(final boolean mode) {
     massUpdateMenuEntry.setVisible(!mode);
     selectAllMenuEntry.setVisible(mode);
     deselectAllMenuEntry.setVisible(mode);
@@ -504,27 +471,28 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     }
   }
 
-  protected void onNextSubmit()
-  {
+  protected void onNextSubmit() {
     setResponsePage(new MessagePage("message.notYetImplemented"));
   }
 
   /**
    * Called, if the list must be refreshed. Sets list to null and page size of data table.
    */
-  public void refresh()
-  {
+  public void refresh() {
     this.resultList = null; // Force reload of list
     this.refreshResultList = true;
-    final long itemsPerPage = dataTable.getItemsPerPage();
+    long itemsPerPage = dataTable.getItemsPerPage();
     if (form.getPageSize() != itemsPerPage) {
-      dataTable.setItemsPerPage(form.getPageSize());
+      itemsPerPage = form.getPageSize();
     }
+    if (itemsPerPage < 1) {
+      itemsPerPage = 25; // cannot be less than 1
+    }
+    dataTable.setItemsPerPage(itemsPerPage);
     addRecentSearchTerm();
   }
 
-  public List<O> getList()
-  {
+  public List<O> getList() {
     if (this.refreshResultList == false && this.resultList != null) {
       return this.resultList;
     }
@@ -536,8 +504,30 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
         // An error occured:
         form.addError("search.error");
       }
+      if (massUpdateMode == true && CollectionUtils.isNotEmpty(selectedItems)) {
+        // check, if all previous selected items are still visible:
+        for (Integer id : selectedItems) {
+          boolean contained = false;
+          for (O obj : resultList) {
+            if (Objects.equals(id, obj.getId())) {
+              contained = true;
+              break;
+            }
+          }
+          if (!contained) {
+            // At least one item isn't contained in result list, therefore continue with no selected items.
+            // This prevents, that not shown items from previous mass updates will be updated too.
+            selectedItems = new HashSet<>();
+            break;
+          }
+        }
+        if (selectedItems.size() > 0) {
+          log.info("Mass update mode with " + selectedItems.size() + " restored selected items.");
+        }
+      }
       return this.resultList;
-    } catch (final Exception ex) {
+    } catch (
+            final Exception ex) {
       if (ex instanceof UserException) {
         final UserException userException = (UserException) ex;
         error(getLocalizedMessage(userException.getI18nKey(), userException.getParams()));
@@ -549,8 +539,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   }
 
   @SuppressWarnings("unchecked")
-  protected List<O> buildList()
-  {
+  protected List<O> buildList() {
     return (List<O>) getBaseDao().getList(form.getSearchFilter());
   }
 
@@ -558,8 +547,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @see org.projectforge.web.wicket.AbstractUnsecureBasePage#onBeforeRender()
    */
   @Override
-  protected void onBeforeRender()
-  {
+  protected void onBeforeRender() {
     if (this.refreshResultList == true) {
       getList();
     }
@@ -570,29 +558,24 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @see org.apache.wicket.markup.html.WebPage#onAfterRender()
    */
   @Override
-  protected void onAfterRender()
-  {
+  protected void onAfterRender() {
     super.onAfterRender();
     this.resultList = null; // Don't waste memory.
   }
 
   protected abstract F newListForm(AbstractListPage<?, ?, ?> parentPage);
 
-  protected String getSearchToolTip()
-  {
+  protected String getSearchToolTip() {
     return getLocalizedMessage("search.string.info", getSearchFields());
   }
 
   @SuppressWarnings("serial")
-  protected void addTopRightMenu()
-  {
+  protected void addTopRightMenu() {
     if (isSelectMode() == false
-        && ((getBaseDao() instanceof BaseDao<?>) || providesOwnRebuildDatabaseIndex() == true || true)) {
-      new AbstractReindexTopRightMenu(this.contentMenuBarPanel, accessChecker.isLoggedInUserMemberOfAdminGroup())
-      {
+            && ((getBaseDao() instanceof BaseDao<?>) || providesOwnRebuildDatabaseIndex() == true || true)) {
+      new AbstractReindexTopRightMenu(this.contentMenuBarPanel, accessChecker.isLoggedInUserMemberOfAdminGroup()) {
         @Override
-        protected void rebuildDatabaseIndex(final boolean onlyNewest)
-        {
+        protected void rebuildDatabaseIndex(final boolean onlyNewest) {
           if (providesOwnRebuildDatabaseIndex() == true) {
             ownRebuildDatabaseIndex(onlyNewest);
           } else {
@@ -605,28 +588,24 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
         }
 
         @Override
-        protected String getString(final String i18nKey)
-        {
+        protected String getString(final String i18nKey) {
           return AbstractListPage.this.getString(i18nKey);
         }
       };
     }
   }
 
-  protected boolean providesOwnRebuildDatabaseIndex()
-  {
+  protected boolean providesOwnRebuildDatabaseIndex() {
     return false;
   }
 
-  protected void ownRebuildDatabaseIndex(final boolean onlyNewest)
-  {
+  protected void ownRebuildDatabaseIndex(final boolean onlyNewest) {
   }
 
   /**
    * Override this method if you need a top panel. The default top panel is empty and not visible.
    */
-  protected void addTopPanel()
-  {
+  protected void addTopPanel() {
     final Panel topPanel = new EmptyPanel("topPanel");
     topPanel.setVisible(false);
     form.add(topPanel);
@@ -635,15 +614,13 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   /**
    * Override this method if you need a bottom panel. The default bottom panel is empty and not visible.
    */
-  protected void addBottomPanel(final String id)
-  {
+  protected void addBottomPanel(final String id) {
     final Panel bottomPanel = new EmptyPanel(id);
     bottomPanel.setVisible(false);
     form.add(bottomPanel);
   }
 
-  public boolean isMassUpdateMode()
-  {
+  public boolean isMassUpdateMode() {
     return massUpdateMode;
   }
 
@@ -652,8 +629,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    *
    * @return false at default.
    */
-  public boolean isSupportsMassUpdate()
-  {
+  public boolean isSupportsMassUpdate() {
     return false;
   }
 
@@ -666,14 +642,13 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @return
    */
   protected DataTable<O, String> createDataTable(final List<IColumn<O, String>> columns, final String sortProperty,
-      final SortOrder sortOrder)
-  {
+                                                 final SortOrder sortOrder) {
     int pageSize = form.getPageSize();
-    if (pageSize < 0) {
+    if (pageSize < 1) {
       pageSize = 50;
     }
     final SortParam<String> sortParam = sortProperty != null
-        ? new SortParam<String>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
+            ? new SortParam<String>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
     return new DefaultDataTable<O, String>("table", columns, createSortableDataProvider(sortParam), pageSize);
     // return new AjaxFallbackDefaultDataTable<O>("table", columns, createSortableDataProvider(sortProperty, ascending), pageSize);
   }
@@ -685,8 +660,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @param sortProperty
    * @param ascending
    */
-  protected ISortableDataProvider<O, String> createSortableDataProvider(final SortParam<String> sortParam)
-  {
+  protected ISortableDataProvider<O, String> createSortableDataProvider(final SortParam<String> sortParam) {
     return createSortableDataProvider(sortParam, null);
   }
 
@@ -698,8 +672,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @param ascending
    */
   protected ISortableDataProvider<O, String> createSortableDataProvider(final SortParam<String> sortParam,
-      final SortParam<String> secondSortParam)
-  {
+                                                                        final SortParam<String> secondSortParam) {
     if (listPageSortableDataProvider == null) {
       listPageSortableDataProvider = new MyListPageSortableDataProvider<O>(sortParam, secondSortParam, this);
     }
@@ -713,16 +686,14 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @return
    * @see org.projectforge.framework.persistence.api.BaseDao#getSearchFields()
    */
-  public String getSearchFields()
-  {
+  public String getSearchFields() {
     return StringHelper.listToString(", ", HibernateSearchMeta.INSTANCE.getSearchFields(getBaseDao()));
   }
 
   /**
    * @return true, if this page is called for selection by a caller otherwise false.
    */
-  public boolean isSelectMode()
-  {
+  public boolean isSelectMode() {
     return this.caller != null;
   }
 
@@ -734,8 +705,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @see #isSelectMode()
    */
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     if (isSelectMode() == true) {
       return getString(i18nPrefix + ".title.list.select");
     } else {
@@ -746,8 +716,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   /**
    * If false then the action filter will not be stored (the previous stored filter will be preserved). true is default.
    */
-  public boolean isStoreFilter()
-  {
+  public boolean isStoreFilter() {
     return storeFilter;
   }
 
@@ -758,28 +727,23 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @param filenameIdentifier If given then the id will be part of the exported filename, may be null.
    * @param sheetTitle         may be null.
    */
-  public void addExcelExport(final String filenameIdentifier, final String sheetTitle)
-  {
+  public void addExcelExport(final String filenameIdentifier, final String sheetTitle) {
     exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-        new Link<Object>("link")
-        {
-          @Override
-          public void onClick()
-          {
-            exportExcel(filenameIdentifier, sheetTitle);
-          }
+            new Link<Object>("link") {
+              @Override
+              public void onClick() {
+                exportExcel(filenameIdentifier, sheetTitle);
+              }
 
-        }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
+            }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
     addContentMenuEntry(exportExcelButton);
   }
 
-  protected DOListExcelExporter createExcelExporter(final String filenameIdentifier)
-  {
+  protected DOListExcelExporter createExcelExporter(final String filenameIdentifier) {
     return new DOListExcelExporter(filenameIdentifier);
   }
 
-  protected void exportExcel(final String filenameIdentifier, final String sheetTitle)
-  {
+  protected void exportExcel(final String filenameIdentifier, final String sheetTitle) {
     refresh();
     final DOListExcelExporter exporter = createExcelExporter(filenameIdentifier);
     if (exporter == null) {
@@ -810,8 +774,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @see org.projectforge.web.fibu.ISelectCallerPage#cancelSelection(java.lang.String)
    */
   @Override
-  public void cancelSelection(final String property)
-  {
+  public void cancelSelection(final String property) {
     // Do nothing.
   }
 
@@ -821,8 +784,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @see org.projectforge.web.wicket.AbstractListPage#select(java.lang.String, java.lang.Object)
    */
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     if ("modifiedByUserId".equals(property) == true) {
       form.getSearchFilter().setModifiedByUserId((Integer) selectedValue);
       form.getSearchFilter().setUseModificationFilter(true);
@@ -838,8 +800,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
   @Override
-  public void unselect(final String property)
-  {
+  public void unselect(final String property) {
     if ("modifiedByUserId".equals(property) == true) {
       form.getSearchFilter().setModifiedByUserId(null);
       form.getSearchFilter().setUseModificationFilter(true);
@@ -850,8 +811,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   }
 
   @SuppressWarnings("unchecked")
-  public RecentQueue<String> getRecentSearchTermsQueue()
-  {
+  public RecentQueue<String> getRecentSearchTermsQueue() {
     if (recentSearchTermsQueue == null) {
       recentSearchTermsQueue = (RecentQueue<String>) getUserPrefEntry(this.recentSearchTermsUserPrefKey);
     }
@@ -870,8 +830,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    *
    * @param Filter The search filter.
    */
-  protected void addRecentSearchTerm()
-  {
+  protected void addRecentSearchTerm() {
     if (StringUtils.isNotBlank(form.searchFilter.getSearchString()) == true) {
       final String s = form.searchFilter.getSearchString();
       if (s.startsWith("id:") == false || StringUtils.isNumeric(s.substring(3)) == false) {
@@ -884,8 +843,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   /**
    * @return True, if the user-pref-key for storing the recent search terms is given, otherwise false.
    */
-  public boolean isRecentSearchTermsStorage()
-  {
+  public boolean isRecentSearchTermsStorage() {
     return this.recentSearchTermsUserPrefKey != null;
   }
 
@@ -896,8 +854,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * @param sortable
    * @return return sortable ? propertyName : null;
    */
-  protected static String getSortable(final String propertyName, final boolean sortable)
-  {
+  protected static String getSortable(final String propertyName, final boolean sortable) {
     return sortable ? propertyName : null;
   }
 
@@ -906,52 +863,46 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    *
    * @param calledBySearchPage the calledBySearchForm to set
    */
-  public void setCalledBySearchPage(final boolean calledBySearchPage)
-  {
+  public void setCalledBySearchPage(final boolean calledBySearchPage) {
     this.calledBySearchPage = calledBySearchPage;
   }
 
   /**
    * @return the calledBySearchForm
    */
-  public boolean isCalledBySearchPage()
-  {
+  public boolean isCalledBySearchPage() {
     return calledBySearchPage;
   }
 
   @SuppressWarnings("serial")
-  public class SelectItemModel extends Model<Boolean>
-  {
+  public class SelectItemModel extends Model<Boolean> {
     Integer id;
 
-    public SelectItemModel(final Integer id)
-    {
+    public SelectItemModel(final Integer id) {
       this.id = id;
     }
 
     @Override
-    public Boolean getObject()
-    {
+    public Boolean getObject() {
       return selectedItems.contains(id);
     }
 
     @Override
-    public void setObject(final Boolean object)
-    {
+    public void setObject(final Boolean object) {
       if (Boolean.TRUE.equals(object) == true) {
         selectedItems.add(id);
       } else {
         selectedItems.remove(id);
       }
     }
+
   }
 
   /**
    * @see org.projectforge.web.wicket.AbstractSecuredPage#getReturnToPage()
    */
   @Override
-  public WebPage getReturnToPage()
-  {
+  public WebPage getReturnToPage() {
     if (this.returnToPage != null) {
       return this.returnToPage;
     } else if (caller != null && caller instanceof WebPage) {

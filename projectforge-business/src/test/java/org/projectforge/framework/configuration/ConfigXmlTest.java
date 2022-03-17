@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,7 +32,7 @@ import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.calendar.HolidayDefinition;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.xstream.XmlHelper;
+import org.projectforge.framework.xmlstream.XmlHelper;
 import org.projectforge.test.TestSetup;
 
 import java.time.Month;
@@ -71,6 +71,7 @@ public class ConfigXmlTest {
           + "  <databaseDirectory>database</databaseDirectory>\n"
           + "  <ehcacheDirectory>ehcache</ehcacheDirectory>\n"
           + "  <loggingDirectory>logs</loggingDirectory>\n"
+          + "  <jcrDirectory>jcr</jcrDirectory>\n"
           + "  <workingDirectory>work</workingDirectory>\n"
           + "  <backupDirectory>backup</backupDirectory>\n"
           + "  <tempDirectory>tmp</tempDirectory>\n"
@@ -116,17 +117,6 @@ public class ConfigXmlTest {
     String expected_config = StringUtils.replace(exportXml, "\\", "/");
     exported_config = StringUtils.replace(exported_config, "\\", "/");
     assertEquals(expected_config, exported_config);
-  }
-
-  @Test
-  public void testPluginMainClasses() {
-    final ConfigXml configuration = new ConfigXml();
-    configuration.pluginMainClasses = "\n org.projectforge.plugins.todo.ToDoPlugin,\n  org.projectforge.plugins.software.SoftwarePlugin\n org.projectforge.plugins.ical.ICalPlugin";
-    final String[] sa = configuration.getPluginMainClasses();
-    assertEquals(3, sa.length);
-    assertEquals("org.projectforge.plugins.todo.ToDoPlugin", sa[0]);
-    assertEquals("org.projectforge.plugins.software.SoftwarePlugin", sa[1]);
-    assertEquals("org.projectforge.plugins.ical.ICalPlugin", sa[2]);
   }
 
   @BeforeAll

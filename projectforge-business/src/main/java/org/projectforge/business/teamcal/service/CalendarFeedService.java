@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,8 @@ package org.projectforge.business.teamcal.service;
 
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.teamcal.model.CalendarFeedConst;
-import org.projectforge.business.user.service.UserService;
+import org.projectforge.business.user.UserAuthenticationsService;
+import org.projectforge.business.user.UserTokenType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +36,13 @@ import org.springframework.stereotype.Service;
 public class CalendarFeedService {
   private static final String PARAM_EXPORT_REMINDER = "exportReminders";
   private static final String PARAM_CALENDAR = "teamCals";
+  private static final String BASE_URI = "/export/ProjectForge.ics"; // See also Rest.java
 
   @Autowired
   private DomainService domainService;
 
   @Autowired
-  private UserService userService;
+  private UserAuthenticationsService userAuthenticationsService;
 
   public String getUrl() {
     return getUrl(null);
@@ -100,14 +102,14 @@ public class CalendarFeedService {
    */
   public String getUrl(final String additionalParams) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
-    final String authenticationKey = userService.getAuthenticationToken(user.getId());
+    final String authenticationKey = userAuthenticationsService.getToken(user.getId(), UserTokenType.CALENDAR_REST);
     final StringBuilder buf = new StringBuilder();
     buf.append("token=").append(authenticationKey);
     if (additionalParams != null) {
       buf.append(additionalParams);
     }
-    final String encryptedParams = userService.encrypt(buf.toString());
-    final String result = "/export/ProjectForge.ics?user=" + user.getId() + "&q=" + encryptedParams;
+    final String encryptedParams = userAuthenticationsService.encrypt(UserTokenType.CALENDAR_REST, buf.toString());
+    final String result = BASE_URI + "?user=" + user.getId() + "&q=" + encryptedParams;
     return result;
   }
 

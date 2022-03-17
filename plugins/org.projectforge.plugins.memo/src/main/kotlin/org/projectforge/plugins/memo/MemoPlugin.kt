@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,11 +24,11 @@
 package org.projectforge.plugins.memo
 
 import org.projectforge.Const
-import org.projectforge.continuousdb.UpdateEntry
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
+import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.web.plugin.PluginWicketRegistrationService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -38,8 +38,7 @@ import org.springframework.stereotype.Component
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
-class MemoPlugin : AbstractPlugin() {
+class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
 
     @Autowired
     private lateinit var memoDao: MemoDao
@@ -52,17 +51,15 @@ class MemoPlugin : AbstractPlugin() {
 
     override fun initialize() {
         // DatabaseUpdateDao is needed by the updater:
-        MemoPluginUpdates.databaseService = databaseService
-        memoDao = applicationContext.getBean("memoDao") as MemoDao
         // Register it:
-        register(ID, MemoDao::class.java, memoDao, "plugins.memo")
+        register(MemoDao::class.java, memoDao, "plugins.memo")
 
         // Register the web part:
-        pluginWicketRegistrationService.registerWeb(ID, MemoListPage::class.java, MemoEditPage::class.java)
+        pluginWicketRegistrationService.registerWeb(info.id, MemoListPage::class.java, MemoEditPage::class.java)
 
         // Register the menu entry as sub menu entry of the misc menu:
         // Both: Wicket and React
-        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef(ID, "plugins.memo.menu", "${Const.REACT_APP_PATH}memo"), MemoListPage::class.java)
+        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef(info.id, "plugins.memo.menu", "${Const.REACT_APP_PATH}memo"), MemoListPage::class.java)
         // Later: React only:
         // menuCreator.add(parentId, menuItemDef);
 
@@ -74,18 +71,9 @@ class MemoPlugin : AbstractPlugin() {
         addResourceBundle(RESOURCE_BUNDLE_NAME)
     }
 
-    fun setMemoDao(memoDao: MemoDao) {
-        this.memoDao = memoDao
-    }
-
-    override fun getInitializationUpdateEntry(): UpdateEntry? {
-        return MemoPluginUpdates.getInitializationUpdateEntry()
-    }
-
     companion object {
-        val ID = "memo"
-
-        val RESOURCE_BUNDLE_NAME = "MemoI18nResources"
+        const val ID = PluginAdminService.PLUGIN_MEMO_ID
+        const val RESOURCE_BUNDLE_NAME = "MemoI18nResources"
 
         // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
         // each test).

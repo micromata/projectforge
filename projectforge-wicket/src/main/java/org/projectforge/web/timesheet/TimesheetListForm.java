@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.web.timesheet;
 
-import java.util.Date;
-
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
@@ -33,9 +31,10 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetFilter;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.TimePeriod;
@@ -50,6 +49,8 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.slf4j.Logger;
+
+import java.util.Date;
 
 public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, TimesheetListPage>
 {
@@ -107,7 +108,7 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
         @Override
         public PFUserDO getObject()
         {
-          return getTenantRegistry().getUserGroupCache().getUser(filter.getUserId());
+          return UserGroupCache.getInstance().getUser(filter.getUserId());
         }
 
         @Override
@@ -130,8 +131,8 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
     final FieldsetPanel tpfs = gridBuilder.newFieldset(getString("timePeriod"));
     final TimePeriodPanel timePeriodPanel = new TimePeriodPanel(
         tpfs.newChildId(),
-        LambdaModel.of(filter::getStartTime, filter::setStartTime),
-        LambdaModel.of(filter::getStopTime, filter::setStopTime),
+        LambdaModel.of(filter.getTimePeriod()::getFromDay, filter.getTimePeriod()::setFromDay),
+        LambdaModel.of(filter.getTimePeriod()::getToDay, filter.getTimePeriod()::setToDay),
         parentPage
     );
     tpfs.add(timePeriodPanel);

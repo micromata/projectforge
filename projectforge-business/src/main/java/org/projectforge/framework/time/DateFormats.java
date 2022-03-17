@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -277,23 +277,23 @@ public class DateFormats {
         return "EE";
       case DATE_TIME_MINUTES:
         return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE)
-                + (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm aa");
+                + (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm a");
       case DATE_TIME_SECONDS:
         return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE)
-                + (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss aa");
+                + (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss a");
       case DATE_TIME_MILLIS:
         return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE)
-                + (timeNotation == TimeNotation.H24 ? " HH:mm:ss.SSS" : " hh:mm:ss.SSS aa");
+                + (timeNotation == TimeNotation.H24 ? " HH:mm:ss.SSS" : " hh:mm:ss.SSS a");
       case DATE_TIME_SHORT_MINUTES:
         return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE_SHORT)
-                + (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm aa");
+                + (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm a");
       case DATE_TIME_SHORT_SECONDS:
         return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE_SHORT)
-                + (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss aa");
+                + (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss a");
       case TIME_OF_DAY_MINUTES:
-        return (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm aa");
+        return (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm a");
       case TIME_OF_DAY_SECONDS:
-        return (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss aa");
+        return (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss a");
       default:
         return defaultDateFormat;
     }

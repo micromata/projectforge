@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,7 +35,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.i18n.InternalErrorException;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import javax.mail.Transport;
@@ -102,7 +102,7 @@ public class SendMailTest
   {
     final Mail message = new Mail();
     PFUserDO toUser;
-    message.setTo(null);
+    message.setTo((PFUserDO)null);
     final String icalContent = null;
     final Collection<? extends MailAttachment> attachments = null;
     try {

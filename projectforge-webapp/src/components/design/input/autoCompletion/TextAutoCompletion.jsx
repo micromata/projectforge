@@ -10,6 +10,7 @@ function TextAutoCompletion(
         onChange,
         onSelect,
         value,
+        focus,
         ...props
     },
 ) {
@@ -29,6 +30,7 @@ function TextAutoCompletion(
                 <AdvancedPopperInput
                     forwardRef={ref}
                     id={inputId}
+                    autoFocus={focus}
                     {...otherInputProps}
                     {...inputProps}
                     onChange={handleChange}
@@ -47,12 +49,14 @@ TextAutoCompletion.propTypes = {
     inputProps: PropTypes.shape({}),
     onSelect: PropTypes.func,
     value: PropTypes.string,
+    focus: PropTypes.bool,
 };
 
 TextAutoCompletion.defaultProps = {
     inputProps: undefined,
     onSelect: undefined,
     value: '',
+    focus: false,
 };
 
 export default TextAutoCompletion;

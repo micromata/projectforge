@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -134,7 +134,7 @@ class SwingFinalizeScreen(context: SwingGUIContext) : SwingAbstractWizardWindow(
 
         defaultFirstDayOfWeekCombobox = JComboBox()
         FinalizeScreenSupport.listOfWeekdays.forEach { defaultFirstDayOfWeekCombobox.addItem(it.label) }
-        defaultFirstDayOfWeekCombobox.selectedIndex = 1
+        defaultFirstDayOfWeekCombobox.selectedIndex = 0
         panel.add(JLabel(Texts.FS_FIRST_DAY), constraints(0, ++y))
         panel.add(defaultFirstDayOfWeekCombobox, constraints(1, y))
         panel.add(JLabel(Texts.FS_FIRST_DAY_DESC), constraints(2, y))

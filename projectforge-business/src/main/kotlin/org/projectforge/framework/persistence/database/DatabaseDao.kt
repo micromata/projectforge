@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.database
 
 import org.apache.commons.lang3.ClassUtils
+import org.hibernate.Hibernate
 import org.hibernate.Session
 import org.hibernate.search.Search
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -52,7 +53,7 @@ import javax.persistence.TypedQuery
 open class DatabaseDao {
     private var currentReindexRun: Date? = null
     @Autowired
-    private val emgrFactory: PfEmgrFactory? = null
+    private lateinit var emgrFactory: PfEmgrFactory
 
     fun <T> rebuildDatabaseSearchIndices(clazz: Class<T>, settings: ReindexSettings): String {
         if (currentReindexRun != null) {
@@ -102,7 +103,7 @@ open class DatabaseDao {
     }
 
     private fun <T> reindexObjects(clazz: Class<T>, settings: ReindexSettings?) {
-        runInTrans(emgrFactory!!) { em: EntityManager ->
+        runInTrans(emgrFactory) { em: EntityManager ->
             val number = getRowCount(em, clazz, settings) // Get number of objects to re-index (select count(*) from).
             if (number == 0L) {
                 log.info("Reindexing [${clazz.simpleName}]: 0 entries found. Nothing to-do.")

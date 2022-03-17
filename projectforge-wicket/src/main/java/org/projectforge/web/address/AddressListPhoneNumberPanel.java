@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,43 +37,36 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
-public class AddressListPhoneNumberPanel extends Panel
-{
+public class AddressListPhoneNumberPanel extends Panel {
   private static final long serialVersionUID = 2546695290892989291L;
 
   @SuppressWarnings("serial")
   public AddressListPhoneNumberPanel(final String id, final AddressListPage parentPage, final Integer addressId,
-      final PhoneType phoneType,
-      final String phoneNumber, final boolean favoriteNumber, final boolean sendSms, final IconType icon,
-      final boolean first)
-  {
+                                     final PhoneType phoneType,
+                                     final String phoneNumber, final boolean sendSms, final IconType icon,
+                                     final boolean first) {
     super(id);
     final WebMarkupContainer linkOrSpan;
     if (parentPage.phoneCallSupported == true) {
-      linkOrSpan = new Link<String>("directCallLink")
-      {
+      linkOrSpan = new Link<String>("directCallLink") {
         @Override
-        public void onClick()
-        {
+        public void onClick() {
           final PageParameters params = new PageParameters();
           params.add(PhoneCallPage.PARAMETER_KEY_ADDRESS_ID, addressId);
           params.add(PhoneCallPage.PARAMETER_KEY_NUMBER, phoneNumber);
           setResponsePage(new PhoneCallPage(params));
         }
       };
-      linkOrSpan.add(new AjaxEventBehavior("click")
-      {
+      linkOrSpan.add(new AjaxEventBehavior("click") {
 
         @Override
-        protected void updateAjaxAttributes(AjaxRequestAttributes attributes)
-        {
+        protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
           super.updateAjaxAttributes(attributes);
           attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.STOP);
         }
 
         @Override
-        protected void onEvent(AjaxRequestTarget ajaxRequestTarget)
-        {
+        protected void onEvent(AjaxRequestTarget ajaxRequestTarget) {
 
         }
       });
@@ -87,18 +80,12 @@ public class AddressListPhoneNumberPanel extends Panel
     add(linkOrSpan);
     WicketUtils.addTooltip(linkOrSpan, tooltip);
     final Label numberLabel = new Label("number", phoneNumber);
-    if (favoriteNumber == true) {
-      numberLabel.add(AttributeModifier.replace("style", "color:red; font-weight:bold;"));
-    } else {
-      numberLabel.setRenderBodyOnly(true);
-    }
+    numberLabel.setRenderBodyOnly(true);
     linkOrSpan.add(numberLabel);
     linkOrSpan.add(new IconPanel("phoneImage", icon));
-    final Link<String> sendMessage = new Link<String>("sendMessageLink")
-    {
+    final Link<String> sendMessage = new Link<String>("sendMessageLink") {
       @Override
-      public void onClick()
-      {
+      public void onClick() {
         final PageParameters params = new PageParameters();
         params.add(SendSmsPage.PARAMETER_KEY_ADDRESS_ID, addressId);
         params.add(SendSmsPage.PARAMETER_KEY_PHONE_TYPE, phoneType.toString());

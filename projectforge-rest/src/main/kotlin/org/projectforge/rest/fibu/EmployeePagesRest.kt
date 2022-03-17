@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -55,13 +55,12 @@ class EmployeePagesRest : AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(UITableColumn("fibu.employee.user.name", "name"))
                         .add(UITableColumn("fibu.employee.user.firstname", "firstName"))
                         .add(lc, "status", "staffNumber")
                         .add(UITableColumn("kost1", "fibu.kost1", formatter = Formatter.COST1))
                         .add(lc, "position", "abteilung", "eintrittsDatum", "austrittsDatum", "comment"))
-        layout.getTableColumnById("user").formatter = Formatter.USER
         layout.getTableColumnById("eintrittsDatum").formatter = Formatter.DATE
         layout.getTableColumnById("austrittsDatum").formatter = Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
@@ -94,7 +93,7 @@ class EmployeePagesRest : AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao
     override val autoCompleteSearchFields = arrayOf("user.username", "user.firstname", "user.lastname", "user.email")
 
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): MutableList<EmployeeDO> {
-        val list = super.queryAutocompleteObjects(request, filter).toMutableList()
+        val list = baseDao.internalGetEmployeeList(filter, showOnlyActiveEntries = true).toMutableList()
         val today = LocalDate.now()
         list.removeIf { it.austrittsDatum?.isBefore(today) == true || it.isDeleted } // Remove deactivated users when returning all. Show deactivated users only if search string is given.
         return list

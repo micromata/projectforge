@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,7 @@ package org.projectforge.ui
 
 data class UICustomized(val id: String,
                         var values: MutableMap<String, Any>? = null) : UIElement(UIElementType.CUSTOMIZED) {
-    fun add(property: String, value : String): UICustomized {
+    fun add(property: String, value : Any): UICustomized {
         if (values == null) {
             values = mutableMapOf()
         }

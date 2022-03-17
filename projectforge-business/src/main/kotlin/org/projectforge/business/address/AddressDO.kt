@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,16 +24,17 @@
 package org.projectforge.business.address
 
 import de.micromata.genome.db.jpa.history.api.HistoryProperty
-import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
+import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO
 import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -42,21 +43,20 @@ import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
 
+private val log = KotlinLogging.logger {}
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
 @Indexed
 @Table(name = "T_ADDRESS",
-        uniqueConstraints = [UniqueConstraint(name = "unique_t_address_uid_tenant",
-                columnNames = ["uid", "tenant_id"])],
-        indexes = [javax.persistence.Index(name = "idx_fk_t_address_tenant_id",
-                columnList = "tenant_id"), javax.persistence.Index(name = "idx_fk_t_address_uid_tenant_id",
-                columnList = "uid, tenant_id")])
+    uniqueConstraints = [UniqueConstraint(name = "unique_t_address_uid", columnNames = ["uid"])],
+    indexes = [javax.persistence.Index(name = "idx_fk_t_address_uid", columnList = "uid")])
 open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     override val displayName: String
         @Transient
-        get() = if (city.isNullOrBlank()) "$fullName" else "$fullName, $city"
+        get() = listOf(name, firstName, organization, city).filter { !it.isNullOrBlank() }.joinToString(", ")
 
     @PropertyInfo(i18nKey = "address.contactStatus")
     @get:Enumerated(EnumType.STRING)
@@ -78,12 +78,17 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     @get:Column(length = 255)
     open var name: String? = null
 
+    @PropertyInfo(i18nKey = "address.birthName")
+    @Field
+    @get:Column(length = 255, name = "birth_name")
+    open var birthName: String? = null
+
     @PropertyInfo(i18nKey = "firstName")
     @Field
     @get:Column(name = "first_name", length = 255)
     open var firstName: String? = null
 
-    @PropertyInfo(i18nKey = "gender", required = true)
+    @PropertyInfo(i18nKey = "address.form", required = true)
     @Field
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "form", length = 10)
@@ -132,6 +137,11 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     @get:Column(length = 255)
     open var addressText: String? = null
 
+    @PropertyInfo(i18nKey = "address.addressText2", additionalI18nKey = "address.business")
+    @Field
+    @get:Column(length = 255)
+    open var addressText2: String? = null
+
     @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.business")
     @Field
     @get:Column(name = "zip_code", length = 255)
@@ -161,6 +171,11 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     @Field
     @get:Column(length = 255, name = "postal_addresstext")
     open var postalAddressText: String? = null
+
+    @PropertyInfo(i18nKey = "address.addressText2", additionalI18nKey = "address.postal")
+    @Field
+    @get:Column(length = 255, name = "postal_addresstext2")
+    open var postalAddressText2: String? = null
 
     @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.postal")
     @Field
@@ -211,6 +226,11 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
     @get:Column(length = 255, name = "private_addresstext")
     open var privateAddressText: String? = null
 
+    @PropertyInfo(i18nKey = "address.addressText2", additionalI18nKey = "address.private")
+    @Field
+    @get:Column(length = 255, name = "private_addresstext2")
+    open var privateAddressText2: String? = null
+
     @PropertyInfo(i18nKey = "address.zipCode", additionalI18nKey = "address.private")
     @Field
     @get:Column(name = "private_zip_code", length = 255)
@@ -253,19 +273,18 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "address.birthday")
     @Field(index = Index.YES, analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @get:Column
     open var birthday: LocalDate? = null
 
     @PropertyInfo(i18nKey = "address.image")
-    @field:NoHistory
     @get:Column
-    open var imageData: ByteArray? = null
+    open var image: Boolean? = null
 
-    @PropertyInfo(i18nKey = "address.image")
-    @field:NoHistory
-    @get:Column(name = "image_data_preview")
-    open var imageDataPreview: ByteArray? = null
+    /**
+     * Time stamp of last image modification (or deletion). Usefull for history of changes.
+     */
+    @get:Column(name = "image_last_update")
+    open var imageLastUpdate: Date? = null
 
     /**
      * The substitutions.
@@ -286,7 +305,15 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
 
     val fullName: String?
         @Transient
-        get() = StringHelper.listToString(", ", name, firstName)
+        get() = listOf(fullLastName, firstName, organization).filter { !it.isNullOrBlank() }.joinToString(", ")
+
+    val fullLastName: String?
+        @Transient
+        get() = if (!birthName.isNullOrBlank()) {
+            "$name, ${translate("address.formerly")} $birthName"
+        } else {
+            name
+        }
 
     val fullNameWithTitleAndForm: String
         @Transient
@@ -301,8 +328,8 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
             if (firstName != null) {
                 buf.append(firstName).append(" ")
             }
-            if (name != null) {
-                buf.append(name)
+            if (fullLastName != null) {
+                buf.append(fullLastName)
             }
             return buf.toString()
         }
@@ -314,12 +341,23 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     val mailingAddressText: String?
         @Transient
-        get() = if (hasPostalAddress() == true) {
-            postalAddressText
-        } else if (hasDefaultAddress() == true) {
-            addressText
-        } else {
-            privateAddressText
+        get() = when {
+            hasPostalAddress() -> postalAddressText
+            hasDefaultAddress() -> addressText
+            else -> privateAddressText
+        }
+
+    /**
+     * @return address text of mailing address (in order: postal, default or private address).
+     * @see .hasPostalAddress
+     * @see .hasDefaultAddress
+     */
+    val mailingAddressText2: String?
+        @Transient
+        get() = when {
+            hasPostalAddress() -> postalAddressText2
+            hasDefaultAddress() -> addressText2
+            else -> privateAddressText2
         }
 
     /**
@@ -329,12 +367,10 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     val mailingZipCode: String?
         @Transient
-        get() = if (hasPostalAddress() == true) {
-            postalZipCode
-        } else if (hasDefaultAddress() == true) {
-            zipCode
-        } else {
-            privateZipCode
+        get() = when {
+            hasPostalAddress() -> postalZipCode
+            hasDefaultAddress() -> zipCode
+            else -> privateZipCode
         }
 
     /**
@@ -344,12 +380,10 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     val mailingCity: String?
         @Transient
-        get() = if (hasPostalAddress() == true) {
-            postalCity
-        } else if (hasDefaultAddress() == true) {
-            city
-        } else {
-            privateCity
+        get() = when {
+            hasPostalAddress() -> postalCity
+            hasDefaultAddress() -> city
+            else -> privateCity
         }
 
     /**
@@ -359,12 +393,10 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     val mailingCountry: String?
         @Transient
-        get() = if (hasPostalAddress() == true) {
-            postalCountry
-        } else if (hasDefaultAddress() == true) {
-            country
-        } else {
-            privateCountry
+        get() = when {
+            hasPostalAddress() -> postalCountry
+            hasDefaultAddress() -> country
+            else -> privateCountry
         }
 
     /**
@@ -374,12 +406,10 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     val mailingState: String?
         @Transient
-        get() = if (hasPostalAddress()) {
-            postalState
-        } else if (hasDefaultAddress()) {
-            state
-        } else {
-            privateState
+        get() = when {
+            hasPostalAddress() -> postalState
+            hasDefaultAddress() -> state
+            else -> privateState
         }
 
     /**
@@ -430,7 +460,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     @Transient
     fun hasPostalAddress(): Boolean {
-        return StringHelper.isNotBlank(postalAddressText, postalZipCode, postalCity, postalCountry)
+        return StringHelper.isNotBlank(postalAddressText, postalAddressText2, postalZipCode, postalCity, postalCountry)
     }
 
     /**
@@ -438,7 +468,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     @Transient
     fun hasDefaultAddress(): Boolean {
-        return StringHelper.isNotBlank(addressText, zipCode, city, country)
+        return StringHelper.isNotBlank(addressText, addressText2, zipCode, city, country)
     }
 
     /**
@@ -446,7 +476,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     @Transient
     fun hasPrivateAddress(): Boolean {
-        return StringHelper.isNotBlank(privateAddressText, privateZipCode, privateCity, privateCountry)
+        return StringHelper.isNotBlank(privateAddressText, privateAddressText2, privateZipCode, privateCity, privateCountry)
     }
 
     /**
@@ -525,29 +555,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
         return super.getAttrs()
     }
 
-    override fun toString(): String {
-        if (compareValues(imageData?.size, 10) <= 0 && compareValues(imageDataPreview?.size, 10) <= 0)
-            return super.toString()
-        // imageData or imageDatePreview is larger than 10 bytes: slice it...
-        // Ignore images
-        val clone = AddressDO()
-        clone.copyValuesFrom(this)
-        clone.imageDataPreview = sliceByteArray(imageDataPreview)
-        clone.imageData = sliceByteArray(imageData)
-        return clone.toString()
-    }
-
-    private fun sliceByteArray(byteArray: ByteArray?): ByteArray? {
-        var size = byteArray?.size ?: return null
-        if (size > 9) {
-            size = 9
-        }
-        return byteArray.sliceArray(0..size)
-    }
-
     companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(AddressDO::class.java)
-
         /**
          * Used for representation in the data base and for hibernate search (lucene).
          */
@@ -568,7 +576,7 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
                 }
                 buf.append(lv.label).append("=").append(lv.value)
             }
-            return if (first == true) {
+            return if (first) {
                 null // No entry was written.
             } else buf.toString()
         }

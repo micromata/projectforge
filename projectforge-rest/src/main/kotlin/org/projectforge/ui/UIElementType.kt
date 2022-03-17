@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,10 +24,20 @@
 package org.projectforge.ui
 
 enum class UIElementType {
+    ALERT,
+    /**
+     * Attachments including list view, downloading, uploading and deleting files.
+     */
+    ATTACHMENT_LIST,
+    BADGE,
+    BADGE_LIST,
     BUTTON,
     CHECKBOX,
     COL,
+    CREATABLE_SELECT,
     CUSTOMIZED,
+    DROP_AREA,
+    EDITOR,
     FIELDSET,
     FILTER_ELEMENT,
     GROUP,
@@ -37,9 +47,11 @@ enum class UIElementType {
     NAMED_CONTAINER,
     RADIOBUTTON,
     READONLY_FIELD,
+    RATING,
     ROW,
     SELECT,
     TABLE,
+    TABLE_LIST_PAGE,
     TABLE_COLUMN,
     TEXTAREA
 }

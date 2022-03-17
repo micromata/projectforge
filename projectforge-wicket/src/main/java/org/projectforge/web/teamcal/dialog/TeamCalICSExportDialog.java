@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,29 +23,24 @@
 
 package org.projectforge.web.teamcal.dialog;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.calendar.AbstractICSExportDialog;
 import org.projectforge.web.wicket.I18nParamMap;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivType;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -146,7 +141,7 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
         return true;
       }
     }
-    Collection<Integer> userGroupsIds = getUserGroupCache().getUserGroups(user);
+    Collection<Integer> userGroupsIds = UserGroupCache.getInstance().getUserGroups(user);
     List<String> fullAccessGroupIds =
         StringUtils.isBlank(teamCal.getFullAccessGroupIds()) == false ? Arrays.asList(teamCal.getFullAccessGroupIds().split(",")) :
             Collections.emptyList();
@@ -164,11 +159,6 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
       }
     }
     return false;
-  }
-
-  private UserGroupCache getUserGroupCache()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
   }
 
   /**

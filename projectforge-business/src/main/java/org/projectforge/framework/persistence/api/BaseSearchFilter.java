@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -49,6 +49,8 @@ public class BaseSearchFilter implements Serializable {
   protected boolean ignoreDeleted = false; // Initialization unnecessary but for documentation.
 
   protected int maxRows = -1;
+
+  protected int pageSize = -1;
 
   protected transient boolean sortAndLimitMaxRowsWhileSelect = false;
 
@@ -294,6 +296,14 @@ public class BaseSearchFilter implements Serializable {
   public BaseSearchFilter setMaxRows(final int maxRows) {
     this.maxRows = maxRows;
     return this;
+  }
+
+  public int getPageSize() {
+    return pageSize;
+  }
+
+  public void setPageSize(int pageSize) {
+    this.pageSize = pageSize;
   }
 
   /**

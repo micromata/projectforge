@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.teamcal.event;
 
-import java.util.Iterator;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -38,13 +35,15 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.wicket.components.AjaxMaxLengthEditableLabel;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -112,8 +111,7 @@ public class TeamAttendeesPanel extends Panel
           }
           final TeamEventAttendeeDO attendee = attendeeModel.getObject();
           if (attendee.getAddressId() != null) {
-            final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry()
-                .getUserGroupCache();
+            final UserGroupCache userGroupCache = UserGroupCache.getInstance();
             final PFUserDO user = userGroupCache.getUser(attendee.getAddressId());
             return user != null ? user.getFullname() : attendee.getUrl();
           }
@@ -132,7 +130,6 @@ public class TeamAttendeesPanel extends Panel
             attendee.setAddress(null);
             return;
           }
-          final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
           //          final AddressDO address = userGroupCache.getUserByFullname(object);
           //          if (user != null) {
           //            attendee.setAddress(address);

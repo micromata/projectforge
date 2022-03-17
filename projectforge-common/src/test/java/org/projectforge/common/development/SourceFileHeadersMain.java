@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -75,8 +75,11 @@ public class SourceFileHeadersMain {
   void validateAndFixAllProjectForgeHeaders(final boolean autoFixFiles) throws IOException {
     validateAndFixHeaders(new File(baseDir, "projectforge-application").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-business").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-caldav").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-common").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-jcr").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-model").getAbsolutePath(), true, autoFixFiles);
+    validateAndFixHeaders(new File(baseDir, "projectforge-repository").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-rest").getAbsolutePath(), true, autoFixFiles);
     validateAndFixHeaders(new File(baseDir, "projectforge-wicket").getAbsolutePath(), true, autoFixFiles);
     final File[] files = new File(baseDir, "plugins").listFiles();

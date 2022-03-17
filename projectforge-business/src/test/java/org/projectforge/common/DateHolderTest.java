@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,8 +28,10 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.TestSetup;
 
+import java.time.LocalDate;
 import java.time.Month;
 import java.util.Calendar;
 import java.util.Date;
@@ -53,51 +55,39 @@ public class DateHolderTest
     cal.set(2008, Calendar.MARCH, 5, 0, 0, 0);
     cal.set(Calendar.MILLISECOND, 0);
     final DateHolder date = new DateHolder(cal.getTime(), DateHelper.EUROPE_BERLIN);
-    assertEquals("2008-03-04 23:00:00.000", DateHelper.FOR_TESTCASE_OUTPUT_FORMATTER.get().format(date.getDate()));
-    final java.sql.Date sqlDate = date.getSQLDate();
-    assertEquals("2008-03-05 00:00:00.000", DateHelper.FOR_TESTCASE_OUTPUT_FORMATTER.get().format(sqlDate));
-    assertTrue(date.isSameDay(sqlDate));
-  }
-
-  @Test
-  public void getSQLDate()
-  {
-    final Calendar cal = Calendar.getInstance(DateHelper.EUROPE_BERLIN);
-    cal.set(2008, Calendar.MARCH, 5, 0, 0, 0);
-    cal.set(Calendar.MILLISECOND, 0);
-    final DateHolder date = new DateHolder(cal.getTime(), DateHelper.EUROPE_BERLIN);
-    assertEquals("2008-03-04 23:00:00.000", DateHelper.FOR_TESTCASE_OUTPUT_FORMATTER.get().format(date.getDate()));
-    final java.sql.Date sqlDate = date.getSQLDate();
-    assertEquals("2008-03-05 00:00:00.000", DateHelper.FOR_TESTCASE_OUTPUT_FORMATTER.get().format(sqlDate));
+    assertEquals("2008-03-04 23:00:00.000", DateHelper.FOR_TESTCASE_OUTPUT_FORMATTER.get().format(date.getUtilDate()));
+    final LocalDate localDate = date.getLocalDate();
+    assertEquals("2008-03-05", localDate.toString());
+    assertTrue(date.isSameDay(PFDay.from(localDate).getUtilDate()));
   }
 
   @Test
   public void daysBetween()
   {
     final DateHolder date1 = new DateHolder(DatePrecision.DAY, Locale.GERMAN);
-    date1.setDate(2008, Month.MARCH, 23, 0, 0, 0);
+    date1.setDate(2008, Month.MARCH, 23);
     final DateHolder date2 = new DateHolder(DatePrecision.DAY, Locale.GERMAN);
-    date2.setDate(2008,  Month.MARCH, 23, 0, 0, 0);
-    assertEquals(0, date1.daysBetween(date2.getDate()));
-    date2.setDate(2008,  Month.MARCH, 24, 0, 0, 0);
-    assertEquals(1, date1.daysBetween(date2.getDate()));
-    date2.setDate(2008,  Month.MARCH, 22, 0, 0, 0);
-    assertEquals(-1, date1.daysBetween(date2.getDate()));
-    date2.setDate(date1.getDate());
+    date2.setDate(2008,  Month.MARCH, 23);
+    assertEquals(0, date1.daysBetween(date2.getUtilDate()));
+    date2.setDate(2008,  Month.MARCH, 24);
+    assertEquals(1, date1.daysBetween(date2.getUtilDate()));
+    date2.setDate(2008,  Month.MARCH, 22);
+    assertEquals(-1, date1.daysBetween(date2.getUtilDate()));
+    date2.setDate(date1.getUtilDate());
     date2.add(Calendar.DAY_OF_YEAR, 364);
-    assertEquals(364, date1.daysBetween(date2.getDate()));
+    assertEquals(364, date1.daysBetween(date2.getUtilDate()));
 
-    date1.setDate(2010, Month.JANUARY, 01);
+    date1.setDate(2010, Month.JANUARY, 1);
     date2.setDate(2010, Month.DECEMBER, 31);
     assertEquals(daysBetween(date1, date2), date1.daysBetween(date2));
     date2.setDate(2011, Month.JANUARY, 1);
     assertEquals(daysBetween(date1, date2), date1.daysBetween(date2));
     date1.setDate(2010, Month.DECEMBER, 31);
-    date2.setDate(2010, Month.JANUARY, 01);
+    date2.setDate(2010, Month.JANUARY, 1);
     assertEquals(daysBetween(date1, date2), date1.daysBetween(date2));
-    date2.setDate(2011, Month.JANUARY, 01);
+    date2.setDate(2011, Month.JANUARY, 1);
     assertEquals(1, date1.daysBetween(date2));
-    date2.setDate(2015, Month.JANUARY, 01);
+    date2.setDate(2015, Month.JANUARY, 1);
     final int expected = daysBetween(date1, date2);
     assertEquals(expected, date1.daysBetween(date2));
     assertEquals(-expected, date2.daysBetween(date1));
@@ -107,11 +97,11 @@ public class DateHolderTest
   public void isBetween()
   {
     final DateHolder date1 = new DateHolder(DatePrecision.DAY);
-    date1.setDate(2010, Month.FEBRUARY, 12, 0, 0, 0);
+    date1.setDate(2010, Month.FEBRUARY, 12);
     final DateHolder date2 = new DateHolder(DatePrecision.DAY);
-    date2.setDate(2010, Month.FEBRUARY, 14, 0, 0, 0);
+    date2.setDate(2010, Month.FEBRUARY, 14);
     final DateHolder date3 = new DateHolder(DatePrecision.DAY);
-    date3.setDate(2010, Month.FEBRUARY, 15, 0, 0, 0);
+    date3.setDate(2010, Month.FEBRUARY, 15);
     assertFalse(date1.isBetween(null, (Date) null));
     assertFalse(date1.isBetween(null, (DateHolder) null));
     assertTrue(date1.isBetween(null, date2));
@@ -163,7 +153,7 @@ public class DateHolderTest
   {
     dateHolder.setDate(year, month, date, hourOfDay, minute, second);
     dateHolder.ensurePrecision();
-    assertEquals(expected, DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals(expected, DateHelper.getForTestCase(dateHolder.getUtilDate()));
   }
 
   @Test
@@ -171,24 +161,24 @@ public class DateHolderTest
   {
     DateHolder dateHolder = new DateHolder(DatePrecision.DAY, DateHelper.UTC, Locale.GERMAN);
     dateHolder.setDate(1970, Month.NOVEMBER, 21, 4, 50, 23);
-    assertEquals("1970-11-21 00:00:00.000", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("1970-11-21 00:00:00.000", DateHelper.getForTestCase(dateHolder.getUtilDate()));
     dateHolder.setBeginOfMonth();
-    assertEquals("1970-11-01 00:00:00.000", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("1970-11-01 00:00:00.000", DateHelper.getForTestCase(dateHolder.getUtilDate()));
     dateHolder.setDate(1970, Month.NOVEMBER, 21, 4, 50, 23);
-    assertEquals("1970-11-21 00:00:00.000", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("1970-11-21 00:00:00.000", DateHelper.getForTestCase(dateHolder.getUtilDate()));
     dateHolder.setEndOfMonth();
-    assertEquals("1970-11-30 23:59:59.999", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("1970-11-30 23:59:59.999", DateHelper.getForTestCase(dateHolder.getUtilDate()));
 
     dateHolder = new DateHolder(DatePrecision.DAY, DateHelper.UTC, Locale.GERMAN);
     dateHolder.setDate(2007, Month.JANUARY, 21, 4, 50, 23);
     dateHolder.setEndOfMonth();
-    assertEquals("2007-01-31 23:59:59.999", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("2007-01-31 23:59:59.999", DateHelper.getForTestCase(dateHolder.getUtilDate()));
     dateHolder.setDate(2007, Month.FEBRUARY, 1, 4, 50, 23);
     dateHolder.setEndOfMonth();
-    assertEquals("2007-02-28 23:59:59.999", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("2007-02-28 23:59:59.999", DateHelper.getForTestCase(dateHolder.getUtilDate()));
     dateHolder.setDate(2004, Month.FEBRUARY, 1, 4, 50, 23);
     dateHolder.setEndOfMonth();
-    assertEquals("2004-02-29 23:59:59.999", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("2004-02-29 23:59:59.999", DateHelper.getForTestCase(dateHolder.getUtilDate()));
   }
 
   @Test
@@ -196,18 +186,18 @@ public class DateHolderTest
   {
     DateHolder dateHolder = new DateHolder(DatePrecision.DAY, DateHelper.UTC, Locale.GERMAN);
     dateHolder.setDate(1970, Month.NOVEMBER, 21, 4, 50, 23);
-    assertEquals("1970-11-21 00:00:00.000", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("1970-11-21 00:00:00.000", DateHelper.getForTestCase(dateHolder.getUtilDate()));
     dateHolder.setBeginOfWeek();
-    assertEquals("1970-11-16 00:00:00.000", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("1970-11-16 00:00:00.000", DateHelper.getForTestCase(dateHolder.getUtilDate()));
     dateHolder.setEndOfWeek();
-    assertEquals("1970-11-22 23:59:59.999", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("1970-11-22 23:59:59.999", DateHelper.getForTestCase(dateHolder.getUtilDate()));
     dateHolder.setBeginOfWeek();
-    assertEquals("1970-11-16 00:00:00.000", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("1970-11-16 00:00:00.000", DateHelper.getForTestCase(dateHolder.getUtilDate()));
 
     dateHolder = new DateHolder(DatePrecision.DAY, DateHelper.UTC, Locale.GERMAN);
     dateHolder.setDate(1970, Month.NOVEMBER, 21, 4, 50, 23);
     dateHolder.setEndOfWeek();
-    assertEquals("1970-11-22 23:59:59.999", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("1970-11-22 23:59:59.999", DateHelper.getForTestCase(dateHolder.getUtilDate()));
   }
 
   @Test
@@ -216,26 +206,26 @@ public class DateHolderTest
     final DateHolder dateHolder = new DateHolder(DatePrecision.MINUTE, DateHelper.UTC, Locale.GERMAN);
     dateHolder.setDate(2010, Month.MAY, 21, 4, 50, 23); // Friday
     dateHolder.addWorkingDays(0);
-    assertEquals("2010-05-21 04:50:00.000", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("2010-05-21 04:50:00.000", DateHelper.getForTestCase(dateHolder.getUtilDate()));
     dateHolder.addWorkingDays(1); // Skip saturday, sunday and whit monday and weekend.
-    assertEquals("2010-05-25 04:50:00.000", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("2010-05-25 04:50:00.000", DateHelper.getForTestCase(dateHolder.getUtilDate()));
     dateHolder.addWorkingDays(-1); // Skip saturday, sunday and whit monday and weekend.
-    assertEquals("2010-05-21 04:50:00.000", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("2010-05-21 04:50:00.000", DateHelper.getForTestCase(dateHolder.getUtilDate()));
     dateHolder.addWorkingDays(1); // Skip saturday, sunday and whit monday and weekend.
     dateHolder.addWorkingDays(-6); // Skip saturday, sunday and whit monday and weekends.
-    assertEquals("2010-05-14 04:50:00.000", DateHelper.getForTestCase(dateHolder.getDate()));
+    assertEquals("2010-05-14 04:50:00.000", DateHelper.getForTestCase(dateHolder.getUtilDate()));
   }
 
   private int daysBetween(final DateHolder date1, final DateHolder date2)
   {
-    final DateHolder dh = new DateHolder(date2.getDate());
+    final DateHolder dh = new DateHolder(date2.getUtilDate());
     int count = 1;
     if (date1.getTimeInMillis() > date2.getTimeInMillis()) {
       count = -1;
     }
     int result = 0;
     for (int i = 0; i < 5000; i++) {
-      if (dh.isSameDay(date1.getDate())) {
+      if (dh.isSameDay(date1.getUtilDate())) {
         break;
       }
       result += count;

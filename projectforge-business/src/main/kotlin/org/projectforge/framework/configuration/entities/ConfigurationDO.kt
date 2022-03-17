@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.framework.configuration.entities
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
+import mu.KotlinLogging
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.framework.configuration.Configuration
@@ -42,19 +43,12 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_CONFIGURATION", uniqueConstraints = [UniqueConstraint(columnNames = ["parameter", "tenant_id"])], indexes = [Index(name = "idx_fk_t_configuration_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_CONFIGURATION", uniqueConstraints = [UniqueConstraint(columnNames = ["parameter"])])
 @JpaXmlPersist(beforePersistListener = [ConfigurationXmlBeforePersistListener::class])
 @AUserRightId("ADMIN_CORE")
 @NamedQueries(
         NamedQuery(name = ConfigurationDO.FIND_BY_PARAMETER, query = "from ConfigurationDO where parameter = :parameter"))
 open class ConfigurationDO : DefaultBaseDO {
-
-    /**
-     * If true this parameter is valid for all tenants (in multi-tenancy environments), otherwise this parameter is valid
-     * only for the tenant this parameter is assigned to.
-     */
-    @get:Column(name = "is_global", columnDefinition = "boolean default false")
-    open var global: Boolean = false
 
     /**
      * Key under which the configuration value is stored in the database.
@@ -123,8 +117,6 @@ open class ConfigurationDO : DefaultBaseDO {
             } else if (type == ConfigurationType.STRING && field!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
                             ConfigurationType.TIME_ZONE)) {
                 // Do nothing.
-            } else if (type == ConfigurationType.INTEGER && field == ConfigurationType.TASK) {
-                // Do nothing.
             } else if (type == ConfigurationType.INTEGER && field == ConfigurationType.CALENDAR) {
                 // Do nothing.
             } else if (type == ConfigurationType.FLOAT && field == ConfigurationType.PERCENT) {
@@ -187,21 +179,6 @@ open class ConfigurationDO : DefaultBaseDO {
             this.stringValue = timeZone.id
         }
 
-    open var taskId: Int?
-        @Transient
-        get() {
-            if (intValue != null) {
-                checkType(ConfigurationType.TASK)
-            }
-            return intValue
-        }
-        set(taskId) {
-            if (taskId != null) {
-                checkType(ConfigurationType.TASK)
-            }
-            intValue = taskId
-        }
-
     open var calendarId: Int?
         @Transient
         get() {
@@ -233,7 +210,6 @@ open class ConfigurationDO : DefaultBaseDO {
         get() = if (this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.TIME_ZONE)) {
             this.stringValue
         } else if (this.configurationType == ConfigurationType.INTEGER
-                || this.configurationType == ConfigurationType.TASK
                 || this.configurationType == ConfigurationType.CALENDAR) {
             this.intValue
         } else if (this.configurationType == ConfigurationType.FLOAT || this.configurationType == ConfigurationType.PERCENT) {
@@ -263,8 +239,6 @@ open class ConfigurationDO : DefaultBaseDO {
     constructor()
 
     /**
-     * Is used for versions without tenant column
-     *
      * @param id
      * @param created
      * @param deleted
@@ -297,10 +271,6 @@ open class ConfigurationDO : DefaultBaseDO {
                 this.intValue = null
                 this.floatValue = null
             }
-            this.configurationType!!.isIn(ConfigurationType.INTEGER, ConfigurationType.TASK) -> {
-                this.stringValue = null
-                this.floatValue = null
-            }
             this.configurationType!!.isIn(ConfigurationType.INTEGER, ConfigurationType.CALENDAR) -> {
                 this.stringValue = null
                 this.floatValue = null
@@ -320,11 +290,12 @@ open class ConfigurationDO : DefaultBaseDO {
             } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
                             ConfigurationType.TIME_ZONE)) {
                 return
-            } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.TASK) {
-                return
             } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.CALENDAR) {
                 return
             } else if (type == ConfigurationType.FLOAT && this.configurationType == ConfigurationType.PERCENT) {
+                return
+            } else if (this.configurationType == ConfigurationType.TASK) {
+                // Only for backward compability.
                 return
             }
         }
@@ -342,8 +313,6 @@ open class ConfigurationDO : DefaultBaseDO {
             // Do nothing.
         } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
                         ConfigurationType.TIME_ZONE)) {
-            // Do nothing.
-        } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.TASK) {
             // Do nothing.
         } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.CALENDAR) {
             // Do nothing.

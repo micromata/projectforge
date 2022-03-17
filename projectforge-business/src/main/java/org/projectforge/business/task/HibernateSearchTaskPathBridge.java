@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,6 @@
 package org.projectforge.business.task;
 
 import org.hibernate.search.bridge.TwoWayStringBridge;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.framework.utils.NumberHelper;
 
 import java.util.List;
@@ -38,10 +37,6 @@ public class HibernateSearchTaskPathBridge implements TwoWayStringBridge {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
           .getLogger(HibernateSearchTaskPathBridge.class);
 
-  private TaskTree getTaskTree() {
-    return TaskTreeHelper.getTaskTree();
-  }
-
   @Override
   public Object stringToObject(String stringValue) {
     if (!stringValue.matches("[0-9]+:.*")) {
@@ -51,7 +46,7 @@ public class HibernateSearchTaskPathBridge implements TwoWayStringBridge {
     if (number == null) {
       return null;
     }
-    return getTaskTree().getTaskById(number);
+    return TaskTree.getInstance().getTaskById(number);
   }
 
   /**
@@ -65,7 +60,7 @@ public class HibernateSearchTaskPathBridge implements TwoWayStringBridge {
       return (String) object;
     }
     final TaskDO task = (TaskDO) object;
-    final TaskNode taskNode = getTaskTree().getTaskNodeById(task.getId());
+    final TaskNode taskNode = TaskTree.getInstance().getTaskNodeById(task.getId());
     if (taskNode == null) {
       return "";
     }

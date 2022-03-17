@@ -10,8 +10,8 @@ const saveFavoritesResponse = (category, response) => ({
         response,
     },
 });
-const getCurrentCategory = state => state.list.currentCategory;
-const getCurrentFilter = state => state.list.categories[getCurrentCategory(state)].filter;
+const getCurrentCategory = (state) => state.list.currentCategory;
+const getCurrentFilter = (state) => state.list.categories[getCurrentCategory(state)].filter;
 
 const fetchFavorites = (action, { params = {}, body }, category, dispatch) => fetch(
     getServiceURL(`${category}/filter/${action}`, params),
@@ -26,9 +26,9 @@ const fetchFavorites = (action, { params = {}, body }, category, dispatch) => fe
     },
 )
     .then(handleHTTPErrors)
-    .then(response => response.json())
-    .then(response => dispatch(saveFavoritesResponse(category, response)))
-    .catch(error => dispatch(fetchFailure(category, error.message)));
+    .then((response) => response.json())
+    .then((response) => dispatch(saveFavoritesResponse(category, response)))
+    .catch((error) => dispatch(fetchFailure(category, error.message)));
 
 /**
  * Dispatch a call to create a new favorite with current filter values.
@@ -37,7 +37,7 @@ const fetchFavorites = (action, { params = {}, body }, category, dispatch) => fe
  * @param body.name Name of the new filter.
  * @returns {function(...[*]=)}
  */
-export const createFavorite = body => (dispatch, getState) => {
+export const createFavorite = (body) => (dispatch, getState) => {
     const state = getState();
 
     return fetchFavorites(
@@ -60,7 +60,7 @@ export const createFavorite = body => (dispatch, getState) => {
  * @param params.id The id of the filter to delete.
  * @returns {function(*=, *): *}
  */
-export const deleteFavorite = params => (dispatch, getState) => fetchFavorites(
+export const deleteFavorite = (params) => (dispatch, getState) => fetchFavorites(
     'delete',
     { params },
     getCurrentCategory(getState()),
@@ -75,7 +75,7 @@ export const deleteFavorite = params => (dispatch, getState) => fetchFavorites(
  * @param params.newName The new name of the favorite.
  * @returns {function(*=, *): *}
  */
-export const renameFavorite = params => (dispatch, getState) => fetchFavorites(
+export const renameFavorite = (params) => (dispatch, getState) => fetchFavorites(
     'rename',
     { params },
     getCurrentCategory(getState()),
@@ -89,7 +89,7 @@ export const renameFavorite = params => (dispatch, getState) => fetchFavorites(
  * @param params.id The id of the favorite to select.
  * @returns {function(*=, *): *}
  */
-export const selectFavorite = params => (dispatch, getState) => fetchFavorites(
+export const selectFavorite = (params) => (dispatch, getState) => fetchFavorites(
     'select',
     { params },
     getCurrentCategory(getState()),

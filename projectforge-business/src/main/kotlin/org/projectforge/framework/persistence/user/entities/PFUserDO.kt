@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import de.micromata.genome.jpa.metainf.EntityDependencies
 import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
@@ -39,11 +40,11 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.time.TimeNotation
 import java.io.Serializable
-import java.sql.Timestamp
 import java.time.DayOfWeek
 import java.util.*
 import javax.persistence.*
@@ -53,19 +54,12 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PF_USER", uniqueConstraints = [UniqueConstraint(columnNames = ["username"])], indexes = [Index(name = "idx_fk_t_pf_user_tenant_id", columnList = "tenant_id")])
-@EntityDependencies(referencedBy = [TenantDO::class])
+@Table(name = "T_PF_USER", uniqueConstraints = [UniqueConstraint(columnNames = ["username"])])
 @NamedQueries(
-        NamedQuery(name = PFUserDO.FIND_BY_USERNAME_AND_STAYLOGGEDINKEY,
-                query = "from PFUserDO where username=:username and stayLoggedInKey=:stayLoggedInKey"),
         NamedQuery(name = PFUserDO.FIND_BY_USERNAME,
                 query = "from PFUserDO where username=:username"),
         NamedQuery(name = PFUserDO.FIND_OTHER_USER_BY_USERNAME,
-                query = "from PFUserDO where username=:username and id<>:id"),
-        NamedQuery(name = PFUserDO.FIND_BY_USERID_AND_AUTHENTICATIONTOKEN,
-                query = "from PFUserDO where id=:id and authenticationToken=:authenticationToken"),
-        NamedQuery(name = PFUserDO.SELECT_ID_MEB_MOBILE_NUMBERS,
-                query = "select id, personalMebMobileNumbers from PFUserDO where deleted=false and personalMebMobileNumbers is not null"))
+                query = "from PFUserDO where username=:username and id<>:id"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
@@ -85,7 +79,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     open var username: String? = null
 
     /**
-     * JIRA user name (if differ from the ProjectForge's user name) is used e. g. in MEB for creating new issues.
+     * JIRA user name (if differ from the ProjectForge's user name).
      */
     @PropertyInfo(i18nKey = "user.jiraUsername")
     @Field
@@ -132,23 +126,25 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(nullable = false)
     open var deactivated: Boolean = false
 
-    /**
-     * A super admin is able to administer tenants. For tenants the user must be assigned to PF_Admin if he should be an
-     * administrator of the tenant's objects. This flag is therefore independent of the right to administer objects of
-     * tenants itself.
-     */
-    @get:Column(name = "super_admin", nullable = false, columnDefinition = "boolean DEFAULT false")
-    open var superAdmin: Boolean = false
-
     @PropertyInfo(i18nKey = "firstName")
     @Field
     @get:Column(length = 255)
     open var firstname: String? = null
 
+    @PropertyInfo(i18nKey = "nickname")
+    @Field
+    @get:Column(name="nick_name", length = 255)
+    open var nickname: String? = null
+
     @PropertyInfo(i18nKey = "name")
     @Field
     @get:Column(length = 255)
     open var lastname: String? = null
+
+    @PropertyInfo(i18nKey = "gender")
+    @get:Enumerated(EnumType.STRING)
+    @get:Column(name = "gender", length = 100)
+    open var gender: Gender? = null
 
     /**
      * Optional description of the user.
@@ -166,23 +162,11 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(length = 255)
     open var email: String? = null
 
-    /**
-     * Key stored in the cookies for the functionality of stay logged in.
-     */
-    @JsonIgnore
-    @field:NoHistory
-    @get:Column(name = "stay_logged_in_key", length = 255)
-    open var stayLoggedInKey: String? = null
-
-    /**
-     * The authentication token is usable for download links of the user (without further login). This is used e. g. for
-     * ics download links of the team calendars.
-     */
-    @PropertyInfo(i18nKey = "user.authenticationToken")
-    @JsonIgnore
-    @field:NoHistory
-    @get:Column(name = "authentication_token", length = 100)
-    open var authenticationToken: String? = null
+    @PropertyInfo(i18nKey = "user.mobilePhone", tooltip = "user.mobilePhone.info")
+    @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
+    @Field
+    @get:Column(name = "mobile_phone", length = 255)
+    open var mobilePhone: String? = null
 
     /**
      * The saltString for giving salt to hashed password.
@@ -198,7 +182,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @PropertyInfo(i18nKey = "login.lastLogin")
     @field:NoHistory
     @get:Column
-    open var lastLogin: Timestamp? = null
+    open var lastLogin: Date? = null
 
     /**
      * Die Anzahl der erfolglosen Logins. Dieser Wert wird bei dem nächsten erfolgreichen Login auf 0 zurück gesetzt.
@@ -207,6 +191,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column
     open var loginFailures: Int = 0
 
+    @PropertyInfo(i18nKey = "user.locale")
     @get:Column
     open var locale: Locale? = null
 
@@ -214,44 +199,36 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      * Ensures time zone. If no time zone is given for the user, the configured default time zone is returned.
      * @see Configuration.getDefaultTimeZone
      */
-    @PropertyInfo(i18nKey = "timezone")
-    private var _timeZoneObject: TimeZone? = null
+    private var _timeZone: TimeZone? = null
 
-    val timeZoneObject: TimeZone
-        @Transient
-        get() =
-            _timeZoneObject ?: Configuration.getInstance().defaultTimeZone
+    @get:PropertyInfo(i18nKey = "timezone")
+    @get:Transient
+    var timeZone: TimeZone
+        get() = _timeZone ?: Configuration.instance.defaultTimeZone
+        set(value) {
+            _timeZone = value
+        }
 
     /**
      * For example "Europe/Berlin" if time zone is given otherwise empty string.
      */
-    @Column(name = "time_zone")
-    open fun getTimeZone(): String? {
-        return _timeZoneObject?.id
-    }
-
-    open fun setTimeZone(timeZoneId: String?) {
-        if (!timeZoneId.isNullOrBlank()) {
-            _timeZoneObject = TimeZone.getTimeZone(timeZoneId)
-        } else {
-            _timeZoneObject = null
+    @get:Column(name = "time_zone")
+    open var timeZoneString: String?
+        get() = _timeZone?.id
+        set(value) {
+            if (!value.isNullOrBlank()) {
+                _timeZone = TimeZone.getTimeZone(value)
+            } else {
+                _timeZone = null
+            }
         }
-    }
-
-    fun setTimeZone(timeZone: TimeZone?) {
-        setTimeZoneObject(timeZone)
-    }
-
-    fun setTimeZoneObject(timeZone: TimeZone?) {
-        _timeZoneObject = timeZone
-    }
 
     /**
      * For example "Europe/Berlin" if time zone is given otherwise empty string.
      */
     val timeZoneDisplayName: String
         @Transient
-        get() = timeZoneObject.displayName
+        get() = timeZone.displayName
 
     val dateTimeZone: PFDateTime
         @Transient
@@ -273,7 +250,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      *  * dd/MM/yyyy: 21/02/2011, British and French format (day of month first)
      *  * MM/dd/yyyy: 02/21/2011, American format (month first)
      */
-    @PropertyInfo(i18nKey = "dateformat")
+    @PropertyInfo(i18nKey = "dateFormat")
     @get:Column(name = "date_format", length = 20)
     open var dateFormat: String? = null
 
@@ -284,7 +261,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      *  * DD/MM/YYYY: 21/02/2011, British and French format (day of month first)
      *  * MM/DD/YYYY: 02/21/2011, American format (month first)
      */
-    @PropertyInfo(i18nKey = "dateformat.xls")
+    @PropertyInfo(i18nKey = "dateFormat.xls")
     @get:Column(name = "excel_date_format", length = 20)
     open var excelDateFormat: String? = null
 
@@ -315,18 +292,9 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      * Eine kommaseparierte Liste mit den Kennungen des/der Telefon(e) des Mitarbeiters an der unterstützten
      * Telefonanlage,  zur Direktwahl aus ProjectForge heraus.
      */
-    @PropertyInfo(i18nKey = "user.personalPhoneIdentifiers")
+    @PropertyInfo(i18nKey = "user.personalPhoneIdentifiers", tooltip = "user.personalPhoneIdentifiers.tooltip.content")
     @get:Column(name = "personal_phone_identifiers", length = 255)
     open var personalPhoneIdentifiers: String? = null
-
-    /**
-     * A comma separated list of all personal mobile numbers from which SMS can be send. Those SMS will be assigned to
-     * this user. <br></br>
-     * This is a feature from the Mobile Enterprise Blogging.
-     */
-    @PropertyInfo(i18nKey = "user.personalMebMobileNumbers")
-    @get:Column(name = "personal_meb_identifiers", length = 255)
-    open var personalMebMobileNumbers: String? = null
 
     @PropertyInfo(i18nKey = "access.rights")
     @get:OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "user")
@@ -355,6 +323,13 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @PropertyInfo(i18nKey = "user.sshPublicKey")
     @get:Column(name = "ssh_public_key", length = 4096)
     open var sshPublicKey: String? = null
+
+    /**
+     * The user's gpgPublicKey, if any.
+     */
+    @PropertyInfo(i18nKey = "user.gpgPublicKey")
+    @get:Column(name = "gpg_public_key", length = 4096)
+    open var gpgPublicKey: String? = null
 
     /**
      * Gibt den Vor- und Nachnamen zurück, falls gegeben. Vor- und Nachname sind durch ein Leerzeichen getrennt.
@@ -509,23 +484,19 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     }
 
     /**
-     * @return If any of the secret fields is given (password, passwordSalt, stayLoggedInKey or authenticationToken).
+     * @return If any of the secret fields is given (password, passwordSalt).
      */
     fun hasSecretFieldValues(): Boolean {
         return (!this.password.isNullOrEmpty()
-                || !this.passwordSalt.isNullOrEmpty()
-                || !this.stayLoggedInKey.isNullOrEmpty()
-                || !this.authenticationToken.isNullOrEmpty())
+                || !this.passwordSalt.isNullOrEmpty())
     }
 
     /**
-     * Clears any given secret field (password, passwordSalt, stayLoggedInKey or authenticationToken) by setting them to null.
+     * Clears any given secret field (password, passwordSalt) by setting them to null.
      */
     fun clearSecretFields() {
         this.password = null
         this.passwordSalt = null
-        this.stayLoggedInKey = null
-        this.authenticationToken = null
     }
 
 
@@ -534,31 +505,33 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
         private const val NOPASSWORD = "--- none ---"
 
-        internal const val FIND_BY_USERNAME_AND_STAYLOGGEDINKEY = "PFUserDO_FindByUsernameAndStayLoggedInKey"
-
         const val FIND_BY_USERNAME = "PFUserDO_FindByUsername"
 
-        internal const val FIND_BY_USERID_AND_AUTHENTICATIONTOKEN = "PFUserDO_FindByUserIdAndAuthenticationToken"
-
-        const val SELECT_ID_MEB_MOBILE_NUMBERS = "PFUserDO_SelectIdMebMobilenumbers"
         /**
          * For detecting the existing of given username in the database for other user than given. Avoids duplicate usernames.
          */
         internal const val FIND_OTHER_USER_BY_USERNAME = "PFUserDO_FindOtherUserByUsername"
 
         /**
-         * @return A copy of the given user without copying the secret fields (password, passwordSalt, stayLoggedInKey or
-         * authenticationToken).
+         * @return A copy of the given user without copying the secret fields (password, passwordSalt).
          */
         @JvmStatic
         fun createCopyWithoutSecretFields(srcUser: PFUserDO?): PFUserDO? {
             if (srcUser == null)
                 return null
             val user = PFUserDO()
-            user.copyValuesFrom(srcUser, "password", "passwordSalt", "stayLoggedInKey", "authenticationToken")
+            user.copyValuesFrom(srcUser, "password", "passwordSalt")
             // Paranoia setting (fields shouldn't be copied):
             user.clearSecretFields()
             return user
+        }
+
+        /**
+         * Converts user list to comma separated int values.
+         * @return String with csv or null, if list of user's is null.
+         */
+        fun toIntList(users: List<PFUserDO>?): String? {
+            return users?.filter { it.id != null }?.joinToString { "${it.id}" }
         }
     }
 }

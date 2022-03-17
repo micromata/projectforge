@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,6 +25,7 @@
 
 package org.projectforge.framework.persistence.user.entities
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
@@ -56,8 +57,8 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_USER_PREF",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "area", "name", "tenant_id"])],
-        indexes = [Index(name = "idx_fk_t_user_pref_user_fk", columnList = "user_fk"), Index(name = "idx_fk_t_user_pref_tenant_id", columnList = "tenant_id")])
+        uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "area", "name"])],
+        indexes = [Index(name = "idx_fk_t_user_pref_user_fk", columnList = "user_fk")])
 @JpaXmlPersist(beforePersistListener = [UserPrefXmlBeforePersistListener::class])
 @NamedQueries(
         NamedQuery(name = FIND_BY_USER_ID_AND_AREA, query = "from UserPrefDO where user.id=:userId and area=:area"),
@@ -69,6 +70,7 @@ import javax.persistence.*
         NamedQuery(name = FIND_IDS_AND_NAMES_BY_USER_AND_AREA, query = "select id, name from UserPrefDO where user.id=:userId and area=:area order by name"),
         NamedQuery(name = FIND_OTHER_BY_USER_AND_AREA_AND_NAME, query = "from UserPrefDO where id<>:id and user.id=:userId and area=:area and name=:name"))
 class UserPrefDO : AbstractBaseDO<Int>() {
+    @JsonIgnore
     private val log = org.slf4j.LoggerFactory.getLogger(UserPrefDO::class.java)
 
     @IndexedEmbedded(depth = 1)

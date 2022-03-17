@@ -1,4 +1,5 @@
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faFilter, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -25,6 +26,10 @@ function MagicFilters(
     const [search, setSearch] = React.useState('');
     const searchRef = React.useRef(null);
 
+    if (!searchFilter) {
+        return <></>;
+    }
+
     const setIsOpen = (open) => {
         if (searchRef.current) {
             if (open) {
@@ -44,7 +49,7 @@ function MagicFilters(
         onResetAllFilters();
     };
 
-    const handleAfterSelectFilter = () => setAllFiltersAreOpen(false);
+    const handleAfterSelectFilter = () => setIsOpen(false);
 
     const searchLowerCase = search.toLowerCase();
     const filteredSearchFilters = searchFilter && searchFilter.content
@@ -57,67 +62,83 @@ function MagicFilters(
 
     return (
         <div className={styles.magicFilters}>
-            {searchFilter && filterEntries
-                .map(entry => ({
+            <div className={styles.magicFilter}>
+                <AdvancedPopper
+                    setIsOpen={setIsOpen}
+                    isOpen={allFiltersAreOpen}
+                    basic={(
+                        <>
+                            {`${translations.searchFilter} `}
+                            <FontAwesomeIcon icon={faFilter} />
+                        </>
+                    )}
+                    className={styles.allFilters}
+                    contentClassName={classNames(
+                        styles.pill,
+                        { [styles.marked]: allFiltersAreOpen },
+                    )}
+                    actions={(
+                        <AdvancedPopperAction
+                            type="delete"
+                            disabled={!(filterEntries.length || searchString)}
+                            onClick={handleAllFiltersDelete}
+                        >
+                            {translations.reset || '???Zurücksetzen???'}
+                        </AdvancedPopperAction>
+                    )}
+                >
+                    <AdvancedPopperInput
+                        forwardRef={searchRef}
+                        autoFocus
+                        dark
+                        id="magicFiltersSearch"
+                        icon={faSearch}
+                        noStyle
+                        onCancel={() => setIsOpen(false)}
+                        onChange={handleSearchChange}
+                        placeholder={translations.search || ''}
+                        selectOnFocus
+                        value={search}
+                    />
+                    <ul className={styles.filterList}>
+                        {filteredSearchFilters.map(({ id, label }) => (
+                            <FilterListEntry
+                                key={`filter-${id}`}
+                                afterSelect={handleAfterSelectFilter}
+                                id={id}
+                                label={label}
+                            />
+                        ))}
+                        {filteredSearchFilters.length === 0 && (
+                            <span className={styles.errorMessage}>
+                                {translations['datatable.no-records-found']}
+                            </span>
+                        )}
+                    </ul>
+                </AdvancedPopper>
+            </div>
+            {searchFilter.content
+                .filter((filter) => filter.defaultFilter)
+                .map((filter) => (
+                    <MagicFilterPill
+                        key={`magic-filter-default-${filter.id}`}
+                        {...Array.findByField(filterEntries, 'field', filter.id)}
+                        {...filter}
+                    />
+                ))}
+            {filterEntries
+                .map((entry) => ({
                     ...Array.findByField(searchFilter.content, 'id', entry.field),
                     ...entry,
                 }))
-                .filter(({ id }) => id !== undefined)
-                .map(entry => (
+                .filter(({ id, defaultFilter }) => id !== undefined && !defaultFilter)
+                .map((entry) => (
                     <MagicFilterPill
                         key={`magic-filter-${entry.id}`}
                         {...entry}
+                        isRemovable
                     />
                 ))}
-            {searchFilter && (
-                <div className={styles.magicFilter}>
-                    <AdvancedPopper
-                        setIsOpen={setIsOpen}
-                        isOpen={allFiltersAreOpen}
-                        basic={translations.searchFilter || ''}
-                        className={styles.allFilters}
-                        contentClassName={classNames(
-                            styles.pill,
-                            { [styles.marked]: allFiltersAreOpen },
-                        )}
-                        actions={(
-                            <AdvancedPopperAction
-                                type="delete"
-                                disabled={!(filterEntries.length || searchString)}
-                                onClick={handleAllFiltersDelete}
-                            >
-                                {translations.reset || '???Zurücksetzen???'}
-                            </AdvancedPopperAction>
-                        )}
-                    >
-                        <AdvancedPopperInput
-                            forwardRef={searchRef}
-                            dark
-                            id="magicFiltersSearch"
-                            icon={faSearch}
-                            onCancel={() => setIsOpen(false)}
-                            onChange={handleSearchChange}
-                            value={search}
-                            placeholder={translations.search || ''}
-                        />
-                        <ul className={styles.filterList}>
-                            {filteredSearchFilters.map(({ id, label }) => (
-                                <FilterListEntry
-                                    key={`filter-${id}`}
-                                    afterSelect={handleAfterSelectFilter}
-                                    id={id}
-                                    label={label}
-                                />
-                            ))}
-                            {filteredSearchFilters.length === 0 && (
-                                <span className={styles.errorMessage}>
-                                    {translations['datatable.no-records-found'] || '???No Entries found???'}
-                                </span>
-                            )}
-                        </ul>
-                    </AdvancedPopper>
-                </div>
-            )}
         </div>
     );
 }
@@ -127,10 +148,15 @@ MagicFilters.propTypes = {
         reset: PropTypes.string,
         searchFilter: PropTypes.string,
         search: PropTypes.string,
+        'datatable.no-records-found': PropTypes.shape({}),
     }).isRequired,
     filterEntries: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     onResetAllFilters: PropTypes.func.isRequired,
-    searchFilter: PropTypes.shape({}),
+    searchFilter: PropTypes.shape({
+        content: PropTypes.shape({
+            filter: PropTypes.shape({}),
+        }),
+    }),
     searchString: PropTypes.string,
 };
 
@@ -150,7 +176,7 @@ const mapStateToProps = ({ list }) => {
     };
 };
 
-const actions = dispatch => ({
+const actions = (dispatch) => ({
     onResetAllFilters: () => dispatch(resetAllFilters()),
 });
 

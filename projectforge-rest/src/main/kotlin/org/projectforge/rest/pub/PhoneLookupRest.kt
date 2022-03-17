@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -80,7 +80,7 @@ class PhoneLookupRest {
             // 0 - unknown, no entry found.
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_PLAIN)
-                    .body(0)
+                    .body("")
         }
     }
 }

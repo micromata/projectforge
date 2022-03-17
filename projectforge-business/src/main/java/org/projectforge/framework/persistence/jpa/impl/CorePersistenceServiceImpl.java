@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -53,7 +53,7 @@ public class CorePersistenceServiceImpl<PK extends Serializable, ENT extends Mar
     implements ICorePersistenceService<PK, ENT>, IDao<ENT>
 {
 
-  private static final Logger LOG = LoggerFactory.getLogger(JpaPfPersistenceServiceImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CorePersistenceServiceImpl.class);
   @Autowired
   private PfEmgrFactory emf;
 

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.web.user;
 
+import org.projectforge.business.user.UserRightVO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.projectforge.business.user.UserRightVO;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 public class UserRightsEditData implements Serializable
 {

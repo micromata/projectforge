@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,6 @@ import org.projectforge.business.user.UserRight;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 
 /**
  * This class contains some helper methods for evaluation of user and group access'.
@@ -48,11 +47,6 @@ public interface AccessChecker
    * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
    */
   boolean isUserMemberOfAdminGroup(PFUserDO user);
-
-  /**
-   * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
-   */
-  boolean isUserMemberOfAdminGroup(TenantDO tenant, PFUserDO user);
 
   boolean isUserMemberOfAdminGroup(PFUserDO user, boolean throwException);
 
@@ -271,15 +265,11 @@ public interface AccessChecker
    *
    * @param user2
    * @return
-   * @deprecated wrong place.
    */
-  @Deprecated
   boolean areUsersInSameGroup(final PFUserDO user1, final PFUserDO user2);
 
   /**
    * @return
-   * @deprecated wrong place.
    */
-  @Deprecated
   boolean hasLoggedInUserAccessToTimesheetsOfOtherUsers();
 }

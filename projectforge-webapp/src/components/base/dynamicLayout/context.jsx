@@ -17,6 +17,10 @@ export const defaultValues = {
      */
     data: {},
     /**
+     * @type {Boolean} Is the current layout in a fetching state.
+     */
+    isFetching: false,
+    /**
      * @type {Object} Specify settings for some general layout helpers.
      */
     options: {
@@ -51,7 +55,7 @@ export const defaultValues = {
      */
     // Disable no-unused-vars so its clear what you need to override the function.
     /* eslint-disable-next-line no-unused-vars */
-    renderLayout: content => <React.Fragment />,
+    renderLayout: (content) => <></>,
     /**
      * Modifies the context data object in a way like Reacts setState().
      *

@@ -1,4 +1,9 @@
-import { MENU_LOAD_BEGIN, MENU_LOAD_FAILURE, MENU_LOAD_SUCCESS } from '../actions';
+import {
+    MENU_LOAD_BEGIN,
+    MENU_LOAD_FAILURE,
+    MENU_LOAD_SUCCESS,
+    USER_LOGIN_BEGIN,
+} from '../actions';
 
 const initialState = {
     loading: false,
@@ -10,6 +15,7 @@ const initialState = {
 
 const reducer = (state = initialState, { type, payload }) => {
     switch (type) {
+        case USER_LOGIN_BEGIN:
         case MENU_LOAD_BEGIN:
             return {
                 ...state,
@@ -18,6 +24,7 @@ const reducer = (state = initialState, { type, payload }) => {
                 mainMenu: [],
                 favoritesMenu: [],
                 myAccountMenu: [],
+                badge: undefined,
             };
         case MENU_LOAD_SUCCESS:
             return {

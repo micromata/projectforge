@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -55,7 +55,7 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.*;
 import org.projectforge.framework.persistence.xstream.HibernateXmlConverter;
 import org.projectforge.framework.persistence.xstream.XStreamSavingConverter;
-import org.projectforge.framework.xstream.XStreamHelper;
+import org.projectforge.framework.xmlstream.XStreamHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.slf4j.Logger;
@@ -141,7 +141,7 @@ public class XmlDump {
    * @return Only for test cases.
    */
   public XStreamSavingConverter restoreDatabase(final Reader reader) {
-    final List<AbstractPlugin> plugins = pluginAdminService.getActivePlugin();
+    final List<AbstractPlugin> plugins = pluginAdminService.getActivePlugins();
     final XStreamSavingConverter xstreamSavingConverter = new XStreamSavingConverter() {
 
       @Override

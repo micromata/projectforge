@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -48,7 +48,7 @@ class ToDoPagesRest() : AbstractDOPagesRest<ToDoDO, ToDoDao>(ToDoDao::class.java
      */
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable()
+                .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "modified", "subject", "assignee", "reporter", "dueDate", "status",
                                 "priority", "type", "task", "group", "description"))
         layout.getTableColumnById("group").formatter = Formatter.GROUP

@@ -5,32 +5,38 @@ import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
 
 /**
- * ReadonlyField text (with label and optional toolip)
+ * ReadonlyField text (with label and optional tooltip)
  */
-function DynamicReadonlyField({ id, focus, ...props }) {
-    const { data, setData } = React.useContext(DynamicLayoutContext);
+function DynamicReadonlyField(
+    {
+        id,
+        dataType,
+        ...props
+    },
+) {
+    const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     const value = Object.getByString(data, id) || '';
 
-    return React.useMemo(() => {
-
-        return (
-            <DynamicValidationManager id={id}>
-                <ReadonlyField
-                    id={id}
-                    {...props}
-                    value={value}
-                />
-            </DynamicValidationManager>
-        );
-    }, [value, setData]);
+    return React.useMemo(() => (
+        <DynamicValidationManager id={id}>
+            <ReadonlyField
+                id={`${ui.uid}-${id}`}
+                {...props}
+                value={value}
+                dataType={dataType}
+            />
+        </DynamicValidationManager>
+    ), [value, setData, id, dataType, props]);
 }
 
 DynamicReadonlyField.propTypes = {
     id: PropTypes.string.isRequired,
+    dataType: PropTypes.string,
 };
 
 DynamicReadonlyField.defaultProps = {
+    dataType: undefined,
 };
 
 export default DynamicReadonlyField;

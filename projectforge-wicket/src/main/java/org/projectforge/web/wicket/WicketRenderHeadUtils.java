@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,12 @@
 
 package org.projectforge.web.wicket;
 
+import de.micromata.less.LessWicketApplicationInstantiator;
 import org.apache.wicket.markup.head.CssReferenceHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.projectforge.web.WebConfiguration;
-
-import de.micromata.less.LessWicketApplicationInstantiator;
 
 public class WicketRenderHeadUtils
 {

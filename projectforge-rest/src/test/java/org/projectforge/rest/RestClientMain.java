@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,7 @@
 package org.projectforge.rest;
 
 import org.projectforge.ProjectForgeVersion;
+import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.ServerInfo;
 import org.projectforge.model.rest.UserObject;
@@ -78,7 +79,7 @@ public class RestClientMain
   {
     initialize();
     // http://localhost:8080/ProjectForge/rest/authenticate/getToken // username / password
-    final String url = getUrl() + RestPaths.buildPath(RestPaths.AUTHENTICATE_GET_TOKEN);
+    final String url = getUrl() + RestPaths.buildOldPath(RestPaths.AUTHENTICATE_GET_TOKEN);
     final WebTarget webResource = client.target(url);
     final Response response = webResource.request().accept(MediaType.APPLICATION_JSON)
         .header(Authentication.AUTHENTICATION_USERNAME, username)
@@ -115,7 +116,7 @@ public class RestClientMain
   {
     initialize();
     // http://localhost:8080/ProjectForge/rest/authenticate/initialContact?clientVersion=5.0 // userId / token
-    final WebTarget webResource = client.target(getUrl() + RestPaths.buildPath(RestPaths.AUTHENTICATE_INITIAL_CONTACT)).queryParam(
+    final WebTarget webResource = client.target(getUrl() + RestPaths.buildOldPath(RestPaths.AUTHENTICATE_INITIAL_CONTACT)).queryParam(
         "clientVersion", ProjectForgeVersion.VERSION_STRING);
     final Response response = getClientResponse(webResource, user);
     if (response.getStatus() != Response.Status.OK.getStatusCode()) {

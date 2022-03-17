@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,7 @@
 
 package org.projectforge.web.user;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.Button;
@@ -56,15 +50,19 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
-import org.projectforge.web.wicket.components.SingleButtonPanel;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
+import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
+import org.wicketstuff.select2.Select2Choice;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
 {
@@ -91,6 +89,7 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
   LdapUserDao ldapUserDao;
 
   MultiChoiceListHelper<PFUserDO> assignUsersListHelper;
+
 
   // MultiChoiceListHelper<GroupDO> nestedGroupsListHelper;
 
@@ -164,6 +163,13 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
           new PropertyModel<Collection<PFUserDO>>(this.assignUsersListHelper, "assignedItems"), usersProvider);
       users.setMarkupId("users").setOutputMarkupId(true);
       fs.add(users);
+    }
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset("groupOwner");
+      final UserSelectPanel groupOwnerSelectPanel = new UserSelectPanel(fs.newChildId(),
+              new PropertyModel<PFUserDO>(data, "groupOwner"),parentPage, "groupOwner");
+      fs.add(groupOwnerSelectPanel);
+      groupOwnerSelectPanel.init();
     }
     final boolean adminAccess = accessChecker.isLoggedInUserMemberOfAdminGroup();
     if (adminAccess == true && Login.getInstance().hasExternalUsermanagementSystem() == true) {

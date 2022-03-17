@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.business.ldap;
 
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,13 +42,16 @@ public class LdapPosixAccountsUtils
   @Autowired
   private LdapService ldapService;
 
+  @Autowired
+  private UserGroupCache userGroupCache;
+
   /**
    * Get all given uid numbers of all ProjectForge users including any deleted user and get the next highest and free
    * number. The number is 1000 if no uid number (with an value greater than 999) is found.
    */
   public int getNextFreeUidNumber()
   {
-    final Collection<PFUserDO> allUsers = getUserGroupCache().getAllUsers();
+    final Collection<PFUserDO> allUsers = userGroupCache.getAllUsers();
     int currentMaxNumber = 999;
     for (final PFUserDO user : allUsers) {
       final LdapUserValues ldapUserValues = PFUserDOConverter.readLdapUserValues(user.getLdapValues());
@@ -66,15 +67,15 @@ public class LdapPosixAccountsUtils
 
   /**
    * For preventing double uidNumbers.
-   * 
-   * @param user
+   *
+   * @param currentUser
    * @param uidNumber
    * @return Returns true if any user (also deleted user) other than the given user has the given uidNumber, otherwise
    *         false.
    */
   public boolean isGivenNumberFree(final PFUserDO currentUser, final int uidNumber)
   {
-    final Collection<PFUserDO> allUsers = getUserGroupCache().getAllUsers();
+    final Collection<PFUserDO> allUsers = userGroupCache.getAllUsers();
     for (final PFUserDO user : allUsers) {
       final LdapUserValues ldapUserValues = PFUserDOConverter.readLdapUserValues(user.getLdapValues());
       if (Objects.equals(user.getId(), currentUser.getId())) {
@@ -94,7 +95,7 @@ public class LdapPosixAccountsUtils
   /**
    * Sets next free uid, the gid (configured in config.xml), the home directory (built of standard prefix and the given
    * user's username) and the configured login-shell.
-   * 
+   *
    * @param ldapUserValues
    * @param user
    */
@@ -109,15 +110,5 @@ public class LdapPosixAccountsUtils
     ldapUserValues.setGidNumber(ldapPosixAccountsConfig.getDefaultGidNumber());
     ldapUserValues.setHomeDirectory(ldapPosixAccountsConfig.getHomeDirectoryPrefix() + user.getUsername());
     ldapUserValues.setLoginShell(ldapPosixAccountsConfig.getDefaultLoginShell());
-  }
-
-  public TenantRegistry getTenantRegistry()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  public UserGroupCache getUserGroupCache()
-  {
-    return getTenantRegistry().getUserGroupCache();
   }
 }

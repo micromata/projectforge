@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -379,7 +379,11 @@ public class TeamEventServiceImpl implements TeamEventService {
     }
 
     // set mail content
-    final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", dataMap, ThreadLocalUserContext.getUser());
+    final String content = sendMail.renderGroovyTemplate(msg,
+            "mail/teamEventEmail.html",
+            dataMap,
+            I18nHelper.getLocalizedMessage("plugins.teamcal.event.title.heading"),
+            ThreadLocalUserContext.getUser());
     msg.setContent(content);
 
     // create iCal
@@ -428,11 +432,11 @@ public class TeamEventServiceImpl implements TeamEventService {
     final TimeZone timezone;
 
     if (attendee.getUser() != null) {
-      locale = attendee.getUser().getLocale() != null ? attendee.getUser().getLocale() : ThreadLocalUserContext.getLocale(null);
-      timezone = attendee.getUser().getTimeZoneObject();
+      locale = attendee.getUser().getLocale() != null ? attendee.getUser().getLocale() : ThreadLocalUserContext.getLocale();
+      timezone = attendee.getUser().getTimeZone();
     } else {
-      locale = sender.getLocale() != null ? sender.getLocale() : ThreadLocalUserContext.getLocale(null);
-      timezone = sender.getTimeZoneObject();
+      locale = sender.getLocale() != null ? sender.getLocale() : ThreadLocalUserContext.getLocale();
+      timezone = sender.getTimeZone();
     }
 
     // TODO rework!
@@ -441,8 +445,8 @@ public class TeamEventServiceImpl implements TeamEventService {
     formatter.setTimeZone(timezone);
 
     final Map<String, Object> dataMap = new HashMap<>();
-    PFDateTime startDate = PFDateTime.from(event.getStartDate(), true, timezone);
-    PFDateTime endDate = PFDateTime.from(event.getEndDate(), true, timezone);
+    PFDateTime startDate = PFDateTime.fromOrNow(event.getStartDate(), timezone);
+    PFDateTime endDate = PFDateTime.fromOrNow(event.getEndDate(), timezone);
 
     String location = event.getLocation() != null ? event.getLocation() : "";
     String note = event.getNote() != null ? event.getNote() : "";
@@ -530,7 +534,7 @@ public class TeamEventServiceImpl implements TeamEventService {
   private String getResponseLink(TeamEventDO event, TeamEventAttendeeDO attendee, TeamEventAttendeeStatus status) {
     final String messageParamBegin = "calendar=" + event.getCalendarId() + "&uid=" + event.getUid() + "&attendee=" + attendee.getId();
     final String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=" + status.name());
-    return domainService.getDomain() + TeamCalResponseServlet.PFCALENDAR + "?" + acceptParams;
+    return domainService.getDomain(TeamCalResponseServlet.PFCALENDAR + "?" + acceptParams);
   }
 
   private String getRepeatText(RRule rRule) {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.web.teamcal.integration;
 
-import java.io.Serializable;
-
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -33,6 +31,8 @@ import org.projectforge.web.teamcal.event.TeamEventEditPage;
 import org.projectforge.web.timesheet.TimesheetEditPage;
 import org.projectforge.web.timesheet.TimesheetPluginComponentHook;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+
+import java.io.Serializable;
 
 /**
  * Adds the switch to team event page button to the {@link TimesheetEditPage}

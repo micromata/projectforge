@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -40,7 +40,7 @@ import java.util.Map;
 
 /**
  * Stores the number of entities in the different tables (used by SearchPage).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
@@ -53,8 +53,6 @@ public class StatisticsCache extends AbstractCache
 
   @Autowired
   private DataSource dataSource;
-
-  protected long expireTimeHours = 12;
 
   public Integer getNumberOfEntities(final Class<? extends BaseDO<?>> clazz)
   {
@@ -82,11 +80,5 @@ public class StatisticsCache extends AbstractCache
       }
     }
     log.info("Initializing of StatisticsCache done.");
-  }
-
-  @Override
-  public void setExpireTimeInHours(final long expireTime)
-  {
-    this.expireTime = expireTimeHours * TICKS_PER_HOUR;
   }
 }

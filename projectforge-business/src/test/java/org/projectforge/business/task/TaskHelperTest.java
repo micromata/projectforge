@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,7 +28,6 @@ import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -40,7 +39,8 @@ public class TaskHelperTest extends AbstractTestBase
   @Autowired
   private ProjektDao projektDao;
 
-  
+  @Autowired
+  private TaskTree taskTree;
 
   @Test
   public void normalizeKost2BlackWhiteList()
@@ -67,7 +67,6 @@ public class TaskHelperTest extends AbstractTestBase
   public void addKost2()
   {
     logon(AbstractTestBase.TEST_FINANCE_USER);
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     final TaskDO task1 = initTestDB.addTask("addKost2", "root");
     final ProjektDO projekt = new ProjektDO();
     projekt.setName("addKost2");

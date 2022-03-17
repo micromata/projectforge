@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.business.ldap;
 
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,13 +42,16 @@ public class LdapSambaAccountsUtils
   @Autowired
   private LdapService ldapService;
 
+  @Autowired
+  private UserGroupCache userGroupCache;
+
   /**
    * Get all given uid numbers of all ProjectForge users including any deleted user and get the next highest and free
    * number. The number is 1000 if no uid number (with a value greater than 999) is found.
    */
   public int getNextFreeSambaSIDNumber()
   {
-    final Collection<PFUserDO> allUsers = getUserGroupCache().getAllUsers();
+    final Collection<PFUserDO> allUsers = userGroupCache.getAllUsers();
     int currentMaxNumber = 999;
     for (final PFUserDO user : allUsers) {
       final LdapUserValues ldapUserValues = PFUserDOConverter.readLdapUserValues(user.getLdapValues());
@@ -67,8 +68,8 @@ public class LdapSambaAccountsUtils
 
   /**
    * For preventing double uidNumbers.
-   * 
-   * @param user
+   *
+   * @param currentUser
    * @param sambaSIDNumber
    * @return Returns true if any user (also deleted user) other than the given user has the given uidNumber, otherwise
    *         false.
@@ -79,7 +80,7 @@ public class LdapSambaAccountsUtils
       // Nothing to check.
       return true;
     }
-    final Collection<PFUserDO> allUsers = getUserGroupCache().getAllUsers();
+    final Collection<PFUserDO> allUsers = userGroupCache.getAllUsers();
     for (final PFUserDO user : allUsers) {
       final LdapUserValues ldapUserValues = PFUserDOConverter.readLdapUserValues(user.getLdapValues());
       if (Objects.equals(user.getId(), currentUser.getId())) {
@@ -99,7 +100,7 @@ public class LdapSambaAccountsUtils
 
   /**
    * Sets next free SambaSID or, if free and given the same id as the posix UID.
-   * 
+   *
    * @param ldapUserValues
    * @param user
    */
@@ -118,15 +119,5 @@ public class LdapSambaAccountsUtils
     if (ldapSambaAccountsConfig.getDefaultSambaPrimaryGroupSID() != null) {
       ldapUserValues.setSambaPrimaryGroupSIDNumber(ldapSambaAccountsConfig.getDefaultSambaPrimaryGroupSID());
     }
-  }
-
-  public TenantRegistry getTenantRegistry()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  public UserGroupCache getUserGroupCache()
-  {
-    return getTenantRegistry().getUserGroupCache();
   }
 }

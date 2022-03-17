@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,17 +25,23 @@ package org.projectforge.config;
 
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
-import org.projectforge.Const;
-import org.projectforge.business.user.filter.UserFilter;
+import org.projectforge.business.user.filter.WicketUserFilter;
+import org.projectforge.caldav.config.PFMiltonInit;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.CORSFilter;
+import org.projectforge.rest.config.LocaleFilter;
+import org.projectforge.rest.config.Rest;
+import org.projectforge.rest.config.RestUtils;
+import org.projectforge.security.LoggingFilter;
 import org.projectforge.security.SecurityHeaderFilter;
+import org.projectforge.web.OrphanedLinkFilter;
 import org.projectforge.web.debug.SessionSerializableChecker;
-import org.projectforge.web.doc.TutorialFilter;
 import org.projectforge.web.filter.ResponseHeaderFilter;
 import org.projectforge.web.filter.SpringThreadLocalFilter;
+import org.projectforge.web.rest.RestCalendarSubscriptionUserFilter;
 import org.projectforge.web.rest.RestUserFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Configuration;
@@ -61,47 +67,53 @@ public class WebXMLInitializer implements ServletContextInitializer {
 
   private static final String PARAM_APP_BEAN = "applicationBean";
 
+  @Autowired
+  private PFMiltonInit pfMiltonInit;
+
   @Override
   public void onStartup(ServletContext sc) throws ServletException {
     final FilterRegistration securityHeaderFilter = sc.addFilter("SecurityHeaderFilter", SecurityHeaderFilter.class);
     securityHeaderFilter.addMappingForUrlPatterns(null, false, "/*");
     securityHeaderFilter.setInitParameter(SecurityHeaderFilter.PARAM_CSP_HEADER_VALUE, cspHeaderValue);
 
-    final FilterRegistration userFilter = sc.addFilter("UserFilter", UserFilter.class);
+    /*
+     * Redirect orphaned links from former versions of ProjectForge (e. g. if link in e-mails were changed due to migrations or refactoring.
+     */
+    sc.addFilter("redirectOrphanedLinks", new OrphanedLinkFilter()).addMappingForUrlPatterns(null, false, "/*");
+
+    pfMiltonInit.init(sc);
+
     boolean filterAfterInternal = false;
-    userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/secure/*");
-    userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
-    userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/" + Const.REACT_APP_PATH + "*");
+    RestUtils.registerFilter(sc, "loggingFilter", LoggingFilter.class, false, "/*");
+    RestUtils.registerFilter(sc, "UserFilter", WicketUserFilter.class, filterAfterInternal, "/wa/*");
+    RestUtils.registerFilter(sc, "springContext", SpringThreadLocalFilter.class, filterAfterInternal, "/wa/*");
 
-    final FilterRegistration springContext = sc.addFilter("springContext", SpringThreadLocalFilter.class);
-    springContext.addMappingForUrlPatterns(null, filterAfterInternal, "/secure/*");
-    springContext.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
-
-    final FilterRegistration wicketApp = sc.addFilter("wicket.app", WicketFilter.class);
+    final FilterRegistration wicketApp = RestUtils.registerFilter(sc, "wicket.app", WicketFilter.class, filterAfterInternal, "/wa/*");
     wicketApp.setInitParameter(WicketFilter.APP_FACT_PARAM, SpringWebApplicationFactory.class.getName());
     wicketApp.setInitParameter(PARAM_APP_BEAN, "wicketApplication");
     wicketApp.setInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/wa/*");
-    wicketApp.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
+
+    sc.addFilter("locale", new LocaleFilter()).addMappingForUrlPatterns(null, false,
+        "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.
 
     if (webDevelopmentEnableCORSFilter) {
       new EmphasizedLogSupport(log)
-              .log("ATTENTION!")
-              .log("")
-              .log("Running in dev mode!")
-              .log("")
-              .log("Don't deliver this app in dev mode due to security reasons!")
-              .log("(cross origin allowed)")
-              .logEnd();
+          .log("ATTENTION!")
+          .log("")
+          .log("Running in dev mode!")
+          .log("")
+          .log("Don't deliver this app in dev mode due to security reasons!")
+          .log("(cross origin allowed)")
+          .logEnd();
       sc.addFilter("cors", new CORSFilter()).addMappingForUrlPatterns(null, false,
-              "/" + RestPaths.REST_WEB_APP + "/*",
-              "/" + RestPaths.REST_WEB_APP_PUBLIC + "/*"); // Needed for login service.
+          "/" + RestPaths.REST + "/*",
+          "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.
     }
 
-    final FilterRegistration restUserFilter = sc.addFilter("restUserFilter", RestUserFilter.class);
-    restUserFilter.addMappingForUrlPatterns(null, false,
-            "/" + RestPaths.REST + "/*",
-            "/" + RestPaths.REST_WEB_APP + "/*");
-
+    RestUtils.registerFilter(sc, "restUserFilter", RestUserFilter.class, false,
+        "/" + RestPaths.OLD_REST + "/*",
+        "/" + RestPaths.REST + "/*");
+    RestUtils.registerFilter(sc, "calendarSubscriptionFilter", RestCalendarSubscriptionUserFilter.class, false, Rest.CALENDAR_EXPORT_BASE_URI);
 
     final FilterRegistration expire = sc.addFilter("expire", ResponseHeaderFilter.class);
     expire.setInitParameter("Cache-Control", "public, max-age=7200");
@@ -113,10 +125,6 @@ public class WebXMLInitializer implements ServletContextInitializer {
     expire.addMappingForUrlPatterns(null, false, "*.png");
     expire.addMappingForUrlPatterns(null, false, "*.swf");
 
-    final FilterRegistration tutorialFilter = sc.addFilter("TutorialFilter", TutorialFilter.class);
-    tutorialFilter.addMappingForUrlPatterns(null, false, "/secure/doc/*");
-
     sc.addListener(SessionSerializableChecker.class);
   }
-
 }

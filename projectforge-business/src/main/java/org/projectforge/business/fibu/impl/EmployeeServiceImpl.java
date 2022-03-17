@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -206,7 +206,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
       return true;
     }
     final PFDateTime now = PFDateTime.now();
-    final PFDateTime austrittsdatum = PFDateTime.from(employee.getAustrittsDatum());
+    final PFDateTime austrittsdatum = PFDateTime.from(employee.getAustrittsDatum()); // not null
     return now.isBefore(austrittsdatum);
   }
 
@@ -268,10 +268,10 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
 
   @Override
   public BigDecimal getAnnualLeaveDays(EmployeeDO employee, LocalDate validAtDate) {
-    if (employee == null) { // Should only occur in CallAllPagesTest (Wicket).
+    if (employee == null || validAtDate == null) { // Should only occur in CallAllPagesTest (Wicket).
       return null;
     }
-    Date date = PFDateTime.from(validAtDate).getUtilDate();
+    Date date = PFDateTime.from(validAtDate).getUtilDate(); // not null
     final EmployeeTimedDO attrRow = timeableService
             .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_ANNUAL_LEAVEDAYS_GROUP_NAME, date);
     if (attrRow != null) {
@@ -284,9 +284,8 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   /**
-   *
    * @param employee
-   * @param validfrom The day of year is ignored. The year is important and used.
+   * @param validfrom       The day of year is ignored. The year is important and used.
    * @param annualLeaveDays
    */
   @Override
@@ -295,34 +294,6 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     newAttrRow.setStartTime(PFDay.from(validfrom).getUtilDate());
     newAttrRow.putAttribute(InternalAttrSchemaConstants.EMPLOYEE_ANNUAL_LEAVEDAYS_PROP_NAME, annualLeaveDays);
     return newAttrRow;
-  }
-
-
-  @Override
-  public String getStudentVacationCountPerDay(EmployeeDO currentEmployee) {
-    String vacationCountPerDay = "";
-    PFDateTime now = PFDateTime.now();
-    PFDateTime eintrittsDatum = PFDateTime.from(currentEmployee.getEintrittsDatum());
-    PFDateTime deadLine = PFDateTime.now().minusMonths(7);
-
-    now = now.minusMonths(1);
-
-    if (eintrittsDatum.isBefore(now)) {
-      if (eintrittsDatum.isBefore(deadLine)) {
-        if (now.getMonthValue() >= Month.JUNE.getValue()) {
-          vacationCountPerDay = vacationService
-                  .getStudentsVacationCount(now.getYear(), now.getMonthValue() - 5, now.getYear(), now.getMonthValue(),
-                          currentEmployee.getUser());
-        } else {
-          vacationCountPerDay = vacationService
-                  .getStudentsVacationCount(now.getYear() - 1, 12 - (6 - now.getMonthValue() + 1), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
-        }
-      } else {
-        vacationCountPerDay = vacationService
-                .getStudentsVacationCount(eintrittsDatum.getYear(), eintrittsDatum.getMonthValue(), now.getYear(), now.getMonthValue(), currentEmployee.getUser());
-      }
-    }
-    return vacationCountPerDay;
   }
 
   @Override

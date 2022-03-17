@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,7 +26,7 @@ package org.projectforge.web.rest.converter;
 import org.hibernate.Hibernate;
 import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.business.converter.DOConverter;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.model.rest.UserObject;
@@ -50,7 +50,7 @@ public class PFUserDOConverter
     }
     if (!Hibernate.isInitialized(userDO)) {
       final Integer userId = userDO.getId();
-      userDO = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getUser(userDO.getId());
+      userDO = UserGroupCache.getInstance().getUser(userDO.getId());
       if (userDO == null) {
         log.error("Oups, user with id '" + userId + "' not found.");
         return null;
@@ -62,7 +62,7 @@ public class PFUserDOConverter
     user.setFirstName(userDO.getFirstname());
     user.setLastName(userDO.getLastname());
     user.setEmail(userDO.getEmail());
-    TimeZone timeZone = userDO.getTimeZoneObject();
+    TimeZone timeZone = userDO.getTimeZone();
     if (timeZone == null) {
       timeZone = Configuration.getInstance().getDefaultTimeZone();
     }

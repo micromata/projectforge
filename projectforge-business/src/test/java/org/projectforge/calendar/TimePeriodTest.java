@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,8 +28,10 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.TimePeriod;
+import org.projectforge.framework.utils.RoundUnit;
 import org.projectforge.test.TestSetup;
 
+import java.math.RoundingMode;
 import java.time.Month;
 import java.util.Date;
 import java.util.Locale;
@@ -46,8 +48,38 @@ public class TimePeriodTest {
   }
 
   @Test
-  public void testTimePeriod() {
-    final PFDateTime dateTime1 = PFDateTime.from(new Date(), true, null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE).withDate(1970, Month.NOVEMBER, 21, 0, 0, 0);
+  void testDurationHours() {
+    checkDurationHours("1", 0.5, RoundUnit.INT, RoundingMode.HALF_UP);
+    checkDurationHours("0", 0.4, RoundUnit.INT, RoundingMode.HALF_UP);
+
+    checkDurationHours("0.0", 0.24, RoundUnit.HALF, RoundingMode.HALF_UP);
+    checkDurationHours("0.5", 0.25, RoundUnit.HALF, RoundingMode.HALF_UP);
+    checkDurationHours("0.5", 0.74, RoundUnit.HALF, RoundingMode.HALF_UP);
+    checkDurationHours("1.0", 0.75, RoundUnit.HALF, RoundingMode.HALF_UP);
+
+    checkDurationHours("0.00", 0.12, RoundUnit.QUARTER, RoundingMode.HALF_UP);
+    checkDurationHours("0.25", 0.13, RoundUnit.QUARTER, RoundingMode.HALF_UP);
+    checkDurationHours("7.75", 7.87, RoundUnit.QUARTER, RoundingMode.HALF_UP);
+    checkDurationHours("8.00", 7.88, RoundUnit.QUARTER, RoundingMode.HALF_UP);
+
+    checkDurationHours("0.0", 0.09, RoundUnit.FIFTH, RoundingMode.HALF_UP);
+    checkDurationHours("0.2", 0.1, RoundUnit.FIFTH, RoundingMode.HALF_UP);
+    checkDurationHours("7.8", 7.76, RoundUnit.FIFTH, RoundingMode.HALF_UP);
+
+    checkDurationHours("0.0", 0.04, RoundUnit.TENTH, RoundingMode.HALF_UP);
+    checkDurationHours("0.1", 0.05, RoundUnit.TENTH, RoundingMode.HALF_UP);
+    checkDurationHours("1.0", 0.95, RoundUnit.TENTH, RoundingMode.HALF_UP);
+  }
+
+  private void checkDurationHours(String expected, double hours, RoundUnit rounUnit, RoundingMode roundingMode) {
+    Date start = new Date();
+    Date end = new Date(start.getTime() + (int) (hours * 1000 * 3600));
+    assertEquals(expected, TimePeriod.getDurationHours(start, end, rounUnit, roundingMode).toString());
+  }
+
+  @Test
+  void testTimePeriod() {
+    final PFDateTime dateTime1 = PFDateTime.from(new Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE).withDate(1970, Month.NOVEMBER, 21, 0, 0, 0);
 
     PFDateTime dateTime2 = dateTime1.withHour(10);
 

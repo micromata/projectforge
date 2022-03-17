@@ -3,23 +3,27 @@
 ProjectForge is a web-based solution for project management including time tracking, team calendar, gantt-charting, financial administration, issue management,
 controlling and managing work-break-down-structures (e. g. together with JIRA as issue management system).
 
+== Express installation
+
+For a fast installation via docker or executable jar, please refer https://projectforge.org/docs/installation/[Installation].
+
 == Documentation
 
 === projectforge.org
-Full documentation on: https://www.projectforge.org/documentation.html
-Please visit: https://www.projectforge.org/documentation/developer-guide.html
+Full documentation on: https://projectforge.org/
+Please visit: https://projectforge.org/docs/development/
 
-=== GitHub
-Further documentation for developers and adminstrators (for a first start), please refer
-https://github.com/micromata/projectforge/tree/develop/doc
+== Version 7.0 is out now...
 
-== Version 7.0 will be released soon...
+The fastest way of installation of the newest version (7.0). you will find here: https://projectforge.org/docs/installation/[Installation]
 
-[NOTE]
-====
-We're working on refactoring ProjectForge's frontend. We will introduce ReactJS and Kotlin (in addition to Java).
-ProjectForge will be controlled by a new Rest API for most CRUD operations. Stay tuned!
-====
+This version contains a lot of cool stuff:
+
+* DataTransfer tool for exchanging large files between users and external people (customers etc.)
+* A new React frontend.
+* Full support of Docker technology: installation in minutes.
+* Installation wizard
+* ...
 
 == Quickstart from command line
 
@@ -28,17 +32,20 @@ ProjectForge will be controlled by a new Rest API for most CRUD operations. Stay
 You only need the following steps for developing ProjectForge.
 If you just want to run it, please download it from https://sourceforge.net/projects/pforge/
 and simply start it `java -jar projectforge-application-X.X.X.jar`.
+
+Or simply use the fastest way: https://projectforge.org/docs/installation/[Installation as docker image]
 ====
 
-1. Checkout:
-   https://github.com/micromata/projectforge.git
-2. Ensure running *Java 1.8* (*not* 1.9+): `java -version`.
+1. Checkout: `git clone git@github.com:micromata/projectforge.git`
+2. For developing try OpenJDK 11 (tested): `java -version`.
 3. Build ProjectForge:
-   `mvn clean install -DskipTests`
+   `mvn -DskipTests clean install`
 4. Run ProjectForge:
    `java -jar projectforge-application/target/projectforge-application-X.X.X.jar`
 5. Open your browser:
    http://localhost:8080
+
+Remark: If you have any trouble regarding `projectforge-webapp`, try to delete the sub directory `node_modules` and repeat `mvn clean install`.
 
 === Configuration of ProjectForge
 
@@ -84,13 +91,13 @@ You may use PostgreSQL instead of the built-in data base.
 * Choose and set a database password: +
  `export PGPASSWORD=mypassword`
 * Run PostgreSQL: +
-`docker run --name projectforge-postgres -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:11.2`
+`docker run --name projectforge-postgres -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:11.2`
 * Configure ProjectForge
 
 .$HOME/ProjectForge/projectforge.properties
 ----
 projectforge.base.dir=${user.home}/ProjectForge
-spring.datasource.url=jdbc:postgresql://localhost:15432/projectforge
+spring.datasource.url=jdbc:postgresql://localhost:5432/projectforge
 spring.datasource.username=projectforge
 spring.datasource.password=${PGPASSWORD}
 spring.datasource.driver-class-name=org.postgresql.Driver
@@ -108,7 +115,6 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 password is now `test123`.
 |Clear calendar subscriptions (optional)|`update t_calendar set ext_subscription=false where owner_fk != ###;` +
 This is useful for avoiding a lot of external calendar calls of foreign users if your productive data contains a lot of users with calendar subscriptions.
-|PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge`
 |Uninstall|`docker rm projectforge-postgres`
 |===
 
@@ -122,7 +128,7 @@ Please have a lock at all available config parameters: https://github.com/microm
 Refer
 
 * https://github.com/micromata/projectforge/tree/develop/doc[doc (Github)], or
-* https://www.projectforge.org/documentation.html[www.projectforge.org]
+* https://projectforge.org
 
 == Adding your own plugins
 ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -53,6 +53,9 @@ public class UserPrefAreaRegistry
 
   public UserPrefArea getEntry(final String id)
   {
+    if (id == null) {
+      return null;
+    }
     for (final UserPrefArea area : set) {
       if (id.equals(area.getId())) {
         return area;
@@ -87,6 +90,5 @@ public class UserPrefAreaRegistry
     set.add(UserPrefArea.TASK_FAVORITE);
     set.add(UserPrefArea.TIMESHEET_TEMPLATE);
     set.add(UserPrefArea.USER_FAVORITE);
-    set.add(UserPrefArea.JIRA_PROJECT);
   }
 }

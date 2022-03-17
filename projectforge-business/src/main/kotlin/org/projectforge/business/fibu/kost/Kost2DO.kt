@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,7 +41,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @ClassBridge(name = "nummer", impl = HibernateSearchKost2Bridge::class)
-@Table(name = "T_FIBU_KOST2", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "kost2_art_id", "tenant_id"])], indexes = [Index(name = "idx_fk_t_fibu_kost2_kost2_art_id", columnList = "kost2_art_id"), Index(name = "idx_fk_t_fibu_kost2_projekt_id", columnList = "projekt_id"), Index(name = "idx_fk_t_fibu_kost2_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_FIBU_KOST2", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "kost2_art_id"])], indexes = [Index(name = "idx_fk_t_fibu_kost2_kost2_art_id", columnList = "kost2_art_id"), Index(name = "idx_fk_t_fibu_kost2_projekt_id", columnList = "projekt_id")])
 @WithHistory
 @NamedQueries(
         NamedQuery(name = Kost2DO.FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART,
@@ -50,7 +50,7 @@ import javax.persistence.*
                 query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId and id!=:id"),
         NamedQuery(name = Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH,
                 query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and (kostentraegerStatus='ACTIVE' or kostentraegerStatus is null) order by kost2Art.id"))
-open class Kost2DO() : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
+open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
 
     companion object {
         @JsonCreator(mode = JsonCreator.Mode.DELEGATING)

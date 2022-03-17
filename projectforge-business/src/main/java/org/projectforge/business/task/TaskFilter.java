@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,7 +27,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -183,8 +183,7 @@ public class TaskFilter extends BaseSearchFilter
     if (taskDao != null && !taskDao.hasUserSelectAccess(user, node.getTask(), false)) {
       return false;
     }
-    final PFUserDO responsibleUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-        .getUser(task.getResponsibleUserId());
+    final PFUserDO responsibleUser = UserGroupCache.getInstance().getUser(task.getResponsibleUserId());
     final String username = responsibleUser != null
         ? responsibleUser.getFullname() + " " + responsibleUser.getUsername() : null;
     if (StringUtils.containsIgnoreCase(task.getTitle(), this.searchString)

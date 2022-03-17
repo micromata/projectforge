@@ -20,7 +20,6 @@ function FilterListEntry(
         }
 
         onFilterAdd(id);
-
         afterSelect();
     };
 
@@ -52,8 +51,8 @@ const mapStateToProps = ({ list }, { id }) => ({
         .filter(({ field }) => field === id).length !== 0,
 });
 
-const actions = dispatch => ({
-    onFilterAdd: filterId => dispatch(addFilter(filterId)),
+const actions = (dispatch) => ({
+    onFilterAdd: (filterId) => dispatch(addFilter(filterId)),
 });
 
 export default connect(mapStateToProps, actions)(FilterListEntry);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,10 +34,10 @@ import org.projectforge.business.humanresources.HRViewData;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.wicket.WebConstants;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -68,12 +68,12 @@ public class HRListResourceLinkPanel extends Panel
     add(userRepeater);
   }
 
-  public void refresh(final HRViewData hrViewData, final Date startTime)
+  public void refresh(final HRViewData hrViewData, final LocalDate startDay)
   {
     userRepeater.removeAll();
     final List<PFUserDO> unplannedUsers = hrViewDao.getUnplannedResources(hrViewData);
     for (final PFUserDO user : unplannedUsers) {
-      if (user.getHrPlanning() == false || user.hasSystemAccess() == false) {
+      if (!user.getHrPlanning() || !user.hasSystemAccess()) {
         continue;
       }
       final WebMarkupContainer container = new WebMarkupContainer(userRepeater.newChildId());
@@ -83,11 +83,10 @@ public class HRListResourceLinkPanel extends Panel
         @Override
         public void onClick()
         {
-          final DateHolder date = new DateHolder(startTime);
-          final Long millis = date.getSQLDate().getTime();
+          final long millis = PFDateTime.from(startDay).getBeginOfDay().getEpochMilli();
           final PageParameters pageParams = new PageParameters();
           pageParams.add(WebConstants.PARAMETER_USER_ID, String.valueOf(user.getId()));
-          pageParams.add(WebConstants.PARAMETER_DATE, millis.toString());
+          pageParams.add(WebConstants.PARAMETER_DATE, Long.toString(millis));
           final HRPlanningEditPage page = new HRPlanningEditPage(pageParams);
           page.setReturnToPage(hrListPage);
           setResponsePage(page);

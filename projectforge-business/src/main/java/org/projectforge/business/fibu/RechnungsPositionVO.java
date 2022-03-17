@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.Objects;
 
 /**
@@ -42,7 +42,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
 
   private final Integer rechnungId;
 
-  private final Date date;
+  private final LocalDate date;
 
   private final Integer rechnungNummer;
 
@@ -84,7 +84,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
   /**
    * @return the date
    */
-  public Date getDate()
+  public LocalDate getDate()
   {
     return date;
   }

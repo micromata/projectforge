@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.export.SVGHelper;
 import org.projectforge.framework.renderer.BatikImageRenderer;
 import org.projectforge.framework.renderer.ImageFormat;
-import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.TestSetup;
 import org.projectforge.test.WorkFileHelper;
 import org.w3c.dom.Document;
@@ -37,8 +37,8 @@ import org.w3c.dom.Element;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.Month;
-import java.util.Date;
 
 public class GanttChartXLabelBarRendererTest
 {
@@ -81,15 +81,15 @@ public class GanttChartXLabelBarRendererTest
     }
   }
 
-  private void drawBothLabelBars(final Document doc, final Element el, final int row, final Date fromDate,
-      final Date toDate,
+  private void drawBothLabelBars(final Document doc, final Element el, final int row, final LocalDate fromDate,
+      final LocalDate toDate,
       final GanttChartStyle style)
   {
     drawLabelBar(doc, el, row, fromDate, toDate, style.setRelativeTimeValues(false));
     drawLabelBar(doc, el, row + 1, fromDate, toDate, style.setRelativeTimeValues(true));
   }
 
-  private void drawLabelBar(final Document doc, final Element el, final int row, final Date fromDate, final Date toDate,
+  private void drawLabelBar(final Document doc, final Element el, final int row, final LocalDate fromDate, final LocalDate toDate,
       final GanttChartStyle style)
   {
     final Element g = SVGHelper.createElement(doc, "g", "transform", "translate(0," + (row * ROW_HEIGHT) + ")");
@@ -113,9 +113,9 @@ public class GanttChartXLabelBarRendererTest
         + renderer.ticksScale);
   }
 
-  private Date date(final int year, final int month, final int dayOfMonth)
+  private LocalDate date(final int year, final int month, final int dayOfMonth)
   {
-    return PFDateTime.now().withYear(year).withMonth(month).withDayOfMonth(dayOfMonth).getUtilDate();
+    return PFDay.now().withYear(year).withMonth(month).withDayOfMonth(dayOfMonth).getLocalDate();
   }
 
 }

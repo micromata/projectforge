@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,13 @@
 
 package org.projectforge.web.access;
 
-import org.slf4j.Logger;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessFilter;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -41,6 +40,7 @@ import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPage>
 {
@@ -48,12 +48,16 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessListForm.class);
 
-  private transient TaskTree taskTree;
-
   protected NewGroupSelectPanel groupSelectPanel;
 
   @SpringBean
   private GroupService groupService;
+
+  @SpringBean
+  private TaskTree taskTree;
+
+  @SpringBean
+  private UserGroupCache userGroupCache;
 
   @SuppressWarnings("serial")
   @Override
@@ -95,7 +99,7 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
         @Override
         public PFUserDO getObject()
         {
-          return getTenantRegistry().getUserGroupCache().getUser(getSearchFilter().getUserId());
+          return userGroupCache.getUser(getSearchFilter().getUserId());
         }
 
         @Override
@@ -121,7 +125,7 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
         @Override
         public TaskDO getObject()
         {
-          return getTaskTree().getTaskById(getSearchFilter().getTaskId());
+          return taskTree.getTaskById(getSearchFilter().getTaskId());
         }
 
         @Override
@@ -163,14 +167,6 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
         new PropertyModel<Boolean>(getSearchFilter(), "includeDescendentTasks"),
         getString("access.filter.includeDescendentTasks"))
             .setTooltip(getString("access.tooltip.filter.includeDescendentTasks")));
-  }
-
-  private TaskTree getTaskTree()
-  {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
   }
 
   @Override

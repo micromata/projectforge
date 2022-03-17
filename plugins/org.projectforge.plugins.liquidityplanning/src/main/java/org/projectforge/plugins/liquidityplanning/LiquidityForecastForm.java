@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,12 +31,16 @@ import org.projectforge.framework.utils.Constants;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.components.RequiredMinMaxNumberField;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
+import org.projectforge.web.wicket.flowlayout.FieldProperties;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public class LiquidityForecastForm extends AbstractStandardForm<Object, LiquidityForecastPage>
 {
@@ -56,7 +60,7 @@ public class LiquidityForecastForm extends AbstractStandardForm<Object, Liquidit
   protected void init()
   {
     super.init();
-    gridBuilder.newSplitPanel(GridSize.COL50);
+    gridBuilder.newSplitPanel(GridSize.COL33);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.liquidityplanning.forecast.startAmount"));
       final RequiredMinMaxNumberField<BigDecimal> amount = new RequiredMinMaxNumberField<BigDecimal>(
@@ -74,7 +78,16 @@ public class LiquidityForecastForm extends AbstractStandardForm<Object, Liquidit
       WicketUtils.setSize(amount, 8);
       fs.add(amount);
     }
-    gridBuilder.newSplitPanel(GridSize.COL50);
+    gridBuilder.newSplitPanel(GridSize.COL33);
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.liquidityplanning.forecast.baseDate"));
+      final FieldProperties<LocalDate> props = getBaseDateProperties();
+      LocalDatePanel baseDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      baseDatePanel.setRequired(false);
+      fs.add(baseDatePanel);
+      fs.addHelpIcon(getString("plugins.liquidityplanning.forecast.baseDate.tooltip"));
+    }
+    gridBuilder.newSplitPanel(GridSize.COL33);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.liquidityplanning.forecast"))
           .setUnit(getString("days"));
@@ -110,5 +123,9 @@ public class LiquidityForecastForm extends AbstractStandardForm<Object, Liquidit
       parentPage.putUserPrefEntry(USER_PREF_KEY_SETTINGS, settings, true);
     }
     return settings;
+  }
+
+  private FieldProperties<LocalDate> getBaseDateProperties() {
+    return new FieldProperties<>("plugins.liquidityplanning.forecast.baseDate", new PropertyModel<>(settings, "baseDate"));
   }
 }

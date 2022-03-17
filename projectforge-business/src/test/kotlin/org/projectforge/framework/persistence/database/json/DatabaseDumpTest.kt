@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -39,7 +39,7 @@ class DatabaseDumpTest : AbstractTestBase() {
         val out = ByteArrayOutputStream()
         databaseDump.dump( out)
         val result = out.toString("UTF-8")
-        log.info("$result")
+        baseLog.info("$result")
         assertEquals("WIP", "WIP")
     }
 }

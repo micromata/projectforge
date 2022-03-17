@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -125,5 +125,12 @@ class MenuItem(var id: String? = null,
         if (badgeCounter > 0)
             badge = MenuBadge(badgeCounter, style = "danger")
         subMenu?.removeIf { !it.isLeaf() && it.subMenu.isNullOrEmpty() }
+    }
+
+    fun addDescendants(items: MutableList<MenuItem>) {
+        subMenu?.forEach { child ->
+            items.add(child)
+            child.addDescendants(items)
+        }
     }
 }

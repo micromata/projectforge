@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,10 @@
 package org.projectforge.export;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.projectforge.business.excel.*;
+import org.projectforge.business.excel.CellFormat;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportWorkbook;
+import org.projectforge.business.excel.XlsContentProvider;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
@@ -32,7 +35,10 @@ import org.projectforge.common.DateFormatType;
 import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.*;
+import org.projectforge.framework.time.DateFormats;
+import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 
 public class MyXlsContentProvider extends XlsContentProvider
 {
@@ -64,9 +70,7 @@ public class MyXlsContentProvider extends XlsContentProvider
   @Override
   public Object getCustomizedValue(final Object value)
   {
-    if (value instanceof PFDateTime) {
-      return ((PFDateTime) value).getDateTime();
-    } else if (value instanceof PFUserDO) {
+    if (value instanceof PFUserDO) {
       return ((PFUserDO) value).getFullname();
     } else if (value instanceof I18nEnum) {
       return ThreadLocalUserContext.getLocalizedString(((I18nEnum) value).getI18nKey());

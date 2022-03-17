@@ -45,7 +45,7 @@ const loadTasksBounced = (
         },
     )
         .then(handleHTTPErrors)
-        .then(response => response.json())
+        .then((response) => response.json())
         .then((
             {
                 root,
@@ -80,6 +80,7 @@ function TaskTreePanel(
         shortForm,
         showRootForAdmins,
         visible,
+        consumptionBarClickable,
     },
 ) {
     const [loading, setLoading] = React.useState(false);
@@ -197,6 +198,7 @@ function TaskTreePanel(
                 />
                 <TaskTreeTable
                     nodes={nodes}
+                    consumptionBarClickable={consumptionBarClickable}
                 />
             </TaskTreeContext.Provider>
         </LoadingContainer>
@@ -208,6 +210,7 @@ TaskTreePanel.propTypes = {
     highlightTaskId: PropTypes.number,
     onTaskSelect: PropTypes.func,
     shortForm: PropTypes.bool,
+    consumptionBarClickable: PropTypes.bool,
     showRootForAdmins: PropTypes.bool,
 };
 
@@ -216,6 +219,7 @@ TaskTreePanel.defaultProps = {
     onTaskSelect: () => undefined,
     shortForm: false,
     showRootForAdmins: false,
+    consumptionBarClickable: true,
 };
 
 export default TaskTreePanel;

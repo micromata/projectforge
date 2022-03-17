@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import javax.persistence.EntityManager
 
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
@@ -211,6 +212,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
 
     fun formatMultiParserValue(field: String, value: Any): String {
         return when (value) {
+            is java.time.LocalDate -> {
+                localDateFormat.format(value)
+            }
             is java.sql.Date -> {
                 if (searchClassInfo.get(field)?.getDateBridgeEncodingType() == EncodingType.NUMERIC) {
                     value.time.toString()
@@ -309,7 +313,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                     queryBuilder.keyword().onField(fields[0])
                 }
             }
-            boolJunction = boolJunction.must(context.ignoreAnalyzer().matching(value.toLowerCase()).createQuery())
+            boolJunction = boolJunction.must(context.ignoreAnalyzer().matching(value.lowercase()).createQuery())
         }
     }
 
@@ -341,5 +345,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
 
     fun addOrder(sortProperty: SortProperty) {
         sortOrders.add(sortProperty)
+    }
+
+    companion object {
+        private val localDateFormat = DateTimeFormatter.ofPattern("'+00000'yyyyMMdd")
     }
 }

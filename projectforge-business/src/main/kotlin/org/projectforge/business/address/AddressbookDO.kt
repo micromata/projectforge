@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,8 +31,8 @@ import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 import javax.persistence.*
@@ -43,7 +43,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @ClassBridge(name = "usersgroups", impl = HibernateSearchUsersGroupsBridge::class)
-@Table(name = "T_ADDRESSBOOK", indexes = [Index(name = "idx_fk_t_addressbook_tenant_id", columnList = "tenant_id")])
+@Table(name = "T_ADDRESSBOOK")
 open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {
 
     override val displayName: String

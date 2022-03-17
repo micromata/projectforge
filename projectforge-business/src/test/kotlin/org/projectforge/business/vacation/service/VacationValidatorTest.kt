@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -56,7 +56,8 @@ class VacationValidatorTest : AbstractTestBase() {
     fun validatorTest() {
         logon(TEST_EMPLOYEE_USER)
         val employee = createEmployee("2019-joiner-for-validation", LocalDate.of(2019, Month.MAY, 1))
-        var vacation = createVacation(employee, 2020, Month.JANUARY, 1, Month.JANUARY, 10, true, VacationStatus.IN_PROGRESS)
+        val manager = createEmployee("VacationValidatorTest-manager", LocalDate.of(2019, Month.MAY, 1))
+        val vacation = createVacation(employee, manager, 2020, Month.JANUARY, 1, Month.JANUARY, 10, true, VacationStatus.IN_PROGRESS)
         vacation.startDate = null
         Assertions.assertEquals(VacationValidator.Error.DATE_NOT_SET, vacationService.validate(vacation))
 
@@ -86,19 +87,19 @@ class VacationValidatorTest : AbstractTestBase() {
      * If endMonth is before startMonth, the next year will be used as endYear.
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
-    private fun createVacation(employee: EmployeeDO, startYear: Int, startMonth: Month, startDay: Int, endMonth: Month, endDay: Int, special: Boolean, status: VacationStatus): VacationDO {
+    private fun createVacation(employee: EmployeeDO, manager: EmployeeDO, startYear: Int, startMonth: Month, startDay: Int, endMonth: Month, endDay: Int, special: Boolean, status: VacationStatus): VacationDO {
         val endYear = if (startMonth > endMonth)
             startYear + 1 // Vacations over years.
         else
             startYear
-        return createVacation(employee, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay), special, status)
+        return createVacation(employee, manager, LocalDate.of(startYear, startMonth, startDay), LocalDate.of(endYear, endMonth, endDay), special, status)
     }
 
     /**
      * Ensures vacation days only after join date of this employee.
      * @return Number of vacation days (equals to working days between startDate and endDate)
      */
-    private fun createVacation(employee: EmployeeDO, startDate: LocalDate, endDate: LocalDate, special: Boolean = false, status: VacationStatus): VacationDO {
+    private fun createVacation(employee: EmployeeDO, manager: EmployeeDO, startDate: LocalDate, endDate: LocalDate, special: Boolean = false, status: VacationStatus): VacationDO {
         val vacation = VacationDO()
         vacation.employee = employee
         vacation.startDate = if (startDate.isBefore(employee.eintrittsDatum)) employee.eintrittsDatum else startDate
@@ -106,7 +107,7 @@ class VacationValidatorTest : AbstractTestBase() {
         vacation.halfDayBegin = false
         vacation.special = false
         vacation.status = status
-        vacation.manager = employee // OK for tests...
+        vacation.manager = manager // OK for tests...
         vacation.special = special
         return vacation
     }
@@ -121,7 +122,7 @@ class VacationValidatorTest : AbstractTestBase() {
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30));
+        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30))
         employeeDao.internalSave(employee)
         return employee
     }

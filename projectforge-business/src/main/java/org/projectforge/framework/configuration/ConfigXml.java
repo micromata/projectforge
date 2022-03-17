@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.configuration;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
@@ -34,13 +33,10 @@ import org.dom4j.Element;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.orga.ContractType;
-import org.projectforge.common.BeanHelper;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.utils.FileHelper;
-import org.projectforge.framework.xstream.*;
-import org.projectforge.jira.JiraConfig;
-import org.projectforge.jira.JiraIssueType;
+import org.projectforge.framework.xmlstream.*;
 import org.projectforge.storage.StorageConfig;
 
 import java.io.File;
@@ -72,8 +68,6 @@ public class ConfigXml {
 
   private String applicationHomeDir;
 
-  private JiraConfig jiraConfig;
-
   private String jiraBrowseBaseUrl;
 
   private StorageConfig storageConfig;
@@ -89,6 +83,8 @@ public class ConfigXml {
   private String ehcacheDirectory;
 
   private String loggingDirectory;
+
+  private String jcrDirectory;
 
   private String workingDirectory;
 
@@ -106,16 +102,6 @@ public class ConfigXml {
 
   private AccountingConfig accountingConfig;
 
-  /**
-   * Separated list of main classes (separated by white chars and or ',').
-   */
-  String pluginMainClasses;
-
-  // Please note: If you change the name of this member field don't forget to change the PLUGIN_CONFIGS_FIELD_NAME below.
-  private List<ConfigurationData> plugins;
-
-  private static final String PLUGIN_CONFIGS_FIELD_NAME = "plugins";
-
   public static ConfigXml getInstance() {
     if (instance == null) {
       throw new IllegalStateException("Configuration is not yet configured");
@@ -128,13 +114,13 @@ public class ConfigXml {
   }
 
   private void reset() {
-    jiraConfig = null;
     jiraBrowseBaseUrl = null;
     telephoneSystemOperatorPanelUrl = null;
     holidays = null;
     databaseDirectory = "database";
     ehcacheDirectory = "ehcache";
     loggingDirectory = "logs";
+    jcrDirectory = "jcr";
     workingDirectory = "work";
     backupDirectory = "backup";
     tempDirectory = "tmp";
@@ -178,6 +164,8 @@ public class ConfigXml {
       this.loggingDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.loggingDirectory);
       System.setProperty("projectforge.ehcache.dir", ehcacheDirectory);
       ensureDir(new File(loggingDirectory));
+      this.jcrDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.jcrDirectory);
+      ensureDir(new File(jcrDirectory));
       this.workingDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.workingDirectory);
       ensureDir(new File(workingDirectory));
       this.backupDirectory = FileHelper.getAbsolutePath(applicationHomeDir, this.backupDirectory);
@@ -221,12 +209,6 @@ public class ConfigXml {
           final ConfigXml cfg = (ConfigXml) reader.read(xml);
           final String warnings = reader.getWarnings();
           copyDeclaredFields(null, this.getClass(), cfg, this);
-          if (CollectionUtils.isNotEmpty(cfg.plugins)) {
-            for (final ConfigurationData srcData : cfg.plugins) {
-              final ConfigurationData destData = this.getPluginConfig(srcData.getClass());
-              copyDeclaredFields(destData.getClass().getName() + ".", srcData.getClass(), srcData, destData);
-            }
-          }
           msg = "Config file '" + getConfigFilePath() + "' successfully read.";
           if (warnings != null) {
             msg += "\n" + warnings;
@@ -256,8 +238,8 @@ public class ConfigXml {
       }
 
       /**
-       * @see org.projectforge.framework.xstream.XmlObjectWriter#writeField(java.lang.reflect.Field, java.lang.Object,
-       *      java.lang.Object, org.projectforge.framework.xstream.XmlField, org.dom4j.Element)
+       * @see org.projectforge.framework.xmlstream.XmlObjectWriter#writeField(java.lang.reflect.Field, java.lang.Object,
+       *      java.lang.Object, org.projectforge.framework.xmlstream.XmlField, org.dom4j.Element)
        */
       @Override
       protected void writeField(final Field field, final Object obj, final Object fieldValue, final XmlField annotation,
@@ -282,7 +264,6 @@ public class ConfigXml {
     reader.initialize(ConfigXml.class);
     reader.initialize(ConfigureHoliday.class);
     reader.initialize(ContractType.class);
-    reader.initialize(JiraIssueType.class);
     AccountingConfig.registerXmlObjects(reader, aliasMap);
     return reader;
   }
@@ -334,8 +315,6 @@ public class ConfigXml {
             }
             buf.append(".");
             copyDeclaredFields(buf.toString(), srcFieldValue.getClass(), srcFieldValue, destFieldValue, ignoreFields);
-          } else if (PLUGIN_CONFIGS_FIELD_NAME.equals(field.getName())) {
-            // Do nothing.
           } else {
             field.set(dest, srcFieldValue);
             if (field.isAnnotationPresent(ConfigXmlSecretField.class)) {
@@ -403,10 +382,6 @@ public class ConfigXml {
     this.jiraBrowseBaseUrl = jiraBrowseBaseUrl;
   }
 
-  public JiraConfig getJiraConfig() {
-    return jiraConfig;
-  }
-
   /**
    * @return true if a JIRA browse base url is given.
    */
@@ -463,6 +438,10 @@ public class ConfigXml {
     this.loggingDirectory = loggingDirectory;
   }
 
+  public String getJcrDirectory() {
+    return jcrDirectory;
+  }
+
   /**
    * This directory is used for e. g. storing uploaded files. The absolute path will be returned. <br/>
    * Default value: "work"
@@ -512,36 +491,6 @@ public class ConfigXml {
 
   public List<ConfigureHoliday> getHolidays() {
     return holidays;
-  }
-
-  /**
-   * Here you can define a list of main classes of type AbstractPlugin. These classes will be initialized on startup.
-   * Multiple entries should be separated by white chars and/or ','.
-   *
-   * @return
-   */
-  public String[] getPluginMainClasses() {
-    return StringUtils.split(pluginMainClasses, " \r\n\t,");
-  }
-
-  /**
-   * If no such plugin config exist, a new instance is created and returned.
-   *
-   * @return the pluginConfigs
-   */
-  public ConfigurationData getPluginConfig(final Class<? extends ConfigurationData> configClass) {
-    if (plugins == null) {
-      plugins = new ArrayList<>();
-    } else {
-      for (final ConfigurationData configData : plugins) {
-        if (configData != null && configClass.isAssignableFrom(configData.getClass())) {
-          return configData;
-        }
-      }
-    }
-    final ConfigurationData config = (ConfigurationData) BeanHelper.newInstance(configClass);
-    plugins.add(config);
-    return config;
   }
 
   /**

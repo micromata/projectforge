@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { Button, UncontrolledTooltip } from 'reactstrap';
 import { getServiceURL, handleHTTPErrors } from '../../../../utilities/rest';
 import style from '../../../design/input/Input.module.scss';
-import ReactSelect from '../../../design/ReactSelect';
+import ReactSelect from '../../../design/react-select/ReactSelect';
 
 const getOptionLabel = (option) => {
     if (option) {
@@ -44,7 +44,7 @@ function EmployeeSelect(props) {
             },
         )
             .then(handleHTTPErrors)
-            .then(response => response.json())
+            .then((response) => response.json())
             .then((json) => {
                 callback(json);
             });
@@ -65,7 +65,7 @@ function EmployeeSelect(props) {
                 translations={translations}
             />
             {(!value || value.id !== employee.id) && (
-                <React.Fragment>
+                <>
                     <Button
                         id="selectMe"
                         color="link"
@@ -83,7 +83,7 @@ function EmployeeSelect(props) {
                     <UncontrolledTooltip placement="right" target="selectMe">
                         {translations['tooltip.selectMe']}
                     </UncontrolledTooltip>
-                </React.Fragment>
+                </>
             )}
         </div>
     );

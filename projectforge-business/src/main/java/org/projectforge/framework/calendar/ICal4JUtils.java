@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,6 +38,7 @@ import org.projectforge.framework.time.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -89,7 +90,7 @@ public class ICal4JUtils {
       final Date startUtc = PFDateTimeUtils.getUTCBeginOfDay(startDate);
       final Date endUtc = PFDateTimeUtils.getUTCBeginOfDay(endDate);
       final net.fortuna.ical4j.model.Date fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
-      final PFDateTime dateTime = PFDateTime.from(endUtc);
+      final PFDateTime dateTime = PFDateTime.from(endUtc); // not null
       // requires plus 1 because one day will be omitted by calendar.
       final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(dateTime.plusDays(1).getUtilDate());
       vEvent = new VEvent(fortunaStartDate, fortunaEndDate, summary);
@@ -257,21 +258,21 @@ public class ICal4JUtils {
     return null;
   }
 
-  public static java.sql.Date getSqlDate(final net.fortuna.ical4j.model.Date ical4jDate) {
+  public static LocalDate getLocalDate(final net.fortuna.ical4j.model.Date ical4jDate) {
     if (ical4jDate == null) {
       return null;
     }
-    return new java.sql.Date(ical4jDate.getTime());
+    return LocalDate.from(ical4jDate.toInstant());
   }
 
-  public static java.sql.Timestamp getSqlTimestamp(final net.fortuna.ical4j.model.Date ical4jDate) {
+  public static Date getUtilDate(final net.fortuna.ical4j.model.Date ical4jDate) {
     if (ical4jDate == null) {
       return null;
     }
-    return new java.sql.Timestamp(ical4jDate.getTime());
+    return new Date(ical4jDate.getTime());
   }
 
-  public static net.fortuna.ical4j.model.DateTime getICal4jDateTime(final java.util.Date javaDate,
+  public static net.fortuna.ical4j.model.DateTime getICal4jDateTime(final Date javaDate,
                                                                     final java.util.TimeZone timeZone) {
     if (javaDate == null) {
       return null;
@@ -286,16 +287,6 @@ public class ICal4JUtils {
       log.error("Can't parse date '" + dateString + "' with pattern '" + pattern + "': " + ex.getMessage(), ex);
       return null;
     }
-  }
-
-  // TODO remove, date should not use timezone!
-  @Deprecated
-  public static net.fortuna.ical4j.model.Date getICal4jDate(final java.util.Date javaDate,
-                                                            final java.util.TimeZone timeZone) {
-    if (javaDate == null) {
-      return null;
-    }
-    return new MyIcal4JDate(javaDate, timeZone);
   }
 
   public static net.fortuna.ical4j.model.Date parseICal4jDate(final String dateString) {

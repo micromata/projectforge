@@ -1,7 +1,7 @@
 Project ProjectForge Community Edition
         www.projectforge.org
 
-Copyright (C) 2001-2019 Micromata GmbH
+Copyright (C) 2001-2022 Micromata GmbH
                         Marie-Calm-Str. 1-5
                         34131 Kassel
 

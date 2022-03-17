@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -99,11 +99,7 @@ public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, Con
       log.error("Oups, null property not supported for selection.");
       return;
     }
-    if ("taskId".equals(property) == true) {
-      form.setTask((Integer) selectedValue);
-    } else {
-      log.error("Property '" + property + "' not supported for selection.");
-    }
+    log.error("Property '" + property + "' not supported for selection.");
   }
 
   @Override
@@ -113,10 +109,6 @@ public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, Con
       log.error("Oups, null property not supported for selection.");
       return;
     }
-    if ("taskId".equals(property) == true) {
-      form.setTask((Integer) null);
-    } else {
-      log.error("Property '" + property + "' not supported for unselection.");
-    }
+    log.error("Property '" + property + "' not supported for unselection.");
   }
 }

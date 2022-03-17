@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,13 +38,10 @@ import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextFie
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.*;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 public class ContractEditForm extends AbstractEditForm<ContractDO, ContractEditPage>
@@ -53,7 +50,7 @@ public class ContractEditForm extends AbstractEditForm<ContractDO, ContractEditP
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContractEditForm.class);
 
-  protected DatePanel datePanel, validFromDatePanel, validUntilDatePanel, dueDatePanel, resubmissionDatePanel,
+  protected LocalDatePanel datePanel, validFromDatePanel, validUntilDatePanel, dueDatePanel, resubmissionDatePanel,
       signingDatePanel;
 
   protected MinMaxNumberField<Integer> numberField;
@@ -70,7 +67,7 @@ public class ContractEditForm extends AbstractEditForm<ContractDO, ContractEditP
   private PFAutoCompleteTextField<String> createAutocompleteTextField(final String property)
   {
     final PFAutoCompleteTextField<String> textField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
-        new PropertyModel<String>(
+        new PropertyModel<>(
             data, property))
     {
       @Override
@@ -92,21 +89,19 @@ public class ContractEditForm extends AbstractEditForm<ContractDO, ContractEditP
       // Number
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("legalAffaires.contract.number"));
       fs.add(new DivTextPanel(fs.newChildId(), "C-"));
-      numberField = new MinMaxNumberField<Integer>(InputPanel.WICKET_ID, new PropertyModel<Integer>(data, "number"), 0,
-          99999999);
+      numberField = new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "number"), 0, 99999999);
       numberField.setMaxLength(8);
       WicketUtils.setSize(numberField, 6);
       fs.add(numberField);
-      if (NumberHelper.greaterZero(getData().getNumber()) == false) {
+      if (!NumberHelper.greaterZero(getData().getNumber())) {
         fs.addHelpIcon(getString("fibu.tooltip.nummerWirdAutomatischVergeben"));
       }
     }
     {
       // Date
+      final FieldProperties<LocalDate> props = getDateProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("date"));
-      datePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "date"),
-          DatePanelSettings.get().withTargetType(
-              java.sql.Date.class));
+      datePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       fs.add(datePanel);
     }
     {
@@ -118,10 +113,10 @@ public class ContractEditForm extends AbstractEditForm<ContractDO, ContractEditP
       // Contract type
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("legalAffaires.contract.type"));
       final List<ContractType> contractTypes = configurationService.getContractTypes();
-      final LabelValueChoiceRenderer<ContractType> typeChoiceRenderer = new LabelValueChoiceRenderer<ContractType>(
+      final LabelValueChoiceRenderer<ContractType> typeChoiceRenderer = new LabelValueChoiceRenderer<>(
           contractTypes);
-      final DropDownChoice<ContractType> typeChoice = new DropDownChoice<ContractType>(fs.getDropDownChoiceId(),
-          new PropertyModel<ContractType>(data, "type"), typeChoiceRenderer.getValues(), typeChoiceRenderer);
+      final DropDownChoice<ContractType> typeChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+          new PropertyModel<>(data, "type"), typeChoiceRenderer.getValues(), typeChoiceRenderer);
       typeChoice.setNullValid(false);
       fs.add(typeChoice);
     }
@@ -145,43 +140,38 @@ public class ContractEditForm extends AbstractEditForm<ContractDO, ContractEditP
     {
       // Reference
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.common.reference"));
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "reference")));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "reference")));
     }
     {
       // Resubmission date
+      final FieldProperties<LocalDate> props = getResubmissionOnDateProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("resubmissionOnDate"));
-      resubmissionDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "resubmissionOnDate"),
-          DatePanelSettings.get()
-              .withTargetType(java.sql.Date.class));
+      resubmissionDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       fs.add(resubmissionDatePanel);
     }
     {
       // Due date
+      final FieldProperties<LocalDate> props = getDueDateProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("dueDate"));
-      dueDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "dueDate"),
-          DatePanelSettings.get().withTargetType(
-              java.sql.Date.class));
+      dueDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       fs.add(dueDatePanel);
     }
     {
       // Signing date
+      final FieldProperties<LocalDate> props = getSigningDateProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("legalAffaires.contract.signing"), getString("date"));
-      signingDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "signingDate"),
-          DatePanelSettings.get()
-              .withTargetType(java.sql.Date.class));
+      signingDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       fs.add(signingDatePanel);
     }
     {
       // Validity
+      FieldProperties<LocalDate> props = getValidFromProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("legalAffaires.contract.validity"));
-      validFromDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "validFrom"),
-          DatePanelSettings.get()
-              .withTargetType(java.sql.Date.class));
+      validFromDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       fs.add(validFromDatePanel);
       fs.add(new DivTextPanel(fs.newChildId(), "-"));
-      validUntilDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "validUntil"),
-          DatePanelSettings.get()
-              .withTargetType(java.sql.Date.class));
+      props = getValidUntilProperties();
+      validUntilDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
       fs.add(validUntilDatePanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -222,16 +212,42 @@ public class ContractEditForm extends AbstractEditForm<ContractDO, ContractEditP
     {
       // Text with JIRA support
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("text"));
-      final IModel<String> model = new PropertyModel<String>(data, "text");
+      final IModel<String> model = new PropertyModel<>(data, "text");
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, model));
       fs.addJIRAField(model);
     }
     {
       // Filing
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("filing"));
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "filing")));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "filing")));
     }
     addCloneButton();
+  }
+
+
+
+  private FieldProperties<LocalDate> getDateProperties() {
+    return new FieldProperties<>("date", new PropertyModel<>(data, "date"));
+  }
+
+  private FieldProperties<LocalDate> getResubmissionOnDateProperties() {
+    return new FieldProperties<>("resubmissionOnDate", new PropertyModel<>(data, "resubmissionOnDate"));
+  }
+
+  private FieldProperties<LocalDate> getDueDateProperties() {
+    return new FieldProperties<>("dueDate", new PropertyModel<>(data, "dueDate"));
+  }
+
+  private FieldProperties<LocalDate> getSigningDateProperties() {
+    return new FieldProperties<>("legalAffaires.contract.signing", new PropertyModel<>(data, "signingDate"));
+  }
+
+  private FieldProperties<LocalDate> getValidFromProperties() {
+    return new FieldProperties<>("legalAffaires.contract.validity", new PropertyModel<>(data, "validFrom"));
+  }
+
+  private FieldProperties<LocalDate> getValidUntilProperties() {
+    return new FieldProperties<>("legalAffaires.contract.validity", new PropertyModel<>(data, "validUntil"));
   }
 
   @Override

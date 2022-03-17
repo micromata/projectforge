@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.core
 
+import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpSession
 import kotlin.concurrent.timer
 
@@ -32,76 +33,106 @@ import kotlin.concurrent.timer
  * in the user's session and the session terminates after several hours.
  */
 object ExpiringSessionAttributes {
-    /** Store all session attributes for deleting content after expire time. */
-    private val attributesMap = mutableMapOf<Long, ExpiringAttribute>()
-    private var counter = 0L
+  /** Store all session attributes for deleting content after expire time. Key SSESSION_ID and the name
+   * of the ExpiringAttribute. */
+  private val attributesMap = mutableMapOf<String, ExpiringAttribute>()
 
-    init {
-        timer("ExpiringSessionAttributesTime", period = 60000) {
-            check()
+  init {
+    timer("ExpiringSessionAttributesTime", period = 60000) {
+      check()
+    }
+  }
+
+  fun setAttribute(request: HttpServletRequest, name: String, value: Any, ttlMinutes: Int) {
+    setAttribute(request.getSession(false), name, value, ttlMinutes)
+  }
+
+  fun setAttribute(session: HttpSession, name: String, value: Any, ttlMinutes: Int) {
+    val attribute = ExpiringAttribute(System.currentTimeMillis(), value, ttlMinutes)
+    session.setAttribute(name, attribute)
+    synchronized(attributesMap) {
+      attributesMap[getMapKey(session, name)] = attribute
+    }
+  }
+
+  fun <T> getAttribute(request: HttpServletRequest, name: String, classOfT: Class<T>): T? {
+    return getAttribute(request.getSession(false), name, classOfT)
+  }
+
+  fun <T> getAttribute(session: HttpSession, name: String, classOfT: Class<T>): T? {
+    @Suppress("UNCHECKED_CAST")
+    return getAttribute(session, name) as T?
+  }
+
+  fun getAttribute(request: HttpServletRequest, name: String): Any? {
+    return getAttribute(request.getSession(false), name)
+  }
+
+  fun getAttribute(session: HttpSession, name: String): Any? {
+    checkSession(session)
+    val value = session.getAttribute(name) ?: return null
+    return if (value is ExpiringAttribute)
+      value.value
+    else value
+  }
+
+  fun removeAttribute(request: HttpServletRequest, name: String) {
+    return removeAttribute(request.getSession(false), name)
+  }
+
+  fun removeAttribute(session: HttpSession, name: String) {
+    val value = getAttribute(session, name) ?: return
+    if (value is ExpiringAttribute) {
+      synchronized(attributesMap) {
+        attributesMap.remove(getMapKey(session, name))
+      }
+    }
+    session.removeAttribute(name)
+  }
+
+  /**
+   * Tidy up expired session attributes. Will be called on each user's session access.
+   */
+  private fun checkSession(session: HttpSession) {
+    val current = System.currentTimeMillis()
+    session.attributeNames.iterator().forEach { name ->
+      val value = session.getAttribute(name)
+      if (value is ExpiringAttribute) {
+        if (current - value.timestamp > value.ttlMillis) {
+          synchronized(attributesMap) {
+            attributesMap.remove(getMapKey(session, name))
+          }
+          session.removeAttribute(name)
         }
+      }
     }
+  }
 
-    fun setAttribute(session: HttpSession, name: String, value: Any, ttlMinutes: Int) {
-        val attribute = ExpiringAttribute(System.currentTimeMillis(), value, ttlMinutes)
-        session.setAttribute(name, attribute)
-        synchronized(attributesMap) {
-            attributesMap[attribute.index] = attribute
+  /**
+   * Interval check: Set values of expired session attributes to null for saving memory.
+   */
+  private fun check() {
+    val current = System.currentTimeMillis()
+    synchronized(attributesMap) {
+      val attributesToRemove = mutableListOf<String>()
+      attributesMap.forEach {
+        val attribute = it.value
+        if (current - attribute.timestamp > attribute.ttlMillis) {
+          attribute.value = null // Save memory
+          attributesToRemove.add(it.key) // Don't remove here due to ConcurrentModificationException
         }
+      }
+      attributesToRemove.forEach {
+        attributesMap.remove(it)
+      }
     }
+  }
 
-    fun getAttribute(session: HttpSession, name: String): Any? {
-        checkSession(session)
-        val value = session.getAttribute(name)
-        if (value == null)
-            return null
-        if (value is ExpiringAttribute)
-            return value.value
-        return value
-    }
+  private fun getMapKey(session: HttpSession, name: String): String {
+    return "${session.id}.$name"
+  }
 
-    fun removeAttribute(session: HttpSession, name: String) {
-        val value = getAttribute(session, name)
-        if (value == null)
-            return
-        if (value is ExpiringAttribute) {
-            synchronized(attributesMap) {
-                attributesMap.remove(value.index)
-            }
-        }
-        session.removeAttribute(name)
-    }
-
-    private fun checkSession(session: HttpSession) {
-        val current = System.currentTimeMillis()
-        session.attributeNames.iterator().forEach {
-            val value = session.getAttribute(it)
-            if (value is ExpiringAttribute) {
-                if (current - value.timestamp > value.ttlMillis) {
-                    synchronized(attributesMap) {
-                        attributesMap.remove(value.index)
-                    }
-                    session.removeAttribute(it)
-                }
-            }
-        }
-    }
-
-    private fun check() {
-        val current = System.currentTimeMillis()
-        synchronized(attributesMap) {
-            attributesMap.forEach {
-                val attribute = it.value
-                if (current - attribute.timestamp > attribute.ttlMillis) {
-                    attribute.value = null // Save memory
-                    attributesMap.remove(it.key)
-                }
-            }
-        }
-    }
-
-    private class ExpiringAttribute(val timestamp: Long, var value: Any?, ttlMinutes: Int) {
-        val ttlMillis = ttlMinutes * 60000
-        val index = ++counter
-    }
+  private class ExpiringAttribute(val timestamp: Long, var value: Any?, ttlMinutes: Int) {
+    val ttlMillis = ttlMinutes * 60000
+  }
 }

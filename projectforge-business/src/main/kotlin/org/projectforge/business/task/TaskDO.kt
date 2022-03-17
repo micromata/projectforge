@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,7 +38,7 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
-import java.util.*
+import java.time.LocalDate
 import javax.persistence.*
 import javax.persistence.Index
 
@@ -54,8 +54,7 @@ import javax.persistence.Index
         indexes = [
             Index(name = "idx_fk_t_task_gantt_predecessor_fk", columnList = "gantt_predecessor_fk"),
             Index(name = "idx_fk_t_task_parent_task_id", columnList = "parent_task_id"),
-            Index(name = "idx_fk_t_task_responsible_user_id", columnList = "responsible_user_id"),
-            Index(name = "idx_fk_t_task_tenant_id", columnList = "tenant_id")])
+            Index(name = "idx_fk_t_task_responsible_user_id", columnList = "responsible_user_id")])
 @JpaXmlPersist(beforePersistListener = [TaskXmlBeforePersistListener::class])
 @NamedQueries(
         NamedQuery(name = TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE,
@@ -115,20 +114,18 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @PropertyInfo(i18nKey = "gantt.startDate")
     @get:Column(name = "start_date")
-    open var startDate: Date? = null
+    open var startDate: LocalDate? = null
 
     /**
      * @see org.projectforge.business.gantt.GanttTask.getEndDate
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @PropertyInfo(i18nKey = "gantt.endDate")
     @get:Column(name = "end_date")
-    open var endDate: Date? = null
+    open var endDate: LocalDate? = null
 
     /**
      * Duration in days.
@@ -147,10 +144,9 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      * verschoben werden.
      */
     @Field(analyze = Analyze.NO)
-    @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
     @PropertyInfo(i18nKey = "task.protectTimesheetsUntil")
     @get:Column(name = "protect_timesheets_until")
-    open var protectTimesheetsUntil: Date? = null
+    open var protectTimesheetsUntil: LocalDate? = null
 
     @IndexedEmbedded(depth = 1)
     @PropertyInfo(i18nKey = "task.assignedUser")
@@ -324,10 +320,10 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     public override fun clone(): Any {
         val clone = super.clone() as TaskDO
         if (this.startDate != null) {
-            clone.startDate = this.startDate!!.clone() as Date
+            clone.startDate = this.startDate!!
         }
         if (this.endDate != null) {
-            clone.endDate = this.endDate!!.clone() as Date
+            clone.endDate = this.endDate!!
         }
         if (this.ganttPredecessor != null) {
             clone.ganttPredecessor = TaskDO()
@@ -338,7 +334,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
             clone.parentTask!!.id = this.parentTaskId
         }
         if (this.protectTimesheetsUntil != null) {
-            clone.protectTimesheetsUntil = this.protectTimesheetsUntil!!.clone() as Date
+            clone.protectTimesheetsUntil = this.protectTimesheetsUntil!!
         }
         if (this.responsibleUser != null) {
             clone.responsibleUser = PFUserDO()

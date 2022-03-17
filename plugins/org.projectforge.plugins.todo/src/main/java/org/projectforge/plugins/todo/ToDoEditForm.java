@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2020 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,10 +37,9 @@ import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.hibernate.Hibernate;
 import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.task.TaskDO;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.common.i18n.Priority;
-import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.web.dialog.ModalDialog;
@@ -54,7 +53,7 @@ import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
 {
@@ -181,10 +180,9 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
     }
     {
       // Due date
+      final FieldProperties<LocalDate> props = getDueDateProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "dueDate");
-      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "dueDate"),
-          DatePanelSettings.get().withTargetType(
-              java.sql.Date.class)));
+      fs.add(new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel())));
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -202,7 +200,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "assignee");
       PFUserDO assignee = data.getAssignee();
       if (!Hibernate.isInitialized(assignee)) {
-        assignee = getTenantRegistry().getUserGroupCache().getUser(assignee.getId());
+        assignee = UserGroupCache.getInstance().getUser(assignee.getId());
         data.setAssignee(assignee);
       }
       final UserSelectPanel assigneeUserSelectPanel = new UserSelectPanel(fs.newChildId(),
@@ -217,7 +215,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "reporter");
       PFUserDO reporter = data.getReporter();
       if (!Hibernate.isInitialized(reporter)) {
-        reporter = getTenantRegistry().getUserGroupCache().getUser(reporter.getId());
+        reporter = UserGroupCache.getInstance().getUser(reporter.getId());
         data.setReporter(reporter);
       }
       final UserSelectPanel reporterUserSelectPanel = new UserSelectPanel(fs.newChildId(),
@@ -311,6 +309,10 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       actionButtons.add(2, closeButtonPanel);
       addCloseToDoDialog();
     }
+  }
+
+  private FieldProperties<LocalDate> getDueDateProperties() {
+    return new FieldProperties<>("dueDate", new PropertyModel<>(data, "dueDate"));
   }
 
   @SuppressWarnings("serial")
