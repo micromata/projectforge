@@ -41,8 +41,27 @@ object UIToast {
     )
   }
 
-  fun createToastResponseEntity(message: String, color: UIColor = UIColor.INFO): ResponseEntity<ResponseAction> {
-    return ResponseEntity(createToast(message, color), HttpStatus.OK)
+  /**
+   * @param variables If given, variables will be given to action.
+   * @param merge If given, action.merge will be set.
+   * @param type If given, action.type will be set.
+   */
+  fun createToastResponseEntity(
+    message: String,
+    color: UIColor = UIColor.INFO,
+    variables: MutableMap<String, Any>? = null,
+    merge: Boolean? = null,
+    targetType: TargetType? = null,
+  ): ResponseEntity<ResponseAction> {
+    val action = createToast(message, color)
+    variables?.let { vars ->
+      action.addVariables(vars)
+    }
+    action.merge = merge
+    targetType?.let {
+      action.targetType = targetType
+    }
+    return ResponseEntity(action, HttpStatus.OK)
   }
 
   fun createExceptionToast(ex: UserException): ResponseAction {
