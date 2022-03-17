@@ -216,48 +216,49 @@
     <hibernate-search.version>5.11.8.Final</hibernate-search.version>
     <mgc.version>3.1.3</mgc.version>
 
+    <apacheds.version>1.5.7</apacheds.version>
     <commons-httpclient.version>3.1</commons-httpclient.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
     <commons-collections3.version>3.12.0</commons-collections3.version>
     <commons-collections.version>4.4</commons-collections.version>
     <aspectjtools.version>1.9.6</aspectjtools.version>
     <flyway.version>6.3.2</flyway.version> <!-- 7.7.3 doesn't support PostgreSQL 9.4 -->
+    <fop.version>2.3</fop.version>
     <groovy.version>3.0.10</groovy.version>
-    <kotlin.version>1.6.10</kotlin.version>
-    <kotlin-logging.version>2.0.6</kotlin-logging.version>
-    <poi.version>4.1.2</poi.version>
-    <spring.version>5.3.5</spring.version> <!-- Should match spring boot's parent pom -->
-    <spring.boot.version>2.4.4</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
-    <wicket.version>7.18.0</wicket.version>
-    <wicket-stuff.version>7.17.0</wicket-stuff.version>
-    <micromata.merlin-core.version>1.1.16</micromata.merlin-core.version>
-
+    <ical4j.version>2.0.0</ical4j.version> <!-- 2.2* needs source code modifications. -->
+    <ical4j-vcard.version>1.0.5</ical4j-vcard.version>
+    <itext.version>2.1.7</itext.version>
     <javax.jsp-api.version>2.3.3</javax.jsp-api.version>
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
     <javax.mail.version>1.4.7</javax.mail.version>
-    <jlf4j.version>1.7.36</jlf4j.version> <!-- should be the same as used in spring boot started. -->
-    <ical4j.version>2.0.0</ical4j.version> <!-- 2.2* needs source code modifications. -->
-    <ical4j-vcard.version>1.0.5</ical4j-vcard.version>
-    <joda-time.version>2.10.10</joda-time.version>
-    <xstream.version>1.4.16</xstream.version> <!-- com.thoughtworks.xstream -->
-    <itext.version>2.1.7</itext.version>
     <jersey.version>2.33</jersey.version>
     <jfreechart.version>1.0.19</jfreechart.version>
+    <jlf4j.version>1.7.36</jlf4j.version> <!-- should be the same as used in spring boot started. -->
+    <jackson.version>2.11.4</jackson.version>
+    <joda-time.version>2.10.10</joda-time.version>
     <!-- Version 5.4.2 doesn't work with Intellij. Tested 03/28/2019. -->
     <junit.jupiter.version>5.3.2</junit.jupiter.version>
     <junit-platform.version>1.3.2</junit-platform.version>
     <junit.version>4.12</junit.version>
-    <rhino.version>1.7.7</rhino.version>
+    <kotlin.version>1.6.10</kotlin.version>
+    <kotlin-logging.version>2.0.6</kotlin-logging.version>
+    <micromata.merlin-core.version>1.1.16</micromata.merlin-core.version>
     <mpxj.version>4.3.0</mpxj.version>
-    <fop.version>2.3</fop.version>
+    <poi.version>4.1.2</poi.version>
+    <powermock.version>2.0.9</powermock.version>
+    <rhino.version>1.7.7</rhino.version>
+    <springfox-swagger.version>3.0.0</springfox-swagger.version>
+    <spring.version>5.3.5</spring.version> <!-- Should match spring boot's parent pom -->
+    <spring.boot.version>2.4.4</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
+    <wicket.version>7.18.0</wicket.version>
+    <wicket-stuff.version>7.17.0</wicket-stuff.version>
     <xmlgraphics-commons.version>2.3</xmlgraphics-commons.version>
     <xmlgraphics-batik-codec.version>1.11</xmlgraphics-batik-codec.version>
+    <xstream.version>1.4.16</xstream.version> <!-- com.thoughtworks.xstream -->
+
     <!-- HIBERNATE 5 -->
     <postgresql.version>42.2.10</postgresql.version>
     <hsqldb.version>2.5.0</hsqldb.version> <!-- Since 2.6.0 no support of Java 8 anymore. -->
-    <jackson.version>2.11.4</jackson.version>
-    <powermock.version>2.0.9</powermock.version>
-    <apacheds.version>1.5.7</apacheds.version>
   </properties>
 
   <dependencies>
