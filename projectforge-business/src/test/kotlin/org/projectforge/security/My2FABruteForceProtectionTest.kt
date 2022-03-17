@@ -43,22 +43,24 @@ class My2FABruteForceProtectionTest {
       return@thenAnswer user
     }
 
-    Assertions.assertTrue(protection.isRetryAllowed(42))
+    Assertions.assertFalse(protection.isBlocked(42))
     Assertions.assertNull(protection.getLastFailedTry(42))
     Assertions.assertFalse(user.deactivated)
     for (i in 0..11) {
-      if (i in arrayOf(0, 1, 2, 4, 5, 7, 8, 10, 11)) {
-        Assertions.assertTrue(protection.isRetryAllowed(42), "Retry should be allowed for try #$i.")
-      } else {
-        Assertions.assertFalse(protection.isRetryAllowed(42), "Retry shouldn't be allowed for try #$i.")
-      }
       if (i > 0) {
         Assertions.assertTrue(
           System.currentTimeMillis() - protection.getLastFailedTry(42)!! < 10000,
-          "Last failed retry shouldn't be older than seconds for try #i."
+          "Last failed retry shouldn't be older than seconds for try #$i."
         )
       } else {
         Assertions.assertNull(protection.getLastFailedTry(42), "No last failure millis expected.")
+      }
+      if (i in arrayOf(0, 1, 2, 4, 5, 7, 8, 10, 11)) {
+        Assertions.assertFalse(protection.isBlocked(42), "Retry should be allowed for try #$i.")
+      } else {
+        Assertions.assertTrue(protection.isBlocked(42), "Retry shouldn't be allowed for try #$i.")
+        protection.setLastFailedTry(42, System.currentTimeMillis() - 2 * AbstractCache.TICKS_PER_HOUR)
+        Assertions.assertFalse(protection.isBlocked(42), "Retry should be allowed for try #$i, because last failed try is 2 h ago.")
       }
       protection.registerOTPFailure(42)
     }
@@ -68,11 +70,11 @@ class My2FABruteForceProtectionTest {
     // Simulate activation of user by an admin:
     user.deactivated = false
     Assertions.assertEquals(12, protection.getNumberOfFailures(42), "12 failed tries expected.")
-    Assertions.assertFalse(protection.isRetryAllowed(42), "Retry shouldn't be allowed after 12 failed tries.")
+    Assertions.assertTrue(protection.isBlocked(42), "Retry shouldn't be allowed after 12 failed tries.")
     protection.userChangeListener.afterSaveOrModifify(user, OperationType.UPDATE)
     Assertions.assertNull(protection.getLastFailedTry(42), "No last failure millis expected, user should be cleared.")
     Assertions.assertEquals(0, protection.getNumberOfFailures(42), "No failed tries expected, user should be cleared.")
-    Assertions.assertTrue(protection.isRetryAllowed(42), "Retry should be allowed, user is cleared.")
+    Assertions.assertFalse(protection.isBlocked(42), "Retry should be allowed, user is cleared.")
   }
 
   @Test

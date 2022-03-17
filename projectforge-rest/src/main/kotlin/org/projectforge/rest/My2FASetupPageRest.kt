@@ -142,7 +142,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     }
     val otp = postData.data.code
     if (!otp.isNullOrBlank()) {
-      my2FAService.validateOTP(otp) // Try to do the fresh 2FA
+      my2FAService.validateAuthenticatorOTP(otp) // Try to do the fresh 2FA
     }
     if (!checklastSuccessful2FA()) {
       return showValidationErrors(ValidationError(translate("user.My2FA.required"), "code"))

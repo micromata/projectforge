@@ -25,12 +25,19 @@ package org.projectforge.security
 
 import mu.KotlinLogging
 import org.projectforge.business.user.UserDao
+import org.projectforge.common.DateFormatType
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.i18n.TimeLeft
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.TimeUnit
 import org.projectforge.security.My2FABruteForceProtection.Companion.MAX_RETRIES_BEFORE_DEACTIVATING_USER
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.time.temporal.ChronoUnit
 import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
@@ -42,6 +49,8 @@ private val log = KotlinLogging.logger {}
  *
  * Please note: This is only an in-memory solution. After a restart of ProjectForge, all failure counters will be reset and
  * the users are able to have up to 12 more tries (if not deactivated).
+ * For external attackers awaiting restarts have to check the restart of ProjectForge after login (e. g. by looking in SystemStatistics
+ * or version number and should stop after 11 brute force tries. This risk is acceptable.
  */
 @Service
 internal class My2FABruteForceProtection {
@@ -53,6 +62,10 @@ internal class My2FABruteForceProtection {
     var lastFailedTry: Long? = null
   }
 
+  /**
+   * This listener handles a reset for a deactivated user after more than 12 failed tries. A admin may re-activate
+   * an user and this listener will be notified in this case.
+   */
   internal class UserChangeListener(val protection: My2FABruteForceProtection) : BaseDOChangedListener<PFUserDO> {
     override fun afterSaveOrModifify(changedObject: PFUserDO, operationType: OperationType) {
       val data = protection.getData(changedObject.id) ?: return
@@ -74,7 +87,10 @@ internal class My2FABruteForceProtection {
     userDao.register(userChangeListener)
   }
 
-  fun registerOTPFailure(userId: Int) {
+  /**
+   * After an OTP failure, this method should be called.
+   */
+  fun registerOTPFailure(userId: Int = ThreadLocalUserContext.getUserId()) {
     var counter = 0
     synchronized(otpFailures) {
       var data = otpFailures[userId]
@@ -98,25 +114,65 @@ internal class My2FABruteForceProtection {
     }
   }
 
-  fun registerOTPSuccess(userId: Int) {
+  /**
+   * After a successful OTP check, this method should be called. So the user has all retries again.
+   */
+  fun registerOTPSuccess(userId: Int = ThreadLocalUserContext.getUserId()) {
     synchronized(otpFailures) {
       otpFailures.remove(userId)
     }
   }
 
-  fun getLastFailedTry(userId: Int): Long? {
-    return getData(userId)?.lastFailedTry
+  /**
+   * This method should be called before every OTP check. If not allowed, the OTP check must be skipped and an
+   * error message should be returned.
+   */
+  fun isBlocked(userId: Int = ThreadLocalUserContext.getUserId()): Boolean {
+    val data = getData(userId) ?: return false
+    val lastFailedTry = data.lastFailedTry ?: return false
+    val waitingMillis = getWaitingMillis(data.counter)
+    return (waitingMillis != 0L && System.currentTimeMillis() - waitingMillis < lastFailedTry)
   }
 
-  fun isRetryAllowed(userId: Int): Boolean {
-    val data = getData(userId) ?: return true
-    val lastFailedTry = data.lastFailedTry ?: return true
-    val waitingMillis = getWaitingMillis(data.counter)
-    return (waitingMillis == 0L || System.currentTimeMillis() - waitingMillis > lastFailedTry)
+  /**
+   * If retry is not allowed, this method will return a localized message about the reason including the number
+   * of failed retries, the risk of beeing deactivated as well as any time penalty.
+   */
+  fun getBlockedResult(userId: Int = ThreadLocalUserContext.getUserId()): OTPCheckResult? {
+    getBlockedMessage(userId)?.let { message ->
+      return OTPCheckResult.BLOCKED.withMessage(message)
+    }
+    return null
+  }
+
+  /**
+   * If retry is not allowed, this method will return a localized message about the reason including the number
+   * of failed retries, the risk of beeing deactivated as well as any time penalty.
+   */
+  fun getBlockedMessage(userId: Int = ThreadLocalUserContext.getUserId()): String? {
+    if (!isBlocked(userId)) {
+      return null
+    }
+    val data = getData(userId) ?: return "??? no user info found ???"
+    val lastFailedTry = data.lastFailedTry ?: return "??? no last failure date found ???"
+    val until = PFDateTime.from(lastFailedTry).plus(getWaitingMillis(data.counter), ChronoUnit.MILLIS)
+    val timeLeft = TimeLeft.getI18nKey(until.utilDate, maxUnit = TimeUnit.MINUTE)
+    // You have been blocked until {0} ({1}) after {2} failed code checks. Please note, that your account might be deactivated after {3} failed OTP checks.
+    return translateMsg(
+      "user.My2FACode.error.timePenalty.message",
+      until.format(DateFormatType.TIME_OF_DAY_SECONDS),
+      timeLeft,
+      data.counter,
+      MAX_RETRIES_BEFORE_DEACTIVATING_USER
+    )
   }
 
   fun getNumberOfFailures(userId: Int): Int {
     return getData(userId)?.counter ?: 0
+  }
+
+  internal fun getLastFailedTry(userId: Int): Long? {
+    return getData(userId)?.lastFailedTry
   }
 
   internal fun getWaitingMillis(counter: Int): Long {
@@ -131,6 +187,13 @@ internal class My2FABruteForceProtection {
     } else {
       0L
     }
+  }
+
+  /**
+   * For test cases only.
+   */
+  internal fun setLastFailedTry(userId: Int, millis: Long) {
+    getData(userId)?.lastFailedTry = millis
   }
 
   private fun getData(userId: Int): OTPCheckData? {
