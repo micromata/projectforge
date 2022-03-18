@@ -109,10 +109,10 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    * Enables the 2FA for the logged-in user (if not already enabled). Fails, if authenticator token is already configured.
    */
   @Suppress("UNUSED_PARAMETER")
-  @PostMapping("enable")
-  fun enable(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
+  @PostMapping("enableAuthenticatorApp")
+  fun enableAuthenticatorApp(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
     if (!authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
-      log.error { "User tries to enable 2FA, but authenticator token is already given!" }
+      log.error { "User tries to enable authenticator app, but authenticator token is already given!" }
       throw IllegalArgumentException("2FA already configured.")
     }
     if (!checklastSuccessful2FA()) {
@@ -131,11 +131,12 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
   }
 
   /**
-   * Disables the 2FA for the logged-in user (if enabled). Fails, if authenticator token isn't configured.
+   * Disables the AuthenticatorApp for the logged-in user (if enabled) by deleting the authenticator token.
+   * Fails, if authenticator token isn't configured.
    * Requires a valid 2FA not older than 1 minute.
    */
-  @PostMapping("disable")
-  fun disable(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
+  @PostMapping("disableAuthenticatorApp")
+  fun disableAuthenticatorApp(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
     if (authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
       log.error { "User tries to disable 2FA, but authenticator token isn't given!" }
       throw IllegalArgumentException("2FA not configured.")
@@ -209,23 +210,23 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     if (authenticatorKey.isNullOrBlank()) {
       fieldset.add(
         UIButton(
-          "enable",
-          title = translate("user.My2FA.setup.enable"),
-          tooltip = "user.My2FA.setup.enable.info",
+          "enableAuthenticatorApp",
+          title = translate("user.My2FA.setup.enableAuthenticatorApp"),
+          tooltip = "user.My2FA.setup.enableAuthenticatorApp.info",
           color = UIColor.DANGER,
-          responseAction = ResponseAction("/rs/2FASetup/enable", targetType = TargetType.POST),
-          confirmMessage = translate("user.My2FA.setup.enable.confirmMessage")
+          responseAction = ResponseAction("/rs/2FASetup/enableAuthenticatorApp", targetType = TargetType.POST),
+          confirmMessage = translate("user.My2FA.enableAuthenticatorApp.enable.confirmMessage")
         )
       )
     } else {
       fieldset.add(
         UIButton(
-          "disable",
-          title = translate("user.My2FA.setup.disable"),
-          tooltip = "user.My2FA.setup.disable.info",
+          "disableAuthenticatorApp",
+          title = translate("user.My2FA.setup.disableAuthenticatorApp"),
+          tooltip = "user.My2FA.setup.disableAuthenticatorApp.info",
           color = UIColor.DANGER,
-          responseAction = ResponseAction("/rs/2FASetup/disable", targetType = TargetType.POST),
-          confirmMessage = translate("user.My2FA.setup.disable.confirmMessage")
+          responseAction = ResponseAction("/rs/2FASetup/disableAuthenticatorApp", targetType = TargetType.POST),
+          confirmMessage = translate("user.My2FA.setup.disableAuthenticatorApp.confirmMessage")
         )
       )
       // Authenticator token is available
