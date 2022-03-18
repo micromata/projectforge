@@ -40,7 +40,7 @@ export const apiDocRoute = (
             }
 
             return (
-                <a href={getServiceURL(`..${location.pathname}`)}>
+                <a href={getServiceURL(`/${location.pathname}`)}>
                     Redirect to ApiDoc
                 </a>
             );
