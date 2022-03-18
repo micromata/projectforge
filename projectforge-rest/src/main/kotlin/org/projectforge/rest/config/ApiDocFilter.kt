@@ -34,9 +34,9 @@ import javax.servlet.http.HttpServletRequest
 private val log = KotlinLogging.logger {}
 
 /**
- * SwaggerFilter is used for /swagger pages (Swagger stuff).
+ * ApiDocFilter is used for /api-doc pages (spring doc).
  */
-class SwaggerUIFilter : Filter {
+class ApiDocFilter : Filter {
   @Autowired
   private lateinit var loginService: LoginService
 
@@ -57,13 +57,10 @@ class SwaggerUIFilter : Filter {
 
   companion object {
     @JvmField
-    val SWAGGER_ROOT_NON_TRAILING_SLASH = "swagger/"
-
-    @JvmField
-    val SWAGGER_ROOT = "/$SWAGGER_ROOT_NON_TRAILING_SLASH"
+    val APIDOC_ROOT = "/swagger/"
 
     @JvmStatic
     val enabled: Boolean
-      get() = SpringFoxConfig.swaggerEnabled
+      get() = ApiDocConfig.apiDocEnabled
   }
 }

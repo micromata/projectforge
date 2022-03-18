@@ -46,7 +46,7 @@ class SecurityFilter : Filter {
 
   private val positiveList =
     // Swagger is handled by SwaggerUIFilter
-    listOf("/${RestPaths.REST_PUBLIC}/", "/favi", "/react/", "/static/", Rest.CALENDAR_EXPORT_BASE_URI, SwaggerUIFilter.SWAGGER_ROOT)
+    listOf("/${RestPaths.REST_PUBLIC}/", "/favi", "/react/", "/static/", Rest.CALENDAR_EXPORT_BASE_URI, ApiDocFilter.APIDOC_ROOT)
 
   init {
     positiveList.forEach { path ->
