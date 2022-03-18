@@ -31,6 +31,23 @@ export const wicketRoute = (
     />
 );
 
+export const apiDocRoute = (
+    <Route
+        path="/swagger"
+        component={({ location }) => {
+            if (process.env.NODE_ENV !== 'development') {
+                window.location.reload();
+            }
+
+            return (
+                <a href={getServiceURL(`..${location.pathname}`)}>
+                    Redirect to ApiDoc
+                </a>
+            );
+        }}
+    />
+);
+
 export const publicRoute = (
     <Route
         path={`${prefix}public/:category/:type?/:id?`}
@@ -47,6 +64,7 @@ function AuthorizedRoutes(
     const getRoutesWithLocation = (location) => (
         <Switch location={location}>
             {wicketRoute}
+            {apiDocRoute}
             {publicRoute}
             <Route
                 exact

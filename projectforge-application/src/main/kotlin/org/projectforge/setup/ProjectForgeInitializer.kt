@@ -86,6 +86,7 @@ object ProjectForgeInitializer {
         result = replace(result, "projectforge.defaultFirstDayOfWeek", setupData.defaultFirstDayOfWeek)
         if (setupData.developmentMode) {
           result = replace(result, "projectforge.web.development.enableCORSFilter", "true")
+          result = replace(result, "springfox.documentation.enabled", "true")
         }
         val jdbc = setupData.jdbcSettings
         if (!setupData.useEmbeddedDatabase && jdbc != null) {
