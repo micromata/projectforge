@@ -30,7 +30,6 @@ import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.model.rest.RestPaths
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -44,7 +43,12 @@ open class My2FARequestHandler {
   @Autowired
   internal lateinit var configuration: My2FARequestConfiguration // internal for test case
 
-  private lateinit var expiryPeriods: Array<ExpiryPeriod>
+  private val shortCuts = mutableMapOf<String, String>()
+
+  private var expiryPeriods = mutableListOf<ExpiryPeriod>()
+
+  // expiryPeriods are dirty, if shortCuts were modified.
+  private var expiryPeriodsDirty = true
 
   /**
    * For caching matching urls.
@@ -110,6 +114,11 @@ open class My2FARequestHandler {
         return entitiesWriteAccessMap[entity]
       }
     }
+    synchronized(shortCuts) {
+      if (expiryPeriodsDirty) {
+        reload()
+      }
+    }
     expiryPeriods.forEach { period ->
       synchronized(entitiesWriteAccessMap) {
         if (entitiesWriteAccessMap.size > 1000) { // Paranoia setting
@@ -131,6 +140,11 @@ open class My2FARequestHandler {
   internal fun matchesUri(uri: String): ExpiryPeriod? {
     if (uri.isEmpty()) {
       return null
+    }
+    synchronized(shortCuts) {
+      if (expiryPeriodsDirty) {
+        reload()
+      }
     }
     var result: ExpiryPeriod?
     val paths = getParentPaths(uri)
@@ -163,16 +177,36 @@ open class My2FARequestHandler {
     return null
   }
 
-  @PostConstruct
-  internal fun postConstruct() {
-    expiryPeriods = arrayOf(
-      ExpiryPeriod(configuration.expiryPeriodMinutes1, AbstractCache.TICKS_PER_MINUTE, "minutes1"),
-      ExpiryPeriod(configuration.expiryPeriodMinutes10, AbstractCache.TICKS_PER_MINUTE * 10, "minutes10"),
-      ExpiryPeriod(configuration.expiryPeriodHours1, AbstractCache.TICKS_PER_HOUR, "hours1"),
-      ExpiryPeriod(configuration.expiryPeriodHours8, AbstractCache.TICKS_PER_HOUR * 8, "hours8"),
-      ExpiryPeriod(configuration.expiryPeriodDays30, AbstractCache.TICKS_PER_DAY * 30, "days30"),
-      ExpiryPeriod(configuration.expiryPeriodDays90, AbstractCache.TICKS_PER_DAY * 90, "days90"),
-    )
+  /**
+   * Should be called, if any modification was done.
+   */
+  fun reload() {
+    val periods = mutableListOf<ExpiryPeriod>()
+    addPeriod(periods, configuration.expiryPeriodMinutes1, AbstractCache.TICKS_PER_MINUTE, "minutes1")
+    addPeriod(periods, configuration.expiryPeriodMinutes10, AbstractCache.TICKS_PER_MINUTE * 10, "minutes10")
+    addPeriod(periods, configuration.expiryPeriodHours1, AbstractCache.TICKS_PER_HOUR, "hours1")
+    addPeriod(periods, configuration.expiryPeriodHours8, AbstractCache.TICKS_PER_HOUR * 8, "hours8")
+    addPeriod(periods, configuration.expiryPeriodDays30, AbstractCache.TICKS_PER_DAY * 30, "days30")
+    addPeriod(periods, configuration.expiryPeriodDays90, AbstractCache.TICKS_PER_DAY * 90, "days90")
+    expiryPeriods = periods
+    expiryPeriodsDirty = false
+    // Clear caches:
+    synchronized(entitiesWriteAccessMap) { // Should be empty because reload is done before app is available.
+      entitiesWriteAccessMap.clear()
+    }
+    synchronized(uriMap) {
+      uriMap.clear()
+    }
+  }
+
+  private fun addPeriod(
+    periods: MutableList<ExpiryPeriod>,
+    regex: String?,
+    expireMillis: Long,
+    expiryPeriod: String
+  ) {
+    periods.add(ExpiryPeriod(regex, expireMillis, expiryPeriod, shortCuts))
+
   }
 
   fun printConfiguration(): String {
@@ -180,6 +214,11 @@ open class My2FARequestHandler {
     sb.appendLine("  *")
     sb.appendLine("  * Please refer documentation: https://projectforge.org/docs/adminguide/#securityconfig")
     sb.appendLine("  *")
+    synchronized(shortCuts) {
+      if (expiryPeriodsDirty) {
+        reload()
+      }
+    }
     expiryPeriods.forEach { period ->
       sb.appendLine(period.expiryPeriod)
       sb.appendLine("  config value=${period.regex}")
@@ -254,7 +293,12 @@ open class My2FARequestHandler {
     }
   }
 
-  internal class ExpiryPeriod(val regex: String?, val expiryMillis: Long, val expiryPeriod: String) {
+  internal class ExpiryPeriod(
+    val regex: String?,
+    val expiryMillis: Long,
+    val expiryPeriod: String,
+    shortCuts: Map<String, String>
+  ) {
     val regexArray: Array<Regex>
     val writeAccessEntities = mutableListOf<String>()
 
@@ -267,7 +311,7 @@ open class My2FARequestHandler {
           if (!exp.startsWith("WRITE:") && exp[0].isUpperCase()) {
             // Proceed shortcuts such as ADMIN, FINANCE, ...
             var found = false
-            My2FARequestConfiguration.shortCuts.forEach { (shortCut, shortCutRegex) ->
+            shortCuts.forEach { (shortCut, shortCutRegex) ->
               if (!found && exp == shortCut) {
                 found = true
                 shortCutRegex.split(';').forEach { shortCutExp ->
@@ -354,5 +398,16 @@ open class My2FARequestHandler {
         list.add(exp.trim())
       }
     }
+  }
+
+  fun registerShortCut(shortCut: String, resolved: String) {
+    synchronized(shortCuts) {
+      shortCuts[shortCut] = resolved
+      expiryPeriodsDirty = true
+    }
+  }
+
+  init {
+    registerShortCut("ALL", "/")
   }
 }

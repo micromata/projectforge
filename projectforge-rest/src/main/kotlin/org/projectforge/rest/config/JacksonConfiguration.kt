@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import mu.KotlinLogging
 import org.hibernate.proxy.AbstractLazyInitializer
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.calendar.event.model.ICalendarEvent
@@ -61,6 +62,8 @@ import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalTime
 
+private val log = KotlinLogging.logger {}
+
 /**
  * Base configuration of all Spring rest calls. Unknown properties not avoidable by the client might be registered through
  * [registerAllowedUnknownProperties]. For example PFUserDO.fullname is provided as service for the clients, but is
@@ -69,8 +72,6 @@ import java.time.LocalTime
 @Configuration
 open class JacksonConfiguration {
   companion object {
-    private val log = org.slf4j.LoggerFactory.getLogger(JacksonConfiguration::class.java)
-
     private val allowedUnknownProperties = mutableMapOf<Class<*>, MutableSet<String>>()
 
     private val allowedUnknownGlobalProperties = mutableSetOf<String>()
@@ -147,7 +148,10 @@ open class JacksonConfiguration {
         "lastUpdateTimeAgo",
         "encrypted",
       )
-      registerAllowedUnknownProperties(ServerData::class.java, "id") // Sometimes send by client, don't know, why. Not needed.
+      registerAllowedUnknownProperties(
+        ServerData::class.java,
+        "id"
+      ) // Sometimes send by client, don't know, why. Not needed.
       registerAllowedUnknownProperties(PFUserDO::class.java, "fullname")
       registerAllowedUnknownProperties(KundeDO::class.java, "id")
       // reminderDuration* will be there after function switchToTimesheet is used:

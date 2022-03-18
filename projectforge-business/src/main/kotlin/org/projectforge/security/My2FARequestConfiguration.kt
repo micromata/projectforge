@@ -130,21 +130,4 @@ open class My2FARequestConfiguration {
       else -> true
     }*/
   }
-
-  companion object {
-    internal val shortCuts =
-      mutableMapOf(
-        "ADMIN" to
-            "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin;/react/change.*Password;/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin",
-        "HR" to "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed",
-        "FINANCE" to
-            "WRITE:incomingInvoice;WRITE:outgoingInvoice;/wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice",
-        "ORGA" to
-            "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract",
-        "SCRIPT" to "/react/script",
-        "MY_ACCOUNT" to "/react/tokenInfo;/react/myAccount;/rs/tokenInfo;/rs/user/renewToken",
-        "PASSWORD" to "/react/change.*Password",
-        "ALL" to "/",
-      )
-  }
 }
