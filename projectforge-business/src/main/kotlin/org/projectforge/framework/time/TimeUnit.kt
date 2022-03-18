@@ -24,7 +24,8 @@
 package org.projectforge.framework.time
 
 enum class TimeUnit(val millis: Long) {
-  MINUTE(60 * 1000L),
+  SECONDS(1000L),
+  MINUTE(60 * SECONDS.millis),
   HOUR(60 * MINUTE.millis),
   DAY(24 * HOUR.millis),
   WEEK(7 * DAY.millis),

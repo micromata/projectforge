@@ -42,11 +42,12 @@ class TimeAgoLeftTest {
   fun i18nTest() {
     timeAgoLeft(-100 * SECOND, "negative", -1)
     timeAgoLeft(-125 * SECOND, "minutes", 2, true)
-    timeAgoLeft(20 * SECOND, "afewseconds", -1)
-    timeAgoLeft(30 * SECOND, "afewseconds", -1)
-    timeAgoLeft(31 * SECOND, "afewseconds", -1)
-    timeAgoLeft(49 * SECOND, "afewseconds", -1)
-    timeAgoLeft(50 * SECOND, "afewseconds", -1)
+    timeAgoLeft(5 * SECOND, "afewseconds", -1)
+    timeAgoLeft(20 * SECOND, "seconds", 21)
+    timeAgoLeft(30 * SECOND, "seconds", 31)
+    timeAgoLeft(31 * SECOND, "seconds", 32)
+    timeAgoLeft(49 * SECOND, "seconds", 50)
+    timeAgoLeft(50 * SECOND, "seconds", 51)
     timeAgoLeft(65 * SECOND, "minutes.one", -1)
     timeAgoLeft(125 * SECOND, "minutes", 2)
 
