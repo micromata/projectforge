@@ -44,7 +44,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * The number of failed OTP checks per user including last try is stored.
- * If the number of retries exceeds 3, the user is blocked for one hour after each further three failed retries.
+ * If the number of retries exceeds 3, the user is blocked for one minute after each further three failed retries.
  * If the number of retries exceeds 12 ([MAX_RETRIES_BEFORE_DEACTIVATING_USER]), the user will be deactivated.
  *
  * Please note: This is only an in-memory solution. After a restart of ProjectForge, all failure counters will be reset and
@@ -103,7 +103,7 @@ internal class My2FABruteForceProtection {
       data.lastFailedTry = System.currentTimeMillis()
     }
     if (counter >= MAX_RETRIES_BEFORE_DEACTIVATING_USER) {
-      val user = userDao.internalGetOrLoad(userId)
+      val user = userDao.internalGetById(userId)
       if (user == null) {
         log.error { "Internal error: Oups, user with id $userId not found in the data base. Can't deactivate user!!!!" }
       } else {
@@ -155,8 +155,13 @@ internal class My2FABruteForceProtection {
     }
     val data = getData(userId) ?: return "??? no user info found ???"
     val lastFailedTry = data.lastFailedTry ?: return "??? no last failure date found ???"
-    val until = PFDateTime.from(lastFailedTry).plus(getWaitingMillis(data.counter), ChronoUnit.MILLIS)
-    val timeLeft = TimeLeft.getI18nKey(until.utilDate, maxUnit = TimeUnit.MINUTE)
+    val waitingMillis = getWaitingMillis(data.counter)
+    val until = PFDateTime.from(lastFailedTry).plus(waitingMillis, ChronoUnit.MILLIS)
+    val timeLeft = if (waitingMillis > TimeUnit.HOUR.millis) {
+      TimeLeft.getMessage(until.utilDate)
+    } else {
+      TimeLeft.getMessage(until.utilDate, maxUnit = TimeUnit.SECONDS)
+    }
     // You have been blocked until {0} ({1}) after {2} failed code checks. Please note, that your account might be deactivated after {3} failed OTP checks.
     return translateMsg(
       "user.My2FACode.error.timePenalty.message",
@@ -180,10 +185,10 @@ internal class My2FABruteForceProtection {
       return 0
     }
     if (counter >= MAX_RETRIES_BEFORE_DEACTIVATING_USER) {
-      return Long.MAX_VALUE
+      return YEARS_IN_FUTURE
     }
     return if (counter.mod(3) == 0) {
-      3_600_000L
+      TimeUnit.MINUTE.millis
     } else {
       0L
     }
@@ -205,5 +210,6 @@ internal class My2FABruteForceProtection {
   companion object {
     const val MAX_RETRIES_BEFORE_TIME_PENALTY = 3
     const val MAX_RETRIES_BEFORE_DEACTIVATING_USER = 12
+    val YEARS_IN_FUTURE = 10 * TimeUnit.YEAR.millis
   }
 }
