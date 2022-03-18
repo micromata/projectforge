@@ -30,7 +30,6 @@ import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -58,6 +57,13 @@ class SwaggerUIFilter : Filter {
 
   companion object {
     @JvmField
-    val SWAGGER_ROOT = "/swagger/"
+    val SWAGGER_ROOT_NON_TRAILING_SLASH = "swagger/"
+
+    @JvmField
+    val SWAGGER_ROOT = "/$SWAGGER_ROOT_NON_TRAILING_SLASH"
+
+    @JvmStatic
+    val enabled: Boolean
+      get() = SpringFoxConfig.swaggerEnabled
   }
 }

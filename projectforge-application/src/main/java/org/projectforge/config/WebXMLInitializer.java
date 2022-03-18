@@ -84,7 +84,10 @@ public class WebXMLInitializer implements ServletContextInitializer {
     RestUtils.registerFilter(sc, "securityFilter", SecurityFilter.class, false, "/*");
     RestUtils.registerFilter(sc, "loggingFilter", LoggingFilter.class, false, "/*");
     RestUtils.registerFilter(sc, "WicketUserFilter", WicketUserFilter.class, filterAfterInternal, "/wa/*");
-    RestUtils.registerFilter(sc, "swaggerUIFilter", SwaggerUIFilter.class, false, SwaggerUIFilter.SWAGGER_ROOT + "*");
+    if (SwaggerUIFilter.getEnabled()) {
+      // If Swagger is enabled by accident, the url is protected by the security (paranoia) filter:
+      RestUtils.registerFilter(sc, "swaggerUIFilter", SwaggerUIFilter.class, false, SwaggerUIFilter.SWAGGER_ROOT + "*");
+    }
     RestUtils.registerFilter(sc, "springContext", SpringThreadLocalFilter.class, filterAfterInternal, "/wa/*");
 
     final FilterRegistration wicketApp = RestUtils.registerFilter(sc, "wicket.app", WicketFilter.class, filterAfterInternal, "/wa/*");
