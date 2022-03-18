@@ -278,7 +278,16 @@ open class My2FARequestHandler {
             }
             if (!found) {
               // Started with uppercase  but not of list "ADMIN, FINANCE, ..."
-              log.warn { "Configuration error for projectforge.2fa.expiryPeriod.$expiryPeriod: '$exp' not defined." }
+              log.error { "Configuration error for projectforge.2fa.expiryPeriod.$expiryPeriod: '$exp' not defined." }
+              //
+              // ********** SECURITY SHUTDOWN **********
+              //
+              // ProjectForge might not work as expected, so shutdown and inform the administrator.
+              //
+              SecurityShutdown.shutdownSystemOnFatalError(
+                log, "Configuration error in projectforge.2fa.expiryPeriod.$expiryPeriod:",
+                "'$exp' not defined."
+              )
               addRegex(list, exp)
             }
           } else {
