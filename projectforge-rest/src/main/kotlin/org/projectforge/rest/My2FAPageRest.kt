@@ -28,6 +28,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.security.My2FAData
 import org.projectforge.security.My2FAService
 import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UILayout
