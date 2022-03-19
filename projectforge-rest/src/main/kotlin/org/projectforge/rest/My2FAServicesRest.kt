@@ -24,14 +24,17 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.PostData
+import org.projectforge.security.My2FAData
 import org.projectforge.security.My2FARequestConfiguration
 import org.projectforge.security.My2FAService
 import org.projectforge.security.OTPCheckResult
@@ -157,14 +160,38 @@ class My2FAServicesRest {
   }
 
   fun fill2FA(row: UIRow, my2FAData: My2FAData) {
-    val mobilePhone = ThreadLocalUserContext.getUser()?.mobilePhone
     my2FAData.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
-    val smsAvailable = my2FAHttpService.smsConfigured && NumberHelper.matchesPhoneNumber(mobilePhone)
-    val showPasswordCol = my2FARequestConfiguration.checkLoginPasswordRequired4Mail2FA()
-    val width = if (showPasswordCol) 4 else 6
-
-    val codeCol = UICol(md = width)
+    val codeCol = UICol(md = 6)
     row.add(codeCol)
+
+    //val showPasswordCol = my2FARequestConfiguration.checkLoginPasswordRequired4Mail2FA()
+    /*
+      // Enable E-Mail with password (required for security reasons, if attacker has access to local client)
+      val passwordCol = UICol(md = width)
+      row.add(passwordCol)
+      passwordCol.add(
+        UIInput(
+          "password",
+          label = "password",
+          tooltip = "user.My2FACode.password.info",
+          dataType = UIDataType.PASSWORD,
+          autoComplete = UIInput.AutoCompleteType.OFF
+        )
+      )*/
+
+    val last2FACol = UICol(md = 6)
+    row.add(last2FACol)
+    last2FACol.add(UIReadOnlyField("lastSuccessful2FA", label = "user.My2FACode.lastSuccessful2FA"))
+  }
+
+  fun fillLayout4LoginPage(layout: UILayout, userContext: UserContext) {
+    val fieldset = UIFieldset(12, title = "user.My2FACode.title")
+    layout.add(fieldset)
+    fillCodeCol(fieldset, userContext.user?.mobilePhone)
+  }
+
+  private fun fillCodeCol(codeCol: UICol, mobilePhone: String? = ThreadLocalUserContext.getUser()?.mobilePhone) {
+    val smsAvailable = my2FAHttpService.smsConfigured && NumberHelper.matchesPhoneNumber(mobilePhone)
     codeCol
       .add(
         UIInput(
@@ -184,27 +211,7 @@ class My2FAServicesRest {
     if (smsAvailable) {
       codeCol.add(createSendButton(My2FAType.SMS))
     }
-    if (showPasswordCol) {
-      // Enable E-Mail with password (required for security reasons, if attacker has access to local client)
-      val passwordCol = UICol(md = width)
-      row.add(passwordCol)
-      passwordCol.add(
-        UIInput(
-          "password",
-          label = "password",
-          tooltip = "user.My2FACode.password.info",
-          dataType = UIDataType.PASSWORD,
-          autoComplete = UIInput.AutoCompleteType.OFF
-        )
-      )
-      passwordCol.add(createSendButton(My2FAType.MAIL))
-    } else {
-      codeCol.add(createSendButton(My2FAType.MAIL))
-    }
-
-    val last2FACol = UICol(md = width)
-    row.add(last2FACol)
-    last2FACol.add(UIReadOnlyField("lastSuccessful2FA", label = "user.My2FACode.lastSuccessful2FA"))
+    codeCol.add(createSendButton(My2FAType.MAIL))
   }
 
   /**

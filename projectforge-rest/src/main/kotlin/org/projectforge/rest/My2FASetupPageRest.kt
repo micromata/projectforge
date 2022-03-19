@@ -72,7 +72,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
-    val data = My2FAData()
+    val data = My2FASetupData()
     userDao.internalGetById(ThreadLocalUserContext.getUserId())?.let { user ->
       data.mobilePhone = user.mobilePhone
     }
@@ -84,7 +84,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    * Will be called, if the user wants to see the encryption options.
    */
   @PostMapping(RestPaths.WATCH_FIELDS)
-  fun watchFields(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
+  fun watchFields(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
     val data = postData.data
     if (data.showAuthenticatorKey) {
       data.authenticatorKey = authenticationsService.getAuthenticatorToken()
@@ -110,7 +110,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    */
   @Suppress("UNUSED_PARAMETER")
   @PostMapping("enableAuthenticatorApp")
-  fun enableAuthenticatorApp(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
+  fun enableAuthenticatorApp(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
     if (!authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
       log.error { "User tries to enable authenticator app, but authenticator token is already given!" }
       throw IllegalArgumentException("2FA already configured.")
@@ -118,7 +118,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     if (!checklastSuccessful2FA()) {
       return showValidationErrors(ValidationError(translate("user.My2FA.required"), "code"))
     }
-    val data = My2FAData()
+    val data = My2FASetupData()
     data.mobilePhone = postData.data.mobilePhone
     authenticationsService.createNewAuthenticatorToken()
     data.showAuthenticatorKey = true
@@ -136,7 +136,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    * Requires a valid 2FA not older than 1 minute.
    */
   @PostMapping("disableAuthenticatorApp")
-  fun disableAuthenticatorApp(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
+  fun disableAuthenticatorApp(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
     if (authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
       log.error { "User tries to disable 2FA, but authenticator token isn't given!" }
       throw IllegalArgumentException("2FA not configured.")
@@ -148,7 +148,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     if (!checklastSuccessful2FA()) {
       return showValidationErrors(ValidationError(translate("user.My2FA.required"), "code"))
     }
-    val data = My2FAData()
+    val data = My2FASetupData()
     data.mobilePhone = postData.data.mobilePhone
     authenticationsService.clearAuthenticatorToken()
     return ResponseEntity.ok(
@@ -162,7 +162,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    * Save the mobile phone field as is is. Must be empty or in a valid phone number format.
    */
   @PostMapping("saveMobilePhone")
-  fun saveMobilePhone(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
+  fun saveMobilePhone(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
     val mobilePhone = postData.data.mobilePhone
     if (!mobilePhone.isNullOrBlank() && !StringHelper.checkPhoneNumberFormat(mobilePhone, false)) {
       return showValidationErrors(ValidationError(translate("user.mobilePhone.invalidFormat"), "mobilePhone"))
@@ -176,7 +176,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     return UIToast.createToastResponseEntity(translate("operation.updated"), color = UIColor.SUCCESS)
   }
 
-  private fun createLayout(data: My2FAData): UILayout {
+  private fun createLayout(data: My2FASetupData): UILayout {
     data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val smsConfigured = my2FAHttpService.smsConfigured
     val authenticatorKey = authenticationsService.getAuthenticatorToken()

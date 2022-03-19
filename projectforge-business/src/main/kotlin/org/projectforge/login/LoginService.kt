@@ -100,7 +100,7 @@ open class LoginService {
   }
 
   /**
-   * Checks, if the user is logged-in (session) or has a valid stay-logge-in cookie. If not logged-in and a valid
+   * Checks, if the user is logged-in (session) or has a valid stay-logged-in cookie. If not logged-in and a valid
    * stay-logged-in-cookie is found, the user will be logged-in by this method.
    */
   fun checkLogin(request: HttpServletRequest, response: HttpServletResponse): UserContext? {
@@ -109,6 +109,9 @@ open class LoginService {
       // Get the fresh user from the user cache.
       userContext.refreshUser()
       // Check 2FA if session is kept alive for a longer time:
+      if (!ensureSystemAccess(request, response, userContext)) {
+        return null
+      }
       if (SystemStatus.isDevelopmentMode()) {
         log.warn { "***** TODO: Implementation of 2FA after login" }
       }
@@ -119,11 +122,31 @@ open class LoginService {
       return userContext
     }
     val userContext = checkStayLoggedIn(request, response)
-    // TODO: check2FARequiredAfterLogin(userContext)
-    if (SystemStatus.isDevelopmentMode()) {
-      log.warn { "***** TODO: Implementation of 2FA after login" }
+    if (!ensureSystemAccess(request, response, userContext)) {
+      return null
     }
     return userContext
+  }
+
+  private fun ensureSystemAccess(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    userContext: UserContext?
+  ): Boolean {
+    userContext ?: return false
+    if (userContext.user?.hasSystemAccess() != true) {
+      log.warn { "Logged-in user has no system access (deactivated by admin?). The user will be logged out immediately.: ${userContext.user}" }
+      logout(request, response)
+      return false
+    }
+    if (!userContext.new2FARequired) {
+      return true
+    }
+    // New 2FA required. Do only allow following requests:
+    val uri = request.requestURI
+    return uri == "/rs/2FA/checkOTP"
+        || uri == "/rs/2FA/sendMailCode"
+        || uri == "/rs/2FA/sendSmsCode"
   }
 
   /**
@@ -147,10 +170,12 @@ open class LoginService {
       cookieService.addStayLoggedInCookie(request, response, loggedInUser, stayLoggedInKey)
     }
     // Execute login:
-    val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user)!!)
-    // TODO: check2FARequiredAfterLogin(userContext)
-    if (SystemStatus.isDevelopmentMode()) {
-      log.warn { "***** TODO: Implementation of 2FA after login" }
+    val userContext = UserContext(user)
+    if (check2FARequiredAfterLogin(userContext)) {
+      userContext.new2FARequired = true
+      if (SystemStatus.isDevelopmentMode()) {
+        log.warn { "***** TODO: Implementation of 2FA after login" }
+      }
     }
     internalLogin(request, userContext)
     return LoginResultStatus.SUCCESS

@@ -44,12 +44,22 @@ class UserContext() : Serializable {
     get() = UserGroupCache.getInstance().getEmployeeId(user?.id)
 
   /**
+   * If true, a 2FA authentification is required before any further access. This field may be set to true,
+   * if a 2FA is required after login.
+   */
+  var new2FARequired: Boolean = false
+
+  /**
    * Last successful two factor authentification for this user (in session/stay-login) in epoch ms.
    */
   var lastSuccessful2FA: Long? = null
 
+  /**
+   * Sets current millis as last successful 2FA and [new2FARequired] to false.
+   */
   fun updateLastSuccessful2FA() {
     this.lastSuccessful2FA = System.currentTimeMillis()
+    new2FARequired = false
   }
 
   /**

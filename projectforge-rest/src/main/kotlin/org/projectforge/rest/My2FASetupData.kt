@@ -21,21 +21,23 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.login
+package org.projectforge.rest
 
 import org.projectforge.security.My2FAData
 
-/**
- * Password as char array for security reasons (don't wait for the garbage collector).
- */
-class LoginData(
-  var username: String? = null,
-  password: CharArray? = null,
-  var stayLoggedIn: Boolean? = null
-) :
-  My2FAData() {
-  init {
-    this.password = password
-  }
-}
+class My2FASetupData : My2FAData() {
+  /**
+   * Only used for setup.
+   */
+  var mobilePhone: String? = null
 
+  /**
+   * Only used for setup (must be hidden for other pages)
+   */
+  var authenticatorKey: String? = null
+
+  /**
+   * Only used for setup.
+   */
+  var showAuthenticatorKey: Boolean = false
+}
