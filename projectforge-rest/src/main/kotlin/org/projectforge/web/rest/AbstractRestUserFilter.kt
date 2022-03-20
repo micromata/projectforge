@@ -27,7 +27,9 @@ import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.utils.RequestLog
+import org.projectforge.security.SecurityLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.context.support.WebApplicationContextUtils
@@ -71,6 +73,15 @@ abstract class AbstractRestUserFilter(val userTokenType: UserTokenType) : Filter
   override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
     if (log.isDebugEnabled) {
       log.debug("Processing request ${RequestLog.asString(request as HttpServletRequest)}...")
+    }
+    ThreadLocalUserContext.getUserContext()?.let { userContext ->
+      // Paranoia:
+      SecurityLogging.logSecurityWarn(
+        request as HttpServletRequest,
+        this::class.java,
+        "UserContext in ThreadLocal is given on request start!!!!!: ${userContext.user}"
+      )
+      ThreadLocalUserContext.setUserContext(null)
     }
     restAuthenticationUtils.doFilter(request,
       response,
