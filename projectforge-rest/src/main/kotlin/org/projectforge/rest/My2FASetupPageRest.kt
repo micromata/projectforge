@@ -215,7 +215,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
           tooltip = "user.My2FA.setup.enableAuthenticatorApp.info",
           color = UIColor.DANGER,
           responseAction = ResponseAction("/rs/2FASetup/enableAuthenticatorApp", targetType = TargetType.POST),
-          confirmMessage = translate("user.My2FA.enableAuthenticatorApp.enable.confirmMessage")
+          confirmMessage = translate("user.My2FA.setup.enableAuthenticatorApp.confirmMessage")
         )
       )
     } else {
