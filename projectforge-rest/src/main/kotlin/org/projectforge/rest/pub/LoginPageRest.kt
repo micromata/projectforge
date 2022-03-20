@@ -102,13 +102,7 @@ open class LoginPageRest {
     val loginResultStatus = loginService.authenticate(request, response, postData.data)
 
     if (loginResultStatus == LoginResultStatus.SUCCESS) {
-      var redirectUrl: String? = null
-      val returnToCaller = postData.serverData?.returnToCaller
-      if (!returnToCaller.isNullOrBlank()) {
-        redirectUrl = URLDecoder.decode(returnToCaller, "UTF-8")
-      } else if (request.getHeader("Referer").contains("/public/login")) {
-        redirectUrl = "/${Const.REACT_APP_PATH}calendar"
-      }
+      val redirectUrl = getRedirectUrl(request, postData.serverData)
       return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
     }
 
@@ -190,5 +184,19 @@ open class LoginPageRest {
     my2FAServicesRest.fillLayout4LoginPage(layout, userContext, url)
     LayoutUtils.process(layout)
     return FormLayoutData(data, layout, ServerData(returnToCaller = url))
+  }
+
+  companion object {
+    fun getRedirectUrl(request: HttpServletRequest, serverData: ServerData?): String? {
+      var redirect: String? = null
+      val returnToCaller = serverData?.returnToCaller
+      if (!returnToCaller.isNullOrBlank()) {
+        redirect = URLDecoder.decode(returnToCaller, "UTF-8")
+      } else if (request.getHeader("Referer").contains("/public/login")) {
+        redirect = "/${Const.REACT_APP_PATH}calendar"
+      }
+      // redirect might be "null" (string):
+      return if (redirect.isNullOrBlank() || redirect == "null") null else redirect
+    }
   }
 }

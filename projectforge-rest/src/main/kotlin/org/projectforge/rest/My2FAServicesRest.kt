@@ -28,25 +28,23 @@ import org.projectforge.business.user.filter.CookieService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.pub.LoginPageRest
 import org.projectforge.rest.pub.My2FAPublicServicesRest
 import org.projectforge.security.My2FAData
 import org.projectforge.security.My2FAService
 import org.projectforge.security.OTPCheckResult
-import org.projectforge.security.SecurityLogging
 import org.projectforge.ui.*
 import org.projectforge.web.My2FAHttpService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.net.URLEncoder
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
@@ -97,8 +95,9 @@ class My2FAServicesRest {
         cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
       }
       if (afterLogin) {
+        val redirectUrl = LoginPageRest.getRedirectUrl(request, postData.serverData)
         return ResponseEntity(
-          ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirect),
+          ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl),
           HttpStatus.OK
         )
       }
