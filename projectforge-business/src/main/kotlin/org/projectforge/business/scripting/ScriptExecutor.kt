@@ -294,6 +294,7 @@ abstract class ScriptExecutor(
       "import org.projectforge.framework.time.*",
       "import org.projectforge.framework.utils.NumberHelper",
       "import org.projectforge.framework.utils.RoundUtils",
+      "import org.projectforge.framework.utils.RoundUnit",
       // "import static org.projectforge.framework.utils.NumberFormatter.format", // ambigous for Groovy!?
       // "import static org.projectforge.framework.utils.NumberFormatter.formatCurrency", // ambigous for Groovy!?
     )
