@@ -30,6 +30,7 @@ import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.login.LoginService
@@ -41,6 +42,7 @@ import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.security.My2FARequestConfiguration
 import org.projectforge.security.My2FAService
 import org.projectforge.security.OTPCheckResult
+import org.projectforge.security.SecurityLogging
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -93,12 +95,12 @@ class My2FAHttpService {
     val code = createOTP(request)
     val msg = "${translateMsg("user.My2FACode.sendCode.mail.message", code)} ${translate("address.sendSms.doNotReply")}"
     val responseCode = smsSender.send(mobilePhone, msg)
-    val result = Result(responseCode == HttpResponseCode.SUCCESS, getResultMessage(responseCode, mobilePhone))
+    val result = Result(responseCode == HttpResponseCode.SUCCESS, getResultMessage(responseCode))
     if (SystemStatus.isDevelopmentMode()) {
       log.info { "Development mode: Text message would be sent in production mode to '$mobilePhone': $msg" }
       if (!result.success) {
         ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_MOBILE_OTP, code, TTL_MINUTES)
-        return Result(true, "Test system, sms not sent to $mobilePhone (OK)")
+        return Result(true, "Test system: ${getResultMessage(HttpResponseCode.SUCCESS)}")
       }
     }
     if (result.success) {
@@ -113,13 +115,14 @@ class My2FAHttpService {
   fun createAndMailOTP(request: HttpServletRequest): Result {
     val code = createOTP(request)
     val mail = Mail()
-    mail.setTo(ThreadLocalUserContext.getUser())
+    val user = ThreadLocalUserContext.getUser()
+    mail.setTo(user)
     mail.subject = translate("user.My2FACode.sendCode.mail.title")
     mail.contentType = Mail.CONTENTTYPE_HTML
     val data: MutableMap<String, Any> = mutableMapOf("otp" to code)
     mail.content = sendMail.renderGroovyTemplate(
       mail, "mail/otpMail.html", data,
-      mail.subject, ThreadLocalUserContext.getUser()
+      mail.subject, user
     )
     if (SystemStatus.isDevelopmentMode()) {
       log.info { "Development mode: Text message would be sent in production mode to '${mail.to}'. Code is $code" }
@@ -129,7 +132,7 @@ class My2FAHttpService {
       ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_MAIL_OTP, code, TTL_MINUTES)
       return Result(
         true,
-        translateMsg("user.My2FACode.sendCode.mail.sentSuccessfully", ThreadLocalUserContext.getUser().email)
+        translateMsg("user.My2FACode.sendCode.mail.sentSuccessfully", PFDateTime.now().format())
       )
     }
     return Result(false, translate("mail.error.exception"))
@@ -143,12 +146,12 @@ class My2FAHttpService {
     return NumberHelper.getSecureRandomDigits(6)
   }
 
-  private fun getResultMessage(responseCode: HttpResponseCode, number: String): String {
+  private fun getResultMessage(responseCode: HttpResponseCode): String {
     val errorKey = smsSender.getErrorMessage(responseCode)
     if (errorKey != null) {
       return translate(errorKey)
     }
-    return translateMsg("address.sendSms.sendMessage.result.successful", number, PFDateTime.now().format())
+    return translateMsg("user.My2FACode.sendCode.sms.sentSuccessfully", PFDateTime.now().format())
   }
 
   /**
