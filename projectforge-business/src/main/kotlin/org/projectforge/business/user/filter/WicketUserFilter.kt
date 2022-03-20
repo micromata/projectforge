@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.login.LoginService
 import org.projectforge.security.My2FARequestHandler
+import org.projectforge.security.SecurityLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
@@ -61,6 +62,11 @@ class WicketUserFilter : Filter {
   @Throws(IOException::class, ServletException::class)
   override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
     request as HttpServletRequest
+    ThreadLocalUserContext.getUserContext()?.let { userContext ->
+      // Paranoia:
+      SecurityLogging.logSecurityWarn(request, this::class.java, "UserContext in ThreadLocal is given on request start!!!!!: ${userContext.user}")
+      ThreadLocalUserContext.setUserContext(null)
+    }
     if (log.isDebugEnabled) {
       log.debug("doFilter ${request.requestURI}: ${request.getSession(false)?.id}")
     }
@@ -84,7 +90,7 @@ class WicketUserFilter : Filter {
         response.sendRedirect("/react/public/login?url=$url")
       }
     } finally {
-      ThreadLocalUserContext.clear()
+      ThreadLocalUserContext.setUserContext(null)
       if (log.isDebugEnabled) {
         logDebugRequest(request)
       }

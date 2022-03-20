@@ -27,6 +27,8 @@ import mu.KotlinLogging
 import org.projectforge.login.LoginService
 import javax.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
+
 private val accessLog = KotlinLogging.logger("de.micromata.projectforge.accessLog")
 private val securityLog = KotlinLogging.logger("de.micromata.projectforge.securityLog")
 
@@ -64,6 +66,7 @@ object SecurityLogging {
     }
     if (logSecurity) {
       securityLog.info(msg)
+      log.info { "logSecurity: $msg" }
     }
     return msg
   }
@@ -123,9 +126,11 @@ object SecurityLogging {
     val msg = "*** $title *** ${getLogInfo(request)} ${getMessagePart(caller, message)}"
     if (logAccess) {
       accessLog.warn(msg)
+      log.warn { "logAccess: $msg" }
     }
     if (logSecurity) {
       securityLog.warn(msg)
+      log.warn { "logSecurity: $msg" }
     }
     return msg
   }
