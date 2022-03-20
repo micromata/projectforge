@@ -24,7 +24,6 @@
 package org.projectforge.login
 
 import mu.KotlinLogging
-import org.projectforge.SystemStatus
 import org.projectforge.business.ldap.LdapMasterLoginHandler
 import org.projectforge.business.ldap.LdapSlaveLoginHandler
 import org.projectforge.business.login.*
@@ -36,6 +35,7 @@ import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.security.My2FARequestConfiguration
 import org.projectforge.security.My2FAService
 import org.projectforge.web.WebUtils
@@ -234,7 +234,11 @@ open class LoginService {
 
   private fun checkStayLoggedIn(request: HttpServletRequest, response: HttpServletResponse): UserContext? {
     val userContext = cookieService.checkStayLoggedIn(request, response) ?: return null
-    log.info("User's stay logged-in cookie found: ${request.requestURI}")
+    val userId = userContext.user?.id
+    val lastSuccessfulFA = if (userId != null) cookieService.getLast2FA(request, userId) else null
+    userContext.lastSuccessful2FA = lastSuccessfulFA
+    val last2FAText = if (lastSuccessfulFA != null) ", last successful 2FA: ${PFDateTime.from(lastSuccessfulFA).isoString} UTC" else ""
+    log.info("User's stay logged-in cookie found: ${request.requestURI}$last2FAText")
     if (log.isDebugEnabled) {
       request.cookies?.forEach { cookie ->
         log.debug("Cookie found: ${cookie.name}, path=${cookie.path}, value=${cookie.value}, secure=${cookie.version}, maxAge=${cookie.maxAge}, domain=${cookie.domain}")
@@ -248,10 +252,18 @@ open class LoginService {
    * @return true, if 2FA is required after login, otherwise false.
    */
   private fun check2FARequiredAfterLogin(userContext: UserContext): Boolean {
-    my2FARequestConfiguration.loginExpiryDays?.let { days ->
-      if (!my2FAService.checklastSuccessful2FA(days.toLong(), My2FAService.Unit.DAYS, userContext)) {
-        log.info { "User is forced for 2FA after login: ${userContext.user?.username}." }
-        return true
+    my2FARequestConfiguration.loginExpiryDays.let { days ->
+      if (days != null) {
+        if (!my2FAService.checklastSuccessful2FA(days.toLong(), My2FAService.Unit.DAYS, userContext)) {
+          log.info { "User is forced for 2FA after login: ${userContext.user?.username}." }
+          return true
+        }
+      } else {
+        // Check current logged-in user if Authenticator-App is configured and no 2FA is done for now.
+        if (userContext.lastSuccessful2FA == null && userContext.authenticatorAppConfigured == true) {
+          log.info { "User is forced for 2FA after login: ${userContext.user?.username}, because his/her Authenticator App is configured." }
+          return true
+        }
       }
     }
     return false
@@ -263,7 +275,12 @@ open class LoginService {
    */
   private fun handle2FARequiredAfterLogin(request: HttpServletRequest, userContext: UserContext?) {
     userContext ?: return
-    // To-Do: Cach
+    if (userContext.authenticatorAppConfigured == null) {
+      // State of Authenticator App isn't yet given:
+      val userId =
+        userContext.user?.id ?: throw IllegalArgumentException("User id in UserContext is null (not expected).")
+      userContext.authenticatorAppConfigured = userAuthenticationsService.isAuthenticatorAppConfigured(userId)
+    }
     if (userContext.new2FARequired) {
       // Already set.
       return

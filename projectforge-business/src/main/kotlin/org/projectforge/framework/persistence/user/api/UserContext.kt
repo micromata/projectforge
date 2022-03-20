@@ -55,6 +55,11 @@ class UserContext() : Serializable {
   var lastSuccessful2FA: Long? = null
 
   /**
+   * Has the user configured his Authenticator-App? Null means, that this state isn't yet checkted.
+   */
+  var authenticatorAppConfigured: Boolean? = null
+
+  /**
    * Sets current millis as last successful 2FA and [new2FARequired] to false.
    */
   fun updateLastSuccessful2FA() {
