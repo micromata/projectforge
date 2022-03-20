@@ -64,8 +64,7 @@ open class My2FAPublicServicesRest {
   ): ResponseEntity<*> {
     securityCheck(request)?.let { return it }
     try {
-      val user = LoginService.getUser(request)!!
-      RegisterUser4Thread.registerUser(request, user)
+      RegisterUser4Thread.registerUser(LoginService.getUserContext(request)!!)
       return my2FAServicesRest.checkOTP(request, response, postData, redirect, afterLogin = true)
     } finally {
       RegisterUser4Thread.unregister()
@@ -79,8 +78,7 @@ open class My2FAPublicServicesRest {
   fun sendSmsCode(request: HttpServletRequest): ResponseEntity<*> {
     securityCheck(request)?.let { return it }
     try {
-      val user = LoginService.getUser(request)!!
-      RegisterUser4Thread.registerUser(request, user)
+      RegisterUser4Thread.registerUser(LoginService.getUserContext(request)!!)
       return my2FAServicesRest.sendSmsCode(request)
     } finally {
       RegisterUser4Thread.unregister()
@@ -94,8 +92,7 @@ open class My2FAPublicServicesRest {
   fun sendMailCode(request: HttpServletRequest): ResponseEntity<*> {
     securityCheck(request)?.let { return it }
     try {
-      val user = LoginService.getUser(request)!!
-      RegisterUser4Thread.registerUser(request, user)
+      RegisterUser4Thread.registerUser(LoginService.getUserContext(request)!!)
       return my2FAServicesRest.sendMailCode(request)
     } finally {
       RegisterUser4Thread.unregister()

@@ -39,7 +39,6 @@ import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.RegisterUser4Thread
 import org.projectforge.security.SecurityLogging
-import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -305,9 +304,16 @@ open class RestAuthenticationUtils {
    */
   fun registerUser(request: HttpServletRequest, authInfo: RestAuthenticationInfo, userTokenType: UserTokenType?) {
     val user = authInfo.user!!
+    var userContext = LoginService.getUserContext(request)
+    if (userContext != null) {
+      userContext.user = user // Replace by fresh user from authentication.
+      ThreadLocalUserContext.setUserContext(userContext)
+    } else {
+      userContext = ThreadLocalUserContext.setUser(user)!!
+    }
+    RegisterUser4Thread.registerUser(userContext)
     val clientIpAddress = authInfo.clientIpAddress
     LoginProtection.instance().clearLoginTimeOffset(authInfo.userString, user.id, clientIpAddress, userTokenType?.name)
-    val userContext = RegisterUser4Thread.registerUser(request, user)
     userContext.loggedInByAuthenticationToken = authInfo.loggedInByAuthenticationToken
     val settings = getConnectionSettings(request)
     ConnectionSettings.set(settings)
