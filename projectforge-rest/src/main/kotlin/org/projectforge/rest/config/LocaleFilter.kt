@@ -20,48 +20,45 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+package org.projectforge.rest.config
 
-package org.projectforge.rest.config;
-
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import kotlin.Throws
+import java.io.IOException
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.login.LoginService
+import javax.servlet.*
+import javax.servlet.http.HttpServletRequest
 
 /**
  * Sets locale to ThreadLocale (used by public services such as login and data transfer).
  */
-public class LocaleFilter implements Filter {
-
-  public LocaleFilter() {
-  }
-
+class LocaleFilter : Filter {
   /**
    * NOP.
-   * @see Filter#destroy()
+   * @see Filter.destroy
    */
-  public void destroy() {
-  }
+  override fun destroy() {}
 
   /**
-   * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
+   * @see Filter.doFilter
    */
-  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
-          throws IOException, ServletException {
+  @Throws(IOException::class, ServletException::class)
+  override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
     try {
-      ThreadLocalUserContext.setLocale(servletRequest.getLocale());
-      chain.doFilter(servletRequest, servletResponse);
+      // LoginService.getUser is only given for public services on 2FA check on login.
+      val locale = LoginService.getUser(request as HttpServletRequest)?.locale ?: request.locale
+      ThreadLocalUserContext.setLocale(locale)
+      chain.doFilter(request, response)
     } finally {
-      ThreadLocalUserContext.clear();
+      ThreadLocalUserContext.clear()
     }
   }
 
   /**
    * NOP.
-   * @see Filter#init(FilterConfig)
+   * @see Filter.init
    */
-  public void init(FilterConfig fConfig) throws ServletException {
+  @Throws(ServletException::class)
+  override fun init(fConfig: FilterConfig) {
   }
 }

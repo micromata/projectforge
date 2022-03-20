@@ -111,10 +111,6 @@ open class LoginService {
       if (!ensureSystemAccess(request, response, userContext)) {
         return null
       }
-      if (SystemStatus.isDevelopmentMode()) {
-        log.warn { "***** TODO: Implementation of 2FA after login" }
-      }
-      // TODO: check2FARequiredAfterLogin(userContext)
       if (log.isDebugEnabled) {
         log.debug("User found in session: ${request.requestURI}")
       }
@@ -165,9 +161,6 @@ open class LoginService {
     val userContext = UserContext(user)
     if (check2FARequiredAfterLogin(userContext)) {
       userContext.new2FARequired = true
-      if (SystemStatus.isDevelopmentMode()) {
-        log.warn { "***** TODO: Implementation of 2FA after login" }
-      }
     }
     internalLogin(request, userContext)
     return LoginResultStatus.SUCCESS
@@ -194,11 +187,6 @@ open class LoginService {
     LoginHandler.clearPassword(loginData.password)
     if (result.loginResultStatus == LoginResultStatus.SUCCESS) {
       loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
-      // Check 2FA
-      // TODO: check2FARequiredAfterLogin(userContext)
-      if (SystemStatus.isDevelopmentMode()) {
-        log.warn { "***** TODO: Implementation of 2FA after login" }
-      }
     } else if (result.loginResultStatus == LoginResultStatus.FAILED) {
       loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)
     }
