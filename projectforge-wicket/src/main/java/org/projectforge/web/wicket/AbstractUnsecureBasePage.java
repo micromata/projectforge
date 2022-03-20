@@ -123,7 +123,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage {
 
     final PFUserDO user = ThreadLocalUserContext.getUser();
     AbstractLink link;
-    link = new ExternalLink("footerNewsLink", "https://www.projectforge.org/projectforge-news.html");
+    link = new ExternalLink("footerNewsLink", "https://www.projectforge.org/changelog-posts/");
     body.add(link);
     link.add(new Label("version", "Version " + ProjectForgeVersion.VERSION_NUMBER + ", " + ProjectForgeVersion.BUILD_DATE)
             .setRenderBodyOnly(true));

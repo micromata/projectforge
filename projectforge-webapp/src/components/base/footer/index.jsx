@@ -47,7 +47,7 @@ function Footer() {
             <ul className={classNames(style.list, style.version)}>
                 <li>
                     <a
-                        href="https://www.projectforge.org/projectforge-news.html"
+                        href="https://www.projectforge.org/changelog-posts/"
                         title="News"
                         className={style.news_link}
                     >
