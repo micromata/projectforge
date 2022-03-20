@@ -24,25 +24,29 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.pub.My2FAPublicServicesRest
 import org.projectforge.security.My2FAData
-import org.projectforge.security.My2FARequestConfiguration
 import org.projectforge.security.My2FAService
 import org.projectforge.security.OTPCheckResult
+import org.projectforge.security.SecurityLogging
 import org.projectforge.ui.*
 import org.projectforge.web.My2FAHttpService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.net.URLEncoder
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
@@ -61,22 +65,26 @@ class My2FAServicesRest {
   private lateinit var cookieService: CookieService
 
   @Autowired
+  private lateinit var loginService: LoginService
+
+  @Autowired
   private lateinit var my2FAService: My2FAService
 
   @Autowired
   private lateinit var my2FAHttpService: My2FAHttpService
 
-  @Autowired
-  private lateinit var my2FARequestConfiguration: My2FARequestConfiguration
-
   /**
    * For validating the Authenticator's OTP, or OTP sent by sms or e-mail.
+   * @param afterLogin Used by [org.projectforge.rest.pub.My2FAPublicServicesRest]. If true, no toast should be
+   *                   created, a CHECK_AUTHENTICATION should be returned.
    */
   @PostMapping("checkOTP")
   fun checkOTP(
     request: HttpServletRequest,
     response: HttpServletResponse,
-    @Valid @RequestBody postData: PostData<My2FAData>
+    @Valid @RequestBody postData: PostData<My2FAData>,
+    @RequestParam("redirect", required = false) redirect: String?,
+    afterLogin: Boolean = false,
   ): ResponseEntity<ResponseAction> {
     val otp = postData.data.code
     val password = postData.data.password
@@ -87,6 +95,12 @@ class My2FAServicesRest {
     if (otpCheck == OTPCheckResult.SUCCESS) {
       ThreadLocalUserContext.getUserContext().lastSuccessful2FA?.let { lastSuccessful2FA ->
         cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
+      }
+      if (afterLogin) {
+        return ResponseEntity(
+          ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirect),
+          HttpStatus.OK
+        )
       }
       postData.data.let { data ->
         data.code = ""
@@ -126,44 +140,53 @@ class My2FAServicesRest {
    * Sends a OTP as code (text to mobile phone of logged-in user).
    */
   @GetMapping("sendSmsCode")
-  fun sendSmsCode(request: HttpServletRequest): ResponseEntity<ResponseAction> {
-    val mobilePhone = ThreadLocalUserContext.getUser()?.mobilePhone
-      ?: throw IllegalArgumentException("Mobile pone number not given.")
+  fun sendSmsCode(request: HttpServletRequest): ResponseEntity<*> {
+    val user = ThreadLocalUserContext.getUser()
+    val mobilePhone = user.mobilePhone
+    if (mobilePhone == null) {
+      log.error { "User '${user.username}' tried to send 2FA code as text message, but mobile phone isn't available." }
+      return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
+    }
     if (!my2FAService.smsConfigured) {
       log.error { "User tried to send a text message, but sms isn't configured." }
-      throw IllegalArgumentException("Internal error")
+      return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
     }
     val result = my2FAHttpService.createAndTextOTP(request, mobilePhone)
     return createResponseEntity(result)
   }
 
+
   /**
    * Sends a OTP as code vial mail.
    */
   @GetMapping("sendMailCode")
-  fun sendMailCode(request: HttpServletRequest): ResponseEntity<ResponseAction> {
-    ThreadLocalUserContext.getUser()?.email ?: throw IllegalArgumentException("E-mail not given.")
+  fun sendMailCode(request: HttpServletRequest): ResponseEntity<*> {
+    val user = ThreadLocalUserContext.getUser()
+    if (user.email.isNullOrBlank()) {
+      log.error { "User '${user.username}' tried to send 2FA code as mail, but e-mail address isn't available." }
+      return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
+    }
     val result = my2FAHttpService.createAndMailOTP(request)
     return createResponseEntity(result)
   }
 
-  fun fill2FA(layout: UILayout, my2FAData: My2FAData) {
+  fun fill2FA(layout: UILayout, my2FAData: My2FAData, redirectUrl: String? = null) {
     val fieldset = UIFieldset(12, title = "user.My2FACode.title")
     layout.add(fieldset)
-    fill2FA(fieldset, my2FAData)
+    fill2FA(fieldset, my2FAData, redirectUrl)
   }
 
-  fun fill2FA(col: UICol, my2FAData: My2FAData) {
+  fun fill2FA(col: UICol, my2FAData: My2FAData, redirectUrl: String? = null) {
     val row = UIRow()
     col.add(row)
-    fill2FA(row, my2FAData)
+    fill2FA(row, my2FAData, redirectUrl)
   }
 
-  fun fill2FA(row: UIRow, my2FAData: My2FAData) {
+  fun fill2FA(row: UIRow, my2FAData: My2FAData, redirectUrl: String? = null) {
     my2FAData.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val codeCol = UICol(md = 6)
     row.add(codeCol)
-
+    fillCodeCol(codeCol, redirectUrl)
     //val showPasswordCol = my2FARequestConfiguration.checkLoginPasswordRequired4Mail2FA()
     /*
       // Enable E-Mail with password (required for security reasons, if attacker has access to local client)
@@ -184,14 +207,24 @@ class My2FAServicesRest {
     last2FACol.add(UIReadOnlyField("lastSuccessful2FA", label = "user.My2FACode.lastSuccessful2FA"))
   }
 
-  fun fillLayout4LoginPage(layout: UILayout, userContext: UserContext) {
+  fun fillLayout4LoginPage(layout: UILayout, userContext: UserContext, redirectUrl: String?) {
     val fieldset = UIFieldset(12, title = "user.My2FACode.title")
     layout.add(fieldset)
-    fillCodeCol(fieldset, userContext.user?.mobilePhone)
+    fillCodeCol(fieldset, redirectUrl, userContext.user?.mobilePhone, usePublicServices = true)
   }
 
-  private fun fillCodeCol(codeCol: UICol, mobilePhone: String? = ThreadLocalUserContext.getUser()?.mobilePhone) {
+  /**
+   * @param usePublicServices Only true for login process (the private services aren't yet available.
+   */
+  private fun fillCodeCol(
+    codeCol: UICol,
+    redirectUrl: String? = null,
+    mobilePhone: String? = ThreadLocalUserContext.getUser()?.mobilePhone,
+    usePublicServices: Boolean = false,
+  ) {
     val smsAvailable = my2FAHttpService.smsConfigured && NumberHelper.matchesPhoneNumber(mobilePhone)
+    val redirectParam = if (redirectUrl.isNullOrBlank()) "" else URLEncoder.encode(redirectUrl, "UTF-8")
+    val restServiceClass = if (usePublicServices) My2FAPublicServicesRest::class.java else this::class.java
     codeCol
       .add(
         UIInput(
@@ -204,20 +237,24 @@ class My2FAServicesRest {
           "validate",
           title = translate("user.My2FACode.code.validate"),
           color = UIColor.PRIMARY,
-          responseAction = ResponseAction("/rs/2FA/checkOTP", targetType = TargetType.POST),
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(restServiceClass, "checkOTP", params = mapOf("redirect" to redirectParam)),
+            targetType = TargetType.POST
+          ),
           default = true,
         )
       )
     if (smsAvailable) {
-      codeCol.add(createSendButton(My2FAType.SMS))
+      codeCol.add(createSendButton(My2FAType.SMS, restServiceClass))
     }
-    codeCol.add(createSendButton(My2FAType.MAIL))
+    codeCol.add(createSendButton(My2FAType.MAIL, restServiceClass))
   }
 
   /**
    * @param type [My2FAType.MAIL] and [My2FAType.SMS] supported.
+   * @param usePublicServices Only true for login process (the private services aren't yet available.
    */
-  private fun createSendButton(type: My2FAType): UIButton {
+  private fun createSendButton(type: My2FAType, restServiceClass: Class<*> = this::class.java): UIButton {
     val lowerType = type.name.lowercase()
     val type = lowerType.replaceFirstChar { it.uppercase() }
     return UIButton(
@@ -226,7 +263,7 @@ class My2FAServicesRest {
       tooltip = "user.My2FACode.sendCode.$lowerType.info",
       color = UIColor.SECONDARY,
       responseAction = ResponseAction(
-        RestResolver.getRestUrl(this::class.java, "send${type}Code"),
+        RestResolver.getRestUrl(restServiceClass, "send${type}Code"),
         targetType = TargetType.GET
       ),
     )

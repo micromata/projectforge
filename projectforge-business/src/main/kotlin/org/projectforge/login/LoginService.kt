@@ -104,8 +104,7 @@ open class LoginService {
    * stay-logged-in-cookie is found, the user will be logged-in by this method.
    */
   fun checkLogin(request: HttpServletRequest, response: HttpServletResponse): UserContext? {
-    request.getSession(false)?.getAttribute(SESSION_KEY_USER)?.let { userContext ->
-      userContext as UserContext
+    getUserContext(request)?.let { userContext ->
       // Get the fresh user from the user cache.
       userContext.refreshUser()
       // Check 2FA if session is kept alive for a longer time:
@@ -139,14 +138,7 @@ open class LoginService {
       logout(request, response)
       return false
     }
-    if (!userContext.new2FARequired) {
-      return true
-    }
-    // New 2FA required. Do only allow following requests:
-    val uri = request.requestURI
-    return uri == "/rs/2FA/checkOTP"
-        || uri == "/rs/2FA/sendMailCode"
-        || uri == "/rs/2FA/sendSmsCode"
+    return !userContext.new2FARequired
   }
 
   /**

@@ -61,6 +61,9 @@ open class LoginPageRest {
   @Autowired
   private lateinit var my2FAServicesRest: My2FAServicesRest
 
+  /**
+   * @param via url the caller can modify the url to redirect after login (used by WicketUtils).
+   */
   @GetMapping("dynamic")
   fun getForm(
     request: HttpServletRequest,
@@ -184,7 +187,7 @@ open class LoginPageRest {
   private fun get2FALayout(userContext: UserContext, url: String?): FormLayoutData {
     val layout = UILayout("login.title")
     val data = LoginData()
-    my2FAServicesRest.fillLayout4LoginPage(layout, userContext)
+    my2FAServicesRest.fillLayout4LoginPage(layout, userContext, url)
     LayoutUtils.process(layout)
     return FormLayoutData(data, layout, ServerData(returnToCaller = url))
   }
