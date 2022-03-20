@@ -39,7 +39,7 @@ class My2FABruteForceProtectionTest {
     val user = PFUserDO()
     user.id = 42
     user.username = "kai"
-    Mockito.`when`(userDao.internalGetOrLoad(42)).thenAnswer {
+    Mockito.`when`(userDao.internalGetById(42)).thenAnswer {
       return@thenAnswer user
     }
 
@@ -64,7 +64,7 @@ class My2FABruteForceProtectionTest {
       }
       protection.registerOTPFailure(42)
     }
-    Mockito.verify(userDao, Mockito.times(1)).internalGetOrLoad(42)
+    Mockito.verify(userDao, Mockito.times(1)).internalGetById(42)
     Mockito.verify(userDao, Mockito.times(1)).internalUpdate(user)
     Assertions.assertTrue(user.deactivated) // User should now be deactivated.
     // Simulate activation of user by an admin:
@@ -85,14 +85,14 @@ class My2FABruteForceProtectionTest {
     }
     arrayOf(3, 6, 9).forEach { counter ->
       Assertions.assertEquals(
-        AbstractCache.TICKS_PER_HOUR,
+        AbstractCache.TICKS_PER_MINUTE,
         protection.getWaitingMillis(counter),
-        "Expected offset of ${AbstractCache.TICKS_PER_HOUR} for counter=$counter"
+        "Expected offset of ${AbstractCache.TICKS_PER_MINUTE} for counter=$counter"
       )
     }
     arrayOf(12, 13).forEach { counter ->
       Assertions.assertEquals(
-        Long.MAX_VALUE,
+        My2FABruteForceProtection.YEARS_IN_FUTURE,
         protection.getWaitingMillis(counter),
         "Expected offset of ${Long.MAX_VALUE} for counter=$counter"
       )
