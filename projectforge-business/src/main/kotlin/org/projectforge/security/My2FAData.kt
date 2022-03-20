@@ -21,11 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest
+package org.projectforge.security
 
 import org.projectforge.common.anots.PropertyInfo
 
-class My2FAData {
+open class My2FAData {
   @PropertyInfo(i18nKey = "user.My2FACode.code", tooltip = "user.My2FACode.code.info")
   var code: String? = null
 
@@ -38,19 +38,4 @@ class My2FAData {
    * Info string: last successful 2FA as human readable String (TimeAgo): "3 minutes ago"
    */
   var lastSuccessful2FA: String? = null
-
-  /**
-   * Only used for setup.
-   */
-  var mobilePhone: String? = null
-
-  /**
-   * Only used for setup (must be hidden for other pages)
-   */
-  var authenticatorKey: String? = null
-
-  /**
-   * Only used for setup.
-   */
-  var showAuthenticatorKey: Boolean = false
 }

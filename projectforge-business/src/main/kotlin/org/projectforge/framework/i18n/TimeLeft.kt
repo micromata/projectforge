@@ -40,6 +40,7 @@ import java.util.*
  * * timeleft.months=in {0} months
  * * timeleft.months.one=in a month
  * * timeleft.negative=in the past!
+ * * timeleft.seconds=in {0} seconds
  * * timeleft.weeks=in {0} weeks
  * * timeleft.weeks.one=in a week
  * * timeleft.years=in {0} years

@@ -99,10 +99,15 @@ open class UserAuthenticationsService {
     }
 
     /**
-     * @return The authenticator token of the logged-in user if given, otherwise null.
+     * @return The authenticator token of the logged-in user if given, otherwise null. This token is used
+     * for Authenticator-Apps (e. g. Microsoft or Google).
      */
     open fun getAuthenticatorToken(): String? {
         return userAuthenticationsDao.internalGetAuthenticatorToken()
+    }
+
+    open fun isAuthenticatorAppConfigured(userId: Int): Boolean {
+        return userAuthenticationsDao.internalHasAuthenticatorToken(userId)
     }
 
     /**

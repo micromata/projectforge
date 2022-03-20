@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import mu.KotlinLogging
 import org.hibernate.proxy.AbstractLazyInitializer
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.calendar.event.model.ICalendarEvent
@@ -53,6 +54,8 @@ import org.projectforge.rest.calendar.TeamCalDOSerializer
 import org.projectforge.rest.config.JacksonConfiguration.Companion.registerAllowedUnknownProperties
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.json.*
+import org.projectforge.security.My2FAData
+import org.projectforge.security.My2FADataDeserializer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -60,6 +63,8 @@ import java.math.BigDecimal
 import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalTime
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Base configuration of all Spring rest calls. Unknown properties not avoidable by the client might be registered through
@@ -69,34 +74,37 @@ import java.time.LocalTime
 @Configuration
 open class JacksonConfiguration {
   companion object {
-    private val log = org.slf4j.LoggerFactory.getLogger(JacksonConfiguration::class.java)
-
     private val allowedUnknownProperties = mutableMapOf<Class<*>, MutableSet<String>>()
 
     private val allowedUnknownGlobalProperties = mutableSetOf<String>()
 
     private val globalPropertiesBlackList = mutableMapOf<Class<*>, MutableSet<String>>()
 
-    private val registeredSerializers = mutableListOf<Pair<Class<Any>, JsonSerializer<Any>>>()
+    private val registeredSerializers = mutableListOf<MySerializer<*>>()
 
-    private val registeredDeserializers = mutableListOf<Pair<Class<Any>, JsonDeserializer<Any>>>()
+    private val registeredDeserializers = mutableListOf<MyDeserializer<*>>()
 
     private val registeredDelegatingDeserializers = mutableListOf<Class<*>>()
+
+    private class MySerializer<T>(val cls: Class<out T>, val serializer: JsonSerializer<T>)
+    private class MyDeserializer<T : Any>(val cls: Class<T>, val deserializer: JsonDeserializer<T>)
 
     /**
      * Plugins may register your own serializers on startup.
      */
     @JvmStatic
-    fun register(cls: Class<Any>, serializer: JsonSerializer<Any>) {
-      registeredSerializers.add(Pair(cls, serializer))
+    fun <T> register(cls: Class<out T>, serializer: JsonSerializer<T>) {
+      registeredSerializers.add(MySerializer(cls, serializer))
+      throw IllegalArgumentException("Not yet implemented (type hassle see below).")
     }
 
     /**
      * Plugins may register your own deserializers on startup.
      */
     @JvmStatic
-    fun register(cls: Class<Any>, deserializer: JsonDeserializer<Any>) {
-      registeredDeserializers.add(Pair(cls, deserializer))
+    fun <T : Any> register(cls: Class<T>, deserializer: JsonDeserializer<T>) {
+      registeredDeserializers.add(MyDeserializer(cls, deserializer))
+      throw IllegalArgumentException("Not yet implemented (type hassle see below).")
     }
 
     /**
@@ -147,7 +155,10 @@ open class JacksonConfiguration {
         "lastUpdateTimeAgo",
         "encrypted",
       )
-      registerAllowedUnknownProperties(ServerData::class.java, "id") // Sometimes send by client, don't know, why. Not needed.
+      registerAllowedUnknownProperties(
+        ServerData::class.java,
+        "id"
+      ) // Sometimes send by client, don't know, why. Not needed.
       registerAllowedUnknownProperties(PFUserDO::class.java, "fullname")
       registerAllowedUnknownProperties(KundeDO::class.java, "id")
       // reminderDuration* will be there after function switchToTimesheet is used:
@@ -276,11 +287,13 @@ open class JacksonConfiguration {
 
     module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
 
+    module.addDeserializer(My2FAData::class.java, My2FADataDeserializer())
+
     registeredSerializers.forEach {
-      module.addSerializer(it.first, it.second)
+      //module.addSerializer(it.cls, it.serializer) // Type hassle
     }
     registeredDeserializers.forEach {
-      module.addDeserializer(it.first, it.second)
+      //module.addDeserializer(it.cls, it.deserializer) // Type hassle
     }
     mapper.registerModule(module)
     objectMapper = mapper

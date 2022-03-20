@@ -120,8 +120,25 @@ class My2FARequestHandlerTest {
       config.expiryPeriodDays30 = days30
       config.expiryPeriodDays90 = days90
       val handler = My2FARequestHandler()
+      handler.registerShortCut(
+        "ADMIN",
+        "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin;/react/change.*Password;/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin"
+      )
+      handler.registerShortCut("HR", "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed")
+      handler.registerShortCut(
+        "FINANCE",
+        "WRITE:incomingInvoice;WRITE:outgoingInvoice;/wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice"
+      )
+      handler.registerShortCut(
+        "ORGA",
+        "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract"
+      )
+      handler.registerShortCut("SCRIPTING", "/react/script")
+      handler.registerShortCut("MY_ACCOUNT", "/react/tokenInfo;/react/myAccount;/rs/tokenInfo;/rs/user/renewToken")
+      handler.registerShortCut("PASSWORD", "/react/change.*Password")
+      handler.registerShortCut("ACCESS", "/rs/groupAccess/")
+      handler.registerShortCut("ALL", "/")
       handler.configuration = config
-      handler.postConstruct()
       return handler
     }
   }

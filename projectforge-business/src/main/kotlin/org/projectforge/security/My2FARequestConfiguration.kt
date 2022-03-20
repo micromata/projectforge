@@ -23,6 +23,8 @@
 
 package org.projectforge.security
 
+import org.projectforge.framework.access.AccessChecker
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
@@ -47,6 +49,8 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 open class My2FARequestConfiguration {
+  @Autowired
+  lateinit var accessChecker: AccessChecker
 
   /**
    * If given, 2FA is required at least after given days, if stay-logged-in functionality is used. Without
@@ -104,20 +108,26 @@ open class My2FARequestConfiguration {
   var expiryPeriodDays90: String? = null
     internal set // internal for test cases
 
-  companion object {
-    internal val shortCuts =
-      mutableMapOf(
-        "ADMIN" to
-            "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin;/react/change.*Password;/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin",
-        "HR" to "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed",
-        "FINANCE" to
-            "WRITE:incomingInvoice;WRITE:outgoingInvoice;/wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice",
-        "ORGA" to
-            "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract",
-        "SCRIPT" to "/react/script",
-        "MY_ACCOUNT" to "/react/tokenInfo;/react/myAccount;/rs/tokenInfo;/rs/user/renewToken",
-        "PASSWORD" to "/react/change.*Password",
-        "ALL" to "/",
-      )
+  /**
+   * For 2FA via mailing OTP, you should configure, that in addition to the OTP the login
+   * password is required for security reasons.
+   * Empty -> no password, All -> for every user, Admin -> only for admin users.
+   */
+  //@Value("\${projectforge.2fa.loginPasswordRequired4Mail2FA}")
+  //var loginPasswordRequired4Mail2FA: String? = null
+  //  internal set // internal for test cases
+
+  /**
+   * Checks, if the login password is required for the logged-in user on OTP check (if configured).
+   * @see loginPasswordRequired4Mail2FA
+   */
+  fun checkLoginPasswordRequired4Mail2FA(): Boolean {
+    return false
+    /*val value = loginPasswordRequired4Mail2FA?.lowercase() ?: return false
+    return when (value) {
+      "admin" -> accessChecker.isLoggedInUserMemberOfAdminGroup
+      "" -> false
+      else -> true
+    }*/
   }
 }

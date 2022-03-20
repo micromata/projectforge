@@ -21,21 +21,6 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.login
+package org.projectforge.rest
 
-import org.projectforge.security.My2FAData
-
-/**
- * Password as char array for security reasons (don't wait for the garbage collector).
- */
-class LoginData(
-  var username: String? = null,
-  password: CharArray? = null,
-  var stayLoggedIn: Boolean? = null
-) :
-  My2FAData() {
-  init {
-    this.password = password
-  }
-}
-
+enum class My2FAType { MAIL, SMS, AUTHENTICATOR }

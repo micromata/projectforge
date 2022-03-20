@@ -21,21 +21,15 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.login
+package org.projectforge.security
 
-import org.projectforge.security.My2FAData
+enum class OTPCheckResult {
+  SUCCESS, WRONG_LOGIN_PASSWORD, BLOCKED, NOT_CONFIGURED, FAILED;
 
-/**
- * Password as char array for security reasons (don't wait for the garbage collector).
- */
-class LoginData(
-  var username: String? = null,
-  password: CharArray? = null,
-  var stayLoggedIn: Boolean? = null
-) :
-  My2FAData() {
-  init {
-    this.password = password
+  var userMessage: String? = null
+
+  fun withMessage(msg: String): OTPCheckResult {
+    this.userMessage = msg
+    return this
   }
 }
-

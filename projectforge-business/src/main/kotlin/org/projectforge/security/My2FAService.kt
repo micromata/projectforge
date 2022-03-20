@@ -45,31 +45,93 @@ open class My2FAService {
   @Autowired
   private lateinit var smsSenderConfig: SmsSenderConfig
 
+  @Autowired
+  private lateinit var bruteForceProtection: My2FABruteForceProtection
+
   val smsConfigured
     get() = smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()
 
   enum class Unit { MINUTES, HOURS, DAYS }
 
   /**
-   * @param 6 digits code displayed by the logged-in users Authenticator app.
-   * @param suppressNoTokenWarnings If true, no warnings will be shown, if authenticator token isn't available for the logged-in user.
-   * @return error message or "OK" if code was successfully validated.
+   * Does also Brute force protection. Does also a OTP check against Authenticator-App-Token, if exist.
+   * @param code 6 digits code entered by the use.
+   * @param expectedTokens Token sent by the system (sms or mail), must match the code.
+   * @return result code. (SUCCESS, if any of the given expectedToken or Authenticator-App-Token matches.
    */
-  fun validateOTP(code: String, suppressNoTokenWarnings: Boolean = false): String {
+  fun validateOTP(code: String, vararg expectedToken: String?): OTPCheckResult {
+    preCheck(code)?.let { result -> // User is blocked.
+      return result
+    }
+    var failed = false
+    expectedToken.forEach { token ->
+      if (!token.isNullOrBlank()) {
+        if (token == code) {
+          bruteForceProtection.registerOTPSuccess()
+          ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
+          return OTPCheckResult.SUCCESS
+        } else {
+          failed = true
+        }
+      }
+    }
+    val result = _validateAuthenticatorOTP(code, true)
+    if (result == OTPCheckResult.FAILED || result == OTPCheckResult.NOT_CONFIGURED && failed) {
+      // At least one code check failed:
+      bruteForceProtection.registerOTPFailure()
+    }
+    return result
+  }
+
+  /**
+   * Does also Brute force protection.
+   * @param code 6 digits code displayed by the logged-in users Authenticator app.
+   * @param suppressNoTokenWarnings If true, no warnings will be shown, if authenticator token isn't available for the logged-in user.
+   * @return result code (BLOCKED with message, FAILED, NOT_CONFIGURED or SUCCESS)
+   */
+  fun validateAuthenticatorOTP(code: String, suppressNoTokenWarnings: Boolean = false): OTPCheckResult {
+    val result = _validateAuthenticatorOTP(code, suppressNoTokenWarnings)
+    if (result == OTPCheckResult.FAILED) {
+      bruteForceProtection.registerOTPFailure()
+    }
+    return result
+  }
+
+  /**
+   * Does not increase the Brute force counter.
+   * @param code 6 digits code displayed by the logged-in users Authenticator app.
+   * @param suppressNoTokenWarnings If true, no warnings will be shown, if authenticator token isn't available for the logged-in user.
+   * @return result code (BLOCKED with message, FAILED, NOT_CONFIGURED or SUCCESS)
+   */
+  private fun _validateAuthenticatorOTP(code: String, suppressNoTokenWarnings: Boolean = false): OTPCheckResult {
+    preCheck(code)?.let { result -> // User is blocked.
+      return result
+    }
     val authenticatorToken = userAuthenticationsService.getAuthenticatorToken()
     if (authenticatorToken == null) {
       if (!suppressNoTokenWarnings) {
         log.warn { "Can't check OTP for user '${ThreadLocalUserContext.getUser()?.username}', no authenticator token configured." }
       }
-      return ERROR_2FA_NOT_CONFIGURED
+      return OTPCheckResult.NOT_CONFIGURED
     }
     if (!TimeBased2FA.standard.validate(authenticatorToken, code)) {
       SecurityLogging.logSecurityWarn(this::class.java, "2FA WRONG CODE", "The entered 2FA code was wrong.")
-      return ERROR_2FA_WRONG_CODE
+      return OTPCheckResult.FAILED
     }
     // Update last
     ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
-    return SUCCESS
+    bruteForceProtection.registerOTPSuccess()
+    return OTPCheckResult.SUCCESS
+  }
+
+  private fun preCheck(code: String): OTPCheckResult? {
+    if (code.length < 4) {
+      return OTPCheckResult.FAILED // Code can't match. Brute force protection not required.
+    }
+    bruteForceProtection.getBlockedResult()?.let { result -> // User is blocked.
+      return result
+    }
+    return null
   }
 
   /**
@@ -97,9 +159,5 @@ open class My2FAService {
         TimeAgo.getMessage(Date(it), maxUnit = TimeUnit.DAY)
       }
     }
-
-    const val ERROR_2FA_NOT_CONFIGURED = "2FA not configured."
-    const val ERROR_2FA_WRONG_CODE = "Wrong code."
-    const val SUCCESS = "OK"
   }
 }

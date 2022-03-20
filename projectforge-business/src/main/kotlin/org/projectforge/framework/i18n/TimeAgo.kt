@@ -42,6 +42,7 @@ import kotlin.math.round
  * * timeago.months={0} months ago
  * * timeago.months.one=a month ago
  * * timeago.negative=in the future!
+ * * timeago.seconds={0} seconds ago
  * * timeago.weeks={0} weeks ago
  * * timeago.weeks.one=a week ago
  * * timeago.years={0} years ago
@@ -89,6 +90,7 @@ object TimeAgo {
       ?: getUnit(millis, 1, TimeUnit.DAY.millis, "days", maxUnit)
       ?: getUnit(millis, 1, TimeUnit.HOUR.millis, "hours", maxUnit)
       ?: getUnit(millis, 1, TimeUnit.MINUTE.millis, "minutes", maxUnit)
+      ?: getUnit(millis, 10, TimeUnit.SECONDS.millis, "seconds", maxUnit)
       ?: Pair("afewseconds", -1)
   }
 

@@ -72,7 +72,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
-    val data = My2FAData()
+    val data = My2FASetupData()
     userDao.internalGetById(ThreadLocalUserContext.getUserId())?.let { user ->
       data.mobilePhone = user.mobilePhone
     }
@@ -84,7 +84,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    * Will be called, if the user wants to see the encryption options.
    */
   @PostMapping(RestPaths.WATCH_FIELDS)
-  fun watchFields(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
+  fun watchFields(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
     val data = postData.data
     if (data.showAuthenticatorKey) {
       data.authenticatorKey = authenticationsService.getAuthenticatorToken()
@@ -109,16 +109,16 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    * Enables the 2FA for the logged-in user (if not already enabled). Fails, if authenticator token is already configured.
    */
   @Suppress("UNUSED_PARAMETER")
-  @PostMapping("enable")
-  fun enable(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
+  @PostMapping("enableAuthenticatorApp")
+  fun enableAuthenticatorApp(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
     if (!authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
-      log.error { "User tries to enable 2FA, but authenticator token is already given!" }
+      log.error { "User tries to enable authenticator app, but authenticator token is already given!" }
       throw IllegalArgumentException("2FA already configured.")
     }
     if (!checklastSuccessful2FA()) {
       return showValidationErrors(ValidationError(translate("user.My2FA.required"), "code"))
     }
-    val data = My2FAData()
+    val data = My2FASetupData()
     data.mobilePhone = postData.data.mobilePhone
     authenticationsService.createNewAuthenticatorToken()
     data.showAuthenticatorKey = true
@@ -131,23 +131,24 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
   }
 
   /**
-   * Disables the 2FA for the logged-in user (if enabled). Fails, if authenticator token isn't configured.
+   * Disables the AuthenticatorApp for the logged-in user (if enabled) by deleting the authenticator token.
+   * Fails, if authenticator token isn't configured.
    * Requires a valid 2FA not older than 1 minute.
    */
-  @PostMapping("disable")
-  fun disable(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
+  @PostMapping("disableAuthenticatorApp")
+  fun disableAuthenticatorApp(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
     if (authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
       log.error { "User tries to disable 2FA, but authenticator token isn't given!" }
       throw IllegalArgumentException("2FA not configured.")
     }
     val otp = postData.data.code
     if (!otp.isNullOrBlank()) {
-      my2FAService.validateOTP(otp) // Try to do the fresh 2FA
+      my2FAService.validateAuthenticatorOTP(otp) // Try to do the fresh 2FA
     }
     if (!checklastSuccessful2FA()) {
       return showValidationErrors(ValidationError(translate("user.My2FA.required"), "code"))
     }
-    val data = My2FAData()
+    val data = My2FASetupData()
     data.mobilePhone = postData.data.mobilePhone
     authenticationsService.clearAuthenticatorToken()
     return ResponseEntity.ok(
@@ -161,7 +162,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    * Save the mobile phone field as is is. Must be empty or in a valid phone number format.
    */
   @PostMapping("saveMobilePhone")
-  fun saveMobilePhone(@Valid @RequestBody postData: PostData<My2FAData>): ResponseEntity<ResponseAction> {
+  fun saveMobilePhone(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
     val mobilePhone = postData.data.mobilePhone
     if (!mobilePhone.isNullOrBlank() && !StringHelper.checkPhoneNumberFormat(mobilePhone, false)) {
       return showValidationErrors(ValidationError(translate("user.mobilePhone.invalidFormat"), "mobilePhone"))
@@ -175,19 +176,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     return UIToast.createToastResponseEntity(translate("operation.updated"), color = UIColor.SUCCESS)
   }
 
-  /**
-   * Sends a OTP as code (text to mobile phone if given or as mail).
-   */
-  @PostMapping("sendCode")
-  fun sendCode(
-    request: HttpServletRequest,
-    @Valid @RequestBody postData: PostData<My2FAData>
-  ): ResponseEntity<ResponseAction> {
-    val mobilePhone = postData.data.mobilePhone
-    return My2FAServicesRest.sendCode(my2FAHttpService, request, mobilePhone)
-  }
-
-  private fun createLayout(data: My2FAData): UILayout {
+  private fun createLayout(data: My2FASetupData): UILayout {
     data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val smsConfigured = my2FAHttpService.smsConfigured
     val authenticatorKey = authenticationsService.getAuthenticatorToken()
@@ -202,7 +191,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         color = UIColor.LIGHT
       )
     )
-    my2FAServicesRest.fill2FA(fieldset, data, forceEMail2FA = true)
+    my2FAServicesRest.fill2FA(fieldset, data)
 
     val fieldsetLenth = if (smsConfigured) 6 else 12
 
@@ -221,23 +210,23 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     if (authenticatorKey.isNullOrBlank()) {
       fieldset.add(
         UIButton(
-          "enable",
-          title = translate("user.My2FA.setup.enable"),
-          tooltip = "user.My2FA.setup.enable.info",
+          "enableAuthenticatorApp",
+          title = translate("user.My2FA.setup.enableAuthenticatorApp"),
+          tooltip = "user.My2FA.setup.enableAuthenticatorApp.info",
           color = UIColor.DANGER,
-          responseAction = ResponseAction("/rs/2FASetup/enable", targetType = TargetType.POST),
-          confirmMessage = translate("user.My2FA.setup.enable.confirmMessage")
+          responseAction = ResponseAction("/rs/2FASetup/enableAuthenticatorApp", targetType = TargetType.POST),
+          confirmMessage = translate("user.My2FA.setup.enableAuthenticatorApp.confirmMessage")
         )
       )
     } else {
       fieldset.add(
         UIButton(
-          "disable",
-          title = translate("user.My2FA.setup.disable"),
-          tooltip = "user.My2FA.setup.disable.info",
+          "disableAuthenticatorApp",
+          title = translate("user.My2FA.setup.disableAuthenticatorApp"),
+          tooltip = "user.My2FA.setup.disableAuthenticatorApp.info",
           color = UIColor.DANGER,
-          responseAction = ResponseAction("/rs/2FASetup/disable", targetType = TargetType.POST),
-          confirmMessage = translate("user.My2FA.setup.disable.confirmMessage")
+          responseAction = ResponseAction("/rs/2FASetup/disableAuthenticatorApp", targetType = TargetType.POST),
+          confirmMessage = translate("user.My2FA.setup.disableAuthenticatorApp.confirmMessage")
         )
       )
       // Authenticator token is available
