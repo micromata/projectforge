@@ -23,12 +23,13 @@
 
 package org.projectforge.business.login;
 
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * Holder for LoginResultStatus and user (if login was successful).
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class LoginResult
 {
@@ -37,6 +38,7 @@ public class LoginResult
   private LoginResultStatus loginResultStatus;
 
   /**
+   * The returned user doesn't contain secret fields (password etc.). This is ensured by the setter.
    * @return the user
    */
   public PFUserDO getUser()
@@ -50,7 +52,11 @@ public class LoginResult
    */
   public LoginResult setUser(final PFUserDO user)
   {
-    this.user = user;
+    if (StringUtils.isNotEmpty(user.getPassword())) {
+      this.user = PFUserDO.createCopyWithoutSecretFields(user);
+    } else {
+      this.user = user;
+    }
     return this;
   }
 

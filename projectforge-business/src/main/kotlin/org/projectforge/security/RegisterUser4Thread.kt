@@ -21,21 +21,32 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.login
+package org.projectforge.security
 
-import org.projectforge.security.My2FAData
+import org.projectforge.common.logging.MDC_USER
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext
+import org.slf4j.MDC
+import javax.servlet.http.HttpServletRequest
 
 /**
- * Password as char array for security reasons (don't wait for the garbage collector).
+ * Helper class for registering and unregistering user in thread. Hanlding ThreadLocalUserContext as well as MDC stuff.
  */
-class LoginData(
-  var username: String? = null,
-  password: CharArray? = null,
-  var stayLoggedIn: Boolean? = null
-) :
-  My2FAData() {
-  init {
-    this.password = password
+object RegisterUser4Thread {
+  /**
+   * You must use try { registerUser(...) } finally { unregisterUser() }!!!!
+   * Please note: ip, session, userAgent is already added by LoggingFilter.
+   *
+   * @param request
+   */
+  fun registerUser(userContext: UserContext): UserContext {
+    ThreadLocalUserContext.setUserContext(userContext)
+    MDC.put(MDC_USER, userContext.user!!.username)
+    return userContext
+  }
+
+  fun unregister() {
+    ThreadLocalUserContext.setUser(null)
+    MDC.remove(MDC_USER) // Will be also removed by LoggingFilter, but who knows really?
   }
 }
-

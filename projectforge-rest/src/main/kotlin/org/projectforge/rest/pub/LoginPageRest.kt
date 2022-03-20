@@ -30,8 +30,10 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.login.LoginData
 import org.projectforge.login.LoginService
+import org.projectforge.rest.My2FAServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
@@ -39,6 +41,7 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import java.net.URLDecoder
 import javax.servlet.http.HttpServletRequest
@@ -55,12 +58,22 @@ open class LoginPageRest {
   @Autowired
   private lateinit var loginService: LoginService
 
+  @Autowired
+  private lateinit var my2FAServicesRest: My2FAServicesRest
+
+  /**
+   * @param via url the caller can modify the url to redirect after login (used by WicketUtils).
+   */
   @GetMapping("dynamic")
   fun getForm(
     request: HttpServletRequest,
     @RequestParam url: String? = null
   ): FormLayoutData {
-    val form = if (LoginService.getUserContext(request) != null) {
+    val userContext = LoginService.getUserContext(request)
+    val form = if (userContext != null) {
+      if (userContext.new2FARequired) {
+        return get2FALayout(userContext, url)
+      }
       // User is already logged-in:
       UILayout("login.title")
         .add(
@@ -89,17 +102,11 @@ open class LoginPageRest {
     val loginResultStatus = loginService.authenticate(request, response, postData.data)
 
     if (loginResultStatus == LoginResultStatus.SUCCESS) {
-      var redirectUrl: String? = null
-      val returnToCaller = postData.serverData?.returnToCaller
-      if (!returnToCaller.isNullOrBlank()) {
-        redirectUrl = URLDecoder.decode(returnToCaller, "UTF-8")
-      } else if (request.getHeader("Referer").contains("/public/login")) {
-        redirectUrl = "/${Const.REACT_APP_PATH}calendar"
-      }
+      val redirectUrl = getRedirectUrl(request, postData.serverData)
       return ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl)
     }
 
-    response.status = 400
+    response.status = HttpStatus.BAD_REQUEST.value()
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("ui", getLoginLayout(loginResultStatus))
   }
@@ -160,7 +167,6 @@ open class LoginPageRest {
         )
       )
 
-
     val layout = UILayout("login.title")
       .add(
         UIRow()
@@ -170,5 +176,27 @@ open class LoginPageRest {
     LayoutUtils.process(layout)
 
     return layout
+  }
+
+  private fun get2FALayout(userContext: UserContext, url: String?): FormLayoutData {
+    val layout = UILayout("login.title")
+    val data = LoginData()
+    my2FAServicesRest.fillLayout4LoginPage(layout, userContext, url)
+    LayoutUtils.process(layout)
+    return FormLayoutData(data, layout, ServerData(returnToCaller = url))
+  }
+
+  companion object {
+    fun getRedirectUrl(request: HttpServletRequest, serverData: ServerData?): String? {
+      var redirect: String? = null
+      val returnToCaller = serverData?.returnToCaller
+      if (!returnToCaller.isNullOrBlank()) {
+        redirect = URLDecoder.decode(returnToCaller, "UTF-8")
+      } else if (request.getHeader("Referer").contains("/public/login")) {
+        redirect = "/${Const.REACT_APP_PATH}calendar"
+      }
+      // redirect might be "null" (string):
+      return if (redirect.isNullOrBlank() || redirect == "null") null else redirect
+    }
   }
 }

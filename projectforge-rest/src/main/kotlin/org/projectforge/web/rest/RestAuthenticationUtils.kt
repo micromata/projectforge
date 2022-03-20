@@ -37,8 +37,8 @@ import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.utils.RequestLog
+import org.projectforge.security.RegisterUser4Thread
 import org.projectforge.security.SecurityLogging
-import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -304,8 +304,6 @@ open class RestAuthenticationUtils {
    */
   fun registerUser(request: HttpServletRequest, authInfo: RestAuthenticationInfo, userTokenType: UserTokenType?) {
     val user = authInfo.user!!
-    val clientIpAddress = authInfo.clientIpAddress
-    LoginProtection.instance().clearLoginTimeOffset(authInfo.userString, user.id, clientIpAddress, userTokenType?.name)
     var userContext = LoginService.getUserContext(request)
     if (userContext != null) {
       userContext.user = user // Replace by fresh user from authentication.
@@ -313,18 +311,12 @@ open class RestAuthenticationUtils {
     } else {
       userContext = ThreadLocalUserContext.setUser(user)!!
     }
+    RegisterUser4Thread.registerUser(userContext)
+    val clientIpAddress = authInfo.clientIpAddress
+    LoginProtection.instance().clearLoginTimeOffset(authInfo.userString, user.id, clientIpAddress, userTokenType?.name)
     userContext.loggedInByAuthenticationToken = authInfo.loggedInByAuthenticationToken
     val settings = getConnectionSettings(request)
     ConnectionSettings.set(settings)
-    val ip = request.getRemoteAddr()
-    if (ip != null) {
-      MDC.put("ip", ip)
-    } else { // Only null in test case:
-      MDC.put("ip", "unknown")
-    }
-    MDC.put("session", request.getSession(false)?.id)
-    MDC.put("user", user.username)
-    MDC.put("userAgent", request.getHeader("User-Agent"))
     log.info("User: ${user.username} calls RestURL: ${request.requestURI} with ip: $clientIpAddress")
   }
 
@@ -332,12 +324,8 @@ open class RestAuthenticationUtils {
     request: ServletRequest, response: ServletResponse,
     authInfo: RestAuthenticationInfo
   ) {
-    ThreadLocalUserContext.setUser(null)
+    RegisterUser4Thread.unregister()
     ConnectionSettings.set(null)
-    MDC.remove("ip")
-    MDC.remove("user")
-    MDC.remove("session")
-    MDC.remove("userAgent")
     val resultCode = (response as HttpServletResponse).status
     if (resultCode != HttpStatus.OK.value() && resultCode != HttpStatus.MULTI_STATUS.value()) { // MULTI_STATUS (207) will be returned by milton.io (CalDAV/CardDAV), because XML is returned.
       val user = authInfo.user!!

@@ -28,6 +28,7 @@ import org.projectforge.ProjectForgeApp;
 import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.security.SecurityShutdown;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -87,16 +88,19 @@ public class ProjectForgeApplication {
           }
         }
       } while (cause != null);
-      EmphasizedLogSupport emphasizedLog = new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.VERY_IMPORTANT, EmphasizedLogSupport.Alignment.LEFT)
-              .setLogLevel(EmphasizedLogSupport.LogLevel.ERROR)
-              .log("Error while running application:")
-              .log("")
-              .log(message);
-      if (ex instanceof ConnectorStartFailedException) {
-        emphasizedLog.log("")
-                .log("May-be address of server port is already in use.");
+      if (!SecurityShutdown.logShutDownCause()) {
+        // No security shutdown, so show a general error message:
+        EmphasizedLogSupport emphasizedLog = new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.VERY_IMPORTANT, EmphasizedLogSupport.Alignment.LEFT)
+            .setLogLevel(EmphasizedLogSupport.LogLevel.ERROR)
+            .log("Error while running application:")
+            .log("")
+            .log(message);
+        if (ex instanceof ConnectorStartFailedException) {
+          emphasizedLog.log("")
+              .log("May-be address of server port is already in use.");
+        }
+        emphasizedLog.logEnd();
       }
-      emphasizedLog.logEnd();
       throw ex;
     }
   }
