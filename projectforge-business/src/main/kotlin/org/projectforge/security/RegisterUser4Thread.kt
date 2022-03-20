@@ -23,18 +23,11 @@
 
 package org.projectforge.security
 
-import mu.KotlinLogging
+import org.projectforge.common.logging.MDC_USER
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.login.LoginService
-import org.projectforge.web.WebUtils
 import org.slf4j.MDC
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Helper class for registering and unregistering user in thread. Hanlding ThreadLocalUserContext as well as MDC stuff.
@@ -42,34 +35,18 @@ private val log = KotlinLogging.logger {}
 object RegisterUser4Thread {
   /**
    * You must use try { registerUser(...) } finally { unregisterUser() }!!!!
+   * Please note: ip, session, userAgent is already added by LoggingFilter.
    *
    * @param request
    */
-  fun registerUser(request: HttpServletRequest, user: PFUserDO): UserContext {
-    var userContext = LoginService.getUserContext(request)
-    if (userContext != null) {
-      userContext.user = user // Replace by fresh user from authentication.
-      ThreadLocalUserContext.setUserContext(userContext)
-    } else {
-      userContext = ThreadLocalUserContext.setUser(user)!!
-    }
-    val ip = request.getRemoteAddr()
-    if (ip != null) {
-      MDC.put("ip", ip)
-    } else { // Only null in test case:
-      MDC.put("ip", "unknown")
-    }
-    MDC.put("session", request.getSession(false)?.id)
-    MDC.put("user", user.username)
-    MDC.put("userAgent", request.getHeader("User-Agent"))
+  fun registerUser(userContext: UserContext): UserContext {
+    ThreadLocalUserContext.setUserContext(userContext)
+    MDC.put(MDC_USER, userContext.user!!.username)
     return userContext
   }
 
   fun unregister() {
     ThreadLocalUserContext.setUser(null)
-    MDC.remove("ip")
-    MDC.remove("session")
-    MDC.remove("user")
-    MDC.remove("userAgent")
+    MDC.remove(MDC_USER) // Will be also removed by LoggingFilter, but who knows really?
   }
 }
