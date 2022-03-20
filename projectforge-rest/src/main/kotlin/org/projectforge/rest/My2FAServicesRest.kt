@@ -223,7 +223,6 @@ class My2FAServicesRest {
     usePublicServices: Boolean = false,
   ) {
     val smsAvailable = my2FAHttpService.smsConfigured && NumberHelper.matchesPhoneNumber(mobilePhone)
-    val redirectParam = if (redirectUrl.isNullOrBlank()) "" else URLEncoder.encode(redirectUrl, "UTF-8")
     val restServiceClass = if (usePublicServices) My2FAPublicServicesRest::class.java else this::class.java
     codeCol
       .add(
@@ -238,7 +237,7 @@ class My2FAServicesRest {
           title = translate("user.My2FACode.code.validate"),
           color = UIColor.PRIMARY,
           responseAction = ResponseAction(
-            RestResolver.getRestUrl(restServiceClass, "checkOTP", params = mapOf("redirect" to redirectParam)),
+            RestResolver.getRestUrl(restServiceClass, "checkOTP", params = mapOf("redirect" to redirectUrl)),
             targetType = TargetType.POST
           ),
           default = true,
