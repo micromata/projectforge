@@ -102,13 +102,16 @@ open class LoginService {
   /**
    * Checks, if the user is logged-in (session) or has a valid stay-logged-in cookie. If not logged-in and a valid
    * stay-logged-in-cookie is found, the user will be logged-in by this method.
+   * Handles also 2FA after login.
    */
   fun checkLogin(request: HttpServletRequest, response: HttpServletResponse): UserContext? {
     getUserContext(request)?.let { userContext ->
       // Get the fresh user from the user cache.
       userContext.refreshUser()
       // Check 2FA if session is kept alive for a longer time:
+      handle2FARequiredAfterLogin(request, userContext)
       if (!ensureSystemAccess(request, response, userContext)) {
+        // User has no access or the user has to do a 2FA check first.
         return null
       }
       if (log.isDebugEnabled) {
@@ -117,7 +120,9 @@ open class LoginService {
       return userContext
     }
     val userContext = checkStayLoggedIn(request, response)
+    handle2FARequiredAfterLogin(request, userContext)
     if (!ensureSystemAccess(request, response, userContext)) {
+      // User has no access or the user has to do a 2FA check first.
       return null
     }
     return userContext
@@ -140,6 +145,7 @@ open class LoginService {
   /**
    * Tries to authenticate the user with the given credentials. Stay-logged-in flag will also be handled.
    * Brute force attacks will be prevented by using [LoginProtection].
+   * Handles also 2FA after login.
    */
   fun authenticate(
     request: HttpServletRequest,
@@ -159,9 +165,7 @@ open class LoginService {
     }
     // Execute login:
     val userContext = UserContext(user)
-    if (check2FARequiredAfterLogin(userContext)) {
-      userContext.new2FARequired = true
-    }
+    handle2FARequiredAfterLogin(request, userContext)
     internalLogin(request, userContext)
     return LoginResultStatus.SUCCESS
   }
@@ -253,8 +257,35 @@ open class LoginService {
     return false
   }
 
+  /**
+   * Sets the userContext flag new2FARequired to true, if a 2FA is required after login or if session is a long running
+   * one and 2FA is required.
+   */
+  private fun handle2FARequiredAfterLogin(request: HttpServletRequest, userContext: UserContext?) {
+    userContext ?: return
+    // To-Do: Cach
+    if (userContext.new2FARequired) {
+      // Already set.
+      return
+    }
+    request.getSession(false)?.getAttribute(SESSION_KEY_LAST_2FA_AFTER_LOGIN_CHECK)?.let { value ->
+      if (System.currentTimeMillis() - (value as Long) < CHECK_2FA_AFTER_LOGIN_INTERVAL_MS) {
+        // Don't need to re-check.
+        return
+      }
+    }
+    if (check2FARequiredAfterLogin(userContext)) {
+      userContext.new2FARequired = true
+    }
+    request.getSession(false)?.setAttribute(SESSION_KEY_LAST_2FA_AFTER_LOGIN_CHECK, System.currentTimeMillis())
+  }
+
   companion object {
-    private const val SESSION_KEY_USER = "UserFilter.user"
+    private const val SESSION_KEY_USER = "LoginService.user"
+    private const val SESSION_KEY_LAST_2FA_AFTER_LOGIN_CHECK = "LoginService.last2FALoginCheck"
+
+    // Check hourly
+    private const val CHECK_2FA_AFTER_LOGIN_INTERVAL_MS = 3_600_000
 
     /**
      * Used for storing given userContext in user's session. A new session id is generated (avoids attack with session fixation).
