@@ -184,13 +184,28 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     val userLC = LayoutContext(PFUserDO::class.java)
     var fieldset = UIFieldset(12, title = "user.My2FA.setup.info.title")
     layout.add(fieldset)
-    fieldset.add(
-      UIAlert(
-        message = "user.My2FA.setup.info",
-        markdown = true,
-        color = UIColor.LIGHT
+    fieldset
+      .add(
+        UIAlert(
+          message = "user.My2FA.setup.info.1",
+          markdown = true,
+          color = UIColor.LIGHT
+        )
       )
-    )
+      .add(
+        UIAlert(
+          message = "user.My2FA.setup.info.2",
+          markdown = true,
+          color = UIColor.WARNING
+        )
+      )
+      .add(
+        UIAlert(
+          message = "user.My2FA.setup.info.3",
+          markdown = true,
+          color = UIColor.LIGHT
+        )
+      )
     my2FAServicesRest.fill2FA(fieldset, data)
 
     val fieldsetLenth = if (smsConfigured) 6 else 12
@@ -200,14 +215,14 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
 
     fieldset = UIFieldset(lg = fieldsetLenth, title = "user.My2FA.setup.athenticator.title")
     row.add(fieldset)
-    fieldset.add(
-      UIAlert(
-        message = "user.My2FA.setup.authenticator.intro",
-        markdown = true,
-        color = UIColor.LIGHT
-      )
-    )
     if (authenticatorKey.isNullOrBlank()) {
+      fieldset.add(
+        UIAlert(
+          message = "user.My2FA.setup.authenticator.intro",
+          markdown = true,
+          color = UIColor.WARNING
+        )
+      )
       fieldset.add(
         UIButton(
           "enableAuthenticatorApp",
@@ -276,8 +291,18 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
           color = UIColor.LIGHT
         )
       )
+      val mobileCol = UICol()
+      if (data.mobilePhone.isNullOrBlank()) {
+        mobileCol.add(
+          UIAlert(
+            message = "user.My2FA.setup.sms.mobileNumberRecommended",
+            markdown = true,
+            color = UIColor.WARNING
+          )
+        )
+      }
       fieldset.add(
-        UICol()
+        mobileCol
           .add(UIInput("mobilePhone", userLC))
           .add(
             UIButton(
