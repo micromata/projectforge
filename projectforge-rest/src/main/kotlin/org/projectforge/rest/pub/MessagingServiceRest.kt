@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * This rest service is available without login credentials but with an access key and only if SMS functionality
- * is configured as well as authentication key..
+ * is configured as well as authentication key.
  */
 @RestController
 @RequestMapping(Rest.SMS_BASE_URI)
