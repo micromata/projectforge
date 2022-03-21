@@ -176,7 +176,7 @@ class My2FAServicesRest {
     fill2FA(row, my2FAData, redirectUrl)
   }
 
-  fun fill2FA(row: UIRow, my2FAData: My2FAData, redirectUrl: String? = null) {
+  private fun fill2FA(row: UIRow, my2FAData: My2FAData, redirectUrl: String? = null) {
     my2FAData.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val codeCol = UICol(md = 6)
     row.add(codeCol)
@@ -204,6 +204,13 @@ class My2FAServicesRest {
   fun fillLayout4LoginPage(layout: UILayout, userContext: UserContext, redirectUrl: String?) {
     val fieldset = UIFieldset(12, title = "user.My2FACode.title")
     layout.add(fieldset)
+    fieldset.add(
+      UIAlert(
+        message = "user.My2FACode.authentification.info",
+        markdown = true,
+        color = UIColor.INFO
+      )
+    )
     fillCodeCol(fieldset, redirectUrl, userContext.user?.mobilePhone, usePublicServices = true)
   }
 
