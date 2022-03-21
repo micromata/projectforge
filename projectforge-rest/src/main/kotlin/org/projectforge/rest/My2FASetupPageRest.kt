@@ -198,7 +198,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     val row = UIRow()
     layout.add(row)
 
-    fieldset = UIFieldset(md = fieldsetLenth, title = "user.My2FA.setup.athenticator.title")
+    fieldset = UIFieldset(lg = fieldsetLenth, title = "user.My2FA.setup.athenticator.title")
     row.add(fieldset)
     fieldset.add(
       UIAlert(
@@ -254,29 +254,20 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
           )
           val barcodeUrl = BarcodeServicesRest.getBarcodeGetUrl(queryURL)
           fieldset.add(
-            UIRow()
-              .add(
-                UICol(md = 6)
-                  .add(
-                    UIAlert(
-                      message = "user.My2FA.setup.authenticator.info",
-                      markdown = true,
-                      color = UIColor.SUCCESS
-                    )
-                  )
-                  .add(UIReadOnlyField("authenticatorKey", label = "user.My2FA.setup.athenticatorKey"))
-              )
-              .add(
-                UICol(md = 6)
-                  .add(UICustomized("image", mutableMapOf("src" to barcodeUrl, "alt" to barcodeUrl)))
-              )
+            UIAlert(
+              message = "user.My2FA.setup.authenticator.info",
+              markdown = true,
+              color = UIColor.SUCCESS
+            )
           )
+            .add(UIReadOnlyField("authenticatorKey", label = "user.My2FA.setup.athenticatorKey"))
+            .add(UICustomized("image", mutableMapOf("src" to barcodeUrl, "alt" to barcodeUrl)))
         }
       }
     }
 
     if (smsConfigured) {
-      fieldset = UIFieldset(md = fieldsetLenth, title = "user.My2FA.setup.sms.info.title")
+      fieldset = UIFieldset(lg = fieldsetLenth, title = "user.My2FA.setup.sms.info.title")
       row.add(fieldset)
       fieldset.add(
         UIAlert(
