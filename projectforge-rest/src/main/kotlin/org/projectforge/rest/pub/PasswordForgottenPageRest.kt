@@ -26,7 +26,6 @@ package org.projectforge.rest.pub
 import org.projectforge.framework.i18n.I18nKeys
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.service.PasswordResetService
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
@@ -42,7 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 
 /**
@@ -62,7 +60,7 @@ open class PasswordForgottenPageRest : AbstractDynamicPageRest() {
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
     if (LoginService.getUserContext(request) != null) {
-      return LayoutUtils.getMessageLayout(LAYOUT_TITLE, I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS, UIColor.WARNING)
+      return LayoutUtils.getMessageFormLayoutData(LAYOUT_TITLE, I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS, UIColor.WARNING)
     }
     return FormLayoutData(null, getLayout(), ServerData())
   }
