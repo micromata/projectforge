@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.user.api;
 import org.joda.time.DateTimeZone;
 import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.UserLocale;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -112,6 +113,14 @@ public class ThreadLocalUserContext {
   }
 
   /**
+   * For non logged-in users and public pages, the locale could be set.
+   * @return The locale of ThreadLocalLocale or null, if not given.
+   */
+  public static Locale internalGetThreadLocalLocale() {
+    return threadLocalLocale.get();
+  }
+
+  /**
    * @return The locale of the user if exists, otherwise default locale.
    * @see #getUser()
    * @see PFUserDO#getLocale()
@@ -145,30 +154,7 @@ public class ThreadLocalUserContext {
    */
   public static Locale getLocale(final Locale defaultLocale) {
     final PFUserDO user = getUser();
-    Locale locale;
-    if (user != null) {
-      // Logged-in user
-      locale = user.getLocale(); // The locale configured in the data base for this user (MyAccount).
-      if (locale != null) {
-        return locale;
-      }
-      locale = user.getClientLocale(); // The locale given by the client (browser).
-      if (defaultLocale != null && !Objects.equals(locale, defaultLocale)) {
-        user.setClientLocale(defaultLocale); // client locale changed? So update UserContext.
-        return defaultLocale;
-      }
-    } else {
-      // For non logged-in users and public pages, the locale could be set:
-      locale = threadLocalLocale.get();
-    }
-    if (locale != null) {
-      return locale;
-    }
-    if (defaultLocale != null) {
-      return defaultLocale;
-    }
-    locale = ConfigurationServiceAccessor.get().getDefaultLocale();
-    return locale != null ? locale : Locale.getDefault();
+    return UserLocale.determineUserLocale(user, defaultLocale);
   }
 
   /**
