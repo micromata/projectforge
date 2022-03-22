@@ -88,6 +88,8 @@ class My2FAServicesRest {
     if (otpCheck == OTPCheckResult.SUCCESS) {
       ThreadLocalUserContext.getUserContext().lastSuccessful2FA?.let { lastSuccessful2FA ->
         cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
+        // Store it also in the user's session, e. g. used by public password reset service.
+        request.getSession(false)?.setAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA, lastSuccessful2FA)
       }
       if (afterLogin) {
         val redirectUrl = LoginPageRest.getRedirectUrl(request, postData.serverData)
@@ -300,6 +302,15 @@ class My2FAServicesRest {
   }
 
   companion object {
+    private val SESSION_KEY_LAST_SUCCESSFUL_2FA = "${My2FAServicesRest::class.java.name}.lastSuccessFul2FA"
+
+    /**
+     * Gets the last successful 2FA from the user's session.
+     */
+    fun getLastSuccessful2FAFromSession(request: HttpServletRequest): Long? {
+      return request.getSession(false)?.getAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA) as? Long
+    }
+
     internal fun createResponseEntity(result: My2FAHttpService.Result): ResponseEntity<ResponseAction> {
       val color = if (result.success) {
         UIColor.SUCCESS
