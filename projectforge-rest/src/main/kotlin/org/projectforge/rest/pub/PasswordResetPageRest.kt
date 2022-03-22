@@ -85,7 +85,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
       RegisterUser4Thread.registerUser(result.data!!.user)
       val otpCheckReslt = my2FAServicesRest.checkOTP(request, response, postData, redirect)
       if (otpCheckReslt.body?.targetType == TargetType.UPDATE) {
-        otpCheckReslt.body.addVariable("layout", getLayout(request))
+        otpCheckReslt.body.addVariable("ui", getLayout(request))
       }
       return otpCheckReslt
     } finally {
@@ -200,7 +200,8 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
         "cancel",
         translate("cancel"),
         UIColor.DANGER,
-      ).redirectToDefaultPage()
+        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java, "cancel"), targetType = TargetType.GET),
+      )
     )
     if (user != null) {
       layout.add(
