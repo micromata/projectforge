@@ -34,28 +34,33 @@ import java.util.*
 class UserLocaleTest {
   @Test
   fun determinLocaleTest() {
-    ConfigurationServiceAccessor.internalInitJunitTestMode()
-    ConfigurationServiceAccessor.get().defaultLocale = null
-    Locale.setDefault(Locale.ITALY)
-    // 7. The system's locale
-    Assertions.assertEquals(Locale.ITALY, UserLocale.determineUserLocale())
-    // 6. The locale configured in ProjectForge config file: projectforge.defaultLocale
-    ConfigurationServiceAccessor.get().defaultLocale = Locale.CANADA
-    Assertions.assertEquals(Locale.CANADA, UserLocale.determineUserLocale())
-    // 5. The given default locale.
-    Assertions.assertEquals(Locale.FRANCE, UserLocale.determineUserLocale(defaultLocale = Locale.FRANCE))
-    // 4. The locale set in ThreadLocal for public services without given user, if given: [ThreadLocalUserContext.getLocale]
-    ThreadLocalUserContext.setLocale(Locale.CHINA)
-    Assertions.assertEquals(Locale.CHINA, UserLocale.determineUserLocale(defaultLocale = Locale.FRANCE))
-    // 3. For a given user the clientLocale, if given: [PFUserDO.clientLocale]
-    val user = PFUserDO()
-    user.clientLocale = Locale.KOREA
-    Assertions.assertEquals(Locale.KOREA, UserLocale.determineUserLocale(user))
-    // 2. For a given user the param defaultLocale, if set (update the field [PFUserDO.clientLocale].
-    Assertions.assertEquals(Locale.FRANCE, UserLocale.determineUserLocale(user, Locale.FRANCE))
-    Assertions.assertEquals(Locale.FRANCE, user.clientLocale, "The user's client locale should be changed to FRANCE")
-    // 1. For a given user return the user locale, if configured: [PFUserDO.locale]
-    user.locale = Locale.GERMAN
-    Assertions.assertEquals(Locale.GERMAN, UserLocale.determineUserLocale(user, Locale.FRANCE))
+    try {
+      ThreadLocalUserContext.clear()
+      ConfigurationServiceAccessor.internalInitJunitTestMode()
+      ConfigurationServiceAccessor.get().defaultLocale = null
+      Locale.setDefault(Locale.ITALY)
+      // 7. The system's locale
+      Assertions.assertEquals(Locale.ITALY, UserLocale.determineUserLocale())
+      // 6. The locale configured in ProjectForge config file: projectforge.defaultLocale
+      ConfigurationServiceAccessor.get().defaultLocale = Locale.CANADA
+      Assertions.assertEquals(Locale.CANADA, UserLocale.determineUserLocale())
+      // 5. The given default locale.
+      Assertions.assertEquals(Locale.FRANCE, UserLocale.determineUserLocale(defaultLocale = Locale.FRANCE))
+      // 4. The locale set in ThreadLocal for public services without given user, if given: [ThreadLocalUserContext.getLocale]
+      ThreadLocalUserContext.setLocale(Locale.CHINA)
+      Assertions.assertEquals(Locale.CHINA, UserLocale.determineUserLocale(defaultLocale = Locale.FRANCE))
+      // 3. For a given user the clientLocale, if given: [PFUserDO.clientLocale]
+      val user = PFUserDO()
+      user.clientLocale = Locale.KOREA
+      Assertions.assertEquals(Locale.KOREA, UserLocale.determineUserLocale(user))
+      // 2. For a given user the param defaultLocale, if set (update the field [PFUserDO.clientLocale].
+      Assertions.assertEquals(Locale.FRANCE, UserLocale.determineUserLocale(user, Locale.FRANCE))
+      Assertions.assertEquals(Locale.FRANCE, user.clientLocale, "The user's client locale should be changed to FRANCE")
+      // 1. For a given user return the user locale, if configured: [PFUserDO.locale]
+      user.locale = Locale.GERMAN
+      Assertions.assertEquals(Locale.GERMAN, UserLocale.determineUserLocale(user, Locale.FRANCE))
+    } finally {
+      ThreadLocalUserContext.clear()
+    }
   }
 }
