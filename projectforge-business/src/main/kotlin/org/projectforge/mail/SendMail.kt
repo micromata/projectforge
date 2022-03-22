@@ -270,7 +270,7 @@ open class SendMail {
    */
   fun renderGroovyTemplate(
     composedMessage: Mail, groovyTemplate: String,
-    data: MutableMap<String, Any>,
+    data: MutableMap<String, Any?>,
     title: String,
     recipient: PFUserDO?
   ): String {
@@ -286,7 +286,7 @@ open class SendMail {
   /*
   fun renderKotlinTemplate(
     composedMessage: Mail, kotlinTemplate: String,
-    data: MutableMap<String, Any>,
+    data: MutableMap<String, Any?>,
     title: String,
     recipient: PFUserDO
   ): String {
@@ -309,7 +309,7 @@ open class SendMail {
 
   private fun prepare(
     composedMessage: Mail,
-    data: MutableMap<String, Any>,
+    data: MutableMap<String, Any?>,
     title: String,
     recipient: PFUserDO?
   ) {
