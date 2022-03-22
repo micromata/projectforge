@@ -23,9 +23,12 @@
 
 package org.projectforge.rest.pub
 
+import org.projectforge.framework.i18n.I18nKeys
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.service.PasswordResetService
+import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -58,16 +61,17 @@ open class PasswordForgottenPageRest : AbstractDynamicPageRest() {
    */
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
+    if (LoginService.getUserContext(request) != null) {
+      return LayoutUtils.getMessageLayout(LAYOUT_TITLE, I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS, UIColor.WARNING)
+    }
     return FormLayoutData(null, getLayout(), ServerData())
   }
 
   @PostMapping
-  fun post(
-    request: HttpServletRequest,
-    response: HttpServletResponse,
-    @RequestBody postData: PostData<PasswordForgottenData>
-  )
-      : ResponseEntity<ResponseAction> {
+  fun post(request: HttpServletRequest, @RequestBody postData: PostData<PasswordForgottenData>)  : ResponseEntity<*> {
+    if (LoginService.getUserContext(request) != null) {
+      return RestUtils.badRequest(translate(I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS))
+    }
     val usernameEmail = postData.data.usernameEmail
     if (usernameEmail.isNullOrBlank()) {
       return showValidationErrors(
@@ -88,7 +92,7 @@ open class PasswordForgottenPageRest : AbstractDynamicPageRest() {
   }
 
   private fun getLayout(message: String? = null, statusOK: Boolean = true): UILayout {
-    val layout = UILayout("password.forgotten.title")
+    val layout = UILayout(LAYOUT_TITLE)
 
     if (!message.isNullOrBlank()) {
       layout.add(UIAlert("'$message", color = if (statusOK) UIColor.INFO else UIColor.DANGER))
@@ -123,6 +127,7 @@ open class PasswordForgottenPageRest : AbstractDynamicPageRest() {
   }
 
   companion object {
+    private const val LAYOUT_TITLE = "password.forgotten.title"
     private const val I18N_USERNAME_EMAIL = "password.reset.username_email"
     private const val FIELD_ID_USERNAME_EMAIL = "usernameEmail"
   }

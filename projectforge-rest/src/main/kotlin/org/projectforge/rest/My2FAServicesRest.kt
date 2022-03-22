@@ -203,8 +203,16 @@ class My2FAServicesRest {
 
   /**
    * A 2FA is needed for any public page (login or password reset).
+   * @param mailOTPDisabled Should be disabled for password reset (the reset link was also sent by mail, so it's not really a 2FA.
+   * @param restServiceClass Class with services such as checkOTP, mailCode (if configured) and sendSmsCode.
    */
-  fun fillLayout4PublicPage(layout: UILayout, userContext: UserContext, redirectUrl: String? = null) {
+  fun fillLayout4PublicPage(
+    layout: UILayout,
+    userContext: UserContext,
+    restServiceClass: Class<*>,
+    redirectUrl: String? = null,
+    mailOTPDisabled: Boolean = false,
+  ) {
     val fieldset = UIFieldset(12, title = "user.My2FACode.title")
     layout.add(fieldset)
     fieldset.add(
@@ -214,20 +222,23 @@ class My2FAServicesRest {
         color = UIColor.INFO
       )
     )
-    fillCodeCol(fieldset, redirectUrl, userContext.user?.mobilePhone, usePublicServices = true)
+    fillCodeCol(fieldset, redirectUrl, userContext.user?.mobilePhone, showCancelButton = true, mailOTPDisabled, restServiceClass)
   }
 
   /**
-   * @param usePublicServices Only true for login process (the private services aren't yet available.
+   * @param showCancelButton Only true for login process (the private services aren't yet available) and password reset
+   * @param mailOTPDisabled True, if no mail button should be displayed (escpecially for password reset).
+   * @param restServiceClass Optional rest service class, [My2FAPublicServicesRest] is default.
    */
   private fun fillCodeCol(
     codeCol: UICol,
     redirectUrl: String? = null,
     mobilePhone: String? = ThreadLocalUserContext.getUser()?.mobilePhone,
-    usePublicServices: Boolean = false,
+    showCancelButton: Boolean = false,
+    mailOTPDisabled: Boolean = false,
+    restServiceClass: Class<*> = My2FAPublicServicesRest::class.java,
   ) {
     val smsAvailable = my2FAHttpService.smsConfigured && NumberHelper.matchesPhoneNumber(mobilePhone)
-    val restServiceClass = if (usePublicServices) My2FAPublicServicesRest::class.java else this::class.java
     codeCol
       .add(
         UIInput(
@@ -236,22 +247,37 @@ class My2FAServicesRest {
           focus = true,
         )
       )
-      .add(
+    if (showCancelButton) {
+      codeCol.add(
         UIButton(
-          "validate",
-          title = translate("user.My2FACode.code.validate"),
-          color = UIColor.PRIMARY,
+          "cancel",
+          title = translate("cancel"),
+          color = UIColor.DANGER,
           responseAction = ResponseAction(
-            RestResolver.getRestUrl(restServiceClass, "checkOTP", params = mapOf("redirect" to redirectUrl)),
-            targetType = TargetType.POST
+            RestResolver.getRestUrl(restServiceClass, "cancel"),
+            targetType = TargetType.GET
           ),
-          default = true,
         )
       )
+    }
+    codeCol.add(
+      UIButton(
+        "validate",
+        title = translate("user.My2FACode.code.validate"),
+        color = UIColor.PRIMARY,
+        responseAction = ResponseAction(
+          RestResolver.getRestUrl(restServiceClass, "checkOTP", params = mapOf("redirect" to redirectUrl)),
+          targetType = TargetType.POST
+        ),
+        default = true,
+      )
+    )
     if (smsAvailable) {
       codeCol.add(createSendButton(My2FAType.SMS, restServiceClass))
     }
-    codeCol.add(createSendButton(My2FAType.MAIL, restServiceClass))
+    if (!mailOTPDisabled) {
+      codeCol.add(createSendButton(My2FAType.MAIL, restServiceClass))
+    }
   }
 
   /**

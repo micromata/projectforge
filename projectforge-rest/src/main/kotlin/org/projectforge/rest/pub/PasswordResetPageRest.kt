@@ -23,22 +23,32 @@
 
 package org.projectforge.rest.pub
 
+import org.projectforge.framework.i18n.I18nKeys
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.service.PasswordResetService
+import org.projectforge.login.LoginService
 import org.projectforge.rest.My2FAServicesRest
+import org.projectforge.rest.My2FAType
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.ServerData
 import org.projectforge.security.My2FAData
-import org.projectforge.security.My2FAService
+import org.projectforge.security.RegisterUser4Thread
+import org.projectforge.security.SecurityLogging
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import javax.validation.Valid
 
 
 /**
@@ -52,19 +62,62 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
   private lateinit var passwordResetService: PasswordResetService
 
   @Autowired
-  private lateinit var my2FAService: My2FAService
-
-  @Autowired
   private lateinit var my2FAServicesRest: My2FAServicesRest
+
+  /**
+   * For validating the Authenticator's OTP, or OTP sent by sms or e-mail. The user must be pre-logged-in before by username/password.
+   * This is called by the login page after password check, if a 2FA is required after login.
+   */
+  @PostMapping("checkOTP")
+  fun checkOTP(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @Valid @RequestBody postData: PostData<My2FAData>,
+    @RequestParam("redirect", required = false) redirect: String?
+  ): ResponseEntity<*> {
+    if (LoginService.getUserContext(request) != null) {
+      return RestUtils.badRequest(translate(I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS))
+    }
+    val result = securityCheck(request)
+    result.badRequestResponseEntity?.let { return it }
+    try {
+      RegisterUser4Thread.registerUser(result.user!!)
+      return my2FAServicesRest.checkOTP(request, response, postData, redirect)
+    } finally {
+      RegisterUser4Thread.unregister()
+    }
+  }
+
+  /**
+   * Sends a OTP as code (text to mobile phone of logged-in user).
+   */
+  @GetMapping("sendSmsCode")
+  fun sendSmsCode(request: HttpServletRequest): ResponseEntity<*> {
+    if (LoginService.getUserContext(request) != null) {
+      return RestUtils.badRequest(translate(I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS))
+    }
+    val result = securityCheck(request, My2FAType.SMS)
+    result.badRequestResponseEntity?.let { return it }
+    try {
+      RegisterUser4Thread.registerUser(result.user!!)
+      return my2FAServicesRest.sendSmsCode(request)
+    } finally {
+      RegisterUser4Thread.unregister()
+    }
+  }
+
 
   /**
    * @param token The token sent by mail (is mandatory for getting and checking the user).
    * @see [PasswordResetService.checkToken]
    */
   @GetMapping("dynamic")
-  fun getForm(@RequestParam("token") token: String): FormLayoutData {
+  fun getForm(request: HttpServletRequest, @RequestParam("token") token: String): FormLayoutData {
+    if (LoginService.getUserContext(request) != null) {
+      return LayoutUtils.getMessageLayout(LAYOUT_TITLE, I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS)
+    }
     val user = passwordResetService.checkToken(token)
-    val layout = UILayout("password.reset.title")
+    val layout = UILayout(LAYOUT_TITLE)
     if (user == null) {
       layout.add(
         UIAlert(
@@ -73,8 +126,9 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
         )
       )
     } else {
+      registerUserForPublic2FA(request, user)
       val userContext = UserContext(user)
-      my2FAServicesRest.fillLayout4PublicPage(layout, userContext)
+      my2FAServicesRest.fillLayout4PublicPage(layout, userContext, this::class.java, mailOTPDisabled = true)
       layout
         .add(
           UIInput(
@@ -129,5 +183,47 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
   class PasswordResetData : My2FAData() {
     var newPassword: CharArray? = null
     var newPasswordRepeat: CharArray? = null
+  }
+
+  /**
+   * User must be pre-logged-in by password (UserContext must be given in user's http session), or
+   * user must be registered via [registerUserForPublic2FA].
+   * @param type OTP per mail is not allowed for non-context-users (especially for password reset).
+   */
+  private fun securityCheck(request: HttpServletRequest, type: My2FAType? = null): SecurityCheckResult {
+    val user = request.getSession(false).getAttribute(SESSION_ATTRIBUTE_USER_ID_FOR_PUBLIC_2FA) as? PFUserDO
+    user?.let { user ->
+      return SecurityCheckResult(user)
+    }
+    SecurityLogging.logSecurityWarn(
+      request,
+      this::class.java,
+      "No password reset user tried to do call checkOTP (denied)"
+    )
+    return SecurityCheckResult(badRequestResponseEntity = ResponseEntity<Any>(HttpStatus.BAD_REQUEST))
+  }
+
+  internal class SecurityCheckResult(
+    val user: PFUserDO? = null,
+    val badRequestResponseEntity: ResponseEntity<*>? = null
+  )
+
+
+  companion object {
+    private const val SESSION_ATTRIBUTE_USER_ID_FOR_PUBLIC_2FA = "passwordReset.userId"
+    private const val LAYOUT_TITLE = "password.reset.title"
+
+    private fun getRegisteredUserForPublic2FA(request: HttpServletRequest): PFUserDO? {
+      return request.getSession(false).getAttribute(SESSION_ATTRIBUTE_USER_ID_FOR_PUBLIC_2FA) as? PFUserDO
+    }
+
+    /**
+     * 2FA is not allowed for anononymous usage. Used by PasswordResetPageRest to register an
+     * user as authenticated 2FA-user.
+     */
+    private fun registerUserForPublic2FA(request: HttpServletRequest, user: PFUserDO) {
+      request.getSession(true)
+        .setAttribute(SESSION_ATTRIBUTE_USER_ID_FOR_PUBLIC_2FA, PFUserDO.createCopyWithoutSecretFields(user))
+    }
   }
 }
