@@ -34,7 +34,6 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.ServerData
-import java.awt.Color
 
 private val log = KotlinLogging.logger {}
 
@@ -446,12 +445,39 @@ object LayoutUtils {
    * @param id Optional id of the alert box.
    * @param data Optional data object (will be sent to client).
    */
-  fun getMessageLayout(layoutTitle: String, message: String, color: UIColor? = UIColor.INFO, alertTitle: String? = null, markDown: Boolean? = null, id: String? = null, data: Any? = null): FormLayoutData {
-    val layout = UILayout(layoutTitle)
-    val translatedMessage = if (message.startsWith("'")) message else translate(message)
-    val translatedAlertTitle = if (alertTitle == null || alertTitle.startsWith("'")) alertTitle else translate(alertTitle)
-    layout.add(UIAlert(translatedMessage, title = translatedAlertTitle, id = id, color = color, markdown = markDown))
+  fun getMessageFormLayoutData(
+    layoutTitle: String,
+    message: String,
+    color: UIColor? = UIColor.INFO,
+    alertTitle: String? = null,
+    markDown: Boolean? = null,
+    id: String? = null,
+    data: Any? = null,
+  ): FormLayoutData {
+    val layout = getMessageLayout(layoutTitle, message, color, alertTitle, markDown, id)
     return FormLayoutData(data, layout, ServerData())
+  }
+
+  /**
+   * @param layoutTitle I18n-key. If already translated use trailing apostrophe.
+   * @param message I18n-key for alert box. If already translated use trailing apostrophe.
+   * @param color Color of alert box. [UIColor.INFO] is default.
+   * @param alertTitle Optional I18n-key for alert box.  If already translated use trailing apostrophe.
+   * @param markDown If true, the message will be converted from markdown to html. Default is false.
+   * @param id Optional id of the alert box.
+   */
+  fun getMessageLayout(
+    layoutTitle: String,
+    message: String,
+    color: UIColor? = UIColor.INFO,
+    alertTitle: String? = null,
+    markDown: Boolean? = null,
+    id: String? = null,
+  ): UILayout {
+    val layout = UILayout(layoutTitle)
+    layout.add(UIAlert(message, title = alertTitle, id = id, color = color, markdown = markDown))
+    process(layout)
+    return layout
   }
 
   internal enum class LabelType { ADDITIONAL_LABEL, TOOLTIP }

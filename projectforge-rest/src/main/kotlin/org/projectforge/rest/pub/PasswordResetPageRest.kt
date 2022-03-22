@@ -23,6 +23,9 @@
 
 package org.projectforge.rest.pub
 
+import mu.KotlinLogging
+import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.I18nKeys
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.UserContext
@@ -38,7 +41,6 @@ import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.ServerData
 import org.projectforge.security.My2FAData
 import org.projectforge.security.RegisterUser4Thread
 import org.projectforge.security.SecurityLogging
@@ -47,10 +49,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
 
+private val log = KotlinLogging.logger {}
 
 /**
  * This rest service should be available without login (public).
@@ -64,6 +68,12 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
 
   @Autowired
   private lateinit var my2FAServicesRest: My2FAServicesRest
+
+  @Autowired
+  private lateinit var userDao: UserDao
+
+  @Autowired
+  private lateinit var userService: UserService
 
   /**
    * For validating the Authenticator's OTP, or OTP sent by sms. The user must be assigned before by password reset token.
@@ -81,13 +91,18 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
     }
     val result = securityCheck(request)
     result.badRequestResponseEntity?.let { return it }
+    val user = result.data!!.user
     try {
-      RegisterUser4Thread.registerUser(result.data!!.user)
+      RegisterUser4Thread.registerUser(user)
       val otpCheckReslt = my2FAServicesRest.checkOTP(request, response, postData, redirect)
       if (otpCheckReslt.body?.targetType == TargetType.UPDATE) {
         // Update also the ui of the client (on success, the password fields will be shown after 2FA).
-        val layout = null
-        otpCheckReslt.body.addVariable("ui", getLayout(request))
+        otpCheckReslt.body.let {
+          it.addVariable("ui", getLayout(request))
+          val data = PasswordResetData()
+          data.username = user.username
+          it.addVariable("data", data)
+        }
       }
       return otpCheckReslt
     } finally {
@@ -118,6 +133,10 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
    */
   @GetMapping("cancel")
   fun cancel(request: HttpServletRequest): ResponseAction {
+    getSessionData(request, false)?.let {
+      // Delete token of current password reset session. The link of the e-mail will be invalid now.
+      passwordResetService.deleteToken(it.token)
+    }
     request.getSession(false)?.invalidate()
     return RestUtils.getRedirectToDefaultPageAction()
   }
@@ -129,7 +148,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("token") token: String): FormLayoutData {
     if (LoginService.getUserContext(request) != null) {
-      return LayoutUtils.getMessageLayout(
+      return LayoutUtils.getMessageFormLayoutData(
         LAYOUT_TITLE,
         I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS,
         UIColor.WARNING
@@ -139,22 +158,52 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
       request.getSession(true).setAttribute(SESSION_ATTRIBUTE_DATA, SessionData(token, user))
     }
     val layout = getLayout(request)
-    return FormLayoutData(null, layout, ServerData())
+    return FormLayoutData(null, layout, createServerData(request))
   }
 
   @PostMapping
-  fun post(@RequestBody postData: PostData<PasswordResetData>)
-      : ResponseEntity<ResponseAction> {
+  fun post(request: HttpServletRequest, @RequestBody postData: PostData<PasswordResetData>)
+      : ResponseEntity<*> {
+    if (LoginService.getUserContext(request) != null) {
+      return RestUtils.badRequest(translate(I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS))
+    }
+    val result = securityCheck(request)
+    result.badRequestResponseEntity?.let { return it }
+    val user = result.data!!.user
+    validateCsrfToken(request, postData)?.let { return it }
     val newPassword = postData.data.newPassword
     val newPasswordRepeat = postData.data.newPasswordRepeat
-    val code = postData.data.code
+
+    if (!Arrays.equals(newPassword, newPasswordRepeat)) {
+      val validationErrors = listOf(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch"))
+      return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+    }
+    log.info { "The user wants to change his password." }
+    val errorMsgKeys = userService.internalChangePasswordAfter2FA(user.id, newPassword)
+    processErrorKeys(errorMsgKeys)?.let {
+      return it // Error messages occured:
+    }
+    cancel(request) // Clear session
+    val layout =
+      LayoutUtils.getMessageLayout(LAYOUT_TITLE, "user.changePassword.msg.passwordSuccessfullyChanged", UIColor.SUCCESS)
+    layout.add(
+      UIButton(
+        "back",
+        translate("back"),
+        UIColor.DANGER,
+      ).redirectToDefaultPage()
+    )
     return ResponseEntity.ok(
-      ResponseAction(targetType = TargetType.UPDATE)
+      ResponseAction(
+        targetType = TargetType.UPDATE,
+        variables = mutableMapOf<String, Any>("ui" to layout)
+      )
     )
   }
 
   private fun getLayout(request: HttpServletRequest): UILayout {
-    val data = request.getSession(false)?.getAttribute(SESSION_ATTRIBUTE_DATA) as? SessionData
+    // Session required for data, csrf and 2FA handling.
+    val data = getSessionData(request, true)
     val user = data?.user
     val layout = UILayout(LAYOUT_TITLE)
     val lastSuccessful2FA = My2FAServicesRest.getLastSuccessful2FAFromSession(request)
@@ -179,6 +228,9 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
     } else {
       // Successful 2FA, show password fields:
       layout
+        .add(
+          UIReadOnlyField("username", label = "username")
+        )
         .add(
           UIInput(
             "newPassword",
@@ -211,8 +263,8 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
     if (user != null) {
       layout.add(
         UIButton(
-          "reset",
-          translate("password.forgotten.request"),
+          "update",
+          translate("update"),
           UIColor.SUCCESS,
           responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
           default = true
@@ -224,6 +276,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
   }
 
   class PasswordResetData : My2FAData() {
+    var username: String? = null
     var newPassword: CharArray? = null
     var newPasswordRepeat: CharArray? = null
   }
@@ -234,7 +287,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
    * @param type OTP per mail is not allowed for non-context-users (especially for password reset).
    */
   private fun securityCheck(request: HttpServletRequest, type: My2FAType? = null): SecurityCheckResult {
-    val data = request.getSession(false).getAttribute(SESSION_ATTRIBUTE_DATA) as? SessionData
+    val data = getSessionData(request)
     data?.let { data ->
       return SecurityCheckResult(data)
     }
@@ -244,6 +297,10 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
       "No password reset user tried to do call checkOTP (denied)"
     )
     return SecurityCheckResult(badRequestResponseEntity = ResponseEntity<Any>(HttpStatus.BAD_REQUEST))
+  }
+
+  private fun getSessionData(request: HttpServletRequest, createSession: Boolean = false): SessionData? {
+    return request.getSession(createSession).getAttribute(SESSION_ATTRIBUTE_DATA) as? SessionData
   }
 
   private class SecurityCheckResult(
