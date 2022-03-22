@@ -315,7 +315,9 @@ open class SendMail {
   ) {
     val user = ThreadLocalUserContext.getUser()
     data["createdLabel"] = getLocalizedMessage(ThreadLocalUserContext.getLocale(),"created")
-    data["loggedInUser"] = user
+    user?.let {
+      data["loggedInUser"] = it
+    }
     data["title"] = title
     if (recipient != null) {
       data["recipient"] = recipient

@@ -161,7 +161,7 @@ open class VacationSendMailService {
             log.error { "Oups, neither recipient nor VacationMode.HR is given to prepare mail. No notification is done." }
             return null
         }
-        val data = mutableMapOf("vacationInfo" to vacationInfo, "vacation" to obj, "mailInfo" to mailInfo)
+        val data = mutableMapOf<String, Any?>("vacationInfo" to vacationInfo, "vacation" to obj, "mailInfo" to mailInfo)
         mail.content = sendMail.renderGroovyTemplate(mail, "mail/vacationMail.html", data, translate(recipient, "vacation"), recipient)
         return mail
     }

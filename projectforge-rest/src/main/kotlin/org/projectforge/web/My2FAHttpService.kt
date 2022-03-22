@@ -117,7 +117,7 @@ class My2FAHttpService {
     mail.setTo(user)
     mail.subject = translate("user.My2FACode.sendCode.mail.title")
     mail.contentType = Mail.CONTENTTYPE_HTML
-    val data: MutableMap<String, Any> = mutableMapOf("otp" to code)
+    val data: MutableMap<String, Any?> = mutableMapOf("otp" to code)
     mail.content = sendMail.renderGroovyTemplate(
       mail, "mail/otpMail.html", data,
       mail.subject, user
