@@ -80,7 +80,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
       return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
     }
     log.info { "The user wants to change his password." }
-    val errorMsgKeys = userService.changePassword(userDao.getById(data.userId), data.oldPassword, data.newPassword)
+    val errorMsgKeys = userService.changePassword(data.userId, data.oldPassword, data.newPassword)
     data.clear() // Clear all passwords, if not already done, due to security reasons.
     processErrorKeys(errorMsgKeys)?.let {
       return it // Error messages occured:

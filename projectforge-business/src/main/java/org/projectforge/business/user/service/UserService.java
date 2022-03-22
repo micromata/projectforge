@@ -200,14 +200,14 @@ public class UserService {
    * Changes the user's password. Checks the password quality and the correct authentication for the old password
    * before. Also the stay-logged-in-key will be renewed, so any existing stay-logged-in cookie will be invalid.
    *
-   * @param user
+   * @param userId
    * @param oldPassword Will be cleared at the end of this method due to security reasons.
    * @param newPassword Will be cleared at the end of this method due to security reasons.
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> changePassword(PFUserDO user, final char[] oldPassword, final char[] newPassword) {
+  public List<I18nKeyAndParams> changePassword(final Integer userId, final char[] oldPassword, final char[] newPassword) {
     try {
-      Validate.notNull(user);
+      Validate.notNull(userId);
       Validate.isTrue(oldPassword.length > 0);
       Validate.isTrue(newPassword.length > 0);
 
@@ -217,8 +217,9 @@ public class UserService {
       }
 
       accessChecker.checkRestrictedOrDemoUser();
-      user = getUser(user.getUsername(), oldPassword, false);
-      if (user == null) {
+      final PFUserDO user = userDao.internalGetById(userId);
+      final PFUserDO userCheck = getUser(user.getUsername(), oldPassword, false);
+      if (userCheck == null) {
         return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG));
       }
 
@@ -231,6 +232,39 @@ public class UserService {
     } finally {
       LoginHandler.clearPassword(newPassword);
       LoginHandler.clearPassword(oldPassword);
+    }
+  }
+
+  /**
+   * Should be called only by password reset (authentication via 2FA.
+   * Changes the user's password. Checks the password quality before.
+   * Also the stay-logged-in-key will be renewed, so any existing stay-logged-in cookie will be invalid.
+   *
+   * @param userId
+   * @param newPassword Will be cleared at the end of this method due to security reasons.
+   * @return Error message key if any check failed or null, if successfully changed.
+   */
+  public List<I18nKeyAndParams> internalChangePasswordAfter2FA(final Integer userId, final char[] newPassword) {
+    try {
+      Validate.notNull(userId);
+      Validate.isTrue(newPassword.length > 0);
+      Validate.isTrue(ThreadLocalUserContext.getUser() == null, "ThreadLocalUser mustn't be given on password reset.");
+
+      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(newPassword);
+      if (!errorMsgKeys.isEmpty()) {
+        return errorMsgKeys;
+      }
+      final PFUserDO user = userDao.internalGetById(userId);
+      ThreadLocalUserContext.setUser(user);
+      createEncryptedPassword(user, newPassword);
+      onPasswordChange(user, true);
+      userDao.internalUpdate(user);
+      Login.getInstance().passwordChanged(user, newPassword);
+      log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
+      return Collections.emptyList();
+    } finally {
+      ThreadLocalUserContext.setUserContext(null);
+      LoginHandler.clearPassword(newPassword);
     }
   }
 
@@ -579,7 +613,7 @@ public class UserService {
    * anymore.
    *
    * @param encrypted The data to encrypt.
-   * @param userId Use the password of the given user (used by CookieService, because user isn't yet logged-in).
+   * @param userId    Use the password of the given user (used by CookieService, because user isn't yet logged-in).
    * @return The decrypted data.
    * @see UserDao#decrypt(String)
    */
