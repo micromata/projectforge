@@ -24,7 +24,6 @@
 package org.projectforge.mail;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.framework.ToStringUtil;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
