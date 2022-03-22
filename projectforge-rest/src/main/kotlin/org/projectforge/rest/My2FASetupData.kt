@@ -23,21 +23,24 @@
 
 package org.projectforge.rest
 
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.security.My2FAData
+import java.util.*
 
 class My2FASetupData : My2FAData() {
-  /**
-   * Only used for setup.
-   */
   var mobilePhone: String? = null
 
-  /**
-   * Only used for setup (must be hidden for other pages)
-   */
   var authenticatorKey: String? = null
 
-  /**
-   * Only used for setup.
-   */
+  var authenticatorKeyCreated: String? = null
+
   var showAuthenticatorKey: Boolean = false
+
+  fun setDate(date: Date?) {
+    authenticatorKeyCreated = if (date != null) {
+      PFDateTime.from(date).format(withTimeLeftOrAgo = true)
+    } else {
+      ""
+    }
+  }
 }

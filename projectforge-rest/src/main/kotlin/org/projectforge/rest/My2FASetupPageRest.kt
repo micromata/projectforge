@@ -76,6 +76,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     userDao.internalGetById(ThreadLocalUserContext.getUserId())?.let { user ->
       data.mobilePhone = user.mobilePhone
     }
+    data.setDate(authenticationsService.getAuthenticatorTokenCreationDate())
     val layout = createLayout(data)
     return FormLayoutData(data, layout, createServerData(request))
   }
@@ -86,6 +87,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
   @PostMapping(RestPaths.WATCH_FIELDS)
   fun watchFields(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
     val data = postData.data
+    data.setDate(authenticationsService.getAuthenticatorTokenCreationDate())
     if (data.showAuthenticatorKey) {
       data.authenticatorKey = authenticationsService.getAuthenticatorToken()
       if (data.authenticatorKey == null) {
@@ -123,6 +125,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     authenticationsService.createNewAuthenticatorToken()
     data.showAuthenticatorKey = true
     data.authenticatorKey = authenticationsService.getAuthenticatorToken()
+    data.setDate(authenticationsService.getAuthenticatorTokenCreationDate())
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE)
         .addVariable("ui", createLayout(data))
@@ -173,7 +176,10 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     val user = userDao.internalGetById(ThreadLocalUserContext.getUserId())
     user.mobilePhone = mobilePhone
     userDao.internalUpdate(user)
-    return UIToast.createToastResponseEntity(translate("operation.updated"), color = UIColor.SUCCESS)
+    return UIToast.createToastResponseEntity(
+      translate("operation.updated"), color = UIColor.SUCCESS, targetType = TargetType.UPDATE,
+      variables = mutableMapOf("ui" to createLayout(postData.data))
+    )
   }
 
   private fun createLayout(data: My2FASetupData): UILayout {
@@ -192,20 +198,23 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
           color = UIColor.LIGHT
         )
       )
-      .add(
+    if (authenticatorKey.isNullOrBlank() || smsConfigured && data.mobilePhone.isNullOrBlank()) {
+      // Authenticator App and mobile phone is highly recommended:
+      fieldset.add(
         UIAlert(
           message = "user.My2FA.setup.info.2",
           markdown = true,
           color = UIColor.WARNING
         )
       )
-      .add(
-        UIAlert(
-          message = "user.My2FA.setup.info.3",
-          markdown = true,
-          color = UIColor.LIGHT
-        )
+    }
+    fieldset.add(
+      UIAlert(
+        message = "user.My2FA.setup.info.3",
+        markdown = true,
+        color = UIColor.LIGHT
       )
+    )
     my2FAServicesRest.fill2FA(fieldset, data)
 
     val fieldsetLenth = if (smsConfigured) 6 else 12
@@ -213,7 +222,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     val row = UIRow()
     layout.add(row)
 
-    fieldset = UIFieldset(lg = fieldsetLenth, title = "user.My2FA.setup.athenticator.title")
+    fieldset = UIFieldset(lg = fieldsetLenth, title = "user.My2FA.setup.authenticator.title")
     row.add(fieldset)
     if (authenticatorKey.isNullOrBlank()) {
       fieldset.add(
@@ -243,6 +252,9 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
           responseAction = ResponseAction("/rs/2FASetup/disableAuthenticatorApp", targetType = TargetType.POST),
           confirmMessage = translate("user.My2FA.setup.disableAuthenticatorApp.confirmMessage")
         )
+      )
+      fieldset.add(
+        UIReadOnlyField("authenticatorKeyCreated", label = "created")
       )
       // Authenticator token is available
       fieldset.add(
@@ -275,7 +287,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
               color = UIColor.SUCCESS
             )
           )
-            .add(UIReadOnlyField("authenticatorKey", label = "user.My2FA.setup.athenticatorKey"))
+            .add(UIReadOnlyField("authenticatorKey", label = "user.My2FA.setup.authenticatorKey"))
             .add(UICustomized("image", mutableMapOf("src" to barcodeUrl, "alt" to barcodeUrl)))
         }
       }

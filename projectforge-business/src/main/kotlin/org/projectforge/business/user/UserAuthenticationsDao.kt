@@ -226,6 +226,15 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
   }
 
   /**
+   * @return The authenticator token of the logged-in user
+   */
+  open fun internalGetAuthenticatorTokenCreationDate(): Date? {
+    val userId = ThreadLocalUserContext.getUserId() ?: return null
+    val authentications = ensureAuthentications(userId, checkAccess = false)
+    return authentications.authenticatorTokenCreationDate
+  }
+
+  /**
    * @return true, if an Authenticator app (token) is configured by the given user.
    */
   open fun internalHasAuthenticatorToken(userId: Int): Boolean {
