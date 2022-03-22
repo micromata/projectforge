@@ -219,10 +219,11 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
 
   public static void createMobilePhone(final GridBuilder gridBuilder, final PFUserDO user) {
     // E-Mail
-    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.mobilePhone"), gridBuilder.getString("user.mobilePhone.info"));
+    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.mobilePhone"));
     MaxLengthTextField mobilePhone = new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(user, "mobilePhone"));
     mobilePhone.setMarkupId("mobilePhone").setOutputMarkupId(true);
     mobilePhone.setRequired(false);
+    fs.addHelpIcon(gridBuilder.getString("user.mobilePhone.info"));
     fs.add(mobilePhone);
   }
 
