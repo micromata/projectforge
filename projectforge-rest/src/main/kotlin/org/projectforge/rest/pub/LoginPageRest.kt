@@ -35,6 +35,7 @@ import org.projectforge.login.LoginData
 import org.projectforge.login.LoginService
 import org.projectforge.rest.My2FAServicesRest
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -62,7 +63,7 @@ open class LoginPageRest {
   private lateinit var my2FAServicesRest: My2FAServicesRest
 
   /**
-   * @param via url the caller can modify the url to redirect after login (used by WicketUtils).
+   * @param url the caller can modify the url to redirect after login (used by WicketUtils).
    */
   @GetMapping("dynamic")
   fun getForm(
@@ -166,6 +167,20 @@ open class LoginPageRest {
           default = true
         )
       )
+      .add(
+        UIButton(
+          "passwordForgotten",
+          translate("password.forgotten.link"),
+          UIColor.LINK,
+          responseAction = ResponseAction(
+            PagesResolver.getDynamicPageUrl(
+              PasswordForgottenPageRest::
+              class.java, absolute = true
+            ),
+            targetType = TargetType.REDIRECT
+          ),
+        )
+      )
 
     val layout = UILayout("login.title")
       .add(
@@ -181,7 +196,7 @@ open class LoginPageRest {
   private fun get2FALayout(userContext: UserContext, url: String?): FormLayoutData {
     val layout = UILayout("login.title")
     val data = LoginData()
-    my2FAServicesRest.fillLayout4LoginPage(layout, userContext, url)
+    my2FAServicesRest.fillLayout4PublicPage(layout, userContext, url)
     LayoutUtils.process(layout)
     return FormLayoutData(data, layout, ServerData(returnToCaller = url))
   }
