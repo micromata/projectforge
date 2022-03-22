@@ -47,10 +47,22 @@ data class ValidationError(var message: String? = null,
             return validationError
         }
 
+        /**
+         * @param clazz: For getting PropertyInfo of field.
+         * @param fieldId
+         */
         fun createFieldRequired(clazz: Class<*>, fieldId: String): ValidationError {
-            val i18nKey = "validation.error.fieldRequired"
             val fieldI18nKey = ElementsRegistry.getElementInfo(clazz, fieldId)?.i18nKey
             val fieldName = if (fieldI18nKey != null) translate(fieldI18nKey) else fieldId
+            return createFieldRequired(fieldId, fieldName)
+        }
+
+        /**
+         * @param fieldId
+         * @param fieldName Name of field (already translated)
+         */
+        fun createFieldRequired(fieldId: String, fieldName: String): ValidationError {
+            val i18nKey = "validation.error.fieldRequired"
             val validationError = ValidationError()
             validationError.fieldId = fieldId
             validationError.messageId = i18nKey

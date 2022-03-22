@@ -201,7 +201,10 @@ class My2FAServicesRest {
     last2FACol.add(UIReadOnlyField("lastSuccessful2FA", label = "user.My2FACode.lastSuccessful2FA"))
   }
 
-  fun fillLayout4LoginPage(layout: UILayout, userContext: UserContext, redirectUrl: String?) {
+  /**
+   * A 2FA is needed for any public page (login or password reset).
+   */
+  fun fillLayout4PublicPage(layout: UILayout, userContext: UserContext, redirectUrl: String? = null) {
     val fieldset = UIFieldset(12, title = "user.My2FACode.title")
     layout.add(fieldset)
     fieldset.add(
