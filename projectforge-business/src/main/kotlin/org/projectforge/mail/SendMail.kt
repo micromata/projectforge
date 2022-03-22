@@ -24,6 +24,7 @@
 package org.projectforge.mail
 
 import de.micromata.genome.util.validation.ValContext
+import mu.KotlinLogging
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.configuration.ConfigurationService
@@ -53,13 +54,16 @@ import javax.mail.internet.MimeMessage
 import javax.mail.internet.MimeMultipart
 import javax.mail.util.ByteArrayDataSource
 
+private val log = KotlinLogging.logger {}
+
 /**
  * Helper class for creating and transporting E-Mails. Groovy script is use-able for e-mail template mechanism.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+// Open needed for mocking.
 @Service
-class SendMail {
+open class SendMail {
   @Autowired
   private lateinit var configurationService: ConfigurationService
 
@@ -119,7 +123,7 @@ class SendMail {
     return true
   }
 
-  private val session: Session
+  private val session: Session?
     get() {
       val cf = configurationService.createMailSessionLocalSettingsConfigModel()
       if (!cf.isEmailEnabled) {
@@ -330,7 +334,6 @@ class SendMail {
 
   companion object {
     private const val STANDARD_SUBJECT_PREFIX = "[ProjectForge] "
-    private val log = LoggerFactory.getLogger(SendMail::class.java)
 
     /**
      * Get the ProjectForge standard subject: "[ProjectForge] ..."
