@@ -100,6 +100,7 @@ object SecurityLogging {
   fun logSecurityWarn(caller: Class<*>, title: String, message: String? = null): String {
     val msg = "*** $title *** ${getMessagePart(caller, message)}"
     securityLog.warn(msg)
+    log.warn { "logSecurity: $msg" }
     return msg
   }
 
