@@ -23,6 +23,8 @@
 
 package org.projectforge.ui
 
+import org.projectforge.rest.config.RestUtils
+
 data class UIButton(
   val id: String,
   /** May be null for standard buttons. For standard buttons the title will be set dependent on the id. */
@@ -36,11 +38,21 @@ data class UIButton(
   /**
    * Tell the client of what to do after clicking this button.
    */
-  val responseAction: ResponseAction? = null,
+  var responseAction: ResponseAction? = null,
   /**
    * If given the frontend should display a confirmation dialog containing this message.
    */
   var tooltip: String? = null,
   val confirmMessage: String? = null,
   val disabled: Boolean? = false,
-) : UIElement(UIElementType.BUTTON)
+) : UIElement(UIElementType.BUTTON) {
+  /**
+   * Sets a redirect as responseAction.
+   * @return this for chaining.
+   * @see RestUtils.getRedirectToDefaultPageAction
+   */
+  fun redirectToDefaultPage(): UIButton {
+    responseAction = RestUtils.getRedirectToDefaultPageAction()
+    return this
+  }
+}

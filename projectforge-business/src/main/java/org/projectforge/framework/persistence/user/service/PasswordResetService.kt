@@ -56,13 +56,21 @@ class PasswordResetService {
    * @return The user assigned to the token or null, if no such user is found.
    */
   fun checkToken(token: String): PFUserDO? {
-    val userId = PasswordResetTokenStore.checkAndDeleteToken(token) ?: return null
+    val userId = PasswordResetTokenStore.checkToken(token) ?: return null
     return userService.internalGetById(userId)
   }
 
   /**
+   * @param Deletes the given token, if exists.
+   * @see PasswordResetTokenStore.deleteToken
+   */
+  fun deleteToken(token: String) {
+    PasswordResetTokenStore.deleteToken(token)
+  }
+
+  /**
    * @param Link in e-mail for password reset. "<token>" will be reset by the generated token.
-   *        E. g. projectforge.acme.com/react/public/passwordReset?token=<token>
+   *        E. g. projectforge.acme.com/react/public/passwordReset/dynamic/?token=IBMwcF3b1f80OvH6bcbOcqWCaUtFr4
    */
   fun sendMail(usernameEmail: String, link: String) {
     /**
@@ -106,13 +114,14 @@ class PasswordResetService {
     mail.setTo(user)
     mail.contentType = Mail.CONTENTTYPE_HTML
     val token = PasswordResetTokenStore.createToken(user.id)
-    val data = mutableMapOf<String, Any>("link" to link.replace("<token>", token))
+    val resolvedLink = link.replace("TOKEN", token)
+    val data = mutableMapOf<String, Any?>("link" to resolvedLink)
     mail.content = sendMail.renderGroovyTemplate(
       mail, "mail/passwordResetMail.html", data,
       mail.subject, user
     )
     if (SystemStatus.isDevelopmentMode()) {
-      log.info { "Development mode: Mail with password reset will be sent to '${mail.to}'. Link is '$link'." }
+      log.info { "Development mode: Mail with password reset will be sent to '${mail.to}'. Link is '$resolvedLink'." }
     }
     sendMail.send(mail)
   }

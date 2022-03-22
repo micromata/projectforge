@@ -66,41 +66,42 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
     val user = passwordResetService.checkToken(token)
     val layout = UILayout("password.reset.title")
     if (user == null) {
-      UIAlert(
-        message = "password.reset.error",
-        color = UIColor.DANGER
+      layout.add(
+        UIAlert(
+          message = "password.reset.error",
+          color = UIColor.DANGER
+        )
       )
-      LayoutUtils.process(layout)
-      return FormLayoutData(null, layout, ServerData())
+    } else {
+      val userContext = UserContext(user)
+      my2FAServicesRest.fillLayout4PublicPage(layout, userContext)
+      layout
+        .add(
+          UIInput(
+            "newPassword",
+            label = "user.changePassword.newPassword",
+            dataType = UIDataType.PASSWORD,
+            required = true
+          )
+        )
+        .add(
+          UIInput(
+            "newPasswordRepeat",
+            label = "passwordRepeat",
+            dataType = UIDataType.PASSWORD,
+            required = true
+          )
+        )
     }
-    val userContext = UserContext(user)
-    my2FAServicesRest.fillLayout4PublicPage(layout, userContext)
-    layout
-      .add(
-        UIInput(
-          "newPassword",
-          label = "user.changePassword.newPassword",
-          dataType = UIDataType.PASSWORD,
-          required = true
-        )
-      )
-      .add(
-        UIInput(
-          "newPasswordRepeat",
-          label = "passwordRepeat",
-          dataType = UIDataType.PASSWORD,
-          required = true
-        )
-      )
-      .add(
-        UIButton(
-          "cancel",
-          translate("cancel"),
-          UIColor.DANGER,
-          responseAction = ResponseAction("/", targetType = TargetType.REDIRECT),
-        )
-      )
-      .add(
+    layout.add(
+      UIButton(
+        "cancel",
+        translate("cancel"),
+        UIColor.DANGER,
+      ).redirectToDefaultPage()
+    )
+    if (user != null) {
+      layout.add(
         UIButton(
           "reset",
           translate("password.forgotten.request"),
@@ -109,6 +110,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
           default = true
         )
       )
+    }
     LayoutUtils.process(layout)
     return FormLayoutData(null, layout, ServerData())
   }
