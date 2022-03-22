@@ -85,6 +85,8 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
       RegisterUser4Thread.registerUser(result.data!!.user)
       val otpCheckReslt = my2FAServicesRest.checkOTP(request, response, postData, redirect)
       if (otpCheckReslt.body?.targetType == TargetType.UPDATE) {
+        // Update also the ui of the client (on success, the password fields will be shown after 2FA).
+        val layout = null
         otpCheckReslt.body.addVariable("ui", getLayout(request))
       }
       return otpCheckReslt
@@ -137,7 +139,6 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
       request.getSession(true).setAttribute(SESSION_ATTRIBUTE_DATA, SessionData(token, user))
     }
     val layout = getLayout(request)
-    LayoutUtils.process(layout)
     return FormLayoutData(null, layout, ServerData())
   }
 
@@ -163,6 +164,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
     if (user != null && !hasSuccessful2FA) {
       // User given, but first 2FA required:
       my2FAServicesRest.fillLayout4PublicPage(layout, UserContext(user), this::class.java, mailOTPDisabled = true)
+      LayoutUtils.process(layout)
       return layout
     }
 
@@ -200,7 +202,10 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
         "cancel",
         translate("cancel"),
         UIColor.DANGER,
-        responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java, "cancel"), targetType = TargetType.GET),
+        responseAction = ResponseAction(
+          RestResolver.getRestUrl(this::class.java, "cancel"),
+          targetType = TargetType.GET
+        ),
       )
     )
     if (user != null) {
@@ -214,6 +219,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
         )
       )
     }
+    LayoutUtils.process(layout)
     return layout
   }
 
