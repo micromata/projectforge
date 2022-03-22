@@ -37,13 +37,21 @@ internal object PasswordResetTokenStore {
    * @param Token sent to user (created via [createToken].
    * @return The user id assigned to the given token or null, if no token found.
    */
-  fun checkAndDeleteToken(token: String): Int? {
+  fun checkToken(token: String): Int? {
     tidyUp()
     synchronized(store) {
-      val found = store.entries.find { it.value.token == token } ?: return null
-      val userId = found.key
-      store.remove(userId)
-      return userId
+      return store.entries.find { it.value.token == token }?.key
+    }
+  }
+
+  /**
+   * A token should be deleted after password reset is done. If not, it will be deleted after 10 minutes automatically.
+   * @param token Token to delete.
+   */
+  fun deleteToken(token: String) {
+    tidyUp()
+    synchronized(store) {
+      store.entries.removeIf { it.value.token == token }
     }
   }
 

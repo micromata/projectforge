@@ -27,6 +27,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.service.PasswordResetService
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
@@ -77,7 +78,7 @@ open class PasswordForgottenPageRest : AbstractDynamicPageRest() {
       )
     }
     val link = domainService.getDomain(
-      PagesResolver.getDynamicPageUrl(PasswordResetPageRest::class.java, mapOf("token" to "<token>"))
+      PagesResolver.getDynamicPageUrl(PasswordResetPageRest::class.java, mapOf("token" to "TOKEN"))
     )
     passwordResetService.sendMail(usernameEmail, link)
     return ResponseEntity.ok(
@@ -101,6 +102,13 @@ open class PasswordForgottenPageRest : AbstractDynamicPageRest() {
         autoComplete = UIInput.AutoCompleteType.USERNAME
       )
     )
+      .add(
+        UIButton(
+          "cancel",
+          translate("cancel"),
+          UIColor.DANGER,
+        ).redirectToDefaultPage()
+      )
       .add(
         UIButton(
           "request",
