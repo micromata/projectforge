@@ -50,7 +50,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.Tuple;
 import javax.persistence.criteria.JoinType;
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
