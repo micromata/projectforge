@@ -51,7 +51,7 @@ import java.util.regex.Pattern
 private val log = KotlinLogging.logger {}
 
 class GroovyEngine @JvmOverloads constructor(val configurationService: ConfigurationService,
-                                             var variables: MutableMap<String, Any>,
+                                             var variables: MutableMap<String, Any?>,
                                              locale: Locale? = null,
                                              timeZone: TimeZone? = null) {
 
