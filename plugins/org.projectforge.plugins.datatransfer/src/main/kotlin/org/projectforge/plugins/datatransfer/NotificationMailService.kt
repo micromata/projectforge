@@ -150,7 +150,7 @@ open class NotificationMailService {
       log.error { "Recipient without mail address, no mail will be sent to '${recipient.getFullname()}: $dataTransfer" }
       return null
     }
-    val data = mutableMapOf<String, Any>("eventInfo" to eventInfo)
+    val data = mutableMapOf<String, Any?>("eventInfo" to eventInfo)
     mail.content =
       sendMail.renderGroovyTemplate(mail, "mail/dataTransferMail.html", data, title, recipient)
     return mail
