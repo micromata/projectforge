@@ -37,6 +37,7 @@ import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.security.My2FAService
+import org.projectforge.security.OTPCheckResult
 import org.projectforge.security.TimeBased2FA
 import org.projectforge.ui.*
 import org.projectforge.web.My2FAHttpService
@@ -44,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
@@ -74,13 +76,13 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
   private lateinit var userDao: UserDao
 
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest): FormLayoutData {
+  fun getForm(request: HttpServletRequest, response: HttpServletResponse): FormLayoutData {
     val data = My2FASetupData()
     userDao.internalGetById(ThreadLocalUserContext.getUserId())?.let { user ->
       data.mobilePhone = user.mobilePhone
     }
     data.setDate(authenticationsService.getAuthenticatorTokenCreationDate())
-    val layout = createLayout(data)
+    val layout = createLayout(request, response, data)
     return FormLayoutData(data, layout, createServerData(request))
   }
 
@@ -88,10 +90,17 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    * Will be called, if the user wants to see the encryption options.
    */
   @PostMapping(RestPaths.WATCH_FIELDS)
-  fun watchFields(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
+  fun watchFields(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @Valid @RequestBody postData: PostData<My2FASetupData>
+  ): ResponseEntity<ResponseAction> {
     val data = postData.data
     data.setDate(authenticationsService.getAuthenticatorTokenCreationDate())
     if (data.showAuthenticatorKey) {
+      getLastSuccessful2FAResponseEntity(request, response, data)?.let {
+        return it
+      }
       data.authenticatorKey = authenticationsService.getAuthenticatorToken()
       if (data.authenticatorKey == null) {
         authenticationsService.createNewAuthenticatorToken()
@@ -105,7 +114,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     }
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE)
-        .addVariable("ui", createLayout(data))
+        .addVariable("ui", createLayout(request, response, data))
         .addVariable("data", data)
     )
   }
@@ -115,13 +124,17 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    */
   @Suppress("UNUSED_PARAMETER")
   @PostMapping("enableAuthenticatorApp")
-  fun enableAuthenticatorApp(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
+  fun enableAuthenticatorApp(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @Valid @RequestBody postData: PostData<My2FASetupData>,
+  ): ResponseEntity<ResponseAction> {
     if (!authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
       log.error { "User tries to enable authenticator app, but authenticator token is already given!" }
       throw IllegalArgumentException("2FA already configured.")
     }
-    if (!checklastSuccessful2FA()) {
-      return showValidationErrors(ValidationError(translate("user.My2FA.required"), "code"))
+    getLastSuccessful2FAResponseEntity(request, response, postData.data)?.let {
+      return it
     }
     val data = My2FASetupData()
     data.mobilePhone = postData.data.mobilePhone
@@ -132,7 +145,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     my2FASetupMenuBadge.refreshUserBadgeCounter()
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE)
-        .addVariable("ui", createLayout(data))
+        .addVariable("ui", createLayout(request, response, data))
         .addVariable("data", data)
     )
   }
@@ -143,7 +156,11 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    * Requires a valid 2FA not older than 1 minute.
    */
   @PostMapping("disableAuthenticatorApp")
-  fun disableAuthenticatorApp(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
+  fun disableAuthenticatorApp(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @Valid @RequestBody postData: PostData<My2FASetupData>
+  ): ResponseEntity<ResponseAction> {
     if (authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
       log.error { "User tries to disable 2FA, but authenticator token isn't given!" }
       throw IllegalArgumentException("2FA not configured.")
@@ -152,8 +169,8 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     if (!otp.isNullOrBlank()) {
       my2FAService.validateAuthenticatorOTP(otp) // Try to do the fresh 2FA
     }
-    if (!checklastSuccessful2FA()) {
-      return showValidationErrors(ValidationError(translate("user.My2FA.required"), "code"))
+    getLastSuccessful2FAResponseEntity(request, response, postData.data)?.let {
+      return it
     }
     val data = My2FASetupData()
     data.mobilePhone = postData.data.mobilePhone
@@ -161,7 +178,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     my2FASetupMenuBadge.refreshUserBadgeCounter()
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE)
-        .addVariable("ui", createLayout(data))
+        .addVariable("ui", createLayout(request, response, data))
         .addVariable("data", data)
     )
   }
@@ -170,13 +187,17 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
    * Save the mobile phone field as is is. Must be empty or in a valid phone number format.
    */
   @PostMapping("saveMobilePhone")
-  fun saveMobilePhone(@Valid @RequestBody postData: PostData<My2FASetupData>): ResponseEntity<ResponseAction> {
+  fun saveMobilePhone(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @Valid @RequestBody postData: PostData<My2FASetupData>
+  ): ResponseEntity<ResponseAction> {
     val mobilePhone = postData.data.mobilePhone
     if (!mobilePhone.isNullOrBlank() && !StringHelper.checkPhoneNumberFormat(mobilePhone, false)) {
       return showValidationErrors(ValidationError(translate("user.mobilePhone.invalidFormat"), "mobilePhone"))
     }
-    if (!checklastSuccessful2FA()) {
-      return showValidationErrors(ValidationError(translate("user.My2FA.required"), "code"))
+    getLastSuccessful2FAResponseEntity(request, response, postData.data)?.let {
+      return it
     }
     val user = userDao.internalGetById(ThreadLocalUserContext.getUserId())
     user.mobilePhone = mobilePhone
@@ -184,11 +205,14 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     my2FASetupMenuBadge.refreshUserBadgeCounter()
     return UIToast.createToastResponseEntity(
       translate("operation.updated"), color = UIColor.SUCCESS, targetType = TargetType.UPDATE,
-      variables = mutableMapOf("ui" to createLayout(postData.data))
+      variables = mutableMapOf(
+        "ui" to createLayout(request, response, postData.data),
+        "data" to postData.data
+      )
     )
   }
 
-  private fun createLayout(data: My2FASetupData): UILayout {
+  private fun createLayout(request: HttpServletRequest, response: HttpServletResponse, data: My2FASetupData): UILayout {
     data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val smsConfigured = my2FAHttpService.smsConfigured
     val authenticatorKey = authenticationsService.getAuthenticatorToken()
@@ -270,7 +294,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         )
       )
       if (data.showAuthenticatorKey) {
-        if (!checklastSuccessful2FA()) {
+        if (checkLastSuccessful2FA(request, response, data) == CheckState.OTP_REQUIRED) {
           fieldset.add(
             UIAlert(
               message = "user.My2FA.required",
@@ -338,8 +362,47 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     return layout
   }
 
+  private fun getLastSuccessful2FAResponseEntity(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    data: My2FASetupData,
+  ): ResponseEntity<ResponseAction>? {
+    return when (val checkState = checkLastSuccessful2FA(request, response, data)) {
+      CheckState.OK -> null
+      CheckState.OTP_REQUIRED -> showValidationErrors(ValidationError(translate("user.My2FA.required"), "code"))
+      CheckState.OTP_FAILED -> showValidationErrors(ValidationError(checkState.userMessage))
+    }
+  }
 
-  private fun checklastSuccessful2FA(): Boolean {
-    return my2FAService.checklastSuccessful2FA(10, My2FAService.Unit.MINUTES)
+  private fun checkLastSuccessful2FA(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    data: My2FASetupData,
+  ): CheckState {
+    // Check any code if entered:
+    val otpCheckResult = my2FAServicesRest.internalCheckOTP(request, response, otp = data.code)
+    // SUCCESS, WRONG_LOGIN_PASSWORD, BLOCKED, NOT_CONFIGURED, FAILED, CODE_EMPTY
+    if (otpCheckResult in arrayOf(OTPCheckResult.WRONG_LOGIN_PASSWORD, OTPCheckResult.FAILED, OTPCheckResult.BLOCKED)) {
+      return CheckState.OTP_FAILED.withMessage(otpCheckResult.userMessage)
+    } else if (otpCheckResult == OTPCheckResult.SUCCESS) {
+      data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
+      data.code = "" // Clear code after usage.
+    }
+    return if (my2FAService.checklastSuccessful2FA(10, My2FAService.Unit.MINUTES)) {
+      CheckState.OK
+    } else {
+      CheckState.OTP_REQUIRED
+    }
+  }
+
+  private enum class CheckState {
+    OK, OTP_REQUIRED, OTP_FAILED;
+
+    var userMessage: String? = null
+
+    fun withMessage(msg: String?): CheckState {
+      this.userMessage = msg ?: "---"
+      return this
+    }
   }
 }
