@@ -44,7 +44,7 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
+open class ScriptDao : AbstractScriptDao() {
   /**
    * Copy old script as script backup if modified.
    *
@@ -109,10 +109,6 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     )
   }
 
-  override fun newInstance(): ScriptDO {
-    return ScriptDO()
-  }
-
   open fun execute(
     script: ScriptDO,
     parameters: List<ScriptParameter>,
@@ -121,38 +117,5 @@ open class ScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     hasLoggedInUserSelectAccess(script, true)
     val executor = createScriptExecutor(script, additionalVariables, parameters)
     return executor.execute()
-  }
-
-  /**
-   * @param name of script (case insensitive)
-   */
-  open fun loadByNameOrId(name: String): ScriptDO? {
-    name.toIntOrNull()?.let { id ->
-      return getById(id)
-    }
-    val script = ensureUniqueResult(
-      em.createNamedQuery(
-        ScriptDO.SELECT_BY_NAME,
-        ScriptDO::class.java
-      )
-        .setParameter("name", "%${name.trim().lowercase()}%")
-    )
-    hasLoggedInUserSelectAccess(script, true)
-    return script
-  }
-
-  open fun getScriptVariableNames(script: ScriptDO, additionalVariables: Map<String, Any?>): List<String> {
-    val scriptExecutor = createScriptExecutor(script, additionalVariables)
-    return scriptExecutor.allVariables.keys.filter { it.isNotBlank() }.sortedBy { it.lowercase() }
-  }
-
-  private fun createScriptExecutor(
-    script: ScriptDO,
-    additionalVariables: Map<String, Any?>,
-    scriptParameters: List<ScriptParameter>? = null,
-  ): ScriptExecutor {
-    val scriptExecutor = ScriptExecutor.createScriptExecutor(script)
-    scriptExecutor.init(script, this, additionalVariables, scriptParameters)
-    return scriptExecutor
   }
 }

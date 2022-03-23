@@ -79,6 +79,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     MY_ACCOUNT("menu.myAccount", getReactDynamicPageUrl("myAccount")), //
     MY_2FA("menu.2FA", getReactDynamicPageUrl(MenuItemDefId.TWO_FACTOR_AUTHENTIFICATION_SUB_URL)), //
     MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //
+    MY_SCRIPT_LIST("menu.myScriptList", getReactListUrl("myscript")), //
     MY_PREFERENCES("menu.myPreferences", "wa/userPrefList"), //
     ORDER_LIST("menu.fibu.orderbook", "wa/orderBookList"), //
     OUTBOX_LIST("menu.orga.postausgang", getReactListUrl("outgoingMail")), //
