@@ -83,7 +83,7 @@ class PasswordResetService {
      */
     thread(start = true) {
       if (usernameEmail.contains("@")) {
-        userService.findUserByMail(usernameEmail)?.let { users ->
+        userService.findUserByMail(usernameEmail)?.filter { it.hasSystemAccess() }?.let { users ->
           val size = users.size
           if (size > 1) {
             log.warn { "Can't reset user password by e-mail, because the mail address '$usernameEmail' is used by ${size} users." }
