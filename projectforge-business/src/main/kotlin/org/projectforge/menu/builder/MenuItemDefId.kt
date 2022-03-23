@@ -90,6 +90,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     SEND_SMS("menu.sendSms", "wa/sendSms"), //
     SCRIPT_LIST("menu.scriptList", getReactListUrl("script")), //
     SEARCH("menu.search", "wa/search"), //
+    SUPERSCRIPT_LIST("menu.superScriptList", getReactListUrl("superscript")), //
     TASK_TREE("menu.taskTree", "wa/taskTree"), //
     TIMESHEET_LIST("menu.timesheetList", "wa/timesheetList"), //
     USER_LIST("menu.userList", "wa/userList"), //
