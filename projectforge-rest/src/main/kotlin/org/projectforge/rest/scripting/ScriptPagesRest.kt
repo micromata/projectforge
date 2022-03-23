@@ -25,7 +25,9 @@ package org.projectforge.rest.scripting
 
 import de.micromata.merlin.utils.ReplaceUtils
 import mu.KotlinLogging
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.scripting.*
+import org.projectforge.business.user.service.UserService
 import org.projectforge.jcr.FileInfo
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -34,9 +36,12 @@ import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestButtonEvent
+import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Script
+import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -53,6 +58,12 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
   baseDaoClazz = ScriptDao::class.java,
   i18nKeyPrefix = "scripting.title"
 ) {
+  @Autowired
+  private lateinit var groupService: GroupService
+
+  @Autowired
+  private lateinit var userService: UserService
+
   @PostConstruct
   private fun postConstruct() {
     /**
@@ -77,6 +88,11 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
       scriptDO.filename = origScript.filename
       scriptDO.file = origScript.file
     }
+    // Group names needed by React client (for ReactSelect):
+    Group.restoreDisplayNames(dto.executableByGroups, groupService)
+
+    // Usernames needed by React client (for ReactSelect):
+    User.restoreDisplayNames(dto.executableByUsers, userService)
     return scriptDO
   }
 
@@ -153,13 +169,66 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     if (!dto.filename.isNullOrBlank()) {
       layout.add(lc, "filename")
     }
-    if (dto.type != ScriptDO.ScriptType.INCLUDE) {
-      for (i in 1..6) {
-        layout.add(createParameterRow(i))
-      }
-    }
     layout.add(lc, "description")
     if (dto.type != ScriptDO.ScriptType.INCLUDE) {
+      UIFieldset(12, "scripting.script.parameters").let { fieldset ->
+        layout.add(fieldset)
+        UIRow().let { row ->
+          fieldset.add(row)
+          UICol(md = 6).let { col ->
+            row.add(col)
+            for (i in 1..3) {
+              col.add(createParameterRow(i))
+            }
+          }
+          UICol(md = 6).let { col ->
+            row.add(col)
+            for (i in 4..6) {
+              col.add(createParameterRow(i))
+            }
+          }
+        }
+      }
+      UIFieldset(12, "access").let { fieldset ->
+        layout.add(fieldset)
+        UIRow().let { row ->
+          fieldset.add(row)
+          UICol(md = 6).let { col ->
+            row.add(col)
+            col.add(
+              UIRow()
+                .add(
+                  UICol()
+                    .add(
+                      UISelect.createUserSelect(
+                        lc,
+                        "executableByGroups",
+                        true,
+                        "scripting.script.executableByGroups",
+                        tooltip = "scripting.script.executableByGroups.info"
+                      )
+                    )
+                )
+                .add(
+                  UICol()
+                    .add(
+                      UISelect.createUserSelect(
+                        lc,
+                        "executableByUsers",
+                        true,
+                        "scripting.script.executableByUsers",
+                        tooltip = "scripting.script.executableByUsers.info"
+                      )
+                    )
+                )
+            )
+          }
+          UICol(md = 6).let { col ->
+            row.add(col)
+            col.add(lc, "sudo")
+          }
+        }
+      }
       layout.add(
         UIFieldset(title = "attachment.list")
           .add(UIAttachmentList(category, dto.id))

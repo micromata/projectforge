@@ -34,6 +34,7 @@ import org.hibernate.search.annotations.Store
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.UnsupportedEncodingException
 import javax.persistence.*
@@ -49,7 +50,7 @@ import javax.persistence.*
 @NamedQueries(
   NamedQuery(name = ScriptDO.SELECT_BY_NAME, query = "from ScriptDO where lower(name) like :name")
 )
-open class ScriptDO : BaseUserGroupRightsDO(), AttachmentsInfo {
+open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   enum class ScriptType {
     KOTLIN, GROOVY,
 
@@ -70,18 +71,27 @@ open class ScriptDO : BaseUserGroupRightsDO(), AttachmentsInfo {
   open var type: ScriptType? = null
 
   /**
-   * Not yet in use, later, it marks if this script should run as super user.
+   * If set, the script will be executed by [executableByUsers] or [executableByGroups] with full rights!!!
    */
+  @PropertyInfo(i18nKey = "scripting.script.sudo", tooltip = "scripting.script.sudo.info")
   @get:Basic
   open var sudo: Boolean? = null
 
   /**
-   * Unused (derived from [BaseUserGroupRightsDO]
+   * If given, users assigned to at least one of these groups are able to execute this script.
+   * CSV of group ids (coma separated)
    */
-  @Suppress("com.haulmont.jpb.AssociationNotMarkedInspection")
-  @get:Transient
-  override var owner: PFUserDO? = null
+  @PropertyInfo(i18nKey = "scripting.script.executableByGroups", tooltip = "scripting.script.executableByGroups.info")
+  @get:Column(name = "executable_by_group_ids", length = 10000)
+  open var executableByGroupIds: String? = null
 
+  /**
+   * If given, these users are able to execute this script.
+   * CSV of user-ids (coma separated)
+   */
+  @PropertyInfo(i18nKey = "scripting.script.executableByUsers", tooltip = "scripting.script.executableByUsers.info")
+  @get:Column(name = "executable_by_user_ids", length = 10000)
+  open var executableByUserIds: String? = null
 
   @PropertyInfo(i18nKey = "description")
   @Field

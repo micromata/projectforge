@@ -1,0 +1,2 @@
+ALTER TABLE T_SCRIPT ADD COLUMN executable_by_group_ids VARCHAR(10000);
+ALTER TABLE T_SCRIPT ADD COLUMN executable_by_user_ids VARCHAR(10000);
