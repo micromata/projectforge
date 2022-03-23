@@ -3,8 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { NavItem, NavLink, Nav, Button } from 'reactstrap';
-import { Manager, Reference, Popper } from 'react-popper';
 import classNames from 'classnames';
+import Popper from '../../../design/popper';
 import { menuItemPropType } from '../../../../utilities/propTypes';
 import { Container } from '../../../design';
 import style from '../Navigation.module.scss';
@@ -45,67 +45,46 @@ function CategoriesDropdown({ badge, categories }) {
 
     return (
         <Nav>
-            <Manager>
-                <Reference>
-                    {({ ref }) => (
-                        <NavItem>
-                            <NavLink onClick={() => setOpen(!open)} tag={Button} color="link" ref={ref}>
-                                <FontAwesomeIcon icon={faListUl} />
-                                {badge && (
-                                    <MenuBadge
-                                        elementKey="DROPDOWN_TOGGLE"
-                                        isFlying
-                                        color={badge.style}
-                                    >
-                                        {badge.counter}
-                                    </MenuBadge>
-                                )}
-                            </NavLink>
-                        </NavItem>
-                    )}
-                </Reference>
-                <Popper placement="bottom-start">
-                    {(
-                        {
-                            ref,
-                            style: popperStyle,
-                            placement,
-                            arrowProps,
-                        },
-                    ) => (
-                        <div
-                            ref={ref}
-                            style={popperStyle}
-                            data-placement={placement}
-                            className={classNames(
-                                style.categoryListDropdownMenu,
-                                open && style.open,
+            <Popper
+                direction="bottom-start"
+                target={(
+                    <NavItem>
+                        <NavLink onClick={() => setOpen(!open)} tag={Button} color="link">
+                            <FontAwesomeIcon icon={faListUl} />
+                            {badge && (
+                                <MenuBadge
+                                    elementKey="DROPDOWN_TOGGLE"
+                                    isFlying
+                                    color={badge.style}
+                                >
+                                    {badge.counter}
+                                </MenuBadge>
                             )}
-                        >
-                            <Container>
-                                <div className={style.categories}>
-                                    {columns.map((column) => (
-                                        <div
-                                            key={`menu-column-${column.map(({ id }) => id)
-                                                .join('-')}`}
-                                            className={style.categoryColumn}
-                                        >
-                                            {column.map((category) => (
-                                                <Category
-                                                    category={category}
-                                                    key={`category-${category.id}`}
-                                                    closeMenu={() => setOpen(false)}
-                                                />
-                                            ))}
-                                        </div>
-                                    ))}
-                                </div>
-                            </Container>
-                            <div ref={arrowProps.ref} style={arrowProps.style} />
-                        </div>
-                    )}
-                </Popper>
-            </Manager>
+                        </NavLink>
+                    </NavItem>
+                )}
+                className={classNames(style.categoryListDropdownMenu, open && style.open)}
+            >
+                <Container>
+                    <div className={style.categories}>
+                        {columns.map((column) => (
+                            <div
+                                key={`menu-column-${column.map(({ id }) => id)
+                                    .join('-')}`}
+                                className={style.categoryColumn}
+                            >
+                                {column.map((category) => (
+                                    <Category
+                                        category={category}
+                                        key={`category-${category.id}`}
+                                        closeMenu={() => setOpen(false)}
+                                    />
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </Container>
+            </Popper>
         </Nav>
     );
 }
