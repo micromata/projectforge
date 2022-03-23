@@ -50,7 +50,7 @@ private val log = KotlinLogging.logger {}
 @RequestMapping("${Rest.URL}/myscript")
 class MyScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, MyScriptDao>(
   baseDaoClazz = MyScriptDao::class.java,
-  i18nKeyPrefix = "scripting.myscript.title"
+  i18nKeyPrefix = "scripting.myScript"
 ) {
   override fun newBaseDO(request: HttpServletRequest?): ScriptDO {
     val script = ScriptDO()
@@ -88,6 +88,6 @@ class MyScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, MyScriptDao>(
    * @return the execution page.
    */
   override fun getStandardEditPage(): String {
-    return "${PagesResolver.getDynamicPageUrl(ScriptExecutePageRest::class.java)}:id"
+    return "${PagesResolver.getDynamicPageUrl(MyScriptExecutePageRest::class.java)}:id"
   }
 }
