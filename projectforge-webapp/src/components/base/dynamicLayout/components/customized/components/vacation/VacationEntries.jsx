@@ -6,27 +6,23 @@ import prefix from '../../../../../../../utilities/prefix';
 import styles from './Vacation.module.scss';
 
 function VacationEntries({ entries }) {
-    return (
-        <>
-            {entries && entries.length > 0 && entries.map((entry, index) => (
-                <tr
-                    key={entry.id}
-                    className={classNames({ [styles.highlighted]: index === 0 })}
-                    onClick={() => history.push(`${prefix}vacation/edit/${entry.id}?returnToCaller=account`)}
-                >
-                    <td>{entry.startDateFormatted}</td>
-                    <td>{entry.endDateFormatted}</td>
-                    <td>{entry.statusString}</td>
-                    <td className={styles.number}>{entry.workingDaysFormatted}</td>
-                    <td>{entry.specialFormatted}</td>
-                    <td>{entry.replacement.displayName}</td>
-                    <td>{entry.manager.displayName}</td>
-                    <td>{entry.vacationModeString}</td>
-                    <td>{entry.comment}</td>
-                </tr>
-            ))}
-        </>
-    );
+    return entries && entries.length > 0 && entries.map((entry, index) => (
+        <tr
+            key={entry.id}
+            className={classNames({ [styles.highlighted]: index === 0 })}
+            onClick={() => history.push(`${prefix}vacation/edit/${entry.id}?returnToCaller=account`)}
+        >
+            <td>{entry.startDateFormatted}</td>
+            <td>{entry.endDateFormatted}</td>
+            <td>{entry.statusString}</td>
+            <td className={styles.number}>{entry.workingDaysFormatted}</td>
+            <td>{entry.specialFormatted}</td>
+            <td>{entry.replacement.displayName}</td>
+            <td>{entry.manager.displayName}</td>
+            <td>{entry.vacationModeString}</td>
+            <td>{entry.comment}</td>
+        </tr>
+    ));
 }
 
 VacationEntries.propTypes = {

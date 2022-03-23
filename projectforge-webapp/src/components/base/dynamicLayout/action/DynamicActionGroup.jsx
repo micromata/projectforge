@@ -17,7 +17,7 @@ function DynamicActionGroup({ actions }) {
     const { isFetching } = React.useContext(DynamicLayoutContext);
 
     if (!actions) {
-        return <></>;
+        return null;
     }
 
     return (

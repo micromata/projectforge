@@ -153,7 +153,7 @@ function DynamicAttachmentList(
     return React.useMemo(() => {
         if (id && id > 0) {
             if (readOnly || uploadDisabled) {
-                return (<>{table}</>);
+                return table;
             }
             return (
                 <LoadingContainer loading={loading}>
@@ -167,11 +167,7 @@ function DynamicAttachmentList(
                 </LoadingContainer>
             );
         }
-        return (
-            <>
-                {ui.translations['attachment.onlyAvailableAfterSave']}
-            </>
-        );
+        return ui.translations['attachment.onlyAvailableAfterSave'];
     }, [setData, loading, id, attachments]);
 }
 

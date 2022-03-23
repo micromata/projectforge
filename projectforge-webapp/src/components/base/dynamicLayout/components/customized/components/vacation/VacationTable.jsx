@@ -9,7 +9,7 @@ function VacationTable() {
     const { data, ui } = React.useContext(DynamicLayoutContext);
 
     if (!data.vacations) {
-        return <></>;
+        return null;
     }
 
     const {

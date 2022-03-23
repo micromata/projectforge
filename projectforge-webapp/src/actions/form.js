@@ -160,9 +160,10 @@ export const callAction = (
                 );
                 window.scrollTo(0, 0);
             } else {
-                dispatch(callSuccess(category, mergeVariables(
-                    state.categories[category], action.variables, action.merge,
-                )));
+                dispatch(callSuccess(
+                    category,
+                    mergeVariables(state.categories[category], action.variables, action.merge),
+                ));
             }
             break;
         case 'CHECK_AUTHENTICATION':
@@ -286,7 +287,9 @@ export const setCurrentVariables = (newVariables) => (dispatch, getState) => dis
 );
 
 export const switchFromCurrentCategory = (
-    to, newVariables, merge = false,
+    to,
+    newVariables,
+    merge = false,
 ) => (dispatch, getState) => {
     const { form: state } = getState();
 
