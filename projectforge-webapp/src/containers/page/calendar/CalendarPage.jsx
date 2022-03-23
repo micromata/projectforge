@@ -33,6 +33,10 @@ class CalendarPage extends React.Component {
             translations: undefined,
             vacationGroups: [],
             vacationUsers: [],
+            calendarContextValue: {
+                ...calendarContextDefaultValues,
+                saveUpdateResponseInState: this.saveUpdateResponseInState,
+            },
         };
 
         this.fetchInitial = this.fetchInitial.bind(this);
@@ -95,30 +99,38 @@ class CalendarPage extends React.Component {
     }
 
     onFavoriteCreate(newFilterName) {
-        fetchJsonGet('calendar/createNewFilter',
+        fetchJsonGet(
+            'calendar/createNewFilter',
             { newFilterName },
-            this.saveUpdateResponseInState);
+            this.saveUpdateResponseInState,
+        );
     }
 
     onFavoriteDelete(id) {
-        fetchJsonGet('calendar/deleteFilter',
+        fetchJsonGet(
+            'calendar/deleteFilter',
             { id },
-            this.saveUpdateResponseInState);
+            this.saveUpdateResponseInState,
+        );
     }
 
     onFavoriteSelect(id) {
-        fetchJsonGet('calendar/selectFilter',
+        fetchJsonGet(
+            'calendar/selectFilter',
             { id },
-            this.saveUpdateResponseInState);
+            this.saveUpdateResponseInState,
+        );
     }
 
     onFavoriteRename(id, newName) {
-        fetchJsonGet('calendar/renameFilter',
+        fetchJsonGet(
+            'calendar/renameFilter',
             {
                 id,
                 newName,
             },
-            this.saveUpdateResponseInState);
+            this.saveUpdateResponseInState,
+        );
     }
 
     onChange(activeCalendars) {
@@ -133,16 +145,20 @@ class CalendarPage extends React.Component {
     }
 
     onFavoriteUpdate(id) {
-        fetchJsonGet('calendar/updateFilter',
+        fetchJsonGet(
+            'calendar/updateFilter',
             { id },
-            this.saveUpdateResponseInState);
+            this.saveUpdateResponseInState,
+        );
     }
 
     fetchInitial() {
         this.setState({ loading: true });
-        fetchJsonGet('calendar/initial',
+        fetchJsonGet(
+            'calendar/initial',
             undefined,
-            this.saveUpdateResponseInState);
+            this.saveUpdateResponseInState,
+        );
     }
 
     saveUpdateResponseInState(json) {
@@ -177,6 +193,7 @@ class CalendarPage extends React.Component {
             view,
             vacationGroups,
             vacationUsers,
+            calendarContextValue,
         } = this.state;
 
         if (!translations) {
@@ -194,12 +211,7 @@ class CalendarPage extends React.Component {
         return (
             <Container fluid>
                 <LoadingContainer loading={loading}>
-                    <CalendarContext.Provider
-                        value={{
-                            ...calendarContextDefaultValues,
-                            saveUpdateResponseInState: this.saveUpdateResponseInState,
-                        }}
-                    >
+                    <CalendarContext.Provider value={calendarContextValue}>
                         <Card>
                             <CardBody>
                                 <form>

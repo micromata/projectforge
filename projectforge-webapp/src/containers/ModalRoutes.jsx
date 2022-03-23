@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { useLocation, useHistory } from 'react-router-dom';
 import { Modal, ModalBody } from 'reactstrap';
 
-const ModalRoutes = (props) => {
+function ModalRoutes(props) {
     const { getRoutesWithLocation } = props;
     const location = useLocation();
     const history = useHistory();
@@ -23,7 +23,7 @@ const ModalRoutes = (props) => {
             </Modal>
         </>
     );
-};
+}
 
 ModalRoutes.propTypes = {
     getRoutesWithLocation: PropTypes.func.isRequired,

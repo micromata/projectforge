@@ -15,23 +15,17 @@ function JiraIssuesLinks(
         jiraIssuesMap = values.jiraIssues;
         jiraIssues = Object.keys(jiraIssuesMap);
     }
-    return (
-        <>
-            {jiraIssues && jiraIssues.length > 0
-                ? (
-                    jiraIssues.map((issue) => (
-                        <a
-                            key={issue}
-                            href={jiraIssuesMap[issue]}
-                            rel="noopener noreferrer"
-                            target="_blank"
-                        >
-                            {`${issue} `}
-                        </a>
-                    ))
-                ) : undefined}
-        </>
-    );
+    return jiraIssues && jiraIssues.length > 0 && (
+        jiraIssues.map((issue) => (
+            <a
+                key={issue}
+                href={jiraIssuesMap[issue]}
+                rel="noopener noreferrer"
+                target="_blank"
+            >
+                {`${issue} `}
+            </a>
+        )));
 }
 
 JiraIssuesLinks.propTypes = {

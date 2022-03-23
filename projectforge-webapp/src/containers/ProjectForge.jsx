@@ -23,6 +23,10 @@ function ProjectForge(
     },
 ) {
     const [systemStatus, setSystemStatus] = React.useState({});
+    const systemStatusContextValue = React.useMemo(() => ({
+        ...systemStatusContextDefaultValues,
+        ...systemStatus,
+    }), []);
 
     React.useEffect(() => {
         checkAuthentication();
@@ -56,7 +60,11 @@ function ProjectForge(
                 {publicRoute}
                 <Route
                     path={prefix}
-                    render={({ match, location, ...props }) => (
+                    render={({
+                        match,
+                        location,
+                        ...props
+                    }) => (
                         <FormPage
                             {...props}
                             location={location}
@@ -80,12 +88,7 @@ function ProjectForge(
     }
 
     return (
-        <SystemStatusContext.Provider
-            value={{
-                ...systemStatusContextDefaultValues,
-                ...systemStatus,
-            }}
-        >
+        <SystemStatusContext.Provider value={systemStatusContextValue}>
             <TopBar />
             <Router history={history}>
                 {content}

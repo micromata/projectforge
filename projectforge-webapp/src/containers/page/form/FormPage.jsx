@@ -57,7 +57,9 @@ function FormPage(
         () => {
             if (location.state && location.state.noReload) {
                 onCategorySwitch(
-                    currentCategory, location.state.newVariables || {}, location.state.merge,
+                    currentCategory,
+                    location.state.newVariables || {},
+                    location.state.merge,
                 );
                 return;
             }
@@ -85,12 +87,12 @@ function FormPage(
 
     const globalValidation = React.useMemo(() => {
         if (validationErrors === undefined) {
-            return <></>;
+            return null;
         }
         const globalErrors = validationErrors.filter((entry) => entry.fieldId === undefined);
 
         if (globalErrors.length === 0) {
-            return <></>;
+            return null;
         }
 
         return (

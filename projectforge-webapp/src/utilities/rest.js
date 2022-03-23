@@ -37,41 +37,35 @@ export const handleHTTPErrors = (response) => {
     return response;
 };
 
-export const fetchJsonGet = (url, params, callback) => fetch(
-    getServiceURL(url, params), {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-            Accept: 'application/json',
-        },
+export const fetchJsonGet = (url, params, callback) => fetch(getServiceURL(url, params), {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+        Accept: 'application/json',
     },
-)
+})
     .then(handleHTTPErrors)
     .then((response) => response.json())
     .then((json) => callback(json))
     .catch((error) => alert(`Internal error: ${error}`));
 
-export const fetchJsonPost = (url, value, callback) => fetch(
-    getServiceURL(url), {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(value),
+export const fetchJsonPost = (url, value, callback) => fetch(getServiceURL(url), {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+        'Content-Type': 'application/json',
     },
-)
+    body: JSON.stringify(value),
+})
     .then(handleHTTPErrors)
     .then((response) => response.json())
     .then((json) => callback(json))
     .catch((error) => alert(`Internal error: ${error}`));
 
-export const fetchGet = (url, params, callback) => fetch(
-    getServiceURL(url, params), {
-        method: 'GET',
-        credentials: 'include',
-    },
-)
+export const fetchGet = (url, params, callback) => fetch(getServiceURL(url, params), {
+    method: 'GET',
+    credentials: 'include',
+})
     .then(handleHTTPErrors)
     .then(() => callback())
     .catch((error) => alert(`Internal error: ${error}`));

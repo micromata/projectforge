@@ -9,36 +9,32 @@ import style from './Vacation.module.scss';
 function VacationLeaveAccountTable({ entries }) {
     const { ui } = React.useContext(DynamicLayoutContext);
 
-    return (
+    return entries && entries.length > 0 && (
         <>
-            {entries && entries.length > 0 && (
-                <>
-                    <h4>{ui.translations['vacation.leaveAccountEntry.title.heading']}</h4>
-                    <Table striped hover>
-                        <thead>
-                            <tr>
-                                <th>{ui.translations.date}</th>
-                                <th className={style.number}>
-                                    {ui.translations['vacation.leaveAccountEntry.amount']}
-                                </th>
-                                <th className={style.fullWidth}>{ui.translations.description}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {entries.map((entry) => (
-                                <tr
-                                    key={entry.id}
-                                    onClick={() => history.push(`${prefix}leaveAccountEntry/edit/${entry.id}?returnToCaller=account`)}
-                                >
-                                    <td>{entry.dateFormatted}</td>
-                                    <td className={style.number}>{entry.amount}</td>
-                                    <td>{entry.description}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </Table>
-                </>
-            )}
+            <h4>{ui.translations['vacation.leaveAccountEntry.title.heading']}</h4>
+            <Table striped hover>
+                <thead>
+                    <tr>
+                        <th>{ui.translations.date}</th>
+                        <th className={style.number}>
+                            {ui.translations['vacation.leaveAccountEntry.amount']}
+                        </th>
+                        <th className={style.fullWidth}>{ui.translations.description}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {entries.map((entry) => (
+                        <tr
+                            key={entry.id}
+                            onClick={() => history.push(`${prefix}leaveAccountEntry/edit/${entry.id}?returnToCaller=account`)}
+                        >
+                            <td>{entry.dateFormatted}</td>
+                            <td className={style.number}>{entry.amount}</td>
+                            <td>{entry.description}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </Table>
         </>
     );
 }

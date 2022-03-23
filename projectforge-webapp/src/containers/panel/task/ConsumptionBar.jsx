@@ -8,7 +8,7 @@ import style from './ConsumptionBar.module.scss';
 
 function ConsumptionBar({ progress, taskId, identifier }) {
     if (!progress) {
-        return <></>;
+        return null;
     }
     const {
         title,
@@ -45,6 +45,7 @@ ConsumptionBar.propTypes = {
         status: PropTypes.string,
         width: PropTypes.string,
         id: PropTypes.number,
+        percentage: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     }),
     taskId: PropTypes.number,
     identifier: PropTypes.string,

@@ -14,14 +14,12 @@ function MagicTimeStampInput(
         value,
     },
 ) {
-    const fragment = <></>;
-
     if (value.to === undefined || value.from === undefined) {
         onChange({
             from: null,
             to: null,
         });
-        return fragment;
+        return null;
     }
 
     if (typeof value.from === 'string' || typeof value.to === 'string') {
@@ -29,7 +27,7 @@ function MagicTimeStampInput(
             from: new Date(value.from),
             to: new Date(value.to),
         });
-        return fragment;
+        return null;
     }
 
     // TODO CHECK IF FROM IS AFTER TO (AND VICE VERSA)

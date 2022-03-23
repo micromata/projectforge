@@ -2,7 +2,7 @@ import { TOAST_ADD, TOAST_CLEAR_ALL, TOAST_REMOVE, USER_LOGIN_BEGIN } from '../a
 
 const initialState = [];
 
-const reducer = (state = initialState, { type, payload }) => {
+const reducer = (state = initialState, { type, payload } = {}) => {
     switch (type) {
         case TOAST_ADD:
             return [

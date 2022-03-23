@@ -109,19 +109,17 @@ function DynamicReactSelect(props) {
         }
 
         return (
-            <>
-                <DynamicValidationManager id={id}>
-                    <ReactSelect
-                        className="invalid"
-                        onChange={onChange}
-                        translations={ui.translations}
-                        {...props}
-                        value={value}
-                        loadOptions={(url && url.length > 0) ? loadOptions : undefined}
-                    />
-                    {favoritesElement}
-                </DynamicValidationManager>
-            </>
+            <DynamicValidationManager id={id}>
+                <ReactSelect
+                    className="invalid"
+                    onChange={onChange}
+                    translations={ui.translations}
+                    {...props}
+                    value={value}
+                    loadOptions={(url && url.length > 0) ? loadOptions : undefined}
+                />
+                {favoritesElement}
+            </DynamicValidationManager>
         );
     }, [data[id], value, setData, values, autoCompletionData]);
 }
@@ -129,8 +127,8 @@ function DynamicReactSelect(props) {
 DynamicReactSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
-    values: PropTypes.arrayOf(PropTypes.object),
-    favorites: PropTypes.arrayOf(PropTypes.object),
+    values: PropTypes.arrayOf(PropTypes.shape({})),
+    favorites: PropTypes.arrayOf(PropTypes.shape({})),
     additionalLabel: PropTypes.string,
     autoCompletion: PropTypes.shape({
         url: PropTypes.string,

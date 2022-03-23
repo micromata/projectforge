@@ -18,58 +18,58 @@ function DynamicList(
 
     const list = Object.getByString(data, listId) || [];
 
-    return React.useMemo(() => (
-        <>
-            {list
-                .sort((elementA, elementB) => elementA.number - elementB.number)
-                .map((element) => {
-                    const setElementData = (newData) => {
-                        const calculatedNewData = Object
-                            .keys(newData)
-                            .reduce((accumulator, key) => ({
-                                ...accumulator,
-                                // Removes the elementVar in the newData.
-                                [key.substring(elementVar.length + 1, key.length)]: newData[key],
-                            }), {});
+    return React.useMemo(
+        () => list
+            .sort((elementA, elementB) => elementA.number - elementB.number)
+            .map((element) => {
+                const setElementData = (newData) => {
+                    const calculatedNewData = Object
+                        .keys(newData)
+                        .reduce((accumulator, key) => ({
+                            ...accumulator,
+                            // Removes the elementVar in the newData.
+                            [key.substring(elementVar.length + 1, key.length)]: newData[key],
+                        }), {});
 
-                        setData({
-                            [listId]: [
-                                // Remove the current element
-                                ...list.filter((e) => e !== element),
-                                // Add the current element with changed values
-                                {
-                                    // Old values from element
-                                    ...element,
-                                    // New Values from newData.
-                                    ...calculatedNewData,
-                                },
-                            ],
-                        });
-                    };
+                    setData({
+                        [listId]: [
+                        // Remove the current element
+                            ...list.filter((e) => e !== element),
+                            // Add the current element with changed values
+                            {
+                            // Old values from element
+                                ...element,
+                                // New Values from newData.
+                                ...calculatedNewData,
+                            },
+                        ],
+                    });
+                };
 
-                    return (
-                        <ListElement
-                            key={`dynamic-list-${element.number}`}
-                            label={`${positionLabel} #${element.number}`}
-                            bodyIsOpenInitial={!list.length}
-                            renderBody={() => (
-                                <DynamicLayoutContext.Provider
-                                    value={{
-                                        ...context,
-                                        data: {
-                                            [elementVar]: element,
-                                        },
-                                        setData: setElementData,
-                                    }}
-                                >
-                                    {renderLayout(content)}
-                                </DynamicLayoutContext.Provider>
-                            )}
-                        />
-                    );
-                })}
-        </>
-    ), [list, setData]);
+                return (
+                    <ListElement
+                        key={`dynamic-list-${element.number}`}
+                        label={`${positionLabel} #${element.number}`}
+                        bodyIsOpenInitial={!list.length}
+                        renderBody={() => (
+                            <DynamicLayoutContext.Provider
+                                // eslint-disable-next-line react/jsx-no-constructed-context-values
+                                value={{
+                                    ...context,
+                                    data: {
+                                        [elementVar]: element,
+                                    },
+                                    setData: setElementData,
+                                }}
+                            >
+                                {renderLayout(content)}
+                            </DynamicLayoutContext.Provider>
+                        )}
+                    />
+                );
+            }),
+        [list, setData],
+    );
 }
 
 DynamicList.propTypes = {
