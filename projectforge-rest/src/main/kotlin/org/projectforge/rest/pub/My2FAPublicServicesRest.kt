@@ -24,6 +24,7 @@
 package org.projectforge.rest.pub
 
 import mu.KotlinLogging
+import org.projectforge.business.user.filter.CookieService
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.login.LoginService
@@ -53,6 +54,9 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/2FA")
 open class My2FAPublicServicesRest {
+  @Autowired
+  private lateinit var cookieService: CookieService
+
   @Autowired
   private lateinit var my2FAServicesRest: My2FAServicesRest
 
@@ -109,11 +113,12 @@ open class My2FAPublicServicesRest {
   }
 
   /**
-   * Cancel the login process (clears the user's session).
+   * Cancel the login process (clears the user's session) as well as the stay-logged-in cookie.
    */
   @GetMapping("cancel")
-  fun cancel(request: HttpServletRequest): ResponseAction {
+  fun cancel(request: HttpServletRequest, response:HttpServletResponse): ResponseAction {
     request.getSession(false)?.invalidate()
+    cookieService.clearAllCookies(request, response)
     return RestUtils.getRedirectToDefaultPageAction()
   }
 
