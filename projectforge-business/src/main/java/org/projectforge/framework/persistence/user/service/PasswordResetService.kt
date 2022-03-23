@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.user.service
 
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
+import org.projectforge.business.user.UserLocale
 import org.projectforge.mail.SendMail
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
@@ -113,7 +114,8 @@ class PasswordResetService {
       return
     }
     val mail = Mail()
-    mail.subject = translate("password.forgotten.mail.subject")
+    val locale = UserLocale.determineUserLocale(user)
+    mail.subject = translate(locale,"password.forgotten.mail.subject")
     mail.setTo(user)
     mail.contentType = Mail.CONTENTTYPE_HTML
     val token = PasswordResetTokenStore.createToken(user.id)
