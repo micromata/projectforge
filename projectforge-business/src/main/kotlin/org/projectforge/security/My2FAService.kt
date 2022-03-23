@@ -63,6 +63,9 @@ open class My2FAService {
     preCheck(code)?.let { result -> // User is blocked.
       return result
     }
+    if (code.isBlank()) {
+      return OTPCheckResult.CODE_EMPTY
+    }
     var failed = false
     expectedToken.forEach { token ->
       if (!token.isNullOrBlank()) {
@@ -113,6 +116,9 @@ open class My2FAService {
         log.warn { "Can't check OTP for user '${ThreadLocalUserContext.getUser()?.username}', no authenticator token configured." }
       }
       return OTPCheckResult.NOT_CONFIGURED
+    }
+    if (code.isBlank()) {
+      return OTPCheckResult.CODE_EMPTY
     }
     if (!TimeBased2FA.standard.validate(authenticatorToken, code)) {
       SecurityLogging.logSecurityWarn(this::class.java, "2FA WRONG CODE", "The entered 2FA code was wrong.")

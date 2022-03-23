@@ -157,7 +157,10 @@ class My2FAHttpService {
    * If no otp is available, the code is checked by [My2FAService.validateAuthenticatorOTP]
    * @param password Is only needed, if user received code by mail (due to security reasons).
    */
-  fun checkOTP(request: HttpServletRequest, code: String, password: CharArray? = null): OTPCheckResult {
+  fun checkOTP(request: HttpServletRequest, code: String?, password: CharArray? = null): OTPCheckResult {
+    if (code.isNullOrBlank()) {
+      return OTPCheckResult.CODE_EMPTY
+    }
     val smsCode = ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_MOBILE_OTP, String::class.java)
     val mailCode = ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_MAIL_OTP, String::class.java)
     val result = my2FAService.validateOTP(code, smsCode, mailCode)

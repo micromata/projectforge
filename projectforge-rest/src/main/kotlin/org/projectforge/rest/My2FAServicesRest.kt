@@ -81,16 +81,11 @@ class My2FAServicesRest {
   ): ResponseEntity<ResponseAction> {
     val otp = postData.data.code
     val password = postData.data.password
-    if (otp.isNullOrBlank()) {
+    val otpCheck = internalCheckOTP(request, response, otp, password)
+    if (otpCheck == OTPCheckResult.CODE_EMPTY) {
       return UIToast.createToastResponseEntity(translate("user.My2FA.setup.check.fail"), color = UIColor.DANGER)
     }
-    val otpCheck = my2FAHttpService.checkOTP(request, code = otp, password = password)
     if (otpCheck == OTPCheckResult.SUCCESS) {
-      ThreadLocalUserContext.getUserContext().lastSuccessful2FA?.let { lastSuccessful2FA ->
-        cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
-        // Store it also in the user's session, e. g. used by public password reset service.
-        request.getSession(false)?.setAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA, lastSuccessful2FA)
-      }
       if (afterLogin) {
         val redirectUrl = LoginPageRest.getRedirectUrl(request, postData.serverData)
         return ResponseEntity(
@@ -130,6 +125,26 @@ class My2FAServicesRest {
         "code"
       )
     )
+  }
+
+  /**
+   * Checks the given otp and stores it as cookie and in the user's current session on success.
+   */
+  fun internalCheckOTP(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    otp: String?,
+    password: CharArray? = null
+  ): OTPCheckResult {
+    val otpCheck = my2FAHttpService.checkOTP(request, code = otp, password = password)
+    if (otpCheck == OTPCheckResult.SUCCESS) {
+      ThreadLocalUserContext.getUserContext().lastSuccessful2FA?.let { lastSuccessful2FA ->
+        cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
+        // Store it also in the user's session, e. g. used by public password reset service.
+        request.getSession(false)?.setAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA, lastSuccessful2FA)
+      }
+    }
+    return otpCheck
   }
 
   /**
@@ -224,7 +239,14 @@ class My2FAServicesRest {
         color = UIColor.INFO
       )
     )
-    fillCodeCol(fieldset, redirectUrl, userContext.user?.mobilePhone, showCancelButton = true, mailOTPDisabled, restServiceClass)
+    fillCodeCol(
+      fieldset,
+      redirectUrl,
+      userContext.user?.mobilePhone,
+      showCancelButton = true,
+      mailOTPDisabled,
+      restServiceClass
+    )
   }
 
   /**
