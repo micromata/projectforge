@@ -252,6 +252,17 @@ open class MenuCreator {
               0
           })
       )
+      .add(
+        MenuItemDef(
+          MenuItemDefId.SCRIPT_LIST,
+          checkAccess =
+          {
+            // For group members of FINANCE_GROUP and CONTROLLING_GROUP this menu is in Reporting:
+            !isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
+          },
+        )
+      )
+
 
     //////////////////////////////////////
     //
@@ -378,7 +389,7 @@ open class MenuCreator {
     )
       .add(
         MenuItemDef(
-          MenuItemDefId.SCRIPT_LIST,
+          MenuItemDefId.SUPERSCRIPT_LIST,
           requiredGroups = arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
         )
       )

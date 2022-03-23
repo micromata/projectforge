@@ -88,11 +88,6 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
       scriptDO.filename = origScript.filename
       scriptDO.file = origScript.file
     }
-    // Group names needed by React client (for ReactSelect):
-    Group.restoreDisplayNames(dto.executableByGroups, groupService)
-
-    // Usernames needed by React client (for ReactSelect):
-    User.restoreDisplayNames(dto.executableByUsers, userService)
     return scriptDO
   }
 
@@ -102,6 +97,10 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     script.copyFrom(obj)
     script.availableVariables = baseDao.getScriptVariableNames(obj, ScriptExecution.additionalVariables).joinToString()
     script.script = obj.scriptAsString
+    // Group names needed by React client (for ReactSelect):
+    Group.restoreDisplayNames(script.executableByGroups, groupService)
+    // Usernames needed by React client (for ReactSelect):
+    User.restoreDisplayNames(script.executableByUsers, userService)
     return script
   }
 
@@ -200,7 +199,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
                 .add(
                   UICol()
                     .add(
-                      UISelect.createUserSelect(
+                      UISelect.createGroupSelect(
                         lc,
                         "executableByGroups",
                         true,
