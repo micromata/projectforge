@@ -390,7 +390,9 @@ constructor(
         ), 0
       )
     }
-    ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}$category/edit"))
+    if (ui.userAccess.insert != false) {
+      ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}$category/edit"))
+    }
 
     return InitialListData(
       ui = ui,

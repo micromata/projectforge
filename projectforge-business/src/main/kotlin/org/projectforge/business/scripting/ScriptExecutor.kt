@@ -72,7 +72,7 @@ abstract class ScriptExecutor(
 
   val scriptExecutionResult = ScriptExecutionResult(scriptLogger)
 
-  private lateinit var scriptDao: ScriptDao
+  private lateinit var scriptDao: AbstractScriptDao
 
   /**
    * Adds all registered dao's and other variables, such as appId, appVersion and task-tree. These variables are
@@ -100,7 +100,7 @@ abstract class ScriptExecutor(
    */
   fun init(
     scriptDO: ScriptDO,
-    scripDao: ScriptDao,
+    scripDao: AbstractScriptDao,
     additionalVariables: Map<String, Any?>,
     /**
      * List of script parameter values, given by user form.
