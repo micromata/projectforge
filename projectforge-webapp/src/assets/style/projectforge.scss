@@ -70,30 +70,6 @@ nav.bg-light {
 	}
 }
 
-.ml-auto.nav {
-
-	.nav-item {
-		background: #FFF;
-		height: 25px;
-		border-radius: 3px;
-
-		span,
-		a {
-			font-size: 13px;
-			padding: 3px 9px;
-			cursor: pointer;
-			line-height: 20px;
-			border-radius: 3px;
-			margin: 0;
-			color: #666 !important;
-
-			&:hover {
-				color: #000 !important;
-			}
-		}
-	}
-}
-
 .tab-content {
 	margin-bottom: 20px;
 	border: none !important;

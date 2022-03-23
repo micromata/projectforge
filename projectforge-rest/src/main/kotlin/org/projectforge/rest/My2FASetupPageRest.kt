@@ -59,13 +59,16 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
   private lateinit var authenticationsService: UserAuthenticationsService
 
   @Autowired
-  private lateinit var my2FAService: My2FAService
-
-  @Autowired
   private lateinit var my2FAHttpService: My2FAHttpService
 
   @Autowired
+  private lateinit var my2FAService: My2FAService
+
+  @Autowired
   private lateinit var my2FAServicesRest: My2FAServicesRest
+
+  @Autowired
+  private lateinit var my2FASetupMenuBadge: My2FASetupMenuBadge
 
   @Autowired
   private lateinit var userDao: UserDao
@@ -126,6 +129,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     data.showAuthenticatorKey = true
     data.authenticatorKey = authenticationsService.getAuthenticatorToken()
     data.setDate(authenticationsService.getAuthenticatorTokenCreationDate())
+    my2FASetupMenuBadge.refreshUserBadgeCounter()
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE)
         .addVariable("ui", createLayout(data))
@@ -154,6 +158,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     val data = My2FASetupData()
     data.mobilePhone = postData.data.mobilePhone
     authenticationsService.clearAuthenticatorToken()
+    my2FASetupMenuBadge.refreshUserBadgeCounter()
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE)
         .addVariable("ui", createLayout(data))
@@ -176,6 +181,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     val user = userDao.internalGetById(ThreadLocalUserContext.getUserId())
     user.mobilePhone = mobilePhone
     userDao.internalUpdate(user)
+    my2FASetupMenuBadge.refreshUserBadgeCounter()
     return UIToast.createToastResponseEntity(
       translate("operation.updated"), color = UIColor.SUCCESS, targetType = TargetType.UPDATE,
       variables = mutableMapOf("ui" to createLayout(postData.data))
