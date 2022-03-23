@@ -315,7 +315,7 @@ class My2FAServicesRest {
       "send${type}Code",
       title = translate("user.My2FACode.sendCode.$lowerType"), // user.My2FACode.sendCode.mail
       tooltip = "user.My2FACode.sendCode.$lowerType.info",
-      color = UIColor.SECONDARY,
+      color = UIColor.LINK,
       responseAction = ResponseAction(
         RestResolver.getRestUrl(restServiceClass, "send${type}Code"),
         targetType = TargetType.GET
