@@ -93,7 +93,7 @@ class MyScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, MyScriptDao>(
    * Don't show include scripts, because the user can't do anything with it.
    */
   override fun filterList(resultSet: MutableList<ScriptDO>, filter: MagicFilter): List<ScriptDO> {
-    return resultSet.filter { it.type != ScriptDO.ScriptType.INCLUDE }
+    return resultSet.filter { !it.isDeleted && it.type != ScriptDO.ScriptType.INCLUDE }
   }
 
   /**

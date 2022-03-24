@@ -60,13 +60,17 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     return scriptExecutor.allVariables.keys.filter { it.isNotBlank() }.sortedBy { it.lowercase() }
   }
 
+  /**
+   * @param imports Additional imports (only package/class name, such as "org.projectforge.rest.scripting.ExecuteAsUser".)
+   */
   fun execute(
     script: ScriptDO,
     parameters: List<ScriptParameter>,
-    additionalVariables: Map<String, Any>
+    additionalVariables: Map<String, Any>,
+    imports: List<String>? = null,
   ): ScriptExecutionResult {
     hasLoggedInUserSelectAccess(script, true)
-    val executor = createScriptExecutor(script, additionalVariables, parameters)
+    val executor = createScriptExecutor(script, additionalVariables, parameters, imports)
     return executor.execute()
   }
 
@@ -74,9 +78,10 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     script: ScriptDO,
     additionalVariables: Map<String, Any?>,
     scriptParameters: List<ScriptParameter>? = null,
+    imports: List<String>? = null,
   ): ScriptExecutor {
     val scriptExecutor = ScriptExecutor.createScriptExecutor(script)
-    scriptExecutor.init(script, this, additionalVariables, scriptParameters)
+    scriptExecutor.init(script, this, additionalVariables, scriptParameters, imports)
     return scriptExecutor
   }
 }

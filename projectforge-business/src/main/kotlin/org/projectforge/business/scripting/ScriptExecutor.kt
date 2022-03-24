@@ -97,6 +97,7 @@ abstract class ScriptExecutor(
 
   /**
    * @param scripDao Needed for resolving #INPUT statements for loading requested sniplets.
+   * @param imports Additional imports (only package/class name, such as "org.projectforge.rest.scripting.ExecuteAsUser".)
    */
   fun init(
     scriptDO: ScriptDO,
@@ -106,6 +107,7 @@ abstract class ScriptExecutor(
      * List of script parameter values, given by user form.
      */
     inputValues: List<ScriptParameter>? = null,
+    imports: List<String>? = null,
   ) {
     this.scriptDao = scripDao
     source = scriptDO.scriptAsString ?: ""
@@ -133,7 +135,7 @@ abstract class ScriptExecutor(
       scriptParameterValues[createValidIdentifier(it.parameterName)] = it.value
     }
     resolvedScript = resolveInputs(scriptLogger, scriptDO)
-    buildEffectiveScript()
+    buildEffectiveScript(imports)
   }
 
   /**
@@ -166,7 +168,7 @@ abstract class ScriptExecutor(
 
   abstract fun execute(): ScriptExecutionResult
 
-  private fun buildEffectiveScript() {
+  private fun buildEffectiveScript(imports: List<String>?) {
     val sb = StringBuilder()
     (resolvedScript ?: source).let { src ->
       var importBlock = true
@@ -178,7 +180,11 @@ abstract class ScriptExecutor(
           } else {
             importBlock = false // End of import block.
             sb.appendLine("// Auto generated imports:")
-            autoImports().sorted().forEach { importLine ->
+            val autoImports = autoImports().toMutableList()
+            imports?.let {
+              autoImports.addAll(it)
+            }
+            autoImports.sorted().forEach { importLine ->
               if (!src.contains(importLine)) { // Don't add import twice
                 sb.appendLine(importLine)
               }
