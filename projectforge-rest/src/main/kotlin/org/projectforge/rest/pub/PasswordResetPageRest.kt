@@ -25,6 +25,7 @@ package org.projectforge.rest.pub
 
 import mu.KotlinLogging
 import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.UserLocale
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.I18nKeys
 import org.projectforge.framework.i18n.translate
@@ -156,6 +157,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
     }
     passwordResetService.checkToken(token)?.let { user ->
       request.getSession(true).setAttribute(SESSION_ATTRIBUTE_DATA, SessionData(token, user))
+      UserLocale.registerLocale(request, user)
     }
     val layout = getLayout(request)
     return FormLayoutData(null, layout, createServerData(request))
