@@ -23,20 +23,9 @@
 
 package org.projectforge.business.scripting
 
-import de.micromata.merlin.utils.ReplaceUtils.encodeFilename
 import mu.KotlinLogging
-import org.projectforge.business.user.ProjectForgeGroup
-import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
-import org.projectforge.framework.time.PFDateTime.Companion.now
-import org.springframework.stereotype.Repository
-import java.io.File
-import java.io.FilenameFilter
-import java.io.IOException
-import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -69,6 +58,16 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
   open fun getScriptVariableNames(script: ScriptDO, additionalVariables: Map<String, Any?>): List<String> {
     val scriptExecutor = createScriptExecutor(script, additionalVariables)
     return scriptExecutor.allVariables.keys.filter { it.isNotBlank() }.sortedBy { it.lowercase() }
+  }
+
+  fun execute(
+    script: ScriptDO,
+    parameters: List<ScriptParameter>,
+    additionalVariables: Map<String, Any>
+  ): ScriptExecutionResult {
+    hasLoggedInUserSelectAccess(script, true)
+    val executor = createScriptExecutor(script, additionalVariables, parameters)
+    return executor.execute()
   }
 
   protected fun createScriptExecutor(

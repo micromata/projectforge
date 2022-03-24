@@ -35,6 +35,7 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.admin.LogViewerPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.Script
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
@@ -53,7 +54,8 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
     this.scriptDao = baseDao
   }
 
-  override val listPagesClass = ScriptPagesRest::class.java
+  @Autowired
+  override lateinit var pagesRest: ScriptPagesRest
 
   override fun onAfterLayout(layout: UILayout, scriptDO: ScriptDO?) {
     if (scriptDO != null) {

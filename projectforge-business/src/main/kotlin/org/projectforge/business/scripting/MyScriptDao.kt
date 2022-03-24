@@ -75,14 +75,4 @@ open class MyScriptDao : AbstractScriptDao() {
     }
     return false
   }
-
-  open fun execute(
-    script: ScriptDO,
-    parameters: List<ScriptParameter>,
-    additionalVariables: Map<String, Any>
-  ): ScriptExecutionResult {
-    hasLoggedInUserSelectAccess(script, true)
-    val executor = createScriptExecutor(script, additionalVariables, parameters)
-    return executor.execute()
-  }
 }

@@ -26,6 +26,8 @@ package org.projectforge.rest.scripting
 import mu.KotlinLogging
 import org.projectforge.business.scripting.MyScriptDao
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.dto.Script
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -39,7 +41,10 @@ class MyScriptExecutePageRest : AbstractScriptExecutePageRest() {
   @Autowired
   private lateinit var myScriptDao: MyScriptDao
 
-  override val listPagesClass = MyScriptPagesRest::class.java
+  @Autowired
+  override lateinit var pagesRest: MyScriptPagesRest
+
+  override val accessCheckOnExecute: Boolean = false
 
   @PostConstruct
   private fun postConstruct() {

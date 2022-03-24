@@ -380,7 +380,7 @@ open class MenuCreator {
     )
       .add(
         MenuItemDef(
-          MenuItemDefId.SUPERSCRIPT_LIST,
+          MenuItemDefId.SCRIPT_LIST,
           requiredGroups = arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
         )
       )
