@@ -36,10 +36,7 @@ import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestButtonEvent
-import org.projectforge.rest.dto.Group
-import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.Script
-import org.projectforge.rest.dto.User
+import org.projectforge.rest.dto.*
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -52,11 +49,15 @@ import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Script listing and editing for financial and controlling staff.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/script")
 class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
   baseDaoClazz = ScriptDao::class.java,
-  i18nKeyPrefix = "scripting.title"
+  i18nKeyPrefix = "scripting.title",
+  cloneSupport = CloneSupport.CLONE,
 ) {
   @Autowired
   private lateinit var groupService: GroupService
@@ -141,7 +142,6 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
   override fun getStandardEditPage(): String {
     return "${PagesResolver.getDynamicPageUrl(ScriptExecutePageRest::class.java)}:id"
   }
-
 
   /**
    * LAYOUT Edit page

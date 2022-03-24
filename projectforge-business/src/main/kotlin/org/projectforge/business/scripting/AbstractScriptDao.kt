@@ -49,7 +49,11 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
    */
   open fun loadByNameOrId(name: String): ScriptDO? {
     name.toIntOrNull()?.let { id ->
-      return getById(id)
+      internalGetById(id)?.let { script ->
+        script.executeAsUser?.clearSecretFields()
+        return script
+      }
+      return null
     }
     val script = ensureUniqueResult(
       em.createNamedQuery(
@@ -58,7 +62,6 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
       )
         .setParameter("name", "%${name.trim().lowercase()}%")
     )
-    hasLoggedInUserSelectAccess(script, true)
     script?.executeAsUser?.clearSecretFields()
     return script
   }
@@ -68,7 +71,7 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     parameters: List<ScriptParameter>,
     additionalVariables: Map<String, Any?>,
     myImports: List<String>? = null,
-    ): List<String> {
+  ): List<String> {
     val scriptExecutor = createScriptExecutor(script, additionalVariables, parameters, myImports)
     return scriptExecutor.allVariables.keys.filter { it.isNotBlank() }.sortedBy { it.lowercase() }
   }
