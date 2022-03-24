@@ -23,18 +23,16 @@
 
 package org.projectforge.rest.scripting
 
-import mu.KotlinLogging
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.framework.jcr.AttachmentsService
-
-private val log = KotlinLogging.logger {}
+import org.projectforge.rest.core.AbstractPagesRest
 
 /**
  * Will be accessible by Groovy and Kotlin scripts for loading files.
  */
 class ScriptFileAccessor(
   val attachmentsService: AttachmentsService,
-  val scriptPagesRest: ScriptPagesRest,
+  val scriptPagesRest: AbstractPagesRest<*, *, *>,
   val scriptDO: ScriptDO,
 ) {
   val attachments =
@@ -47,7 +45,8 @@ class ScriptFileAccessor(
   val file: ByteArray
     get() {
       scriptDO.file?.let { return it }
-      val newestAttachment = attachments?.sortedBy { it.created }?.get(0)?.name ?: throw IllegalArgumentException("No file found.")
+      val newestAttachment =
+        attachments?.sortedBy { it.created }?.get(0)?.name ?: throw IllegalArgumentException("No file found.")
       return getFile(newestAttachment)
     }
 

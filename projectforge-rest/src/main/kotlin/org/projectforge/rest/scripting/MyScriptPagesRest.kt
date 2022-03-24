@@ -26,6 +26,9 @@ package org.projectforge.rest.scripting
 import mu.KotlinLogging
 import org.projectforge.business.scripting.MyScriptDao
 import org.projectforge.business.scripting.ScriptDO
+import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
+import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
@@ -34,8 +37,10 @@ import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.UITable
 import org.projectforge.ui.UITableColumn
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -52,6 +57,20 @@ class MyScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, MyScriptDao>(
   baseDaoClazz = MyScriptDao::class.java,
   i18nKeyPrefix = "scripting.myScript"
 ) {
+  @Autowired
+  private lateinit var scriptPagesRest: ScriptPagesRest
+
+  @PostConstruct
+  private fun postConstruct() {
+    val maxFileSize = attachmentsService.maxDefaultFileSize.toBytes()
+    val maxFileSizeSpringProperty = AttachmentsService.MAX_DEFAULT_FILE_SIZE_SPRING_PROPERTY
+
+    this.jcrPath =  scriptPagesRest.jcrPath
+    this.attachmentsAccessChecker = AttachmentsDaoAccessChecker(
+      baseDao, jcrPath, null, FileSizeStandardChecker(maxFileSize, maxFileSizeSpringProperty)
+    )
+  }
+
   override fun newBaseDO(request: HttpServletRequest?): ScriptDO {
     val script = ScriptDO()
     script.type = ScriptDO.ScriptType.KOTLIN

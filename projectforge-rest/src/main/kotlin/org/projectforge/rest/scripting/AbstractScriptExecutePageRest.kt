@@ -58,7 +58,9 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var scriptExecution: ScriptExecution
 
-  protected abstract val listPagesClass: Class<out AbstractPagesRest<*, *, *>>
+  protected abstract val pagesRest: AbstractPagesRest<*, *, *>
+
+  protected open val accessCheckOnExecute = true
 
   @GetMapping("dynamic")
   fun getForm(
@@ -132,7 +134,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
         translate("back"),
         UIColor.SUCCESS,
         responseAction = ResponseAction(
-          PagesResolver.getListPageUrl(listPagesClass, absolute = true),
+          PagesResolver.getListPageUrl(pagesRest::class.java, absolute = true),
           targetType = TargetType.REDIRECT
         ),
       )
@@ -187,7 +189,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
     return layout
   }
 
-  open fun onAfterLayout(layout: UILayout, scriptDO: ScriptDO?) {
+  open protected fun onAfterLayout(layout: UILayout, scriptDO: ScriptDO?) {
   }
 
   @PostMapping("execute")
@@ -210,7 +212,11 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
         }
       }
     }
-    val result = scriptExecution.execute(request, script, parameters)
+    if (!accessCheckOnExecute) {
+      // If no accessCheckOnExecute, then at least check the select access of the actual script:
+      scriptDao.getById(script.id) // Throws exception if user is not financial or controlling staff member.
+    }
+    val result = scriptExecution.execute(request, script, parameters, scriptDao, pagesRest)
     val output = StringBuilder()
     output.append("'") // ProjectForge shouldn't try to find i18n-key.
     result.exception?.let { ex ->

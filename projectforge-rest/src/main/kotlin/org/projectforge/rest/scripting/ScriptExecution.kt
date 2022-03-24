@@ -37,6 +37,7 @@ import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.dto.Script
 import org.projectforge.rest.task.TaskServicesRest
@@ -53,16 +54,10 @@ private val log = KotlinLogging.logger {}
 @Controller
 class ScriptExecution {
   @Autowired
-  private lateinit var scriptDao: ScriptDao
-
-  @Autowired
   private lateinit var userPrefService: UserPrefService
 
   @Autowired
   private lateinit var attachmentsService: AttachmentsService
-
-  @Autowired
-  private lateinit var scriptPagesRest: ScriptPagesRest
 
   /**
    * @return task, if some task of recent call was found (for updating ui variables)
@@ -88,7 +83,9 @@ class ScriptExecution {
   internal fun execute(
     request: HttpServletRequest,
     script: Script,
-    parameters: List<ScriptParameter>
+    parameters: List<ScriptParameter>,
+    scriptDao: AbstractScriptDao,
+    scriptPagesRest: AbstractPagesRest<*, *, *>,
   ): ScriptExecutionResult {
     log.info {
       "Execute script '${script.name}' with params: ${
