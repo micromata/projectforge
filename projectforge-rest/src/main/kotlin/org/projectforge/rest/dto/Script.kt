@@ -55,7 +55,7 @@ class Script(
   var availableVariables: String? = "",
   var executableByGroups: List<Group>? = null,
   var executableByUsers: List<User>? = null,
-  var sudo: Boolean? = null,
+  var executeAsUser: User? = null,
   override var attachmentsCounter: Int? = null,
   override var attachmentsSize: Long? = null,
   override var attachments: List<Attachment>? = null,

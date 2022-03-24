@@ -27,14 +27,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Type
-import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.Store
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.UnsupportedEncodingException
 import javax.persistence.*
@@ -71,11 +70,13 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   open var type: ScriptType? = null
 
   /**
-   * If set, the script will be executed by [executableByUsers] or [executableByGroups] with full rights!!!
+   * If set, the script will be executed by [executableByUsers] or [executableByGroups] with full rights of this executeAsUser!!!
    */
-  @PropertyInfo(i18nKey = "scripting.script.sudo", tooltip = "scripting.script.sudo.info")
-  @get:Basic
-  open var sudo: Boolean? = null
+  @PropertyInfo(i18nKey = "scripting.script.executeAsUser", tooltip = "scripting.script.executeAsUser.info")
+  @IndexedEmbedded(depth = 1, includeEmbeddedObjectId = true)
+  @get:ManyToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "execute_as_user_id", nullable = true)
+  open var executeAsUser: PFUserDO? = null
 
   /**
    * If given, users assigned to at least one of these groups are able to execute this script.
