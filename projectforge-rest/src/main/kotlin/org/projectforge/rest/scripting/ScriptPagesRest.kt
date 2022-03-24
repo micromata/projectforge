@@ -188,50 +188,50 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
           }
         }
       }
-      UIFieldset(12, "access").let { fieldset ->
-        layout.add(fieldset)
-        UIRow().let { row ->
-          fieldset.add(row)
-          UICol(md = 6).let { col ->
-            row.add(col)
-            col.add(
-              UIRow()
-                .add(
-                  UICol()
-                    .add(
-                      UISelect.createGroupSelect(
-                        lc,
-                        "executableByGroups",
-                        true,
-                        "scripting.script.executableByGroups",
-                        tooltip = "scripting.script.executableByGroups.info"
-                      )
-                    )
-                )
-                .add(
-                  UICol()
-                    .add(
-                      UISelect.createUserSelect(
-                        lc,
-                        "executableByUsers",
-                        true,
-                        "scripting.script.executableByUsers",
-                        tooltip = "scripting.script.executableByUsers.info"
-                      )
-                    )
-                )
-            )
-          }
-          UICol(md = 6).let { col ->
-            row.add(col)
-            col.add(lc, "sudo")
-          }
-        }
-      }
       layout.add(
         UIFieldset(title = "attachment.list")
           .add(UIAttachmentList(category, dto.id))
       )
+    }
+    UIFieldset(12, "access").let { fieldset ->
+      layout.add(fieldset)
+      UIRow().let { row ->
+        fieldset.add(row)
+        UICol(md = 6).let { col ->
+          row.add(col)
+          col.add(
+            UIRow()
+              .add(
+                UICol()
+                  .add(
+                    UISelect.createGroupSelect(
+                      lc,
+                      "executableByGroups",
+                      true,
+                      "scripting.script.executableByGroups",
+                      tooltip = "scripting.script.executableByGroups.info"
+                    )
+                  )
+              )
+              .add(
+                UICol()
+                  .add(
+                    UISelect.createUserSelect(
+                      lc,
+                      "executableByUsers",
+                      true,
+                      "scripting.script.executableByUsers",
+                      tooltip = "scripting.script.executableByUsers.info"
+                    )
+                  )
+              )
+          )
+        }
+        UICol(md = 6).let { col ->
+          row.add(col)
+          col.add(lc, "sudo")
+        }
+      }
     }
     layout.add(UIEditor("script", type = ScriptExecutor.getScriptType(dto.script, dto.type)))
       .add(UIReadOnlyField("availableVariables", label = "scripting.script.availableVariables"))

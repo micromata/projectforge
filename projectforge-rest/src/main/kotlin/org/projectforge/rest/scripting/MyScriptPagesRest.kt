@@ -28,6 +28,7 @@ import org.projectforge.business.scripting.MyScriptDao
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -86,6 +87,13 @@ class MyScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, MyScriptDao>(
     script.filename = obj.filename
     script.copyFrom(obj)
     return script
+  }
+
+  /**
+   * Don't show include scripts, because the user can't do anything with it.
+   */
+  override fun filterList(resultSet: MutableList<ScriptDO>, filter: MagicFilter): List<ScriptDO> {
+    return resultSet.filter { it.type != ScriptDO.ScriptType.INCLUDE }
   }
 
   /**
