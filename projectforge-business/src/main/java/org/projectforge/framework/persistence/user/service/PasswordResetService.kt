@@ -93,7 +93,7 @@ class PasswordResetService {
           }
         }
       }
-      // User may contain '@'-char, so do not user else branch:
+      // User may contain '@'-char, so do not use else branch here:
       val user = userService.getInternalByUsername(usernameEmail)
       if (user == null) {
         SecurityLogging.logSecurityWarn(
