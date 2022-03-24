@@ -202,6 +202,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     val user = userDao.internalGetById(ThreadLocalUserContext.getUserId())
     user.mobilePhone = mobilePhone
     userDao.internalUpdate(user)
+    ThreadLocalUserContext.getUser()?.mobilePhone = mobilePhone // Update for showing the button 'send sms'
     my2FASetupMenuBadge.refreshUserBadgeCounter()
     return UIToast.createToastResponseEntity(
       translate("operation.updated"), color = UIColor.SUCCESS, targetType = TargetType.UPDATE,
