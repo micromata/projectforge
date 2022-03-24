@@ -25,8 +25,6 @@ package org.projectforge.plugins.datatransfer
 
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.io.IOUtils
-import org.mockito.ArgumentMatchers.anyMapOf
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
@@ -147,7 +145,7 @@ class DataTransferTestService {
       return null
     }
     response.body.inputStream.use {
-      return IOUtils.toByteArray(it);
+      return IOUtils.toByteArray(it)
     }
   }
 
@@ -172,7 +170,7 @@ class DataTransferTestService {
       val request = Mockito.mock(HttpServletRequest::class.java)
       val mockSession = MockSession()
       Mockito.`when`(request.getSession(Mockito.anyBoolean())).thenReturn(mockSession.session)
-      Mockito.`when`(request.getSession()).thenReturn(mockSession.session)
+      Mockito.`when`(request.session).thenReturn(mockSession.session)
       return request
     }
   }
