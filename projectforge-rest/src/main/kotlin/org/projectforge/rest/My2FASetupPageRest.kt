@@ -370,7 +370,10 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
   ): ResponseEntity<ResponseAction>? {
     return when (val checkState = checkLastSuccessful2FA(request, response, data)) {
       CheckState.OK -> null
-      CheckState.OTP_REQUIRED -> showValidationErrors(ValidationError(translate("user.My2FA.required"), "code"))
+      CheckState.OTP_REQUIRED -> showValidationErrors(
+        ValidationError(translate("user.My2FA.required"), "code"),
+        ValidationError(translate("user.My2FA.required")) // For better visibility twice.
+      )
       CheckState.OTP_FAILED -> showValidationErrors(ValidationError(checkState.userMessage))
     }
   }
