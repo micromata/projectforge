@@ -41,6 +41,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.dto.Script
+import org.projectforge.rest.dto.User
 import org.projectforge.rest.task.TaskServicesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
@@ -175,6 +176,7 @@ class ScriptExecution {
     if (script.id != null) {
       additionalVariables[SCRIPT_VAR_NAME_FILES] = ScriptFileAccessor(attachmentsService, scriptPagesRest, scriptDO)
     }
+    additionalVariables["scriptUser"] = ScriptUser()
     var myImports: List<String>? = null
     scriptDO.executeAsUser?.let { executeAsUser ->
       additionalVariables[SCRIPT_VAR_NAME_EXECUTE_USER] = ExecuteAsUser(executeAsUser, scriptDO)
