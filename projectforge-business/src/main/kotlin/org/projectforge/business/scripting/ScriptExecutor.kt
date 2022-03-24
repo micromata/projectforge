@@ -49,16 +49,24 @@ abstract class ScriptExecutor(
 
   var scriptParameterList: List<ScriptParameter>? = null
 
+  /**
+   * All imports (import (static) org.projectforge...)
+   */
+  val imports = mutableListOf<String>()
+
   val allVariables: Map<String, Any?>
     get() = variables + scriptParameterValues
 
 
   /**
-   * script with resolved #INCLUDEs.
+   * script with resolved #INCLUDEs, but without imports and bindings (Kotlin).
    */
   var resolvedScript: String? = null
     private set
 
+  /**
+   * Build by [buildEffectiveScript]
+   */
   private var _effectiveScript: String? = null
 
   /**
@@ -97,7 +105,7 @@ abstract class ScriptExecutor(
 
   /**
    * @param scripDao Needed for resolving #INPUT statements for loading requested sniplets.
-   * @param imports Additional imports (only package/class name, such as "org.projectforge.rest.scripting.ExecuteAsUser".)
+   * @param additionalImports Additional imports (only package/class name, such as "org.projectforge.rest.scripting.ExecuteAsUser".)
    */
   fun init(
     scriptDO: ScriptDO,
@@ -107,7 +115,7 @@ abstract class ScriptExecutor(
      * List of script parameter values, given by user form.
      */
     inputValues: List<ScriptParameter>? = null,
-    imports: List<String>? = null,
+    additionalImports: List<String>? = null,
   ) {
     this.scriptDao = scripDao
     source = scriptDO.scriptAsString ?: ""
@@ -135,7 +143,13 @@ abstract class ScriptExecutor(
       scriptParameterValues[createValidIdentifier(it.parameterName)] = it.value
     }
     resolvedScript = resolveInputs(scriptLogger, scriptDO)
-    buildEffectiveScript(imports)
+    imports.addAll(standardImports())
+    additionalImports?.let {
+      imports.addAll(it)
+    }
+    imports.sort()
+
+    buildEffectiveScript()
   }
 
   /**
@@ -168,7 +182,7 @@ abstract class ScriptExecutor(
 
   abstract fun execute(): ScriptExecutionResult
 
-  private fun buildEffectiveScript(imports: List<String>?) {
+  private fun buildEffectiveScript() {
     val sb = StringBuilder()
     (resolvedScript ?: source).let { src ->
       var importBlock = true
@@ -180,11 +194,7 @@ abstract class ScriptExecutor(
           } else {
             importBlock = false // End of import block.
             sb.appendLine("// Auto generated imports:")
-            val autoImports = autoImports().toMutableList()
-            imports?.let {
-              autoImports.addAll(it)
-            }
-            autoImports.sorted().forEach { importLine ->
+            imports.sorted().forEach { importLine ->
               if (!src.contains(importLine)) { // Don't add import twice
                 sb.appendLine(importLine)
               }
@@ -207,8 +217,8 @@ abstract class ScriptExecutor(
   protected open fun appendBlockAfterImports(sb: StringBuilder) {
   }
 
-  protected open fun autoImports(): List<String> {
-    return AUTO_IMPORTS
+  protected open fun standardImports(): List<String> {
+    return STANDARD_IMPORTS
   }
 
   companion object {
@@ -270,7 +280,7 @@ abstract class ScriptExecutor(
       }
     }
 
-    val AUTO_IMPORTS = listOf(
+    val STANDARD_IMPORTS = listOf(
       "import java.io.ByteArrayInputStream",
       "import java.math.BigDecimal",
       "import java.math.RoundingMode",

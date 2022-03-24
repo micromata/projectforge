@@ -64,6 +64,9 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
   @Autowired
   private lateinit var userService: UserService
 
+  @Autowired
+  private lateinit var scriptExecution: ScriptExecution
+
   @PostConstruct
   private fun postConstruct() {
     /**
@@ -95,7 +98,8 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     val script = Script()
     script.filename = obj.filename
     script.copyFrom(obj)
-    script.availableVariables = baseDao.getScriptVariableNames(obj, ScriptExecution.getAdditionalVariables(obj)).joinToString()
+    script.availableVariables =
+      scriptExecution.getVariableNames(script, script.getParameters(), baseDao, this).joinToString()
     script.script = obj.scriptAsString
     // Group names needed by React client (for ReactSelect):
     Group.restoreDisplayNames(script.executableByGroups, groupService)
@@ -298,11 +302,11 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
   @GetMapping("downloadEffectiveScript/{id}")
   fun downloadEffectiveScript(@PathVariable("id") id: Int?): ResponseEntity<*> {
     log.info("Downloading effective script of script with id=$id")
-    val script = baseDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
-    val scriptExecutor = ScriptExecutor.createScriptExecutor(script)
-    scriptExecutor.init(script, baseDao, ScriptExecution.getAdditionalVariables(script))
-    val filename = ReplaceUtils.encodeFilename("${script.name}-effective.${baseDao.getScriptSuffix(script)}")
-    return RestUtils.downloadFile(filename, scriptExecutor.effectiveScript ?: "")
+    val scriptDO = baseDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+    val script = transformFromDB(scriptDO)
+    val effectiveScript = scriptExecution.getEffectiveScript(script, script.getParameters(), baseDao, this)
+    val filename = ReplaceUtils.encodeFilename("${scriptDO.name}-effective.${baseDao.getScriptSuffix(scriptDO)}")
+    return RestUtils.downloadFile(filename, effectiveScript ?: "")
   }
 
   override fun onBeforeUpdate(request: HttpServletRequest, obj: ScriptDO, postData: PostData<Script>) {

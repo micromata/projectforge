@@ -83,7 +83,8 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
       scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
       script.copyFrom(scriptDO)
     } else {
-      script.availableVariables = scriptDao.getScriptVariableNames(ScriptDO(), emptyMap<String, Any>()).joinToString()
+      script.availableVariables =
+        scriptExecution.getVariableNames(script, script.getParameters(), scriptDao, pagesRest).joinToString()
       if (exampleIdx != null) {
         script.script = ExampleScripts.loadScript(exampleIdx)
       }

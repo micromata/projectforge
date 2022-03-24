@@ -81,6 +81,31 @@ class ScriptExecution {
     return task
   }
 
+  internal fun getEffectiveScript(
+    script: Script,
+    parameters: List<ScriptParameter>,
+    scriptDao: AbstractScriptDao,
+    scriptPagesRest: AbstractPagesRest<*, *, *>,
+  ): String {
+    val initData = prepareScriptInit(script, scriptDao, scriptPagesRest)
+    return scriptDao.getEffectiveScript(initData.scriptDO, parameters, initData.additionalVariables, initData.myImports)
+  }
+
+  internal fun getVariableNames(
+    script: Script,
+    parameters: List<ScriptParameter>,
+    scriptDao: AbstractScriptDao,
+    scriptPagesRest: AbstractPagesRest<*, *, *>,
+  ): List<String> {
+    val initData = prepareScriptInit(script, scriptDao, scriptPagesRest)
+    return scriptDao.getScriptVariableNames(
+      initData.scriptDO,
+      parameters,
+      initData.additionalVariables,
+      initData.myImports
+    )
+  }
+
   internal fun execute(
     request: HttpServletRequest,
     script: Script,
@@ -93,34 +118,15 @@ class ScriptExecution {
         parameters.filter { it.parameterName != null }.joinToString { it.asString }
       }"
     }
-
-    val scriptDO: ScriptDO
-    if (script.id != null) {
-      // Exceuting db script:
-      scriptDO = scriptDao.getById(script.id)
-    } else {
-      // Executing ad-hoc script (from editor instead of data base).
-      scriptDO = ScriptDO()
-      script.copyTo(scriptDO)
-      scriptDO.scriptAsString = script.script
-    }
     // Store as recent script call params:
     val recentScriptCalls = userPrefService.ensureEntry(USER_PREF_AREA, USER_PREF_KEY, RecentScriptCalls())
     val scriptCallData = ScriptCallData("${script.id}", parameters)
     recentScriptCalls.append(scriptCallData)
 
-    val additionalVariables = mutableMapOf<String, Any>()
-    if (script.id != null) {
-      additionalVariables[SCRIPT_VAR_NAME_FILES] = ScriptFileAccessor(attachmentsService, scriptPagesRest, scriptDO)
-    }
+    val initData = prepareScriptInit(script, scriptDao, scriptPagesRest)
     val saveUserContext = ThreadLocalUserContext.getUserContext()
     val scriptExecutionResult = try {
-      var imports: List<String>? = null
-      scriptDO.executeAsUser?.let { executeAsUser ->
-        additionalVariables[SCRIPT_VAR_NAME_EXECUTE_USER] = ExecuteAsUser(executeAsUser, scriptDO)
-        imports = listOf("org.projectforge.rest.scripting.ScriptExecutor")
-      }
-      scriptDao.execute(scriptDO, parameters, additionalVariables, imports)
+      scriptDao.execute(initData.scriptDO, parameters, initData.additionalVariables, initData.myImports)
     } finally {
       ThreadLocalUserContext.setUserContext(saveUserContext) // If script was executed as.
     }
@@ -148,6 +154,33 @@ class ScriptExecution {
       }
     }
     return scriptExecutionResult
+  }
+
+  private fun prepareScriptInit(
+    script: Script,
+    scriptDao: AbstractScriptDao,
+    scriptPagesRest: AbstractPagesRest<*, *, *>,
+  ): ScriptInitData {
+    val scriptDO: ScriptDO
+    if (script.id != null) {
+      // Exceuting db script:
+      scriptDO = scriptDao.getById(script.id)
+    } else {
+      // Executing ad-hoc script (from editor instead of data base).
+      scriptDO = ScriptDO()
+      script.copyTo(scriptDO)
+      scriptDO.scriptAsString = script.script
+    }
+    val additionalVariables = mutableMapOf<String, Any>()
+    if (script.id != null) {
+      additionalVariables[SCRIPT_VAR_NAME_FILES] = ScriptFileAccessor(attachmentsService, scriptPagesRest, scriptDO)
+    }
+    var myImports: List<String>? = null
+    scriptDO.executeAsUser?.let { executeAsUser ->
+      additionalVariables[SCRIPT_VAR_NAME_EXECUTE_USER] = ExecuteAsUser(executeAsUser, scriptDO)
+      myImports = listOf("import org.projectforge.rest.scripting.ExecuteAsUser")
+    }
+    return ScriptInitData(scriptDO, additionalVariables, myImports)
   }
 
   private fun exportExcel(
@@ -257,22 +290,18 @@ class ScriptExecution {
     }
   }
 
+  data class ScriptInitData(
+    val scriptDO: ScriptDO,
+    val additionalVariables: MutableMap<String, Any>,
+    val myImports: List<String>?
+  )
+
   data class DownloadFile(val filename: String, val bytes: ByteArray, val availableUntil: String) {
     val sizeHumanReadable
       get() = NumberHelper.formatBytes(bytes.size)
   }
 
   companion object {
-    /**
-     * Names of additional variables used on script executions.
-     */
-    fun getAdditionalVariables(script: ScriptDO): Map<String, Any?> {
-      val result = mutableMapOf<String, Any?>(SCRIPT_VAR_NAME_FILES to "<ScriptFileAccessor>")
-      if (script.executeAsUser != null) {
-        result[SCRIPT_VAR_NAME_EXECUTE_USER] = "<ExecuteAsUser>"
-      }
-      return result
-    }
     private val USER_PREF_AREA = "ScriptExecution:"
     private val USER_PREF_KEY = "recentCalls"
 

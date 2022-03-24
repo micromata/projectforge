@@ -26,6 +26,7 @@ package org.projectforge.business.scripting
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
+import java.io.Serializable
 
 private val log = KotlinLogging.logger {}
 
@@ -35,6 +36,12 @@ private val log = KotlinLogging.logger {}
 abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
   override fun newInstance(): ScriptDO {
     return ScriptDO()
+  }
+
+  override fun getById(id: Serializable?): ScriptDO {
+    val script = super.getById(id)
+    script?.executeAsUser?.clearSecretFields()
+    return script
   }
 
   /**
@@ -52,12 +59,28 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
         .setParameter("name", "%${name.trim().lowercase()}%")
     )
     hasLoggedInUserSelectAccess(script, true)
+    script?.executeAsUser?.clearSecretFields()
     return script
   }
 
-  open fun getScriptVariableNames(script: ScriptDO, additionalVariables: Map<String, Any?>): List<String> {
-    val scriptExecutor = createScriptExecutor(script, additionalVariables)
+  open fun getScriptVariableNames(
+    script: ScriptDO,
+    parameters: List<ScriptParameter>,
+    additionalVariables: Map<String, Any?>,
+    myImports: List<String>? = null,
+    ): List<String> {
+    val scriptExecutor = createScriptExecutor(script, additionalVariables, parameters, myImports)
     return scriptExecutor.allVariables.keys.filter { it.isNotBlank() }.sortedBy { it.lowercase() }
+  }
+
+  open fun getEffectiveScript(
+    script: ScriptDO,
+    parameters: List<ScriptParameter>,
+    additionalVariables: Map<String, Any?>,
+    imports: List<String>? = null,
+  ): String {
+    val scriptExecutor = createScriptExecutor(script, additionalVariables, parameters, imports)
+    return scriptExecutor.effectiveScript
   }
 
   /**

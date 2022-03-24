@@ -31,9 +31,9 @@ import org.projectforge.rest.core.AbstractPagesRest
  * Will be accessible by Groovy and Kotlin scripts for loading files.
  */
 class ScriptFileAccessor(
-  val attachmentsService: AttachmentsService,
-  val scriptPagesRest: AbstractPagesRest<*, *, *>,
-  val scriptDO: ScriptDO,
+  private val attachmentsService: AttachmentsService,
+  private val scriptPagesRest: AbstractPagesRest<*, *, *>,
+  private val scriptDO: ScriptDO,
 ) {
   val attachments =
     attachmentsService.getAttachments(scriptPagesRest.jcrPath!!, scriptDO.id, scriptPagesRest.attachmentsAccessChecker)
