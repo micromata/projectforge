@@ -24,6 +24,7 @@
 package org.projectforge.web
 
 import java.net.InetAddress
+import java.net.URI
 import java.net.UnknownHostException
 import javax.servlet.ServletRequest
 import javax.servlet.http.HttpServletRequest
@@ -52,5 +53,30 @@ object WebUtils {
       remoteAddr = request.remoteAddr
     }
     return remoteAddr
+  }
+
+  /**
+   * @return the uri of the request with normalized path.
+   * @see normalizeUri
+   */
+  fun getNormalizedUri(request: HttpServletRequest): String? {
+    return normalizeUri(request.requestURI)
+  }
+
+  /**
+   * If an invalid relative url is found, "<invalid>" is returned (e. g. for "../react", because .. cannot
+   * be resolved.
+   * @return Absolute uri: "" -> "/", "/react" -> "/react", "/react/../rs/" -> "/rs"
+   */
+  fun normalizeUri(uriString: String?): String? {
+    uriString ?: return null
+    val path = URI(uriString).normalize().path ?: return null
+    return if (path.contains("..")) {
+      "<invalid>" // login required
+    } else if (path.startsWith("/")) {
+      path
+    } else {
+      "/$path"
+    }
   }
 }
