@@ -114,9 +114,11 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
           .add(lc, "name", "description")
           .add(UITableColumn("parameter", title = "scripting.script.parameter"))
           .add(UITableColumn("type", title = "scripting.script.type"))
+          .add(UITableColumn("executeAsUser", title = "scripting.script.executeAsUser"))
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
           .add(lc, "lastUpdate")
       )
+    layout.getTableColumnById("executeAsUser").formatter = Formatter.USER
     layout.add(
       MenuItem(
         "exeute",
@@ -229,7 +231,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
         }
         UICol(md = 6).let { col ->
           row.add(col)
-          col.add(lc, "sudo")
+          col.add(lc, "executeAsUser")
         }
       }
     }
