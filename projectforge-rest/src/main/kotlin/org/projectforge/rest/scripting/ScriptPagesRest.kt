@@ -95,7 +95,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     val script = Script()
     script.filename = obj.filename
     script.copyFrom(obj)
-    script.availableVariables = baseDao.getScriptVariableNames(obj, ScriptExecution.additionalVariables).joinToString()
+    script.availableVariables = baseDao.getScriptVariableNames(obj, ScriptExecution.getAdditionalVariables(obj)).joinToString()
     script.script = obj.scriptAsString
     // Group names needed by React client (for ReactSelect):
     Group.restoreDisplayNames(script.executableByGroups, groupService)
@@ -300,7 +300,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     log.info("Downloading effective script of script with id=$id")
     val script = baseDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
     val scriptExecutor = ScriptExecutor.createScriptExecutor(script)
-    scriptExecutor.init(script, baseDao, ScriptExecution.additionalVariables)
+    scriptExecutor.init(script, baseDao, ScriptExecution.getAdditionalVariables(script))
     val filename = ReplaceUtils.encodeFilename("${script.name}-effective.${baseDao.getScriptSuffix(script)}")
     return RestUtils.downloadFile(filename, scriptExecutor.effectiveScript ?: "")
   }

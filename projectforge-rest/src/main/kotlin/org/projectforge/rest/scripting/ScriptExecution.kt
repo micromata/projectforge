@@ -34,6 +34,7 @@ import org.projectforge.common.DateFormatType
 import org.projectforge.export.ExportJFreeChart
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.json.JsonUtils
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
@@ -110,9 +111,19 @@ class ScriptExecution {
 
     val additionalVariables = mutableMapOf<String, Any>()
     if (script.id != null) {
-      additionalVariables["files"] = ScriptFileAccessor(attachmentsService, scriptPagesRest, scriptDO)
+      additionalVariables[SCRIPT_VAR_NAME_FILES] = ScriptFileAccessor(attachmentsService, scriptPagesRest, scriptDO)
     }
-    val scriptExecutionResult = scriptDao.execute(scriptDO, parameters, additionalVariables)
+    val saveUserContext = ThreadLocalUserContext.getUserContext()
+    val scriptExecutionResult = try {
+      var imports: List<String>? = null
+      scriptDO.executeAsUser?.let { executeAsUser ->
+        additionalVariables[SCRIPT_VAR_NAME_EXECUTE_USER] = ExecuteAsUser(executeAsUser, scriptDO)
+        imports = listOf("org.projectforge.rest.scripting.ScriptExecutor")
+      }
+      scriptDao.execute(scriptDO, parameters, additionalVariables, imports)
+    } finally {
+      ThreadLocalUserContext.setUserContext(saveUserContext) // If script was executed as.
+    }
     if (scriptExecutionResult.hasException()) {
       scriptExecutionResult.scriptLogger.error(scriptExecutionResult.exception.toString())
       return scriptExecutionResult
@@ -255,9 +266,18 @@ class ScriptExecution {
     /**
      * Names of additional variables used on script executions.
      */
-    val additionalVariables = mapOf<String, Any?>("files" to "<ScriptFileAccessor>")
+    fun getAdditionalVariables(script: ScriptDO): Map<String, Any?> {
+      val result = mutableMapOf<String, Any?>(SCRIPT_VAR_NAME_FILES to "<ScriptFileAccessor>")
+      if (script.executeAsUser != null) {
+        result[SCRIPT_VAR_NAME_EXECUTE_USER] = "<ExecuteAsUser>"
+      }
+      return result
+    }
     private val USER_PREF_AREA = "ScriptExecution:"
     private val USER_PREF_KEY = "recentCalls"
+
+    private val SCRIPT_VAR_NAME_EXECUTE_USER = "executeAsUser"
+    private val SCRIPT_VAR_NAME_FILES = "files"
 
     private val DOWNLOAD_EXPIRY_MINUTES = 5
 
