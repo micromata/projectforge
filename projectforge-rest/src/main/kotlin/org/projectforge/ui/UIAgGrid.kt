@@ -56,7 +56,7 @@ open class UIAgGrid(
       val col = UIAgGridColumnDef(it, sortable = sortable)
       val elementInfo = ElementsRegistry.getElementInfo(lc, it)
       if (elementInfo != null) {
-        col.title = elementInfo.i18nKey
+        col.headerName = elementInfo.i18nKey
        /* col.dataType = UIDataTypeUtils.ensureDataType(elementInfo)
         if (col.dataType == UIDataType.BOOLEAN) {
           col.setStandardBoolean()

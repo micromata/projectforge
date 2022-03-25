@@ -29,7 +29,9 @@ package org.projectforge.ui
 open class UIAgGridColumnDef(
   val field: String,
   var id: String? = null,
-  var title: String? = null,
+  var headerName: String? = null,
   var sortable: Boolean = false,
+  var filter: Boolean = false,
+  var valueGetter: String? = null,
 ): UIElement(UIElementType.AG_GRID_COLUMN_DEF) {
 }
