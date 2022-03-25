@@ -170,7 +170,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
     val variables = mutableMapOf<String, Any>()
     val script = postData.data
 
-    val parameters = script.getParameters()
+    val parameters = script.parameters
     parameters.forEach { scriptParameter ->
       if (scriptParameter.type === ScriptParameterType.TASK) {
         scriptParameter.intValue?.let { taskId ->

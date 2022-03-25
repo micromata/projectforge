@@ -104,6 +104,7 @@ class MyScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, MyScriptDao>(
       .add(
         UITable.createUIResultSetTable()
           .add(lc, "name", "description")
+          .add(UITableColumn("parameterNames", title = "scripting.script.parameter", sortable = false))
           .add(UITableColumn("type", title = "scripting.script.type"))
           .add(lc, "lastUpdate")
       )

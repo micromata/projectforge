@@ -103,12 +103,14 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     script.filename = obj.filename
     script.copyFrom(obj)
     script.availableVariables =
-      scriptExecution.getVariableNames(script, script.getParameters(), baseDao, this).joinToString()
+      scriptExecution.getVariableNames(script, script.parameters, baseDao, this).joinToString()
     script.script = obj.scriptAsString
     // Group names needed by React client (for ReactSelect):
     Group.restoreDisplayNames(script.executableByGroups, groupService)
     // Usernames needed by React client (for ReactSelect):
     User.restoreDisplayNames(script.executableByUsers, userService)
+    script.executableByUsersAsString = script.executableByUsers?.joinToString { it.displayName ?: "???" } ?: ""
+    script.executableByGroupsAsString = script.executableByGroups?.joinToString { it.displayName ?: "???" } ?: ""
     return script
   }
 
@@ -120,10 +122,24 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
       .add(
         UITable.createUIResultSetTable()
           .add(lc, "name", "description")
-          .add(UITableColumn("parameter", title = "scripting.script.parameter"))
+          .add(UITableColumn("parameterNames", title = "scripting.script.parameter", sortable = false))
           .add(UITableColumn("type", title = "scripting.script.type"))
           .add(UITableColumn("executeAsUser", title = "scripting.script.executeAsUser"))
-          .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
+          .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP, sortable = false))
+          .add(
+            UITableColumn(
+              "executableByGroupsAsString",
+              sortable = false,
+              title = "scripting.script.executableByGroups"
+            )
+          )
+          .add(
+            UITableColumn(
+              "executableByUsersAsString",
+              sortable = false,
+              title = "scripting.script.executableByUsers"
+            )
+          )
           .add(lc, "lastUpdate")
       )
     layout.getTableColumnById("executeAsUser").formatter = Formatter.USER
@@ -150,6 +166,12 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: Script, userAccess: UILayout.UserAccess): UILayout {
+    val numberOfLines = dto.script?.lines()?.size ?: 0
+    val editorHeight = if (numberOfLines > 200) {
+      "1024px"
+    } else {
+      null
+    }
     val langs = listOf(
       UISelectValue(ScriptDO.ScriptType.KOTLIN, "Kotlin script"),
       UISelectValue(ScriptDO.ScriptType.GROOVY, "Groovy script"),
@@ -234,7 +256,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
         }
       }
     }
-    layout.add(UIEditor("script", type = ScriptExecutor.getScriptType(dto.script, dto.type)))
+    layout.add(UIEditor("script", type = ScriptExecutor.getScriptType(dto.script, dto.type), height = editorHeight))
       .add(UIReadOnlyField("availableVariables", label = "scripting.script.availableVariables"))
 
     if (dto.id != null) {
@@ -263,8 +285,8 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
    * Redirect to execution page after modification.
    */
   override fun afterOperationRedirectTo(obj: ScriptDO, postData: PostData<Script>, event: RestButtonEvent): String {
-    return if (event == RestButtonEvent.DELETE) {
-      // Stay on edit page after saving for uploading Word template and Excel template definition.
+    return if (event == RestButtonEvent.DELETE || obj.type == ScriptDO.ScriptType.INCLUDE) {
+      // Return to list page for deleted scripts or Include-Scripts
       PagesResolver.getListPageUrl(
         ScriptPagesRest::class.java,
         absolute = true
@@ -299,7 +321,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     log.info("Downloading effective script of script with id=$id")
     val scriptDO = baseDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
     val script = transformFromDB(scriptDO)
-    val effectiveScript = scriptExecution.getEffectiveScript(script, script.getParameters(), baseDao, this)
+    val effectiveScript = scriptExecution.getEffectiveScript(script, script.parameters, baseDao, this)
     val filename = ReplaceUtils.encodeFilename("${scriptDO.name}-effective.${baseDao.getScriptSuffix(scriptDO)}")
     return RestUtils.downloadFile(filename, effectiveScript ?: "")
   }

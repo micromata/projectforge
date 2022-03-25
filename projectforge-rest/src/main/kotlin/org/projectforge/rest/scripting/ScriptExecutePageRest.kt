@@ -84,7 +84,7 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
       script.copyFrom(scriptDO)
     } else {
       script.availableVariables =
-        scriptExecution.getVariableNames(script, script.getParameters(), scriptDao, pagesRest).joinToString()
+        scriptExecution.getVariableNames(script, script.parameters, scriptDao, pagesRest).joinToString()
       if (exampleIdx != null) {
         script.script = ExampleScripts.loadScript(exampleIdx)
       }
