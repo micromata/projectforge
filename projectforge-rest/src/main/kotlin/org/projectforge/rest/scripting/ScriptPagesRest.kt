@@ -36,7 +36,10 @@ import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestButtonEvent
-import org.projectforge.rest.dto.*
+import org.projectforge.rest.dto.Group
+import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.Script
+import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -88,7 +91,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     scriptDO.scriptAsString = dto.script
     if (dto.id != null) {
       // Restore filename and file for older scripts, edited by classical Wicket-version:
-      val origScript = baseDao.getById(dto.id)
+      val origScript = baseDao.getById(dto.id) ?: throw IllegalArgumentException("Script with id #${dto.id} not found.")
       scriptDO.filename = origScript.filename
       scriptDO.file = origScript.file
     }
@@ -203,39 +206,31 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
       layout.add(fieldset)
       UIRow().let { row ->
         fieldset.add(row)
-        UICol(md = 6).let { col ->
+        UICol(lg = 6).let { col ->
+          row.add(col)
+          col
+            .add(
+              UISelect.createGroupSelect(
+                lc,
+                "executableByGroups",
+                true,
+                "scripting.script.executableByGroups",
+                tooltip = "scripting.script.executableByGroups.info"
+              )
+            )
+            .add(lc, "executeAsUser")
+        }
+        UICol(lg = 6).let { col ->
           row.add(col)
           col.add(
-            UIRow()
-              .add(
-                UICol()
-                  .add(
-                    UISelect.createGroupSelect(
-                      lc,
-                      "executableByGroups",
-                      true,
-                      "scripting.script.executableByGroups",
-                      tooltip = "scripting.script.executableByGroups.info"
-                    )
-                  )
-              )
-              .add(
-                UICol()
-                  .add(
-                    UISelect.createUserSelect(
-                      lc,
-                      "executableByUsers",
-                      true,
-                      "scripting.script.executableByUsers",
-                      tooltip = "scripting.script.executableByUsers.info"
-                    )
-                  )
-              )
+            UISelect.createUserSelect(
+              lc,
+              "executableByUsers",
+              true,
+              "scripting.script.executableByUsers",
+              tooltip = "scripting.script.executableByUsers.info"
+            )
           )
-        }
-        UICol(md = 6).let { col ->
-          row.add(col)
-          col.add(lc, "executeAsUser")
         }
       }
     }

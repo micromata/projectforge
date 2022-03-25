@@ -30,16 +30,21 @@ import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.admin.LogViewerPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.Script
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -56,6 +61,38 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
 
   @Autowired
   override lateinit var pagesRest: ScriptPagesRest
+
+  @GetMapping("dynamic")
+  fun getForm(
+    request: HttpServletRequest,
+    @RequestParam("id") idString: String?,
+    @RequestParam("example") example: Int?
+  ): FormLayoutData {
+    var scriptDO: ScriptDO? = null
+    val script = Script()
+    var id: Int? = null
+    var exampleIdx: Int? = null // fix, because idString is like ?example=#
+    if (example != null) {
+      exampleIdx = example
+    } else if (idString?.startsWith("?example=") == true) {
+      exampleIdx = idString.removePrefix("?example=").toIntOrNull()
+    } else {
+      id = NumberHelper.parseInteger(idString)
+    }
+    if (id != null) {
+      scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+      script.copyFrom(scriptDO)
+    } else {
+      script.availableVariables =
+        scriptExecution.getVariableNames(script, script.getParameters(), scriptDao, pagesRest).joinToString()
+      if (exampleIdx != null) {
+        script.script = ExampleScripts.loadScript(exampleIdx)
+      }
+    }
+    val variables = mutableMapOf<String, Any>()
+    val layout = getLayout(request, script, variables, scriptDO)
+    return FormLayoutData(script, layout, createServerData(request), variables)
+  }
 
   override fun onAfterLayout(layout: UILayout, scriptDO: ScriptDO?) {
     if (scriptDO != null) {

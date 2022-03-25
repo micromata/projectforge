@@ -38,7 +38,7 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     return ScriptDO()
   }
 
-  override fun getById(id: Serializable?): ScriptDO {
+  override fun getById(id: Serializable?): ScriptDO? {
     val script = super.getById(id)
     script?.executeAsUser?.clearSecretFields()
     return script

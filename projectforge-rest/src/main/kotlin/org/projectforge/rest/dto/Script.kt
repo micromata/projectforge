@@ -81,6 +81,15 @@ class Script(
     executableByUsers = User.toUserList(src.executableByUserIds)
   }
 
+  fun copyParametersFrom(other: Script) {
+    this.parameter1 = other.parameter1
+    this.parameter2 = other.parameter2
+    this.parameter3 = other.parameter3
+    this.parameter4 = other.parameter4
+    this.parameter5 = other.parameter5
+    this.parameter6 = other.parameter6
+  }
+
   override fun copyTo(dest: ScriptDO) {
     super.copyTo(dest)
     val list = listOf(parameter1, parameter2, parameter3, parameter4, parameter5, parameter6)

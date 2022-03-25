@@ -25,13 +25,17 @@ package org.projectforge.rest.scripting
 
 import mu.KotlinLogging
 import org.projectforge.business.scripting.MyScriptDao
+import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.Script
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import javax.annotation.PostConstruct
+import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -45,6 +49,27 @@ class MyScriptExecutePageRest : AbstractScriptExecutePageRest() {
   override lateinit var pagesRest: MyScriptPagesRest
 
   override val accessCheckOnExecute: Boolean = false
+
+  @GetMapping("dynamic")
+  fun getForm(
+    request: HttpServletRequest,
+    @RequestParam("id") idString: String?,
+  ): FormLayoutData {
+    var scriptDO: ScriptDO? = null
+    val origScript = Script()
+    val id = idString?.toIntOrNull() ?: throw IllegalArgumentException("Script not found.")
+    scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+    origScript.copyFrom(scriptDO) // Don't export all fields to the user
+    val script = Script()
+    script.id = origScript.id
+    script.name = origScript.name
+    script.description = origScript.description
+    script.copyParametersFrom(origScript)
+    script.type = origScript.type
+    val variables = mutableMapOf<String, Any>()
+    val layout = getLayout(request, script, variables, scriptDO)
+    return FormLayoutData(script, layout, createServerData(request), variables)
+  }
 
   @PostConstruct
   private fun postConstruct() {
