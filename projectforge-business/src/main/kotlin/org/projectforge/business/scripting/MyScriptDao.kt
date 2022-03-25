@@ -54,19 +54,21 @@ open class MyScriptDao : AbstractScriptDao() {
     if (obj == null) {
       return true
     }
-    val userId = ThreadLocalUserContext.getUserId()!!
-    val userIdString = "$userId"
-    obj.executableByUserIds?.split(",")?.forEach { userId ->
-      if (userId.trim() == userIdString) {
-        // Logged-in user is listed in executableByUserIds
-        return true
-      }
-    }
-    obj.executableByGroupIds?.split(",")?.forEach { groupId ->
-      groupId.toIntOrNull()?.let { gid ->
-        if (userGroupCache.isUserMemberOfGroup(userId, gid)) {
-          // Logged-in user is member of this group listed in executableByGroupIds
+    if (!obj.isDeleted) {
+      val userId = ThreadLocalUserContext.getUserId()!!
+      val userIdString = "$userId"
+      obj.executableByUserIds?.split(",")?.forEach { userId ->
+        if (userId.trim() == userIdString) {
+          // Logged-in user is listed in executableByUserIds
           return true
+        }
+      }
+      obj.executableByGroupIds?.split(",")?.forEach { groupId ->
+        groupId.toIntOrNull()?.let { gid ->
+          if (userGroupCache.isUserMemberOfGroup(userId, gid)) {
+            // Logged-in user is member of this group listed in executableByGroupIds
+            return true
+          }
         }
       }
     }
