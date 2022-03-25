@@ -40,6 +40,27 @@ class ScriptUser internal constructor() {
 
   val user = User()
 
+  /**
+   * Convenient field.
+   * @return [User.username]
+   */
+  val username
+    get() = user.username
+
+  /**
+   * Convenient field.
+   * @return [User.firstname]
+   */
+  val firstname
+    get() = user.firstname
+
+  /**
+   * Convenient field.
+   * @return [User.lastname]
+   */
+  val lastname
+    get() = user.lastname
+
   fun getProjects(): List<Project> {
     return ProjectUtils.getProjectsOfManager(loggedInUser).map {
       val project = Project()

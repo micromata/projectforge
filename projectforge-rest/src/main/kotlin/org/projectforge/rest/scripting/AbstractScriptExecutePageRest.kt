@@ -56,45 +56,13 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
   protected lateinit var scriptDao: AbstractScriptDao
 
   @Autowired
-  private lateinit var scriptExecution: ScriptExecution
+  protected lateinit var scriptExecution: ScriptExecution
 
   protected abstract val pagesRest: AbstractPagesRest<*, *, *>
 
   protected open val accessCheckOnExecute = true
 
-  @GetMapping("dynamic")
-  fun getForm(
-    request: HttpServletRequest,
-    @RequestParam("id") idString: String?,
-    @RequestParam("example") example: Int?
-  ): FormLayoutData {
-    var scriptDO: ScriptDO? = null
-    val script = Script()
-    var id: Int? = null
-    var exampleIdx: Int? = null // fix, because idString is like ?example=#
-    if (example != null) {
-      exampleIdx = example
-    } else if (idString?.startsWith("?example=") == true) {
-      exampleIdx = idString.removePrefix("?example=").toIntOrNull()
-    } else {
-      id = NumberHelper.parseInteger(idString)
-    }
-    if (id != null) {
-      scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
-      script.copyFrom(scriptDO)
-    } else {
-      script.availableVariables =
-        scriptExecution.getVariableNames(script, script.getParameters(), scriptDao, pagesRest).joinToString()
-      if (exampleIdx != null) {
-        script.script = ExampleScripts.loadScript(exampleIdx)
-      }
-    }
-    val variables = mutableMapOf<String, Any>()
-    val layout = getLayout(request, script, variables, scriptDO)
-    return FormLayoutData(script, layout, createServerData(request), variables)
-  }
-
-  private fun getLayout(
+  protected fun getLayout(
     request: HttpServletRequest,
     script: Script,
     variables: MutableMap<String, Any>,
