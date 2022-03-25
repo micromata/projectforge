@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.utils
 
+import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -32,118 +33,135 @@ import java.text.NumberFormat
 import java.util.*
 
 object NumberFormatter {
-    /**
-     * @param value Format this value.
-     * @param pattern The format string for [DecimalFormat].
-     * @param roundingMode [RoundingMode.HALF_UP] is default.
-     * @return The formatted number or empty string if value is null.
-     * @see ThreadLocalUserContext.getLocale
-     */
-    @JvmStatic
-    @JvmOverloads
-    fun format(value: Number?, pattern: String, roundingMode: RoundingMode = RoundingMode.HALF_UP): String {
-        value ?: return ""
-        return format(value, pattern, ThreadLocalUserContext.getLocale(), roundingMode)
-    }
+  /**
+   * @param value Format this value.
+   * @param pattern The format string for [DecimalFormat].
+   * @param roundingMode [RoundingMode.HALF_UP] is default.
+   * @return The formatted number or empty string if value is null.
+   * @see ThreadLocalUserContext.getLocale
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun format(value: Number?, pattern: String, roundingMode: RoundingMode = RoundingMode.HALF_UP): String {
+    value ?: return ""
+    return format(value, pattern, ThreadLocalUserContext.getLocale(), roundingMode)
+  }
 
-    /**
-     * @param value Format this value.
-     * @param pattern The format string for [DecimalFormat].
-     * @param locale The locale to use.
-     * @param roundingMode [RoundingMode.HALF_UP] is default.
-     * @return The formatted number or empty string if value is null.
-     */
-    @JvmStatic
-    @JvmOverloads
-    fun format(value: Number?, pattern: String, locale: Locale, roundingMode: RoundingMode = RoundingMode.HALF_UP): String {
-        value ?: return ""
-        val df = DecimalFormat.getInstance(locale) as DecimalFormat
-        df.applyPattern(pattern);
-        df.roundingMode = roundingMode
-        return df.format(value)
-    }
+  /**
+   * @param value Format this value.
+   * @param pattern The format string for [DecimalFormat].
+   * @param locale The locale to use.
+   * @param roundingMode [RoundingMode.HALF_UP] is default.
+   * @return The formatted number or empty string if value is null.
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun format(
+    value: Number?,
+    pattern: String,
+    locale: Locale,
+    roundingMode: RoundingMode = RoundingMode.HALF_UP
+  ): String {
+    value ?: return ""
+    val df = DecimalFormat.getInstance(locale) as DecimalFormat
+    df.applyPattern(pattern);
+    df.roundingMode = roundingMode
+    return df.format(value)
+  }
 
-    /**
-     * Returns the given integer value as String representation.
-     *
-     * @param value The integer value to convert.
-     * @param scale Scaling the output, null is default, meaning scale of object is used.
-     * @return The String representation or empty/null String, if value is null.
-     */
-    @JvmStatic
-    fun format(value: Number?, locale: Locale): String {
-        return internalFormat(value, locale = locale) ?: ""
-    }
+  /**
+   * Returns the given integer value as String representation.
+   *
+   * @param value The integer value to convert.
+   * @param scale Scaling the output, null is default, meaning scale of object is used.
+   * @return The String representation or empty/null String, if value is null.
+   */
+  @JvmStatic
+  fun format(value: Number?, locale: Locale): String {
+    return internalFormat(value, locale = locale) ?: ""
+  }
 
-    /**
-     * Returns the given integer value as String representation.
-     *
-     * @param value The integer value to convert.
-     * @param scale Scaling the output, null is default, meaning scale of object is used.
-     * @return The String representation or empty/null String, if value is null.
-     */
-    @JvmStatic
-    @JvmOverloads
-    fun format(value: Number?, scale: Int? = null): String {
-        return internalFormat(value, scale) ?: ""
-    }
+  /**
+   * Returns the given integer value as String representation.
+   *
+   * @param value The integer value to convert.
+   * @param scale Scaling the output, null is default, meaning scale of object is used.
+   * @return The String representation or empty/null String, if value is null.
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun format(value: Number?, scale: Int? = null): String {
+    return internalFormat(value, scale) ?: ""
+  }
 
-    /**
-     * Returns the given integer value as String representation (scale = 2).
-     *
-     * @param value The integer value to convert.
-     */
-    @JvmStatic
-    fun formatCurrency(value: Number?): String {
-        return internalFormat(value, 2) ?: ""
+  /**
+   * Returns the given integer value as String representation (scale = 2).
+   *
+   * @param value The integer value to convert.
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun formatCurrency(value: Number?, withCurrencySymbol: Boolean = false): String {
+    val amount = internalFormat(value, 2) ?: return ""
+    return if (!withCurrencySymbol || CURRENCY_SYMBOL.isNullOrBlank()) {
+      amount
+    } else {
+      "$amount $CURRENCY_SYMBOL"
     }
+  }
 
-    /**
-     * Returns the given integer value as String representation.
-     *
-     * @param value The integer value to convert.
-     * @param defaultValue For null values this value will be returned (default is "").
-     * @param scale Scaling the output, null is default, meaning scale of object is used.
-     * @return The String representation or empty/null String, if value is null.
-     */
-    @JvmStatic
-    @JvmOverloads
-    fun formatNull(value: Number?, scale: Int? = null): String? {
-        return internalFormat(value, scale)
-    }
+  /**
+   * Returns the given integer value as String representation.
+   *
+   * @param value The integer value to convert.
+   * @param defaultValue For null values this value will be returned (default is "").
+   * @param scale Scaling the output, null is default, meaning scale of object is used.
+   * @return The String representation or empty/null String, if value is null.
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun formatNull(value: Number?, scale: Int? = null): String? {
+    return internalFormat(value, scale)
+  }
 
-    private fun internalFormat(value: Number?, scale: Int? = null, locale: Locale = ThreadLocalUserContext.getLocale()): String? {
-        if (value == null)
-            return null
-        val format = NumberFormat.getNumberInstance(locale)
-        if (scale != null) {
-            format.maximumFractionDigits = scale
-            format.minimumFractionDigits = scale
-        }
-        return when (value) {
-            is BigDecimal -> format.format(value)
-            is BigInteger -> format.format(value)
-            is Double -> format.format(value)
-            is Float -> format.format(value)
-            is Int -> format.format(value)
-            is Long -> format.format(value)
-            else -> format.format(value.toDouble())
-        }
+  private fun internalFormat(
+    value: Number?,
+    scale: Int? = null,
+    locale: Locale = ThreadLocalUserContext.getLocale()
+  ): String? {
+    if (value == null)
+      return null
+    val format = NumberFormat.getNumberInstance(locale)
+    if (scale != null) {
+      format.maximumFractionDigits = scale
+      format.minimumFractionDigits = scale
     }
+    return when (value) {
+      is BigDecimal -> format.format(value)
+      is BigInteger -> format.format(value)
+      is Double -> format.format(value)
+      is Float -> format.format(value)
+      is Int -> format.format(value)
+      is Long -> format.format(value)
+      else -> format.format(value.toDouble())
+    }
+  }
 
-    /**
-     * Strips trailing zeros. Int values will not be multiplied with 100!
-     * @param value e. g. 0.19
-     * @return e. g. 19% or empty string if value is null.
-     * @see BigDecimal.stripTrailingZeros
-     */
-    @JvmStatic
-    fun formatPercent(value: Number?): String {
-        return if (value == null) {
-            ""
-        } else {
-            val bigDecimal = NumberHelper.toBigDecimal(value, true)!!
-            "${format(bigDecimal.multiply(NumberHelper.HUNDRED))}%"
-        }
+  /**
+   * Strips trailing zeros. Int values will not be multiplied with 100!
+   * @param value e. g. 0.19
+   * @return e. g. 19% or empty string if value is null.
+   * @see BigDecimal.stripTrailingZeros
+   */
+  @JvmStatic
+  fun formatPercent(value: Number?): String {
+    return if (value == null) {
+      ""
+    } else {
+      val bigDecimal = NumberHelper.toBigDecimal(value, true)!!
+      "${format(bigDecimal.multiply(NumberHelper.HUNDRED))}%"
     }
+  }
+
+  private val CURRENCY_SYMBOL = ConfigurationServiceAccessor.get().currencySymbol
 }

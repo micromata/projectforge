@@ -234,7 +234,6 @@ class UILayout
                 is UIRow -> getElementById(id, it.content)
                 is UICol -> getElementById(id, it.content)
                 is UITable -> getElementById(id, it.columns)
-                is UIAgGrid -> getElementById(id, it.columnDefs)
                 is UIList -> getElementById(id, it.content)
                 else -> null
             }

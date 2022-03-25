@@ -80,9 +80,9 @@ class Eingangsrechnung(var receiver: String? = null,
             list.add(pos)
         }
         positionen = list
-        formattedNetSum = NumberFormatter.formatCurrency(netSum)
-        formattedGrossSum = NumberFormatter.formatCurrency(grossSum)
-        formattedVatAmountSum = NumberFormatter.formatCurrency(vatAmountSum)
+        formattedNetSum = NumberFormatter.formatCurrency(netSum, true)
+        formattedGrossSum = NumberFormatter.formatCurrency(grossSum, true)
+        formattedVatAmountSum = NumberFormatter.formatCurrency(vatAmountSum, true)
     }
 
     override fun copyTo(dest: EingangsrechnungDO) {
