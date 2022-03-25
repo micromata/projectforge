@@ -300,8 +300,14 @@ object LayoutUtils {
           it.title = getLabelTransformation(it.title, it as UIElement)
         }
         is UITableColumn -> {
-          val translation = getLabelTransformation(it.title)
-          if (translation != null) it.title = translation
+          getLabelTransformation(it.title)?.let { translation ->
+            it.title = translation
+          }
+        }
+        is UIAgGridColumnDef -> {
+          getLabelTransformation(it.headerName)?.let { translation ->
+            it.headerName = translation
+          }
         }
         is UIAlert -> {
           val title = getLabelTransformation(it.title)
