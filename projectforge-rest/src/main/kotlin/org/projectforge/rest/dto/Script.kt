@@ -54,12 +54,18 @@ class Script(
   var scriptDownload: ScriptDownload? = null,
   var availableVariables: String? = "",
   var executableByGroups: List<Group>? = null,
+  var executableByGroupsAsString: String? = null,
   var executableByUsers: List<User>? = null,
+  var executableByUsersAsString: String? = null,
   var executeAsUser: User? = null,
   override var attachmentsCounter: Int? = null,
   override var attachmentsSize: Long? = null,
   override var attachments: List<Attachment>? = null,
 ) : BaseDTO<ScriptDO>(), AttachmentsSupport {
+  /**
+   * For displaying purposes. Will be automatically set after parameters set.
+   */
+  var parameterNames: String? = null
 
   class ScriptDownload(
     var filename: String? = null,
@@ -79,6 +85,7 @@ class Script(
     parameter6 = Param.from(list[5])
     executableByGroups = Group.toGroupList(src.executableByGroupIds)
     executableByUsers = User.toUserList(src.executableByUserIds)
+    parameterNames = parameters.filter { !it.parameterName.isNullOrBlank() }.joinToString { it.parameterName ?: "" }
   }
 
   fun copyParametersFrom(other: Script) {
@@ -88,6 +95,7 @@ class Script(
     this.parameter4 = other.parameter4
     this.parameter5 = other.parameter5
     this.parameter6 = other.parameter6
+    parameterNames = parameters.filter { !it.parameterName.isNullOrBlank() }.joinToString { it.parameterName ?: "" }
   }
 
   override fun copyTo(dest: ScriptDO) {
@@ -119,16 +127,17 @@ class Script(
     }
   }
 
-  fun getParameters(): List<ScriptParameter> {
-    val params = mutableListOf<ScriptParameter>()
-    parameter1?.let { params.add(it.asScriptParameter()) }
-    parameter2?.let { params.add(it.asScriptParameter()) }
-    parameter3?.let { params.add(it.asScriptParameter()) }
-    parameter4?.let { params.add(it.asScriptParameter()) }
-    parameter5?.let { params.add(it.asScriptParameter()) }
-    parameter6?.let { params.add(it.asScriptParameter()) }
-    return params
-  }
+  val parameters: List<ScriptParameter>
+    get() {
+      val params = mutableListOf<ScriptParameter>()
+      parameter1?.let { params.add(it.asScriptParameter()) }
+      parameter2?.let { params.add(it.asScriptParameter()) }
+      parameter3?.let { params.add(it.asScriptParameter()) }
+      parameter4?.let { params.add(it.asScriptParameter()) }
+      parameter5?.let { params.add(it.asScriptParameter()) }
+      parameter6?.let { params.add(it.asScriptParameter()) }
+      return params
+    }
 
   class Param(
     var name: String? = null,
