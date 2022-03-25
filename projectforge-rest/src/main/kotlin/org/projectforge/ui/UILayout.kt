@@ -27,7 +27,10 @@ import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
 
-class UILayout {
+class UILayout
+/**
+ * @param restBaseUrl is needed, if [UIAttachmentList] is used.
+ */(title: String, var restBaseUrl: String? = null) {
     class UserAccess(
             /**
              * The user has access to the object's history, if given.
@@ -56,17 +59,7 @@ class UILayout {
         }
     }
 
-    /**
-     * @param restBaseUrl is needed, if [UIAttachmentList] is used.
-     */
-    constructor(title: String, restBaseUrl: String? = null) {
-        this.title = LayoutUtils.getLabelTransformation(title)
-        this.restBaseUrl = restBaseUrl
-    }
-
     var title: String?
-
-    var restBaseUrl: String? = null
 
     /**
      * UserAccess only for displaying purposes. The real user access will be definitely checked before persisting any
@@ -191,7 +184,7 @@ class UILayout {
     }
 
     fun getElementById(id: String): UIElement? {
-        var element = getElementById(id, layout)
+        val element = getElementById(id, layout)
         if (element != null)
             return element
         return null
@@ -241,6 +234,7 @@ class UILayout {
                 is UIRow -> getElementById(id, it.content)
                 is UICol -> getElementById(id, it.content)
                 is UITable -> getElementById(id, it.columns)
+                is UIAgGrid -> getElementById(id, it.columnDefs)
                 is UIList -> getElementById(id, it.content)
                 else -> null
             }
@@ -270,7 +264,12 @@ class UILayout {
                     values.forEach { list.add(it) }
             }
             is UITable -> element.columns.forEach { list.add(it) }
+            is UIAgGrid -> element.columnDefs.forEach { list.add(it) }
             is UIList -> addAllElements(list, element.content)
         }
+    }
+
+    init {
+        this.title = LayoutUtils.getLabelTransformation(title)
     }
 }
