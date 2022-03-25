@@ -9,6 +9,8 @@
     "@fortawesome/react-fontawesome": "^0.1.14",
     "@use-hooks/interval": "^1.0.1",
     "ace-builds": "^1.4.14",
+    "ag-grid-community": "^27.1.0",
+    "ag-grid-react": "^27.1.0",
     "awesome-debounce-promise": "^2.1.0",
     "bootstrap": "^4.6.0",
     "classnames": "^2.3.1",
