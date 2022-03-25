@@ -71,8 +71,8 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
           .add(lc, "kreditor")
           .add(UIAgGridColumnDef("konto", headerName="fibu.konto", valueGetter = "data.konto.nummer + ' ' + data.konto.bezeichnung"))
           .add(lc, "referenz", "betreff", "datum", "faelligkeit", "bezahlDatum")
-          .add(UIAgGridColumnDef("formattedNetSum", headerName = "fibu.common.netto"))
-          .add(UIAgGridColumnDef("formattedGrossSum", headerName = "fibu.rechnung.bruttoBetrag"))
+          .add(UIAgGridColumnDef("formattedNetSum", headerName = "fibu.common.netto").withType(UIAgGridColumnDef.TYPE.NUMERIC_COLUMN))
+          .add(UIAgGridColumnDef("formattedGrossSum", headerName = "fibu.rechnung.bruttoBetrag").withType(UIAgGridColumnDef.TYPE.NUMERIC_COLUMN))
           .add(lc, "bemerkung")
       )
     //layout.getTableColumnById("konto").formatter = Formatter.KONTO

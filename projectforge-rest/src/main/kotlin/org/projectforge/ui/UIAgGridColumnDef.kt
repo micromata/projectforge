@@ -33,5 +33,13 @@ open class UIAgGridColumnDef(
   var sortable: Boolean = false,
   var filter: Boolean = false,
   var valueGetter: String? = null,
-): UIElement(UIElementType.AG_GRID_COLUMN_DEF) {
+  var valueFormatter: String? = null,
+  var type: String? = null,
+) {
+  enum class TYPE(val agType: String) { NUMERIC_COLUMN("numericColumn"), RIGHT_ALIGNED("rightAligned") }
+
+  fun withType(type: TYPE): UIAgGridColumnDef {
+    this.type = type.agType
+    return this
+  }
 }
