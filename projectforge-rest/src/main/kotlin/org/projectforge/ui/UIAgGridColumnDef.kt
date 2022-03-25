@@ -23,38 +23,13 @@
 
 package org.projectforge.ui
 
-enum class UIElementType {
-    ALERT,
-    /**
-     * Attachments including list view, downloading, uploading and deleting files.
-     */
-    ATTACHMENT_LIST,
-    AG_GRID,
-    AG_GRID_LIST_PAGE,
-    AG_GRID_COLUMN_DEF,
-    BADGE,
-    BADGE_LIST,
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CREATABLE_SELECT,
-    CUSTOMIZED,
-    DROP_AREA,
-    EDITOR,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    RADIOBUTTON,
-    READONLY_FIELD,
-    RATING,
-    ROW,
-    SELECT,
-    TABLE,
-    TABLE_LIST_PAGE,
-    TABLE_COLUMN,
-    TEXTAREA
+/**
+ * Column def AgGrid
+ */
+open class UIAgGridColumnDef(
+  val field: String,
+  var id: String? = null,
+  var title: String? = null,
+  var sortable: Boolean = false,
+): UIElement(UIElementType.AG_GRID_COLUMN_DEF) {
 }
