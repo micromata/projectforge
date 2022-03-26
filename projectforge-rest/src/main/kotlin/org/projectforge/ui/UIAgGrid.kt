@@ -30,13 +30,17 @@ open class UIAgGrid(
   val id: String,
   val columnDefs: MutableList<UIAgGridColumnDef> = mutableListOf(),
   val listPageTable: Boolean = false,
-) : UIElement(if (listPageTable) UIElementType.AG_GRID_LIST_PAGE else UIElementType.AG_GRID) {
+  var rowSelection: String? = null, // multiple
+  var rowMultiSelectWithClick: Boolean? = null,
+
+  ) : UIElement(if (listPageTable) UIElementType.AG_GRID_LIST_PAGE else UIElementType.AG_GRID) {
   companion object {
     @JvmStatic
     fun createUIResultSetTable(): UIAgGrid {
       return UIAgGrid("resultSet", listPageTable = true)
     }
   }
+
   init {
     if (!listPageTable) {
       throw IllegalArgumentException("UIAgGrid.listPageTable == false not yet supported by jsx.")
@@ -50,6 +54,7 @@ open class UIAgGrid(
 
   /**
    * For adding columns with the given ids
+   * @return this for chaining.
    */
   fun add(lc: LayoutContext, vararg columnIds: String, sortable: Boolean = true): UIAgGrid {
     columnIds.forEach {
@@ -57,15 +62,24 @@ open class UIAgGrid(
       val elementInfo = ElementsRegistry.getElementInfo(lc, it)
       if (elementInfo != null) {
         col.headerName = elementInfo.i18nKey
-       /* col.dataType = UIDataTypeUtils.ensureDataType(elementInfo)
-        if (col.dataType == UIDataType.BOOLEAN) {
-          col.setStandardBoolean()
-        }*/
+        /* col.dataType = UIDataTypeUtils.ensureDataType(elementInfo)
+         if (col.dataType == UIDataType.BOOLEAN) {
+           col.setStandardBoolean()
+         }*/
       }
       if (!lc.idPrefix.isNullOrBlank())
         col.id = "${lc.idPrefix}${col.id}"
       add(col)
     }
+    return this
+  }
+
+  /**
+   * @return this for chaining.
+   */
+  fun withMultiRowSelection(): UIAgGrid {
+    rowSelection = "multi"
+    rowMultiSelectWithClick = true
     return this
   }
 }

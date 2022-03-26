@@ -40,16 +40,20 @@ import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.common.StringHelper;
 import org.projectforge.common.anots.PropertyInfo;
-import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.common.i18n.UserException;
+import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.framework.utils.ReflectionHelper;
+import org.projectforge.rest.core.AbstractPagesRest;
+import org.projectforge.rest.core.MassUpdateSupport;
+import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
@@ -58,7 +62,7 @@ import java.io.Serializable;
 import java.util.*;
 
 public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D extends IDao<?>, O extends IdObject<?>>
-        extends AbstractSecuredPage implements ISelectCallerPage {
+    extends AbstractSecuredPage implements ISelectCallerPage {
   private static final long serialVersionUID = 622509418161777195L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractListPage.class);
@@ -83,9 +87,9 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   protected Set<Integer> selectedItems;
 
   protected static final String[] BOOKMARKABLE_INITIAL_PROPERTIES = new String[]{"f.searchString|s",
-          "f.useModificationFilter|mod",
-          "f.modifiedByUserId|mUser", "f.startTimeOfLastModification|mStart", "f.stopTimeOfLastModification|mStop",
-          "f.deleted|del", "pageSize"};
+      "f.useModificationFilter|mod",
+      "f.modifiedByUserId|mUser", "f.startTimeOfLastModification|mStart", "f.stopTimeOfLastModification|mStop",
+      "f.deleted|del", "pageSize"};
 
   protected static final String[] mergeStringArrays(final String[] a1, final String a2[]) {
     final String[] result = new String[a1.length + a2.length];
@@ -315,7 +319,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     body.add(form);
     form.init();
     if (isSelectMode() == false
-            && (accessChecker.isDemoUser() == true || getBaseDao().hasInsertAccess(getUser()) == true)) {
+        && (accessChecker.isDemoUser() == true || getBaseDao().hasInsertAccess(getUser()) == true)) {
       newItemMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), new Link<Object>("link") {
         @Override
         public void onClick() {
@@ -324,12 +328,12 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
       }, IconType.PLUS);
       newItemMenuEntry.setAccessKey(WebConstants.ACCESS_KEY_ADD).setTooltip(
-              getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP_TITLE),
-              getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP));
+          getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP_TITLE),
+          getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP));
       contentMenuBarPanel.addMenuEntry(newItemMenuEntry);
     }
     final Label hintQuickSelectLabel = new Label("hintQuickSelect",
-            new Model<String>(getString("hint.selectMode.quickselect"))) {
+        new Model<String>(getString("hint.selectMode.quickselect"))) {
       @Override
       public boolean isVisible() {
         return isSelectMode();
@@ -354,7 +358,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       link = new ExternalLink("link", "#");
       link.add(AttributeModifier.replace("onclick", "javascript:deselectAll();"));
       deselectAllMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), link,
-              getString("deselectAll"));
+          getString("deselectAll"));
       deselectAllMenuEntry.setVisible(false);
       contentMenuBarPanel.addMenuEntry(deselectAllMenuEntry);
     }
@@ -394,7 +398,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     }
     final Class<?> editPageClass = getClass().getAnnotation(ListPage.class).editPage();
     final AbstractEditPage<?, ?, ?> editPage = (AbstractEditPage<?, ?, ?>) ReflectionHelper.newInstance(editPageClass,
-            PageParameters.class, params);
+        PageParameters.class, params);
     editPage.setReturnToPage(AbstractListPage.this);
     setResponsePage(editPage);
     return editPage;
@@ -527,7 +531,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       }
       return this.resultList;
     } catch (
-            final Exception ex) {
+        final Exception ex) {
       if (ex instanceof UserException) {
         final UserException userException = (UserException) ex;
         error(getLocalizedMessage(userException.getI18nKey(), userException.getParams()));
@@ -572,7 +576,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   @SuppressWarnings("serial")
   protected void addTopRightMenu() {
     if (isSelectMode() == false
-            && ((getBaseDao() instanceof BaseDao<?>) || providesOwnRebuildDatabaseIndex() == true || true)) {
+        && ((getBaseDao() instanceof BaseDao<?>) || providesOwnRebuildDatabaseIndex() == true || true)) {
       new AbstractReindexTopRightMenu(this.contentMenuBarPanel, accessChecker.isLoggedInUserMemberOfAdminGroup()) {
         @Override
         protected void rebuildDatabaseIndex(final boolean onlyNewest) {
@@ -648,7 +652,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       pageSize = 50;
     }
     final SortParam<String> sortParam = sortProperty != null
-            ? new SortParam<String>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
+        ? new SortParam<String>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
     return new DefaultDataTable<O, String>("table", columns, createSortableDataProvider(sortParam), pageSize);
     // return new AjaxFallbackDefaultDataTable<O>("table", columns, createSortableDataProvider(sortProperty, ascending), pageSize);
   }
@@ -729,14 +733,41 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    */
   public void addExcelExport(final String filenameIdentifier, final String sheetTitle) {
     exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-            new Link<Object>("link") {
-              @Override
-              public void onClick() {
-                exportExcel(filenameIdentifier, sheetTitle);
-              }
+        new Link<Object>("link") {
+          @Override
+          public void onClick() {
+            exportExcel(filenameIdentifier, sheetTitle);
+          }
 
-            }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
+        }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
     addContentMenuEntry(exportExcelButton);
+  }
+
+  public void addNewMassSelect(final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz) {
+    addNewMassSelect("massUpdate", pagesRestClazz, null);
+  }
+
+  public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz) {
+    addNewMassSelect(buttonTitleKey, pagesRestClazz, null);
+  }
+
+  public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClass, final String toolTipKey) {
+    final ContentMenuEntryPanel button = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+        new Link<Object>("link") {
+          @Override
+          public void onClick() {
+            MassUpdateSupport.registerEntitiesForSelection(WicketUtils.getHttpServletRequest(getRequest()), pagesRestClass, getList());
+            Map<String, Object> params = new HashMap<>();
+            params.put("massSelect", true);
+            final String redirectUrl = PagesResolver.getListPageUrl(pagesRestClass, params, true);
+            throw new RedirectToUrlException(redirectUrl);
+          }
+
+        }, getString(buttonTitleKey));
+    if (toolTipKey != null) {
+      button.setTooltip(getString(toolTipKey));
+    }
+    addContentMenuEntry(button);
   }
 
   protected DOListExcelExporter createExcelExporter(final String filenameIdentifier) {
