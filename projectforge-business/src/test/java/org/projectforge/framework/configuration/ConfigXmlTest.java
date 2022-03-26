@@ -51,7 +51,7 @@ public class ConfigXmlTest {
           + "    <holiday label='Dritter Oktober' month='10' dayOfMonth='3' workingDay='false' />\n"
           + "    <holiday id='XMAS_EVE' workingDay='true' workFraction='0.5' />\n"
           + "    <holiday id='SHROVE_TUESDAY' ignore='true' />\n"
-          + "    <holiday id='SYLVESTER' workingDay='true' workFraction='0.5' />\n"
+          + "    <holiday id='NEW_YEARS_EVE' workingDay='true' workFraction='0.5' />\n"
           + "  </holidays>\n"
           + "</config>\n");
 
@@ -66,7 +66,7 @@ public class ConfigXmlTest {
           + "    <holiday label='Dritter Oktober' month='10' dayOfMonth='3'/>\n"
           + "    <holiday id='XMAS_EVE' workingDay='true' workFraction='0.5'/>\n"
           + "    <holiday id='SHROVE_TUESDAY' ignore='true'/>\n"
-          + "    <holiday id='SYLVESTER' workingDay='true' workFraction='0.5'/>\n"
+          + "    <holiday id='NEW_YEARS_EVE' workingDay='true' workFraction='0.5'/>\n"
           + "  </holidays>\n"
           + "  <databaseDirectory>database</databaseDirectory>\n"
           + "  <ehcacheDirectory>ehcache</ehcacheDirectory>\n"
