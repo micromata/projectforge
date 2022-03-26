@@ -301,10 +301,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     JiraSupport.createJiraElement(dto.description, descriptionArea)?.let { layout.add(UIRow().add(UICol().add(it))) }
     Favorites.addTranslations(layout.translations)
     layout.addAction(
-      UIButton(
-        "switch",
-        title = translate("plugins.teamcal.switchToTeamEventButton"),
-        color = UIColor.DARK,
+      UIButton.createSecondaryButton(
+        id = "switch",
+        title = "plugins.teamcal.switchToTeamEventButton",
         responseAction = ResponseAction(getRestRootPath("switch2CalendarEvent"), targetType = TargetType.POST)
       )
     )

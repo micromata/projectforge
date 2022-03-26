@@ -144,11 +144,10 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     if (dataTransfer.attachmentsSize ?: 0 in 1..NumberOfBytes.GIGA_BYTES) {
       // Download all not for attachments with size of more than 1 GB in total.
       fieldSet.add(
-        UIButton(
-          "downloadAll",
-          translate("plugins.datatransfer.button.downloadAll"),
-          UIColor.LINK,
-          tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
+        UIButton.createDownloadButton(
+          id = "downloadAll",
+          title = "plugins.datatransfer.button.downloadAll",
+          tooltip = "plugins.datatransfer.button.downloadAll.info",
           responseAction = ResponseAction(
             RestResolver.getPublicRestUrl(
               this.javaClass,
@@ -160,10 +159,9 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
       )
     }
     fieldSet.add(
-      UIButton(
+      UIButton.createDangerButton(
         "logout",
-        translate("menu.logout"),
-        UIColor.WARNING,
+        title = "menu.logout",
         responseAction = ResponseAction(
           RestResolver.getPublicRestUrl(
             this.javaClass,
@@ -171,7 +169,6 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
             params = mapOf("accessToken" to dataTransfer.externalAccessToken)
           ), targetType = TargetType.GET
         ),
-        default = true
       )
     )
     LayoutUtils.process(layout)
@@ -224,12 +221,9 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
         )
       )
       .add(
-        UIButton(
+        UIButton.createDefaultButton(
           "login",
-          translate("login"),
-          UIColor.SUCCESS,
           responseAction = responseAction,
-          default = true
         )
       )
 
