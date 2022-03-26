@@ -28,7 +28,6 @@ import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
@@ -110,24 +109,18 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
 
     if (id != -1) {
       layout.add(
-        UIButton(
-          "reset",
-          title = translate("reset"),
-          color = UIColor.DANGER,
-          default = true,
+        UIButton.createResetButton(
           responseAction = ResponseAction(
             RestResolver.getRestUrl(this::class.java, "reset"),
             targetType = TargetType.POST
-          )
+          ),
         )
       )
     }
     layout.add(
-      UIButton(
+      UIButton.createDefaultButton(
         "refresh",
-        title = translate("refresh"),
-        color = UIColor.SUCCESS,
-        default = true,
+        title = "refresh",
         responseAction = ResponseAction(
           RestResolver.getRestUrl(this::class.java, "search"),
           targetType = TargetType.POST

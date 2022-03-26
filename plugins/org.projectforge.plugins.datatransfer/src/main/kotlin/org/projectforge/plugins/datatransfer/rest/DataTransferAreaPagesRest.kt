@@ -129,17 +129,19 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(lc, "areaName", "description")
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP, sortable = false))
           .add(UITableColumn("maxUploadSizeFormatted", "plugins.datatransfer.maxUploadSize", sortable = false))
-          .add(UITableColumn(
+          .add(
+            UITableColumn(
               "externalDownloadEnabled",
               "plugins.datatransfer.external.download.enabled.title",
-            sortable = false,
+              sortable = false,
             ).setStandardBoolean()
           )
-          .add(UITableColumn(
-            "externalUploadEnabled",
-            "plugins.datatransfer.external.upload.enabled.title",
-            sortable = false,
-          ).setStandardBoolean()
+          .add(
+            UITableColumn(
+              "externalUploadEnabled",
+              "plugins.datatransfer.external.upload.enabled.title",
+              sortable = false,
+            ).setStandardBoolean()
           )
           .add(lc, "expiryDays")
           .add(UITableColumn("adminsAsString", "plugins.datatransfer.admins", sortable = false))
@@ -259,15 +261,14 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       "plugins.datatransfer.accessGroups",
       tooltip = "plugins.datatransfer.accessGroups.info"
     )
-    val resetExternalPassword = UIButton(
+    val resetExternalPassword = UIButton.createDangerButton(
       "accessPassword-renew",
-      title = translate("plugins.datatransfer.external.password.renew"),
-      tooltip = "plugins.datatransfer.external.password.renew.info",
-      color = UIColor.DANGER,
       responseAction = ResponseAction(
         RestResolver.getRestUrl(this::class.java, "renewPassword"),
         targetType = TargetType.POST
-      )
+      ),
+      title = "plugins.datatransfer.external.password.renew",
+      tooltip = "plugins.datatransfer.external.password.renew.info",
     )
     val externalLink = UIReadOnlyField(
       "externalLink",
@@ -275,11 +276,10 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       label = "plugins.datatransfer.external.link",
       canCopy = true
     )
-    val renewExternalLink = UIButton(
+    val renewExternalLink = UIButton.createDangerButton(
       "accessToken-renew",
-      title = translate("plugins.datatransfer.external.link.renew"),
+      title = "plugins.datatransfer.external.link.renew",
       tooltip = "plugins.datatransfer.external.link.renew.info",
-      color = UIColor.DANGER,
       responseAction = ResponseAction(
         RestResolver.getRestUrl(this::class.java, "renewAccessToken"),
         targetType = TargetType.POST
@@ -417,8 +417,10 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
       dto.layoutUid = it
     }
     DataTransferAreaDao.ensureSecureExternalAccess(dto)
-    return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("ui", layout)
-      .addVariable("data", dto))
+    return ResponseEntity.ok(
+      ResponseAction(targetType = TargetType.UPDATE)
+        .addVariable("ui", layout)
+        .addVariable("data", dto)
+    )
   }
 }

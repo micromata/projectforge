@@ -60,13 +60,17 @@ open class PasswordForgottenPageRest : AbstractDynamicPageRest() {
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
     if (LoginService.getUserContext(request) != null) {
-      return LayoutUtils.getMessageFormLayoutData(LAYOUT_TITLE, I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS, UIColor.WARNING)
+      return LayoutUtils.getMessageFormLayoutData(
+        LAYOUT_TITLE,
+        I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS,
+        UIColor.WARNING
+      )
     }
     return FormLayoutData(null, getLayout(), ServerData())
   }
 
   @PostMapping
-  fun post(request: HttpServletRequest, @RequestBody postData: PostData<PasswordForgottenData>)  : ResponseEntity<*> {
+  fun post(request: HttpServletRequest, @RequestBody postData: PostData<PasswordForgottenData>): ResponseEntity<*> {
     if (LoginService.getUserContext(request) != null) {
       return RestUtils.badRequest(translate(I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS))
     }
@@ -105,19 +109,13 @@ open class PasswordForgottenPageRest : AbstractDynamicPageRest() {
       )
     )
       .add(
-        UIButton(
-          "cancel",
-          translate("cancel"),
-          UIColor.DANGER,
-        ).redirectToDefaultPage()
+        UIButton.createCancelButton()
       )
       .add(
-        UIButton(
+        UIButton.createDefaultButton(
           "request",
-          translate("password.forgotten.request"),
-          UIColor.SUCCESS,
+          title = "password.forgotten.request",
           responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
-          default = true
         )
       )
     LayoutUtils.process(layout)

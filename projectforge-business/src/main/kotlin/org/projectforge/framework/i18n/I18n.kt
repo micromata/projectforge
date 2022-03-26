@@ -38,6 +38,17 @@ fun translate(i18nKey: String?): String {
   return translate(null, i18nKey)
 }
 
+/**
+ * @return The translated key if given and doesn't start with "'", otherwise the i18nKey itself is returned.
+ */
+fun translateIfKey(i18nKey: String?): String? {
+  i18nKey ?: return null
+  if (i18nKey.startsWith("'")) {
+    return i18nKey.substring(1)
+  }
+  return translate(null, i18nKey)
+}
+
 fun translateMsg(ex: UserException): String {
   ex.msgParams?.let {
     if (!it.isNullOrEmpty()) {

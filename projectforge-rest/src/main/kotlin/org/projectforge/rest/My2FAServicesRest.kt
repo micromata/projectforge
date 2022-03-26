@@ -273,10 +273,7 @@ class My2FAServicesRest {
       )
     if (showCancelButton) {
       codeCol.add(
-        UIButton(
-          "cancel",
-          title = translate("cancel"),
-          color = UIColor.DANGER,
+        UIButton.createCancelButton(
           responseAction = ResponseAction(
             RestResolver.getRestUrl(restServiceClass, "cancel"),
             targetType = TargetType.GET
@@ -285,15 +282,13 @@ class My2FAServicesRest {
       )
     }
     codeCol.add(
-      UIButton(
+      UIButton.createDefaultButton(
         "validate",
-        title = translate("user.My2FACode.code.validate"),
-        color = UIColor.PRIMARY,
+        title = "user.My2FACode.code.validate",
         responseAction = ResponseAction(
           RestResolver.getRestUrl(restServiceClass, "checkOTP", params = mapOf("redirect" to redirectUrl)),
           targetType = TargetType.POST
         ),
-        default = true,
       )
     )
     if (smsAvailable) {
@@ -311,11 +306,10 @@ class My2FAServicesRest {
   private fun createSendButton(type: My2FAType, restServiceClass: Class<*> = this::class.java): UIButton {
     val lowerType = type.name.lowercase()
     val type = lowerType.replaceFirstChar { it.uppercase() }
-    return UIButton(
+    return UIButton.createLinkButton(
       "send${type}Code",
-      title = translate("user.My2FACode.sendCode.$lowerType"), // user.My2FACode.sendCode.mail
+      title = "user.My2FACode.sendCode.$lowerType", // user.My2FACode.sendCode.mail
       tooltip = "user.My2FACode.sendCode.$lowerType.info",
-      color = UIColor.LINK,
       responseAction = ResponseAction(
         RestResolver.getRestUrl(restServiceClass, "send${type}Code"),
         targetType = TargetType.GET

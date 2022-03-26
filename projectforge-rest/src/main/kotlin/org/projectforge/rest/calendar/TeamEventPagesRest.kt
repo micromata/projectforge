@@ -280,9 +280,8 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
                                 .add(lc, "note"))))
                 .add(UICustomized("calendar.reminder"))
                 .add(UIRow().add(UICol(12).add(UICustomized("calendar.recurrency"))))
-        layout.addAction(UIButton("switch",
-                title = translate("plugins.teamcal.switchToTimesheetButton"),
-                color = UIColor.DARK,
+        layout.addAction(UIButton.createSecondaryButton(id ="switch",
+                title = "plugins.teamcal.switchToTimesheetButton",
                 responseAction = ResponseAction(getRestRootPath("switch2Timesheet"), targetType = TargetType.POST)))
         layout.addTranslations("plugins.teamcal.event.recurrence",
                 "plugins.teamcal.event.recurrence.customized",

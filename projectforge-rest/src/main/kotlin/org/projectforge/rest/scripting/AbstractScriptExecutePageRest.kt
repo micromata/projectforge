@@ -31,12 +31,10 @@ import org.projectforge.business.scripting.ScriptParameterType
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.PagesResolver
-import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Script
 import org.projectforge.rest.task.TaskServicesRest
@@ -46,7 +44,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -98,11 +95,8 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
     }
 
     layout.add(
-      UIButton(
-        "back",
-        translate("back"),
-        UIColor.SUCCESS,
-        responseAction = ResponseAction(
+      UIButton.createBackButton(
+        ResponseAction(
           PagesResolver.getListPageUrl(pagesRest::class.java, absolute = true),
           targetType = TargetType.REDIRECT
         ),
@@ -110,15 +104,13 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
     )
 
     layout.add(
-      UIButton(
+      UIButton.createDefaultButton(
         "execute",
-        translate("execute"),
-        UIColor.DANGER,
+        title = "execute",
         responseAction = ResponseAction(
           url = "${getRestPath()}/execute",
           targetType = TargetType.POST
-        ),
-        default = true
+        )
       )
     )
 
@@ -139,9 +131,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
             )
           )
             .add(
-              UIButton(
-                id = "download", translate("download"),
-                UIColor.SECONDARY,
+              UIButton.createDownloadButton(
                 responseAction = ResponseAction(
                   url = "${getRestPath()}/download",
                   targetType = TargetType.DOWNLOAD

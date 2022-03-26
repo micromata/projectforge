@@ -189,11 +189,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
     val layout =
       LayoutUtils.getMessageLayout(LAYOUT_TITLE, "user.changePassword.msg.passwordSuccessfullyChanged", UIColor.SUCCESS)
     layout.add(
-      UIButton(
-        "back",
-        translate("back"),
-        UIColor.DANGER,
-      ).redirectToDefaultPage()
+      UIButton.createBackButton()
     )
     return ResponseEntity.ok(
       ResponseAction(
@@ -252,10 +248,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
 
     }
     layout.add(
-      UIButton(
-        "cancel",
-        translate("cancel"),
-        UIColor.DANGER,
+      UIButton.createCancelButton(
         responseAction = ResponseAction(
           RestResolver.getRestUrl(this::class.java, "cancel"),
           targetType = TargetType.GET
@@ -264,12 +257,8 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
     )
     if (user != null) {
       layout.add(
-        UIButton(
-          "update",
-          translate("update"),
-          UIColor.SUCCESS,
+        UIButton.createUpdateButton(
           responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
-          default = true
         )
       )
     }

@@ -126,21 +126,10 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
     layout.add(oldPassword)
       .add(newPassword)
       .add(passwordRepeat)
+      .addAction(UIButton.createCancelButton())
       .addAction(
-        UIButton(
-          "cancel",
-          translate("cancel"),
-          UIColor.DANGER,
-          responseAction = ResponseAction(PagesResolver.getDefaultUrl(), targetType = TargetType.REDIRECT)
-        )
-      )
-      .addAction(
-        UIButton(
-          "update",
-          translate("update"),
-          UIColor.SUCCESS,
+        UIButton.createUpdateButton(
           responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
-          default = true
         )
       )
 
