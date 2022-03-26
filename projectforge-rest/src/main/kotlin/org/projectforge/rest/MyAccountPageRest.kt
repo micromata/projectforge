@@ -200,14 +200,15 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     val leftTokenCol = UICol(lg = 6)
     val rightTokenCol = UICol(lg = 6)
     addAuthenticationToken(
+      layout,
       leftTokenCol,
       authenticationsLC, "stayLoggedInKey",
       UserTokenType.STAY_LOGGED_IN_KEY,
       "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"
     )
-    addAuthenticationToken(leftTokenCol, authenticationsLC, "calendarExportToken", UserTokenType.CALENDAR_REST)
-    addAuthenticationToken(rightTokenCol, authenticationsLC, "davToken", UserTokenType.DAV_TOKEN)
-    addAuthenticationToken(rightTokenCol, authenticationsLC, "restClientToken", UserTokenType.REST_CLIENT)
+    addAuthenticationToken(layout, leftTokenCol, authenticationsLC, "calendarExportToken", UserTokenType.CALENDAR_REST)
+    addAuthenticationToken(layout, rightTokenCol, authenticationsLC, "davToken", UserTokenType.DAV_TOKEN)
+    addAuthenticationToken(layout, rightTokenCol, authenticationsLC, "restClientToken", UserTokenType.REST_CLIENT)
     layout.add(
       UIFieldset(12)
         .add(
@@ -235,12 +236,8 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
           .add(UITextArea("sshPublicKey", userLC))
       )
       .addAction(
-        UIButton(
-          "update",
-          translate("update"),
-          UIColor.SUCCESS,
+        UIButton.createUpdateButton(
           responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
-          default = true
         )
       )
 
@@ -271,6 +268,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
   }
 
   private fun addAuthenticationToken(
+    layout: UILayout,
     col: UICol,
     lc: LayoutContext,
     id: String,
@@ -293,21 +291,20 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
         .add(
           UICol(3)
             .add(
-              UIButton(
-                "${id}-renew",
-                title = translate("user.authenticationToken.renew"),
+              UIButton.createDangerButton(
+                layout,
+                id = "${id}-renew",
+                title = "user.authenticationToken.renew",
                 tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
-                confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
-                color = UIColor.DANGER,
+                confirmMessage = "user.authenticationToken.renew.securityQuestion",
                 responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.POST)
               )
             )
             .add(
-              UIButton(
-                "${id}-access",
-                title = translate("user.authenticationToken.button.showUsage"),
+              UIButton.createLinkButton(
+                id ="${id}-access",
+                title = "user.authenticationToken.button.showUsage",
                 tooltip = "user.authenticationToken.button.showUsage.tooltip",
-                color = UIColor.LINK,
                 responseAction = ResponseAction(
                   PagesResolver.getDynamicPageUrl(
                     TokenInfoPageRest::class.java,

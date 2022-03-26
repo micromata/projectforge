@@ -48,7 +48,7 @@ object ExpiringSessionAttributes {
   }
 
   fun setAttribute(session: HttpSession, name: String, value: Any, ttlMinutes: Int) {
-    val attribute = ExpiringAttribute(System.currentTimeMillis(), value, ttlMinutes)
+    val attribute = ExpiringAttribute(value, ttlMinutes)
     session.setAttribute(name, attribute)
     synchronized(attributesMap) {
       attributesMap[getMapKey(session, name)] = attribute
@@ -68,12 +68,18 @@ object ExpiringSessionAttributes {
     return getAttribute(request.getSession(false), name)
   }
 
+  /**
+   * If an ExpringAttribute is found, then it will be renewed (the timestamp will be updated).
+   */
   fun getAttribute(session: HttpSession, name: String): Any? {
     checkSession(session)
     val value = session.getAttribute(name) ?: return null
-    return if (value is ExpiringAttribute)
+    return if (value is ExpiringAttribute) {
+      value.timestamp = System.currentTimeMillis()
       value.value
-    else value
+    }  else {
+      value
+    }
   }
 
   fun removeAttribute(request: HttpServletRequest, name: String) {
@@ -132,7 +138,8 @@ object ExpiringSessionAttributes {
     return "${session.id}.$name"
   }
 
-  private class ExpiringAttribute(val timestamp: Long, var value: Any?, ttlMinutes: Int) {
+  private class ExpiringAttribute(var value: Any?, ttlMinutes: Int) {
+    var timestamp: Long = System.currentTimeMillis()
     val ttlMillis = ttlMinutes * 60000
   }
 }

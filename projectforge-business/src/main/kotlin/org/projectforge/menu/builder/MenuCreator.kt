@@ -217,8 +217,9 @@ open class MenuCreator {
       if (it.isNotEmpty())
         commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
     }
-    if (smsSenderConfig.isSmsConfigured())
+    if (smsSenderConfig.isSmsConfigured()) {
       commonMenu.add(MenuItemDef(MenuItemDefId.SEND_SMS))
+    }
     commonMenu.add(MenuItemDef(MenuItemDefId.SEARCH))
 
     //////////////////////////////////////

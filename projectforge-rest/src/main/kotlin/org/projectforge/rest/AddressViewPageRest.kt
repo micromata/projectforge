@@ -200,10 +200,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     )
 
     layout.add(
-      UIButton(
-        "back",
-        translate("back"),
-        UIColor.SUCCESS,
+      UIButton.createBackButton(
         responseAction = ResponseAction(
           PagesResolver.getListPageUrl(AddressPagesRest::class.java, absolute = true),
           targetType = TargetType.REDIRECT

@@ -159,19 +159,12 @@ open class LoginPageRest {
         )
       )
       .add(
-        UIButton(
-          "login",
-          translate("login"),
-          UIColor.SUCCESS,
-          responseAction = responseAction,
-          default = true
-        )
+        UIButton.createDefaultButton("login", responseAction = responseAction)
       )
       .add(
-        UIButton(
-          "passwordForgotten",
-          translate("password.forgotten.link"),
-          UIColor.LINK,
+        UIButton.createLinkButton(
+          id ="passwordForgotten",
+          title ="password.forgotten.link",
           responseAction = ResponseAction(
             PagesResolver.getDynamicPageUrl(
               PasswordForgottenPageRest::
