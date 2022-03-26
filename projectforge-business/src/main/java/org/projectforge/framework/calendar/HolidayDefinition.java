@@ -48,9 +48,9 @@ public enum HolidayDefinition
   SECOND_XMAS_DAY("calendar.holiday.secondXmasDay", Month.DECEMBER.getValue(), 26, false),
 
   /**
-   * Sylvester: 12/31.
+   * New year's eve: 12/31.
    */
-  SYLVESTER("calendar.holiday.sylvester", Month.DECEMBER.getValue(), 31, true),
+  NEW_YEARS_EVE("calendar.holiday.newYearsEve", Month.DECEMBER.getValue(), 31, true),
 
   /**
    * Shrove Monday, 48 days before Easter (Rosenmontag)
