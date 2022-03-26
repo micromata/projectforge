@@ -23,17 +23,14 @@
 
 package org.projectforge.rest.core
 
-import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.ui.UIAgGrid
 import org.projectforge.ui.UILayout
 import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
 
-private val log = KotlinLogging.logger {}
-
 /**
- * Supports mass selection and updates of list pages.
+ * Supports multi selection and updates of list pages.
  */
 object MultiSelectionSupport {
   @JvmStatic
@@ -52,11 +49,25 @@ object MultiSelectionSupport {
     entityCollection: Collection<IdObject<*>>
   ) {
     val idList = entityCollection.map { it.id }
-    ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_ENTITIES, idList, TTL_MINUTES)
+    ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier", idList, TTL_MINUTES)
   }
 
   @JvmStatic
-  fun getMassSelectionParamMap(): MutableMap<String, Any> {
+  fun registerEntityIdsForSelection(request: HttpServletRequest, identifier: String, idList: Collection<*>) {
+    ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier", idList, TTL_MINUTES)
+  }
+
+  fun getRegisteredEntityIds(request: HttpServletRequest, clazz: Class<out Any>): Collection<Serializable>? {
+    return getRegisteredEntityIds(request, clazz.name)
+  }
+
+  @Suppress("UNCHECKED_CAST")
+  fun getRegisteredEntityIds(request: HttpServletRequest, identifier: String): Collection<Serializable>? {
+    return ExpiringSessionAttributes.getAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier") as? Collection<Serializable>
+  }
+
+  @JvmStatic
+  fun getMultiSelectionParamMap(): MutableMap<String, Any> {
     return mutableMapOf(REQUEST_PARAM_MULTI_SELECTION to true)
   }
 
@@ -75,19 +86,6 @@ object MultiSelectionSupport {
     }
     layout.add(table)
     return table
-  }
-
-  @JvmStatic
-  fun registerEntityIdsForSelection(request: HttpServletRequest, identifier: String, idList: Collection<*>) {
-    ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_ENTITIES, idList, TTL_MINUTES)
-  }
-
-  fun getRegisteredEntityIds(request: HttpServletRequest, clazz: Class<out Any>): Collection<Serializable>? {
-    return getRegisteredEntityIds(request, clazz.name)
-  }
-
-  fun getRegisteredEntityIds(request: HttpServletRequest, identifier: String): Collection<Serializable>? {
-    return ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_ENTITIES) as? Collection<Serializable>
   }
 
   private const val TTL_MINUTES = 60
