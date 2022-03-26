@@ -264,24 +264,24 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         )
       )
       fieldset.add(
-        UIButton(
+        UIButton.createDangerButton(
+          layout,
           "enableAuthenticatorApp",
-          title = translate("user.My2FA.setup.enableAuthenticatorApp"),
+          title = "user.My2FA.setup.enableAuthenticatorApp",
           tooltip = "user.My2FA.setup.enableAuthenticatorApp.info",
-          color = UIColor.DANGER,
           responseAction = ResponseAction("/rs/2FASetup/enableAuthenticatorApp", targetType = TargetType.POST),
-          confirmMessage = translate("user.My2FA.setup.enableAuthenticatorApp.confirmMessage")
+          confirmMessage = "user.My2FA.setup.enableAuthenticatorApp.confirmMessage"
         )
       )
     } else {
       fieldset.add(
-        UIButton(
+        UIButton.createDangerButton(
+          layout,
           "disableAuthenticatorApp",
-          title = translate("user.My2FA.setup.disableAuthenticatorApp"),
+          title = "user.My2FA.setup.disableAuthenticatorApp",
           tooltip = "user.My2FA.setup.disableAuthenticatorApp.info",
-          color = UIColor.DANGER,
           responseAction = ResponseAction("/rs/2FASetup/disableAuthenticatorApp", targetType = TargetType.POST),
-          confirmMessage = translate("user.My2FA.setup.disableAuthenticatorApp.confirmMessage")
+          confirmMessage = "user.My2FA.setup.disableAuthenticatorApp.confirmMessage"
         )
       )
       fieldset.add(
@@ -348,11 +348,9 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         mobileCol
           .add(UIInput("mobilePhone", userLC))
           .add(
-            UIButton(
-              "save",
-              title = translate("save"),
-              color = UIColor.LIGHT,
+            UIButton.createSaveButton(
               responseAction = ResponseAction("/rs/2FASetup/saveMobilePhone", targetType = TargetType.POST),
+              default = false,
             )
           )
       )

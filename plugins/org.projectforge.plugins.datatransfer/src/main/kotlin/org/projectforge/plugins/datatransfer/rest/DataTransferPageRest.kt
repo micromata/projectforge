@@ -110,11 +110,10 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     if (dto.attachmentsSize ?: 0 in 1..NumberOfBytes.GIGA_BYTES) {
       // Download all not for attachments with size of more than 1 GB in total.
       attachmentsFieldset.add(
-        UIButton(
-          "downloadAll",
-          translate("plugins.datatransfer.button.downloadAll"),
-          UIColor.LINK,
-          tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
+        UIButton.createDownloadButton(
+          id ="downloadAll",
+          title = "plugins.datatransfer.button.downloadAll",
+          tooltip = "plugins.datatransfer.button.downloadAll.info",
           responseAction = ResponseAction(
             RestResolver.getRestUrl(
               this.javaClass,
@@ -127,10 +126,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     }
     layout.add(attachmentsFieldset)
     layout.add(
-      UIButton(
-        "back",
-        translate("back"),
-        UIColor.SUCCESS,
+      UIButton.createBackButton(
         responseAction = ResponseAction(
           PagesResolver.getListPageUrl(
             DataTransferAreaPagesRest::class.java,

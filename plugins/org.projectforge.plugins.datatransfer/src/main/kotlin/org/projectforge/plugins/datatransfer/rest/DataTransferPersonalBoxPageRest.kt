@@ -87,10 +87,7 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
         .add(UIInput("user", label = "user", dataType = UIDataType.USER))
     )
     layout.add(
-      UIButton(
-        "back",
-        translate("back"),
-        UIColor.WARNING,
+      UIButton.createBackButton(
         responseAction = ResponseAction(
           PagesResolver.getListPageUrl(
             DataTransferAreaPagesRest::class.java,
@@ -101,10 +98,8 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
     )
     if (userId != null && userGroupCache.getUser(userId) != null) {
       layout.add(
-        UIButton(
+        UIButton.createDefaultButton(
           "next",
-          translate("next"),
-          UIColor.SUCCESS,
           responseAction = ResponseAction(
             PagesResolver.getDynamicPageUrl(
               DataTransferPageRest::class.java,

@@ -75,19 +75,16 @@ object LayoutUtils {
   ): UILayout {
     layout
       .addAction(
-        UIButton(
-          "reset",
-          color = UIColor.SECONDARY,
-          outline = true,
-          responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.FILTER_RESET), targetType = TargetType.GET)
+        UIButton.createResetButton(
+          ResponseAction(
+            pagesRest.getRestPath(RestPaths.FILTER_RESET),
+            targetType = TargetType.GET
+          )
         )
       )
       .addAction(
-        UIButton(
-          "search",
-          color = UIColor.PRIMARY,
-          default = true,
-          responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.LIST), targetType = TargetType.POST)
+        UIButton.createSearchButton(
+          ResponseAction(pagesRest.getRestPath(RestPaths.LIST), targetType = TargetType.POST, true)
         )
       )
     process(layout)
@@ -114,11 +111,11 @@ object LayoutUtils {
     val userAccess = layout.userAccess
     if (userAccess.cancel != false) {
       layout.addAction(
-        UIButton(
-          "cancel",
-          color = UIColor.SECONDARY,
-          outline = true,
-          responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.CANCEL), targetType = TargetType.POST)
+        UIButton.createCancelButton(
+          ResponseAction(
+            pagesRest.getRestPath(RestPaths.CANCEL),
+            targetType = TargetType.POST
+          )
         )
       )
     }
@@ -131,10 +128,8 @@ object LayoutUtils {
         if (pagesRest.isDeleted(dto)) {
           if (userAccess.insert == true) {
             layout.addAction(
-              UIButton(
-                "undelete",
-                color = UIColor.PRIMARY,
-                responseAction = ResponseAction(
+              UIButton.createUndeleteButton(
+                ResponseAction(
                   pagesRest.getRestPath(RestPaths.UNDELETE),
                   targetType = TargetType.PUT
                 )
@@ -145,29 +140,22 @@ object LayoutUtils {
         } else if (userAccess.delete == true) {
           addForceDeleteButton(pagesRest, layout, userAccess)
           layout.addAction(
-            UIButton(
-              "markAsDeleted",
-              color = UIColor.WARNING,
-              outline = true,
-              responseAction = ResponseAction(
+            UIButton.createMarkAsDeletedButton(
+              layout,
+              ResponseAction(
                 pagesRest.getRestPath(RestPaths.MARK_AS_DELETED),
                 targetType = TargetType.DELETE
               ),
-              confirmMessage = translate("question.markAsDeletedQuestion")
             )
           )
-          layout.addTranslations("yes", "cancel")
         }
       }
     } else if (userAccess.delete == true) {
       // MemoDO for example isn't historizable:
       layout.addAction(
-        UIButton(
-          "deleteIt",
-          color = UIColor.DANGER,
-          outline = true,
-          responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE),
-          confirmMessage = translate("question.deleteQuestion")
+        UIButton.createDeleteButton(
+          layout,
+          ResponseAction(pagesRest.getRestPath(RestPaths.DELETE), targetType = TargetType.DELETE),
         )
       )
 
@@ -176,21 +164,15 @@ object LayoutUtils {
     if (pagesRest.getId(dto) != null) {
       if (pagesRest.cloneSupport != AbstractPagesRest.CloneSupport.NONE) {
         layout.addAction(
-          UIButton(
-            "clone",
-            color = UIColor.SECONDARY,
-            outline = true,
-            responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.CLONE), targetType = TargetType.POST)
+          UIButton.createCloneButton(
+            ResponseAction(pagesRest.getRestPath(RestPaths.CLONE), targetType = TargetType.POST)
           )
         )
       }
       if (!pagesRest.isDeleted(dto)) {
         if (userAccess.update == true) {
           layout.addAction(
-            UIButton(
-              "update",
-              color = UIColor.PRIMARY,
-              default = true,
+            UIButton.createUpdateButton(
               responseAction = ResponseAction(
                 pagesRest.getRestPath(RestPaths.SAVE_OR_UDATE),
                 targetType = TargetType.PUT
@@ -201,11 +183,8 @@ object LayoutUtils {
       }
     } else if (userAccess.insert == true) {
       layout.addAction(
-        UIButton(
-          "create",
-          color = UIColor.SUCCESS,
-          default = true,
-          responseAction = ResponseAction(pagesRest.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)
+        UIButton.createCreateButton(
+          ResponseAction(pagesRest.getRestPath(RestPaths.SAVE_OR_UDATE), targetType = TargetType.PUT)
         )
       )
     }
@@ -225,15 +204,12 @@ object LayoutUtils {
   ) {
     if (pagesRest.baseDao.isForceDeletionSupport && userAccess.delete == true) {
       layout.addAction(
-        UIButton(
-          "forceDelete",
-          color = UIColor.DANGER,
-          outline = true,
+        UIButton.createForceDeleteButton(
+          layout,
           responseAction = ResponseAction(
             pagesRest.getRestPath(RestPaths.FORCE_DELETE),
             targetType = TargetType.DELETE
           ),
-          confirmMessage = translate("question.forceDeleteQuestion")
         )
       )
     }

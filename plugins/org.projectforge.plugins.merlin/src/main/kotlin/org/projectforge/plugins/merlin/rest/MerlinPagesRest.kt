@@ -339,10 +339,9 @@ class MerlinPagesRest :
             .add(
               UICol()
                 .add(
-                  UIButton(
+                  UIButton.createDefaultButton(
                     "add",
-                    title = translate("plugins.merlin.variable.add"),
-                    color = UIColor.SECONDARY,
+                    title = "plugins.merlin.variable.add",
                     responseAction = ResponseAction(
                       RestResolver.getRestUrl(
                         MerlinVariablePageRest::class.java,
@@ -418,11 +417,10 @@ class MerlinPagesRest :
             .add(UIAttachmentList(instance.category, dto.id))
         )
       layout.add(
-        UIButton(
+        UIButton.createExportButton(
           "exportExcelTemplate",
-          title = translate("plugins.merlin.exportExcelTemplate"),
+          title = "plugins.merlin.exportExcelTemplate",
           tooltip = "plugins.merlin.exportExcelTemplate.info",
-          color = UIColor.LINK,
           responseAction = ResponseAction(
             RestResolver.getRestUrl(
               instance.javaClass,
