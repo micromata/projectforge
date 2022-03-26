@@ -206,6 +206,8 @@ public class ConfigXml {
       }
       if (xml != null) {
         try {
+          // Fix mis-spelled new year's eve (it's not Mr. Stallone's day ;-)
+          xml = xml.replace("SYLVESTER","NEW_YEARS_EVE"); // Used before 2022/03/26
           final ConfigXml cfg = (ConfigXml) reader.read(xml);
           final String warnings = reader.getWarnings();
           copyDeclaredFields(null, this.getClass(), cfg, this);

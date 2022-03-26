@@ -23,19 +23,20 @@
 
 package org.projectforge.rest.core
 
+import mu.KotlinLogging
 import org.projectforge.Const
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.config.Rest
 import org.springframework.web.bind.annotation.RequestMapping
 
+private val log = KotlinLogging.logger {}
+
 /**
  * Helper for getting url of list and edit pages.
  */
 object PagesResolver {
   const val REACT_PATH = "react"
-
-  private val log = org.slf4j.LoggerFactory.getLogger(PagesResolver::class.java)
 
   private val pagesRegistry = mutableMapOf<String, AbstractPagesRest<*, *, *>>()
 
@@ -77,6 +78,8 @@ object PagesResolver {
   /**
    * @return Path of react page.
    */
+  @JvmStatic
+  @JvmOverloads
   fun getListPageUrl(
     pagesRestClass: Class<out AbstractPagesRest<*, *, *>>,
     params: Map<String, Any?>? = null,

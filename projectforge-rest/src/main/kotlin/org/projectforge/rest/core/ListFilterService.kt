@@ -23,18 +23,19 @@
 
 package org.projectforge.rest.core
 
+import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import javax.servlet.http.HttpSession
+
+private val log = KotlinLogging.logger {}
 
 /**
  * For persisting list filters.
  */
 @Component
 class ListFilterService {
-    private val log = org.slf4j.LoggerFactory.getLogger(ListFilterService::class.java)
-
     @Autowired
     private lateinit var userPrefRestService: UserPrefRestService
 
