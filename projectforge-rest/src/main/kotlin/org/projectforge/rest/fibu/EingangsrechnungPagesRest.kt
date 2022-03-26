@@ -66,18 +66,32 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
    * LAYOUT List page
    */
   override fun createListLayout(request: HttpServletRequest): UILayout {
-    val multiSelectionMode = MultiSelectionSupport.isMassSelection(request)
+    val multiSelectionMode = MultiSelectionSupport.isMultiSelection(request)
     val layout = super.createListLayout(request)
+    MultiSelectionSupport.prepareUIGrid4ListPage(request, layout)
+      .add(lc, "kreditor")
       .add(
-        UIAgGrid.createUIResultSetTable()
-          .add(lc, "kreditor")
-          .add(UIAgGridColumnDef("konto", headerName="fibu.konto", valueGetter = "data.konto.nummer + ' ' + data.konto.bezeichnung"))
-          .add(lc, "referenz", "betreff", "datum", "faelligkeit", "bezahlDatum")
-          .add(UIAgGridColumnDef("formattedNetSum", headerName = "fibu.common.netto").withType(UIAgGridColumnDef.TYPE.NUMERIC_COLUMN))
-          .add(UIAgGridColumnDef("formattedGrossSum", headerName = "fibu.rechnung.bruttoBetrag").withType(UIAgGridColumnDef.TYPE.NUMERIC_COLUMN))
-          .add(lc, "bemerkung")
-          .withMultiRowSelection(multiSelectionMode)
+        UIAgGridColumnDef(
+          "konto",
+          headerName = "fibu.konto",
+          valueGetter = "data.konto.nummer + ' ' + data.konto.bezeichnung"
+        )
       )
+      .add(lc, "referenz", "betreff", "datum", "faelligkeit", "bezahlDatum")
+      .add(
+        UIAgGridColumnDef(
+          "formattedNetSum",
+          headerName = "fibu.common.netto"
+        ).withType(UIAgGridColumnDef.TYPE.NUMERIC_COLUMN)
+      )
+      .add(
+        UIAgGridColumnDef(
+          "formattedGrossSum",
+          headerName = "fibu.rechnung.bruttoBetrag"
+        ).withType(UIAgGridColumnDef.TYPE.NUMERIC_COLUMN)
+      )
+      .add(lc, "bemerkung")
+      .withMultiRowSelection(multiSelectionMode)
     //layout.getTableColumnById("konto").formatter = Formatter.KONTO
     //layout.getTableColumnById("faelligkeit").formatter = Formatter.DATE
     //layout.getTableColumnById("bezahlDatum").formatter = Formatter.DATE

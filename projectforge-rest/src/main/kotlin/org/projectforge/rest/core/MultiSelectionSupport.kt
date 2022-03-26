@@ -25,6 +25,8 @@ package org.projectforge.rest.core
 
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.ui.UIAgGrid
+import org.projectforge.ui.UILayout
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -54,13 +56,25 @@ object MultiSelectionSupport {
 
   @JvmStatic
   fun getMassSelectionParamMap(): MutableMap<String, Any> {
-    return mutableMapOf(REQUEST_PARAM_MASS_SELECTION to true)
+    return mutableMapOf(REQUEST_PARAM_MULTI_SELECTION to true)
   }
 
-  fun isMassSelection(request: HttpServletRequest): Boolean {
-    return request.getParameter(REQUEST_PARAM_MASS_SELECTION) == "true"
+  fun isMultiSelection(request: HttpServletRequest): Boolean {
+    return request.getParameter(REQUEST_PARAM_MULTI_SELECTION) == "true"
   }
 
+  /**
+   * Creates UIGridTable and adds it to the given layout. Will also handle flag layout.hideSearchFilter o
+   * multi-selection mode.
+   */
+  fun prepareUIGrid4ListPage(request: HttpServletRequest, layout: UILayout): UIAgGrid {
+    val table = UIAgGrid.createUIResultSetTable()
+    if (isMultiSelection(request)) {
+      layout.hideSearchFilter = true
+    }
+    layout.add(table)
+    return table
+  }
 
   @JvmStatic
   fun registerEntityIdsForSelection(request: HttpServletRequest, identifier: String, idList: Collection<*>) {
@@ -77,5 +91,5 @@ object MultiSelectionSupport {
 
   private const val TTL_MINUTES = 60
   private val SESSSION_ATTRIBUTE_ENTITIES = "{${MultiSelectionSupport::class.java.name}.entities"
-  private val REQUEST_PARAM_MASS_SELECTION = "multiSelectionMode"
+  private val REQUEST_PARAM_MULTI_SELECTION = "multiSelectionMode"
 }

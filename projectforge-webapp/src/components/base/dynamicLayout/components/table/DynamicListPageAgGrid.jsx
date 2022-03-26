@@ -14,23 +14,30 @@ function DynamicListPageAgGrid({
 }) {
     const { data, ui } = React.useContext(DynamicLayoutContext);
 
-    const containerStyle = React.useMemo(() => ({ width: '100%', height: '500px' }), []);
-    const gridStyle = React.useMemo(() => ({ height: '100%', width: '100%' }), []);
+    const gridStyle = React.useMemo(() => ({ width: '100%' }), []);
     const entries = Object.getByString(data, id) || '';
 
+    const onGridReady = React.useCallback((params) => {
+        const gridApi = params.api;
+        // this.gridColumnApi = params.columnApi;
+
+        // The ag-grid is not enlarging based on the page height,
+        // so dynamically adjusting the height of the grid
+        gridApi.setDomLayout('autoHeight');
+    }, []);
+
     return React.useMemo(() => (
-        <div style={containerStyle}>
-            <div
-                className="ag-theme-alpine"
-                style={gridStyle}
-            >
-                <AgGridReact
-                    rowData={entries}
-                    columnDefs={columnDefs}
-                    rowSelection={rowSelection}
-                    rowMultiSelectWithClick={rowMultiSelectWithClick}
-                />
-            </div>
+        <div
+            className="ag-theme-alpine"
+            style={gridStyle}
+        >
+            <AgGridReact
+                rowData={entries}
+                columnDefs={columnDefs}
+                rowSelection={rowSelection}
+                rowMultiSelectWithClick={rowMultiSelectWithClick}
+                onGridReady={onGridReady}
+            />
         </div>
     ), [entries, ui]);
 }

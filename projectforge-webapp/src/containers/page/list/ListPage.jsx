@@ -5,6 +5,7 @@ import { loadList } from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
 import { Card, Container } from '../../../components/design';
 import SearchFilter from './searchFilter/SearchFilter';
+import styles from './ListPage.module.scss';
 
 function ListPage(
     {
@@ -39,7 +40,10 @@ function ListPage(
                         }}
                         variables={category.variables}
                     >
-                        <SearchFilter />
+                        <h4 className={styles.uiTitle}>{category.ui.title}</h4>
+                        {!category.ui.hideSearchFilter && (
+                            <SearchFilter />
+                        )}
                     </DynamicLayout>
                 )}
             </Card>
@@ -61,7 +65,10 @@ ListPage.propTypes = {
     }).isRequired,
     onCategoryChange: PropTypes.func.isRequired,
     category: PropTypes.shape({
-        ui: PropTypes.shape({ }),
+        ui: PropTypes.shape({
+            title: PropTypes.string,
+            hideSearchFilter: PropTypes.bool,
+        }),
         data: PropTypes.shape({ }),
         variables: PropTypes.shape({ }),
     }),
