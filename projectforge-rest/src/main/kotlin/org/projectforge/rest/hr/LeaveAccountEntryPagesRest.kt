@@ -34,6 +34,7 @@ import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.math.RoundingMode
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/leaveAccountEntry")
@@ -51,8 +52,8 @@ class LeaveAccountEntryPagesRest() : AbstractDOPagesRest<LeaveAccountEntryDO, Le
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest): UILayout {
+        val layout = super.createListLayout(request)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "employee", "date", "amount", "description"))
         layout.getTableColumnById("employee").formatter = Formatter.EMPLOYEE

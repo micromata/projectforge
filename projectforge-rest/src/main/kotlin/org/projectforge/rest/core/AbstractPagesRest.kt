@@ -201,7 +201,7 @@ constructor(
     return transformFromDB(newBaseDO(request))
   }
 
-  open fun createListLayout(): UILayout {
+  open fun createListLayout(request: HttpServletRequest): UILayout {
     val ui = UILayout("$i18nKeyPrefix.list")
     val gearMenu = MenuItem(GEAR_MENU, title = "*")
     gearMenu.add(
@@ -346,7 +346,7 @@ constructor(
   }
 
   protected open fun getInitialList(request: HttpServletRequest): InitialListData {
-    return getInitialList(getCurrentFilter())
+    return getInitialList(request, getCurrentFilter())
   }
 
   /**
@@ -360,11 +360,11 @@ constructor(
     }
   }
 
-  protected fun getInitialList(filter: MagicFilter): InitialListData {
+  protected fun getInitialList(request: HttpServletRequest, filter: MagicFilter): InitialListData {
     val favorites = getFilterFavorites()
     val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
     resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
-    val ui = createListLayout()
+    val ui = createListLayout(request)
       .addTranslations(
         "table.showing",
         "searchFilter",
@@ -513,7 +513,7 @@ constructor(
   }
 
   @GetMapping("filter/select")
-  fun selectFavoriteFilter(@RequestParam("id", required = true) id: Int): InitialListData {
+  fun selectFavoriteFilter(request: HttpServletRequest, @RequestParam("id", required = true) id: Int): InitialListData {
     val favorites = getFilterFavorites()
     val currentFilter = favorites.get(id)
     if (currentFilter != null) {
@@ -524,7 +524,7 @@ constructor(
     } else {
       log.warn("Can't select filter $id, because it's not found in favorites list.")
     }
-    return getInitialList(currentFilter ?: getCurrentFilter())
+    return getInitialList(request, currentFilter ?: getCurrentFilter())
   }
 
   /**

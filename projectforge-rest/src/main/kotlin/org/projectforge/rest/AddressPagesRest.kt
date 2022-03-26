@@ -233,10 +233,10 @@ class AddressPagesRest
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(): UILayout {
+  override fun createListLayout(request: HttpServletRequest): UILayout {
     val addressLC = LayoutContext(lc)
     addressLC.idPrefix = "address."
-    val layout = super.createListLayout()
+    val layout = super.createListLayout(request)
       .add(
         UITable.createUIResultSetTable()
           .add(addressLC, "isFavoriteCard", "lastUpdate")

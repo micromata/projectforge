@@ -31,6 +31,7 @@ import org.projectforge.rest.dto.Kost2Art
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/cost2Type")
@@ -53,8 +54,8 @@ class Kost2ArtPagesRest : AbstractDTOPagesRest<Kost2ArtDO, Kost2Art, Kost2ArtDao
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest): UILayout {
+        val layout = super.createListLayout(request)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "id", "name", "fakturiert", "workFraction",
                                 "projektStandard", "description"))

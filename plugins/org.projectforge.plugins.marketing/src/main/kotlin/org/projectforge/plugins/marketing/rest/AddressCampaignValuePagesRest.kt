@@ -33,6 +33,7 @@ import org.projectforge.ui.UILayout
 import org.projectforge.ui.UITable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/addressCampaignValue")
@@ -41,8 +42,8 @@ class AddressCampaignValuePagesRest: AbstractDOPagesRest<AddressCampaignValueDO,
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest): UILayout {
+        val layout = super.createListLayout(request)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "address.name", "address.firstName", "address.organization",
                                 "address.contactStatus", "address.addressText", "address.addressStatus", "value", "comment"))
