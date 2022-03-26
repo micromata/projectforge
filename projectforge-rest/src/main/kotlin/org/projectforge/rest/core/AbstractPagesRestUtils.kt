@@ -40,11 +40,17 @@ private val log = KotlinLogging.logger {}
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
     getList(
+  request: HttpServletRequest,
   pagesRest: AbstractPagesRest<O, DTO, B>,
   baseDao: BaseDao<O>,
   magicFilter: MagicFilter
 )
     : ResultSet<O> {
+  if (MultiSelectionSupport.isMultiSelection(request)) {
+    val entityIds = MultiSelectionSupport.getRegisteredEntityIds(request, pagesRest::class.java)
+    val list = baseDao.getListByIds(entityIds) ?: listOf()
+    return ResultSet(list)
+  }
   val list = getObjectList(pagesRest, baseDao, magicFilter)
   val resultSet = ResultSet(pagesRest.filterList(list, magicFilter), list.size)
   return resultSet

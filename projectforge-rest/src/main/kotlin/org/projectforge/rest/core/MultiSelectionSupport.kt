@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.ui.UIAgGrid
 import org.projectforge.ui.UILayout
+import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -81,12 +82,12 @@ object MultiSelectionSupport {
     ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_ENTITIES, idList, TTL_MINUTES)
   }
 
-  fun getRegisteredEntityIds(request: HttpServletRequest, clazz: Class<out Any>): Collection<*>? {
+  fun getRegisteredEntityIds(request: HttpServletRequest, clazz: Class<out Any>): Collection<Serializable>? {
     return getRegisteredEntityIds(request, clazz.name)
   }
 
-  fun getRegisteredEntityIds(request: HttpServletRequest, identifier: String): Collection<*>? {
-    return ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_ENTITIES) as? Collection<*>
+  fun getRegisteredEntityIds(request: HttpServletRequest, identifier: String): Collection<Serializable>? {
+    return ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_ENTITIES) as? Collection<Serializable>
   }
 
   private const val TTL_MINUTES = 60

@@ -362,7 +362,7 @@ constructor(
 
   protected fun getInitialList(request: HttpServletRequest, filter: MagicFilter): InitialListData {
     val favorites = getFilterFavorites()
-    val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
+    val resultSet = processResultSetBeforeExport(getList(request,this, baseDao, filter))
     resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
     val ui = createListLayout(request)
       .addTranslations(
@@ -448,10 +448,10 @@ constructor(
    * Please note: filter.deleted is ignored (entries.field == "deleted" is used instead).
    */
   @RequestMapping(RestPaths.LIST)
-  fun getList(@RequestBody filter: MagicFilter): ResultSet<*> {
+  fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResultSet<*> {
     filter.autoWildcardSearch = true
     fixMagicFilterFromClient(filter)
-    val list = getList(this, baseDao, filter)
+    val list = getList(request, this, baseDao, filter)
     saveCurrentFilter(filter)
     val resultSet = processResultSetBeforeExport(list)
     resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)

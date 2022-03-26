@@ -36,6 +36,7 @@ open class UIAgGridColumnDef(
   var valueFormatter: String? = null,
   var type: String? = null,
   var checkboxSelection: Boolean? = null,
+  var headerCheckboxSelection: Boolean? = null,
 ) {
   enum class TYPE(val agType: String) { NUMERIC_COLUMN("numericColumn"), RIGHT_ALIGNED("rightAligned") }
 
