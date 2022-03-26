@@ -298,7 +298,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         if (checkLastSuccessful2FA(request, response, data) == CheckState.OTP_REQUIRED) {
           fieldset.add(
             UIAlert(
-              message = "user.My2FA.required",
+              message = "user.My2FA.required.extended",
               markdown = true,
               color = UIColor.DANGER
             )
@@ -372,7 +372,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
       CheckState.OK -> null
       CheckState.OTP_REQUIRED -> showValidationErrors(
         ValidationError(translate("user.My2FA.required"), "code"),
-        ValidationError(translate("user.My2FA.required")) // For better visibility twice.
+        ValidationError(translate("user.My2FA.required.extended")) // For better visibility and more info twice.
       )
       CheckState.OTP_FAILED -> showValidationErrors(ValidationError(checkState.userMessage))
     }
