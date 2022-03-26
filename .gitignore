@@ -1,4 +1,6 @@
 target
+# For backup in projectforge-web
+target.tgz
 *.jar
 *.war
 *.ear

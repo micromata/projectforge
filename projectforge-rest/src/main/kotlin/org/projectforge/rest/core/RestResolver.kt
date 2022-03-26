@@ -23,12 +23,9 @@
 
 package org.projectforge.rest.core
 
-import mu.KotlinLogging
 import org.projectforge.rest.config.Rest
 import org.springframework.web.bind.annotation.RequestMapping
 import java.net.URLEncoder
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Helper for getting url of rest calls.
