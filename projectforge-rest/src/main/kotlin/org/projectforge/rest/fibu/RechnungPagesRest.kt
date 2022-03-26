@@ -32,6 +32,7 @@ import org.projectforge.rest.dto.Rechnung
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/outgoingInvoice")
@@ -40,8 +41,8 @@ class RechnungPagesRest : AbstractDTOPagesRest<RechnungDO, Rechnung, RechnungDao
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest): UILayout {
+        val layout = super.createListLayout(request)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "nummer", "kunde", "projekt", "konto", "betreff", "datum", "faelligkeit",
                                 "bezahlDatum", "periodOfPerformanceBegin", "periodOfPerformanceEnd")

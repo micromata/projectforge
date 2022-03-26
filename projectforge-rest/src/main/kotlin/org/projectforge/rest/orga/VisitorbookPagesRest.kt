@@ -34,6 +34,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/visitorBook")
@@ -66,8 +67,8 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest): UILayout {
+        val layout = super.createListLayout(request)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "id", "lastname", "firstname", "company", "visitortype")
                         .add(UITableColumn("arrive", title = "orga.visitorbook.arrive"))

@@ -68,8 +68,8 @@ class UserPagesRest
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest): UILayout {
+        val layout = super.createListLayout(request)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "username", "deactivated", "lastname", "firstname", "personalPhoneIdentifiers",
                                 "description", "rights", "ldapValues"))

@@ -37,6 +37,7 @@ import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.annotation.PostConstruct
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/order")
@@ -65,8 +66,8 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(): UILayout {
-    val layout = super.createListLayout()
+  override fun createListLayout(request: HttpServletRequest): UILayout {
+    val layout = super.createListLayout(request)
       .add(
         UITable.createUIResultSetTable()
           .add(lc, "nummer")

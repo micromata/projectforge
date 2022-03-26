@@ -147,7 +147,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     val taskId = NumberHelper.parseInteger(request.getParameter("taskId")) ?: return super.getInitialList(request)
     val filter = MagicFilter()
     filter.entries.add(MagicFilterEntry("task", "$taskId"))
-    return super.getInitialList(filter)
+    return super.getInitialList(request, filter)
   }
 
   override fun newBaseDTO(request: HttpServletRequest?): Timesheet {
@@ -244,7 +244,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(): UILayout {
+  override fun createListLayout(request: HttpServletRequest): UILayout {
     lc.idPrefix = "timesheet."
     val table = UITable.createUIResultSetTable()
       .add(lc, "user")
@@ -261,7 +261,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       table.add(lc, "tag")
     }
     table.add(lc, "description")
-    val layout = super.createListLayout()
+    val layout = super.createListLayout(request)
       .add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
       .add(table)
     layout.getTableColumnById("timesheet.user").formatter = Formatter.USER

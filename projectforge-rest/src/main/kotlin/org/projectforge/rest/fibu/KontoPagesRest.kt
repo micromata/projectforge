@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/account")
@@ -91,8 +92,8 @@ class KontoPagesRest
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest): UILayout {
+        val layout = super.createListLayout(request)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "nummer", "status", "bezeichnung", "description"))
         return LayoutUtils.processListPage(layout, this)

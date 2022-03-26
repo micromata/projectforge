@@ -34,6 +34,7 @@ import org.projectforge.rest.dto.Project
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/cost2")
@@ -69,8 +70,8 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest): UILayout {
+        val layout = super.createListLayout(request)
                 .add(UITable.createUIResultSetTable()
                         .add(UITableColumn("formattedNumber", title = "fibu.kost2"))
                         .add(UITableColumn("kost2Art.name", title = "fibu.kost2.art"))

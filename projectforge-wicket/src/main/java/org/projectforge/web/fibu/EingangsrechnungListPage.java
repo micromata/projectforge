@@ -47,6 +47,7 @@ import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.rest.fibu.EingangsrechnungPagesRest;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
@@ -241,6 +242,7 @@ public class EingangsrechnungListPage
           }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
       addContentMenuEntry(exportKostzuweisungButton);
     }
+    addNewMassSelect(EingangsrechnungPagesRest.class);
   }
 
   /**

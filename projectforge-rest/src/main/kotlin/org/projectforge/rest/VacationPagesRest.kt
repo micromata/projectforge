@@ -130,8 +130,8 @@ class VacationPagesRest : AbstractDTOPagesRest<VacationDO, Vacation, VacationDao
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest): UILayout {
+        val layout = super.createListLayout(request)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "employee", "startDate", "endDate", "vacationModeString", "statusString", "workingDaysFormatted",
                                 "special", "replacement", "manager", "comment"))

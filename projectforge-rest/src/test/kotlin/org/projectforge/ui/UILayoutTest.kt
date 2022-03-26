@@ -26,6 +26,7 @@ package org.projectforge.ui
 import com.google.gson.GsonBuilder
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.projectforge.business.book.BookDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.json.JsonValidator
@@ -34,6 +35,7 @@ import org.projectforge.rest.BookPagesRest
 import org.projectforge.rest.dto.Address
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import javax.servlet.http.HttpServletRequest
 
 class UILayoutTest : AbstractTestBase() {
     @Autowired
@@ -113,7 +115,7 @@ class UILayoutTest : AbstractTestBase() {
     @Test
     fun testBookListLayout() {
         val gson = GsonBuilder().create()
-        val jsonString = gson.toJson(bookRest.createListLayout())
+        val jsonString = gson.toJson(bookRest.createListLayout(Mockito.mock(HttpServletRequest::class.java)))
         val jsonValidator = JsonValidator(jsonString)
 
         assertEquals("resultSet", jsonValidator.get("layout[0].id"))

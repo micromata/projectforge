@@ -46,8 +46,8 @@ class ToDoPagesRest() : AbstractDOPagesRest<ToDoDO, ToDoDao>(ToDoDao::class.java
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest): UILayout {
+        val layout = super.createListLayout(request)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "modified", "subject", "assignee", "reporter", "dueDate", "status",
                                 "priority", "type", "task", "group", "description"))
