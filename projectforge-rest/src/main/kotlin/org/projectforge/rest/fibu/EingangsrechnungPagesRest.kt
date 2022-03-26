@@ -28,6 +28,7 @@ import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.MultiSelectionSupport
 import org.projectforge.rest.dto.Eingangsrechnung
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
@@ -65,6 +66,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
    * LAYOUT List page
    */
   override fun createListLayout(request: HttpServletRequest): UILayout {
+    val multiSelectionMode = MultiSelectionSupport.isMassSelection(request)
     val layout = super.createListLayout(request)
       .add(
         UIAgGrid.createUIResultSetTable()
@@ -74,6 +76,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
           .add(UIAgGridColumnDef("formattedNetSum", headerName = "fibu.common.netto").withType(UIAgGridColumnDef.TYPE.NUMERIC_COLUMN))
           .add(UIAgGridColumnDef("formattedGrossSum", headerName = "fibu.rechnung.bruttoBetrag").withType(UIAgGridColumnDef.TYPE.NUMERIC_COLUMN))
           .add(lc, "bemerkung")
+          .withMultiRowSelection(multiSelectionMode)
       )
     //layout.getTableColumnById("konto").formatter = Formatter.KONTO
     //layout.getTableColumnById("faelligkeit").formatter = Formatter.DATE

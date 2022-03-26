@@ -77,9 +77,11 @@ open class UIAgGrid(
   /**
    * @return this for chaining.
    */
-  fun withMultiRowSelection(): UIAgGrid {
-    rowSelection = "multi"
-    rowMultiSelectWithClick = true
+  fun withMultiRowSelection(state: Boolean = true): UIAgGrid {
+    if (state) {
+      rowSelection = "multiple"
+      rowMultiSelectWithClick = true
+    }
     return this
   }
 }

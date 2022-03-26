@@ -30,9 +30,9 @@ import javax.servlet.http.HttpServletRequest
 private val log = KotlinLogging.logger {}
 
 /**
- * Supports mass updates of list pages.
+ * Supports mass selection and updates of list pages.
  */
-object MassUpdateSupport {
+object MultiSelectionSupport {
   @JvmStatic
   fun registerEntitiesForSelection(
     request: HttpServletRequest,
@@ -53,6 +53,16 @@ object MassUpdateSupport {
   }
 
   @JvmStatic
+  fun getMassSelectionParamMap(): MutableMap<String, Any> {
+    return mutableMapOf(REQUEST_PARAM_MASS_SELECTION to true)
+  }
+
+  fun isMassSelection(request: HttpServletRequest): Boolean {
+    return request.getParameter(REQUEST_PARAM_MASS_SELECTION) == "true"
+  }
+
+
+  @JvmStatic
   fun registerEntityIdsForSelection(request: HttpServletRequest, identifier: String, idList: Collection<*>) {
     ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_ENTITIES, idList, TTL_MINUTES)
   }
@@ -66,5 +76,6 @@ object MassUpdateSupport {
   }
 
   private const val TTL_MINUTES = 60
-  private val SESSSION_ATTRIBUTE_ENTITIES = "{${MassUpdateSupport::class.java.name}.entities"
+  private val SESSSION_ATTRIBUTE_ENTITIES = "{${MultiSelectionSupport::class.java.name}.entities"
+  private val REQUEST_PARAM_MASS_SELECTION = "multiSelectionMode"
 }
