@@ -83,6 +83,7 @@ open class UIAgGrid(
       rowMultiSelectWithClick = true
       if (columnDefs.size > 0) {
         columnDefs[0].checkboxSelection = true
+        columnDefs[0].headerCheckboxSelection = true
       }
     }
     return this

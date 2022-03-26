@@ -19,12 +19,10 @@ function DynamicListPageAgGrid({
 
     const onGridReady = React.useCallback((params) => {
         const gridApi = params.api;
-        // this.gridColumnApi = params.columnApi;
-
-        // The ag-grid is not enlarging based on the page height,
-        // so dynamically adjusting the height of the grid
         gridApi.setDomLayout('autoHeight');
     }, []);
+
+    // getSelectedNodes
 
     return React.useMemo(() => (
         <div
@@ -38,6 +36,16 @@ function DynamicListPageAgGrid({
                 rowMultiSelectWithClick={rowMultiSelectWithClick}
                 onGridReady={onGridReady}
             />
+            <code>
+                TODO
+                <ul>
+                    <li>Doc: You may use the shift-Key for multiselection on mouse clicks.</li>
+                    <li>
+                        Doc: You may use cursor up- and down keys to navigate and user space
+                        to (de)select rows.
+                    </li>
+                </ul>
+            </code>
         </div>
     ), [entries, ui]);
 }
