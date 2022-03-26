@@ -52,7 +52,7 @@ import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.framework.utils.ReflectionHelper;
 import org.projectforge.rest.core.AbstractPagesRest;
-import org.projectforge.rest.core.MassUpdateSupport;
+import org.projectforge.rest.core.MultiSelectionSupport;
 import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
@@ -756,10 +756,8 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
         new Link<Object>("link") {
           @Override
           public void onClick() {
-            MassUpdateSupport.registerEntitiesForSelection(WicketUtils.getHttpServletRequest(getRequest()), pagesRestClass, getList());
-            Map<String, Object> params = new HashMap<>();
-            params.put("massSelect", true);
-            final String redirectUrl = PagesResolver.getListPageUrl(pagesRestClass, params, true);
+            MultiSelectionSupport.registerEntitiesForSelection(WicketUtils.getHttpServletRequest(getRequest()), pagesRestClass, getList());
+            final String redirectUrl = PagesResolver.getListPageUrl(pagesRestClass, MultiSelectionSupport.getMassSelectionParamMap(), true);
             throw new RedirectToUrlException(redirectUrl);
           }
 
