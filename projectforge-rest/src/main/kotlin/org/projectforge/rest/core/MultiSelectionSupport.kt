@@ -49,11 +49,12 @@ object MultiSelectionSupport {
     entityCollection: Collection<IdObject<*>>
   ) {
     val idList = entityCollection.map { it.id }
-    ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier", idList, TTL_MINUTES)
+    registerEntityIdsForSelection(request, identifier, idList)
   }
 
   @JvmStatic
   fun registerEntityIdsForSelection(request: HttpServletRequest, identifier: String, idList: Collection<*>) {
+    registerSelectedEntityIds(request, identifier, null) // Clear selection.
     ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier", idList, TTL_MINUTES)
   }
 
@@ -63,8 +64,52 @@ object MultiSelectionSupport {
 
   @Suppress("UNCHECKED_CAST")
   fun getRegisteredEntityIds(request: HttpServletRequest, identifier: String): Collection<Serializable>? {
-    return ExpiringSessionAttributes.getAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier") as? Collection<Serializable>
+    return ExpiringSessionAttributes.getAttribute(
+      request,
+      "$SESSSION_ATTRIBUTE_ENTITIES:$identifier"
+    ) as? Collection<Serializable>
   }
+
+  /**
+   * Register the selected entities sent by the client for later recovering (e. g. on reload).
+   */
+  fun registerSelectedEntityIds(request: HttpServletRequest, clazz: Class<out Any>, idList: Collection<Serializable>?) {
+    registerSelectedEntityIds(request, clazz.name, idList)
+  }
+
+  /**
+   * Register the selected entities sent by the client for later recovering (e. g. on reload).
+   */
+  fun registerSelectedEntityIds(request: HttpServletRequest, identifier: String, idList: Collection<Serializable>?) {
+    if (idList == null) {
+      ExpiringSessionAttributes.removeAttribute(request, "$SESSSION_ATTRIBUTE_SELECTED_ENTITIES:$identifier")
+      return
+    }
+    ExpiringSessionAttributes.setAttribute(
+      request,
+      "$SESSSION_ATTRIBUTE_SELECTED_ENTITIES:$identifier",
+      idList,
+      TTL_MINUTES
+    )
+  }
+
+  /**
+   * Gets the previous selected entities.
+   */
+  fun getRegisteredSelectedEntityIds(request: HttpServletRequest, clazz: Class<out Any>): Collection<Serializable>? {
+    return getRegisteredSelectedEntityIds(request, clazz.name)
+  }
+
+  /**
+   * Gets the previous selected entities.
+   */
+  fun getRegisteredSelectedEntityIds(request: HttpServletRequest, identifier: String): Collection<Serializable>? {
+    return ExpiringSessionAttributes.getAttribute(
+      request,
+      "$SESSSION_ATTRIBUTE_SELECTED_ENTITIES:$identifier"
+    ) as? Collection<Serializable>
+  }
+
 
   @JvmStatic
   fun getMultiSelectionParamMap(): MutableMap<String, Any> {
@@ -79,7 +124,11 @@ object MultiSelectionSupport {
    * Creates UIGridTable and adds it to the given layout. Will also handle flag layout.hideSearchFilter o
    * multi-selection mode.
    */
-  fun prepareUIGrid4ListPage(request: HttpServletRequest, layout: UILayout, pagesRest: Class<out AbstractDynamicPageRest>): UIAgGrid {
+  fun prepareUIGrid4ListPage(
+    request: HttpServletRequest,
+    layout: UILayout,
+    pagesRest: Class<out AbstractDynamicPageRest>
+  ): UIAgGrid {
     val table = UIAgGrid.createUIResultSetTable()
     if (isMultiSelection(request)) {
       layout.hideSearchFilter = true
@@ -91,5 +140,6 @@ object MultiSelectionSupport {
 
   private const val TTL_MINUTES = 60
   private val SESSSION_ATTRIBUTE_ENTITIES = "{${MultiSelectionSupport::class.java.name}.entities"
+  private val SESSSION_ATTRIBUTE_SELECTED_ENTITIES = "{${MultiSelectionSupport::class.java.name}.selected.entities"
   private val REQUEST_PARAM_MULTI_SELECTION = "multiSelectionMode"
 }

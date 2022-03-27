@@ -24,6 +24,9 @@
 package org.projectforge.ui
 
 import org.projectforge.framework.i18n.translate
+import org.projectforge.rest.core.MultiSelectionSupport
+import java.io.Serializable
+import javax.servlet.http.HttpServletRequest
 
 /**
  * Table using AgGrid
@@ -38,6 +41,11 @@ open class UIAgGrid(
   ) : UIElement(if (listPageTable) UIElementType.AG_GRID_LIST_PAGE else UIElementType.AG_GRID) {
   var multiSelectButtonTitle: String? = null
   var urlForMultiSelect: String? = null
+
+  /**
+   * Tell the client, which entities were selected (for recovering, e. g. after reload or back button).
+   */
+  var selectedEntities: Collection<Serializable>? = null
 
   companion object {
     @JvmStatic
@@ -82,7 +90,7 @@ open class UIAgGrid(
   /**
    * @return this for chaining.
    */
-  fun withMultiRowSelection(state: Boolean = true): UIAgGrid {
+  fun withMultiRowSelection(request: HttpServletRequest, clazz: Class<out Any>, state: Boolean = true): UIAgGrid {
     if (state) {
       rowSelection = "multiple"
       rowMultiSelectWithClick = true
@@ -91,6 +99,7 @@ open class UIAgGrid(
         columnDefs[0].headerCheckboxSelection = true
         multiSelectButtonTitle = translate("next")
       }
+      selectedEntities = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, clazz)
     }
     return this
   }

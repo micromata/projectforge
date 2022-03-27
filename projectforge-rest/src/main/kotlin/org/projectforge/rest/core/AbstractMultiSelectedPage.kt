@@ -28,6 +28,7 @@ import org.projectforge.ui.*
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -37,7 +38,7 @@ private val log = KotlinLogging.logger {}
  */
 abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
   class MultiSelection {
-    var selectedIds: List<Int>? = null
+    var selectedIds: Collection<Serializable>? = null
   }
 
   protected abstract fun getTitleKey(): String
@@ -74,7 +75,8 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     request: HttpServletRequest,
     @RequestBody selectedIds: AbstractMultiSelectedPage.MultiSelection?
   ): ResponseEntity<*> {
-    return ResponseEntity.ok(ResponseAction(targetType = TargetType.REDIRECT, url = "hurzel"))
+    MultiSelectionSupport.registerSelectedEntityIds(request, pagesRestClass, selectedIds?.selectedIds)
+    return ResponseEntity.ok(ResponseAction(targetType = TargetType.REDIRECT, url = PagesResolver.getDynamicPageUrl(this::class.java)))
   }
 
   companion object {
