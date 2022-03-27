@@ -68,7 +68,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
   override fun createListLayout(request: HttpServletRequest): UILayout {
     val multiSelectionMode = MultiSelectionSupport.isMultiSelection(request)
     val layout = super.createListLayout(request)
-    MultiSelectionSupport.prepareUIGrid4ListPage(request, layout)
+    MultiSelectionSupport.prepareUIGrid4ListPage(request, layout, EingangsrechnungMultiSelectedPageRest::class.java)
       .add(lc, "kreditor")
       .add(
         UIAgGridColumnDef(
