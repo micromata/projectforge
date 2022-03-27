@@ -21,10 +21,15 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.core
+package org.projectforge.rest.multiselect
 
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.ui.UIAgGrid
+import org.projectforge.ui.UIAlert
+import org.projectforge.ui.UIColor
 import org.projectforge.ui.UILayout
 import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
@@ -130,11 +135,19 @@ object MultiSelectionSupport {
     pagesRest: Class<out AbstractDynamicPageRest>
   ): UIAgGrid {
     val table = UIAgGrid.createUIResultSetTable()
+    layout.add(table)
     if (isMultiSelection(request)) {
       layout.hideSearchFilter = true
-      table.urlForMultiSelect = RestResolver.getRestUrl(pagesRest, AbstractMultiSelectedPage.URL_PATH_SELECTED)
+      table.urlAfterMultiSelect = RestResolver.getRestUrl(pagesRest, AbstractMultiSelectedPage.URL_PATH_SELECTED)
+      layout.add(
+        UIAlert(
+          message = "multiselection.aggrid.selection.info.message",
+          title = "multiselection.aggrid.selection.info.title",
+          color = UIColor.INFO,
+          markdown = true,
+        )
+      )
     }
-    layout.add(table)
     return table
   }
 

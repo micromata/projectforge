@@ -24,7 +24,7 @@
 package org.projectforge.ui
 
 import org.projectforge.framework.i18n.translate
-import org.projectforge.rest.core.MultiSelectionSupport
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
 
@@ -40,7 +40,11 @@ open class UIAgGrid(
 
   ) : UIElement(if (listPageTable) UIElementType.AG_GRID_LIST_PAGE else UIElementType.AG_GRID) {
   var multiSelectButtonTitle: String? = null
-  var urlForMultiSelect: String? = null
+
+  /**
+   * This url should be called with all selected rows to proceed the user action (mass update, export etc.)
+   */
+  var urlAfterMultiSelect: String? = null
 
   /**
    * Tell the client, which entities were selected (for recovering, e. g. after reload or back button).
