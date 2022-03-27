@@ -91,7 +91,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
         ).withType(UIAgGridColumnDef.TYPE.NUMERIC_COLUMN)
       )
       .add(lc, "bemerkung")
-      .withMultiRowSelection(multiSelectionMode)
+      .withMultiRowSelection(request, this::class.java, multiSelectionMode)
     //layout.getTableColumnById("konto").formatter = Formatter.KONTO
     //layout.getTableColumnById("faelligkeit").formatter = Formatter.DATE
     //layout.getTableColumnById("bezahlDatum").formatter = Formatter.DATE
