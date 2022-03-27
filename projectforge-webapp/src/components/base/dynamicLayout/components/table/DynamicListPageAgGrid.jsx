@@ -3,7 +3,7 @@ import React from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { DynamicLayoutContext } from '../../context';
 import { Button } from '../../../../design';
-import { fetchJsonPost, handleHTTPErrors } from '../../../../../utilities/rest';
+import { fetchJsonPost } from '../../../../../utilities/rest';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import history from '../../../../../utilities/history';
@@ -33,17 +33,11 @@ function DynamicListPageAgGrid({
         event.stopPropagation();
         const selectedIds = gridApi.getSelectedRows().map((item) => item.id);
         // console.log(event.target.id, selectedIds);
-        fetchJsonPost(urlForMultiSelect, { selectedIds })
-            .then(handleHTTPErrors)
-            .then((response) => response.json())
-            .then(({ targetType, url: redirectUrl }) => {
-                switch (targetType) {
-                    case 'REDIRECT':
-                        history.push(redirectUrl);
-                        break;
-                    default:
-                        // TODO: do nothing
-                }
+        fetchJsonPost(urlForMultiSelect,
+            { selectedIds },
+            (json) => {
+                const { redirectUrl } = json;
+                history.push(redirectUrl);
             });
     }, []);
 
