@@ -36,7 +36,7 @@ open class UIAgGrid(
   var rowMultiSelectWithClick: Boolean? = null,
 
   ) : UIElement(if (listPageTable) UIElementType.AG_GRID_LIST_PAGE else UIElementType.AG_GRID) {
-  var multiSelectButtonTitle: String = translate("next")
+  var multiSelectButtonTitle: String? = null
   var urlForMultiSelect: String? = null
 
   companion object {
@@ -89,6 +89,7 @@ open class UIAgGrid(
       if (columnDefs.size > 0) {
         columnDefs[0].checkboxSelection = true
         columnDefs[0].headerCheckboxSelection = true
+        multiSelectButtonTitle = translate("next")
       }
     }
     return this
