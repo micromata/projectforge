@@ -79,10 +79,11 @@ object MultiSelectionSupport {
    * Creates UIGridTable and adds it to the given layout. Will also handle flag layout.hideSearchFilter o
    * multi-selection mode.
    */
-  fun prepareUIGrid4ListPage(request: HttpServletRequest, layout: UILayout): UIAgGrid {
+  fun prepareUIGrid4ListPage(request: HttpServletRequest, layout: UILayout, pagesRest: Class<out AbstractDynamicPageRest>): UIAgGrid {
     val table = UIAgGrid.createUIResultSetTable()
     if (isMultiSelection(request)) {
       layout.hideSearchFilter = true
+      table.urlForMultiSelect = RestResolver.getRestUrl(pagesRest, AbstractMultiSelectedPage.URL_PATH_SELECTED)
     }
     layout.add(table)
     return table

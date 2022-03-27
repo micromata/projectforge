@@ -23,6 +23,8 @@
 
 package org.projectforge.ui
 
+import org.projectforge.framework.i18n.translate
+
 /**
  * Table using AgGrid
  */
@@ -34,6 +36,9 @@ open class UIAgGrid(
   var rowMultiSelectWithClick: Boolean? = null,
 
   ) : UIElement(if (listPageTable) UIElementType.AG_GRID_LIST_PAGE else UIElementType.AG_GRID) {
+  var multiSelectButtonTitle: String = translate("next")
+  var urlForMultiSelect: String? = null
+
   companion object {
     @JvmStatic
     fun createUIResultSetTable(): UIAgGrid {
