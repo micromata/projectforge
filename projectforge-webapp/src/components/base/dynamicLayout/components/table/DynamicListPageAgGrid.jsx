@@ -47,14 +47,17 @@ function DynamicListPageAgGrid({
             className="ag-theme-alpine"
             style={gridStyle}
         >
-            <Button
-                id="next"
-                onClick={handleClick}
-                color="success"
-                outline
-            >
-                {multiSelectButtonTitle}
-            </Button>
+            {multiSelectButtonTitle && (
+                // Show this button only for multi selection with e. g. mass update:
+                <Button
+                    id="next"
+                    onClick={handleClick}
+                    color="success"
+                    outline
+                >
+                    {multiSelectButtonTitle}
+                </Button>
+            )}
             <AgGridReact
                 rowData={entries}
                 columnDefs={columnDefs}
