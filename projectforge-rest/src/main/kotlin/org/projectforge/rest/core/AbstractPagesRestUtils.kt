@@ -30,6 +30,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.http.HttpStatus

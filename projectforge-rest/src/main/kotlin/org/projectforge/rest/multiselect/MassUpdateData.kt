@@ -21,21 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.fibu
+package org.projectforge.rest.multiselect
 
-import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractPagesRest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-
-@RestController
-@RequestMapping("${Rest.URL}/incomingInvoice")
-class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
-  override fun getTitleKey(): String {
-    return "Hurzel"
-  }
-
-  override val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
-    get() = EingangsrechnungPagesRest::class.java
+/**
+ * Contains field definitions and user values of the user for mass updates.
+ */
+class MassUpdateData {
+  class Field()
+  val fields = mutableListOf<Field>()
 }

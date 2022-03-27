@@ -28,7 +28,7 @@ import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.core.MultiSelectionSupport
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.rest.dto.Eingangsrechnung
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*

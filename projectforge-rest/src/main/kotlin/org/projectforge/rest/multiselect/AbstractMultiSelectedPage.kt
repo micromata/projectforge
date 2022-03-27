@@ -21,11 +21,18 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.core
+package org.projectforge.rest.multiselect
 
 import mu.KotlinLogging
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.rest.ChangeWlanPasswordPageRest
+import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import java.io.Serializable
@@ -45,6 +52,16 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
 
   protected abstract val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
 
+  @GetMapping("dynamic")
+  fun getForm(request: HttpServletRequest): FormLayoutData {
+    val layout = UILayout(getTitleKey())
+    LayoutUtils.process(layout)
+
+    layout.postProcessPageMenu()
+
+    return FormLayoutData(MassUpdateData(), layout, createServerData(request))
+  }
+
   protected fun getLayout(request: HttpServletRequest): UILayout {
     val layout = UILayout(getTitleKey())
 
@@ -59,8 +76,8 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
 
     layout.add(
       UIButton.createDefaultButton(
-        id ="execute",
-        title ="execute",
+        id = "execute",
+        title = "execute",
         responseAction = ResponseAction(
           url = "${getRestPath()}/execute",
           targetType = TargetType.POST
@@ -73,10 +90,15 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
   @PostMapping(URL_PATH_SELECTED)
   fun selected(
     request: HttpServletRequest,
-    @RequestBody selectedIds: AbstractMultiSelectedPage.MultiSelection?
+    @RequestBody selectedIds: MultiSelection?
   ): ResponseEntity<*> {
     MultiSelectionSupport.registerSelectedEntityIds(request, pagesRestClass, selectedIds?.selectedIds)
-    return ResponseEntity.ok(ResponseAction(targetType = TargetType.REDIRECT, url = PagesResolver.getDynamicPageUrl(this::class.java)))
+    return ResponseEntity.ok(
+      ResponseAction(
+        targetType = TargetType.REDIRECT,
+        url = PagesResolver.getDynamicPageUrl(this::class.java, absolute = true)
+      )
+    )
   }
 
   companion object {

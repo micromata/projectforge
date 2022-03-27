@@ -52,7 +52,7 @@ import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.framework.utils.ReflectionHelper;
 import org.projectforge.rest.core.AbstractPagesRest;
-import org.projectforge.rest.core.MultiSelectionSupport;
+import org.projectforge.rest.multiselect.MultiSelectionSupport;
 import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;

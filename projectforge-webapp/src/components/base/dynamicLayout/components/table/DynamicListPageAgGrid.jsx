@@ -14,7 +14,7 @@ function DynamicListPageAgGrid({
     rowSelection,
     rowMultiSelectWithClick,
     multiSelectButtonTitle,
-    urlForMultiSelect,
+    urlAfterMultiSelect,
     selectedEntities,
 }) {
     const { data, ui } = React.useContext(DynamicLayoutContext);
@@ -28,7 +28,6 @@ function DynamicListPageAgGrid({
         gridApi = params.api;
         gridApi.setDomLayout('autoHeight'); // Needed to get maximum height.
         if (selectedEntities) {
-            console.log(selectedEntities);
             gridApi.forEachNode((node) => {
                 const row = node.data;
                 // Recover previous selected nodes from server (if any):
@@ -42,11 +41,11 @@ function DynamicListPageAgGrid({
         event.stopPropagation();
         const selectedIds = gridApi.getSelectedRows().map((item) => item.id);
         // console.log(event.target.id, selectedIds);
-        fetchJsonPost(urlForMultiSelect,
+        fetchJsonPost(urlAfterMultiSelect,
             { selectedIds },
             (json) => {
-                const { redirectUrl } = json;
-                history.push(redirectUrl);
+                const { url } = json;
+                history.push(url);
             });
     }, []);
 
@@ -74,16 +73,6 @@ function DynamicListPageAgGrid({
                 rowMultiSelectWithClick={rowMultiSelectWithClick}
                 onGridReady={onGridReady}
             />
-            <code>
-                TODO
-                <ul>
-                    <li>Doc: You may use the shift-Key for multiselection on mouse clicks.</li>
-                    <li>
-                        Doc: You may use cursor up- and down keys to navigate and user space
-                        to (de)select rows.
-                    </li>
-                </ul>
-            </code>
         </div>
     ), [entries, ui]);
 }
@@ -98,7 +87,7 @@ DynamicListPageAgGrid.propTypes = {
     rowSelection: PropTypes.string,
     rowMultiSelectWithClick: PropTypes.bool,
     multiSelectButtonTitle: PropTypes.string,
-    urlForMultiSelect: PropTypes.string,
+    urlAfterMultiSelect: PropTypes.string,
     selectedEntities: PropTypes.arrayOf(PropTypes.number),
 };
 
