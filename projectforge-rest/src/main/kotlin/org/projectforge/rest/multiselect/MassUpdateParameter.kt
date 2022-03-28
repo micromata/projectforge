@@ -35,14 +35,29 @@ import java.util.*
  * either the field should be changed or not.
  */
 class MassUpdateParameter {
-  var checked: Boolean? = null
+  /**
+   * If true, the value should be deleted.
+   */
+  var delete: Boolean? = null
   var textValue: String? = null
   var intValue: Int? = null
   var decimalValue: BigDecimal? = null
-  var dateValue: LocalDate? = null
+  var localDateValue: LocalDate? = null
   var timestampValue: Date? = null
   var timeValue: LocalTime? = null
   var booleanValue: Boolean? = null
   var taskValue: Task? = null
   var userValue: User? = null
+
+  fun isEmpty(): Boolean {
+    return textValue.isNullOrBlank() &&
+        intValue == null &&
+        decimalValue == null &&
+        localDateValue == null &&
+        timestampValue == null &&
+        timeValue == null &&
+        booleanValue == null &&
+        taskValue == null &&
+        userValue == null
+  }
 }

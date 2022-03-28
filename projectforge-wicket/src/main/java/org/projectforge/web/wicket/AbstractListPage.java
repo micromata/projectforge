@@ -744,7 +744,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   }
 
   public void addNewMassSelect(final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz) {
-    addNewMassSelect("massUpdate", pagesRestClazz, null);
+    addNewMassSelect("multiSelection.button", pagesRestClazz, null);
   }
 
   public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz) {
