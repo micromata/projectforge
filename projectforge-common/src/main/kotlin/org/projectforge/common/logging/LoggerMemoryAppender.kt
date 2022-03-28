@@ -62,14 +62,15 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
   internal fun ensureSubscription(
     title: String,
     user: String,
-    create: (title: String, user: String) -> LogSubscription
+    create: (title: String, user: String) -> LogSubscription,
+    displayTitle: String = title,
   ): LogSubscription {
     synchronized(logSubscriptions) {
-      return getSubscription(title = title, user = user) ?: return register(create(title, user))
+      return getSubscription(title = title, user = user, displayTitle = displayTitle) ?: return register(create(title, user))
     }
   }
 
-  internal fun getSubscription(title: String, user: String): LogSubscription? {
+  internal fun getSubscription(title: String, user: String, displayTitle: String = title): LogSubscription? {
     synchronized(logSubscriptions) {
       return logSubscriptions.find { it.title == title && it.user == user }
     }

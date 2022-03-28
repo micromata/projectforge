@@ -71,7 +71,7 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
     } else {
       LogViewFilter(logSubscriptionId = id)
     }
-
+    val logSubscription = LogSubscription.getSubscription(id)
     val logEntriesTable = UITable(
       "logEntries",
       refreshUrl = "/rs/logViewer/refresh",
@@ -87,7 +87,7 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
 
     val layout = UILayout("system.admin.logViewer.title")
       .add(
-        UIFieldset()
+        UIFieldset(title = logSubscription?.displayTitle ?: "")
           .add(
             UIRow()
               .add(

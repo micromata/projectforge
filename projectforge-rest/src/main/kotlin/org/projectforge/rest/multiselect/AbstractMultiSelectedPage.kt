@@ -23,9 +23,14 @@
 
 package org.projectforge.rest.multiselect
 
-import mu.KotlinLogging
+import org.projectforge.common.BeanHelper
+import org.projectforge.common.logging.LogSubscription
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.utils.NumberFormatter
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.rest.admin.LogViewerPageRest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
@@ -39,8 +44,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Base class of mass updates after multi selection.
@@ -57,10 +60,11 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
   protected open val listPageUrl: String
     get() = PagesResolver.getListPageUrl(pagesRestClass, absolute = true)
 
-
   protected abstract fun getTitleKey(): String
 
   protected abstract val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
+
+  protected abstract fun ensureUserLogSubscription(): LogSubscription
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
@@ -78,7 +82,41 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     request: HttpServletRequest,
     @RequestBody postData: PostData<Map<String, MassUpdateParameter>>
   ): ResponseEntity<*> {
-    return RestUtils.badRequest("tbd")
+    val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRestClass)
+    if (selectedIds.isNullOrEmpty()) {
+      return showNoEntriesValidationError()
+    }
+    val params = postData.data
+    var nothingToDo = true
+    val validationErrors = mutableListOf<ValidationError>()
+    params.forEach { (key, param) ->
+      if (param.isEmpty()) {
+        if (param.delete == true) {
+          nothingToDo = false
+        }
+      } else {
+        if (param.delete == true) {
+          validationErrors.add(ValidationError(translate("massUpdate.error.fieldToDeleteNotEmpty"), "$key.textValue"))
+        } else {
+          nothingToDo = false
+        }
+      }
+    }
+    if (!validationErrors.isEmpty()) {
+      return showValidationErrors(*validationErrors.toTypedArray())
+    }
+    if (nothingToDo) {
+      return showNothingToDoValidationError()
+    }
+    return proceedMassUpdate(request, params, selectedIds)
+  }
+
+  open protected fun proceedMassUpdate(
+    request: HttpServletRequest,
+    params: Map<String, MassUpdateParameter>,
+    selectedIds: Collection<Serializable>
+  ): ResponseEntity<*> {
+    return RestUtils.badRequest("not yet implemented.")
   }
 
   abstract fun fillForm(
@@ -139,6 +177,18 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
         )
       )
     }
+    layout.add(
+      MenuItem(
+        "logViewer",
+        i18nKey = "plugins.merlin.viewLogs",
+        url = PagesResolver.getDynamicPageUrl(
+          LogViewerPageRest::class.java,
+          id = ensureUserLogSubscription().id
+        ),
+        type = MenuItemTargetType.REDIRECT,
+      )
+    )
+
     return layout
   }
 
@@ -179,7 +229,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     }
     val elementInfo = ElementsRegistry.getElementInfo(lc, field)
     val param = MassUpdateParameter()
-    param.checked = false
+    param.delete = false
     massUpdateData[field] = param
     UIRow().let { row ->
       row.add(UICol(md = 8).add(el))
@@ -187,7 +237,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
         row.add(
           UICol(md = 4).add(
             UICheckbox(
-              "$field.checked",
+              "$field.delete",
               label = "massUpdate.field.checkbox4deletion",
               // Doesn't work: tooltip = "massUpdate.field.checkbox4deletion.info",
             )
@@ -209,9 +259,74 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     }
   }
 
+  protected fun showNoEntriesValidationError(): ResponseEntity<ResponseAction> {
+    return showValidationErrors(ValidationError(translate("massUpdate.error.noEntriesSelected")))
+  }
+
+  protected fun showNothingToDoValidationError(): ResponseEntity<ResponseAction> {
+    return showValidationErrors(ValidationError(translate("massUpdate.error.nothingToDo")))
+  }
+
+  protected fun showSuccessToas(numberOfEntries: Int): ResponseEntity<ResponseAction> {
+    return UIToast.createToastResponseEntity(translateMsg("massUpdate.success", NumberFormatter.format(numberOfEntries)))
+  }
+
+  /**
+   * Show toast after executing mass update (if no validation error was found).
+   */
+  protected fun showToast(numberOfUpdatedEntries: Int): ResponseEntity<ResponseAction> {
+    return UIToast.createToastResponseEntity(
+      translateMsg(
+        "massUpdate.success",
+        NumberFormatter.format(numberOfUpdatedEntries)
+      )
+    )
+  }
+
   companion object {
     const val URL_PATH_SELECTED = "selected"
     const val URL_SUFFIX_SELECTED = "Selected"
-  }
 
+    /**
+     * @param append If true, the given textValue of param will be appended to the oldValue (if textValue isn't already
+     * contained in oldValue, otherwise null is returned).
+     * @return The new Value to set or null, if no modification should done..
+     */
+    fun getNewTextValue(oldValue: String?, param: MassUpdateParameter?, append: Boolean = false): String? {
+      param ?: return null
+      if (param.delete == true) {
+        return if (param.textValue.isNullOrBlank()) {
+          ""
+        } else {
+          null // Parameter should be deleted, but a text value was given.
+        }
+      }
+      param.textValue.let { newValue ->
+        if (newValue.isNullOrBlank()) {
+          return null // Nothing to do.
+        }
+        if (!append || oldValue.isNullOrBlank()) {
+          return param.textValue // replace oldValue by this value.
+        }
+        return if (oldValue.contains(newValue.trim(), true) != true) {
+          "$oldValue\n$newValue" // Append new value.
+        } else {
+          null // Leave it untouched, because the new value is already contained in old value.
+        }
+      }
+    }
+
+    fun processTextParameter(
+      data: Any,
+      property: String,
+      params: Map<String, MassUpdateParameter>,
+      append: Boolean = false
+    ) {
+      val param = params[property] ?: return
+      val oldValue = BeanHelper.getProperty(data, property) as String?
+      getNewTextValue(oldValue, param, append)?.let { newValue ->
+        BeanHelper.setProperty(data, property, newValue)
+      }
+    }
+  }
 }

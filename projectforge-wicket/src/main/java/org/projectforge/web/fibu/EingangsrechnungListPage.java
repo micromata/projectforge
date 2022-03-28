@@ -76,9 +76,6 @@ public class EingangsrechnungListPage
   @SpringBean
   private KontoCache kontoCache;
 
-  @SpringBean
-  private SEPATransferGenerator SEPATransferGenerator;
-
   private EingangsrechnungsStatistik eingangsrechnungsStatistik;
 
   private ContentMenuEntryPanel exportKostzuweisungButton;
@@ -139,22 +136,6 @@ public class EingangsrechnungListPage
         }
       }
     };
-    if (isMassUpdateMode == true) {
-      columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>("", null, "selected", cellItemListener)
-      {
-        @Override
-        public void populateItem(final Item<ICellPopulator<EingangsrechnungDO>> item, final String componentId,
-            final IModel<EingangsrechnungDO> rowModel)
-        {
-          final EingangsrechnungDO incomingInvoice = rowModel.getObject();
-          final CheckBoxPanel checkBoxPanel = new CheckBoxPanel(componentId, new SelectItemModel(incomingInvoice.getId()),
-              null);
-          item.add(checkBoxPanel);
-          cellItemListener.populateItem(item, componentId, rowModel);
-          addRowClick(item, isMassUpdateMode);
-        }
-      });
-    }
     columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(
         new Model<String>(getString("fibu.common.creditor")), getSortable(
         "kreditor", sortable),
@@ -320,88 +301,10 @@ public class EingangsrechnungListPage
   }
 
   @Override
-  public boolean isSupportsMassUpdate()
-  {
-    return true;
-  }
-
-  @Override
-  protected String getMassUpdateLabel()
-  {
-    return getString("fibu.rechnung.transferExport");
-  }
-
-  @Override
-  public void setMassUpdateMode(final boolean mode)
-  {
-    super.setMassUpdateMode(mode);
-    exportExcelButton.setVisible(!mode);
-    if (exportKostzuweisungButton != null) {
-      exportKostzuweisungButton.setVisible(!mode);
-    }
-  }
-
-  @Override
-  public void onNextSubmit()
-  {
-    if (CollectionUtils.isEmpty(this.selectedItems) == true) {
-      form.addError("validation.error.nothingToExport");
-      return;
-    }
-    final List<EingangsrechnungDO> list = eingangsrechnungDao.internalLoad(this.selectedItems);
-    exportInvoicesAsXML(list);
-  }
-
-  @Override
   protected void createDataTable()
   {
     dataTable = createDataTable(createColumns(this, true, isMassUpdateMode()), "datum", SortOrder.DESCENDING);
     form.add(dataTable);
-  }
-
-  private void exportInvoicesAsXML(final List<EingangsrechnungDO> invoices)
-  {
-    if (invoices == null || invoices.size() == 0) {
-      // Nothing to export.
-      form.addError("validation.error.nothingToExport");
-      return;
-    }
-
-    this.form.getFeedbackMessages().clear();
-
-    final String filename = String.format("transfer-%s.xml", DateHelper.getTimestampAsFilenameSuffix(new Date()));
-    try {
-      SEPATransferResult result = this.SEPATransferGenerator.format(invoices);
-
-      if (result.isSuccessful() == false) {
-        if (result.getErrors().isEmpty()) {
-          // unknown error
-          log.error("Oups, xml has zero size. Filename: " + filename);
-          this.form.addError("fibu.rechnung.transferExport.error");
-          return;
-        }
-
-        List<String> brokenInvoices = new ArrayList<>();
-        DateTimeFormatter formatter = DateTimeFormatter.instance();
-
-        // check invoice
-        for (EingangsrechnungDO invoice : result.getErrors().keySet()) {
-          if (invoice.getReferenz() != null) {
-            brokenInvoices.add("[" + invoice.getKreditor() + ", " + invoice.getReferenz() + ", " + formatter.getFormattedDate(invoice.getDatum()) + "]");
-          } else {
-            brokenInvoices.add("[" + invoice.getKreditor() + ", " + formatter.getFormattedDate(invoice.getDatum()) + "]");
-          }
-        }
-
-        String brokenInvoicesStr = String.join("; ", brokenInvoices);
-        this.form.addError("fibu.rechnung.transferExport.error.entries", brokenInvoicesStr);
-
-        return;
-      }
-      DownloadUtils.setDownloadTarget(result.getXml(), filename);
-    } catch (UserException e) {
-      this.form.addError("error", e.getParams()[0]);
-    }
   }
 
   protected void exportExcelWithCostAssignments()

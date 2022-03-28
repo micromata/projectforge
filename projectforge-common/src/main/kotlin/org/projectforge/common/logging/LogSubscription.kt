@@ -37,7 +37,8 @@ class LogSubscription @JvmOverloads constructor(
   val title: String,
   val user: String,
   val matcher: LogEventMatcher,
-  val maxSize: Int = 1000
+  val maxSize: Int = 1000,
+  val displayTitle: String = title,
 ) {
   private val queue = LogQueue(maxSize)
   private var lastActivity = System.currentTimeMillis()
@@ -94,13 +95,16 @@ class LogSubscription @JvmOverloads constructor(
       return LoggerMemoryAppender.getInstance().getSubscription(id)
     }
 
+    @JvmOverloads
     @JvmStatic
     fun ensureSubscription(
       title: String,
       user: String,
-      create: (title: String, user: String) -> LogSubscription
+      create: (title: String, user: String) -> LogSubscription,
+      displayTitle: String = title,
     ): LogSubscription {
-      return LoggerMemoryAppender.getInstance().ensureSubscription(title = title, user = user, create = create)
+      return LoggerMemoryAppender.getInstance()
+        .ensureSubscription(title = title, user = user, create = create, displayTitle = displayTitle)
     }
   }
 }
