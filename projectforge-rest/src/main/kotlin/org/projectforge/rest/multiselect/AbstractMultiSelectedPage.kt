@@ -24,6 +24,8 @@
 package org.projectforge.rest.multiselect
 
 import mu.KotlinLogging
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
@@ -48,6 +50,14 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     var selectedIds: Collection<Serializable>? = null
   }
 
+  /**
+   * If not a standard react page (e. g. Wicket-Page), modify this variable. The standard list and multi-selection-page
+   * is auto-detected by [PagesResolver] with parameter [pageRestClass].
+   */
+  protected open val listPageUrl: String
+    get() = PagesResolver.getListPageUrl(pagesRestClass, absolute = true)
+
+
   protected abstract fun getTitleKey(): String
 
   protected abstract val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
@@ -71,37 +81,65 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     return RestUtils.badRequest("tbd")
   }
 
-  abstract fun fillForm(request: HttpServletRequest, layout: UILayout, massUpdateData: MutableMap<String, MassUpdateParameter>)
+  abstract fun fillForm(
+    request: HttpServletRequest,
+    layout: UILayout,
+    massUpdateData: MutableMap<String, MassUpdateParameter>
+  )
 
-  protected fun getLayout(request: HttpServletRequest, massUpdateData: MutableMap<String, MassUpdateParameter>): UILayout {
+  protected fun getLayout(
+    request: HttpServletRequest,
+    massUpdateData: MutableMap<String, MassUpdateParameter>
+  ): UILayout {
     val layout = UILayout(getTitleKey())
+
+    val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRestClass)
+    if (selectedIds.isNullOrEmpty()) {
+      layout.add(UIAlert("massUpdate.error.noEntriesSelected", color = UIColor.DANGER))
+    } else {
+      layout.add(
+        UIAlert(
+          "'${translateMsg("massUpdate.entriesFound", NumberFormatter.format(selectedIds.size))}",
+          color = UIColor.SUCCESS
+        )
+      )
+    }
 
     fillForm(request, layout, massUpdateData)
 
+    layout.add(UIAlert(message = "massUpdate.info", color = UIColor.INFO))
     layout.add(
       UIButton.createCancelButton(
         ResponseAction(
-          PagesResolver.getListPageUrl(pagesRestClass, absolute = true),
+          listPageUrl,
           targetType = TargetType.REDIRECT
         )
       )
     )
-
-    layout.add(
-      UIButton.createDefaultButton(
-        id = "execute",
-        title = "execute",
-        responseAction = ResponseAction(
-          url = "${getRestPath()}/massUpdate",
-          targetType = TargetType.POST
-        ),
+    if (!MultiSelectionSupport.getRegisteredEntityIds(request, pagesRestClass).isNullOrEmpty()) {
+      layout.add(
+        UIButton.createBackButton(
+          ResponseAction(
+            PagesResolver.getMultiSelectionPageUrl(pagesRestClass, absolute = true),
+            targetType = TargetType.REDIRECT
+          ),
+          title = "massUpdate.changeSelection",
+        )
       )
-    )
+    }
+    if (!selectedIds.isNullOrEmpty()) {
+      layout.add(
+        UIButton.createDefaultButton(
+          id = "execute",
+          title = "execute",
+          responseAction = ResponseAction(
+            url = "${getRestPath()}/massUpdate",
+            targetType = TargetType.POST
+          ),
+        )
+      )
+    }
     return layout
-  }
-
-  protected fun createTextField(lc: LayoutContext, name: String) {
-
   }
 
   @PostMapping(URL_PATH_SELECTED)
@@ -118,8 +156,62 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     )
   }
 
+  protected fun createTextFieldRow(
+    lc: LayoutContext,
+    field: String,
+    massUpdateData: MutableMap<String, MassUpdateParameter>
+  ): UIRow {
+    val el = LayoutUtils.buildLabelInputElement(lc, field)
+    if (el is UIInput) {
+      el.id = when (el.dataType) {
+        UIDataType.DATE -> "$field.dateValue"
+        UIDataType.AMOUNT, UIDataType.DECIMAL -> "$field.decimalValue"
+        UIDataType.INT -> "$field.intValue"
+        UIDataType.KONTO, UIDataType.USER, UIDataType.TASK, UIDataType.GROUP, UIDataType.EMPLOYEE -> "$field.intValue"
+        UIDataType.BOOLEAN -> "$field.booleanValue"
+        UIDataType.TIMESTAMP -> "$field.timestampValue"
+        UIDataType.TIME -> "$field.timeValue"
+        else -> "$field.textValue"
+      }
+      el.required = false //
+    } else if (el is IUIId) {
+      el.id = "$field.textValue"
+    }
+    val elementInfo = ElementsRegistry.getElementInfo(lc, field)
+    val param = MassUpdateParameter()
+    param.checked = false
+    massUpdateData[field] = param
+    UIRow().let { row ->
+      row.add(UICol(md = 8).add(el))
+      if (elementInfo?.required != true) {
+        row.add(
+          UICol(md = 4).add(
+            UICheckbox(
+              "$field.checked",
+              label = "massUpdate.field.checkbox4deletion",
+              // Doesn't work: tooltip = "massUpdate.field.checkbox4deletion.info",
+            )
+          )
+        )
+      }
+      return row
+    }
+  }
+
+  protected fun createAndAddFields(
+    lc: LayoutContext,
+    massUpdateData: MutableMap<String, MassUpdateParameter>,
+    container: IUIContainer,
+    vararg fields: String
+  ) {
+    fields.forEach { field ->
+      container.add(createTextFieldRow(lc, field, massUpdateData))
+    }
+  }
+
   companion object {
     const val URL_PATH_SELECTED = "selected"
+    const val URL_SUFFIX_SELECTED = "Selected"
   }
 
 }

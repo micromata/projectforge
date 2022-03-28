@@ -757,7 +757,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
           @Override
           public void onClick() {
             MultiSelectionSupport.registerEntitiesForSelection(WicketUtils.getHttpServletRequest(getRequest()), pagesRestClass, getList());
-            final String redirectUrl = PagesResolver.getListPageUrl(pagesRestClass, MultiSelectionSupport.getMultiSelectionParamMap(), true);
+            final String redirectUrl = PagesResolver.getMultiSelectionPageUrl(pagesRestClass, true);
             throw new RedirectToUrlException(redirectUrl);
           }
 

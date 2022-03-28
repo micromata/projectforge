@@ -24,6 +24,8 @@
 package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.EingangsrechnungDO
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
@@ -34,30 +36,46 @@ import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-@RequestMapping("${Rest.URL}/incomingInvoice")
+@RequestMapping("${Rest.URL}/incomingInvoice${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
 class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
   override fun getTitleKey(): String {
     return "fibu.eingangsrechnung.multiselected.title"
   }
 
+  override val listPageUrl: String = "/wa/incomingInvoiceList"
+
   override val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
     get() = EingangsrechnungPagesRest::class.java
 
-  override fun fillForm(request: HttpServletRequest, layout: UILayout, data: MutableMap<String, MassUpdateParameter>) {
-    val field = "iban"
+  override fun fillForm(
+    request: HttpServletRequest,
+    layout: UILayout,
+    massUpdateData: MutableMap<String, MassUpdateParameter>
+  ) {
     val lc = LayoutContext(EingangsrechnungDO::class.java)
-    val el = LayoutUtils.buildLabelInputElement(lc, field)
-    if (el is UIIdFieldIface) {
-      el.id = "$field.textValue"
-    }
-    val param = MassUpdateParameter()
-    param.checked = false
-    param.textValue = "hurzel"
-    data[field] = param
+    createAndAddFields(
+      lc,
+      massUpdateData,
+      layout,
+      "datum",
+      "referenz",
+      "kreditor",
+      "receiver",
+      "iban",
+      "bic",
+      "bezahlDatum",
+      "paymentType"
+    )
+    (layout.getElementById("bezahlDatum.dateValue") as UIInput).tooltip = "fibu.eingangsrechnung.multiselected.info"
+    layout.add(UIAlert("fibu.eingangsrechnung.multiselected.info", color = UIColor.INFO, markdown = true))
+
     layout.add(
-      UIRow()
-        .add(UICheckbox("$field.checked"))
-        .add(el)
+      MenuItem(
+        "transferExport",
+        i18nKey = "fibu.rechnung.transferExport",
+        url = "${getRestPath()}/exportTransfers",
+        type = MenuItemTargetType.DOWNLOAD
+      )
     )
   }
 }
