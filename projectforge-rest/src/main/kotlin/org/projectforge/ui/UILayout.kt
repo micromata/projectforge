@@ -256,15 +256,11 @@ class UILayout(
     elements.forEach { addAllElements(list, it) }
   }
 
-  private fun addAllCols(list: MutableList<Any>, cols: MutableList<UICol>) {
-    cols.forEach { addAllElements(list, it) }
-  }
-
   private fun addAllElements(list: MutableList<Any>, element: UIElement) {
     list.add(element)
     when (element) {
       is UIGroup -> addAllElements(list, element.content)
-      is UIRow -> addAllCols(list, element.content)
+      is UIRow -> addAllElements(list, element.content)
       is UICol -> addAllElements(list, element.content)
       is UISelect<*> -> {
         val values = element.values
