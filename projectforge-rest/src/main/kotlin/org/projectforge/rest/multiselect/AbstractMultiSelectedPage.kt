@@ -24,12 +24,12 @@
 package org.projectforge.rest.multiselect
 
 import mu.KotlinLogging
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.rest.ChangeWlanPasswordPageRest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -54,16 +54,29 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
-    val layout = UILayout(getTitleKey())
+    val massUpdateData = mutableMapOf<String, MassUpdateParameter>()
+    val layout = getLayout(request, massUpdateData)
     LayoutUtils.process(layout)
 
     layout.postProcessPageMenu()
 
-    return FormLayoutData(MassUpdateData(), layout, createServerData(request))
+    return FormLayoutData(massUpdateData, layout, createServerData(request))
   }
 
-  protected fun getLayout(request: HttpServletRequest): UILayout {
+  @PostMapping("massUpdate")
+  fun massUpdate(
+    request: HttpServletRequest,
+    @RequestBody postData: PostData<Map<String, MassUpdateParameter>>
+  ): ResponseEntity<*> {
+    return RestUtils.badRequest("tbd")
+  }
+
+  abstract fun fillForm(request: HttpServletRequest, layout: UILayout, massUpdateData: MutableMap<String, MassUpdateParameter>)
+
+  protected fun getLayout(request: HttpServletRequest, massUpdateData: MutableMap<String, MassUpdateParameter>): UILayout {
     val layout = UILayout(getTitleKey())
+
+    fillForm(request, layout, massUpdateData)
 
     layout.add(
       UIButton.createCancelButton(
@@ -79,12 +92,16 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
         id = "execute",
         title = "execute",
         responseAction = ResponseAction(
-          url = "${getRestPath()}/execute",
+          url = "${getRestPath()}/massUpdate",
           targetType = TargetType.POST
         ),
       )
     )
     return layout
+  }
+
+  protected fun createTextField(lc: LayoutContext, name: String) {
+
   }
 
   @PostMapping(URL_PATH_SELECTED)

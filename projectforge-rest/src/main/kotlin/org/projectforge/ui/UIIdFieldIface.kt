@@ -21,12 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.multiselect
+package org.projectforge.ui
 
-/**
- * Contains field definitions and user values of the user for mass updates.
- */
-class MassUpdateData {
-  class Field()
-  val fields = mutableListOf<Field>()
+interface UIIdFieldIface {
+  var id: String
 }

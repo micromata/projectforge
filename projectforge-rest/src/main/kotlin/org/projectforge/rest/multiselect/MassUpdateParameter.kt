@@ -21,14 +21,21 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.ui
+package org.projectforge.rest.multiselect
+
+import org.projectforge.rest.dto.Task
+import org.projectforge.rest.dto.User
+import java.math.BigDecimal
 
 /**
- * A row may contain columns or elements (showing in one row without)
+ * Contains a field for mass update (string, int, number, date, task, user etc.) and the checkbox
+ * either the field should be changed or not.
  */
-data class UIRow(val content: MutableList<UIElement> = mutableListOf()) : UIElement(UIElementType.ROW) {
-    fun add(col: UIElement): UIRow {
-        content.add(col)
-        return this
-    }
+class MassUpdateParameter {
+  var checked: Boolean? = null
+  var textValue: String? = null
+  var intValue: Int? = null
+  var decimalValud: BigDecimal? = null
+  var taskValue: Task? = null
+  var userValue: User? = null
 }

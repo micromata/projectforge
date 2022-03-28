@@ -222,7 +222,7 @@ object LayoutUtils {
   /**
    * @param layoutSettings One element is returned including the label (e. g. UIInput).
    */
-  internal fun buildLabelInputElement(layoutSettings: LayoutContext, id: String): UIElement? {
+  internal fun buildLabelInputElement(layoutSettings: LayoutContext, id: String): UIElement {
     return ElementsRegistry.buildElement(layoutSettings, id)
   }
 
