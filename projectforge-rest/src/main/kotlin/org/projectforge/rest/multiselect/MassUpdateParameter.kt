@@ -26,6 +26,9 @@ package org.projectforge.rest.multiselect
 import org.projectforge.rest.dto.Task
 import org.projectforge.rest.dto.User
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.LocalTime
+import java.util.*
 
 /**
  * Contains a field for mass update (string, int, number, date, task, user etc.) and the checkbox
@@ -35,7 +38,11 @@ class MassUpdateParameter {
   var checked: Boolean? = null
   var textValue: String? = null
   var intValue: Int? = null
-  var decimalValud: BigDecimal? = null
+  var decimalValue: BigDecimal? = null
+  var dateValue: LocalDate? = null
+  var timestampValue: Date? = null
+  var timeValue: LocalTime? = null
+  var booleanValue: Boolean? = null
   var taskValue: Task? = null
   var userValue: User? = null
 }

@@ -23,6 +23,9 @@
 
 package org.projectforge.ui
 
-interface UIIdFieldIface {
-  var id: String
+interface IUIContainer {
+  /**
+   * @return this for chaining.
+   */
+  fun add(el: UIElement): IUIContainer
 }

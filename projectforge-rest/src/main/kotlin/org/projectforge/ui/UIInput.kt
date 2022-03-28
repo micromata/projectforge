@@ -48,7 +48,7 @@ data class UIInput(
    * AutoComplete Types for HTML Input fields.
    */
   val autoComplete: AutoCompleteType? = null
-) : UIElement(UIElementType.INPUT), UILabelledElement, UIIdFieldIface {
+) : UIElement(UIElementType.INPUT), UILabelledElement, IUIId {
   var autoCompletionUrl: String? = null
 
   /**

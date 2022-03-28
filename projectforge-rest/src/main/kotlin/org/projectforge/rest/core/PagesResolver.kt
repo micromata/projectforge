@@ -28,6 +28,7 @@ import org.projectforge.Const
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.springframework.web.bind.annotation.RequestMapping
 
 private val log = KotlinLogging.logger {}
@@ -64,7 +65,7 @@ object PagesResolver {
    * @return Path of react page.
    */
   fun getBasePageUrl(
-    pagesRestClass: Class<out AbstractPagesRest<*, *, *>>,
+    pagesRestClass: Class<*>,
     subPath: String? = null,
     params: Map<String, Any?>? = null,
     absolute: Boolean = false
@@ -86,6 +87,18 @@ object PagesResolver {
     absolute: Boolean = false
   ): String {
     return getBasePageUrl(pagesRestClass, null, params, absolute)
+  }
+
+  /**
+   * @return Path of react page.
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun getMultiSelectionPageUrl(
+    multiSelectedPageClass: Class<out AbstractPagesRest<*, *, *>>,
+    absolute: Boolean = false
+  ): String {
+    return getBasePageUrl(multiSelectedPageClass, null, MultiSelectionSupport.getMultiSelectionParamMap(), absolute)
   }
 
   /**

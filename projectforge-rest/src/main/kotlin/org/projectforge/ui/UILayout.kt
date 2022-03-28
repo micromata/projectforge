@@ -31,7 +31,7 @@ class UILayout(
   title: String,
   /** restBaseUrl is needed, if [UIAttachmentList] is used. */
   var restBaseUrl: String? = null,
-  ) {
+  ): IUIContainer {
   class UserAccess(
     /**
      * The user has access to the object's history, if given.
@@ -140,7 +140,7 @@ class UILayout(
     return this
   }
 
-  fun add(element: UIElement): UILayout {
+  override fun add(element: UIElement): UILayout {
     layout.add(element)
     return this
   }

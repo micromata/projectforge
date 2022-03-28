@@ -76,10 +76,15 @@ private constructor(
     /**
      * @param responseAction If not given, return to default page is used as response action.
      */
-    fun createBackButton(responseAction: ResponseAction? = null, default: Boolean? = null): UIButton {
+    fun createBackButton(
+      responseAction: ResponseAction? = null,
+      id: String = "back",
+      title: String = id,
+      default: Boolean? = null
+    ): UIButton {
       val result = UIButton(
-        "back",
-        title = translate("back"),
+        id,
+        title = translate(title),
         color = UIColor.SECONDARY,
         responseAction = responseAction,
         outline = true,
