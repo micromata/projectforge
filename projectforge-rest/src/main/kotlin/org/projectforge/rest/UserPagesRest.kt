@@ -28,6 +28,7 @@ import org.projectforge.business.user.UserDao
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.rest.config.Rest
@@ -68,8 +69,8 @@ class UserPagesRest
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest): UILayout {
-        val layout = super.createListLayout(request)
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "username", "deactivated", "lastname", "firstname", "personalPhoneIdentifiers",
                                 "description", "rights", "ldapValues"))

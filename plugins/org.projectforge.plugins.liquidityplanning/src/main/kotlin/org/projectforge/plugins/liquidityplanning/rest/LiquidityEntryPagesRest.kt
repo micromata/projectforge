@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.liquidityplanning.rest
 
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.plugins.liquidityplanning.LiquidityEntryDO
 import org.projectforge.plugins.liquidityplanning.LiquidityEntryDao
 import org.projectforge.rest.config.Rest
@@ -39,8 +40,8 @@ class LiquidityEntryPagesRest: AbstractDOPagesRest<LiquidityEntryDO, LiquidityEn
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest): UILayout {
-        val layout = super.createListLayout(request)
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "dateOfPayment", "amount", "paid", "subject", "comment"))
         layout.getTableColumnById("dateOfPayment").formatter = Formatter.DATE

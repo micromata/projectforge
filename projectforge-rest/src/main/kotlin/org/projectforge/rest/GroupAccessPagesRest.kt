@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.GroupTaskAccessDO
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.ui.*
@@ -46,8 +47,8 @@ class GroupAccessPagesRest : AbstractDOPagesRest<GroupTaskAccessDO, AccessDao>(A
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest): UILayout {
-        val layout = super.createListLayout(request)
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "task.title", "group.name", "isRecursive", "description"))
         return LayoutUtils.processListPage(layout, this)

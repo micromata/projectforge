@@ -30,6 +30,7 @@ import org.mockito.Mockito
 import org.projectforge.business.book.BookDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.json.JsonValidator
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.AddressPagesRest
 import org.projectforge.rest.BookPagesRest
 import org.projectforge.rest.dto.Address
@@ -115,7 +116,7 @@ class UILayoutTest : AbstractTestBase() {
     @Test
     fun testBookListLayout() {
         val gson = GsonBuilder().create()
-        val jsonString = gson.toJson(bookRest.createListLayout(Mockito.mock(HttpServletRequest::class.java)))
+        val jsonString = gson.toJson(bookRest.createListLayout(Mockito.mock(HttpServletRequest::class.java), MagicFilter()))
         val jsonValidator = JsonValidator(jsonString)
 
         assertEquals("resultSet", jsonValidator.get("layout[0].id"))

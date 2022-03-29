@@ -26,6 +26,7 @@ package org.projectforge.rest.orga
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
 import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -54,8 +55,8 @@ class AccountingRecordPagesRest: AbstractDTOPagesRest<BuchungssatzDO, Buchungssa
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest): UILayout {
-        val layout = super.createListLayout(request)
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(UITableColumn("satzNr", title = "fibu.buchungssatz.satznr"))
                         .add(lc, "betrag", "beleg", "kost1", "kost2", "konto", "gegenKonto",

@@ -25,6 +25,7 @@ package org.projectforge.rest.fibu.kost
 
 import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.business.fibu.kost.Kost2ArtDao
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Kost2Art
@@ -54,8 +55,8 @@ class Kost2ArtPagesRest : AbstractDTOPagesRest<Kost2ArtDO, Kost2Art, Kost2ArtDao
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest): UILayout {
-        val layout = super.createListLayout(request)
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "id", "name", "fakturiert", "workFraction",
                                 "projektStandard", "description"))

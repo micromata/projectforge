@@ -24,6 +24,7 @@
 package org.projectforge.rest.multiselect
 
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.RestResolver
@@ -121,8 +122,11 @@ object MultiSelectionSupport {
     return mutableMapOf(REQUEST_PARAM_MULTI_SELECTION to true)
   }
 
-  fun isMultiSelection(request: HttpServletRequest): Boolean {
-    return request.getParameter(REQUEST_PARAM_MULTI_SELECTION) == "true"
+  fun isMultiSelection(request: HttpServletRequest, magicFilter: MagicFilter): Boolean {
+    if (request.getParameter(REQUEST_PARAM_MULTI_SELECTION) == "true") {
+      magicFilter.multiSelection = true
+    }
+    return magicFilter.multiSelection == true
   }
 
   /**
@@ -132,11 +136,12 @@ object MultiSelectionSupport {
   fun prepareUIGrid4ListPage(
     request: HttpServletRequest,
     layout: UILayout,
-    pagesRest: Class<out AbstractDynamicPageRest>
+    pagesRest: Class<out AbstractDynamicPageRest>,
+    magicFilter: MagicFilter,
   ): UIAgGrid {
     val table = UIAgGrid.createUIResultSetTable()
     layout.add(table)
-    if (isMultiSelection(request)) {
+    if (isMultiSelection(request, magicFilter)) {
       layout.hideSearchFilter = true
       table.urlAfterMultiSelect = RestResolver.getRestUrl(pagesRest, AbstractMultiSelectedPage.URL_PATH_SELECTED)
       layout.add(

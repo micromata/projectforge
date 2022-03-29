@@ -99,8 +99,8 @@ class MyScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, MyScriptDao>(
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest): UILayout {
-    val layout = super.createListLayout(request)
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+    val layout = super.createListLayout(request, magicFilter)
       .add(
         UITable.createUIResultSetTable()
           .add(lc, "name", "description")

@@ -34,14 +34,15 @@ open class UIAgGridColumnDef(
   var filter: Boolean = false,
   var valueGetter: String? = null,
   var valueFormatter: String? = null,
-  var type: String? = null,
+  var dataType: UIDataType = UIDataType.STRING,
+  var agType: String? = null,
   var checkboxSelection: Boolean? = null,
   var headerCheckboxSelection: Boolean? = null,
 ) {
-  enum class TYPE(val agType: String) { NUMERIC_COLUMN("numericColumn"), RIGHT_ALIGNED("rightAligned") }
+  enum class AG_TYPE(val agType: String) { NUMERIC_COLUMN("numericColumn"), RIGHT_ALIGNED("rightAligned") }
 
-  fun withType(type: TYPE): UIAgGridColumnDef {
-    this.type = type.agType
+  fun withAGType(type: AG_TYPE): UIAgGridColumnDef {
+    this.agType = type.agType
     return this
   }
 }

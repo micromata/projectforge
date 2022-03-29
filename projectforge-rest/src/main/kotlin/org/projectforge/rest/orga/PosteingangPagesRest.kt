@@ -27,6 +27,7 @@ import org.projectforge.business.orga.PostType
 import org.projectforge.business.orga.PosteingangDO
 import org.projectforge.business.orga.PosteingangDao
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
@@ -59,8 +60,8 @@ class PosteingangPagesRest() : AbstractDOPagesRest<PosteingangDO, PosteingangDao
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest): UILayout {
-        val layout = super.createListLayout(request)
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "datum", "absender", "person", "inhalt", "bemerkung", "type"))
         layout.getTableColumnById("datum").formatter = Formatter.DATE

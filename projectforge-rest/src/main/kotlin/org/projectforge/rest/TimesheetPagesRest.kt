@@ -244,7 +244,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest): UILayout {
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     lc.idPrefix = "timesheet."
     val table = UITable.createUIResultSetTable()
       .add(lc, "user")
@@ -261,7 +261,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       table.add(lc, "tag")
     }
     table.add(lc, "description")
-    val layout = super.createListLayout(request)
+    val layout = super.createListLayout(request, magicFilter)
       .add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
       .add(table)
     layout.getTableColumnById("timesheet.user").formatter = Formatter.USER

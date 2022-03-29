@@ -25,6 +25,7 @@ package org.projectforge.rest.hr
 
 import org.projectforge.business.humanresources.HRPlanningDO
 import org.projectforge.business.humanresources.HRPlanningDao
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.ui.*
@@ -39,8 +40,8 @@ class HRPlanningPagesRest : AbstractDOPagesRest<HRPlanningDO, HRPlanningDao>(HRP
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest): UILayout {
-        val layout = super.createListLayout(request)
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "user")
                         .add(UITableColumn("totalHours", title = "hr.planning.sum"))

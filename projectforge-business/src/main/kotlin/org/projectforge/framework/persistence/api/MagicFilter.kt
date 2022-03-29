@@ -52,7 +52,11 @@ class MagicFilter(
    */
   var extended: MutableMap<String, Any> = mutableMapOf(),
   name: String? = null,
-  id: Int? = null
+  id: Int? = null,
+  /**
+   * If multi selection is chosen, the magic filter is not shown (only the entities of the last result list will be displayed for (de)selecting.
+   */
+  var multiSelection: Boolean? = null,
 ) : AbstractFavorite(name, id) {
 
   @Transient

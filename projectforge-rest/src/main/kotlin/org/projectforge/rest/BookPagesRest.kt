@@ -29,6 +29,7 @@ import org.projectforge.business.book.BookDao
 import org.projectforge.business.book.BookStatus
 import org.projectforge.business.book.BookType
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.rest.core.Validation
@@ -60,8 +61,8 @@ class BookPagesRest: AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, "
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest): UILayout {
-        val layout = super.createListLayout(request)
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
         layout.getTableColumnById("lendOutBy").formatter = Formatter.USER

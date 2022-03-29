@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.licensemanagement.rest
 
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.plugins.licensemanagement.LicenseDO
 import org.projectforge.plugins.licensemanagement.LicenseDao
 import org.projectforge.rest.config.Rest
@@ -39,8 +40,8 @@ class LicensePagesRest : AbstractDOPagesRest<LicenseDO, LicenseDao>(LicenseDao::
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest): UILayout {
-        val layout = super.createListLayout(request)
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "organization", "product", "version", "numberOfLicenses", "ownerIds", "device", "key",
                                 "comment"))
