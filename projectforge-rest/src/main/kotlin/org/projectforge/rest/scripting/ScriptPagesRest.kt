@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.scripting.*
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.jcr.FileInfo
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -117,8 +118,8 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest): UILayout {
-    val layout = super.createListLayout(request)
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+    val layout = super.createListLayout(request, magicFilter)
       .add(
         UITable.createUIResultSetTable()
           .add(lc, "name", "description")

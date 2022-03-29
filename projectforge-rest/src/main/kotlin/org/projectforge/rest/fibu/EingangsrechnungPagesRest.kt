@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.multiselect.MultiSelectionSupport
@@ -65,10 +66,10 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest): UILayout {
-    val multiSelectionMode = MultiSelectionSupport.isMultiSelection(request)
-    val layout = super.createListLayout(request)
-    MultiSelectionSupport.prepareUIGrid4ListPage(request, layout, EingangsrechnungMultiSelectedPageRest::class.java)
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+    val multiSelectionMode = MultiSelectionSupport.isMultiSelection(request, magicFilter)
+    val layout = super.createListLayout(request, magicFilter)
+    MultiSelectionSupport.prepareUIGrid4ListPage(request, layout, EingangsrechnungMultiSelectedPageRest::class.java, magicFilter)
       .add(lc, "kreditor")
       .add(
         UIAgGridColumnDef(
@@ -82,13 +83,13 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
         UIAgGridColumnDef(
           "formattedNetSum",
           headerName = "fibu.common.netto"
-        ).withType(UIAgGridColumnDef.TYPE.NUMERIC_COLUMN)
+        ).withAGType(UIAgGridColumnDef.AG_TYPE.NUMERIC_COLUMN)
       )
       .add(
         UIAgGridColumnDef(
           "formattedGrossSum",
           headerName = "fibu.rechnung.bruttoBetrag"
-        ).withType(UIAgGridColumnDef.TYPE.NUMERIC_COLUMN)
+        ).withAGType(UIAgGridColumnDef.AG_TYPE.NUMERIC_COLUMN)
       )
       .add(lc, "bemerkung")
       .withMultiRowSelection(request, this::class.java, multiSelectionMode)

@@ -28,6 +28,7 @@ import org.projectforge.business.fibu.KontoDao
 import org.projectforge.business.fibu.KontoStatus
 import org.projectforge.business.fibu.kost.AccountingConfig
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.utils.IntRanges
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -92,8 +93,8 @@ class KontoPagesRest
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest): UILayout {
-        val layout = super.createListLayout(request)
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "nummer", "status", "bezeichnung", "description"))
         return LayoutUtils.processListPage(layout, this)

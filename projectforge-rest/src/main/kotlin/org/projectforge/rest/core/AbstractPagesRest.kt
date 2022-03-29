@@ -201,7 +201,7 @@ constructor(
     return transformFromDB(newBaseDO(request))
   }
 
-  open fun createListLayout(request: HttpServletRequest): UILayout {
+  open fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val ui = UILayout("$i18nKeyPrefix.list")
     val gearMenu = MenuItem(GEAR_MENU, title = "*")
     gearMenu.add(
@@ -364,7 +364,7 @@ constructor(
     val favorites = getFilterFavorites()
     val resultSet = processResultSetBeforeExport(getList(request,this, baseDao, filter))
     resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
-    val ui = createListLayout(request)
+    val ui = createListLayout(request, filter)
       .addTranslations(
         "table.showing",
         "searchFilter",

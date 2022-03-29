@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.marketing.rest
 
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.plugins.marketing.AddressCampaignDO
 import org.projectforge.plugins.marketing.AddressCampaignDao
 import org.projectforge.plugins.marketing.dto.AddressCampaign
@@ -53,8 +54,8 @@ class AddressCampaignPagesRest: AbstractDTOPagesRest<AddressCampaignDO, AddressC
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest): UILayout {
-        val layout = super.createListLayout(request)
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "lastUpdate", "title", "values", "comment"))
         return LayoutUtils.processListPage(layout, this)
