@@ -85,9 +85,10 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
       logEntriesTable.add(lc, "timestamp", "level", "message", sortable = false)
     }
 
+    val title = logSubscription?.displayTitle
     val layout = UILayout("system.admin.logViewer.title")
       .add(
-        UIFieldset(title = logSubscription?.displayTitle ?: "")
+        UIFieldset(title = "'$title")
           .add(
             UIRow()
               .add(
