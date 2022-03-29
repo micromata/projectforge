@@ -214,7 +214,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     val el = LayoutUtils.buildLabelInputElement(lc, field)
     if (el is UIInput) {
       el.id = when (el.dataType) {
-        UIDataType.DATE -> "$field.dateValue"
+        UIDataType.DATE -> "$field.localDateValue"
         UIDataType.AMOUNT, UIDataType.DECIMAL -> "$field.decimalValue"
         UIDataType.INT -> "$field.intValue"
         UIDataType.KONTO, UIDataType.USER, UIDataType.TASK, UIDataType.GROUP, UIDataType.EMPLOYEE -> "$field.intValue"

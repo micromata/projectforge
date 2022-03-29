@@ -93,7 +93,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
       "referenz",
       "bemerkung",
     )
-    (layout.getElementById("bezahlDatum.dateValue") as UIInput).tooltip = "fibu.eingangsrechnung.multiselected.info"
+    (layout.getElementById("bezahlDatum.localDateValue") as UIInput).tooltip = "fibu.eingangsrechnung.multiselected.info"
     layout.add(UIAlert("fibu.eingangsrechnung.multiselected.info", color = UIColor.INFO, markdown = true))
 
     layout.add(
@@ -180,9 +180,10 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
 
   override fun ensureUserLogSubscription(): LogSubscription {
     val username = ThreadLocalUserContext.getUser().username ?: throw InternalError("User not given")
+    val displayTitle = translate("fibu.eingangsrechnung.multiselected.title")
     return LogSubscription.ensureSubscription(
       title = "Creditor invoices",
-      displayTitle = translate("fibu.eingangsrechnung.multiselected.title"),
+      displayTitle = displayTitle,
       user = username,
       create = { title, user ->
         LogSubscription(
@@ -193,6 +194,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
             "org.projectforge.framework.persistence.api.BaseDaoSupport|EingangsrechnungDO"
           ),
           maxSize = 10000,
+          displayTitle = displayTitle
         )
       })
   }
