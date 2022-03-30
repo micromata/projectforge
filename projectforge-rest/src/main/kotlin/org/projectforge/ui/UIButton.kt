@@ -173,7 +173,8 @@ private constructor(
       title: String = id,
       tooltip: String? = null,
       default: Boolean? = true,
-    ): UIButton {
+      confirmMessage: String? = null,
+      ): UIButton {
       return UIButton(
         id,
         translateIfKey(title),
@@ -181,7 +182,8 @@ private constructor(
         responseAction = responseAction,
         outline = true,
         default = default,
-        tooltip = translateIfKey(tooltip)
+        tooltip = translateIfKey(tooltip),
+        confirmMessage = confirmMessage,
       )
     }
 

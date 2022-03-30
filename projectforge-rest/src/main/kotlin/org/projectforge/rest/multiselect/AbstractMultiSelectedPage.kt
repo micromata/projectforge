@@ -132,12 +132,13 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     val layout = UILayout(getTitleKey())
 
     val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRestClass)
+    val formattedSize = NumberFormatter.format(selectedIds?.size)
     if (selectedIds.isNullOrEmpty()) {
       layout.add(UIAlert("massUpdate.error.noEntriesSelected", color = UIColor.DANGER))
     } else {
       layout.add(
         UIAlert(
-          "'${translateMsg("massUpdate.entriesFound", NumberFormatter.format(selectedIds.size))}",
+          "'${translateMsg("massUpdate.entriesFound", formattedSize)}",
           color = UIColor.SUCCESS
         )
       )
@@ -174,6 +175,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
             url = "${getRestPath()}/massUpdate",
             targetType = TargetType.POST
           ),
+          confirmMessage = translateMsg("massUpdate.confirmQuestion", formattedSize),
         )
       )
     }
@@ -276,7 +278,12 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
   }
 
   protected fun showSuccessToas(numberOfEntries: Int): ResponseEntity<ResponseAction> {
-    return UIToast.createToastResponseEntity(translateMsg("massUpdate.success", NumberFormatter.format(numberOfEntries)))
+    return UIToast.createToastResponseEntity(
+      translateMsg(
+        "massUpdate.success",
+        NumberFormatter.format(numberOfEntries)
+      )
+    )
   }
 
   /**
