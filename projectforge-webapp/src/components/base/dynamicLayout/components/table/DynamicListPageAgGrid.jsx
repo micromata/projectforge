@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { DynamicLayoutContext } from '../../context';
 import { Button } from '../../../../design';
@@ -17,28 +17,32 @@ function DynamicListPageAgGrid({
     urlAfterMultiSelect,
 }) {
     const { data, ui } = React.useContext(DynamicLayoutContext);
+    const [gridApi, setGridApi] = useState();
 
     const gridStyle = React.useMemo(() => ({ width: '100%' }), []);
     const entries = Object.getByString(data, id) || '';
     const { selectedEntityIds } = data;
 
-    let gridApi;
-
     const onGridReady = React.useCallback((params) => {
-        gridApi = params.api;
-        gridApi.setDomLayout('autoHeight'); // Needed to get maximum height.
-        if (selectedEntityIds) {
+        setGridApi(params.api);
+        params.api.setDomLayout('autoHeight'); // Needed to get maximum height.
+    }, [selectedEntityIds, setGridApi]);
+
+    React.useEffect(() => {
+        if (gridApi && selectedEntityIds) {
+            console.log({ selectedEntityIds });
             gridApi.forEachNode((node) => {
                 const row = node.data;
                 // Recover previous selected nodes from server (if any):
                 node.setSelected(selectedEntityIds.includes(row.id));
             });
         }
-    }, [selectedEntityIds]);
+    }, [gridApi, selectedEntityIds]);
 
     const handleClick = React.useCallback((event) => {
         event.preventDefault();
         event.stopPropagation();
+        if (!gridApi) return;
         const selectedIds = gridApi.getSelectedRows().map((item) => item.id);
         // console.log(event.target.id, selectedIds);
         fetchJsonPost(urlAfterMultiSelect,
@@ -47,7 +51,7 @@ function DynamicListPageAgGrid({
                 const { url } = json;
                 history.push(url);
             });
-    }, []);
+    }, [gridApi]);
 
     // getSelectedNodes
     return React.useMemo(() => (
@@ -74,7 +78,18 @@ function DynamicListPageAgGrid({
                 onGridReady={onGridReady}
             />
         </div>
-    ), [entries, ui]);
+    ),
+    [
+        entries,
+        ui,
+        handleClick,
+        gridStyle,
+        multiSelectButtonTitle,
+        columnDefs,
+        rowSelection,
+        rowMultiSelectWithClick,
+        onGridReady,
+    ]);
 }
 
 DynamicListPageAgGrid.propTypes = {
