@@ -206,12 +206,16 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     )
   }
 
+  /**
+   * @param minLengthOfTextArea See [LayoutUtils.buildLabelInputElement]
+   */
   protected fun createTextFieldRow(
     lc: LayoutContext,
     field: String,
-    massUpdateData: MutableMap<String, MassUpdateParameter>
+    massUpdateData: MutableMap<String, MassUpdateParameter>,
+    minLengthOfTextArea: Int = LayoutUtils.DEFAULT_MIN_LENGTH_OF_TEXT_AREA,
   ): UIRow {
-    val el = LayoutUtils.buildLabelInputElement(lc, field)
+    val el = LayoutUtils.buildLabelInputElement(lc, field, minLengthOfTextArea)
     if (el is UIInput) {
       el.id = when (el.dataType) {
         UIDataType.DATE -> "$field.localDateValue"
@@ -248,14 +252,18 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     }
   }
 
+  /**
+   * @param minLengthOfTextArea See [LayoutUtils.buildLabelInputElement]
+   */
   protected fun createAndAddFields(
     lc: LayoutContext,
     massUpdateData: MutableMap<String, MassUpdateParameter>,
     container: IUIContainer,
-    vararg fields: String
+    vararg fields: String,
+    minLengthOfTextArea: Int = LayoutUtils.DEFAULT_MIN_LENGTH_OF_TEXT_AREA,
   ) {
     fields.forEach { field ->
-      container.add(createTextFieldRow(lc, field, massUpdateData))
+      container.add(createTextFieldRow(lc, field, massUpdateData, minLengthOfTextArea))
     }
   }
 

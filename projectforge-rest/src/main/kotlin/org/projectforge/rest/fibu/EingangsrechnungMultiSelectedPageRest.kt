@@ -89,9 +89,15 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
       "receiver",
       "iban",
       "bic",
-      "bezahlDatum",
       "paymentType",
       "referenz",
+      "bezahlDatum",
+      minLengthOfTextArea = 1000,
+    )
+    createAndAddFields(
+      lc,
+      massUpdateData,
+      layout,
       "bemerkung",
     )
     layout.add(UIAlert("fibu.rechnung.multiselected.info", color = UIColor.INFO, markdown = true))
