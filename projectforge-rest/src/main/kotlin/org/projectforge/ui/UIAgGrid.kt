@@ -103,7 +103,6 @@ open class UIAgGrid(
         columnDefs[0].headerCheckboxSelection = true
         multiSelectButtonTitle = translate("next")
       }
-      selectedEntities = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, clazz)
     }
     return this
   }

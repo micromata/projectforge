@@ -23,11 +23,16 @@
 
 package org.projectforge.rest.core
 
+import java.io.Serializable
+
 /**
  * Contains the data including the result list (matching the filter) served by getList methods ([getInitialList] and [getList]).
  */
-class ResultSet<O : Any>(var resultSet: List<O>,
-                         var totalSize: Int? = null,
-                         var highlightRowId: Int? = null) {
-    val size = resultSet.size
+class ResultSet<O : Any>(
+  var resultSet: List<O>,
+  var totalSize: Int? = null,
+  var highlightRowId: Int? = null,
+  var selectedEntityIds: Collection<Serializable>? = null,
+) {
+  val size = resultSet.size
 }

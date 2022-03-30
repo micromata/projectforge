@@ -15,26 +15,26 @@ function DynamicListPageAgGrid({
     rowMultiSelectWithClick,
     multiSelectButtonTitle,
     urlAfterMultiSelect,
-    selectedEntities,
 }) {
     const { data, ui } = React.useContext(DynamicLayoutContext);
 
     const gridStyle = React.useMemo(() => ({ width: '100%' }), []);
     const entries = Object.getByString(data, id) || '';
+    const { selectedEntityIds } = data;
 
     let gridApi;
 
     const onGridReady = React.useCallback((params) => {
         gridApi = params.api;
         gridApi.setDomLayout('autoHeight'); // Needed to get maximum height.
-        if (selectedEntities) {
+        if (selectedEntityIds) {
             gridApi.forEachNode((node) => {
                 const row = node.data;
                 // Recover previous selected nodes from server (if any):
-                node.setSelected(selectedEntities.includes(row.id));
+                node.setSelected(selectedEntityIds.includes(row.id));
             });
         }
-    }, []);
+    }, [selectedEntityIds]);
 
     const handleClick = React.useCallback((event) => {
         event.preventDefault();
@@ -88,7 +88,6 @@ DynamicListPageAgGrid.propTypes = {
     rowMultiSelectWithClick: PropTypes.bool,
     multiSelectButtonTitle: PropTypes.string,
     urlAfterMultiSelect: PropTypes.string,
-    selectedEntities: PropTypes.arrayOf(PropTypes.number),
 };
 
 DynamicListPageAgGrid.defaultProps = {
