@@ -27,12 +27,11 @@ import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
-import org.projectforge.ui.UIAgGrid
-import org.projectforge.ui.UIAlert
-import org.projectforge.ui.UIColor
-import org.projectforge.ui.UILayout
+import org.projectforge.ui.*
 import java.io.Serializable
+import javax.print.attribute.standard.PageRanges
 import javax.servlet.http.HttpServletRequest
 
 /**
@@ -144,14 +143,15 @@ object MultiSelectionSupport {
     if (isMultiSelection(request, magicFilter)) {
       layout.hideSearchFilter = true
       table.urlAfterMultiSelect = RestResolver.getRestUrl(pagesRest, AbstractMultiSelectedPage.URL_PATH_SELECTED)
-      layout.add(
-        UIAlert(
-          message = "multiselection.aggrid.selection.info.message",
-          title = "multiselection.aggrid.selection.info.title",
-          color = UIColor.INFO,
-          markdown = true,
+      layout
+        .add(
+          UIAlert(
+            message = "multiselection.aggrid.selection.info.message",
+            title = "multiselection.aggrid.selection.info.title",
+            color = UIColor.INFO,
+            markdown = true,
+          )
         )
-      )
     }
     return table
   }

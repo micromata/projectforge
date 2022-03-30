@@ -23,12 +23,15 @@
 
 package org.projectforge.rest.fibu
 
-import org.projectforge.business.fibu.EingangsrechnungDO
+import org.projectforge.business.fibu.PaymentType
+import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
+import org.projectforge.business.fibu.RechnungStatus
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
@@ -59,7 +62,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
     return "fibu.rechnung.multiselected.title"
   }
 
-  override val listPageUrl: String = "/wa/invoiceList"
+  override val listPageUrl: String = "/${MenuItemDefId.OUTGOING_INVOICE_LIST.url}"
 
   override val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
     get() = RechnungPagesRest::class.java
@@ -69,12 +72,13 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
     layout: UILayout,
     massUpdateData: MutableMap<String, MassUpdateParameter>
   ) {
-    val lc = LayoutContext(EingangsrechnungDO::class.java)
+    val lc = LayoutContext(RechnungDO::class.java)
     createAndAddFields(
       lc,
       massUpdateData,
       layout,
       "datum",
+      "status",
       "bezahlDatum",
       "bemerkung",
     )
@@ -97,14 +101,30 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
           invoice.datum = param.localDateValue
         }
       }
+      if (params["status"]?.delete == true) {
+        invoice.status = null
+      }
       params["bezahlDatum"]?.let { param ->
         param.localDateValue?.let {
           invoice.bezahlDatum = param.localDateValue
           invoice.zahlBetrag = invoice.grossSum
+          invoice.status = RechnungStatus.BEZAHLT
         }
         if (param.delete == true) {
           invoice.bezahlDatum = null
           invoice.zahlBetrag = null
+          invoice.status = RechnungStatus.GESTELLT
+        }
+      }
+      params[""]?.let {
+        invoice.status = null
+      }
+      params["status"]?.let { param ->
+        param.textValue?.let { textValue ->
+          invoice.status = RechnungStatus.valueOf(textValue)
+        }
+        if (param.delete == true) {
+          invoice.status = null
         }
       }
       rechnungDao.update(invoice)

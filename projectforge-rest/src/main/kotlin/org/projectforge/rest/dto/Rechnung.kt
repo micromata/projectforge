@@ -28,78 +28,98 @@ import org.projectforge.framework.utils.NumberFormatter
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class Rechnung(var nummer: Int? = null,
-               var customer: Customer? = null,
-               var kundeText: String? = null,
-               var project: Project? = null,
-               var status: RechnungStatus? = null,
-               var typ: RechnungTyp? = null,
-               var customerref1: String? = null,
-               var attachment: String? = null,
-               var customerAddress: String? = null,
-               var periodOfPerformanceBegin: LocalDate? = null,
-               var periodOfPerformanceEnd: LocalDate? = null,
-               var datum: LocalDate? = null,
-               var betreff: String? = null,
-               var bemerkung: String? = null,
-               var besonderheiten: String? = null,
-               var faelligkeit: LocalDate? = null,
-               var zahlungsZielInTagen: Int? = null,
-               var discountZahlungsZielInTagen: Int? = null,
-               var bezahlDatum: LocalDate? = null,
-               override var zahlBetrag: BigDecimal? = null,
-               var konto: Konto? = null,
-               var discountPercent: BigDecimal? = null,
-               var discountMaturity: LocalDate? = null
+class Rechnung(
+  var nummer: Int? = null,
+  var customer: Customer? = null,
+  var kundeText: String? = null,
+  var project: Project? = null,
+  var status: RechnungStatus? = null,
+  var typ: RechnungTyp? = null,
+  var customerref1: String? = null,
+  var attachment: String? = null,
+  var customerAddress: String? = null,
+  var periodOfPerformanceBegin: LocalDate? = null,
+  var periodOfPerformanceEnd: LocalDate? = null,
+  var datum: LocalDate? = null,
+  var betreff: String? = null,
+  var bemerkung: String? = null,
+  var besonderheiten: String? = null,
+  var faelligkeit: LocalDate? = null,
+  var zahlungsZielInTagen: Int? = null,
+  var discountZahlungsZielInTagen: Int? = null,
+  var bezahlDatum: LocalDate? = null,
+  override var zahlBetrag: BigDecimal? = null,
+  var konto: Konto? = null,
+  var discountPercent: BigDecimal? = null,
+  var discountMaturity: LocalDate? = null
 ) : BaseDTO<RechnungDO>(), IRechnung {
-    override var positionen: MutableList<RechnungsPosition>? = null
+  override var positionen: MutableList<RechnungsPosition>? = null
 
-    override val netSum: BigDecimal
-        get() = RechnungCalculator.calculateNetSum(this)
+  override val netSum: BigDecimal
+    get() = RechnungCalculator.calculateNetSum(this)
 
-    override val vatAmountSum: BigDecimal
-        get() = RechnungCalculator.calculateVatAmountSum(this)
+  override val vatAmountSum: BigDecimal
+    get() = RechnungCalculator.calculateVatAmountSum(this)
 
-    val grossSum: BigDecimal
-        get() = RechnungCalculator.calculateGrossSum(this)
+  val grossSum: BigDecimal
+    get() = RechnungCalculator.calculateGrossSum(this)
 
-    var orders: Int? = null
-        get() = positionen?.size
+  var orders: Int? = null
+    get() = positionen?.size
 
-    var formattedNetSum: String? = null
+  var formattedNetSum: String? = null
 
-    var formattedVatAmountSum: String? = null
+  var formattedVatAmountSum: String? = null
 
-    var formattedGrossSum: String? = null
-
-
-    val isBezahlt: Boolean
-        get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
-            true
-        } else this.bezahlDatum != null && this.zahlBetrag != null
+  var formattedGrossSum: String? = null
 
 
-    override fun copyFrom(src: RechnungDO) {
-        super.copyFrom(src)
-        val list = positionen ?: mutableListOf()
-        src.positionen?.forEach {
-            list.add(RechnungsPosition(it))
-        }
-        positionen = list
-        orders = positionen!!.size
-        formattedNetSum = NumberFormatter.formatCurrency(netSum)
-        formattedGrossSum = NumberFormatter.formatCurrency(grossSum)
-        formattedVatAmountSum = NumberFormatter.formatCurrency(vatAmountSum)
+  val isBezahlt: Boolean
+    get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
+      true
+    } else this.bezahlDatum != null && this.zahlBetrag != null
+
+  override fun copyFrom(src: RechnungDO) {
+    super.copyFrom(src)
+    src.projekt?.let { p ->
+      project = Project()
+      project?.copyFromMinimal(p)
     }
-
-    override fun copyTo(dest: RechnungDO) {
-        super.copyTo(dest)
-        val list = dest.positionen ?: mutableListOf()
-        positionen?.forEach {
-            val pos = RechnungsPositionDO()
-            it.copyTo(pos)
-            list.add(pos)
-        }
-        dest.positionen = list
+    src.kunde?.let { c ->
+      customer = Customer()
+      customer?.copyFromMinimal(c)
     }
+    formattedNetSum = NumberFormatter.formatCurrency(netSum)
+    formattedGrossSum = NumberFormatter.formatCurrency(grossSum)
+    formattedVatAmountSum = NumberFormatter.formatCurrency(vatAmountSum)
+  }
+
+  fun copyPositionenFrom(src: RechnungDO) {
+    val list = positionen ?: mutableListOf()
+    src.positionen?.forEach {
+      list.add(RechnungsPosition(it))
+    }
+    src.projekt?.let {
+      project = Project()
+      project?.copyFromMinimal(it)
+    }
+    kundeText = src.kundeAsString
+    src.konto?.let {
+      konto = Konto()
+      konto?.copyFromMinimal(it)
+    }
+    positionen = list
+    orders = positionen!!.size
+  }
+
+  override fun copyTo(dest: RechnungDO) {
+    super.copyTo(dest)
+    val list = dest.positionen ?: mutableListOf()
+    positionen?.forEach {
+      val pos = RechnungsPositionDO()
+      it.copyTo(pos)
+      list.add(pos)
+    }
+    dest.positionen = list
+  }
 }

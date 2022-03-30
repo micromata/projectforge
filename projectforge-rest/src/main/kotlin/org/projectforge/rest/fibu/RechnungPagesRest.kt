@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Rechnung
@@ -46,15 +47,45 @@ class RechnungPagesRest :
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val multiSelectionMode = MultiSelectionSupport.isMultiSelection(request, magicFilter)
     val layout = super.createListLayout(request, magicFilter)
-    MultiSelectionSupport.prepareUIGrid4ListPage(request, layout, RechnungMultiSelectedPageRest::class.java, magicFilter)
+    MultiSelectionSupport.prepareUIGrid4ListPage(
+      request,
+      layout,
+      RechnungMultiSelectedPageRest::class.java,
+      magicFilter,
+    )
+      .add(lc, "nummer")
       .add(
-        lc, "nummer", "kunde", "projekt", "konto", "betreff", "datum", "faelligkeit",
+        UIAgGridColumnDef(
+          "kunde",
+          headerName = "fibu.kunde",
+          valueGetter = "data.customer.displayName",
+          sortable = true,
+        )
+      )
+      .add(
+        UIAgGridColumnDef(
+          "projekt",
+          headerName = "fibu.projekt",
+          valueGetter = "data.project.displayName",
+          sortable = true,
+        )
+      )
+      .add(
+        UIAgGridColumnDef(
+          "konto",
+          headerName = "fibu.konto",
+          valueGetter = "data.konto.displayName",
+          sortable = true,
+        )
+      )
+      .add(
+        lc, "betreff", "datum", "faelligkeit", "status",
         "bezahlDatum", "periodOfPerformanceBegin", "periodOfPerformanceEnd"
       )
       .add(UIAgGridColumnDef("formattedNetSum", headerName = "fibu.common.netto"))
       .add(UIAgGridColumnDef("formattedGrossSum", headerName = "fibu.rechnung.bruttoBetrag"))
       .add(UIAgGridColumnDef("orders", headerName = "fibu.auftrag.auftraege", dataType = UIDataType.INT))
-      .add(lc, "bemerkung", "status")
+      .add(lc, "bemerkung")
       .withMultiRowSelection(request, this::class.java, multiSelectionMode)
     /*layout.getTableColumnById("kunde").formatter = Formatter.CUSTOMER
     layout.getTableColumnById("konto").formatter = Formatter.KONTO
@@ -135,6 +166,9 @@ class RechnungPagesRest :
   override fun transformFromDB(obj: RechnungDO, editMode: Boolean): Rechnung {
     val rechnung = Rechnung()
     rechnung.copyFrom(obj)
+    if (editMode) {
+      rechnung.copyPositionenFrom(obj)
+    }
     return rechnung
   }
 }

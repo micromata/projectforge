@@ -1202,7 +1202,8 @@ constructor(
   /**
    * Implement on how to transform objects from the data base (of type O, ExtendedBaseDO) to dto objects.
    * @param obj The object to transform.
-   * @param editMode If true, this object will be prepared for editing by the user. (Used e. g. by [org.projectforge.rest.TeamCalPagesRest].
+   * @param editMode If true, this object will be prepared for editing by the user. (Used e. g. by [org.projectforge.rest.TeamCalPagesRest]. EditMode
+   * may also used for transforming from data base for list views (with minimal set of data) or edit mode with more data.
    */
   abstract fun transformFromDB(obj: O, editMode: Boolean = false): DTO
 

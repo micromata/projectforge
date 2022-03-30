@@ -28,71 +28,74 @@ import org.projectforge.framework.utils.NumberFormatter
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class Eingangsrechnung(var receiver: String? = null,
-                       var iban: String? = null,
-                       var bic: String? = null,
-                       var referenz: String? = null,
-                       var kreditor: String? = null,
-                       var paymentType: PaymentType? = null,
-                       var customernr: String? = null,
-                       var datum: LocalDate? = null,
-                       var betreff: String? = null,
-                       var bemerkung: String? = null,
-                       var besonderheiten: String? = null,
-                       var faelligkeit: LocalDate? = null,
-                       var zahlungsZielInTagen: Int? = null,
-                       var discountZahlungsZielInTagen: Int? = null,
-                       var bezahlDatum: LocalDate? = null,
-                       override var zahlBetrag: BigDecimal? = null,
-                       var konto: Konto? = null,
-                       var discountPercent: BigDecimal? = null,
-                       var discountMaturity: LocalDate? = null
+class Eingangsrechnung(
+  var receiver: String? = null,
+  var iban: String? = null,
+  var bic: String? = null,
+  var referenz: String? = null,
+  var kreditor: String? = null,
+  var paymentType: PaymentType? = null,
+  var customernr: String? = null,
+  var datum: LocalDate? = null,
+  var betreff: String? = null,
+  var bemerkung: String? = null,
+  var besonderheiten: String? = null,
+  var faelligkeit: LocalDate? = null,
+  var zahlungsZielInTagen: Int? = null,
+  var discountZahlungsZielInTagen: Int? = null,
+  var bezahlDatum: LocalDate? = null,
+  override var zahlBetrag: BigDecimal? = null,
+  var konto: Konto? = null,
+  var discountPercent: BigDecimal? = null,
+  var discountMaturity: LocalDate? = null
 ) : BaseDTO<EingangsrechnungDO>(), IRechnung {
-    override var positionen: MutableList<EingangsrechnungsPosition>? = null
+  override var positionen: MutableList<EingangsrechnungsPosition>? = null
 
-    override val netSum: BigDecimal
-        get() = RechnungCalculator.calculateNetSum(this)
+  override val netSum: BigDecimal
+    get() = RechnungCalculator.calculateNetSum(this)
 
-    override val vatAmountSum: BigDecimal
-        get() = RechnungCalculator.calculateVatAmountSum(this)
+  override val vatAmountSum: BigDecimal
+    get() = RechnungCalculator.calculateVatAmountSum(this)
 
-    val grossSum: BigDecimal
-        get() = RechnungCalculator.calculateGrossSum(this)
+  val grossSum: BigDecimal
+    get() = RechnungCalculator.calculateGrossSum(this)
 
-    var formattedNetSum: String? = null
+  var formattedNetSum: String? = null
 
-    var formattedVatAmountSum: String? = null
+  var formattedVatAmountSum: String? = null
 
-    var formattedGrossSum: String? = null
+  var formattedGrossSum: String? = null
 
-    val isBezahlt: Boolean
-        get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
-            true
-        } else this.bezahlDatum != null && this.zahlBetrag != null
+  val isBezahlt: Boolean
+    get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
+      true
+    } else this.bezahlDatum != null && this.zahlBetrag != null
 
+  override fun copyFrom(src: EingangsrechnungDO) {
+    super.copyFrom(src)
+    formattedNetSum = NumberFormatter.formatCurrency(netSum, true)
+    formattedGrossSum = NumberFormatter.formatCurrency(grossSum, true)
+    formattedVatAmountSum = NumberFormatter.formatCurrency(vatAmountSum, true)
+  }
 
-    override fun copyFrom(src: EingangsrechnungDO) {
-        super.copyFrom(src)
-        val list = positionen ?: mutableListOf()
-        src.positionen?.forEach {
-            val pos = EingangsrechnungsPosition()
-            pos.copyFrom(it)
-            list.add(pos)
-        }
-        positionen = list
-        formattedNetSum = NumberFormatter.formatCurrency(netSum, true)
-        formattedGrossSum = NumberFormatter.formatCurrency(grossSum, true)
-        formattedVatAmountSum = NumberFormatter.formatCurrency(vatAmountSum, true)
+  fun copyPositionenFrom(src: EingangsrechnungDO) {
+    val list = positionen ?: mutableListOf()
+    src.positionen?.forEach {
+      val pos = EingangsrechnungsPosition()
+      pos.copyFrom(it)
+      list.add(pos)
     }
+    positionen = list
+  }
 
-    override fun copyTo(dest: EingangsrechnungDO) {
-        super.copyTo(dest)
-        val list = dest.positionen ?: mutableListOf()
-        positionen?.forEach {
-            val pos = EingangsrechnungsPositionDO()
-            it.copyTo(pos)
-            list.add(pos)
-        }
-        dest.positionen = list
+  override fun copyTo(dest: EingangsrechnungDO) {
+    super.copyTo(dest)
+    val list = dest.positionen ?: mutableListOf()
+    positionen?.forEach {
+      val pos = EingangsrechnungsPositionDO()
+      it.copyTo(pos)
+      list.add(pos)
     }
+    dest.positionen = list
+  }
 }

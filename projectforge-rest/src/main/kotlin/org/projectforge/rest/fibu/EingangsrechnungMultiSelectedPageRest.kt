@@ -33,6 +33,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractPagesRest
@@ -69,7 +70,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
     return "fibu.eingangsrechnung.multiselected.title"
   }
 
-  override val listPageUrl: String = "/wa/incomingInvoiceList"
+  override val listPageUrl: String = "/${MenuItemDefId.INCOMING_INVOICE_LIST.url}"
 
   override val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
     get() = EingangsrechnungPagesRest::class.java
