@@ -221,9 +221,16 @@ object LayoutUtils {
 
   /**
    * @param layoutSettings One element is returned including the label (e. g. UIInput).
+   * @param minLengthOfTextArea For text fields longer than minLengthOfTextArea, a UITextArea is used instead of UIInput.
+   *                            Default length is [DEFAULT_MIN_LENGTH_OF_TEXT_AREA], meaning fields with max length of more
+   *                            than [DEFAULT_MIN_LENGTH_OF_TEXT_AREA] will be displayed as TextArea.
    */
-  internal fun buildLabelInputElement(layoutSettings: LayoutContext, id: String): UIElement {
-    return ElementsRegistry.buildElement(layoutSettings, id)
+  internal fun buildLabelInputElement(
+    layoutSettings: LayoutContext,
+    id: String,
+    minLengthOfTextArea: Int = DEFAULT_MIN_LENGTH_OF_TEXT_AREA,
+  ): UIElement {
+    return ElementsRegistry.buildElement(layoutSettings, id, minLengthOfTextArea)
   }
 
   /**
@@ -463,4 +470,6 @@ object LayoutUtils {
   }
 
   internal enum class LabelType { ADDITIONAL_LABEL, TOOLTIP }
+
+  const val DEFAULT_MIN_LENGTH_OF_TEXT_AREA = 255
 }
