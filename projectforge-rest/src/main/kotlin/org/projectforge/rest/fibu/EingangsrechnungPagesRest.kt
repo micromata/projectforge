@@ -27,11 +27,12 @@ import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.rest.dto.Eingangsrechnung
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -57,6 +58,9 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
   override fun transformFromDB(obj: EingangsrechnungDO, editMode: Boolean): Eingangsrechnung {
     val eingangsrechnung = Eingangsrechnung()
     eingangsrechnung.copyFrom(obj)
+    if (editMode) {
+      eingangsrechnung.copyPositionenFrom(obj)
+    }
     return eingangsrechnung
   }
 
@@ -69,13 +73,18 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val multiSelectionMode = MultiSelectionSupport.isMultiSelection(request, magicFilter)
     val layout = super.createListLayout(request, magicFilter)
-    MultiSelectionSupport.prepareUIGrid4ListPage(request, layout, EingangsrechnungMultiSelectedPageRest::class.java, magicFilter)
+    MultiSelectionSupport.prepareUIGrid4ListPage(
+      request,
+      layout,
+      EingangsrechnungMultiSelectedPageRest::class.java,
+      magicFilter,
+    )
       .add(lc, "kreditor")
       .add(
         UIAgGridColumnDef(
           "konto",
           headerName = "fibu.konto",
-          valueGetter = "data.konto.nummer + ' ' + data.konto.bezeichnung"
+          valueGetter = "data.konto.displayName"
         )
       )
       .add(lc, "referenz", "betreff", "datum", "faelligkeit", "bezahlDatum")
