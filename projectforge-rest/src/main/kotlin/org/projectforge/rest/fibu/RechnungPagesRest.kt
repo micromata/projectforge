@@ -27,9 +27,9 @@ import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AGGridSupport
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Rechnung
-import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -44,64 +44,23 @@ class RechnungPagesRest :
    * LAYOUT List page
    */
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val multiSelectionMode = MultiSelectionSupport.isMultiSelection(request, magicFilter)
     val layout = super.createListLayout(request, magicFilter)
-    MultiSelectionSupport.prepareUIGrid4ListPage(
+    AGGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       RechnungMultiSelectedPageRest::class.java,
       magicFilter,
     )
+      .add(lc, "nummer", width = 120)
+      .add(lc, "customer", lcField = "kunde")
+      .add(lc, "project", lcField = "projekt")
       .add(
-        UIAgGridColumnDef(
-          "nummer",
-          headerName = "fibu.rechnung.nummer",
-          sortable = true,
-          width = 120,
-        )
+        lc, "betreff", "datum", "faelligkeit", "bezahlDatum", "status"
       )
-      .add(
-        UIAgGridColumnDef(
-          "kunde",
-          headerName = "fibu.kunde",
-          valueGetter = "data.customer.displayName",
-          sortable = true,
-        )
-      )
-      .add(
-        UIAgGridColumnDef(
-          "projekt",
-          headerName = "fibu.projekt",
-          valueGetter = "data.project.displayName",
-          sortable = true,
-        )
-      )
-      .add(
-        lc, "betreff", "datum", "faelligkeit", "bezahlDatum", "status")
-      .add(
-        UIAgGridColumnDef(
-          "formattedNetSum",
-          headerName = "fibu.common.netto",
-          width = 120,
-          ).withAGType(UIAgGridColumnDef.AG_TYPE.RIGHT_ALIGNED)
-      )
-      .add(
-        UIAgGridColumnDef(
-          "formattedGrossSum",
-          headerName = "fibu.rechnung.bruttoBetrag",
-          width = 120,
-          ).withAGType(UIAgGridColumnDef.AG_TYPE.RIGHT_ALIGNED)
-      )
-      .add(
-        UIAgGridColumnDef(
-          "konto",
-          headerName = "fibu.konto",
-          valueGetter = "data.konto.displayName",
-          sortable = true,
-        )
-      )
-      .add(lc, "bemerkung", "periodOfPerformanceBegin", "periodOfPerformanceEnd")
-      .withMultiRowSelection(request, this::class.java, multiSelectionMode)
+      .add(lc, "formattedNetSum", headerName = "fibu.common.netto")
+      .add(UIAgGridColumnDef.createCurrencyCol(lc, "formattedGrossSum", headerName = "fibu.rechnung.bruttoBetrag"))
+      .add(lc, "konto", "bemerkung", "periodOfPerformanceBegin", "periodOfPerformanceEnd")
+      .withMultiRowSelection(request, magicFilter)
       .withPinnedLeft(3)
     /*layout.getTableColumnById("kunde").formatter = Formatter.CUSTOMER
     layout.getTableColumnById("konto").formatter = Formatter.KONTO

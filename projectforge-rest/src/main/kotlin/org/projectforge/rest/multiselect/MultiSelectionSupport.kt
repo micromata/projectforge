@@ -25,46 +25,62 @@ package org.projectforge.rest.multiselect
 
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.rest.core.PagesResolver
-import org.projectforge.rest.core.RestResolver
-import org.projectforge.ui.*
 import java.io.Serializable
-import javax.print.attribute.standard.PageRanges
 import javax.servlet.http.HttpServletRequest
 
 /**
  * Supports multi selection and updates of list pages.
  */
 object MultiSelectionSupport {
+  /**
+   * @param identifierClazz The name of the class is used as identifier.
+   * @param callerUrl The caller url is used for redirect back to the caller after multi selection. This is used, if
+   * different sources exist (classical Wicket list page and React list page). It will be stored in the user's session.
+   */
   @JvmStatic
   fun registerEntitiesForSelection(
     request: HttpServletRequest,
-    clazz: Class<out Any>,
-    entityCollection: Collection<IdObject<*>>
+    identifierClazz: Class<out Any>,
+    entityCollection: Collection<IdObject<*>>,
+    callerUrl: String? = null,
   ) {
-    registerEntitiesForSelection(request, clazz.name, entityCollection)
+    registerEntitiesForSelection(request, identifierClazz.name, entityCollection, callerUrl)
   }
 
+  /**
+   * @param identifier for registering the entities. Identifier is also needed to get the entities in a later request.
+   * @param callerUrl The caller url is used for redirect back to the caller after multi selection. This is used, if
+   * different sources exist (classical Wicket list page and React list page). It will be stored in the user's session.
+   */
   @JvmStatic
   fun registerEntitiesForSelection(
     request: HttpServletRequest,
     identifier: String,
-    entityCollection: Collection<IdObject<*>>
+    entityCollection: Collection<IdObject<*>>,
+    callerUrl: String? = null,
   ) {
     val idList = entityCollection.map { it.id }
-    registerEntityIdsForSelection(request, identifier, idList)
+    registerEntityIdsForSelection(request, identifier, idList, callerUrl)
   }
 
+  /**
+   * @param callerUrl The caller url is used for redirect back to the caller after multi selection. This is used, if
+   * different sources exist (classical Wicket list page and React list page). It will be stored in the user's session.
+   */
   @JvmStatic
-  fun registerEntityIdsForSelection(request: HttpServletRequest, identifier: String, idList: Collection<*>) {
+  fun registerEntityIdsForSelection(
+    request: HttpServletRequest, identifier: String, idList: Collection<*>, callerUrl: String? = null,
+  ) {
     registerSelectedEntityIds(request, identifier, null) // Clear selection.
     ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier", idList, TTL_MINUTES)
+    callerUrl?.let {
+      ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier.callerUrl", it, TTL_MINUTES)
+    }
   }
 
-  fun getRegisteredEntityIds(request: HttpServletRequest, clazz: Class<out Any>): Collection<Serializable>? {
-    return getRegisteredEntityIds(request, clazz.name)
+  fun getRegisteredEntityIds(request: HttpServletRequest, identifierClazz: Class<out Any>): Collection<Serializable>? {
+    return getRegisteredEntityIds(request, identifierClazz.name)
   }
 
   @Suppress("UNCHECKED_CAST")
@@ -75,11 +91,22 @@ object MultiSelectionSupport {
     ) as? Collection<Serializable>
   }
 
+  fun getRegisteredCallerUrl(request: HttpServletRequest, identifierClazz: Class<out Any>): String? {
+    return getRegisteredCallerUrl(request, identifierClazz.name)
+  }
+
+  fun getRegisteredCallerUrl(request: HttpServletRequest, identifier: String): String? {
+    return ExpiringSessionAttributes.getAttribute(
+      request,
+      "$SESSSION_ATTRIBUTE_ENTITIES:$identifier.callerUrl"
+    ) as? String
+  }
+
   /**
    * Register the selected entities sent by the client for later recovering (e. g. on reload).
    */
-  fun registerSelectedEntityIds(request: HttpServletRequest, clazz: Class<out Any>, idList: Collection<Serializable>?) {
-    registerSelectedEntityIds(request, clazz.name, idList)
+  fun registerSelectedEntityIds(request: HttpServletRequest, identifierClazz: Class<out Any>, idList: Collection<Serializable>?) {
+    registerSelectedEntityIds(request, identifierClazz.name, idList)
   }
 
   /**
@@ -128,36 +155,8 @@ object MultiSelectionSupport {
     return magicFilter.multiSelection == true
   }
 
-  /**
-   * Creates UIGridTable and adds it to the given layout. Will also handle flag layout.hideSearchFilter o
-   * multi-selection mode.
-   */
-  fun prepareUIGrid4ListPage(
-    request: HttpServletRequest,
-    layout: UILayout,
-    pagesRest: Class<out AbstractDynamicPageRest>,
-    magicFilter: MagicFilter,
-  ): UIAgGrid {
-    val table = UIAgGrid.createUIResultSetTable()
-    layout.add(table)
-    if (isMultiSelection(request, magicFilter)) {
-      layout.hideSearchFilter = true
-      table.urlAfterMultiSelect = RestResolver.getRestUrl(pagesRest, AbstractMultiSelectedPage.URL_PATH_SELECTED)
-      layout
-        .add(
-          UIAlert(
-            message = "multiselection.aggrid.selection.info.message",
-            title = "multiselection.aggrid.selection.info.title",
-            color = UIColor.INFO,
-            markdown = true,
-          )
-        )
-    }
-    return table
-  }
-
   private const val TTL_MINUTES = 60
   private val SESSSION_ATTRIBUTE_ENTITIES = "{${MultiSelectionSupport::class.java.name}.entities"
   private val SESSSION_ATTRIBUTE_SELECTED_ENTITIES = "{${MultiSelectionSupport::class.java.name}.selected.entities"
-  private val REQUEST_PARAM_MULTI_SELECTION = "multiSelectionMode"
+  private const val REQUEST_PARAM_MULTI_SELECTION = "multiSelectionMode"
 }
