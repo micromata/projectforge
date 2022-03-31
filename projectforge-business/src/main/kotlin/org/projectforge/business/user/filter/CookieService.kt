@@ -80,6 +80,7 @@ class CookieService {
           )
         log.warn(msg)
         logSecurityWarn(this.javaClass, "LOGIN FAILED", msg)
+        clearCookie(response, stayLoggedInCookie)
         return null
       }
       if (!Login.getInstance().checkStayLoggedIn(user)) {
