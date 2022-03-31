@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AGGridSupport
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Eingangsrechnung
 import org.projectforge.rest.dto.PostData
@@ -71,37 +72,18 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
    * LAYOUT List page
    */
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val multiSelectionMode = MultiSelectionSupport.isMultiSelection(request, magicFilter)
     val layout = super.createListLayout(request, magicFilter)
-    MultiSelectionSupport.prepareUIGrid4ListPage(
+    AGGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       EingangsrechnungMultiSelectedPageRest::class.java,
       magicFilter,
     )
-      .add(lc, "kreditor")
-      .add(
-        UIAgGridColumnDef(
-          "konto",
-          headerName = "fibu.konto",
-          valueGetter = "data.konto.displayName"
-        )
-      )
-      .add(lc, "referenz", "betreff", "datum", "faelligkeit", "bezahlDatum")
-      .add(
-        UIAgGridColumnDef(
-          "formattedNetSum",
-          headerName = "fibu.common.netto"
-        ).withAGType(UIAgGridColumnDef.AG_TYPE.RIGHT_ALIGNED)
-      )
-      .add(
-        UIAgGridColumnDef(
-          "formattedGrossSum",
-          headerName = "fibu.rechnung.bruttoBetrag"
-        ).withAGType(UIAgGridColumnDef.AG_TYPE.RIGHT_ALIGNED)
-      )
+      .add(lc, "kreditor", "konto", "referenz", "betreff", "datum", "faelligkeit", "bezahlDatum")
+      .add(UIAgGridColumnDef.createCurrencyCol(lc, "formattedNetSum", headerName = "fibu.common.netto"))
+      .add(UIAgGridColumnDef.createCurrencyCol(lc, "formattedGrossSum", headerName = "fibu.rechnung.bruttoBetrag" ))
       .add(lc, "bemerkung")
-      .withMultiRowSelection(request, this::class.java, multiSelectionMode)
+      .withMultiRowSelection(request, magicFilter)
     //layout.getTableColumnById("konto").formatter = Formatter.KONTO
     //layout.getTableColumnById("faelligkeit").formatter = Formatter.DATE
     //layout.getTableColumnById("bezahlDatum").formatter = Formatter.DATE

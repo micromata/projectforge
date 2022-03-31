@@ -52,8 +52,8 @@ import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.framework.utils.ReflectionHelper;
 import org.projectforge.rest.core.AbstractPagesRest;
-import org.projectforge.rest.multiselect.MultiSelectionSupport;
 import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.rest.multiselect.MultiSelectionSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
@@ -756,7 +756,8 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
         new Link<Object>("link") {
           @Override
           public void onClick() {
-            MultiSelectionSupport.registerEntitiesForSelection(WicketUtils.getHttpServletRequest(getRequest()), pagesRestClass, getList());
+            MultiSelectionSupport.registerEntitiesForSelection(WicketUtils.getHttpServletRequest(getRequest()), pagesRestClass, getList(),
+                getPageAsLink());
             final String redirectUrl = PagesResolver.getMultiSelectionPageUrl(pagesRestClass, true);
             throw new RedirectToUrlException(redirectUrl);
           }

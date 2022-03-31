@@ -24,6 +24,7 @@
 package org.projectforge.ui
 
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
@@ -71,31 +72,50 @@ open class UIAgGrid(
 
   /**
    * For adding columns with the given ids
+   * @param valueGetter Make only sense, if no multiple fields are given.
+   * @param lcField Make only sense, if no multiple fields are given.
    * @return this for chaining.
    */
-  fun add(lc: LayoutContext, vararg columnIds: String, sortable: Boolean = true): UIAgGrid {
+  fun add(
+    lc: LayoutContext,
+    vararg columnIds: String,
+    sortable: Boolean = true,
+    width: Int? = null,
+    headerName: String? = null,
+    valueFormatter: Formatter? = null,
+    valueGetter: String? = null,
+    lcField: String? = null,
+  ): UIAgGrid {
     columnIds.forEach {
-      val col = UIAgGridColumnDef(it, sortable = sortable)
-      val elementInfo = ElementsRegistry.getElementInfo(lc, it)
-      if (elementInfo != null) {
-        col.headerName = elementInfo.i18nKey
-        /* col.dataType = UIDataTypeUtils.ensureDataType(elementInfo)
-         if (col.dataType == UIDataType.BOOLEAN) {
-           col.setStandardBoolean()
-         }*/
-      }
-      if (!lc.idPrefix.isNullOrBlank())
-        col.id = "${lc.idPrefix}${col.id}"
-      add(col)
+      add(
+        UIAgGridColumnDef.createCol(
+          lc,
+          field = it,
+          sortable = sortable,
+          width = width,
+          headerName = headerName,
+          valueGetter = valueGetter,
+          valueFormatter = valueFormatter,
+          lcField = lcField ?: it,
+        )
+      )
     }
     return this
+  }
+
+  fun getColumnDefById(field: String): UIAgGridColumnDef {
+    return columnDefs.find { it.field == field }!!
   }
 
   /**
    * @return this for chaining.
    */
-  fun withMultiRowSelection(request: HttpServletRequest, clazz: Class<out Any>, state: Boolean = true): UIAgGrid {
-    if (state) {
+  fun withMultiRowSelection(
+    request: HttpServletRequest,
+    magicFilter: MagicFilter
+  ): UIAgGrid {
+    val multiSelectionMode = MultiSelectionSupport.isMultiSelection(request, magicFilter)
+    if (multiSelectionMode) {
       rowSelection = "multiple"
       rowMultiSelectWithClick = true
       if (columnDefs.size > 0) {
