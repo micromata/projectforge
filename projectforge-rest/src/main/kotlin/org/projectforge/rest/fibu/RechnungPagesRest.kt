@@ -26,7 +26,6 @@ package org.projectforge.rest.fibu
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Rechnung
@@ -53,7 +52,14 @@ class RechnungPagesRest :
       RechnungMultiSelectedPageRest::class.java,
       magicFilter,
     )
-      .add(lc, "nummer")
+      .add(
+        UIAgGridColumnDef(
+          "nummer",
+          headerName = "fibu.rechnung.nummer",
+          sortable = true,
+          width = 120,
+        )
+      )
       .add(
         UIAgGridColumnDef(
           "kunde",
@@ -71,6 +77,22 @@ class RechnungPagesRest :
         )
       )
       .add(
+        lc, "betreff", "datum", "faelligkeit", "bezahlDatum", "status")
+      .add(
+        UIAgGridColumnDef(
+          "formattedNetSum",
+          headerName = "fibu.common.netto",
+          width = 120,
+          ).withAGType(UIAgGridColumnDef.AG_TYPE.RIGHT_ALIGNED)
+      )
+      .add(
+        UIAgGridColumnDef(
+          "formattedGrossSum",
+          headerName = "fibu.rechnung.bruttoBetrag",
+          width = 120,
+          ).withAGType(UIAgGridColumnDef.AG_TYPE.RIGHT_ALIGNED)
+      )
+      .add(
         UIAgGridColumnDef(
           "konto",
           headerName = "fibu.konto",
@@ -78,15 +100,9 @@ class RechnungPagesRest :
           sortable = true,
         )
       )
-      .add(
-        lc, "betreff", "datum", "faelligkeit", "status",
-        "bezahlDatum", "periodOfPerformanceBegin", "periodOfPerformanceEnd"
-      )
-      .add(UIAgGridColumnDef("formattedNetSum", headerName = "fibu.common.netto"))
-      .add(UIAgGridColumnDef("formattedGrossSum", headerName = "fibu.rechnung.bruttoBetrag"))
-      .add(UIAgGridColumnDef("orders", headerName = "fibu.auftrag.auftraege", dataType = UIDataType.INT))
-      .add(lc, "bemerkung")
+      .add(lc, "bemerkung", "periodOfPerformanceBegin", "periodOfPerformanceEnd")
       .withMultiRowSelection(request, this::class.java, multiSelectionMode)
+      .withPinnedLeft(3)
     /*layout.getTableColumnById("kunde").formatter = Formatter.CUSTOMER
     layout.getTableColumnById("konto").formatter = Formatter.KONTO
     layout.getTableColumnById("projekt").formatter = Formatter.PROJECT
@@ -168,6 +184,8 @@ class RechnungPagesRest :
     rechnung.copyFrom(obj)
     if (editMode) {
       rechnung.copyPositionenFrom(obj)
+    } else {
+      rechnung.project?.displayName = obj.projekt?.name
     }
     return rechnung
   }

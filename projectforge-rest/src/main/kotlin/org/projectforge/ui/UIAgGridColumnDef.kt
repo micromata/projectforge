@@ -35,14 +35,29 @@ open class UIAgGridColumnDef(
   var valueGetter: String? = null,
   var valueFormatter: String? = null,
   var dataType: UIDataType = UIDataType.STRING,
-  var agType: String? = null,
+  var type: String? = null,
   var checkboxSelection: Boolean? = null,
   var headerCheckboxSelection: Boolean? = null,
+  var width: Int? = null,
+  var minWidth: Int? = null,
+  var maxWidth: Int? = null,
 ) {
+  var pinned: String? = null
+
   enum class AG_TYPE(val agType: String) { NUMERIC_COLUMN("numericColumn"), RIGHT_ALIGNED("rightAligned") }
 
   fun withAGType(type: AG_TYPE): UIAgGridColumnDef {
-    this.agType = type.agType
+    this.type = type.agType
+    return this
+  }
+
+  fun withPinnedLeft(): UIAgGridColumnDef {
+    pinned = "left"
+    return this
+  }
+
+  fun withPinnedRight(): UIAgGridColumnDef {
+    pinned = "right"
     return this
   }
 }

@@ -30,7 +30,6 @@ function DynamicListPageAgGrid({
 
     React.useEffect(() => {
         if (gridApi && selectedEntityIds) {
-            console.log({ selectedEntityIds });
             gridApi.forEachNode((node) => {
                 const row = node.data;
                 // Recover previous selected nodes from server (if any):

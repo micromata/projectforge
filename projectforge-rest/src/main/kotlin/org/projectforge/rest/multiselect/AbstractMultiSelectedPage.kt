@@ -24,9 +24,11 @@
 package org.projectforge.rest.multiselect
 
 import org.projectforge.common.BeanHelper
+import org.projectforge.common.i18n.UserException
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -85,6 +87,9 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRestClass)
     if (selectedIds.isNullOrEmpty()) {
       return showNoEntriesValidationError()
+    }
+    if (selectedIds.size > BaseDao.MAX_MASS_UPDATE) {
+      return showValidationErrors(ValidationError(translateMsg(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, BaseDao.MAX_MASS_UPDATE)))
     }
     val params = postData.data
     var nothingToDo = true
@@ -277,7 +282,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     return showValidationErrors(ValidationError(translate("massUpdate.error.nothingToDo")))
   }
 
-  protected fun showSuccessToas(numberOfEntries: Int): ResponseEntity<ResponseAction> {
+  protected fun showSuccessToast(numberOfEntries: Int): ResponseEntity<ResponseAction> {
     return UIToast.createToastResponseEntity(
       translateMsg(
         "massUpdate.success",
