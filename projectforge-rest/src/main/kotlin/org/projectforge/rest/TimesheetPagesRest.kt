@@ -46,10 +46,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.calendar.CalEventPagesRest
 import org.projectforge.rest.calendar.TeamEventPagesRest
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.core.RestButtonEvent
-import org.projectforge.rest.core.RestHelper
-import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.core.*
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
@@ -246,26 +243,31 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
    */
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     lc.idPrefix = "timesheet."
-    val table = UITable.createUIResultSetTable()
+    val layout = super.createListLayout(request, magicFilter)
+    val table = AGGridSupport.prepareUIGrid4ListPage(
+      request,
+      layout,
+      TimesheetMultiSelectedPageRest::class.java,
+      magicFilter,
+    )
       .add(lc, "user")
-      .add(UITableColumn("timesheet.kost2.project.customer", "fibu.kunde", formatter = Formatter.CUSTOMER))
-      .add(UITableColumn("timesheet.kost2.project", "fibu.projekt", formatter = Formatter.PROJECT))
+      .add(lc, "kost2.project.customer", lcField = "kost2.projekt.kunde")
+      .add(lc,"kost2.project", lcField = "kost2.projekt")
       .add(lc, "task")
-      .add(UITableColumn("timesheet.kost2", "fibu.kost2", formatter = Formatter.COST2))
-      .add(UITableColumn("weekOfYear", "calendar.weekOfYearShortLabel"))
-      .add(UITableColumn("dayName", "calendar.dayOfWeekShortLabel"))
-      .add(UITableColumn("timePeriod", "timePeriod"))
-      .add(UITableColumn("duration", "timesheet.duration"))
+      .add(lc, "kost2")
+      .add(lc, "weekOfYear", headerName = "calendar.weekOfYearShortLabel")
+      .add(lc, "dayName", headerName = "calendar.dayOfWeekShortLabel")
+      .add(lc, "timePeriod", headerName = "timePeriod")
+      .add(lc, "duration", headerName = "timesheet.duration")
       .add(lc, "location", "reference")
+      .withMultiRowSelection(request, magicFilter)
     if (!baseDao.getTags().isNullOrEmpty()) {
       table.add(lc, "tag")
     }
     table.add(lc, "description")
-    val layout = super.createListLayout(request, magicFilter)
-      .add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
-      .add(table)
-    layout.getTableColumnById("timesheet.user").formatter = Formatter.USER
-    layout.getTableColumnById("timesheet.task").formatter = Formatter.TASK_PATH
+    layout.add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
+    // table.getColumnDefById("timesheet.user").valueFormatter = Formatter.USER
+    // table.getColumnDefById("timesheet.task").valueFormatter = Formatter.TASK_PATH
     return LayoutUtils.processListPage(layout, this)
   }
 
