@@ -106,4 +106,12 @@ open class UIAgGrid(
     }
     return this
   }
+
+  fun withPinnedLeft(col: Int) {
+    columnDefs.forEachIndexed { index, columnDef ->
+      if (index < col) {
+        columnDef.withPinnedLeft()
+      }
+    }
+  }
 }

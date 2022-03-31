@@ -92,13 +92,13 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
         UIAgGridColumnDef(
           "formattedNetSum",
           headerName = "fibu.common.netto"
-        ).withAGType(UIAgGridColumnDef.AG_TYPE.NUMERIC_COLUMN)
+        ).withAGType(UIAgGridColumnDef.AG_TYPE.RIGHT_ALIGNED)
       )
       .add(
         UIAgGridColumnDef(
           "formattedGrossSum",
           headerName = "fibu.rechnung.bruttoBetrag"
-        ).withAGType(UIAgGridColumnDef.AG_TYPE.NUMERIC_COLUMN)
+        ).withAGType(UIAgGridColumnDef.AG_TYPE.RIGHT_ALIGNED)
       )
       .add(lc, "bemerkung")
       .withMultiRowSelection(request, this::class.java, multiSelectionMode)

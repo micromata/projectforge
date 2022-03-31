@@ -73,9 +73,9 @@ class Eingangsrechnung(
 
   override fun copyFrom(src: EingangsrechnungDO) {
     super.copyFrom(src)
-    formattedNetSum = NumberFormatter.formatCurrency(netSum, true)
-    formattedGrossSum = NumberFormatter.formatCurrency(grossSum, true)
-    formattedVatAmountSum = NumberFormatter.formatCurrency(vatAmountSum, true)
+    formattedNetSum = NumberFormatter.formatCurrency(src.netSum, true)
+    formattedGrossSum = NumberFormatter.formatCurrency(src.grossSum, true)
+    formattedVatAmountSum = NumberFormatter.formatCurrency(src.vatAmountSum, true)
   }
 
   fun copyPositionenFrom(src: EingangsrechnungDO) {

@@ -64,9 +64,6 @@ class Rechnung(
   val grossSum: BigDecimal
     get() = RechnungCalculator.calculateGrossSum(this)
 
-  var orders: Int? = null
-    get() = positionen?.size
-
   var formattedNetSum: String? = null
 
   var formattedVatAmountSum: String? = null
@@ -89,9 +86,9 @@ class Rechnung(
       customer = Customer()
       customer?.copyFromMinimal(c)
     }
-    formattedNetSum = NumberFormatter.formatCurrency(netSum)
-    formattedGrossSum = NumberFormatter.formatCurrency(grossSum)
-    formattedVatAmountSum = NumberFormatter.formatCurrency(vatAmountSum)
+    formattedNetSum = NumberFormatter.formatCurrency(src.netSum, true)
+    formattedGrossSum = NumberFormatter.formatCurrency(src.grossSum, true)
+    formattedVatAmountSum = NumberFormatter.formatCurrency(src.vatAmountSum, true)
   }
 
   fun copyPositionenFrom(src: RechnungDO) {
@@ -109,7 +106,6 @@ class Rechnung(
       konto?.copyFromMinimal(it)
     }
     positionen = list
-    orders = positionen!!.size
   }
 
   override fun copyTo(dest: RechnungDO) {
