@@ -64,9 +64,10 @@ class AbstractMultiSelectedPageTest {
     val param = MassUpdateParameter()
     param.delete = delete
     param.textValue = newValue
-    val result = AbstractMultiSelectedPage.getNewTextValue(oldValue, param, append)
+    param.append = append
+    val result = AbstractMultiSelectedPage.getNewTextValue(oldValue, param)
     val data = A(oldValue)
-    AbstractMultiSelectedPage.processTextParameter(data, "text", mapOf("text" to param), append)
+    AbstractMultiSelectedPage.processTextParameter(data, "text", mapOf("text" to param))
     if (expectedResult == null) {
       Assertions.assertNull(result, message)
       Assertions.assertEquals(oldValue, data.text, message) // Field unmodified.
