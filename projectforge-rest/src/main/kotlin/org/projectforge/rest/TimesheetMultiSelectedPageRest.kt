@@ -23,11 +23,11 @@
 
 package org.projectforge.rest
 
-import org.projectforge.business.fibu.RechnungDO
-import org.projectforge.business.fibu.RechnungStatus
+import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuItemDefId
@@ -36,8 +36,6 @@ import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UIAlert
-import org.projectforge.ui.UIColor
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -58,7 +56,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
 
 
   override fun getTitleKey(): String {
-    return "fibu.rechnung.multiselected.title"
+    return "timesheet.multiselected.title"
   }
 
   override val listPageUrl: String = "/${MenuItemDefId.OUTGOING_INVOICE_LIST.url}"
@@ -71,17 +69,22 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
     layout: UILayout,
     massUpdateData: MutableMap<String, MassUpdateParameter>
   ) {
-    val lc = LayoutContext(RechnungDO::class.java)
+    val lc = LayoutContext(TimesheetDO::class.java)
+    createAndAddFields(lc, massUpdateData, layout, "task")
+    if (Configuration.instance.isCostConfigured) {
+      createAndAddFields(lc, massUpdateData, layout, "kost2")
+    }
+    if (!timesheetDao.getTags().isNullOrEmpty()) {
+      createAndAddFields(lc, massUpdateData, layout, "tag")
+    }
     createAndAddFields(
       lc,
       massUpdateData,
       layout,
-      "datum",
-      "status",
-      "bezahlDatum",
-      "bemerkung",
+      "location",
+      "reference",
+      minLengthOfTextArea = 1000,
     )
-    layout.add(UIAlert("fibu.rechnung.multiselected.info", color = UIColor.INFO, markdown = true))
   }
 
   override fun proceedMassUpdate(
