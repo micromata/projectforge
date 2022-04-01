@@ -1,12 +1,9 @@
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
-import { AgGridReact } from 'ag-grid-react';
-import { DynamicLayoutContext } from '../../context';
 import { Button } from '../../../../design';
 import { fetchJsonPost } from '../../../../../utilities/rest';
-import 'ag-grid-community/dist/styles/ag-grid.css';
-import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import history from '../../../../../utilities/history';
+import DynamicAgGrid from './DynamicAgGrid';
 
 function DynamicListPageAgGrid({
     columnDefs,
@@ -16,34 +13,16 @@ function DynamicListPageAgGrid({
     multiSelectButtonTitle,
     urlAfterMultiSelect,
 }) {
-    const { data, ui } = React.useContext(DynamicLayoutContext);
     const [gridApi, setGridApi] = useState();
 
-    const gridStyle = React.useMemo(() => ({ width: '100%' }), []);
-    const entries = Object.getByString(data, id) || '';
-    const { selectedEntityIds } = data;
-
-    const onGridReady = React.useCallback((params) => {
-        setGridApi(params.api);
-        params.api.setDomLayout('autoHeight'); // Needed to get maximum height.
-    }, [selectedEntityIds, setGridApi]);
-
-    React.useEffect(() => {
-        if (gridApi && selectedEntityIds) {
-            gridApi.forEachNode((node) => {
-                const row = node.data;
-                // Recover previous selected nodes from server (if any):
-                node.setSelected(selectedEntityIds.includes(row.id));
-            });
-        }
-    }, [gridApi, selectedEntityIds]);
+    const onGridApiReady = (api) => {
+        setGridApi(api);
+    };
 
     const handleClick = React.useCallback((event) => {
         event.preventDefault();
         event.stopPropagation();
-        if (!gridApi) return;
         const selectedIds = gridApi.getSelectedRows().map((item) => item.id);
-        // console.log(event.target.id, selectedIds);
         fetchJsonPost(urlAfterMultiSelect,
             { selectedIds },
             (json) => {
@@ -54,10 +33,7 @@ function DynamicListPageAgGrid({
 
     // getSelectedNodes
     return React.useMemo(() => (
-        <div
-            className="ag-theme-alpine"
-            style={gridStyle}
-        >
+        <div>
             {multiSelectButtonTitle && (
                 // Show this button only for multi selection with e. g. mass update:
                 <Button
@@ -69,25 +45,21 @@ function DynamicListPageAgGrid({
                     {multiSelectButtonTitle}
                 </Button>
             )}
-            <AgGridReact
-                rowData={entries}
+            <DynamicAgGrid
+                onGridApiReady={onGridApiReady}
                 columnDefs={columnDefs}
+                id={id}
                 rowSelection={rowSelection}
                 rowMultiSelectWithClick={rowMultiSelectWithClick}
-                onGridReady={onGridReady}
             />
         </div>
     ),
     [
-        entries,
-        ui,
         handleClick,
-        gridStyle,
         multiSelectButtonTitle,
         columnDefs,
         rowSelection,
         rowMultiSelectWithClick,
-        onGridReady,
     ]);
 }
 
