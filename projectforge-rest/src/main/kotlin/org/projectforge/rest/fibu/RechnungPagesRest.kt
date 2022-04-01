@@ -54,11 +54,10 @@ class RechnungPagesRest :
       .add(lc, "nummer", width = 120)
       .add(lc, "customer", lcField = "kunde")
       .add(lc, "project", lcField = "projekt")
-      .add(
-        lc, "betreff", "datum", "faelligkeit", "bezahlDatum", "status"
-      )
-      .add(lc, "formattedNetSum", headerName = "fibu.common.netto")
-      .add(UIAgGridColumnDef.createCurrencyCol(lc, "formattedGrossSum", headerName = "fibu.rechnung.bruttoBetrag"))
+      .add(lc, "betreff", "datum", "faelligkeit", "bezahlDatum")
+      .add(lc, "status", width = 100)
+      .add(lc, "formattedNetSum", headerName = "fibu.common.netto", pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY)
+      .add(lc, "formattedGrossSum", headerName = "fibu.rechnung.bruttoBetrag", pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY)
       .add(lc, "konto", "bemerkung", "periodOfPerformanceBegin", "periodOfPerformanceEnd")
       .withMultiRowSelection(request, magicFilter)
       .withPinnedLeft(3)

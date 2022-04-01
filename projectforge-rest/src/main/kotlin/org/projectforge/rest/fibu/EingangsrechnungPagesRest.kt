@@ -27,13 +27,11 @@ import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AGGridSupport
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Eingangsrechnung
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -80,8 +78,13 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
       magicFilter,
     )
       .add(lc, "kreditor", "konto", "referenz", "betreff", "datum", "faelligkeit", "bezahlDatum")
-      .add(UIAgGridColumnDef.createCurrencyCol(lc, "formattedNetSum", headerName = "fibu.common.netto"))
-      .add(UIAgGridColumnDef.createCurrencyCol(lc, "formattedGrossSum", headerName = "fibu.rechnung.bruttoBetrag" ))
+      .add(lc, "formattedNetSum", headerName = "fibu.common.netto", pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY)
+      .add(
+        lc,
+        "formattedGrossSum",
+        headerName = "fibu.rechnung.bruttoBetrag",
+        pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY
+      )
       .add(lc, "bemerkung")
       .withMultiRowSelection(request, magicFilter)
     //layout.getTableColumnById("konto").formatter = Formatter.KONTO
