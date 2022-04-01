@@ -34,8 +34,8 @@ import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFavoritesService
 import org.projectforge.business.timesheet.TimesheetRecentService
 import org.projectforge.business.user.service.UserService
-import org.projectforge.common.DateFormatType
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
@@ -125,6 +125,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   override fun transformFromDB(obj: TimesheetDO, editMode: Boolean): Timesheet {
     val timesheet = Timesheet()
     timesheet.copyFrom(obj)
+    val day = PFDay.fromOrNull(timesheet.startTime)
     return timesheet
   }
 
@@ -197,14 +198,12 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     val list: List<Timesheet4ListExport> = resultSet.resultSet.map {
       val timesheet = Timesheet()
       timesheet.copyFrom(it)
+      val day = PFDay.fromOrNull(it.startTime)
       Timesheet4ListExport(
         timesheet,
         id = it.id,
         weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime),
-        dayName = dateTimeFormatter.getFormattedDate(
-          it.startTime,
-          DateFormats.getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)
-        ),
+        dayName = day?.dayOfWeekAsShortString ?: "??",
         timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
         duration = dateTimeFormatter.getFormattedDuration(it.timePeriod)
       )
@@ -251,20 +250,22 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       magicFilter,
     )
       .add(lc, "user")
-      .add(lc, "kost2.project.customer", lcField = "kost2.projekt.kunde")
-      .add(lc,"kost2.project", lcField = "kost2.projekt")
-      .add(lc, "task")
-      .add(lc, "kost2")
-      .add(lc, "weekOfYear", headerName = "calendar.weekOfYearShortLabel")
-      .add(lc, "dayName", headerName = "calendar.dayOfWeekShortLabel")
-      .add(lc, "timePeriod", headerName = "timePeriod")
-      .add(lc, "duration", headerName = "timesheet.duration")
+    //.add(lc, "kost2.project.customer", lcField = "kost2.projekt.kunde")
+    //.add(lc, "kost2.project", lcField = "kost2.projekt")
+    if (Configuration.instance.isCostConfigured) {
+      table.add(lc, "kost2.longDisplayName", headerName = "fibu.kost2")
+    }
+    table.add(lc, "task")
+      .add("weekOfYear", headerName = "calendar.weekOfYearShortLabel", width = 30)
+      .add("dayName", headerName = "calendar.dayOfWeekShortLabel", width = 30)
+      .add("timePeriod", headerName = "timePeriod", width = 140)
+      .add("duration", headerName = "timesheet.duration", width = 50)
       .add(lc, "location", "reference")
       .withMultiRowSelection(request, magicFilter)
     if (!baseDao.getTags().isNullOrEmpty()) {
       table.add(lc, "tag")
     }
-    table.add(lc, "description")
+    table.add(lc, "description", width = 1000)
     layout.add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
     // table.getColumnDefById("timesheet.user").valueFormatter = Formatter.USER
     // table.getColumnDefById("timesheet.task").valueFormatter = Formatter.TASK_PATH

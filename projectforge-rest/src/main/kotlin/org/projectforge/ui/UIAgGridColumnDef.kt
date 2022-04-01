@@ -71,7 +71,22 @@ open class UIAgGridColumnDef(
      * @param lcField If field name of dto differs from do (e. g. kost2.project vs. kost2.projekt)
      */
     fun createCol(
-      lc: LayoutContext,
+      field: String,
+      sortable: Boolean = true,
+      width: Int? = null,
+      headerName: String? = null,
+      valueGetter: String? = null,
+      valueFormatter: Formatter? = null,
+      pfStyle: PF_STYLE? = null,
+    ): UIAgGridColumnDef {
+      return createCol(null, field = field, sortable = sortable, width = width, headerName = headerName, valueGetter = valueGetter, valueFormatter = valueFormatter, pfStyle = pfStyle)
+    }
+
+    /**
+     * @param lcField If field name of dto differs from do (e. g. kost2.project vs. kost2.projekt)
+     */
+    fun createCol(
+      lc: LayoutContext?,
       field: String,
       sortable: Boolean = true,
       width: Int? = null,
@@ -82,8 +97,9 @@ open class UIAgGridColumnDef(
       pfStyle: PF_STYLE? = null,
     ): UIAgGridColumnDef {
       val col = UIAgGridColumnDef(field, sortable = sortable)
-      if (!lc.idPrefix.isNullOrBlank())
-        col.field = "${lc.idPrefix}${col.field}"
+      lc?.idPrefix?.let {
+        col.field = "${it}${col.field}"
+      }
       if (headerName != null) {
         col.headerName = headerName
       }

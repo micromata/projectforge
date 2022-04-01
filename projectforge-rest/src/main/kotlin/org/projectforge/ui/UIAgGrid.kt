@@ -77,6 +77,36 @@ open class UIAgGrid(
    * @return this for chaining.
    */
   fun add(
+    field: String,
+    sortable: Boolean = true,
+    width: Int? = null,
+    headerName: String? = null,
+    valueFormatter: Formatter? = null,
+    valueGetter: String? = null,
+    pfStyle: UIAgGridColumnDef.PF_STYLE? = null,
+  ): UIAgGrid {
+    add(
+      UIAgGridColumnDef.createCol(
+        lc = null,
+        field = field,
+        sortable = sortable,
+        width = width,
+        headerName = headerName,
+        valueGetter = valueGetter,
+        valueFormatter = valueFormatter,
+        pfStyle = pfStyle,
+      )
+    )
+    return this
+  }
+
+  /**
+   * For adding columns with the given ids
+   * @param valueGetter Make only sense, if no multiple fields are given.
+   * @param lcField Make only sense, if no multiple fields are given.
+   * @return this for chaining.
+   */
+  fun add(
     lc: LayoutContext,
     vararg columnIds: String,
     sortable: Boolean = true,

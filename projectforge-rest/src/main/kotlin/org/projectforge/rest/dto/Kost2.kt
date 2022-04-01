@@ -29,65 +29,70 @@ import org.projectforge.business.fibu.kost.KostentraegerStatus
 import org.projectforge.framework.configuration.ApplicationContextProvider
 
 class Kost2(
-        id: Int? = null,
-        displayName: String? = null,
-        var nummernkreis: Int = 0,
-        var bereich: Int = 0,
-        var teilbereich: Int = 0,
-        var endziffer: Int = 0,
-        var kostentraegerStatus: KostentraegerStatus? = null,
-        var description: String? = null,
-        var formattedNumber: String? = null,
-        var project: Project? = null,
-        var kost2Art: Kost2Art? = null
+  id: Int? = null,
+  displayName: String? = null,
+  var nummernkreis: Int = 0,
+  var bereich: Int = 0,
+  var teilbereich: Int = 0,
+  var endziffer: Int = 0,
+  var kostentraegerStatus: KostentraegerStatus? = null,
+  var description: String? = null,
+  var formattedNumber: String? = null,
+  var project: Project? = null,
+  var kost2Art: Kost2Art? = null,
+  var longDisplayName: String? = null,
 ) : BaseDTODisplayObject<Kost2DO>(id, displayName = displayName) {
 
-    /**
-     * @see copyFromMinimal
-     */
-    constructor(src: Kost2DO) : this() {
-        copyFromMinimal(src)
-    }
+  /**
+   * @see copyFromMinimal
+   */
+  constructor(src: Kost2DO) : this() {
+    copyFromMinimal(src)
+  }
 
-    override fun copyFromMinimal(src: Kost2DO) {
-        super.copyFromMinimal(src)
-        nummernkreis = src.nummernkreis
-        bereich = src.bereich
-        teilbereich = src.teilbereich
-        endziffer = src.kost2Art?.id ?: 0
-        description = src.description
-        formattedNumber = src.formattedNumber
-        this.project = src.projekt?.let {
-            val project = Project()
-            project.copyFromMinimal(it)
-            project
-        }
+  override fun copyFromMinimal(src: Kost2DO) {
+    super.copyFromMinimal(src)
+    nummernkreis = src.nummernkreis
+    bereich = src.bereich
+    teilbereich = src.teilbereich
+    endziffer = src.kost2Art?.id ?: 0
+    description = src.description
+    formattedNumber = src.formattedNumber
+    this.project = src.projekt?.let {
+      val project = Project()
+      project.copyFromMinimal(it)
+      longDisplayName = "$formattedNumber: ${it.kunde?.name} - ${it.name}"
+      project
     }
-
-    override fun copyFrom(src: Kost2DO) {
-        super.copyFrom(src)
-        endziffer = src.kost2Art?.id ?: 0
-        formattedNumber = src.formattedNumber
-        this.project = src.projekt?.let {
-            val project = Project()
-            project.copyFromMinimal(it)
-            project
-        }
+    if (longDisplayName == null) {
+      longDisplayName = "$formattedNumber: ${src.description}"
     }
+  }
 
-    companion object {
-        private val kost2Dao = ApplicationContextProvider.getApplicationContext().getBean(Kost2Dao::class.java)
-
-        fun getkost2(kost2Id: Int?, minimal: Boolean = true): Kost2? {
-            kost2Id ?: return null
-            val kost2DO = kost2Dao.getOrLoad(kost2Id) ?: return null
-            val kost2 = Kost2()
-            if (minimal) {
-                kost2.copyFromMinimal(kost2DO)
-            } else {
-                kost2.copyFrom(kost2DO)
-            }
-            return kost2
-        }
+  override fun copyFrom(src: Kost2DO) {
+    super.copyFrom(src)
+    endziffer = src.kost2Art?.id ?: 0
+    formattedNumber = src.formattedNumber
+    this.project = src.projekt?.let {
+      val project = Project()
+      project.copyFromMinimal(it)
+      project
     }
+  }
+
+  companion object {
+    private val kost2Dao = ApplicationContextProvider.getApplicationContext().getBean(Kost2Dao::class.java)
+
+    fun getkost2(kost2Id: Int?, minimal: Boolean = true): Kost2? {
+      kost2Id ?: return null
+      val kost2DO = kost2Dao.getOrLoad(kost2Id) ?: return null
+      val kost2 = Kost2()
+      if (minimal) {
+        kost2.copyFromMinimal(kost2DO)
+      } else {
+        kost2.copyFrom(kost2DO)
+      }
+      return kost2
+    }
+  }
 }
