@@ -2,8 +2,6 @@ import PropTypes from 'prop-types';
 import React, { useRef } from 'react';
 import { Button } from '../../../../design';
 import { fetchJsonPost } from '../../../../../utilities/rest';
-import 'ag-grid-community/dist/styles/ag-grid.css';
-import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import history from '../../../../../utilities/history';
 import DynamicAgGrid from './DynamicAgGrid';
 
@@ -15,20 +13,22 @@ function DynamicListPageAgGrid({
     multiSelectButtonTitle,
     urlAfterMultiSelect,
 }) {
-    const agGridRef = useRef();
+    const childRef = useRef();
+
+    console.log(childRef);
 
     const handleClick = React.useCallback((event) => {
         event.preventDefault();
         event.stopPropagation();
-        const selectedIds = agGridRef.current.getSelectedIds();
-        // console.log(event.target.id, selectedIds);
+        console.log(childRef);
+        const selectedIds = childRef.current.getSelectedIds();
         fetchJsonPost(urlAfterMultiSelect,
             { selectedIds },
             (json) => {
                 const { url } = json;
                 history.push(url);
             });
-    }, []);
+    }, [childRef]);
 
     // getSelectedNodes
     return React.useMemo(() => (
@@ -45,7 +45,7 @@ function DynamicListPageAgGrid({
                 </Button>
             )}
             <DynamicAgGrid
-                ref={agGridRef}
+                ref={childRef}
                 columnDefs={columnDefs}
                 id={id}
                 rowSelection={rowSelection}
@@ -59,6 +59,7 @@ function DynamicListPageAgGrid({
         columnDefs,
         rowSelection,
         rowMultiSelectWithClick,
+        childRef,
     ]);
 }
 

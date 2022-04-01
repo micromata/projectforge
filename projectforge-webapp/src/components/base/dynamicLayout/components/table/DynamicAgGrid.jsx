@@ -19,9 +19,13 @@ function DynamicAgGrid({
     const entries = Object.getByString(data, id) || '';
     const { selectedEntityIds } = data;
 
+    function getSelectedIds() {
+        React.useEffect(() => gridApi.getSelectedRows().map((item) => item.id), [gridApi]);
+    }
+
     useImperativeHandle(ref, () => ({
-        getSelectedIds: () => gridApi.getSelectedRows().map((item) => item.id),
-    }));
+        getSelectedIds,
+    }), [gridApi]);
 
     const onGridReady = React.useCallback((params) => {
         setGridApi(params.api);
