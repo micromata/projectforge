@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.fibu
 
-import org.projectforge.business.fibu.PaymentType
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.RechnungStatus
@@ -82,6 +81,8 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
       "bezahlDatum",
       "bemerkung",
     )
+    // Set append as default:
+    ensureMassUpdateParam(massUpdateData, "bemerkung").append = true
     layout.add(UIAlert("fibu.rechnung.multiselected.info", color = UIColor.INFO, markdown = true))
   }
 

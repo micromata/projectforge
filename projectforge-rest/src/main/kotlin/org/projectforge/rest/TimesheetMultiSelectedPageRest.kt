@@ -36,6 +36,7 @@ import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.ui.LayoutContext
+import org.projectforge.ui.UICustomized
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -70,10 +71,11 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
     massUpdateData: MutableMap<String, MassUpdateParameter>
   ) {
     val lc = LayoutContext(TimesheetDO::class.java)
-    createAndAddFields(lc, massUpdateData, layout, "task")
-    if (Configuration.instance.isCostConfigured) {
+    //createAndAddFields(lc, massUpdateData, layout, "task")
+    /*if (Configuration.instance.isCostConfigured) {
       createAndAddFields(lc, massUpdateData, layout, "kost2")
-    }
+    }*/
+    layout.add(UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2")))
     if (!timesheetDao.getTags().isNullOrEmpty()) {
       createAndAddFields(lc, massUpdateData, layout, "tag")
     }
