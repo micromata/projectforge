@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { forwardRef, useState, useImperativeHandle } from 'react';
+import React, { useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { DynamicLayoutContext } from '../../context';
 import 'ag-grid-community/dist/styles/ag-grid.css';
@@ -10,7 +10,7 @@ function DynamicAgGrid({
     id,
     rowSelection,
     rowMultiSelectWithClick,
-    ref,
+    onGridApiReady,
 }) {
     const { data, ui } = React.useContext(DynamicLayoutContext);
     const [gridApi, setGridApi] = useState();
@@ -19,16 +19,9 @@ function DynamicAgGrid({
     const entries = Object.getByString(data, id) || '';
     const { selectedEntityIds } = data;
 
-    function getSelectedIds() {
-        React.useEffect(() => gridApi.getSelectedRows().map((item) => item.id), [gridApi]);
-    }
-
-    useImperativeHandle(ref, () => ({
-        getSelectedIds,
-    }), [gridApi]);
-
     const onGridReady = React.useCallback((params) => {
         setGridApi(params.api);
+        onGridApiReady(params.api);
         params.api.setDomLayout('autoHeight'); // Needed to get maximum height.
     }, [selectedEntityIds, setGridApi]);
 
@@ -82,4 +75,4 @@ DynamicAgGrid.defaultProps = {
     id: undefined,
 };
 
-export default forwardRef(DynamicAgGrid);
+export default DynamicAgGrid;
