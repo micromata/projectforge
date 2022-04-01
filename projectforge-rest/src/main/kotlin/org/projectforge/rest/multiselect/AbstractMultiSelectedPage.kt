@@ -24,7 +24,6 @@
 package org.projectforge.rest.multiselect
 
 import org.projectforge.common.BeanHelper
-import org.projectforge.common.i18n.UserException
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -89,7 +88,14 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
       return showNoEntriesValidationError()
     }
     if (selectedIds.size > BaseDao.MAX_MASS_UPDATE) {
-      return showValidationErrors(ValidationError(translateMsg(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, BaseDao.MAX_MASS_UPDATE)))
+      return showValidationErrors(
+        ValidationError(
+          translateMsg(
+            BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N,
+            BaseDao.MAX_MASS_UPDATE
+          )
+        )
+      )
     }
     val params = postData.data
     var nothingToDo = true
@@ -216,7 +222,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
   /**
    * @param minLengthOfTextArea See [LayoutUtils.buildLabelInputElement]
    */
-  protected fun createTextFieldRow(
+  protected fun createInputFieldRow(
     lc: LayoutContext,
     field: String,
     massUpdateData: MutableMap<String, MassUpdateParameter>,
@@ -244,14 +250,29 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     massUpdateData[field] = param
     UIRow().let { row ->
       row.add(UICol(md = 8).add(el))
+      val optionsRow = UIRow()
+      row.add(UICol(md = 4).add(optionsRow))
+      var firstOption = true
       if (elementInfo?.required != true) {
-        row.add(
-          UICol(md = 4).add(
-            UICheckbox(
-              "$field.delete",
-              label = "massUpdate.field.checkbox4deletion",
-              // Doesn't work: tooltip = "massUpdate.field.checkbox4deletion.info",
-            )
+        optionsRow.add(
+          UICheckbox(
+            "$field.delete",
+            label = "massUpdate.field.checkbox4deletion",
+            tooltip = "massUpdate.field.checkbox4deletion.info",
+          )
+        )
+        firstOption = false
+      }
+      if (el is UITextArea) {
+        if (!firstOption) {
+          // Ugly: Add space:
+          optionsRow.add(UISpacer())
+        }
+        optionsRow.add(
+          UICheckbox(
+            "$field.append",
+            label = "massUpdate.field.checkbox4appending",
+            tooltip = "massUpdate.field.checkbox4appending.info"
           )
         )
       }
@@ -270,7 +291,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     minLengthOfTextArea: Int = LayoutUtils.DEFAULT_MIN_LENGTH_OF_TEXT_AREA,
   ) {
     fields.forEach { field ->
-      container.add(createTextFieldRow(lc, field, massUpdateData, minLengthOfTextArea))
+      container.add(createInputFieldRow(lc, field, massUpdateData, minLengthOfTextArea))
     }
   }
 
@@ -333,6 +354,17 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
         } else {
           null // Leave it untouched, because the new value is already contained in old value.
         }
+      }
+    }
+
+    fun ensureMassUpdateParam(
+      massUpdateData: MutableMap<String, MassUpdateParameter>,
+      name: String
+    ): MassUpdateParameter {
+      massUpdateData[name]?.let { return it }
+      MassUpdateParameter().let {
+        massUpdateData[name] = it
+        return it
       }
     }
 

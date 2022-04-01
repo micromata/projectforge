@@ -23,8 +23,6 @@
 
 package org.projectforge.rest.multiselect
 
-import org.projectforge.rest.dto.Task
-import org.projectforge.rest.dto.User
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalTime
@@ -39,6 +37,21 @@ class MassUpdateParameter {
    * If true, the value should be deleted.
    */
   var delete: Boolean? = null
+
+  /**
+   * If true, the value of the text field should be appended.
+   */
+  var append: Boolean? = null
+
+  /**
+   * For own options (such like: keep kost2 type for timesheets etc.)
+   */
+  var customizedOptions = mutableMapOf<String, Any?>()
+
+  /**
+   * E. g. for tasks, the id of the selected task is set.
+   */
+  var id: Int? = null
   var textValue: String? = null
   var intValue: Int? = null
   var decimalValue: BigDecimal? = null
@@ -46,8 +59,6 @@ class MassUpdateParameter {
   var timestampValue: Date? = null
   var timeValue: LocalTime? = null
   var booleanValue: Boolean? = null
-  var taskValue: Task? = null
-  var userValue: User? = null
 
   fun isEmpty(): Boolean {
     return textValue.isNullOrBlank() &&
@@ -56,8 +67,6 @@ class MassUpdateParameter {
         localDateValue == null &&
         timestampValue == null &&
         timeValue == null &&
-        booleanValue == null &&
-        taskValue == null &&
-        userValue == null
+        booleanValue == null
   }
 }
