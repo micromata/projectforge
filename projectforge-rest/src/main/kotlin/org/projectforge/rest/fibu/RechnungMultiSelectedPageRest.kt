@@ -79,10 +79,8 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
       "datum",
       "status",
       "bezahlDatum",
-      "bemerkung",
     )
-    // Set append as default:
-    ensureMassUpdateParam(massUpdateData, "bemerkung").append = true
+    createAndAddFields(lc, massUpdateData, layout, "bemerkung", append = true)
     layout.add(UIAlert("fibu.rechnung.multiselected.info", color = UIColor.INFO, markdown = true))
   }
 
@@ -96,7 +94,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
       return showNoEntriesValidationError()
     }
     invoices.forEach { invoice ->
-      processTextParameter(invoice, "bemerkung", params, append = true)
+      processTextParameter(invoice, "bemerkung", params)
       params["datum"]?.let { param ->
         if (param.localDateValue != null || param.delete == true) {
           invoice.datum = param.localDateValue

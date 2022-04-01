@@ -100,6 +100,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
       massUpdateData,
       layout,
       "bemerkung",
+      append = true,
     )
     layout.add(UIAlert("fibu.rechnung.multiselected.info", color = UIColor.INFO, markdown = true))
 
@@ -123,7 +124,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
       return showNoEntriesValidationError()
     }
     invoices.forEach { invoice ->
-      processTextParameter(invoice, "bemerkung", params, append = true)
+      processTextParameter(invoice, "bemerkung", params)
       processTextParameter(invoice, "kreditor", params)
       processTextParameter(invoice, "receiver", params)
       processTextParameter(invoice, "iban", params)

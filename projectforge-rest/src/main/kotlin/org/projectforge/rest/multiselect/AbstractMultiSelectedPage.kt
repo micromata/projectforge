@@ -282,6 +282,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
 
   /**
    * @param minLengthOfTextArea See [LayoutUtils.buildLabelInputElement]
+   * @param append If true, the append checkbox will be preset (without function for non-text-area-fields)
    */
   protected fun createAndAddFields(
     lc: LayoutContext,
@@ -289,9 +290,13 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     container: IUIContainer,
     vararg fields: String,
     minLengthOfTextArea: Int = LayoutUtils.DEFAULT_MIN_LENGTH_OF_TEXT_AREA,
+    append: Boolean? = null,
   ) {
     fields.forEach { field ->
       container.add(createInputFieldRow(lc, field, massUpdateData, minLengthOfTextArea))
+      if (append == true) {
+        ensureMassUpdateParam(massUpdateData, field).append = true
+      }
     }
   }
 
@@ -329,11 +334,11 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     const val URL_SUFFIX_SELECTED = "Selected"
 
     /**
-     * @param append If true, the given textValue of param will be appended to the oldValue (if textValue isn't already
+     * @param param If append value is true, the given textValue of param will be appended to the oldValue (if textValue isn't already
      * contained in oldValue, otherwise null is returned).
      * @return The new Value to set or null, if no modification should done..
      */
-    fun getNewTextValue(oldValue: String?, param: MassUpdateParameter?, append: Boolean = false): String? {
+    fun getNewTextValue(oldValue: String?, param: MassUpdateParameter?): String? {
       param ?: return null
       if (param.delete == true) {
         return if (param.textValue.isNullOrBlank()) {
@@ -346,10 +351,10 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
         if (newValue.isNullOrBlank()) {
           return null // Nothing to do.
         }
-        if (!append || oldValue.isNullOrBlank()) {
+        if (param.append != true || oldValue.isNullOrBlank()) {
           return param.textValue // replace oldValue by this value.
         }
-        return if (oldValue.contains(newValue.trim(), true) != true) {
+        return if (!oldValue.contains(newValue.trim(), true)) {
           "$oldValue\n$newValue" // Append new value.
         } else {
           null // Leave it untouched, because the new value is already contained in old value.
@@ -372,11 +377,10 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
       data: Any,
       property: String,
       params: Map<String, MassUpdateParameter>,
-      append: Boolean = false
     ) {
       val param = params[property] ?: return
       val oldValue = BeanHelper.getProperty(data, property) as String?
-      getNewTextValue(oldValue, param, append)?.let { newValue ->
+      getNewTextValue(oldValue, param)?.let { newValue ->
         BeanHelper.setProperty(data, property, newValue)
       }
     }
