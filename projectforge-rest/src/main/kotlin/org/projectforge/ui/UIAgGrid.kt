@@ -85,6 +85,7 @@ open class UIAgGrid(
     valueFormatter: Formatter? = null,
     valueGetter: String? = null,
     lcField: String? = null,
+    pfStyle: UIAgGridColumnDef.PF_STYLE? = null,
   ): UIAgGrid {
     columnIds.forEach {
       add(
@@ -97,6 +98,7 @@ open class UIAgGrid(
           valueGetter = valueGetter,
           valueFormatter = valueFormatter,
           lcField = lcField ?: it,
+          pfStyle = pfStyle,
         )
       )
     }
