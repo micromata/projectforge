@@ -69,7 +69,8 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
   override fun fillForm(
     request: HttpServletRequest,
     layout: UILayout,
-    massUpdateData: MutableMap<String, MassUpdateParameter>
+    massUpdateData: MutableMap<String, MassUpdateParameter>,
+    selectedIds: Collection<Serializable>?,
   ) {
     val lc = LayoutContext(RechnungDO::class.java)
     createAndAddFields(

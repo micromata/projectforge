@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.*
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberFormatter
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -66,6 +67,8 @@ class Eingangsrechnung(
 
   var formattedGrossSum: String? = null
 
+  var paymentTypeAsString: String? = null
+
   val isBezahlt: Boolean
     get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
       true
@@ -76,6 +79,9 @@ class Eingangsrechnung(
     formattedNetSum = NumberFormatter.formatCurrency(src.netSum, true)
     formattedGrossSum = NumberFormatter.formatCurrency(src.grossSum, true)
     formattedVatAmountSum = NumberFormatter.formatCurrency(src.vatAmountSum, true)
+    src.paymentType?.let {
+      paymentTypeAsString = translate(it.i18nKey)
+    }
   }
 
   fun copyPositionenFrom(src: EingangsrechnungDO) {
