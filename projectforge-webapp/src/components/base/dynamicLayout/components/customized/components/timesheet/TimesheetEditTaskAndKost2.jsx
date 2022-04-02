@@ -58,7 +58,7 @@ function TimesheetEditTaskAndKost2({ values }) {
                 {kost2Row}
             </>
         );
-    }, [kost2List]);
+    }, [kost2List, setKost2List, ui, variables]);
 }
 
 TimesheetEditTaskAndKost2.propTypes = {
