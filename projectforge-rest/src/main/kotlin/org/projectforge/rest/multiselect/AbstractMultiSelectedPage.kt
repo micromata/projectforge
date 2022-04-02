@@ -133,7 +133,8 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
   abstract fun fillForm(
     request: HttpServletRequest,
     layout: UILayout,
-    massUpdateData: MutableMap<String, MassUpdateParameter>
+    massUpdateData: MutableMap<String, MassUpdateParameter>,
+    selectedIds: Collection<Serializable>?,
   )
 
   protected fun getLayout(
@@ -155,7 +156,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
       )
     }
 
-    fillForm(request, layout, massUpdateData)
+    fillForm(request, layout, massUpdateData, selectedIds)
 
     layout.add(UIAlert(message = "massUpdate.info", color = UIColor.INFO))
     layout.add(

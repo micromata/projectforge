@@ -159,11 +159,15 @@ open class UIAgGrid(
     return this
   }
 
-  fun withPinnedLeft(col: Int) {
+  /**
+   * @return this for chaining.
+   */
+  fun withPinnedLeft(col: Int): UIAgGrid {
     columnDefs.forEachIndexed { index, columnDef ->
       if (index < col) {
         columnDef.withPinnedLeft()
       }
     }
+    return this
   }
 }

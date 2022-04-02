@@ -68,7 +68,8 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
   override fun fillForm(
     request: HttpServletRequest,
     layout: UILayout,
-    massUpdateData: MutableMap<String, MassUpdateParameter>
+    massUpdateData: MutableMap<String, MassUpdateParameter>,
+    selectedIds: Collection<Serializable>?,
   ) {
     val lc = LayoutContext(TimesheetDO::class.java)
     //createAndAddFields(lc, massUpdateData, layout, "task")

@@ -28,6 +28,7 @@ import org.projectforge.business.fibu.*
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
@@ -78,7 +79,8 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
   override fun fillForm(
     request: HttpServletRequest,
     layout: UILayout,
-    massUpdateData: MutableMap<String, MassUpdateParameter>
+    massUpdateData: MutableMap<String, MassUpdateParameter>,
+    selectedIds: Collection<Serializable>?,
   ) {
     val lc = LayoutContext(EingangsrechnungDO::class.java)
     createAndAddFields(
@@ -104,14 +106,16 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
     )
     layout.add(UIAlert("fibu.rechnung.multiselected.info", color = UIColor.INFO, markdown = true))
 
-    layout.add(
-      MenuItem(
-        "transferExport",
-        i18nKey = "fibu.rechnung.transferExport",
-        url = "${getRestPath()}/exportTransfers",
-        type = MenuItemTargetType.DOWNLOAD
+    if (!selectedIds.isNullOrEmpty()) {
+      layout.add(
+        MenuItem(
+          "transferExport",
+          i18nKey = "fibu.rechnung.transferExport",
+          url = "${getRestPath()}/exportTransfers",
+          type = MenuItemTargetType.DOWNLOAD
+        )
       )
-    )
+    }
   }
 
   override fun proceedMassUpdate(
@@ -177,13 +181,19 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
         return RestUtils.downloadFile("error.txt", translate("fibu.rechnung.transferExport.error"))
       }
       val sb = StringBuilder()
-      result.errors.keys.forEach { invoice ->
+      sb.appendLine(translateMsg(SEPATransferResult.MISSING_FIELDS_ERROR_I18N_KEY, "..."))
+        .appendLine()
+      result.errors.forEach { invoice, errors ->
         val fields = listOf(invoice.kreditor, invoice.referenz, PFDay.Companion.fromOrNull(invoice.datum)?.format())
-        sb.appendLine("[${fields.filter { it != null }.joinToString()}]")
+        val missingFields = SEPATransferResult.getMissingFields(errors)
+        sb.appendLine("[${fields.filter { it != null }.joinToString()}]: $missingFields")
       }
       return RestUtils.downloadFile("error.txt", sb.toString())
     }
-    return RestUtils.downloadFile(filename, result.xml)
+    return RestUtils.downloadFile(
+      filename,
+      result.xml ?: "internal error".toByteArray()
+    ) // result.xml shouldn't be null here.
   }
 
   override fun ensureUserLogSubscription(): LogSubscription {

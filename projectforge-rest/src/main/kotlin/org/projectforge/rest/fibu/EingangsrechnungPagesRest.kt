@@ -77,7 +77,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
       EingangsrechnungMultiSelectedPageRest::class.java,
       magicFilter,
     )
-      .add(lc, "kreditor", "konto", "referenz", "betreff", "datum", "faelligkeit", "bezahlDatum")
+      .add(lc, "kreditor", "referenz", "betreff", "konto", "datum", "faelligkeit", "bezahlDatum")
       .add(lc, "formattedNetSum", headerName = "fibu.common.netto", pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY)
       .add(
         lc,
@@ -85,11 +85,10 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
         headerName = "fibu.rechnung.bruttoBetrag",
         pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY
       )
+      .add(lc, "paymentTypeAsString", lcField = "paymentType", width = 100)
       .add(lc, "bemerkung")
+      .withPinnedLeft(2)
       .withMultiRowSelection(request, magicFilter)
-    //layout.getTableColumnById("konto").formatter = Formatter.KONTO
-    //layout.getTableColumnById("faelligkeit").formatter = Formatter.DATE
-    //layout.getTableColumnById("bezahlDatum").formatter = Formatter.DATE
     return LayoutUtils.processListPage(layout, this)
   }
 
