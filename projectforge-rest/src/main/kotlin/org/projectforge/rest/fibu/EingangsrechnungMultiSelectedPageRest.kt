@@ -81,6 +81,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
     layout: UILayout,
     massUpdateData: MutableMap<String, MassUpdateParameter>,
     selectedIds: Collection<Serializable>?,
+    variables: MutableMap<String, Any>,
   ) {
     val lc = LayoutContext(EingangsrechnungDO::class.java)
     createAndAddFields(

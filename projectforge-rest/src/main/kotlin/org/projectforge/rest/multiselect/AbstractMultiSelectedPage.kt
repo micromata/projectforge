@@ -70,12 +70,13 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
     val massUpdateData = mutableMapOf<String, MassUpdateParameter>()
-    val layout = getLayout(request, massUpdateData)
+    val variables = mutableMapOf<String, Any>()
+    val layout = getLayout(request, massUpdateData, variables)
     LayoutUtils.process(layout)
 
     layout.postProcessPageMenu()
 
-    return FormLayoutData(massUpdateData, layout, createServerData(request))
+    return FormLayoutData(massUpdateData, layout, createServerData(request), variables)
   }
 
   @PostMapping("massUpdate")
@@ -135,11 +136,13 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     layout: UILayout,
     massUpdateData: MutableMap<String, MassUpdateParameter>,
     selectedIds: Collection<Serializable>?,
+    variables: MutableMap<String, Any>,
   )
 
   protected fun getLayout(
     request: HttpServletRequest,
-    massUpdateData: MutableMap<String, MassUpdateParameter>
+    massUpdateData: MutableMap<String, MassUpdateParameter>,
+    variables: MutableMap<String, Any>
   ): UILayout {
     val layout = UILayout(getTitleKey())
 
@@ -156,7 +159,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
       )
     }
 
-    fillForm(request, layout, massUpdateData, selectedIds)
+    fillForm(request, layout, massUpdateData, selectedIds, variables)
 
     layout.add(UIAlert(message = "massUpdate.info", color = UIColor.INFO))
     layout.add(
@@ -246,6 +249,15 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
       el.id = "$field.textValue"
     }
     val elementInfo = ElementsRegistry.getElementInfo(lc, field)
+    return createInputFieldRow(field, el, massUpdateData, showDeleteOption = elementInfo?.required != true)
+  }
+
+  protected fun createInputFieldRow(
+    field: String,
+    el: UIElement,
+    massUpdateData: MutableMap<String, MassUpdateParameter>,
+    showDeleteOption: Boolean = false,
+  ): UIRow {
     val param = MassUpdateParameter()
     param.delete = false
     massUpdateData[field] = param
@@ -254,7 +266,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
       val optionsRow = UIRow()
       row.add(UICol(md = 4).add(optionsRow))
       var firstOption = true
-      if (elementInfo?.required != true) {
+      if (showDeleteOption) {
         optionsRow.add(
           UICheckbox(
             "$field.delete",

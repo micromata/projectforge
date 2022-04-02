@@ -23,11 +23,12 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.task.TaskNode
+import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
-import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuItemDefId
@@ -35,6 +36,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateParameter
+import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UICustomized
 import org.projectforge.ui.UILayout
@@ -51,16 +53,20 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/timesheet${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
 class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
+  @Autowired
+  private lateinit var taskTree: TaskTree
 
   @Autowired
   private lateinit var timesheetDao: TimesheetDao
 
+  @Autowired
+  private lateinit var timesheetPagesRest: TimesheetPagesRest
 
   override fun getTitleKey(): String {
     return "timesheet.multiselected.title"
   }
 
-  override val listPageUrl: String = "/${MenuItemDefId.OUTGOING_INVOICE_LIST.url}"
+  override val listPageUrl: String = "/${MenuItemDefId.TIMESHEET_LIST.url}"
 
   override val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
     get() = TimesheetPagesRest::class.java
@@ -70,15 +76,61 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
     layout: UILayout,
     massUpdateData: MutableMap<String, MassUpdateParameter>,
     selectedIds: Collection<Serializable>?,
+    variables: MutableMap<String, Any>,
   ) {
+    var taskNode: TaskNode? = null
+    var kost2Id: Int? = null
+    val timesheets = timesheetDao.getListByIds(selectedIds)
+    if (timesheets != null) {
+      // Try to get a shared task of all time sheets.
+      for (timesheet in timesheets) {
+        val node = taskTree.getTaskNodeById(timesheet.taskId) ?: continue
+        if (taskNode == null) {
+          taskNode = node // First node
+        } else if (node.isParentOf(taskNode)) {
+          taskNode = node
+        } else if (taskNode == node || taskNode.isParentOf(node)) {
+          // OK
+        } else {
+          // taskNode and node aren't in same path.
+          taskNode = null
+          break
+        }
+      }
+      // Check if all time sheets uses the same kost2:
+      for (timesheet in timesheets) {
+        if (timesheet.kost2Id == null) {
+          // No kost2Id found
+          break
+        }
+        if (kost2Id == null) {
+          kost2Id = timesheet.kost2Id
+        } else if (kost2Id != timesheet.kost2Id) {
+          // Kost2-id differs, so terminate.
+          kost2Id = null
+          break
+        }
+      }
+    }
     val lc = LayoutContext(TimesheetDO::class.java)
-    //createAndAddFields(lc, massUpdateData, layout, "task")
-    /*if (Configuration.instance.isCostConfigured) {
-      createAndAddFields(lc, massUpdateData, layout, "kost2")
-    }*/
-    layout.add(UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2")))
-    if (!timesheetDao.getTags().isNullOrEmpty()) {
-      createAndAddFields(lc, massUpdateData, layout, "tag")
+    kost2Id?.let { kost2Id ->
+      ensureMassUpdateParam(massUpdateData, "kost2").id = kost2Id
+    }
+    taskNode?.id?.let { taskId ->
+      TaskServicesRest.createTask(taskId)?.let { task ->
+        ensureMassUpdateParam(massUpdateData, "task").id = taskId
+        variables["task"] = task
+      }
+    }
+    layout.add(
+      createInputFieldRow(
+        "taskAndKost2",
+        UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2.id")),
+        massUpdateData,
+      )
+    )
+    timesheetPagesRest.createTagUISelect(id = "tag.textValue")?.let { select ->
+      layout.add(createInputFieldRow("tag", select, massUpdateData, showDeleteOption = true))
     }
     createAndAddFields(
       lc,
