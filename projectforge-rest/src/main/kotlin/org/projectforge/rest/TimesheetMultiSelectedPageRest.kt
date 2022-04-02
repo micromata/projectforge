@@ -83,7 +83,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
     val timesheets = timesheetDao.getListByIds(selectedIds)
     if (timesheets != null) {
       // Try to get a shared task of all time sheets.
-      for (timesheet in timesheets) {
+      loop@for (timesheet in timesheets) {
         val node = taskTree.getTaskNodeById(timesheet.taskId) ?: continue
         if (taskNode == null) {
           taskNode = node // First node
@@ -93,9 +93,21 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
           // OK
         } else {
           // taskNode and node aren't in same path.
+          // Try to check shared ancestor:
+          var ancestor = taskNode.parent
+          for (i in 0..1000) { // Paranoia loop for avoiding endless loops (instead of while(true))
+            if (ancestor == node || ancestor.isParentOf(node)) {
+              taskNode = ancestor
+              continue@loop
+            }
+            ancestor = ancestor.parent
+          }
           taskNode = null
           break
         }
+      }
+      if (taskNode != null && taskNode.isRootNode) {
+        taskNode = null // Don't show "ProjectForgeRoot"
       }
       // Check if all time sheets uses the same kost2:
       for (timesheet in timesheets) {
