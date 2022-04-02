@@ -52,10 +52,10 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
     val selectedEntityIds =
       MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java) ?: listOf()
     val list = baseDao.getListByIds(entityIds) ?: listOf()
-    return ResultSet(list, selectedEntityIds = selectedEntityIds)
+    return ResultSet(list, null, selectedEntityIds = selectedEntityIds)
   }
   val list = getObjectList(pagesRest, baseDao, magicFilter)
-  val resultSet = ResultSet(pagesRest.filterList(list, magicFilter), list.size)
+  val resultSet = ResultSet(pagesRest.filterList(list, magicFilter), null, list.size)
   return resultSet
 }
 

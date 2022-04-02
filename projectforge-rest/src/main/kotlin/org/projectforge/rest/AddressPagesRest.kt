@@ -561,7 +561,7 @@ class AddressPagesRest
       it.address.imageData = null
       it.address.imageDataPreview = null
     }
-    return ResultSet(newList, newList.size)
+    return ResultSet(newList, resultSet, newList.size)
   }
 
   private fun createFavoriteRow(id: String, inputElement: UIElement): UIRow {

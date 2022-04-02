@@ -27,12 +27,20 @@ import java.io.Serializable
 
 /**
  * Contains the data including the result list (matching the filter) served by getList methods ([getInitialList] and [getList]).
+ * @param origResultSet Should be given, if ResultSet is converted to a new one (preselected ids will be preserved). Might be null,
+ * if a new one should be created.
  */
 class ResultSet<O : Any>(
   var resultSet: List<O>,
+  origResultSet: ResultSet<*>?,
   var totalSize: Int? = null,
   var highlightRowId: Int? = null,
   var selectedEntityIds: Collection<Serializable>? = null,
 ) {
   val size = resultSet.size
+  init {
+    if (origResultSet != null && selectedEntityIds == null) {
+      selectedEntityIds = origResultSet.selectedEntityIds
+    }
+  }
 }

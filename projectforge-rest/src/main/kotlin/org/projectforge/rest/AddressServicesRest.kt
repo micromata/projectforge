@@ -112,7 +112,7 @@ class AddressServicesRest {
   fun exportFavoritesExcel(): ResponseEntity<*> {
     log.info("Exporting personal address book as Excel file.")
     val list = addressDao.favoriteVCards.map { it.address!! }
-    val resultSet = ResultSet(list, list.size)
+    val resultSet = ResultSet(list, null, list.size)
     addressRest.processResultSetBeforeExport(resultSet)
 
     val personalAddressMap = personalAddressDao.personalAddressByAddressId

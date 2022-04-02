@@ -208,7 +208,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         duration = dateTimeFormatter.getFormattedDuration(it.timePeriod)
       )
     }
-    return ResultSet(list, list.size)
+    return ResultSet(list, resultSet, list.size)
   }
 
   override fun isAutocompletionPropertyEnabled(property: String): Boolean {
@@ -263,7 +263,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       .add(lc, "location", "reference")
       .withMultiRowSelection(request, magicFilter)
     if (!baseDao.getTags().isNullOrEmpty()) {
-      table.add(lc, "tag")
+      table.add(lc, "tag", width = 100)
     }
     table.add(lc, "description", width = 1000)
     layout.add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
@@ -293,11 +293,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       .add(dayRange)
       .add(UICustomized("task.consumption"))
       .add(UIInput("location", lc).enableAutoCompletion(this))
-    val tags = timesheetDao.getTags(dto.tag)
     val row = UIRow()
     layout.add(row)
-    if (!tags.isNullOrEmpty()) {
-      row.add(UICol(md = 6).add(UISelect("tag", lc, required = false, values = tags.map { UISelectValue(it, it) })))
+    createTagUISelect(dto)?.let { select ->
+      row.add(UICol(md = 6).add(select))
     }
     row.add(UICol(md = 6).add(referenceField))
     layout.add(descriptionArea)
@@ -480,5 +479,19 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       )
     )
     elements.add(element)
+  }
+
+  /**
+   * @param timesheet Only needed, if the tag of the given timesheet should be added to the tag list and is not
+   * configured (after changing configuration of tag list).
+   * @param id Field (id) is "tag" as default.
+   * @return UISelect or null, if no tags exist (neither configured nor given in timesheet).
+   */
+  fun createTagUISelect(timesheet: Timesheet? = null, id: String = "tag"): UISelect<String>? {
+    val tags = timesheetDao.getTags(timesheet?.tag)
+    if (tags.isNullOrEmpty()) {
+      return null
+    }
+    return UISelect(id, label = "timesheet.tag", required = false, values = tags.map { UISelectValue(it, it) })
   }
 }

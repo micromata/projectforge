@@ -24,9 +24,12 @@
 package org.projectforge.ui
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import mu.KotlinLogging
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.json.UISelectTypeSerializer
+
+private val log = KotlinLogging.logger {}
 
 @JsonSerialize(using = UISelectTypeSerializer::class)
 class UISelect<T>(
@@ -65,10 +68,6 @@ class UISelect<T>(
 ) : UIElement(UIElementType.SELECT, key = key, cssClass = cssClass), UILabelledElement, IUIId {
 
   class Favorite<T>(val id: T, val name: String)
-
-  @Transient
-  private val log = org.slf4j.LoggerFactory.getLogger(UISelect::class.java)
-
 
   fun buildValues(i18nEnum: Class<out Enum<*>>): UISelect<T> {
     val newvalues = mutableListOf<UISelectValue<T>>()

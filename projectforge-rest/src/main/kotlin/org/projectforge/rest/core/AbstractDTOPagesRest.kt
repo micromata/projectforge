@@ -51,7 +51,7 @@ abstract class AbstractDTOPagesRest<
         val newList = resultSet.resultSet.map {
             transformFromDB(it, false)
         }
-        return ResultSet(newList, newList.size, selectedEntityIds = resultSet.selectedEntityIds)
+        return ResultSet(newList, resultSet, newList.size, selectedEntityIds = resultSet.selectedEntityIds)
     }
 
     /**
