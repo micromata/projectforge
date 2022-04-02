@@ -95,6 +95,13 @@ class TaskServicesRest {
       protectTimesheetsUntil = PFDay.fromOrNull(node.task.protectTimesheetsUntil), reference = node.task.reference,
       priority = node.task.priority, status = node.task.status, responsibleUser = node.task.responsibleUser
     )
+
+    /**
+     * Only for creating a pseudo emty task.
+     */
+    constructor(title: String) : this(
+      id = -1, title = title
+    )
   }
 
   class Result(
@@ -140,7 +147,8 @@ class TaskServicesRest {
 
     fun addTimesheetReferenceList(task: Task) {
       val timesheetReferenceList = listOf("Uni Kassel", "Uni Göttingen")
-      task.timesheetReferenceList = timesheetReferenceList//Registry.getInstance().getDao(TimesheetDao::class.java).getUsedReferences(task.id)
+      task.timesheetReferenceList =
+        timesheetReferenceList//Registry.getInstance().getDao(TimesheetDao::class.java).getUsedReferences(task.id)
     }
   }
 

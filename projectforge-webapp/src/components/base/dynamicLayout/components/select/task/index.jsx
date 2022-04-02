@@ -56,7 +56,7 @@ function DynamicTaskSelect(
         if (variables.task) {
             setStateTask(variables.task);
         }
-    }, [variables]);
+    }, [setStateTask, variables]);
 
     return React.useMemo(() => {
         const setTask = (taskId, selectedTask) => {
@@ -183,7 +183,7 @@ function DynamicTaskSelect(
                 </Collapse>
             </div>
         );
-    }, [panelVisible, modalHighlight, task, panelRef, favorites, setData]);
+    }, [panelVisible, modalHighlight, task, setStateTask, panelRef, favorites, setData]);
 }
 
 DynamicTaskSelect.propTypes = {

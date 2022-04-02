@@ -83,7 +83,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
     val timesheets = timesheetDao.getListByIds(selectedIds)
     if (timesheets != null) {
       // Try to get a shared task of all time sheets.
-      loop@for (timesheet in timesheets) {
+      loop@ for (timesheet in timesheets) {
         val node = taskTree.getTaskNodeById(timesheet.taskId) ?: continue
         if (taskNode == null) {
           taskNode = node // First node
@@ -105,9 +105,6 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
           taskNode = null
           break
         }
-      }
-      if (taskNode != null && taskNode.isRootNode) {
-        taskNode = null // Don't show "ProjectForgeRoot"
       }
       // Check if all time sheets uses the same kost2:
       for (timesheet in timesheets) {
@@ -131,7 +128,12 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
     taskNode?.id?.let { taskId ->
       TaskServicesRest.createTask(taskId)?.let { task ->
         ensureMassUpdateParam(massUpdateData, "task").id = taskId
-        variables["task"] = task
+        variables["task"] = if (taskNode.isRootNode) {
+          // Don't show. If task is null, the React page will not be updated from time to time (workarround)
+          TaskServicesRest.Task("")
+        }else {
+          task
+        }
       }
     }
     layout.add(
