@@ -86,7 +86,7 @@ object TextFieldModification {
         return param.textValue // replace oldValue by this value.
       }
       return if (!oldValue.contains(newValue.trim(), true)) {
-        "$oldValue\n$newValue" // Append new value.
+        "${oldValue.trimEnd()}\n$newValue" // Append new value.
       } else {
         null // Leave it untouched, because the new value is already contained in old value.
       }

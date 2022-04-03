@@ -65,7 +65,16 @@ class TextFieldModificationTest {
       "delete string",
       delete = true,
     )
+
+    checkNewTextValue("The lazy fox jumps.\n", "append text", "The lazy fox jumps.\nappend text", "trim end and append string", append = true)
+
+
+    checkNewTextValue("The lazy fox jumps.\nHurz", "hUrz", "The lazy fox jumps.", "delete string", delete = true)
+    checkNewTextValue("The lazy fox jumps.\n  Hurz", "hUrz", "The lazy fox jumps.", "delete string", delete = true)
+
     checkNewTextValue("The lazy fox jumps.", "lazy", "The old fox jumps.", "delete string", replaceText = "old")
+    checkNewTextValue("The lazy fox jumps.", "Lazy", "The old fox jumps.", "delete string", replaceText = "old")
+
     checkNewTextValue("test", "lazy", "test", "Can't handle multiple actions.", delete = true, replaceText = "old")
     checkNewTextValue("test", "lazy", "test", "Can't handle multiple actions.", append = true, replaceText = "old")
   }
