@@ -101,17 +101,9 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     val params = postData.data
     var nothingToDo = true
     val validationErrors = mutableListOf<ValidationError>()
-    params.forEach { (key, param) ->
-      if (param.isEmpty()) {
-        if (param.delete == true) {
-          nothingToDo = false
-        }
-      } else {
-        if (param.delete == true) {
-          validationErrors.add(ValidationError(translate("massUpdate.error.fieldToDeleteNotEmpty"), "$key.textValue"))
-        } else {
-          nothingToDo = false
-        }
+    params.forEach { (field, param) ->
+      if (checkParamHasAction(params, param, field, validationErrors)) {
+        nothingToDo = false
       }
     }
     if (!validationErrors.isEmpty()) {
@@ -123,7 +115,25 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     return proceedMassUpdate(request, params, selectedIds)
   }
 
-  open protected fun proceedMassUpdate(
+  /**
+   * @params Supply all params for complexer checks (e. g. taskAndKost2 has to look at parameter task and kost2).
+   */
+  protected open fun checkParamHasAction(params: Map<String, MassUpdateParameter>, param: MassUpdateParameter, field: String, validationErrors: MutableList<ValidationError>): Boolean {
+    if (param.isEmpty()) {
+      if (param.delete == true) {
+        return true // Delete action.
+      }
+    } else {
+      if (param.delete == true) {
+        validationErrors.add(ValidationError(translate("massUpdate.error.fieldToDeleteNotEmpty"), "$field.textValue"))
+      } else {
+        return true // Modification action.
+      }
+    }
+    return false
+  }
+
+  protected open fun proceedMassUpdate(
     request: HttpServletRequest,
     params: Map<String, MassUpdateParameter>,
     selectedIds: Collection<Serializable>
@@ -257,6 +267,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     el: UIElement,
     massUpdateData: MutableMap<String, MassUpdateParameter>,
     showDeleteOption: Boolean = false,
+    myOptions: List<UIElement>? = null,
   ): UIRow {
     val param = MassUpdateParameter()
     param.delete = false
@@ -265,29 +276,32 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
       row.add(UICol(md = 8).add(el))
       val optionsRow = UIRow()
       row.add(UICol(md = 4).add(optionsRow))
-      var firstOption = true
+      val options = mutableListOf<UIElement>()
       if (showDeleteOption) {
-        optionsRow.add(
+        options.add(
           UICheckbox(
             "$field.delete",
             label = "massUpdate.field.checkbox4deletion",
             tooltip = "massUpdate.field.checkbox4deletion.info",
           )
         )
-        firstOption = false
       }
       if (el is UITextArea) {
-        if (!firstOption) {
-          // Ugly: Add space:
-          optionsRow.add(UISpacer())
-        }
-        optionsRow.add(
+        options.add(
           UICheckbox(
             "$field.append",
             label = "massUpdate.field.checkbox4appending",
             tooltip = "massUpdate.field.checkbox4appending.info"
           )
         )
+      }
+      myOptions?.let { options.addAll(it) }
+      options.forEachIndexed { index, uiElement ->
+        if (index > 0) {
+          // Ugly: Add space:
+          optionsRow.add(UISpacer())
+        }
+        optionsRow.add(uiElement)
       }
       return row
     }
@@ -353,11 +367,20 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
      */
     fun getNewTextValue(oldValue: String?, param: MassUpdateParameter?): String? {
       param ?: return null
+      if (param.delete == true && param.append == true) {
+        // Can't append AND delete text.
+        return oldValue
+      }
       if (param.delete == true) {
         return if (param.textValue.isNullOrBlank()) {
+          // Whole field should be empty:
           ""
         } else {
-          null // Parameter should be deleted, but a text value was given.
+          // Only occurence of textValue should be deleted:
+          // Delete full line:
+          oldValue?.replace("""\n\s*${param.textValue}\s*\n""".toRegex(RegexOption.IGNORE_CASE), "\n")
+            // Delete occurrence including leading spaces:
+            ?.replace("""\s*${param.textValue}""".toRegex(RegexOption.IGNORE_CASE), "")
         }
       }
       param.textValue.let { newValue ->
@@ -392,6 +415,10 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
       params: Map<String, MassUpdateParameter>,
     ) {
       val param = params[property] ?: return
+      if (param.delete == true && param.append == true) {
+        // Can't append AND delete text.
+        return
+      }
       val oldValue = BeanHelper.getProperty(data, property) as String?
       getNewTextValue(oldValue, param)?.let { newValue ->
         BeanHelper.setProperty(data, property, newValue)

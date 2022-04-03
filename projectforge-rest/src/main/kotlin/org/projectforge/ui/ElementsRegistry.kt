@@ -89,7 +89,7 @@ object ElementsRegistry {
         when (elementInfo.propertyType) {
           String::class.java -> {
             val maxLength = elementInfo.maxLength
-            if (maxLength != null && maxLength > minLengthOfTextArea) {
+            if (maxLength != null && maxLength >= minLengthOfTextArea) {
               UITextArea(property, maxLength = elementInfo.maxLength, layoutContext = lc)
             } else {
               UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutContext = lc)

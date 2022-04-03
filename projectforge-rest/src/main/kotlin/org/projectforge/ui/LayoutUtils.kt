@@ -471,5 +471,5 @@ object LayoutUtils {
 
   internal enum class LabelType { ADDITIONAL_LABEL, TOOLTIP }
 
-  const val DEFAULT_MIN_LENGTH_OF_TEXT_AREA = 255
+  const val DEFAULT_MIN_LENGTH_OF_TEXT_AREA = 256
 }

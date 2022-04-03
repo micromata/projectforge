@@ -34,19 +34,19 @@ import java.util.*
  */
 class MassUpdateParameter {
   /**
-   * If true, the value should be deleted.
+   * If true, the value should be deleted (if delete option is used).
    */
   var delete: Boolean? = null
+
+  /**
+   * If true, the value should be changed (if changeOption is used).
+   */
+  var change: Boolean? = null
 
   /**
    * If true, the value of the text field should be appended.
    */
   var append: Boolean? = null
-
-  /**
-   * For own options (such like: keep kost2 type for timesheets etc.)
-   */
-  var customizedOptions = mutableMapOf<String, Any?>()
 
   /**
    * E. g. for tasks, the id of the selected task is set.
