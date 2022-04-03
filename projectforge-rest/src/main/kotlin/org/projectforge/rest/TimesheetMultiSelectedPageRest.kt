@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDO
@@ -37,6 +38,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateParameter
+import org.projectforge.rest.multiselect.MassUpdateStatistics
 import org.projectforge.rest.multiselect.TextFieldModification
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
@@ -53,6 +55,9 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/timesheet${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
 class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
+  @Autowired
+  private lateinit var kost2Dao: Kost2Dao
+
   @Autowired
   private lateinit var taskTree: TaskTree
 
@@ -187,7 +192,8 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
   override fun proceedMassUpdate(
     request: HttpServletRequest,
     params: Map<String, MassUpdateParameter>,
-    selectedIds: Collection<Serializable>
+    selectedIds: Collection<Serializable>,
+    massUpdateStatistics: MassUpdateStatistics,
   ): ResponseEntity<*> {
     val timesheets = timesheetDao.getListByIds(selectedIds)
     if (timesheets.isNullOrEmpty()) {
@@ -195,7 +201,25 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
     }
     timesheets.forEach { timesheet ->
       TextFieldModification.processTextParameter(timesheet, "bemerkung", params)
-      timesheetDao.update(timesheet)
+      TextFieldModification.processTextParameter(timesheet, "reference", params)
+      TextFieldModification.processTextParameter(timesheet, "description", params)
+      TextFieldModification.processTextParameter(timesheet, "location", params)
+      TextFieldModification.processTextParameter(timesheet, "tag", params)
+      params["taskAndKost2"]?.let { param ->
+        if (param.change == true) {
+          params["task"]?.id?.let { taskId ->
+            taskTree.getTaskById(taskId)?.let { task ->
+              timesheet.task = task
+            }
+          }
+          params["kost2"]?.id?.let { kost2Id ->
+            kost2Dao.internalGetById(kost2Id)?.let { kost2 ->
+              timesheet.kost2 = kost2
+            }
+          }
+        }
+      }
+      registerUpdate(massUpdateStatistics, update = { timesheetDao.update(timesheet) })
     }
     return showToast(timesheets.size)
   }

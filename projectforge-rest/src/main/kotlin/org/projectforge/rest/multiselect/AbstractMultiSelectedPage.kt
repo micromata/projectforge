@@ -27,11 +27,11 @@ import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.admin.LogViewerPageRest
-import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.PagesResolver
@@ -111,7 +111,15 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     if (nothingToDo) {
       return showNothingToDoValidationError()
     }
-    return proceedMassUpdate(request, params, selectedIds)
+    return proceedMassUpdate(request, params, selectedIds, MassUpdateStatistics(selectedIds.size))
+  }
+
+  protected fun registerUpdate(massUpdateStatistics: MassUpdateStatistics, update: () -> ModificationStatus) {
+    try {
+      massUpdateStatistics.add(update())
+    } catch(ex: Exception) {
+      massUpdateStatistics.addError(ex)
+    }
   }
 
   /**
@@ -124,7 +132,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     validationErrors: MutableList<ValidationError>
   ): Boolean {
     TextFieldModification.hasError(param)?.let { message ->
-      validationErrors.add(ValidationError(translate( message), "$field.textValue"))
+      validationErrors.add(ValidationError(translate(message), "$field.textValue"))
       return false
     }
     if (param.isEmpty()) {
@@ -141,13 +149,12 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     return false
   }
 
-  protected open fun proceedMassUpdate(
+  protected abstract fun proceedMassUpdate(
     request: HttpServletRequest,
     params: Map<String, MassUpdateParameter>,
-    selectedIds: Collection<Serializable>
-  ): ResponseEntity<*> {
-    return RestUtils.badRequest("not yet implemented.")
-  }
+    selectedIds: Collection<Serializable>,
+    massUpdateStatistics: MassUpdateStatistics,
+  ): ResponseEntity<*>
 
   abstract fun fillForm(
     request: HttpServletRequest,
@@ -281,9 +288,9 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     param.delete = false
     massUpdateData[field] = param
     UIRow().let { row ->
-      row.add(UICol(md = 8).add(el))
+      row.add(UICol(md = 7).add(el))
       val optionsRow = UIRow()
-      row.add(UICol(md = 4).add(optionsRow))
+      row.add(UICol(md = 5).add(optionsRow))
       val options = mutableListOf<UIElement>()
       if (showDeleteOption) {
         options.add(
@@ -294,21 +301,21 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
           )
         )
       }
-      if (el is UITextArea) {
-        options.add(
-          UICheckbox(
-            "$field.append",
-            label = "massUpdate.field.checkbox4appending",
-            tooltip = "massUpdate.field.checkbox4appending.info"
-          )
-        )
-      }
       if (el is UITextArea || el is UIInput) {
         options.add(
           UIInput(
             "$field.replaceText",
             label = "massUpdate.field.replace",
             tooltip = "massUpdate.field.replace.info"
+          )
+        )
+      }
+      if (el is UITextArea) {
+        options.add(
+          UICheckbox(
+            "$field.append",
+            label = "massUpdate.field.checkbox4appending",
+            tooltip = "massUpdate.field.checkbox4appending.info"
           )
         )
       }
