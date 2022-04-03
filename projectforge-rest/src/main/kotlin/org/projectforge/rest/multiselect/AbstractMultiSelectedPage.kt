@@ -71,10 +71,6 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     val massUpdateData = mutableMapOf<String, MassUpdateParameter>()
     val variables = mutableMapOf<String, Any>()
     val layout = getLayout(request, massUpdateData, variables)
-    LayoutUtils.process(layout)
-
-    layout.postProcessPageMenu()
-
     return FormLayoutData(massUpdateData, layout, createServerData(request), variables)
   }
 
@@ -97,11 +93,11 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
         )
       )
     }
-    val params = postData.data
+    val massUpdateData = postData.data.toMutableMap()
     var nothingToDo = true
     val validationErrors = mutableListOf<ValidationError>()
-    params.forEach { (field, param) ->
-      if (checkParamHasAction(params, param, field, validationErrors)) {
+    massUpdateData.forEach { (field, param) ->
+      if (checkParamHasAction(massUpdateData, param, field, validationErrors)) {
         nothingToDo = false
       }
     }
@@ -111,14 +107,35 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     if (nothingToDo) {
       return showNothingToDoValidationError()
     }
-    return proceedMassUpdate(request, params, selectedIds, MassUpdateStatistics(selectedIds.size))
+    val massUpdateStatistics = MassUpdateStatistics(selectedIds.size)
+    proceedMassUpdate(request, massUpdateData, selectedIds, massUpdateStatistics)?.let { responseEntity ->
+      return responseEntity
+    }
+    if (massUpdateStatistics.nothingDone) {
+      return showNoEntriesValidationError()
+    }
+    val variables = mutableMapOf<String, Any>()
+    val layout = getLayout(request, massUpdateData, variables, massUpdateStatistics)
+    return ResponseEntity.ok(
+      ResponseAction(targetType = TargetType.UPDATE)
+        .addVariable("ui", layout)
+        .addVariable("data", massUpdateData)
+    )
   }
 
-  protected fun registerUpdate(massUpdateStatistics: MassUpdateStatistics, update: () -> ModificationStatus) {
+  /**
+   * @param identifier4Message The identifier as part of the user feedback on errors. Should display a string for the
+   * user to identifier the failed update object (e. g. invoice number or time sheet user and start-date etc.).
+   */
+  protected fun registerUpdate(
+    massUpdateStatistics: MassUpdateStatistics,
+    identifier4Message: String,
+    update: () -> ModificationStatus
+  ) {
     try {
       massUpdateStatistics.add(update())
-    } catch(ex: Exception) {
-      massUpdateStatistics.addError(ex)
+    } catch (ex: Exception) {
+      massUpdateStatistics.addError(ex, identifier4Message)
     }
   }
 
@@ -149,12 +166,15 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     return false
   }
 
+  /**
+   * @return null to handle ResponseEntity result by this class. If ResponseEntity is returned, it will be used.
+   */
   protected abstract fun proceedMassUpdate(
     request: HttpServletRequest,
     params: Map<String, MassUpdateParameter>,
     selectedIds: Collection<Serializable>,
     massUpdateStatistics: MassUpdateStatistics,
-  ): ResponseEntity<*>
+  ): ResponseEntity<*>?
 
   abstract fun fillForm(
     request: HttpServletRequest,
@@ -167,7 +187,8 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
   protected fun getLayout(
     request: HttpServletRequest,
     massUpdateData: MutableMap<String, MassUpdateParameter>,
-    variables: MutableMap<String, Any>
+    variables: MutableMap<String, Any>,
+    massUpdateStatistics: MassUpdateStatistics? = null,
   ): UILayout {
     val layout = UILayout(getTitleKey())
 
@@ -219,6 +240,23 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
         )
       )
     }
+    massUpdateStatistics?.let { stats ->
+      if (stats.errorCounter > 0) {
+        val sb = StringBuilder()
+        sb.appendLine("'*${stats.resultMessage}*")
+        sb.appendLine()
+        sb.appendLine("| # | ${translate("massUpdate.error.table.element")} | ${translate("massUpdate.error.table.message")}    |")
+          .appendLine("| --: | :-- | :-- |")
+        stats.errorMessages.forEachIndexed { index, error ->
+          sb.appendLine("| ${index + 1} | ${error.identifier} | ${error.message} |")
+        }
+        layout.add(UIAlert(sb.toString(), title = "massUpdate.error.table.title", color = UIColor.DANGER, markdown = true))
+      } else if (stats.total > 0) {
+        layout.add(UIAlert(message = "'${stats.resultMessage}"))
+      } else {
+        // Do nothing.
+      }
+    }
     layout.add(
       MenuItem(
         "logViewer",
@@ -230,7 +268,8 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
         type = MenuItemTargetType.REDIRECT,
       )
     )
-
+    LayoutUtils.process(layout)
+    layout.postProcessPageMenu()
     return layout
   }
 
@@ -284,7 +323,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     showDeleteOption: Boolean = false,
     myOptions: List<UIElement>? = null,
   ): UIRow {
-    val param = MassUpdateParameter()
+    val param = massUpdateData[field] ?: MassUpdateParameter()
     param.delete = false
     massUpdateData[field] = param
     UIRow().let { row ->
@@ -364,18 +403,6 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
       translateMsg(
         "massUpdate.success",
         NumberFormatter.format(numberOfEntries)
-      )
-    )
-  }
-
-  /**
-   * Show toast after executing mass update (if no validation error was found).
-   */
-  protected fun showToast(numberOfUpdatedEntries: Int): ResponseEntity<ResponseAction> {
-    return UIToast.createToastResponseEntity(
-      translateMsg(
-        "massUpdate.success",
-        NumberFormatter.format(numberOfUpdatedEntries)
       )
     )
   }
