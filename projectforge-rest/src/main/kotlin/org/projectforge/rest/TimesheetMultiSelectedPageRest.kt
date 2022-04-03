@@ -37,6 +37,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateParameter
+import org.projectforge.rest.multiselect.TextFieldModification
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -193,7 +194,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
       return showNoEntriesValidationError()
     }
     timesheets.forEach { timesheet ->
-      processTextParameter(timesheet, "bemerkung", params)
+      TextFieldModification.processTextParameter(timesheet, "bemerkung", params)
       timesheetDao.update(timesheet)
     }
     return showToast(timesheets.size)

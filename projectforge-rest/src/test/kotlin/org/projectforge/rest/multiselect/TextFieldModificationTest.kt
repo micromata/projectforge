@@ -26,53 +26,67 @@ package org.projectforge.rest.multiselect
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class AbstractMultiSelectedPageTest {
+class TextFieldModificationTest {
   class A(var text: String?)
 
   @Test
   fun getNewTextValueTest() {
-    checkNewTextValue("", true, "", false, "", "empty string to delete")
-    checkNewTextValue("", true, "", true, "", "empty string to delete (append param without effect)")
-    checkNewTextValue("test", true, "", false, "", "delete string")
-    checkNewTextValue("test", true, "", true, "test", "Can't delete and append text!")
-    checkNewTextValue("test", false, "new text", true, "test\nnew text", "new value shoud be appended")
+    checkNewTextValue("", "", "", "empty string to delete", delete = true)
+    checkNewTextValue("test", "", "", "delete string", delete = true)
+    checkNewTextValue("test", "", "test", "Can't delete and append text!", delete = true, append = true)
+    checkNewTextValue("test", "new text", "test\nnew text", "new value shoud be appended", append = true)
     checkNewTextValue(
       "test\nnew text",
-      false,
       "new text",
-      true,
       null,
-      "new value is already part of old value, no modification expected."
+      "new value is already part of old value, no modification expected.",
+      append = true,
     )
-    checkNewTextValue("The lazy fox jumps.", true, "lazy", false, "The fox jumps.", "delete string")
-    checkNewTextValue("The\n lazy fox jumps.", true, "Lazy", false, "The fox jumps.", "delete string")
-    checkNewTextValue("The\n lazyfox jumps.", true, "Lazy", false, "Thefox jumps.", "delete string but preserve any white spaces")
-    checkNewTextValue("The\n lazy \nfox jumps.", true, "Lazy", false, "The\nfox jumps.", "delete string but preserve any white spaces")
+    checkNewTextValue("The lazy fox jumps.", "lazy", "The fox jumps.", "delete string", delete = true)
+    checkNewTextValue("The\n lazy fox jumps.", "Lazy", "The fox jumps.", "delete string", delete = true)
+    checkNewTextValue(
+      "The\n lazyfox jumps.",
+      "Lazy",
+      "Thefox jumps.",
+      "delete string but preserve any white spaces",
+      delete = true,
+    )
+    checkNewTextValue(
+      "The\n lazy \nfox jumps.",
+      "Lazy",
+      "The\nfox jumps.",
+      "delete string but preserve any white spaces",
+      delete = true,
+    )
     checkNewTextValue(
       "This is a text.\n This should be deleted.\nFollowing text.",
-      true,
       "This should be deleted.",
-      false,
       "This is a text.\nFollowing text.",
-      "delete string"
+      "delete string",
+      delete = true,
     )
+    checkNewTextValue("The lazy fox jumps.", "lazy", "The old fox jumps.", "delete string", replaceText = "old")
+    checkNewTextValue("test", "lazy", "test", "Can't handle multiple actions.", delete = true, replaceText = "old")
+    checkNewTextValue("test", "lazy", "test", "Can't handle multiple actions.", append = true, replaceText = "old")
   }
 
   private fun checkNewTextValue(
     oldValue: String?,
-    delete: Boolean?,
     newValue: String?,
-    append: Boolean,
     expectedResult: String?,
     message: String,
+    delete: Boolean? = null,
+    append: Boolean? = null,
+    replaceText: String? = null,
   ) {
     val param = MassUpdateParameter()
-    param.delete = delete
     param.textValue = newValue
+    param.delete = delete
     param.append = append
-    val result = AbstractMultiSelectedPage.getNewTextValue(oldValue, param)
+    param.replaceText = replaceText
+    val result = TextFieldModification.getNewTextValue(oldValue, param)
     val data = A(oldValue)
-    AbstractMultiSelectedPage.processTextParameter(data, "text", mapOf("text" to param))
+    TextFieldModification.processTextParameter(data, "text", mapOf("text" to param))
     if (expectedResult == null) {
       Assertions.assertNull(result, message)
       Assertions.assertEquals(oldValue, data.text, message) // Field unmodified.
