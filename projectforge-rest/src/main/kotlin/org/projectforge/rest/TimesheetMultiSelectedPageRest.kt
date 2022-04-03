@@ -33,7 +33,6 @@ import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
@@ -200,6 +199,15 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
     if (timesheets.isNullOrEmpty()) {
       return null
     }
+    val taskId =  params["task"]?.id
+    val project = taskTree.getProjekt(taskId)
+    val availableKost2s = kost2Dao.getActiveKost2(project)
+    var kost2Id = params["kost2"]?.id
+    if (kost2Id != null && availableKost2s?.any { it.id == kost2Id } != true) {
+      // Due to a client bug, the kost2 id of the old project is sent, delete it, because, the project
+      // was changed and kost2Id is invalid:
+      kost2Id = null
+    }
     timesheets.forEach { timesheet ->
       TextFieldModification.processTextParameter(timesheet, "bemerkung", params)
       TextFieldModification.processTextParameter(timesheet, "reference", params)
@@ -208,12 +216,18 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
       TextFieldModification.processTextParameter(timesheet, "tag", params)
       params["taskAndKost2"]?.let { param ->
         if (param.change == true) {
-          params["task"]?.id?.let { taskId ->
+          if (taskId != null) {
             taskTree.getTaskById(taskId)?.let { task ->
               timesheet.task = task
             }
+            if (!availableKost2s.isNullOrEmpty() && timesheet.kost2?.projekt != project ) {
+              // Try to find kost2 with same type (last 2 digits of projects)
+              availableKost2s.find { it.kost2ArtId == timesheet.kost2?.kost2ArtId }?.let { newKost2 ->
+                timesheet.kost2 = newKost2
+              }
+            }
           }
-          params["kost2"]?.id?.let { kost2Id ->
+          if (kost2Id != null) {
             kost2Dao.internalGetById(kost2Id)?.let { kost2 ->
               timesheet.kost2 = kost2
             }
