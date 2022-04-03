@@ -29,6 +29,7 @@ import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuItemDefId
@@ -37,9 +38,7 @@ import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.rest.task.TaskServicesRest
-import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UICustomized
-import org.projectforge.ui.UILayout
+import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
@@ -131,16 +130,24 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
         variables["task"] = if (taskNode.isRootNode) {
           // Don't show. If task is null, the React page will not be updated from time to time (workarround)
           TaskServicesRest.Task("")
-        }else {
+        } else {
           task
         }
       }
     }
+    val myOptions = mutableListOf<UIElement>(
+      UICheckbox(
+        "taskAndKost2.change",
+        label = "update",
+        tooltip = "timesheet.massupdate.updateTask",
+      )
+    )
     layout.add(
       createInputFieldRow(
         "taskAndKost2",
         UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2.id")),
         massUpdateData,
+        myOptions = myOptions,
       )
     )
     timesheetPagesRest.createTagUISelect(id = "tag.textValue")?.let { select ->
@@ -152,8 +159,28 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
       layout,
       "location",
       "reference",
-      minLengthOfTextArea = 1000,
+      "description",
+      minLengthOfTextArea = 1001, // reference has length 1.000 and description 4.000
     )
+    if (Configuration.instance.isCostConfigured) {
+      layout.add(UIAlert(message = "timesheet.massupdate.kost.info", color = UIColor.INFO))
+    }
+  }
+
+  override fun checkParamHasAction(
+    params: Map<String, MassUpdateParameter>,
+    param: MassUpdateParameter,
+    field: String,
+    validationErrors: MutableList<ValidationError>
+  ): Boolean {
+    if (field == "kost2" || field == "task") {
+      // No check here, action is checked on field taskAndKost2.
+      return false
+    }
+    if (field == "taskAndKost2") {
+      return param.change == true && (params["task"]?.id != null || params["kost2"]?.id != null)
+    }
+    return super.checkParamHasAction(params, param, field, validationErrors)
   }
 
   override fun proceedMassUpdate(
@@ -166,7 +193,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
       return showNoEntriesValidationError()
     }
     timesheets.forEach { timesheet ->
-      //processTextParameter(timesheet, "bemerkung", params, append = true)
+      processTextParameter(timesheet, "bemerkung", params)
       timesheetDao.update(timesheet)
     }
     return showToast(timesheets.size)

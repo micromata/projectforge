@@ -33,15 +33,8 @@ class AbstractMultiSelectedPageTest {
   fun getNewTextValueTest() {
     checkNewTextValue("", true, "", false, "", "empty string to delete")
     checkNewTextValue("", true, "", true, "", "empty string to delete (append param without effect)")
-    checkNewTextValue("test", true, "", true, "", "delete string")
-    checkNewTextValue(
-      "test",
-      true,
-      "error",
-      true,
-      null,
-      "new value is given, but oldvalue should be deleted. validtion error"
-    )
+    checkNewTextValue("test", true, "", false, "", "delete string")
+    checkNewTextValue("test", true, "", true, "test", "Can't delete and append text!")
     checkNewTextValue("test", false, "new text", true, "test\nnew text", "new value shoud be appended")
     checkNewTextValue(
       "test\nnew text",
@@ -49,7 +42,19 @@ class AbstractMultiSelectedPageTest {
       "new text",
       true,
       null,
-      "new value is alread part of old value, no modification expected."
+      "new value is already part of old value, no modification expected."
+    )
+    checkNewTextValue("The lazy fox jumps.", true, "lazy", false, "The fox jumps.", "delete string")
+    checkNewTextValue("The\n lazy fox jumps.", true, "Lazy", false, "The fox jumps.", "delete string")
+    checkNewTextValue("The\n lazyfox jumps.", true, "Lazy", false, "Thefox jumps.", "delete string but preserve any white spaces")
+    checkNewTextValue("The\n lazy \nfox jumps.", true, "Lazy", false, "The\nfox jumps.", "delete string but preserve any white spaces")
+    checkNewTextValue(
+      "This is a text.\n This should be deleted.\nFollowing text.",
+      true,
+      "This should be deleted.",
+      false,
+      "This is a text.\nFollowing text.",
+      "delete string"
     )
   }
 
