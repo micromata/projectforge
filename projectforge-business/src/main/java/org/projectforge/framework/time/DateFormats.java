@@ -291,9 +291,9 @@ public class DateFormats {
         return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE_SHORT)
                 + (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss a");
       case TIME_OF_DAY_MINUTES:
-        return (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm a");
+        return (timeNotation == TimeNotation.H24 ? "HH:mm" : "hh:mm a");
       case TIME_OF_DAY_SECONDS:
-        return (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss a");
+        return (timeNotation == TimeNotation.H24 ? "HH:mm:ss" : "hh:mm:ss a");
       default:
         return defaultDateFormat;
     }

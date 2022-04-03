@@ -317,6 +317,14 @@ open class PFDateTime internal constructor(
     return ChronoUnit.DAYS.between(dateTime, other.dateTime)
   }
 
+  fun hoursBetween(date: Date): Long {
+    return hoursBetween(from(date)) // not null
+  }
+
+  fun hoursBetween(other: PFDateTime): Long {
+    return ChronoUnit.HOURS.between(dateTime, other.dateTime)
+  }
+
   override fun plus(amountToAdd: Long, temporalUnit: TemporalUnit): PFDateTime {
     return PFDateTime(dateTime.plus(amountToAdd, temporalUnit), locale, precision)
   }
