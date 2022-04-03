@@ -2,6 +2,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { colorPropType } from '../../../../utilities/propTypes';
 import { Alert } from '../../../design';
 import { DynamicLayoutContext } from '../context';
@@ -23,7 +24,8 @@ function DynamicAlert(props) {
     let box = value || message;
 
     if (markdown === true) {
-        box = <ReactMarkdown>{value || message}</ReactMarkdown>;
+        console.log(value, message);
+        box = <ReactMarkdown remarkPlugins={[remarkGfm]}>{value || message}</ReactMarkdown>;
     }
 
     return React.useMemo(() => (
