@@ -123,6 +123,10 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     field: String,
     validationErrors: MutableList<ValidationError>
   ): Boolean {
+    TextFieldModification.hasError(param)?.let { message ->
+      validationErrors.add(ValidationError(translate( message), "$field.textValue"))
+      return false
+    }
     if (param.isEmpty()) {
       if (param.delete == true) {
         return true // Delete action.
