@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.multiselect
 
-import org.projectforge.common.BeanHelper
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -118,7 +117,12 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
   /**
    * @params Supply all params for complexer checks (e. g. taskAndKost2 has to look at parameter task and kost2).
    */
-  protected open fun checkParamHasAction(params: Map<String, MassUpdateParameter>, param: MassUpdateParameter, field: String, validationErrors: MutableList<ValidationError>): Boolean {
+  protected open fun checkParamHasAction(
+    params: Map<String, MassUpdateParameter>,
+    param: MassUpdateParameter,
+    field: String,
+    validationErrors: MutableList<ValidationError>
+  ): Boolean {
     if (param.isEmpty()) {
       if (param.delete == true) {
         return true // Delete action.
@@ -295,6 +299,15 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
           )
         )
       }
+      if (el is UITextArea || el is UIInput) {
+        options.add(
+          UIInput(
+            "$field.replaceText",
+            label = "massUpdate.field.replace",
+            tooltip = "massUpdate.field.replace.info"
+          )
+        )
+      }
       myOptions?.let { options.addAll(it) }
       options.forEachIndexed { index, uiElement ->
         if (index > 0) {
@@ -360,44 +373,6 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     const val URL_PATH_SELECTED = "selected"
     const val URL_SUFFIX_SELECTED = "Selected"
 
-    /**
-     * @param param If append value is true, the given textValue of param will be appended to the oldValue (if textValue isn't already
-     * contained in oldValue, otherwise null is returned).
-     * @return The new Value to set or null, if no modification should done..
-     */
-    fun getNewTextValue(oldValue: String?, param: MassUpdateParameter?): String? {
-      param ?: return null
-      if (param.delete == true && param.append == true) {
-        // Can't append AND delete text.
-        return oldValue
-      }
-      if (param.delete == true) {
-        return if (param.textValue.isNullOrBlank()) {
-          // Whole field should be empty:
-          ""
-        } else {
-          // Only occurence of textValue should be deleted:
-          // Delete full line:
-          oldValue?.replace("""\n\s*${param.textValue}\s*\n""".toRegex(RegexOption.IGNORE_CASE), "\n")
-            // Delete occurrence including leading spaces:
-            ?.replace("""\s*${param.textValue}""".toRegex(RegexOption.IGNORE_CASE), "")
-        }
-      }
-      param.textValue.let { newValue ->
-        if (newValue.isNullOrBlank()) {
-          return null // Nothing to do.
-        }
-        if (param.append != true || oldValue.isNullOrBlank()) {
-          return param.textValue // replace oldValue by this value.
-        }
-        return if (!oldValue.contains(newValue.trim(), true)) {
-          "$oldValue\n$newValue" // Append new value.
-        } else {
-          null // Leave it untouched, because the new value is already contained in old value.
-        }
-      }
-    }
-
     fun ensureMassUpdateParam(
       massUpdateData: MutableMap<String, MassUpdateParameter>,
       name: String
@@ -414,15 +389,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
       property: String,
       params: Map<String, MassUpdateParameter>,
     ) {
-      val param = params[property] ?: return
-      if (param.delete == true && param.append == true) {
-        // Can't append AND delete text.
-        return
-      }
-      val oldValue = BeanHelper.getProperty(data, property) as String?
-      getNewTextValue(oldValue, param)?.let { newValue ->
-        BeanHelper.setProperty(data, property, newValue)
-      }
+      TextFieldModification.processTextParameter(data, property, params)
     }
   }
 }

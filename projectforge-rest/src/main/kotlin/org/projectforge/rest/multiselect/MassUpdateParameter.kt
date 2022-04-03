@@ -39,7 +39,7 @@ class MassUpdateParameter {
   var delete: Boolean? = null
 
   /**
-   * If true, the value should be changed (if changeOption is used).
+   * If true, the value should be changed by the given value (if change option is used).
    */
   var change: Boolean? = null
 
@@ -47,6 +47,11 @@ class MassUpdateParameter {
    * If true, the value of the text field should be appended.
    */
   var append: Boolean? = null
+
+  /**
+   * The given textValue should be replaced by this string (for text fields)
+   */
+  var replaceText: String? = null
 
   /**
    * E. g. for tasks, the id of the selected task is set.
