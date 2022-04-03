@@ -89,7 +89,6 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
       lc,
       massUpdateData,
       layout,
-      "datum",
       "kreditor",
       "receiver",
       "iban",
@@ -97,7 +96,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
       "paymentType",
       "referenz",
       "bezahlDatum",
-      minLengthOfTextArea = 1000,
+      minLengthOfTextArea = 1001,
     )
     createAndAddFields(
       lc,
@@ -137,11 +136,6 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
       processTextParameter(invoice, "iban", params)
       processTextParameter(invoice, "bic", params)
       processTextParameter(invoice, "referenz", params)
-      params["datum"]?.let { param ->
-        if (param.localDateValue != null || param.delete == true) {
-          invoice.datum = param.localDateValue
-        }
-      }
       params["bezahlDatum"]?.let { param ->
         param.localDateValue?.let {
           invoice.bezahlDatum = param.localDateValue
