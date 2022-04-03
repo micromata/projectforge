@@ -329,7 +329,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
           )
         )
       }
-      if (el is UITextArea || el is UIInput) {
+      if (el is UITextArea || (el is UIInput && el.dataType == UIDataType.STRING)) {
         options.add(
           UIInput(
             "$field.replaceText",

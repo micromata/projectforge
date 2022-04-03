@@ -80,7 +80,6 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
       lc,
       massUpdateData,
       layout,
-      "datum",
       "status",
       "bezahlDatum",
     )
@@ -100,14 +99,6 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
     }
     invoices.forEach { invoice ->
       processTextParameter(invoice, "bemerkung", params)
-      params["datum"]?.let { param ->
-        if (param.localDateValue != null || param.delete == true) {
-          invoice.datum = param.localDateValue
-        }
-      }
-      if (params["status"]?.delete == true) {
-        invoice.status = null
-      }
       params["bezahlDatum"]?.let { param ->
         param.localDateValue?.let {
           invoice.bezahlDatum = param.localDateValue
@@ -120,15 +111,12 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
           invoice.status = RechnungStatus.GESTELLT
         }
       }
-      params[""]?.let {
-        invoice.status = null
-      }
       params["status"]?.let { param ->
-        param.textValue?.let { textValue ->
-          invoice.status = RechnungStatus.valueOf(textValue)
-        }
         if (param.delete == true) {
           invoice.status = null
+        }
+        param.textValue?.let { textValue ->
+          invoice.status = RechnungStatus.valueOf(textValue)
         }
       }
       registerUpdate(
