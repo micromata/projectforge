@@ -24,28 +24,40 @@
 package org.projectforge.rest.multiselect
 
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.utils.NumberFormatter
 
 /**
  * Stores statistic data and errors during mass update run.
  */
 class MassUpdateStatistics(
-  var totalCounter: Int
+  var selectedIdsCounter: Int
 ) {
+  class Error(val identifier: String, val message: String)
+
   var modifiedCounter: Int = 0
     private set
   var unmodifiedCounter: Int = 0
     private set
-  val errorMessages = mutableListOf<String>()
+  val total: Int
+    get() = modifiedCounter + unmodifiedCounter
+  val errorMessages = mutableListOf<Error>()
   val errorCounter: Int
     get() = errorMessages.size
 
-  fun addError(ex: Exception) {
+  fun addError(ex: Exception, identifier4Message: String) {
+    ++unmodifiedCounter
     if (ex is UserException) {
-      errorMessages.add(translateMsg(ex))
+      errorMessages.add(Error(identifier = identifier4Message, message = translateMsg(ex)))
     } else {
-      errorMessages.add(ex.localizedMessage ?: "???")
+      errorMessages.add(
+        Error(
+          identifier = identifier4Message,
+          message = ex.localizedMessage ?: translate("massUpdate.error.unspecifiedError")
+        )
+      )
     }
   }
 
@@ -56,4 +68,22 @@ class MassUpdateStatistics(
       ++modifiedCounter
     }
   }
+
+  /**
+   * Show result message after processing: {0} entries were processed: {1} modified, {2} unmodified and {3} with errors.
+   */
+  val resultMessage: String
+    get() {
+      // {0} entries were processed: {1} modified, {2} unmodified and {3} with errors.
+      return translateMsg(
+        "massUpdate.result",
+        NumberFormatter.format(total),
+        NumberFormatter.format(modifiedCounter),
+        NumberFormatter.format(unmodifiedCounter),
+        NumberFormatter.format(errorCounter),
+      )
+    }
+
+  val nothingDone: Boolean
+    get() = total == 0
 }

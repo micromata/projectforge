@@ -33,6 +33,7 @@ import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
@@ -83,10 +84,10 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
     selectedIds: Collection<Serializable>?,
     variables: MutableMap<String, Any>,
   ) {
-    var taskNode: TaskNode? = null
-    var kost2Id: Int? = null
+    var taskNode: TaskNode? = taskTree.getTaskNodeById(massUpdateData["task"]?.id)
+    var kost2Id: Int? = massUpdateData["kost2"]?.id
     val timesheets = timesheetDao.getListByIds(selectedIds)
-    if (timesheets != null) {
+    if (taskNode == null && timesheets != null) {
       // Try to get a shared task of all time sheets.
       loop@ for (timesheet in timesheets) {
         val node = taskTree.getTaskNodeById(timesheet.taskId) ?: continue
@@ -194,10 +195,10 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
     params: Map<String, MassUpdateParameter>,
     selectedIds: Collection<Serializable>,
     massUpdateStatistics: MassUpdateStatistics,
-  ): ResponseEntity<*> {
+  ): ResponseEntity<*>? {
     val timesheets = timesheetDao.getListByIds(selectedIds)
     if (timesheets.isNullOrEmpty()) {
-      return showNoEntriesValidationError()
+      return null
     }
     timesheets.forEach { timesheet ->
       TextFieldModification.processTextParameter(timesheet, "bemerkung", params)
@@ -219,9 +220,13 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
           }
         }
       }
-      registerUpdate(massUpdateStatistics, update = { timesheetDao.update(timesheet) })
+      registerUpdate(
+        massUpdateStatistics,
+        identifier4Message = "${timesheet.user?.getFullname()} ${timesheet.timePeriod.formattedString}",
+        update = { timesheetDao.update(timesheet) },
+      )
     }
-    return showToast(timesheets.size)
+    return null
   }
 
   override fun ensureUserLogSubscription(): LogSubscription {

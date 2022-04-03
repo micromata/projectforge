@@ -125,10 +125,10 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
     params: Map<String, MassUpdateParameter>,
     selectedIds: Collection<Serializable>,
     massUpdateStatistics: MassUpdateStatistics,
-  ): ResponseEntity<*> {
+  ): ResponseEntity<*>? {
     val invoices = eingangsrechnungDao.getListByIds(selectedIds)
     if (invoices.isNullOrEmpty()) {
-      return showNoEntriesValidationError()
+      return null
     }
     invoices.forEach { invoice ->
       processTextParameter(invoice, "bemerkung", params)
@@ -160,9 +160,13 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
           invoice.paymentType = null
         }
       }
-      registerUpdate(massUpdateStatistics, update = { eingangsrechnungDao.update(invoice) })
+      registerUpdate(
+        massUpdateStatistics,
+        identifier4Message = "${invoice.datum} ${invoice.kreditor}-${invoice.referenz}",
+        update = { eingangsrechnungDao.update(invoice) },
+      )
     }
-    return showToast(invoices.size)
+    return null
   }
 
   /**

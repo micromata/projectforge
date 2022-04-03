@@ -30,6 +30,7 @@ import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
@@ -92,10 +93,10 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
     params: Map<String, MassUpdateParameter>,
     selectedIds: Collection<Serializable>,
     massUpdateStatistics: MassUpdateStatistics,
-  ): ResponseEntity<*> {
+  ): ResponseEntity<*>? {
     val invoices = rechnungDao.getListByIds(selectedIds)
     if (invoices.isNullOrEmpty()) {
-      return showNoEntriesValidationError()
+      return null
     }
     invoices.forEach { invoice ->
       processTextParameter(invoice, "bemerkung", params)
@@ -130,9 +131,13 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
           invoice.status = null
         }
       }
-      registerUpdate(massUpdateStatistics, update = { rechnungDao.update(invoice) })
+      registerUpdate(
+        massUpdateStatistics,
+        identifier4Message = "${invoice.datum} #${NumberFormatter.format(invoice.nummer)}",
+        update = { rechnungDao.update(invoice) },
+      )
     }
-    return showToast(invoices.size)
+    return null
   }
 
   override fun ensureUserLogSubscription(): LogSubscription {
