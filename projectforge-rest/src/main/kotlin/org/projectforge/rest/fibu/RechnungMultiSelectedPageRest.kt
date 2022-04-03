@@ -35,6 +35,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateParameter
+import org.projectforge.rest.multiselect.MassUpdateStatistics
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIAlert
 import org.projectforge.ui.UIColor
@@ -89,7 +90,8 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
   override fun proceedMassUpdate(
     request: HttpServletRequest,
     params: Map<String, MassUpdateParameter>,
-    selectedIds: Collection<Serializable>
+    selectedIds: Collection<Serializable>,
+    massUpdateStatistics: MassUpdateStatistics,
   ): ResponseEntity<*> {
     val invoices = rechnungDao.getListByIds(selectedIds)
     if (invoices.isNullOrEmpty()) {
@@ -128,7 +130,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
           invoice.status = null
         }
       }
-      rechnungDao.update(invoice)
+      registerUpdate(massUpdateStatistics, update = { rechnungDao.update(invoice) })
     }
     return showToast(invoices.size)
   }
