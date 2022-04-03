@@ -152,18 +152,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
       validationErrors.add(ValidationError(translate(message), "$field.textValue"))
       return false
     }
-    if (param.isEmpty()) {
-      if (param.delete == true) {
-        return true // Delete action.
-      }
-    } else {
-      if (param.delete == true) {
-        validationErrors.add(ValidationError(translate("massUpdate.error.fieldToDeleteNotEmpty"), "$field.textValue"))
-      } else {
-        return true // Modification action.
-      }
-    }
-    return false
+    return true
   }
 
   /**
