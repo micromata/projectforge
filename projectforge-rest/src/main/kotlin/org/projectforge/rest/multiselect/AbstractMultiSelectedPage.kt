@@ -27,7 +27,7 @@ import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -48,7 +48,7 @@ import javax.servlet.http.HttpServletRequest
 /**
  * Base class of mass updates after multi selection.
  */
-abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
+abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : AbstractDynamicPageRest() {
   class MultiSelection {
     var selectedIds: Collection<Serializable>? = null
   }
@@ -107,36 +107,21 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     if (nothingToDo) {
       return showNothingToDoValidationError()
     }
-    val massUpdateStatistics = MassUpdateStatistics(selectedIds.size)
-    proceedMassUpdate(request, massUpdateData, selectedIds, massUpdateStatistics)?.let { responseEntity ->
+    val massUpdateContext = MassUpdateContext<T>(selectedIds.size, massUpdateData)
+    proceedMassUpdate(request, selectedIds, massUpdateContext)?.let { responseEntity ->
       return responseEntity
     }
-    if (massUpdateStatistics.nothingDone) {
+    if (massUpdateContext.nothingDone) {
       return showNoEntriesValidationError()
     }
+    //MultiSelectionExcelExport.export(massUpdateContext)
     val variables = mutableMapOf<String, Any>()
-    val layout = getLayout(request, massUpdateData, variables, massUpdateStatistics)
+    val layout = getLayout(request, massUpdateData, variables, massUpdateContext)
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE)
         .addVariable("ui", layout)
         .addVariable("data", massUpdateData)
     )
-  }
-
-  /**
-   * @param identifier4Message The identifier as part of the user feedback on errors. Should display a string for the
-   * user to identifier the failed update object (e. g. invoice number or time sheet user and start-date etc.).
-   */
-  protected fun registerUpdate(
-    massUpdateStatistics: MassUpdateStatistics,
-    identifier4Message: String,
-    update: () -> ModificationStatus
-  ) {
-    try {
-      massUpdateStatistics.add(update())
-    } catch (ex: Exception) {
-      massUpdateStatistics.addError(ex, identifier4Message)
-    }
   }
 
   /**
@@ -160,9 +145,8 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
    */
   protected abstract fun proceedMassUpdate(
     request: HttpServletRequest,
-    params: Map<String, MassUpdateParameter>,
     selectedIds: Collection<Serializable>,
-    massUpdateStatistics: MassUpdateStatistics,
+    massUpdateContext: MassUpdateContext<T>,
   ): ResponseEntity<*>?
 
   abstract fun fillForm(
@@ -177,7 +161,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
     request: HttpServletRequest,
     massUpdateData: MutableMap<String, MassUpdateParameter>,
     variables: MutableMap<String, Any>,
-    massUpdateStatistics: MassUpdateStatistics? = null,
+    massUpdateContext: MassUpdateContext<T>? = null,
   ): UILayout {
     val layout = UILayout(getTitleKey())
 
@@ -229,7 +213,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
         )
       )
     }
-    massUpdateStatistics?.let { stats ->
+    massUpdateContext?.let { stats ->
       if (stats.errorCounter > 0) {
         val sb = StringBuilder()
         sb.appendLine("'*${stats.resultMessage}*")

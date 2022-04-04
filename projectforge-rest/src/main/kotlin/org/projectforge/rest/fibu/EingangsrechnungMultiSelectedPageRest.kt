@@ -39,8 +39,8 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
+import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateParameter
-import org.projectforge.rest.multiselect.MassUpdateStatistics
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIAlert
@@ -61,7 +61,7 @@ private val log = KotlinLogging.logger {}
  */
 @RestController
 @RequestMapping("${Rest.URL}/incomingInvoice${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
+class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<EingangsrechnungDO>() {
   @Autowired
   private lateinit var SEPATransferGenerator: SEPATransferGenerator
 
@@ -85,6 +85,11 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
     variables: MutableMap<String, Any>,
   ) {
     val lc = LayoutContext(EingangsrechnungDO::class.java)
+    val stats = EingangsrechnungsStatistik()
+    eingangsrechnungDao.getListByIds(selectedIds)?.forEach { invoice ->
+      stats.add(invoice)
+    }
+    layout.add(UIAlert("'${stats.asMarkdown}", color = UIColor.LIGHT, markdown = true))
     createAndAddFields(
       lc,
       massUpdateData,
@@ -121,15 +126,16 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
 
   override fun proceedMassUpdate(
     request: HttpServletRequest,
-    params: Map<String, MassUpdateParameter>,
     selectedIds: Collection<Serializable>,
-    massUpdateStatistics: MassUpdateStatistics,
+    massUpdateContext: MassUpdateContext<EingangsrechnungDO>,
   ): ResponseEntity<*>? {
     val invoices = eingangsrechnungDao.getListByIds(selectedIds)
     if (invoices.isNullOrEmpty()) {
       return null
     }
+    val params = massUpdateContext.massUpdateData
     invoices.forEach { invoice ->
+      massUpdateContext.startUpdate(invoice)
       processTextParameter(invoice, "bemerkung", params)
       processTextParameter(invoice, "kreditor", params)
       processTextParameter(invoice, "receiver", params)
@@ -154,9 +160,9 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
           invoice.paymentType = null
         }
       }
-      registerUpdate(
-        massUpdateStatistics,
+      massUpdateContext.commitUpdate(
         identifier4Message = "${invoice.datum} ${invoice.kreditor}-${invoice.referenz}",
+        invoice,
         update = { eingangsrechnungDao.update(invoice) },
       )
     }
