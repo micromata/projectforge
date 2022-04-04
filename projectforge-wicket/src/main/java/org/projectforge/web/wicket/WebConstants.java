@@ -53,7 +53,7 @@ public class WebConstants
 
   private static final String DIR = "images/";
 
-  public static final String DOC_LINK_HANDBUCH_LUCENE = "https://www.projectforge.org/documentation/user-guide.html#Full-indexed%20search";
+  public static final String DOC_LINK_HANDBUCH_LUCENE = "https://projectforge.org/docs/userguide/#full_indexed_search";
 
   public static final String I18N_KEY_FIELD_REQUIRED = "validation.error.fieldRequired";
 
