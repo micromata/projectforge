@@ -23,17 +23,22 @@
 
 package org.projectforge.rest.multiselect
 
+import mu.KotlinLogging
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.utils.NumberFormatter
 
+private val log = KotlinLogging.logger {}
+
 /**
- * Stores statistic data and errors during mass update run.
+ * Stores also statistic data and errors during mass update run.
  */
-class MassUpdateStatistics(
-  var selectedIdsCounter: Int
+class MassUpdateContext<T : IdObject<out java.io.Serializable>>(
+  var selectedIdsCounter: Int,
+  var massUpdateData: Map<String, MassUpdateParameter>,
 ) {
   class Error(val identifier: String, val message: String)
 
@@ -47,7 +52,39 @@ class MassUpdateStatistics(
   val errorCounter: Int
     get() = errorMessages.size
 
-  fun addError(ex: Exception, identifier4Message: String) {
+  private var current: MassUpdateObject<T>? = null
+
+  internal val massUpdateObjects = mutableListOf<MassUpdateObject<T>>()
+
+  fun startUpdate(dbObj: T) {
+    current = MassUpdateObject(dbObj.id, dbObj, massUpdateData)
+  }
+
+  /**
+   * @param identifier4Message The identifier as part of the user feedback on errors. Should display a string for the
+   * user to identifier the failed update object (e. g. invoice number or time sheet user and start-date etc.).
+   */
+  fun commitUpdate(
+    identifier4Message: String,
+    modifiedObj: T,
+    update: () -> ModificationStatus
+  ) {
+    if (current == null) {
+      log.warn("Commit update without current object, please start update first by calling startUpdate.")
+    }
+    try {
+      current?.setModifiedObject(modifiedObj, identifier4Message)
+      add(update())
+      current?.let {
+        massUpdateObjects.add(it)
+        current = null
+      }
+    } catch (ex: Exception) {
+      addError(ex, identifier4Message)
+    }
+  }
+
+  private fun addError(ex: Exception, identifier4Message: String) {
     ++unmodifiedCounter
     if (ex is UserException) {
       errorMessages.add(Error(identifier = identifier4Message, message = translateMsg(ex)))
@@ -61,7 +98,7 @@ class MassUpdateStatistics(
     }
   }
 
-  fun add(status: ModificationStatus) {
+  private fun add(status: ModificationStatus) {
     if (status == ModificationStatus.NONE) {
       ++unmodifiedCounter
     } else {

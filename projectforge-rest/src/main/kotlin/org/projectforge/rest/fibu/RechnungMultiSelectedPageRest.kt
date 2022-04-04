@@ -23,9 +23,11 @@
 
 package org.projectforge.rest.fibu
 
+import org.projectforge.business.fibu.EingangsrechnungsStatistik
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.RechnungStatus
+import org.projectforge.business.fibu.RechnungsStatistik
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
@@ -36,7 +38,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateParameter
-import org.projectforge.rest.multiselect.MassUpdateStatistics
+import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIAlert
 import org.projectforge.ui.UIColor
@@ -53,7 +55,7 @@ import javax.servlet.http.HttpServletRequest
  */
 @RestController
 @RequestMapping("${Rest.URL}/invoice${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
+class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
 
   @Autowired
   private lateinit var rechnungDao: RechnungDao
@@ -76,6 +78,11 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
     variables: MutableMap<String, Any>,
   ) {
     val lc = LayoutContext(RechnungDO::class.java)
+    val stats = RechnungsStatistik()
+    rechnungDao.getListByIds(selectedIds)?.forEach { invoice ->
+      stats.add(invoice)
+    }
+    layout.add(UIAlert("'${stats.asMarkdown}", color = UIColor.LIGHT, markdown = true))
     createAndAddFields(
       lc,
       massUpdateData,
@@ -89,15 +96,16 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
 
   override fun proceedMassUpdate(
     request: HttpServletRequest,
-    params: Map<String, MassUpdateParameter>,
     selectedIds: Collection<Serializable>,
-    massUpdateStatistics: MassUpdateStatistics,
+    massUpdateContext: MassUpdateContext<RechnungDO>,
   ): ResponseEntity<*>? {
     val invoices = rechnungDao.getListByIds(selectedIds)
     if (invoices.isNullOrEmpty()) {
       return null
     }
+    val params = massUpdateContext.massUpdateData
     invoices.forEach { invoice ->
+      massUpdateContext.startUpdate(invoice)
       processTextParameter(invoice, "bemerkung", params)
       params["bezahlDatum"]?.let { param ->
         param.localDateValue?.let {
@@ -119,9 +127,9 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage() {
           invoice.status = RechnungStatus.valueOf(textValue)
         }
       }
-      registerUpdate(
-        massUpdateStatistics,
+      massUpdateContext.commitUpdate(
         identifier4Message = "${invoice.datum} #${NumberFormatter.format(invoice.nummer)}",
+        invoice,
         update = { rechnungDao.update(invoice) },
       )
     }

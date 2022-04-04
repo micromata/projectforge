@@ -38,7 +38,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateParameter
-import org.projectforge.rest.multiselect.MassUpdateStatistics
+import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.TextFieldModification
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
@@ -54,7 +54,7 @@ import javax.servlet.http.HttpServletRequest
  */
 @RestController
 @RequestMapping("${Rest.URL}/timesheet${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
+class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() {
   @Autowired
   private lateinit var kost2Dao: Kost2Dao
 
@@ -191,14 +191,14 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
 
   override fun proceedMassUpdate(
     request: HttpServletRequest,
-    params: Map<String, MassUpdateParameter>,
     selectedIds: Collection<Serializable>,
-    massUpdateStatistics: MassUpdateStatistics,
+    massUpdateContext: MassUpdateContext<TimesheetDO>,
   ): ResponseEntity<*>? {
     val timesheets = timesheetDao.getListByIds(selectedIds)
     if (timesheets.isNullOrEmpty()) {
       return null
     }
+    val params = massUpdateContext.massUpdateData
     val taskId =  params["task"]?.id
     val project = taskTree.getProjekt(taskId)
     val availableKost2s = kost2Dao.getActiveKost2(project)
@@ -209,6 +209,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
       kost2Id = null
     }
     timesheets.forEach { timesheet ->
+      massUpdateContext.startUpdate(timesheet)
       TextFieldModification.processTextParameter(timesheet, "bemerkung", params)
       TextFieldModification.processTextParameter(timesheet, "reference", params)
       TextFieldModification.processTextParameter(timesheet, "description", params)
@@ -234,9 +235,9 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage() {
           }
         }
       }
-      registerUpdate(
-        massUpdateStatistics,
+      massUpdateContext.commitUpdate(
         identifier4Message = "${timesheet.user?.getFullname()} ${timesheet.timePeriod.formattedString}",
+        timesheet,
         update = { timesheetDao.update(timesheet) },
       )
     }
