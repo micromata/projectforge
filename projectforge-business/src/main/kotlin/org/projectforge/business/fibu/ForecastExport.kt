@@ -233,20 +233,20 @@ open class ForecastExport { // open needed by Wicket.
                 val rowNumber = sheet.createRow().rowNum
                 sheet.setIntValue(rowNumber, InvoicesCol.INVOICE_NR.header, invoice.nummer)
                 sheet.setStringValue(rowNumber, InvoicesCol.POS_NR.header, "#${pos.number}")
-                sheet.setDateValue(rowNumber, InvoicesCol.DATE.header, PFDay(invoice.datum!!).utilDate, ctx.excelDateFormat)
+                sheet.setDateValue(rowNumber, InvoicesCol.DATE.header, PFDay(invoice.datum!!).localDate, ctx.excelDateFormat)
                 sheet.setStringValue(rowNumber, InvoicesCol.CUSTOMER.header, invoice.kundeAsString)
                 sheet.setStringValue(rowNumber, InvoicesCol.PROJECT.header, invoice.projekt?.name)
                 sheet.setStringValue(rowNumber, InvoicesCol.SUBJECT.header, invoice.betreff)
                 sheet.setStringValue(rowNumber, InvoicesCol.POS_TEXT.header, pos.text)
                 invoice.bezahlDatum?.let {
-                    sheet.setDateValue(rowNumber, InvoicesCol.DATE_OF_PAYMENT.header, PFDay(it).utilDate, ctx.excelDateFormat)
+                    sheet.setDateValue(rowNumber, InvoicesCol.DATE_OF_PAYMENT.header, PFDay(it).localDate, ctx.excelDateFormat)
                 }
                 val leistungsZeitraumColDef = sheet.getColumnDef(InvoicesCol.LEISTUNGSZEITRAUM.header)
                 invoice.periodOfPerformanceBegin?.let {
-                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef, PFDay(it).utilDate, ctx.excelDateFormat)
+                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef, PFDay(it).localDate, ctx.excelDateFormat)
                 }
                 invoice.periodOfPerformanceEnd?.let {
-                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef!!.columnNumber + 1, PFDay(it).utilDate, ctx.excelDateFormat)
+                    sheet.setDateValue(rowNumber, leistungsZeitraumColDef!!.columnNumber + 1, PFDay(it).localDate, ctx.excelDateFormat)
                 }
                 sheet.setStringValue(rowNumber, InvoicesCol.ORDER.header, "${order.nummer}.${orderPos.number}")
                 sheet.setBigDecimalValue(rowNumber, InvoicesCol.NETSUM.header, pos.netSum).cellStyle = ctx.currencyCellStyle
@@ -269,13 +269,13 @@ open class ForecastExport { // open needed by Wicket.
         sheet.setIntValue(row, ForecastCol.ORDER_NR.header, order.nummer)
         sheet.setStringValue(row, ForecastCol.POS_NR.header, "#${pos.number}")
         order.angebotsDatum?.let {
-            sheet.setDateValue(row, ForecastCol.DATE_OF_OFFER.header, PFDay(it).utilDate, ctx.excelDateFormat)
+            sheet.setDateValue(row, ForecastCol.DATE_OF_OFFER.header, PFDay(it).localDate, ctx.excelDateFormat)
         }
         ForecastUtils.ensureErfassungsDatum(order)?.let {
-            sheet.setDateValue(row, ForecastCol.DATE.header, PFDay(it).utilDate, ctx.excelDateFormat)
+            sheet.setDateValue(row, ForecastCol.DATE.header, PFDay(it).localDate, ctx.excelDateFormat)
         }
         order.entscheidungsDatum?.let {
-            sheet.setDateValue(row, ForecastCol.DATE_OF_DECISION.header, PFDay(it).utilDate, ctx.excelDateFormat)
+            sheet.setDateValue(row, ForecastCol.DATE_OF_DECISION.header, PFDay(it).localDate, ctx.excelDateFormat)
         }
         sheet.setStringValue(row, ForecastCol.HEAD.header, order.headOfBusinessManager?.getFullname())
         sheet.setStringValue(row, ForecastCol.CUSTOMER.header, order.kundeAsString)
@@ -310,11 +310,11 @@ open class ForecastExport { // open needed by Wicket.
         val leistungsZeitraumColDef = sheet.getColumnDef(ForecastCol.LEISTUNGSZEITRAUM.header)!!
         if (PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType) { // use "own" period -> from pos
 
-            sheet.setDateValue(row, leistungsZeitraumColDef, PFDay(pos.periodOfPerformanceBegin!!).utilDate, ctx.excelDateFormat)
-            sheet.setDateValue(row, leistungsZeitraumColDef.columnNumber + 1, PFDay(pos.periodOfPerformanceEnd!!).utilDate, ctx.excelDateFormat)
+            sheet.setDateValue(row, leistungsZeitraumColDef, PFDay(pos.periodOfPerformanceBegin!!).localDate, ctx.excelDateFormat)
+            sheet.setDateValue(row, leistungsZeitraumColDef.columnNumber + 1, PFDay(pos.periodOfPerformanceEnd!!).localDate, ctx.excelDateFormat)
         } else { // use "see above" period -> from order
-            sheet.setDateValue(row, leistungsZeitraumColDef, PFDay(order.periodOfPerformanceBegin!!).utilDate, ctx.excelDateFormat)
-            sheet.setDateValue(row, leistungsZeitraumColDef.columnNumber + 1, PFDay(order.periodOfPerformanceEnd!!).utilDate, ctx.excelDateFormat)
+            sheet.setDateValue(row, leistungsZeitraumColDef, PFDay(order.periodOfPerformanceBegin!!).localDate, ctx.excelDateFormat)
+            sheet.setDateValue(row, leistungsZeitraumColDef.columnNumber + 1, PFDay(order.periodOfPerformanceEnd!!).localDate, ctx.excelDateFormat)
         }
         val probability = ForecastUtils.getProbabilityOfAccurence(order, pos)
         sheet.setBigDecimalValue(row, ForecastCol.EINTRITTSWAHRSCHEINLICHKEIT.header, probability).cellStyle = ctx.percentageCellStyle
