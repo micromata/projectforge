@@ -54,6 +54,21 @@ class MassUpdateParameter {
   var replaceText: String? = null
 
   /**
+   * Number of actions (delete, append and replace). More than 1 will normally result in an error and 0 means nothing to-do.
+   */
+  val actionCounter: Int
+    get() {
+      var actionCounter = 0
+      if (delete == true) ++actionCounter
+      if (append == true) ++actionCounter
+      if (!replaceText.isNullOrEmpty()) ++actionCounter
+      return actionCounter
+    }
+
+  val hasAction: Boolean
+    get() = actionCounter == 1
+
+  /**
    * E. g. for tasks, the id of the selected task is set.
    */
   var id: Int? = null

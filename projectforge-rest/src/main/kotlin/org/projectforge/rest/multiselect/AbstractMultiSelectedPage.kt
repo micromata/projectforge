@@ -152,7 +152,7 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
       validationErrors.add(ValidationError(translate(message), "$field.textValue"))
       return false
     }
-    return true
+    return param.hasAction
   }
 
   /**
@@ -385,15 +385,6 @@ abstract class AbstractMultiSelectedPage : AbstractDynamicPageRest() {
 
   protected fun showNothingToDoValidationError(): ResponseEntity<ResponseAction> {
     return showValidationErrors(ValidationError(translate("massUpdate.error.nothingToDo")))
-  }
-
-  protected fun showSuccessToast(numberOfEntries: Int): ResponseEntity<ResponseAction> {
-    return UIToast.createToastResponseEntity(
-      translateMsg(
-        "massUpdate.success",
-        NumberFormatter.format(numberOfEntries)
-      )
-    )
   }
 
   companion object {
