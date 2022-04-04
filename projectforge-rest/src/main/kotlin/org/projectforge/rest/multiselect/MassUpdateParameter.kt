@@ -66,7 +66,7 @@ class MassUpdateParameter {
     }
 
   val hasAction: Boolean
-    get() = actionCounter == 1
+    get() = actionCounter == 1 && (append != true || !textValue.isNullOrBlank())
 
   /**
    * E. g. for tasks, the id of the selected task is set.
