@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import { colorPropType } from '../../../../utilities/propTypes';
 import { Alert } from '../../../design';
 import { DynamicLayoutContext } from '../context';
@@ -24,8 +25,11 @@ function DynamicAlert(props) {
     let box = value || message;
 
     if (markdown === true) {
-        console.log(value, message);
-        box = <ReactMarkdown remarkPlugins={[remarkGfm]}>{value || message}</ReactMarkdown>;
+        box = (
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                {value || message}
+            </ReactMarkdown>
+        );
     }
 
     return React.useMemo(() => (
