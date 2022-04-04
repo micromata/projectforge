@@ -42,17 +42,15 @@ object TextFieldModification {
     }
   }
 
+  /**
+   * @return an error, if more than 1 action is detected or the text to replace is missed.
+   */
   fun hasError(param: MassUpdateParameter): String? {
-    var actionCounter = 0
-    val replaceText = param.replaceText
-    if (param.delete == true) ++actionCounter
-    if (param.append == true) ++actionCounter
-    if (!replaceText.isNullOrEmpty()) ++actionCounter
-    if (actionCounter > 1) {
+    if (param.actionCounter > 1) {
       // Can't only proceed with one of the action (delete, or append or replace).
       return "massUpdate.error.invalidOptionMix"
     }
-    if (!replaceText.isNullOrBlank() && param.textValue.isNullOrBlank()) {
+    if (!param.replaceText.isNullOrBlank() && param.textValue.isNullOrBlank()) {
       return "massUpdate.error.textValueToReplaceMissed"
     }
     return null
