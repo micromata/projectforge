@@ -34,86 +34,87 @@ import java.util.*
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object I18nHelper {
-    private val log = LoggerFactory.getLogger(I18nHelper::class.java)
-    private val BUNDLE_NAMES: MutableSet<String> = HashSet()
-    private lateinit var i18nService: I18nService
+  private val log = LoggerFactory.getLogger(I18nHelper::class.java)
+  private val BUNDLE_NAMES: MutableSet<String> = HashSet()
+  private lateinit var i18nService: I18nService
 
-    @JvmStatic
-    fun addBundleName(bundleName: String) {
-        BUNDLE_NAMES.add(bundleName)
+  @JvmStatic
+  fun addBundleName(bundleName: String) {
+    BUNDLE_NAMES.add(bundleName)
+  }
+
+  @JvmStatic
+  val bundleNames: Set<String>
+    get() = BUNDLE_NAMES
+
+  @JvmStatic
+  fun getI18nService(): I18nService {
+    return i18nService
+  }
+
+  @JvmStatic
+  fun setI18nService(i18nService: I18nService) {
+    I18nHelper.i18nService = i18nService
+  }
+
+  @JvmStatic
+  fun getLocalizedMessage(i18nKeyAndParams: I18nKeyAndParams): String {
+    return getLocalizedMessage(i18nKeyAndParams.key, *i18nKeyAndParams.params)
+  }
+
+  @JvmStatic
+  fun getLocalizedMessage(i18nKey: String?, vararg params: Any?): String {
+    i18nKey ?: return "???"
+    return getLocalizedMessage(ThreadLocalUserContext.getLocale(), i18nKey, *params)
+  }
+
+  @JvmStatic
+  fun getLocalizedMessage(locale: Locale?, i18nKey: String?, vararg params: Any?): String {
+    i18nKey ?: return "???"
+    val localized = getLocalizedString(locale, i18nKey)
+    if (params.isNullOrEmpty()) {
+      return localized
     }
+    return if (localized.startsWith("???")) {
+      // I18n-key not found (e. g. in test cases).
+      "$localized (${params.joinToString { it.toString() }})???"
+    } else MessageFormat.format(localized, *params)
+  }
 
-    @JvmStatic
-    val bundleNames: Set<String>
-        get() = BUNDLE_NAMES
-
-    @JvmStatic
-    fun getI18nService(): I18nService {
-        return i18nService
+  private fun getLocalizedString(locale: Locale?, i18nKey: String): String {
+    val lc = locale ?: ThreadLocalUserContext.getLocale()
+    for (bundleName in BUNDLE_NAMES) {
+      val translation = getLocalizedString(bundleName, lc, i18nKey)
+      if (translation != null) {
+        return translation
+      }
     }
+    // log.warn("Resource key '$i18nKey' not found for locale '$locale' in bundles ${BUNDLE_NAMES.joinToString { it }}")
+    // Is already translated (or key not found):
+    return i18nKey
+  }
 
-    @JvmStatic
-    fun setI18nService(i18nService: I18nService) {
-        I18nHelper.i18nService = i18nService
+  private fun getLocalizedString(bundleName: String, locale: Locale, i18nKey: String): String? {
+    try {
+      val bundle = getResourceBundle(bundleName, locale)
+      return if (bundle.containsKey(i18nKey)) {
+        bundle.getString(i18nKey)
+      } else {
+        null
+        //i18nService.getAdditionalString(i18nKey, locale)
+      }
+    } catch (ex: Exception) {
+      log.warn("Exception while trying to access key '$i18nKey' for locale '$locale' and bundle '$bundleName': ${ex.message}")
     }
+    return null
+  }
 
-    @JvmStatic
-    fun getLocalizedMessage(i18nKeyAndParams: I18nKeyAndParams): String {
-        return getLocalizedMessage(i18nKeyAndParams.key, *i18nKeyAndParams.params)
-    }
-
-    @JvmStatic
-    fun getLocalizedMessage(i18nKey: String?, vararg params: Any?): String {
-        i18nKey ?: return "???"
-        return getLocalizedMessage(ThreadLocalUserContext.getLocale(), i18nKey, *params)
-    }
-
-    @JvmStatic
-    fun getLocalizedMessage(locale: Locale?, i18nKey: String?, vararg params: Any?): String {
-        i18nKey ?: return "???"
-        val localized = getLocalizedString(locale, i18nKey)
-        if (params.isNullOrEmpty()) {
-            return localized
-        }
-        return if (localized.startsWith("???")) {
-            // I18n-key not found (e. g. in test cases).
-            "$localized (${params.joinToString { it.toString() }})???"
-        } else MessageFormat.format(localized, *params)
-    }
-
-    private fun getLocalizedString(locale: Locale?, i18nKey: String): String {
-        val lc = locale ?: ThreadLocalUserContext.getLocale()
-        for (bundleName in BUNDLE_NAMES) {
-            val translation = getLocalizedString(bundleName, lc, i18nKey)
-            if (translation != null) {
-                return translation
-            }
-        }
-        log.warn("Resource key '$i18nKey' not found for locale '$locale' in bundles ${BUNDLE_NAMES.joinToString { it }}")
-        return "???$i18nKey???"
-    }
-
-    private fun getLocalizedString(bundleName: String, locale: Locale, i18nKey: String): String? {
-        try {
-            val bundle = getResourceBundle(bundleName, locale)
-            return if (bundle.containsKey(i18nKey)) {
-                bundle.getString(i18nKey)
-            } else {
-                null
-                //i18nService.getAdditionalString(i18nKey, locale)
-            }
-        } catch (ex: Exception) {
-            log.warn("Exception while trying to access key '$i18nKey' for locale '$locale' and bundle '$bundleName': ${ex.message}")
-        }
-        return null
-    }
-
-    /**
-     * Use-ful for using the locale of another user (e. g. the receiver of an e-mail).
-     *
-     * @param locale If null, then the context user's locale is assumed.
-     */
-    private fun getResourceBundle(bundleName: String, locale: Locale?): ResourceBundle {
-        return if (locale != null) ResourceBundle.getBundle(bundleName, locale) else ResourceBundle.getBundle(bundleName)
-    }
+  /**
+   * Use-ful for using the locale of another user (e. g. the receiver of an e-mail).
+   *
+   * @param locale If null, then the context user's locale is assumed.
+   */
+  private fun getResourceBundle(bundleName: String, locale: Locale?): ResourceBundle {
+    return if (locale != null) ResourceBundle.getBundle(bundleName, locale) else ResourceBundle.getBundle(bundleName)
+  }
 }
