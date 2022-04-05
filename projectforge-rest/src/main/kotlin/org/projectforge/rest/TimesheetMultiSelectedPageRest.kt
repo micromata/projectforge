@@ -33,12 +33,13 @@ import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
-import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.rest.multiselect.MassUpdateContext
+import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.rest.multiselect.TextFieldModification
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
@@ -55,6 +56,9 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/timesheet${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
 class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() {
+  @Autowired
+  private lateinit var dateTimeFormatter: DateTimeFormatter
+
   @Autowired
   private lateinit var kost2Dao: Kost2Dao
 
@@ -127,6 +131,16 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
       }
     }
     val lc = LayoutContext(TimesheetDO::class.java)
+    val duration = timesheetDao.getListByIds(selectedIds)?.sumOf { it.getDuration() }
+    val durationAsString = dateTimeFormatter.getPrettyFormattedDuration(duration ?: 0)
+    layout.add(
+      UIAlert(
+        "'${translate("timesheet.totalDuration")}: $durationAsString",
+        color = UIColor.LIGHT,
+        markdown = true
+      )
+    )
+
     kost2Id?.let { kost2Id ->
       ensureMassUpdateParam(massUpdateData, "kost2").id = kost2Id
     }
@@ -195,7 +209,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
   ) {
     val params = massUpdateContext.massUpdateData
     val kost2Id = params["kost2"]?.id
-    val taskId =  params["task"]?.id
+    val taskId = params["task"]?.id
     val availableKost2s = taskTree.getKost2List(taskId)
     if (kost2Id != null && availableKost2s?.any { it.id == kost2Id } != true) {
       // Due to a client bug, the kost2 id of the old project is sent, delete it, because, the project
@@ -213,7 +227,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
       return null
     }
     val params = massUpdateContext.massUpdateData
-    val taskId =  params["task"]?.id
+    val taskId = params["task"]?.id
     val project = taskTree.getProjekt(taskId)
     val availableKost2s = taskTree.getKost2List(taskId)
     val kost2Id = params["kost2"]?.id
@@ -231,7 +245,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             taskTree.getTaskById(taskId)?.let { task ->
               timesheet.task = task
             }
-            if (!availableKost2s.isNullOrEmpty() && timesheet.kost2?.projekt != project ) {
+            if (!availableKost2s.isNullOrEmpty() && timesheet.kost2?.projekt != project) {
               // Try to find kost2 with same type (last 2 digits of projects)
               availableKost2s.find { it.kost2ArtId == timesheet.kost2?.kost2ArtId }?.let { newKost2 ->
                 timesheet.kost2 = newKost2
