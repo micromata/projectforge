@@ -88,7 +88,7 @@ public class GroovyEngineTest extends AbstractTestBase {
     engine.putVariable("requestUrl", "https://localhost:8443/wa/toDoEditPage/id/42");
     final String result = engine.executeTemplateFile("mail/todoChangeNotification.html");
     assertTrue(result.contains("hoch"), "I18n priorty expected.");
-    assertTrue(result.contains("???plugins.todo.type.improvement???"), "I18n key for type improvement expected.");
+    assertTrue(result.contains("plugins.todo.type.improvement"), "I18n key for type improvement expected.");
   }
 
   @Test
