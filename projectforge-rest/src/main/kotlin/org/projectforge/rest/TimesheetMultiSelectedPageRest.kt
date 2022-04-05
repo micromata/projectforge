@@ -205,7 +205,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
     if (kost2Id != null && availableKost2s?.any { it.id == kost2Id } != true) {
       // Due to a client bug, the kost2 id of the old project is sent, delete it, because, the project
       // was changed and kost2Id is invalid:
-      //kost2Id = null
+      kost2Id = null
     }
     massUpdateContext.ignoreFieldsForModificationCheck = listOf("taskAndKost2")
     timesheets.forEach { timesheet ->
