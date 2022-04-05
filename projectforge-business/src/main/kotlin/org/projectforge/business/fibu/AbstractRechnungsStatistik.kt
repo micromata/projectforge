@@ -34,6 +34,8 @@ import java.math.BigDecimal
 open class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializable {
   var brutto: BigDecimal
     protected set
+  var bruttoMitSkonto: BigDecimal
+    protected set
   var netto: BigDecimal
     protected set
   var gezahlt: BigDecimal
@@ -62,6 +64,7 @@ open class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializable {
     gezahlt = offen
     netto = gezahlt
     brutto = netto
+    bruttoMitSkonto = netto
     counterBezahlt = 0
     counter = counterBezahlt
   }
@@ -69,9 +72,11 @@ open class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializable {
   fun add(rechnung: T) {
     val netto = rechnung!!.netSum
     val brutto = rechnung.grossSum
+    val bruttoMitSkonto = rechnung.grossSumWithDiscount
     val gezahlt = rechnung.zahlBetrag
     this.netto = add(this.netto, netto)
     this.brutto = add(this.brutto, brutto)
+    this.bruttoMitSkonto = add(this.bruttoMitSkonto, bruttoMitSkonto)
     if (gezahlt != null) {
       this.gezahlt = add(this.gezahlt, gezahlt)
       if (gezahlt.compareTo(brutto) < 0) {
@@ -103,10 +108,13 @@ open class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializable {
       val sb = StringBuilder()
       append(sb, "fibu.common.brutto", CurrencyFormatter.format(brutto))
       append(sb, "fibu.common.netto", CurrencyFormatter.format(netto))
+      if (bruttoMitSkonto.compareTo(brutto) != 0) {
+        append(sb, "fibu.rechnung.mitSkonto", CurrencyFormatter.format(bruttoMitSkonto))
+      }
       append(sb, "fibu.rechnung.offen", CurrencyFormatter.format(offen), "blue")
-      append(sb, "fibu.rechnung.filter.ueberfaellig", CurrencyFormatter.format(ueberfaellig),"red")
+      append(sb, "fibu.rechnung.filter.ueberfaellig", CurrencyFormatter.format(ueberfaellig), "red")
       append(sb, "fibu.rechnung.skonto", CurrencyFormatter.format(skonto))
-      append(sb,"fibu.rechnung.zahlungsZiel", "$zahlungszielAverage")
+      append(sb, "fibu.rechnung.zahlungsZiel", "$zahlungszielAverage")
       append(sb, "fibu.rechnung.zahlungsZiel.actual", "Ø$tatsaechlichesZahlungzielAverage")
       return sb.toString()
     }

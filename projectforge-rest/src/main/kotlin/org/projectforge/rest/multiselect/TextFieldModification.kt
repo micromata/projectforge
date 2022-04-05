@@ -92,14 +92,22 @@ object TextFieldModification {
           oldValue.replace(newValue, replaceText, ignoreCase = true)
         }
       }
+
       if (param.append != true || oldValue.isNullOrBlank()) {
         return param.textValue // replace oldValue by this value.
       }
-      return if (!oldValue.contains(newValue.trim(), true)) {
-        "${oldValue.trimEnd()}\n$newValue" // Append new value.
-      } else {
-        null // Leave it untouched, because the new value is already contained in old value.
-      }
+      return appendText(oldValue, newValue)
+    }
+  }
+
+  fun appendText(oldValue: String?, appendText: String): String? {
+    if (oldValue.isNullOrBlank()) {
+      return appendText // replace oldValue by this value.
+    }
+    return if (!oldValue.contains(appendText.trim(), true)) {
+      "${oldValue.trimEnd()}\n$appendText" // Append new value.
+    } else {
+      null // Leave it untouched, because the new value is already contained in old value.
     }
   }
 }
