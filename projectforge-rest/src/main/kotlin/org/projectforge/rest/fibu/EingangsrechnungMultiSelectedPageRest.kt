@@ -32,16 +32,14 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractPagesRest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
-import org.projectforge.rest.multiselect.MassUpdateContext
-import org.projectforge.rest.multiselect.MassUpdateParameter
-import org.projectforge.rest.multiselect.MultiSelectionSupport
+import org.projectforge.rest.multiselect.*
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIAlert
 import org.projectforge.ui.UIColor
@@ -135,7 +133,6 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
     val params = massUpdateContext.massUpdateData
     invoices.forEach { invoice ->
       massUpdateContext.startUpdate(invoice)
-      processTextParameter(invoice, "bemerkung", params)
       processTextParameter(invoice, "kreditor", params)
       processTextParameter(invoice, "receiver", params)
       processTextParameter(invoice, "iban", params)
@@ -144,13 +141,19 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
       params["bezahlDatum"]?.let { param ->
         param.localDateValue?.let {
           invoice.bezahlDatum = param.localDateValue
-          invoice.zahlBetrag = invoice.grossSum
+          invoice.zahlBetrag = invoice.grossSumWithDiscount
+          if (invoice.discountPercent != null && invoice.grossSumWithDiscount.compareTo(invoice.grossSum) != 0) {
+            // Append hint about discount.
+            val appendText = "${translate("fibu.eingangsrechnung.skonto")}: ${NumberFormatter.format(invoice.discountPercent)}%"
+            TextFieldModification.appendText(invoice.bemerkung, appendText)?.let { newValue -> invoice.bemerkung = newValue }
+          }
         }
         if (param.delete == true) {
           invoice.bezahlDatum = null
           invoice.zahlBetrag = null
         }
       }
+      processTextParameter(invoice, "bemerkung", params) // bemerkung is already modified for discount.
       params["paymentType"]?.let { param ->
         param.textValue?.let { textValue ->
           invoice.paymentType = PaymentType.valueOf(textValue)
