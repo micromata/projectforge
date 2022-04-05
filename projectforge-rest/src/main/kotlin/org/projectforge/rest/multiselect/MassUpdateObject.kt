@@ -31,7 +31,9 @@ import org.projectforge.common.BeanHelper
 class MassUpdateObject<T>(
   val id: java.io.Serializable,
   oldStateObj: T,
-  val massUpdateData: Map<String, MassUpdateParameter>
+  val massUpdateData: Map<String, MassUpdateParameter>,
+  // Synthetic fields such as taskAndKost2 for time sheets should be ignored in old/new-value modification check.
+  val ignoreFieldsForModificationCheck: List<String>?,
 ) {
   class FieldModification(val oldValue: Any?, val parameter: MassUpdateParameter?) {
     var newValue: Any? = null
@@ -48,16 +50,22 @@ class MassUpdateObject<T>(
 
   init {
     massUpdateData.forEach { (field, param) ->
-      fieldModifications[field] = FieldModification(BeanHelper.getNestedProperty(oldStateObj, field), massUpdateData[field])
+      if (ignoreFieldsForModificationCheck?.contains(field) != true) {
+        fieldModifications[field] =
+          FieldModification(BeanHelper.getNestedProperty(oldStateObj, field), massUpdateData[field])
+      }
     }
   }
 
   fun setModifiedObject(modifiedObj: T, identifier: String) {
     this.identifier = identifier
     massUpdateData.forEach { (field, _) ->
-      val fieldModification = fieldModifications[field] ?: FieldModification(null, massUpdateData[field]) // Should already given.
-      fieldModifications[field] = fieldModification
-      fieldModification.newValue = BeanHelper.getNestedProperty(modifiedObj, field)
+      if (ignoreFieldsForModificationCheck?.contains(field) != true) {
+        val fieldModification =
+          fieldModifications[field] ?: FieldModification(null, massUpdateData[field]) // Should already given.
+        fieldModifications[field] = fieldModification
+        fieldModification.newValue = BeanHelper.getNestedProperty(modifiedObj, field)
+      }
     }
   }
 }
