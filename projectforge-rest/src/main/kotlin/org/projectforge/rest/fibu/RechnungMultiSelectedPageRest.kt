@@ -95,7 +95,6 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   }
 
   override fun proceedMassUpdate(
-    request: HttpServletRequest,
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<RechnungDO>,
   ): ResponseEntity<*>? {

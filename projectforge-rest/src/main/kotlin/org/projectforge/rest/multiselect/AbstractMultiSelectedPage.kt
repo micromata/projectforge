@@ -80,6 +80,22 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
     @RequestBody postData: PostData<Map<String, MassUpdateParameter>>
   ): ResponseEntity<*> {
     val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRestClass)
+
+    val massUpdateContext = MassUpdateContext<T>(postData.data)
+    massUpdate(selectedIds, massUpdateContext)?.let { return it }
+    //MultiSelectionExcelExport.export(massUpdateContext)
+    val variables = mutableMapOf<String, Any>()
+
+    val massUpdateData = postData.data.toMutableMap()
+    val layout = getLayout(request, massUpdateData, variables, massUpdateContext)
+    return ResponseEntity.ok(
+      ResponseAction(targetType = TargetType.UPDATE)
+        .addVariable("ui", layout)
+        .addVariable("data", massUpdateData)
+    )
+  }
+
+  fun massUpdate(selectedIds: Collection<Serializable>?, massUpdateContext: MassUpdateContext<T>): ResponseEntity<*>? {
     if (selectedIds.isNullOrEmpty()) {
       return showNoEntriesValidationError()
     }
@@ -93,7 +109,7 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
         )
       )
     }
-    val massUpdateData = postData.data.toMutableMap()
+    val massUpdateData = massUpdateContext.massUpdateData
     var nothingToDo = true
     val validationErrors = mutableListOf<ValidationError>()
     massUpdateData.forEach { (field, param) ->
@@ -107,21 +123,14 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
     if (nothingToDo) {
       return showNothingToDoValidationError()
     }
-    val massUpdateContext = MassUpdateContext<T>(selectedIds.size, massUpdateData)
-    proceedMassUpdate(request, selectedIds, massUpdateContext)?.let { responseEntity ->
+
+    proceedMassUpdate(selectedIds, massUpdateContext)?.let { responseEntity ->
       return responseEntity
     }
     if (massUpdateContext.nothingDone) {
       return showNoEntriesValidationError()
     }
-    //MultiSelectionExcelExport.export(massUpdateContext)
-    val variables = mutableMapOf<String, Any>()
-    val layout = getLayout(request, massUpdateData, variables, massUpdateContext)
-    return ResponseEntity.ok(
-      ResponseAction(targetType = TargetType.UPDATE)
-        .addVariable("ui", layout)
-        .addVariable("data", massUpdateData)
-    )
+    return null
   }
 
   /**
@@ -144,7 +153,6 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
    * @return null to handle ResponseEntity result by this class. If ResponseEntity is returned, it will be used.
    */
   protected abstract fun proceedMassUpdate(
-    request: HttpServletRequest,
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<T>,
   ): ResponseEntity<*>?
@@ -223,7 +231,14 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
         stats.errorMessages.forEachIndexed { index, error ->
           sb.appendLine("| ${index + 1} | ${error.identifier} | ${error.message} |")
         }
-        layout.add(UIAlert(sb.toString(), title = "massUpdate.error.table.title", color = UIColor.DANGER, markdown = true))
+        layout.add(
+          UIAlert(
+            sb.toString(),
+            title = "massUpdate.error.table.title",
+            color = UIColor.DANGER,
+            markdown = true
+          )
+        )
       } else if (stats.total > 0) {
         layout.add(UIAlert(message = "'${stats.resultMessage}"))
       } else {

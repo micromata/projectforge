@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.multiselect
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import mu.KotlinLogging
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.translate
@@ -36,10 +37,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Stores also statistic data and errors during mass update run.
  */
-class MassUpdateContext<T : IdObject<out java.io.Serializable>>(
-  var selectedIdsCounter: Int,
-  var massUpdateData: Map<String, MassUpdateParameter>,
-) {
+class MassUpdateContext<T : IdObject<out java.io.Serializable>>(var massUpdateData: Map<String, MassUpdateParameter>) {
   class Error(val identifier: String, val message: String)
 
   var modifiedCounter: Int = 0
@@ -52,12 +50,16 @@ class MassUpdateContext<T : IdObject<out java.io.Serializable>>(
   val errorCounter: Int
     get() = errorMessages.size
 
+  // Synthetic fields such as taskAndKost2 for time sheets should be ignored in old/new-value modification check.
+  @JsonIgnore
+  var ignoreFieldsForModificationCheck: List<String>? = null
+
   private var current: MassUpdateObject<T>? = null
 
   internal val massUpdateObjects = mutableListOf<MassUpdateObject<T>>()
 
   fun startUpdate(dbObj: T) {
-    current = MassUpdateObject(dbObj.id, dbObj, massUpdateData)
+    current = MassUpdateObject(dbObj.id, dbObj, massUpdateData, ignoreFieldsForModificationCheck)
   }
 
   /**

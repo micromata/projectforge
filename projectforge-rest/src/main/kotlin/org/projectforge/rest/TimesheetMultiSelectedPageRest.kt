@@ -190,7 +190,6 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
   }
 
   override fun proceedMassUpdate(
-    request: HttpServletRequest,
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<TimesheetDO>,
   ): ResponseEntity<*>? {
@@ -201,13 +200,14 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
     val params = massUpdateContext.massUpdateData
     val taskId =  params["task"]?.id
     val project = taskTree.getProjekt(taskId)
-    val availableKost2s = kost2Dao.getActiveKost2(project)
+    val availableKost2s = taskTree.getKost2List(taskId)
     var kost2Id = params["kost2"]?.id
     if (kost2Id != null && availableKost2s?.any { it.id == kost2Id } != true) {
       // Due to a client bug, the kost2 id of the old project is sent, delete it, because, the project
       // was changed and kost2Id is invalid:
-      kost2Id = null
+      //kost2Id = null
     }
+    massUpdateContext.ignoreFieldsForModificationCheck = listOf("taskAndKost2")
     timesheets.forEach { timesheet ->
       massUpdateContext.startUpdate(timesheet)
       TextFieldModification.processTextParameter(timesheet, "bemerkung", params)
