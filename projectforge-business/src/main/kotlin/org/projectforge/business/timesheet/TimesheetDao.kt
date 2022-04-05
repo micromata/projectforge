@@ -731,62 +731,6 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
       .resultList
   }
 
-  override fun prepareMassUpdateStore(list: List<TimesheetDO>, master: TimesheetDO): Any? {
-    return if (master.taskId != null) {
-      getKost2List(master)
-    } else null
-  }
-
-  private fun contains(kost2List: List<Kost2DO>, kost2Id: Int?): Boolean {
-    kost2Id ?: return false
-    return kost2List.any { it.id == kost2Id }
-  }
-
-  override fun massUpdateEntry(entry: TimesheetDO, master: TimesheetDO, store: Any?): Boolean {
-    if (store != null) {
-      @Suppress("UNCHECKED_CAST")
-      val kost2List = store as List<Kost2DO>
-      if (master.kost2Id != null) {
-        if (!contains(kost2List, master.kost2Id)) {
-          throw UserException("timesheet.error.massupdate.kost2notsupported")
-        }
-        setKost2(entry, master.kost2Id)
-      } else if (entry.kost2Id == null) {
-        throw UserException("timesheet.error.massupdate.kost2null")
-      } else if (!contains(kost2List, entry.kost2Id)) {
-        // Try to convert kost2 ids from old project to new project.
-        var success = false
-        for (kost2 in kost2List) {
-          if (compareValues(kost2.kost2ArtId, entry.kost2?.kost2ArtId) == 0) {
-            success = true // found.
-            entry.kost2 = kost2
-            break
-          }
-        }
-        if (!success) {
-          throw UserException("timesheet.error.massupdate.couldnotconvertkost2")
-        }
-      }
-    }
-    if (master.taskId != null) {
-      setTask(entry, master.taskId)
-    }
-    if (master.kost2Id != null) {
-      setKost2(entry, master.kost2Id)
-    }
-    //    } else if (store == null) {
-    //      // clear destination kost2 if master has no kost2 and there is no kost2List
-    //      entry.setKost2(null);
-    //    }
-    if (StringUtils.isNotBlank(master.location)) {
-      entry.location = master.location
-    }
-    if (StringUtils.isNotBlank(master.reference)) {
-      entry.reference = master.reference
-    }
-    return true
-  }
-
   override fun newInstance(): TimesheetDO {
     return TimesheetDO()
   }

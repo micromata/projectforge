@@ -82,6 +82,7 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
     val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRestClass)
 
     val massUpdateContext = MassUpdateContext<T>(postData.data)
+    handleClientMassUpdateCall(request, massUpdateContext)
     massUpdate(selectedIds, massUpdateContext)?.let { return it }
     //MultiSelectionExcelExport.export(massUpdateContext)
     val variables = mutableMapOf<String, Any>()
@@ -93,6 +94,13 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
         .addVariable("ui", layout)
         .addVariable("data", massUpdateData)
     )
+  }
+
+  /**
+   * Used by TimesheetMultiSelectedPage for fixing kost2 issues. Does nothing at default.
+   */
+  open protected fun handleClientMassUpdateCall(request: HttpServletRequest, massUpdateContext: MassUpdateContext<T>) {
+
   }
 
   fun massUpdate(selectedIds: Collection<Serializable>?, massUpdateContext: MassUpdateContext<T>): ResponseEntity<*>? {
