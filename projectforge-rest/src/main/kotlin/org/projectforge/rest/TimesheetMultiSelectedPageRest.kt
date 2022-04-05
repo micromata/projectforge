@@ -189,6 +189,21 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
     return super.checkParamHasAction(params, param, field, validationErrors)
   }
 
+  override fun handleClientMassUpdateCall(
+    request: HttpServletRequest,
+    massUpdateContext: MassUpdateContext<TimesheetDO>
+  ) {
+    val params = massUpdateContext.massUpdateData
+    val kost2Id = params["kost2"]?.id
+    val taskId =  params["task"]?.id
+    val availableKost2s = taskTree.getKost2List(taskId)
+    if (kost2Id != null && availableKost2s?.any { it.id == kost2Id } != true) {
+      // Due to a client bug, the kost2 id of the old project is sent, delete it, because, the project
+      // was changed and kost2Id is invalid:
+      params["kost2"]?.id = null
+    }
+  }
+
   override fun proceedMassUpdate(
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<TimesheetDO>,
@@ -201,12 +216,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
     val taskId =  params["task"]?.id
     val project = taskTree.getProjekt(taskId)
     val availableKost2s = taskTree.getKost2List(taskId)
-    var kost2Id = params["kost2"]?.id
-    if (kost2Id != null && availableKost2s?.any { it.id == kost2Id } != true) {
-      // Due to a client bug, the kost2 id of the old project is sent, delete it, because, the project
-      // was changed and kost2Id is invalid:
-      kost2Id = null
-    }
+    val kost2Id = params["kost2"]?.id
     massUpdateContext.ignoreFieldsForModificationCheck = listOf("taskAndKost2")
     timesheets.forEach { timesheet ->
       massUpdateContext.startUpdate(timesheet)
