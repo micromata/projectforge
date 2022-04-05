@@ -381,7 +381,6 @@ private constructor(
         tooltip = translateIfKey(tooltip),
         color = UIColor.LINK,
         responseAction = responseAction,
-        outline = true,
       )
     }
 
