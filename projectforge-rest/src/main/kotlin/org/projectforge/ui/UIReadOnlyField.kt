@@ -23,23 +23,26 @@
 
 package org.projectforge.ui
 
-data class UIReadOnlyField(val id: String,
-                           @Transient
-                           override val layoutContext: LayoutContext? = null,
-                           var dataType: UIDataType = UIDataType.STRING,
-                           override var label: String? = null,
-                           override var additionalLabel: String? = null,
-                           override var tooltip: String? = null,
-                           @Transient
-                           override val ignoreAdditionalLabel: Boolean = false,
-                           @Transient
-                           override val ignoreTooltip: Boolean = false,
-                           /**
-                            * For copying values.
-                            */
-                           val canCopy: Boolean? = null,
-                           /**
-                            * Hide password fields.
-                            */
-                           val coverUp: Boolean? = null)
-    : UIElement(UIElementType.READONLY_FIELD), UILabelledElement
+data class UIReadOnlyField(
+  val id: String? = null,
+  @Transient
+  override val layoutContext: LayoutContext? = null,
+  var dataType: UIDataType = UIDataType.STRING,
+  override var label: String? = null,
+  override var additionalLabel: String? = null,
+  override var tooltip: String? = null,
+  @Transient
+  override val ignoreAdditionalLabel: Boolean = false,
+  @Transient
+  override val ignoreTooltip: Boolean = false,
+  /**
+   * For copying values.
+   */
+  val canCopy: Boolean? = null,
+  /**
+   * Hide password fields.
+   */
+  val coverUp: Boolean? = null,
+  /** For a fixed value. Id is ignored then. */
+  val value: String? = null,
+) : UIElement(UIElementType.READONLY_FIELD), UILabelledElement
