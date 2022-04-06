@@ -36,7 +36,6 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AGGridSupport
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.ResultSet
-import org.projectforge.rest.dto.Address
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UILabel
@@ -158,25 +157,22 @@ class AddressCampaignValuePagesRest :
 
   override fun transformFromDB(obj: AddressDO, editMode: Boolean): AddressCampaignValue {
     val dto = AddressCampaignValue()
-    val address = Address()
-    address.copyFrom(obj)
-    dto.address = address
-    /*obj.address?.let { addressDO ->
-      dto.address?.copyFrom(addressDO)
-    }*/
+    dto.copyFrom(obj)
     return dto
   }
 
-  internal fun getAddressCampaign(request: HttpServletRequest): AddressCampaign? {
+  internal fun getAddressCampaignDO(request: HttpServletRequest): AddressCampaignDO? {
     val addressCampaignId = MultiSelectionSupport.getRegisteredData(request, AddressCampaignValuePagesRest::class.java)
-    var addressCampaign: AddressCampaign? = null
     if (addressCampaignId != null && addressCampaignId is Int) {
-      addressCampaignDao.getById(addressCampaignId)?.let {
-        val campaign = AddressCampaign()
-        campaign.copyFrom(it)
-        return campaign
-      }
+      return addressCampaignDao.getById(addressCampaignId)
     }
     return null
+  }
+
+  internal fun getAddressCampaign(request: HttpServletRequest): AddressCampaign? {
+    val addressCampaignDO = getAddressCampaignDO(request) ?: return null
+    val campaign = AddressCampaign()
+    campaign.copyFrom(addressCampaignDO)
+    return campaign
   }
 }
