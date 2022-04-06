@@ -245,6 +245,15 @@ open class PFDateTime internal constructor(
     }
   }
 
+  /**
+   * For filenames (local time of user): yyyy-MM-dd_HH-mm-ss
+   */
+  fun format4Filenames(): String {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss", ThreadLocalUserContext.getLocale())
+      .withZone(ThreadLocalUserContext.getZoneId())
+    return dateTime.format(formatter)
+  }
+
   override fun format(formatter: DateTimeFormatter): String {
     return dateTime.format(formatter)
   }
@@ -266,12 +275,6 @@ open class PFDateTime internal constructor(
    */
   val isoStringMilli: String
     get() = format(isoDateTimeFormatterMilli)
-
-  /**
-   * Date part as ISO string for filenames: "yyyy-MM-dd_HH-mm-ss" in UTC.
-   */
-  val iso4FilenamesFormatterMinutes: String
-    get() = format(isoDateTime4FilenamesFormatterMinutes)
 
   /**
    * Date as JavaScript string: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'" (UTC).
@@ -762,9 +765,6 @@ open class PFDateTime internal constructor(
       return withDate(year, month.value, day, hour, minute, second, millisecond, zoneId, locale)
     }
 
-
-    private val log = org.slf4j.LoggerFactory.getLogger(PFDateTime::class.java)
-
     internal val isoDateFormatter = PFDay.isoDateFormatter
     internal val isoDateTimeFormatterMinutes = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneOffset.UTC)
     internal val isoDateTimeFormatterSeconds =
@@ -773,8 +773,6 @@ open class PFDateTime internal constructor(
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneOffset.UTC)
     internal val jsDateTimeFormatter =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC)
-    internal val isoDateTime4FilenamesFormatterMinutes =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").withZone(ZoneOffset.UTC)
     // private val jsonDateTimeFormatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
   }
 }
