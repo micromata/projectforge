@@ -25,6 +25,7 @@ package org.projectforge.rest.multiselect
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class MassUpdateParameterTest {
   @Test
@@ -38,14 +39,17 @@ class MassUpdateParameterTest {
     param.append = true
     check(param, false, "massUpdate.error.invalidOptionMix")
     param.append = null
+
     param.delete = true
     check(param, false, "massUpdate.error.invalidOptionMix")
     param.delete = null
     param.replaceText = null
+
     param.append = true
     check(param, true, null)
     param.textValue = ""
     check(param, false, null)
+
     param.delete = true
     param.append = null
     check(param, true, null)
@@ -57,6 +61,11 @@ class MassUpdateParameterTest {
     check(param, false, null)
     param.id = 1234
     check(param, false, null, "id changing not handled here.")
+
+    param.change = null
+    param.id = null
+    param.localDateValue = LocalDate.now()
+    check(param, true, null)
   }
 
   private fun check(param: MassUpdateParameter, hasAction: Boolean, expectedError: String?, msg: String? = null) {

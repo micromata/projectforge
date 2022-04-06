@@ -60,14 +60,14 @@ class MassUpdateParameter {
     get() {
       var actionCounter = 0
       if (delete == true) ++actionCounter
-      if (append == true) ++actionCounter
+      if (append == true && !textValue.isNullOrBlank()) ++actionCounter
       if (!replaceText.isNullOrEmpty()) ++actionCounter
-      if (actionCounter == 0 && !textValue.isNullOrBlank()) ++actionCounter
+      if (actionCounter == 0 && !isEmpty()) ++actionCounter
       return actionCounter
     }
 
   val hasAction: Boolean
-    get() = actionCounter == 1 && (append != true || !textValue.isNullOrBlank())
+    get() = actionCounter == 1
 
   /**
    * E. g. for tasks, the id of the selected task is set.
