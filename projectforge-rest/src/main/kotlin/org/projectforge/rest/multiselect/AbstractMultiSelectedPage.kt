@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.multiselect
 
+import de.micromata.merlin.excel.ExcelCell
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -60,11 +61,16 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
   protected open val listPageUrl: String
     get() = PagesResolver.getListPageUrl(pagesRestClass, absolute = true)
 
-  protected abstract fun getTitleKey(): String
+  abstract fun getTitleKey(): String
 
   protected abstract val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
 
   protected abstract fun ensureUserLogSubscription(): LogSubscription
+
+  /**
+   * Should be set for i18n translations of Excel-Export.
+   */
+  open val layoutContext: LayoutContext? = null
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
@@ -84,7 +90,7 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
     val massUpdateContext = MassUpdateContext<T>(postData.data)
     handleClientMassUpdateCall(request, massUpdateContext)
     massUpdate(selectedIds, massUpdateContext)?.let { return it }
-    //MultiSelectionExcelExport.export(massUpdateContext)
+    //MultiSelectionExcelExport.export(massUpdateContext, this)
     val variables = mutableMapOf<String, Any>()
 
     val massUpdateData = postData.data.toMutableMap()
@@ -99,8 +105,42 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
   /**
    * Used by TimesheetMultiSelectedPage for fixing kost2 issues. Does nothing at default.
    */
-  open protected fun handleClientMassUpdateCall(request: HttpServletRequest, massUpdateContext: MassUpdateContext<T>) {
+  protected open fun handleClientMassUpdateCall(request: HttpServletRequest, massUpdateContext: MassUpdateContext<T>) {
+  }
 
+  /**
+   * First excel columns for identification. Default is "Id|11", "Element|30", means db id of column width 11 and
+   * identifier of length 30. Must match [getExcelIdentifierCells].
+   */
+  open fun customizeExcelIdentifierHeadCells(): Array<String> {
+    return arrayOf("Id|11", "Element|30")
+  }
+
+  /**
+   * First excel columns for identification. Default is id and identifier. Must match [customizeExcelIdentifierHeadCells].
+   */
+  open fun getExcelIdentifierCells(massUpdateObject: MassUpdateObject<T>): List<Any?> {
+    return mutableListOf(massUpdateObject.id, massUpdateObject.identifier)
+  }
+
+  open fun handleValue(
+    cell: ExcelCell,
+    field: String,
+    value: Any?,
+  ): Boolean {
+    return false
+  }
+
+  /**
+   * Field translation is used by Excel export. Returns translation of field from LayoutContext, if availabel in this
+   * class, or capitalized field name itself at default.
+   * You may use [getFieldTranslation] with param [LayoutContext] for auto translation of known fields in your derived fun.
+   */
+  open fun getFieldTranslation(field: String): String {
+    ElementsRegistry.getElementInfo(layoutContext, field)?.i18nKey?.let {
+      return translate(it)
+    }
+    return field.replaceFirstChar { it.lowercase() }
   }
 
   fun massUpdate(selectedIds: Collection<Serializable>?, massUpdateContext: MassUpdateContext<T>): ResponseEntity<*>? {
