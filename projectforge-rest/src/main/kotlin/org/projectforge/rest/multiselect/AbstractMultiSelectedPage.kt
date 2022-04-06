@@ -26,6 +26,7 @@ package org.projectforge.rest.multiselect
 import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.utils.ReplaceUtils
 import mu.KotlinLogging
+import org.apache.poi.ss.usermodel.CellValue
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -101,7 +102,8 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
     handleClientMassUpdateCall(request, massUpdateContext)
     massUpdate(selectedIds, massUpdateContext)?.let { return it }
     val excel = MultiSelectionExcelExport.export(massUpdateContext, this)
-    val filename = ReplaceUtils.encodeFilename("${translate(getTitleKey())}_${PFDateTime.now().format4Filenames()}.xlsx", true)
+    val filename =
+      ReplaceUtils.encodeFilename("${translate(getTitleKey())}_${PFDateTime.now().format4Filenames()}.xlsx", true)
     downloadFileSupport.storeDownloadFile(request, filename, excel)
     val variables = mutableMapOf<String, Any>()
 
@@ -129,18 +131,18 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
   }
 
   /**
-   * First excel columns for identification. Default is "Id|11", "Element|30", means db id of column width 11 and
+   * First excel columns for identification. Default is "Element|30", means db id of column width 11 and
    * identifier of length 30. Must match [getExcelIdentifierCells].
    */
   open fun customizeExcelIdentifierHeadCells(): Array<String> {
-    return arrayOf("Id|11", "Element|30")
+    return arrayOf("Element|30")
   }
 
   /**
    * First excel columns for identification. Default is id and identifier. Must match [customizeExcelIdentifierHeadCells].
    */
   open fun getExcelIdentifierCells(massUpdateObject: MassUpdateObject<T>): List<Any?> {
-    return mutableListOf(massUpdateObject.id, massUpdateObject.identifier)
+    return mutableListOf(massUpdateObject.identifier)
   }
 
   open fun handleValue(
@@ -148,6 +150,14 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
     field: String,
     value: Any?,
   ): Boolean {
+    return false
+  }
+
+  /**
+   * @param cellValue may differ from value (e. g. this is the displayValue).
+   * @return true, if the cell style was set or false, if nothing was done and the cell style could be set by [MultiSelectionExcelExport].
+   */
+  open fun handleCellStyle(cell: ExcelCell, field: String, value: Any?, cellValue: Any?): Boolean {
     return false
   }
 
@@ -210,8 +220,9 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
     field: String,
     validationErrors: MutableList<ValidationError>
   ): Boolean {
-    TextFieldModification.hasError(param)?.let { message ->
+    param.error?.let { message ->
       validationErrors.add(ValidationError(translate(message), "$field.textValue"))
+      validationErrors.add(ValidationError("${translate(message)}: $field"))
       return false
     }
     return param.hasAction

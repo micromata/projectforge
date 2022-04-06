@@ -43,20 +43,6 @@ object TextFieldModification {
   }
 
   /**
-   * @return an error, if more than 1 action is detected or the text to replace is missed.
-   */
-  fun hasError(param: MassUpdateParameter): String? {
-    if (param.actionCounter > 1) {
-      // Can't only proceed with one of the action (delete, or append or replace).
-      return "massUpdate.error.invalidOptionMix"
-    }
-    if (!param.replaceText.isNullOrBlank() && param.textValue.isNullOrBlank()) {
-      return "massUpdate.error.textValueToReplaceMissed"
-    }
-    return null
-  }
-
-  /**
    * @param param If append value is true, the given textValue of param will be appended to the oldValue (if textValue isn't already
    * contained in oldValue, otherwise null is returned).
    * @return The new Value to set or null, if no modification should done..
@@ -64,7 +50,7 @@ object TextFieldModification {
   fun getNewTextValue(oldValue: String?, param: MassUpdateParameter?): String? {
     param ?: return null
     val replaceText = param.replaceText
-    if (hasError(param) != null) {
+    if (param.hasError) {
       // Don't proceed on errors
       return oldValue
     }

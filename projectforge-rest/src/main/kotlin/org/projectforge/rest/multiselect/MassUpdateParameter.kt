@@ -60,14 +60,38 @@ class MassUpdateParameter {
     get() {
       var actionCounter = 0
       if (delete == true) ++actionCounter
-      if (append == true && !textValue.isNullOrBlank()) ++actionCounter
-      if (!replaceText.isNullOrEmpty()) ++actionCounter
-      if (actionCounter == 0 && !isEmpty()) ++actionCounter
+      if (!replaceText.isNullOrEmpty()) ++actionCounter // Replace text is given, covered by !isEmpty
+      if (append == true && (actionCounter > 0 || !textValue.isNullOrBlank())) ++actionCounter // Given text should be appended
+      if (!isEmpty()) {
+        if (textValue.isNullOrBlank()) {
+          actionCounter++
+        } else {
+          // Text modification
+          if (actionCounter == 0) {
+            ++actionCounter // Only if not combined with a previous action.
+          }
+        }
+      }
       return actionCounter
     }
 
   val hasAction: Boolean
     get() = actionCounter == 1
+
+  val error: String?
+    get() {
+      if (actionCounter > 1) {
+        // Can't only proceed with one of the action (delete, or append or replace).
+        return "massUpdate.error.invalidOptionMix"
+      }
+      if (!replaceText.isNullOrBlank() && textValue.isNullOrBlank()) {
+        return "massUpdate.error.textValueToReplaceMissed"
+      }
+      return null
+    }
+
+  val hasError: Boolean
+    get() = error != null
 
   /**
    * E. g. for tasks, the id of the selected task is set.
