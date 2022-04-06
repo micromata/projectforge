@@ -27,36 +27,57 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
 import org.projectforge.plugins.marketing.AddressCampaignValueDao
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AGGridSupport
 import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.fibu.RechnungMultiSelectedPageRest
 import org.projectforge.ui.LayoutUtils
+import org.projectforge.ui.UIAgGridColumnDef
 import org.projectforge.ui.UILabel
 import org.projectforge.ui.UILayout
-import org.projectforge.ui.UITable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/addressCampaignValue")
-class AddressCampaignValuePagesRest: AbstractDOPagesRest<AddressCampaignValueDO, AddressCampaignValueDao>(baseDaoClazz = AddressCampaignValueDao::class.java, i18nKeyPrefix = "plugins.marketing.addressCampaignValue.title") {
+class AddressCampaignValuePagesRest : AbstractDOPagesRest<AddressCampaignValueDO, AddressCampaignValueDao>(
+  baseDaoClazz = AddressCampaignValueDao::class.java,
+  i18nKeyPrefix = "plugins.marketing.addressCampaignValue.title"
+) {
 
-    /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
-                        .add(lc, "created", "address.name", "address.firstName", "address.organization",
-                                "address.contactStatus", "address.addressText", "address.addressStatus", "value", "comment"))
-        return LayoutUtils.processListPage(layout, this)
-    }
+  /**
+   * LAYOUT List page
+   */
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+    /*    val layout = super.createListLayout(request, magicFilter)
+        .add(
+          UITable.createUIResultSetTable()
+            .add(
+              lc, "created", "address.name", "address.firstName", "address.organization",
+              "address.contactStatus", "address.addressText", "address.addressStatus", "value", "comment"
+            )
+        )*/
+    val layout = super.createListLayout(request, magicFilter)
+    AGGridSupport.prepareUIGrid4ListPage(
+      request,
+      layout,
+      RechnungMultiSelectedPageRest::class.java,
+      magicFilter,
+    )
+      .add(lc, "created", "address.name", "address.firstName", "address.organization")
+      .add(lc, "address.contactStatus", "address.email", "address.addressText", "address.addressStatus")
+      .add(lc, "value", "comment")
+      .withMultiRowSelection(request, magicFilter)
+      .withPinnedLeft(4)
+    return LayoutUtils.processListPage(layout, this)
+  }
 
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: AddressCampaignValueDO, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-                .add(UILabel("TODO"))
-        return LayoutUtils.processEditPage(layout, dto, this)
-    }
+  /**
+   * LAYOUT Edit page
+   */
+  override fun createEditLayout(dto: AddressCampaignValueDO, userAccess: UILayout.UserAccess): UILayout {
+    val layout = super.createEditLayout(dto, userAccess)
+      .add(UILabel("TODO"))
+    return LayoutUtils.processEditPage(layout, dto, this)
+  }
 }

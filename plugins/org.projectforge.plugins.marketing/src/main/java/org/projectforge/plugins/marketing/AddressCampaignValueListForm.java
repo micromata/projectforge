@@ -189,12 +189,6 @@ public class AddressCampaignValueListForm
   }
 
   @Override
-  protected boolean isFilterVisible()
-  {
-    return !parentPage.isMassUpdateMode();
-  }
-
-  @Override
   protected AddressCampaignValueFilter newSearchFilterInstance()
   {
     return new AddressCampaignValueFilter();

@@ -81,11 +81,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   private boolean refreshResultList = true;
 
-  /**
-   * For selecting items for mass update (only used by some pages).
-   */
-  protected Set<Integer> selectedItems;
-
   protected static final String[] BOOKMARKABLE_INITIAL_PROPERTIES = new String[]{"f.searchString|s",
       "f.useModificationFilter|mod",
       "f.modifiedByUserId|mUser", "f.startTimeOfLastModification|mStart", "f.stopTimeOfLastModification|mStop",
@@ -119,15 +114,11 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   protected ContentMenuEntryPanel newItemMenuEntry;
 
-  protected ContentMenuEntryPanel massUpdateMenuEntry;
-
   protected ContentMenuEntryPanel selectAllMenuEntry;
 
   protected ContentMenuEntryPanel deselectAllMenuEntry;
 
   protected boolean storeFilter = true;
-
-  private boolean massUpdateMode = false;
 
   protected MyListPageSortableDataProvider<O> listPageSortableDataProvider;
 
@@ -141,21 +132,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   public static void addRowClick(final Item<?> cellItem) {
     final Item<?> row = (cellItem.findParent(Item.class));
     WicketUtils.addRowClick(row);
-  }
-
-  /**
-   * @param cellItem
-   * @param massUpdate If true then a mouse click on the row should (de)activate the check box to select the row for the
-   *                   mass update, otherwise this method calls addRowClick(Item).
-   * @see #addRowClick(Item)
-   */
-  protected static void addRowClick(final Item<?> cellItem, final boolean massUpdate) {
-    if (massUpdate == true) {
-      final Item<?> row = (cellItem.findParent(Item.class));
-      row.add(AttributeModifier.replace("onmousedown", "javascript:rowCheckboxClick(this, event);"));
-    } else {
-      addRowClick(cellItem);
-    }
   }
 
   protected AbstractListPage(final PageParameters parameters, final String i18nPrefix) {
@@ -339,51 +315,17 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
         return isSelectMode();
       }
     };
-    if (isSupportsMassUpdate() == true) {
-      massUpdateMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), new Link<Object>("link") {
-        @Override
-        public void onClick() {
-          setMassUpdateMode(true);
-        }
-
-      }, getMassUpdateLabel());
-      contentMenuBarPanel.addMenuEntry(massUpdateMenuEntry);
-
-      ExternalLink link = new ExternalLink("link", "#");
-      link.add(AttributeModifier.replace("onclick", "javascript:selectAll();"));
-      selectAllMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), link, getString("selectAll"));
-      selectAllMenuEntry.setVisible(false);
-      contentMenuBarPanel.addMenuEntry(selectAllMenuEntry);
-
-      link = new ExternalLink("link", "#");
-      link.add(AttributeModifier.replace("onclick", "javascript:deselectAll();"));
-      deselectAllMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), link,
-          getString("deselectAll"));
-      deselectAllMenuEntry.setVisible(false);
-      contentMenuBarPanel.addMenuEntry(deselectAllMenuEntry);
-    }
     form.add(hintQuickSelectLabel);
     addTopRightMenu();
     addTopPanel();
     addBottomPanel("bottomPanel");
     init();
-    createDataTable();
-  }
-
-  protected String getMassUpdateLabel() {
-    return getString("massUpdate");
   }
 
   /**
    * Will be called by the constructors.
    */
   protected abstract void init();
-
-  /**
-   * For list pages which supports mass update, please implement this method.
-   */
-  protected void createDataTable() {
-  }
 
   /**
    * Called if the user clicks on the "new" (new entry) link.
@@ -453,30 +395,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     if (isSelectMode() == true && caller != null) {
       WicketUtils.setResponsePage(this, caller);
       caller.cancelSelection(selectProperty);
-    } else if (isMassUpdateMode() == true) {
-      selectedItems = new HashSet<Integer>();
-      setMassUpdateMode(false);
     }
-  }
-
-  public void setMassUpdateMode(final boolean mode) {
-    massUpdateMenuEntry.setVisible(!mode);
-    selectAllMenuEntry.setVisible(mode);
-    deselectAllMenuEntry.setVisible(mode);
-    if (newItemMenuEntry != null) {
-      newItemMenuEntry.setVisible(!mode);
-    }
-    this.massUpdateMode = mode;
-    form.remove(dataTable);
-    createDataTable();
-    form.setComponentsVisibility();
-    if (mode == true && selectedItems == null) {
-      selectedItems = new HashSet<Integer>();
-    }
-  }
-
-  protected void onNextSubmit() {
-    setResponsePage(new MessagePage("message.notYetImplemented"));
   }
 
   /**
@@ -507,27 +426,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       if (this.resultList == null) {
         // An error occured:
         form.addError("search.error");
-      }
-      if (massUpdateMode == true && CollectionUtils.isNotEmpty(selectedItems)) {
-        // check, if all previous selected items are still visible:
-        for (Integer id : selectedItems) {
-          boolean contained = false;
-          for (O obj : resultList) {
-            if (Objects.equals(id, obj.getId())) {
-              contained = true;
-              break;
-            }
-          }
-          if (!contained) {
-            // At least one item isn't contained in result list, therefore continue with no selected items.
-            // This prevents, that not shown items from previous mass updates will be updated too.
-            selectedItems = new HashSet<>();
-            break;
-          }
-        }
-        if (selectedItems.size() > 0) {
-          log.info("Mass update mode with " + selectedItems.size() + " restored selected items.");
-        }
       }
       return this.resultList;
     } catch (
@@ -622,19 +520,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     final Panel bottomPanel = new EmptyPanel(id);
     bottomPanel.setVisible(false);
     form.add(bottomPanel);
-  }
-
-  public boolean isMassUpdateMode() {
-    return massUpdateMode;
-  }
-
-  /**
-   * Overwrite this method if your list page does support mass update.
-   *
-   * @return false at default.
-   */
-  public boolean isSupportsMassUpdate() {
-    return false;
   }
 
   /**
@@ -902,30 +787,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    */
   public boolean isCalledBySearchPage() {
     return calledBySearchPage;
-  }
-
-  @SuppressWarnings("serial")
-  public class SelectItemModel extends Model<Boolean> {
-    Integer id;
-
-    public SelectItemModel(final Integer id) {
-      this.id = id;
-    }
-
-    @Override
-    public Boolean getObject() {
-      return selectedItems.contains(id);
-    }
-
-    @Override
-    public void setObject(final Boolean object) {
-      if (Boolean.TRUE.equals(object) == true) {
-        selectedItems.add(id);
-      } else {
-        selectedItems.remove(id);
-      }
-    }
-
   }
 
   /**

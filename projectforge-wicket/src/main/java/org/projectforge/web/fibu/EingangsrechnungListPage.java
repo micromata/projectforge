@@ -159,7 +159,7 @@ public class EingangsrechnungListPage
             eingangsrechnung.getId(), returnToPage,
             kreditorLabel));
         cellItemListener.populateItem(item, componentId, rowModel);
-        addRowClick(item, isMassUpdateMode);
+        addRowClick(item);
       }
     });
     columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(getString("fibu.konto")), getSortable("konto", sortable),
@@ -209,6 +209,8 @@ public class EingangsrechnungListPage
   @Override
   protected void init()
   {
+    dataTable = createDataTable(createColumns(this, true), "datum", SortOrder.DESCENDING);
+    form.add(dataTable);
     addExcelExport(getString("fibu.common.creditor"), getString("fibu.eingangsrechnungen"));
     if (Configuration.getInstance().isCostConfigured() == true) {
       exportKostzuweisungButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
@@ -298,13 +300,6 @@ public class EingangsrechnungListPage
         mapping.add("netSum", invoice.getNetSum());
       }
     };
-  }
-
-  @Override
-  protected void createDataTable()
-  {
-    dataTable = createDataTable(createColumns(this, true, isMassUpdateMode()), "datum", SortOrder.DESCENDING);
-    form.add(dataTable);
   }
 
   protected void exportExcelWithCostAssignments()

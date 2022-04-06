@@ -42,9 +42,9 @@ import org.projectforge.business.address.*;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.plugins.marketing.rest.AddressCampaignValuePagesRest;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 
 import java.io.Serializable;
 import java.util.*;
@@ -86,18 +86,13 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
 
   @Override
   public List<IColumn<AddressDO, String>> createColumns(final WebPage returnToPage, final boolean sortable) {
-    return createColumns(returnToPage, sortable, false);
-  }
-
-  public List<IColumn<AddressDO, String>> createColumns(final WebPage returnToPage, final boolean sortable,
-                                                        final boolean massUpdateMode) {
-    return createColumns(returnToPage, sortable, massUpdateMode, form.getSearchFilter(), personalAddressMap,
+    return createColumns(returnToPage, sortable, form.getSearchFilter(), personalAddressMap,
         addressCampaignValueMap);
   }
 
   @SuppressWarnings("serial")
   protected static final List<IColumn<AddressDO, String>> createColumns(final WebPage page, final boolean sortable,
-                                                                        final boolean massUpdateMode, final AddressCampaignValueFilter searchFilter,
+                                                                        final AddressCampaignValueFilter searchFilter,
                                                                         final Map<Integer, PersonalAddressDO> personalAddressMap,
                                                                         final Map<Integer, AddressCampaignValueDO> addressCampaignValueMap) {
 
@@ -128,48 +123,27 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
         }
       }
     };
-    if (page instanceof AddressCampaignValueMassUpdatePage) {
-      columns.add(new CellItemListenerPropertyColumn<>(new Model<>(page.getString("created")),
-          getSortable("created",
-              sortable),
-          "created", cellItemListener));
-    } else if (massUpdateMode && page instanceof AddressCampaignValueListPage) {
-      final AddressCampaignValueListPage addressCampaignValueListPage = (AddressCampaignValueListPage) page;
-      columns.add(new CellItemListenerPropertyColumn<AddressDO>("", null, "selected", cellItemListener) {
-        @Override
-        public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
-                                 final IModel<AddressDO> rowModel) {
-          final AddressDO address = rowModel.getObject();
-          final CheckBoxPanel checkBoxPanel = new CheckBoxPanel(componentId,
-              addressCampaignValueListPage.new SelectItemModel(address.getId()), null);
-          item.add(checkBoxPanel);
-          cellItemListener.populateItem(item, componentId, rowModel);
-          addRowClick(item, massUpdateMode);
-        }
-      });
-    } else {
-      columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<>(page.getString("created")),
-          getSortable("created",
-              sortable),
-          "created", cellItemListener) {
-        @Override
-        public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
-                                 final IModel<AddressDO> rowModel) {
-          final AddressDO address = rowModel.getObject();
-          final AddressCampaignValueDO addressCampaignValue = addressCampaignValueMap.get(address.getId());
-          final Integer addressCampaignValueId = addressCampaignValue != null ? addressCampaignValue.getId() : null;
-          item.add(new ListSelectActionPanel(componentId, rowModel, AddressCampaignValueEditPage.class,
-              addressCampaignValueId, page,
-              DateTimeFormatter.instance().getFormattedDateTime(address.getCreated()),
-              AddressCampaignValueEditPage.PARAMETER_ADDRESS_ID,
-              String.valueOf(address.getId()), AddressCampaignValueEditPage.PARAMETER_ADDRESS_CAMPAIGN_ID,
-              String.valueOf(searchFilter
-                  .getAddressCampaignId())));
-          addRowClick(item);
-          cellItemListener.populateItem(item, componentId, rowModel);
-        }
-      });
-    }
+    columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<>(page.getString("created")),
+        getSortable("created",
+            sortable),
+        "created", cellItemListener) {
+      @Override
+      public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
+                               final IModel<AddressDO> rowModel) {
+        final AddressDO address = rowModel.getObject();
+        final AddressCampaignValueDO addressCampaignValue = addressCampaignValueMap.get(address.getId());
+        final Integer addressCampaignValueId = addressCampaignValue != null ? addressCampaignValue.getId() : null;
+        item.add(new ListSelectActionPanel(componentId, rowModel, AddressCampaignValueEditPage.class,
+            addressCampaignValueId, page,
+            DateTimeFormatter.instance().getFormattedDateTime(address.getCreated()),
+            AddressCampaignValueEditPage.PARAMETER_ADDRESS_ID,
+            String.valueOf(address.getId()), AddressCampaignValueEditPage.PARAMETER_ADDRESS_CAMPAIGN_ID,
+            String.valueOf(searchFilter
+                .getAddressCampaignId())));
+        addRowClick(item);
+        cellItemListener.populateItem(item, componentId, rowModel);
+      }
+    });
     columns.add(new CellItemListenerPropertyColumn<>(new Model<>(page.getString("name")),
         getSortable("name", sortable),
         "name", cellItemListener));
@@ -194,13 +168,9 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
                 + " "
                 + address.getMailingCity(),
             address.getMailingCountry());
-        if (!massUpdateMode) {
-          final AddressEditLinkPanel addressEditLinkPanel = new AddressEditLinkPanel(componentId, page, address,
-              addressText);
-          item.add(addressEditLinkPanel);
-        } else {
-          item.add(new Label(componentId, addressText));
-        }
+        final AddressEditLinkPanel addressEditLinkPanel = new AddressEditLinkPanel(componentId, page, address,
+            addressText);
+        item.add(addressEditLinkPanel);
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
@@ -256,22 +226,6 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   }
 
   @Override
-  protected void onNextSubmit() {
-    if (CollectionUtils.isEmpty(this.selectedItems) || form.getSearchFilter().getAddressCampaign() == null) {
-      return;
-    }
-    final List<AddressDO> list = addressDao.internalLoad(this.selectedItems);
-    setResponsePage(new AddressCampaignValueMassUpdatePage(this, list, form.getSearchFilter().getAddressCampaign(),
-        personalAddressMap,
-        addressCampaignValueMap));
-  }
-
-  @Override
-  public boolean isSupportsMassUpdate() {
-    return true;
-  }
-
-  @Override
   protected void onBeforeRender() {
     addressCampaignValueDao.getAddressCampaignValuesByAddressId(addressCampaignValueMap, form.getSearchFilter());
     super.onBeforeRender();
@@ -282,6 +236,8 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   protected void init() {
     personalAddressMap = personalAddressDao.getPersonalAddressByAddressId();
     addressCampaignValueMap = new HashMap<>();
+    dataTable = createDataTable(createColumns(this, true), "name", SortOrder.ASCENDING);
+    form.add(dataTable);
     {
       // Excel export
       final SubmitLink excelExportLink = new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
@@ -306,6 +262,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
           getString("address.book.export")).setTooltip(getString("address.book.export.tooltip"));
       addContentMenuEntry(excelExportButton);
     }
+    addNewMassSelect(AddressCampaignValuePagesRest.class);
   }
 
   /**
@@ -334,13 +291,6 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
       }
     }
     return list;
-  }
-
-  @Override
-  protected void createDataTable() {
-    final List<IColumn<AddressDO, String>> columns = createColumns(this, !isMassUpdateMode(), isMassUpdateMode());
-    dataTable = createDataTable(columns, "name", SortOrder.ASCENDING);
-    form.add(dataTable);
   }
 
   @Override

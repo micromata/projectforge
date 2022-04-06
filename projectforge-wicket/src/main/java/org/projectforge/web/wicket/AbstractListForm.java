@@ -62,7 +62,7 @@ import java.util.Date;
 import java.util.Locale;
 
 public abstract class AbstractListForm<F extends BaseSearchFilter, P extends AbstractListPage<?, ?, ?>> extends
-        AbstractSecuredForm<F, P> {
+    AbstractSecuredForm<F, P> {
   private static final long serialVersionUID = 1304394324524767035L;
 
   public static final String I18N_ONLY_DELETED = "onlyDeleted";
@@ -98,8 +98,6 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
 
   protected SingleButtonPanel searchButtonPanel;
 
-  private SingleButtonPanel nextButtonPanel;
-
   protected FieldsetPanel pageSizeFieldsetPanel;
 
   public static final int[] PAGE_SIZES = new int[]{3, 5, 10, 25, 50, 100, 200, 500, 1000};
@@ -115,8 +113,8 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
       }
     }
     final DropDownChoice<Integer> pageSizeChoice = new DropDownChoice<Integer>(id, model,
-            pageSizeChoiceRenderer.getValues(),
-            pageSizeChoiceRenderer);
+        pageSizeChoiceRenderer.getValues(),
+        pageSizeChoiceRenderer);
     pageSizeChoice.setNullValid(false);
     return pageSizeChoice;
   }
@@ -147,7 +145,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("searchFilter"));
         if (parentPage.getBaseDao().isHistorizable() == true) {
           IconPanel icon = new IconPanel(fs.newIconChildId(), IconType.PLUS_SIGN, getString("filter.extendedSearch"))
-                  .setOnClick("javascript:showExtendedFilter();");
+              .setOnClick("javascript:showExtendedFilter();");
           icon.setMarkupId("showExtendedFilter");
           fs.add(icon, FieldSetIconPosition.BOTTOM_LEFT);
           icon = new IconPanel(fs.newIconChildId(), IconType.MINUS_SIGN).setOnClick("javascript:hideExtendedFilter();");
@@ -179,8 +177,8 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
         div.add(modifiedSearchExpressionLabel);
 
         fs.addHelpIcon(getString("tooltip.lucene.link"), FieldSetIconPosition.TOP_RIGHT).setOnClickLocation(
-                getRequestCycle(),
-                WebConstants.DOC_LINK_HANDBUCH_LUCENE, true);
+            getRequestCycle(),
+            WebConstants.DOC_LINK_HANDBUCH_LUCENE, true);
         final String helpKeyboardImageTooltip = getHelpKeyboardImageTooltip();
         if (helpKeyboardImageTooltip != null) {
           fs.addKeyboardHelpIcon(helpKeyboardImageTooltip);
@@ -197,19 +195,19 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
       onOptionsPanelCreate(optionsFieldsetPanel, optionsCheckBoxesPanel);
       if (showHistorySearchAndDeleteCheckbox() == true) {
         optionsCheckBoxesPanel.add(createCheckBoxButton(
-                optionsCheckBoxesPanel.newChildId(),
-                new PropertyModel<Boolean>(getSearchFilter(), "deleted"),
-                getString(I18N_ONLY_DELETED),
-                getString(I18N_ONLY_DELETED_TOOLTIP),
-                autoRefreshOnFilterChange
+            optionsCheckBoxesPanel.newChildId(),
+            new PropertyModel<Boolean>(getSearchFilter(), "deleted"),
+            getString(I18N_ONLY_DELETED),
+            getString(I18N_ONLY_DELETED_TOOLTIP),
+            autoRefreshOnFilterChange
         ).setWarning());
 
         optionsCheckBoxesPanel.add(createCheckBoxButton(
-                optionsCheckBoxesPanel.newChildId(),
-                new PropertyModel<Boolean>(getSearchFilter(), "searchHistory"),
-                getString("search.searchHistory"),
-                getString("search.searchHistory.additional.tooltip"),
-                autoRefreshOnFilterChange
+            optionsCheckBoxesPanel.newChildId(),
+            new PropertyModel<Boolean>(getSearchFilter(), "searchHistory"),
+            getString("search.searchHistory"),
+            getString("search.searchHistory.additional.tooltip"),
+            autoRefreshOnFilterChange
         ));
       }
       if (optionsCheckBoxesPanel.hasChildren() == true) {
@@ -222,7 +220,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     // DropDownChoice page size
     pageSizeFieldsetPanel = gridBuilder.newFieldset(getString("label.pageSize"));
     pageSizeFieldsetPanel.add(getPageSizeDropDownChoice(pageSizeFieldsetPanel.getDropDownChoiceId(), getLocale(),
-            new PropertyModel<Integer>(searchFilter, "pageSize"), 25, 1000));
+        new PropertyModel<Integer>(searchFilter, "pageSize"), 25, 1000));
 
     final WebMarkupContainer buttonCell = new WebMarkupContainer("buttonCell");
     add(buttonCell);
@@ -237,7 +235,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     };
     cancelButton.setDefaultFormProcessing(false);
     cancelButtonPanel = new SingleButtonPanel(getNewActionButtonChildId(), cancelButton, getCancelButtonLabel(),
-            SingleButtonPanel.CANCEL);
+        SingleButtonPanel.CANCEL);
     addActionButton(cancelButtonPanel);
 
     final Button resetButton = new Button("button", new Model<String>("reset")) {
@@ -248,18 +246,8 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     };
     resetButton.setDefaultFormProcessing(false);
     resetButtonPanel = new SingleButtonPanel(getNewActionButtonChildId(), resetButton, getString("reset"),
-            SingleButtonPanel.RESET);
+        SingleButtonPanel.RESET);
     addActionButton(resetButtonPanel);
-
-    final Button nextButton = new Button("button", new Model<String>("next")) {
-      @Override
-      public final void onSubmit() {
-        getParentPage().onNextSubmit();
-      }
-    };
-    nextButtonPanel = new SingleButtonPanel(getNewActionButtonChildId(), nextButton, getNextButtonLabel(),
-            SingleButtonPanel.DEFAULT_SUBMIT);
-    addActionButton(nextButtonPanel);
 
     final Button searchButton = new Button("button", new Model<String>("search")) {
       @Override
@@ -268,7 +256,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
       }
     };
     searchButtonPanel = new SingleButtonPanel(getNewActionButtonChildId(), searchButton, getString("search"),
-            SingleButtonPanel.DEFAULT_SUBMIT);
+        SingleButtonPanel.DEFAULT_SUBMIT);
     addActionButton(searchButtonPanel);
 
     setComponentsVisibility();
@@ -303,21 +291,21 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     {
       final FieldsetPanel fieldset = gridBuilder.newFieldset(getString("search.periodOfModification"));
       fieldset.add(new HiddenInputPanel(fieldset.newChildId(),
-              new HiddenField<Boolean>(InputPanel.WICKET_ID, new PropertyModel<Boolean>(
-                      searchFilter, "useModificationFilter"))).setHtmlId("useModificationFilter"));
+          new HiddenField<Boolean>(InputPanel.WICKET_ID, new PropertyModel<Boolean>(
+              searchFilter, "useModificationFilter"))).setHtmlId("useModificationFilter"));
 
       startDateTimePanel = new DateTimePanel(fieldset.newChildId(),
-              new PropertyModel<Date>(searchFilter, "startTimeOfModification"),
-              (DateTimePanelSettings) DateTimePanelSettings.get().withSelectProperty("startDateOfModification")
-                      .withSelectPeriodMode(true),
-              DatePrecision.MINUTE);
+          new PropertyModel<Date>(searchFilter, "startTimeOfModification"),
+          (DateTimePanelSettings) DateTimePanelSettings.get().withSelectProperty("startDateOfModification")
+              .withSelectPeriodMode(true),
+          DatePrecision.MINUTE);
       fieldset.add(startDateTimePanel);
       fieldset.setLabelFor(startDateTimePanel);
       stopDateTimePanel = new DateTimePanel(fieldset.newChildId(),
-              new PropertyModel<Date>(searchFilter, "stopTimeOfModification"),
-              (DateTimePanelSettings) DateTimePanelSettings.get().withSelectProperty("stopDateOfModification")
-                      .withSelectPeriodMode(true),
-              DatePrecision.MINUTE);
+          new PropertyModel<Date>(searchFilter, "stopTimeOfModification"),
+          (DateTimePanelSettings) DateTimePanelSettings.get().withSelectProperty("stopDateOfModification")
+              .withSelectPeriodMode(true),
+          DatePrecision.MINUTE);
       stopDateTimePanel.setRequired(false);
       fieldset.add(stopDateTimePanel);
       final HtmlCommentPanel comment = new HtmlCommentPanel(fieldset.newChildId(), new DatesAsUTCModel() {
@@ -336,27 +324,27 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
       final LabelValueChoiceRenderer<String> timePeriodChoiceRenderer = new LabelValueChoiceRenderer<String>();
       timePeriodChoiceRenderer.addValue("lastMinute", getString("search.lastMinute"));
       timePeriodChoiceRenderer.addValue("lastMinutes:10",
-              ThreadLocalUserContext.getLocalizedMessage("search.lastMinutes", 10));
+          ThreadLocalUserContext.getLocalizedMessage("search.lastMinutes", 10));
       timePeriodChoiceRenderer.addValue("lastMinutes:30",
-              ThreadLocalUserContext.getLocalizedMessage("search.lastMinutes", 30));
+          ThreadLocalUserContext.getLocalizedMessage("search.lastMinutes", 30));
       timePeriodChoiceRenderer.addValue("lastHour", getString("search.lastHour"));
       timePeriodChoiceRenderer.addValue("lastHours:4",
-              ThreadLocalUserContext.getLocalizedMessage("search.lastHours", 4));
+          ThreadLocalUserContext.getLocalizedMessage("search.lastHours", 4));
       timePeriodChoiceRenderer.addValue("today", getString("search.today"));
       timePeriodChoiceRenderer.addValue("sinceYesterday", getString("search.sinceYesterday"));
       timePeriodChoiceRenderer.addValue("lastDays:3", ThreadLocalUserContext.getLocalizedMessage("search.lastDays", 3));
       timePeriodChoiceRenderer.addValue("lastDays:7", ThreadLocalUserContext.getLocalizedMessage("search.lastDays", 7));
       timePeriodChoiceRenderer.addValue("lastDays:14",
-              ThreadLocalUserContext.getLocalizedMessage("search.lastDays", 14));
+          ThreadLocalUserContext.getLocalizedMessage("search.lastDays", 14));
       timePeriodChoiceRenderer.addValue("lastDays:30",
-              ThreadLocalUserContext.getLocalizedMessage("search.lastDays", 30));
+          ThreadLocalUserContext.getLocalizedMessage("search.lastDays", 30));
       timePeriodChoiceRenderer.addValue("lastDays:60",
-              ThreadLocalUserContext.getLocalizedMessage("search.lastDays", 60));
+          ThreadLocalUserContext.getLocalizedMessage("search.lastDays", 60));
       timePeriodChoiceRenderer.addValue("lastDays:90",
-              ThreadLocalUserContext.getLocalizedMessage("search.lastDays", 90));
+          ThreadLocalUserContext.getLocalizedMessage("search.lastDays", 90));
       final DropDownChoice<String> modificationSinceChoice = new DropDownChoice<String>(fieldset.getDropDownChoiceId(),
-              new PropertyModel<String>(this, "modificationSince"), timePeriodChoiceRenderer.getValues(),
-              timePeriodChoiceRenderer);
+          new PropertyModel<String>(this, "modificationSince"), timePeriodChoiceRenderer.getValues(),
+          timePeriodChoiceRenderer);
       modificationSinceChoice.setNullValid(true);
       modificationSinceChoice.setRequired(false);
       fieldset.add(modificationSinceChoice, true);
@@ -405,8 +393,8 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
    */
   protected TextField<?> createSearchTextField() {
     final TextField<String> searchField = new TextField<String>(InputPanel.WICKET_ID,
-            new PropertyModel<String>(getSearchFilter(),
-                    "searchString"));
+        new PropertyModel<String>(getSearchFilter(),
+            "searchString"));
     createSearchFieldTooltip(searchField);
     searchField.add(WicketUtils.setFocus());
     return searchField;
@@ -443,22 +431,13 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
   }
 
   protected void setComponentsVisibility() {
-    if (parentPage.isMassUpdateMode() == true) {
-      cancelButtonPanel.setVisible(true);
-      searchButtonPanel.setVisible(false);
-      resetButtonPanel.setVisible(false);
-      nextButtonPanel.setVisible(true);
-      setDefaultButton(nextButtonPanel.getButton());
-    } else {
-      if (parentPage.isSelectMode() == false) {
-        // Show cancel button only in select mode.
-        cancelButtonPanel.setVisible(false);
-      }
-      searchButtonPanel.setVisible(true);
-      resetButtonPanel.setVisible(true);
-      nextButtonPanel.setVisible(false);
-      setDefaultButton(searchButtonPanel.getButton());
+    if (parentPage.isSelectMode() == false) {
+      // Show cancel button only in select mode.
+      cancelButtonPanel.setVisible(false);
     }
+    searchButtonPanel.setVisible(true);
+    resetButtonPanel.setVisible(true);
+    setDefaultButton(searchButtonPanel.getButton());
   }
 
   /**
@@ -522,11 +501,11 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
             if (this.searchFilter == null) {
               // Probably a new software release results in an incompability of old and new filter format.
               getLogger().info(
-                      "Could not restore filter from user prefs: (old) filter type "
-                              + filter.getClass().getName()
-                              + " is not assignable to (new) filter type "
-                              + newSearchFilterInstance().getClass().getName()
-                              + " (OK, probably new software release).");
+                  "Could not restore filter from user prefs: (old) filter type "
+                      + filter.getClass().getName()
+                      + " is not assignable to (new) filter type "
+                      + newSearchFilterInstance().getClass().getName()
+                      + " (OK, probably new software release).");
             }
           }
         }
@@ -591,7 +570,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
    */
   public static String getModifiedSearchExpressionLabel(final Component component, final String searchString) {
     return component.getString("search.lucene.expression") + " "
-            + StringEscapeUtils.escapeHtml4(HibernateSearchFilterUtils.modifySearchString(searchString));
+        + StringEscapeUtils.escapeHtml4(HibernateSearchFilterUtils.modifySearchString(searchString));
   }
 
   /**

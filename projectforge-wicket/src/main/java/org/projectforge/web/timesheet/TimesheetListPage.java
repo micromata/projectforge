@@ -226,15 +226,6 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   }
 
   @Override
-  protected void createDataTable() {
-    final List<IColumn<TimesheetDO, String>> columns = createColumns(getUserGroupCache(), this,
-        form.getSearchFilter(),
-        getTaskTree(), userFormatter, dateTimeFormatter);
-    dataTable = createDataTable(columns, "startTime", SortOrder.DESCENDING);
-    form.add(dataTable);
-  }
-
-  @Override
   public List<IColumn<TimesheetDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
     return createColumns(getUserGroupCache(), returnToPage, form.getSearchFilter(), getTaskTree(),
