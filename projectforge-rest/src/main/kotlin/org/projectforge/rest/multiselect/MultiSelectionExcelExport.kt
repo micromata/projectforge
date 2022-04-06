@@ -116,7 +116,6 @@ object MultiSelectionExcelExport {
             }
           }
         }
-        println(massUpdateObject.getId())
         row.createCell().setCellValue(massUpdateObject.getId())
       }
       return workbook.asByteArrayOutputStream.toByteArray()

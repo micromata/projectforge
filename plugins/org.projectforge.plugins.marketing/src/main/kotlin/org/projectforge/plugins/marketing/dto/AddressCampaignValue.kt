@@ -24,6 +24,7 @@
 package org.projectforge.plugins.marketing.dto
 
 import org.projectforge.business.address.AddressDO
+import org.projectforge.plugins.marketing.AddressCampaignValueDO
 import org.projectforge.rest.dto.Address
 import org.projectforge.rest.dto.BaseDTO
 
@@ -34,8 +35,15 @@ class AddressCampaignValue(
   var comment: String? = null,
 ) : BaseDTO<AddressDO>() {
   override fun copyFrom(src: AddressDO) {
+    this.id = src.id // Id is address id!!!!
     val address = Address()
     address.copyFrom(src)
     this.address = address
+  }
+
+  fun copyFrom(src: AddressCampaignValueDO) {
+    src.address?.let { copyFrom(it) }
+    this.value = src.value
+    this.comment = src.comment
   }
 }
