@@ -133,6 +133,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
       return null
     }
     val params = massUpdateContext.massUpdateData
+    val massUpdateData = massUpdateContext.massUpdateData
     invoices.forEach { invoice ->
       massUpdateContext.startUpdate(invoice)
       processTextParameter(invoice, "kreditor", params)
@@ -142,6 +143,11 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
       processTextParameter(invoice, "referenz", params)
       params["bezahlDatum"]?.let { param ->
         param.localDateValue?.let {
+          if (!massUpdateData.containsKey("zahlBetrag")) {
+            // Add parameter for excel export:
+            val param = MassUpdateParameter()
+            massUpdateData["zahlBetrag"] = param
+          }
           invoice.bezahlDatum = param.localDateValue
           invoice.zahlBetrag = invoice.grossSumWithDiscount
           if (invoice.discountPercent != null && invoice.grossSumWithDiscount.compareTo(invoice.grossSum) != 0) {
@@ -153,6 +159,11 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
           }
         }
         if (param.delete == true) {
+          if (!massUpdateData.containsKey("zahlBetrag")) {
+            // Add parameter for excel export:
+            val param = MassUpdateParameter()
+            massUpdateData["zahlBetrag"] = param
+          }
           invoice.bezahlDatum = null
           invoice.zahlBetrag = null
         }

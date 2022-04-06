@@ -24,17 +24,22 @@
 package org.projectforge.rest.multiselect
 
 import de.micromata.merlin.excel.ExcelCell
+import de.micromata.merlin.utils.ReplaceUtils
+import mu.KotlinLogging
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.admin.LogViewerPageRest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.DownloadFileSupport
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -45,6 +50,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Base class of mass updates after multi selection.
@@ -67,6 +74,9 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
 
   protected abstract fun ensureUserLogSubscription(): LogSubscription
 
+  private val downloadFileSupport =
+    DownloadFileSupport(expiringSessionAttribute = "${this::class.java.name}.downloadFile", downloadExpiryMinutes = 5)
+
   /**
    * Should be set for i18n translations of Excel-Export.
    */
@@ -87,10 +97,12 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
   ): ResponseEntity<*> {
     val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRestClass)
 
-    val massUpdateContext = MassUpdateContext<T>(postData.data)
+    val massUpdateContext = MassUpdateContext<T>(postData.data.toMutableMap())
     handleClientMassUpdateCall(request, massUpdateContext)
     massUpdate(selectedIds, massUpdateContext)?.let { return it }
-    //MultiSelectionExcelExport.export(massUpdateContext, this)
+    val excel = MultiSelectionExcelExport.export(massUpdateContext, this)
+    val filename = ReplaceUtils.encodeFilename("${translate(getTitleKey())}_${PFDateTime.now().format4Filenames()}.xlsx", true)
+    downloadFileSupport.storeDownloadFile(request, filename, excel)
     val variables = mutableMapOf<String, Any>()
 
     val massUpdateData = postData.data.toMutableMap()
@@ -100,6 +112,14 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
         .addVariable("ui", layout)
         .addVariable("data", massUpdateData)
     )
+  }
+
+  @GetMapping("download")
+  fun download(request: HttpServletRequest): ResponseEntity<*> {
+    val downloadFile = downloadFileSupport.getDownloadFile(request)
+      ?: return RestUtils.badRequest(translate("download.expired"))
+    log.info("Downloading '${downloadFile.filename}' of size ${downloadFile.sizeHumanReadable}.")
+    return RestUtils.downloadFile(downloadFile.filename, downloadFile.bytes)
   }
 
   /**
@@ -292,6 +312,20 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
       } else {
         // Do nothing.
       }
+    }
+    downloadFileSupport.getDownloadFile(request)?.let { download ->
+      val download = DownloadFileSupport.Download(download)
+      variables["download"] = download
+      layout.add(
+        UIRow().add(
+          downloadFileSupport.createDownloadFieldset(
+            "massUpdate.excel.download",
+            "${getRestPath()}/download",
+            download,
+            useDataObject = false,
+          )
+        )
+      )
     }
     layout.add(
       MenuItem(

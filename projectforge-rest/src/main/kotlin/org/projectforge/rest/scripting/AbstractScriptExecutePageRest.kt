@@ -206,7 +206,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
   @GetMapping("download")
   fun download(request: HttpServletRequest): ResponseEntity<*> {
     val downloadFile = scriptExecution.getDownloadFile(request)
-      ?: return RestUtils.badRequest(translate("scripting.download.expired"))
+      ?: return RestUtils.badRequest(translate("download.expired"))
     log.info("Downloading '${downloadFile.filename}' of size ${downloadFile.sizeHumanReadable}.")
     return RestUtils.downloadFile(downloadFile.filename, downloadFile.bytes)
   }

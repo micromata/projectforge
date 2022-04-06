@@ -51,7 +51,7 @@ object MultiSelectionExcelExport {
   fun <T : IdObject<out Serializable>> export(
     massUpdateContext: MassUpdateContext<T>,
     multiSelectedPage: AbstractMultiSelectedPage<T>
-  ) {
+  ): ByteArray {
     log.info("Exporting results of mass update as Excel file.")
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.getLocale()).use { workbook ->
       val sheet = workbook.createOrGetSheet(translate("massUpdate.result.excel.title"))
@@ -109,11 +109,7 @@ object MultiSelectionExcelExport {
           }
         }
       }
-      val filename = ("MassUpdate_${PFDateTime.now().format4Filenames()}.xlsx")
-      val resource = workbook.asByteArrayOutputStream.toByteArray()
-      val file = File(filename)
-      log.info { "Writing ${file.absoluteFile}" }
-      file.writeBytes(resource)
+      return workbook.asByteArrayOutputStream.toByteArray()
     }
   }
 
