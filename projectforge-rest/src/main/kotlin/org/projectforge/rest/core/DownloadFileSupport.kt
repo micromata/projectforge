@@ -63,7 +63,11 @@ class DownloadFileSupport(
     var filenameAndSize: String? = null
   }
 
-  fun createDownloadFieldset(title: String?, restPath: String, download: Download): UIFieldset {
+  /**
+   * @param useDataObject If set (default), the field download.filenameAndSize of the data object is used, otherwise
+   * the value will be set directly from given download param.
+   */
+  fun createDownloadFieldset(title: String?, restPath: String, download: Download, useDataObject: Boolean = true): UIFieldset {
     val availableUntil = translateMsg("scripting.download.filename.additional", download.availableUntil)
     val fieldset = UIFieldset(title = title)
     fieldset
@@ -72,6 +76,7 @@ class DownloadFileSupport(
           "download.filenameAndSize",
           label = "file",
           additionalLabel = "'$availableUntil",
+          value = if (useDataObject) null else download.filename,
         )
       )
       .add(

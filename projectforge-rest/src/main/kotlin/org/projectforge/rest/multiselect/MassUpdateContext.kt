@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Stores also statistic data and errors during mass update run.
  */
-class MassUpdateContext<T : IdObject<out java.io.Serializable>>(var massUpdateData: Map<String, MassUpdateParameter>) {
+class MassUpdateContext<T : IdObject<out java.io.Serializable>>(var massUpdateData: MutableMap<String, MassUpdateParameter>) {
   class Error(val identifier: String, val message: String)
 
   var modifiedCounter: Int = 0
