@@ -62,6 +62,7 @@ class MassUpdateParameter {
       if (delete == true) ++actionCounter
       if (append == true) ++actionCounter
       if (!replaceText.isNullOrEmpty()) ++actionCounter
+      if (actionCounter == 0 && !textValue.isNullOrBlank()) ++actionCounter
       return actionCounter
     }
 
