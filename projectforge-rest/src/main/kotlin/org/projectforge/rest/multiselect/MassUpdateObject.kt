@@ -24,11 +24,13 @@
 package org.projectforge.rest.multiselect
 
 import org.projectforge.common.BeanHelper
+import org.projectforge.framework.persistence.api.IdObject
+import java.io.Serializable
 
 /**
  * Stores the old and the new state of an object while mass update.
  */
-class MassUpdateObject<T>(
+class MassUpdateObject<T : IdObject<out Serializable>>(
   val id: java.io.Serializable,
   oldStateObj: T,
   val massUpdateData: Map<String, MassUpdateParameter>,
@@ -45,8 +47,9 @@ class MassUpdateObject<T>(
   /**
    * Identifier for user to identifier object.
    */
-  var identifier: String? = null
+  lateinit var identifier: String
 
+  lateinit var modifiedObj: T
 
   init {
     massUpdateData.forEach { (field, param) ->
@@ -59,6 +62,7 @@ class MassUpdateObject<T>(
 
   fun setModifiedObject(modifiedObj: T, identifier: String) {
     this.identifier = identifier
+    this.modifiedObj = modifiedObj
     massUpdateData.forEach { (field, _) ->
       if (ignoreFieldsForModificationCheck?.contains(field) != true) {
         val fieldModification =

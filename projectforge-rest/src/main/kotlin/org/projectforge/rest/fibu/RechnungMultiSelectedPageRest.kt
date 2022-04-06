@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.fibu
 
-import org.projectforge.business.fibu.EingangsrechnungsStatistik
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.RechnungStatus
@@ -37,8 +36,8 @@ import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
-import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.rest.multiselect.MassUpdateContext
+import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIAlert
 import org.projectforge.ui.UIColor
@@ -60,6 +59,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   @Autowired
   private lateinit var rechnungDao: RechnungDao
 
+  override val layoutContext: LayoutContext = LayoutContext(RechnungDO::class.java)
 
   override fun getTitleKey(): String {
     return "fibu.rechnung.multiselected.title"

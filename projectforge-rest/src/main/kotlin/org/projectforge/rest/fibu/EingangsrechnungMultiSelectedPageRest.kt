@@ -66,6 +66,8 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   @Autowired
   private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
+  override val layoutContext: LayoutContext = LayoutContext(EingangsrechnungDO::class.java)
+
   override fun getTitleKey(): String {
     return "fibu.eingangsrechnung.multiselected.title"
   }
@@ -144,8 +146,10 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
           invoice.zahlBetrag = invoice.grossSumWithDiscount
           if (invoice.discountPercent != null && invoice.grossSumWithDiscount.compareTo(invoice.grossSum) != 0) {
             // Append hint about discount.
-            val appendText = "${translate("fibu.eingangsrechnung.skonto")}: ${NumberFormatter.format(invoice.discountPercent)}%"
-            TextFieldModification.appendText(invoice.bemerkung, appendText)?.let { newValue -> invoice.bemerkung = newValue }
+            val appendText =
+              "${translate("fibu.eingangsrechnung.skonto")}: ${NumberFormatter.format(invoice.discountPercent)}%"
+            TextFieldModification.appendText(invoice.bemerkung, appendText)
+              ?.let { newValue -> invoice.bemerkung = newValue }
           }
         }
         if (param.delete == true) {
@@ -181,7 +185,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
     if (invoices.isNullOrEmpty()) {
       return RestUtils.downloadFile("error.txt", translate("massUpdate.error.noEntriesSelected"))
     }
-    val filename = "transfer-${PFDateTime.now().iso4FilenamesFormatterMinutes}.xml"
+    val filename = "transfer-${PFDateTime.now().format4Filenames()}.xml"
     val result: SEPATransferResult = this.SEPATransferGenerator.format(invoices)
     if (!result.isSuccessful) {
       if (result.errors.isEmpty()) {

@@ -23,15 +23,18 @@
 
 package org.projectforge.rest.multiselect
 
+import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
+import org.apache.poi.ss.usermodel.CellStyle
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
-import org.springframework.core.io.ByteArrayResource
 import java.io.File
+import java.io.Serializable
+
 
 private val log = KotlinLogging.logger {}
 
@@ -39,40 +42,74 @@ private val log = KotlinLogging.logger {}
  * Exports the results of mass updates
  */
 object MultiSelectionExcelExport {
-  fun <T : IdObject<out java.io.Serializable>> export(massUpdateContext: MassUpdateContext<T>) {
+  private class Context<T : IdObject<out Serializable>>(
+    val multiSelectedPage: AbstractMultiSelectedPage<T>,
+    val wrapStyle: CellStyle,
+    val boldStyle: CellStyle,
+  )
+
+  fun <T : IdObject<out Serializable>> export(
+    massUpdateContext: MassUpdateContext<T>,
+    multiSelectedPage: AbstractMultiSelectedPage<T>
+  ) {
     log.info("Exporting results of mass update as Excel file.")
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.getLocale()).use { workbook ->
       val sheet = workbook.createOrGetSheet(translate("massUpdate.result.excel.title"))
       val boldFont = workbook.createOrGetFont("bold", bold = true)
+      val boldStyle = workbook.createOrGetCellStyle("boldStyle")
+      boldStyle.setFont(boldFont)
       val decimalStyle = workbook.createOrGetCellStyle("decimal")
       decimalStyle.dataFormat = workbook.createDataFormat().getFormat("0.0")
+      val wrapStyle = workbook.createOrGetCellStyle("wrapText")
+      wrapStyle.wrapText = true
+      val context = Context(multiSelectedPage, wrapStyle, boldStyle)
       val firstRow = sheet.createRow() // First row
-      sheet.registerColumns("Id|11", "Element|30")
-      for (i in 0..1) {
+      val identifierHeadCols = multiSelectedPage.customizeExcelIdentifierHeadCells()
+      sheet.registerColumns(*identifierHeadCols)
+      for (i in 0 until identifierHeadCols.size) {
         firstRow.createCell() // 2 empty cells.
       }
-      massUpdateContext.massUpdateData.forEach { (field, param) ->
-        val colNumber = firstRow.createCell().setCellValue(field).colNumber
-        firstRow.createCell()
-        firstRow.addMergeRegion(colNumber, colNumber + 1)
-        sheet.registerColumns("old", "new")
-      }
-      sheet.createRow().fillHeadRow(sheet.createOrGetCellStyle("headStyle"))
-      sheet.setAutoFilter()
+      val modifiedFields = mutableSetOf<String>()
+      val colWidth = mutableMapOf<String, Int>() // key is field name.
       massUpdateContext.massUpdateObjects.forEach { massUpdateObject ->
-        val row = sheet.createRow()
-        row.createCell().setCellValue(massUpdateObject.id)
-        row.createCell().setCellValue(massUpdateObject.identifier)
         massUpdateObject.fieldModifications.forEach { (field, modification) ->
-          val oldValueCell = row.createCell()
-          val newValueCell = row.createCell()
-          if (modification.oldValue != modification.newValue) {
-            oldValueCell.setCellValue(modification.oldValue)
-            newValueCell.setCellValue(modification.newValue)
+          if (!modifiedFields.contains(field)) {
+            if (modification.oldValue != modification.newValue) {
+              modifiedFields.add(field)
+            }
           }
         }
       }
-      val filename = ("MassUpdate_${PFDateTime.now().iso4FilenamesFormatterMinutes}.xlsx")
+      val headRow = sheet.createRow().fillHeadRow(boldStyle)
+      massUpdateContext.massUpdateData.forEach { (field, param) ->
+        if (modifiedFields.contains(field)) {
+          val colNumber = firstRow.createCell().setCellValue(multiSelectedPage.getFieldTranslation(field)).colNumber
+          firstRow.createCell()
+          firstRow.addMergeRegion(colNumber, colNumber + 1)
+          headRow.createCell().setCellValue(translate("massUpdate.excel.column.old"))
+          headRow.createCell().setCellValue(translate("massUpdate.excel.column.new"))
+          sheet.setColumnWidth(colNumber, 30 * 256)
+          sheet.setColumnWidth(colNumber + 1, 30 * 256)
+        }
+      }
+      sheet.setAutoFilter()
+      massUpdateContext.massUpdateObjects.forEach { massUpdateObject ->
+        val row = sheet.createRow()
+        multiSelectedPage.getExcelIdentifierCells(massUpdateObject).forEach {
+          row.createCell().setCellValue(it)
+        }
+        massUpdateObject.fieldModifications.forEach { (field, modification) ->
+          if (modifiedFields.contains(field)) {
+            val oldValueCell = row.createCell()
+            val newValueCell = row.createCell()
+            if (modification.oldValue != modification.newValue) {
+              displayValue(context, oldValueCell, field, modification.oldValue)
+              displayValue(context, newValueCell, field, modification.newValue)
+            }
+          }
+        }
+      }
+      val filename = ("MassUpdate_${PFDateTime.now().format4Filenames()}.xlsx")
       val resource = workbook.asByteArrayOutputStream.toByteArray()
       val file = File(filename)
       log.info { "Writing ${file.absoluteFile}" }
@@ -80,54 +117,72 @@ object MultiSelectionExcelExport {
     }
   }
 
-  /*
-    fun download() {
-      scriptExecution.getDownloadFile(request)?.let { download ->
-        script.scriptDownload = Script.ScriptDownload(download.filename, download.sizeHumanReadable)
-        val availableUntil = translateMsg("scripting.download.filename.additional", download.availableUntil)
-        layout.add(
-          UIRow().add(
-            UIFieldset(title = "scripting.download.filename.info").add(
-              UIReadOnlyField(
-                "scriptDownload.filenameAndSize",
-                label = "scripting.download.filename",
-                additionalLabel = "'$availableUntil",
-              )
+  private fun <T : IdObject<out Serializable>> displayValue(
+    context: Context<T>,
+    cell: ExcelCell,
+    field: String,
+    value: Any?,
+  ) {
+    if (context.multiSelectedPage.handleValue(cell, field, value)) {
+      // Value already handled by multi page.
+      return
+    }
+    var cellValue = value
+    when (value) {
+      is String -> cell.setCellStyle(context.wrapStyle)
+      is DisplayNameCapable -> cellValue = value.displayName
+      else -> {}
+    }
+    cell.setCellValue(cellValue)
+  }
+/*
+  fun download() {
+    scriptExecution.getDownloadFile(request)?.let { download ->
+      script.scriptDownload = Script.ScriptDownload(download.filename, download.sizeHumanReadable)
+      val availableUntil = translateMsg("scripting.download.filename.additional", download.availableUntil)
+      layout.add(
+        UIRow().add(
+          UIFieldset(title = "scripting.download.filename.info").add(
+            UIReadOnlyField(
+              "scriptDownload.filenameAndSize",
+              label = "scripting.download.filename",
+              additionalLabel = "'$availableUntil",
             )
-              .add(
-                UIButton.createDownloadButton(
-                  responseAction = ResponseAction(
-                    url = "${getRestPath()}/download",
-                    targetType = TargetType.DOWNLOAD
-                  )
+          )
+            .add(
+              UIButton.createDownloadButton(
+                responseAction = ResponseAction(
+                  url = "${getRestPath()}/download",
+                  targetType = TargetType.DOWNLOAD
                 )
               )
-          )
+            )
         )
-      }
-
-    }
-
-    internal fun getDownloadFile(request: HttpServletRequest): ScriptExecution.DownloadFile? {
-      return ExpiringSessionAttributes.getAttribute(
-        request,
-        EXPIRING_SESSION_ATTRIBUTE, ScriptExecution.DownloadFile::class.java
       )
     }
 
-    data class DownloadFile(val filename: String, val bytes: ByteArray, val availableUntil: String) {
-      val sizeHumanReadable
-        get() = NumberHelper.formatBytes(bytes.size)
-    }
+  }
 
-    internal fun createDownloadFilename(filename: String?, extension: String): String {
-      val suffix = "${DateHelper.getTimestampAsFilenameSuffix(Date())}.$extension"
-      return if (filename.isNullOrBlank()) {
-        "pf_scriptresult_$suffix"
-      } else {
-        "${filename.removeSuffix(".$extension")}_$suffix"
-      }
-    }
-  */
+  internal fun getDownloadFile(request: HttpServletRequest): ScriptExecution.DownloadFile? {
+    return ExpiringSessionAttributes.getAttribute(
+      request,
+      EXPIRING_SESSION_ATTRIBUTE, ScriptExecution.DownloadFile::class.java
+    )
+  }
+
+  data class DownloadFile(val filename: String, val bytes: ByteArray, val availableUntil: String) {
+    val sizeHumanReadable
+      get() = NumberHelper.formatBytes(bytes.size)
+  }
+
+  internal fun createFilename(multiSelectedPage: AbstractMultiSelectedPage<*>): String {
+    return ReplaceUtils.encodeFilename(
+      "${translate(multiSelectedPage.getTitleKey())}_${
+        PFDateTime.now().format4Filenames()
+      }.xslx", true
+    )
+  }
+
   private val EXPIRING_SESSION_ATTRIBUTE = "${this::class.java.name}.downloadResultExcel"
+  */
 }

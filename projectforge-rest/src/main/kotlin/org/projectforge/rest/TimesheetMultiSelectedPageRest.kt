@@ -37,10 +37,7 @@ import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
-import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
-import org.projectforge.rest.multiselect.MassUpdateContext
-import org.projectforge.rest.multiselect.MassUpdateParameter
-import org.projectforge.rest.multiselect.TextFieldModification
+import org.projectforge.rest.multiselect.*
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,6 +67,8 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
 
   @Autowired
   private lateinit var timesheetPagesRest: TimesheetPagesRest
+
+  override val layoutContext: LayoutContext = LayoutContext(TimesheetDO::class.java)
 
   override fun getTitleKey(): String {
     return "timesheet.multiselected.title"
@@ -130,7 +129,6 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         }
       }
     }
-    val lc = LayoutContext(TimesheetDO::class.java)
     val duration = timesheetDao.getListByIds(selectedIds)?.sumOf { it.getDuration() }
     val durationAsString = dateTimeFormatter.getPrettyFormattedDuration(duration ?: 0)
     layout.add(
@@ -174,7 +172,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
       layout.add(createInputFieldRow("tag", select, massUpdateData, showDeleteOption = true))
     }
     createAndAddFields(
-      lc,
+      layoutContext,
       massUpdateData,
       layout,
       "location",
@@ -287,5 +285,14 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
           displayTitle = displayTitle
         )
       })
+  }
+
+  override fun customizeExcelIdentifierHeadCells(): Array<String> {
+    return arrayOf("${translate("user")}|20", "${translate("timePeriod")}|25")
+  }
+
+  override fun getExcelIdentifierCells(massUpdateObject: MassUpdateObject<TimesheetDO>): List<Any?> {
+    val timesheet = massUpdateObject.modifiedObj
+    return listOf(timesheet.user?.getFullname(), timesheet.timePeriod.formattedString)
   }
 }
