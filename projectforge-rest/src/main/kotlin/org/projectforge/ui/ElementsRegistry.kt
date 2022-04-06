@@ -86,7 +86,7 @@ object ElementsRegistry {
     } else {
       val dataType = getDataType(elementInfo)
       element =
-        when (elementInfo.propertyType) {
+        when (elementInfo.propertyClass) {
           String::class.java -> {
             val maxLength = elementInfo.maxLength
             if (maxLength != null && maxLength >= minLengthOfTextArea) {
@@ -130,18 +130,18 @@ object ElementsRegistry {
         }
     }
     if (element == null) {
-      if (elementInfo.propertyType.isEnum) {
-        if (I18nEnum::class.java.isAssignableFrom(elementInfo.propertyType)) {
+      if (elementInfo.propertyClass.isEnum) {
+        if (I18nEnum::class.java.isAssignableFrom(elementInfo.propertyClass)) {
           @Suppress("UNCHECKED_CAST")
           element = UISelect<String>(property, required = elementInfo.required, layoutContext = lc)
-            .buildValues(i18nEnum = elementInfo.propertyType as Class<out Enum<*>>)
+            .buildValues(i18nEnum = elementInfo.propertyClass as Class<out Enum<*>>)
         } else {
           log.warn("Properties of enum not implementing I18nEnum not yet supported: $mapKey.")
           unavailableElementsSet.add(mapKey)
           return UILabel("??? $mapKey ???")
         }
       } else {
-        log.warn("Unsupported property type '${elementInfo.propertyType}': $mapKey")
+        log.warn("Unsupported property type '${elementInfo.propertyClass}': $mapKey")
       }
     }
     if (element is UILabelledElement) {
@@ -219,12 +219,13 @@ object ElementsRegistry {
     if (colinfo != null) {
       elementInfo.maxLength = colinfo.maxLength
       if ((!(colinfo.isNullable) || propertyInfo.required)) {
-        if (elementInfo.propertyType != Boolean::class.java && elementInfo.propertyType != java.lang.Boolean::class.java) {
+        if (elementInfo.propertyClass != Boolean::class.java && elementInfo.propertyClass != java.lang.Boolean::class.java) {
           elementInfo.required = true
         }
       }
     }
     elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
+    elementInfo.propertyType = propertyInfo.type
     elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)
     elementInfo.tooltipI18nKey = getNullIfEmpty(propertyInfo.tooltip)
     ensureClassMap(clazz)[property] = elementInfo
@@ -241,7 +242,7 @@ object ElementsRegistry {
     if (clazz == null)
       return null
     val desc = BeanUtils.getPropertyDescriptor(clazz, property) ?: return null
-    return ElementInfo(property, propertyType = desc.propertyType, readOnly = (desc.writeMethod == null))
+    return ElementInfo(property, propertyClass = desc.propertyType, readOnly = (desc.writeMethod == null))
   }
 
   private fun ensureClassMap(clazz: Class<*>): MutableMap<String, ElementInfo> {

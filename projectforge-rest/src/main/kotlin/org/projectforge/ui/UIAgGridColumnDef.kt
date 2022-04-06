@@ -114,11 +114,11 @@ open class UIAgGridColumnDef(
          col.setStandardBoolean()
        }*/
         if (myStyle == null) {
-          if (LocalDate::class.java.isAssignableFrom(elementInfo.propertyType)) {
+          if (LocalDate::class.java.isAssignableFrom(elementInfo.propertyClass)) {
             myStyle = PF_STYLE.LOCALE_DATE
           }
         }
-        if (valueGetter.isNullOrBlank() && DisplayNameCapable::class.java.isAssignableFrom(elementInfo.propertyType)) {
+        if (valueGetter.isNullOrBlank() && DisplayNameCapable::class.java.isAssignableFrom(elementInfo.propertyClass)) {
           col.valueGetter = "data.${col.field}.displayName"
         }
       }
