@@ -629,20 +629,29 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   }
 
   public void addNewMassSelect(final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz) {
-    addNewMassSelect("multiselection.button", pagesRestClazz, null);
+    addNewMassSelect("multiselection.button", pagesRestClazz, null, null);
+  }
+
+  public void addNewMassSelect(final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz, final Object data) {
+    addNewMassSelect("multiselection.button", pagesRestClazz, null, data);
   }
 
   public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz) {
-    addNewMassSelect(buttonTitleKey, pagesRestClazz, null);
+    addNewMassSelect(buttonTitleKey, pagesRestClazz, null, null);
   }
 
   public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClass, final String toolTipKey) {
+    addNewMassSelect(buttonTitleKey, pagesRestClass, toolTipKey, null);
+  }
+
+  public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClass, final String toolTipKey,
+                               final Object data) {
     final ContentMenuEntryPanel button = new ContentMenuEntryPanel(getNewContentMenuChildId(),
         new Link<Object>("link") {
           @Override
           public void onClick() {
             MultiSelectionSupport.registerEntitiesForSelection(WicketUtils.getHttpServletRequest(getRequest()), pagesRestClass, getList(),
-                getPageAsLink());
+                getPageAsLink(), data);
             final String redirectUrl = PagesResolver.getMultiSelectionPageUrl(pagesRestClass, true);
             throw new RedirectToUrlException(redirectUrl);
           }

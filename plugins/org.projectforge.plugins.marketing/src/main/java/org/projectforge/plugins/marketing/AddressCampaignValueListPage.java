@@ -262,7 +262,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
           getString("address.book.export")).setTooltip(getString("address.book.export.tooltip"));
       addContentMenuEntry(excelExportButton);
     }
-    addNewMassSelect(AddressCampaignValuePagesRest.class);
+    addNewMassSelect(AddressCampaignValuePagesRest.class, form.getSearchFilter().getAddressCampaignId());
   }
 
   /**

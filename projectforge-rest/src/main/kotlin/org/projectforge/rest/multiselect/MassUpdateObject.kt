@@ -24,14 +24,11 @@
 package org.projectforge.rest.multiselect
 
 import org.projectforge.common.BeanHelper
-import org.projectforge.framework.persistence.api.IdObject
-import java.io.Serializable
 
 /**
  * Stores the old and the new state of an object while mass update.
  */
-class MassUpdateObject<T : IdObject<out Serializable>>(
-  val id: java.io.Serializable,
+abstract class MassUpdateObject<T>(
   oldStateObj: T,
   val massUpdateData: Map<String, MassUpdateParameter>,
   // Synthetic fields such as taskAndKost2 for time sheets should be ignored in old/new-value modification check.
@@ -41,6 +38,8 @@ class MassUpdateObject<T : IdObject<out Serializable>>(
     var newValue: Any? = null
   }
 
+  abstract fun getId(): Int
+
   // key is field name.
   val fieldModifications = mutableMapOf<String, FieldModification>()
 
@@ -49,7 +48,7 @@ class MassUpdateObject<T : IdObject<out Serializable>>(
    */
   lateinit var identifier: String
 
-  lateinit var modifiedObj: T
+  var modifiedObj: T? = null
 
   init {
     massUpdateData.forEach { (field, param) ->

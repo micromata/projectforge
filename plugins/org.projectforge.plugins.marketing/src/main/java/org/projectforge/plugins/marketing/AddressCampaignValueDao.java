@@ -91,45 +91,6 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
     addressCampaignValue.setAddress(address);
   }
 
-  public void massUpdate(final List<AddressDO> list, final AddressCampaignDO addressCampaign, final String value,
-                         final String comment) {
-    if (list == null || list.size() == 0) {
-      // No entries to update.
-      return;
-    }
-    if (list.size() > MAX_MASS_UPDATE) {
-      throw new UserException(MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, MAX_MASS_UPDATE);
-    }
-    for (final AddressDO address : list) {
-      AddressCampaignValueDO addressCampaignValue = get(address.getId(), addressCampaign.getId());
-      if (addressCampaignValue == null) {
-        addressCampaignValue = new AddressCampaignValueDO();
-        setAddress(addressCampaignValue, address.getId());
-        addressCampaignValue.setAddressCampaign(addressCampaign);
-      }
-      if (value != null) {
-        addressCampaignValue.setValue(value);
-      }
-      if (!StringUtils.isEmpty(comment)) {
-        addressCampaignValue.setComment(comment);
-      }
-      if (addressCampaignValue.getId() != null) {
-        try {
-          addressCampaignValue.setDeleted(false);
-          update(addressCampaignValue);
-        } catch (final Exception ex) {
-          log.info("Exception occured while updating entry inside mass update: " + addressCampaignValue);
-        }
-      } else {
-        try {
-          save(addressCampaignValue);
-        } catch (final Exception ex) {
-          log.info("Exception occured while inserting entry inside mass update: " + addressCampaignValue);
-        }
-      }
-    }
-  }
-
   @Override
   public AddressCampaignValueDO newInstance() {
     return new AddressCampaignValueDO();
@@ -153,6 +114,26 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
             .createNamedQuery(AddressCampaignValueDO.FIND_BY_CAMPAIGN, AddressCampaignValueDO.class)
             .setParameter("addressCampaignId", searchFilter.getAddressCampaignId())
             .getResultList();
+    if (CollectionUtils.isEmpty(list)) {
+      return map;
+    }
+    for (final AddressCampaignValueDO addressCampaignValue : list) {
+      map.put(addressCampaignValue.getAddressId(), addressCampaignValue);
+    }
+    return map;
+  }
+
+  public Map<Integer, AddressCampaignValueDO> getAddressCampaignValuesByAddressId(
+      final Map<Integer, AddressCampaignValueDO> map,
+      final Integer addressCampaignId) {
+    map.clear();
+    if (addressCampaignId == null) {
+      return map;
+    }
+    final List<AddressCampaignValueDO> list = em
+        .createNamedQuery(AddressCampaignValueDO.FIND_BY_CAMPAIGN, AddressCampaignValueDO.class)
+        .setParameter("addressCampaignId", addressCampaignId)
+        .getResultList();
     if (CollectionUtils.isEmpty(list)) {
       return map;
     }

@@ -39,13 +39,15 @@ object MultiSelectionSupport {
    * different sources exist (classical Wicket list page and React list page). It will be stored in the user's session.
    */
   @JvmStatic
+  @JvmOverloads
   fun registerEntitiesForSelection(
     request: HttpServletRequest,
     identifierClazz: Class<out Any>,
     entityCollection: Collection<IdObject<*>>,
     callerUrl: String? = null,
+    data: Any? = null,
   ) {
-    registerEntitiesForSelection(request, identifierClazz.name, entityCollection, callerUrl)
+    registerEntitiesForSelection(request, identifierClazz.name, entityCollection, callerUrl, data)
   }
 
   /**
@@ -54,14 +56,16 @@ object MultiSelectionSupport {
    * different sources exist (classical Wicket list page and React list page). It will be stored in the user's session.
    */
   @JvmStatic
+  @JvmOverloads
   fun registerEntitiesForSelection(
     request: HttpServletRequest,
     identifier: String,
     entityCollection: Collection<IdObject<*>>,
     callerUrl: String? = null,
+    data: Any? = null,
   ) {
     val idList = entityCollection.map { it.id }
-    registerEntityIdsForSelection(request, identifier, idList, callerUrl)
+    registerEntityIdsForSelection(request, identifier, idList, callerUrl, data)
   }
 
   /**
@@ -69,13 +73,26 @@ object MultiSelectionSupport {
    * different sources exist (classical Wicket list page and React list page). It will be stored in the user's session.
    */
   @JvmStatic
+  @JvmOverloads
   fun registerEntityIdsForSelection(
-    request: HttpServletRequest, identifier: String, idList: Collection<*>, callerUrl: String? = null,
+    request: HttpServletRequest,
+    identifier: String,
+    idList: Collection<*>,
+    callerUrl: String? = null,
+    data: Any? = null,
   ) {
     registerSelectedEntityIds(request, identifier, null) // Clear selection.
     ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier", idList, TTL_MINUTES)
+    if (data != null) {
+      ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier.data", data, TTL_MINUTES)
+    }
     callerUrl?.let {
-      ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier.callerUrl", it, TTL_MINUTES)
+      ExpiringSessionAttributes.setAttribute(
+        request,
+        "$SESSSION_ATTRIBUTE_ENTITIES:$identifier.callerUrl",
+        it,
+        TTL_MINUTES
+      )
     }
   }
 
@@ -102,10 +119,25 @@ object MultiSelectionSupport {
     ) as? String
   }
 
+  fun getRegisteredData(request: HttpServletRequest, identifierClazz: Class<out Any>): Any? {
+    return getRegisteredData(request, identifierClazz.name)
+  }
+
+  fun getRegisteredData(request: HttpServletRequest, identifier: String): Any? {
+    return ExpiringSessionAttributes.getAttribute(
+      request,
+      "$SESSSION_ATTRIBUTE_ENTITIES:$identifier.data"
+    )
+  }
+
   /**
    * Register the selected entities sent by the client for later recovering (e. g. on reload).
    */
-  fun registerSelectedEntityIds(request: HttpServletRequest, identifierClazz: Class<out Any>, idList: Collection<Serializable>?) {
+  fun registerSelectedEntityIds(
+    request: HttpServletRequest,
+    identifierClazz: Class<out Any>,
+    idList: Collection<Serializable>?
+  ) {
     registerSelectedEntityIds(request, identifierClazz.name, idList)
   }
 

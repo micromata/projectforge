@@ -23,18 +23,21 @@
 
 package org.projectforge.plugins.marketing.rest
 
+import org.projectforge.business.address.AddressDao
 import org.projectforge.business.fibu.RechnungStatus
-import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.builder.MenuItemDefId
-import org.projectforge.plugins.marketing.AddressCampaignValueDO
-import org.projectforge.plugins.marketing.AddressCampaignValueDao
+import org.projectforge.plugins.marketing.*
+import org.projectforge.plugins.marketing.dto.AddressCampaignValue
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateParameter
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UILayout
+import org.projectforge.ui.UISelect
+import org.projectforge.ui.UISelectValue
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
@@ -47,10 +50,13 @@ import javax.servlet.http.HttpServletRequest
  */
 @RestController
 @RequestMapping("${Rest.URL}/addressCampaignValue${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
-class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<AddressCampaignValueDO>() {
+class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<AddressCampaignValue>() {
 
   @Autowired
-  private lateinit var addressCampaignValueDao: AddressCampaignValueDao
+  private lateinit var addressDao: AddressDao
+
+  @Autowired
+  private lateinit var addressCampaignValuePagesRest: AddressCampaignValuePagesRest
 
   override val layoutContext: LayoutContext = LayoutContext(AddressCampaignValueDO::class.java)
 
@@ -77,40 +83,40 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
 
      */
     val lc = LayoutContext(AddressCampaignValueDO::class.java)
-    createAndAddFields(lc, massUpdateData, layout, "values")
-    createAndAddFields(lc, massUpdateData, layout, "comment", append = true)
-    /*
-        {
-      // Value
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("value"));
-      final AddressCampaignDO addressCampaign = data.getAddressCampaign();
-      final LabelValueChoiceRenderer<String> valueChoiceRenderer = new LabelValueChoiceRenderer<>(
-          addressCampaign.getValuesArray());
-      fs.addDropDownChoice(new PropertyModel<>(data, "value"), valueChoiceRenderer.getValues(),
-          valueChoiceRenderer).setNullValid(
-              false);
-    }
-    {
-      // Comment
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("comment"));
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "comment"))).setAutogrow();
-    }
 
-     */
+    val addressCampaign = addressCampaignValuePagesRest.getAddressCampaign(request)
+    val values = addressCampaign?.values?.map { UISelectValue(it, it) }
+    layout.add(
+      createInputFieldRow(
+        "value",
+        UISelect("value.textValue", values = values),
+        massUpdateData,
+        showDeleteOption = true
+      )
+    )
+    createAndAddFields(lc, massUpdateData, layout, "comment", append = true)
   }
 
   override fun proceedMassUpdate(
+    request: HttpServletRequest,
     selectedIds: Collection<Serializable>,
-    massUpdateContext: MassUpdateContext<AddressCampaignValueDO>,
+    massUpdateContext: MassUpdateContext<AddressCampaignValue>,
   ): ResponseEntity<*>? {
-    val campaignValues = addressCampaignValueDao.getListByIds(selectedIds)
-    if (campaignValues.isNullOrEmpty()) {
-      return null
-    }
+    val addressList = addressDao.getListByIds(selectedIds)
+    val list = addressCampaignValuePagesRest.convertList(request, addressList)
     val params = massUpdateContext.massUpdateData
-    campaignValues.forEach { invoice ->
-      massUpdateContext.startUpdate(invoice)
-      processTextParameter(invoice, "comment", params)
+    val addressCampaign = addressCampaignValuePagesRest.getAddressCampaign(request)
+    list.forEach { entry ->
+      massUpdateContext.startUpdate(entry)
+      processTextParameter(entry, "comment", params)
+      params["value"]?.let { param ->
+        if (param.delete == true) {
+          entry.value = null
+        }
+        param.textValue?.let {
+          entry.value = it
+        }
+      }
     }
     return null
   }

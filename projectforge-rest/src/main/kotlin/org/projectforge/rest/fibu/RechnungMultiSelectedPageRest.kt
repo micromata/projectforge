@@ -95,6 +95,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   }
 
   override fun proceedMassUpdate(
+    request: HttpServletRequest,
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<RechnungDO>,
   ): ResponseEntity<*>? {
@@ -107,8 +108,8 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
       massUpdateContext.startUpdate(invoice)
       processTextParameter(invoice, "bemerkung", params)
       params["bezahlDatum"]?.let { param ->
-        param.localDateValue?.let {
-          invoice.bezahlDatum = param.localDateValue
+        param.localDateValue?.let { localDate ->
+          invoice.bezahlDatum = localDate
           invoice.zahlBetrag = invoice.grossSum
           invoice.status = RechnungStatus.BEZAHLT
         }

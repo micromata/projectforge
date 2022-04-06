@@ -57,9 +57,16 @@ private val log = KotlinLogging.logger {}
 /**
  * Base class of mass updates after multi selection.
  */
-abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : AbstractDynamicPageRest() {
+abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
   class MultiSelection {
     var selectedIds: Collection<Serializable>? = null
+  }
+
+  protected open fun getId(obj: T): Int {
+    if (obj is IdObject<*>) {
+      return obj.id as Int
+    }
+    throw NotImplementedError("Please override getId(T).")
   }
 
   /**
@@ -73,7 +80,12 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
 
   protected abstract val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
 
-  protected abstract fun ensureUserLogSubscription(): LogSubscription
+  /**
+   * Create log subscription, if the user should view the log messages. At default it's disabled.
+   */
+  protected open fun ensureUserLogSubscription(): LogSubscription? {
+    return null
+  }
 
   private val downloadFileSupport =
     DownloadFileSupport(expiringSessionAttribute = "${this::class.java.name}.downloadFile", downloadExpiryMinutes = 5)
@@ -98,9 +110,13 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
   ): ResponseEntity<*> {
     val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRestClass)
 
-    val massUpdateContext = MassUpdateContext<T>(postData.data.toMutableMap())
+    val massUpdateContext = object: MassUpdateContext<T>(postData.data.toMutableMap()) {
+      override fun getId(obj: T): Int {
+        return this@AbstractMultiSelectedPage.getId(obj)
+      }
+    }
     handleClientMassUpdateCall(request, massUpdateContext)
-    massUpdate(selectedIds, massUpdateContext)?.let { return it }
+    massUpdate(request, selectedIds, massUpdateContext)?.let { return it }
     val excel = MultiSelectionExcelExport.export(massUpdateContext, this)
     val filename =
       ReplaceUtils.encodeFilename("${translate(getTitleKey())}_${PFDateTime.now().format4Filenames()}.xlsx", true)
@@ -173,7 +189,7 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
     return field.replaceFirstChar { it.lowercase() }
   }
 
-  fun massUpdate(selectedIds: Collection<Serializable>?, massUpdateContext: MassUpdateContext<T>): ResponseEntity<*>? {
+  fun massUpdate(request: HttpServletRequest, selectedIds: Collection<Serializable>?, massUpdateContext: MassUpdateContext<T>): ResponseEntity<*>? {
     if (selectedIds.isNullOrEmpty()) {
       return showNoEntriesValidationError()
     }
@@ -202,7 +218,7 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
       return showNothingToDoValidationError()
     }
 
-    proceedMassUpdate(selectedIds, massUpdateContext)?.let { responseEntity ->
+    proceedMassUpdate(request, selectedIds, massUpdateContext)?.let { responseEntity ->
       return responseEntity
     }
     if (massUpdateContext.nothingDone) {
@@ -232,6 +248,7 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
    * @return null to handle ResponseEntity result by this class. If ResponseEntity is returned, it will be used.
    */
   protected abstract fun proceedMassUpdate(
+    request: HttpServletRequest,
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<T>,
   ): ResponseEntity<*>?
@@ -338,17 +355,19 @@ abstract class AbstractMultiSelectedPage<T : IdObject<out Serializable>> : Abstr
         )
       )
     }
-    layout.add(
-      MenuItem(
-        "logViewer",
-        i18nKey = "plugins.merlin.viewLogs",
-        url = PagesResolver.getDynamicPageUrl(
-          LogViewerPageRest::class.java,
-          id = ensureUserLogSubscription().id
-        ),
-        type = MenuItemTargetType.REDIRECT,
+    ensureUserLogSubscription()?.let { logSubscription ->
+      layout.add(
+        MenuItem(
+          "logViewer",
+          i18nKey = "plugins.merlin.viewLogs",
+          url = PagesResolver.getDynamicPageUrl(
+            LogViewerPageRest::class.java,
+            id = logSubscription.id
+          ),
+          type = MenuItemTargetType.REDIRECT,
+        )
       )
-    )
+    }
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
     return layout

@@ -58,6 +58,7 @@ import org.springframework.web.bind.annotation.*
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
+import java.io.Serializable
 
 private val log = KotlinLogging.logger {}
 
@@ -362,7 +363,7 @@ constructor(
 
   protected fun getInitialList(request: HttpServletRequest, filter: MagicFilter): InitialListData {
     val favorites = getFilterFavorites()
-    val resultSet = processResultSetBeforeExport(getList(request,this, baseDao, filter))
+    val resultSet = processResultSetBeforeExport(getList(request,this, baseDao, filter), request)
     resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
     val ui = createListLayout(request, filter)
       .addTranslations(
@@ -453,9 +454,16 @@ constructor(
     fixMagicFilterFromClient(filter)
     val list = getList(request, this, baseDao, filter)
     saveCurrentFilter(filter)
-    val resultSet = processResultSetBeforeExport(list)
+    val resultSet = processResultSetBeforeExport(list, request)
     resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
     return resultSet
+  }
+
+  /**
+   * Get the list by ids.
+   */
+  open fun getListByIds(entityIds: Collection<Serializable>?): List<O> {
+    return baseDao.getListByIds(entityIds) ?: listOf()
   }
 
   /**
@@ -626,7 +634,7 @@ constructor(
     return UIToast.createToast(translate("administration.reindexFull.successful"), color = UIColor.SUCCESS)
   }
 
-  abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>): ResultSet<*>
+  abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>, request: HttpServletRequest): ResultSet<*>
 
   /**
    * Gets the item from the database.

@@ -547,7 +547,7 @@ class AddressPagesRest
   /**
    * @return New result set of dto's, transformed from data base objects.
    */
-  override fun processResultSetBeforeExport(resultSet: ResultSet<AddressDO>): ResultSet<*> {
+  override fun processResultSetBeforeExport(resultSet: ResultSet<AddressDO>, request: HttpServletRequest): ResultSet<*> {
     val newList = resultSet.resultSet.map {
       ListAddress(
         transformFromDB(it),
