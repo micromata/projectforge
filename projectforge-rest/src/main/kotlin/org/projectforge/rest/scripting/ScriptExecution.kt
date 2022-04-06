@@ -273,7 +273,7 @@ class ScriptExecution {
     downloadFileSupport.storeDownloadFile(request, filename, bytes)
     scriptExecutionResult.scriptLogger.info("File '$filename' prepared for download (up-to $DOWNLOAD_EXPIRY_MINUTES minutes available).")
   }
-  
+
   internal fun createDownloadFilename(filename: String?, extension: String): String {
     val suffix = "${DateHelper.getTimestampAsFilenameSuffix(Date())}.$extension"
     return if (filename.isNullOrBlank()) {
