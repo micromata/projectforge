@@ -27,12 +27,12 @@ import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.CellStyle
+import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.PFDateTime
-import java.io.File
+import org.projectforge.ui.ElementsRegistry
 import java.io.Serializable
 
 
@@ -46,6 +46,7 @@ object MultiSelectionExcelExport {
     val multiSelectedPage: AbstractMultiSelectedPage<T>,
     val wrapStyle: CellStyle,
     val boldStyle: CellStyle,
+    val amountStyle: CellStyle,
   )
 
   fun <T : IdObject<out Serializable>> export(
@@ -58,16 +59,17 @@ object MultiSelectionExcelExport {
       val boldFont = workbook.createOrGetFont("bold", bold = true)
       val boldStyle = workbook.createOrGetCellStyle("boldStyle")
       boldStyle.setFont(boldFont)
+      val amountStyle = workbook.createOrGetCellStyle("amount")
+      amountStyle.dataFormat = workbook.createDataFormat().getFormat("#,##0.00;[Red]-#,##0.00")
       val decimalStyle = workbook.createOrGetCellStyle("decimal")
       decimalStyle.dataFormat = workbook.createDataFormat().getFormat("0.0")
       val wrapStyle = workbook.createOrGetCellStyle("wrapText")
       wrapStyle.wrapText = true
-      val context = Context(multiSelectedPage, wrapStyle, boldStyle)
+      val context = Context(multiSelectedPage, wrapStyle, boldStyle, amountStyle)
       val firstRow = sheet.createRow() // First row
       val identifierHeadCols = multiSelectedPage.customizeExcelIdentifierHeadCells()
-      sheet.registerColumns(*identifierHeadCols)
       for (i in 0 until identifierHeadCols.size) {
-        firstRow.createCell() // 2 empty cells.
+        firstRow.createCell().setCellStyle(boldStyle) // empty cells (identifier cells, default is "Element").
       }
       val modifiedFields = mutableSetOf<String>()
       val colWidth = mutableMapOf<String, Int>() // key is field name.
@@ -80,7 +82,11 @@ object MultiSelectionExcelExport {
           }
         }
       }
-      val headRow = sheet.createRow().fillHeadRow(boldStyle)
+      val headRow = sheet.createRow()
+      identifierHeadCols.forEach { head ->
+        sheet.registerColumns(head)
+      }
+      headRow.fillHeadRow()
       massUpdateContext.massUpdateData.forEach { (field, param) ->
         if (modifiedFields.contains(field)) {
           val colNumber = firstRow.createCell().setCellValue(multiSelectedPage.getFieldTranslation(field)).colNumber
@@ -92,6 +98,8 @@ object MultiSelectionExcelExport {
           sheet.setColumnWidth(colNumber + 1, 30 * 256)
         }
       }
+      sheet.setColumnWidth(headRow.createCell().setCellValue("Id").colNumber, 11 * 256) // Id column as last one
+      headRow.fillHeadRow(boldStyle)
       sheet.setAutoFilter()
       massUpdateContext.massUpdateObjects.forEach { massUpdateObject ->
         val row = sheet.createRow()
@@ -108,6 +116,7 @@ object MultiSelectionExcelExport {
             }
           }
         }
+        row.createCell().setCellValue(massUpdateObject.id)
       }
       return workbook.asByteArrayOutputStream.toByteArray()
     }
@@ -130,55 +139,15 @@ object MultiSelectionExcelExport {
       else -> {}
     }
     cell.setCellValue(cellValue)
-  }
-/*
-  fun download() {
-    scriptExecution.getDownloadFile(request)?.let { download ->
-      script.scriptDownload = Script.ScriptDownload(download.filename, download.sizeHumanReadable)
-      val availableUntil = translateMsg("scripting.download.filename.additional", download.availableUntil)
-      layout.add(
-        UIRow().add(
-          UIFieldset(title = "scripting.download.filename.info").add(
-            UIReadOnlyField(
-              "scriptDownload.filenameAndSize",
-              label = "scripting.download.filename",
-              additionalLabel = "'$availableUntil",
-            )
-          )
-            .add(
-              UIButton.createDownloadButton(
-                responseAction = ResponseAction(
-                  url = "${getRestPath()}/download",
-                  targetType = TargetType.DOWNLOAD
-                )
-              )
-            )
-        )
-      )
+    if (!context.multiSelectedPage.handleCellStyle(cell, field, value, cellValue)) {
+      context.multiSelectedPage.layoutContext?.let { lc ->
+        ElementsRegistry.getElementInfo(lc, field)?.let { elementInfo ->
+          when (elementInfo.propertyType) {
+            PropertyType.CURRENCY -> cell.setCellStyle(context.amountStyle)
+            else -> {}
+          }
+        }
+      }
     }
-
   }
-
-  internal fun getDownloadFile(request: HttpServletRequest): ScriptExecution.DownloadFile? {
-    return ExpiringSessionAttributes.getAttribute(
-      request,
-      EXPIRING_SESSION_ATTRIBUTE, ScriptExecution.DownloadFile::class.java
-    )
-  }
-
-  data class DownloadFile(val filename: String, val bytes: ByteArray, val availableUntil: String) {
-    val sizeHumanReadable
-      get() = NumberHelper.formatBytes(bytes.size)
-  }
-
-  internal fun createFilename(multiSelectedPage: AbstractMultiSelectedPage<*>): String {
-    return ReplaceUtils.encodeFilename(
-      "${translate(multiSelectedPage.getTitleKey())}_${
-        PFDateTime.now().format4Filenames()
-      }.xslx", true
-    )
-  }
-
-  private val EXPIRING_SESSION_ATTRIBUTE = "${this::class.java.name}.downloadResultExcel"
-  */
 }

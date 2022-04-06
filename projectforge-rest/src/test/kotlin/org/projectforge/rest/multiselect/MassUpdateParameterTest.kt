@@ -25,51 +25,109 @@ package org.projectforge.rest.multiselect
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalTime
+import java.util.*
 
 class MassUpdateParameterTest {
   @Test
   fun hasActionTest() {
+    check(false, msg = "empty parameter has no action")
+    check(true, textValue = "new text", msg = "parameter has action to change text")
+    check(true, textValue = "new text", replaceText = "replace", msg = "parameter has action to replace text")
+    check(
+      false,
+      error = "massUpdate.error.invalidOptionMix",
+      append = true,
+      textValue = "new text",
+      replaceText = "replace",
+      msg = "parameter can't has action to replace text AND append"
+    )
+    check(
+      false,
+      error = "massUpdate.error.invalidOptionMix",
+      append = true,
+      delete = true,
+      textValue = "new text",
+      replaceText = "replace",
+      msg = "parameter can't has action to replace text AND append AND delete"
+    )
+    check(
+      false,
+      error = "massUpdate.error.invalidOptionMix",
+      append = true,
+      delete = true,
+      textValue = "new text",
+      msg = "parameter can't has action to delete AND append"
+    )
+
+    check(true, append = true, textValue = "new text", msg = "parameter has append action")
+    check(false, append = true, msg = "parameter has no action (append without text)")
+
+    check(true, delete = true, msg = "parameter has action to delete field")
+    check(true, delete = true, textValue = "part to delete", msg = "parameter has action to delete occurences of text")
+    check(false, change = true, msg = "change of id not handled by MassUpdateParameter")
+    check(false, change = true, id = 42, msg = "change of id not handled by MassUpdateParameter")
+
+    check(true, localeDateValue = LocalDate.now(), msg = "date should be changed")
+    check(
+      false,
+      error = "massUpdate.error.invalidOptionMix",
+      delete = true,
+      localeDateValue = LocalDate.now(),
+      msg = "Can't delete date, it's given."
+    )
+  }
+
+  private fun check(
+    hasAction: Boolean,
+    textValue: String? = null,
+    localeDateValue: LocalDate? = null,
+    booleanValue: Boolean? = null,
+    decimalValue: BigDecimal? = null,
+    intValue: Int? = null,
+    timeValue: LocalTime? = null,
+    timestampValue: Date? = null,
+    replaceText: String? = null,
+    delete: Boolean? = null,
+    append: Boolean? = null,
+    change: Boolean? = null,
+    id: Int? = null,
+    error: String? = null,
+    msg: String? = null,
+  ) {
     val param = MassUpdateParameter()
-    check(param, false, null)
-    param.textValue = "new text"
-    check(param, true, null)
-    param.replaceText = "replace"
-    check(param, true, null)
-    param.append = true
-    check(param, false, "massUpdate.error.invalidOptionMix")
-    param.append = null
-
-    param.delete = true
-    check(param, false, "massUpdate.error.invalidOptionMix")
-    param.delete = null
-    param.replaceText = null
-
-    param.append = true
-    check(param, true, null)
-    param.textValue = ""
-    check(param, false, null)
-
-    param.delete = true
-    param.append = null
-    check(param, true, null)
-    param.textValue = "text to delete"
-    check(param, true, null)
-    param.textValue = null
-    param.delete = null
-    param.change = true
-    check(param, false, null)
-    param.id = 1234
-    check(param, false, null, "id changing not handled here.")
-
-    param.change = null
-    param.id = null
-    param.localDateValue = LocalDate.now()
-    check(param, true, null)
+    param.textValue = textValue
+    param.localDateValue = localeDateValue
+    param.replaceText = replaceText
+    param.delete = delete
+    param.append = append
+    param.change = change
+    param.booleanValue = booleanValue
+    param.decimalValue = decimalValue
+    param.intValue = intValue
+    param.timeValue = timeValue
+    param.timestampValue = timestampValue
+    param.id = id
+    val params = listOf(
+      Param("append", append),
+      Param("delete", delete),
+      Param("change", change),
+      Param("textValue", textValue),
+      Param("localDateValue", localeDateValue),
+      Param("booleanValue", booleanValue),
+      Param("decimalValue", decimalValue),
+      Param("intValue", intValue),
+      Param("timeValue", timeValue),
+      Param("timestampValue", timestampValue),
+      Param("replaceText", replaceText),
+      Param("id", id),
+    )
+    val message = "$msg: ${params.filter { it.value != null }.joinToString { "${it.name}=${it.value}" }} "
+    Assertions.assertEquals(hasAction, param.hasAction, message)
+    Assertions.assertEquals(error, param.error, message)
   }
 
-  private fun check(param: MassUpdateParameter, hasAction: Boolean, expectedError: String?, msg: String? = null) {
-    Assertions.assertEquals(hasAction, param.hasAction, msg)
-    Assertions.assertEquals(expectedError, TextFieldModification.hasError(param), msg)
-  }
+  private class Param(val name: String, val value: Any?)
 }
