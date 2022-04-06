@@ -30,10 +30,10 @@ import org.projectforge.business.scripting.ScriptExecutor
 import org.projectforge.business.scripting.ScriptParameterType
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.DownloadFileSupport
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Script
@@ -119,25 +119,15 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
     }
 
     scriptExecution.getDownloadFile(request)?.let { download ->
-      script.scriptDownload = Script.ScriptDownload(download.filename, download.sizeHumanReadable)
-      val availableUntil = translateMsg("scripting.download.filename.additional", download.availableUntil)
+      val download = DownloadFileSupport.Download(download)
+      script.download = download
       layout.add(
         UIRow().add(
-          UIFieldset(title = "scripting.download.filename.info").add(
-            UIReadOnlyField(
-              "scriptDownload.filenameAndSize",
-              label = "scripting.download.filename",
-              additionalLabel = "'$availableUntil",
-            )
+          scriptExecution.downloadFileSupport.createDownloadFieldset(
+            "scripting.download.filename.info",
+            "${getRestPath()}/download",
+            download,
           )
-            .add(
-              UIButton.createDownloadButton(
-                responseAction = ResponseAction(
-                  url = "${getRestPath()}/download",
-                  targetType = TargetType.DOWNLOAD
-                )
-              )
-            )
         )
       )
     }

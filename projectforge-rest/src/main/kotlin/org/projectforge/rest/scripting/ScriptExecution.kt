@@ -30,24 +30,19 @@ import org.projectforge.business.scripting.*
 import org.projectforge.business.scripting.xstream.RecentScriptCalls
 import org.projectforge.business.scripting.xstream.ScriptCallData
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.common.DateFormatType
 import org.projectforge.export.ExportJFreeChart
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.core.AbstractPagesRest
-import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.DownloadFileSupport
 import org.projectforge.rest.dto.Script
-import org.projectforge.rest.dto.User
 import org.projectforge.rest.task.TaskServicesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
-import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
@@ -60,6 +55,8 @@ class ScriptExecution {
 
   @Autowired
   private lateinit var attachmentsService: AttachmentsService
+
+  internal val downloadFileSupport = DownloadFileSupport(EXPIRING_SESSION_ATTRIBUTE, DOWNLOAD_EXPIRY_MINUTES)
 
   /**
    * @return task, if some task of recent call was found (for updating ui variables)
@@ -165,7 +162,8 @@ class ScriptExecution {
     val scriptDO: ScriptDO
     if (script.id != null) {
       // Exceuting db script:
-      scriptDO = scriptDao.getById(script.id) ?: throw IllegalArgumentException("Script with id #${script.id} not found.")
+      scriptDO =
+        scriptDao.getById(script.id) ?: throw IllegalArgumentException("Script with id #${script.id} not found.")
     } else {
       // Executing ad-hoc script (from editor instead of data base).
       scriptDO = ScriptDO()
@@ -266,23 +264,16 @@ class ScriptExecution {
     }
   }
 
-  internal fun storeDownloadFile(
+  private fun storeDownloadFile(
     request: HttpServletRequest,
     filename: String,
     bytes: ByteArray,
     scriptExecutionResult: ScriptExecutionResult
   ) {
-    val expires = PFDateTime.now().plus(DOWNLOAD_EXPIRY_MINUTES.toLong(), ChronoUnit.MINUTES)
-    val expiresTime = expires.format(DateFormatType.TIME_OF_DAY_MINUTES)
-    val downloadFile = DownloadFile(filename, bytes, expiresTime)
-    ExpiringSessionAttributes.setAttribute(request, EXPIRING_SESSION_ATTRIBUTE, downloadFile, DOWNLOAD_EXPIRY_MINUTES)
+    downloadFileSupport.storeDownloadFile(request, filename, bytes)
     scriptExecutionResult.scriptLogger.info("File '$filename' prepared for download (up-to $DOWNLOAD_EXPIRY_MINUTES minutes available).")
   }
-
-  internal fun getDownloadFile(request: HttpServletRequest): DownloadFile? {
-    return ExpiringSessionAttributes.getAttribute(request, EXPIRING_SESSION_ATTRIBUTE, DownloadFile::class.java)
-  }
-
+  
   internal fun createDownloadFilename(filename: String?, extension: String): String {
     val suffix = "${DateHelper.getTimestampAsFilenameSuffix(Date())}.$extension"
     return if (filename.isNullOrBlank()) {
@@ -292,16 +283,15 @@ class ScriptExecution {
     }
   }
 
+  internal fun getDownloadFile(request: HttpServletRequest): DownloadFileSupport.DownloadFile? {
+    return downloadFileSupport.getDownloadFile(request)
+  }
+
   data class ScriptInitData(
     val scriptDO: ScriptDO,
     val additionalVariables: MutableMap<String, Any>,
     val myImports: List<String>?
   )
-
-  data class DownloadFile(val filename: String, val bytes: ByteArray, val availableUntil: String) {
-    val sizeHumanReadable
-      get() = NumberHelper.formatBytes(bytes.size)
-  }
 
   companion object {
     private val USER_PREF_AREA = "ScriptExecution:"
