@@ -125,6 +125,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   }
 
   override fun proceedMassUpdate(
+    request: HttpServletRequest,
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<EingangsrechnungDO>,
   ): ResponseEntity<*>? {

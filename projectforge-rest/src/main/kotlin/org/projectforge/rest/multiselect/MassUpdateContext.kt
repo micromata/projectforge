@@ -28,7 +28,6 @@ import mu.KotlinLogging
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.utils.NumberFormatter
 
@@ -37,8 +36,12 @@ private val log = KotlinLogging.logger {}
 /**
  * Stores also statistic data and errors during mass update run.
  */
-class MassUpdateContext<T : IdObject<out java.io.Serializable>>(var massUpdateData: MutableMap<String, MassUpdateParameter>) {
+abstract class MassUpdateContext<T>(
+  var massUpdateData: MutableMap<String, MassUpdateParameter>,
+) {
   class Error(val identifier: String, val message: String)
+
+  abstract fun getId(obj: T): Int
 
   var modifiedCounter: Int = 0
     private set
@@ -59,7 +62,11 @@ class MassUpdateContext<T : IdObject<out java.io.Serializable>>(var massUpdateDa
   internal val massUpdateObjects = mutableListOf<MassUpdateObject<T>>()
 
   fun startUpdate(dbObj: T) {
-    current = MassUpdateObject(dbObj.id, dbObj, massUpdateData, ignoreFieldsForModificationCheck)
+    current = object : MassUpdateObject<T>(dbObj, massUpdateData, ignoreFieldsForModificationCheck) {
+      override fun getId(): Int {
+        return getId(dbObj)
+      }
+    }
   }
 
   /**

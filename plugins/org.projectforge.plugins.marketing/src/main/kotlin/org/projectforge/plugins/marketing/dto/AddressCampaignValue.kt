@@ -23,16 +23,19 @@
 
 package org.projectforge.plugins.marketing.dto
 
-import org.projectforge.plugins.marketing.AddressCampaignDO
+import org.projectforge.business.address.AddressDO
+import org.projectforge.rest.dto.Address
 import org.projectforge.rest.dto.BaseDTO
 
-class AddressCampaign(
-  var title: String? = null,
-  var values: Array<String>? = null,
-  var comment: String? = null
-) : BaseDTO<AddressCampaignDO>() {
-  override fun copyFrom(src: AddressCampaignDO) {
-    super.copyFrom(src)
-    values = src.valuesArray
+class AddressCampaignValue(
+  var addressCampaign: AddressCampaign? = null,
+  var address: Address? = null,
+  var value: String? = null,
+  var comment: String? = null,
+) : BaseDTO<AddressDO>() {
+  override fun copyFrom(src: AddressDO) {
+    val address = Address()
+    address.copyFrom(src)
+    this.address = address
   }
 }

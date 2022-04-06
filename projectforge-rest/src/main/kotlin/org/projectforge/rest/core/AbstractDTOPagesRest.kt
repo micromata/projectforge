@@ -26,6 +26,7 @@ package org.projectforge.rest.core
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.dto.BaseDTO
+import javax.servlet.http.HttpServletRequest
 
 /**
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
@@ -47,7 +48,7 @@ abstract class AbstractDTOPagesRest<
     /**
      * @return New result set of dto's, transformed from data base objects.
      */
-    override fun processResultSetBeforeExport(resultSet: ResultSet<O>) : ResultSet<*> {
+    override fun processResultSetBeforeExport(resultSet: ResultSet<O>, request: HttpServletRequest) : ResultSet<*> {
         val newList = resultSet.resultSet.map {
             transformFromDB(it, false)
         }

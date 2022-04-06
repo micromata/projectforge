@@ -26,6 +26,7 @@ package org.projectforge.rest.core
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
+import javax.servlet.http.HttpServletRequest
 
 /**
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
@@ -59,7 +60,7 @@ constructor(
         }
     }
 
-    override fun processResultSetBeforeExport(resultSet: ResultSet<O>) : ResultSet<*> {
+    override fun processResultSetBeforeExport(resultSet: ResultSet<O>, request: HttpServletRequest) : ResultSet<*> {
         resultSet.resultSet.forEach { transformFromDB(it) }
         return resultSet
     }

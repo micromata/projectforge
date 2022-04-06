@@ -26,7 +26,7 @@ package org.projectforge.rest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.internal.verification.Times
+import org.mockito.Mockito
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDO
@@ -51,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.io.Serializable
 import java.time.Month
 import java.util.*
+import javax.servlet.http.HttpServletRequest
 
 class TimesheetMassUpdateTest : AbstractTestBase() {
   // private static final Logger log = Logger.getLogger(TaskTest.class);
@@ -391,7 +392,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
 
     val dbList = massUpdate(list, master)
     var ts = dbList.find { it.description == "TS#1" }!!
-    assertSheet(ts, ts1,  "Task not changed due to protectionUntil")
+    assertSheet(ts, ts1, "Task not changed due to protectionUntil")
     assertKost2(ts, 5, 53, 2, 0) // Kost2 unmodified.
     ts = timesheetDao.getById(ts2.id)
     Assertions.assertEquals(getTask(prefix + "1.1").id, ts.taskId) // Not moved.
@@ -522,9 +523,14 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         }
       }
     }
-    val massUpdateContext = MassUpdateContext<TimesheetDO>(massUpdateData)
+    val massUpdateContext = object: MassUpdateContext<TimesheetDO>(massUpdateData) {
+      override fun getId(obj: TimesheetDO): Int {
+        return obj.id
+      }
+    }
     val selectedIds = list.map { it.id }
-    timesheetMultiSelectedPageRest.massUpdate(selectedIds, massUpdateContext) ?.let {
+    val request = Mockito.mock(HttpServletRequest::class.java)
+    timesheetMultiSelectedPageRest.massUpdate(request, selectedIds, massUpdateContext)?.let {
       throw UserException(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N)
     }
 

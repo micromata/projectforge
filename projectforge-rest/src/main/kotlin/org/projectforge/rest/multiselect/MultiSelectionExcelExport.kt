@@ -42,14 +42,14 @@ private val log = KotlinLogging.logger {}
  * Exports the results of mass updates
  */
 object MultiSelectionExcelExport {
-  private class Context<T : IdObject<out Serializable>>(
+  private class Context<T>(
     val multiSelectedPage: AbstractMultiSelectedPage<T>,
     val wrapStyle: CellStyle,
     val boldStyle: CellStyle,
     val amountStyle: CellStyle,
   )
 
-  fun <T : IdObject<out Serializable>> export(
+  fun <T> export(
     massUpdateContext: MassUpdateContext<T>,
     multiSelectedPage: AbstractMultiSelectedPage<T>
   ): ByteArray {
@@ -116,13 +116,14 @@ object MultiSelectionExcelExport {
             }
           }
         }
-        row.createCell().setCellValue(massUpdateObject.id)
+        println(massUpdateObject.getId())
+        row.createCell().setCellValue(massUpdateObject.getId())
       }
       return workbook.asByteArrayOutputStream.toByteArray()
     }
   }
 
-  private fun <T : IdObject<out Serializable>> displayValue(
+  private fun <T> displayValue(
     context: Context<T>,
     cell: ExcelCell,
     field: String,

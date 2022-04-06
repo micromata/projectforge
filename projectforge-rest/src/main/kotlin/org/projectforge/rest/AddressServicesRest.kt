@@ -43,6 +43,7 @@ import java.io.IOException
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.*
+import javax.servlet.http.HttpServletRequest
 
 /**
  * For uploading address immages.
@@ -109,11 +110,11 @@ class AddressServicesRest {
    * Exports favorites addresses.
    */
   @GetMapping("exportFavoritesExcel")
-  fun exportFavoritesExcel(): ResponseEntity<*> {
+  fun exportFavoritesExcel(request: HttpServletRequest): ResponseEntity<*> {
     log.info("Exporting personal address book as Excel file.")
     val list = addressDao.favoriteVCards.map { it.address!! }
     val resultSet = ResultSet(list, null, list.size)
-    addressRest.processResultSetBeforeExport(resultSet)
+    addressRest.processResultSetBeforeExport(resultSet, request)
 
     val personalAddressMap = personalAddressDao.personalAddressByAddressId
 

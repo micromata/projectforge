@@ -194,7 +194,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       .addVariable("id", obj.id ?: -1)
   }
 
-  override fun processResultSetBeforeExport(resultSet: ResultSet<TimesheetDO>): ResultSet<*> {
+  override fun processResultSetBeforeExport(resultSet: ResultSet<TimesheetDO>, request: HttpServletRequest): ResultSet<*> {
     val list: List<Timesheet4ListExport> = resultSet.resultSet.map {
       val timesheet = Timesheet()
       timesheet.copyFrom(it)

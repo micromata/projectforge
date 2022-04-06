@@ -217,6 +217,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
   }
 
   override fun proceedMassUpdate(
+    request: HttpServletRequest,
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<TimesheetDO>,
   ): ResponseEntity<*>? {
@@ -293,6 +294,6 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
 
   override fun getExcelIdentifierCells(massUpdateObject: MassUpdateObject<TimesheetDO>): List<Any?> {
     val timesheet = massUpdateObject.modifiedObj
-    return listOf(timesheet.user?.getFullname(), timesheet.timePeriod.formattedString)
+    return listOf(timesheet!!.user?.getFullname(), timesheet.timePeriod.formattedString)
   }
 }

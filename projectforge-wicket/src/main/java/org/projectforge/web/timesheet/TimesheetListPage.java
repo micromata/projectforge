@@ -174,6 +174,8 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   @SuppressWarnings("serial")
   @Override
   protected void init() {
+    dataTable = createDataTable(createColumns(this, true), "startTime", SortOrder.DESCENDING);
+    form.add(dataTable);
     final BookmarkablePageLink<Void> addTemplatesLink = UserPrefListPage.createLink("link",
         UserPrefArea.TIMESHEET_TEMPLATE);
     final ContentMenuEntryPanel menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), addTemplatesLink,
