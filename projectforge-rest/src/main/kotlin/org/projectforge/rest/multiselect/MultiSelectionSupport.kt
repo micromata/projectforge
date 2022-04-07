@@ -82,9 +82,19 @@ object MultiSelectionSupport {
     data: Any? = null,
   ) {
     registerSelectedEntityIds(request, identifier, null) // Clear selection.
-    ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier", idList, TTL_MINUTES)
+    ExpiringSessionAttributes.setAttribute(
+      request,
+      "$SESSSION_ATTRIBUTE_ENTITIES:$identifier",
+      idList.take(MAX_DISPLAYED_ENTRIES),
+      TTL_MINUTES
+    )
     if (data != null) {
-      ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier.data", data, TTL_MINUTES)
+      ExpiringSessionAttributes.setAttribute(
+        request,
+        "$SESSSION_ATTRIBUTE_ENTITIES:$identifier.data",
+        data,
+        TTL_MINUTES
+      )
     }
     callerUrl?.let {
       ExpiringSessionAttributes.setAttribute(
@@ -191,4 +201,5 @@ object MultiSelectionSupport {
   private val SESSSION_ATTRIBUTE_ENTITIES = "{${MultiSelectionSupport::class.java.name}.entities"
   private val SESSSION_ATTRIBUTE_SELECTED_ENTITIES = "{${MultiSelectionSupport::class.java.name}.selected.entities"
   private const val REQUEST_PARAM_MULTI_SELECTION = "multiSelectionMode"
+  private const val MAX_DISPLAYED_ENTRIES = 500
 }
