@@ -20,7 +20,7 @@
     </licenses>
 
     <properties>
-        <jackrabbit-oak.version>1.38.0</jackrabbit-oak.version>
+        <jackrabbit-oak.version>1.42.0</jackrabbit-oak.version>
     </properties>
 
     <build>

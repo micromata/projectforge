@@ -199,6 +199,11 @@
             <artifactId>hibernate-ehcache</artifactId>
             <version>${hibernate.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-envers</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.ehcache/ehcache -->
         <dependency>
             <groupId>org.ehcache</groupId>
@@ -582,7 +587,7 @@
                         <id>compile</id>
                         <phase>compile</phase>
                         <configuration>
-                            <tasks>
+                            <target>
                                 <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc">
                                     <classpath refid="maven.compile.classpath"/>
                                 </taskdef>
@@ -591,7 +596,7 @@
                                          srcdir="${basedir}/src/main/groovy/" listfiles="true">
                                     <classpath refid="maven.compile.classpath"/>
                                 </groovyc>
-                            </tasks>
+                            </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>
