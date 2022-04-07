@@ -43,7 +43,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.poi.ss.formula.functions.T;
 import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxy;
 import org.projectforge.framework.ToStringUtil;
@@ -121,10 +120,10 @@ public class BaseDaoJpaAdapter {
   public static ModificationStatus copyValues(BaseDO src, final BaseDO dest, final String... ignoreFields) {
     if (!ClassUtils.isAssignable(src.getClass(), dest.getClass())) {
       throw new RuntimeException("Try to copyValues from different BaseDO classes: this from type "
-              + dest.getClass().getName()
-              + " and src from type"
-              + src.getClass().getName()
-              + "!");
+          + dest.getClass().getName()
+          + " and src from type"
+          + src.getClass().getName()
+          + "!");
     }
     if (src.getId() != null && (ignoreFields == null || !ArrayUtils.contains(ignoreFields, "id"))) {
       dest.setId(src.getId());
@@ -161,20 +160,20 @@ public class BaseDaoJpaAdapter {
    * @return
    */
   public static <PK extends Serializable, T extends TimeableAttrRow<PK>> ModificationStatus copyTimeableAttribute(
-          final EntityWithTimeableAttr<PK, T> target,
-          final EntityWithTimeableAttr<PK, T> source) {
+      final EntityWithTimeableAttr<PK, T> target,
+      final EntityWithTimeableAttr<PK, T> source) {
     ModificationStatus mod = ModificationStatus.NONE;
 
     Set<Serializable> sourcePks = source
-            .getTimeableAttributes()
-            .stream()
-            .map(T::getPk)
-            .collect(Collectors.toSet());
+        .getTimeableAttributes()
+        .stream()
+        .map(T::getPk)
+        .collect(Collectors.toSet());
 
     Map<Serializable, T> targetRows = target
-            .getTimeableAttributes()
-            .stream()
-            .collect(Collectors.toMap(T::getPk, o -> o));
+        .getTimeableAttributes()
+        .stream()
+        .collect(Collectors.toMap(T::getPk, o -> o));
 
     // copy rows from source to target
     for (T sourceRow : source.getTimeableAttributes()) {
@@ -207,20 +206,20 @@ public class BaseDaoJpaAdapter {
 
     ModificationStatus mod = ModificationStatus.NONE;
     Matcher<Field> matcher = CommonMatchers.and(
-            FieldMatchers.hasNotModifier(Modifier.STATIC),
-            FieldMatchers.hasNotModifier(Modifier.TRANSIENT),
-            new MatcherBase<Field>() {
-              @Override
-              public boolean match(Field object) {
-                return !ArrayUtils.contains(ignoreFields, object.getName());
-              }
-            },
-            CommonMatchers.not(
-                    CommonMatchers.or(
-                            FieldMatchers.assignableTo(Collection.class),
-                            FieldMatchers.assignableTo(Map.class),
-                            FieldMatchers.assignableTo(DbRecord.class),
-                            FieldMatchers.assignableTo(IdObject.class))));
+        FieldMatchers.hasNotModifier(Modifier.STATIC),
+        FieldMatchers.hasNotModifier(Modifier.TRANSIENT),
+        new MatcherBase<Field>() {
+          @Override
+          public boolean match(Field object) {
+            return !ArrayUtils.contains(ignoreFields, object.getName());
+          }
+        },
+        CommonMatchers.not(
+            CommonMatchers.or(
+                FieldMatchers.assignableTo(Collection.class),
+                FieldMatchers.assignableTo(Map.class),
+                FieldMatchers.assignableTo(DbRecord.class),
+                FieldMatchers.assignableTo(IdObject.class))));
     List<Field> foundFields = PrivateBeanUtils.findAllFields(srcClazz, matcher);
 
     for (Field field : foundFields) {
@@ -312,8 +311,8 @@ public class BaseDaoJpaAdapter {
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
             }
           } else if (destFieldValue != null) {
-            if (destFieldValue instanceof Collection && ((Collection)destFieldValue).isEmpty()) {
-             // dest is an empty collection, so no MAJOR update.
+            if (destFieldValue instanceof Collection && ((Collection) destFieldValue).isEmpty()) {
+              // dest is an empty collection, so no MAJOR update.
             } else {
               field.set(dest, null);
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
@@ -378,13 +377,13 @@ public class BaseDaoJpaAdapter {
           final Serializable srcFieldValueId = HibernateUtils.getIdentifier((BaseDO<?>) srcFieldValue);
           if (srcFieldValueId != null) {
             if (destFieldValue == null
-                    || !Objects.equals(srcFieldValueId, ((BaseDO<?>) destFieldValue).getId())) {
+                || !Objects.equals(srcFieldValueId, ((BaseDO<?>) destFieldValue).getId())) {
               field.set(dest, srcFieldValue);
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
             }
           } else {
             log.error("Can't get id though can't copy the BaseDO (see error message above about HHH-3502), or id not given for "
-                    + srcFieldValue.getClass() + ": " + ToStringUtil.toJsonString(srcFieldValue));
+                + srcFieldValue.getClass() + ": " + ToStringUtil.toJsonString(srcFieldValue));
           }
         } else if (srcFieldValue instanceof LocalDate) {
           if (destFieldValue == null) {
@@ -441,9 +440,9 @@ public class BaseDaoJpaAdapter {
     HistoryService historyService = HistoryServiceManager.get().getHistoryService();
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
     if (currentStatus == ModificationStatus.MAJOR
-            || !(src instanceof AbstractHistorizableBaseDO)
-            || (!(src instanceof HibernateProxy)
-            && !historyService.getNoHistoryProperties(emf, src.getClass()).contains(modifiedField))) {
+        || !(src instanceof AbstractHistorizableBaseDO)
+        || (!(src instanceof HibernateProxy)
+        && !historyService.getNoHistoryProperties(emf, src.getClass()).contains(modifiedField))) {
       return ModificationStatus.MAJOR;
     }
     return ModificationStatus.MINOR;
