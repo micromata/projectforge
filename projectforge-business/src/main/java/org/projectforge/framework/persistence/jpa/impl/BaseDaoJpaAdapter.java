@@ -312,8 +312,12 @@ public class BaseDaoJpaAdapter {
               modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
             }
           } else if (destFieldValue != null) {
-            field.set(dest, null);
-            modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
+            if (destFieldValue instanceof Collection && ((Collection)destFieldValue).isEmpty()) {
+             // dest is an empty collection, so no MAJOR update.
+            } else {
+              field.set(dest, null);
+              modificationStatus = getModificationStatus(modificationStatus, src, fieldName);
+            }
           } else {
             // dest was already null
           }

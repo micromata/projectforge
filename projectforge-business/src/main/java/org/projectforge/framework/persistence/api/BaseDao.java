@@ -1261,47 +1261,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     hibernateSearchDependentObjectsReindexer.reindexDependents(obj);
   }
 
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void massUpdate(final List<O> list, final O master) {
-    if (list == null || list.size() == 0) {
-      // No entries to update.
-      return;
-    }
-    if (list.size() > MAX_MASS_UPDATE) {
-      throw new UserException(MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, MAX_MASS_UPDATE);
-    }
-    final Object store = prepareMassUpdateStore(list, master);
-    for (final O entry : list) {
-      if (massUpdateEntry(entry, master, store)) {
-        try {
-          update(entry);
-        } catch (final IllegalArgumentException ex) {
-          log.error("Exception occured while updating entry inside mass update: " + entry + ex.getMessage());
-          throw new UserException("error", ex.getMessage());
-        }
-      }
-    }
-  }
-
-  /**
-   * Object pass thru every massUpdateEntry call.
-   *
-   * @return null if not overloaded.
-   */
-  protected Object prepareMassUpdateStore(final List<O> list, final O master) {
-    return null;
-  }
-
-  /**
-   * Overload this method for mass update support.
-   *
-   * @param store Object created with prepareMassUpdateStore if needed. Null at default.
-   * @return true, if entry is ready for update otherwise false (no update will be done for this entry).
-   */
-  protected boolean massUpdateEntry(final O entry, final O master, final Object store) {
-    throw new UnsupportedOperationException("Mass update is not supported by this dao for: " + clazz.getName());
-  }
-
   // TODO RK entweder so oder ueber annots.
   // siehe org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils.getNestedHistoryEntities(Class<?>)
   protected Class<?>[] getAdditionalHistorySearchDOs() {

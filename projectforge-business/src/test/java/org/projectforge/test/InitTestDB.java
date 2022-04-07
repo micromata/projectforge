@@ -283,7 +283,8 @@ public class InitTestDB {
         .addRight(new UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
-        .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)); //
+        .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.ORGA_CONTRACTS, UserRightValue.READWRITE)); //
     addUser(user);
     user = new PFUserDO();
     user.setUsername(AbstractTestBase.TEST_HR_USER);
