@@ -76,17 +76,24 @@ abstract class MassUpdateContext<T>(
   fun commitUpdate(
     identifier4Message: String,
     modifiedObj: T,
-    update: () -> ModificationStatus
+    update: () -> Unit
   ) {
     if (current == null) {
       log.warn("Commit update without current object, please start update first by calling startUpdate.")
     }
     try {
       current?.setModifiedObject(modifiedObj, identifier4Message)
-      add(update())
+      update()
       current?.let {
         massUpdateObjects.add(it)
+        if (it.hasModifications()) {
+          ++modifiedCounter
+        } else {
+          ++unmodifiedCounter
+        }
         current = null
+      } ?: {
+        ++modifiedCounter
       }
     } catch (ex: Exception) {
       addError(ex, identifier4Message)
@@ -104,14 +111,6 @@ abstract class MassUpdateContext<T>(
           message = ex.localizedMessage ?: translate("massUpdate.error.unspecifiedError")
         )
       )
-    }
-  }
-
-  private fun add(status: ModificationStatus) {
-    if (status == ModificationStatus.NONE) {
-      ++unmodifiedCounter
-    } else {
-      ++modifiedCounter
     }
   }
 

@@ -483,10 +483,10 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     append: Boolean? = null,
   ) {
     fields.forEach { field ->
-      container.add(createInputFieldRow(lc, field, massUpdateData, minLengthOfTextArea))
-      if (append == true) {
+      if (massUpdateData[field] == null && append == true) { // Only preset for initial call:
         ensureMassUpdateParam(massUpdateData, field).append = true
       }
+      container.add(createInputFieldRow(lc, field, massUpdateData, minLengthOfTextArea))
     }
   }
 

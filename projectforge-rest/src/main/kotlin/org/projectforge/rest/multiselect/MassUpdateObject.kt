@@ -59,6 +59,15 @@ abstract class MassUpdateObject<T>(
     }
   }
 
+  fun hasModifications(): Boolean {
+    fieldModifications.values.forEach {
+      if (it.oldValue != it.newValue) {
+        return true
+      }
+    }
+    return false
+  }
+
   fun setModifiedObject(modifiedObj: T, identifier: String) {
     this.identifier = identifier
     this.modifiedObj = modifiedObj
