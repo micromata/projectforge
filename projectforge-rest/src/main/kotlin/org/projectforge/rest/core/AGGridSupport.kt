@@ -50,6 +50,7 @@ object AGGridSupport {
     magicFilter: MagicFilter,
   ): UIAgGrid {
     val table = UIAgGrid.createUIResultSetTable()
+    table.enablePagination()
     layout.add(table)
     if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
       layout.hideSearchFilter = true

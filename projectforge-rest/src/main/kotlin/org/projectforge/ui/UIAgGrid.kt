@@ -52,6 +52,10 @@ open class UIAgGrid(
    */
   var selectedEntities: Collection<Serializable>? = null
 
+  var pagination: Boolean? = null
+
+  var paginationPageSize: Int? = null
+
   companion object {
     @JvmStatic
     fun createUIResultSetTable(): UIAgGrid {
@@ -63,6 +67,11 @@ open class UIAgGrid(
     if (!listPageTable) {
       throw IllegalArgumentException("UIAgGrid.listPageTable == false not yet supported by jsx.")
     }
+  }
+
+  fun enablePagination(size: Int = 50) {
+    pagination = true
+    paginationPageSize = size
   }
 
   fun add(column: UIAgGridColumnDef): UIAgGrid {

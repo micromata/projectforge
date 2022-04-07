@@ -11,6 +11,8 @@ function DynamicAgGrid({
     rowSelection,
     rowMultiSelectWithClick,
     onGridApiReady,
+    pagination,
+    paginationPageSize,
 }) {
     const { data, ui } = React.useContext(DynamicLayoutContext);
     const [gridApi, setGridApi] = useState();
@@ -46,6 +48,8 @@ function DynamicAgGrid({
                 rowSelection={rowSelection}
                 rowMultiSelectWithClick={rowMultiSelectWithClick}
                 onGridReady={onGridReady}
+                pagination={pagination}
+                paginationPageSize={paginationPageSize}
             />
         </div>
     ),
@@ -69,10 +73,14 @@ DynamicAgGrid.propTypes = {
     id: PropTypes.string,
     rowSelection: PropTypes.string,
     rowMultiSelectWithClick: PropTypes.bool,
+    pagination: PropTypes.bool,
+    paginationPageSize: PropTypes.number,
 };
 
 DynamicAgGrid.defaultProps = {
     id: undefined,
+    pagination: undefined,
+    paginationPageSize: undefined,
 };
 
 export default DynamicAgGrid;
