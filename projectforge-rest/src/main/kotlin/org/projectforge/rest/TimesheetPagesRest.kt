@@ -248,8 +248,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     val table = AGGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
-      TimesheetMultiSelectedPageRest::class.java,
       magicFilter,
+      TimesheetMultiSelectedPageRest::class.java,
     )
       .add(lc, "user")
     //.add(lc, "kost2.project.customer", lcField = "kost2.projekt.kunde")

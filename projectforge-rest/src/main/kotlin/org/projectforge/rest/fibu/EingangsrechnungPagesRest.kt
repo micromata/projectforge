@@ -74,10 +74,10 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
     AGGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
-      EingangsrechnungMultiSelectedPageRest::class.java,
       magicFilter,
+      EingangsrechnungMultiSelectedPageRest::class.java,
     )
-      .add(lc, "kreditor", "referenz", "betreff", "konto", "datum", "faelligkeit", "bezahlDatum")
+      .add(lc, "kreditor", "referenz", "betreff", "konto", "datum", "faelligkeitOrDiscountMaturity", "bezahlDatum")
       .add(lc, "ibanFormatted", lcField = "iban")
       .add(lc, "formattedNetSum", headerName = "fibu.common.netto", pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY)
       .add(

@@ -146,6 +146,18 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     @Transient
     get() = RechnungCalculator.calculateGrossSum(this)
 
+  @get:PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit")
+  val faelligkeitOrDiscountMaturity: LocalDate?
+    @Transient
+    get() {
+      discountMaturity?.let {
+        if (!isBezahlt && !it.isBefore(LocalDate.now())) {
+          return discountMaturity
+        }
+      }
+      return faelligkeit
+    }
+
   /**
    * Gibt den Bruttobetrag zurueck bzw. den Betrag abzueglich Skonto, wenn die Skontofrist noch nicht
    * abgelaufen ist. Ist die Rechnung bereits bezahlt, wird der tatsaechlich bezahlte Betrag zurueckgegeben.
