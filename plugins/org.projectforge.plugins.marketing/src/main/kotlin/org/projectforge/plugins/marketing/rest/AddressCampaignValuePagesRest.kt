@@ -71,8 +71,8 @@ class AddressCampaignValuePagesRest :
     AGGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
-      AddressCampaignValueMultiSelectedPageRest::class.java,
       magicFilter,
+      AddressCampaignValueMultiSelectedPageRest::class.java,
     )
       .add(lc, "address.name", "address.firstName", "address.organization")
       .add(lc, "address.contactStatus", "address.email", "address.addressText", "address.addressStatus")

@@ -186,8 +186,8 @@ public class EingangsrechnungListPage
         "datum", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(getString("fibu.rechnung.faelligkeit.short"),
         getSortable(
-            "faelligkeit", sortable),
-        "faelligkeit", cellItemListener));
+            "faelligkeitOrDiscountMaturity", sortable),
+        "faelligkeitOrDiscountMaturity", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(getString("fibu.rechnung.bezahlDatum.short"),
         getSortable(
             "bezahlDatum", sortable),
@@ -245,7 +245,7 @@ public class EingangsrechnungListPage
       {
         final List<ExportColumn> sortedColumns = reorderColumns(columns, "kreditor", "konto", "kontoBezeichnung",
             "betreff", "datum",
-            "faelligkeit", "bezahlDatum", "zahlBetrag");
+            "faelligkeitOrDiscountMaturity", "bezahlDatum", "zahlBetrag");
         I18nExportColumn col = new I18nExportColumn("kontoBezeichnung", "fibu.konto.bezeichnung",
             MyXlsContentProvider.LENGTH_STD);
         sortedColumns.add(2, col);

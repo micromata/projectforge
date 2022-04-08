@@ -48,8 +48,8 @@ class RechnungPagesRest :
     AGGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
-      RechnungMultiSelectedPageRest::class.java,
       magicFilter,
+      RechnungMultiSelectedPageRest::class.java,
     )
       .add(lc, "nummer", width = 120)
       .add(lc, "customer", lcField = "kunde")

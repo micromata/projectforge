@@ -40,21 +40,26 @@ private val log = KotlinLogging.logger {}
  */
 object AGGridSupport {
   /**
-   * Creates UIGridTable and adds it to the given layout. Will also handle flag layout.hideSearchFilter o
+   * Creates UIGridTable and adds it to the given layout. Will also handle flag layout.hideSearchFilter of
    * multi-selection mode.
    */
   fun prepareUIGrid4ListPage(
     request: HttpServletRequest,
     layout: UILayout,
-    pagesRest: Class<out AbstractDynamicPageRest>,
     magicFilter: MagicFilter,
+    pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
   ): UIAgGrid {
     val table = UIAgGrid.createUIResultSetTable()
+    //magicFilter.maxRows = QUERY_FILTER_MAX_ROWS // Fix it from previous.
     table.enablePagination()
+    //magicFilter.pageSize?.let { table.paginationPageSize = it }
     layout.add(table)
     if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
       layout.hideSearchFilter = true
-      table.urlAfterMultiSelect = RestResolver.getRestUrl(pagesRest, AbstractMultiSelectedPage.URL_PATH_SELECTED)
+      if (pageAfterMultiSelect != null) {
+        table.urlAfterMultiSelect =
+          RestResolver.getRestUrl(pageAfterMultiSelect, AbstractMultiSelectedPage.URL_PATH_SELECTED)
+      }
       layout
         .add(
           UIAlert(

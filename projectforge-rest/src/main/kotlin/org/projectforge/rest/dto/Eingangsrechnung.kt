@@ -43,6 +43,7 @@ class Eingangsrechnung(
   var bemerkung: String? = null,
   var besonderheiten: String? = null,
   var faelligkeit: LocalDate? = null,
+  var faelligkeitOrDiscountMaturity: LocalDate? = null,
   var ueberfaellig: Boolean? = null,
   var zahlungsZielInTagen: Int? = null,
   var discountZahlungsZielInTagen: Int? = null,
