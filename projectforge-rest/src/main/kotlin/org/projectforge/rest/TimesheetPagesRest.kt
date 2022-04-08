@@ -110,7 +110,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     val weekOfYear: String,
     val dayName: String,
     val timePeriod: String,
-    val duration: String
+    val duration: String,
+    val deleted: Boolean? = null,
   )
 
   /**
@@ -205,7 +206,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime),
         dayName = day?.dayOfWeekAsShortString ?: "??",
         timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
-        duration = dateTimeFormatter.getFormattedDuration(it.timePeriod)
+        duration = dateTimeFormatter.getFormattedDuration(it.timePeriod),
+        deleted = timesheet.deleted,
       )
     }
     return ResultSet(list, resultSet, list.size)

@@ -32,6 +32,7 @@ import java.time.LocalDate
 class Eingangsrechnung(
   var receiver: String? = null,
   var iban: String? = null,
+  var ibanFormatted: String? = null,
   var bic: String? = null,
   var referenz: String? = null,
   var kreditor: String? = null,
@@ -84,6 +85,7 @@ class Eingangsrechnung(
       paymentTypeAsString = translate(it.i18nKey)
     }
     ueberfaellig = src.isUeberfaellig
+    ibanFormatted = src.ibanFormatted
   }
 
   fun copyPositionenFrom(src: EingangsrechnungDO) {

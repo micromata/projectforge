@@ -77,7 +77,8 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
       EingangsrechnungMultiSelectedPageRest::class.java,
       magicFilter,
     )
-      .add(lc, "kreditor", "referenz", "betreff", "konto", "datum", "faelligkeit", "bezahlDatum", "iban")
+      .add(lc, "kreditor", "referenz", "betreff", "konto", "datum", "faelligkeit", "bezahlDatum")
+      .add(lc, "ibanFormatted", lcField = "iban")
       .add(lc, "formattedNetSum", headerName = "fibu.common.netto", pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY)
       .add(
         lc,
