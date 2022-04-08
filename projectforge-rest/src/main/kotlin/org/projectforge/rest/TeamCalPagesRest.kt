@@ -125,8 +125,8 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "title", "externalSubscriptionUrlAnonymized", "description", "owner",
                                 "accessStatusString", "lastUpdate"))//, "externalSubscription"))
-        layout.getTableColumnById("owner").formatter = Formatter.USER
-        layout.getTableColumnById("lastUpdate").formatter = Formatter.TIMESTAMP_MINUTES
+        layout.getTableColumnById("owner").formatter = UITableColumn.Formatter.USER
+        layout.getTableColumnById("lastUpdate").formatter = UITableColumn.Formatter.TIMESTAMP_MINUTES
         layout.getTableColumnById("accessStatusString").title = "access.title.heading"
 
         val exportMenu = MenuItem("calendar.export", i18nKey = "export")

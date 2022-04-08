@@ -61,10 +61,10 @@ class AccountingRecordPagesRest: AbstractDTOPagesRest<BuchungssatzDO, Buchungssa
                         .add(UITableColumn("satzNr", title = "fibu.buchungssatz.satznr"))
                         .add(lc, "betrag", "beleg", "kost1", "kost2", "konto", "gegenKonto",
                                 "sh", "text", "comment"))
-        layout.getTableColumnById("kost1").formatter = Formatter.COST1
-        layout.getTableColumnById("kost2").formatter = Formatter.COST2
-        layout.getTableColumnById("konto").formatter = Formatter.KONTO
-        layout.getTableColumnById("gegenKonto").formatter = Formatter.KONTO
+        layout.getTableColumnById("kost1").formatter = UITableColumn.Formatter.COST1
+        layout.getTableColumnById("kost2").formatter = UITableColumn.Formatter.COST2
+        layout.getTableColumnById("konto").formatter = UITableColumn.Formatter.KONTO
+        layout.getTableColumnById("gegenKonto").formatter = UITableColumn.Formatter.KONTO
         return LayoutUtils.processListPage(layout, this)
     }
 

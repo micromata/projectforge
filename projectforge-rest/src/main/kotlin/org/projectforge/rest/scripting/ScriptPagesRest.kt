@@ -143,7 +143,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
           )
           .add(lc, "lastUpdate")
       )
-    layout.getTableColumnById("executeAsUser").formatter = Formatter.USER
+    layout.getTableColumnById("executeAsUser").formatter = UITableColumn.Formatter.USER
     layout.add(
       MenuItem(
         "exeute",

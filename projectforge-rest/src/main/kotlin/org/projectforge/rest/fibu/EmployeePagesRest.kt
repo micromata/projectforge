@@ -60,10 +60,10 @@ class EmployeePagesRest : AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao
                         .add(UITableColumn("fibu.employee.user.name", "name"))
                         .add(UITableColumn("fibu.employee.user.firstname", "firstName"))
                         .add(lc, "status", "staffNumber")
-                        .add(UITableColumn("kost1", "fibu.kost1", formatter = Formatter.COST1))
+                        .add(UITableColumn("kost1", "fibu.kost1", formatter = UITableColumn.Formatter.COST1))
                         .add(lc, "position", "abteilung", "eintrittsDatum", "austrittsDatum", "comment"))
-        layout.getTableColumnById("eintrittsDatum").formatter = Formatter.DATE
-        layout.getTableColumnById("austrittsDatum").formatter = Formatter.DATE
+        layout.getTableColumnById("eintrittsDatum").formatter = UITableColumn.Formatter.DATE
+        layout.getTableColumnById("austrittsDatum").formatter = UITableColumn.Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
     }
 

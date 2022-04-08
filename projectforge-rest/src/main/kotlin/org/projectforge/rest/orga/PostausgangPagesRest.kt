@@ -69,7 +69,7 @@ class PostausgangPagesRest() :
         UITable.createUIResultSetTable()
           .add(lc, "datum", "empfaenger", "person", "absender", "inhalt", "bemerkung", "type")
       )
-    layout.getTableColumnById("datum").formatter = Formatter.DATE
+    layout.getTableColumnById("datum").formatter = UITableColumn.Formatter.DATE
     return LayoutUtils.processListPage(layout, this)
   }
 
