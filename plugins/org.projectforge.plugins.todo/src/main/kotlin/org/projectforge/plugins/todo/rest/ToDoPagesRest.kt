@@ -52,7 +52,7 @@ class ToDoPagesRest() : AbstractDOPagesRest<ToDoDO, ToDoDao>(ToDoDao::class.java
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "modified", "subject", "assignee", "reporter", "dueDate", "status",
                                 "priority", "type", "task", "group", "description"))
-        layout.getTableColumnById("group").formatter = Formatter.GROUP
+        layout.getTableColumnById("group").formatter = UITableColumn.Formatter.GROUP
         return LayoutUtils.processListPage(layout, this)
     }
 
