@@ -24,6 +24,22 @@
 	padding-right: 6px !important;
 }
 
+.ag-row-standard {
+}
+
+.ag-row-red {
+	color: red !important;
+}
+
+.ag-row-blue {
+	color: blue !important;
+}
+
+.ag-row-deleted {
+	color: red !important;
+	text-decoration: line-through !important;
+}
+
 html {
 	font-size: 62.5%;
 	-webkit-tap-highlight-color: transparent;

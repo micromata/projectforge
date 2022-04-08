@@ -56,11 +56,15 @@ open class UIAgGrid(
 
   var paginationPageSize: Int? = null
 
+  var getRowClass: String? = GET_ROW_CLASS
+    private set
+
   companion object {
     @JvmStatic
     fun createUIResultSetTable(): UIAgGrid {
       return UIAgGrid("resultSet", listPageTable = true)
     }
+    private const val GET_ROW_CLASS = "if (params.node.data?.deleted) { return 'ag-row-deleted'; }"
   }
 
   init {
@@ -177,6 +181,11 @@ open class UIAgGrid(
         columnDef.withPinnedLeft()
       }
     }
+    return this
+  }
+
+  fun withGetRowClass(getRowClass: String): UIAgGrid {
+    this.getRowClass = "$GET_ROW_CLASS else { $getRowClass }"
     return this
   }
 }

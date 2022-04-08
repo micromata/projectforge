@@ -33,6 +33,7 @@ class AddressCampaignValue(
   var address: Address? = null,
   var value: String? = null,
   var comment: String? = null,
+  var favoriteAddress: Boolean? = null,
 ) : BaseDTO<AddressDO>() {
   override fun copyFrom(src: AddressDO) {
     this.id = src.id // Id is address id!!!!

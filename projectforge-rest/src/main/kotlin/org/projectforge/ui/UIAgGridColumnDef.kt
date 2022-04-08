@@ -36,7 +36,6 @@ open class UIAgGridColumnDef(
   var filter: Boolean = false,
   var valueGetter: String? = null,
   var valueFormatter: Formatter? = null,
-  var dataType: UIDataType = UIDataType.STRING,
   var type: String? = null,
   var checkboxSelection: Boolean? = null,
   var headerCheckboxSelection: Boolean? = null,
@@ -119,7 +118,7 @@ open class UIAgGridColumnDef(
           }
         }
         if (valueGetter.isNullOrBlank() && DisplayNameCapable::class.java.isAssignableFrom(elementInfo.propertyClass)) {
-          col.valueGetter = "data.${col.field}.displayName"
+          col.valueGetter = "data?.${col.field}?.displayName"
         }
       }
       width?.let { col.width = it }

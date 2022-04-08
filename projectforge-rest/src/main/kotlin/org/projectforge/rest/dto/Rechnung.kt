@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.*
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberFormatter
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -45,6 +46,7 @@ class Rechnung(
   var bemerkung: String? = null,
   var besonderheiten: String? = null,
   var faelligkeit: LocalDate? = null,
+  var ueberfaellig: Boolean? = null,
   var zahlungsZielInTagen: Int? = null,
   var discountZahlungsZielInTagen: Int? = null,
   var bezahlDatum: LocalDate? = null,
@@ -70,6 +72,8 @@ class Rechnung(
 
   var formattedGrossSum: String? = null
 
+  var statusAsString: String? = null
+
 
   val isBezahlt: Boolean
     get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
@@ -89,6 +93,11 @@ class Rechnung(
     formattedNetSum = NumberFormatter.formatCurrency(src.netSum, true)
     formattedGrossSum = NumberFormatter.formatCurrency(src.grossSum, true)
     formattedVatAmountSum = NumberFormatter.formatCurrency(src.vatAmountSum, true)
+    ueberfaellig = src.isUeberfaellig
+
+    src.status?.let {
+      statusAsString = translate(it.i18nKey)
+    }
   }
 
   fun copyPositionenFrom(src: RechnungDO) {
