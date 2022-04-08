@@ -71,9 +71,9 @@ class ProjectPagesRest
                         .add(lc, "identifier", "kunde.name", "name", "kunde.division", "task", "konto", "status", "projektManagerGroup")
                         .add(UITableColumn("kost2Arten", title = "fibu.kost2art.kost2arten"))
                         .add(lc,"description"))
-        layout.getTableColumnById("konto").formatter = Formatter.KONTO
-        layout.getTableColumnById("task").formatter = Formatter.TASK_PATH
-        layout.getTableColumnById("projektManagerGroup").formatter = Formatter.GROUP
+        layout.getTableColumnById("konto").formatter = UITableColumn.Formatter.KONTO
+        layout.getTableColumnById("task").formatter = UITableColumn.Formatter.TASK_PATH
+        layout.getTableColumnById("projektManagerGroup").formatter = UITableColumn.Formatter.GROUP
         return LayoutUtils.processListPage(layout, this)
     }
 

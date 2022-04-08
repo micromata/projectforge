@@ -49,7 +49,6 @@ import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
-import org.projectforge.ui.Formatter
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -252,9 +251,9 @@ class AddressPagesRest
           )
           .add(lc, "address.addressbookList")
       )
-    layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
+    layout.getTableColumnById("address.lastUpdate").formatter = UITableColumn.Formatter.DATE
     layout.getTableColumnById("address.imagePreview").set(sortable = false)
-    layout.getTableColumnById("address.addressbookList").set(formatter = Formatter.ADDRESS_BOOK, sortable = false)
+    layout.getTableColumnById("address.addressbookList").set(formatter = UITableColumn.Formatter.ADDRESS_BOOK, sortable = false)
     layout.getTableColumnById("address.isFavoriteCard").set(
       sortable = false,
       title = "address.columnHead.myFavorites",

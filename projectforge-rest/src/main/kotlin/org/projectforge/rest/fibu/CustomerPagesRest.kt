@@ -73,7 +73,7 @@ class CustomerPagesRest
                 .add(UITable.createUIResultSetTable()
                         .add(UITableColumn("kost", title = "fibu.kunde.nummer"))
                         .add(lc, "identifier", "name", "division", "konto", "statusAsString", "description"))
-        layout.getTableColumnById("konto").formatter = Formatter.KONTO
+        layout.getTableColumnById("konto").formatter = UITableColumn.Formatter.KONTO
         return LayoutUtils.processListPage(layout, this)
     }
 

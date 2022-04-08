@@ -106,10 +106,10 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
           .add(UITableColumn("formattedZuFakturierenSum", title = "fibu.tobeinvoiced"))
           .add(lc, "periodOfPerformanceBegin", "periodOfPerformanceEnd", "probabilityOfOccurrence", "auftragsStatus")
       )
-    layout.getTableColumnById("erfassungsDatum").formatter = Formatter.DATE
-    layout.getTableColumnById("entscheidungsDatum").formatter = Formatter.DATE
-    layout.getTableColumnById("periodOfPerformanceBegin").formatter = Formatter.DATE
-    layout.getTableColumnById("periodOfPerformanceEnd").formatter = Formatter.DATE
+    layout.getTableColumnById("erfassungsDatum").formatter = UITableColumn.Formatter.DATE
+    layout.getTableColumnById("entscheidungsDatum").formatter = UITableColumn.Formatter.DATE
+    layout.getTableColumnById("periodOfPerformanceBegin").formatter = UITableColumn.Formatter.DATE
+    layout.getTableColumnById("periodOfPerformanceEnd").formatter = UITableColumn.Formatter.DATE
     return LayoutUtils.processListPage(layout, this)
   }
 

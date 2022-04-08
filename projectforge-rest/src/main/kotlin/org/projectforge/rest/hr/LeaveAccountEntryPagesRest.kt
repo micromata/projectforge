@@ -57,7 +57,7 @@ class LeaveAccountEntryPagesRest() : AbstractDOPagesRest<LeaveAccountEntryDO, Le
         val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "employee", "date", "amount", "description"))
-        layout.getTableColumnById("employee").formatter = Formatter.EMPLOYEE
+        layout.getTableColumnById("employee").formatter = UITableColumn.Formatter.EMPLOYEE
         return LayoutUtils.processListPage(layout, this)
     }
 

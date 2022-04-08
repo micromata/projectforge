@@ -78,8 +78,8 @@ class AddressBookPagesRest : AbstractDTOPagesRest<AddressbookDO, Addressbook, Ad
         val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "title", "description", "owner", "accessright", "last_update"))
-        layout.getTableColumnById("owner").formatter = Formatter.USER
-        layout.getTableColumnById("last_update").formatter = Formatter.TIMESTAMP_MINUTES
+        layout.getTableColumnById("owner").formatter = UITableColumn.Formatter.USER
+        layout.getTableColumnById("last_update").formatter = UITableColumn.Formatter.TIMESTAMP_MINUTES
         return LayoutUtils.processListPage(layout, this)
     }
 

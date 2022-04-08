@@ -64,7 +64,7 @@ class PosteingangPagesRest() : AbstractDOPagesRest<PosteingangDO, PosteingangDao
         val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "datum", "absender", "person", "inhalt", "bemerkung", "type"))
-        layout.getTableColumnById("datum").formatter = Formatter.DATE
+        layout.getTableColumnById("datum").formatter = UITableColumn.Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
     }
 

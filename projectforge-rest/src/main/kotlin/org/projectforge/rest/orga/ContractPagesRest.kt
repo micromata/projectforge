@@ -110,7 +110,7 @@ class ContractPagesRest
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
           .add(lc, "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate")
       )
-    layout.getTableColumnById("date").formatter = Formatter.DATE
+    layout.getTableColumnById("date").formatter = UITableColumn.Formatter.DATE
     return LayoutUtils.processListPage(layout, this)
   }
 
