@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.api
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.favorites.AbstractFavorite
+import org.projectforge.framework.utils.NumberHelper
 
 class MagicFilter(
   /**
@@ -33,7 +34,7 @@ class MagicFilter(
    */
   var entries: MutableList<MagicFilterEntry> = mutableListOf(),
   var sortAndLimitMaxRowsWhileSelect: Boolean = true,
-  var maxRows: Int = 50,
+  var maxRows: Int = QUERY_FILTER_MAX_ROWS,
   /**
    * If true, only deleted entries will be shown. If false, no deleted entries will be shown. If null, all entries will be shown.
    */
@@ -84,6 +85,22 @@ class MagicFilter(
     entries.removeIf { it.field.isNullOrBlank() } // Former filter versions (7.0-SNAPSHOT in 2019 supported entries with no values. This is now replaced by searchString.
   }
 
+  val paginationPageSize: Int?
+    get() {
+      var size: Int? = null
+      entries.find { it.field == PAGINATION_PAGE_SIZE }?.let { entry ->
+        entry.value.values?.let { values ->
+          if (values.isNotEmpty()) {
+            size = NumberHelper.parseInteger(values[0])
+          }
+        }
+        if (size == null) {
+          size = NumberHelper.parseInteger("${entry.value}")
+        }
+      }
+      return size
+    }
+
   fun reset() {
     entries.clear()
     sortProperties.clear()
@@ -121,5 +138,9 @@ class MagicFilter(
     val mapper = UserPrefDao.getObjectMapper()
     val json = mapper.writeValueAsString(this)
     return mapper.readValue(json, MagicFilter::class.java)
+  }
+
+  companion object {
+    const val PAGINATION_PAGE_SIZE = "paginationPageSize"
   }
 }

@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberFormatter
@@ -80,7 +81,7 @@ class LayoutListFilterUtils {
 
       elements.add(
         UIFilterListElement(
-          "pageSize",
+          MagicFilter.PAGINATION_PAGE_SIZE,
           pageValues,
           translate("label.pageSize"),
           multi = false,
