@@ -77,7 +77,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
       EingangsrechnungMultiSelectedPageRest::class.java,
       magicFilter,
     )
-      .add(lc, "kreditor", "referenz", "betreff", "konto", "datum", "faelligkeit", "bezahlDatum")
+      .add(lc, "kreditor", "referenz", "betreff", "konto", "datum", "faelligkeit", "bezahlDatum", "iban")
       .add(lc, "formattedNetSum", headerName = "fibu.common.netto", pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY)
       .add(
         lc,
@@ -89,6 +89,12 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
       .add(lc, "bemerkung")
       .withPinnedLeft(2)
       .withMultiRowSelection(request, magicFilter)
+      .withGetRowClass("""if (params.node.data.ueberfaellig) {
+            return 'ag-row-red';
+        } else if (!params.node.data.bezahlDatum) {
+            return 'ag-row-blue';
+        }"""
+      )
     return LayoutUtils.processListPage(layout, this)
   }
 

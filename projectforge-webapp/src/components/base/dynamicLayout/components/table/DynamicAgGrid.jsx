@@ -13,7 +13,11 @@ function DynamicAgGrid({
     onGridApiReady,
     pagination,
     paginationPageSize,
+    getRowClass,
 }) {
+    // eslint-disable-next-line no-new-func
+    const getRowClassFunction = Function('params', getRowClass);
+    const rowClass = 'ag-row-standard';
     const { data, ui } = React.useContext(DynamicLayoutContext);
     const [gridApi, setGridApi] = useState();
 
@@ -50,6 +54,8 @@ function DynamicAgGrid({
                 onGridReady={onGridReady}
                 pagination={pagination}
                 paginationPageSize={paginationPageSize}
+                rowClass={rowClass}
+                getRowClass={getRowClassFunction}
             />
         </div>
     ),
@@ -75,12 +81,14 @@ DynamicAgGrid.propTypes = {
     rowMultiSelectWithClick: PropTypes.bool,
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
+    getRowClass: PropTypes.shape({}),
 };
 
 DynamicAgGrid.defaultProps = {
     id: undefined,
     pagination: undefined,
     paginationPageSize: undefined,
+    getRowClass: undefined,
 };
 
 export default DynamicAgGrid;

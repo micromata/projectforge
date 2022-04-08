@@ -55,20 +55,24 @@ class RechnungPagesRest :
       .add(lc, "customer", lcField = "kunde")
       .add(lc, "project", lcField = "projekt")
       .add(lc, "betreff", "datum", "faelligkeit", "bezahlDatum")
-      .add(lc, "status", width = 100)
+      .add(lc, "statusAsString", headerName = "fibu.rechnung.status", width = 100)
       .add(lc, "formattedNetSum", headerName = "fibu.common.netto", pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY)
-      .add(lc, "formattedGrossSum", headerName = "fibu.rechnung.bruttoBetrag", pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY)
+      .add(
+        lc,
+        "formattedGrossSum",
+        headerName = "fibu.rechnung.bruttoBetrag",
+        pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY
+      )
       .add(lc, "konto", "bemerkung", "periodOfPerformanceBegin", "periodOfPerformanceEnd")
       .withMultiRowSelection(request, magicFilter)
       .withPinnedLeft(3)
-    /*layout.getTableColumnById("kunde").formatter = Formatter.CUSTOMER
-    layout.getTableColumnById("konto").formatter = Formatter.KONTO
-    layout.getTableColumnById("projekt").formatter = Formatter.PROJECT
-    layout.getTableColumnById("datum").formatter = Formatter.DATE
-    layout.getTableColumnById("faelligkeit").formatter = Formatter.DATE
-    layout.getTableColumnById("bezahlDatum").formatter = Formatter.DATE
-    layout.getTableColumnById("periodOfPerformanceBegin").formatter = Formatter.DATE
-    layout.getTableColumnById("periodOfPerformanceEnd").formatter = Formatter.DATE*/
+      .withGetRowClass("""if (params.node.data.ueberfaellig) {
+            return 'ag-row-red';
+        } else if (params.node.data.status !== 'BEZAHLT') {
+            return 'ag-row-blue';
+        }"""
+      )
+
     return LayoutUtils.processListPage(layout, this)
   }
 

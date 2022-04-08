@@ -25,6 +25,8 @@ package org.projectforge.plugins.marketing.rest
 
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.PersonalAddressDO
+import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.plugins.marketing.AddressCampaignDO
 import org.projectforge.plugins.marketing.AddressCampaignDao
@@ -58,6 +60,9 @@ class AddressCampaignValuePagesRest :
   @Autowired
   private lateinit var addressCampaignValueDao: AddressCampaignValueDao
 
+  @Autowired
+  private lateinit var personalAddressDao: PersonalAddressDao
+
   /**
    * LAYOUT List page
    */
@@ -74,6 +79,8 @@ class AddressCampaignValuePagesRest :
       .add(lc, "value", "comment")
       .withMultiRowSelection(request, magicFilter)
       .withPinnedLeft(2)
+      .withGetRowClass("""if (params.node.data.favoriteAddress) { return 'ag-row-red'; }"""
+      )
     return LayoutUtils.processListPage(layout, this)
   }
 
@@ -112,21 +119,11 @@ class AddressCampaignValuePagesRest :
   fun processList(request: HttpServletRequest, list: List<AddressCampaignValue>): Boolean {
     val addressCampaign = getAddressCampaign(request) ?: return false
     val addressCampaignValueMap = getAddressCampaignValueMap(addressCampaign.id)
+    val personalAddressMap = personalAddressDao.getPersonalAddressByAddressId()
     list.forEach { entry ->
-      fillValues(entry, addressCampaignValueMap)
+      fillValues(entry, addressCampaignValueMap, personalAddressMap)
     }
     return true
-  }
-
-  fun convertList(request: HttpServletRequest, list: List<AddressDO>): List<AddressCampaignValue> {
-    val addressCampaign = getAddressCampaign(request) ?: return emptyList()
-    val addressCampaignValueMap = getAddressCampaignValueMap(addressCampaign.id)
-    return list.map { addressDO ->
-      val entry = AddressCampaignValue()
-      fillValues(entry, addressCampaignValueMap, addressDO)
-      entry.addressCampaign = addressCampaign
-      entry
-    }
   }
 
   private fun getAddressCampaignValueMap(addressCampaignId: Int?): Map<Int, AddressCampaignValueDO> {
@@ -138,11 +135,13 @@ class AddressCampaignValuePagesRest :
   private fun fillValues(
     dest: AddressCampaignValue,
     addressCampaignValueMap: Map<Int, AddressCampaignValueDO>,
+    personalAddressMap: Map<Int, PersonalAddressDO>,
     addressDO: AddressDO? = null,
   ) {
     if (addressDO != null) {
       dest.copyFrom(addressDO)
     }
+    dest.favoriteAddress = personalAddressMap[dest.id]?.isFavorite
     addressCampaignValueMap[dest.address?.id]?.let { value ->
       dest.value = value.value
       dest.comment = value.comment

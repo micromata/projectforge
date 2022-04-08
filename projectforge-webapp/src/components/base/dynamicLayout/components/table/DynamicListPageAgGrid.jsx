@@ -14,6 +14,7 @@ function DynamicListPageAgGrid({
     urlAfterMultiSelect,
     pagination,
     paginationPageSize,
+    getRowClass,
 }) {
     const [gridApi, setGridApi] = useState();
 
@@ -55,6 +56,7 @@ function DynamicListPageAgGrid({
                 rowMultiSelectWithClick={rowMultiSelectWithClick}
                 pagination={pagination}
                 paginationPageSize={paginationPageSize}
+                getRowClass={getRowClass}
             />
         </div>
     ),
@@ -80,10 +82,12 @@ DynamicListPageAgGrid.propTypes = {
     urlAfterMultiSelect: PropTypes.string,
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
+    getRowClass: PropTypes.shape({}),
 };
 
 DynamicListPageAgGrid.defaultProps = {
     id: undefined,
+    getRowClass: undefined,
 };
 
 export default DynamicListPageAgGrid;

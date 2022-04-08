@@ -42,6 +42,7 @@ class Eingangsrechnung(
   var bemerkung: String? = null,
   var besonderheiten: String? = null,
   var faelligkeit: LocalDate? = null,
+  var ueberfaellig: Boolean? = null,
   var zahlungsZielInTagen: Int? = null,
   var discountZahlungsZielInTagen: Int? = null,
   var bezahlDatum: LocalDate? = null,
@@ -82,6 +83,7 @@ class Eingangsrechnung(
     src.paymentType?.let {
       paymentTypeAsString = translate(it.i18nKey)
     }
+    ueberfaellig = src.isUeberfaellig
   }
 
   fun copyPositionenFrom(src: EingangsrechnungDO) {
