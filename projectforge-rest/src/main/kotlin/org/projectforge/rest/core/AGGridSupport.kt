@@ -25,6 +25,7 @@ package org.projectforge.rest.core
 
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QUERY_FILTER_MAX_ROWS
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.UIAgGrid
@@ -50,9 +51,9 @@ object AGGridSupport {
     pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
   ): UIAgGrid {
     val table = UIAgGrid.createUIResultSetTable()
-    //magicFilter.maxRows = QUERY_FILTER_MAX_ROWS // Fix it from previous.
+    magicFilter.maxRows = QUERY_FILTER_MAX_ROWS // Fix it from previous.
     table.enablePagination()
-    //magicFilter.pageSize?.let { table.paginationPageSize = it }
+    magicFilter.paginationPageSize?.let { table.paginationPageSize = it }
     layout.add(table)
     if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
       layout.hideSearchFilter = true

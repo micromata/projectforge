@@ -51,7 +51,13 @@ object MagicFilterProcessor {
     }*/
 
     queryFilter.deleted = magicFilter.deleted
+    val paginationPageSize = magicFilter.paginationPageSize
     queryFilter.maxRows = magicFilter.maxRows
+    if (paginationPageSize != null && paginationPageSize > magicFilter.maxRows) {
+      // For old pages without pagination, pageSize is used as maxRows.
+      queryFilter.maxRows = paginationPageSize
+    }
+
     queryFilter.searchHistory = magicFilter.searchHistory
     queryFilter.sortAndLimitMaxRowsWhileSelect = magicFilter.sortAndLimitMaxRowsWhileSelect
     queryFilter.sortProperties = magicFilter.sortProperties.map {
@@ -78,11 +84,10 @@ object MagicFilterProcessor {
       } else if (magicFilterEntry.field.isNullOrBlank()) {
         // Full text search (no field given).
         queryFilter.addFullTextSearch(magicFilterEntry.value.value)
-      } else if (magicFilterEntry.field == "pageSize") {
-        val values = magicFilterEntry.value.values
-        val pageSize =
-          if (!values.isNullOrEmpty()) NumberHelper.parseInteger(values[0]) else NumberHelper.parseInteger("${magicFilterEntry.value}")
-        queryFilter.maxRows = pageSize ?: magicFilter.maxRows
+      } else if (magicFilterEntry.field == MagicFilter.PAGINATION_PAGE_SIZE) {
+        // Do nothing.
+      } else if (magicFilterEntry.field == "pageSize") { // was renamed from pageSize to paginationPageSize:
+        magicFilterEntry.field = MagicFilter.PAGINATION_PAGE_SIZE
       } else {
         // Field search.
         createFieldSearchEntry(entityClass, queryFilter, magicFilterEntry, magicFilter.autoWildcardSearch)
