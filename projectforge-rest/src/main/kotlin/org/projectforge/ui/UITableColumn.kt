@@ -33,6 +33,23 @@ data class UITableColumn(var id: String,
                          var valueIconMap: Map<Any, UIIconType?>? = null)
     : UIElement(UIElementType.TABLE_COLUMN) {
 
+    enum class Formatter {
+        ADDRESS_BOOK,
+        AUFTRAG_POSITION,
+        DATE,
+        EMPLOYEE,
+        COST1,
+        COST2,
+        CUSTOMER,
+        GROUP,
+        KONTO,
+        PROJECT,
+        RATING,
+        TASK_PATH,
+        TIMESTAMP_MINUTES,
+        USER
+    }
+
     /**
      * Helper method for setting properties. Null values are ignored.
      * @return this for chaining.
@@ -54,21 +71,4 @@ data class UITableColumn(var id: String,
         dataType = UIDataType.BOOLEAN
         return this
     }
-}
-
-enum class Formatter {
-    ADDRESS_BOOK,
-    AUFTRAG_POSITION,
-    DATE,
-    EMPLOYEE,
-    COST1,
-    COST2,
-    CUSTOMER,
-    GROUP,
-    KONTO,
-    PROJECT,
-    RATING,
-    TASK_PATH,
-    TIMESTAMP_MINUTES,
-    USER
 }

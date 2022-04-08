@@ -44,7 +44,7 @@ class LiquidityEntryPagesRest: AbstractDOPagesRest<LiquidityEntryDO, LiquidityEn
         val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "dateOfPayment", "amount", "paid", "subject", "comment"))
-        layout.getTableColumnById("dateOfPayment").formatter = Formatter.DATE
+        layout.getTableColumnById("dateOfPayment").formatter = UITableColumn.Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
     }
 
