@@ -23,7 +23,14 @@
 
 package org.projectforge.ui
 
+import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
+import org.projectforge.business.fibu.AuftragsPositionDO
+import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.KontoDO
+import org.projectforge.business.fibu.kost.Kost1DO
+import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.task.TaskDO
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.DisplayNameCapable
@@ -156,10 +163,6 @@ open class UIAgGridColumnDef(
         if (col.headerName == null) {
           col.headerName = elementInfo.i18nKey
         }
-        /* col.dataType = UIDataTypeUtils.ensureDataType(elementInfo)
-       if (col.dataType == UIDataType.BOOLEAN) {
-         col.setStandardBoolean()
-       }*/
         if (useFormatter == null) {
           // Try to determine formatter by type and propertyInfo (defined on DO-field):
           if (LocalDate::class.java == elementInfo.propertyClass) {
@@ -174,11 +177,29 @@ open class UIAgGridColumnDef(
             useFormatter = Formatter.DATE
           } else if (elementInfo.propertyClass == PFUserDO::class.java) {
             useFormatter = Formatter.USER
+          } else if (elementInfo.propertyClass == TaskDO::class.java) {
+            useFormatter = Formatter.TASK_PATH
+          } else if (elementInfo.propertyClass == Kost1DO::class.java) {
+            useFormatter = Formatter.COST1
+          } else if (elementInfo.propertyClass == Kost2DO::class.java) {
+            useFormatter = Formatter.COST2
+          } else if (elementInfo.propertyClass == KontoDO::class.java) {
+            useFormatter = Formatter.KONTO
+          } else if (elementInfo.propertyClass == AddressbookDO::class.java) {
+            useFormatter = Formatter.ADDRESS_BOOK
+          } else if (elementInfo.propertyClass == EmployeeDO::class.java) {
+            useFormatter = Formatter.EMPLOYEE
+          } else if (elementInfo.propertyClass == AuftragsPositionDO::class.java) {
+            useFormatter = Formatter.AUFTRAG_POSITION
           } else if (java.util.Date::class.java == elementInfo.propertyClass) {
             if (field in arrayOf("created", "lastUpdate")) {
               useFormatter = Formatter.DATE
             } else {
               useFormatter = Formatter.TIMESTAMP_MINUTES
+            }
+          } else if (elementInfo.propertyClass == String::class.java) {
+            if ((elementInfo.maxLength ?: 0) > 1000 && width == null) {
+              col.width = 500 // Extra wide column
             }
           } else if (elementInfo.propertyClass == Boolean::class.java || elementInfo.propertyClass == java.lang.Boolean::class.java) {
             useFormatter = Formatter.BOOLEAN
@@ -190,7 +211,9 @@ open class UIAgGridColumnDef(
           }
         }
       }
-      width?.let { col.width = it }
+      if (width != null) {
+        col.width = width
+      }
       useFormatter?.let {
         when (it) {
           Formatter.CURRENCY -> {
@@ -217,8 +240,10 @@ open class UIAgGridColumnDef(
       val result = mutableMapOf<String, Any>("dataType" to formatter.name)
       when (formatter) {
         Formatter.DATE -> result["dateFormat"] = DateFormats.getFormatString(DateFormatType.DATE)
-        Formatter.TIMESTAMP_MINUTES -> result["timestampFormatMinutes"] = DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES)
-        Formatter.TIMESTAMP_SECONDS -> result["timestampFormatSeconds"] = DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS)
+        Formatter.TIMESTAMP_MINUTES -> result["timestampFormatMinutes"] =
+          DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES)
+        Formatter.TIMESTAMP_SECONDS -> result["timestampFormatSeconds"] =
+          DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS)
         Formatter.CURRENCY -> {
           result["locale"] = ThreadLocalUserContext.getLocale()
           result["currency"] = ConfigurationServiceAccessor.get().currency ?: "EUR"
