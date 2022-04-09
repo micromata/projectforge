@@ -56,17 +56,11 @@ class RechnungPagesRest :
       .add(lc, "project", lcField = "projekt")
       .add(lc, "betreff", "datum", "faelligkeit", "bezahlDatum")
       .add(lc, "statusAsString", headerName = "fibu.rechnung.status", width = 100)
-      .add(lc, "formattedNetSum", headerName = "fibu.common.netto", pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY)
-      .add(
-        lc,
-        "formattedGrossSum",
-        headerName = "fibu.rechnung.bruttoBetrag",
-        pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY
-      )
-      .add(lc, "konto", "bemerkung", "periodOfPerformanceBegin", "periodOfPerformanceEnd")
+      .add(lc, "netSum", "grossSum", "konto", "bemerkung", "periodOfPerformanceBegin", "periodOfPerformanceEnd")
       .withMultiRowSelection(request, magicFilter)
       .withPinnedLeft(3)
-      .withGetRowClass("""if (params.node.data.ueberfaellig) {
+      .withGetRowClass(
+        """if (params.node.data.ueberfaellig) {
             return 'ag-row-red';
         } else if (params.node.data.status !== 'BEZAHLT') {
             return 'ag-row-blue';

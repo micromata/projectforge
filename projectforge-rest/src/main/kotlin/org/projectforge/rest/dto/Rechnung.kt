@@ -25,7 +25,6 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.*
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.utils.NumberFormatter
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -57,23 +56,13 @@ class Rechnung(
 ) : BaseDTO<RechnungDO>(), IRechnung {
   override var positionen: MutableList<RechnungsPosition>? = null
 
-  override val netSum: BigDecimal
-    get() = RechnungCalculator.calculateNetSum(this)
+  override var netSum: BigDecimal = BigDecimal.ZERO
 
-  override val vatAmountSum: BigDecimal
-    get() = RechnungCalculator.calculateVatAmountSum(this)
+  override var vatAmountSum: BigDecimal = BigDecimal.ZERO
 
-  val grossSum: BigDecimal
-    get() = RechnungCalculator.calculateGrossSum(this)
-
-  var formattedNetSum: String? = null
-
-  var formattedVatAmountSum: String? = null
-
-  var formattedGrossSum: String? = null
+  var grossSum: BigDecimal = BigDecimal.ZERO
 
   var statusAsString: String? = null
-
 
   val isBezahlt: Boolean
     get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
@@ -90,11 +79,10 @@ class Rechnung(
       customer = Customer()
       customer?.copyFromMinimal(c)
     }
-    formattedNetSum = NumberFormatter.formatCurrency(src.netSum, true)
-    formattedGrossSum = NumberFormatter.formatCurrency(src.grossSum, true)
-    formattedVatAmountSum = NumberFormatter.formatCurrency(src.vatAmountSum, true)
+    this.netSum = RechnungCalculator.calculateNetSum(src)
+    this.vatAmountSum = RechnungCalculator.calculateVatAmountSum(src)
+    this.grossSum = RechnungCalculator.calculateGrossSum(src)
     ueberfaellig = src.isUeberfaellig
-
     src.status?.let {
       statusAsString = translate(it.i18nKey)
     }

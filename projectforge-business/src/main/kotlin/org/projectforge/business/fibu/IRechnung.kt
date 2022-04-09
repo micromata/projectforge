@@ -30,7 +30,7 @@ import java.time.LocalDate
  * Needed by [RechnungCalculator].
  */
 interface IRechnung {
-    var zahlBetrag: BigDecimal?
+    val zahlBetrag: BigDecimal?
     val netSum: BigDecimal
     val vatAmountSum: BigDecimal
     val positionen: List<IRechnungsPosition>?

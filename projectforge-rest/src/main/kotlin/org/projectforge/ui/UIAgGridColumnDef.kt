@@ -23,7 +23,13 @@
 
 package org.projectforge.ui
 
+import org.projectforge.business.configuration.ConfigurationServiceAccessor
+import org.projectforge.common.DateFormatType
+import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.DateFormats
 import java.time.LocalDate
 
 /**
@@ -35,7 +41,6 @@ open class UIAgGridColumnDef(
   var sortable: Boolean = false,
   var filter: Boolean = false,
   var valueGetter: String? = null,
-  var valueFormatter: Formatter? = null,
   var type: String? = null,
   var checkboxSelection: Boolean? = null,
   var headerCheckboxSelection: Boolean? = null,
@@ -46,9 +51,46 @@ open class UIAgGridColumnDef(
 ) {
   var pinned: String? = null
 
+  /**
+   * https://www.ag-grid.com/react-data-grid/components/
+   * If formatter is used, it's set to "formatter".
+   */
+  var cellRenderer: String? = null
+
+  var cellRendererParams: Map<String, Any>? = null
+
+  /**
+   * https://www.ag-grid.com/react-data-grid/value-formatters/
+   * Not yet implemented.
+   */
+  //var valueFormatter: String? = null
+
+  /**
+   * https://www.ag-grid.com/react-data-grid/column-definitions/#right-aligned-and-numeric-columns
+   */
   enum class AG_TYPE(val agType: String) { NUMERIC_COLUMN("numericColumn"), RIGHT_ALIGNED("rightAligned") }
 
-  enum class PF_STYLE { CURRENCY, LOCALE_DATE }
+  enum class Formatter {
+    BOOLEAN,
+    CURRENCY,
+    DATE,
+    NUMBER,
+    TIMESTAMP_MINUTES,
+    TIMESTAMP_SECONDS,
+    RATING,
+
+    ADDRESS_BOOK,
+    AUFTRAG_POSITION,
+    EMPLOYEE,
+    COST1,
+    COST2,
+    CUSTOMER,
+    GROUP,
+    KONTO,
+    PROJECT,
+    TASK_PATH,
+    USER,
+  }
 
   fun withAGType(type: AG_TYPE): UIAgGridColumnDef {
     this.type = type.agType
@@ -76,9 +118,16 @@ open class UIAgGridColumnDef(
       headerName: String? = null,
       valueGetter: String? = null,
       valueFormatter: Formatter? = null,
-      pfStyle: PF_STYLE? = null,
     ): UIAgGridColumnDef {
-      return createCol(null, field = field, sortable = sortable, width = width, headerName = headerName, valueGetter = valueGetter, valueFormatter = valueFormatter, pfStyle = pfStyle)
+      return createCol(
+        null,
+        field = field,
+        sortable = sortable,
+        width = width,
+        headerName = headerName,
+        valueGetter = valueGetter,
+        formatter = valueFormatter,
+      )
     }
 
     /**
@@ -91,9 +140,8 @@ open class UIAgGridColumnDef(
       width: Int? = null,
       headerName: String? = null,
       valueGetter: String? = null,
-      valueFormatter: Formatter? = null,
+      formatter: Formatter? = null,
       lcField: String = field,
-      pfStyle: PF_STYLE? = null,
     ): UIAgGridColumnDef {
       val col = UIAgGridColumnDef(field, sortable = sortable)
       lc?.idPrefix?.let {
@@ -103,7 +151,7 @@ open class UIAgGridColumnDef(
         col.headerName = headerName
       }
       val elementInfo = ElementsRegistry.getElementInfo(lc, lcField)
-      var myStyle = pfStyle
+      var useFormatter = formatter
       if (elementInfo != null) {
         if (col.headerName == null) {
           col.headerName = elementInfo.i18nKey
@@ -112,32 +160,72 @@ open class UIAgGridColumnDef(
        if (col.dataType == UIDataType.BOOLEAN) {
          col.setStandardBoolean()
        }*/
-        if (myStyle == null) {
-          if (LocalDate::class.java.isAssignableFrom(elementInfo.propertyClass)) {
-            myStyle = PF_STYLE.LOCALE_DATE
+        if (useFormatter == null) {
+          // Try to determine formatter by type and propertyInfo (defined on DO-field):
+          if (LocalDate::class.java == elementInfo.propertyClass) {
+            useFormatter = Formatter.DATE
+          } else if (Number::class.java.isAssignableFrom(elementInfo.propertyClass)) {
+            if (elementInfo.propertyType == PropertyType.CURRENCY) {
+              useFormatter = Formatter.CURRENCY
+            } else {
+              useFormatter = Formatter.NUMBER
+            }
+          } else if (elementInfo.propertyClass == LocalDate::class.java) {
+            useFormatter = Formatter.DATE
+          } else if (elementInfo.propertyClass == PFUserDO::class.java) {
+            useFormatter = Formatter.USER
+          } else if (java.util.Date::class.java == elementInfo.propertyClass) {
+            if (field in arrayOf("created", "lastUpdate")) {
+              useFormatter = Formatter.DATE
+            } else {
+              useFormatter = Formatter.TIMESTAMP_MINUTES
+            }
+          } else if (elementInfo.propertyClass == Boolean::class.java || elementInfo.propertyClass == java.lang.Boolean::class.java) {
+            useFormatter = Formatter.BOOLEAN
           }
         }
-        if (valueGetter.isNullOrBlank() && DisplayNameCapable::class.java.isAssignableFrom(elementInfo.propertyClass)) {
-          col.valueGetter = "data?.${col.field}?.displayName"
+        if (useFormatter == null) {
+          if (valueGetter.isNullOrBlank() && DisplayNameCapable::class.java.isAssignableFrom(elementInfo.propertyClass)) {
+            col.valueGetter = "data?.${col.field}?.displayName"
+          }
         }
       }
       width?.let { col.width = it }
-      myStyle?.let {
+      useFormatter?.let {
         when (it) {
-          PF_STYLE.CURRENCY -> {
+          Formatter.CURRENCY -> {
             if (width == null) {
               col.width = 120
               col.type = AG_TYPE.NUMERIC_COLUMN.agType
             }
           }
-          PF_STYLE.LOCALE_DATE -> {
+          Formatter.DATE -> {
             col.width = 100
           }
+          else -> {}
         }
       }
       valueGetter?.let { col.valueGetter = it }
-      col.valueFormatter = valueFormatter
+      useFormatter?.let {
+        col.cellRenderer = "formatter"
+        col.cellRendererParams = createCellRendererParams(it)
+      }
       return col
+    }
+
+    private fun createCellRendererParams(formatter: Formatter): Map<String, Any> {
+      val result = mutableMapOf<String, Any>("dataType" to formatter.name)
+      when (formatter) {
+        Formatter.DATE -> result["dateFormat"] = DateFormats.getFormatString(DateFormatType.DATE)
+        Formatter.TIMESTAMP_MINUTES -> result["timestampFormatMinutes"] = DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES)
+        Formatter.TIMESTAMP_SECONDS -> result["timestampFormatSeconds"] = DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS)
+        Formatter.CURRENCY -> {
+          result["locale"] = ThreadLocalUserContext.getLocale()
+          result["currency"] = ConfigurationServiceAccessor.get().currency ?: "EUR"
+        }
+        else -> {}
+      }
+      return result
     }
   }
 }

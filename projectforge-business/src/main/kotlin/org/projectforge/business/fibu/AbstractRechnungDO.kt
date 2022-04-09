@@ -141,12 +141,12 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
       return field
     }
 
-  @get:PropertyInfo(i18nKey = "fibu.common.brutto")
+  @get:PropertyInfo(i18nKey = "fibu.common.brutto", type = PropertyType.CURRENCY)
   val grossSum: BigDecimal
     @Transient
     get() = RechnungCalculator.calculateGrossSum(this)
 
-  @get:PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit")
+  @get:PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit", type = PropertyType.CURRENCY)
   val faelligkeitOrDiscountMaturity: LocalDate?
     @Transient
     get() {
@@ -180,7 +180,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
       return grossSum
     }
 
-  @get:PropertyInfo(i18nKey = "fibu.common.netto")
+  @get:PropertyInfo(i18nKey = "fibu.common.netto", type = PropertyType.CURRENCY)
   override val netSum: BigDecimal
     @Transient
     get() = RechnungCalculator.calculateNetSum(this)

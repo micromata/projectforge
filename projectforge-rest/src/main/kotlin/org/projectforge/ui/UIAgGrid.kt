@@ -56,6 +56,9 @@ open class UIAgGrid(
 
   var paginationPageSize: Int? = null
 
+  /**
+   * https://www.ag-grid.com/react-data-grid/row-styles/#row-class
+   */
   var getRowClass: String? = GET_ROW_CLASS
     private set
 
@@ -94,9 +97,8 @@ open class UIAgGrid(
     sortable: Boolean = true,
     width: Int? = null,
     headerName: String? = null,
-    valueFormatter: Formatter? = null,
+    formatter: UIAgGridColumnDef.Formatter? = null,
     valueGetter: String? = null,
-    pfStyle: UIAgGridColumnDef.PF_STYLE? = null,
   ): UIAgGrid {
     add(
       UIAgGridColumnDef.createCol(
@@ -106,8 +108,7 @@ open class UIAgGrid(
         width = width,
         headerName = headerName,
         valueGetter = valueGetter,
-        valueFormatter = valueFormatter,
-        pfStyle = pfStyle,
+        formatter = formatter,
       )
     )
     return this
@@ -125,10 +126,9 @@ open class UIAgGrid(
     sortable: Boolean = true,
     width: Int? = null,
     headerName: String? = null,
-    valueFormatter: Formatter? = null,
+    formatter: UIAgGridColumnDef.Formatter? = null,
     valueGetter: String? = null,
     lcField: String? = null,
-    pfStyle: UIAgGridColumnDef.PF_STYLE? = null,
   ): UIAgGrid {
     columnIds.forEach {
       add(
@@ -139,9 +139,8 @@ open class UIAgGrid(
           width = width,
           headerName = headerName,
           valueGetter = valueGetter,
-          valueFormatter = valueFormatter,
+          formatter = formatter,
           lcField = lcField ?: it,
-          pfStyle = pfStyle,
         )
       )
     }
