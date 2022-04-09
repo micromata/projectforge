@@ -49,8 +49,10 @@ function Formatter(
     if (useFormatter) {
         switch (useFormatter) {
             case COST1_FORMATTER:
-            case COST2_FORMATTER:
                 result = useValue.formattedNumber;
+                break;
+            case COST2_FORMATTER:
+                result = useValue.longDisplayName || useValue.formattedNumber;
                 break;
             case CURRENCY_FORMATTER:
                 result = Intl.NumberFormat(locale, {

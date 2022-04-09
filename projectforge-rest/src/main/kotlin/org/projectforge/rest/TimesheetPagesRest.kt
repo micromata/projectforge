@@ -255,7 +255,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     //.add(lc, "kost2.project.customer", lcField = "kost2.projekt.kunde")
     //.add(lc, "kost2.project", lcField = "kost2.projekt")
     if (Configuration.instance.isCostConfigured) {
-      table.add(lc, "kost2.longDisplayName", headerName = "fibu.kost2")
+      table.add(lc, "kost2")
     }
     table.add(lc, "task")
       .add("weekOfYear", headerName = "calendar.weekOfYearShortLabel", width = 30)

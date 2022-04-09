@@ -25,6 +25,7 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AGGridSupport
@@ -45,7 +46,7 @@ class RechnungPagesRest :
    */
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val layout = super.createListLayout(request, magicFilter)
-    AGGridSupport.prepareUIGrid4ListPage(
+    val grid = AGGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,
@@ -53,12 +54,16 @@ class RechnungPagesRest :
     )
       .add(lc, "nummer", width = 120)
       .add(lc, "customer", lcField = "kunde")
-      .add(lc, "project", lcField = "projekt")
-      .add(lc, "betreff", "datum", "faelligkeit", "bezahlDatum")
+    var pinnedLeft = 2
+    if (Configuration.instance.isCostConfigured) {
+      grid.add(lc, "project", lcField = "projekt")
+      pinnedLeft = ++pinnedLeft
+    }
+    grid.add(lc, "betreff", "datum", "faelligkeit", "bezahlDatum")
       .add(lc, "statusAsString", headerName = "fibu.rechnung.status", width = 100)
-      .add(lc, "netSum", "grossSum", "konto", "bemerkung", "periodOfPerformanceBegin", "periodOfPerformanceEnd")
+      .add(lc, "netSum", "grossSum", "konto", "periodOfPerformanceBegin", "periodOfPerformanceEnd", "bemerkung")
       .withMultiRowSelection(request, magicFilter)
-      .withPinnedLeft(3)
+      .withPinnedLeft(pinnedLeft)
       .withGetRowClass(
         """if (params.node.data.ueberfaellig) {
             return 'ag-row-red';
