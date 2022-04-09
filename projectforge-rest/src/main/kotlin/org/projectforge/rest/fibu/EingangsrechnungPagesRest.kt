@@ -79,13 +79,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
     )
       .add(lc, "kreditor", "referenz", "betreff", "konto", "datum", "faelligkeitOrDiscountMaturity", "bezahlDatum")
       .add(lc, "ibanFormatted", lcField = "iban")
-      .add(lc, "formattedNetSum", headerName = "fibu.common.netto", pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY)
-      .add(
-        lc,
-        "formattedGrossSum",
-        headerName = "fibu.rechnung.bruttoBetrag",
-        pfStyle = UIAgGridColumnDef.PF_STYLE.CURRENCY
-      )
+      .add(lc, "netSum", "grossSum")
       .add(lc, "paymentTypeAsString", lcField = "paymentType", width = 100)
       .add(lc, "bemerkung")
       .withPinnedLeft(2)

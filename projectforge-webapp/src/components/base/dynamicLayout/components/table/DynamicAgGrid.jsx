@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { DynamicLayoutContext } from '../../context';
+import Formatter from '../../../Formatter';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 
@@ -41,6 +42,10 @@ function DynamicAgGrid({
         }
     }, [gridApi, selectedEntityIds]);
 
+    const [components] = useState({
+        formatter: Formatter,
+    });
+
     return React.useMemo(() => (
         <div
             className="ag-theme-alpine"
@@ -48,6 +53,7 @@ function DynamicAgGrid({
         >
             <AgGridReact
                 rowData={entries}
+                components={components}
                 columnDefs={columnDefs}
                 rowSelection={rowSelection}
                 rowMultiSelectWithClick={rowMultiSelectWithClick}

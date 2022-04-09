@@ -151,6 +151,12 @@ open class ConfigurationService {
   @Value("\${projectforge.currencySymbol}")
   open var currencySymbol: String? = null
 
+  /**
+   * Default is EUR (used by JavaScript-React-Client).
+   */
+  @Value("\${projectforge.currency}")
+  open var currency: String? = null
+
   @Value("\${projectforge.defaultLocale}")
   open var defaultLocale: Locale? = null
 

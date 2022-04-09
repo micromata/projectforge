@@ -55,20 +55,11 @@ class Eingangsrechnung(
 ) : BaseDTO<EingangsrechnungDO>(), IRechnung {
   override var positionen: MutableList<EingangsrechnungsPosition>? = null
 
-  override val netSum: BigDecimal
-    get() = RechnungCalculator.calculateNetSum(this)
+  override var netSum: BigDecimal = BigDecimal.ZERO
 
-  override val vatAmountSum: BigDecimal
-    get() = RechnungCalculator.calculateVatAmountSum(this)
+  override var vatAmountSum: BigDecimal= BigDecimal.ZERO
 
-  val grossSum: BigDecimal
-    get() = RechnungCalculator.calculateGrossSum(this)
-
-  var formattedNetSum: String? = null
-
-  var formattedVatAmountSum: String? = null
-
-  var formattedGrossSum: String? = null
+  var grossSum: BigDecimal = BigDecimal.ZERO
 
   var paymentTypeAsString: String? = null
 
@@ -79,9 +70,6 @@ class Eingangsrechnung(
 
   override fun copyFrom(src: EingangsrechnungDO) {
     super.copyFrom(src)
-    formattedNetSum = NumberFormatter.formatCurrency(src.netSum, true)
-    formattedGrossSum = NumberFormatter.formatCurrency(src.grossSum, true)
-    formattedVatAmountSum = NumberFormatter.formatCurrency(src.vatAmountSum, true)
     src.paymentType?.let {
       paymentTypeAsString = translate(it.i18nKey)
     }
@@ -91,6 +79,9 @@ class Eingangsrechnung(
 
   fun copyPositionenFrom(src: EingangsrechnungDO) {
     val list = positionen ?: mutableListOf()
+    this.netSum = RechnungCalculator.calculateNetSum(src)
+    this.vatAmountSum = RechnungCalculator.calculateVatAmountSum(src)
+    this.grossSum = RechnungCalculator.calculateGrossSum(src)
     src.positionen?.forEach {
       val pos = EingangsrechnungsPosition()
       pos.copyFrom(it)
