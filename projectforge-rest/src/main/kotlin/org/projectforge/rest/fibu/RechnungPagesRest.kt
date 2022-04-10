@@ -50,6 +50,7 @@ class RechnungPagesRest :
       request,
       layout,
       magicFilter,
+      this,
       RechnungMultiSelectedPageRest::class.java,
     )
       .add(lc, "nummer", width = 120)

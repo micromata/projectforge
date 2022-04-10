@@ -48,6 +48,7 @@ object AGGridSupport {
     request: HttpServletRequest,
     layout: UILayout,
     magicFilter: MagicFilter,
+    pagesRest: AbstractPagesRest<*, *, *>,
     pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
   ): UIAgGrid {
     val table = UIAgGrid.createUIResultSetTable()
@@ -70,6 +71,9 @@ object AGGridSupport {
             markdown = true,
           )
         )
+    } else {
+      table.withSingleRowClick()
+      table.withRowClickRedirectUrl("${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id")
     }
     return table
   }

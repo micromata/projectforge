@@ -72,6 +72,7 @@ class AddressCampaignValuePagesRest :
       request,
       layout,
       magicFilter,
+      this,
       AddressCampaignValueMultiSelectedPageRest::class.java,
     )
       .add(lc, "address.name", "address.firstName", "address.organization")

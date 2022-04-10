@@ -34,6 +34,7 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AGGridSupport
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Contract
 import org.projectforge.ui.*
@@ -103,14 +104,19 @@ class ContractPagesRest
    */
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val layout = super.createListLayout(request, magicFilter)
-      .add(
-        UITable.createUIResultSetTable()
-          .add(lc, "number", "date", "type")
-          .add(UITableColumn("statusAsString", "status"))
-          .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
-          .add(lc, "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate")
-      )
-    layout.getTableColumnById("date").formatter = UITableColumn.Formatter.DATE
+    val table = AGGridSupport.prepareUIGrid4ListPage(
+      request,
+      layout,
+      magicFilter,
+      this,
+    )
+    val typeWidth = configurationService.contractTypes.maxByOrNull { it.value.length }?.value?.length ?: 1
+    table.add(lc, "number", width = 50)
+      .add(lc, "date")
+      .add(lc, "type", width = typeWidth * 10)
+      .add(lc, "statusAsString", headerName = "status")
+      .add(lc, "attachmentsSizeFormatted") //, titleIcon = UIIconType.PAPER_CLIP)
+      .add(lc, "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate")
     return LayoutUtils.processListPage(layout, this)
   }
 
