@@ -73,7 +73,7 @@ function DynamicListPageAgGrid({
 
 DynamicListPageAgGrid.propTypes = {
     columnDefs: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.string.isRequired,
+        id: PropTypes.string,
         title: PropTypes.string,
         titleIcon: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
@@ -85,7 +85,7 @@ DynamicListPageAgGrid.propTypes = {
     urlAfterMultiSelect: PropTypes.string,
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
-    getRowClass: PropTypes.shape({}),
+    getRowClass: PropTypes.string,
 };
 
 DynamicListPageAgGrid.defaultProps = {

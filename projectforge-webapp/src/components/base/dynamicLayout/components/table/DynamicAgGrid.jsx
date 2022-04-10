@@ -45,6 +45,13 @@ function DynamicAgGrid({
         }
     }, [gridApi, selectedEntityIds]);
 
+    React.useEffect(() => {
+        if (gridApi && data.highlightRowId) {
+            // Force redraw to highlight the current row (otherwise getRawClass is not updated).
+            gridApi.redrawRows();
+        }
+    }, [gridApi, data.highlightRowId]);
+
     const onSelectionChanged = React.useCallback(() => {
         if (!rowClickRedirectUrl) {
             // Do nothing
@@ -89,6 +96,19 @@ function DynamicAgGrid({
         formatter: Formatter,
     });
 
+    const usedGetRowClass = React.useCallback((params) => {
+        const myClass = getRowClassFunction(params);
+        if (params.node.data?.id === data?.highlightRowId) {
+            const classes = [];
+            classes.push('ag-row-highlighted');
+            if (myClass) {
+                classes.push(myClass);
+            }
+            return classes;
+        }
+        return myClass;
+    }, [data.highlightRowId]);
+
     return React.useMemo(() => (
         <div
             className="ag-theme-alpine"
@@ -106,17 +126,19 @@ function DynamicAgGrid({
                 pagination={pagination}
                 paginationPageSize={paginationPageSize}
                 rowClass={rowClass}
-                getRowClass={getRowClassFunction}
+                getRowClass={usedGetRowClass}
             />
         </div>
     ),
     [
         entries,
         ui,
+        data.highlightRowId,
         gridStyle,
         columnDefs,
         rowSelection,
         rowMultiSelectWithClick,
+        usedGetRowClass,
         onGridReady,
     ]);
 }
