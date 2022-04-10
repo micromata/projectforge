@@ -127,6 +127,7 @@ function DynamicAgGrid({
                 paginationPageSize={paginationPageSize}
                 rowClass={rowClass}
                 getRowClass={usedGetRowClass}
+                accentedSort
             />
         </div>
     ),
