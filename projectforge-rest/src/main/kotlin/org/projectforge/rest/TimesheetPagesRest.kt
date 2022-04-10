@@ -269,8 +269,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
     table.add(lc, "description", width = 1000)
     layout.add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
-    // table.getColumnDefById("timesheet.user").valueFormatter = Formatter.USER
-    // table.getColumnDefById("timesheet.task").valueFormatter = Formatter.TASK_PATH
     return LayoutUtils.processListPage(layout, this)
   }
 

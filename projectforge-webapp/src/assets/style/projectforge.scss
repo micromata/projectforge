@@ -1,6 +1,7 @@
 @import '../fonts/roboto/index.css';
 @import './theming.scss';
 @import '~bootstrap/scss/bootstrap';
+@import '@fortawesome/fontawesome-free/scss/solid';
 
 .ag-theme-alpine .ag-row {
 	font-size: 12px !important;
@@ -39,6 +40,20 @@
 	color: red !important;
 	text-decoration: line-through !important;
 	font-style: italic !important;
+}
+
+.icon::before {
+	display: inline-block;
+	text-rendering: auto;
+	-webkit-font-smoothing: antialiased;
+}
+
+.icon-solid::before {
+	font: var(--fa-font-solid);
+}
+
+.icon-paperclip::before {
+	content: fa-content($fa-var-paperclip);
 }
 
 html {
