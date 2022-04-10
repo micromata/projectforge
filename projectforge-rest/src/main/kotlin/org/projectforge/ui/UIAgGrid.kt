@@ -89,7 +89,7 @@ open class UIAgGrid(
   /**
    * For adding columns with the given ids
    * @param valueGetter Make only sense, if no multiple fields are given.
-   * @param lcField Make only sense, if no multiple fields are given.
+   * @param width
    * @return this for chaining.
    */
   fun add(

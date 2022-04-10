@@ -34,6 +34,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateFormats
@@ -45,17 +46,22 @@ import java.time.LocalDate
 open class UIAgGridColumnDef(
   var field: String,
   var headerName: String? = null,
+  var headerTooltip: String? = null,
   var sortable: Boolean = false,
   var filter: Boolean = false,
   var valueGetter: String? = null,
   var type: String? = null,
   var checkboxSelection: Boolean? = null,
   var headerCheckboxSelection: Boolean? = null,
-  var width: Int? = null,
   var minWidth: Int? = null,
   var maxWidth: Int? = null,
   var resizable: Boolean? = true,
 ) {
+  /**
+   * width in Pixel.
+   */
+  var width: Int? = null
+
   var pinned: String? = null
 
   /**
@@ -65,6 +71,11 @@ open class UIAgGridColumnDef(
   var cellRenderer: String? = null
 
   var cellRendererParams: Map<String, Any>? = null
+
+  /**
+   * https://www.ag-grid.com/react-data-grid/column-properties/
+   */
+  var headerClass: Array<String>? = null
 
   /**
    * https://www.ag-grid.com/react-data-grid/value-formatters/
@@ -116,13 +127,14 @@ open class UIAgGridColumnDef(
 
   companion object {
     /**
-     * @param lcField If field name of dto differs from do (e. g. kost2.project vs. kost2.projekt)
+     * @param width Column width in pixel.
      */
     fun createCol(
       field: String,
       sortable: Boolean = true,
       width: Int? = null,
       headerName: String? = null,
+      headerTooltip: String? = null,
       valueGetter: String? = null,
       valueFormatter: Formatter? = null,
     ): UIAgGridColumnDef {
@@ -132,6 +144,7 @@ open class UIAgGridColumnDef(
         sortable = sortable,
         width = width,
         headerName = headerName,
+        headerTooltip = headerTooltip,
         valueGetter = valueGetter,
         formatter = valueFormatter,
       )
@@ -139,6 +152,7 @@ open class UIAgGridColumnDef(
 
     /**
      * @param lcField If field name of dto differs from do (e. g. kost2.project vs. kost2.projekt)
+     * @param width Column width in pixel.
      */
     fun createCol(
       lc: LayoutContext?,
@@ -146,6 +160,7 @@ open class UIAgGridColumnDef(
       sortable: Boolean = true,
       width: Int? = null,
       headerName: String? = null,
+      headerTooltip: String? = null,
       valueGetter: String? = null,
       formatter: Formatter? = null,
       lcField: String = field,
@@ -156,6 +171,9 @@ open class UIAgGridColumnDef(
       }
       if (headerName != null) {
         col.headerName = headerName
+      }
+      if (headerTooltip != null) {
+        col.headerTooltip = headerTooltip
       }
       val elementInfo = ElementsRegistry.getElementInfo(lc, lcField)
       var useFormatter = formatter
@@ -208,6 +226,11 @@ open class UIAgGridColumnDef(
         if (useFormatter == null) {
           if (valueGetter.isNullOrBlank() && DisplayNameCapable::class.java.isAssignableFrom(elementInfo.propertyClass)) {
             col.valueGetter = "data?.${col.field}?.displayName"
+          } else if (field == "attachmentsSizeFormatted") {
+            col.headerClass = arrayOf("icon", "icon-solid", "icon-paperclip")
+            col.headerName = ""
+            col.headerTooltip = translate("attachments")
+            col.width = 30
           }
         }
       }
