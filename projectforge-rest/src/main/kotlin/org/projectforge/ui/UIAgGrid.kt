@@ -36,7 +36,7 @@ open class UIAgGrid(
   val id: String,
   val columnDefs: MutableList<UIAgGridColumnDef> = mutableListOf(),
   val listPageTable: Boolean = false,
-  var rowSelection: String? = null, // multiple
+  var rowSelection: String? = null, // single, multiple or null
   var rowMultiSelectWithClick: Boolean? = null,
 
   ) : UIElement(if (listPageTable) UIElementType.AG_GRID_LIST_PAGE else UIElementType.AG_GRID) {
@@ -46,6 +46,16 @@ open class UIAgGrid(
    * This url should be called with all selected rows to proceed the user action (mass update, export etc.)
    */
   var urlAfterMultiSelect: String? = null
+
+  /**
+   * After row click a post to this url should be initiated (not yet implemented).
+   */
+  var rowClickPostUrl: String? = null
+
+  /**
+   * Redirect to given url with row-id as id parameter.
+   */
+  var rowClickRedirectUrl: String? = null
 
   /**
    * Tell the client, which entities were selected (for recovering, e. g. after reload or back button).
@@ -67,6 +77,7 @@ open class UIAgGrid(
     fun createUIResultSetTable(): UIAgGrid {
       return UIAgGrid("resultSet", listPageTable = true)
     }
+
     private const val GET_ROW_CLASS = "if (params.node.data?.deleted) { return 'ag-row-deleted'; }"
   }
 
@@ -174,6 +185,14 @@ open class UIAgGrid(
   /**
    * @return this for chaining.
    */
+  fun withSingleRowClick(): UIAgGrid {
+    rowSelection = "single"
+    return this
+  }
+
+  /**
+   * @return this for chaining.
+   */
   fun withPinnedLeft(col: Int): UIAgGrid {
     columnDefs.forEachIndexed { index, columnDef ->
       if (index < col) {
@@ -185,6 +204,11 @@ open class UIAgGrid(
 
   fun withGetRowClass(getRowClass: String): UIAgGrid {
     this.getRowClass = "$GET_ROW_CLASS else { $getRowClass }"
+    return this
+  }
+
+  fun withRowClickRedirectUrl(rowClickRedirectUrl: String): UIAgGrid {
+    this.rowClickRedirectUrl = rowClickRedirectUrl
     return this
   }
 }

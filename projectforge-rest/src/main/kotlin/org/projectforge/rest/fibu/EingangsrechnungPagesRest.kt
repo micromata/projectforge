@@ -75,6 +75,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
       request,
       layout,
       magicFilter,
+      this,
       EingangsrechnungMultiSelectedPageRest::class.java,
     )
       .add(lc, "kreditor", "referenz", "betreff", "konto", "datum", "faelligkeitOrDiscountMaturity", "bezahlDatum")

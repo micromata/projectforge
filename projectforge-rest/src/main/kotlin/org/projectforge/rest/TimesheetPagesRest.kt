@@ -249,6 +249,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       request,
       layout,
       magicFilter,
+      this,
       TimesheetMultiSelectedPageRest::class.java,
     )
       .add(lc, "user")

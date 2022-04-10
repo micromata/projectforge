@@ -65,6 +65,7 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(
       request,
       layout,
       magicFilter,
+      this,
     )
       .add(lc, "lastUpdate", "skill", "owner")
       .add(lc, "rating", formatter = UIAgGridColumnDef.Formatter.RATING)
