@@ -31,7 +31,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AGGridSupport
 import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
@@ -61,7 +60,7 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val layout = super.createListLayout(request, magicFilter)
 
-    AGGridSupport.prepareUIGrid4ListPage(
+    agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,

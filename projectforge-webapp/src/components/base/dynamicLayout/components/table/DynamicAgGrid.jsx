@@ -1,3 +1,4 @@
+import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React, { useRef, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
@@ -6,7 +7,7 @@ import Formatter from '../../../Formatter';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import history from '../../../../../utilities/history';
-// import {getServiceURL, handleHTTPErrors} from "../../../../../utilities/rest";
+import { getServiceURL } from '../../../../../utilities/rest';
 
 function DynamicAgGrid({
     columnDefs,
@@ -14,6 +15,7 @@ function DynamicAgGrid({
     rowSelection,
     rowMultiSelectWithClick,
     rowClickRedirectUrl,
+    onColumnStatesChangedUrl,
     onGridApiReady,
     pagination,
     paginationPageSize,
@@ -52,7 +54,7 @@ function DynamicAgGrid({
         }
     }, [gridApi, data.highlightRowId]);
 
-    const onSelectionChanged = React.useCallback(() => {
+    const onSelectionChanged = () => {
         if (!rowClickRedirectUrl) {
             // Do nothing
             return;
@@ -90,7 +92,37 @@ function DynamicAgGrid({
             })
             // eslint-disable-next-line no-alert
             .catch((error) => alert(`Internal error: ${error}`)); */
-    }, [gridApi]);
+    };
+
+    const postColumnStates = (event) => {
+        if (onColumnStatesChangedUrl) {
+            const columnState = event.columnApi.getColumnState();
+            fetch(
+                getServiceURL(onColumnStatesChangedUrl), {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(columnState),
+                },
+            );
+        }
+    };
+
+    const postColumnStatesDebounced = AwesomeDebouncePromise(postColumnStates, 500);
+
+    const onSortChanged = async (event) => {
+        await postColumnStatesDebounced(event);
+    };
+
+    const onColumnResized = async (event) => {
+        await postColumnStatesDebounced(event);
+    };
+
+    const onColumnMoved = async (event) => {
+        await postColumnStatesDebounced(event);
+    };
 
     const [components] = useState({
         formatter: Formatter,
@@ -123,6 +155,9 @@ function DynamicAgGrid({
                 rowMultiSelectWithClick={rowMultiSelectWithClick}
                 onGridReady={onGridReady}
                 onSelectionChanged={onSelectionChanged}
+                onSortChanged={onSortChanged}
+                onColumnMoved={onColumnMoved}
+                onColumnResized={onColumnResized}
                 pagination={pagination}
                 paginationPageSize={paginationPageSize}
                 rowClass={rowClass}
@@ -154,6 +189,7 @@ DynamicAgGrid.propTypes = {
     rowSelection: PropTypes.string,
     rowMultiSelectWithClick: PropTypes.bool,
     rowClickRedirectUrl: PropTypes.string,
+    onColumnStatesChangedUrl: PropTypes.string,
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
     getRowClass: PropTypes.shape({}),

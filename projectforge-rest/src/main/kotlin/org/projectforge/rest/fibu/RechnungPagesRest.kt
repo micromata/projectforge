@@ -28,7 +28,6 @@ import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AGGridSupport
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Rechnung
 import org.projectforge.ui.*
@@ -46,7 +45,7 @@ class RechnungPagesRest :
    */
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val layout = super.createListLayout(request, magicFilter)
-    val grid = AGGridSupport.prepareUIGrid4ListPage(
+    val grid = agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,

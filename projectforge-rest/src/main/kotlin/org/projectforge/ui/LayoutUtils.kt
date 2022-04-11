@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.ServerData
 
@@ -73,6 +74,9 @@ object LayoutUtils {
     layout: UILayout,
     pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>
   ): UILayout {
+    layout.layout.find { it is UIAgGrid }?.let { agGrid ->
+      pagesRest.agGridSupport.restoreColumnsFromUserPref(pagesRest.category, agGrid as UIAgGrid)
+    }
     layout
       .addAction(
         UIButton.createResetButton(

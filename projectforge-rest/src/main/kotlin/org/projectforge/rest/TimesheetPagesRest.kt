@@ -245,7 +245,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     lc.idPrefix = "timesheet."
     val layout = super.createListLayout(request, magicFilter)
-    val table = AGGridSupport.prepareUIGrid4ListPage(
+    val table = agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,

@@ -28,7 +28,6 @@ import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AGGridSupport
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Eingangsrechnung
 import org.projectforge.rest.dto.PostData
@@ -71,7 +70,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
    */
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val layout = super.createListLayout(request, magicFilter)
-    AGGridSupport.prepareUIGrid4ListPage(
+    agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,
@@ -85,7 +84,8 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
       .add(lc, "bemerkung")
       .withPinnedLeft(2)
       .withMultiRowSelection(request, magicFilter)
-      .withGetRowClass("""if (params.node.data.ueberfaellig) {
+      .withGetRowClass(
+        """if (params.node.data.ueberfaellig) {
             return 'ag-row-red';
         } else if (!params.node.data.bezahlDatum) {
             return 'ag-row-blue';

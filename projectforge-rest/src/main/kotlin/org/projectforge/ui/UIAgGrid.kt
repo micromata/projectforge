@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletRequest
  */
 open class UIAgGrid(
   val id: String,
-  val columnDefs: MutableList<UIAgGridColumnDef> = mutableListOf(),
+  var columnDefs: MutableList<UIAgGridColumnDef> = mutableListOf(),
   val listPageTable: Boolean = false,
   var rowSelection: String? = null, // single, multiple or null
   var rowMultiSelectWithClick: Boolean? = null,
@@ -65,6 +65,8 @@ open class UIAgGrid(
   var pagination: Boolean? = null
 
   var paginationPageSize: Int? = null
+
+  var onColumnStatesChangedUrl: String? = null
 
   /**
    * https://www.ag-grid.com/react-data-grid/row-styles/#row-class

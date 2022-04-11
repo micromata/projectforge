@@ -34,7 +34,6 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AGGridSupport
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Contract
 import org.projectforge.ui.*
@@ -104,7 +103,7 @@ class ContractPagesRest
    */
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val layout = super.createListLayout(request, magicFilter)
-    val table = AGGridSupport.prepareUIGrid4ListPage(
+    val table = agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,
