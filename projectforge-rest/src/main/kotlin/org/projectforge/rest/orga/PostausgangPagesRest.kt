@@ -65,11 +65,8 @@ class PostausgangPagesRest() :
    */
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val layout = super.createListLayout(request, magicFilter)
-      .add(
-        UITable.createUIResultSetTable()
-          .add(lc, "datum", "empfaenger", "person", "absender", "inhalt", "bemerkung", "type")
-      )
-    layout.getTableColumnById("datum").formatter = UITableColumn.Formatter.DATE
+    val table = agGridSupport.prepareUIGrid4ListPage(request, layout, magicFilter, this)
+    table.add(lc, "datum", "empfaenger", "person", "absender", "inhalt", "bemerkung", "type")
     return LayoutUtils.processListPage(layout, this)
   }
 

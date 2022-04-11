@@ -40,60 +40,76 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/book")
-class BookPagesRest: AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, "book.title") {
+class BookPagesRest : AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, "book.title") {
 
-    /**
-     * Initializes new books for adding.
-     */
-    override fun newBaseDO(request: HttpServletRequest?): BookDO {
-        val book = super.newBaseDO(request)
-        book.status = BookStatus.PRESENT
-        book.type = BookType.BOOK
-        return book
-    }
+  /**
+   * Initializes new books for adding.
+   */
+  override fun newBaseDO(request: HttpServletRequest?): BookDO {
+    val book = super.newBaseDO(request)
+    book.status = BookStatus.PRESENT
+    book.type = BookType.BOOK
+    return book
+  }
 
-    override fun validate(validationErrors: MutableList<ValidationError>, dto: BookDO) {
-        Validation.validateInteger(validationErrors, "yearOfPublishing", dto.yearOfPublishing, Const.MINYEAR, Const.MAXYEAR, formatNumber = false)
-        if (baseDao.doesSignatureAlreadyExist(dto))
-            validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
-    }
+  override fun validate(validationErrors: MutableList<ValidationError>, dto: BookDO) {
+    Validation.validateInteger(
+      validationErrors,
+      "yearOfPublishing",
+      dto.yearOfPublishing,
+      Const.MINYEAR,
+      Const.MAXYEAR,
+      formatNumber = false
+    )
+    if (baseDao.doesSignatureAlreadyExist(dto))
+      validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
+  }
 
-    /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
-                        .add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
-        layout.getTableColumnById("lendOutBy").formatter = UITableColumn.Formatter.USER
-        return LayoutUtils.processListPage(layout, this)
-    }
+  /**
+   * LAYOUT List page
+   */
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+    val layout = super.createListLayout(request, magicFilter)
+    val table = agGridSupport.prepareUIGrid4ListPage(request, layout, magicFilter, this)
+    table.add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy")
+    return LayoutUtils.processListPage(layout, this)
+  }
 
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: BookDO, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-                .add(lc, "title", "authors")
-                .add(UIRow()
-                        .add(UICol(6)
-                                .add(UIRow()
-                                        .add(UICol(6).add(lc, "type"))
-                                        .add(UICol(6).add(lc, "status")))
-                                .add(lc, "yearOfPublishing", "signature"))
-                        .add(UICol(6)
-                                .add(lc, "isbn", "publisher", "editor")))
-                .add(lc, "keywords")
+  /**
+   * LAYOUT Edit page
+   */
+  override fun createEditLayout(dto: BookDO, userAccess: UILayout.UserAccess): UILayout {
+    val layout = super.createEditLayout(dto, userAccess)
+      .add(lc, "title", "authors")
+      .add(
+        UIRow()
+          .add(
+            UICol(6)
+              .add(
+                UIRow()
+                  .add(UICol(6).add(lc, "type"))
+                  .add(UICol(6).add(lc, "status"))
+              )
+              .add(lc, "yearOfPublishing", "signature")
+          )
+          .add(
+            UICol(6)
+              .add(lc, "isbn", "publisher", "editor")
+          )
+      )
+      .add(lc, "keywords")
 
-        if (dto.id != null) // Show lend out functionality only for existing books:
-            layout.add(UIFieldset(title = "book.lending")
-                    .add(UICustomized("book.lendOutComponent"))
-                    .add(lc, "lendOutComment"))
-        layout.add(lc, "abstractText", "comment")
-        layout.getInputById("title").focus = true
-        layout.getTextAreaById("authors").rows = 1
-        layout.addTranslations("book.lendOut")
-                .addTranslations("book.returnBook")
-        return LayoutUtils.processEditPage(layout, dto, this)
-    }
+    if (dto.id != null) // Show lend out functionality only for existing books:
+      layout.add(
+        UIFieldset(title = "book.lending")
+          .add(UICustomized("book.lendOutComponent"))
+          .add(lc, "lendOutComment")
+      )
+    layout.add(lc, "abstractText", "comment")
+    layout.getInputById("title").focus = true
+    layout.getTextAreaById("authors").rows = 1
+    layout.addTranslations("book.lendOut")
+      .addTranslations("book.returnBook")
+    return LayoutUtils.processEditPage(layout, dto, this)
+  }
 }

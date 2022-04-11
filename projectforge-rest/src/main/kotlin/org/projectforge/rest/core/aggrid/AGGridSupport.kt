@@ -124,9 +124,9 @@ class AGGridSupport {
     agGrid.columnDefs // reorder
     agGrid.columnDefs.forEach { colDef ->
       columnStates.find { it.colId == colDef.field }?.let { columnState ->
-        colDef.width = columnState.width
-        colDef.sort = columnState.sort
-        colDef.sortIndex = columnState.sortIndex
+        colDef.initialWidth = columnState.width
+        colDef.initialSort = columnState.sort
+        colDef.initialSortIndex = columnState.sortIndex
       }
     }
   }

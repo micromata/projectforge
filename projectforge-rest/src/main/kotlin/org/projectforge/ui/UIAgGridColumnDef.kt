@@ -60,13 +60,13 @@ open class UIAgGridColumnDef(
   /**
    * width in Pixel.
    */
-  var width: Int? = null
+  var initialWidth: Int? = null
 
-  var sort: String? = null
+  var initialSort: String? = null
 
-  var sortIndex: Int? = null
+  var initialSortIndex: Int? = null
 
-  var pinned: String? = null
+  var initialPinned: String? = null
 
   /**
    * https://www.ag-grid.com/react-data-grid/components/
@@ -120,12 +120,12 @@ open class UIAgGridColumnDef(
   }
 
   fun withPinnedLeft(): UIAgGridColumnDef {
-    pinned = "left"
+    initialPinned = "left"
     return this
   }
 
   fun withPinnedRight(): UIAgGridColumnDef {
-    pinned = "right"
+    initialPinned = "right"
     return this
   }
 
@@ -221,7 +221,7 @@ open class UIAgGridColumnDef(
             }
           } else if (elementInfo.propertyClass == String::class.java) {
             if ((elementInfo.maxLength ?: 0) > 1000 && width == null) {
-              col.width = 500 // Extra wide column
+              col.initialWidth = 500 // Extra wide column
             }
           } else if (elementInfo.propertyClass == Boolean::class.java || elementInfo.propertyClass == java.lang.Boolean::class.java) {
             useFormatter = Formatter.BOOLEAN
@@ -234,23 +234,23 @@ open class UIAgGridColumnDef(
             col.headerClass = arrayOf("icon", "icon-solid", "icon-paperclip")
             col.headerName = ""
             col.headerTooltip = translate("attachments")
-            col.width = 30
+            col.initialWidth = 30
           }
         }
       }
       if (width != null) {
-        col.width = width
+        col.initialWidth = width
       }
       useFormatter?.let {
         when (it) {
           Formatter.CURRENCY -> {
             if (width == null) {
-              col.width = 120
+              col.initialWidth = 120
               col.type = AG_TYPE.NUMERIC_COLUMN.agType
             }
           }
           Formatter.DATE -> {
-            col.width = 100
+            col.initialWidth = 100
           }
           else -> {}
         }
