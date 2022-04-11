@@ -115,45 +115,28 @@ class UILayoutTest : AbstractTestBase() {
 
     @Test
     fun testBookListLayout() {
+        logon(TEST_USER)
         val gson = GsonBuilder().create()
         val jsonString = gson.toJson(bookRest.createListLayout(Mockito.mock(HttpServletRequest::class.java), MagicFilter()))
         val jsonValidator = JsonValidator(jsonString)
 
         assertEquals("resultSet", jsonValidator.get("layout[0].id"))
-        assertEquals("TABLE_LIST_PAGE", jsonValidator.get("layout[0].type"))
+        assertEquals("AG_GRID_LIST_PAGE", jsonValidator.get("layout[0].type"))
         assertEquals("el-1", jsonValidator.get("layout[0].key"))
 
-        assertEquals(7, jsonValidator.getList("layout[0].columns")?.size)
-
-        var idx = findIndexed(jsonValidator, "created","layout[0].columns[#idx#].id")
-        assertEquals("created", jsonValidator.get("layout[0].columns[$idx].id"))
-        assertEquals(translate("created"), jsonValidator.get("layout[0].columns[$idx].title"))
-        assertEquals("TIMESTAMP", jsonValidator.get("layout[0].columns[$idx].dataType"))
-        assertEquals(true, jsonValidator.getBoolean("layout[0].columns[$idx].sortable"))
-        assertEquals("TABLE_COLUMN", jsonValidator.get("layout[0].columns[$idx].type"))
-        assertEquals("el-2", jsonValidator.get("layout[0].columns[$idx].key"))
-
-        idx = findIndexed(jsonValidator, "yearOfPublishing", "layout[0].columns[#idx#].id")
-        assertEquals("yearOfPublishing", jsonValidator.get("layout[0].columns[$idx].id"))
-        assertEquals(translate("book.yearOfPublishing"), jsonValidator.get("layout[0].columns[$idx].title"))
-        assertEquals("STRING", jsonValidator.get("layout[0].columns[$idx].dataType"))
-        assertEquals(true, jsonValidator.getBoolean("layout[0].columns[$idx].sortable"))
-        assertNull(jsonValidator.get("layout[0].columns[1].formatter"))
-        assertEquals("TABLE_COLUMN", jsonValidator.get("layout[0].columns[$idx].type"))
-        assertEquals("el-3", jsonValidator.get("layout[0].columns[$idx].key"))
+        assertEquals(7, jsonValidator.getList("layout[0].columnDefs")?.size)
 
         assertEquals(2, jsonValidator.getList("actions")?.size)
         assertEquals("reset", jsonValidator.get("actions[0].id"))
         assertEquals(translate("reset"), jsonValidator.get("actions[0].title"))
         assertEquals("SECONDARY", jsonValidator.get("actions[0].color")) // Gson doesn't know JsonProperty of Jackson (DANGER -> danger.)
         assertEquals("BUTTON", jsonValidator.get("actions[0].type"))
-        assertEquals("el-9", jsonValidator.get("actions[0].key"))
 
         assertEquals("PRIMARY", jsonValidator.get("actions[1].color")) // Gson doesn't know JsonProperty of Jackson.
     }
 
     private fun findIndexed(jsonValidator: JsonValidator, field: String, path: String): Int {
-        for (i in 0..10) {
+        for (i in 0..7) {
             if (jsonValidator.get(path.replace("#idx#", "$i")) == field) {
                 return i
             }
