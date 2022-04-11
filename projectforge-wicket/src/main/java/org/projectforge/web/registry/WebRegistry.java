@@ -259,9 +259,6 @@ public class WebRegistry
     register(DaoConst.ORDERBOOK, AuftragListPage.class);
     addMountPages(DaoConst.ORDERBOOK, AuftragListPage.class, AuftragEditPage.class);
 
-    register(DaoConst.CONTRACT, ContractListPage.class);
-    addMountPages(DaoConst.CONTRACT, ContractListPage.class, ContractEditPage.class);
-
     register(DaoConst.INCOMING_INVOICE, EingangsrechnungListPage.class);
     addMountPages(DaoConst.INCOMING_INVOICE, EingangsrechnungListPage.class, EingangsrechnungEditPage.class);
 
