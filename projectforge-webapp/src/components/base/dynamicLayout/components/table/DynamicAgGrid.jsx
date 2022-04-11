@@ -70,28 +70,6 @@ function DynamicAgGrid({
             return;
         }
         history.push(rowClickRedirectUrl.replace('id', firstSelectedRowId));
-        /* handle rowClickPostUrl
-        fetch(
-            getServiceURL(`${rowClickPostUrl}/${row.id}`),
-            {
-                credentials: 'include',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                },
-                body: JSON.stringify({
-                    data,
-                }),
-            },
-        )
-            .then(handleHTTPErrors)
-            .then((body) => body.json())
-            .then((json) => {
-                callAction({ responseAction: json });
-            })
-            // eslint-disable-next-line no-alert
-            .catch((error) => alert(`Internal error: ${error}`)); */
     };
 
     const postColumnStates = (event) => {
