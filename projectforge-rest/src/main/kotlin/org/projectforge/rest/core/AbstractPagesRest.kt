@@ -616,7 +616,7 @@ constructor(
   fun resetListFilter(request: HttpServletRequest): ResponseAction {
     saveCurrentFilter(MagicFilter())
     agGridSupport.resetGridState(category)
-    return ResponseAction(targetType = TargetType.UPDATE)
+    return ResponseAction(targetType = TargetType.RELOAD)
       .addVariable("filter", MagicFilter())
   }
 

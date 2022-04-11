@@ -146,7 +146,7 @@ class UserPrefCache : AbstractCache() {
             log.debug { "Remove entry for area '$area' and name '$name'." }
         }
         data.removeEntry(area, name)
-        if (cacheEntry.persistant)
+        if (cacheEntry.persistant && cacheEntry.userPrefDO.id != null)
             userPrefDao.delete(cacheEntry.userPrefDO)
         checkRefresh()
     }

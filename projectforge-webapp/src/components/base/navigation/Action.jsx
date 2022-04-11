@@ -38,6 +38,9 @@ class NavigationAction extends React.Component {
                         case 'REDIRECT':
                             history.push(redirectUrl);
                             break;
+                        case 'RELOAD':
+                            window.location.reload();
+                            break;
                         case 'CHECK_AUTHENTICATION':
                             checkLogin();
 
