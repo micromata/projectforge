@@ -35,7 +35,6 @@ import org.projectforge.plugins.marketing.AddressCampaignValueDao
 import org.projectforge.plugins.marketing.dto.AddressCampaign
 import org.projectforge.plugins.marketing.dto.AddressCampaignValue
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AGGridSupport
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.multiselect.MultiSelectionSupport
@@ -68,7 +67,7 @@ class AddressCampaignValuePagesRest :
    */
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val layout = super.createListLayout(request, magicFilter)
-    AGGridSupport.prepareUIGrid4ListPage(
+    agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,

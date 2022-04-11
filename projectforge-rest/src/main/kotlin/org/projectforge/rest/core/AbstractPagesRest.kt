@@ -46,6 +46,8 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.aggrid.AGGridSupport
+import org.projectforge.rest.dto.aggrid.AGColumnState
 import org.projectforge.rest.dto.*
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
@@ -176,6 +178,9 @@ constructor(
 
   @Autowired
   protected lateinit var attachmentsService: AttachmentsService
+
+  @Autowired
+  lateinit var agGridSupport: AGGridSupport
 
   @Autowired
   private lateinit var historyService: HistoryService
@@ -610,6 +615,7 @@ constructor(
   @GetMapping("filter/reset")
   fun resetListFilter(request: HttpServletRequest): ResponseAction {
     saveCurrentFilter(MagicFilter())
+    agGridSupport.resetGridState(category)
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("filter", MagicFilter())
   }
@@ -866,6 +872,15 @@ constructor(
     )
   }
 
+  /**
+   * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
+   * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
+   */
+  @PostMapping(RestPaths.UPDATE_COLUMN_STATES)
+  fun updateColumnStates(request: HttpServletRequest, @Valid @RequestBody columnStates: List<AGColumnState>): String {
+    agGridSupport.storeColumnStates(category, columnStates)
+    return "OK"
+  }
 
   protected open fun autoSaveOnClone(
     request: HttpServletRequest,

@@ -105,6 +105,8 @@ public class RestPaths
 
   public static final String TEAMEVENTS = "teamevents";
 
+  public static final String UPDATE_COLUMN_STATES = "updateColumnStates";
+
   public static final String WATCH_FIELDS = "watchFields";
 
   public static final String FILTER_RESET = "filterReset";
