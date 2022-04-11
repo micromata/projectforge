@@ -97,6 +97,7 @@ class AGGridSupport {
     } else {
       table.withSingleRowClick()
       table.withRowClickRedirectUrl("${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id")
+      layout.add(UIAlert(message = "agGrid.sortInfo", color = UIColor.INFO, markdown = true))
     }
     table.onColumnStatesChangedUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.UPDATE_COLUMN_STATES)
     return table
@@ -124,6 +125,8 @@ class AGGridSupport {
     agGrid.columnDefs.forEach { colDef ->
       columnStates.find { it.colId == colDef.field }?.let { columnState ->
         colDef.width = columnState.width
+        colDef.sort = columnState.sort
+        colDef.sortIndex = columnState.sortIndex
       }
     }
   }

@@ -62,6 +62,10 @@ open class UIAgGridColumnDef(
    */
   var width: Int? = null
 
+  var sort: String? = null
+
+  var sortIndex: Int? = null
+
   var pinned: String? = null
 
   /**
