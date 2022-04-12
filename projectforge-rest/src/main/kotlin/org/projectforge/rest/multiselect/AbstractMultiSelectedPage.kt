@@ -26,7 +26,6 @@ package org.projectforge.rest.multiselect
 import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.utils.ReplaceUtils
 import mu.KotlinLogging
-import org.apache.poi.ss.usermodel.CellValue
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -36,12 +35,10 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.admin.LogViewerPageRest
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.AbstractPagesRest
-import org.projectforge.rest.core.DownloadFileSupport
-import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.*
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
@@ -74,11 +71,11 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
    * is auto-detected by [PagesResolver] with parameter [pageRestClass].
    */
   protected open val listPageUrl: String
-    get() = PagesResolver.getListPageUrl(pagesRestClass, absolute = true)
+    get() = PagesResolver.getListPageUrl(pagesRest::class.java, absolute = true)
 
   abstract fun getTitleKey(): String
 
-  protected abstract val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
+  protected lateinit var pagesRest: AbstractPagesRest<*, *, *>
 
   /**
    * Create log subscription, if the user should view the log messages. At default it's disabled.
@@ -108,9 +105,9 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     request: HttpServletRequest,
     @RequestBody postData: PostData<Map<String, MassUpdateParameter>>
   ): ResponseEntity<*> {
-    val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRestClass)
+    val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
 
-    val massUpdateContext = object: MassUpdateContext<T>(postData.data.toMutableMap()) {
+    val massUpdateContext = object : MassUpdateContext<T>(postData.data.toMutableMap()) {
       override fun getId(obj: T): Int {
         return this@AbstractMultiSelectedPage.getId(obj)
       }
@@ -139,6 +136,17 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     log.info("Downloading '${downloadFile.filename}' of size ${downloadFile.sizeHumanReadable}.")
     return RestUtils.downloadFile(downloadFile.filename, downloadFile.bytes)
   }
+
+  /**
+   * This rest service will be called on multi selection list pages, if the user wants to cancel the multi selection.
+   * @return redirect url
+   */
+  @GetMapping(RestPaths.CANCEL_MULTI_SELECTION)
+  fun handleCancelUrl(request: HttpServletRequest): ResponseAction {
+    val callerUrl = MultiSelectionSupport.clear(request, pagesRest) ?: listPageUrl
+    return ResponseAction(callerUrl, targetType = TargetType.REDIRECT)
+  }
+
 
   /**
    * Used by TimesheetMultiSelectedPage for fixing kost2 issues. Does nothing at default.
@@ -189,7 +197,11 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     return field.replaceFirstChar { it.lowercase() }
   }
 
-  fun massUpdate(request: HttpServletRequest, selectedIds: Collection<Serializable>?, massUpdateContext: MassUpdateContext<T>): ResponseEntity<*>? {
+  fun massUpdate(
+    request: HttpServletRequest,
+    selectedIds: Collection<Serializable>?,
+    massUpdateContext: MassUpdateContext<T>
+  ): ResponseEntity<*>? {
     if (selectedIds.isNullOrEmpty()) {
       return showNoEntriesValidationError()
     }
@@ -269,7 +281,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
   ): UILayout {
     val layout = UILayout(getTitleKey())
 
-    val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRestClass)
+    val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
     val formattedSize = NumberFormatter.format(selectedIds?.size)
     if (selectedIds.isNullOrEmpty()) {
       layout.add(UIAlert("massUpdate.error.noEntriesSelected", color = UIColor.DANGER))
@@ -288,16 +300,16 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     layout.add(
       UIButton.createCancelButton(
         ResponseAction(
-          listPageUrl,
-          targetType = TargetType.REDIRECT
+          RestResolver.getRestUrl(this::class.java, RestPaths.CANCEL_MULTI_SELECTION),
+          targetType = TargetType.GET,
         )
       )
     )
-    if (!MultiSelectionSupport.getRegisteredEntityIds(request, pagesRestClass).isNullOrEmpty()) {
+    if (!MultiSelectionSupport.getRegisteredEntityIds(request, pagesRest::class.java).isNullOrEmpty()) {
       layout.add(
         UIButton.createBackButton(
           ResponseAction(
-            PagesResolver.getMultiSelectionPageUrl(pagesRestClass, absolute = true),
+            PagesResolver.getMultiSelectionPageUrl(pagesRest::class.java, absolute = true),
             targetType = TargetType.REDIRECT
           ),
           title = "massUpdate.changeSelection",
@@ -378,7 +390,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     request: HttpServletRequest,
     @RequestBody selectedIds: MultiSelection?
   ): ResponseEntity<*> {
-    MultiSelectionSupport.registerSelectedEntityIds(request, pagesRestClass, selectedIds?.selectedIds)
+    MultiSelectionSupport.registerSelectedEntityIds(request, pagesRest::class.java, selectedIds?.selectedIds)
     return ResponseEntity.ok(
       ResponseAction(
         targetType = TargetType.REDIRECT,

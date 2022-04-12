@@ -38,7 +38,6 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.*
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIAlert
@@ -50,6 +49,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.Serializable
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -66,6 +66,9 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   @Autowired
   private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
+  @Autowired
+  private lateinit var eingangsrechnungPagesRest: EingangsrechnungPagesRest
+
   override val layoutContext: LayoutContext = LayoutContext(EingangsrechnungDO::class.java)
 
   override fun getTitleKey(): String {
@@ -74,8 +77,10 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
 
   override val listPageUrl: String = "/${MenuItemDefId.INCOMING_INVOICE_LIST.url}"
 
-  override val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
-    get() = EingangsrechnungPagesRest::class.java
+  @PostConstruct
+  private fun postConstruct() {
+    pagesRest = eingangsrechnungPagesRest
+  }
 
   override fun fillForm(
     request: HttpServletRequest,
@@ -193,7 +198,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   @GetMapping("exportTransfers")
   fun exportTransfers(request: HttpServletRequest): ResponseEntity<*> {
     val invoices =
-      eingangsrechnungDao.getListByIds(MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRestClass))
+      eingangsrechnungDao.getListByIds(MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java))
     if (invoices.isNullOrEmpty()) {
       return RestUtils.downloadFile("error.txt", translate("massUpdate.error.noEntriesSelected"))
     }

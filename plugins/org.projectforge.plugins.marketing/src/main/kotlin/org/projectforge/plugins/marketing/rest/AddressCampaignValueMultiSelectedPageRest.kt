@@ -30,7 +30,6 @@ import org.projectforge.plugins.marketing.AddressCampaignValueDao
 import org.projectforge.plugins.marketing.MarketingPlugin
 import org.projectforge.plugins.marketing.dto.AddressCampaignValue
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateParameter
@@ -40,6 +39,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.Serializable
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 
@@ -71,8 +71,10 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
 
   override val listPageUrl: String = "/wa/${MarketingPlugin.ADDRESS_CAMPAIGN_VALUE_ID}List"
 
-  override val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
-    get() = AddressCampaignValuePagesRest::class.java
+  @PostConstruct
+  private fun postConstruct() {
+    pagesRest = addressCampaignValuePagesRest
+  }
 
   override fun fillForm(
     request: HttpServletRequest,

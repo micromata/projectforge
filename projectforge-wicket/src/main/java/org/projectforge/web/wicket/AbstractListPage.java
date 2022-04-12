@@ -646,12 +646,13 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClass, final String toolTipKey,
                                final Object data) {
+    final String caller = ((String)urlFor(this.getClass(), new PageParameters())).replace("./", "/wa/");
     final ContentMenuEntryPanel button = new ContentMenuEntryPanel(getNewContentMenuChildId(),
         new Link<Object>("link") {
           @Override
           public void onClick() {
             MultiSelectionSupport.registerEntitiesForSelection(WicketUtils.getHttpServletRequest(getRequest()), pagesRestClass, getList(),
-                getPageAsLink(), data);
+                caller, data);
             final String redirectUrl = PagesResolver.getMultiSelectionPageUrl(pagesRestClass, true);
             throw new RedirectToUrlException(redirectUrl);
           }

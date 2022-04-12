@@ -58,6 +58,11 @@ open class UIAgGrid(
   var rowClickRedirectUrl: String? = null
 
   /**
+   * Call this url (GET) for getting url to redirect to.
+   */
+  var handleCancelUrl: String? = null
+
+  /**
    * Tell the client, which entities were selected (for recovering, e. g. after reload or back button).
    */
   var selectedEntities: Collection<Serializable>? = null

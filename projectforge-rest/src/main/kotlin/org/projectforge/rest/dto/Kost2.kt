@@ -61,7 +61,12 @@ class Kost2(
     this.project = src.projekt?.let {
       val project = Project()
       project.copyFromMinimal(it)
-      longDisplayName = "$formattedNumber: ${it.kunde?.name} - ${it.name}"
+      val kunde = it.kunde?.name
+      longDisplayName = if (kunde.isNullOrBlank()) {
+        "$formattedNumber: ${it.name}"
+      } else {
+        "$formattedNumber: $kunde - ${it.name}"
+      }
       project
     }
     if (longDisplayName == null) {

@@ -1,9 +1,10 @@
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import { Button } from '../../../../design';
-import { fetchJsonPost } from '../../../../../utilities/rest';
+import { fetchJsonPost, getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
 import history from '../../../../../utilities/history';
 import DynamicAgGrid from './DynamicAgGrid';
+import { DynamicLayoutContext } from '../../context';
 
 function DynamicListPageAgGrid({
     columnDefs,
@@ -14,6 +15,7 @@ function DynamicListPageAgGrid({
     onColumnStatesChangedUrl,
     multiSelectButtonTitle,
     urlAfterMultiSelect,
+    handleCancelUrl,
     pagination,
     paginationPageSize,
     getRowClass,
@@ -23,6 +25,25 @@ function DynamicListPageAgGrid({
     const onGridApiReady = (api) => {
         setGridApi(api);
     };
+
+    const { ui } = React.useContext(DynamicLayoutContext);
+
+    const handleCancel = React.useCallback((event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        fetch(
+            getServiceURL(handleCancelUrl), {
+                method: 'GET',
+                credentials: 'include',
+            },
+        )
+            .then(handleHTTPErrors)
+            .then((response) => response.text())
+            .then((url) => {
+                history.push(url);
+            })
+            .catch((error) => alert(`Internal error: ${error}`));
+    }, [gridApi]);
 
     const handleClick = React.useCallback((event) => {
         event.preventDefault();
@@ -40,15 +61,25 @@ function DynamicListPageAgGrid({
     return React.useMemo(() => (
         <div>
             {multiSelectButtonTitle && (
-                // Show this button only for multi selection with e. g. mass update:
-                <Button
-                    id="next"
-                    onClick={handleClick}
-                    color="success"
-                    outline
-                >
-                    {multiSelectButtonTitle}
-                </Button>
+                // Show these buttons only for multi selection with e. g. mass update:
+                <>
+                    <Button
+                        id="cancel"
+                        onClick={handleCancel}
+                        color="danger"
+                        outline
+                    >
+                        {ui.translations.cancel}
+                    </Button>
+                    <Button
+                        id="next"
+                        onClick={handleClick}
+                        color="success"
+                        outline
+                    >
+                        {multiSelectButtonTitle}
+                    </Button>
+                </>
             )}
             <DynamicAgGrid
                 onGridApiReady={onGridApiReady}
@@ -86,6 +117,7 @@ DynamicListPageAgGrid.propTypes = {
     onColumnStatesChangedUrl: PropTypes.string,
     multiSelectButtonTitle: PropTypes.string,
     urlAfterMultiSelect: PropTypes.string,
+    handleCancelUrl: PropTypes.string,
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
     getRowClass: PropTypes.string,
