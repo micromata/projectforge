@@ -31,6 +31,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Eingangsrechnung
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -47,23 +48,15 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
   "fibu.eingangsrechnung.title"
 ) {
 
-  override fun transformForDB(dto: Eingangsrechnung): EingangsrechnungDO {
-    val eingangsrechnungDO = EingangsrechnungDO()
-    dto.copyTo(eingangsrechnungDO)
-    return eingangsrechnungDO
+  /**
+   * ########################################
+   * # Force usage only for selection mode: #
+   * ########################################
+   */
+  override fun getInitialList(request: HttpServletRequest): InitialListData {
+    MultiSelectionSupport.ensureMultiSelectionOnly(request, this, "/wa/incomingInvoiceList")
+    return super.getInitialList(request)
   }
-
-  override fun transformFromDB(obj: EingangsrechnungDO, editMode: Boolean): Eingangsrechnung {
-    val eingangsrechnung = Eingangsrechnung()
-    eingangsrechnung.copyFrom(obj)
-    if (editMode) {
-      eingangsrechnung.copyPositionenFrom(obj)
-    }
-    return eingangsrechnung
-  }
-
-  @Autowired
-  private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
   /**
    * LAYOUT List page
@@ -151,11 +144,26 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
     postData.data.copyFrom(eingangsrechnung)
     return org.projectforge.rest.core.saveOrUpdate(
       request,
-      this.eingangsrechnungDao,
+      this.baseDao,
       eingangsrechnung,
       postData,
       this,
       this.validate(eingangsrechnung)
     )
+  }
+
+  override fun transformForDB(dto: Eingangsrechnung): EingangsrechnungDO {
+    val eingangsrechnungDO = EingangsrechnungDO()
+    dto.copyTo(eingangsrechnungDO)
+    return eingangsrechnungDO
+  }
+
+  override fun transformFromDB(obj: EingangsrechnungDO, editMode: Boolean): Eingangsrechnung {
+    val eingangsrechnung = Eingangsrechnung()
+    eingangsrechnung.copyFrom(obj)
+    if (editMode) {
+      eingangsrechnung.copyPositionenFrom(obj)
+    }
+    return eingangsrechnung
   }
 }

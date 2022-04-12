@@ -30,6 +30,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Rechnung
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -39,6 +40,16 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/outgoingInvoice")
 class RechnungPagesRest :
   AbstractDTOPagesRest<RechnungDO, Rechnung, RechnungDao>(RechnungDao::class.java, "fibu.rechnung.title") {
+
+  /**
+   * ########################################
+   * # Force usage only for selection mode: #
+   * ########################################
+   */
+  override fun getInitialList(request: HttpServletRequest): InitialListData {
+    MultiSelectionSupport.ensureMultiSelectionOnly(request, this, "/wa/outgoingInvoiceList")
+    return super.getInitialList(request)
+  }
 
   /**
    * LAYOUT List page

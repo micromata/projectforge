@@ -63,6 +63,16 @@ class AddressCampaignValuePagesRest :
   private lateinit var personalAddressDao: PersonalAddressDao
 
   /**
+   * ########################################
+   * # Force usage only for selection mode: #
+   * ########################################
+   */
+  override fun getInitialList(request: HttpServletRequest): InitialListData {
+    MultiSelectionSupport.ensureMultiSelectionOnly(request, this, "/wa/addressCampaignValuesList")
+    return super.getInitialList(request)
+  }
+
+  /**
    * LAYOUT List page
    */
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
