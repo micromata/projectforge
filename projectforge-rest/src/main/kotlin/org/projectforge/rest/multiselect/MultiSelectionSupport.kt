@@ -25,6 +25,7 @@ package org.projectforge.rest.multiselect
 
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
@@ -86,19 +87,33 @@ object MultiSelectionSupport {
     if (data != null) {
       ExpiringSessionAttributes.setAttribute(
         request,
-        "$SESSSION_ATTRIBUTE_ENTITIES:$identifier.data",
+        "$SESSSION_ATTRIBUTE_DATA:$identifier",
         data,
         TTL_MINUTES
       )
     }
-    callerUrl?.let {
+    if (callerUrl != null) {
       ExpiringSessionAttributes.setAttribute(
         request,
-        "$SESSSION_ATTRIBUTE_ENTITIES:$identifier.callerUrl",
-        it,
+        "$SESSSION_ATTRIBUTE_CALLER_URL:$identifier",
+        callerUrl,
         TTL_MINUTES
       )
     }
+  }
+
+  /**
+   * @return Caller url, if registered.
+   */
+  fun clear(request: HttpServletRequest, pagesRest: AbstractPagesRest<*, *, *>): String? {
+    val identifier = pagesRest::class.java.name
+    pagesRest.getCurrentFilter().multiSelection = false // multi selection mode is also stored in magic filter.
+    val callerUrl = getRegisteredCallerUrl(request, identifier)
+    ExpiringSessionAttributes.removeAttribute(request, "$SESSSION_ATTRIBUTE_CALLER_URL:$identifier")
+    ExpiringSessionAttributes.removeAttribute(request, "$SESSSION_ATTRIBUTE_DATA:$identifier")
+    ExpiringSessionAttributes.removeAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier")
+    ExpiringSessionAttributes.removeAttribute(request, "$SESSSION_ATTRIBUTE_SELECTED_ENTITIES:$identifier")
+    return callerUrl
   }
 
   fun getRegisteredEntityIds(request: HttpServletRequest, identifierClazz: Class<out Any>): Collection<Serializable>? {
@@ -120,7 +135,7 @@ object MultiSelectionSupport {
   fun getRegisteredCallerUrl(request: HttpServletRequest, identifier: String): String? {
     return ExpiringSessionAttributes.getAttribute(
       request,
-      "$SESSSION_ATTRIBUTE_ENTITIES:$identifier.callerUrl"
+      "$SESSSION_ATTRIBUTE_CALLER_URL:$identifier"
     ) as? String
   }
 
@@ -131,7 +146,7 @@ object MultiSelectionSupport {
   fun getRegisteredData(request: HttpServletRequest, identifier: String): Any? {
     return ExpiringSessionAttributes.getAttribute(
       request,
-      "$SESSSION_ATTRIBUTE_ENTITIES:$identifier.data"
+      "$SESSSION_ATTRIBUTE_DATA:$identifier"
     )
   }
 
@@ -193,6 +208,8 @@ object MultiSelectionSupport {
   }
 
   private const val TTL_MINUTES = 60
+  private val SESSSION_ATTRIBUTE_CALLER_URL = "{${MultiSelectionSupport::class.java.name}.callerUrl"
+  private val SESSSION_ATTRIBUTE_DATA = "{${MultiSelectionSupport::class.java.name}.data"
   private val SESSSION_ATTRIBUTE_ENTITIES = "{${MultiSelectionSupport::class.java.name}.entities"
   private val SESSSION_ATTRIBUTE_SELECTED_ENTITIES = "{${MultiSelectionSupport::class.java.name}.selected.entities"
   private const val REQUEST_PARAM_MULTI_SELECTION = "multiSelectionMode"

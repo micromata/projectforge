@@ -47,8 +47,9 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.aggrid.AGGridSupport
-import org.projectforge.rest.dto.aggrid.AGColumnState
 import org.projectforge.rest.dto.*
+import org.projectforge.rest.dto.aggrid.AGColumnState
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.projectforge.ui.filter.UIFilterElement
@@ -57,10 +58,10 @@ import org.springframework.context.ApplicationContext
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.io.Serializable
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
-import java.io.Serializable
 
 private val log = KotlinLogging.logger {}
 
@@ -368,7 +369,7 @@ constructor(
 
   protected fun getInitialList(request: HttpServletRequest, filter: MagicFilter): InitialListData {
     val favorites = getFilterFavorites()
-    val resultSet = processResultSetBeforeExport(getList(request,this, baseDao, filter), request)
+    val resultSet = processResultSetBeforeExport(getList(request, this, baseDao, filter), request)
     resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
     val ui = createListLayout(request, filter)
       .addTranslations(
@@ -509,7 +510,7 @@ constructor(
     magicFilter.entries.removeIf { it.isEmpty }
   }
 
-  private fun getCurrentFilter(): MagicFilter {
+  fun getCurrentFilter(): MagicFilter {
     var currentFilter = userPrefService.getEntry(category, Favorites.PREF_NAME_CURRENT, MagicFilter::class.java)
     if (currentFilter == null) {
       currentFilter = MagicFilter()
@@ -1015,6 +1016,17 @@ constructor(
   fun onCancelEdit(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>): ResponseAction {
     val dbObj = transformForDB(postData.data)
     return onCancelEdit(request, dbObj, postData, getRestPath())
+  }
+
+  /**
+   * This rest service will be called on multi selection list pages, if the user wants to cancel the multi selection.
+   * @return redirect url
+   */
+  @GetMapping(RestPaths.CANCEL_MULTI_SELECTION)
+  fun handleCancelUrl(request: HttpServletRequest): String {
+    val callerUrl = MultiSelectionSupport.clear(request, this)
+      ?: PagesResolver.getListPageUrl(this::class.java, absolute = true)
+    return callerUrl
   }
 
   /**

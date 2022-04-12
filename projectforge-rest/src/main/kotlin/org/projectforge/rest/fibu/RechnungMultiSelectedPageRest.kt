@@ -47,6 +47,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.Serializable
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 /**
@@ -59,6 +60,9 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   @Autowired
   private lateinit var rechnungDao: RechnungDao
 
+  @Autowired
+  private lateinit var rechnungPagesRest: RechnungPagesRest
+
   override val layoutContext: LayoutContext = LayoutContext(RechnungDO::class.java)
 
   override fun getTitleKey(): String {
@@ -67,8 +71,10 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
 
   override val listPageUrl: String = "/${MenuItemDefId.OUTGOING_INVOICE_LIST.url}"
 
-  override val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
-    get() = RechnungPagesRest::class.java
+  @PostConstruct
+  private fun postConstruct() {
+    pagesRest = rechnungPagesRest
+  }
 
   override fun fillForm(
     request: HttpServletRequest,

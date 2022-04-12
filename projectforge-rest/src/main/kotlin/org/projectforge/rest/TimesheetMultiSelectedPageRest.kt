@@ -36,7 +36,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.*
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
@@ -45,6 +44,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.Serializable
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 /**
@@ -76,8 +76,10 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
 
   override val listPageUrl: String = "/${MenuItemDefId.TIMESHEET_LIST.url}"
 
-  override val pagesRestClass: Class<out AbstractPagesRest<*, *, *>>
-    get() = TimesheetPagesRest::class.java
+  @PostConstruct
+  private fun postConstruct() {
+    pagesRest = timesheetPagesRest
+  }
 
   override fun fillForm(
     request: HttpServletRequest,

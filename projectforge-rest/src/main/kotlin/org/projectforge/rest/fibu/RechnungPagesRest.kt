@@ -73,7 +73,6 @@ class RechnungPagesRest :
             return 'ag-row-blue';
         }"""
       )
-
     return LayoutUtils.processListPage(layout, this)
   }
 

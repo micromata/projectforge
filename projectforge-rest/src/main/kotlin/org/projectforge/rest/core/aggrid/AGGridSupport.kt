@@ -85,6 +85,7 @@ class AGGridSupport {
         table.urlAfterMultiSelect =
           RestResolver.getRestUrl(pageAfterMultiSelect, AbstractMultiSelectedPage.URL_PATH_SELECTED)
       }
+      table.handleCancelUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.CANCEL_MULTI_SELECTION)
       layout
         .add(
           UIAlert(
