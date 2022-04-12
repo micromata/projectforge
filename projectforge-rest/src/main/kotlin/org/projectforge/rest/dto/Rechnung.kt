@@ -62,6 +62,8 @@ class Rechnung(
 
   var grossSum: BigDecimal = BigDecimal.ZERO
 
+  var grossSumWithDiscount: BigDecimal = BigDecimal.ZERO
+
   var statusAsString: String? = null
 
   val isBezahlt: Boolean
@@ -82,6 +84,7 @@ class Rechnung(
     this.netSum = RechnungCalculator.calculateNetSum(src)
     this.vatAmountSum = RechnungCalculator.calculateVatAmountSum(src)
     this.grossSum = RechnungCalculator.calculateGrossSum(src)
+    this.grossSumWithDiscount = src.grossSumWithDiscount
     ueberfaellig = src.isUeberfaellig
     src.status?.let {
       statusAsString = translate(it.i18nKey)

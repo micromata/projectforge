@@ -61,7 +61,9 @@ class RechnungPagesRest :
     }
     grid.add(lc, "betreff", "datum", "faelligkeit", "bezahlDatum")
       .add(lc, "statusAsString", headerName = "fibu.rechnung.status", width = 100)
-      .add(lc, "netSum", "grossSum", "konto", "periodOfPerformanceBegin", "periodOfPerformanceEnd", "bemerkung")
+      .add(lc, "netSum")
+      .add(lc,  "grossSumWithDiscount", lcField = "grossSum")
+      .add(lc,  "konto", "periodOfPerformanceBegin", "periodOfPerformanceEnd", "bemerkung")
       .withMultiRowSelection(request, magicFilter)
       .withPinnedLeft(pinnedLeft)
       .withGetRowClass(

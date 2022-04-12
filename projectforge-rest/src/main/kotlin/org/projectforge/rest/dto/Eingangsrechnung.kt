@@ -25,7 +25,6 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.*
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.utils.NumberFormatter
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -61,6 +60,8 @@ class Eingangsrechnung(
 
   var grossSum: BigDecimal = BigDecimal.ZERO
 
+  var grossSumWithDiscount: BigDecimal = BigDecimal.ZERO
+
   var paymentTypeAsString: String? = null
 
   val isBezahlt: Boolean
@@ -79,6 +80,7 @@ class Eingangsrechnung(
     this.netSum = RechnungCalculator.calculateNetSum(src)
     this.vatAmountSum = RechnungCalculator.calculateVatAmountSum(src)
     this.grossSum = RechnungCalculator.calculateGrossSum(src)
+    this.grossSumWithDiscount = src.grossSumWithDiscount
   }
 
   fun copyPositionenFrom(src: EingangsrechnungDO) {
