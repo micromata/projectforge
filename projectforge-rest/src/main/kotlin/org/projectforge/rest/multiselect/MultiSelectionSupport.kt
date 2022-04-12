@@ -93,13 +93,21 @@ object MultiSelectionSupport {
       )
     }
     if (callerUrl != null) {
-      ExpiringSessionAttributes.setAttribute(
-        request,
-        "$SESSSION_ATTRIBUTE_CALLER_URL:$identifier",
-        callerUrl,
-        TTL_MINUTES
-      )
+      registerCallerUrl(request, identifier, callerUrl)
     }
+  }
+
+  fun registerCallerUrl(request: HttpServletRequest, identifierClazz: Class<out Any>, callerUrl: String) {
+    registerCallerUrl(request, identifierClazz.name, callerUrl)
+  }
+
+  fun registerCallerUrl(request: HttpServletRequest, identifier: String, callerUrl: String) {
+    ExpiringSessionAttributes.setAttribute(
+      request,
+      "$SESSSION_ATTRIBUTE_CALLER_URL:$identifier",
+      callerUrl,
+      TTL_MINUTES
+    )
   }
 
   /**
@@ -205,6 +213,23 @@ object MultiSelectionSupport {
       magicFilter.multiSelection = true
     }
     return magicFilter.multiSelection == true
+  }
+
+  /**
+   * Call this method on [AbstractPagesRest.getInitialList], if you want to force multi selection usage only.
+   * This is usefull, if the page isn't yet migrated from Wicket, but already used for multi selection.
+   */
+  fun ensureMultiSelectionOnly(
+    request: HttpServletRequest,
+    pagesRest: AbstractPagesRest<*, *, *>,
+    returnToUrl: String
+  ) {
+    if (!isMultiSelection(request, pagesRest.getCurrentFilter())) {
+      // Force to use this page only in multi selection mode. No normal usage allowed:
+      registerEntitiesForSelection(request, this::class.java, emptyList(), returnToUrl)
+    }
+    pagesRest.getCurrentFilter().multiSelection = true
+    registerCallerUrl(request, pagesRest::class.java, returnToUrl) // Ensure, caller url is set.
   }
 
   private const val TTL_MINUTES = 60
