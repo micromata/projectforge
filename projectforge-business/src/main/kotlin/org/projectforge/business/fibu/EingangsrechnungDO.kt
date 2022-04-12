@@ -109,7 +109,7 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
 
   val ibanFormatted: String?
     @Transient
-    get() = IBANFormatter.format(iban)
+    get() = IBANUtils.format(iban)
 
   @JsonManagedReference
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)

@@ -23,18 +23,32 @@
 
 package org.projectforge.business.fibu
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.projectforge.business.fibu.IBANFormatter.format
+/**
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+object IBANUtils {
+  @JvmStatic
+  fun format(iban: String?): String? {
+    if (iban == null || iban.trim().any { it.isWhitespace() }) {
+      // Don't format iban, if already formatted (by white spaces)
+      return iban
+    }
+    return iban.filter { !it.isWhitespace() }.chunked(4).joinToString(" ")
+  }
 
-class IBANFormatterTest {
-  @Test
-  fun projektKundeAsStringText() {
-    Assertions.assertNull(format(null))
-    Assertions.assertEquals("", format(""))
-    Assertions.assertEquals("DE12 3456", format("DE123456"))
-    Assertions.assertEquals("DE123 456", format("DE123 456"), "Is already formattted.")
-    Assertions.assertEquals(" DE123 456", format(" DE123 456"), "Is already formattted.")
-    Assertions.assertEquals("DE12 3456 7890 12", format("  DE123456789012"))
+  /**
+   * Validates DE-IBANs: must have 22 chars. Whitespaces will be ignored.
+   * @return true, if the IBAN is null or successfully validated (format OK).
+   */
+  @JvmStatic
+  fun validate(iban: String?): Boolean {
+    iban ?: return true
+    iban.filter { !it.isWhitespace() }.let {
+      if (!it.startsWith("de", true)) {
+        return true
+      }
+      return it.length == 22
+    }
+    return true
   }
 }
