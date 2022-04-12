@@ -75,13 +75,14 @@ class Eingangsrechnung(
     }
     ueberfaellig = src.isUeberfaellig
     ibanFormatted = src.ibanFormatted
+    this.faelligkeitOrDiscountMaturity = src.faelligkeitOrDiscountMaturity
+    this.netSum = RechnungCalculator.calculateNetSum(src)
+    this.vatAmountSum = RechnungCalculator.calculateVatAmountSum(src)
+    this.grossSum = RechnungCalculator.calculateGrossSum(src)
   }
 
   fun copyPositionenFrom(src: EingangsrechnungDO) {
     val list = positionen ?: mutableListOf()
-    this.netSum = RechnungCalculator.calculateNetSum(src)
-    this.vatAmountSum = RechnungCalculator.calculateVatAmountSum(src)
-    this.grossSum = RechnungCalculator.calculateGrossSum(src)
     src.positionen?.forEach {
       val pos = EingangsrechnungsPosition()
       pos.copyFrom(it)
