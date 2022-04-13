@@ -1164,8 +1164,9 @@ constructor(
       }
       return responseAction
     }
-    returnToCaller =
-      afterOperationRedirectTo(obj, postData, event) ?: PagesResolver.getListPageUrl(this::class.java, absolute = true)
+    returnToCaller = afterOperationRedirectTo(obj, postData, event)
+      // Workarround to force reload to restore the AG Grid state:
+        ?: PagesResolver.getListPageUrl(this::class.java, absolute = true, params = mapOf("reload" to "true"))
     return ResponseAction(returnToCaller)
       .addVariable("id", obj.id ?: -1)
   }
