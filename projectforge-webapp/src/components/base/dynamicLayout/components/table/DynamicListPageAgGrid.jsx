@@ -20,6 +20,14 @@ function DynamicListPageAgGrid({
     paginationPageSize,
     getRowClass,
 }) {
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+        get: (searchParams, prop) => searchParams.get(prop),
+    });
+    if (params.reload === 'true') {
+        // Ugly workarround to force reload. Should be handled by Router later. (Fin?)
+        window.location.href = window.location.pathname;
+    }
+
     const [gridApi, setGridApi] = useState();
 
     const onGridApiReady = (api) => {
