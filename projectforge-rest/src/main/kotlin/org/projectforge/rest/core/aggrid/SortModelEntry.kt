@@ -24,9 +24,10 @@
 package org.projectforge.rest.core.aggrid
 
 /**
- * For saving current gridState in user's pref.
+ * Sort model entry.
  */
-class GridState {
-  var columnState: List<ColumnStateEntry>? = null
-  var sortModel: MutableList<SortModelEntry>? = null
-}
+open class SortModelEntry(
+  val colId: String,
+  var sort: String? = null,
+  var sortIndex: Int? = null
+)

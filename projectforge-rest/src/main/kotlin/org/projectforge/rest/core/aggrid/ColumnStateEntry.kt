@@ -26,10 +26,8 @@ package org.projectforge.rest.core.aggrid
 /**
  * For saving current gridState in user's pref.
  */
-class ColumnState(
+class ColumnStateEntry(
   var colId: String? = null,
   var hide: Boolean? = null,
   var width: Int? = null,
-  var sort: String? = null,
-  var sortIndex: Int? = null,
 )

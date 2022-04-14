@@ -41,6 +41,7 @@ import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -879,7 +880,7 @@ constructor(
    */
   @PostMapping(RestPaths.UPDATE_COLUMN_STATES)
   fun updateColumnStates(request: HttpServletRequest, @Valid @RequestBody columnStates: List<AGColumnState>): String {
-    agGridSupport.storeColumnStates(category, columnStates)
+    agGridSupport.storeColumnState(category, columnStates)
     return "OK"
   }
 
@@ -1165,8 +1166,13 @@ constructor(
       return responseAction
     }
     returnToCaller = afterOperationRedirectTo(obj, postData, event)
-      // Workarround to force reload to restore the AG Grid state:
-        ?: PagesResolver.getListPageUrl(this::class.java, absolute = true, params = mapOf("reload" to "true"))
+        // Workarround to force reload to restore the AG Grid state:
+      ?: PagesResolver.getListPageUrl(
+        this::class.java,
+        absolute = true,
+        // Force new hash for getting initialList (including ui on actions/list/index.js
+        params = mapOf("hash" to NumberHelper.getSecureRandomAlphanumeric(20))
+      )
     return ResponseAction(returnToCaller)
       .addVariable("id", obj.id ?: -1)
   }

@@ -12,6 +12,7 @@ import { getServiceURL } from '../../../../../utilities/rest';
 function DynamicAgGrid({
     columnDefs,
     id,
+    sortModel,
     rowSelection,
     rowMultiSelectWithClick,
     rowClickRedirectUrl,
@@ -33,7 +34,11 @@ function DynamicAgGrid({
 
     const onGridReady = React.useCallback((params) => {
         setGridApi(params.api);
-        onGridApiReady(params.api);
+        params.columnApi.applyColumnState({
+            state: sortModel,
+            defaultState: { sort: null },
+        });
+        onGridApiReady(params.api, params.columnApi);
         params.api.setDomLayout('autoHeight'); // Needed to get maximum height.
     }, [selectedEntityIds, setGridApi]);
 
@@ -141,12 +146,14 @@ function DynamicAgGrid({
                 rowClass={rowClass}
                 getRowClass={usedGetRowClass}
                 accentedSort
+                animateRows
             />
         </div>
     ),
     [
         entries,
         ui,
+        sortModel,
         data.highlightRowId,
         gridStyle,
         columnDefs,
@@ -164,6 +171,11 @@ DynamicAgGrid.propTypes = {
         titleIcon: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
     id: PropTypes.string,
+    sortModel: PropTypes.arrayOf(PropTypes.shape({
+        colId: PropTypes.string.isRequired,
+        sort: PropTypes.string,
+        sortIndex: PropTypes.number,
+    })),
     rowSelection: PropTypes.string,
     rowMultiSelectWithClick: PropTypes.bool,
     rowClickRedirectUrl: PropTypes.string,

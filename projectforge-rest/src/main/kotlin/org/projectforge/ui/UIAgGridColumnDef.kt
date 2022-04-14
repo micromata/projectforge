@@ -60,13 +60,9 @@ open class UIAgGridColumnDef(
   /**
    * width in Pixel.
    */
-  var initialWidth: Int? = null
+  var width: Int? = null
 
-  var initialSort: String? = null
-
-  var initialSortIndex: Int? = null
-
-  var initialPinned: String? = null
+  var pinned: String? = null
 
   /**
    * https://www.ag-grid.com/react-data-grid/components/
@@ -120,12 +116,12 @@ open class UIAgGridColumnDef(
   }
 
   fun withPinnedLeft(): UIAgGridColumnDef {
-    initialPinned = "left"
+    pinned = "left"
     return this
   }
 
   fun withPinnedRight(): UIAgGridColumnDef {
-    initialPinned = "right"
+    pinned = "right"
     return this
   }
 
@@ -221,7 +217,7 @@ open class UIAgGridColumnDef(
             }
           } else if (elementInfo.propertyClass == String::class.java) {
             if ((elementInfo.maxLength ?: 0) > 1000 && width == null) {
-              col.initialWidth = 500 // Extra wide column
+              col.width = 500 // Extra wide column
             }
           } else if (elementInfo.propertyClass == Boolean::class.java || elementInfo.propertyClass == java.lang.Boolean::class.java) {
             useFormatter = Formatter.BOOLEAN
@@ -234,23 +230,23 @@ open class UIAgGridColumnDef(
             col.headerClass = arrayOf("icon", "icon-solid", "icon-paperclip")
             col.headerName = ""
             col.headerTooltip = translate("attachments")
-            col.initialWidth = 30
+            col.width = 30
           }
         }
       }
       if (width != null) {
-        col.initialWidth = width
+        col.width = width
       }
       useFormatter?.let {
         when (it) {
           Formatter.CURRENCY -> {
             if (width == null) {
-              col.initialWidth = 120
+              col.width = 120
               col.type = AG_TYPE.NUMERIC_COLUMN.agType
             }
           }
           Formatter.DATE -> {
-            col.initialWidth = 100
+            col.width = 100
           }
           else -> {}
         }

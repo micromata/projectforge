@@ -25,6 +25,7 @@ package org.projectforge.ui
 
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.rest.core.aggrid.SortModelEntry
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
@@ -38,9 +39,10 @@ open class UIAgGrid(
   val listPageTable: Boolean = false,
   var rowSelection: String? = null, // single, multiple or null
   var rowMultiSelectWithClick: Boolean? = null,
-
   ) : UIElement(if (listPageTable) UIElementType.AG_GRID_LIST_PAGE else UIElementType.AG_GRID) {
   var multiSelectButtonTitle: String? = null
+
+  var sortModel: List<SortModelEntry>? = null
 
   /**
    * This url should be called with all selected rows to proceed the user action (mass update, export etc.)
