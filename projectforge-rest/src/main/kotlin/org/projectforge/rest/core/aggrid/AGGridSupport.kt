@@ -47,17 +47,31 @@ class AGGridSupport {
   @Autowired
   private lateinit var userPrefService: UserPrefService
 
-  fun storeColumnStates(category: String, columStates: List<AGColumnState>) {
+  fun storeColumnState(category: String, columnState: List<AGColumnState>) {
     val gridState = userPrefService.ensureEntry(category, USER_PREF_PARAM_GRID_STATE, GridState())
-    gridState.columnStates = columStates.map { ColumnState(it.colId, it.hide, it.width, it.sort, it.sortIndex) }
+    gridState.columnState = columnState.map { ColumnStateEntry(it.colId, it.hide, it.width) }
+    val newSortModel = mutableListOf<SortModelEntry>()
+    columnState.forEach { entry ->
+      val colId = entry.colId
+      val sort = entry.sort
+      val sortIndex = entry.sortIndex
+      if (colId != null && sort != null && sortIndex != null) {
+        newSortModel.add(SortModelEntry(colId, entry.sort, entry.sortIndex))
+      }
+    }
+    gridState.sortModel = newSortModel
   }
 
   fun storeGridState(category: String, gridState: GridState) {
     userPrefService.putEntry(category, USER_PREF_PARAM_GRID_STATE, gridState, true)
   }
 
-  fun getColumnStates(category: String): List<ColumnState>? {
-    return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)?.columnStates
+  fun getColumnState(category: String): List<ColumnStateEntry>? {
+    return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)?.columnState
+  }
+
+  fun getSortModel(category: String): List<SortModelEntry>? {
+    return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)?.sortModel
   }
 
   /**
@@ -105,31 +119,31 @@ class AGGridSupport {
   }
 
   fun restoreColumnsFromUserPref(category: String, agGrid: UIAgGrid) {
-    val columnStates = getColumnStates(category) ?: return // Nothing to-do (initial state)
-    val reorderedColumns = mutableListOf<UIAgGridColumnDef>()
-    val processedColumns = mutableSetOf<String>()
-    columnStates.forEach { columnState ->
-      agGrid.columnDefs.find { it.field == columnState.colId && columnState.hide != true }?.let { colDef ->
-        // ColumnDef found:
-        reorderedColumns.add(colDef)
-        processedColumns.add(colDef.field)
+    val columnStates = getColumnState(category)
+    if (columnStates != null) {
+      val reorderedColumns = mutableListOf<UIAgGridColumnDef>()
+      val processedColumns = mutableSetOf<String>()
+      columnStates.forEach { columnState ->
+        agGrid.columnDefs.find { it.field == columnState.colId && columnState.hide != true }?.let { colDef ->
+          // ColumnDef found:
+          reorderedColumns.add(colDef)
+          processedColumns.add(colDef.field)
+        }
+      }
+      // Add columns not part of columnStates
+      agGrid.columnDefs.forEach { colDef ->
+        if (!processedColumns.contains(colDef.field)) {
+          reorderedColumns.add(colDef)
+        }
+      }
+      agGrid.columnDefs = reorderedColumns
+      agGrid.columnDefs.forEach { colDef ->
+        columnStates.find { it.colId == colDef.field }?.let { columnState ->
+          colDef.width = columnState.width
+        }
       }
     }
-    // Add columns not part of columnStates
-    agGrid.columnDefs.forEach { colDef ->
-      if (!processedColumns.contains(colDef.field)) {
-        reorderedColumns.add(colDef)
-      }
-    }
-    agGrid.columnDefs = reorderedColumns
-    agGrid.columnDefs // reorder
-    agGrid.columnDefs.forEach { colDef ->
-      columnStates.find { it.colId == colDef.field }?.let { columnState ->
-        colDef.initialWidth = columnState.width
-        colDef.initialSort = columnState.sort
-        colDef.initialSortIndex = columnState.sortIndex
-      }
-    }
+    agGrid.sortModel = getSortModel(category)
   }
 
   companion object {

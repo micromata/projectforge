@@ -9,6 +9,7 @@ import { DynamicLayoutContext } from '../../context';
 function DynamicListPageAgGrid({
     columnDefs,
     id,
+    sortModel,
     rowSelection,
     rowMultiSelectWithClick,
     rowClickRedirectUrl,
@@ -20,19 +21,23 @@ function DynamicListPageAgGrid({
     paginationPageSize,
     getRowClass,
 }) {
-    const params = new Proxy(new URLSearchParams(window.location.search), {
-        get: (searchParams, prop) => searchParams.get(prop),
-    });
-    if (params.reload === 'true') {
-        // Ugly workarround to force reload. Should be handled by Router later. (Fin?)
-        window.location.href = window.location.pathname;
-    }
-
     const [gridApi, setGridApi] = useState();
+    const [columnApi, setColumnApi] = useState();
 
-    const onGridApiReady = (api) => {
+    const onGridApiReady = React.useCallback((api, colApi) => {
         setGridApi(api);
-    };
+        setColumnApi(colApi);
+    }, []);
+
+    React.useEffect(() => {
+        if (columnApi) {
+            columnApi.resetColumnState();
+            columnApi.applyColumnState({
+                state: sortModel,
+                defaultState: { sort: null },
+            });
+        }
+    }, [columnApi, sortModel]);
 
     const { ui } = React.useContext(DynamicLayoutContext);
 
@@ -49,8 +54,7 @@ function DynamicListPageAgGrid({
             .then((response) => response.text())
             .then((url) => {
                 history.push(url);
-            })
-            .catch((error) => alert(`Internal error: ${error}`));
+            });
     }, [gridApi]);
 
     const handleClick = React.useCallback((event) => {
@@ -93,6 +97,7 @@ function DynamicListPageAgGrid({
                 onGridApiReady={onGridApiReady}
                 columnDefs={columnDefs}
                 id={id}
+                sortModel={sortModel}
                 rowSelection={rowSelection}
                 rowMultiSelectWithClick={rowMultiSelectWithClick}
                 rowClickRedirectUrl={rowClickRedirectUrl}
@@ -107,8 +112,10 @@ function DynamicListPageAgGrid({
         handleClick,
         multiSelectButtonTitle,
         columnDefs,
+        sortModel,
         rowSelection,
         rowMultiSelectWithClick,
+        ui,
     ]);
 }
 
@@ -119,6 +126,11 @@ DynamicListPageAgGrid.propTypes = {
         titleIcon: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
     id: PropTypes.string,
+    sortModel: PropTypes.arrayOf(PropTypes.shape({
+        colId: PropTypes.string.isRequired,
+        sort: PropTypes.string,
+        sortIndex: PropTypes.number,
+    })),
     rowSelection: PropTypes.string,
     rowMultiSelectWithClick: PropTypes.bool,
     rowClickRedirectUrl: PropTypes.string,
