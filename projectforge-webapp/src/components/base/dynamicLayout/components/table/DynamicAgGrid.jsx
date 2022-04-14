@@ -146,7 +146,6 @@ function DynamicAgGrid({
                 rowClass={rowClass}
                 getRowClass={usedGetRowClass}
                 accentedSort
-                animateRows
             />
         </div>
     ),
