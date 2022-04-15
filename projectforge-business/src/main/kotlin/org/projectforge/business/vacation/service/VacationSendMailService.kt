@@ -267,8 +267,7 @@ open class VacationSendMailService {
             }
 
         private fun translate(recipient: PFUserDO?, i18nKey: String, vararg params: Any): String {
-            val locale = recipient?.locale ?: defaultLocale
-            return I18nHelper.getLocalizedMessage(locale, i18nKey, *params)
+            return I18nHelper.getLocalizedMessage(recipient, i18nKey, *params)
         }
 
         private fun translate(recipient: PFUserDO?, value: Boolean?): String {

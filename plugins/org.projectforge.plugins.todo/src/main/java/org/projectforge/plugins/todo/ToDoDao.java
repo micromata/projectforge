@@ -192,16 +192,15 @@ public class ToDoDao extends BaseDao<ToDoDO> {
               + toDo);
       return;
     }
-    final Locale locale = recipient.getLocale();
     final Mail msg = new Mail();
     msg.setTo(recipient);
     final StringBuilder subject = new StringBuilder();
     final ToDoStatus status = toDo.getStatus();
     if (status != null && status != ToDoStatus.OPENED) {
-      subject.append("[").append(I18nHelper.getLocalizedMessage(locale, "plugins.todo.status")).append(": ")
-              .append(I18nHelper.getLocalizedMessage(locale, status.getI18nKey())).append("] ");
+      subject.append("[").append(I18nHelper.getLocalizedMessage(recipient, "plugins.todo.status")).append(": ")
+              .append(I18nHelper.getLocalizedMessage(recipient, status.getI18nKey())).append("] ");
     }
-    subject.append(I18nHelper.getLocalizedMessage(locale, "plugins.todo.todo")).append(": ");
+    subject.append(I18nHelper.getLocalizedMessage(recipient, "plugins.todo.todo")).append(": ");
     subject.append(toDo.getSubject());
     msg.setProjectForgeSubject(subject.toString());
     final String content = sendMail.renderGroovyTemplate(msg,

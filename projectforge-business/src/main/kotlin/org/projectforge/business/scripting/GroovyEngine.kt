@@ -33,12 +33,14 @@ import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.formatter.TaskFormatter
+import org.projectforge.business.user.UserLocale
 import org.projectforge.business.utils.CurrencyFormatter
 import org.projectforge.business.utils.HtmlHelper
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.utils.NumberFormatter.format
@@ -61,7 +63,7 @@ class GroovyEngine @JvmOverloads constructor(val configurationService: Configura
                 timeZone: TimeZone? = null)
             : this(configurationService, mutableMapOf(), locale, timeZone)
 
-    private val locale = locale ?: ConfigurationServiceAccessor.get().defaultLocale
+    private val locale = locale ?: ThreadLocalUserContext.getLocale()
     private val timeZone = timeZone ?: Configuration.instance.defaultTimeZone
     private val htmlFormat = true
     private val groovyExecutor = GroovyExecutor()
