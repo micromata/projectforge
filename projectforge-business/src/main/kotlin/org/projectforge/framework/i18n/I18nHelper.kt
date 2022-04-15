@@ -72,7 +72,7 @@ object I18nHelper {
 
   @JvmStatic
   fun getLocalizedMessage(user: PFUserDO?, i18nKey: String?, vararg params: Any?): String {
-    return getLocalizedMessage(UserLocale.determineUserLocale(user), i18nKey, params)
+    return getLocalizedMessage(UserLocale.determineUserLocale(user), i18nKey, *params)
   }
 
   @JvmStatic
