@@ -23,7 +23,9 @@
 
 package org.projectforge.framework.i18n
 
+import org.projectforge.business.user.UserLocale
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.slf4j.LoggerFactory
 import java.text.MessageFormat
 import java.util.*
@@ -69,10 +71,15 @@ object I18nHelper {
   }
 
   @JvmStatic
+  fun getLocalizedMessage(user: PFUserDO?, i18nKey: String?, vararg params: Any?): String {
+    return getLocalizedMessage(UserLocale.determineUserLocale(user), i18nKey, params)
+  }
+
+  @JvmStatic
   fun getLocalizedMessage(locale: Locale?, i18nKey: String?, vararg params: Any?): String {
     i18nKey ?: return "???"
     val localized = getLocalizedString(locale, i18nKey)
-    if (params.isNullOrEmpty()) {
+    if (params.isEmpty()) {
       return localized
     }
     return if (localized.startsWith("???")) {

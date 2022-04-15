@@ -1171,7 +1171,7 @@ constructor(
         this::class.java,
         absolute = true,
         // Force new hash for getting initialList (including ui on actions/list/index.js
-        params = mapOf("hash" to NumberHelper.getSecureRandomAlphanumeric(20))
+        params = mapOf("hash" to NumberHelper.getSecureRandomAlphanumeric(4))
       )
     return ResponseAction(returnToCaller)
       .addVariable("id", obj.id ?: -1)
