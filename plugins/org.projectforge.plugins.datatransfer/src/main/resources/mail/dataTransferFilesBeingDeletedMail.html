@@ -1,0 +1,43 @@
+<html>
+#INCLUDE{mail/mailHead.html}
+<body>
+<div id="mail">
+  <div class="container">
+    <div class="content">
+      #INCLUDE{mail/mailOpening.html}
+      <p>
+        <%= subject %>
+      </p>
+      <table class="width-2">
+        <tr>
+          <th><%= pf.getI18nString("plugins.datatransfer.areaName") %></th>
+          <th><%= pf.getI18nString("attachment.fileName") %></th>
+          <th><%= pf.getI18nString("attachment.fileSize") %></th>
+          <th colspan="2"><%= pf.getI18nString("plugins.datatransfer.expiriesIn") %></th>
+        </tr>
+        <% for (info in attachments) { %>
+        <tr>
+          <td><%= pf.getI18nString(info.dataTransferArea.areaName) %></td>
+          <td>
+            <a
+                    href="${info.link}"
+                    class="button"
+                    target="_blank"
+                    rel="noreferrer"
+            >
+              <%= info.attachment.name %>
+            </a>
+          </td>
+          <td><%= pf.formatBytes(info.attachment.size) %></td>
+          <td><%= pf.getString(info.expiryDate) %></td>
+          <td><%= info.expiresInTimeLeft %></td>
+        </tr>
+        <% } %>
+      </table>
+      #INCLUDE{mail/mailClosing.html}
+      #INCLUDE{mail/mailFooter.html}
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -335,7 +335,7 @@ class DataTransferPublicServicesRest {
       )
     )
     dto.attachments?.forEach {
-      it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it.lastUpdate, dbo.expiryDays))
+      it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it, dbo.expiryDays))
     }
     dto.userInfo = userInfo
     return dto

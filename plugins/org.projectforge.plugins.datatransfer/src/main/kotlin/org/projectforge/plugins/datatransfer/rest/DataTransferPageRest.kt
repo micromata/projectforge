@@ -318,7 +318,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       dataTransferAreaPagesRest.attachmentsAccessChecker
     )
     dto.attachments?.forEach {
-      it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it.lastUpdate, dbObj.expiryDays))
+      it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it, dbObj.expiryDays))
     }
     dto.internalLink = getUrl(PagesResolver.getDynamicPageUrl(this::class.java, id = id))
     if (!dbObj.accessGroupIds.isNullOrBlank()) {

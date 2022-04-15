@@ -24,12 +24,13 @@
 package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
-import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.business.configuration.DomainService
+import org.projectforge.business.user.UserLocale
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -58,6 +59,18 @@ open class NotificationMailService {
   @Autowired
   private lateinit var userService: UserService
 
+  @Suppress("unused")
+  class AttachmentNotificationInfo(
+    val attachment: Attachment,
+    val dataTransferArea: DataTransferAreaDO,
+    val expiryDate: Date, // Used by e-mail template
+    val expiresInMillis: Long,
+    locale: Locale,
+  ) {
+    var link: String? = null // link to dataTransferArea.
+    val expiresInTimeLeft = DataTransferUtils.expiryTimeLeft(attachment, dataTransferArea.expiryDays, locale)
+  }
+
   fun sendMail(
     event: AttachmentsEventType,
     file: FileInfo,
@@ -81,7 +94,7 @@ open class NotificationMailService {
     StringHelper.splitToInts(dataTransfer.adminIds, ",", false).forEach {
       recipients.add(it)
     }*/
-    if (recipients.isNullOrEmpty()) {
+    if (recipients.isEmpty()) {
       // No observers, admins and deleted files of other createdByUsers.
       return
     }
@@ -97,6 +110,31 @@ open class NotificationMailService {
       mail?.let {
         sendMail.send(it)
       }
+    }
+  }
+
+  /**
+   * Sends an email with files being deleted to an observer.
+   */
+  fun sendNotificationMail(userId: Int, notificationInfoList: List<AttachmentNotificationInfo>?) {
+    if (userId != 2) {
+      // Test mode: only send e-mail to test user in production environment.
+      return
+    }
+    if (notificationInfoList.isNullOrEmpty()) {
+      return
+    }
+    val recipient = userService.internalGetById(userId)
+    if (recipient == null) {
+      log.error { "Can't determine observer by id: $userId" }
+      return
+    }
+    if (!recipient.hasSystemAccess()) {
+      // Observer has now system access (anymore). Don't send any notification.
+      return
+    }
+    prepareMail(recipient, notificationInfoList)?.let {
+      sendMail.send(it)
     }
   }
 
@@ -125,13 +163,13 @@ open class NotificationMailService {
       messageKey = "plugins.datatransfer.mail.subject.external.msg"
       byUserString = byExternalUser ?: "???"
     }
-    val title = myTranslate(
+    val title = I18nHelper.getLocalizedMessage(
       recipient,
       titleKey,
       dataTransfer.displayName,
       translate("plugins.datatransfer.mail.action.$event")
     )
-    val message = myTranslate(
+    val message = I18nHelper.getLocalizedMessage(
       recipient,
       messageKey,
       fileName,
@@ -156,25 +194,41 @@ open class NotificationMailService {
     return mail
   }
 
-  internal class EventInfo(val link: String, val user: String?, val message: String)
-
-  companion object {
-    private var _defaultLocale: Locale? = null
-    private val defaultLocale: Locale
-      get() {
-        if (_defaultLocale == null) {
-          _defaultLocale = ConfigurationServiceAccessor.get().defaultLocale ?: Locale.getDefault()
-        }
-        return _defaultLocale!!
+  internal fun prepareMail(recipient: PFUserDO, notificationInfoList: List<AttachmentNotificationInfo>): Mail? {
+    notificationInfoList.forEach { info ->
+      if (info.link == null) {
+        info.link = domainService.getDomain(
+          PagesResolver.getDynamicPageUrl(
+            DataTransferPageRest::class.java,
+            id = info.dataTransferArea.id ?: 0
+          )
+        )
       }
-
-    private fun myTranslate(recipient: PFUserDO?, i18nKey: String, vararg params: Any): String {
-      val locale = recipient?.locale ?: defaultLocale
-      return I18nHelper.getLocalizedMessage(locale, i18nKey, *params)
+      info.attachment.addExpiryInfo(
+        DataTransferUtils.expiryTimeLeft(
+          info.attachment,
+          info.dataTransferArea.expiryDays,
+          UserLocale.determineUserLocale(recipient),
+        )
+      )
     }
-
-    private fun myTranslate(recipient: PFUserDO?, value: Boolean?): String {
-      return myTranslate(recipient, if (value == true) "yes" else "no")
+    val mail = Mail()
+    mail.subject =
+      I18nHelper.getLocalizedMessage(recipient, "plugins.datatransfer.mail.subject.notificationBeforeDeletion")
+    mail.contentType = Mail.CONTENTTYPE_HTML
+    mail.setTo(recipient.email, recipient.getFullname())
+    if (mail.to.isEmpty()) {
+      log.error { "Recipient without mail address, no mail will be sent to '${recipient.getFullname()} about files being deleted." }
+      return null
     }
+    val data = mutableMapOf<String, Any?>(
+      "attachments" to notificationInfoList.sortedBy { it.expiresInMillis },
+      "subject" to mail.subject,
+    )
+    mail.content =
+      sendMail.renderGroovyTemplate(mail, "mail/dataTransferFilesBeingDeletedMail.html", data, mail.subject, recipient)
+    return mail
   }
+
+  internal class EventInfo(val link: String, val user: String?, val message: String)
 }
