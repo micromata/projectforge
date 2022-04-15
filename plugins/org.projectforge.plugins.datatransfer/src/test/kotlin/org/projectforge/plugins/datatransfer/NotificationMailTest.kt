@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
+import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.configuration.DomainService
@@ -90,7 +91,9 @@ class NotificationMailTest : AbstractTestBase() {
     notificationInfoList.add(createNotificationInfo("File 1.pdf", 1_200, area2, 5))
     notificationInfoList.add(createNotificationInfo("File 2.pdf", 1_200_000, area2, 1))
     val mail = notificationMailService.prepareMail(recipient, notificationInfoList)
-    println(mail?.content)
+    Assertions.assertNotNull(mail)
+    Assertions.assertEquals(2, StringUtils.countMatches(mail!!.content, "http://localhost:8080/react/datatransferfiles/dynamic/42"))
+    Assertions.assertEquals(2, StringUtils.countMatches(mail.content, "http://localhost:8080/react/datatransferfiles/dynamic/2"))
   }
 
   private fun createUser(
