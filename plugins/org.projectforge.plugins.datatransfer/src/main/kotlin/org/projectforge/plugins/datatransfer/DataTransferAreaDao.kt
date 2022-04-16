@@ -232,7 +232,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       return operationType == OperationType.SELECT
     }
     val adminIds = StringHelper.splitToIntegers(obj.adminIds, ",")
-    if (adminIds.contains(user.id)) {
+    if (adminIds?.contains(user.id) == true) {
       return true
     }
     if (operationType == OperationType.SELECT) {
