@@ -59,8 +59,7 @@ open class NotificationMailService {
   @Autowired
   private lateinit var userService: UserService
 
-  @Autowired
-  private lateinit var dataTransferAreaDao: DataTransferAreaDao
+  internal lateinit var dataTransferAreaDao: DataTransferAreaDao
 
   @Suppress("unused")
   class AttachmentNotificationInfo(
