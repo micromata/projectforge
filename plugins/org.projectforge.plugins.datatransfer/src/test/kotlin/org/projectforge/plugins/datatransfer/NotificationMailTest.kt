@@ -53,6 +53,7 @@ class NotificationMailTest : AbstractTestBase() {
   fun mailTest() {
     val recipient = createUser()
     val area = createDataTransferArea(42, "Area")
+    area.adminIds = "${recipient.id}"
     val link = createLink(area.id)
     val byUser = createUser(firstname = "Mr.", lastname = "Modifier", id = 2)
     var mail = notificationMailService.prepareMail(
@@ -81,7 +82,7 @@ class NotificationMailTest : AbstractTestBase() {
   }
 
   @Test
-  fun motificationMailTest() {
+  fun notificationMailTest() {
     val recipient = createUser()
     val notificationInfoList = mutableListOf<NotificationMailService.AttachmentNotificationInfo>()
     val area1 = createDataTransferArea(42, "Area", 10)
@@ -90,10 +91,20 @@ class NotificationMailTest : AbstractTestBase() {
     val area2 = createDataTransferArea(2, "Area 2", 30)
     notificationInfoList.add(createNotificationInfo("File 1.pdf", 1_200, area2, 5))
     notificationInfoList.add(createNotificationInfo("File 2.pdf", 1_200_000, area2, 1))
-    val mail = notificationMailService.prepareMail(recipient, notificationInfoList)
+    var mail = notificationMailService.prepareMail(recipient, notificationInfoList)
+    Assertions.assertNull(mail, "Recipient has no access, so don't send an e-mail.")
+    area1.adminIds = "${recipient.id}"
+    area2.accessUserIds = "${recipient.id}"
+    mail = notificationMailService.prepareMail(recipient, notificationInfoList)
     Assertions.assertNotNull(mail)
-    Assertions.assertEquals(2, StringUtils.countMatches(mail!!.content, "http://localhost:8080/react/datatransferfiles/dynamic/42"))
-    Assertions.assertEquals(2, StringUtils.countMatches(mail.content, "http://localhost:8080/react/datatransferfiles/dynamic/2"))
+    Assertions.assertEquals(
+      2,
+      StringUtils.countMatches(mail!!.content, "http://localhost:8080/react/datatransferfiles/dynamic/42")
+    )
+    Assertions.assertEquals(
+      2,
+      StringUtils.countMatches(mail.content, "http://localhost:8080/react/datatransferfiles/dynamic/2")
+    )
   }
 
   private fun createUser(
@@ -126,7 +137,8 @@ class NotificationMailTest : AbstractTestBase() {
   ): NotificationMailService.AttachmentNotificationInfo {
     val attachment = Attachment()
     attachment.name = name
-    attachment.created = PFDateTime.now().plusDays(expiresInDays.toLong()).minusDays(area.expiryDays!!.toLong()).utilDate
+    attachment.created =
+      PFDateTime.now().plusDays(expiresInDays.toLong()).minusDays(area.expiryDays!!.toLong()).utilDate
     attachment.lastUpdate = attachment.created
     attachment.size = size
     val info = NotificationMailService.AttachmentNotificationInfo(

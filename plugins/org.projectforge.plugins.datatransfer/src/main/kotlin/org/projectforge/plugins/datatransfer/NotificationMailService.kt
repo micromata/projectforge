@@ -59,6 +59,9 @@ open class NotificationMailService {
   @Autowired
   private lateinit var userService: UserService
 
+  @Autowired
+  private lateinit var dataTransferAreaDao: DataTransferAreaDao
+
   @Suppress("unused")
   class AttachmentNotificationInfo(
     val attachment: Attachment,
@@ -151,6 +154,11 @@ open class NotificationMailService {
       // Don't send user his own events.
       return null
     }
+    if (!dataTransferAreaDao.hasSelectAccess(dataTransfer, recipient)) {
+      // Recipient has no access, so skip mail.
+      return null
+    }
+
     val titleKey: String
     val messageKey: String
     val byUserString: String
@@ -212,6 +220,14 @@ open class NotificationMailService {
         )
       )
     }
+    val sortedList = notificationInfoList.filter {
+      dataTransferAreaDao.hasSelectAccess(it.dataTransferArea, recipient)
+    }.sortedBy { it.expiresInMillis }
+
+    if (sortedList.isEmpty()) {
+      // OK, all entries with no user access (does it really occur?)
+      return null
+    }
     val mail = Mail()
     mail.subject =
       I18nHelper.getLocalizedMessage(recipient, "plugins.datatransfer.mail.subject.notificationBeforeDeletion")
@@ -222,7 +238,7 @@ open class NotificationMailService {
       return null
     }
     val data = mutableMapOf<String, Any?>(
-      "attachments" to notificationInfoList.sortedBy { it.expiresInMillis },
+      "attachments" to sortedList,
       "subject" to mail.subject,
       "locale" to UserLocale.determineUserLocale(recipient),
     )

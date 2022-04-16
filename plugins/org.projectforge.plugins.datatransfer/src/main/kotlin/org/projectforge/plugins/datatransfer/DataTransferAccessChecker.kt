@@ -40,6 +40,7 @@ open class DataTransferAccessChecker(
     DataTransferFileSizeChecker(dataTransferAreaDao.maxFileSize.toBytes())
 
   /**
+   * @param id Data base id of data transfer area.
    * @param subPath Equals to listId.
    */
   override fun checkSelectAccess(user: PFUserDO?, path: String, id: Any, subPath: String?) {
