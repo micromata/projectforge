@@ -34,6 +34,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.api.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
+import java.util.Locale
 import javax.persistence.*
 
 /**
@@ -212,14 +213,16 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
 
   val displayName: String
     @Transient
-    get() {
-      getPersonalBoxUserId()?.let {
-        // This data transfer area is a personal box.
-        val user = UserGroupCache.getInstance().getUser(it)
-        return translateMsg("plugins.datatransfer.personalBox.title", "${user?.displayName}")
-      }
-      return areaName ?: "???"
+    get() = getDisplayName(null)
+
+  fun getDisplayName(locale: Locale?): String {
+    getPersonalBoxUserId()?.let {
+      // This data transfer area is a personal box.
+      val user = UserGroupCache.getInstance().getUser(it)
+      return translateMsg(locale, "plugins.datatransfer.personalBox.title", "${user?.displayName}")
     }
+    return areaName ?: "???"
+  }
 
   /**
    * Hides field externalPassword due to security reasons.
