@@ -19,13 +19,8 @@
         <tr>
           <td><%= pf.getI18nString(info.dataTransferArea.areaName) %></td>
           <td>
-            <a
-                    href="${info.link}"
-                    class="button"
-                    target="_blank"
-                    rel="noreferrer"
-            >
-              <%= info.attachment.name %>
+            <a href="${info.link}" target="_blank" rel="noreferrer">
+              <%= info.dataTransferArea.getDisplayName(locale) %>
             </a>
           </td>
           <td><%= pf.formatBytes(info.attachment.size) %></td>

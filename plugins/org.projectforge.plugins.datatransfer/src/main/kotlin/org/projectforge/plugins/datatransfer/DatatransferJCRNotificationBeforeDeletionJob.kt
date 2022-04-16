@@ -33,7 +33,7 @@ import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.util.Date
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -103,9 +103,9 @@ class DatatransferJCRNotificationBeforeDeletionJob {
           }
         }
       }
-      notificationInfoByObserver.forEach { userId, attachments ->
-        notificationMailService.sendNotificationMail(userId, attachments)
-      }
+    }
+    notificationInfoByObserver.forEach { (userId, attachments) ->
+      notificationMailService.sendNotificationMail(userId, attachments)
     }
     log.info(
       "JCR notification job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of notification mails: ${notificationInfoByObserver.size}"

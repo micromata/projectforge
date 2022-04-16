@@ -224,6 +224,7 @@ open class NotificationMailService {
     val data = mutableMapOf<String, Any?>(
       "attachments" to notificationInfoList.sortedBy { it.expiresInMillis },
       "subject" to mail.subject,
+      "locale" to UserLocale.determineUserLocale(recipient),
     )
     mail.content =
       sendMail.renderGroovyTemplate(mail, "mail/dataTransferFilesBeingDeletedMail.html", data, mail.subject, recipient)
