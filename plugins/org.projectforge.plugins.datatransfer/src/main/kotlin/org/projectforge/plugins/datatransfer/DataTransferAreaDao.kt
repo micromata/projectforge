@@ -80,6 +80,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
   private fun postConstruct() {
     maxFileSize = DataSizeConfig.init(maxFileSizeConfig, DataUnit.MEGABYTES)
     log.info { "Maximum configured size of uploads: ${MAX_FILE_SIZE_SPRING_PROPERTY}=$maxFileSizeConfig." }
+    notificationMailService.dataTransferAreaDao = this
   }
 
   @Autowired
