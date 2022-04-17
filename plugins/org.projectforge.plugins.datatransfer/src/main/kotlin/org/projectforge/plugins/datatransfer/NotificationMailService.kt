@@ -120,6 +120,7 @@ open class NotificationMailService {
    */
   fun sendNotificationMail(userId: Int, notificationInfoList: List<AttachmentNotificationInfo>?) {
     if (userId != 2) {
+      // ********** Uncomment DatatransferJCRNotificationBeforeDeleteion:74
       // Test mode: only send e-mail to test user in production environment.
       return
     }

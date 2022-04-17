@@ -73,12 +73,6 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
     override val endOfYear: PFDay
         get() = PFDay(PFDayUtils.getEndOfYear(date))
 
-    /**
-     * 1 - January, ..., 12 - December.
-     */
-    override val monthValue: Int
-        get() = month.value
-
     override val beginOfMonth: PFDay
         get() = PFDay(PFDayUtils.getBeginOfMonth(date))
 
@@ -96,9 +90,6 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
 
     override val isBeginOfWeek: Boolean
         get() = date.dayOfWeek == PFDayUtils.getFirstDayOfWeek()
-
-    override val isFirstDayOfWeek: Boolean
-        get() = dayOfWeek == PFDayUtils.getFirstDayOfWeek()
 
     override fun withYear(year: Int): PFDay {
         return PFDay(date.withYear(year))
@@ -125,10 +116,6 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
 
     override fun withDayOfWeek(dayOfWeek: Int): PFDay {
         return PFDayUtils.withDayOfWeek(this, dayOfWeek)
-    }
-
-    override fun withDayOfWeek(dayOfWeek: DayOfWeek): PFDay {
-        return withDayOfWeek(dayOfWeek.value)
     }
 
     override fun isBefore(other: PFDay): Boolean {
@@ -201,10 +188,6 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
 
     override fun isSameDay(other: PFDay): Boolean {
         return year == other.year && dayOfYear == other.dayOfYear
-    }
-
-    override fun isWeekend(): Boolean {
-        return DayOfWeek.SUNDAY == dayOfWeek || DayOfWeek.SATURDAY == dayOfWeek
     }
 
     override fun compareTo(other: PFDay): Int {

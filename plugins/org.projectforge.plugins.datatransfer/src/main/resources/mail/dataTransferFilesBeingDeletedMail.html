@@ -17,14 +17,18 @@
         </tr>
         <% for (info in attachments) { %>
         <tr>
-          <td><%= pf.getI18nString(info.dataTransferArea.areaName) %></td>
           <td>
             <a href="${info.link}" target="_blank" rel="noreferrer">
               <%= info.dataTransferArea.getDisplayName(locale) %>
             </a>
           </td>
+          <td>
+            <a href="${info.link}" target="_blank" rel="noreferrer">
+              <%= info.attachment.name %>
+            </a>
+          </td>
           <td><%= pf.formatBytes(info.attachment.size) %></td>
-          <td><%= pf.getString(info.expiryDate) %></td>
+          <td class="nowrap"><%= pf.getString(info.expiryDate) %></td>
           <td><%= info.expiresInTimeLeft %></td>
         </tr>
         <% } %>

@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.time
 
+import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -60,6 +61,7 @@ interface IPFDate<T> : Comparable<T> {
    * 1 - January, ..., 12 - December.
    */
   val monthValue: Int
+    get() = month.value
 
   val beginOfMonth: T
   val endOfMonth: T
@@ -72,6 +74,7 @@ interface IPFDate<T> : Comparable<T> {
   val isBeginOfWeek: Boolean
 
   val isFirstDayOfWeek: Boolean
+    get() = dayOfWeek == PFDayUtils.getFirstDayOfWeek()
 
   fun withYear(year: Int): T
 
@@ -92,7 +95,9 @@ interface IPFDate<T> : Comparable<T> {
    */
   fun withDayOfWeek(dayOfWeek: Int): T
 
-  fun withDayOfWeek(dayOfWeek: DayOfWeek): T
+  fun withDayOfWeek(dayOfWeek: DayOfWeek): T {
+    return this.withDayOfWeek(dayOfWeek.value)
+  }
 
   fun isBefore(other: T): Boolean
   fun isAfter(other: T): Boolean
@@ -118,7 +123,17 @@ interface IPFDate<T> : Comparable<T> {
 
   fun isSameDay(other: T): Boolean
 
-  fun isWeekend(): Boolean
+  fun isWeekend(): Boolean {
+    return DayOfWeek.SUNDAY == dayOfWeek || DayOfWeek.SATURDAY == dayOfWeek
+  }
+
+  fun isHoliday(): Boolean {
+    return Holidays.instance.isHoliday(this)
+  }
+
+  fun isHolidayOrWeekend(): Boolean {
+    return isWeekend() && isHoliday()
+  }
 
   /**
    * If now formatter is given, the formatter for the thread local user will be used or, if not given, in default format.

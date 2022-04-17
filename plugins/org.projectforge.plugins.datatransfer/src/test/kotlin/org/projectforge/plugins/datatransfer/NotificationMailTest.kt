@@ -98,11 +98,11 @@ class NotificationMailTest : AbstractTestBase() {
     mail = notificationMailService.prepareMail(recipient, notificationInfoList)
     Assertions.assertNotNull(mail)
     Assertions.assertEquals(
-      2,
+      4,
       StringUtils.countMatches(mail!!.content, "http://localhost:8080/react/datatransferfiles/dynamic/42")
     )
     Assertions.assertEquals(
-      2,
+      4,
       StringUtils.countMatches(mail.content, "http://localhost:8080/react/datatransferfiles/dynamic/2")
     )
   }
