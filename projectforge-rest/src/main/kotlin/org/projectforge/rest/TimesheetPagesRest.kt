@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2Dao
@@ -190,7 +190,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     val timesheet = postData.data
     timesheetRecentService.addRecentTimesheet(transformForDB(timesheet))
 
-    return ResponseAction("/${Const.REACT_APP_PATH}calendar")
+    return ResponseAction("/${Constants.REACT_APP_PATH}calendar")
       .addVariable("date", obj.startTime)
       .addVariable("id", obj.id ?: -1)
   }
@@ -423,7 +423,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       timesheet.description = "${calendarEvent.subject ?: ""} ${calendarEvent.note ?: ""}"
     val editLayoutData = getItemAndLayout(request, timesheet, UILayout.UserAccess(false, true))
     return ResponseAction(
-      url = "/${Const.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}",
+      url = "/${Constants.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}",
       targetType = TargetType.UPDATE
     )
       .addVariable("data", editLayoutData.data)

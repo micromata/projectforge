@@ -40,6 +40,7 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.hibernate.search.annotations.*
+import org.projectforge.Constants
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.anots.StringAlphanumericSort
@@ -52,7 +53,6 @@ import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchem
 import org.projectforge.framework.persistence.history.ToStringFieldBridge
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.utils.Constants
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate

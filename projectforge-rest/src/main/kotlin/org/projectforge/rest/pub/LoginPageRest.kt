@@ -24,7 +24,7 @@
 package org.projectforge.rest.pub
 
 import mu.KotlinLogging
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
@@ -201,7 +201,7 @@ open class LoginPageRest {
       if (!returnToCaller.isNullOrBlank()) {
         redirect = URLDecoder.decode(returnToCaller, "UTF-8")
       } else if (request.getHeader("Referer").contains("/public/login")) {
-        redirect = "/${Const.REACT_APP_PATH}calendar"
+        redirect = "/${Constants.REACT_APP_PATH}calendar"
       }
       // redirect might be "null" (string):
       return if (redirect.isNullOrBlank() || redirect == "null") null else redirect

@@ -25,8 +25,8 @@ package org.projectforge.framework.i18n
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.projectforge.Const
 import org.projectforge.framework.i18n.I18nHelper.addBundleName
+import org.projectforge.Constants
 import org.projectforge.web.DAY
 import org.projectforge.web.HOUR
 import org.projectforge.web.MINUTE
@@ -37,7 +37,7 @@ class DurationTest {
 
   @Test
   fun i18nTest() {
-    addBundleName(Const.RESOURCE_BUNDLE_NAME)
+    addBundleName(Constants.RESOURCE_BUNDLE_NAME)
     assertEquals("", getMessage(null))
     assertEquals("", getMessage(0))
     assertEquals("1 second", getMessage(1 * SECOND))

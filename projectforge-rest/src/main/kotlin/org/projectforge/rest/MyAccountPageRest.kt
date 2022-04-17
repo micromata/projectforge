@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.group.service.GroupService
@@ -34,7 +34,6 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.service.UserService
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
@@ -137,7 +136,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
       employeeService.updateAttribute(userId, employee.country, "country")
       employeeService.updateAttribute(userId, employee.birthday, "birthday")
     }
-    return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
+    return ResponseEntity(ResponseAction("/${Constants.REACT_APP_PATH}calendar"), HttpStatus.OK)
   }
 
   @GetMapping("dynamic")

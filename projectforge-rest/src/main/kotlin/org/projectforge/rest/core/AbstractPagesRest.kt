@@ -26,7 +26,7 @@ package org.projectforge.rest.core
 import mu.KotlinLogging
 import org.apache.commons.beanutils.NestedNullException
 import org.apache.commons.beanutils.PropertyUtils
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.DisplayNameCapable
@@ -399,7 +399,7 @@ constructor(
       )
     }
     if (ui.userAccess.insert != false) {
-      ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}$category/edit"))
+      ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Constants.REACT_APP_PATH}$category/edit"))
     }
 
     return InitialListData(
@@ -416,7 +416,7 @@ constructor(
    * @return the standard edit page at default.
    */
   protected open fun getStandardEditPage(): String {
-    return "${Const.REACT_APP_PATH}$category/edit/:id"
+    return "${Constants.REACT_APP_PATH}$category/edit/:id"
   }
 
   /**

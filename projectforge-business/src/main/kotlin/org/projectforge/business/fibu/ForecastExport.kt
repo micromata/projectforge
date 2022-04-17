@@ -28,7 +28,7 @@ import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import de.micromata.merlin.excel.ExcelWriterContext
 import mu.KotlinLogging
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.excel.ExcelDateFormats
 import org.projectforge.business.excel.XlsContentProvider
 import org.projectforge.business.task.TaskTree
@@ -119,7 +119,7 @@ open class ForecastExport { // open needed by Wicket.
     val currencyCellStyle = workbook.createOrGetCellStyle("DataFormat.currency")
     val percentageCellStyle = workbook.createOrGetCellStyle("DataFormat.percentage")
     val writerContext =
-      ExcelWriterContext(I18n(Const.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.getLocale()), workbook)
+      ExcelWriterContext(I18n(Constants.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.getLocale()), workbook)
     val orderMap = mutableMapOf<Int, AuftragDO>()
 
     // All projects of the user used in the orders to show also invoices without order, but with assigned project:
