@@ -27,11 +27,11 @@ import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
+import org.projectforge.Constants
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDayUtils
-import org.projectforge.framework.utils.Constants
 import java.math.BigDecimal
 import javax.persistence.*
 

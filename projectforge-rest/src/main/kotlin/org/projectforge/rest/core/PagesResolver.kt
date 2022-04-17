@@ -24,7 +24,7 @@
 package org.projectforge.rest.core
 
 import mu.KotlinLogging
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.config.Rest
@@ -124,7 +124,7 @@ object PagesResolver {
    * @return the default url (calendar url).
    */
   fun getDefaultUrl(): String {
-    return "/${Const.REACT_APP_PATH}calendar"
+    return "/${Constants.REACT_APP_PATH}calendar"
   }
 
   fun register(category: String, pagesRest: AbstractPagesRest<*, *, *>) {

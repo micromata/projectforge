@@ -25,7 +25,7 @@
 
 package org.projectforge.rest.calendar
 
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
@@ -33,7 +33,6 @@ import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
@@ -146,7 +145,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
     }
 
     override fun onAfterEdit(obj: TeamEventDO, postData: PostData<TeamEvent>, event: RestButtonEvent): ResponseAction {
-        return ResponseAction("/${Const.REACT_APP_PATH}calendar")
+        return ResponseAction("/${Constants.REACT_APP_PATH}calendar")
                 .addVariable("date", postData.data.startDate)
                 .addVariable("id", obj.id ?: -1)
     }
@@ -220,7 +219,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
             teamEvent.calendar?.id = calendarId
         }
         val editLayoutData = getItemAndLayout(request, teamEvent, UILayout.UserAccess(false, true))
-        return ResponseAction(url = "/${Const.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
+        return ResponseAction(url = "/${Constants.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
                 .addVariable("serverData", editLayoutData.serverData)

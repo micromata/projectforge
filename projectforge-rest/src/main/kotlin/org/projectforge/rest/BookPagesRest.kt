@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookDao
 import org.projectforge.business.book.BookStatus
@@ -57,8 +57,8 @@ class BookPagesRest : AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, 
       validationErrors,
       "yearOfPublishing",
       dto.yearOfPublishing,
-      Const.MINYEAR,
-      Const.MAXYEAR,
+      Constants.MINYEAR,
+      Constants.MAXYEAR,
       formatNumber = false
     )
     if (baseDao.doesSignatureAlreadyExist(dto))

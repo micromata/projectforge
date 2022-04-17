@@ -25,7 +25,7 @@ package org.projectforge.rest
 
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
 import org.projectforge.business.configuration.ConfigurationService
@@ -519,7 +519,7 @@ class AddressPagesRest
         MenuItem(
           "address.printView",
           i18nKey = "printView",
-          url = "${Const.REACT_APP_PATH}addressView/dynamic/${dto.id}",
+          url = "${Constants.REACT_APP_PATH}addressView/dynamic/${dto.id}",
           type = MenuItemTargetType.REDIRECT
         )
       )

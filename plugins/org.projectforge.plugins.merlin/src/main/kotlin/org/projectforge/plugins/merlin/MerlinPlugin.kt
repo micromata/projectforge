@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.merlin
 
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.jcr.AttachmentsService
@@ -78,7 +78,7 @@ class MerlinPlugin :
 
     menuCreator.register(
       MenuItemDefId.MISC,
-      MenuItemDef(info.id, "plugins.merlin.menu", "${Const.REACT_APP_PATH}merlin")
+      MenuItemDef(info.id, "plugins.merlin.menu", "${Constants.REACT_APP_PATH}merlin")
     )
 
     // All the i18n stuff:

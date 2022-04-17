@@ -23,7 +23,7 @@
 
 package org.projectforge.menu.builder
 
-import org.projectforge.Const
+import org.projectforge.Constants
 
 enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = null) {
     // Main menus in alphabetical order
@@ -118,9 +118,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
 }
 
 private fun getReactListUrl(name: String): String {
-    return "${Const.REACT_APP_PATH}$name"
+    return "${Constants.REACT_APP_PATH}$name"
 }
 
 private fun getReactDynamicPageUrl(name: String): String {
-    return "${Const.REACT_APP_PATH}$name/dynamic"
+    return "${Constants.REACT_APP_PATH}$name/dynamic"
 }

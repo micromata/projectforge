@@ -24,7 +24,7 @@
 package org.projectforge.plugins.skillmatrix
 
 import mu.KotlinLogging
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -53,7 +53,7 @@ class SkillMatrixPlugin : AbstractPlugin(PluginAdminService.PLUGIN_SKILL_MATRIX_
         // Define the access management:
         registerRight(SkillRight(accessChecker))
 
-        menuCreator.register(MenuItemDefId.PROJECT_MANAGEMENT, MenuItemDef(info.id, "plugins.skillmatrix.menu", "${Const.REACT_APP_PATH}skillentry"));
+        menuCreator.register(MenuItemDefId.PROJECT_MANAGEMENT, MenuItemDef(info.id, "plugins.skillmatrix.menu", "${Constants.REACT_APP_PATH}skillentry"));
 
         // All the i18n stuff:
         addResourceBundle(RESOURCE_BUNDLE_NAME)
