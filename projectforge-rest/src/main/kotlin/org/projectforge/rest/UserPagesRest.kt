@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.user.UserDao
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
@@ -123,7 +123,7 @@ class UserPagesRest
         internal fun createUserSettingsCol(uiLength: UILength): UICol {
             val userLC = LayoutContext(PFUserDO::class.java)
 
-            val locales = Const.LOCALIZATIONS.map { UISelectValue(Locale(it), translate("locale.$it")) }.toMutableList()
+            val locales = Constants.LOCALIZATIONS.map { UISelectValue(Locale(it), translate("locale.$it")) }.toMutableList()
             locales.add(0, UISelectValue(Locale("DEFAULT"), translate("user.defaultLocale")))
 
             val today = LocalDate.now()

@@ -30,7 +30,7 @@ import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.AUserRightId;
-import org.projectforge.framework.persistence.api.Constants;
+import org.projectforge.Constants;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 import javax.persistence.*;

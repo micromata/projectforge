@@ -41,7 +41,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
@@ -191,7 +191,7 @@ public class TeamCalFilterDialog extends ModalDialog
     init(new Form<String>(getFormId()));
     calendarPageSupport = new CalendarPageSupport((ISelectCallerPage) getPage(), accessChecker);
     timesheetsCalendar.setTitle(getString("plugins.teamcal.timeSheetCalendar"));
-    timesheetsCalendar.setId(Const.TIMESHEET_CALENDAR_ID);
+    timesheetsCalendar.setId(Constants.TIMESHEET_CALENDAR_ID);
     // confirm
     setCloseButtonTooltip(null, new ResourceModel("plugins.teamcal.calendar.filterDialog.closeButton.tooltip"));
     insertNewAjaxActionButton(new AjaxCallback()
@@ -395,7 +395,7 @@ public class TeamCalFilterDialog extends ModalDialog
       @Override
       public String getDisplayValue(final Integer object)
       {
-        if (Const.TIMESHEET_CALENDAR_ID.equals(object)) {
+        if (Constants.TIMESHEET_CALENDAR_ID.equals(object)) {
           return timesheetsCalendar.getTitle();
         }
         return teamCalDao.getById(object).getTitle();
@@ -431,7 +431,7 @@ public class TeamCalFilterDialog extends ModalDialog
           }
         }
         final List<Integer> filteredList = new ArrayList<Integer>();
-        filteredList.add(Const.TIMESHEET_CALENDAR_ID);
+        filteredList.add(Constants.TIMESHEET_CALENDAR_ID);
         if (result != null) {
           final Iterator<TeamCalDO> it = result.iterator();
           while (it.hasNext()) {

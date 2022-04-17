@@ -29,7 +29,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.SystemStatus;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -209,7 +209,7 @@ public abstract class AbstractTestBase {
     MyJpaWithExtLibrariesScanner.setInternalSetUnitTestMode();
     ProjectForgeApp.internalSetJunitTestMode();
     AbstractPlugin.setInternaJunitTestMode(true);
-    I18nHelper.addBundleName(Const.RESOURCE_BUNDLE_NAME);
+    I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME);
     SendMail.internalSetTestMode();
     initialized = false;
   }

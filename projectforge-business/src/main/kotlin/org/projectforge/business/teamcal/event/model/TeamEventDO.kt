@@ -39,7 +39,7 @@ import org.projectforge.business.teamcal.event.TeamEventRecurrenceData
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.calendar.ICal4JUtils
 import org.projectforge.framework.persistence.api.AUserRightId
-import org.projectforge.framework.persistence.api.Constants
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO

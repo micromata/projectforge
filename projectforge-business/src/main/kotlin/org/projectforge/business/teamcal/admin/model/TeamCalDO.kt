@@ -33,7 +33,7 @@ import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.Constants
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import javax.persistence.*
 

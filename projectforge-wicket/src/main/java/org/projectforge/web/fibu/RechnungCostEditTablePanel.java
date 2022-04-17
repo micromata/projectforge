@@ -39,7 +39,7 @@ import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.*;
 import org.projectforge.business.utils.CurrencyFormatter;
-import org.projectforge.framework.utils.Constants;
+import org.projectforge.Constants;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.CsrfTokenHandler;

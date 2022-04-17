@@ -27,7 +27,7 @@ import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.framework.utils.Constants;
+import org.projectforge.Constants;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -42,23 +42,20 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public class LiquidityForecastForm extends AbstractStandardForm<Object, LiquidityForecastPage>
-{
+public class LiquidityForecastForm extends AbstractStandardForm<Object, LiquidityForecastPage> {
   private static final long serialVersionUID = -4518924991100703065L;
 
   private static final String USER_PREF_KEY_SETTINGS = LiquidityForecastSettings.class.getName();
 
   LiquidityForecastSettings settings;
 
-  public LiquidityForecastForm(final LiquidityForecastPage parentPage)
-  {
+  public LiquidityForecastForm(final LiquidityForecastPage parentPage) {
     super(parentPage);
   }
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
     gridBuilder.newSplitPanel(GridSize.COL33);
     {
@@ -66,12 +63,10 @@ public class LiquidityForecastForm extends AbstractStandardForm<Object, Liquidit
       final RequiredMinMaxNumberField<BigDecimal> amount = new RequiredMinMaxNumberField<BigDecimal>(
           fs.getTextFieldId(),
           new PropertyModel<>(getSettings(), "startAmount"), Constants.TEN_BILLION_NEGATIVE,
-          Constants.TEN_BILLION)
-      {
-        @SuppressWarnings({ "rawtypes", "unchecked" })
+          Constants.TEN_BILLION) {
+        @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
-        public IConverter getConverter(final Class type)
-        {
+        public IConverter getConverter(final Class type) {
           return new CurrencyConverter();
         }
       };
@@ -97,11 +92,9 @@ public class LiquidityForecastForm extends AbstractStandardForm<Object, Liquidit
       fs.add(nextDays);
     }
     {
-      final Button callButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("execute"))
-      {
+      final Button callButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("execute")) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           // parentPage.call();
         }
       };
@@ -113,8 +106,7 @@ public class LiquidityForecastForm extends AbstractStandardForm<Object, Liquidit
     }
   }
 
-  protected LiquidityForecastSettings getSettings()
-  {
+  protected LiquidityForecastSettings getSettings() {
     if (settings == null) {
       settings = (LiquidityForecastSettings) parentPage.getUserPrefEntry(USER_PREF_KEY_SETTINGS);
     }
