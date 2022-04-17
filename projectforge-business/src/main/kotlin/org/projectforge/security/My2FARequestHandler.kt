@@ -28,6 +28,7 @@ import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.model.rest.RestPaths
+import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import javax.servlet.http.HttpServletRequest
@@ -60,6 +61,8 @@ open class My2FARequestHandler {
    * If the key is given, but the expiry period is null, then no write protection is defined.
    */
   private var entitiesWriteAccessMap = mutableMapOf<String, ExpiryPeriod?>()
+
+  private var my2FAPage: My2FAPage? = null
 
   /**
    * Gets the remaining period until the current 2FA is expired, or null if no 2FA is required.
@@ -94,7 +97,10 @@ open class My2FARequestHandler {
     if (expiryPeriod.valid(request.requestURI)) {
       return true
     }
-    response.sendRedirect("/react/2FA/dynamic")
+    if (my2FAPage == null) {
+      throw java.lang.Exception("my2FAPage not set (should be My2FAPageRest)!")
+    }
+    my2FAPage!!.redirect(request, response, expiryPeriod.expiryMillis)
     return false
   }
 
@@ -147,7 +153,8 @@ open class My2FARequestHandler {
       }
     }
     var result: ExpiryPeriod?
-    val paths = getParentPaths(uri)
+    val normalizedUri = WebUtils.normalizeUri(uri) ?: uri
+    val paths = getParentPaths(normalizedUri)
     synchronized(uriMap) {
       paths.forEach { path ->
         result = uriMap[path]
@@ -409,5 +416,9 @@ open class My2FARequestHandler {
 
   init {
     registerShortCut("ALL", "/")
+  }
+
+  fun register(page: My2FAPage) {
+    my2FAPage = page
   }
 }

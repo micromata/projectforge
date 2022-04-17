@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
+import org.apache.commons.codec.binary.Base64
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -44,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.nio.charset.StandardCharsets
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
@@ -68,6 +70,7 @@ class My2FAServicesRest {
 
   /**
    * For validating the Authenticator's OTP, or OTP sent by sms or e-mail.
+   * @param redirect Is used by OTP check after login.
    * @param afterLogin Used by [org.projectforge.rest.pub.My2FAPublicServicesRest]. If true, no toast should be
    *                   created, a CHECK_AUTHENTICATION should be returned.
    */
@@ -79,8 +82,9 @@ class My2FAServicesRest {
     @RequestParam("redirect", required = false) redirect: String?,
     afterLogin: Boolean = false,
   ): ResponseEntity<ResponseAction> {
-    val otp = postData.data.code
-    val password = postData.data.password
+    val data = postData.data
+    val otp = data.code
+    val password = data.password
     val otpCheck = internalCheckOTP(request, response, otp, password)
     if (otpCheck == OTPCheckResult.CODE_EMPTY) {
       return UIToast.createToastResponseEntity(translate("user.My2FA.setup.check.fail"), color = UIColor.DANGER)
@@ -93,17 +97,24 @@ class My2FAServicesRest {
           HttpStatus.OK
         )
       }
-      postData.data.let { data ->
-        data.code = ""
-        data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
-        return UIToast.createToastResponseEntity(
-          translate("user.My2FA.setup.check.success"),
-          color = UIColor.SUCCESS,
-          mutableMapOf("data" to postData.data),
-          merge = true,
-          targetType = TargetType.UPDATE
-        )
+      if (data.target != null) {
+        val redirectUrl = String(Base64.decodeBase64(data.target), StandardCharsets.UTF_8)
+        if (redirectUrl.isNotBlank()) {
+          return ResponseEntity(
+            ResponseAction(targetType = TargetType.REDIRECT, url = redirectUrl),
+            HttpStatus.OK
+          )
+        }
       }
+      data.code = ""
+      data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
+      return UIToast.createToastResponseEntity(
+        translate("user.My2FA.setup.check.success"),
+        color = UIColor.SUCCESS,
+        mutableMapOf("data" to postData.data),
+        merge = true,
+        targetType = TargetType.UPDATE
+      )
     }
     // otp check wasn't successful:
     otpCheck.userMessage?.let { msg ->
@@ -197,7 +208,7 @@ class My2FAServicesRest {
     my2FAData.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val codeCol = UICol(md = 6)
     row.add(codeCol)
-    fillCodeCol(codeCol, redirectUrl)
+    fillCodeCol(codeCol, redirectUrl, restServiceClass = My2FAServicesRest::class.java)
     //val showPasswordCol = my2FARequestConfiguration.checkLoginPasswordRequired4Mail2FA()
     /*
       // Enable E-Mail with password (required for security reasons, if attacker has access to local client)
@@ -226,7 +237,7 @@ class My2FAServicesRest {
   fun fillLayout4PublicPage(
     layout: UILayout,
     userContext: UserContext,
-    restServiceClass: Class<*>,
+    restServiceClass: Class<*> = My2FAPublicServicesRest::class.java,
     redirectUrl: String? = null,
     mailOTPDisabled: Boolean = false,
   ) {
@@ -260,7 +271,7 @@ class My2FAServicesRest {
     mobilePhone: String? = ThreadLocalUserContext.getUser()?.mobilePhone,
     showCancelButton: Boolean = false,
     mailOTPDisabled: Boolean = false,
-    restServiceClass: Class<*> = My2FAPublicServicesRest::class.java,
+    restServiceClass: Class<*>,
   ) {
     val smsAvailable = my2FAHttpService.smsConfigured && NumberHelper.matchesPhoneNumber(mobilePhone)
     codeCol

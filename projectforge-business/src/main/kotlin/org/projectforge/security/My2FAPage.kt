@@ -23,24 +23,13 @@
 
 package org.projectforge.security
 
-import org.projectforge.common.anots.PropertyInfo
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
-open class My2FAData {
-  @PropertyInfo(i18nKey = "user.My2FACode.code", tooltip = "user.My2FACode.code.info")
-  var code: String? = null
-
-  /**
-   * Login password is only needed as additional security factor if OTP is sent via e-mail.
-   */
-  var password: CharArray? = null
-
-  /**
-   * Info string: last successful 2FA as human readable String (TimeAgo): "3 minutes ago"
-   */
-  var lastSuccessful2FA: String? = null
-
-  /**
-   * Optional target url to redirect after successful 2FA.
-   */
-  var target: String? = null
+/**
+ * My2FAPageRest is registered as My2FAPage for handling 2FA and doing the redirect after
+ * successful 2FA.
+ */
+interface My2FAPage {
+  fun redirect(request: HttpServletRequest, response: HttpServletResponse, expiryMillis: Long)
 }

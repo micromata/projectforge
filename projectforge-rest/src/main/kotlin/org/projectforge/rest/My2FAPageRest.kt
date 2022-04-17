@@ -23,45 +23,84 @@
 
 package org.projectforge.rest
 
+import org.apache.commons.codec.binary.Base64
+import org.projectforge.framework.i18n.Duration
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.security.My2FAData
+import org.projectforge.security.My2FAPage
+import org.projectforge.security.My2FARequestHandler
 import org.projectforge.security.My2FAService
 import org.projectforge.ui.LayoutUtils
+import org.projectforge.ui.UIAlert
+import org.projectforge.ui.UIColor
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.nio.charset.StandardCharsets
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpSession
+import javax.servlet.http.HttpServletResponse
 
 @RestController
 @RequestMapping("${Rest.URL}/${MenuItemDefId.TWO_FACTOR_AUTHENTIFICATION_SUB_URL}")
-class My2FAPageRest : AbstractDynamicPageRest() {
+class My2FAPageRest : AbstractDynamicPageRest(), My2FAPage {
+
+  @Autowired
+  private lateinit var my2FARequestHandler: My2FARequestHandler
 
   @Autowired
   private lateinit var my2FAServicesRest: My2FAServicesRest
 
+  @PostConstruct
+  private fun postConstruct() {
+    my2FARequestHandler.register(this)
+  }
+
+  /**
+   * @param target The target url to redirect after successful 2FA.
+   * @param expiryMillis The expiry time of OTP of the target page in millis.
+   */
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest): FormLayoutData {
+  fun getForm(
+    request: HttpServletRequest,
+    @RequestParam target: String? = null,
+    @RequestParam expiryMillis: Long? = null,
+  ): FormLayoutData {
     val data = My2FAData()
+    data.target = target
     data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val layout = UILayout("user.My2FACode.title")
+    if (expiryMillis != null && expiryMillis > 0) {
+      layout.add(UIAlert(translateMsg("user.My2FA.expired", Duration.getMessage(expiryMillis)), color = UIColor.WARNING))
+    }
     my2FAServicesRest.fill2FA(layout, data)
-
     LayoutUtils.process(layout)
     return FormLayoutData(data, layout, createServerData(request))
   }
 
-  companion object {
-    fun registerRedirectUrlForUserSession(session: HttpSession, url: String) {
-      ExpiringSessionAttributes.setAttribute(session, ATTR_REDIRECT_URL, url, 10)
+  override fun redirect(request: HttpServletRequest, response: HttpServletResponse, expiryMillis: Long) {
+    val queryString = request.queryString
+    val uri = request.getRequestURI()
+    val uriWithQueryString = if (queryString.isNullOrEmpty()) {
+      uri
+    } else {
+      "$uri?$queryString"
     }
-
-    private const val ATTR_REDIRECT_URL = "My2FAPageRest:redirectUrl"
+    val target = Base64.encodeBase64URLSafeString(uriWithQueryString.toByteArray(StandardCharsets.UTF_8))
+    response.sendRedirect(
+      PagesResolver.getDynamicPageUrl(
+        this::class.java,
+        absolute = true,
+        params = mapOf("target" to target, "expiryMillis" to expiryMillis),
+      )
+    )
   }
 }
