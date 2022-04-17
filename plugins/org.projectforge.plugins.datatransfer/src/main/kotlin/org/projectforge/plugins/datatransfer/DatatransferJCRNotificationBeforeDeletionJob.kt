@@ -70,8 +70,8 @@ class DatatransferJCRNotificationBeforeDeletionJob {
       return
     }
     if (PFDay.now().isHolidayOrWeekend()) {
-      log.info("********************* Don't send notifications on files beeing deleted on holidays and weekends.")
-      // return
+      log.info("Don't send notifications on files beeing deleted on holidays and weekends.")
+      return
     }
     // key is the user id of the observer and the value is the list of observed attachments (including data transfer
     // area which will being deleted by the system.
