@@ -37,12 +37,14 @@ open class My2FADataDeserializer : StdDeserializer<My2FAData>(My2FAData::class.j
   override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): My2FAData? {
     val node: JsonNode = p.codec.readTree(p)
     val code = (node.get("code") as TextNode?)?.textValue()
+    val target = (node.get("target") as TextNode?)?.textValue()
     val password = (node.get("password") as TextNode?)?.textValue()
     val lastSuccessful2FA = (node.get("lastSuccessful2FA") as TextNode?)?.textValue()
     val data = My2FAData()
     data.code = code
     data.password = password?.toCharArray()
     data.lastSuccessful2FA = lastSuccessful2FA
+    data.target = target
     return data
   }
 }

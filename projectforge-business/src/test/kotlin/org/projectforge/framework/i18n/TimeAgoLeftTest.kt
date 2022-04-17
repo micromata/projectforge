@@ -30,10 +30,10 @@ import org.projectforge.framework.i18n.TimeLeft
 import org.projectforge.framework.time.TimeUnit
 import java.util.*
 
-private const val SECOND = 1000L
-private const val MINUTE = 60 * SECOND
-private const val HOUR = 60 * MINUTE
-private const val DAY = 24 * HOUR
+internal const val SECOND = 1000L
+internal const val MINUTE = 60 * SECOND
+internal const val HOUR = 60 * MINUTE
+internal const val DAY = 24 * HOUR
 private const val MONTH = 30 * DAY
 
 class TimeAgoLeftTest {
