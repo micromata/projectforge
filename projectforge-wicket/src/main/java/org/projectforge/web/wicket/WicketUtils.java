@@ -48,7 +48,7 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.common.DateFormatType;
@@ -108,7 +108,7 @@ public class WicketUtils {
       relativeUrl = relativeUrl + "?" + query;
     }
 
-    final String url= WicketUtils.toAbsolutePath("/" + Const.WICKET_APPLICATION_PATH, relativeUrl);
+    final String url= WicketUtils.toAbsolutePath("/" + Constants.WICKET_APPLICATION_PATH, relativeUrl);
 
     String encodedUrl = "";
     try {
@@ -267,10 +267,10 @@ public class WicketUtils {
         return getDefaultPageUrl();
       }
       if (params == null) {
-        return Const.WICKET_APPLICATION_PATH + alias;
+        return Constants.WICKET_APPLICATION_PATH + alias;
       }
       final StringBuffer buf = new StringBuffer();
-      buf.append(Const.WICKET_APPLICATION_PATH).append(alias);
+      buf.append(Constants.WICKET_APPLICATION_PATH).append(alias);
       try {
         for (int i = 0; i < params.length; i += 2) {
           if (i == 0) {

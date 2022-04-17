@@ -31,7 +31,7 @@ import org.apache.wicket.markup.html.form.FormComponentPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
@@ -64,7 +64,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
 
   private boolean autosubmit;
 
-  private int minYear = Const.MINYEAR, maxYear = Const.MAXYEAR;
+  private int minYear = Constants.MINYEAR, maxYear = Constants.MAXYEAR;
 
   private DatePanelSettings settings;
 

@@ -24,7 +24,7 @@
 package org.projectforge.framework.i18n;
 
 import de.micromata.genome.util.types.Pair;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -75,7 +75,7 @@ public class I18nServiceImpl implements I18nService
     }
 
     ClassLoader loader = new URLClassLoader(urls);
-    for (Locale locale : Const.I18NSERVICE_LANGUAGES) {
+    for (Locale locale : Constants.I18NSERVICE_LANGUAGES) {
       for (String bundleName : resourceBundles) {
         try {
           if (new File(configurationService.getResourceDirName() + File.separator + bundleName + "_" + locale.toString() + ".properties").exists()) {

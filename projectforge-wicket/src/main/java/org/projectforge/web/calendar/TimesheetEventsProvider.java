@@ -28,7 +28,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.task.TaskDO;
@@ -149,7 +149,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
             final Event breakEvent = new Event();
             breakEvent.setEditable(false);
             final String breakId = String.valueOf(++breaksCounter);
-            breakEvent.setClassName(Const.BREAK_EVENT_CLASS_NAME).setId(breakId).setStart(lastStopTime)
+            breakEvent.setClassName(Constants.BREAK_EVENT_CLASS_NAME).setId(breakId).setStart(lastStopTime)
                 .setEnd(startTime)
                 .setTitle(getString("timesheet.break"));
             breakEvent.setTextColor("#666666").setBackgroundColor("#F9F9F9").setColor("#F9F9F9");
@@ -163,7 +163,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
         final long duration = timesheet.getDuration();
         final MyWicketEvent event = new MyWicketEvent();
         final String id = "" + timesheet.getId();
-        event.setClassName(Const.EVENT_CLASS_NAME);
+        event.setClassName(Constants.EVENT_CLASS_NAME);
         event.setId(id);
         event.setStart(startTime);
         event.setEnd(stopTime);

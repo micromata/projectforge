@@ -23,7 +23,7 @@
 
 package org.projectforge.config;
 
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.caldav.config.DAVMethodsInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -34,7 +34,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebApplicationConfig implements WebMvcConfigurer {
   @Override
   public void addViewControllers(ViewControllerRegistry registry) {
-    registry.addViewController("/" + Const.REACT_APP_PATH + "**").setViewName("forward:/react-app.html");
+    registry.addViewController("/" + Constants.REACT_APP_PATH + "**").setViewName("forward:/react-app.html");
   }
 
   @Override

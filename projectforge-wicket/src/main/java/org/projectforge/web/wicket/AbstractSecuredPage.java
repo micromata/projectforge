@@ -33,7 +33,7 @@ import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.SystemAlertMessage;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
@@ -206,7 +206,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
       relativeUrl = relativeUrl.replace("../", "");
     }
 
-    String baseUrl = domainService.getDomainWithContextPath() + "/" + Const.WICKET_APPLICATION_PATH;
+    String baseUrl = domainService.getDomainWithContextPath() + "/" + Constants.WICKET_APPLICATION_PATH;
 
     return WicketUtils.toAbsolutePath(baseUrl, relativeUrl);
   }

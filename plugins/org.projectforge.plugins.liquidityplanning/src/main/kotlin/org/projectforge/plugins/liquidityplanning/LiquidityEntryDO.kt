@@ -26,7 +26,7 @@ package org.projectforge.plugins.liquidityplanning
 import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
-import org.projectforge.framework.persistence.api.Constants
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate

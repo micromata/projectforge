@@ -21,8 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api;
+package org.projectforge;
 
+
+import java.math.BigDecimal;
+import java.util.Locale;
 
 /**
  * Defines different constants (typical length of string columns) usable by plugins and core package.
@@ -30,6 +33,13 @@ package org.projectforge.framework.persistence.api;
  */
 public class Constants
 {
+  /** The default length of comment strings in the data base. Used by data base definition and front-end validation. */
+  public static final int COMMENT_LENGTH = 4000;
+
+  public static final BigDecimal TEN_BILLION = new BigDecimal("10000000000");
+
+  public static final BigDecimal TEN_BILLION_NEGATIVE = new BigDecimal("-10000000000");
+
   /**
    * Default length of text fields in the data-base (4,000).
    */
@@ -49,4 +59,37 @@ public class Constants
    * Default length of title fields in the data-base (1,000).
    */
   public static final int LENGTH_TITLE = 1000;
+
+  public static final String RESOURCE_BUNDLE_NAME = "I18nResources";
+
+  public static final String REACT_APP_PATH = "react/";
+
+  public static final String WICKET_APPLICATION_PATH = "wa/";
+
+  public static final int WICKET_REQUEST_TIMEOUT_MINUTES = 5;
+
+  // Available Loacles for external i18n-files
+  public static final Locale[] I18NSERVICE_LANGUAGES = new Locale[] { Locale.GERMAN, Locale.ENGLISH, Locale.ROOT };
+
+  /**
+   * Available Localization for the wicket module
+   * If you add new languages don't forget to add the I18nResources_##.properties also for all used plugins.
+   * You need also to add the language to I18nResources*.properties such as<br/>
+   * locale.de=German<br/>
+   * locale.en=English<br/>
+   * locale.zh=Chinese
+   */
+  public static final String[] LOCALIZATIONS = { "en", "de" };
+  /**
+   * the name of the event class.
+   */
+  public static final String EVENT_CLASS_NAME = "timesheet";
+
+  public static final String BREAK_EVENT_CLASS_NAME = "ts-break";
+
+  public static final Integer TIMESHEET_CALENDAR_ID = -1;
+
+  public static final int MINYEAR = 1900;
+
+  public static final int MAXYEAR = 2100;
 }

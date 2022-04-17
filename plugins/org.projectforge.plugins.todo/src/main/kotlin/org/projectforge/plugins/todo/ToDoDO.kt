@@ -28,7 +28,7 @@ import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.Priority
-import org.projectforge.framework.persistence.api.Constants
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.GroupDO
