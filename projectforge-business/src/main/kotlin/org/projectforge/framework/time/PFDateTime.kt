@@ -58,12 +58,6 @@ open class PFDateTime internal constructor(
     get() = dateTime.month
 
   /**
-   * Gets the month-of-year field from 1 (January) to 12 (December).
-   */
-  override val monthValue: Int
-    get() = dateTime.monthValue
-
-  /**
    * Gets the month-of-year field from 0 (January) to 11 (December).
    */
   val monthCompatibilityValue: Int
@@ -139,9 +133,6 @@ open class PFDateTime internal constructor(
   val endOfDay: PFDateTime
     get() = PFDateTime(PFDateTimeUtils.getEndOfDay(dateTime), locale, precision)
 
-  override val isFirstDayOfWeek: Boolean
-    get() = dayOfWeek == PFDayUtils.getFirstDayOfWeek()
-
   override fun withYear(year: Int): PFDateTime {
     return PFDateTime(dateTime.withYear(year), locale, precision)
   }
@@ -178,10 +169,6 @@ open class PFDateTime internal constructor(
    */
   override fun withDayOfWeek(dayOfWeek: Int): PFDateTime {
     return PFDayUtils.withDayOfWeek(this, dayOfWeek)
-  }
-
-  override fun withDayOfWeek(dayOfWeek: DayOfWeek): PFDateTime {
-    return this.withDayOfWeek(dayOfWeek.value)
   }
 
   fun withHour(hour: Int): PFDateTime {
@@ -298,10 +285,6 @@ open class PFDateTime internal constructor(
 
   override fun isSameDay(other: PFDateTime): Boolean {
     return year == other.year && dayOfYear == other.dayOfYear
-  }
-
-  override fun isWeekend(): Boolean {
-    return DayOfWeek.SUNDAY == dayOfWeek || DayOfWeek.SATURDAY == dayOfWeek
   }
 
   override fun monthsBetween(other: PFDateTime): Long {

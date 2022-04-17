@@ -28,6 +28,7 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.time.PFDay
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.springframework.beans.factory.annotation.Autowired
@@ -67,6 +68,10 @@ class DatatransferJCRNotificationBeforeDeletionJob {
     if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
       log.info("Plugin data transfer not activated. Don't need notification job.")
       return
+    }
+    if (PFDay.now().isHolidayOrWeekend()) {
+      log.info("********************* Don't send notifications on files beeing deleted on holidays and weekends.")
+      // return
     }
     // key is the user id of the observer and the value is the list of observed attachments (including data transfer
     // area which will being deleted by the system.
