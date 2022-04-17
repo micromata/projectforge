@@ -29,9 +29,9 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.projectforge.Constants;
 import org.projectforge.business.task.TaskFilter;
 import org.projectforge.web.wicket.AbstractSecuredForm;
-import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -75,7 +75,7 @@ public class TaskTreeForm extends AbstractSecuredForm<TaskFilter, TaskTreePage>
       fs.add(new InputPanel(fs.newChildId(), searchField));
       fs.add(new IconPanel(fs.newIconChildId(), IconType.HELP, getString("tooltip.lucene.link")).setOnClickLocation(
           getRequestCycle(),
-          WebConstants.DOC_LINK_HANDBUCH_LUCENE, true), FieldSetIconPosition.TOP_RIGHT);
+          Constants.WEB_DOCS_LINK_HANDBUCH_LUCENE, true), FieldSetIconPosition.TOP_RIGHT);
     }
     {
       gridBuilder.newSplitPanel(GridSize.COL50);
