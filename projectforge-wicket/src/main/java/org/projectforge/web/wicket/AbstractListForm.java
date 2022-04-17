@@ -37,6 +37,7 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.projectforge.Constants;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils;
@@ -178,7 +179,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
 
         fs.addHelpIcon(getString("tooltip.lucene.link"), FieldSetIconPosition.TOP_RIGHT).setOnClickLocation(
             getRequestCycle(),
-            WebConstants.DOC_LINK_HANDBUCH_LUCENE, true);
+            Constants.WEB_DOCS_LINK_HANDBUCH_LUCENE, true);
         final String helpKeyboardImageTooltip = getHelpKeyboardImageTooltip();
         if (helpKeyboardImageTooltip != null) {
           fs.addKeyboardHelpIcon(helpKeyboardImageTooltip);

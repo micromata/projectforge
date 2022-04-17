@@ -24,6 +24,7 @@
 package org.projectforge.security
 
 import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuItemDefId
@@ -219,7 +220,7 @@ open class My2FARequestHandler {
   fun printConfiguration(): String {
     val sb = StringBuilder()
     sb.appendLine("  *")
-    sb.appendLine("  * Please refer documentation: https://projectforge.org/docs/adminguide/#securityconfig")
+    sb.appendLine("  * Please refer documentation: ${Constants.WEB_DOCS_ADMIN_GUIDE_SECURITY_CONFIG_LINK}")
     sb.appendLine("  *")
     synchronized(shortCuts) {
       if (expiryPeriodsDirty) {

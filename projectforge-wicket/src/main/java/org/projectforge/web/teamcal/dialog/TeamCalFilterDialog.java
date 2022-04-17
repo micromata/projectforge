@@ -395,7 +395,7 @@ public class TeamCalFilterDialog extends ModalDialog
       @Override
       public String getDisplayValue(final Integer object)
       {
-        if (Constants.TIMESHEET_CALENDAR_ID.equals(object)) {
+        if (Constants.isTimesheetCalendarId(object)) {
           return timesheetsCalendar.getTitle();
         }
         return teamCalDao.getById(object).getTitle();
