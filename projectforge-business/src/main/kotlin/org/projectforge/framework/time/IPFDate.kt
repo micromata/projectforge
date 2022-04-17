@@ -132,7 +132,7 @@ interface IPFDate<T> : Comparable<T> {
   }
 
   fun isHolidayOrWeekend(): Boolean {
-    return isWeekend() && isHoliday()
+    return isWeekend() || isHoliday()
   }
 
   /**
