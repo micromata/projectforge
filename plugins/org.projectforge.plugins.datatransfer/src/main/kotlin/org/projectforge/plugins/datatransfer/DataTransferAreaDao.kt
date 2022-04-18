@@ -317,17 +317,17 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     }
 
     const val MAX_FILE_SIZE_SPRING_PROPERTY = "projectforge.plugin.datatransfer.maxFileSize"
-    val EXPIRY_DAYS_VALUES = "plugins.datatransfer.expiryDays".let {
+    val EXPIRY_DAYS_VALUES = "duration.days".let {
       mapOf(
-        1 to "$it.day",
-        3 to "$it.days",
-        7 to "$it.days",
-        14 to "$it.days",
-        30 to "$it.days",
-        60 to "$it.days",
-        90 to "$it.days",
-        180 to "$it.days",
-        365 to "$it.days"
+        1 to "$it.one",
+        3 to it,
+        7 to it,
+        14 to it,
+        30 to it,
+        60 to it,
+        90 to it,
+        180 to it,
+        365 to it
       )
     }
     private const val MB = 1024
