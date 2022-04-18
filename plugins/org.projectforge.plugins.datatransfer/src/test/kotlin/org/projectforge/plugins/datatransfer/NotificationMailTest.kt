@@ -84,6 +84,7 @@ class NotificationMailTest : AbstractTestBase() {
   @Test
   fun notificationMailTest() {
     val recipient = createUser()
+    recipient.locale = Locale.GERMAN
     val notificationInfoList = mutableListOf<NotificationMailService.AttachmentNotificationInfo>()
     val area1 = createDataTransferArea(42, "Area", 10)
     notificationInfoList.add(createNotificationInfo("File 1.pdf", 1_200, area1, 5))
