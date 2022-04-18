@@ -70,7 +70,7 @@ class DatatransferJCRNotificationBeforeDeletionJob {
       return
     }
     if (PFDay.now().isHolidayOrWeekend()) {
-      log.info("Don't send notifications on files beeing deleted on holidays and weekends.")
+      log.info("Don't send notifications on files being deleted on holidays and weekends.")
       return
     }
     // key is the user id of the observer and the value is the list of observed attachments (including data transfer
@@ -83,7 +83,7 @@ class DatatransferJCRNotificationBeforeDeletionJob {
     dataTransferAreaDao.internalLoadAll().forEach { dbo ->
       dbo.id?.let { id ->
         val expiryDays = dbo.expiryDays ?: 30
-        val notificateDaysBeforDeletion = getNotificationDaysBeforeDeletion(expiryDays)
+        val notifyDaysBeforeDeletion = getNotificationDaysBeforeDeletion(expiryDays)
         val expiryMillis = expiryDays.toLong() * DataTransferJCRCleanUpJob.MILLIS_PER_DAY
         val attachments = attachmentsService.internalGetAttachments(
           dataTransferAreaPagesRest.jcrPath!!,
@@ -92,7 +92,7 @@ class DatatransferJCRNotificationBeforeDeletionJob {
         val observers = StringHelper.splitToInts(dbo.observerIds, ",", true)
         attachments?.forEach { attachment ->
           val time = attachment.lastUpdate?.time ?: attachment.created?.time
-          if (time != null && startTimeInMillis - time + notificateDaysBeforDeletion > expiryMillis) {
+          if (time != null && startTimeInMillis - time + notifyDaysBeforeDeletion > expiryMillis) {
             val expiresInMillis = time + expiryMillis - startTimeInMillis
             val date = Date(time + expiryMillis)
             observers.forEach { userId ->
@@ -119,10 +119,10 @@ class DatatransferJCRNotificationBeforeDeletionJob {
 
   private fun getNotificationDaysBeforeDeletion(expiryDays: Int): Long {
     val notificationDays = when {
-      expiryDays < 10 -> 100 // Don't notify.
-      expiryDays < 30 -> 7
-      expiryDays < 90 -> 14
-      else -> 30
+      expiryDays <= 10 -> -1 // Don't notify.
+      expiryDays <= 30 -> 7  // Notify 7 days before being deleted.
+      expiryDays <= 90 -> 14 // Notify 14 days before being deleted.
+      else -> 30             // Notify 30 days before being deleted.
     }
     return notificationDays * DataTransferJCRCleanUpJob.MILLIS_PER_DAY
   }

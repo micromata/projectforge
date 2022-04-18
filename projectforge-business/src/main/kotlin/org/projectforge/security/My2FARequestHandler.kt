@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.login.LoginService
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.web.WebUtils
@@ -95,7 +96,7 @@ open class My2FARequestHandler {
    */
   fun handleRequest(request: HttpServletRequest, response: HttpServletResponse): Boolean {
     val expiryPeriod = matchesUri(request.requestURI) ?: return true // No expiryPeriod matches: return true.
-    if (expiryPeriod.valid(request.requestURI)) {
+    if (expiryPeriod.valid(request.requestURI, request)) {
       return true
     }
     if (my2FAPage == null) {
@@ -357,13 +358,19 @@ open class My2FARequestHandler {
      * @param action Only for logging the demanded user action if 2FA is required.
      * @return true if the time stamp (epoch ms) of UserContext isn't null and isn't expired.
      */
-    fun valid(action: String): Boolean {
-      val user = ThreadLocalUserContext.getUserContext()
-      val lastSuccessful2FA = user?.lastSuccessful2FA
+    fun valid(action: String, request: HttpServletRequest? = null): Boolean {
+      var userContext = ThreadLocalUserContext.getUserContext()
+      if (userContext == null && request != null) {
+        userContext = LoginService.getUserContext(request, false)
+      }
+      if (userContext == null) {
+        return false
+      }
+      val lastSuccessful2FA = userContext.lastSuccessful2FA
       if (lastSuccessful2FA != null && lastSuccessful2FA > System.currentTimeMillis() - expiryMillis) {
         return true
       }
-      log.info { "2FA is required for user '${user.user?.username}' for period '$expiryPeriod' for: $action" }
+      log.info { "2FA is required for user '${userContext.user?.username}' for period '$expiryPeriod' for: $action" }
       return false
     }
 

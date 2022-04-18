@@ -57,6 +57,8 @@ import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.jcr.RepoService;
 import org.projectforge.mail.SendMail;
 import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.core.PluginAdminService;
+import org.projectforge.plugins.core.PluginsRegistry;
 import org.projectforge.registry.Registry;
 import org.projectforge.web.WicketSupport;
 import org.springframework.beans.BeansException;
@@ -179,6 +181,9 @@ public abstract class AbstractTestBase {
   private DatabaseService databaseService;
 
   @Autowired
+  private PluginAdminService pluginAdminService;
+
+  @Autowired
   private RepoService repoService;
 
   @Autowired
@@ -187,9 +192,35 @@ public abstract class AbstractTestBase {
   @Autowired
   private UserGroupCache userGroupCache;
 
+  private static boolean pluginsInitialized = false;
+
   @PostConstruct
   private void postConstruct() {
-    WicketSupport.register(applicationContext);
+    if (!pluginsInitialized) {
+      pluginsInitialized = true;
+      WicketSupport.register(applicationContext);
+      Class<?> webRegistryClazz = null;
+      try {
+        // Wicket package not available for compilation.
+        webRegistryClazz = Class.forName("org.projectforge.web.registry.WebRegistry");
+        Object webRegistry = webRegistryClazz.getMethod("getInstance").invoke(null );
+        webRegistryClazz.getMethod("init").invoke(webRegistry);
+      } catch (ReflectiveOperationException ex) {
+        if (webRegistryClazz == null) {
+          // Wicket not present in current plugin to test (OK)
+        } else {
+          baseLog.error(ex.getMessage(), ex);
+        }
+      }
+      pluginAdminService.initializeAllPluginsForUnitTest();
+      I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME);
+      // Register all resource bundles of the plugins
+      for (AbstractPlugin plugin : PluginsRegistry.instance().getPlugins()) {
+        for (String bundleName : plugin.getResourceBundleNames()) {
+          I18nHelper.addBundleName(bundleName);
+        }
+      }
+    }
   }
 
   protected int mCount = 0;
@@ -208,8 +239,7 @@ public abstract class AbstractTestBase {
   public static void _beforeAll() {
     MyJpaWithExtLibrariesScanner.setInternalSetUnitTestMode();
     ProjectForgeApp.internalSetJunitTestMode();
-    AbstractPlugin.setInternaJunitTestMode(true);
-    I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME);
+    AbstractPlugin.setInternalJunitTestMode(true);
     SendMail.internalSetTestMode();
     initialized = false;
   }
