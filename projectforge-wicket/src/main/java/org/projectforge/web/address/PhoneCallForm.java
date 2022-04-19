@@ -32,7 +32,7 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.address.AddressDO;
@@ -47,7 +47,7 @@ import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.RecentQueue;
-import org.projectforge.web.wicket.AbstractEditPage;
+import org.projectforge.rest.AddressViewPageRest;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -269,9 +269,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
             log.error("Oups should not occur: AddressViewLink is shown without a given address. Ignoring link.");
             return;
           }
-          final PageParameters params = new PageParameters();
-          params.add(AbstractEditPage.PARAMETER_KEY_ID, address.getId());
-          setResponsePage(new AddressViewPage(params, parentPage));
+          throw new RedirectToUrlException(AddressViewPageRest.getPageUrl(address.getId(), "/wa/phoneCall"));
         }
       };
       final TextLinkPanel addressLinkPanel = new TextLinkPanel(addressPanel.newChildId(), addressViewLink,

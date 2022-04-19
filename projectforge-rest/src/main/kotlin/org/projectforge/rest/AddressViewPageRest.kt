@@ -29,7 +29,6 @@ import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.PersonalAddressDO
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.business.configuration.ConfigurationService
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
@@ -80,7 +79,11 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
   class EMail(var email: String?)
 
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
+  fun getForm(
+    request: HttpServletRequest,
+    @RequestParam("id") idString: String?,
+    @RequestParam("returnToCaller") returnToCaller: String?,
+  ): FormLayoutData {
     val id = NumberHelper.parseInteger(idString) ?: throw IllegalArgumentException("id not given.")
     val addressDO = addressDao.getById(id) ?: AddressDO()
     val address = Address()
@@ -199,10 +202,16 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
       )
     )
 
+    val backUrl = if (returnToCaller.isNullOrEmpty()) {
+      PagesResolver.getListPageUrl(AddressPagesRest::class.java, absolute = true)
+    } else {
+      // Fix doubled encoding:
+      returnToCaller.replace("%2F", "/")
+    }
     layout.add(
       UIButton.createBackButton(
         responseAction = ResponseAction(
-          PagesResolver.getListPageUrl(AddressPagesRest::class.java, absolute = true),
+          backUrl,
           targetType = TargetType.REDIRECT
         ),
         default = true
@@ -220,7 +229,12 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     layout.watchFields.addAll(arrayOf("isFavoriteCard"))
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
-    return FormLayoutData(address, layout, createServerData(request))
+    val formLayoutData = FormLayoutData(address, layout, createServerData(request))
+    returnToCaller?.let {
+      // Fix doubled encoding:
+      formLayoutData.serverData!!.returnToCaller = backUrl
+    }
+    return formLayoutData
   }
 
   /**
@@ -308,5 +322,19 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
           )
         )
     )
+  }
+
+  companion object {
+    @JvmStatic
+    @JvmOverloads
+    fun getPageUrl(id: Int?, returnToCaller: String? = null, absolute: Boolean = true): String {
+      returnToCaller
+      return PagesResolver.getDynamicPageUrl(
+        AddressViewPageRest::class.java,
+        id = id,
+        absolute = absolute,
+        returnToCaller = returnToCaller
+      )
+    }
   }
 }

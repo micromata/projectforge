@@ -241,7 +241,6 @@ public class WebRegistry
     // This order is used by SearchPage:
     register(DaoConst.ADDRESS, AddressListPage.class);
     addMountPages(DaoConst.ADDRESS, AddressListPage.class, AddressEditPage.class);
-    addMountPage(DaoConst.ADDRESS + "View", AddressViewPage.class);
 
     register(DaoConst.TASK, TaskListPage.class);
     addMountPages(DaoConst.TASK, TaskListPage.class, TaskEditPage.class);

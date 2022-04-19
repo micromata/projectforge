@@ -2,6 +2,8 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
+    <appender name="MEMORY" class="org.projectforge.common.logging.LoggerMemoryAppender" />
+
     <logger name="com.zaxxer" level="error"/>
     <logger name="de.micromata" level="error"/>
     <logger name="org.apache" level="error"/>

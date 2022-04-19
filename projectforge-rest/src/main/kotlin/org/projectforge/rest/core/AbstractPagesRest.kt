@@ -716,7 +716,8 @@ constructor(
     onBeforeGetItemAndLayout(request, item, userAccess)
     val formLayoutData = getItemAndLayout(request, item, userAccess)
     returnToCaller?.let {
-      formLayoutData.serverData!!.returnToCaller = returnToCaller
+      // Fix doubled encoding:
+      formLayoutData.serverData!!.returnToCaller = returnToCaller.replace("%2F", "/")
     }
     return ResponseEntity(formLayoutData, HttpStatus.OK)
   }
