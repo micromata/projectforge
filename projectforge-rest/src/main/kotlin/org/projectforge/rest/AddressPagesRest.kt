@@ -25,7 +25,6 @@ package org.projectforge.rest
 
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.Constants
 import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
 import org.projectforge.business.configuration.ConfigurationService
@@ -253,7 +252,8 @@ class AddressPagesRest
       )
     layout.getTableColumnById("address.lastUpdate").formatter = UITableColumn.Formatter.DATE
     layout.getTableColumnById("address.imagePreview").set(sortable = false)
-    layout.getTableColumnById("address.addressbookList").set(formatter = UITableColumn.Formatter.ADDRESS_BOOK, sortable = false)
+    layout.getTableColumnById("address.addressbookList")
+      .set(formatter = UITableColumn.Formatter.ADDRESS_BOOK, sortable = false)
     layout.getTableColumnById("address.isFavoriteCard").set(
       sortable = false,
       title = "address.columnHead.myFavorites",
@@ -519,8 +519,8 @@ class AddressPagesRest
         MenuItem(
           "address.printView",
           i18nKey = "printView",
-          url = "${Constants.REACT_APP_PATH}addressView/dynamic/${dto.id}",
-          type = MenuItemTargetType.REDIRECT
+          url = AddressViewPageRest.getPageUrl(dto.id, absolute = false),
+          type = MenuItemTargetType.REDIRECT,
         )
       )
       layout.add(
@@ -546,7 +546,10 @@ class AddressPagesRest
   /**
    * @return New result set of dto's, transformed from data base objects.
    */
-  override fun processResultSetBeforeExport(resultSet: ResultSet<AddressDO>, request: HttpServletRequest): ResultSet<*> {
+  override fun processResultSetBeforeExport(
+    resultSet: ResultSet<AddressDO>,
+    request: HttpServletRequest
+  ): ResultSet<*> {
     val newList = resultSet.resultSet.map {
       ListAddress(
         transformFromDB(it),

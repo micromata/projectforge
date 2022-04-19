@@ -41,11 +41,13 @@ object PagesResolver {
 
   private val pagesRegistry = mutableMapOf<String, AbstractPagesRest<*, *, *>>()
 
+  @JvmStatic
   fun getEditPageUrl(
     pagesRestClass: Class<out AbstractPagesRest<*, *, *>>,
     id: Int? = null,
     params: Map<String, Any?>? = null,
-    absolute: Boolean = false
+    absolute: Boolean = false,
+    returnToCaller: String? = null,
   ): String {
     val path = getRequestMappingPath(pagesRestClass) ?: return "NOT_FOUND"
     val prefix = if (absolute) "/" else ""
@@ -55,9 +57,9 @@ object PagesResolver {
       ""
     }
     if (path.startsWith('/')) {
-      return "$path/edit$idString${getQueryString(params)}"
+      return "$path/edit$idString${getQueryString(params, returnToCaller)}"
     }
-    return "$prefix$path/edit$idString${getQueryString(params)}"
+    return "$prefix$path/edit$idString${getQueryString(params, returnToCaller)}"
   }
 
 
@@ -68,12 +70,13 @@ object PagesResolver {
     pagesRestClass: Class<*>,
     subPath: String? = null,
     params: Map<String, Any?>? = null,
-    absolute: Boolean = false
+    absolute: Boolean = false,
+    returnToCaller: String? = null,
   ): String {
     val path = getRequestMappingPath(pagesRestClass) ?: return "NOT_FOUND"
     val subPathString = if (subPath != null) "/$subPath" else ""
     val prefix = if (absolute) "/" else ""
-    return "$prefix$path$subPathString${getQueryString(params)}"
+    return "$prefix$path$subPathString${getQueryString(params, returnToCaller)}"
   }
 
   /**
@@ -113,11 +116,12 @@ object PagesResolver {
     id: Int? = null,
     absolute: Boolean = false,
     trailingSlash: Boolean = true,
+    returnToCaller: String? = null,
   ): String {
     val path = getRequestMappingPath(pageRestClass, "/dynamic") ?: return "NOT_FOUND"
     val prefix = if (absolute) "/" else ""
     val idPart = if (id != null) "/$id" else if (trailingSlash) "/" else ""
-    return "$prefix$path$idPart${getQueryString(params)}"
+    return "$prefix$path$idPart${getQueryString(params, returnToCaller)}"
   }
 
   /**
@@ -154,7 +158,14 @@ object PagesResolver {
     }
   }
 
-  private fun getQueryString(params: Map<String, Any?>? = null): String {
+  private fun getQueryString(params: Map<String, Any?>? = null, returnToCaller: String? = null): String {
+    if (returnToCaller != null) {
+      val queryParams = mutableMapOf<String, Any?>("returnToCaller" to returnToCaller)
+      if (params != null) {
+        queryParams.putAll(params)
+      }
+      return RestResolver.getQueryString(queryParams)
+    }
     return RestResolver.getQueryString(params)
   }
 }

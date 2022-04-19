@@ -119,11 +119,6 @@ open class NotificationMailService {
    * Sends an email with files being deleted to an observer.
    */
   fun sendNotificationMail(userId: Int, notificationInfoList: List<AttachmentNotificationInfo>?) {
-    if (userId != 2) {
-      // ********** Uncomment DatatransferJCRNotificationBeforeDeleteion:74
-      // Test mode: only send e-mail to test user in production environment.
-      return
-    }
     if (notificationInfoList.isNullOrEmpty()) {
       return
     }

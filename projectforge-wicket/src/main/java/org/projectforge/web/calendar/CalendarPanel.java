@@ -31,6 +31,7 @@ import net.ftlines.wicket.fullcalendar.callback.*;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
@@ -49,7 +50,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.web.address.AddressViewPage;
+import org.projectforge.rest.AddressViewPageRest;
 import org.projectforge.web.address.BirthdayEventsProvider;
 import org.projectforge.web.humanresources.HRPlanningEventsProvider;
 import org.projectforge.web.timesheet.TimesheetEditPage;
@@ -253,12 +254,7 @@ public class CalendarPanel extends Panel
           } else if (BirthdayEventsProvider.EVENT_CLASS_NAME.startsWith(eventClassName) == true) {
             // User clicked on birthday, show the address:
             final Integer id = NumberHelper.parseInteger(eventId);
-            final PageParameters parameters = new PageParameters();
-            parameters.add(AbstractEditPage.PARAMETER_KEY_ID, id);
-            final AddressViewPage addressViewPage = new AddressViewPage(parameters);
-            setResponsePage(addressViewPage);
-            addressViewPage.setReturnToPage((WebPage) getPage());
-            return;
+            throw new RedirectToUrlException(AddressViewPageRest.getPageUrl(id, "/wa/teamCalendar"));
           }
           onEventClickedHook(clickedEvent, response, event, eventId, eventClassName);
         }

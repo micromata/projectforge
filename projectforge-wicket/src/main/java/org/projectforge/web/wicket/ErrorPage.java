@@ -181,7 +181,12 @@ public class ErrorPage extends AbstractSecuredPage {
         throwable instanceof ComponentNotFoundException) {
       // Do nothing, this Exception can't be avoided. It occurs if the user clicks and navigates throw the
       // AddressListPage, then image components will be removed.
-      log.error("ErrorPage shown for user, but no message sent to support team: " + throwable.getMessage());
+      if (throwable == null) {
+        // On CallAllPagesTest:
+        log.error("ErrorPage shown for user, but no message sent to support team.");
+      } else {
+        log.error("ErrorPage shown for user, but no message sent to support team: " + throwable.getMessage());
+      }
     } else if (rootCause instanceof UserException) {
       // Do nothing. The UserException is already presented to the user.
       log.error("ErrorPage shown for user, but no message sent to support team: " + throwable.getMessage());

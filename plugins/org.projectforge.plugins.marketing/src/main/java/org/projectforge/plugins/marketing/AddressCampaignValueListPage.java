@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.marketing;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -168,7 +167,8 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
                 + " "
                 + address.getMailingCity(),
             address.getMailingCountry());
-        final AddressEditLinkPanel addressEditLinkPanel = new AddressEditLinkPanel(componentId, page, address,
+        String returnToCaller = "/wa/addressCampaignValuesList";
+        final AddressEditLinkPanel addressEditLinkPanel = new AddressEditLinkPanel(componentId, returnToCaller, address,
             addressText);
         item.add(addressEditLinkPanel);
         cellItemListener.populateItem(item, componentId, rowModel);
