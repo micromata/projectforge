@@ -25,21 +25,21 @@ package org.projectforge.web;
 
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.web.address.AddressEditPage;
+import org.projectforge.web.address.AddressListPage;
 import org.projectforge.web.admin.SetupPage;
+import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.registry.WebRegistry;
 import org.projectforge.web.wicket.WicketPageTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 
-@Disabled("To fix")
-public class CallAllPagesTest extends WicketPageTestBase
-{
+public class CallAllPagesTest extends WicketPageTestBase {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CallAllPagesTest.class);
 
   static int counter;
@@ -51,8 +51,11 @@ public class CallAllPagesTest extends WicketPageTestBase
   private MenuCreator menuCreator;
 
   @SuppressWarnings("unchecked")
-  private final Class<? extends WebPage>[] skipPages = new Class[] { //
+  private final Class<? extends WebPage>[] skipPages = new Class[]{ //
       // Not yet checked:
+      AddressEditPage.class, // Shouldn't be used anymore (only available for compilation of AddressListPage).
+      AddressListPage.class, // Shouldn't be used anymore (AddressListPage.filter used in Marketing plugin).
+      SetupPage.class,       // Tested separately (works only on empty data bas
   };
 
   @Override
@@ -62,16 +65,16 @@ public class CallAllPagesTest extends WicketPageTestBase
   }
 
   @Test
-  public void testAllMountedPages()
-  {
-    MenuCreator.Companion.setTestCase(true);
+  public void testAllMountedPages() {
+    MenuCreator.setTestCase(true);
     _testAllMountedPages();
+    testPage(SetupPage.class, CalendarPage.class); // Data base isn't empty.
     clearDatabase();
+    dropDatabase();
     testPage(SetupPage.class);
   }
 
-  private void _testAllMountedPages()
-  {
+  private void _testAllMountedPages() {
     log.info("Test all web pages with.");
     login(AbstractTestBase.TEST_FULL_ACCESS_USER, AbstractTestBase.TEST_FULL_ACCESS_USER_PASSWORD);
     SystemInfoCache.internalInitialize(systemInfoCache);
@@ -93,25 +96,21 @@ public class CallAllPagesTest extends WicketPageTestBase
     logout();
   }
 
-  private void testPage(final Class<? extends WebPage> pageClass)
-  {
+  private void testPage(final Class<? extends WebPage> pageClass) {
     testPage(pageClass, null, pageClass);
   }
 
   @SuppressWarnings("unused")
-  private void testPage(final Class<? extends WebPage> pageClass, final PageParameters params)
-  {
+  private void testPage(final Class<? extends WebPage> pageClass, final PageParameters params) {
     testPage(pageClass, params, pageClass);
   }
 
-  private void testPage(final Class<? extends WebPage> pageClass, final Class<? extends WebPage> expectedRenderedPage)
-  {
+  private void testPage(final Class<? extends WebPage> pageClass, final Class<? extends WebPage> expectedRenderedPage) {
     testPage(pageClass, null, expectedRenderedPage);
   }
 
   private void testPage(final Class<? extends WebPage> pageClass, final PageParameters params,
-      final Class<? extends WebPage> expectedRenderedPage)
-  {
+                        final Class<? extends WebPage> expectedRenderedPage) {
     log.info("Calling page: " + pageClass.getName());
     if (params != null) {
       tester.startPage(pageClass, params);

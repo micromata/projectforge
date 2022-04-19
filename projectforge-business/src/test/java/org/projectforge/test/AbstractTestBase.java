@@ -26,6 +26,7 @@ package org.projectforge.test;
 import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.genome.db.jpa.history.entities.EntityOpType;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,8 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserService;
+import org.projectforge.database.DatabaseExecutor;
+import org.projectforge.database.jdbc.DatabaseExecutorImpl;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.AccessType;
@@ -173,6 +176,8 @@ public abstract class AbstractTestBase {
 
   @Autowired
   private DataSource dataSource;
+
+  private DatabaseExecutor databaseExecutor;
 
   @Autowired
   private ConfigurationService configurationService;
@@ -351,6 +356,18 @@ public abstract class AbstractTestBase {
     emf.getJpaSchemaService().clearDatabase();
     userGroupCache.setExpired();
     initTestDB.clearUsers();
+  }
+
+  protected void dropDatabase() {
+    if (databaseExecutor == null) {
+      databaseExecutor = new DatabaseExecutorImpl();
+      databaseExecutor.setDataSource(dataSource);
+    }
+    try {
+      databaseExecutor.execute("DROP SCHEMA PUBLIC CASCADE", false);
+    } catch (final Exception ex) {
+      Assertions.fail("Can't drop schema: " + ex.getMessage());
+    }
   }
 
   public PFUserDO logon(final String username) {

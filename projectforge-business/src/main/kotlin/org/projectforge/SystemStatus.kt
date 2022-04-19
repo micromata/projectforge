@@ -71,7 +71,7 @@ class SystemStatus {
         messageOfTheDay = Configuration.instance
                 .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
         logoFile = configurationService.syntheticLogoName
-        if (!databaseService.databaseTablesWithEntriesExists())
+        if (!databaseService.databaseTablesWithEntriesExist())
             setupRequiredFirst = true
         devMode = developmentMode
     }
