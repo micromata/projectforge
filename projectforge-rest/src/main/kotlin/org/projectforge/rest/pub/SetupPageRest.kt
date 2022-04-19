@@ -58,7 +58,7 @@ open class SetupPageRest {
   @GetMapping("dynamic")
   fun getForm(): FormLayoutData {
     val layout = UILayout("administration.setup.title")
-    if (databaseService.databaseTablesWithEntriesExists()) {
+    if (databaseService.databaseTablesWithEntriesExist()) {
       log.error("Data-base isn't empty: SetupPage shouldn't be used...")
       //throw IllegalArgumentException("Can't setup system, it's not empty.")
     }

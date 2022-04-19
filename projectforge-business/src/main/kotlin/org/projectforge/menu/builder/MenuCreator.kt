@@ -105,6 +105,7 @@ open class MenuCreator {
     /**
      * If test cases fails, try to set testCase to true.
      */
+    @JvmStatic
     var testCase = false
   }
 

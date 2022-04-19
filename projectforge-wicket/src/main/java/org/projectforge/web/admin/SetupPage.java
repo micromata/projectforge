@@ -240,7 +240,7 @@ public class SetupPage extends AbstractUnsecureBasePage
 
   private void checkAccess()
   {
-    if (databaseService.databaseTablesWithEntriesExists() == true) {
+    if (databaseService.databaseTablesWithEntriesExist()) {
       log.error("Couldn't call set-up page, because the data-base isn't empty!");
       ((MySession) getSession()).internalLogout();
       throw new RestartResponseException(WicketUtils.getDefaultPage());
