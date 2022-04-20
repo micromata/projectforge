@@ -90,14 +90,14 @@ open class My2FARequestHandler {
    * for the requested url, then a redirection to a 2FA is forced (if [sendRedirect] is true). If [sendRedirect]
    * is false, the caller has to proceed the redirection to the 2FA page.
    * @param sendRedirect If true (default), a redirection is done, if 2FA is required.
-   * @return true, if no 2FA is required (the http filter chain should be continued) or false, if a 2FA is required and the filter
-   * chain shouldn't be continued.
+   * @return null, if no 2FA is required (the http filter chain should be continued) or the expiry period in millis, if a 2FA is required
+   * and the filter chain shouldn't be continued.
    */
   @JvmOverloads
-  fun handleRequest(request: HttpServletRequest, response: HttpServletResponse, sendRedirect: Boolean = true): Boolean {
-    val expiryPeriod = matchesUri(request.requestURI) ?: return true // No expiryPeriod matches: return true.
+  fun handleRequest(request: HttpServletRequest, response: HttpServletResponse, sendRedirect: Boolean = true): Long? {
+    val expiryPeriod = matchesUri(request.requestURI) ?: return null // No expiryPeriod matches: return true.
     if (expiryPeriod.valid(request.requestURI, request)) {
-      return true
+      return null
     }
     if (my2FAPage == null) {
       throw java.lang.Exception("my2FAPage not set (should be My2FAPageRest)!")
@@ -105,7 +105,7 @@ open class My2FARequestHandler {
     if (sendRedirect) {
       my2FAPage!!.redirect(request, response, expiryPeriod.expiryMillis)
     }
-    return false
+    return expiryPeriod.expiryMillis
   }
 
   /**

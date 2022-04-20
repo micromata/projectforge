@@ -36,6 +36,7 @@ import org.projectforge.login.LoginService
 import org.projectforge.rest.Authentication
 import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
+import org.projectforge.rest.My2FAPageRest
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.My2FARequestHandler
@@ -292,11 +293,12 @@ open class RestAuthenticationUtils {
     }
     try {
       registerUser(request, authInfo, userTokenType)
-      if (!my2FARequestHandler.handleRequest(authInfo.request, authInfo.response, false)) {
+      val expiryMillis = my2FARequestHandler.handleRequest(authInfo.request, authInfo.response, false)
+      if (expiryMillis != null) {
         log.info { "2FA is required for this request: ${authInfo.request.requestURI}" }
         response.setStatus(HttpStatus.OK.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        val json = JsonUtils.toJson(ResponseAction("/react/calendar", targetType = TargetType.REDIRECT))
+        val json = JsonUtils.toJson(ResponseAction(My2FAPageRest.getUrl(request,expiryMillis), targetType = TargetType.REDIRECT))
         response.writer.write(json)
       } else {
         doFilter()
