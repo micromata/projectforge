@@ -29,6 +29,7 @@ import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserAccessLogEntries
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.login.LoginService
@@ -37,10 +38,14 @@ import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.utils.RequestLog
+import org.projectforge.security.My2FARequestHandler
 import org.projectforge.security.RegisterUser4Thread
 import org.projectforge.security.SecurityLogging
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import java.io.IOException
 import javax.servlet.ServletRequest
@@ -63,6 +68,9 @@ open class RestAuthenticationUtils {
 
   @Autowired
   private lateinit var systemStatus: SystemStatus
+
+  @Autowired
+  private lateinit var my2FARequestHandler: My2FARequestHandler
 
   /**
    * Checks also login protection (time out against brute force attack).
@@ -284,7 +292,15 @@ open class RestAuthenticationUtils {
     }
     try {
       registerUser(request, authInfo, userTokenType)
-      doFilter()
+      if (!my2FARequestHandler.handleRequest(authInfo.request, authInfo.response, false)) {
+        log.info { "2FA is required for this request: ${authInfo.request.requestURI}" }
+        response.setStatus(HttpStatus.OK.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        val json = JsonUtils.toJson(ResponseAction("/react/calendar", targetType = TargetType.REDIRECT))
+        response.writer.write(json)
+      } else {
+        doFilter()
+      }
     } finally {
       unregister(request, response, authInfo)
     }

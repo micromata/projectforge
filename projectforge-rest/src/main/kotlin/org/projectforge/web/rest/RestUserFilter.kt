@@ -30,8 +30,6 @@ import org.projectforge.rest.Authentication
 import org.projectforge.security.My2FARequestHandler
 import org.projectforge.security.SecurityLogging
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -46,33 +44,24 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
   private lateinit var my2FARequestHandler: My2FARequestHandler
 
   override fun authenticate(authInfo: RestAuthenticationInfo) {
-    try {
-      // Try to get the user by session id:
-      loginService.checkLogin(authInfo.request, authInfo.response)?.let { userContext ->
-        authInfo.user = userContext.user
-        if (authInfo.success) {
-          return
-        }
-      }
-      restAuthenticationUtils.tokenAuthentication(authInfo, UserTokenType.REST_CLIENT, false)
+    // Try to get the user by session id:
+    loginService.checkLogin(authInfo.request, authInfo.response)?.let { userContext ->
+      authInfo.user = userContext.user
       if (authInfo.success) {
         return
       }
-      val requestURI = authInfo.request.requestURI
-      // Don't log error for userStatus (used by React client for checking weather the user is logged in or not).
-      if (requestURI == null || requestURI != "/rs/userStatus") {
-        val msg =
-          "Neither ${Authentication.AUTHENTICATION_USER_ID} nor ${Authentication.AUTHENTICATION_USERNAME}/${Authentication.AUTHENTICATION_TOKEN} is given for rest call: $requestURI. Rest call forbidden."
-        log.error(msg)
-        SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
-      }
-    } finally {
-      if (authInfo.success) {
-        if (!my2FARequestHandler.handleRequest(authInfo.request, authInfo.response)) {
-          log.info { "2FA is required for this request: ${authInfo.request.requestURI}" }
-          authInfo.resultCode = HttpStatus.PERMANENT_REDIRECT
-        }
-      }
+    }
+    restAuthenticationUtils.tokenAuthentication(authInfo, UserTokenType.REST_CLIENT, false)
+    if (authInfo.success) {
+      return
+    }
+    val requestURI = authInfo.request.requestURI
+    // Don't log error for userStatus (used by React client for checking weather the user is logged in or not).
+    if (requestURI == null || requestURI != "/rs/userStatus") {
+      val msg =
+        "Neither ${Authentication.AUTHENTICATION_USER_ID} nor ${Authentication.AUTHENTICATION_USERNAME}/${Authentication.AUTHENTICATION_TOKEN} is given for rest call: $requestURI. Rest call forbidden."
+      log.error(msg)
+      SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
     }
   }
 }
