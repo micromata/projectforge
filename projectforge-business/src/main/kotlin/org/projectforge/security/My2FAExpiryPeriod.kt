@@ -31,14 +31,14 @@ import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
-class My2FAExpiryPeriod(
+internal class My2FAExpiryPeriod(
   val regex: String?,
   val expiryMillis: Long,
   val expiryPeriod: String,
   shortCuts: Map<String, String>
 ) {
-  internal val regexArray: Array<Regex>
-  internal val writeAccessEntities = mutableListOf<String>()
+  val regexArray: Array<Regex>
+  val writeAccessEntities = mutableListOf<String>()
 
   init {
     val list = mutableListOf<String>()

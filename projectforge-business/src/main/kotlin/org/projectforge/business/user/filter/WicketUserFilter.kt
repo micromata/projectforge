@@ -86,7 +86,7 @@ class WicketUserFilter : Filter {
       if (user != null) {
         ThreadLocalUserContext.setUserContext(userContext)
         //if (!userContext.getSecondFARequiredAfterLogin() && my2FARequestHandler.handleRequest(request, response)) {
-        if (my2FARequestHandler.handleRequest(request, response)) {
+        if (my2FARequestHandler.handleRequest(request, response) == null) {
           // No 2FA is required:
           doFilterDecoratedWithLocale(request, response, chain)
         }

@@ -79,7 +79,12 @@ class My2FAPageRest : AbstractDynamicPageRest(), My2FAPage {
     data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val layout = UILayout("user.My2FACode.title")
     if (expiryMillis != null && expiryMillis > 0) {
-      layout.add(UIAlert(translateMsg("user.My2FA.expired", Duration.getMessage(expiryMillis)), color = UIColor.WARNING))
+      layout.add(
+        UIAlert(
+          translateMsg("user.My2FA.expired", Duration.getMessage(expiryMillis)),
+          color = UIColor.WARNING
+        )
+      )
     }
     my2FAServicesRest.fill2FA(layout, data)
     LayoutUtils.process(layout)
@@ -87,20 +92,24 @@ class My2FAPageRest : AbstractDynamicPageRest(), My2FAPage {
   }
 
   override fun redirect(request: HttpServletRequest, response: HttpServletResponse, expiryMillis: Long) {
-    val queryString = request.queryString
-    val uri = request.getRequestURI()
-    val uriWithQueryString = if (queryString.isNullOrEmpty()) {
-      uri
-    } else {
-      "$uri?$queryString"
-    }
-    val target = Base64.encodeBase64URLSafeString(uriWithQueryString.toByteArray(StandardCharsets.UTF_8))
-    response.sendRedirect(
-      PagesResolver.getDynamicPageUrl(
-        this::class.java,
+    response.sendRedirect(getUrl(request, expiryMillis))
+  }
+
+  companion object {
+    fun getUrl(request: HttpServletRequest, expiryMillis: Long): String {
+      val queryString = request.queryString
+      val uri = request.getRequestURI()
+      val uriWithQueryString = if (queryString.isNullOrEmpty()) {
+        uri
+      } else {
+        "$uri?$queryString"
+      }
+      val target = Base64.encodeBase64URLSafeString(uriWithQueryString.toByteArray(StandardCharsets.UTF_8))
+      return PagesResolver.getDynamicPageUrl(
+        My2FAPageRest::class.java,
         absolute = true,
         params = mapOf("target" to target, "expiryMillis" to expiryMillis),
       )
-    )
+    }
   }
 }
