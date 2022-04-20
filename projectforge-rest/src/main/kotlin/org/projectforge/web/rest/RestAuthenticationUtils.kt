@@ -298,7 +298,10 @@ open class RestAuthenticationUtils {
         log.info { "2FA is required for this request: ${authInfo.request.requestURI}" }
         response.setStatus(HttpStatus.OK.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        val json = JsonUtils.toJson(ResponseAction(My2FAPageRest.getUrl(request,expiryMillis), targetType = TargetType.REDIRECT))
+        val json = JsonUtils.toJson(
+          ResponseAction(My2FAPageRest.getUrl(request,expiryMillis), targetType = TargetType.REDIRECT),
+          ignoreNullableProps = true,
+        )
         response.writer.write(json)
       } else {
         doFilter()
