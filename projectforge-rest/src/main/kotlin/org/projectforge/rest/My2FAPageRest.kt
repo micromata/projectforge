@@ -99,10 +99,15 @@ class My2FAPageRest : AbstractDynamicPageRest(), My2FAPage {
     fun getUrl(request: HttpServletRequest, expiryMillis: Long): String {
       val queryString = request.queryString
       val uri = request.getRequestURI()
-      val uriWithQueryString = if (queryString.isNullOrEmpty()) {
+      var uriWithQueryString = if (queryString.isNullOrEmpty()) {
         uri
       } else {
         "$uri?$queryString"
+      }
+      val referer = request.getHeader("Referer")
+      if (uriWithQueryString.startsWith("/rs/") && referer.contains("/react/")) {
+        // uriWithQueryString = uriWithQueryString.replace("/rs/", "/react/").replace("?id=", "/")
+        uriWithQueryString = referer.substring(referer.indexOf("/react/")) // Use referer url (without protocol and domain)
       }
       val target = Base64.encodeBase64URLSafeString(uriWithQueryString.toByteArray(StandardCharsets.UTF_8))
       return PagesResolver.getDynamicPageUrl(
