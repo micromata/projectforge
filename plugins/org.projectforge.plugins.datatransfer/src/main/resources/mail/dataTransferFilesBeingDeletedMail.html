@@ -27,7 +27,7 @@
               <%= info.attachment.name %>
             </a>
           </td>
-          <td><%= pf.formatBytes(info.attachment.size) %></td>
+          <td style="text-align: right;"><%= pf.formatBytes(info.attachment.size) %></td>
           <td class="no-wrap"><%= pf.getString(info.expiryDate) %></td>
           <td><%= info.expiresInTimeLeft %></td>
         </tr>
