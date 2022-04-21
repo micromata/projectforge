@@ -30,7 +30,6 @@ import de.micromata.genome.db.jpa.history.entities.EntityOpType
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
-import org.jfree.util.Log
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.user.UserGroupCache
@@ -211,7 +210,7 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
           ret.add(ent)
         }
       } catch (ex: NumberFormatException) {
-        Log.warn("Cannot parse pk: $prop")
+        log.warn("Cannot parse pk: $prop")
       }
     }
     return ret

@@ -25,7 +25,6 @@ package org.projectforge.plugins.eed.service;
 
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import org.jfree.util.Log;
 import org.projectforge.business.excel.ExportRow;
 import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.business.excel.ExportWorkbook;
@@ -49,6 +48,8 @@ import java.util.List;
 @Service
 public class LBExporterService
 {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LBExporterService.class);
+
   private static final int START_ROW_NR_FULLTIME = 3;
 
   private static final BigDecimal FOOD_VOUCHER_DAYS_PER_MONTH = new BigDecimal(15);
@@ -75,7 +76,7 @@ public class LBExporterService
     try {
       workbook = new ExportWorkbook(classPathResource.getInputStream());
     } catch (IOException e) {
-      Log.error("Something went wrong when loading xls template", e);
+      log.error("Something went wrong when loading xls template", e);
       return new byte[0];
     }
 

@@ -346,7 +346,7 @@ public class ExportSheet
     //Save the text of any formula before they are altered by row shifting
     String[] formulasArray = new String[sourceRow.getLastCellNum()];
     for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
-      if (sourceRow.getCell(i) != null && sourceRow.getCell(i).getCellTypeEnum() == CellType.FORMULA)
+      if (sourceRow.getCell(i) != null && sourceRow.getCell(i).getCellType() == CellType.FORMULA)
         formulasArray[i] = sourceRow.getCell(i).getCellFormula();
     }
 
@@ -384,10 +384,10 @@ public class ExportSheet
       }
 
       // Set the cell data type
-      newCell.setCellType(oldCell.getCellTypeEnum());
+      newCell.setCellType(oldCell.getCellType());
 
       // Set the cell data value
-      switch (oldCell.getCellTypeEnum()) {
+      switch (oldCell.getCellType()) {
         case BLANK:
           break;
         case BOOLEAN:

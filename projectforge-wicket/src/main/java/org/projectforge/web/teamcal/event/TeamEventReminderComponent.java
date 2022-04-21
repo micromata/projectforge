@@ -145,7 +145,7 @@ public class TeamEventReminderComponent extends Component
         if (isVisible == true) {
           // Pre-set default values if the user selects a reminder action:
           if (NumberHelper.greaterZero(data.getReminderDuration()) == false) {
-            data.setReminderDuration(15);
+            data.setReminderDuration(15L);
           }
           if (data.getReminderDurationUnit() == null) {
             data.setReminderDurationUnit(ReminderDurationUnit.MINUTES);

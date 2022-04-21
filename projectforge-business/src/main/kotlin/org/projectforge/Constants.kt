@@ -102,6 +102,14 @@ object Constants {
 
   const val WEB_DOCS_ADMIN_GUIDE_SECURITY_CONFIG_LINK = "$WEB_DOCS_ADMIN_GUIDE_LINK#securityconfig"
 
+  const val SECONDS_PER_MINUTE = 60
+
+  const val SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60
+
+  const val SECONDS_PER_DAY = SECONDS_PER_HOUR * 24
+
+  const val SECONDS_PER_WEEK = SECONDS_PER_DAY * 7
+
   @JvmStatic
   fun isTimesheetCalendarId(id: Int): Boolean {
     return id == TIMESHEET_CALENDAR_ID
