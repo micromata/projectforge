@@ -24,14 +24,12 @@
 package org.projectforge.business.fibu.kost.reporting;
 
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.security.NoTypePermission;
-import com.thoughtworks.xstream.security.NullPermission;
-import com.thoughtworks.xstream.security.PrimitiveTypePermission;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BuchungssatzDao;
 import org.projectforge.business.fibu.kost.BuchungssatzFilter;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.xmlstream.XStreamHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -54,12 +52,7 @@ public class ReportDao {
   private BuchungssatzDao buchungssatzDao;
 
   public ReportDao() {
-    xstream = new XStream();
-    xstream.addPermission(NoTypePermission.NONE); //forbid everything
-    xstream.addPermission(NullPermission.NULL);   // allow "null"
-    xstream.addPermission(PrimitiveTypePermission.PRIMITIVES); // allow primitive types
-    xstream.allowTypes(new Class[]{ReportObjective.class});
-    xstream.processAnnotations(ReportObjective.class);
+    xstream = XStreamHelper.createXStream(ReportObjective.class);
   }
 
   /**

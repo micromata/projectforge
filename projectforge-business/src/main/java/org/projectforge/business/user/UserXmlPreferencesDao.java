@@ -60,7 +60,7 @@ import java.util.Objects;
 @Repository
 public class UserXmlPreferencesDao {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserXmlPreferencesDao.class);
-  private final XStream xstream = XStreamHelper.createXStream();
+  private final XStream xstream = XStreamHelper.createXStream(UserXmlPreferencesMap.class, TaskFilter.class, ScriptCallData.class, RecentScriptCalls.class);
   @Autowired
   private AccessChecker accessChecker;
   @Autowired
@@ -74,19 +74,9 @@ public class UserXmlPreferencesDao {
 
   @PostConstruct
   private void init() {
-    xstream.processAnnotations(new Class<?>[]{UserXmlPreferencesMap.class, TaskFilter.class, ScriptCallData.class, RecentScriptCalls.class});
     registerConverter(UserDao.class, PFUserDO.class, 20);
     registerConverter(GroupDao.class, GroupDO.class, 19);
     registerConverter(TaskDao.class, TaskDO.class, 18);
-  }
-
-  /**
-   * Process the given classes before marshaling and unmarshaling by XStream. This method is usable by plugins.
-   *
-   * @param classes
-   */
-  public void processAnnotations(final Class<?>... classes) {
-    xstream.processAnnotations(classes);
   }
 
   /**
@@ -100,7 +90,7 @@ public class UserXmlPreferencesDao {
   public void registerConverter(final Class<? extends BaseDao<?>> daoClass, final Class<? extends BaseDO<?>> doClass,
                                 final int priority) {
     xstream.registerConverter(new UserXmlPreferencesBaseDOSingleValueConverter(applicationContext, daoClass, doClass),
-            priority);
+        priority);
   }
 
   /**
@@ -116,8 +106,8 @@ public class UserXmlPreferencesDao {
     }
     final List<UserXmlPreferencesDO> list = emgrFactory.runInTrans((emgr) -> {
       return emgr.selectAttached(UserXmlPreferencesDO.class,
-              "select u from UserXmlPreferencesDO u where u.user.id = :userid and u.key = :key",
-              "userid", userId, "key", key);
+          "select u from UserXmlPreferencesDO u where u.user.id = :userid and u.key = :key",
+          "userid", userId, "key", key);
     });
     Validate.isTrue(list.size() <= 1);
     if (list.size() == 1) {
@@ -140,7 +130,7 @@ public class UserXmlPreferencesDao {
     checkAccess(userId);
     return PfEmgrFactory.get().runInTrans((emgr) -> {
       return emgr.select(UserXmlPreferencesDO.class, "select u from UserXmlPreferencesDO u where u.user.id = :userid",
-              "userid", userId);
+          "userid", userId);
     });
   }
 
@@ -198,13 +188,13 @@ public class UserXmlPreferencesDao {
     } catch (final Throwable ex) {
       if (logError) {
         log.warn("Can't deserialize user preferences: "
-                + ex.getMessage()
-                + " for user: "
-                + userPrefs.getUserId()
-                + ":"
-                + userPrefs.getKey()
-                + " (may-be ok after a new ProjectForge release). xml="
-                + xml);
+            + ex.getMessage()
+            + " for user: "
+            + userPrefs.getUserId()
+            + ":"
+            + userPrefs.getKey()
+            + " (may-be ok after a new ProjectForge release). xml="
+            + xml);
       }
       return null;
     }
