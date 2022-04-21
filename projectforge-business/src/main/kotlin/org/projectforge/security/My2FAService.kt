@@ -71,6 +71,7 @@ open class My2FAService {
       if (!token.isNullOrBlank()) {
         if (token == code) {
           bruteForceProtection.registerOTPSuccess()
+          log.info { "Successful OTP check (via SMS or e-mail)." }
           ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
           return OTPCheckResult.SUCCESS
         } else {
@@ -124,6 +125,7 @@ open class My2FAService {
       SecurityLogging.logSecurityWarn(this::class.java, "2FA WRONG CODE", "The entered 2FA code was wrong.")
       return OTPCheckResult.FAILED
     }
+    log.info { "Successful OTP check (via authenticator app)." }
     // Update last
     ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
     bruteForceProtection.registerOTPSuccess()
