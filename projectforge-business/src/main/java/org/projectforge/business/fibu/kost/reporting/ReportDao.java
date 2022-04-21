@@ -24,6 +24,9 @@
 package org.projectforge.business.fibu.kost.reporting;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.security.NoTypePermission;
+import com.thoughtworks.xstream.security.NullPermission;
+import com.thoughtworks.xstream.security.PrimitiveTypePermission;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BuchungssatzDao;
 import org.projectforge.business.fibu.kost.BuchungssatzFilter;
@@ -52,6 +55,10 @@ public class ReportDao {
 
   public ReportDao() {
     xstream = new XStream();
+    xstream.addPermission(NoTypePermission.NONE); //forbid everything
+    xstream.addPermission(NullPermission.NULL);   // allow "null"
+    xstream.addPermission(PrimitiveTypePermission.PRIMITIVES); // allow primitive types
+    xstream.allowTypes(new Class[]{ReportObjective.class});
     xstream.processAnnotations(ReportObjective.class);
   }
 
@@ -64,7 +71,7 @@ public class ReportDao {
    */
   public Report createReport(InputStream reportObjectiveAsXml) {
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP);
+        ProjectForgeGroup.CONTROLLING_GROUP);
     ReportObjective reportObjective = deserializeFromXML(reportObjectiveAsXml);
 
     if (reportObjective == null) {
@@ -83,7 +90,7 @@ public class ReportDao {
    */
   public Report createReport(String reportObjectiveAsXml) {
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP);
+        ProjectForgeGroup.CONTROLLING_GROUP);
     ReportObjective reportObjective = deserializeFromXML(reportObjectiveAsXml);
     Report report = new Report(reportObjective);
     return report;
@@ -98,7 +105,7 @@ public class ReportDao {
    */
   public void loadReport(Report report) {
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP);
+        ProjectForgeGroup.CONTROLLING_GROUP);
     final BuchungssatzFilter filter = new BuchungssatzFilter();
     filter.setFromYear(report.getFromYear());
     filter.setFromMonth(report.getFromMonth());

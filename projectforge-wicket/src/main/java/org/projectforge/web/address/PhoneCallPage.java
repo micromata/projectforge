@@ -23,10 +23,13 @@
 
 package org.projectforge.web.address;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
@@ -39,7 +42,8 @@ import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
-import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 public class PhoneCallPage extends AbstractStandardFormPage {
@@ -50,7 +54,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
   public final static String PARAMETER_KEY_NUMBER = "number";
 
   protected static final String[] BOOKMARKABLE_SELECT_PROPERTIES = new String[]{PARAMETER_KEY_ADDRESS_ID + "|address",
-          PARAMETER_KEY_NUMBER + "|no"};
+      PARAMETER_KEY_NUMBER + "|no"};
 
   private static final String SEPARATOR = " | ";
 
@@ -173,10 +177,10 @@ public class PhoneCallPage extends AbstractStandardFormPage {
 
   String extractPhonenumber(final String number) {
     final String result = NumberHelper.extractPhonenumber(number,
-            Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX));
+        Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX));
     if (StringUtils.isNotEmpty(result) == true
-            && StringUtils.isNotEmpty(configurationService.getTelephoneSystemNumber()) == true
-            && result.startsWith(configurationService.getTelephoneSystemNumber()) == true) {
+        && StringUtils.isNotEmpty(configurationService.getTelephoneSystemNumber()) == true
+        && result.startsWith(configurationService.getTelephoneSystemNumber()) == true) {
       return result.substring(configurationService.getTelephoneSystemNumber().length());
     }
     return result;
@@ -213,17 +217,17 @@ public class PhoneCallPage extends AbstractStandardFormPage {
       return;
     }
     log.info("User initiates direct call from phone with id '"
-            + form.getMyCurrentPhoneId()
-            + "' to destination numer: "
-            + StringHelper.hideStringEnding(form.getPhoneNumber(), 'x', 3));
+        + form.getMyCurrentPhoneId()
+        + "' to destination numer: "
+        + StringHelper.hideStringEnding(form.getPhoneNumber(), 'x', 3));
     result = null;
     final StringBuffer buf = new StringBuffer();
     buf.append(form.getPhoneNumber()).append(SEPARATOR);
     final AddressDO address = form.getAddress();
     if (address != null
-            && StringHelper.isIn(form.getPhoneNumber(), extractPhonenumber(address.getBusinessPhone()),
-            extractPhonenumber(address.getMobilePhone()), extractPhonenumber(address.getPrivatePhone()),
-            extractPhonenumber(address.getPrivateMobilePhone())) == true) {
+        && StringHelper.isIn(form.getPhoneNumber(), extractPhonenumber(address.getBusinessPhone()),
+        extractPhonenumber(address.getMobilePhone()), extractPhonenumber(address.getPrivatePhone()),
+        extractPhonenumber(address.getPrivateMobilePhone())) == true) {
       buf.append(address.getFirstName()).append(" ").append(address.getName());
       if (form.getPhoneNumber().equals(extractPhonenumber(address.getMobilePhone())) == true) {
         buf.append(", ").append(getString("address.phoneType.mobile"));
@@ -234,34 +238,35 @@ public class PhoneCallPage extends AbstractStandardFormPage {
     } else {
       buf.append("???");
     }
-    final HttpClient client = new HttpClient();
     String url = configurationService.getTelephoneSystemUrl();
     url = StringUtils.replaceOnce(url, "#source", form.getMyCurrentPhoneId());
     url = StringUtils.replaceOnce(url, "#target", form.getPhoneNumber());
     final String urlProtected = StringHelper.hideStringEnding(url, 'x', 3);
-    final GetMethod method = new GetMethod(url);
     String errorKey = null;
-    try {
+    try (final CloseableHttpClient client = HttpClients.createDefault()) {
+      final HttpGet method = new HttpGet(url);
       form.lastSuccessfulPhoneCall = new Date();
-      client.executeMethod(method);
-      final String resultStatus = method.getResponseBodyAsString();
+      String resultStatus = null;
+      try (final CloseableHttpResponse httpResponse = client.execute(method)) {
+        final int statusCode = httpResponse.getStatusLine().getStatusCode();
+        if (statusCode == HttpStatus.SC_OK) {
+          final InputStream stream = httpResponse.getEntity().getContent();
+          resultStatus = IOUtils.toString(stream, StandardCharsets.UTF_8);
+        }
+      }
       log.info("Call URL: " + urlProtected + " with result code: " + resultStatus);
-      if ("0".equals(resultStatus) == true) {
+      if ("0".equals(resultStatus)) {
         result = DateTimeFormatter.instance().getFormattedDateTime(new Date()) + ": "
-                + getString("address.phoneCall.result.successful");
+            + getString("address.phoneCall.result.successful");
         form.getRecentSearchTermsQueue().append(buf.toString());
-      } else if ("2".equals(resultStatus) == true) {
+      } else if ("2".equals(resultStatus)) {
         errorKey = "address.phoneCall.result.wrongSourceNumber";
-      } else if ("3".equals(resultStatus) == true) {
+      } else if ("3".equals(resultStatus)) {
         errorKey = "address.phoneCall.result.wrongDestinationNumber";
       } else {
         errorKey = "address.phoneCall.result.callingError";
       }
-    } catch (final HttpException ex) {
-      result = "Call failed. Please contact administrator.";
-      log.error(result + ": " + urlProtected);
-      throw new RuntimeException(ex);
-    } catch (final IOException ex) {
+    } catch (final Exception ex) {
       result = "Call failed. Please contact administrator.";
       log.error(result + ": " + urlProtected);
       throw new RuntimeException(ex);

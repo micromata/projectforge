@@ -18,7 +18,6 @@ package org.lesscss;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.jfree.util.Log;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,7 +32,7 @@ import static java.util.regex.Pattern.MULTILINE;
 
 /**
  * Represents the metadata and content of a LESS source.
- * 
+ *
  * @author Marcel Overdijk
  */
 public class LessSource
@@ -58,7 +57,7 @@ public class LessSource
    * <p>
    * This will read the metadata and content of the LESS source, and will automatically resolve the imports.
    * </p>
-   * 
+   *
    * @param file The <code>File</code> reference to the LESS source to read.
    * @throws FileNotFoundException If the LESS source (or one of its imports) could not be found.
    * @throws IOException If the LESS source cannot be read.
@@ -81,7 +80,7 @@ public class LessSource
    * <p>
    * This will read the metadata and content of the LESS source, and will automatically resolve the imports.
    * </p>
-   * 
+   *
    * @param file The <code>InputStream</code> reference to the LESS source to read.
    * @throws IOException If the LESS source cannot be read.
    */
@@ -92,13 +91,13 @@ public class LessSource
     }
     this.file = file;
     this.content = this.normalizedContent = IOUtils.toString(stream, "UTF-8");
-    Log.info("Less content: " + this.content);
+    log.info("Less content: " + this.content);
     resolveImports(folder);
   }
 
   /**
    * Returns the absolute pathname of the LESS source.
-   * 
+   *
    * @return The absolute pathname of the LESS source.
    */
   public String getAbsolutePath()
@@ -108,7 +107,7 @@ public class LessSource
 
   /**
    * Returns the content of the LESS source.
-   * 
+   *
    * @return The content of the LESS source.
    */
   public String getContent()
@@ -122,7 +121,7 @@ public class LessSource
    * The normalized content represents the LESS source as a flattened source where import statements have been resolved
    * and replaced by the actual content.
    * </p>
-   * 
+   *
    * @return The normalized content of the LESS source.
    */
   public String getNormalizedContent()
@@ -132,7 +131,7 @@ public class LessSource
 
   /**
    * Returns the time that the LESS source was last modified.
-   * 
+   *
    * @return A <code>long</code> value representing the time the file was last modified, measured in milliseconds since
    *         the epoch (00:00:00 GMT, January 1, 1970).
    */
@@ -143,7 +142,7 @@ public class LessSource
 
   /**
    * Returns the time that the LESS source, or one of its imports, was last modified.
-   * 
+   *
    * @return A <code>long</code> value representing the time the file was last modified, measured in milliseconds since
    *         the epoch (00:00:00 GMT, January 1, 1970).
    */
@@ -166,7 +165,7 @@ public class LessSource
    * The returned imports are represented by a <code>Map&lt;String, LessSource&gt;</code> which contains the filename
    * and the <code>LessSource</code>.
    * </p>
-   * 
+   *
    * @return The LESS sources imported by this LESS source.
    */
   public Map<String, LessSource> getImports()

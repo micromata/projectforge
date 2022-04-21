@@ -23,38 +23,39 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import net.fortuna.ical4j.model.Dur;
 import net.fortuna.ical4j.model.component.VAlarm;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Action;
 import net.fortuna.ical4j.model.property.Trigger;
+import org.projectforge.Constants;
 import org.projectforge.business.teamcal.event.ical.VEventComponentConverter;
 import org.projectforge.business.teamcal.event.model.ReminderActionType;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
 import java.util.List;
 
-public class AlarmConverter implements VEventComponentConverter
-{
+public class AlarmConverter implements VEventComponentConverter {
   private static final int DURATION_OF_WEEK = 7;
 
   @Override
-  public boolean toVEvent(final TeamEventDO event, final VEvent vEvent)
-  {
+  public boolean toVEvent(final TeamEventDO event, final VEvent vEvent) {
     if (event.getReminderDuration() == null || event.getReminderActionType() == null) {
       return false;
     }
 
     final VAlarm alarm = new VAlarm();
-    Dur dur = null;
+    Duration dur = null;
     // (-1) * needed to set alert before
     if (ReminderDurationUnit.MINUTES.equals(event.getReminderDurationUnit())) {
-      dur = new Dur(0, 0, (-1) * event.getReminderDuration(), 0);
+      dur = Duration.ofMinutes((-1) * event.getReminderDuration());
     } else if (ReminderDurationUnit.HOURS.equals(event.getReminderDurationUnit())) {
-      dur = new Dur(0, (-1) * event.getReminderDuration(), 0, 0);
+      dur = Duration.ofHours((-1) * event.getReminderDuration());
     } else if (ReminderDurationUnit.DAYS.equals(event.getReminderDurationUnit())) {
-      dur = new Dur((-1) * event.getReminderDuration(), 0, 0, 0);
+      dur = Duration.ofDays((-1) * event.getReminderDuration());
     }
 
     if (dur == null) {
@@ -69,8 +70,7 @@ public class AlarmConverter implements VEventComponentConverter
   }
 
   @Override
-  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
-  {
+  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent) {
 
     final List<VAlarm> alarms = vEvent.getAlarms();
     if (alarms == null || alarms.isEmpty()) {
@@ -78,10 +78,11 @@ public class AlarmConverter implements VEventComponentConverter
     }
 
     final VAlarm alarm = alarms.get(0);
-    final Dur dur = alarm.getTrigger().getDuration();
+    final TemporalAmount dur = alarm.getTrigger().getDuration();
     if (alarm.getAction() == null || dur == null) {
       return false;
     }
+    long seconds = dur.get(ChronoUnit.SECONDS);
 
     if (Action.AUDIO.equals(alarm.getAction())) {
       event.setReminderActionType(ReminderActionType.MESSAGE_SOUND);
@@ -89,26 +90,26 @@ public class AlarmConverter implements VEventComponentConverter
       event.setReminderActionType(ReminderActionType.MESSAGE);
     }
 
-    // consider weeks
-    int weeksToDays = 0;
-    if (dur.getWeeks() != 0) {
-      weeksToDays = dur.getWeeks() * DURATION_OF_WEEK;
-    }
-
-    if (dur.getDays() != 0) {
-      event.setReminderDuration(dur.getDays() + weeksToDays);
-      event.setReminderDurationUnit(ReminderDurationUnit.DAYS);
-    } else if (dur.getHours() != 0) {
-      event.setReminderDuration(dur.getHours());
-      event.setReminderDurationUnit(ReminderDurationUnit.HOURS);
-    } else if (dur.getMinutes() != 0) {
-      event.setReminderDuration(dur.getMinutes());
-      event.setReminderDurationUnit(ReminderDurationUnit.MINUTES);
-    } else {
-      event.setReminderDuration(15);
+    long absSeconds = Math.abs(seconds);
+    if (!getUnitCount(absSeconds, Constants.SECONDS_PER_DAY, event, ReminderDurationUnit.DAYS) &&
+        !getUnitCount(absSeconds, Constants.SECONDS_PER_HOUR, event, ReminderDurationUnit.HOURS) &&
+        !getUnitCount(absSeconds, Constants.SECONDS_PER_MINUTE, event, ReminderDurationUnit.MINUTES)) {
+      event.setReminderDuration(15L);
       event.setReminderDurationUnit(ReminderDurationUnit.MINUTES);
     }
+    return true;
+  }
 
+  // Try to get unit and duration.
+  private boolean getUnitCount(long absSeconds, long millisPerUnit, TeamEventDO event, ReminderDurationUnit unit) {
+    if (absSeconds < millisPerUnit) {
+      return false;
+    }
+    if (absSeconds % millisPerUnit != 0) {
+      return false;
+    }
+    event.setReminderDuration(absSeconds / millisPerUnit);
+    event.setReminderDurationUnit(unit);
     return true;
   }
 }

@@ -23,8 +23,8 @@
 
 package org.projectforge.framework.renderer;
 
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.pdf.BaseFont;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.pdf.BaseFont;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 
@@ -41,7 +41,7 @@ import java.util.Map;
 public class FontMap
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FontMap.class);
-  
+
   private Map<String, BaseFont> fontMap = new HashMap<>();
 
   public void loadFonts(File fontDir)

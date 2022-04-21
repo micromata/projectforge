@@ -23,8 +23,8 @@
 
 package org.projectforge.business.teamcal.servlet;
 
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.business.teamcal.admin.TeamCalDao;

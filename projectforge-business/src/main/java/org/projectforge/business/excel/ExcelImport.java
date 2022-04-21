@@ -325,7 +325,7 @@ public class ExcelImport<T>
     if (cell == null) {
       return null;
     }
-    switch (cell.getCellTypeEnum()) {
+    switch (cell.getCellType()) {
       case NUMERIC:
         log.debug("using numeric");
         if (Date.class.isAssignableFrom(destClazz)) {

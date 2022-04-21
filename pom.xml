@@ -206,62 +206,69 @@
 
         <downloadSources>true</downloadSources>
 
-        <maven-surefire-plugin-version>3.0.0-M5</maven-surefire-plugin-version>
-        <maven-compiler-plugin-version>3.8.1</maven-compiler-plugin-version>
+        <maven-surefire-plugin-version>3.0.0-M6</maven-surefire-plugin-version>
+        <maven-compiler-plugin-version>3.10.1</maven-compiler-plugin-version>
 
-        <java.version>1.8</java.version> <!-- 1.8,1.9,1.10,11,12,13 -->
+        <java.version>9</java.version> <!-- 1.8,1.9,1.10,11,12,13 -->
 
         <!--kotlin.compiler.incremental>true</kotlin.compiler.incremental--> <!-- It's experimentell, so don't use it for now -->
 
-        <hibernate.version>5.6.7.Final</hibernate.version>
+        <hibernate.version>5.6.8.Final</hibernate.version>
         <hibernate-search.version>5.11.10.Final</hibernate-search.version>
         <mgc.version>3.1.3</mgc.version>
 
         <apacheds.version>1.5.7</apacheds.version>
-        <commons-httpclient.version>3.1</commons-httpclient.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
-        <commons-collections3.version>3.12.0</commons-collections3.version>
         <commons-collections.version>4.4</commons-collections.version>
-        <aspectjtools.version>1.9.6</aspectjtools.version>
+        <commons-httpclient.version>4.5.13</commons-httpclient.version>
+        <commons-lang.version>3.12.0</commons-lang.version>
+        <commons-validator.version>1.7</commons-validator.version>
+        <bouncy-castle.version>1.70</bouncy-castle.version>
+        <aspectjtools.version>1.9.9.1</aspectjtools.version>
         <dom4j.version>2.1.3</dom4j.version>
         <flyway.version>6.3.2</flyway.version> <!-- 7.7.3 doesn't support PostgreSQL 9.4 -->
-        <fop.version>2.3</fop.version>
+        <fop.version>2.7</fop.version>
         <groovy.version>3.0.10</groovy.version>
-        <ical4j.version>2.0.0</ical4j.version> <!-- 2.2* needs source code modifications. -->
-        <ical4j-vcard.version>1.0.5</ical4j-vcard.version>
-        <itext.version>2.1.7</itext.version>
-        <javax.jsp-api.version>2.3.3</javax.jsp-api.version>
+        <ical4j.version>3.2.2</ical4j.version> <!-- 2.2* needs source code modifications. -->
+        <ical4j-vcard.version>1.0.6</ical4j-vcard.version>
+        <itext.version>5.5.13.3</itext.version>
+        <jakarta.ws.rs.version>2.1.6</jakarta.ws.rs.version> <!-- 3.x uses jakarta.servlet instead of javax.servlet! -->
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
+        <javax.jsp-api.version>2.3.3</javax.jsp-api.version>
         <javax.mail.version>1.4.7</javax.mail.version>
-        <jersey.version>2.33</jersey.version>
-        <jfreechart.version>1.0.19</jfreechart.version>
+        <jersey.version>2.35</jersey.version> <!-- 3.x uses jakarta.servlet instead of javax.servlet! -->
+        <jfreechart.version>1.5.3</jfreechart.version>
         <jlf4j.version>1.7.36</jlf4j.version> <!-- should be the same as used in spring boot started. -->
         <jackson.version>2.13.2</jackson.version>
-        <joda-time.version>2.10.10</joda-time.version>
+        <joda-time.version>2.10.14</joda-time.version>
         <!-- Version 5.4.2 doesn't work with Intellij. Tested 03/28/2019. -->
         <junit.jupiter.version>5.3.2</junit.jupiter.version>
         <junit-platform.version>1.3.2</junit-platform.version>
         <junit.version>4.12</junit.version>
-        <kotlin.version>1.6.10</kotlin.version>
-        <kotlin-logging.version>2.0.6</kotlin-logging.version>
+        <kotlin.version>1.6.21</kotlin.version>
+        <kotlin-logging.version>2.1.21</kotlin-logging.version>
         <micromata.merlin-core.version>1.1.16</micromata.merlin-core.version>
-        <mockito.version>4.4.0</mockito.version>
+        <mockito.version>4.4.0</mockito.version> <!-- 4.5.0 uses newer byte-buddy not compatible to hibernate. -->
         <mockito.kotlin.version>4.0.0</mockito.kotlin.version>
         <mpxj.version>4.3.0</mpxj.version>
-        <poi.version>4.1.2</poi.version>
-        <rhino.version>1.7.7</rhino.version>
+        <poi.version>5.2.2</poi.version>
+        <rhino.version>1.7.14</rhino.version>
         <springfox-swagger.version>3.0.0</springfox-swagger.version>
         <spring.version>5.3.18</spring.version> <!-- Should match spring boot's parent pom -->
         <spring.boot.version>2.6.6</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
+        <webauthn4j.version>0.19.2.RELEASE</webauthn4j.version>
         <wicket.version>7.18.0</wicket.version>
-        <wicket-stuff.version>7.17.0</wicket-stuff.version>
-        <xmlgraphics-commons.version>2.3</xmlgraphics-commons.version>
-        <xmlgraphics-batik-codec.version>1.11</xmlgraphics-batik-codec.version>
-        <xstream.version>1.4.16</xstream.version> <!-- com.thoughtworks.xstream -->
+        <wicket-stuff.version>7.18.0</wicket-stuff.version>
+        <xmlgraphics-commons.version>2.7</xmlgraphics-commons.version>
+        <xmlgraphics-batik-codec.version>1.14</xmlgraphics-batik-codec.version>
+        <xstream.version>1.4.19</xstream.version> <!-- com.thoughtworks.xstream -->
 
         <!-- HIBERNATE 5 -->
-        <postgresql.version>42.2.10</postgresql.version>
-        <hsqldb.version>2.5.0</hsqldb.version> <!-- Since 2.6.0 no support of Java 8 anymore. -->
+        <postgresql.version>42.3.4</postgresql.version>
+        <hsqldb.version>2.6.1</hsqldb.version>
+
+        <!-- TEST -->
+        <org.mockserver.version>5.13.2</org.mockserver.version>
     </properties>
 
     <dependencies>
