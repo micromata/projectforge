@@ -110,6 +110,16 @@ object Constants {
 
   const val SECONDS_PER_WEEK = SECONDS_PER_DAY * 7
 
+  const val MILLIS_PER_SECOND = 1_000L
+
+  const val MILLIS_PER_MINUTE = 60 * MILLIS_PER_SECOND
+
+  const val MILLIS_PER_HOUR = MILLIS_PER_MINUTE * 60
+
+  const val MILLIS_PER_DAY = MILLIS_PER_HOUR * 24
+
+  const val MILLIS_PER_WEEK = MILLIS_PER_DAY * 7
+
   @JvmStatic
   fun isTimesheetCalendarId(id: Int): Boolean {
     return id == TIMESHEET_CALENDAR_ID

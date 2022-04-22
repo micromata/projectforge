@@ -67,7 +67,13 @@ public class DomainServiceTest {
     "http");
   }
 
-  void domainWithSubPathTest() {
+  @Test
+  void gettestDomain() {
+    DomainService ds = DomainService.internalCreate("https://projectforge.acme.com");
+    assertEquals("projectforge.acme.com", ds.getPlainDomain());
+  }
+
+    void domainWithSubPathTest() {
     DomainService service = DomainService.internalCreate("http://www.projectforge.org");
     assertEquals("http://www.projectforge.org/test", service.getDomain("test"));
     assertEquals("http://www.projectforge.org/test", service.getDomain("/test"));
