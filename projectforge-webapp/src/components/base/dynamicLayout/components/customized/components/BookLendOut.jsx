@@ -32,7 +32,7 @@ function CustomizedBookLendOutComponent({ user, jsTimestampFormatMinutes }) {
                             </span>
                             {user.username === data.lendOutBy.username
                                 ? (
-                                    <Button color="danger" onClick={handBack}>
+                                    <Button color="danger" outline onClick={handBack}>
                                         {ui.translations['book.returnBook']}
                                     </Button>
                                 )

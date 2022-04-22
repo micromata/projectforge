@@ -30,11 +30,10 @@ import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.dto.PostData
 import org.projectforge.security.fido2.WebAuthnRegistration
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.nio.ByteBuffer
 
 private val log = KotlinLogging.logger {}
@@ -54,9 +53,8 @@ class WebAuthnServicesRest {
    * Only available for logged-in-users, so no further info required from client. The info of the logged-in user
    * is taken.
    */
-  @Autowired
-  @GetMapping("registrationInfo")
-  fun getRegistrationInfo(): PublicKeyCredentialCreationOptions {
+  @GetMapping("register")
+  fun register(): PublicKeyCredentialCreationOptions {
     val user = ThreadLocalUserContext.getUser()
     requireNotNull(user)
     val userId = user.id
@@ -65,10 +63,12 @@ class WebAuthnServicesRest {
     require(!username.isNullOrBlank())
     val userDisplayName = user.userDisplayName
     require(!userDisplayName.isNullOrBlank())
+    log.info { "User requested challenge for Authenticator attestation." }
     val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
     val publicKeyCredentialUserEntity = PublicKeyCredentialUserEntity(userIdByteArray, username, userDisplayName)
     val challenge = DefaultChallenge()
-    val publicKeyCredentialParameters = PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256)
+    val publicKeyCredentialParameters =
+      PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256)
     // CROSS_PLATFORM: required for support of mobile phones etc.
     val authenticatorSelectionCriteria =
       AuthenticatorSelectionCriteria(AuthenticatorAttachment.CROSS_PLATFORM, true, UserVerificationRequirement.REQUIRED)
@@ -85,5 +85,15 @@ class WebAuthnServicesRest {
       AttestationConveyancePreference.NONE,
       null
     )
+  }
+
+  /**
+   * Step 5: Browser Creates Final Data, Application sends response to Server
+   */
+  @PostMapping("finish")
+  fun finish(@RequestBody postData: PostData<PublicKeyCredential<*, *>>): WebAuthnRegistrationResult {
+    val credential = postData.data
+
+    return WebAuthnRegistrationResult(true)
   }
 }
