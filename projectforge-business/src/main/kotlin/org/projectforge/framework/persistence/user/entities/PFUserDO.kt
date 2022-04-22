@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.NoHistory
-import de.micromata.genome.jpa.metainf.EntityDependencies
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
@@ -65,7 +64,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String
         @Transient
-        get() = "${getFullname()}"
+        get() = getFullname()
 
     @Transient
     private var attributeMap: MutableMap<String, Any>? = null
