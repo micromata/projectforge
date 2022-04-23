@@ -76,17 +76,17 @@ class WebAuthnServicesRest {
       AuthenticatorSelectionCriteria(AuthenticatorAttachment.CROSS_PLATFORM, true, UserVerificationRequirement.REQUIRED)
     val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
     // https://www.w3.org/TR/webauthn-1/#dictdef-publickeycredentialcreationoptions
-    val publicKey = WebAuthnPublicKey(
+    return WebAuthnRegisterResult(
       WebAuthnRp(webAuthnRegistration.plainDomain, webAuthnRegistration.plainDomain),
       WebAuthnUser(userIdByteArray, username, userDisplayName),
       Base64.encodeBase64String(challenge.value), // https://www.w3.org/TR/webauthn-2/
       arrayOf(
         WebAuthnPubKeyCredParam(-7), // ("ES256")
-        WebAuthnPubKeyCredParam(-257)), // ("RS256")
+        WebAuthnPubKeyCredParam(-257)
+      ), // ("RS256")
       WebAuthnAuthenticatorSelection(),
       extensions = WebAuthnExtensions(webAuthnRegistration.rpId),
     )
-    return WebAuthnRegisterResult(publicKey)
   }
 
   /**
