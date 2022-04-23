@@ -23,7 +23,15 @@
 
 package org.projectforge.security.dto
 
-class WebAuthnRegisterResult(var publicKey: WebAuthnPublicKey)
+class WebAuthnRegisterResult(
+  var rp: WebAuthnRp,
+  var user: WebAuthnUser,
+  var challenge: String,
+  var pubKeyCredParams: Array<WebAuthnPubKeyCredParam>,
+  var authenticatorSelection: WebAuthnAuthenticatorSelection,
+  var attestation: String = "direct",
+  var extensions: WebAuthnExtensions,
+)
 
 /*
 {

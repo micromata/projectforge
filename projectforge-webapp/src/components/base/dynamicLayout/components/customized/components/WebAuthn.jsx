@@ -12,9 +12,9 @@ import { DynamicLayoutContext } from '../../../context';
 function WebAuthn() {
     const { ui } = React.useContext(DynamicLayoutContext);
 
-    const startRegister = async (registerResult) => {
-        convertPublicKeyCredentialRequestOptions(registerResult);
-        const credential = await navigator.credentials.create(registerResult);
+    const startRegister = async (publicKeyCredentialCreationOptions) => {
+        convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
+        const credential = await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
         console.log(credential);
     };
 

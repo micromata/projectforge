@@ -30,7 +30,7 @@ const decodeBase64url = (base64url) => {
     return arrayBuffer;
 }
 
-export const convertPublicKeyCredentialRequestOptions = (registerData) => {
-    registerData.publicKey.challenge = decodeBase64url(registerData.publicKey.challenge);
-    registerData.publicKey.user.id = decodeBase64url(registerData.publicKey.user.id);
+export const convertPublicKeyCredentialRequestOptions = (publicKeyCredentialCreationOptions) => {
+    publicKeyCredentialCreationOptions.challenge = decodeBase64url(publicKeyCredentialCreationOptions.challenge);
+    publicKeyCredentialCreationOptions.user.id = decodeBase64url(publicKeyCredentialCreationOptions.user.id);
 }
