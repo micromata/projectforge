@@ -21,6 +21,6 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.security
+package org.projectforge.security.dto
 
-class WebAuthnRegistrationResult(var success: Boolean)
+class WebAuthnFinishResult(var success: Boolean)

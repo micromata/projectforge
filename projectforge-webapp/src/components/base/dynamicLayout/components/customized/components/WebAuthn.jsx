@@ -1,6 +1,9 @@
+/* eslint-disable no-param-reassign,max-len */
 import React from 'react';
 import { Button } from '../../../../../design';
 import { fetchJsonGet } from '../../../../../../utilities/rest';
+// eslint-disable-next-line import/named
+import { convertPublicKeyCredentialRequestOptions } from '../../../../../../utilities/webauthn';
 import { DynamicLayoutContext } from '../../../context';
 
 /**
@@ -8,11 +11,18 @@ import { DynamicLayoutContext } from '../../../context';
  */
 function WebAuthn() {
     const { ui } = React.useContext(DynamicLayoutContext);
+
+    const startRegister = async (registerResult) => {
+        convertPublicKeyCredentialRequestOptions(registerResult);
+        const credential = await navigator.credentials.create(registerResult);
+        console.log(credential);
+    };
+
     const register = () => {
         fetchJsonGet('webauthn/register',
             { },
             (json) => {
-                console.log(json);
+                startRegister(json);
             });
     };
 

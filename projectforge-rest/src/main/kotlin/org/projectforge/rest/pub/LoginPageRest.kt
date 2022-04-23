@@ -200,7 +200,7 @@ open class LoginPageRest {
       val returnToCaller = serverData?.returnToCaller
       if (!returnToCaller.isNullOrBlank()) {
         redirect = URLDecoder.decode(returnToCaller, "UTF-8")
-      } else if (request.getHeader("Referer").contains("/public/login")) {
+      } else if (request.getHeader("Referer")?.contains("/public/login") == true) {
         redirect = "/${Constants.REACT_APP_PATH}calendar"
       }
       // redirect might be "null" (string):
