@@ -75,7 +75,7 @@ class WebAuthnServicesRest {
     )
     // CROSS_PLATFORM: required for support of mobile phones etc.
     val authenticatorSelectionCriteria =
-      AuthenticatorSelectionCriteria(AuthenticatorAttachment.CROSS_PLATFORM, true, UserVerificationRequirement.REQUIRED)
+      AuthenticatorSelectionCriteria(AuthenticatorAttachment.CROSS_PLATFORM, false, UserVerificationRequirement.PREFERRED)
     val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
     // https://www.w3.org/TR/webauthn-1/#dictdef-publickeycredentialcreationoptions
     return WebAuthnRegisterResult(
@@ -83,7 +83,7 @@ class WebAuthnServicesRest {
       WebAuthnUser(userIdByteArray, username, userDisplayName),
       Base64.encodeBase64String(challenge.value), // https://www.w3.org/TR/webauthn-2/
       publicKeyCredentialParameters,
-      WebAuthnAuthenticatorSelection(),
+      authenticatorSelectionCriteria,
       extensions = WebAuthnExtensions(webAuthnRegistration.rpId),
     )
   }
