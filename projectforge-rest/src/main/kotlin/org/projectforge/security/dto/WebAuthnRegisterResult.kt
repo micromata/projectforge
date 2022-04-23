@@ -23,6 +23,7 @@
 
 package org.projectforge.security.dto
 
+import com.webauthn4j.data.AuthenticatorSelectionCriteria
 import com.webauthn4j.data.PublicKeyCredentialParameters
 
 class WebAuthnRegisterResult(
@@ -30,7 +31,7 @@ class WebAuthnRegisterResult(
   var user: WebAuthnUser,
   var challenge: String,
   var pubKeyCredParams: Array<PublicKeyCredentialParameters>,
-  var authenticatorSelection: WebAuthnAuthenticatorSelection,
+  var authenticatorSelection: AuthenticatorSelectionCriteria,
   var attestation: String = "direct",
   var extensions: WebAuthnExtensions,
 )
