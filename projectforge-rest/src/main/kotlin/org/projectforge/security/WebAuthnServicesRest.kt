@@ -27,14 +27,17 @@ import com.webauthn4j.data.*
 import com.webauthn4j.data.attestation.statement.COSEAlgorithmIdentifier
 import com.webauthn4j.data.client.challenge.DefaultChallenge
 import mu.KotlinLogging
-import org.projectforge.Constants
+import org.apache.commons.codec.binary.Base64
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.PostData
+import org.projectforge.security.dto.*
 import org.projectforge.security.fido2.WebAuthnRegistration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.nio.ByteBuffer
+import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -54,7 +57,7 @@ class WebAuthnServicesRest {
    * is taken.
    */
   @GetMapping("register")
-  fun register(): PublicKeyCredentialCreationOptions {
+  fun register(request: HttpServletRequest): WebAuthnRegisterResult {
     val user = ThreadLocalUserContext.getUser()
     requireNotNull(user)
     val userId = user.id
@@ -64,36 +67,35 @@ class WebAuthnServicesRest {
     val userDisplayName = user.userDisplayName
     require(!userDisplayName.isNullOrBlank())
     log.info { "User requested challenge for Authenticator attestation." }
-    val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
-    val publicKeyCredentialUserEntity = PublicKeyCredentialUserEntity(userIdByteArray, username, userDisplayName)
     val challenge = DefaultChallenge()
+    val requestId = NumberHelper.getSecureRandomAlphanumeric(20)
     val publicKeyCredentialParameters =
       PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256)
     // CROSS_PLATFORM: required for support of mobile phones etc.
     val authenticatorSelectionCriteria =
       AuthenticatorSelectionCriteria(AuthenticatorAttachment.CROSS_PLATFORM, true, UserVerificationRequirement.REQUIRED)
-
+    val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
     // https://www.w3.org/TR/webauthn-1/#dictdef-publickeycredentialcreationoptions
-    return PublicKeyCredentialCreationOptions(
-      PublicKeyCredentialRpEntity(webAuthnRegistration.rpId, webAuthnRegistration.plainDomain),
-      publicKeyCredentialUserEntity,
-      challenge,
-      listOf(publicKeyCredentialParameters),
-      Constants.MILLIS_PER_MINUTE * 10, // timeout in milliseconds: 10 minutes
-      null,
-      authenticatorSelectionCriteria,
-      AttestationConveyancePreference.NONE,
-      null
+    val publicKey = WebAuthnPublicKey(
+      WebAuthnRp(webAuthnRegistration.plainDomain, webAuthnRegistration.plainDomain),
+      WebAuthnUser(userIdByteArray, username, userDisplayName),
+      Base64.encodeBase64String(challenge.value), // https://www.w3.org/TR/webauthn-2/
+      arrayOf(
+        WebAuthnPubKeyCredParam(-7), // ("ES256")
+        WebAuthnPubKeyCredParam(-257)), // ("RS256")
+      WebAuthnAuthenticatorSelection(),
+      extensions = WebAuthnExtensions(webAuthnRegistration.rpId),
     )
+    return WebAuthnRegisterResult(publicKey)
   }
 
   /**
    * Step 5: Browser Creates Final Data, Application sends response to Server
    */
   @PostMapping("finish")
-  fun finish(@RequestBody postData: PostData<PublicKeyCredential<*, *>>): WebAuthnRegistrationResult {
+  fun finish(@RequestBody postData: PostData<PublicKeyCredential<*, *>>): WebAuthnFinishResult {
     val credential = postData.data
 
-    return WebAuthnRegistrationResult(true)
+    return WebAuthnFinishResult(true)
   }
 }
