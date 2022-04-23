@@ -69,8 +69,10 @@ class WebAuthnServicesRest {
     log.info { "User requested challenge for Authenticator attestation." }
     val challenge = DefaultChallenge()
     val requestId = NumberHelper.getSecureRandomAlphanumeric(20)
-    val publicKeyCredentialParameters =
-      PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256)
+    val publicKeyCredentialParameters = arrayOf(
+      PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256),
+      PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.RS256),
+    )
     // CROSS_PLATFORM: required for support of mobile phones etc.
     val authenticatorSelectionCriteria =
       AuthenticatorSelectionCriteria(AuthenticatorAttachment.CROSS_PLATFORM, true, UserVerificationRequirement.REQUIRED)
@@ -80,10 +82,7 @@ class WebAuthnServicesRest {
       WebAuthnRp(webAuthnRegistration.plainDomain, webAuthnRegistration.plainDomain),
       WebAuthnUser(userIdByteArray, username, userDisplayName),
       Base64.encodeBase64String(challenge.value), // https://www.w3.org/TR/webauthn-2/
-      arrayOf(
-        WebAuthnPubKeyCredParam(-7), // ("ES256")
-        WebAuthnPubKeyCredParam(-257)
-      ), // ("RS256")
+      publicKeyCredentialParameters,
       WebAuthnAuthenticatorSelection(),
       extensions = WebAuthnExtensions(webAuthnRegistration.rpId),
     )
