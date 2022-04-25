@@ -82,6 +82,8 @@ class WebAuthnServicesRest {
       WebAuthnRp(webAuthnRegistration.plainDomain, webAuthnRegistration.plainDomain),
       WebAuthnUser(userIdByteArray, username, userDisplayName),
       Base64.encodeBase64String(challenge.value), // https://www.w3.org/TR/webauthn-2/
+      requestId,
+      request.getSession(false).id,
       publicKeyCredentialParameters,
       authenticatorSelectionCriteria,
       extensions = WebAuthnExtensions(webAuthnRegistration.rpId),
@@ -92,7 +94,7 @@ class WebAuthnServicesRest {
    * Step 5: Browser Creates Final Data, Application sends response to Server
    */
   @PostMapping("finish")
-  fun finish(@RequestBody postData: PostData<PublicKeyCredential<*, *>>): WebAuthnFinishResult {
+  fun finish(@RequestBody postData: PostData<WebAuthnFinishRequest>): WebAuthnFinishResult {
     val credential = postData.data
 
     return WebAuthnFinishResult(true)
