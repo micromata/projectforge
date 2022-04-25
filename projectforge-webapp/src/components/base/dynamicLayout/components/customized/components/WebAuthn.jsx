@@ -1,9 +1,9 @@
 /* eslint-disable no-param-reassign,max-len */
 import React from 'react';
 import { Button } from '../../../../../design';
-import { fetchJsonGet } from '../../../../../../utilities/rest';
+import { fetchJsonGet, fetchJsonPost } from '../../../../../../utilities/rest';
 // eslint-disable-next-line import/named
-import { convertPublicKeyCredentialRequestOptions } from '../../../../../../utilities/webauthn';
+import { convertPublicKeyCredentialRequestOptions, convertCredential } from '../../../../../../utilities/webauthn';
 import { DynamicLayoutContext } from '../../../context';
 
 /**
@@ -13,9 +13,16 @@ function WebAuthn() {
     const { ui } = React.useContext(DynamicLayoutContext);
 
     const startRegister = async (publicKeyCredentialCreationOptions) => {
-        convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
-        const credential = await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
-        console.log(credential);
+        const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
+        const credential = await navigator.credentials.create({ publicKey: createRequest });
+        const data = convertCredential(credential, publicKeyCredentialCreationOptions);
+        fetchJsonPost(
+            'webauthn/finish',
+            { data },
+            (json) => {
+                console.log(json); // Action here...
+            },
+        );
     };
 
     const register = () => {

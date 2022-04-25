@@ -30,6 +30,8 @@ class WebAuthnRegisterResult(
   var rp: WebAuthnRp,
   var user: WebAuthnUser,
   var challenge: String,
+  var requestId: String,
+  var sessionToken: String,
   var pubKeyCredParams: Array<PublicKeyCredentialParameters>,
   var authenticatorSelection: AuthenticatorSelectionCriteria,
   var attestation: String = "direct",
