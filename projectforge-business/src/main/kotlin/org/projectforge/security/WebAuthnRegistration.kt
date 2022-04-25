@@ -80,13 +80,12 @@ class WebAuthnRegistration {
     log.info { "TODO: updateCounter" }
   }
 
-  fun registration() {
-    // Client properties
-    val attestationObject: ByteArray? = null /* set attestationObject */
-    val clientDataJSON: ByteArray? = null /* set clientDataJSON */
-    val clientExtensionJSON: String? = null /* set clientExtensionJSON */
-    val transports: Set<String>? = null /* set transports */
-
+  fun registration(
+    attestationObject: ByteArray,
+    clientDataJSON: ByteArray,
+    clientExtensionJSON: String? = null,
+    transports: Set<String>? = null
+  ) {
     // Server properties
     val rpId = domainService.domain
 
