@@ -26,5 +26,5 @@ package org.projectforge.security.dto
 class WebAuthnResponse(
   var clientDataJSON: String? = null,
   var attestationObject: String? = null,
-  var transports: Array<String>? = null,
+  var transports: Set<String>? = null,
 )

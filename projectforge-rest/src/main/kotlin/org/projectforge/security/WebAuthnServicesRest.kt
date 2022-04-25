@@ -75,7 +75,11 @@ class WebAuthnServicesRest {
     )
     // CROSS_PLATFORM: required for support of mobile phones etc.
     val authenticatorSelectionCriteria =
-      AuthenticatorSelectionCriteria(AuthenticatorAttachment.CROSS_PLATFORM, false, UserVerificationRequirement.PREFERRED)
+      AuthenticatorSelectionCriteria(
+        AuthenticatorAttachment.CROSS_PLATFORM,
+        false,
+        UserVerificationRequirement.PREFERRED
+      )
     val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
     // https://www.w3.org/TR/webauthn-1/#dictdef-publickeycredentialcreationoptions
     return WebAuthnRegisterResult(
@@ -95,8 +99,20 @@ class WebAuthnServicesRest {
    */
   @PostMapping("finish")
   fun finish(@RequestBody postData: PostData<WebAuthnFinishRequest>): WebAuthnFinishResult {
-    val credential = postData.data
-
+    val webAuthnRequest = postData.data
+    val credential = webAuthnRequest.credential!!
+    val response = credential.response!!
+    log.info { "User wants to finish registration." }
+    val attestationObject = Base64.decodeBase64(response.attestationObject)
+    val clientDataJSON = Base64.decodeBase64(response.clientDataJSON)
+    val clientExtensionJSON = null
+    val transports = response.transports
+    webAuthnRegistration.registration(
+      attestationObject = attestationObject,
+      clientDataJSON = clientDataJSON,
+      clientExtensionJSON = clientExtensionJSON,
+      transports = transports
+    )
     return WebAuthnFinishResult(true)
   }
 }

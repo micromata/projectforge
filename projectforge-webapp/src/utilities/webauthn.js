@@ -29,6 +29,7 @@ export const convertPublicKeyCredentialRequestOptions = (publicKeyCredentialCrea
 }
 
 export const convertCredential = (credential, publicKeyCredentialCreationOptions) => {
+    const { response } = credential;
     const result = {
         requestId: publicKeyCredentialCreationOptions.requestId,
         credential: {
@@ -36,9 +37,9 @@ export const convertCredential = (credential, publicKeyCredentialCreationOptions
             id: credential.id,
             rawId: bufferToBase64url(credential.rawId),
             response: {
-                clientDataJSON:  bufferToBase64url(credential.clientDataJSON),
-                attestationObject: bufferToBase64url(credential.attestationObject),
-                transports: credential.transports,
+                clientDataJSON:  bufferToBase64url(response.clientDataJSON),
+                attestationObject: bufferToBase64url(response.attestationObject),
+                transports: response.transports,
             },
         },
         clientExtensionResults: {},
