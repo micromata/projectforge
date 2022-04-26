@@ -16,6 +16,7 @@ function WebAuthn() {
         const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
         const credential = await navigator.credentials.create({ publicKey: createRequest });
         const data = convertCredential(credential, publicKeyCredentialCreationOptions);
+        console.log(data);
         fetchJsonPost(
             'webauthn/finish',
             { data },
