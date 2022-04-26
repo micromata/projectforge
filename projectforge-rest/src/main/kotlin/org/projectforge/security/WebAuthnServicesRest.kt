@@ -26,6 +26,7 @@ package org.projectforge.security
 import com.webauthn4j.data.*
 import com.webauthn4j.data.attestation.statement.COSEAlgorithmIdentifier
 import com.webauthn4j.data.client.challenge.DefaultChallenge
+import com.webauthn4j.util.Base64UrlUtil
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -81,11 +82,12 @@ class WebAuthnServicesRest {
         UserVerificationRequirement.PREFERRED
       )
     val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
+
     // https://www.w3.org/TR/webauthn-1/#dictdef-publickeycredentialcreationoptions
     return WebAuthnRegisterResult(
       WebAuthnRp(webAuthnRegistration.plainDomain, webAuthnRegistration.plainDomain),
       WebAuthnUser(userIdByteArray, username, userDisplayName),
-      Base64.encodeBase64String(challenge.value), // https://www.w3.org/TR/webauthn-2/
+      Base64UrlUtil.encodeToString(challenge.value), // https://www.w3.org/TR/webauthn-2/
       requestId,
       request.getSession(false).id,
       publicKeyCredentialParameters,
@@ -110,6 +112,7 @@ class WebAuthnServicesRest {
     webAuthnRegistration.registration(
       attestationObject = attestationObject,
       clientDataJSON = clientDataJSON,
+      challenge = webAuthnRequest.challenge!!,
       clientExtensionJSON = clientExtensionJSON,
       transports = transports
     )

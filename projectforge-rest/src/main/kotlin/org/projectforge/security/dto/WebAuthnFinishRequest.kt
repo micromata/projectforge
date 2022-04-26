@@ -26,6 +26,7 @@ package org.projectforge.security.dto
 class WebAuthnFinishRequest(
   var requestId: String? = null,
   var credential: WebAuthnCredential? = null,
+  var challenge: String? = null,
   var sessionToken: String? = null,
   var clientExtensionResults: ClientExtensionResult? = null,
 ) {

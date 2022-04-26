@@ -30,6 +30,7 @@ import com.webauthn4j.converter.exception.DataConversionException
 import com.webauthn4j.data.*
 import com.webauthn4j.data.client.Origin
 import com.webauthn4j.data.client.challenge.Challenge
+import com.webauthn4j.data.client.challenge.DefaultChallenge
 import com.webauthn4j.server.ServerProperty
 import com.webauthn4j.validator.exception.ValidationException
 import mu.KotlinLogging
@@ -80,39 +81,40 @@ class WebAuthnRegistration {
     log.info { "TODO: updateCounter" }
   }
 
+  // For challenge, please specify the Challenge issued on WebAuthn JS API call.
+  // challenge is a parameter to prevent replay attacks.
+  // By issuing the random byte sequence challenge on server side, signing it with WebAuthn JS API,
+  // and verifying the signature on server side, users are protected from the replay attack.
+  // TreeTraversal.It is the application’s responsibility for retaining the issued Challenge.
+  // Parameter for Token binding. If you do not want to use it please specify null:
   fun registration(
     attestationObject: ByteArray,
     clientDataJSON: ByteArray,
+    challenge: String,
     clientExtensionJSON: String? = null,
     transports: Set<String>? = null
   ) {
     // Server properties
     val rpId = domainService.domain
 
-    // For challenge, please specify the Challenge issued on WebAuthn JS API call.
-    // challenge is a parameter to prevent replay attacks.
-    // By issuing the random byte sequence challenge on server side, signing it with WebAuthn JS API,
-    // and verifying the signature on server side, users are protected from the replay attack.
-    // TreeTraversal.It is the application’s responsibility for retaining the issued Challenge.
-    val challenge: Challenge? = null
-    // Parameter for Token binding. If you do not want to use it please specify null:
     val tokenBindingId: ByteArray? = null
-    val serverProperty = ServerProperty(origin, rpId, challenge, tokenBindingId)
-
-    // expectations
-    val userVerificationRequired = false
-    val userPresenceRequired = true
+    val challengeObj = DefaultChallenge(challenge)
+    val serverProperty = ServerProperty(origin, rpId, challengeObj, tokenBindingId)
 
     val registrationRequest = RegistrationRequest(attestationObject, clientDataJSON, clientExtensionJSON, transports)
-    val registrationParameters =
-      RegistrationParameters(serverProperty, null, userVerificationRequired, userPresenceRequired)
-    val registrationData: RegistrationData
-    registrationData = try {
+    val registrationData = try {
       webAuthnManager.parse(registrationRequest)
     } catch (ex: DataConversionException) {
       log.error("Error while parsing registration request: ${ex.message}", ex)
       throw ex
     }
+
+    // expectations
+    val userVerificationRequired = false
+    val userPresenceRequired = true
+
+    val registrationParameters =
+      RegistrationParameters(serverProperty, null, userVerificationRequired, userPresenceRequired)
     try {
       webAuthnManager.validate(registrationData, registrationParameters)
     } catch (ex: ValidationException) {
