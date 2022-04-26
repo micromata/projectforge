@@ -30,7 +30,7 @@ export const convertPublicKeyCredentialRequestOptions = (publicKeyCredentialCrea
 
 export const convertCredential = (credential, publicKeyCredentialCreationOptions) => {
     const { response } = credential;
-    const result = {
+    return {
         requestId: publicKeyCredentialCreationOptions.requestId,
         credential: {
             type: credential.type,
@@ -43,7 +43,7 @@ export const convertCredential = (credential, publicKeyCredentialCreationOptions
             },
         },
         clientExtensionResults: {},
+        challenge: publicKeyCredentialCreationOptions.challenge,
         sessionToken: publicKeyCredentialCreationOptions.sessionToken,
     }
-    return result
 }
