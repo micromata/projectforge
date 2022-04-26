@@ -85,7 +85,7 @@ class WebAuthnServicesRest {
 
     // https://www.w3.org/TR/webauthn-1/#dictdef-publickeycredentialcreationoptions
     return WebAuthnRegisterResult(
-      WebAuthnRp(webAuthnRegistration.plainDomain, webAuthnRegistration.plainDomain),
+      WebAuthnRp(webAuthnRegistration.rpId, webAuthnRegistration.plainDomain),
       WebAuthnUser(userIdByteArray, username, userDisplayName),
       Base64UrlUtil.encodeToString(challenge.value), // https://www.w3.org/TR/webauthn-2/
       requestId,

@@ -64,7 +64,7 @@ class WebAuthnRegistration {
   @PostConstruct
   private fun postConstruct() {
     origin = Origin.create(domainService.domain)
-    rpId = domainService.domain
+    rpId = domainService.plainDomain // Use plain domain (for working also in development mode: http://localhost:3000)
     plainDomain = domainService.plainDomain
   }
 
@@ -95,8 +95,6 @@ class WebAuthnRegistration {
     transports: Set<String>? = null
   ) {
     // Server properties
-    val rpId = domainService.domain
-
     val tokenBindingId: ByteArray? = null
     val challengeObj = DefaultChallenge(challenge)
     val serverProperty = ServerProperty(origin, rpId, challengeObj, tokenBindingId)
