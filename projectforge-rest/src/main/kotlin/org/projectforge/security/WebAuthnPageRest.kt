@@ -47,7 +47,7 @@ class WebAuthnPageRest : AbstractDynamicPageRest() {
     LayoutUtils.process(layout)
 
     layout.postProcessPageMenu()
-    layout.addTranslations("webauthn.registration.button.register")
+    layout.addTranslations("webauthn.registration.button.authenticate", "webauthn.registration.button.register")
 
     return FormLayoutData(data, layout, createServerData(request))
   }

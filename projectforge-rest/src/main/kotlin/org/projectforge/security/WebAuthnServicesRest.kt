@@ -59,40 +59,18 @@ class WebAuthnServicesRest {
    */
   @GetMapping("register")
   fun register(request: HttpServletRequest): WebAuthnPublicKeyCredentialCreationOptions {
-    val user = ThreadLocalUserContext.getUser()
-    requireNotNull(user)
-    val userId = user.id
-    requireNotNull(userId)
-    val username = user.username
-    require(!username.isNullOrBlank())
-    val userDisplayName = user.userDisplayName
-    require(!userDisplayName.isNullOrBlank())
-    log.info { "User requested challenge for Authenticator attestation." }
-    val challenge = DefaultChallenge()
-    val requestId = NumberHelper.getSecureRandomAlphanumeric(20)
-    val publicKeyCredentialParameters = arrayOf(
-      PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256),
-      PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.RS256),
-    )
-    // CROSS_PLATFORM: required for support of mobile phones etc.
-    val authenticatorSelectionCriteria =
-      AuthenticatorSelectionCriteria(
-        AuthenticatorAttachment.CROSS_PLATFORM,
-        false,
-        UserVerificationRequirement.PREFERRED
-      )
-    val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
-
+    log.info { "User requested challenge for registration." }
+    val user = getLoggedInUser()
     // https://www.w3.org/TR/webauthn-1/#dictdef-publickeycredentialcreationoptions
     return WebAuthnPublicKeyCredentialCreationOptions(
-      WebAuthnRp(webAuthnSupport.rpId, webAuthnSupport.plainDomain),
-      WebAuthnUser(userIdByteArray, username, userDisplayName),
-      Base64UrlUtil.encodeToString(challenge.value), // https://www.w3.org/TR/webauthn-2/
+      rp = getRp(),
+      user = user,
+      challenge = getChallenge(), // https://www.w3.org/TR/webauthn-2/
       timeout = WebAuthnSupport.TIMEOUT,
-      requestId,
-      request.getSession(false).id,
-      publicKeyCredentialParameters,
-      authenticatorSelectionCriteria,
+      requestId = getRequestId(),
+      sessionToken = request.getSession(false).id,
+      pubKeyCredParams = getPublicKeyCredentialParameters(),
+      authenticatorSelection = getAuthenticatorSelectionCriteria(),
       extensions = WebAuthnExtensions(webAuthnSupport.rpId),
     )
   }
@@ -100,8 +78,51 @@ class WebAuthnServicesRest {
   /**
    * Step 5: Browser Creates Final Data, Application sends response to Server
    */
-  @PostMapping("finish")
-  fun finish(@RequestBody postData: PostData<WebAuthnFinishRequest>): WebAuthnFinishResult {
+  @PostMapping("registerFinish")
+  fun registerFinish(@RequestBody postData: PostData<WebAuthnFinishRequest>): WebAuthnFinishResult {
+    log.info { "User wants to finish registration." }
+    val webAuthnRequest = postData.data
+    val credential = webAuthnRequest.credential!!
+    val credentialId = Base64.decodeBase64(credential.id)
+    val response = credential.response!!
+    val attestationObject = Base64.decodeBase64(response.attestationObject)
+    val clientDataJSON = Base64.decodeBase64(response.clientDataJSON)
+    val clientExtensionJSON = null
+    val transports = response.transports
+    webAuthnSupport.registration(
+      credentialId,
+      attestationObject = attestationObject,
+      clientDataJSON = clientDataJSON,
+      challenge = webAuthnRequest.challenge!!,
+      clientExtensionJSON = clientExtensionJSON,
+      transports = transports,
+    )
+    return WebAuthnFinishResult(true)
+  }
+
+  @GetMapping("authenticate")
+  fun authenticate(request: HttpServletRequest): WebAuthnPublicKeyCredentialCreationOptions {
+    log.info { "User requested challenge for authentication." }
+    val user = getLoggedInUser()
+    return WebAuthnPublicKeyCredentialCreationOptions(
+      rp = getRp(),
+      user = user,
+      challenge = getChallenge(), // https://www.w3.org/TR/webauthn-2/
+      timeout = WebAuthnSupport.TIMEOUT,
+      requestId = getRequestId(),
+      sessionToken = request.getSession(false).id,
+      pubKeyCredParams = getPublicKeyCredentialParameters(),
+      authenticatorSelection = getAuthenticatorSelectionCriteria(),
+      extensions = WebAuthnExtensions(webAuthnSupport.rpId),
+    )
+  }
+
+  /**
+   * Step 5: Browser Creates Final Data, Application sends response to Server
+   */
+  @PostMapping("authenticateFinish")
+  fun authenticateFinish(@RequestBody postData: PostData<WebAuthnFinishRequest>): WebAuthnFinishResult {
+    log.info { "User wants to finish registration." }
     val webAuthnRequest = postData.data
     val credential = webAuthnRequest.credential!!
     val credentialId = Base64.decodeBase64(credential.id)
@@ -120,5 +141,47 @@ class WebAuthnServicesRest {
       transports = transports,
     )
     return WebAuthnFinishResult(true)
+  }
+
+  private fun getLoggedInUser(): WebAuthnUser {
+    val user = ThreadLocalUserContext.getUser()
+    requireNotNull(user)
+    val userId = user.id
+    requireNotNull(userId)
+    val username = user.username
+    require(!username.isNullOrBlank())
+    val userDisplayName = user.userDisplayName
+    require(!userDisplayName.isNullOrBlank())
+    val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
+    return WebAuthnUser(userIdByteArray, username, userDisplayName)
+  }
+
+  private fun getRp(): WebAuthnRp {
+    return WebAuthnRp(webAuthnSupport.rpId, webAuthnSupport.plainDomain)
+  }
+
+  private fun getChallenge(): String {
+    return Base64UrlUtil.encodeToString(DefaultChallenge().value)
+  }
+
+  private fun getRequestId(): String {
+    return NumberHelper.getSecureRandomAlphanumeric(20)
+  }
+
+  private fun getPublicKeyCredentialParameters(): Array<PublicKeyCredentialParameters> {
+    return arrayOf(
+      PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256),
+      PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.RS256),
+    )
+  }
+
+  private fun getAuthenticatorSelectionCriteria(): AuthenticatorSelectionCriteria {
+    // CROSS_PLATFORM: required for support of mobile phones etc.
+    return AuthenticatorSelectionCriteria(
+      AuthenticatorAttachment.CROSS_PLATFORM,
+      false,
+      UserVerificationRequirement.PREFERRED
+    )
+
   }
 }
