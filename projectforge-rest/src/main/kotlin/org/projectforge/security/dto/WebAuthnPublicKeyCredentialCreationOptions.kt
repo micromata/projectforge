@@ -69,6 +69,7 @@ class WebAuthnPublicKeyCredentialCreationOptions(
    */
   var attestation: String = "direct",
   var extensions: WebAuthnExtensions,
+  var allowCredentials: Array<WebAuthnCredential>? = null,
 ) {
   /**
    * excludeCredentials: limits creation of multiple credentials for the same account on a single authenticator.

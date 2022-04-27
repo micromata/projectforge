@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '../../../../../design';
 import { fetchJsonGet, fetchJsonPost } from '../../../../../../utilities/rest';
 // eslint-disable-next-line import/named
-import { convertPublicKeyCredentialRequestOptions, convertCredential } from '../../../../../../utilities/webauthn';
+import { convertPublicKeyCredentialRequestOptions, convertRegisterCredential, convertAuthenticateCredential } from '../../../../../../utilities/webauthn';
 import { DynamicLayoutContext } from '../../../context';
 
 function WebAuthn() {
@@ -12,7 +12,7 @@ function WebAuthn() {
     const finishRegister = async (publicKeyCredentialCreationOptions) => {
         const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
         const credential = await navigator.credentials.create({ publicKey: createRequest });
-        const data = convertCredential(credential, publicKeyCredentialCreationOptions);
+        const data = convertRegisterCredential(credential, publicKeyCredentialCreationOptions);
         fetchJsonPost(
             'webauthn/registerFinish',
             { data },
@@ -32,11 +32,9 @@ function WebAuthn() {
 
     const finishAuthenticate = async (publicKeyCredentialCreationOptions) => {
         const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
-        console.log(createRequest);
         const credential = await navigator.credentials.get({ publicKey: createRequest });
-        const data = convertCredential(credential, publicKeyCredentialCreationOptions);
-        console.log(data);
-        fetchJsonGet(
+        const data = convertAuthenticateCredential(credential, publicKeyCredentialCreationOptions);
+        fetchJsonPost(
             'webauthn/authenticateFinish',
             { data },
             (json) => {
