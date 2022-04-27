@@ -23,6 +23,9 @@
 
 package org.projectforge.security.dto
 
+/**
+ * [Yubico developer guide](https://developers.yubico.com/WebAuthn/WebAuthn_Developer_Guide/WebAuthn_Client_Registration.html)
+ */
 class WebAuthnUser(
   var id: ByteArray,
   var name: String,

@@ -23,4 +23,11 @@
 
 package org.projectforge.security.dto
 
+/**
+ * [Yubico developer guide](https://developers.yubico.com/WebAuthn/WebAuthn_Developer_Guide/WebAuthn_Client_Registration.html)
+ *
+ * *relying party information. name is required. The id attribute must equal the domain of the origin seen by the
+ * client, or the origin must be a subdomain of the id. If id is omitted, then origins effective domain is used.*
+ *
+ */
 class WebAuthnRp(var id: String, var name: String)

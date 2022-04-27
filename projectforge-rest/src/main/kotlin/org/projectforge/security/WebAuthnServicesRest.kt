@@ -34,7 +34,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.PostData
 import org.projectforge.security.dto.*
-import org.projectforge.security.fido2.WebAuthnRegistration
+import org.projectforge.security.fido2.WebAuthnSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.nio.ByteBuffer
@@ -50,7 +50,7 @@ private val log = KotlinLogging.logger {}
 @RequestMapping("${Rest.URL}/webauthn")
 class WebAuthnServicesRest {
   @Autowired
-  private lateinit var webAuthnRegistration: WebAuthnRegistration
+  private lateinit var webAuthnSupport: WebAuthnSupport
 
   /**
    * Step 0 (the client requests the registration).
@@ -58,7 +58,7 @@ class WebAuthnServicesRest {
    * is taken.
    */
   @GetMapping("register")
-  fun register(request: HttpServletRequest): WebAuthnRegisterResult {
+  fun register(request: HttpServletRequest): WebAuthnPublicKeyCredentialCreationOptions {
     val user = ThreadLocalUserContext.getUser()
     requireNotNull(user)
     val userId = user.id
@@ -84,15 +84,16 @@ class WebAuthnServicesRest {
     val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
 
     // https://www.w3.org/TR/webauthn-1/#dictdef-publickeycredentialcreationoptions
-    return WebAuthnRegisterResult(
-      WebAuthnRp(webAuthnRegistration.rpId, webAuthnRegistration.plainDomain),
+    return WebAuthnPublicKeyCredentialCreationOptions(
+      WebAuthnRp(webAuthnSupport.rpId, webAuthnSupport.plainDomain),
       WebAuthnUser(userIdByteArray, username, userDisplayName),
       Base64UrlUtil.encodeToString(challenge.value), // https://www.w3.org/TR/webauthn-2/
+      timeout = WebAuthnSupport.TIMEOUT,
       requestId,
       request.getSession(false).id,
       publicKeyCredentialParameters,
       authenticatorSelectionCriteria,
-      extensions = WebAuthnExtensions(webAuthnRegistration.rpId),
+      extensions = WebAuthnExtensions(webAuthnSupport.rpId),
     )
   }
 
@@ -103,18 +104,20 @@ class WebAuthnServicesRest {
   fun finish(@RequestBody postData: PostData<WebAuthnFinishRequest>): WebAuthnFinishResult {
     val webAuthnRequest = postData.data
     val credential = webAuthnRequest.credential!!
+    val credentialId = Base64.decodeBase64(credential.id)
     val response = credential.response!!
     log.info { "User wants to finish registration." }
     val attestationObject = Base64.decodeBase64(response.attestationObject)
     val clientDataJSON = Base64.decodeBase64(response.clientDataJSON)
     val clientExtensionJSON = null
     val transports = response.transports
-    webAuthnRegistration.registration(
+    webAuthnSupport.registration(
+      credentialId,
       attestationObject = attestationObject,
       clientDataJSON = clientDataJSON,
       challenge = webAuthnRequest.challenge!!,
       clientExtensionJSON = clientExtensionJSON,
-      transports = transports
+      transports = transports,
     )
     return WebAuthnFinishResult(true)
   }

@@ -25,6 +25,7 @@ package org.projectforge.security.dto
 
 class WebAuthnCredential(
   var type: String? = null,
+  /** The credential identifier. */
   var id: String? = null,
   var rawId: String? = null,
   var response: WebAuthnResponse? = null,
