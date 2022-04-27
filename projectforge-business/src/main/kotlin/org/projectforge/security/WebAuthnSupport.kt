@@ -34,6 +34,7 @@ import com.webauthn4j.data.client.challenge.DefaultChallenge
 import com.webauthn4j.server.ServerProperty
 import com.webauthn4j.validator.exception.ValidationException
 import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.business.configuration.DomainService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -42,9 +43,11 @@ import javax.annotation.PostConstruct
 private val log = KotlinLogging.logger {}
 
 @Service
-class WebAuthnRegistration {
+class WebAuthnSupport {
   @Autowired
   private lateinit var domainService: DomainService
+
+  private val testStorage = mutableMapOf<ByteArray, Authenticator>()
 
   private val webAuthnManager = WebAuthnManager.createNonStrictWebAuthnManager()
 
@@ -68,16 +71,17 @@ class WebAuthnRegistration {
     plainDomain = domainService.plainDomain
   }
 
-  fun save(authenticator: Authenticator) {
+  fun save(credentialId: ByteArray, authenticator: Authenticator) {
     log.info { "TODO: save authenticator" }
+    testStorage.put(credentialId, authenticator)
   }
 
-  fun load(credentialId: ByteArray?): Authenticator? {
+  fun load(credentialId: ByteArray): Authenticator? {
     log.info { "TODO: load credentialId" }
     return null
   }
 
-  fun updateCounter(credentialId: ByteArray?, signCount: Long) {
+  fun updateCounter(credentialId: ByteArray, signCount: Long) {
     log.info { "TODO: updateCounter" }
   }
 
@@ -88,6 +92,7 @@ class WebAuthnRegistration {
   // TreeTraversal.It is the application’s responsibility for retaining the issued Challenge.
   // Parameter for Token binding. If you do not want to use it please specify null:
   fun registration(
+    credentialId: ByteArray,
     attestationObject: ByteArray,
     clientDataJSON: ByteArray,
     challenge: String,
@@ -127,7 +132,7 @@ class WebAuthnRegistration {
         registrationData.attestationObject!!.attestationStatement,
         registrationData.attestationObject!!.authenticatorData.signCount
       )
-    save(authenticator) // please persist authenticator in your manner
+    save(credentialId, authenticator) // please persist authenticator in your manner
   }
 
   fun authenticate() {
@@ -150,7 +155,7 @@ class WebAuthnRegistration {
     val userPresenceRequired = true
     val expectedExtensionIds: List<String> = emptyList()
 
-    val authenticator = load(credentialId)!!
+    val authenticator = load(credentialId!!)!!
 
     val authenticationRequest = AuthenticationRequest(
       credentialId,
@@ -186,5 +191,12 @@ class WebAuthnRegistration {
       authenticationData.credentialId,
       authenticationData.authenticatorData!!.signCount
     )
+  }
+
+  companion object {
+    /**
+     * Time out for registration, the server is willing to wait for response.
+     */
+    const val TIMEOUT = 10 * Constants.MILLIS_PER_MINUTE
   }
 }
