@@ -23,19 +23,4 @@
 
 package org.projectforge.security.dto
 
-/**
- * [Yubico developer guide](https://developers.yubico.com/WebAuthn/WebAuthn_Developer_Guide/WebAuthn_Client_Registration.html)
- *
- * Yubico: *contains the credential public key, and metadata which can be used by the RP to assess the characteristics
- * of the credential. The attestationObject contains the authenticator data and attestation statement. The
- * clientDataJSON contains the JSON-serialized data passed to the authenticator by the client in order to generate
- * the credential.*
- */
-class WebAuthnResponse(
-  var authenticatorData: String? = null, // For authentication only
-  var clientDataJSON: String? = null,
-  var attestationObject: String? = null, // For registration only.
-  var signature: String? = null,         // For authentication only
-  var transports: Set<String>? = null,   // For registration only.
-  var userHandle: String? = null,        // For authentication only.
-)
+class WebAuthnRegisterResult(var success: Boolean)

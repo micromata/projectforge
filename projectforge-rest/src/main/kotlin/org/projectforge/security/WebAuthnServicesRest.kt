@@ -25,6 +25,7 @@ package org.projectforge.security
 
 import com.webauthn4j.data.*
 import com.webauthn4j.data.attestation.statement.COSEAlgorithmIdentifier
+import com.webauthn4j.data.client.challenge.Challenge
 import com.webauthn4j.data.client.challenge.DefaultChallenge
 import com.webauthn4j.util.Base64UrlUtil
 import mu.KotlinLogging
@@ -32,9 +33,9 @@ import org.apache.commons.codec.binary.Base64
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.dto.PostData
 import org.projectforge.security.dto.*
-import org.projectforge.security.fido2.WebAuthnSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.nio.ByteBuffer
@@ -60,18 +61,17 @@ class WebAuthnServicesRest {
   @GetMapping("register")
   fun register(request: HttpServletRequest): WebAuthnPublicKeyCredentialCreationOptions {
     log.info { "User requested challenge for registration." }
-    val user = getLoggedInUser()
     // https://www.w3.org/TR/webauthn-1/#dictdef-publickeycredentialcreationoptions
     return WebAuthnPublicKeyCredentialCreationOptions(
-      rp = getRp(),
-      user = user,
-      challenge = getChallenge(), // https://www.w3.org/TR/webauthn-2/
+      rp = rp,
+      user = loggedInUser,
+      challenge = createUserChallenge(request), // https://www.w3.org/TR/webauthn-2/
       timeout = WebAuthnSupport.TIMEOUT,
-      requestId = getRequestId(),
+      requestId = requestId,
       sessionToken = request.getSession(false).id,
-      pubKeyCredParams = getPublicKeyCredentialParameters(),
-      authenticatorSelection = getAuthenticatorSelectionCriteria(),
-      extensions = WebAuthnExtensions(webAuthnSupport.rpId),
+      pubKeyCredParams = publicKeyCredentialParameters,
+      authenticatorSelection = authenticatorSelectionCriteria,
+      extensions = extensions,
     )
   }
 
@@ -79,7 +79,10 @@ class WebAuthnServicesRest {
    * Step 5: Browser Creates Final Data, Application sends response to Server
    */
   @PostMapping("registerFinish")
-  fun registerFinish(@RequestBody postData: PostData<WebAuthnFinishRequest>): WebAuthnFinishResult {
+  fun registerFinish(
+    request: HttpServletRequest,
+    @RequestBody postData: PostData<WebAuthnFinishRequest>
+  ): WebAuthnRegisterResult {
     log.info { "User wants to finish registration." }
     val webAuthnRequest = postData.data
     val credential = webAuthnRequest.credential!!
@@ -93,27 +96,29 @@ class WebAuthnServicesRest {
       credentialId,
       attestationObject = attestationObject,
       clientDataJSON = clientDataJSON,
-      challenge = webAuthnRequest.challenge!!,
+      challenge = getUserChallenge(request)!!,
       clientExtensionJSON = clientExtensionJSON,
       transports = transports,
     )
-    return WebAuthnFinishResult(true)
+    return WebAuthnRegisterResult(true)
   }
 
   @GetMapping("authenticate")
   fun authenticate(request: HttpServletRequest): WebAuthnPublicKeyCredentialCreationOptions {
     log.info { "User requested challenge for authentication." }
-    val user = getLoggedInUser()
+    val entry = webAuthnSupport.load()
+    val allowCredentials = arrayOf(WebAuthnCredential.create(entry!!.credentialId))
     return WebAuthnPublicKeyCredentialCreationOptions(
-      rp = getRp(),
-      user = user,
-      challenge = getChallenge(), // https://www.w3.org/TR/webauthn-2/
+      rp = rp,
+      user = loggedInUser,
+      challenge = createUserChallenge(request), // https://www.w3.org/TR/webauthn-2/
       timeout = WebAuthnSupport.TIMEOUT,
-      requestId = getRequestId(),
+      requestId = requestId,
       sessionToken = request.getSession(false).id,
-      pubKeyCredParams = getPublicKeyCredentialParameters(),
-      authenticatorSelection = getAuthenticatorSelectionCriteria(),
-      extensions = WebAuthnExtensions(webAuthnSupport.rpId),
+      pubKeyCredParams = publicKeyCredentialParameters,
+      authenticatorSelection = authenticatorSelectionCriteria,
+      extensions = extensions,
+      allowCredentials = allowCredentials
     )
   }
 
@@ -121,67 +126,77 @@ class WebAuthnServicesRest {
    * Step 5: Browser Creates Final Data, Application sends response to Server
    */
   @PostMapping("authenticateFinish")
-  fun authenticateFinish(@RequestBody postData: PostData<WebAuthnFinishRequest>): WebAuthnFinishResult {
+  fun authenticateFinish(request: HttpServletRequest, @RequestBody postData: PostData<WebAuthnFinishRequest>): WebAuthnAuthenticateResult {
     log.info { "User wants to finish registration." }
     val webAuthnRequest = postData.data
     val credential = webAuthnRequest.credential!!
     val credentialId = Base64.decodeBase64(credential.id)
     val response = credential.response!!
-    log.info { "User wants to finish registration." }
-    val attestationObject = Base64.decodeBase64(response.attestationObject)
     val clientDataJSON = Base64.decodeBase64(response.clientDataJSON)
+    val authenticatorData = Base64.decodeBase64(response.authenticatorData)
+    val signature = Base64.decodeBase64(response.signature)
+    val userHandle = if (response.userHandle != null) { Base64.decodeBase64(response.userHandle) } else { null }
     val clientExtensionJSON = null
-    val transports = response.transports
-    webAuthnSupport.registration(
-      credentialId,
-      attestationObject = attestationObject,
+    webAuthnSupport.authenticate(
+      credentialId = credentialId,
+      signature = signature,
       clientDataJSON = clientDataJSON,
-      challenge = webAuthnRequest.challenge!!,
+      authenticatorData = authenticatorData,
+      challenge = getUserChallenge(request)!!,
       clientExtensionJSON = clientExtensionJSON,
-      transports = transports,
+      userHandle = userHandle,
     )
-    return WebAuthnFinishResult(true)
+    return WebAuthnAuthenticateResult(true)
   }
 
-  private fun getLoggedInUser(): WebAuthnUser {
-    val user = ThreadLocalUserContext.getUser()
-    requireNotNull(user)
-    val userId = user.id
-    requireNotNull(userId)
-    val username = user.username
-    require(!username.isNullOrBlank())
-    val userDisplayName = user.userDisplayName
-    require(!userDisplayName.isNullOrBlank())
-    val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
-    return WebAuthnUser(userIdByteArray, username, userDisplayName)
+  private val loggedInUser: WebAuthnUser
+    get() {
+      val user = ThreadLocalUserContext.getUser()
+      requireNotNull(user)
+      val userId = user.id
+      requireNotNull(userId)
+      val username = user.username
+      require(!username.isNullOrBlank())
+      val userDisplayName = user.userDisplayName
+      require(!userDisplayName.isNullOrBlank())
+      val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
+      return WebAuthnUser(userIdByteArray, username, userDisplayName)
+    }
+
+  private val rp: WebAuthnRp
+    get() = WebAuthnRp(webAuthnSupport.rpId, webAuthnSupport.plainDomain)
+
+  private fun createUserChallenge(request: HttpServletRequest): String {
+    val challenge = DefaultChallenge()
+    ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_CHALLENGE, challenge, 10)
+    return Base64UrlUtil.encodeToString(challenge.value)
   }
 
-  private fun getRp(): WebAuthnRp {
-    return WebAuthnRp(webAuthnSupport.rpId, webAuthnSupport.plainDomain)
+  private fun getUserChallenge(request: HttpServletRequest): Challenge? {
+    return ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_CHALLENGE, Challenge::class.java)
   }
 
-  private fun getChallenge(): String {
-    return Base64UrlUtil.encodeToString(DefaultChallenge().value)
-  }
+  private val requestId: String
+    get() = NumberHelper.getSecureRandomAlphanumeric(20)
 
-  private fun getRequestId(): String {
-    return NumberHelper.getSecureRandomAlphanumeric(20)
-  }
-
-  private fun getPublicKeyCredentialParameters(): Array<PublicKeyCredentialParameters> {
-    return arrayOf(
+  private val publicKeyCredentialParameters: Array<PublicKeyCredentialParameters>
+    get() = arrayOf(
       PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256),
       PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.RS256),
     )
-  }
 
-  private fun getAuthenticatorSelectionCriteria(): AuthenticatorSelectionCriteria {
-    // CROSS_PLATFORM: required for support of mobile phones etc.
-    return AuthenticatorSelectionCriteria(
+  // CROSS_PLATFORM: required for support of mobile phones etc.
+  private val authenticatorSelectionCriteria: AuthenticatorSelectionCriteria
+    get() = AuthenticatorSelectionCriteria(
       AuthenticatorAttachment.CROSS_PLATFORM,
       false,
       UserVerificationRequirement.PREFERRED
     )
 
+  private val extensions: WebAuthnExtensions
+    get() = WebAuthnExtensions(webAuthnSupport.domain)
+
+  companion object {
+    private val SESSSION_ATTRIBUTE_CHALLENGE = "${WebAuthnServicesRest::class.java.name}:challenge"
   }
 }

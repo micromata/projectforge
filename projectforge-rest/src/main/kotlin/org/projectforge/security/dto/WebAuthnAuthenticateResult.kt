@@ -23,4 +23,4 @@
 
 package org.projectforge.security.dto
 
-class WebAuthnFinishResult(var success: Boolean)
+class WebAuthnAuthenticateResult(var success: Boolean)

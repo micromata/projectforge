@@ -25,10 +25,20 @@ export const convertPublicKeyCredentialRequestOptions = (publicKeyCredentialCrea
     const result = JSON.parse(JSON.stringify(publicKeyCredentialCreationOptions));
     result.challenge = decodeBase64url(publicKeyCredentialCreationOptions.challenge);
     result.user.id = decodeBase64url(publicKeyCredentialCreationOptions.user.id);
+    result.allowCredentials = [];
+    if (publicKeyCredentialCreationOptions.allowCredentials) {
+        publicKeyCredentialCreationOptions.allowCredentials.map((credential) => {
+            result.allowCredentials.push({
+                type: credential.type,
+                rawId: decodeBase64url(credential.rawId),
+                id: decodeBase64url(credential.id),
+            })
+        })
+    }
     return result;
 }
 
-export const convertCredential = (credential, publicKeyCredentialCreationOptions) => {
+export const convertRegisterCredential = (credential, publicKeyCredentialCreationOptions) => {
     const { response } = credential;
     return {
         requestId: publicKeyCredentialCreationOptions.requestId,
@@ -37,9 +47,30 @@ export const convertCredential = (credential, publicKeyCredentialCreationOptions
             id: credential.id,
             rawId: bufferToBase64url(credential.rawId),
             response: {
-                clientDataJSON:  bufferToBase64url(response.clientDataJSON),
+                clientDataJSON: bufferToBase64url(response.clientDataJSON),
                 attestationObject: bufferToBase64url(response.attestationObject),
                 transports: response.transports,
+            },
+        },
+        clientExtensionResults: {},
+        challenge: publicKeyCredentialCreationOptions.challenge,
+        sessionToken: publicKeyCredentialCreationOptions.sessionToken,
+    }
+}
+
+export const convertAuthenticateCredential = (credential, publicKeyCredentialCreationOptions) => {
+    const { response } = credential;
+    return {
+        requestId: publicKeyCredentialCreationOptions.requestId,
+        credential: {
+            type: credential.type,
+            id: credential.id,
+            rawId: bufferToBase64url(credential.rawId),
+            response: {
+                authenticatorData: bufferToBase64url(response.authenticatorData),
+                clientDataJSON: bufferToBase64url(response.clientDataJSON),
+                signature: bufferToBase64url(response.signature),
+                userHandle: response.userHandle,
             },
         },
         clientExtensionResults: {},

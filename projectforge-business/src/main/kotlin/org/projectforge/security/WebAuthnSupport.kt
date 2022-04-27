@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.security.fido2
+package org.projectforge.security
 
 import com.webauthn4j.WebAuthnManager
 import com.webauthn4j.authenticator.Authenticator
@@ -30,12 +30,12 @@ import com.webauthn4j.converter.exception.DataConversionException
 import com.webauthn4j.data.*
 import com.webauthn4j.data.client.Origin
 import com.webauthn4j.data.client.challenge.Challenge
-import com.webauthn4j.data.client.challenge.DefaultChallenge
 import com.webauthn4j.server.ServerProperty
 import com.webauthn4j.validator.exception.ValidationException
 import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.configuration.DomainService
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
@@ -47,7 +47,7 @@ class WebAuthnSupport {
   @Autowired
   private lateinit var domainService: DomainService
 
-  private val testStorage = mutableMapOf<ByteArray, Authenticator>()
+  private val testStorage = mutableMapOf<Int, WebAuthnEntry>()
 
   private val webAuthnManager = WebAuthnManager.createNonStrictWebAuthnManager()
 
@@ -64,25 +64,29 @@ class WebAuthnSupport {
   lateinit var plainDomain: String // projectforge.acme.com (without protocol)
     private set
 
+  lateinit var domain: String // projectforge.acme.com (without protocol)
+    private set
+
   @PostConstruct
   private fun postConstruct() {
     origin = Origin.create(domainService.domain)
     rpId = domainService.plainDomain // Use plain domain (for working also in development mode: http://localhost:3000)
     plainDomain = domainService.plainDomain
+    domain = domainService.domain
   }
 
   fun save(credentialId: ByteArray, authenticator: Authenticator) {
     log.info { "TODO: save authenticator" }
-    testStorage.put(credentialId, authenticator)
+    testStorage.put(ThreadLocalUserContext.getUserId(), WebAuthnEntry(credentialId, authenticator))
   }
 
-  fun load(credentialId: ByteArray): Authenticator? {
-    log.info { "TODO: load credentialId" }
-    return null
+  fun load(): WebAuthnEntry? {
+    return testStorage[ThreadLocalUserContext.getUserId()]
   }
 
   fun updateCounter(credentialId: ByteArray, signCount: Long) {
     log.info { "TODO: updateCounter" }
+    load()!!.authenticator.counter++
   }
 
   // For challenge, please specify the Challenge issued on WebAuthn JS API call.
@@ -95,14 +99,13 @@ class WebAuthnSupport {
     credentialId: ByteArray,
     attestationObject: ByteArray,
     clientDataJSON: ByteArray,
-    challenge: String,
+    challenge: Challenge,
     clientExtensionJSON: String? = null,
     transports: Set<String>? = null
   ) {
     // Server properties
-    val tokenBindingId: ByteArray? = null
-    val challengeObj = DefaultChallenge(challenge)
-    val serverProperty = ServerProperty(origin, rpId, challengeObj, tokenBindingId)
+    val tokenBindingId: ByteArray? = null // Not yet supported
+    val serverProperty = ServerProperty(origin, rpId, challenge, tokenBindingId)
 
     val registrationRequest = RegistrationRequest(attestationObject, clientDataJSON, clientExtensionJSON, transports)
     val registrationData = try {
@@ -135,27 +138,25 @@ class WebAuthnSupport {
     save(credentialId, authenticator) // please persist authenticator in your manner
   }
 
-  fun authenticate() {
-    // Client properties
-    val credentialId: ByteArray? = null /* set credentialId */
-    val userHandle: ByteArray? = null /* set userHandle */
-    val authenticatorData: ByteArray? = null /* set authenticatorData */
-    val clientDataJSON: ByteArray? = null /* set clientDataJSON */
-    val clientExtensionJSON: String? = null /* set clientExtensionJSON */
-    val signature: ByteArray? = null /* set signature */
-
+  fun authenticate(
+    credentialId: ByteArray,
+    authenticatorData: ByteArray, /* set authenticatorData */
+    clientDataJSON: ByteArray, /* set clientDataJSON */
+    clientExtensionJSON: String? = null, /* set clientExtensionJSON */
+    signature: ByteArray? = null, /* set signature */
     // Server properties
-    val challenge: Challenge? = null /* set challenge */
-    val tokenBindingId: ByteArray? = null /* set tokenBindingId */
+    challenge: Challenge? = null, /* set challenge */
+    userHandle: ByteArray? = null, /* set userHandle */
+  ) {
+    val tokenBindingId: ByteArray? = null // Not yet supported.
     val serverProperty = ServerProperty(origin, rpId, challenge, tokenBindingId)
 
     // expectations
     val allowCredentials: List<ByteArray>? = null
-    val userVerificationRequired = true
+    val userVerificationRequired = false
     val userPresenceRequired = true
-    val expectedExtensionIds: List<String> = emptyList()
 
-    val authenticator = load(credentialId!!)!!
+    val authenticator = load()!!.authenticator
 
     val authenticationRequest = AuthenticationRequest(
       credentialId,

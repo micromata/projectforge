@@ -23,10 +23,24 @@
 
 package org.projectforge.security.dto
 
+import com.webauthn4j.util.Base64UrlUtil
+
+
 class WebAuthnCredential(
-  var type: String? = null,
   /** The credential identifier. */
   var id: String? = null,
   var rawId: String? = null,
-  var response: WebAuthnResponse? = null,
-)
+  var userHandle: String? = null,
+  var publicKeyCose: String? = null,
+  var signatureCount: Int? = null,
+) {
+  var response: WebAuthnResponse? = null
+  var type: String? = "public-key"
+
+  companion object {
+    fun create(id: ByteArray): WebAuthnCredential {
+      val idString = Base64UrlUtil.encodeToString(id)
+      return WebAuthnCredential(idString, idString)
+    }
+  }
+}
