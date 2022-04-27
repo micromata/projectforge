@@ -6,19 +6,15 @@ import { fetchJsonGet, fetchJsonPost } from '../../../../../../utilities/rest';
 import { convertPublicKeyCredentialRequestOptions, convertCredential } from '../../../../../../utilities/webauthn';
 import { DynamicLayoutContext } from '../../../context';
 
-/**
- * Shows links to given jira issues (if given), otherwise nothing is shown.
- */
 function WebAuthn() {
     const { ui } = React.useContext(DynamicLayoutContext);
 
-    const startRegister = async (publicKeyCredentialCreationOptions) => {
+    const finishRegister = async (publicKeyCredentialCreationOptions) => {
         const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
         const credential = await navigator.credentials.create({ publicKey: createRequest });
         const data = convertCredential(credential, publicKeyCredentialCreationOptions);
-        console.log(data);
         fetchJsonPost(
-            'webauthn/finish',
+            'webauthn/registerFinish',
             { data },
             (json) => {
                 console.log(json); // Action here...
@@ -30,7 +26,30 @@ function WebAuthn() {
         fetchJsonGet('webauthn/register',
             { },
             (json) => {
-                startRegister(json);
+                finishRegister(json);
+            });
+    };
+
+    const finishAuthenticate = async (publicKeyCredentialCreationOptions) => {
+        const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
+        console.log(createRequest);
+        const credential = await navigator.credentials.get({ publicKey: createRequest });
+        const data = convertCredential(credential, publicKeyCredentialCreationOptions);
+        console.log(data);
+        fetchJsonGet(
+            'webauthn/authenticateFinish',
+            { data },
+            (json) => {
+                console.log(json); // Action here...
+            },
+        );
+    };
+
+    const authenticate = () => {
+        fetchJsonGet('webauthn/authenticate',
+            { },
+            (json) => {
+                finishAuthenticate(json);
             });
     };
 
@@ -39,7 +58,9 @@ function WebAuthn() {
             <Button color="link" onClick={register}>
                 {ui.translations['webauthn.registration.button.register']}
             </Button>
-
+            <Button color="link" onClick={authenticate}>
+                {ui.translations['webauthn.registration.button.authenticate']}
+            </Button>
         </>
     );
 }
