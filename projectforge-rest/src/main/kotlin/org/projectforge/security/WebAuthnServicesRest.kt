@@ -108,7 +108,7 @@ class WebAuthnServicesRest {
   fun authenticate(request: HttpServletRequest): WebAuthnPublicKeyCredentialCreationOptions {
     log.info { "User requested challenge for authentication." }
     val entries = webAuthnSupport.loadAllAllowCredentialsOfUser()
-    val allowCredentials = entries.map { WebAuthnCredential.create(it.credentialId) }.toTypedArray()
+    val allowCredentials = entries.map { WebAuthnCredential(it.credentialId) }.toTypedArray()
     return WebAuthnPublicKeyCredentialCreationOptions(
       rp = rp,
       user = loggedInUser,

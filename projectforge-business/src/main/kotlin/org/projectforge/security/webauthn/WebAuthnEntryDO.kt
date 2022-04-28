@@ -23,6 +23,7 @@
 
 package org.projectforge.security.webauthn
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.webauthn4j.authenticator.Authenticator
 import com.webauthn4j.authenticator.AuthenticatorImpl
 import com.webauthn4j.converter.AttestedCredentialDataConverter
@@ -30,14 +31,65 @@ import com.webauthn4j.converter.util.ObjectConverter
 import com.webauthn4j.data.attestation.authenticator.AttestedCredentialData
 import com.webauthn4j.data.attestation.statement.AttestationStatement
 import com.webauthn4j.util.Base64UrlUtil
+import org.hibernate.search.annotations.Indexed
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import java.util.*
+import javax.persistence.*
 
-class WebAuthnEntry {
-  var credentialId: ByteArray? = null
-  var displayName: String? = null
-  private var serializedAttestedCredentialData: String? = null
-  private var serializedAttestationStatement: String? = null
-  var signCount: Long? = null
+@Entity
+@Indexed
+@Table(
+  name = "T_USER_WEBAUTHN",
+  uniqueConstraints = [UniqueConstraint(columnNames = ["owner_fk", "credential_id"])],
+  indexes = [javax.persistence.Index(
+    name = "idx_fk_t_user_webauthn_user",
+    columnList = "owner_fk"
+  ), javax.persistence.Index(name = "t_user_webauthn_pkey", columnList = "pk")]
+)
+@NamedQueries(
+  NamedQuery(
+    name = WebAuthnEntryDO.FIND_BY_OWNER,
+    query = "from WebAuthnEntryDO where owner.id = :ownerId"
+  ),
+  NamedQuery(
+    name = WebAuthnEntryDO.FIND_BY_OWNER_AND_CREDENTIAL_ID,
+    query = "from WebAuthnEntryDO where owner.id = :ownerId and credentialId = :credentialId"
+  )
+)
+open class WebAuthnEntryDO {
+  @get:Id
+  @get:GeneratedValue
+  @get:Column(name = "pk")
+  open var id: Int? = null
 
+  @get:Basic
+  open var created: Date? = null
+
+  @get:Basic
+  @get:Column(name = "last_update")
+  open var lastUpdate: Date? = null
+
+  @get:ManyToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "owner_fk")
+  open var owner: PFUserDO? = null
+
+  @get:Column(length = 4000, name = "credential_id")
+  open var credentialId: String? = null
+
+  @get:Column(length = 1000, name = "display_name")
+  open var displayName: String? = null
+
+  @get:Column(length = 10000, name = "attested_credential_data")
+  protected open var serializedAttestedCredentialData: String? = null
+
+  @get:Column(length = 10000, name = "attestation_statement")
+  protected open var serializedAttestationStatement: String? = null
+
+  @get:Column(name = "sign_count")
+  open var signCount: Long? = null
+
+  @get:Transient
+  @get:JsonIgnore
   var attestationStatement: AttestationStatement?
     set(value) {
       serializedAttestationStatement = if (value != null) {
@@ -57,6 +109,8 @@ class WebAuthnEntry {
       return envelope?.attestationStatement
     }
 
+  @get:Transient
+  @get:JsonIgnore
   var attestedCredentialData: AttestedCredentialData?
     set(value) {
       serializedAttestedCredentialData = if (value != null) {
@@ -74,6 +128,8 @@ class WebAuthnEntry {
       )
     }
 
+  @get:Transient
+  @get:JsonIgnore
   val authenticator: Authenticator?
     get() {
       val data = attestedCredentialData ?: return null
@@ -86,6 +142,16 @@ class WebAuthnEntry {
       )
     }
 
+  /**
+   * Copies all fields except id, user, created and lastUpdate.
+   */
+  internal fun copyDataFrom(src: WebAuthnEntryDO) {
+    this.serializedAttestedCredentialData = src.serializedAttestedCredentialData
+    this.serializedAttestationStatement = src.serializedAttestationStatement
+    this.credentialId = src.credentialId
+    this.signCount = src.signCount
+    this.displayName = src.displayName
+  }
 
   companion object {
     fun create(
@@ -94,7 +160,7 @@ class WebAuthnEntry {
       attestationStatement: AttestationStatement,
       signCount: Long,
       displayName: String? = null
-    ): WebAuthnEntry {
+    ): WebAuthnEntryDO {
       val entry = create(credentialId, displayName = displayName)
       entry.attestedCredentialData = attestedCredentialData
       entry.attestationStatement = attestationStatement
@@ -102,7 +168,7 @@ class WebAuthnEntry {
       return entry
     }
 
-    fun create(credentialId: ByteArray, authenticator: Authenticator, displayName: String? = null): WebAuthnEntry {
+    fun create(credentialId: ByteArray, authenticator: Authenticator, displayName: String? = null): WebAuthnEntryDO {
       val entry = create(credentialId, displayName = displayName)
       entry.attestedCredentialData = authenticator.attestedCredentialData
       entry.attestationStatement = authenticator.attestationStatement
@@ -110,9 +176,9 @@ class WebAuthnEntry {
       return entry
     }
 
-    private fun create(credentialId: ByteArray, displayName: String?): WebAuthnEntry {
-      val entry = WebAuthnEntry()
-      entry.credentialId = credentialId
+    private fun create(credentialId: ByteArray, displayName: String?): WebAuthnEntryDO {
+      val entry = WebAuthnEntryDO()
+      entry.credentialId = Base64UrlUtil.encodeToString(credentialId)
       entry.displayName = displayName
       return entry
     }
@@ -132,5 +198,9 @@ class WebAuthnEntry {
     private val attestedCredentialDataConverter = AttestedCredentialDataConverter(objectConverter)
 
     private val cborConverter = objectConverter.cborConverter
+
+    internal const val FIND_BY_OWNER = "WebAuthnEntryDO_FindByOwner"
+
+    internal const val FIND_BY_OWNER_AND_CREDENTIAL_ID = "WebAuthnEntryDO_FindByOwnerAndCredentialId"
   }
 }

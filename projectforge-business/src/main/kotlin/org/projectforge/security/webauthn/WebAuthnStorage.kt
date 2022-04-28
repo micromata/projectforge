@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.webauthn4j.data.attestation.statement.AttestationStatement
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 
@@ -36,23 +37,38 @@ import org.springframework.stereotype.Service
  */
 @Service
 class WebAuthnStorage {
-  private val testStorage = mutableMapOf<Int, WebAuthnEntry>()
+  @Autowired
+  private lateinit var webAuthnEntryDao: WebAuthnEntryDao
 
-  fun store(entry: WebAuthnEntry) {
-    testStorage[ThreadLocalUserContext.getUserId()] = entry
+  fun store(entry: WebAuthnEntryDO) {
+    entry.owner = ThreadLocalUserContext.getUser()
+    webAuthnEntryDao.upsert(entry)
   }
 
-  fun load(credentialId: ByteArray): WebAuthnEntry? {
-    return testStorage[ThreadLocalUserContext.getUserId()]
+  fun load(credentialId: ByteArray): WebAuthnEntryDO? {
+    return load(WebAuthnEntryDO.asString(credentialId)!!)
   }
 
-  fun loadAll(): Array<WebAuthnEntry> {
-    val entry = testStorage[ThreadLocalUserContext.getUserId()] ?: return emptyArray()
-    return arrayOf(entry)
+  fun load(credentialId: String): WebAuthnEntryDO? {
+    val owner = ThreadLocalUserContext.getUser()
+    return webAuthnEntryDao.getEntry(owner.id, credentialId)
+  }
+
+  fun loadAll(): List<WebAuthnEntryDO> {
+    val owner = ThreadLocalUserContext.getUser()
+    return webAuthnEntryDao.getEntries(owner.id)
   }
 
   fun updateCounter(credentialId: ByteArray, signCount: Long) {
-    testStorage[ThreadLocalUserContext.getUserId()]?.signCount = signCount
+    updateCounter(WebAuthnEntryDO.asString(credentialId)!!, signCount)
+  }
+
+  fun updateCounter(credentialId: String, signCount: Long) {
+    val owner = ThreadLocalUserContext.getUser()
+    val entry = webAuthnEntryDao.getEntry(owner.id, credentialId)
+    requireNotNull(entry) { "Can't update signCount for webauthn entry, because the entry for the owner with credential-id '$credentialId' doesn't exist." }
+    entry.signCount = signCount
+    webAuthnEntryDao.upsert(entry)
   }
 
   internal class AttestationStatementEnvelope @JsonCreator constructor(
