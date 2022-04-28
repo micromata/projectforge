@@ -32,7 +32,7 @@ class WebAuthnCredential(
   var rawId: String? = null,
   var userHandle: String? = null,
   var publicKeyCose: String? = null,
-  var signatureCount: Int? = null,
+  var signatureCount: Long? = null,
 ) {
   var response: WebAuthnResponse? = null
   var type: String? = "public-key"

@@ -1,4 +1,4 @@
-/* eslint-disable no-param-reassign,max-len */
+/* eslint-disable max-len */
 import React from 'react';
 import { Button } from '../../../../../design';
 import { fetchJsonGet, fetchJsonPost } from '../../../../../../utilities/rest';
@@ -13,7 +13,7 @@ function WebAuthn() {
         const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
         const credential = await navigator.credentials.create({ publicKey: createRequest });
         const data = convertRegisterCredential(credential, publicKeyCredentialCreationOptions);
-        fetchJsonPost(
+        await fetchJsonPost(
             'webauthn/registerFinish',
             { data },
             (json) => {
@@ -34,7 +34,7 @@ function WebAuthn() {
         const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
         const credential = await navigator.credentials.get({ publicKey: createRequest });
         const data = convertAuthenticateCredential(credential, publicKeyCredentialCreationOptions);
-        fetchJsonPost(
+        await fetchJsonPost(
             'webauthn/authenticateFinish',
             { data },
             (json) => {
