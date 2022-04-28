@@ -117,7 +117,7 @@ class WebAuthnSupport {
     }
     val attestationObject = registrationData.attestationObject!!
     val authenticatorData = attestationObject.authenticatorData
-    val webAuthnEntry = WebAuthnEntry.create(credentialId, authenticatorData.attestedCredentialData!!, attestationObject.attestationStatement, authenticatorData.signCount, displayName = displayName)
+    val webAuthnEntry = WebAuthnEntryDO.create(credentialId, authenticatorData.attestedCredentialData!!, attestationObject.attestationStatement, authenticatorData.signCount, displayName = displayName)
     webAuthnStorage.store(webAuthnEntry) // please persist authenticator in your manner
   }
 
@@ -173,7 +173,7 @@ class WebAuthnSupport {
     webAuthnStorage.updateCounter(authenticationData.credentialId, authenticationData.authenticatorData!!.signCount)
   }
 
-  fun loadAllAllowCredentialsOfUser(): Array<WebAuthnEntry> {
+  fun loadAllAllowCredentialsOfUser(): List<WebAuthnEntryDO> {
     return webAuthnStorage.loadAll()
   }
 
