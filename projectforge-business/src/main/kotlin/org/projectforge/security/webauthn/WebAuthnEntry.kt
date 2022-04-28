@@ -31,10 +31,9 @@ import com.webauthn4j.data.attestation.authenticator.AttestedCredentialData
 import com.webauthn4j.data.attestation.statement.AttestationStatement
 import com.webauthn4j.util.Base64UrlUtil
 
-class WebAuthnEntry(
-  var credentialId: ByteArray,
-  var displayName: String? = null,
-) {
+class WebAuthnEntry {
+  var credentialId: ByteArray? = null
+  var displayName: String? = null
   private var serializedAttestedCredentialData: String? = null
   private var serializedAttestationStatement: String? = null
   var signCount: Long? = null
@@ -96,7 +95,7 @@ class WebAuthnEntry(
       signCount: Long,
       displayName: String? = null
     ): WebAuthnEntry {
-      val entry = WebAuthnEntry(credentialId, displayName = displayName)
+      val entry = create(credentialId, displayName = displayName)
       entry.attestedCredentialData = attestedCredentialData
       entry.attestationStatement = attestationStatement
       entry.signCount = signCount
@@ -104,10 +103,17 @@ class WebAuthnEntry(
     }
 
     fun create(credentialId: ByteArray, authenticator: Authenticator, displayName: String? = null): WebAuthnEntry {
-      val entry = WebAuthnEntry(credentialId, displayName = displayName)
+      val entry = create(credentialId, displayName = displayName)
       entry.attestedCredentialData = authenticator.attestedCredentialData
       entry.attestationStatement = authenticator.attestationStatement
       entry.signCount = authenticator.counter
+      return entry
+    }
+
+    private fun create(credentialId: ByteArray, displayName: String?): WebAuthnEntry {
+      val entry = WebAuthnEntry()
+      entry.credentialId = credentialId
+      entry.displayName = displayName
       return entry
     }
 
