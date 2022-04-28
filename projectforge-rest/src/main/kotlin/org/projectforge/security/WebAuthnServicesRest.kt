@@ -36,6 +36,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.dto.PostData
 import org.projectforge.security.dto.*
+import org.projectforge.security.webauthn.WebAuthnSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.nio.ByteBuffer
@@ -106,8 +107,8 @@ class WebAuthnServicesRest {
   @GetMapping("authenticate")
   fun authenticate(request: HttpServletRequest): WebAuthnPublicKeyCredentialCreationOptions {
     log.info { "User requested challenge for authentication." }
-    val entry = webAuthnSupport.load()
-    val allowCredentials = arrayOf(WebAuthnCredential.create(entry!!.credentialId))
+    val entries = webAuthnSupport.loadAllAllowCredentialsOfUser()
+    val allowCredentials = entries.map { WebAuthnCredential.create(it.credentialId) }.toTypedArray()
     return WebAuthnPublicKeyCredentialCreationOptions(
       rp = rp,
       user = loggedInUser,

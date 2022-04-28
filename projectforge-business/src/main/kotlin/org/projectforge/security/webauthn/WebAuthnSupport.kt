@@ -21,11 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.security
+package org.projectforge.security.webauthn
 
 import com.webauthn4j.WebAuthnManager
-import com.webauthn4j.authenticator.Authenticator
-import com.webauthn4j.authenticator.AuthenticatorImpl
 import com.webauthn4j.converter.exception.DataConversionException
 import com.webauthn4j.data.*
 import com.webauthn4j.data.client.Origin
@@ -35,7 +33,6 @@ import com.webauthn4j.validator.exception.ValidationException
 import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.configuration.DomainService
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
@@ -47,7 +44,8 @@ class WebAuthnSupport {
   @Autowired
   private lateinit var domainService: DomainService
 
-  private val testStorage = mutableMapOf<Int, WebAuthnEntry>()
+  @Autowired
+  private lateinit var webAuthnStorage: WebAuthnStorage
 
   private val webAuthnManager = WebAuthnManager.createNonStrictWebAuthnManager()
 
@@ -75,33 +73,23 @@ class WebAuthnSupport {
     domain = domainService.domain
   }
 
-  fun save(credentialId: ByteArray, authenticator: Authenticator) {
-    log.info { "TODO: save authenticator" }
-    testStorage.put(ThreadLocalUserContext.getUserId(), WebAuthnEntry(credentialId, authenticator))
-  }
-
-  fun load(): WebAuthnEntry? {
-    return testStorage[ThreadLocalUserContext.getUserId()]
-  }
-
-  fun updateCounter(credentialId: ByteArray, signCount: Long) {
-    log.info { "TODO: updateCounter" }
-    load()!!.authenticator.counter++
-  }
-
   // For challenge, please specify the Challenge issued on WebAuthn JS API call.
   // challenge is a parameter to prevent replay attacks.
   // By issuing the random byte sequence challenge on server side, signing it with WebAuthn JS API,
   // and verifying the signature on server side, users are protected from the replay attack.
   // TreeTraversal.It is the application’s responsibility for retaining the issued Challenge.
   // Parameter for Token binding. If you do not want to use it please specify null:
+  /**
+   * @param displayName Usable by user for identifying multiple tokens.
+   */
   fun registration(
     credentialId: ByteArray,
     attestationObject: ByteArray,
     clientDataJSON: ByteArray,
     challenge: Challenge,
     clientExtensionJSON: String? = null,
-    transports: Set<String>? = null
+    transports: Set<String>? = null,
+    displayName: String? = null,
   ) {
     // Server properties
     val tokenBindingId: ByteArray? = null // Not yet supported
@@ -127,15 +115,10 @@ class WebAuthnSupport {
       log.error("Error while validating registration data: ${ex.message}", ex)
       throw ex
     }
-
-    // please persist Authenticator object, which will be used in the authentication process.
-    val authenticator: Authenticator =
-      AuthenticatorImpl( // You may create your own Authenticator implementation to save friendly authenticator name
-        registrationData.attestationObject!!.authenticatorData.attestedCredentialData!!,
-        registrationData.attestationObject!!.attestationStatement,
-        registrationData.attestationObject!!.authenticatorData.signCount
-      )
-    save(credentialId, authenticator) // please persist authenticator in your manner
+    val attestationObject = registrationData.attestationObject!!
+    val authenticatorData = attestationObject.authenticatorData
+    val webAuthnEntry = WebAuthnEntry.create(credentialId, authenticatorData.attestedCredentialData!!, attestationObject.attestationStatement, authenticatorData.signCount, displayName = displayName)
+    webAuthnStorage.store(webAuthnEntry) // please persist authenticator in your manner
   }
 
   fun authenticate(
@@ -156,7 +139,7 @@ class WebAuthnSupport {
     val userVerificationRequired = false
     val userPresenceRequired = true
 
-    val authenticator = load()!!.authenticator
+    val authenticator = webAuthnStorage.load(credentialId)!!.authenticator!!
 
     val authenticationRequest = AuthenticationRequest(
       credentialId,
@@ -187,11 +170,11 @@ class WebAuthnSupport {
       log.error("Error while parsing validating request: ${ex.message}", ex)
       throw ex
     }
-    // please update the counter of the authenticator record
-    updateCounter(
-      authenticationData.credentialId,
-      authenticationData.authenticatorData!!.signCount
-    )
+    webAuthnStorage.updateCounter(authenticationData.credentialId, authenticationData.authenticatorData!!.signCount)
+  }
+
+  fun loadAllAllowCredentialsOfUser(): Array<WebAuthnEntry> {
+    return webAuthnStorage.loadAll()
   }
 
   companion object {
