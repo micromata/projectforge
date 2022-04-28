@@ -21,11 +21,10 @@
     <properties>
         <!-- Thanx to https://medium.com/@itzgeoff/including-react-in-your-spring-boot-maven-build-ae3b8f8826e -->
         <!-- https://nodejs.org/dist -->
-        <node.version>v15.14.0</node.version>
-        <npm.version>7.11.2</npm.version>
+        <node.version>v16.15.0</node.version>
         <!-- https://github.com/yarnpkg/yarn/releases -->
         <yarn.version>v1.22.10</yarn.version>
-        <frontend-maven-plugin.version>1.11.3</frontend-maven-plugin.version>
+        <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
     </properties>
 
     <build>
@@ -99,7 +98,6 @@
                 </executions-->
                 <configuration>
                     <nodeVersion>${node.version}</nodeVersion>
-                    <npmVersion>${npm.version}</npmVersion>
                     <yarnVersion>${yarn.version}</yarnVersion>
                     <installDirectory>${project.build.directory}</installDirectory>
                     <workingDirectory>${project.basedir}</workingDirectory>
