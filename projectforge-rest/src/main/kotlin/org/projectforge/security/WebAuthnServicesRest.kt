@@ -63,7 +63,7 @@ class WebAuthnServicesRest {
   fun register(request: HttpServletRequest): WebAuthnPublicKeyCredentialCreationOptions {
     log.info { "User requested challenge for registration." }
     // https://www.w3.org/TR/webauthn-1/#dictdef-publickeycredentialcreationoptions
-    return WebAuthnPublicKeyCredentialCreationOptions(
+    val options = WebAuthnPublicKeyCredentialCreationOptions(
       rp = rp,
       user = loggedInUser,
       challenge = createUserChallenge(request), // https://www.w3.org/TR/webauthn-2/
@@ -74,6 +74,9 @@ class WebAuthnServicesRest {
       authenticatorSelection = authenticatorSelectionCriteria,
       extensions = extensions,
     )
+    // Add all existing entries for avoiding multiple registration of same tokens:
+    options.excludeCredentials = allUserCredentials
+    return options
   }
 
   /**
@@ -107,8 +110,6 @@ class WebAuthnServicesRest {
   @GetMapping("authenticate")
   fun authenticate(request: HttpServletRequest): WebAuthnPublicKeyCredentialCreationOptions {
     log.info { "User requested challenge for authentication." }
-    val entries = webAuthnSupport.loadAllAllowCredentialsOfUser()
-    val allowCredentials = entries.map { WebAuthnCredential(it.credentialId) }.toTypedArray()
     return WebAuthnPublicKeyCredentialCreationOptions(
       rp = rp,
       user = loggedInUser,
@@ -119,7 +120,7 @@ class WebAuthnServicesRest {
       pubKeyCredParams = publicKeyCredentialParameters,
       authenticatorSelection = authenticatorSelectionCriteria,
       extensions = extensions,
-      allowCredentials = allowCredentials
+      allowCredentials = allUserCredentials
     )
   }
 
@@ -127,7 +128,10 @@ class WebAuthnServicesRest {
    * Step 5: Browser Creates Final Data, Application sends response to Server
    */
   @PostMapping("authenticateFinish")
-  fun authenticateFinish(request: HttpServletRequest, @RequestBody postData: PostData<WebAuthnFinishRequest>): WebAuthnAuthenticateResult {
+  fun authenticateFinish(
+    request: HttpServletRequest,
+    @RequestBody postData: PostData<WebAuthnFinishRequest>
+  ): WebAuthnAuthenticateResult {
     log.info { "User wants to finish registration." }
     val webAuthnRequest = postData.data
     val credential = webAuthnRequest.credential!!
@@ -136,7 +140,11 @@ class WebAuthnServicesRest {
     val clientDataJSON = Base64.decodeBase64(response.clientDataJSON)
     val authenticatorData = Base64.decodeBase64(response.authenticatorData)
     val signature = Base64.decodeBase64(response.signature)
-    val userHandle = if (response.userHandle != null) { Base64.decodeBase64(response.userHandle) } else { null }
+    val userHandle = if (response.userHandle != null) {
+      Base64.decodeBase64(response.userHandle)
+    } else {
+      null
+    }
     val clientExtensionJSON = null
     webAuthnSupport.authenticate(
       credentialId = credentialId,
@@ -196,6 +204,9 @@ class WebAuthnServicesRest {
 
   private val extensions: WebAuthnExtensions
     get() = WebAuthnExtensions(webAuthnSupport.domain)
+
+  private val allUserCredentials: Array<WebAuthnCredential>
+    get() = webAuthnSupport.loadAllAllowCredentialsOfUser().map { WebAuthnCredential(it.credentialId) }.toTypedArray()
 
   companion object {
     private val SESSSION_ATTRIBUTE_CHALLENGE = "${WebAuthnServicesRest::class.java.name}:challenge"

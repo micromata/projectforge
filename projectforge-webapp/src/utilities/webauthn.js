@@ -21,20 +21,26 @@ const bufferToBase64url = (buffer) => {
     return base64String.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
-export const convertPublicKeyCredentialRequestOptions = (publicKeyCredentialCreationOptions) => {
-    const result = JSON.parse(JSON.stringify(publicKeyCredentialCreationOptions));
-    result.challenge = decodeBase64url(publicKeyCredentialCreationOptions.challenge);
-    result.user.id = decodeBase64url(publicKeyCredentialCreationOptions.user.id);
-    result.allowCredentials = [];
-    if (publicKeyCredentialCreationOptions.allowCredentials) {
-        publicKeyCredentialCreationOptions.allowCredentials.map((credential) => {
-            result.allowCredentials.push({
+const convertCredentials = (dest, src) => {
+    if (src) {
+        src.map((credential) => {
+            dest.push({
                 type: credential.type,
                 rawId: decodeBase64url(credential.rawId),
                 id: decodeBase64url(credential.id),
             })
         })
     }
+}
+
+export const convertPublicKeyCredentialRequestOptions = (publicKeyCredentialCreationOptions) => {
+    const result = JSON.parse(JSON.stringify(publicKeyCredentialCreationOptions));
+    result.challenge = decodeBase64url(publicKeyCredentialCreationOptions.challenge);
+    result.user.id = decodeBase64url(publicKeyCredentialCreationOptions.user.id);
+    result.allowCredentials = [];
+    convertCredentials(result.allowCredentials, publicKeyCredentialCreationOptions.allowCredentials);
+    result.excludeCredentials = [];
+    convertCredentials(result.excludeCredentials, publicKeyCredentialCreationOptions.excludeCredentials);
     return result;
 }
 
