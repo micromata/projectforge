@@ -23,7 +23,8 @@ import InvoicePositionsComponent from './components/OutgoingInvoicePositionsComp
 import IncomingInvoicePositionsComponent from './components/IncomingInvoicePositionsComponent';
 import VacationStatistics from './components/vacation/VacationStatistics';
 import VacationTable from './components/vacation/VacationTable';
-import WebAuthn from './components/WebAuthn';
+import WebAuthnAuthenticate from './components/WebAuthnAuthenticate';
+import WebAuthnRegister from './components/WebAuthnRegister';
 import CostNumber24Component from './components/CostNumber24Component';
 
 function DynamicCustomized({ id, ...props }) {
@@ -102,8 +103,11 @@ function DynamicCustomized({ id, ...props }) {
         case 'vacation.statistics':
             Tag = VacationStatistics;
             break;
-        case 'webauthn':
-            Tag = WebAuthn;
+        case 'webauthn.authenticate':
+            Tag = WebAuthnAuthenticate;
+            break;
+        case 'webauthn.register':
+            Tag = WebAuthnRegister;
             break;
         default:
             return <span>{`Customized field '${id}' not found!`}</span>;

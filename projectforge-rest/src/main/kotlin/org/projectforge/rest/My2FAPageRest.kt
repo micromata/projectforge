@@ -31,10 +31,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.security.My2FAData
-import org.projectforge.security.My2FAPage
-import org.projectforge.security.My2FARequestHandler
-import org.projectforge.security.My2FAService
+import org.projectforge.security.*
 import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UIAlert
 import org.projectforge.ui.UIColor
@@ -88,6 +85,7 @@ class My2FAPageRest : AbstractDynamicPageRest(), My2FAPage {
     }
     my2FAServicesRest.fill2FA(layout, data)
     LayoutUtils.process(layout)
+    WebAuthnServicesRest.addAuthenticateTranslations(layout)
     return FormLayoutData(data, layout, createServerData(request))
   }
 
