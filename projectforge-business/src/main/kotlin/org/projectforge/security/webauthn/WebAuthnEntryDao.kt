@@ -49,7 +49,7 @@ open class WebAuthnEntryDao {
     requireNotNull(ownerId) { "Owner must be given for upsert of entry." }
     requireNotNull(credentialId) { "Credential id must be given." }
     require(entry.owner?.id == ThreadLocalUserContext.getUserId())
-    val dbObj = findExisitingEntry(entry)
+    val dbObj = findExistingEntry(entry)
     if (dbObj != null) {
       dbObj.copyDataFrom(entry)
       dbObj.lastUpdate = Date()
@@ -72,13 +72,18 @@ open class WebAuthnEntryDao {
     )
   }
 
-  open fun getEntries(ownerId: Int): List<WebAuthnEntryDO> {
+  open fun getEntries(ownerId: Int?): List<WebAuthnEntryDO> {
+    if (ownerId == null) {
+      return emptyList()
+    }
+    val loggedInUserId = ThreadLocalUserContext.getUserId()
+    require(loggedInUserId == null || loggedInUserId == ownerId) { "Can only get WebAuthn entries for logged-in user #$loggedInUserId, not for other user #$ownerId" }
     return em.createNamedQuery(WebAuthnEntryDO.FIND_BY_OWNER, WebAuthnEntryDO::class.java)
       .setParameter("ownerId", ownerId)
       .resultList
   }
 
-  private fun findExisitingEntry(entry: WebAuthnEntryDO): WebAuthnEntryDO? {
+  private fun findExistingEntry(entry: WebAuthnEntryDO): WebAuthnEntryDO? {
     if (entry.id != null) {
       val dbObj = em.find(WebAuthnEntryDO::class.java, entry.id)
       requireNotNull(dbObj) { "Entry with id given, but doesn't exist in the data base." }

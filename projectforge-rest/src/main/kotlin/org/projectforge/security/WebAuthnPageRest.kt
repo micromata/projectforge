@@ -43,11 +43,13 @@ class WebAuthnPageRest : AbstractDynamicPageRest() {
   fun getForm(request: HttpServletRequest): FormLayoutData {
     val data = WebAuthnFormData()
     val layout = UILayout("webauthn.registration.title")
-      .add(UICustomized("webauthn"))
+      .add(UICustomized("webauthn.register"))
+      .add(UICustomized("webauthn.authenticate"))
     LayoutUtils.process(layout)
 
     layout.postProcessPageMenu()
-    layout.addTranslations("webauthn.registration.button.authenticate", "webauthn.registration.button.register")
+    WebAuthnServicesRest.addAuthenticateTranslations(layout)
+    WebAuthnServicesRest.addRegisterTranslations(layout)
 
     return FormLayoutData(data, layout, createServerData(request))
   }

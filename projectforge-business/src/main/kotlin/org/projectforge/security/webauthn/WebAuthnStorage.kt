@@ -54,9 +54,8 @@ class WebAuthnStorage {
     return webAuthnEntryDao.getEntry(owner.id, credentialId)
   }
 
-  fun loadAll(): List<WebAuthnEntryDO> {
-    val owner = ThreadLocalUserContext.getUser()
-    return webAuthnEntryDao.getEntries(owner.id)
+  fun loadAll(ownerId: Int? = null): List<WebAuthnEntryDO> {
+    return webAuthnEntryDao.getEntries(ownerId ?: ThreadLocalUserContext.getUserId())
   }
 
   fun updateCounter(credentialId: ByteArray, signCount: Long) {

@@ -32,15 +32,20 @@ import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.rest.My2FAServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.dto.PostData
 import org.projectforge.security.dto.*
 import org.projectforge.security.webauthn.WebAuthnSupport
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.UILayout
+import org.projectforge.ui.UIToast
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.nio.ByteBuffer
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -53,6 +58,9 @@ private val log = KotlinLogging.logger {}
 class WebAuthnServicesRest {
   @Autowired
   private lateinit var webAuthnSupport: WebAuthnSupport
+
+  @Autowired
+  private lateinit var my2FAServicesRest: My2FAServicesRest
 
   /**
    * Step 0 (the client requests the registration).
@@ -75,7 +83,7 @@ class WebAuthnServicesRest {
       extensions = extensions,
     )
     // Add all existing entries for avoiding multiple registration of same tokens:
-    options.excludeCredentials = allUserCredentials
+    options.excludeCredentials = allLoggedInUserCredentials
     return options
   }
 
@@ -120,7 +128,7 @@ class WebAuthnServicesRest {
       pubKeyCredParams = publicKeyCredentialParameters,
       authenticatorSelection = authenticatorSelectionCriteria,
       extensions = extensions,
-      allowCredentials = allUserCredentials
+      allowCredentials = allLoggedInUserCredentials
     )
   }
 
@@ -130,8 +138,9 @@ class WebAuthnServicesRest {
   @PostMapping("authenticateFinish")
   fun authenticateFinish(
     request: HttpServletRequest,
+    httpResponse: HttpServletResponse,
     @RequestBody postData: PostData<WebAuthnFinishRequest>
-  ): WebAuthnAuthenticateResult {
+  ): ResponseAction {
     log.info { "User wants to finish registration." }
     val webAuthnRequest = postData.data
     val credential = webAuthnRequest.credential!!
@@ -155,7 +164,10 @@ class WebAuthnServicesRest {
       clientExtensionJSON = clientExtensionJSON,
       userHandle = userHandle,
     )
-    return WebAuthnAuthenticateResult(true)
+    ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
+    my2FAServicesRest.updateCookieAndSession(request, httpResponse)
+    //return ResponseAction("/react/calendar", targetType = TargetType.REDIRECT)
+    return UIToast.createToast("hurzel")
   }
 
   private val loggedInUser: WebAuthnUser
@@ -205,10 +217,23 @@ class WebAuthnServicesRest {
   private val extensions: WebAuthnExtensions
     get() = WebAuthnExtensions(webAuthnSupport.domain)
 
-  private val allUserCredentials: Array<WebAuthnCredential>
-    get() = webAuthnSupport.loadAllAllowCredentialsOfUser().map { WebAuthnCredential(it.credentialId) }.toTypedArray()
+  private val allLoggedInUserCredentials: Array<WebAuthnCredential>
+    get() = webAuthnSupport.allLoggedInUserCredentials.map { WebAuthnCredential(it.credentialId) }.toTypedArray()
 
   companion object {
+    fun addAuthenticateTranslations(layout: UILayout) {
+      layout.addTranslations(
+        "webauthn.registration.button.authenticate",
+        "webauthn.registration.button.authenticate.info",
+      )
+    }
+
+    fun addRegisterTranslations(layout: UILayout) {
+      layout.addTranslations(
+        "webauthn.registration.button.register",
+      )
+    }
+
     private val SESSSION_ATTRIBUTE_CHALLENGE = "${WebAuthnServicesRest::class.java.name}:challenge"
   }
 }

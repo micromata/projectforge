@@ -39,6 +39,7 @@ import org.projectforge.rest.pub.My2FAPublicServicesRest
 import org.projectforge.security.My2FAData
 import org.projectforge.security.My2FAService
 import org.projectforge.security.OTPCheckResult
+import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.ui.*
 import org.projectforge.web.My2FAHttpService
 import org.springframework.beans.factory.annotation.Autowired
@@ -67,6 +68,9 @@ class My2FAServicesRest {
 
   @Autowired
   private lateinit var my2FAHttpService: My2FAHttpService
+
+  @Autowired
+  private lateinit var webAuthnSupport: WebAuthnSupport
 
   /**
    * For validating the Authenticator's OTP, or OTP sent by sms or e-mail.
@@ -149,13 +153,21 @@ class My2FAServicesRest {
   ): OTPCheckResult {
     val otpCheck = my2FAHttpService.checkOTP(request, code = otp, password = password)
     if (otpCheck == OTPCheckResult.SUCCESS) {
-      ThreadLocalUserContext.getUserContext().lastSuccessful2FA?.let { lastSuccessful2FA ->
-        cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
-        // Store it also in the user's session, e. g. used by public password reset service.
-        request.getSession(false)?.setAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA, lastSuccessful2FA)
-      }
+      updateCookieAndSession(request, response)
     }
     return otpCheck
+  }
+
+  /**
+   * Should be called after [ThreadLocalUserContext.getUserContext] -> [UserContext.updateLastSuccessful2FA].
+   * Updates the time stamp of the last succesful 2FA as cookie as well as in the user's session.
+   */
+  fun updateCookieAndSession(request: HttpServletRequest, response: HttpServletResponse) {
+    ThreadLocalUserContext.getUserContext().lastSuccessful2FA?.let { lastSuccessful2FA ->
+      cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
+      // Store it also in the user's session, e. g. used by public password reset service.
+      request.getSession(false)?.setAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA, lastSuccessful2FA)
+    }
   }
 
   /**
@@ -256,7 +268,8 @@ class My2FAServicesRest {
       userContext.user?.mobilePhone,
       showCancelButton = true,
       mailOTPDisabled,
-      restServiceClass
+      restServiceClass,
+      userContext,
     )
   }
 
@@ -272,6 +285,7 @@ class My2FAServicesRest {
     showCancelButton: Boolean = false,
     mailOTPDisabled: Boolean = false,
     restServiceClass: Class<*>,
+    userContext: UserContext? = null,
   ) {
     val smsAvailable = my2FAHttpService.smsConfigured && NumberHelper.matchesPhoneNumber(mobilePhone)
     codeCol
@@ -304,6 +318,10 @@ class My2FAServicesRest {
     )
     if (smsAvailable) {
       codeCol.add(createSendButton(My2FAType.SMS, restServiceClass))
+    }
+    val userId = userContext?.user?.id // Given only for public pages.
+    if (webAuthnSupport.isAvailableForUser(userContext?.user?.id)) {
+      codeCol.add(UICustomized("webauthn.authenticate"))
     }
     if (!mailOTPDisabled) {
       codeCol.add(createSendButton(My2FAType.MAIL, restServiceClass))
