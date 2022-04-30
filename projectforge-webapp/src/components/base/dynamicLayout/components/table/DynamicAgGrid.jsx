@@ -38,7 +38,9 @@ function DynamicAgGrid({
             state: sortModel,
             defaultState: { sort: null },
         });
-        onGridApiReady(params.api, params.columnApi);
+        if (onGridApiReady) {
+            onGridApiReady(params.api, params.columnApi);
+        }
         params.api.setDomLayout('autoHeight'); // Needed to get maximum height.
     }, [selectedEntityIds, setGridApi]);
 
@@ -113,7 +115,7 @@ function DynamicAgGrid({
 
     const usedGetRowClass = React.useCallback((params) => {
         const myClass = getRowClassFunction(params);
-        if (params.node.data?.id === data?.highlightRowId) {
+        if (data?.highlightRowId && params.node.data?.id === data?.highlightRowId) {
             const classes = [];
             classes.push('ag-row-highlighted');
             if (myClass) {

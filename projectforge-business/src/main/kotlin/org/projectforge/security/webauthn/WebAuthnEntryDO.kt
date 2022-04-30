@@ -32,6 +32,7 @@ import com.webauthn4j.data.attestation.authenticator.AttestedCredentialData
 import com.webauthn4j.data.attestation.statement.AttestationStatement
 import com.webauthn4j.util.Base64UrlUtil
 import org.hibernate.search.annotations.Indexed
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 import javax.persistence.*
@@ -62,9 +63,11 @@ open class WebAuthnEntryDO {
   @get:Column(name = "pk")
   open var id: Int? = null
 
+  @PropertyInfo(i18nKey = "created")
   @get:Basic
   open var created: Date? = null
 
+  @PropertyInfo(i18nKey = "lastUpdate")
   @get:Basic
   @get:Column(name = "last_update")
   open var lastUpdate: Date? = null
@@ -76,6 +79,7 @@ open class WebAuthnEntryDO {
   @get:Column(length = 4000, name = "credential_id")
   open var credentialId: String? = null
 
+  @PropertyInfo(i18nKey = "webauthn.entry.displayName")
   @get:Column(length = 1000, name = "display_name")
   open var displayName: String? = null
 
@@ -85,6 +89,7 @@ open class WebAuthnEntryDO {
   @get:Column(length = 10000, name = "attestation_statement")
   protected open var serializedAttestationStatement: String? = null
 
+  @PropertyInfo(i18nKey = "webauthn.entry.signCount", tooltip = "webauthn.entry.signCount.info")
   @get:Column(name = "sign_count")
   open var signCount: Long? = null
 

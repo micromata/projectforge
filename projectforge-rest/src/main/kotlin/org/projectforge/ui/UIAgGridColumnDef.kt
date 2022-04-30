@@ -245,6 +245,12 @@ open class UIAgGridColumnDef(
               col.type = AG_TYPE.NUMERIC_COLUMN.agType
             }
           }
+          Formatter.NUMBER -> {
+            if (width == null) {
+              col.width = 100
+              col.type = AG_TYPE.NUMERIC_COLUMN.agType
+            }
+          }
           Formatter.DATE -> {
             col.width = 100
           }

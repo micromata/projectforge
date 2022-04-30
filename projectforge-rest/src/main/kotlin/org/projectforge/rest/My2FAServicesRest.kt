@@ -316,12 +316,11 @@ class My2FAServicesRest {
         ),
       )
     )
-    if (smsAvailable) {
-      codeCol.add(createSendButton(My2FAType.SMS, restServiceClass))
-    }
-    val userId = userContext?.user?.id // Given only for public pages.
     if (webAuthnSupport.isAvailableForUser(userContext?.user?.id)) {
       codeCol.add(UICustomized("webauthn.authenticate"))
+    }
+    if (smsAvailable) {
+      codeCol.add(createSendButton(My2FAType.SMS, restServiceClass))
     }
     if (!mailOTPDisabled) {
       codeCol.add(createSendButton(My2FAType.MAIL, restServiceClass))
