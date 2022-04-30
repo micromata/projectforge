@@ -83,7 +83,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, response: HttpServletResponse): FormLayoutData {
-    val data = My2FASetupData(webAuthnSupport)
+    val data = My2FASetupData.create(webAuthnSupport)
     userDao.internalGetById(ThreadLocalUserContext.getUserId())?.let { user ->
       data.mobilePhone = user.mobilePhone
     }
@@ -142,7 +142,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     getLastSuccessful2FAResponseEntity(request, response, postData.data)?.let {
       return it
     }
-    val data = My2FASetupData(webAuthnSupport)
+    val data = My2FASetupData.create(webAuthnSupport)
     data.mobilePhone = postData.data.mobilePhone
     authenticationsService.createNewAuthenticatorToken()
     data.showAuthenticatorKey = true
@@ -178,7 +178,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     getLastSuccessful2FAResponseEntity(request, response, postData.data)?.let {
       return it
     }
-    val data = My2FASetupData(webAuthnSupport)
+    val data = My2FASetupData.create(webAuthnSupport)
     data.mobilePhone = postData.data.mobilePhone
     authenticationsService.clearAuthenticatorToken()
     my2FASetupMenuBadge.refreshUserBadgeCounter()
