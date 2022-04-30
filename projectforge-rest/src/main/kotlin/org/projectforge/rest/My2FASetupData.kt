@@ -28,10 +28,7 @@ import org.projectforge.security.My2FAData
 import org.projectforge.security.webauthn.WebAuthnSupport
 import java.util.*
 
-/**
- * @param webAuthnSupport If given, the WebAuthn entries of the user will be load from the db.
- */
-class My2FASetupData(webAuthnSupport: WebAuthnSupport? = null) : My2FAData() {
+class My2FASetupData() : My2FAData() {
   class WebAuthnEntry(
     val created: Date?,
     val lastUpdate: Date?,
@@ -57,9 +54,13 @@ class My2FASetupData(webAuthnSupport: WebAuthnSupport? = null) : My2FAData() {
     }
   }
 
-  init {
-    if (webAuthnSupport != null) {
-      webAuthnEntries = webAuthnSupport.allLoggedInUserCredentials.map {
+  companion object {
+    /**
+     * @param webAuthnSupport If given, the WebAuthn entries of the user will be load from the db.
+     */
+    fun create(webAuthnSupport: WebAuthnSupport): My2FASetupData {
+      val webAuthnEntry = My2FASetupData()
+      webAuthnEntry.webAuthnEntries = webAuthnSupport.allLoggedInUserCredentials.map {
         WebAuthnEntry(
           it.created,
           it.lastUpdate,
@@ -67,6 +68,7 @@ class My2FASetupData(webAuthnSupport: WebAuthnSupport? = null) : My2FAData() {
           it.signCount,
         )
       }.toMutableList()
+      return webAuthnEntry
     }
   }
 }
