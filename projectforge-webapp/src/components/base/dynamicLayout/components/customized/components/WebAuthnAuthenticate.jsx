@@ -35,7 +35,7 @@ function WebAuthn() {
 
     return (
         <>
-            <Button color="link" onClick={authenticate}>
+            <Button color="secondary" outline onClick={authenticate}>
                 <span id="webauthn_authenticate">{ui.translations['webauthn.registration.button.authenticate']}</span>
             </Button>
             <UncontrolledTooltip placement="auto" target="webauthn_authenticate">

@@ -25,9 +25,20 @@ package org.projectforge.rest
 
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.security.My2FAData
+import org.projectforge.security.webauthn.WebAuthnSupport
 import java.util.*
 
-class My2FASetupData : My2FAData() {
+/**
+ * @param webAuthnSupport If given, the WebAuthn entries of the user will be load from the db.
+ */
+class My2FASetupData(webAuthnSupport: WebAuthnSupport? = null) : My2FAData() {
+  class WebAuthnEntry(
+    val created: Date?,
+    val lastUpdate: Date?,
+    val displayName: String?,
+    val signCount: Long?,
+  )
+
   var mobilePhone: String? = null
 
   var authenticatorKey: String? = null
@@ -36,11 +47,26 @@ class My2FASetupData : My2FAData() {
 
   var showAuthenticatorKey: Boolean = false
 
+  var webAuthnEntries: MutableList<WebAuthnEntry>? = null
+
   fun setDate(date: Date?) {
     authenticatorKeyCreated = if (date != null) {
       PFDateTime.from(date).format(withTimeLeftOrAgo = true)
     } else {
       ""
+    }
+  }
+
+  init {
+    if (webAuthnSupport != null) {
+      webAuthnEntries = webAuthnSupport.allLoggedInUserCredentials.map {
+        WebAuthnEntry(
+          it.created,
+          it.lastUpdate,
+          it.displayName,
+          it.signCount,
+        )
+      }.toMutableList()
     }
   }
 }

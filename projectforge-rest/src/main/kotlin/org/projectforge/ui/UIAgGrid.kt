@@ -90,12 +90,6 @@ open class UIAgGrid(
     private const val GET_ROW_CLASS = "if (params.node.data?.deleted) { return 'ag-row-deleted'; }"
   }
 
-  init {
-    if (!listPageTable) {
-      throw IllegalArgumentException("UIAgGrid.listPageTable == false not yet supported by jsx.")
-    }
-  }
-
   fun enablePagination(size: Int = 50) {
     pagination = true
     paginationPageSize = size

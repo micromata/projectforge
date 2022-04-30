@@ -39,6 +39,9 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.security.My2FAService
 import org.projectforge.security.OTPCheckResult
 import org.projectforge.security.TimeBased2FA
+import org.projectforge.security.WebAuthnServicesRest
+import org.projectforge.security.webauthn.WebAuthnEntryDO
+import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.ui.*
 import org.projectforge.web.My2FAHttpService
 import org.springframework.beans.factory.annotation.Autowired
@@ -75,9 +78,12 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var userDao: UserDao
 
+  @Autowired
+  private lateinit var webAuthnSupport: WebAuthnSupport
+
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, response: HttpServletResponse): FormLayoutData {
-    val data = My2FASetupData()
+    val data = My2FASetupData(webAuthnSupport)
     userDao.internalGetById(ThreadLocalUserContext.getUserId())?.let { user ->
       data.mobilePhone = user.mobilePhone
     }
@@ -136,7 +142,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     getLastSuccessful2FAResponseEntity(request, response, postData.data)?.let {
       return it
     }
-    val data = My2FASetupData()
+    val data = My2FASetupData(webAuthnSupport)
     data.mobilePhone = postData.data.mobilePhone
     authenticationsService.createNewAuthenticatorToken()
     data.showAuthenticatorKey = true
@@ -172,7 +178,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     getLastSuccessful2FAResponseEntity(request, response, postData.data)?.let {
       return it
     }
-    val data = My2FASetupData()
+    val data = My2FASetupData(webAuthnSupport)
     data.mobilePhone = postData.data.mobilePhone
     authenticationsService.clearAuthenticatorToken()
     my2FASetupMenuBadge.refreshUserBadgeCounter()
@@ -248,12 +254,10 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     )
     my2FAServicesRest.fill2FA(fieldset, data)
 
-    val fieldsetLenth = if (smsConfigured) 6 else 12
-
     val row = UIRow()
     layout.add(row)
 
-    fieldset = UIFieldset(lg = fieldsetLenth, title = "user.My2FA.setup.authenticator.title")
+    fieldset = UIFieldset(lg = 6, title = "user.My2FA.setup.authenticator.title")
     row.add(fieldset)
     if (authenticatorKey.isNullOrBlank()) {
       fieldset.add(
@@ -323,9 +327,20 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         }
       }
     }
+    fieldset = UIFieldset(lg = 6, title = "webauthn.title")
+    row.add(fieldset)
+    if (!data.webAuthnEntries.isNullOrEmpty()) {
+      val grid = UIAgGrid("webAuthnEntries")
+      val lc = LayoutContext(WebAuthnEntryDO::class.java)
+      grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "created"))
+      grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "lastUpdate"))
+      grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "signCount"))
+      grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "displayName"))
+      fieldset.add(grid)
+    }
 
     if (smsConfigured) {
-      fieldset = UIFieldset(lg = fieldsetLenth, title = "user.My2FA.setup.sms.info.title")
+      fieldset = UIFieldset(lg = 6, title = "user.My2FA.setup.sms.info.title")
       row.add(fieldset)
       fieldset.add(
         UIAlert(
@@ -358,6 +373,8 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
 
     layout.watchFields.add("showAuthenticatorKey")
     LayoutUtils.process(layout)
+    WebAuthnServicesRest.addAuthenticateTranslations(layout)
+    WebAuthnServicesRest.addRegisterTranslations(layout)
     return layout
   }
 

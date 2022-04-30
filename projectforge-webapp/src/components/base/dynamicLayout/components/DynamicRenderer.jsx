@@ -1,5 +1,6 @@
 import React from 'react';
 import DynamicCustomized from './customized';
+import DynamicAgGrid from './table/DynamicAgGrid';
 import DynamicAlert from './DynamicAlert';
 import DynamicAttachmentList from './input/DynamicAttachmentList';
 import DynamicButton from './DynamicButton';
@@ -88,6 +89,7 @@ registerComponent('SPACER', DynamicSpacer);
 registerComponent('CREATABLE_SELECT', DynamicReactCreatableSelect);
 registerComponent('TABLE', DynamicTable);
 registerComponent('TABLE_LIST_PAGE', DynamicListPageTable);
+registerComponent('AG_GRID', DynamicAgGrid);
 registerComponent('AG_GRID_LIST_PAGE', DynamicListPageAgGrid);
 registerComponent('TEXTAREA', DynamicTextArea);
 registerComponent('EDITOR', DynamicEditor);

@@ -217,7 +217,7 @@ class WebAuthnServicesRest {
   private val extensions: WebAuthnExtensions
     get() = WebAuthnExtensions(webAuthnSupport.domain)
 
-  private val allLoggedInUserCredentials: Array<WebAuthnCredential>
+  val allLoggedInUserCredentials: Array<WebAuthnCredential>
     get() = webAuthnSupport.allLoggedInUserCredentials.map { WebAuthnCredential(it.credentialId) }.toTypedArray()
 
   companion object {
