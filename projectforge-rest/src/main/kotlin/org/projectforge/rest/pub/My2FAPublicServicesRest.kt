@@ -26,10 +26,9 @@ package org.projectforge.rest.pub
 import mu.KotlinLogging
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.framework.persistence.user.api.UserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.login.LoginService
-import org.projectforge.rest.My2FAServicesRest
-import org.projectforge.rest.My2FAType
+import org.projectforge.rest.my2fa.My2FAServicesRest
+import org.projectforge.rest.my2fa.My2FAType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.PostData

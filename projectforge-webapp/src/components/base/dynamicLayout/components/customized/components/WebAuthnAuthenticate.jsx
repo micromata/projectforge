@@ -18,7 +18,7 @@ function WebAuthn({ values }) {
         const credential = await navigator.credentials.get({ publicKey: createRequest });
         const data = convertAuthenticateCredential(credential, publicKeyCredentialCreationOptions);
         await fetchJsonPost(
-            values?.authenticateFinishUrl || 'webauthn/authenticateFinish',
+            values.authenticateFinishUrl,
             { data },
             (json) => {
                 callAction({ responseAction: json });
@@ -48,12 +48,10 @@ function WebAuthn({ values }) {
 
 WebAuthn.propTypes = {
     values: PropTypes.shape({
-        authenticateFinishUrl: PropTypes.string,
-    }),
+        authenticateFinishUrl: PropTypes.string.isRequired,
+    }).isRequired,
 };
 
-WebAuthn.defaultProps = {
-    values: undefined,
-};
+WebAuthn.defaultProps = {};
 
 export default WebAuthn;

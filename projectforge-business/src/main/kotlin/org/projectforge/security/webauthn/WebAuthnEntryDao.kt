@@ -24,6 +24,7 @@
 package org.projectforge.security.webauthn
 
 import mu.KotlinLogging
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.springframework.stereotype.Repository
@@ -70,6 +71,24 @@ open class WebAuthnEntryDao {
         .setParameter("ownerId", ownerId)
         .setParameter("credentialId", credentialId)
     )
+  }
+
+  /**
+   * Checks if the found entry is owned by the logged-in-user and throws an AccessException if not.
+   * If the entry isn't found, the same exception will be thrown to prevent any attacker to find valid ids of entries
+   * (security paranoia).
+   */
+  open fun getEntryById(id: Int): WebAuthnEntryDO {
+    val loggedInUser = ThreadLocalUserContext.getUser()
+    requireNotNull(loggedInUser) { "Logged-in user is required for getting an entry by id." }
+    val result = ensureUniqueResult<WebAuthnEntryDO>(
+      em.createNamedQuery(WebAuthnEntryDO.FIND_BY_ID, WebAuthnEntryDO::class.java)
+        .setParameter("id", id)
+    )
+    if (result == null || result.owner?.id != loggedInUser.id) {
+      throw AccessException(loggedInUser, "webauthn.error.userNotOwnerOrEntryDoesnotExist")
+    }
+    return result
   }
 
   open fun getEntries(ownerId: Int?): List<WebAuthnEntryDO> {

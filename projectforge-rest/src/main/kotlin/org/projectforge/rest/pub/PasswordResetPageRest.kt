@@ -34,8 +34,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.service.PasswordResetService
 import org.projectforge.framework.time.TimeUnit
 import org.projectforge.login.LoginService
-import org.projectforge.rest.My2FAServicesRest
-import org.projectforge.rest.My2FAType
+import org.projectforge.rest.my2fa.My2FAServicesRest
+import org.projectforge.rest.my2fa.My2FAType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest

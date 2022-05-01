@@ -36,7 +36,7 @@ import org.projectforge.login.LoginService
 import org.projectforge.rest.Authentication
 import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
-import org.projectforge.rest.My2FAPageRest
+import org.projectforge.rest.my2fa.My2FAPageRest
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.My2FARequestHandler

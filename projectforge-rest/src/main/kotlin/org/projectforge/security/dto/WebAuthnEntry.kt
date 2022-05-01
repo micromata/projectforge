@@ -21,6 +21,27 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest
+package org.projectforge.security.dto
 
-enum class My2FAType { MAIL, SMS, AUTHENTICATOR }
+import org.projectforge.security.webauthn.WebAuthnEntryDO
+import java.util.*
+
+class WebAuthnEntry(
+  var id: Int? = null,
+  var created: Date? = null,
+  var lastUpdate: Date? = null,
+  var displayName: String? = null,
+  var signCount: Long? = null,
+) {
+  companion object {
+    fun create(entryDO: WebAuthnEntryDO): WebAuthnEntry {
+      val result = WebAuthnEntry()
+      result.id = entryDO.id
+      result.created = entryDO.created
+      result.lastUpdate = entryDO.lastUpdate
+      result.displayName = entryDO.displayName
+      result.signCount = entryDO.signCount
+      return result
+    }
+  }
+}

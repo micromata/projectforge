@@ -94,7 +94,7 @@ class WebAuthnSupport {
     clientExtensionJSON: String? = null,
     transports: Set<String>? = null,
     displayName: String? = null,
-  ) {
+  ): Result {
     // Server properties
     val tokenBindingId: ByteArray? = null // Not yet supported
     val serverProperty = ServerProperty(origin, rpId, challenge, tokenBindingId)
@@ -104,7 +104,7 @@ class WebAuthnSupport {
       webAuthnManager.parse(registrationRequest)
     } catch (ex: DataConversionException) {
       log.error("Error while parsing registration request: ${ex.message}", ex)
-      throw ex
+      return Result("webauthn.error.process")
     }
 
     // expectations
@@ -117,7 +117,7 @@ class WebAuthnSupport {
       webAuthnManager.validate(registrationData, registrationParameters)
     } catch (ex: ValidationException) {
       log.error("Error while validating registration data: ${ex.message}", ex)
-      throw ex
+      return Result("webauthn.error.validate")
     }
     val attestationObject = registrationData.attestationObject!!
     val authenticatorData = attestationObject.authenticatorData
@@ -129,6 +129,7 @@ class WebAuthnSupport {
       displayName = displayName
     )
     webAuthnStorage.store(webAuthnEntry) // please persist authenticator in your manner
+    return Result()
   }
 
 
