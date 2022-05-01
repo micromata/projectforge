@@ -298,6 +298,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     leftCol.add(fieldset)
     if (!data.webAuthnEntries.isNullOrEmpty()) {
       val grid = UIAgGrid("webAuthnEntries")
+      grid.rowClickRedirectUrl = "${PagesResolver.getDynamicPageUrl(WebAuthnEntryPageRest::class.java, absolute = true)}id"
       val lc = LayoutContext(WebAuthnEntryDO::class.java)
       grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "created"))
       grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "lastUpdate"))
@@ -305,14 +306,18 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
       grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "displayName"))
       fieldset.add(grid)
     }
-    fieldset.add(
-      UIButton.createAddButton(
-        ResponseAction(
-          PagesResolver.getDynamicPageUrl(WebAuthnEntryPageRest::class.java, absolute = true),
-          targetType = TargetType.MODAL,
+    if (checkLastSuccessful2FA()) {
+      fieldset.add(
+        UIButton.createAddButton(
+          ResponseAction(
+            PagesResolver.getDynamicPageUrl(WebAuthnEntryPageRest::class.java, absolute = true, id = "id"),
+            targetType = TargetType.REDIRECT,
+          )
         )
       )
-    )
+    } else {
+      fieldset.add(UIAlert("webauthn.registration.2FARequired.info", color = UIColor.WARNING))
+    }
 
 
     fieldset = UIFieldset(title = "user.My2FA.setup.authenticator.title")

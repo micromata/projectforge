@@ -113,7 +113,7 @@ object PagesResolver {
   fun getDynamicPageUrl(
     pageRestClass: Class<*>,
     params: Map<String, Any?>? = null,
-    id: Int? = null,
+    id: Any? = null,
     absolute: Boolean = false,
     trailingSlash: Boolean = true,
     returnToCaller: String? = null,

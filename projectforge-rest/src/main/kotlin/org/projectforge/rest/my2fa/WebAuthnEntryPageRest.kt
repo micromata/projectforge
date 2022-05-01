@@ -26,6 +26,7 @@ package org.projectforge.rest.my2fa
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -34,33 +35,42 @@ import org.projectforge.security.WebAuthnServicesRest
 import org.projectforge.security.dto.WebAuthnEntry
 import org.projectforge.security.dto.WebAuthnFinishRequest
 import org.projectforge.security.webauthn.WebAuthnEntryDao
+import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 /**
- * Modal dialog for registering a new token or modifying/deleting an existing one.
+ * Dialog for registering a new token or modifying/deleting an existing one.
  */
 @RestController
 @RequestMapping("${Rest.URL}/WebAuthnSetup")
 class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
+  @Autowired
+  private lateinit var my2FASetupPageRest: My2FASetupPageRest
+
   @Autowired
   private lateinit var webAuthnEntryDao: WebAuthnEntryDao
 
   @Autowired
   private lateinit var webAuthnServicesRest: WebAuthnServicesRest
 
+  @Autowired
+  private lateinit var webAuthnSupport: WebAuthnSupport
+
   /**
    * @param id PK of the data base entry.
    */
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, @RequestParam("id") id: Int?): FormLayoutData {
+  fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
+    val id = idString?.toIntOrNull()
     val data = if (id != null) {
       WebAuthnEntry.create(webAuthnEntryDao.getEntryById(id))
     } else {
-      WebAuthnEntry()
+      WebAuthnEntry(displayName = translate("untitled"))
     }
     val layout = UILayout("webauthn.entry.edit")
     layout
@@ -71,7 +81,25 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
           tooltip = "webauthn.entry.displayName.info"
         )
       )
-    layout.addAction(UIButton.createCancelButton(responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)))
+    data.signCount?.let {
+      if (it > 0) {
+        layout.add(
+          UIReadOnlyField(
+            "signCount",
+            label = "webauthn.entry.signCount",
+            tooltip = "webauthn.entry.signCount.info"
+          )
+        )
+      }
+    }
+    layout.addAction(
+      UIButton.createCancelButton(
+        responseAction = ResponseAction(
+          url = callerUrl,
+          targetType = TargetType.REDIRECT,
+        )
+      )
+    )
     if (id == null) {
       // New entry
       layout.add(
@@ -100,12 +128,11 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
           layout,
           responseAction = ResponseAction(
             RestResolver.getRestUrl(this::class.java, "delete"),
-            targetType = TargetType.POST
+            targetType = TargetType.POST,
           ),
         )
       )
     }
-
 
     layout.addTranslations("cancel", "yes")
     LayoutUtils.process(layout)
@@ -128,22 +155,47 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
     requireNotNull(webAuthnFinishRequest)
     val result = webAuthnServicesRest.doRegisterFinish(request, webAuthnFinishRequest, displayName = data.displayName)
     if (result.success) {
-      return UIToast.createToastResponseEntity(
-        translate("user.My2FA.setup.check.success"),
-        color = UIColor.SUCCESS,
-        mutableMapOf("data" to postData.data),
-        merge = true,
-        targetType = TargetType.UPDATE
-      )
+      return ResponseEntity.ok(redirectToSetupPage())
     }
     // Authentication wasn't successful:
     result.errorMessage!!.let { msg ->
-      return UIToast.createToastResponseEntity(
-        translate(msg),
-        color = UIColor.DANGER,
-      )
+      return ValidationError.createResponseEntity(msg)
     }
   }
+
+  @PostMapping("delete")
+  fun delete(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @RequestBody postData: PostData<MyWebAuthnEntry>
+  ): ResponseAction {
+    val id = postData.data.id
+    requireNotNull(id) { "Can't delete WebAuthn entry without id." }
+    webAuthnEntryDao.delete(id)
+    return redirectToSetupPage()
+  }
+
+  /**
+   * Updates only the displayName.
+   */
+  @PostMapping("update")
+  fun update(@RequestBody postData: PostData<MyWebAuthnEntry>): ResponseAction {
+    val id = postData.data.id
+    requireNotNull(id) { "Can't update WebAuthn entry without id." }
+    val entry = webAuthnEntryDao.getEntryById(id)
+    entry.displayName = postData.data.displayName
+    webAuthnEntryDao.upsert(entry)
+    return redirectToSetupPage()
+  }
+
+  private fun redirectToSetupPage(): ResponseAction {
+    return ResponseAction(
+      callerUrl,
+      targetType = TargetType.REDIRECT
+    )
+  }
+
+  private val callerUrl: String = PagesResolver.getDynamicPageUrl(My2FASetupPageRest::class.java, absolute = true)
 
   /**
    * Only used for [registerFinish].
