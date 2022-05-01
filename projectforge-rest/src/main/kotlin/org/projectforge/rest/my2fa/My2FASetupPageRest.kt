@@ -93,6 +93,52 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     return FormLayoutData(data, layout, createServerData(request))
   }
 
+  @PostMapping("checkOTP")
+  fun checkOTP(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @Valid @RequestBody postData: PostData<My2FASetupData>,
+  ): ResponseEntity<ResponseAction> {
+    val result = my2FAServicesRest.checkOTP(request, response, postData, null)
+    return modifiyResponseEntity(result, request, response, postData.data)
+  }
+
+  @GetMapping("sendSmsCode")
+  fun sendSmsCode(request: HttpServletRequest): ResponseEntity<*> {
+    return my2FAServicesRest.sendSmsCode(request)
+  }
+
+  @GetMapping("sendMailCode")
+  fun sendMailCode(request: HttpServletRequest): ResponseEntity<*> {
+    return my2FAServicesRest.sendMailCode(request)
+  }
+
+  @PostMapping("authenticateFinish")
+  fun authenticateFinish(
+    request: HttpServletRequest,
+    httpResponse: HttpServletResponse,
+    @RequestBody postData: PostData<My2FAServicesRest.My2FAWebAuthnData>
+  ): ResponseEntity<ResponseAction> {
+    val result = my2FAServicesRest.authenticateFinish(request, httpResponse, postData)
+    val data = My2FASetupData.create(webAuthnSupport)
+    return modifiyResponseEntity(result, request, httpResponse, data)
+  }
+
+  private fun modifiyResponseEntity(
+    result: ResponseEntity<ResponseAction>,
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    data: My2FASetupData,
+  ):ResponseEntity<ResponseAction> {
+    if (result.body?.targetType == TargetType.UPDATE) {
+      // Update also the ui of the client (on success, the password fields will be shown after 2FA).
+      result.body.let {
+        it.addVariable("ui", createLayout(request, response, data))
+      }
+    }
+    return result
+  }
+
   /**
    * Will be called, if the user wants to see the encryption options.
    */
@@ -253,7 +299,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         color = UIColor.LIGHT
       )
     )
-    my2FAServicesRest.fill2FA(request, fieldset, data)
+    my2FAServicesRest.fill2FA(request, fieldset, data, restServiceClass = this::class.java)
 
     val row = UIRow()
     layout.add(row)
@@ -298,7 +344,8 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     leftCol.add(fieldset)
     if (!data.webAuthnEntries.isNullOrEmpty()) {
       val grid = UIAgGrid("webAuthnEntries")
-      grid.rowClickRedirectUrl = "${PagesResolver.getDynamicPageUrl(WebAuthnEntryPageRest::class.java, absolute = true)}id"
+      grid.rowClickRedirectUrl =
+        "${PagesResolver.getDynamicPageUrl(WebAuthnEntryPageRest::class.java, absolute = true)}id"
       val lc = LayoutContext(WebAuthnEntryDO::class.java)
       grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "created"))
       grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "lastUpdate"))

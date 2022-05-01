@@ -93,7 +93,7 @@ class My2FAServicesRest {
   fun checkOTP(
     request: HttpServletRequest,
     response: HttpServletResponse,
-    @Valid @RequestBody postData: PostData<My2FAData>,
+    @Valid @RequestBody postData: PostData<out My2FAData>,
     @RequestParam("redirect", required = false) redirect: String?,
     afterLogin: Boolean = false,
   ): ResponseEntity<ResponseAction> {
@@ -254,17 +254,26 @@ class My2FAServicesRest {
     fill2FA(request, fieldset, my2FAData, redirectUrl)
   }
 
-  fun fill2FA(request: HttpServletRequest, col: UICol, my2FAData: My2FAData, redirectUrl: String? = null) {
+  fun fill2FA(
+    request: HttpServletRequest, col: UICol, my2FAData: My2FAData, redirectUrl: String? = null,
+    restServiceClass: Class<*> = My2FAServicesRest::class.java,
+  ) {
     val row = UIRow()
     col.add(row)
-    fill2FA(request, row, my2FAData, redirectUrl)
+    fill2FA(request, row, my2FAData, redirectUrl, restServiceClass = restServiceClass)
   }
 
-  private fun fill2FA(request: HttpServletRequest, row: UIRow, my2FAData: My2FAData, redirectUrl: String? = null) {
+  private fun fill2FA(
+    request: HttpServletRequest,
+    row: UIRow,
+    my2FAData: My2FAData,
+    redirectUrl: String? = null,
+    restServiceClass: Class<*> = My2FAServicesRest::class.java,
+  ) {
     my2FAData.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val codeCol = UICol(md = 6)
     row.add(codeCol)
-    fillCodeCol(request, codeCol, redirectUrl, restServiceClass = My2FAServicesRest::class.java)
+    fillCodeCol(request, codeCol, redirectUrl, restServiceClass = restServiceClass)
     //val showPasswordCol = my2FARequestConfiguration.checkLoginPasswordRequired4Mail2FA()
     /*
       // Enable E-Mail with password (required for security reasons, if attacker has access to local client)
