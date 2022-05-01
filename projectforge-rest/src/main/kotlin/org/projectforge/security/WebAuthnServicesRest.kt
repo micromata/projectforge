@@ -40,6 +40,7 @@ import org.projectforge.security.dto.*
 import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -121,20 +122,22 @@ class WebAuthnServicesRest {
     )
   }
 
-  @GetMapping("authenticate")
-  fun authenticate(request: HttpServletRequest): WebAuthnPublicKeyCredentialCreationOptions {
+  @GetMapping("webAuthn")
+  fun webAuthn(request: HttpServletRequest): ResponseEntity<WebAuthnPublicKeyCredentialCreationOptions> {
     log.info { "User requested challenge for authentication." }
-    return WebAuthnPublicKeyCredentialCreationOptions(
-      rp = rp,
-      user = loggedInUser,
-      challenge = createUserChallenge(request), // https://www.w3.org/TR/webauthn-2/
-      timeout = WebAuthnSupport.TIMEOUT,
-      requestId = requestId,
-      sessionToken = request.getSession(false).id,
-      pubKeyCredParams = publicKeyCredentialParameters,
-      authenticatorSelection = authenticatorSelectionCriteria,
-      extensions = extensions,
-      allowCredentials = allLoggedInUserCredentials
+    return ResponseEntity.ok(
+      WebAuthnPublicKeyCredentialCreationOptions(
+        rp = rp,
+        user = loggedInUser,
+        challenge = createUserChallenge(request), // https://www.w3.org/TR/webauthn-2/
+        timeout = WebAuthnSupport.TIMEOUT,
+        requestId = requestId,
+        sessionToken = request.getSession(false).id,
+        pubKeyCredParams = publicKeyCredentialParameters,
+        authenticatorSelection = authenticatorSelectionCriteria,
+        extensions = extensions,
+        allowCredentials = allLoggedInUserCredentials
+      )
     )
   }
 
@@ -142,12 +145,12 @@ class WebAuthnServicesRest {
    * Step 5: Browser Creates Final Data, Application sends response to Server
    * Rest service is defined in [My2FAServicesRest]
    */
-  fun doAuthenticateFinish(
+  fun doWebAuthnFinish(
     request: HttpServletRequest,
     httpResponse: HttpServletResponse,
     webAuthnRequest: WebAuthnFinishRequest
   ): WebAuthnSupport.Result {
-    log.info { "User wants to finish registration." }
+    log.info { "User wants to finish authentication." }
     val credential = webAuthnRequest.credential!!
     val credentialId = Base64.decodeBase64(credential.id)
     val response = credential.response!!

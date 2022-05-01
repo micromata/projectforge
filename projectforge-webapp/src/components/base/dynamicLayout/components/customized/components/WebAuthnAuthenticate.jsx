@@ -17,7 +17,6 @@ function WebAuthn({ values }) {
         const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
         const credential = await navigator.credentials.get({ publicKey: createRequest });
         data.webAuthnFinishRequest = convertAuthenticateCredential(credential, publicKeyCredentialCreationOptions);
-        data.csrfToken = values.csrfToken;
         await fetchJsonPost(
             values.authenticateFinishUrl,
             { data },
@@ -28,7 +27,7 @@ function WebAuthn({ values }) {
     };
 
     const authenticate = () => {
-        fetchJsonGet('webauthn/authenticate',
+        fetchJsonGet(values.authenticateUrl || 'webauthn/webAuthn',
             {},
             (json) => {
                 finishAuthenticate(json);
@@ -50,7 +49,7 @@ function WebAuthn({ values }) {
 WebAuthn.propTypes = {
     values: PropTypes.shape({
         authenticateFinishUrl: PropTypes.string.isRequired,
-        csrfToken: PropTypes.string.isRequired,
+        authenticateUrl: PropTypes.string,
     }).isRequired,
 };
 

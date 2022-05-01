@@ -27,7 +27,6 @@ import mu.KotlinLogging
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.login.LoginService
 import org.projectforge.rest.Authentication
-import org.projectforge.security.My2FARequestHandler
 import org.projectforge.security.SecurityLogging
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -39,9 +38,6 @@ private val log = KotlinLogging.logger {}
 class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
   @Autowired
   private lateinit var loginService: LoginService
-
-  @Autowired
-  private lateinit var my2FARequestHandler: My2FARequestHandler
 
   override fun authenticate(authInfo: RestAuthenticationInfo) {
     // Try to get the user by session id:

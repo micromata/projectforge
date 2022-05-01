@@ -84,10 +84,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, response: HttpServletResponse): FormLayoutData {
-    val data = My2FASetupData.create(webAuthnSupport)
-    userDao.internalGetById(ThreadLocalUserContext.getUserId())?.let { user ->
-      data.mobilePhone = user.mobilePhone
-    }
+    val data = My2FASetupData.create(webAuthnSupport, userDao)
     data.setDate(authenticationsService.getAuthenticatorTokenCreationDate())
     val layout = createLayout(request, response, data)
     return FormLayoutData(data, layout, createServerData(request))
@@ -99,8 +96,19 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     response: HttpServletResponse,
     @Valid @RequestBody postData: PostData<My2FASetupData>,
   ): ResponseEntity<ResponseAction> {
-    val result = my2FAServicesRest.checkOTP(request, response, postData, null)
-    return modifiyResponseEntity(result, request, response, postData.data)
+    val result = my2FAServicesRest.checkOTP(request, response, postData)
+    return modifyResponseEntity(result, request, response, postData.data)
+  }
+
+  @PostMapping("webAuthnFinish")
+  fun webAuthnFinish(
+    request: HttpServletRequest,
+    httpResponse: HttpServletResponse,
+    @RequestBody postData: PostData<My2FAServicesRest.My2FAWebAuthnData>,
+  ): ResponseEntity<ResponseAction> {
+    val result = my2FAServicesRest.webAuthnFinish(request, httpResponse, postData)
+    val data = My2FASetupData.create(webAuthnSupport, userDao)
+    return modifyResponseEntity(result, request, httpResponse, data)
   }
 
   @GetMapping("sendSmsCode")
@@ -113,18 +121,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     return my2FAServicesRest.sendMailCode(request)
   }
 
-  @PostMapping("authenticateFinish")
-  fun authenticateFinish(
-    request: HttpServletRequest,
-    httpResponse: HttpServletResponse,
-    @RequestBody postData: PostData<My2FAServicesRest.My2FAWebAuthnData>
-  ): ResponseEntity<ResponseAction> {
-    val result = my2FAServicesRest.authenticateFinish(request, httpResponse, postData)
-    val data = My2FASetupData.create(webAuthnSupport)
-    return modifiyResponseEntity(result, request, httpResponse, data)
-  }
-
-  private fun modifiyResponseEntity(
+  private fun modifyResponseEntity(
     result: ResponseEntity<ResponseAction>,
     request: HttpServletRequest,
     response: HttpServletResponse,
@@ -133,6 +130,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     if (result.body?.targetType == TargetType.UPDATE) {
       // Update also the ui of the client (on success, the password fields will be shown after 2FA).
       result.body.let {
+        it.addVariable("data", data) // Renew data (needed for webAuthnFinish)
         it.addVariable("ui", createLayout(request, response, data))
       }
     }
@@ -189,7 +187,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     getLastSuccessful2FAResponseEntity(request, response, postData.data)?.let {
       return it
     }
-    val data = My2FASetupData.create(webAuthnSupport)
+    val data = My2FASetupData.create(webAuthnSupport, userDao)
     data.mobilePhone = postData.data.mobilePhone
     authenticationsService.createNewAuthenticatorToken()
     data.showAuthenticatorKey = true
@@ -225,7 +223,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     getLastSuccessful2FAResponseEntity(request, response, postData.data)?.let {
       return it
     }
-    val data = My2FASetupData.create(webAuthnSupport)
+    val data = My2FASetupData.create(webAuthnSupport, userDao)
     data.mobilePhone = postData.data.mobilePhone
     authenticationsService.clearAuthenticatorToken()
     my2FASetupMenuBadge.refreshUserBadgeCounter()
@@ -299,7 +297,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         color = UIColor.LIGHT
       )
     )
-    my2FAServicesRest.fill2FA(request, fieldset, data, restServiceClass = this::class.java)
+    my2FAServicesRest.fill2FA(layout, fieldset, data, restServiceClass = this::class.java)
 
     val row = UIRow()
     layout.add(row)

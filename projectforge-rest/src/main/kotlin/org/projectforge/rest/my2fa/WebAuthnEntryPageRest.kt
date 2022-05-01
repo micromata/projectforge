@@ -30,12 +30,10 @@ import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.ServerData
 import org.projectforge.security.WebAuthnServicesRest
 import org.projectforge.security.dto.WebAuthnEntry
 import org.projectforge.security.dto.WebAuthnFinishRequest
 import org.projectforge.security.webauthn.WebAuthnEntryDao
-import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -50,16 +48,10 @@ import javax.servlet.http.HttpServletResponse
 @RequestMapping("${Rest.URL}/WebAuthnSetup")
 class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
   @Autowired
-  private lateinit var my2FASetupPageRest: My2FASetupPageRest
-
-  @Autowired
   private lateinit var webAuthnEntryDao: WebAuthnEntryDao
 
   @Autowired
   private lateinit var webAuthnServicesRest: WebAuthnServicesRest
-
-  @Autowired
-  private lateinit var webAuthnSupport: WebAuthnSupport
 
   /**
    * @param id PK of the data base entry.
@@ -107,7 +99,6 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
           "webauthn.register",
           mutableMapOf(
             "registerFinishUrl" to RestResolver.getRestUrl(this::class.java, "registerFinish"),
-            "csrfToken" to sessionCsrfService.ensureAndGetToken(request)
           )
         )
       )
@@ -147,11 +138,8 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
   ): ResponseEntity<ResponseAction> {
     val data = postData.data
     val webAuthnFinishRequest = data.webAuthnFinishRequest
-    if (postData.serverData == null) {
-      // Server data is not sent by client (not yet implemented), so this is a work arround:
-      postData.serverData = ServerData(data.csrfToken)
-    }
-    sessionCsrfService.validateCsrfToken(request, postData)?.let { return it }
+    // Not needed (no replay attack possible)
+    // sessionCsrfService.validateCsrfToken(request, postData)?.let { return it }
     requireNotNull(webAuthnFinishRequest)
     val result = webAuthnServicesRest.doRegisterFinish(request, webAuthnFinishRequest, displayName = data.displayName)
     if (result.success) {
@@ -202,6 +190,5 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
    */
   class MyWebAuthnEntry : WebAuthnEntry() {
     var webAuthnFinishRequest: WebAuthnFinishRequest? = null
-    var csrfToken: String? = null // Can't get server data in WebAuthenticate.jsx
   }
 }

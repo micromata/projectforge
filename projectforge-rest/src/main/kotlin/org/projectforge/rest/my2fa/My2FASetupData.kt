@@ -23,14 +23,15 @@
 
 package org.projectforge.rest.my2fa
 
+import org.projectforge.business.user.UserDao
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.security.My2FAData
 import org.projectforge.security.dto.WebAuthnEntry
-import org.projectforge.security.dto.WebAuthnFinishRequest
 import org.projectforge.security.webauthn.WebAuthnSupport
 import java.util.*
 
-open class My2FASetupData() : My2FAData() {
+open class My2FASetupData : My2FAData() {
   var mobilePhone: String? = null
 
   var authenticatorKey: String? = null
@@ -53,12 +54,16 @@ open class My2FASetupData() : My2FAData() {
     /**
      * @param webAuthnSupport If given, the WebAuthn entries of the user will be load from the db.
      */
-    fun create(webAuthnSupport: WebAuthnSupport): My2FASetupData {
-      val webAuthnEntry = My2FASetupData()
-      webAuthnEntry.webAuthnEntries = webAuthnSupport.allLoggedInUserCredentials.map {
+    fun create(webAuthnSupport: WebAuthnSupport, userDao: UserDao): My2FASetupData {
+      val setupData = My2FASetupData()
+      setupData.webAuthnEntries = webAuthnSupport.allLoggedInUserCredentials.map {
         WebAuthnEntry.create(it)
       }.toMutableList()
-      return webAuthnEntry
+      userDao.internalGetById(ThreadLocalUserContext.getUserId())?.let { user ->
+        setupData.mobilePhone = user.mobilePhone
+      }
+
+      return setupData
     }
   }
 }

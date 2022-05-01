@@ -24,7 +24,6 @@
 package org.projectforge.rest.pub
 
 import mu.KotlinLogging
-import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserLocale
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.I18nKeys
@@ -45,6 +44,7 @@ import org.projectforge.rest.my2fa.My2FAType
 import org.projectforge.security.My2FAData
 import org.projectforge.security.RegisterUser4Thread
 import org.projectforge.security.SecurityLogging
+import org.projectforge.security.WebAuthnServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -71,10 +71,10 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
   private lateinit var my2FAServicesRest: My2FAServicesRest
 
   @Autowired
-  private lateinit var userDao: UserDao
+  private lateinit var userService: UserService
 
   @Autowired
-  private lateinit var userService: UserService
+  private lateinit var webAuthnServicesRest: WebAuthnServicesRest
 
   /**
    * For validating the Authenticator's OTP, or OTP sent by sms. The user must be assigned before by password reset token.
@@ -85,7 +85,27 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
     request: HttpServletRequest,
     response: HttpServletResponse,
     @Valid @RequestBody postData: PostData<My2FAData>,
-    @RequestParam("redirect", required = false) redirect: String?
+  ): ResponseEntity<*> {
+    return authenticate(request) { my2FAServicesRest.checkOTP(request, response, postData) }
+  }
+
+  @GetMapping("webAuthn")
+  fun webAuthn(request: HttpServletRequest): ResponseEntity<*> {
+    return authenticate(request) { webAuthnServicesRest.webAuthn(request) }
+  }
+
+  @PostMapping("webAuthnFinish")
+  fun webAuthnFinish(
+    request: HttpServletRequest,
+    httpResponse: HttpServletResponse,
+    @RequestBody postData: PostData<My2FAServicesRest.My2FAWebAuthnData>,
+  ): ResponseEntity<*> {
+    return authenticate(request) { my2FAServicesRest.webAuthnFinish(request, httpResponse, postData) }
+  }
+
+  private fun authenticate(
+    request: HttpServletRequest,
+    doIt: () -> ResponseEntity<*>,
   ): ResponseEntity<*> {
     if (LoginService.getUserContext(request) != null) {
       return RestUtils.badRequest(translate(I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS))
@@ -95,17 +115,17 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
     val user = result.data!!.user
     try {
       RegisterUser4Thread.registerUser(user)
-      val otpCheckReslt = my2FAServicesRest.checkOTP(request, response, postData, redirect)
-      if (otpCheckReslt.body?.targetType == TargetType.UPDATE) {
-        // Update also the ui of the client (on success, the password fields will be shown after 2FA).
-        otpCheckReslt.body.let {
-          it.addVariable("ui", getLayout(request))
+      val otpCheckResult = doIt()
+      otpCheckResult.body?.let { body ->
+        if (body is ResponseAction && body.targetType == TargetType.UPDATE) {
+          // Update also the ui of the client (on success, the password fields will be shown after 2FA).
+          body.addVariable("ui", getLayout(request))
           val data = PasswordResetData()
           data.username = user.username
-          it.addVariable("data", data)
+          body.addVariable("data", data)
         }
       }
-      return otpCheckReslt
+      return otpCheckResult
     } finally {
       RegisterUser4Thread.unregister()
     }
@@ -116,17 +136,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
    */
   @GetMapping("sendSmsCode")
   fun sendSmsCode(request: HttpServletRequest): ResponseEntity<*> {
-    if (LoginService.getUserContext(request) != null) {
-      return RestUtils.badRequest(translate(I18nKeys.ERROR_NOT_AVAILABLE_FOR_LOGGED_IN_USERS))
-    }
-    val result = securityCheck(request, My2FAType.SMS)
-    result.badRequestResponseEntity?.let { return it }
-    try {
-      RegisterUser4Thread.registerUser(result.data!!.user)
-      return my2FAServicesRest.sendSmsCode(request)
-    } finally {
-      RegisterUser4Thread.unregister()
-    }
+    return authenticate(request) { my2FAServicesRest.sendSmsCode(request) }
   }
 
   /**
@@ -210,7 +220,12 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
       lastSuccessful2FA != null && System.currentTimeMillis() - lastSuccessful2FA < 10 * TimeUnit.MINUTE.millis
     if (user != null && !hasSuccessful2FA) {
       // User given, but first 2FA required:
-      my2FAServicesRest.fillLayout4PublicPage(request, layout, UserContext(user), this::class.java, mailOTPDisabled = true)
+      my2FAServicesRest.fillLayout4PublicPage(
+        layout,
+        UserContext(user),
+        this::class.java,
+        mailOTPDisabled = true
+      )
       LayoutUtils.process(layout)
       return layout
     }
