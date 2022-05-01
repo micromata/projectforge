@@ -13,6 +13,7 @@ function WebAuthnRegister({ values }) {
         const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
         const credential = await navigator.credentials.create({ publicKey: createRequest });
         data.webAuthnFinishRequest = convertRegisterCredential(credential, publicKeyCredentialCreationOptions);
+        data.csrfToken = values.csrfToken;
         await fetchJsonPost(
             values.registerFinishUrl,
             { data },
@@ -42,6 +43,7 @@ function WebAuthnRegister({ values }) {
 WebAuthnRegister.propTypes = {
     values: PropTypes.shape({
         registerFinishUrl: PropTypes.string.isRequired,
+        csrfToken: PropTypes.string.isRequired,
     }).isRequired,
 };
 

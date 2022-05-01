@@ -29,8 +29,10 @@ import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.ServerData
 import org.projectforge.security.WebAuthnServicesRest
 import org.projectforge.security.dto.WebAuthnEntry
+import org.projectforge.security.dto.WebAuthnFinishRequest
 import org.projectforge.security.webauthn.WebAuthnEntryDao
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -76,7 +78,8 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
         UICustomized(
           "webauthn.register",
           mutableMapOf(
-            "registerFinishUrl" to RestResolver.getRestUrl(this::class.java, "registerFinish")
+            "registerFinishUrl" to RestResolver.getRestUrl(this::class.java, "registerFinish"),
+            "csrfToken" to sessionCsrfService.ensureAndGetToken(request)
           )
         )
       )
@@ -113,12 +116,17 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
   @PostMapping("registerFinish")
   fun registerFinish(
     request: HttpServletRequest,
-    @RequestBody postData: PostData<My2FASetupData>
+    @RequestBody postData: PostData<MyWebAuthnEntry>
   ): ResponseEntity<ResponseAction> {
-    validateCsrfToken(request, postData)?.let { return it }
-    val webAuthnFinishRequest = postData.data.webAuthnFinishRequest
+    val data = postData.data
+    val webAuthnFinishRequest = data.webAuthnFinishRequest
+    if (postData.serverData == null) {
+      // Server data is not sent by client (not yet implemented), so this is a work arround:
+      postData.serverData = ServerData(data.csrfToken)
+    }
+    sessionCsrfService.validateCsrfToken(request, postData)?.let { return it }
     requireNotNull(webAuthnFinishRequest)
-    val result = webAuthnServicesRest.doRegisterFinish(request, webAuthnFinishRequest)
+    val result = webAuthnServicesRest.doRegisterFinish(request, webAuthnFinishRequest, displayName = data.displayName)
     if (result.success) {
       return UIToast.createToastResponseEntity(
         translate("user.My2FA.setup.check.success"),
@@ -137,5 +145,11 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
     }
   }
 
-
+  /**
+   * Only used for [registerFinish].
+   */
+  class MyWebAuthnEntry : WebAuthnEntry() {
+    var webAuthnFinishRequest: WebAuthnFinishRequest? = null
+    var csrfToken: String? = null // Can't get server data in WebAuthenticate.jsx
+  }
 }

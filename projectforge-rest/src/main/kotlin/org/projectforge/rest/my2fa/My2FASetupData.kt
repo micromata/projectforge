@@ -30,7 +30,7 @@ import org.projectforge.security.dto.WebAuthnFinishRequest
 import org.projectforge.security.webauthn.WebAuthnSupport
 import java.util.*
 
-class My2FASetupData() : My2FAData() {
+open class My2FASetupData() : My2FAData() {
   var mobilePhone: String? = null
 
   var authenticatorKey: String? = null
@@ -40,8 +40,6 @@ class My2FASetupData() : My2FAData() {
   var showAuthenticatorKey: Boolean = false
 
   var webAuthnEntries: MutableList<WebAuthnEntry>? = null
-
-  var webAuthnFinishRequest: WebAuthnFinishRequest? = null
 
   fun setDate(date: Date?) {
     authenticatorKeyCreated = if (date != null) {
