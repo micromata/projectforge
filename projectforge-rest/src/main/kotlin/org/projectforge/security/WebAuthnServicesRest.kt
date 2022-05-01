@@ -30,6 +30,7 @@ import com.webauthn4j.data.client.challenge.DefaultChallenge
 import com.webauthn4j.util.Base64UrlUtil
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.My2FAServicesRest
@@ -39,6 +40,7 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.security.dto.*
 import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.UIColor
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.UIToast
 import org.springframework.beans.factory.annotation.Autowired
@@ -141,6 +143,21 @@ class WebAuthnServicesRest {
     httpResponse: HttpServletResponse,
     @RequestBody postData: PostData<WebAuthnFinishRequest>
   ): ResponseAction {
+    val result = doAuthenticateFinish(request, httpResponse, postData)
+    if (result.success) {
+      return UIToast.createToast("Success")
+    }
+    return UIToast.createToast(translate(result.errorMessage!!), color = UIColor.DANGER)
+  }
+
+  /**
+   * Step 5: Browser Creates Final Data, Application sends response to Server
+   */
+  fun doAuthenticateFinish(
+    request: HttpServletRequest,
+    httpResponse: HttpServletResponse,
+    @RequestBody postData: PostData<WebAuthnFinishRequest>
+  ): WebAuthnSupport.Result {
     log.info { "User wants to finish registration." }
     val webAuthnRequest = postData.data
     val credential = webAuthnRequest.credential!!
@@ -155,7 +172,7 @@ class WebAuthnServicesRest {
       null
     }
     val clientExtensionJSON = null
-    webAuthnSupport.authenticate(
+    val result = webAuthnSupport.authenticate(
       credentialId = credentialId,
       signature = signature,
       clientDataJSON = clientDataJSON,
@@ -164,10 +181,11 @@ class WebAuthnServicesRest {
       clientExtensionJSON = clientExtensionJSON,
       userHandle = userHandle,
     )
-    ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
-    my2FAServicesRest.updateCookieAndSession(request, httpResponse)
-    //return ResponseAction("/react/calendar", targetType = TargetType.REDIRECT)
-    return UIToast.createToast("hurzel")
+    if (result.success) {
+      ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
+      my2FAServicesRest.updateCookieAndSession(request, httpResponse)
+    }
+    return result
   }
 
   private val loggedInUser: WebAuthnUser

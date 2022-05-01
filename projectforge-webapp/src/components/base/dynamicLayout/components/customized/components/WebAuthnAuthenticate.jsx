@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 import React from 'react';
+import PropTypes from 'prop-types';
 import { UncontrolledTooltip } from 'reactstrap';
 import { Button } from '../../../../../design';
 import { fetchJsonGet, fetchJsonPost } from '../../../../../../utilities/rest';
@@ -9,7 +10,7 @@ import {
 } from '../../../../../../utilities/webauthn';
 import { DynamicLayoutContext } from '../../../context';
 
-function WebAuthn() {
+function WebAuthn({ values }) {
     const { ui, callAction } = React.useContext(DynamicLayoutContext);
 
     const finishAuthenticate = async (publicKeyCredentialCreationOptions) => {
@@ -17,7 +18,7 @@ function WebAuthn() {
         const credential = await navigator.credentials.get({ publicKey: createRequest });
         const data = convertAuthenticateCredential(credential, publicKeyCredentialCreationOptions);
         await fetchJsonPost(
-            'webauthn/authenticateFinish',
+            values?.authenticateFinishUrl || 'webauthn/authenticateFinish',
             { data },
             (json) => {
                 callAction({ responseAction: json });
@@ -45,8 +46,14 @@ function WebAuthn() {
     );
 }
 
-WebAuthn.propTypes = {};
+WebAuthn.propTypes = {
+    values: PropTypes.shape({
+        authenticateFinishUrl: PropTypes.string,
+    }),
+};
 
-WebAuthn.defaultProps = {};
+WebAuthn.defaultProps = {
+    values: undefined,
+};
 
 export default WebAuthn;
