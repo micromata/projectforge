@@ -34,14 +34,14 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.service.PasswordResetService
 import org.projectforge.framework.time.TimeUnit
 import org.projectforge.login.LoginService
-import org.projectforge.rest.my2fa.My2FAServicesRest
-import org.projectforge.rest.my2fa.My2FAType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.my2fa.My2FAServicesRest
+import org.projectforge.rest.my2fa.My2FAType
 import org.projectforge.security.My2FAData
 import org.projectforge.security.RegisterUser4Thread
 import org.projectforge.security.SecurityLogging
@@ -210,7 +210,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
       lastSuccessful2FA != null && System.currentTimeMillis() - lastSuccessful2FA < 10 * TimeUnit.MINUTE.millis
     if (user != null && !hasSuccessful2FA) {
       // User given, but first 2FA required:
-      my2FAServicesRest.fillLayout4PublicPage(layout, UserContext(user), this::class.java, mailOTPDisabled = true)
+      my2FAServicesRest.fillLayout4PublicPage(request, layout, UserContext(user), this::class.java, mailOTPDisabled = true)
       LayoutUtils.process(layout)
       return layout
     }

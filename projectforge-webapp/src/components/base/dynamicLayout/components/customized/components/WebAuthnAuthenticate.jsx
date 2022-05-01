@@ -11,12 +11,13 @@ import {
 import { DynamicLayoutContext } from '../../../context';
 
 function WebAuthn({ values }) {
-    const { ui, callAction } = React.useContext(DynamicLayoutContext);
+    const { ui, data, callAction } = React.useContext(DynamicLayoutContext);
 
     const finishAuthenticate = async (publicKeyCredentialCreationOptions) => {
         const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
         const credential = await navigator.credentials.get({ publicKey: createRequest });
-        const data = convertAuthenticateCredential(credential, publicKeyCredentialCreationOptions);
+        data.webAuthnFinishRequest = convertAuthenticateCredential(credential, publicKeyCredentialCreationOptions);
+        data.csrfToken = values.csrfToken;
         await fetchJsonPost(
             values.authenticateFinishUrl,
             { data },
@@ -49,6 +50,7 @@ function WebAuthn({ values }) {
 WebAuthn.propTypes = {
     values: PropTypes.shape({
         authenticateFinishUrl: PropTypes.string.isRequired,
+        csrfToken: PropTypes.string.isRequired,
     }).isRequired,
 };
 

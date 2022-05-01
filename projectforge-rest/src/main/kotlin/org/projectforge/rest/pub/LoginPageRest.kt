@@ -33,13 +33,13 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.login.LoginData
 import org.projectforge.login.LoginService
-import org.projectforge.rest.my2fa.My2FAServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.ServerData
+import org.projectforge.rest.my2fa.My2FAServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -73,7 +73,7 @@ open class LoginPageRest {
     val userContext = LoginService.getUserContext(request)
     val form = if (userContext != null) {
       if (userContext.new2FARequired) {
-        return get2FALayout(userContext, url)
+        return get2FALayout(request, userContext, url)
       }
       // User is already logged-in:
       UILayout("login.title")
@@ -186,10 +186,10 @@ open class LoginPageRest {
     return layout
   }
 
-  private fun get2FALayout(userContext: UserContext, url: String?): FormLayoutData {
+  private fun get2FALayout(request: HttpServletRequest, userContext: UserContext, url: String?): FormLayoutData {
     val layout = UILayout("login.title")
     val data = LoginData()
-    my2FAServicesRest.fillLayout4PublicPage(layout, userContext, redirectUrl = url)
+    my2FAServicesRest.fillLayout4PublicPage(request, layout, userContext, redirectUrl = url)
     LayoutUtils.process(layout)
     return FormLayoutData(data, layout, ServerData(returnToCaller = url))
   }

@@ -32,16 +32,14 @@ import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.rest.my2fa.My2FAServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.my2fa.My2FAServicesRest
 import org.projectforge.security.dto.*
 import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.nio.ByteBuffer
@@ -94,10 +92,9 @@ class WebAuthnServicesRest {
    */
   fun doRegisterFinish(
     request: HttpServletRequest,
-    @RequestBody postData: PostData<WebAuthnFinishRequest>
+    webAuthnRequest: WebAuthnFinishRequest
   ): WebAuthnSupport.Result {
     log.info { "User wants to finish registration." }
-    val webAuthnRequest = postData.data
     val credential = webAuthnRequest.credential!!
     val credentialId = Base64.decodeBase64(credential.id)
     val response = credential.response!!
@@ -139,10 +136,9 @@ class WebAuthnServicesRest {
   fun doAuthenticateFinish(
     request: HttpServletRequest,
     httpResponse: HttpServletResponse,
-    @RequestBody postData: PostData<WebAuthnFinishRequest>
+    webAuthnRequest: WebAuthnFinishRequest
   ): WebAuthnSupport.Result {
     log.info { "User wants to finish registration." }
-    val webAuthnRequest = postData.data
     val credential = webAuthnRequest.credential!!
     val credentialId = Base64.decodeBase64(credential.id)
     val response = credential.response!!

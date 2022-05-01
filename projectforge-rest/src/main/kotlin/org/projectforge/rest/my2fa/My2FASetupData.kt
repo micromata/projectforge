@@ -26,6 +26,7 @@ package org.projectforge.rest.my2fa
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.security.My2FAData
 import org.projectforge.security.dto.WebAuthnEntry
+import org.projectforge.security.dto.WebAuthnFinishRequest
 import org.projectforge.security.webauthn.WebAuthnSupport
 import java.util.*
 
@@ -39,6 +40,8 @@ class My2FASetupData() : My2FAData() {
   var showAuthenticatorKey: Boolean = false
 
   var webAuthnEntries: MutableList<WebAuthnEntry>? = null
+
+  var webAuthnFinishRequest: WebAuthnFinishRequest? = null
 
   fun setDate(date: Date?) {
     authenticatorKeyCreated = if (date != null) {
