@@ -189,7 +189,7 @@ open class LoginPageRest {
   private fun get2FALayout(request: HttpServletRequest, userContext: UserContext, url: String?): FormLayoutData {
     val layout = UILayout("login.title")
     val data = LoginData()
-    my2FAServicesRest.fillLayout4PublicPage(request, layout, userContext, redirectUrl = url)
+    my2FAServicesRest.fillLayout4PublicPage(layout, userContext, redirectUrl = url)
     LayoutUtils.process(layout)
     return FormLayoutData(data, layout, ServerData(returnToCaller = url))
   }
