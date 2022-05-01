@@ -35,6 +35,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.my2fa.My2FAServicesRest
+import org.projectforge.rest.my2fa.My2FASetupPageRest
 import org.projectforge.security.dto.*
 import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.ui.UILayout
@@ -60,6 +61,9 @@ class WebAuthnServicesRest {
 
   @Autowired
   private lateinit var my2FAServicesRest: My2FAServicesRest
+
+  @Autowired
+  private lateinit var my2FASetupPageRest: My2FASetupPageRest
 
   /**
    * Step 0 (the client requests the registration).
@@ -92,9 +96,13 @@ class WebAuthnServicesRest {
    */
   fun doRegisterFinish(
     request: HttpServletRequest,
-    webAuthnRequest: WebAuthnFinishRequest
+    webAuthnRequest: WebAuthnFinishRequest,
+    displayName: String? = null,
   ): WebAuthnSupport.Result {
     log.info { "User wants to finish registration." }
+    if (!my2FASetupPageRest.checkLastSuccessful2FA()) {
+      return WebAuthnSupport.Result("user.My2FA.required")
+    }
     val credential = webAuthnRequest.credential!!
     val credentialId = Base64.decodeBase64(credential.id)
     val response = credential.response!!
@@ -109,6 +117,7 @@ class WebAuthnServicesRest {
       challenge = getUserChallenge(request)!!,
       clientExtensionJSON = clientExtensionJSON,
       transports = transports,
+      displayName = displayName,
     )
   }
 

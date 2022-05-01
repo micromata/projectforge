@@ -257,9 +257,66 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
 
     val row = UIRow()
     layout.add(row)
+    val leftCol = UICol(lg = 6)
+    row.add(leftCol)
+    val rightCol = UICol(lg = 6)
+    row.add(rightCol)
 
-    fieldset = UIFieldset(lg = 6, title = "user.My2FA.setup.authenticator.title")
-    row.add(fieldset)
+    if (smsConfigured) {
+      fieldset = UIFieldset(title = "user.My2FA.setup.sms.info.title")
+      leftCol.add(fieldset)
+      fieldset.add(
+        UIAlert(
+          message = "user.My2FA.setup.sms.info",
+          markdown = true,
+          color = UIColor.LIGHT
+        )
+      )
+      val mobileCol = UICol()
+      if (data.mobilePhone.isNullOrBlank()) {
+        mobileCol.add(
+          UIAlert(
+            message = "user.My2FA.setup.sms.mobileNumberRecommended",
+            markdown = true,
+            color = UIColor.WARNING
+          )
+        )
+      }
+      fieldset.add(
+        mobileCol
+          .add(UIInput("mobilePhone", userLC))
+          .add(
+            UIButton.createSaveButton(
+              responseAction = ResponseAction("/rs/2FASetup/saveMobilePhone", targetType = TargetType.POST),
+              default = false,
+            )
+          )
+      )
+    }
+
+    fieldset = UIFieldset(title = "webauthn.title")
+    leftCol.add(fieldset)
+    if (!data.webAuthnEntries.isNullOrEmpty()) {
+      val grid = UIAgGrid("webAuthnEntries")
+      val lc = LayoutContext(WebAuthnEntryDO::class.java)
+      grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "created"))
+      grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "lastUpdate"))
+      grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "signCount"))
+      grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "displayName"))
+      fieldset.add(grid)
+    }
+    fieldset.add(
+      UIButton.createAddButton(
+        ResponseAction(
+          PagesResolver.getDynamicPageUrl(WebAuthnEntryPageRest::class.java, absolute = true),
+          targetType = TargetType.MODAL,
+        )
+      )
+    )
+
+
+    fieldset = UIFieldset(title = "user.My2FA.setup.authenticator.title")
+    rightCol.add(fieldset)
     if (authenticatorKey.isNullOrBlank()) {
       fieldset.add(
         UIAlert(
@@ -328,57 +385,6 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         }
       }
     }
-    fieldset = UIFieldset(lg = 6, title = "webauthn.title")
-    row.add(fieldset)
-    if (!data.webAuthnEntries.isNullOrEmpty()) {
-      val grid = UIAgGrid("webAuthnEntries")
-      val lc = LayoutContext(WebAuthnEntryDO::class.java)
-      grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "created"))
-      grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "lastUpdate"))
-      grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "signCount"))
-      grid.columnDefs.add(UIAgGridColumnDef.createCol(lc, "displayName"))
-      fieldset.add(grid)
-    }
-    fieldset.add(
-      UIButton.createAddButton(
-        ResponseAction(
-          PagesResolver.getDynamicPageUrl(WebAuthnEntryPageRest::class.java, absolute = true),
-          targetType = TargetType.MODAL,
-        )
-      )
-    )
-
-    if (smsConfigured) {
-      fieldset = UIFieldset(lg = 6, title = "user.My2FA.setup.sms.info.title")
-      row.add(fieldset)
-      fieldset.add(
-        UIAlert(
-          message = "user.My2FA.setup.sms.info",
-          markdown = true,
-          color = UIColor.LIGHT
-        )
-      )
-      val mobileCol = UICol()
-      if (data.mobilePhone.isNullOrBlank()) {
-        mobileCol.add(
-          UIAlert(
-            message = "user.My2FA.setup.sms.mobileNumberRecommended",
-            markdown = true,
-            color = UIColor.WARNING
-          )
-        )
-      }
-      fieldset.add(
-        mobileCol
-          .add(UIInput("mobilePhone", userLC))
-          .add(
-            UIButton.createSaveButton(
-              responseAction = ResponseAction("/rs/2FASetup/saveMobilePhone", targetType = TargetType.POST),
-              default = false,
-            )
-          )
-      )
-    }
 
     layout.watchFields.add("showAuthenticatorKey")
     LayoutUtils.process(layout)
@@ -416,11 +422,18 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
       data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
       data.code = "" // Clear code after usage.
     }
-    return if (my2FAService.checklastSuccessful2FA(10, My2FAService.Unit.MINUTES)) {
+    return if (checkLastSuccessful2FA()) {
       CheckState.OK
     } else {
       CheckState.OTP_REQUIRED
     }
+  }
+
+  /**
+   * @see My2FAService.checklastSuccessful2FA
+   */
+  internal fun checkLastSuccessful2FA(): Boolean {
+    return my2FAService.checklastSuccessful2FA(10, My2FAService.Unit.MINUTES)
   }
 
   private enum class CheckState {
