@@ -7,12 +7,12 @@ import { convertPublicKeyCredentialRequestOptions, convertRegisterCredential } f
 import { DynamicLayoutContext } from '../../../context';
 
 function WebAuthnRegister({ values }) {
-    const { ui, callAction } = React.useContext(DynamicLayoutContext);
+    const { ui, data, callAction } = React.useContext(DynamicLayoutContext);
 
     const finishRegister = async (publicKeyCredentialCreationOptions) => {
         const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
         const credential = await navigator.credentials.create({ publicKey: createRequest });
-        const data = convertRegisterCredential(credential, publicKeyCredentialCreationOptions);
+        data.webAuthnFinishRequest = convertRegisterCredential(credential, publicKeyCredentialCreationOptions);
         await fetchJsonPost(
             values.registerFinishUrl,
             { data },

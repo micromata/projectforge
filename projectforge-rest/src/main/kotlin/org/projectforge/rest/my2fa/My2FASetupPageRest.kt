@@ -253,7 +253,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         color = UIColor.LIGHT
       )
     )
-    my2FAServicesRest.fill2FA(fieldset, data)
+    my2FAServicesRest.fill2FA(request, fieldset, data)
 
     val row = UIRow()
     layout.add(row)

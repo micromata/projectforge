@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.my2fa
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.projectforge.business.user.filter.CookieService
@@ -33,7 +34,9 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.ServerData
 import org.projectforge.rest.pub.LoginPageRest
 import org.projectforge.rest.pub.My2FAPublicServicesRest
 import org.projectforge.security.My2FAData
@@ -66,6 +69,9 @@ class My2FAServicesRest {
   private lateinit var cookieService: CookieService
 
   @Autowired
+  private lateinit var sessionCsrfService: SessionCsrfService
+
+  @Autowired
   private lateinit var my2FAService: My2FAService
 
   @Autowired
@@ -91,6 +97,7 @@ class My2FAServicesRest {
     @RequestParam("redirect", required = false) redirect: String?,
     afterLogin: Boolean = false,
   ): ResponseEntity<ResponseAction> {
+    sessionCsrfService.validateCsrfToken(request, postData)?.let { return it }
     val data = postData.data
     val otp = data.code
     val password = data.password
@@ -213,9 +220,16 @@ class My2FAServicesRest {
   fun authenticateFinish(
     request: HttpServletRequest,
     httpResponse: HttpServletResponse,
-    @RequestBody postData: PostData<WebAuthnFinishRequest>
+    @RequestBody postData: PostData<My2FAWebAuthnData>
   ): ResponseEntity<ResponseAction> {
-    val result = webAuthnServicesRest.doAuthenticateFinish(request, httpResponse, postData)
+    val webAuthnFinishRequest = postData.data.webAuthnFinishRequest
+    if (postData.serverData == null) {
+      // Server data is not sent by client (not yet implemented), so this is a work arround:
+      postData.serverData = ServerData(postData.data.csrfToken)
+    }
+    sessionCsrfService.validateCsrfToken(request, postData)?.let { return it }
+    requireNotNull(webAuthnFinishRequest)
+    val result = webAuthnServicesRest.doAuthenticateFinish(request, httpResponse, webAuthnFinishRequest)
     if (result.success) {
       return UIToast.createToastResponseEntity(
         translate("user.My2FA.setup.check.success"),
@@ -234,23 +248,23 @@ class My2FAServicesRest {
     }
   }
 
-  fun fill2FA(layout: UILayout, my2FAData: My2FAData, redirectUrl: String? = null) {
+  fun fill2FA(request: HttpServletRequest, layout: UILayout, my2FAData: My2FAData, redirectUrl: String? = null) {
     val fieldset = UIFieldset(12, title = "user.My2FACode.title")
     layout.add(fieldset)
-    fill2FA(fieldset, my2FAData, redirectUrl)
+    fill2FA(request, fieldset, my2FAData, redirectUrl)
   }
 
-  fun fill2FA(col: UICol, my2FAData: My2FAData, redirectUrl: String? = null) {
+  fun fill2FA(request: HttpServletRequest, col: UICol, my2FAData: My2FAData, redirectUrl: String? = null) {
     val row = UIRow()
     col.add(row)
-    fill2FA(row, my2FAData, redirectUrl)
+    fill2FA(request, row, my2FAData, redirectUrl)
   }
 
-  private fun fill2FA(row: UIRow, my2FAData: My2FAData, redirectUrl: String? = null) {
+  private fun fill2FA(request: HttpServletRequest, row: UIRow, my2FAData: My2FAData, redirectUrl: String? = null) {
     my2FAData.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val codeCol = UICol(md = 6)
     row.add(codeCol)
-    fillCodeCol(codeCol, redirectUrl, restServiceClass = My2FAServicesRest::class.java)
+    fillCodeCol(request, codeCol, redirectUrl, restServiceClass = My2FAServicesRest::class.java)
     //val showPasswordCol = my2FARequestConfiguration.checkLoginPasswordRequired4Mail2FA()
     /*
       // Enable E-Mail with password (required for security reasons, if attacker has access to local client)
@@ -277,6 +291,7 @@ class My2FAServicesRest {
    * @param restServiceClass Class with services such as checkOTP, mailCode (if configured) and sendSmsCode.
    */
   fun fillLayout4PublicPage(
+    request: HttpServletRequest,
     layout: UILayout,
     userContext: UserContext,
     restServiceClass: Class<*> = My2FAPublicServicesRest::class.java,
@@ -293,6 +308,7 @@ class My2FAServicesRest {
       )
     )
     fillCodeCol(
+      request,
       fieldset,
       redirectUrl,
       userContext.user?.mobilePhone,
@@ -309,6 +325,7 @@ class My2FAServicesRest {
    * @param restServiceClass Optional rest service class, [My2FAPublicServicesRest] is default.
    */
   private fun fillCodeCol(
+    request: HttpServletRequest,
     codeCol: UICol,
     redirectUrl: String? = null,
     mobilePhone: String? = ThreadLocalUserContext.getUser()?.mobilePhone,
@@ -351,7 +368,8 @@ class My2FAServicesRest {
         UICustomized(
           "webauthn.authenticate",
           mutableMapOf(
-            "authenticateFinishUrl" to RestResolver.getRestUrl(this::class.java, "authenticateFinish")
+            "authenticateFinishUrl" to RestResolver.getRestUrl(this::class.java, "authenticateFinish"),
+            "csrfToken" to sessionCsrfService.ensureAndGetToken(request)
           )
         )
       )
@@ -400,5 +418,14 @@ class My2FAServicesRest {
       }
       return UIToast.createToastResponseEntity(result.message, color = color)
     }
+  }
+
+  /**
+   * Only used for [authenticateFinish].
+   */
+  @JsonIgnoreProperties(ignoreUnknown = true) // mobile phone etc. of setup data must be ignored.
+  class My2FAWebAuthnData : My2FAData() {
+    var webAuthnFinishRequest: WebAuthnFinishRequest? = null
+    var csrfToken: String? = null // Can't get server data in WebAuthenticate.jsx
   }
 }

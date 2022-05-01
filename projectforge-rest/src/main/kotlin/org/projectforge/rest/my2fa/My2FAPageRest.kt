@@ -83,7 +83,7 @@ class My2FAPageRest : AbstractDynamicPageRest(), My2FAPage {
         )
       )
     }
-    my2FAServicesRest.fill2FA(layout, data)
+    my2FAServicesRest.fill2FA(request, layout, data)
     LayoutUtils.process(layout)
     WebAuthnServicesRest.addAuthenticateTranslations(layout)
     return FormLayoutData(data, layout, createServerData(request))

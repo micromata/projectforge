@@ -31,7 +31,6 @@ import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.security.WebAuthnServicesRest
 import org.projectforge.security.dto.WebAuthnEntry
-import org.projectforge.security.dto.WebAuthnFinishRequest
 import org.projectforge.security.webauthn.WebAuthnEntryDao
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -114,9 +113,12 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
   @PostMapping("registerFinish")
   fun registerFinish(
     request: HttpServletRequest,
-    @RequestBody postData: PostData<WebAuthnFinishRequest>
+    @RequestBody postData: PostData<My2FASetupData>
   ): ResponseEntity<ResponseAction> {
-    val result = webAuthnServicesRest.doRegisterFinish(request, postData)
+    validateCsrfToken(request, postData)?.let { return it }
+    val webAuthnFinishRequest = postData.data.webAuthnFinishRequest
+    requireNotNull(webAuthnFinishRequest)
+    val result = webAuthnServicesRest.doRegisterFinish(request, webAuthnFinishRequest)
     if (result.success) {
       return UIToast.createToastResponseEntity(
         translate("user.My2FA.setup.check.success"),
