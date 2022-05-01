@@ -37,6 +37,7 @@ import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.pub.LoginPageRest
 import org.projectforge.rest.pub.My2FAPublicServicesRest
+import org.projectforge.rest.pub.PasswordResetPageRest
 import org.projectforge.security.My2FAData
 import org.projectforge.security.My2FAService
 import org.projectforge.security.OTPCheckResult
@@ -368,13 +369,15 @@ class My2FAServicesRest {
       )
     )
     if (webAuthnSupport.isAvailableForUser(userContext?.user?.id)) {
+      val variables =
+        mutableMapOf<String, Any>("authenticateFinishUrl" to RestResolver.getRestUrl(restServiceClass, "webAuthnFinish"))
+      if (restServiceClass == My2FAPublicServicesRest::class.java || restServiceClass == PasswordResetPageRest::class.java) {
+        variables["authenticateUrl"] = RestResolver.getRestUrl(restServiceClass, "webAuthn")
+      }
       codeCol.add(
         UICustomized(
           "webauthn.authenticate",
-          mutableMapOf(
-            "authenticateUrl" to RestResolver.getRestUrl(restServiceClass, "webAuthn"),
-            "authenticateFinishUrl" to RestResolver.getRestUrl(restServiceClass, "webAuthnFinish"),
-          )
+          variables,
         )
       )
       WebAuthnServicesRest.addAuthenticateTranslations(layout)
