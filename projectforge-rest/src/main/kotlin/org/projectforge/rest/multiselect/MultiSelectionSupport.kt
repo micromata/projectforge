@@ -47,8 +47,9 @@ object MultiSelectionSupport {
     entityCollection: Collection<IdObject<*>>,
     callerUrl: String? = null,
     data: Any? = null,
+    paginationPageSize: Int? = null,
   ) {
-    registerEntitiesForSelection(request, identifierClazz.name, entityCollection, callerUrl, data)
+    registerEntitiesForSelection(request, identifierClazz.name, entityCollection, callerUrl, data, paginationPageSize)
   }
 
   /**
@@ -64,9 +65,10 @@ object MultiSelectionSupport {
     entityCollection: Collection<IdObject<*>>,
     callerUrl: String? = null,
     data: Any? = null,
+    paginationPageSize: Int? = null,
   ) {
     val idList = entityCollection.map { it.id }
-    registerEntityIdsForSelection(request, identifier, idList, callerUrl, data)
+    registerEntityIdsForSelection(request, identifier, idList, callerUrl, data, paginationPageSize)
   }
 
   /**
@@ -81,32 +83,12 @@ object MultiSelectionSupport {
     idList: Collection<*>,
     callerUrl: String? = null,
     data: Any? = null,
+    paginationPageSize: Int?,
   ) {
-    registerSelectedEntityIds(request, identifier, null) // Clear selection.
-    ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier", idList, TTL_MINUTES)
-    if (data != null) {
-      ExpiringSessionAttributes.setAttribute(
-        request,
-        "$SESSSION_ATTRIBUTE_DATA:$identifier",
-        data,
-        TTL_MINUTES
-      )
-    }
-    if (callerUrl != null) {
-      registerCallerUrl(request, identifier, callerUrl)
-    }
-  }
-
-  fun registerCallerUrl(request: HttpServletRequest, identifierClazz: Class<out Any>, callerUrl: String) {
-    registerCallerUrl(request, identifierClazz.name, callerUrl)
-  }
-
-  fun registerCallerUrl(request: HttpServletRequest, identifier: String, callerUrl: String) {
-    ExpiringSessionAttributes.setAttribute(
+    setSessionContext(
       request,
-      "$SESSSION_ATTRIBUTE_CALLER_URL:$identifier",
-      callerUrl,
-      TTL_MINUTES
+      identifier,
+      SessionContext(idList, callerUrl = callerUrl, data = data, paginationPageSize = paginationPageSize) // Clear session
     )
   }
 
@@ -117,10 +99,7 @@ object MultiSelectionSupport {
     val identifier = pagesRest::class.java.name
     pagesRest.getCurrentFilter().multiSelection = false // multi selection mode is also stored in magic filter.
     val callerUrl = getRegisteredCallerUrl(request, identifier)
-    ExpiringSessionAttributes.removeAttribute(request, "$SESSSION_ATTRIBUTE_CALLER_URL:$identifier")
-    ExpiringSessionAttributes.removeAttribute(request, "$SESSSION_ATTRIBUTE_DATA:$identifier")
-    ExpiringSessionAttributes.removeAttribute(request, "$SESSSION_ATTRIBUTE_ENTITIES:$identifier")
-    ExpiringSessionAttributes.removeAttribute(request, "$SESSSION_ATTRIBUTE_SELECTED_ENTITIES:$identifier")
+    ExpiringSessionAttributes.removeAttribute(request, "$SESSSION_ATTRIBUTE_CONTEXT:$identifier")
     return callerUrl
   }
 
@@ -130,10 +109,7 @@ object MultiSelectionSupport {
 
   @Suppress("UNCHECKED_CAST")
   fun getRegisteredEntityIds(request: HttpServletRequest, identifier: String): Collection<Serializable>? {
-    return ExpiringSessionAttributes.getAttribute(
-      request,
-      "$SESSSION_ATTRIBUTE_ENTITIES:$identifier"
-    ) as? Collection<Serializable>
+    return getSessionContext(request, identifier)?.idList as? Collection<Serializable>
   }
 
   fun getRegisteredCallerUrl(request: HttpServletRequest, identifierClazz: Class<out Any>): String? {
@@ -141,10 +117,33 @@ object MultiSelectionSupport {
   }
 
   fun getRegisteredCallerUrl(request: HttpServletRequest, identifier: String): String? {
+    return getSessionContext(request, identifier)?.callerUrl
+  }
+
+  fun getSessionContext(request: HttpServletRequest, identifierClazz: Class<out Any>): SessionContext? {
+    return getSessionContext(request, identifierClazz.name)
+  }
+
+  fun getSessionContext(request: HttpServletRequest, identifier: String): SessionContext? {
     return ExpiringSessionAttributes.getAttribute(
       request,
-      "$SESSSION_ATTRIBUTE_CALLER_URL:$identifier"
-    ) as? String
+      "$SESSSION_ATTRIBUTE_CONTEXT:$identifier",
+      SessionContext::class.java,
+    )
+  }
+
+  private fun ensureSessionContext(request: HttpServletRequest, identifier: String): SessionContext {
+    var context = getSessionContext(request, identifier)
+    if (context == null) {
+      // I think, this mustn't be thread safe, must it?
+      context = SessionContext()
+      setSessionContext(request, identifier, context)
+    }
+    return context
+  }
+
+  private fun setSessionContext(request: HttpServletRequest, identifier: String, context: SessionContext) {
+    ExpiringSessionAttributes.setAttribute(request, "$SESSSION_ATTRIBUTE_CONTEXT:$identifier", context, TTL_MINUTES)
   }
 
   fun getRegisteredData(request: HttpServletRequest, identifierClazz: Class<out Any>): Any? {
@@ -152,10 +151,7 @@ object MultiSelectionSupport {
   }
 
   fun getRegisteredData(request: HttpServletRequest, identifier: String): Any? {
-    return ExpiringSessionAttributes.getAttribute(
-      request,
-      "$SESSSION_ATTRIBUTE_DATA:$identifier"
-    )
+    return getSessionContext(request, identifier)?.data
   }
 
   /**
@@ -173,16 +169,12 @@ object MultiSelectionSupport {
    * Register the selected entities sent by the client for later recovering (e. g. on reload).
    */
   fun registerSelectedEntityIds(request: HttpServletRequest, identifier: String, idList: Collection<Serializable>?) {
-    if (idList == null) {
-      ExpiringSessionAttributes.removeAttribute(request, "$SESSSION_ATTRIBUTE_SELECTED_ENTITIES:$identifier")
-      return
+    val context = if (idList.isNullOrEmpty()) {
+      getSessionContext(request, identifier) // idList is null, so if context is also null, do nothing.
+    } else {
+      ensureSessionContext(request, identifier)
     }
-    ExpiringSessionAttributes.setAttribute(
-      request,
-      "$SESSSION_ATTRIBUTE_SELECTED_ENTITIES:$identifier",
-      idList,
-      TTL_MINUTES
-    )
+    context?.selectedIdList = idList
   }
 
   /**
@@ -196,10 +188,7 @@ object MultiSelectionSupport {
    * Gets the previous selected entities.
    */
   fun getRegisteredSelectedEntityIds(request: HttpServletRequest, identifier: String): Collection<Serializable>? {
-    return ExpiringSessionAttributes.getAttribute(
-      request,
-      "$SESSSION_ATTRIBUTE_SELECTED_ENTITIES:$identifier"
-    ) as? Collection<Serializable>
+    return getSessionContext(request, identifier)?.selectedIdList
   }
 
 
@@ -222,20 +211,25 @@ object MultiSelectionSupport {
   fun ensureMultiSelectionOnly(
     request: HttpServletRequest,
     pagesRest: AbstractPagesRest<*, *, *>,
-    returnToUrl: String
+    returnToUrl: String,
   ) {
     if (!isMultiSelection(request, pagesRest.getCurrentFilter())) {
       // Force to use this page only in multi selection mode. No normal usage allowed:
       registerEntitiesForSelection(request, this::class.java, emptyList(), returnToUrl)
     }
     pagesRest.getCurrentFilter().multiSelection = true
-    registerCallerUrl(request, pagesRest::class.java, returnToUrl) // Ensure, caller url is set.
+    ensureSessionContext(request, pagesRest::class.java.name).callerUrl = returnToUrl // Ensure, caller url is set.
   }
 
   private const val TTL_MINUTES = 60
-  private val SESSSION_ATTRIBUTE_CALLER_URL = "{${MultiSelectionSupport::class.java.name}.callerUrl"
-  private val SESSSION_ATTRIBUTE_DATA = "{${MultiSelectionSupport::class.java.name}.data"
-  private val SESSSION_ATTRIBUTE_ENTITIES = "{${MultiSelectionSupport::class.java.name}.entities"
-  private val SESSSION_ATTRIBUTE_SELECTED_ENTITIES = "{${MultiSelectionSupport::class.java.name}.selected.entities"
+  private val SESSSION_ATTRIBUTE_CONTEXT = "{${MultiSelectionSupport::class.java.name}.context"
   private const val REQUEST_PARAM_MULTI_SELECTION = "multiSelectionMode"
+
+  class SessionContext(
+    var idList: Collection<*>? = null,
+    var selectedIdList: Collection<Serializable>? = null,
+    var callerUrl: String? = null,
+    var data: Any? = null,
+    var paginationPageSize: Int? = null,
+  )
 }
