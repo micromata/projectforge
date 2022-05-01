@@ -33,7 +33,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.login.LoginData
 import org.projectforge.login.LoginService
-import org.projectforge.rest.My2FAServicesRest
+import org.projectforge.rest.my2fa.My2FAServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver

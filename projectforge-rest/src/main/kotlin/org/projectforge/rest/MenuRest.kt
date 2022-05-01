@@ -30,6 +30,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.menu.builder.*
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.my2fa.My2FASetupMenuBadge
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

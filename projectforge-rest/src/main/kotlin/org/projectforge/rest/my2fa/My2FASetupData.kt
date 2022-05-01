@@ -21,21 +21,15 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest
+package org.projectforge.rest.my2fa
 
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.security.My2FAData
+import org.projectforge.security.dto.WebAuthnEntry
 import org.projectforge.security.webauthn.WebAuthnSupport
 import java.util.*
 
 class My2FASetupData() : My2FAData() {
-  class WebAuthnEntry(
-    val created: Date?,
-    val lastUpdate: Date?,
-    val displayName: String?,
-    val signCount: Long?,
-  )
-
   var mobilePhone: String? = null
 
   var authenticatorKey: String? = null
@@ -61,12 +55,7 @@ class My2FASetupData() : My2FAData() {
     fun create(webAuthnSupport: WebAuthnSupport): My2FASetupData {
       val webAuthnEntry = My2FASetupData()
       webAuthnEntry.webAuthnEntries = webAuthnSupport.allLoggedInUserCredentials.map {
-        WebAuthnEntry(
-          it.created,
-          it.lastUpdate,
-          it.displayName,
-          it.signCount,
-        )
+        WebAuthnEntry.create(it)
       }.toMutableList()
       return webAuthnEntry
     }

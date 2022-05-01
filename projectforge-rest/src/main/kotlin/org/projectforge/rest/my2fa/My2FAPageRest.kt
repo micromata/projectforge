@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest
+package org.projectforge.rest.my2fa
 
 import org.apache.commons.codec.binary.Base64
 import org.projectforge.framework.i18n.Duration

@@ -49,6 +49,10 @@ import javax.persistence.*
 )
 @NamedQueries(
   NamedQuery(
+    name = WebAuthnEntryDO.FIND_BY_ID,
+    query = "from WebAuthnEntryDO where id = :id"
+  ),
+  NamedQuery(
     name = WebAuthnEntryDO.FIND_BY_OWNER,
     query = "from WebAuthnEntryDO where owner.id = :ownerId"
   ),
@@ -207,5 +211,7 @@ open class WebAuthnEntryDO {
     internal const val FIND_BY_OWNER = "WebAuthnEntryDO_FindByOwner"
 
     internal const val FIND_BY_OWNER_AND_CREDENTIAL_ID = "WebAuthnEntryDO_FindByOwnerAndCredentialId"
+
+    internal const val FIND_BY_ID = "WebAuthnEntryDO_FindById"
   }
 }

@@ -30,21 +30,20 @@ import com.webauthn4j.data.client.challenge.DefaultChallenge
 import com.webauthn4j.util.Base64UrlUtil
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.rest.My2FAServicesRest
+import org.projectforge.rest.my2fa.My2FAServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.dto.PostData
 import org.projectforge.security.dto.*
 import org.projectforge.security.webauthn.WebAuthnSupport
-import org.projectforge.ui.ResponseAction
-import org.projectforge.ui.UIColor
 import org.projectforge.ui.UILayout
-import org.projectforge.ui.UIToast
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.nio.ByteBuffer
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -91,12 +90,12 @@ class WebAuthnServicesRest {
 
   /**
    * Step 5: Browser Creates Final Data, Application sends response to Server
+   * Rest service is defined in [WebAuthnEntryPageRest]
    */
-  @PostMapping("registerFinish")
-  fun registerFinish(
+  fun doRegisterFinish(
     request: HttpServletRequest,
     @RequestBody postData: PostData<WebAuthnFinishRequest>
-  ): WebAuthnRegisterResult {
+  ): WebAuthnSupport.Result {
     log.info { "User wants to finish registration." }
     val webAuthnRequest = postData.data
     val credential = webAuthnRequest.credential!!
@@ -106,7 +105,7 @@ class WebAuthnServicesRest {
     val clientDataJSON = Base64.decodeBase64(response.clientDataJSON)
     val clientExtensionJSON = null
     val transports = response.transports
-    webAuthnSupport.registration(
+    return webAuthnSupport.registration(
       credentialId,
       attestationObject = attestationObject,
       clientDataJSON = clientDataJSON,
@@ -114,7 +113,6 @@ class WebAuthnServicesRest {
       clientExtensionJSON = clientExtensionJSON,
       transports = transports,
     )
-    return WebAuthnRegisterResult(true)
   }
 
   @GetMapping("authenticate")
@@ -136,22 +134,7 @@ class WebAuthnServicesRest {
 
   /**
    * Step 5: Browser Creates Final Data, Application sends response to Server
-   */
-  @PostMapping("authenticateFinish")
-  fun authenticateFinish(
-    request: HttpServletRequest,
-    httpResponse: HttpServletResponse,
-    @RequestBody postData: PostData<WebAuthnFinishRequest>
-  ): ResponseAction {
-    val result = doAuthenticateFinish(request, httpResponse, postData)
-    if (result.success) {
-      return UIToast.createToast("Success")
-    }
-    return UIToast.createToast(translate(result.errorMessage!!), color = UIColor.DANGER)
-  }
-
-  /**
-   * Step 5: Browser Creates Final Data, Application sends response to Server
+   * Rest service is defined in [My2FAServicesRest]
    */
   fun doAuthenticateFinish(
     request: HttpServletRequest,

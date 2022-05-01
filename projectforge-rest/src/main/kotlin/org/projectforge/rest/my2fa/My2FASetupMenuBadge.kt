@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest
+package org.projectforge.rest.my2fa
 
 import org.projectforge.SystemStatus
 import org.projectforge.business.user.UserAuthenticationsService

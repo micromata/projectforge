@@ -21,6 +21,6 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.security.dto
+package org.projectforge.rest.my2fa
 
-class WebAuthnRegisterResult(var success: Boolean)
+enum class My2FAType { MAIL, SMS, AUTHENTICATOR }

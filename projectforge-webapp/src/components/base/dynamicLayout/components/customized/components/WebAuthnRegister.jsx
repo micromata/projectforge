@@ -1,11 +1,12 @@
 /* eslint-disable max-len */
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Button } from '../../../../../design';
 import { fetchJsonGet, fetchJsonPost } from '../../../../../../utilities/rest';
 import { convertPublicKeyCredentialRequestOptions, convertRegisterCredential } from '../../../../../../utilities/webauthn';
 import { DynamicLayoutContext } from '../../../context';
 
-function WebAuthnRegister() {
+function WebAuthnRegister({ values }) {
     const { ui, callAction } = React.useContext(DynamicLayoutContext);
 
     const finishRegister = async (publicKeyCredentialCreationOptions) => {
@@ -13,7 +14,7 @@ function WebAuthnRegister() {
         const credential = await navigator.credentials.create({ publicKey: createRequest });
         const data = convertRegisterCredential(credential, publicKeyCredentialCreationOptions);
         await fetchJsonPost(
-            'webauthn/registerFinish',
+            values.registerFinishUrl,
             { data },
             (json) => {
                 callAction({ responseAction: json });
@@ -39,6 +40,9 @@ function WebAuthnRegister() {
 }
 
 WebAuthnRegister.propTypes = {
+    values: PropTypes.shape({
+        registerFinishUrl: PropTypes.string.isRequired,
+    }).isRequired,
 };
 
 WebAuthnRegister.defaultProps = {
