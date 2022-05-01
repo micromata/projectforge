@@ -41,6 +41,10 @@ private val log = KotlinLogging.logger {}
 
 @Service
 class WebAuthnSupport {
+  class Result(val errorMessage: String? = null) {
+    val success = errorMessage == null
+  }
+
   @Autowired
   private lateinit var domainService: DomainService
 
@@ -127,6 +131,7 @@ class WebAuthnSupport {
     webAuthnStorage.store(webAuthnEntry) // please persist authenticator in your manner
   }
 
+
   fun authenticate(
     credentialId: ByteArray,
     authenticatorData: ByteArray, /* set authenticatorData */
@@ -136,7 +141,7 @@ class WebAuthnSupport {
     // Server properties
     challenge: Challenge? = null, /* set challenge */
     userHandle: ByteArray? = null, /* set userHandle */
-  ) {
+  ): Result {
     val tokenBindingId: ByteArray? = null // Not yet supported.
     val serverProperty = ServerProperty(origin, rpId, challenge, tokenBindingId)
 
@@ -168,15 +173,16 @@ class WebAuthnSupport {
       webAuthnManager.parse(authenticationRequest)
     } catch (ex: DataConversionException) {
       log.error("Error while parsing registration request: ${ex.message}", ex)
-      throw ex
+      return Result("webauthn.error.process")
     }
     try {
       webAuthnManager.validate(authenticationData, authenticationParameters)
     } catch (ex: ValidationException) {
       log.error("Error while parsing validating request: ${ex.message}", ex)
-      throw ex
+      return Result("webauthn.error.validate")
     }
     webAuthnStorage.updateCounter(authenticationData.credentialId, authenticationData.authenticatorData!!.signCount)
+    return Result()
   }
 
   val allLoggedInUserCredentials: List<WebAuthnEntryDO>

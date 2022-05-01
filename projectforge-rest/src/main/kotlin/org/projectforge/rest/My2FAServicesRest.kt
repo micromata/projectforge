@@ -39,6 +39,8 @@ import org.projectforge.rest.pub.My2FAPublicServicesRest
 import org.projectforge.security.My2FAData
 import org.projectforge.security.My2FAService
 import org.projectforge.security.OTPCheckResult
+import org.projectforge.security.WebAuthnServicesRest
+import org.projectforge.security.dto.WebAuthnFinishRequest
 import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.ui.*
 import org.projectforge.web.My2FAHttpService
@@ -71,6 +73,9 @@ class My2FAServicesRest {
 
   @Autowired
   private lateinit var webAuthnSupport: WebAuthnSupport
+
+  @Autowired
+  private lateinit var webAuthnServicesRest: WebAuthnServicesRest
 
   /**
    * For validating the Authenticator's OTP, or OTP sent by sms or e-mail.
@@ -204,6 +209,31 @@ class My2FAServicesRest {
     return createResponseEntity(result)
   }
 
+  @PostMapping("authenticateFinish")
+  fun authenticateFinish(
+    request: HttpServletRequest,
+    httpResponse: HttpServletResponse,
+    @RequestBody postData: PostData<WebAuthnFinishRequest>
+  ): ResponseEntity<ResponseAction> {
+    val result = webAuthnServicesRest.doAuthenticateFinish(request, httpResponse, postData)
+    if (result.success) {
+      return UIToast.createToastResponseEntity(
+        translate("user.My2FA.setup.check.success"),
+        color = UIColor.SUCCESS,
+        mutableMapOf("data" to postData.data),
+        merge = true,
+        targetType = TargetType.UPDATE
+      )
+    }
+    // Authentication wasn't successful:
+    result.errorMessage!!.let { msg ->
+      return UIToast.createToastResponseEntity(
+        translate(msg),
+        color = UIColor.DANGER,
+      )
+    }
+  }
+
   fun fill2FA(layout: UILayout, my2FAData: My2FAData, redirectUrl: String? = null) {
     val fieldset = UIFieldset(12, title = "user.My2FACode.title")
     layout.add(fieldset)
@@ -317,7 +347,14 @@ class My2FAServicesRest {
       )
     )
     if (webAuthnSupport.isAvailableForUser(userContext?.user?.id)) {
-      codeCol.add(UICustomized("webauthn.authenticate"))
+      codeCol.add(
+        UICustomized(
+          "webauthn.authenticate",
+          mutableMapOf(
+            "authenticateFinishUrl" to RestResolver.getRestUrl(this::class.java, "authenticateFinish")
+          )
+        )
+      )
     }
     if (smsAvailable) {
       codeCol.add(createSendButton(My2FAType.SMS, restServiceClass))
