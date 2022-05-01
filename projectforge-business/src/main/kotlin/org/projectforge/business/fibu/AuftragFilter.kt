@@ -30,7 +30,6 @@ import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
 import java.time.LocalDate
-import java.util.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -115,7 +114,7 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
             }
             if (auftrag.paymentSchedules != null) {
                 for (schedule in auftrag.paymentSchedules!!) {
-                    if (schedule.reached && !schedule.vollstaendigFakturiert) {
+                    if (!schedule.isDeleted && schedule.reached && !schedule.vollstaendigFakturiert) {
                         return true
                     }
                 }
