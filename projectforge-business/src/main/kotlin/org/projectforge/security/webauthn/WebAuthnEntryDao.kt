@@ -102,6 +102,18 @@ open class WebAuthnEntryDao {
       .resultList
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  open fun delete(entryId: Int) {
+    val entry = getEntryById(entryId)
+    val ownerId = entry?.owner?.id
+    // Don't tell the user if the WebAuthn entry of a foreign user exists (security paranoia)
+    requireNotNull(ownerId) { "Can't delete WebAuthn entry, no such entry found or logged-in-user isn't the owner." }
+    require(entry.owner?.id == ThreadLocalUserContext.getUserId()) { "Owner is only allowed to delete own WebAuthn entries." }
+    em.remove(entry)
+    em.flush()
+  }
+
+
   private fun findExistingEntry(entry: WebAuthnEntryDO): WebAuthnEntryDO? {
     if (entry.id != null) {
       val dbObj = em.find(WebAuthnEntryDO::class.java, entry.id)

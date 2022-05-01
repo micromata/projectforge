@@ -61,6 +61,21 @@ function DynamicAgGrid({
         }
     }, [gridApi, data.highlightRowId]);
 
+    const modifyRedirectUrl = (redirectUrl, clickedId) => {
+        if (redirectUrl.includes('{id}')) {
+            return redirectUrl.replace('{id}', clickedId);
+        }
+        return redirectUrl.replace('id', clickedId);
+    };
+
+    const onRowClicked = (event) => {
+        if (!rowClickRedirectUrl) {
+            // Do nothing
+            return;
+        }
+        history.push(modifyRedirectUrl(rowClickRedirectUrl, event.data.id));
+    };
+
     const onSelectionChanged = () => {
         if (!rowClickRedirectUrl) {
             // Do nothing
@@ -76,7 +91,7 @@ function DynamicAgGrid({
             // Can't detect id.
             return;
         }
-        history.push(rowClickRedirectUrl.replace('id', firstSelectedRowId));
+        history.push(modifyRedirectUrl(rowClickRedirectUrl));
     };
 
     const postColumnStates = (event) => {
@@ -143,6 +158,7 @@ function DynamicAgGrid({
                 onSortChanged={onSortChanged}
                 onColumnMoved={onColumnMoved}
                 onColumnResized={onColumnResized}
+                onRowClicked={onRowClicked}
                 pagination={pagination}
                 paginationPageSize={paginationPageSize}
                 rowClass={rowClass}
