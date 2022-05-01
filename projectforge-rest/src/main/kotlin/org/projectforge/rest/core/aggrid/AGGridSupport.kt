@@ -88,18 +88,22 @@ class AGGridSupport {
     pagesRest: AbstractPagesRest<*, *, *>,
     pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
   ): UIAgGrid {
-    val table = UIAgGrid.createUIResultSetTable()
+    val agGrid = UIAgGrid.createUIResultSetTable()
     magicFilter.maxRows = QUERY_FILTER_MAX_ROWS // Fix it from previous.
-    table.enablePagination()
-    magicFilter.paginationPageSize?.let { table.paginationPageSize = it }
-    layout.add(table)
+    agGrid.enablePagination()
+    magicFilter.paginationPageSize?.let { agGrid.paginationPageSize = it }
+    layout.add(agGrid)
     if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
       layout.hideSearchFilter = true
+      MultiSelectionSupport.getSessionContext(request, pagesRest::class.java)?.paginationPageSize?.let { pageSize ->
+        // pageSize was initially set by Wicket's list page. So use the same pagination size.
+        agGrid.paginationPageSize = pageSize
+      }
       if (pageAfterMultiSelect != null) {
-        table.urlAfterMultiSelect =
+        agGrid.urlAfterMultiSelect =
           RestResolver.getRestUrl(pageAfterMultiSelect, AbstractMultiSelectedPage.URL_PATH_SELECTED)
       }
-      table.handleCancelUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.CANCEL_MULTI_SELECTION)
+      agGrid.handleCancelUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.CANCEL_MULTI_SELECTION)
       layout
         .add(
           UIAlert(
@@ -110,12 +114,12 @@ class AGGridSupport {
           )
         )
     } else {
-      table.withSingleRowClick()
-      table.withRowClickRedirectUrl("${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id")
+      agGrid.withSingleRowClick()
+      agGrid.withRowClickRedirectUrl("${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id")
       layout.add(UIAlert(message = "agGrid.sortInfo", color = UIColor.INFO, markdown = true))
     }
-    table.onColumnStatesChangedUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.UPDATE_COLUMN_STATES)
-    return table
+    agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.UPDATE_COLUMN_STATES)
+    return agGrid
   }
 
   fun restoreColumnsFromUserPref(category: String, agGrid: UIAgGrid) {
