@@ -73,7 +73,7 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
     layout.addAction(UIButton.createCancelButton(responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)))
     if (id == null) {
       // New entry
-      layout.addAction(
+      layout.add(
         UICustomized(
           "webauthn.register",
           mutableMapOf(
@@ -83,20 +83,24 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
       )
       WebAuthnServicesRest.addRegisterTranslations(layout)
     } else {
-      UIButton.createDefaultButton(
-        "update",
-        title = "update",
-        responseAction = ResponseAction(
-          RestResolver.getRestUrl(this::class.java, "update"),
-          targetType = TargetType.POST
-        ),
+      layout.addAction(
+        UIButton.createDefaultButton(
+          "update",
+          title = "update",
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(this::class.java, "update"),
+            targetType = TargetType.POST
+          ),
+        )
       )
-      UIButton.createDeleteButton(
-        layout,
-        responseAction = ResponseAction(
-          RestResolver.getRestUrl(this::class.java, "delete"),
-          targetType = TargetType.POST
-        ),
+      layout.addAction(
+        UIButton.createDeleteButton(
+          layout,
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(this::class.java, "delete"),
+            targetType = TargetType.POST
+          ),
+        )
       )
     }
 

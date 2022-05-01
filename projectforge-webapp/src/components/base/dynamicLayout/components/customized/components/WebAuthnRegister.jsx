@@ -32,7 +32,7 @@ function WebAuthnRegister({ values }) {
 
     return (
         <>
-            <Button color="link" onClick={register}>
+            <Button color="secondary" outline onClick={register}>
                 {ui.translations['webauthn.registration.button.register']}
             </Button>
         </>

@@ -31,7 +31,6 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.model.rest.RestPaths
-import org.projectforge.rest.TokenInfoPageRest
 import org.projectforge.rest.calendar.BarcodeServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -343,7 +342,8 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     fieldset.add(
       UIButton.createAddButton(
         ResponseAction(
-          PagesResolver.getDynamicPageUrl(TokenInfoPageRest::class.java), targetType = TargetType.MODAL
+          PagesResolver.getDynamicPageUrl(WebAuthnEntryPageRest::class.java, absolute = true),
+          targetType = TargetType.MODAL,
         )
       )
     )
