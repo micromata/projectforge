@@ -39,6 +39,7 @@ internal class My2FAExpiryPeriod(
 ) {
   val regexArray: Array<Regex>
   val writeAccessEntities = mutableListOf<String>()
+  val usedShortCuts = mutableSetOf<String>()
 
   init {
     val list = mutableListOf<String>()
@@ -52,6 +53,7 @@ internal class My2FAExpiryPeriod(
           shortCuts.forEach { (shortCut, shortCutRegex) ->
             if (!found && exp == shortCut) {
               found = true
+              usedShortCuts.add(shortCut)
               shortCutRegex.split(';').forEach { shortCutExp ->
                 // println("regex=$regex, exp=$exp, regexp=$shortCutRegex, shortCutExp: $shortCutExp")
                 addRegex(list, shortCutExp)

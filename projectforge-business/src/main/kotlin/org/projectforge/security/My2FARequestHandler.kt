@@ -85,6 +85,15 @@ open class My2FARequestHandler {
     return expiryPeriod.remainingPeriod()
   }
 
+  fun redirectIfPeriod4ShortCutIsInvalid(action: String, request: HttpServletRequest, response: HttpServletResponse, shortCut: String): Boolean {
+    val expiryPeriod = getExpiryPeriodForShortCut(shortCut) ?: return true
+    if (!expiryPeriod.valid(action, request)) {
+      my2FAPage!!.redirect(request, response, expiryPeriod.expiryMillis)
+      return false
+    }
+    return true
+  }
+
   /**
    * Checks for the given request, if a 2FA is required and not expired. If a 2FA is required (because it's not yet given or expired
    * for the requested url, then a redirection to a 2FA is forced (if [sendRedirect] is true). If [sendRedirect]
@@ -118,7 +127,21 @@ open class My2FARequestHandler {
     return !period.valid("write access of $entity")
   }
 
-  internal fun matchesEntity(entity: String): My2FAExpiryPeriod? {
+  private fun getExpiryPeriodForShortCut(shortCut: String): My2FAExpiryPeriod? {
+    synchronized(shortCuts) {
+      if (expiryPeriodsDirty) {
+        reload()
+      }
+    }
+    expiryPeriods.forEach { period ->
+      if (period.usedShortCuts.contains(shortCut)) {
+        return period
+      }
+    }
+    return null
+  }
+
+  private fun matchesEntity(entity: String): My2FAExpiryPeriod? {
     synchronized(entitiesWriteAccessMap) {
       if (entitiesWriteAccessMap.containsKey(entity)) {
         return entitiesWriteAccessMap[entity]
@@ -217,7 +240,6 @@ open class My2FARequestHandler {
     expiryPeriod: String
   ) {
     periods.add(My2FAExpiryPeriod(regex, expireMillis, expiryPeriod, shortCuts))
-
   }
 
   fun printConfiguration(): String {

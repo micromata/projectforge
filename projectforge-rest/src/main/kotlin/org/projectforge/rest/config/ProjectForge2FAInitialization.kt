@@ -47,7 +47,11 @@ open class ProjectForge2FAInitialization {
   private fun init() {
     my2FARequestHandler.registerShortCut(
       "ADMIN",
-      "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin;/react/change.*Password;/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin"
+      "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin;" +
+          "/rs/change.*Password;/wa/license;/wa/access;/rs/adminLogViewer;" +
+          // LuceneConsole, GroovyConsole, SQLConsole:
+          "/wa/wicket/bookmarkable/org.projectforge.web.admin;" +
+          "/wa/configuration"
     )
     my2FARequestHandler.registerShortCut(
       "HR",
