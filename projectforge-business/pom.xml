@@ -169,6 +169,12 @@
             <version>${commons-collections.version}</version>
         </dependency>
         <dependency>
+            <!-- Needed by Merlin: -->
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
             <version>${bouncy-castle.version}</version>
