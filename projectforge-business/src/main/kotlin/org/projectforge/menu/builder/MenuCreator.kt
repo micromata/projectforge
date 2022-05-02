@@ -500,7 +500,7 @@ open class MenuCreator {
         )
     }
     adminMenu
-      .add(MenuItemDef(MenuItemDefId.LOG_VIEWER, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+      .add(MenuItemDef(MenuItemDefId.ADMIN_LOG_VIEWER, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
       .add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
       .add(MenuItemDef(MenuItemDefId.CONFIGURATION, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
       .add(

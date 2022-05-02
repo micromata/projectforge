@@ -73,7 +73,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     IMAGE_CROPPER("menu.imageCropper"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
     INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", "wa/incomingInvoiceList"), //
-    LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("logViewer")}/-1"), //
+    ADMIN_LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("adminLogViewer")}/-1"), //
     LOGOUT("menu.logout", url = "logout"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "wa/monthlyEmployeeReport"), //
     MY_ACCOUNT("menu.myAccount", getReactDynamicPageUrl("myAccount")), //
