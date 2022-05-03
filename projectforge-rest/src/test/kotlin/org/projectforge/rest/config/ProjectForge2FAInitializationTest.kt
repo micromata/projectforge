@@ -48,7 +48,7 @@ class ProjectForge2FAInitializationTest {
     my2FARequestHandler.registerShortCutValues("TEST2", "/rs/abc", "/rs/cde;")
     initialization.registerShortCutValues("TEST2", ChangePasswordPageRest::class)
     Assertions.assertEquals("/rs/abc;/rs/cde;/rs/changePassword;", my2FARequestHandler.getShortCutResolved("TEST2"))
-    initialization.registerShortCutValues("TEST3", AdminLogViewerPageRest::class, AdminLogViewerPageRest::search, AdminLogViewerPageRest::refresh)
+    initialization.registerShortCutValues("TEST3", AdminLogViewerPageRest::class.java, AdminLogViewerPageRest::search, AdminLogViewerPageRest::refresh)
     Assertions.assertEquals("/rs/adminLogViewer/search;/rs/adminLogViewer/refresh;", my2FARequestHandler.getShortCutResolved("TEST3"))
 
     Assertions.assertEquals("/rs/myAccount;/rs/tokenInfo;/rs/user/renewToken;", my2FARequestHandler.getShortCutResolved("MY_ACCOUNT"))

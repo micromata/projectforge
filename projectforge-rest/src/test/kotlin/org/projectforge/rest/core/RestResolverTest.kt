@@ -27,6 +27,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.projectforge.SystemStatus
 import org.projectforge.rest.AddressPagesRest
+import org.projectforge.rest.admin.AdminLogViewerPageRest
+import org.projectforge.rest.admin.LogViewerPageRest
 
 class RestResolverTest {
   @Test
@@ -42,7 +44,13 @@ class RestResolverTest {
     SystemStatus.internalSet4JunitTests(true) // For receiving exceptions on failure instead of log error messages.
     assertEquals(
       "/rs/address/exportAsExcel",
-      RestResolver.getRestMethodUrl(AddressPagesRest::class, AddressPagesRest::exportAsExcel)
+      RestResolver.getRestMethodUrl(AddressPagesRest::class.java, AddressPagesRest::exportAsExcel)
+    )
+    assertEquals("/rs/logViewer/refresh", RestResolver.getRestMethodUrl(LogViewerPageRest::refresh))
+    assertEquals("/rs/logViewer/refresh", RestResolver.getRestMethodUrl(AdminLogViewerPageRest::refresh))
+    assertEquals(
+      "/rs/adminLogViewer/refresh",
+      RestResolver.getRestMethodUrl(AdminLogViewerPageRest::class.java, AdminLogViewerPageRest::refresh)
     )
   }
 

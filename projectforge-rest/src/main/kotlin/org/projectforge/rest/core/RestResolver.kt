@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.*
 import java.net.URLEncoder
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.jvm.javaMethod
 
 private val log = KotlinLogging.logger {}
 
@@ -61,9 +62,12 @@ object RestResolver {
   /**
    * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
    */
-  @JvmStatic
-  @JvmOverloads
-  fun getRestMethodUrl(restClass: KClass<*>, method: KFunction<*>, withoutPrefix: Boolean = false, params: Map<String, Any?>? = null, ): String {
+  fun getRestMethodUrl(
+    restClass: Class<*>,
+    method: KFunction<*>,
+    withoutPrefix: Boolean = false,
+    params: Map<String, Any?>? = null,
+  ): String {
     try {
       val annotation = method.annotations.single {
         it.annotationClass == PostMapping::class
@@ -72,9 +76,11 @@ object RestResolver {
             || it.annotationClass == DeleteMapping::class
             || it.annotationClass == PatchMapping::class
       }
+
       @Suppress("UNCHECKED_CAST")
-      val methodPath = annotation.annotationClass.members.single { it.name == "value" }.call(annotation) as Array<String>
-      return getUrl(restClass.java, Rest.URL, methodPath[0], withoutPrefix, params)
+      val methodPath =
+        annotation.annotationClass.members.single { it.name == "value" }.call(annotation) as Array<String>
+      return getUrl(restClass, Rest.URL, methodPath[0], withoutPrefix, params)
     } catch (ex: Exception) {
       if (SystemStatus.isDevelopmentMode()) {
         throw ex
@@ -83,6 +89,18 @@ object RestResolver {
         return getRestUrl(method.javaClass, method.name, withoutPrefix, params)
       }
     }
+  }
+
+  /**
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   */
+  fun getRestMethodUrl(
+    method: KFunction<*>,
+    withoutPrefix: Boolean = false,
+    params: Map<String, Any?>? = null,
+  ): String {
+    val restClass = method.javaMethod!!.declaringClass
+    return getRestMethodUrl(restClass, method, withoutPrefix, params)
   }
 
   /**

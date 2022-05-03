@@ -57,6 +57,7 @@ open class ProjectForge2FAInitialization {
       "/wa/configuration"
     )
     registerShortCutValues("ADMIN", AdminLogViewerPageRest::class)
+    
     my2FARequestHandler.registerShortCutValues(
       "HR",
       "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed"
@@ -74,7 +75,7 @@ open class ProjectForge2FAInitialization {
     )
     registerShortCutValues("MY_ACCOUNT", MyAccountPageRest::class)
     registerShortCutValues("MY_ACCOUNT", TokenInfoPageRest::class)
-    registerShortCutValues("MY_ACCOUNT", UserServicesRest::class, UserServicesRest::renewToken)
+    registerShortCutValues("MY_ACCOUNT", UserServicesRest::renewToken)
     my2FARequestHandler.registerShortCutValues("PASSWORD", "/rs/change.*Password;")
     log.info(my2FARequestHandler.printConfiguration())
   }
@@ -91,11 +92,23 @@ open class ProjectForge2FAInitialization {
    */
   internal fun registerShortCutValues(
     shortCut: String,
-    restClass: KClass<*>,
+    restClass: Class<*>,
     vararg methods: KFunction<*>
   ) {
     methods.forEach { method ->
       my2FARequestHandler.registerShortCutValues(shortCut, RestResolver.getRestMethodUrl(restClass, method))
+    }
+  }
+
+  /**
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   */
+  internal fun registerShortCutValues(
+    shortCut: String,
+    vararg methods: KFunction<*>
+  ) {
+    methods.forEach { method ->
+      my2FARequestHandler.registerShortCutValues(shortCut, RestResolver.getRestMethodUrl(method))
     }
   }
 
