@@ -41,7 +41,7 @@ private val log = KotlinLogging.logger {}
 @Service
 open class My2FARequestHandler {
   @Autowired
-  internal lateinit var configuration: My2FARequestConfiguration // internal for test case
+  private lateinit var configuration: My2FARequestConfiguration
 
   private val shortCuts = mutableMapOf<String, String>()
 
@@ -85,7 +85,12 @@ open class My2FARequestHandler {
     return expiryPeriod.remainingPeriod()
   }
 
-  fun redirectIfPeriod4ShortCutIsInvalid(action: String, request: HttpServletRequest, response: HttpServletResponse, shortCut: String): Boolean {
+  fun redirectIfPeriod4ShortCutIsInvalid(
+    action: String,
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    shortCut: String
+  ): Boolean {
     val expiryPeriod = getExpiryPeriodForShortCut(shortCut) ?: return true
     if (!expiryPeriod.valid(action, request)) {
       my2FAPage!!.redirect(request, response, expiryPeriod.expiryMillis)
@@ -326,18 +331,48 @@ open class My2FARequestHandler {
     }
   }
 
-  fun registerShortCut(shortCut: String, resolved: String) {
+  /**
+   * Register (appends) the given values to the specified shortCut.
+   * @param shortCut to create or modify by appending (separated by ';').
+   * @param values List of values to append (each value may contain several values separated by ';' or might be a single
+   * value.
+   * @return this for chaining.
+   */
+  fun registerShortCutValues(shortCut: String, vararg values: String)
+      : My2FARequestHandler {
     synchronized(shortCuts) {
-      shortCuts[shortCut] = resolved
+      val sb = StringBuilder()
+      shortCuts[shortCut]?.let {
+        sb.append(it)
+        if (!it.endsWith(";")) {
+          sb.append(";")
+        }
+      }
+      values.forEach { value ->
+        sb.append(value)
+        if (!value.endsWith(";")) {
+          sb.append(";")
+        }
+      }
+      shortCuts[shortCut] = sb.toString()
       expiryPeriodsDirty = true
     }
+    return this
   }
 
   init {
-    registerShortCut("ALL", "/")
+    registerShortCutValues("ALL", "/")
+  }
+
+  fun getShortCutResolved(shortCut: String): String? {
+    return shortCuts[shortCut]
   }
 
   fun register(page: My2FAPage) {
     my2FAPage = page
+  }
+
+  fun internalSet4UnitTests(configuration: My2FARequestConfiguration) {
+    this.configuration = configuration
   }
 }

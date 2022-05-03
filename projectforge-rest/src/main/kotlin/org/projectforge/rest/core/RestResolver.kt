@@ -23,9 +23,15 @@
 
 package org.projectforge.rest.core
 
+import mu.KotlinLogging
+import org.projectforge.SystemStatus
 import org.projectforge.rest.config.Rest
-import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.*
 import java.net.URLEncoder
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Helper for getting url of rest calls.
@@ -44,6 +50,39 @@ object RestResolver {
     restClass: Class<*>, subPath: String? = null, withoutPrefix: Boolean = false, params: Map<String, Any?>? = null,
   ): String {
     return getUrl(restClass, Rest.URL, subPath, withoutPrefix, params)
+  }
+
+  fun getRestUrl(
+    restClass: KClass<*>, subPath: String? = null, withoutPrefix: Boolean = false, params: Map<String, Any?>? = null,
+  ): String {
+    return getUrl(restClass.java, Rest.URL, subPath, withoutPrefix, params)
+  }
+
+  /**
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun getRestMethodUrl(restClass: KClass<*>, method: KFunction<*>, withoutPrefix: Boolean = false, params: Map<String, Any?>? = null, ): String {
+    try {
+      val annotation = method.annotations.single {
+        it.annotationClass == PostMapping::class
+            || it.annotationClass == GetMapping::class
+            || it.annotationClass == PutMapping::class
+            || it.annotationClass == DeleteMapping::class
+            || it.annotationClass == PatchMapping::class
+      }
+      @Suppress("UNCHECKED_CAST")
+      val methodPath = annotation.annotationClass.members.single { it.name == "value" }.call(annotation) as Array<String>
+      return getUrl(restClass.java, Rest.URL, methodPath[0], withoutPrefix, params)
+    } catch (ex: Exception) {
+      if (SystemStatus.isDevelopmentMode()) {
+        throw ex
+      } else {
+        log.error(ex.message, ex)
+        return getRestUrl(method.javaClass, method.name, withoutPrefix, params)
+      }
+    }
   }
 
   /**
@@ -65,6 +104,12 @@ object RestResolver {
     params: Map<String, Any?>? = null,
   ): String {
     val requestMapping = restClass.annotations.find { it is RequestMapping } as? RequestMapping
+    if (requestMapping == null) {
+      if (SystemStatus.isDevelopmentMode()) {
+        throw Exception("Can't find @RequestMapping for class ${restClass.name}.")
+      }
+      log.error { "Can't find @RequestMapping for class ${restClass.name}." }
+    }
     var url = requestMapping?.value?.joinToString("/") { it } ?: "/"
     if (withoutPrefix && url.startsWith("$path/")) {
       url = url.substringAfter("$path/")
