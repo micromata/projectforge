@@ -25,6 +25,7 @@ package org.projectforge.rest.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.projectforge.SystemStatus
 import org.projectforge.rest.AddressPagesRest
 
 class RestResolverTest {
@@ -38,6 +39,11 @@ class RestResolverTest {
     test("address?q=hurz&id=null", params = mapOf("q" to "hurz", "id" to null))
     test("address/edit?q=hurz", "edit", params = mapOf("q" to "hurz"))
     test("address/edit?q=hurz&id=null", "edit", params = mapOf("q" to "hurz", "id" to null))
+    SystemStatus.internalSet4JunitTests(true) // For receiving exceptions on failure instead of log error messages.
+    assertEquals(
+      "/rs/address/exportAsExcel",
+      RestResolver.getRestMethodUrl(AddressPagesRest::class, AddressPagesRest::exportAsExcel)
+    )
   }
 
   private fun test(expected: String, subPath: String? = null, params: Map<String, Any?>? = null) {

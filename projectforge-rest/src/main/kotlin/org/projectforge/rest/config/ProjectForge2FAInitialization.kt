@@ -27,11 +27,14 @@ import mu.KotlinLogging
 import org.projectforge.rest.MyAccountPageRest
 import org.projectforge.rest.TokenInfoPageRest
 import org.projectforge.rest.UserServicesRest
+import org.projectforge.rest.admin.AdminLogViewerPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.security.My2FARequestHandler
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import javax.annotation.PostConstruct
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 
 private val log = KotlinLogging.logger {}
 
@@ -41,42 +44,62 @@ private val log = KotlinLogging.logger {}
 @Configuration
 open class ProjectForge2FAInitialization {
   @Autowired
-  private lateinit var my2FARequestHandler: My2FARequestHandler
+  internal lateinit var my2FARequestHandler: My2FARequestHandler
 
   @PostConstruct
-  private fun init() {
-    my2FARequestHandler.registerShortCut(
+  internal fun init() {
+    my2FARequestHandler.registerShortCutValues(
       "ADMIN",
-      "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin;" +
-          "/rs/change.*Password;/wa/license;/wa/access;/rs/adminLogViewer;" +
-          // LuceneConsole, GroovyConsole, SQLConsole:
-          "/wa/wicket/bookmarkable/org.projectforge.web.admin;" +
-          "/wa/configuration"
+      "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin;",
+      "/wa/license;/wa/access;",
+      // LuceneConsole, GroovyConsole, SQLConsole:
+      "/wa/wicket/bookmarkable/org.projectforge.web.admin;",
+      "/wa/configuration"
     )
-    my2FARequestHandler.registerShortCut(
+    registerShortCutValues("ADMIN", AdminLogViewerPageRest::class)
+    my2FARequestHandler.registerShortCutValues(
       "HR",
       "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed"
     )
-    my2FARequestHandler.registerShortCut(
+    my2FARequestHandler.registerShortCutValues(
       "FINANCE",
       "WRITE:incomingInvoice;WRITE:outgoingInvoice;/wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice"
     )
-    my2FARequestHandler.registerShortCut(
+    my2FARequestHandler.registerShortCutValues(
       "ORGA",
       "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract"
     )
-    my2FARequestHandler.registerShortCut(
+    my2FARequestHandler.registerShortCutValues(
       "SCRIPT", "/react/script"
     )
-    my2FARequestHandler.registerShortCut(
-      "MY_ACCOUNT",
-      "${basePath(MyAccountPageRest::class.java)};${basePath(TokenInfoPageRest::class.java)};${basePath(UserServicesRest::class.java, "renewToken")}"
-    )
-    my2FARequestHandler.registerShortCut("PASSWORD", "/react/change.*Password")
+    registerShortCutValues("MY_ACCOUNT", MyAccountPageRest::class)
+    registerShortCutValues("MY_ACCOUNT", TokenInfoPageRest::class)
+    registerShortCutValues("MY_ACCOUNT", UserServicesRest::class, UserServicesRest::renewToken)
+    my2FARequestHandler.registerShortCutValues("PASSWORD", "/rs/change.*Password;")
     log.info(my2FARequestHandler.printConfiguration())
   }
 
+  internal fun registerShortCutValues(
+    shortCut: String,
+    restClass: KClass<*>,
+  ) {
+    my2FARequestHandler.registerShortCutValues(shortCut, RestResolver.getRestUrl(restClass.java))
+  }
+
+  /**
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   */
+  internal fun registerShortCutValues(
+    shortCut: String,
+    restClass: KClass<*>,
+    vararg methods: KFunction<*>
+  ) {
+    methods.forEach { method ->
+      my2FARequestHandler.registerShortCutValues(shortCut, RestResolver.getRestMethodUrl(restClass, method))
+    }
+  }
+
   private fun basePath(clazz: Class<*>, subPath: String? = null): String {
-return     RestResolver.getRestUrl(clazz, subPath)
+    return RestResolver.getRestUrl(clazz, subPath)
   }
 }

@@ -296,12 +296,17 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
                 title = "user.authenticationToken.renew",
                 tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
                 confirmMessage = "user.authenticationToken.renew.securityQuestion",
-                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.POST)
+                responseAction = ResponseAction(
+                  RestResolver.getRestUrl(
+                    UserServicesRest::class.java,
+                    "renewToken?token=$token"
+                  ), targetType = TargetType.POST
+                )
               )
             )
             .add(
               UIButton.createLinkButton(
-                id ="${id}-access",
+                id = "${id}-access",
                 title = "user.authenticationToken.button.showUsage",
                 tooltip = "user.authenticationToken.button.showUsage.tooltip",
                 responseAction = ResponseAction(

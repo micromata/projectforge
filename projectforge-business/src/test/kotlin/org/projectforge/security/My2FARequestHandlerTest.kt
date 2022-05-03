@@ -34,10 +34,10 @@ class My2FARequestHandlerTest {
   @Test
   fun matchesTest() {
     var handler = getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPTING", "/")
-    Assertions.assertEquals(AbstractCache.TICKS_PER_MINUTE, handler.matchesUri("/react/changePassword")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_MINUTE, handler.matchesUri("/rs/changePassword")?.expiryMillis)
     Assertions.assertEquals(
       AbstractCache.TICKS_PER_MINUTE,
-      handler.matchesUri("/react/changeWlanPassword")?.expiryMillis
+      handler.matchesUri("/rs/changeWlanPassword")?.expiryMillis
     )
     Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/wa/userEdit")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/wa/userEdit/124")?.expiryMillis)
@@ -120,25 +120,27 @@ class My2FARequestHandlerTest {
       config.expiryPeriodDays30 = days30
       config.expiryPeriodDays90 = days90
       val handler = My2FARequestHandler()
-      handler.registerShortCut(
+      handler.registerShortCutValues(
         "ADMIN",
-        "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin;/react/change.*Password;/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin"
+        "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin",
+        "/rs/change.*Password",
+        "/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin"
       )
-      handler.registerShortCut("HR", "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed")
-      handler.registerShortCut(
+      handler.registerShortCutValues("HR", "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed")
+      handler.registerShortCutValues(
         "FINANCE",
         "WRITE:incomingInvoice;WRITE:outgoingInvoice;/wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice"
       )
-      handler.registerShortCut(
+      handler.registerShortCutValues(
         "ORGA",
         "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract"
       )
-      handler.registerShortCut("SCRIPTING", "/react/script")
-      handler.registerShortCut("MY_ACCOUNT", "/react/tokenInfo;/react/myAccount;/rs/tokenInfo;/rs/user/renewToken")
-      handler.registerShortCut("PASSWORD", "/react/change.*Password")
-      handler.registerShortCut("ACCESS", "/rs/groupAccess/")
-      handler.registerShortCut("ALL", "/")
-      handler.configuration = config
+      handler.registerShortCutValues("SCRIPTING", "/react/script")
+      handler.registerShortCutValues("MY_ACCOUNT", "/react/tokenInfo;/react/myAccount;/rs/tokenInfo;/rs/user/renewToken")
+      handler.registerShortCutValues("PASSWORD", "/rs/change.*Password")
+      handler.registerShortCutValues("ACCESS", "/rs/groupAccess/")
+      handler.registerShortCutValues("ALL", "/")
+      handler.internalSet4UnitTests(config)
       return handler
     }
   }
