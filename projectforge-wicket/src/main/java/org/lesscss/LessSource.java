@@ -18,6 +18,7 @@ package org.lesscss;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -91,7 +92,7 @@ public class LessSource
     }
     this.file = file;
     this.content = this.normalizedContent = IOUtils.toString(stream, "UTF-8");
-    log.info("Less content: " + this.content);
+    log.debug("Less content: " + StringUtils.abbreviate(this.content, 50));
     resolveImports(folder);
   }
 
@@ -178,7 +179,7 @@ public class LessSource
     Matcher importMatcher = IMPORT_PATTERN.matcher(normalizedContent);
     while (importMatcher.find()) {
       String importedFile = importMatcher.group(2);
-      log.info("Less file to import: " + importedFile);
+      log.debug("Less file to import: " + importedFile);
       importedFile = importedFile.matches(".*\\.(le?|c)ss$") ? importedFile : importedFile + ".less";
       final boolean css = importedFile.matches(".*css$");
       if (!css) {
