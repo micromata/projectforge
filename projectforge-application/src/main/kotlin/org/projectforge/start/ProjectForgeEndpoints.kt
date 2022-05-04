@@ -26,6 +26,7 @@ package org.projectforge.start
 import mu.KotlinLogging
 import org.apache.wicket.Page
 import org.apache.wicket.markup.html.WebPage
+import org.projectforge.SystemStatus
 import org.projectforge.security.My2FARequestHandler
 import org.projectforge.web.admin.AdminPage
 import org.projectforge.web.admin.IProjectForgeEndpoints
@@ -34,7 +35,9 @@ import org.projectforge.web.wicket.AbstractUnsecureBasePage
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.ApplicationContext
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import org.springframework.web.method.HandlerMethod
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo
@@ -71,8 +74,10 @@ class ProjectForgeEndpoints : IProjectForgeEndpoints {
       val newWicketPagesMap = WebRegistry.getInstance().getMountPages()
       val requestMappingHandlerMapping = applicationContext.getBean(RequestMappingHandlerMapping::class.java)
       restEndPointsMap = requestMappingHandlerMapping.handlerMethods
-      restEndPointsMap.forEach { (key: RequestMappingInfo?, value: HandlerMethod?) ->
-        log.info("key=$key, value=$value")
+      if (log.isDebugEnabled) {
+        restEndPointsMap.forEach { (key: RequestMappingInfo?, value: HandlerMethod?) ->
+          log.debug { "key=$key, value=$value" }
+        }
       }
 
       val reflections = Reflections("org.projectforge")
@@ -102,7 +107,10 @@ class ProjectForgeEndpoints : IProjectForgeEndpoints {
     pw.println("--------------------------")
     pw.println(my2FARequestHandler.printConfiguration())
     pw.println("")
-    pw.println("2. endpoints")
+    pw.println("2. short cuts")
+    pw.println("------------")
+    pw.println(my2FARequestHandler.printResolvedShortCuts())
+    pw.println("3. endpoints")
     pw.println("------------")
     val endpoints: MutableList<String> = ArrayList()
     restEndPointsMap.forEach { (info: RequestMappingInfo, method: HandlerMethod?) ->
@@ -115,5 +123,12 @@ class ProjectForgeEndpoints : IProjectForgeEndpoints {
     }
     pw.println(my2FARequestHandler.printAllEndPoints(endpoints))
     return out.toString()
+  }
+
+  @EventListener(ApplicationReadyEvent::class)
+  fun onApplicationReady() {
+    if (SystemStatus.isDevelopmentMode()) {
+      log.info(info)
+    }
   }
 }

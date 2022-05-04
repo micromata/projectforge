@@ -40,8 +40,6 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class My2FARequestHandler {
-  enum class ACCESS { READ, WRITE, READ_WRITE }
-
   @Autowired
   private lateinit var configuration: My2FARequestConfiguration
 
@@ -126,14 +124,14 @@ open class My2FARequestHandler {
     return !period.valid("write access of $entity")
   }
 
-  private fun getExpiryPeriodForShortCut(shortCut: String): My2FAExpiryPeriod? {
+  private fun getExpiryPeriodForShortCut(shortCut: My2FAShortCut): My2FAExpiryPeriod? {
     synchronized(shortCuts) {
       if (expiryPeriodsDirty) {
         reload()
       }
     }
     expiryPeriods.forEach { period ->
-      if (period.usedShortCuts.contains(shortCut)) {
+      if (period.usedShortCuts.contains(shortCut.name)) {
         return period
       }
     }
@@ -180,8 +178,8 @@ open class My2FARequestHandler {
     }
     var result: My2FAExpiryPeriod?
     val normalizedUri = WebUtils.normalizeUri(uri) ?: uri
-    if (normalizedUri.startsWith("/rs/userStatus")) {
-      // userStatus should never require 2FA.
+    if (no2FAUrl(normalizedUri)) {
+      // /rs/userStatus and /rs/2FA/ should never require 2FA.
       return null
     }
     val paths = getParentPaths(normalizedUri)
@@ -211,6 +209,7 @@ open class My2FARequestHandler {
         }
       }
     }
+    // invoiceSelected: massUpate
     return null
   }
 
@@ -258,7 +257,7 @@ open class My2FARequestHandler {
     expiryPeriods.forEach { period ->
       sb.appendLine(period.expiryPeriod)
       sb.appendLine("  config value=${period.regex}")
-      period.regexArray.forEach {
+      period.regexArray.sortedBy { it.pattern }.forEach {
         sb.appendLine("    $it")
       }
       period.writeAccessEntities.forEach { entity ->
@@ -297,7 +296,24 @@ open class My2FARequestHandler {
     }
     sb.appendLine("  unmatched")
     unmatched.forEach { uri ->
-      sb.appendLine("  - ${uri}")
+      if (no2FAUrl(uri)) {
+        sb.appendLine("  - ${uri} (ignored: no-2FA-url, OK)")
+      } else {
+        sb.appendLine("  - ${uri}")
+      }
+    }
+    return sb.toString()
+  }
+
+  fun printResolvedShortCuts(): String {
+    val sb = StringBuilder()
+    My2FAShortCut.values().forEach { shortCut ->
+      sb.appendLine("  ${shortCut.name}")
+      shortCuts[shortCut.name]?.split(";")?.sorted()?.forEach { value ->
+        if (value.isNotBlank()) {
+          sb.appendLine("    $value")
+        }
+      }
     }
     return sb.toString()
   }
@@ -305,6 +321,18 @@ open class My2FARequestHandler {
   companion object {
     @JvmField
     val MY_2FA_URL = MenuItemDefId.MY_2FA.url!!
+
+    private val NO_2FA_URLS = arrayOf("/rs/2FA", "/rs/userStatus", "/rsPublic", "/rs/webauthn/webAuthn")
+
+    private fun no2FAUrl(normalizedUri: String): Boolean {
+      NO_2FA_URLS.forEach { url ->
+        if (normalizedUri.startsWith(url)) {
+          // /rs/userStatus and /rs/2FA/ should never require 2FA.
+          return true
+        }
+      }
+      return false
+    }
 
     /**
      * For getting the shortest matching url.
@@ -336,11 +364,11 @@ open class My2FARequestHandler {
    * value.
    * @return this for chaining.
    */
-  fun registerShortCutValues(shortCut: String, vararg values: String)
+  fun registerShortCutValues(shortCut: My2FAShortCut, vararg values: String)
       : My2FARequestHandler {
     synchronized(shortCuts) {
       val sb = StringBuilder()
-      shortCuts[shortCut]?.let {
+      shortCuts[shortCut.name]?.let {
         sb.append(it)
         if (!it.endsWith(";")) {
           sb.append(";")
@@ -352,18 +380,18 @@ open class My2FARequestHandler {
           sb.append(";")
         }
       }
-      shortCuts[shortCut] = sb.toString()
+      shortCuts[shortCut.name] = sb.toString()
       expiryPeriodsDirty = true
     }
     return this
   }
 
   init {
-    registerShortCutValues("ALL", "/")
+    registerShortCutValues(My2FAShortCut.ALL, "/wa", "/rs/")
   }
 
-  fun getShortCutResolved(shortCut: String): String? {
-    return shortCuts[shortCut]
+  fun getShortCutResolved(shortCut: My2FAShortCut): String? {
+    return shortCuts[shortCut.name]
   }
 
   fun register(page: My2FAPage) {

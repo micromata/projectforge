@@ -140,6 +140,7 @@ internal class My2FAExpiryPeriod(
       list.add("^/rs/$entity/${RestPaths.UNDELETE}.*")
       list.add("^/rs/$entity/${RestPaths.UPDATE}.*")
       list.add("^/rs/$entity/${RestPaths.WATCH_FIELDS}.*")
+      list.add("^/rs/${entity}Selected/massUpdate.*")
       return
     }
     if (exp.startsWith("/")) {
