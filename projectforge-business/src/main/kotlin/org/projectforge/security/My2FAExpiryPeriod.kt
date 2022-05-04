@@ -122,6 +122,10 @@ internal class My2FAExpiryPeriod(
   }
 
   private fun addRegex(list: MutableList<String>, exp: String) {
+    if (exp.isBlank()) {
+      // Occurs on split (..;..;) by trailing ';'
+      return
+    }
     if (exp.startsWith("WRITE:")) {
       val entity = exp.removePrefix("WRITE:").trim()
       writeAccessEntities.add(entity)
