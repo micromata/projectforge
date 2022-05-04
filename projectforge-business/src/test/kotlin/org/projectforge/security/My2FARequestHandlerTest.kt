@@ -33,7 +33,7 @@ import org.projectforge.model.rest.RestPaths
 class My2FARequestHandlerTest {
   @Test
   fun matchesTest() {
-    var handler = getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPTING", "/")
+    var handler = getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPT", "/")
     Assertions.assertEquals(AbstractCache.TICKS_PER_MINUTE, handler.matchesUri("/rs/changePassword")?.expiryMillis)
     Assertions.assertEquals(
       AbstractCache.TICKS_PER_MINUTE,
@@ -49,7 +49,7 @@ class My2FARequestHandlerTest {
     Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/react/myAccount")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 30, handler.matchesUri("/wa/outgoingInvoice")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 90, handler.matchesUri("/unknown-url")?.expiryMillis)
-    handler = getHandler("PASSWORD; ACCESS", "", "ADMIN;MY_ACCOUNT")
+    handler = getHandler("PASSWORD;", "", "ADMIN;MY_ACCOUNT")
     Assertions.assertNull(handler.matchesUri("/unknown-url")?.expiryMillis)
   }
 
@@ -79,7 +79,7 @@ class My2FARequestHandlerTest {
 
   @Test
   fun remainingPeriodTest() {
-    val handler = getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPTING", "/")
+    val handler = getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPT", "/")
     val user = PFUserDO()
     ThreadLocalUserContext.setUser(user)
     Assertions.assertEquals(0L, handler.getRemainingPeriod4WriteAccess("user"))
