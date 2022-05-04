@@ -127,6 +127,12 @@
             <artifactId>kotlin-stdlib</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
+        <!-- Needed to get all Wicket-pages in ProjectForgeEndpoints. -->
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>${org.reflections.version}</version>
+        </dependency>
     </dependencies>
     <profiles>
         <!-- https://stackoverflow.com/questions/37833877/intellij-spring-boot-propertieslauncher -->

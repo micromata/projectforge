@@ -37,7 +37,6 @@ import org.projectforge.business.systeminfo.SystemService;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
-import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
@@ -49,13 +48,11 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.jcr.JCRCheckSanityJob;
 import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.security.My2FARequestHandler;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -103,6 +100,12 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   PluginAdminService pluginAdminService;
 
   private final AdminForm form;
+
+  private static IProjectForgeEndpoints projectForgeEndpoints;
+
+  public static void set(IProjectForgeEndpoints endpoints) {
+    projectForgeEndpoints = endpoints;
+  }
 
   @Override
   protected void onBeforeRender() {
@@ -379,29 +382,10 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void export2FAConfiguration() {
     log.info("Administration: export 2FA configuration file config-2FA.txt.");
     checkAccess();
-    My2FARequestHandler my2FARequestHandler = ApplicationContextProvider.getApplicationContext().getBean(My2FARequestHandler.class);
-    StringWriter out = new StringWriter();
-    PrintWriter pw = new PrintWriter(out);
-    pw.println("2FA configurationdfadfas");
-    pw.println("-----------------");
-    pw.println("");
-    pw.println("1. effective configuration");
-    pw.println("--------------------------");
-    pw.println(my2FARequestHandler.printConfiguration());
-    pw.println("");
-    pw.println("2. endpoints");
-    pw.println("------------");
-    List<String> endpoints = new ArrayList<>();
-    ApplicationContextProvider.getApplicationContext().getBean(RequestMappingHandlerMapping.class).getHandlerMethods()
-        .forEach((info, method) -> {
-          if (!info.getDirectPaths().isEmpty()) {
-            endpoints.add(info.getDirectPaths().iterator().next());
-          }
-        });
-    pw.println(my2FARequestHandler.printAllEndPoints(endpoints));
     final String filename = "config-2FA" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
+    final String content = projectForgeEndpoints.getInfo();
     DownloadUtils.setUTF8CharacterEncoding(getResponse());
-    DownloadUtils.setDownloadTarget(out.toString().getBytes(), filename);
+    DownloadUtils.setDownloadTarget(content.getBytes(), filename);
   }
 
   protected void checkI18nProperties() {

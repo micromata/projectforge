@@ -230,8 +230,13 @@ public class WebRegistry
 
   public String getMountPoint(Class<? extends Page> pageClass) {
     for (Map.Entry<String, Class<? extends WebPage>> entry : mountPages.entrySet()) {
-      if (pageClass.equals(entry.getValue()))
+      if (pageClass.equals(entry.getValue())) {
+        final String key = entry.getKey();
+        if (key.contains("wa")) {
+          return key;
+        }
         return "wa/" + entry.getKey();
+      }
     }
     return "wa/wicket/bookmarkable/" + pageClass.getName();
   }

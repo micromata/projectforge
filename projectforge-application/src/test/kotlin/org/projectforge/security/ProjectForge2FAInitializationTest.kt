@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.config
+package org.projectforge.security
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -31,6 +31,7 @@ import org.projectforge.rest.ChangeWlanPasswordPageRest
 import org.projectforge.rest.admin.AdminLogViewerPageRest
 import org.projectforge.security.My2FARequestConfiguration
 import org.projectforge.security.My2FARequestHandler
+import org.projectforge.security.ProjectForge2FAInitialization
 
 class ProjectForge2FAInitializationTest {
   @Test
@@ -42,15 +43,22 @@ class ProjectForge2FAInitializationTest {
     val config = My2FARequestConfiguration()
     initialization.my2FARequestHandler.internalSet4UnitTests(config)
     initialization.init()
-    initialization.registerShortCutValues("TEST", ChangePasswordPageRest::class)
-    initialization.registerShortCutValues("TEST", ChangeWlanPasswordPageRest::class)
+    initialization.registerShortCutClasses("TEST", ChangePasswordPageRest::class.java)
+    initialization.registerShortCutClasses("TEST", ChangeWlanPasswordPageRest::class.java)
     Assertions.assertEquals("/rs/changePassword;/rs/changeWlanPassword;", my2FARequestHandler.getShortCutResolved("TEST"))
     my2FARequestHandler.registerShortCutValues("TEST2", "/rs/abc", "/rs/cde;")
-    initialization.registerShortCutValues("TEST2", ChangePasswordPageRest::class)
+    try {
+      initialization.registerShortCutMethods("TEST2", ChangePasswordPageRest::class.java)
+      Assertions.fail("IllegalArgumentException expected, because methods not given.")
+    } catch (ex: IllegalArgumentException) {
+      // OK
+    }
+    initialization.registerShortCutClasses("TEST2", ChangePasswordPageRest::class.java)
     Assertions.assertEquals("/rs/abc;/rs/cde;/rs/changePassword;", my2FARequestHandler.getShortCutResolved("TEST2"))
-    initialization.registerShortCutValues("TEST3", AdminLogViewerPageRest::class.java, AdminLogViewerPageRest::search, AdminLogViewerPageRest::refresh)
+    initialization.registerShortCutMethods("TEST3", AdminLogViewerPageRest::class.java, AdminLogViewerPageRest::search, AdminLogViewerPageRest::refresh)
     Assertions.assertEquals("/rs/adminLogViewer/search;/rs/adminLogViewer/refresh;", my2FARequestHandler.getShortCutResolved("TEST3"))
 
     Assertions.assertEquals("/rs/myAccount;/rs/tokenInfo;/rs/user/renewToken;", my2FARequestHandler.getShortCutResolved("MY_ACCOUNT"))
+    initialization.checkShortCuts()
   }
 }
