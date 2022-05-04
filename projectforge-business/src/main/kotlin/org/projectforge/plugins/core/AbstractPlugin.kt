@@ -72,7 +72,8 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
   protected lateinit var userRights: UserRightService
 
   @Autowired
-  private lateinit var pluginAdminService: PluginAdminService
+  internal lateinit var projectForge2FAInitialization: IProjectForge2FAInitialization
+    private set
 
   val id: String
     get() = info.id
@@ -176,28 +177,28 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
   }
 
   fun registerShortCutValues(shortCut: My2FAShortCut, vararg values: String) {
-    pluginAdminService.projectForge2FAInitialization.registerShortCutValues(shortCut, *values)
+    projectForge2FAInitialization.registerShortCutValues(shortCut, *values)
   }
 
   /**
    * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
    */
   fun registerShortCutClasses(shortCut: My2FAShortCut, vararg restClasses: Class<*>) {
-      pluginAdminService.projectForge2FAInitialization.registerShortCutClasses(shortCut, *restClasses)
+      projectForge2FAInitialization.registerShortCutClasses(shortCut, *restClasses)
   }
 
   /**
    * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
    */
   fun registerShortCutMethods(shortCut: My2FAShortCut, restClass: Class<*>, vararg methods: KFunction<*>) {
-      pluginAdminService.projectForge2FAInitialization.registerShortCutMethods(shortCut, restClass, *methods)
+      projectForge2FAInitialization.registerShortCutMethods(shortCut, restClass, *methods)
   }
 
   /**
    * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
    */
   fun registerShortCutMethods(shortCut: My2FAShortCut, vararg methods: KFunction<*>) {
-      pluginAdminService.projectForge2FAInitialization.registerShortCutMethods(shortCut, *methods)
+      projectForge2FAInitialization.registerShortCutMethods(shortCut, *methods)
   }
 
   /**
