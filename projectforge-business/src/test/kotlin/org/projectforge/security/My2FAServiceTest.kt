@@ -55,7 +55,7 @@ class My2FAServiceTest : AbstractTestBase() {
       "Invalid token, so OTP validation should fail."
     )
     val handler =
-      My2FARequestHandlerTest.getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPTING", "/")
+      My2FARequestHandlerTest.getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPT", "/")
     Assertions.assertEquals(
       0L,
       handler.getRemainingPeriod4WriteAccess("user"),
