@@ -29,9 +29,6 @@ import org.projectforge.SystemStatus
 import org.projectforge.rest.ChangePasswordPageRest
 import org.projectforge.rest.ChangeWlanPasswordPageRest
 import org.projectforge.rest.admin.AdminLogViewerPageRest
-import org.projectforge.security.My2FARequestConfiguration
-import org.projectforge.security.My2FARequestHandler
-import org.projectforge.security.ProjectForge2FAInitialization
 
 class ProjectForge2FAInitializationTest {
   @Test
@@ -59,6 +56,5 @@ class ProjectForge2FAInitializationTest {
     Assertions.assertEquals("/rs/adminLogViewer/search;/rs/adminLogViewer/refresh;", my2FARequestHandler.getShortCutResolved("TEST3"))
 
     Assertions.assertEquals("/rs/myAccount;/rs/tokenInfo;/rs/user/renewToken;", my2FARequestHandler.getShortCutResolved("MY_ACCOUNT"))
-    initialization.checkShortCuts()
   }
 }
