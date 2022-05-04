@@ -27,14 +27,17 @@ import mu.KotlinLogging
 import org.projectforge.rest.*
 import org.projectforge.rest.admin.AdminLogViewerPageRest
 import org.projectforge.rest.core.RestResolver
-import org.projectforge.rest.fibu.EingangsrechnungPagesRest
-import org.projectforge.rest.fibu.RechnungPagesRest
+import org.projectforge.rest.fibu.*
 import org.projectforge.rest.fibu.kost.Kost1PagesRest
 import org.projectforge.rest.fibu.kost.Kost2PagesRest
 import org.projectforge.rest.orga.AccountingRecordPagesRest
+import org.projectforge.rest.orga.PostausgangPagesRest
+import org.projectforge.rest.orga.PosteingangPagesRest
+import org.projectforge.rest.orga.VisitorbookPagesRest
 import org.projectforge.rest.scripting.MyScriptExecutePageRest
 import org.projectforge.rest.scripting.MyScriptPagesRest
 import org.projectforge.rest.scripting.ScriptExecutePageRest
+import org.projectforge.rest.scripting.ScriptPagesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import javax.annotation.PostConstruct
@@ -62,7 +65,7 @@ open class ProjectForge2FAInitialization {
     )
     registerShortCutValues(
       "ADMIN",
-      "WRITE:user;WRITE:group;/wa/user;/wa/group;/wa/admin",
+      "/wa/user;/wa/group;/wa/admin",
       "/wa/license;/wa/access",
       // LuceneConsole, GroovyConsole, SQLConsole:
       "/wa/wicket/bookmarkable/org.projectforge.web.admin",
@@ -77,31 +80,58 @@ open class ProjectForge2FAInitialization {
     )
 
     registerShortCutValues(
-      "HR",
-      "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed"
+      "HR-WRITE",
+      "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed;/wa/hrPlanningEdit"
     )
     registerShortCutValues(
+      "HR",
+      "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed;/wa/hr"
+    )
+
+    registerShortCutValues(
+      "FINANCE-WRITE",
+      "/wa/reportEdit;/wa/accountingEdit;/wa/datev;/wa/liquidityplanningEdit;/wa/incomingInvoiceEdit;/wa/outgoingInvoiceEdit;/wa/cost.*Edit;/wa/customerEdit;/wa/accountEdit;",
+      "/wa/projectEdit;/wa/orderBookEdit"
+    )
+
+    registerShortCutValues(
       "FINANCE",
-      "WRITE:incomingInvoice;WRITE:outgoingInvoice;/wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/wa/incomingInvoice;/wa/outgoingInvoice"
+      "/wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/wa/incomingInvoice;/wa/outgoingInvoice;/wa/cost;/wa/customer;/wa/account;",
+      "/wa/project;/wa/orderBook"
     )
     registerShortCutClasses(
       "FINANCE",
       AccountingRecordPagesRest::class.java,
       Kost1PagesRest::class.java,
       Kost2PagesRest::class.java,
+      KontoPagesRest::class.java,
       EingangsrechnungPagesRest::class.java,
       RechnungPagesRest::class.java,
+      CustomerPagesRest::class.java,
+      ProjectPagesRest::class.java,
+      AuftragPagesRest::class.java,
     )
 
     my2FARequestHandler.registerShortCutValues(
-      "ORGA",
-      "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;"
+      "ORGA-WRITE",
+      "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;WRITE:visitorBook;/wa/.*VisitorbookEdit"
     )
+    my2FARequestHandler.registerShortCutValues(
+      "ORGA",
+      "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/wa/.*Visitorbook"
+    )
+    registerShortCutClasses("ORGA",
+      PostausgangPagesRest::class.java,
+      PosteingangPagesRest::class.java,
+      VisitorbookPagesRest::class.java,
+    )
+
     my2FARequestHandler.registerShortCutValues(
       "SCRIPT-WRITE", "WRITE:script"
     )
     registerShortCutClasses(
-      "SCRIPT-EXECUTE",
+      "SCRIPT",
+      ScriptPagesRest::class.java,
       MyScriptPagesRest::class.java,
       MyScriptExecutePageRest::class.java,
       ScriptExecutePageRest::class.java,

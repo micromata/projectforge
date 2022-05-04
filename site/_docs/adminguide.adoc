@@ -583,7 +583,12 @@ password change.
 
 ==== 2FA (two-factor-authentication)
 
-2FA (two factor autentication) is supported by using RFC6238, used by e. g. Google or Microsoft Authenticator.
+2FA (two factor autentication) is supported:
+
+ * by using RFC6238, used by e. g. Google or Microsoft Authenticator.
+ * SMS if configured
+ * Fido2/WebAuthn (e. g. Yubikey)
+
 You may specify the expiry periods of 2FA for different expiry periods URL's by shortcuts for
 predefined sets of uri matchers and/or own regular expressions (as uri matchers).
 A web filter checks for every request, if there is a 2FA is required and
@@ -600,9 +605,11 @@ Recoomended example configuration:
 ...
 # Recommended setup
 projectforge.2fa.expiryPeriod.minutes1=PASSWORD
-projectforge.2fa.expiryPeriod.hours1=ADMIN;MY_ACCOUNT
-projectforge.2fa.expiryPeriod.hours8=
-projectforge.2fa.expiryPeriod.days30=HR;FINANCE;ORGA;SCRIPTING
+projectforge.2fa.expiryPeriod.hours1=ADMIN-WRITE;MY_ACCOUNT;SCRIPT-WRITE
+projectforge.2fa.expiryPeriod.hours8=ADMIN;SCRIPT;FINANCE-WRITE;ORGA-WRITE;HR-WRITE;
+projectforge.2fa.expiryPeriod.days30=HR;FINANCE;ORGA
+projectforge.2fa.expiryPeriod.days90=/
+projectforge.2fa.loginExpiryPeriod=30
 # Every access requires at least valid 2FA every 90 days:
 projectforge.2fa.expiryPeriod.days90=/
 ....
