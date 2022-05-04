@@ -40,6 +40,8 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class My2FARequestHandler {
+  enum class ACCESS { READ, WRITE, READ_WRITE }
+
   @Autowired
   private lateinit var configuration: My2FARequestConfiguration
 
@@ -60,6 +62,12 @@ open class My2FARequestHandler {
    * If the key is given, but the expiry period is null, then no write protection is defined.
    */
   private var entitiesWriteAccessMap = mutableMapOf<String, My2FAExpiryPeriod?>()
+
+  /**
+   * For caching expiry periods for entities (ENTITY:<entity>). Key is the entity name.
+   * If the key is given, but the expiry period is null, then no entity protection is defined.
+   */
+  private var entitiesAccessMap = mutableMapOf<String, My2FAExpiryPeriod?>()
 
   private var my2FAPage: My2FAPage? = null
 
@@ -83,20 +91,6 @@ open class My2FARequestHandler {
   fun getRemainingPeriod4WriteAccess(entity: String): Long? {
     val expiryPeriod = matchesEntity(entity) ?: return null // No expiryPeriod matches: return null
     return expiryPeriod.remainingPeriod()
-  }
-
-  fun redirectIfPeriod4ShortCutIsInvalid(
-    action: String,
-    request: HttpServletRequest,
-    response: HttpServletResponse,
-    shortCut: String
-  ): Boolean {
-    val expiryPeriod = getExpiryPeriodForShortCut(shortCut) ?: return true
-    if (!expiryPeriod.valid(action, request)) {
-      my2FAPage!!.redirect(request, response, expiryPeriod.expiryMillis)
-      return false
-    }
-    return true
   }
 
   /**
@@ -186,6 +180,10 @@ open class My2FARequestHandler {
     }
     var result: My2FAExpiryPeriod?
     val normalizedUri = WebUtils.normalizeUri(uri) ?: uri
+    if (normalizedUri.startsWith("/rs/userStatus")) {
+      // userStatus should never require 2FA.
+      return null
+    }
     val paths = getParentPaths(normalizedUri)
     synchronized(uriMap) {
       paths.forEach { path ->
