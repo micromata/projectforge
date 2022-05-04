@@ -51,6 +51,10 @@ open class PluginAdminService {
   @Autowired
   private lateinit var applicationContext: ApplicationContext
 
+  @Autowired
+  internal lateinit var projectForge2FAInitialization: IProjectForge2FAInitialization
+    private set
+
   /**
    * All plugins registered as Spring components (activated as well as not activated ones).
    */

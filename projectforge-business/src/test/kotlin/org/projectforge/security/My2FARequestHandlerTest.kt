@@ -121,25 +121,25 @@ class My2FARequestHandlerTest {
       config.expiryPeriodDays90 = days90
       val handler = My2FARequestHandler()
       handler.registerShortCutValues(
-        "ADMIN",
+        My2FAShortCut.ADMIN,
         "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin",
         "/rs/change.*Password",
         "/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin"
       )
-      handler.registerShortCutValues("HR", "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed")
+      handler.registerShortCutValues(My2FAShortCut.HR, "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed")
       handler.registerShortCutValues(
-        "FINANCE",
+        My2FAShortCut.FINANCE,
         "WRITE:incomingInvoice;WRITE:outgoingInvoice;/wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice"
       )
       handler.registerShortCutValues(
-        "ORGA",
+        My2FAShortCut.ORGA,
         "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract"
       )
-      handler.registerShortCutValues("SCRIPTING", "/react/script")
-      handler.registerShortCutValues("MY_ACCOUNT", "/react/tokenInfo;/react/myAccount;/rs/tokenInfo;/rs/user/renewToken")
-      handler.registerShortCutValues("PASSWORD", "/rs/change.*Password")
-      handler.registerShortCutValues("ACCESS", "/rs/groupAccess/")
-      handler.registerShortCutValues("ALL", "/")
+      handler.registerShortCutValues(My2FAShortCut.SCRIPT, "/react/script")
+      handler.registerShortCutValues(My2FAShortCut.MY_ACCOUNT, "/react/tokenInfo;/react/myAccount;/rs/tokenInfo;/rs/user/renewToken")
+      handler.registerShortCutValues(My2FAShortCut.PASSWORD, "/rs/change.*Password")
+      handler.registerShortCutValues(My2FAShortCut.ADMIN, "/rs/groupAccess/")
+      handler.registerShortCutValues(My2FAShortCut.ALL, "/")
       handler.internalSet4UnitTests(config)
       return handler
     }

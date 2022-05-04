@@ -605,13 +605,13 @@ Recoomended example configuration:
 ...
 # Recommended setup
 projectforge.2fa.expiryPeriod.minutes1=PASSWORD
-projectforge.2fa.expiryPeriod.hours1=ADMIN-WRITE;MY_ACCOUNT;SCRIPT-WRITE
-projectforge.2fa.expiryPeriod.hours8=ADMIN;SCRIPT;FINANCE-WRITE;ORGA-WRITE;HR-WRITE;
+projectforge.2fa.expiryPeriod.hours1=ADMIN_WRITE;MY_ACCOUNT;SCRIPT_WRITE
+projectforge.2fa.expiryPeriod.hours8=ADMIN;SCRIPT;FINANCE_WRITE;ORGA_WRITE;HR_WRITE
 projectforge.2fa.expiryPeriod.days30=HR;FINANCE;ORGA
-projectforge.2fa.expiryPeriod.days90=/
+projectforge.2fa.expiryPeriod.days90=
+# Number of days a 2FA is required, when stay-logged-in is used. Without stay-logged-in and given, a 2FA is required
+# after every login.
 projectforge.2fa.loginExpiryPeriod=30
-# Every access requires at least valid 2FA every 90 days:
-projectforge.2fa.expiryPeriod.days90=/
 ....
 ----
 
