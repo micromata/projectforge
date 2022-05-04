@@ -322,12 +322,12 @@ open class My2FARequestHandler {
     @JvmField
     val MY_2FA_URL = MenuItemDefId.MY_2FA.url!!
 
-    private val NO_2FA_URLS = arrayOf("/rs/2FA", "/rs/userStatus", "/rsPublic", "/rs/webauthn/webAuthn")
+    private val NO_2FA_URLS = arrayOf("/rs/menu", "/rs/userStatus", "/rs/2FA", "/rsPublic", "/rs/webauthn/webAuthn")
 
     private fun no2FAUrl(normalizedUri: String): Boolean {
       NO_2FA_URLS.forEach { url ->
         if (normalizedUri.startsWith(url)) {
-          // /rs/userStatus and /rs/2FA/ should never require 2FA.
+          // /rs/userStatus, /rs/2FA/, /rs/menu etc. should never require 2FA.
           return true
         }
       }
