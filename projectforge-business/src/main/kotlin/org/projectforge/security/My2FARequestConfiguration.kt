@@ -53,6 +53,13 @@ open class My2FARequestConfiguration {
   lateinit var accessChecker: AccessChecker
 
   /**
+   * If given, an e-mail as 2nd factor isn't allowed / provided for users of these groups (coma separated). Recommended is PF_Admin
+   */
+  @Value("\${projectforge.2fa.disableMail2FAForGroups}")
+  var disableEmail2FAForGroups: String? = null
+    private set // internal for test cases
+
+  /**
    * If given, 2FA is required at least after given days, if stay-logged-in functionality is used. Without
    * stay-logged-in 2FA is required on every log-in.
    */
