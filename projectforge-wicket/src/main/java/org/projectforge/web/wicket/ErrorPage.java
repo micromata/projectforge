@@ -44,6 +44,7 @@ import org.projectforge.web.SendFeedback;
 import org.projectforge.web.SendFeedbackData;
 
 import javax.servlet.ServletException;
+import java.net.ConnectException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -178,9 +179,12 @@ public class ErrorPage extends AbstractSecuredPage {
     body.add(feedbackPanel);
 
     if (throwable == null ||
-        throwable instanceof ComponentNotFoundException) {
-      // Do nothing, this Exception can't be avoided. It occurs if the user clicks and navigates throw the
+        throwable instanceof ComponentNotFoundException ||
+        throwable instanceof ConnectException) {
+      // Do nothing, ComponentNotFoundException can't be avoided. It occurs if the user clicks and navigates throw the
       // AddressListPage, then image components will be removed.
+      // ConnectException occurs if the user's browser isn't available for the response anymore (e. g. long running
+      // requests and the user clicks another action inbetween etc.).
       if (throwable == null) {
         // On CallAllPagesTest:
         log.error("ErrorPage shown for user, but no message sent to support team.");

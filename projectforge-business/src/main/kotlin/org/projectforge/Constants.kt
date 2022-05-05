@@ -121,7 +121,7 @@ object Constants {
   const val MILLIS_PER_WEEK = MILLIS_PER_DAY * 7
 
   @JvmStatic
-  fun isTimesheetCalendarId(id: Int): Boolean {
+  fun isTimesheetCalendarId(id: Int?): Boolean {
     return id == TIMESHEET_CALENDAR_ID
   }
 }
