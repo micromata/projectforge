@@ -459,7 +459,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
 
   public static String calcCalendarStringForCalendar(final Integer calendarId)
   {
-    if (Constants.isTimesheetCalendarId(calendarId) || calendarId == null) {
+    if ( calendarId == null || Constants.isTimesheetCalendarId(calendarId)) {
       return Constants.EVENT_CLASS_NAME;
     } else {
       return String.valueOf(calendarId);
