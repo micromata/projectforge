@@ -42,7 +42,9 @@ class ProjectForge2FAInitializationTest {
     initialization.init()
     initialization.registerShortCutClasses(My2FAShortCut.INTERNAL_TEST, ChangePasswordPageRest::class.java)
     initialization.registerShortCutClasses(My2FAShortCut.INTERNAL_TEST, ChangeWlanPasswordPageRest::class.java)
-    Assertions.assertEquals("/rs/changePassword;/rs/changeWlanPassword;", my2FARequestHandler.getShortCutResolved(My2FAShortCut.INTERNAL_TEST))
+    Assertions.assertEquals("/rs/changePassword;/rs/changeWlanPassword;", my2FARequestHandler.getShortCutResolved(
+      My2FAShortCut.INTERNAL_TEST
+    ))
     my2FARequestHandler.registerShortCutValues(My2FAShortCut.INTERNAL_TEST2, "/rs/abc", "/rs/cde;")
     try {
       initialization.registerShortCutMethods(My2FAShortCut.INTERNAL_TEST2, ChangePasswordPageRest::class.java)
@@ -53,8 +55,12 @@ class ProjectForge2FAInitializationTest {
     initialization.registerShortCutClasses(My2FAShortCut.INTERNAL_TEST2, ChangePasswordPageRest::class.java)
     Assertions.assertEquals("/rs/abc;/rs/cde;/rs/changePassword;", my2FARequestHandler.getShortCutResolved(My2FAShortCut.INTERNAL_TEST2))
     initialization.registerShortCutMethods(My2FAShortCut.INTERNAL_TEST3, AdminLogViewerPageRest::class.java, AdminLogViewerPageRest::search, AdminLogViewerPageRest::refresh)
-    Assertions.assertEquals("/rs/adminLogViewer/search;/rs/adminLogViewer/refresh;", my2FARequestHandler.getShortCutResolved(My2FAShortCut.INTERNAL_TEST3))
+    Assertions.assertEquals("/rs/adminLogViewer/search;/rs/adminLogViewer/refresh;", my2FARequestHandler.getShortCutResolved(
+      My2FAShortCut.INTERNAL_TEST3
+    ))
 
-    Assertions.assertEquals("/rs/myAccount;/rs/tokenInfo;/rs/user/renewToken;", my2FARequestHandler.getShortCutResolved(My2FAShortCut.MY_ACCOUNT))
+    Assertions.assertEquals("/rs/myAccount;/rs/tokenInfo;/rs/user/renewToken;", my2FARequestHandler.getShortCutResolved(
+      My2FAShortCut.MY_ACCOUNT
+    ))
   }
 }
