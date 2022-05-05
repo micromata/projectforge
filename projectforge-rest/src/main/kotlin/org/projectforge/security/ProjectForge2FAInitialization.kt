@@ -90,7 +90,8 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       My2FAShortCut.HR,
       "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed;/wa/hr"
     )
-    registerShortCutClasses(My2FAShortCut.HR,
+    registerShortCutClasses(
+      My2FAShortCut.HR,
       LeaveAccountEntryPagesRest::class.java,
       HRPlanningPagesRest::class.java,
       HRPlanningListPagesRest::class.java,
