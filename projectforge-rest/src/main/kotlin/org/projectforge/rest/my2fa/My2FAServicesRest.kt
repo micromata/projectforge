@@ -385,7 +385,7 @@ class My2FAServicesRest {
     if (smsAvailable) {
       codeCol.add(createSendButton(My2FAType.SMS, restServiceClass))
     }
-    if (!mailOTPDisabled) {
+    if (!mailOTPDisabled && !my2FAService.isMail2FADisabledForUser(userContext)) {
       codeCol.add(createSendButton(My2FAType.MAIL, restServiceClass))
     }
   }

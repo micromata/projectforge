@@ -71,4 +71,15 @@ class My2FAServiceTest : AbstractTestBase() {
     )
     My2FARequestHandlerTest.checkRemainingPeriod(handler.getRemainingPeriod4WriteAccess("user"), 1)
   }
+
+  @Test
+  fun disabledTest() {
+    my2FAService.setDisabled(null)
+    logon(TEST_ADMIN_USER)
+    Assertions.assertFalse(my2FAService.isMail2FADisabledForUser(), "No groups disabled for 2FA via mail.")
+    my2FAService.setDisabled("PF_Admin")
+    Assertions.assertTrue(my2FAService.isMail2FADisabledForUser(), "Admins disabled for 2FA via mail.")
+    logon(TEST_FINANCE_USER)
+    Assertions.assertFalse(my2FAService.isMail2FADisabledForUser(), "Admins disabled for 2FA via mail.")
+  }
 }
