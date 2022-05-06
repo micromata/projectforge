@@ -36,20 +36,15 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.excel.ContentProvider;
 import org.projectforge.business.excel.ExportColumn;
-import org.projectforge.business.excel.I18nExportColumn;
 import org.projectforge.business.excel.PropertyMapping;
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.KundeFormatter;
-import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.ldap.LdapUserDao;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightValue;
-import org.projectforge.common.BeanHelper;
 import org.projectforge.export.DOListExcelExporter;
-import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.framework.i18n.TimeAgo;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -61,7 +56,6 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @ListPage(editPage = UserEditPage.class)
@@ -139,13 +133,13 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
       }
     });
     columns.add(new CellItemListenerPropertyColumn<PFUserDO>(new Model<String>(getString("user.activated")),
-            getSortable("deactivated",
+        getSortable("deactivated",
             sortable),
         "deactivated", cellItemListener)
     {
       @Override
       public void populateItem(final Item<ICellPopulator<PFUserDO>> item, final String componentId,
-          final IModel<PFUserDO> rowModel)
+                               final IModel<PFUserDO> rowModel)
       {
         final PFUserDO user = rowModel.getObject();
         if (user.getDeactivated() == false) {
@@ -153,6 +147,24 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
         } else {
           item.add(new IconPanel(componentId, IconType.DENY));
         }
+        cellItemListener.populateItem(item, componentId, rowModel);
+      }
+    });
+    //columns.add(
+    //    new CellItemListenerPropertyColumn<PFUserDO>(getString("login.lastLogin"), getSortable("lastLogin", sortable), "lastLogin",
+    //        cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<>(new Model<>(getString("login.lastLogin")),
+        getSortable("lastLogin",
+            sortable),
+        "lastLogin", cellItemListener)
+    {
+      @Override
+      public void populateItem(final Item<ICellPopulator<PFUserDO>> item, final String componentId,
+                               final IModel<PFUserDO> rowModel)
+      {
+        final PFUserDO user = rowModel.getObject();
+        final Label label = new Label(componentId, new Model<>(TimeAgo.getMessage(user.getLastLogin())));
+        item.add(label);
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
