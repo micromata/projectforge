@@ -42,6 +42,7 @@ import org.projectforge.business.login.Login;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UsersComparator;
+import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -51,12 +52,11 @@ import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.slf4j.Logger;
-import org.wicketstuff.select2.Select2Choice;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 import java.util.Collection;
@@ -78,6 +78,9 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
 
   @SpringBean
   UserDao userDao;
+
+  @SpringBean
+  UserService userService;
 
   @SpringBean
   GroupDOConverter groupDOConverter;
@@ -178,6 +181,12 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
         ldapGroupValues = new LdapGroupValues();
       }
       addLdapStuff();
+    }
+    gridBuilder.newSplitPanel(GridSize.COL100);
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("address.emails"));
+      DivTextPanel emails = new DivTextPanel(fs.newChildId(), userService.getUserMails(getData().getAssignedUsers()));
+      fs.add(emails);
     }
 
     // {

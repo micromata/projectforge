@@ -23,6 +23,7 @@
 
 package org.projectforge.business.user.service;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -104,6 +105,26 @@ public class UserService {
       }
     }
     return list;
+  }
+
+  public String getUserMails(final Collection<PFUserDO> users) {
+    if (CollectionUtils.isEmpty(users)) {
+      return "";
+    }
+    StringBuilder sb = new StringBuilder();
+    boolean first = true;
+    for (PFUserDO user: users) {
+      String mail = user.getEmail();
+      if (StringUtils.isNotBlank(mail)) {
+        if (first) {
+          first = false;
+        } else {
+          sb.append(", ");
+        }
+        sb.append(mail);
+      }
+    }
+    return sb.toString();
   }
 
   /**
