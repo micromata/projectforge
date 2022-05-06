@@ -25,7 +25,7 @@ package org.projectforge.rest.core.aggrid
 
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.framework.persistence.api.QueryFilter.QUERY_FILTER_MAX_ROWS
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
@@ -89,7 +89,7 @@ class AGGridSupport {
     pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
   ): UIAgGrid {
     val agGrid = UIAgGrid.createUIResultSetTable()
-    magicFilter.maxRows = QUERY_FILTER_MAX_ROWS // Fix it from previous.
+    magicFilter.maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS // Fix it from previous.
     agGrid.enablePagination()
     magicFilter.paginationPageSize?.let { agGrid.paginationPageSize = it }
     layout.add(agGrid)
