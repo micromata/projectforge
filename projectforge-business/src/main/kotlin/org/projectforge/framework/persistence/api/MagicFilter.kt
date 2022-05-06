@@ -34,7 +34,7 @@ class MagicFilter(
    */
   var entries: MutableList<MagicFilterEntry> = mutableListOf(),
   var sortAndLimitMaxRowsWhileSelect: Boolean = true,
-  var maxRows: Int = QUERY_FILTER_MAX_ROWS,
+  var maxRows: Int = QueryFilter.QUERY_FILTER_MAX_ROWS,
   /**
    * If true, only deleted entries will be shown. If false, no deleted entries will be shown. If null, all entries will be shown.
    */
