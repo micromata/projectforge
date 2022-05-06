@@ -69,7 +69,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import java.util.*
-import javax.annotation.PostConstruct
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -239,15 +238,15 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
       val dateTime = from(myFilter.stopTime).endOfDay
       myFilter.stopTime = dateTime.utilDate
     }
-    val queryFilter = buildQueryFilter(myFilter)
     if (accessChecker.isLoggedInUserMemberOfGroup(
         ProjectForgeGroup.CONTROLLING_GROUP,
         ProjectForgeGroup.FINANCE_GROUP
       )
     ) {
       // Financial staff needs sometimes to query a lot of time sheets for exporting, statistics etc.
-      queryFilter.maxRows = 100000
+      myFilter.maxRows = 100000
     }
+    val queryFilter = buildQueryFilter(myFilter)
     var result = if (checkAccess) {
       getList(queryFilter)
     } else {

@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.api
 
+import mu.KotlinLogging
 import org.projectforge.business.task.TaskTree
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.impl.DBFilter
@@ -31,15 +32,11 @@ import org.projectforge.framework.persistence.api.impl.DBJoin
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
-import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.Month
 import javax.persistence.criteria.JoinType
 
-/**
- * If no maximum number of results is defined, MAX_ROWS is used as max value.
- */
-const val QUERY_FILTER_MAX_ROWS: Int = 10000
+private val log = KotlinLogging.logger {}
 
 /**
  * Convenient helper to create database queries (criteria search, full text search and search in result lists).
@@ -234,7 +231,11 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
   }
 
   companion object {
-    private val log = LoggerFactory.getLogger(QueryFilter::class.java)
+
+    /**
+     * If no maximum number of results is defined, MAX_ROWS is used as max value.
+     */
+    const val QUERY_FILTER_MAX_ROWS: Int = 10000
 
     @JvmStatic
     fun isNull(field: String): DBPredicate.IsNull {

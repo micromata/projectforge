@@ -25,7 +25,7 @@ package org.projectforge.rest.core.aggrid
 
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.framework.persistence.api.QUERY_FILTER_MAX_ROWS
+import org.projectforge.framework.persistence.api.QueryFilter.QUERY_FILTER_MAX_ROWS
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest

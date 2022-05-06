@@ -441,7 +441,19 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   @SuppressWarnings("unchecked")
   protected List<O> buildList() {
-    return (List<O>) getBaseDao().getList(form.getSearchFilter());
+    List<O> list = (List<O>) getBaseDao().getList(form.getSearchFilter());
+    int size = 0;
+    if (list != null) {
+      size = list.size();
+    }
+    int maxRows = form.getSearchFilter().getMaxRows();
+    if (maxRows <= 0) {
+      maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS;
+    }
+    if (list != null && list.size() == maxRows) {
+      form.addError("search.maxRowsExceeded", maxRows);
+    }
+    return list;
   }
 
   /**
@@ -645,7 +657,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClass, final String toolTipKey,
                                final Object data) {
-    final String caller = ((String)urlFor(this.getClass(), new PageParameters())).replace("./", "/wa/");
+    final String caller = ((String) urlFor(this.getClass(), new PageParameters())).replace("./", "/wa/");
     final ContentMenuEntryPanel button = new ContentMenuEntryPanel(getNewContentMenuChildId(),
         new Link<Object>("link") {
           @Override
