@@ -52,6 +52,7 @@ import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
+import org.projectforge.framework.i18n.TimeAgo;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.Gender;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
@@ -281,6 +282,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("login.lastLogin"))
             .suppressLabelForWarning();
     fs.add(new DivTextPanel(fs.newChildId(), DateTimeFormatter.instance().getFormattedDateTime(user.getLastLogin())));
+    if (user.getLastLogin() != null) {
+      fs.add(new DivTextPanel(fs.newChildId(), "(" + TimeAgo.getMessage(user.getLastLogin()) + ")"));
+    }
     @SuppressWarnings("serial") final Button button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("invalidateStayLoggedInSessions")) {
       @Override
       public final void onSubmit() {
