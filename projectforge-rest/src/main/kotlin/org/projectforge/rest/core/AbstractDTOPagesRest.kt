@@ -25,6 +25,7 @@ package org.projectforge.rest.core
 
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.dto.BaseDTO
 import javax.servlet.http.HttpServletRequest
 
@@ -37,41 +38,51 @@ import javax.servlet.http.HttpServletRequest
  * by these rest services.
  */
 abstract class AbstractDTOPagesRest<
-        O : ExtendedBaseDO<Int>,
-        DTO : BaseDTO<O>,
-        B : BaseDao<O>>(
-        baseDaoClazz: Class<B>,
-        i18nKeyPrefix: String,
-        cloneSupport: CloneSupport = CloneSupport.NONE)
-    : AbstractPagesRest<O, DTO, B>(baseDaoClazz, i18nKeyPrefix, cloneSupport) {
+    O : ExtendedBaseDO<Int>,
+    DTO : BaseDTO<O>,
+    B : BaseDao<O>>(
+  baseDaoClazz: Class<B>,
+  i18nKeyPrefix: String,
+  cloneSupport: CloneSupport = CloneSupport.NONE
+) : AbstractPagesRest<O, DTO, B>(baseDaoClazz, i18nKeyPrefix, cloneSupport) {
 
-    /**
-     * @return New result set of dto's, transformed from data base objects.
-     */
-    override fun processResultSetBeforeExport(resultSet: ResultSet<O>, request: HttpServletRequest) : ResultSet<*> {
-        val newList = resultSet.resultSet.map {
-            transformFromDB(it, false)
-        }
-        return ResultSet(newList, resultSet, newList.size, selectedEntityIds = resultSet.selectedEntityIds)
+  /**
+   * @return New result set of dto's, transformed from data base objects.
+   */
+  override fun processResultSetBeforeExport(
+    resultSet: ResultSet<O>,
+    request: HttpServletRequest,
+    magicFilter: MagicFilter,
+  ): ResultSet<*> {
+    val newList = resultSet.resultSet.map {
+      transformFromDB(it, false)
     }
+    return ResultSet(
+      newList,
+      resultSet,
+      newList.size,
+      selectedEntityIds = resultSet.selectedEntityIds,
+      magicFilter = magicFilter,
+    )
+  }
 
-    /**
-     * @param dto Expected as DTO
-     */
-    override fun getId(dto: Any): Int? {
-        @Suppress("UNCHECKED_CAST")
-        return (dto as DTO).id
-    }
+  /**
+   * @param dto Expected as DTO
+   */
+  override fun getId(dto: Any): Int? {
+    @Suppress("UNCHECKED_CAST")
+    return (dto as DTO).id
+  }
 
-    /**
-     * @param dto Expected as DTO
-     */
-    override fun isDeleted(dto: Any): Boolean {
-        @Suppress("UNCHECKED_CAST")
-        return (dto as DTO).deleted
-    }
+  /**
+   * @param dto Expected as DTO
+   */
+  override fun isDeleted(dto: Any): Boolean {
+    @Suppress("UNCHECKED_CAST")
+    return (dto as DTO).deleted
+  }
 
-    override fun isHistorizable(): Boolean {
-        return AbstractDOPagesRest.isHistorizable(baseDao.doClass)
-    }
+  override fun isHistorizable(): Boolean {
+    return AbstractDOPagesRest.isHistorizable(baseDao.doClass)
+  }
 }

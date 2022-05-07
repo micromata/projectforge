@@ -548,7 +548,8 @@ class AddressPagesRest
    */
   override fun processResultSetBeforeExport(
     resultSet: ResultSet<AddressDO>,
-    request: HttpServletRequest
+    request: HttpServletRequest,
+    magicFilter: MagicFilter,
   ): ResultSet<*> {
     val newList = resultSet.resultSet.map {
       ListAddress(
@@ -563,7 +564,7 @@ class AddressPagesRest
       it.address.imageData = null
       it.address.imageDataPreview = null
     }
-    return ResultSet(newList, resultSet, newList.size)
+    return ResultSet(newList, resultSet, newList.size, magicFilter = magicFilter)
   }
 
   private fun createFavoriteRow(id: String, inputElement: UIElement): UIRow {

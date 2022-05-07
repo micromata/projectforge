@@ -28,6 +28,8 @@ import org.apache.commons.io.IOUtils
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressExport
 import org.projectforge.business.address.PersonalAddressDao
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -113,8 +115,9 @@ class AddressServicesRest {
   fun exportFavoritesExcel(request: HttpServletRequest): ResponseEntity<*> {
     log.info("Exporting personal address book as Excel file.")
     val list = addressDao.favoriteVCards.map { it.address!! }
-    val resultSet = ResultSet(list, null, list.size)
-    addressRest.processResultSetBeforeExport(resultSet, request)
+    val magicFilter = MagicFilter(maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS)
+    val resultSet = ResultSet(list, null, list.size, magicFilter = magicFilter)
+    addressRest.processResultSetBeforeExport(resultSet, request, magicFilter)
 
     val personalAddressMap = personalAddressDao.personalAddressByAddressId
 

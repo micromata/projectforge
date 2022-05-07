@@ -1,5 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import { connect } from 'react-redux';
 import { loadList } from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
@@ -44,6 +47,9 @@ function ListPage(
                         {!category.ui.hideSearchFilter && (
                             <SearchFilter />
                         )}
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                            {category.data.resultInfo}
+                        </ReactMarkdown>
                     </DynamicLayout>
                 )}
             </Card>
@@ -69,7 +75,9 @@ ListPage.propTypes = {
             title: PropTypes.string,
             hideSearchFilter: PropTypes.bool,
         }),
-        data: PropTypes.shape({ }),
+        data: PropTypes.shape({
+            resultInfo: PropTypes.shape,
+        }),
         variables: PropTypes.shape({ }),
     }),
 };
