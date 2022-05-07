@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import org.projectforge.Constants
+import org.projectforge.business.common.ListStatisticsSupport
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2Dao
@@ -222,9 +223,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     resultSet.resultSet.forEach { timesheet ->
       duration += timesheet.getDuration()
     }
-    val value = dateTimeFormatter.getPrettyFormattedDuration(duration)
-    val label = translate("timesheet.totalDuration")
-    myResultSet.addResultInfo("$label: $value")
+    val stats = ListStatisticsSupport()
+    stats.append("timesheet.totalDuration", dateTimeFormatter.getPrettyFormattedDuration(duration), ListStatisticsSupport.Color.BLUE)
+    myResultSet.addResultInfo(stats.asMarkdown)
 
     return myResultSet
   }

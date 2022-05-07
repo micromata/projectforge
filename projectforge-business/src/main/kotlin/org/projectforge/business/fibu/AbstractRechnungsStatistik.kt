@@ -23,15 +23,15 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.business.common.ListStatisticsSupport
 import org.projectforge.business.utils.CurrencyFormatter
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDay.Companion.fromOrNow
 import org.projectforge.framework.utils.NumberHelper.add
 import org.projectforge.statistics.IntAggregatedValues
 import java.io.Serializable
 import java.math.BigDecimal
 
-open class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializable {
+abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializable {
   var brutto: BigDecimal
     protected set
   var bruttoMitSkonto: BigDecimal
@@ -105,29 +105,19 @@ open class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializable {
     } else (zahlungsZielSum / counter).toInt()
   val asMarkdown: String
     get() {
-      val sb = StringBuilder()
-      append(sb, "fibu.common.brutto", CurrencyFormatter.format(brutto))
-      append(sb, "fibu.common.netto", CurrencyFormatter.format(netto))
+      val stats = ListStatisticsSupport()
+      stats.append("fibu.common.brutto", CurrencyFormatter.format(brutto))
+      stats.append("fibu.common.netto", CurrencyFormatter.format(netto))
       if (bruttoMitSkonto.compareTo(brutto) != 0) {
-        append(sb, "fibu.rechnung.mitSkonto", CurrencyFormatter.format(bruttoMitSkonto))
+        stats.append("fibu.rechnung.mitSkonto", CurrencyFormatter.format(bruttoMitSkonto))
       }
-      append(sb, "fibu.rechnung.offen", CurrencyFormatter.format(offen), "blue")
-      append(sb, "fibu.rechnung.filter.ueberfaellig", CurrencyFormatter.format(ueberfaellig), "red")
-      append(sb, "fibu.rechnung.skonto", CurrencyFormatter.format(skonto))
-      append(sb, "fibu.rechnung.zahlungsZiel", "$zahlungszielAverage")
-      append(sb, "fibu.rechnung.zahlungsZiel.actual", "Ø$tatsaechlichesZahlungzielAverage")
-      return sb.toString()
+      stats.append("fibu.rechnung.offen", CurrencyFormatter.format(offen), ListStatisticsSupport.Color.BLUE)
+      stats.append("fibu.rechnung.filter.ueberfaellig", CurrencyFormatter.format(ueberfaellig), ListStatisticsSupport.Color.RED)
+      stats.append("fibu.rechnung.skonto", CurrencyFormatter.format(skonto))
+      stats.append("fibu.rechnung.zahlungsZiel", "$zahlungszielAverage")
+      stats.append("fibu.rechnung.zahlungsZiel.actual", "Ø$tatsaechlichesZahlungzielAverage")
+      return stats.asMarkdown
     }
-
-  private fun append(sb: StringBuilder, i18nKey: String, value: String) {
-    sb.append(translate(i18nKey)).append(": ").append(value).append(" | ")
-  }
-
-  private fun append(sb: StringBuilder, i18nKey: String, value: String, color: String) {
-    sb.append("<span style=\"color:$color;\">")
-    append(sb, i18nKey, value)
-    sb.append("</span>")
-  }
 
   val tatsaechlichesZahlungzielAverage: Int
     get() = tatsaechlichesZahlungsZiel.weightedAverage
