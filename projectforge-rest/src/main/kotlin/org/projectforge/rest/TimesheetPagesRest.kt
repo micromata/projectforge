@@ -46,7 +46,10 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.calendar.CalEventPagesRest
 import org.projectforge.rest.calendar.TeamEventPagesRest
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.*
+import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.RestButtonEvent
+import org.projectforge.rest.core.RestHelper
+import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
@@ -195,7 +198,11 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       .addVariable("id", obj.id ?: -1)
   }
 
-  override fun processResultSetBeforeExport(resultSet: ResultSet<TimesheetDO>, request: HttpServletRequest): ResultSet<*> {
+  override fun processResultSetBeforeExport(
+    resultSet: ResultSet<TimesheetDO>,
+    request: HttpServletRequest,
+    magicFilter: MagicFilter,
+  ): ResultSet<*> {
     val list: List<Timesheet4ListExport> = resultSet.resultSet.map {
       val timesheet = Timesheet()
       timesheet.copyFrom(it)
@@ -210,7 +217,16 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         deleted = timesheet.deleted,
       )
     }
-    return ResultSet(list, resultSet, list.size)
+    val myResultSet = ResultSet(list, resultSet, list.size, magicFilter = magicFilter)
+    var duration = 0L
+    resultSet.resultSet.forEach { timesheet ->
+      duration += timesheet.getDuration()
+    }
+    val value = dateTimeFormatter.getPrettyFormattedDuration(duration)
+    val label = translate("timesheet.totalDuration")
+    myResultSet.addResultInfo("$label: $value")
+
+    return myResultSet
   }
 
   override fun isAutocompletionPropertyEnabled(property: String): Boolean {

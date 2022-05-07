@@ -370,7 +370,7 @@ constructor(
 
   protected fun getInitialList(request: HttpServletRequest, filter: MagicFilter): InitialListData {
     val favorites = getFilterFavorites()
-    val resultSet = processResultSetBeforeExport(getList(request, this, baseDao, filter), request)
+    val resultSet = processResultSetBeforeExport(getList(request, this, baseDao, filter), request, filter)
     resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
     val ui = createListLayout(request, filter)
       .addTranslations(
@@ -461,7 +461,7 @@ constructor(
     fixMagicFilterFromClient(filter)
     val list = getList(request, this, baseDao, filter)
     saveCurrentFilter(filter)
-    val resultSet = processResultSetBeforeExport(list, request)
+    val resultSet = processResultSetBeforeExport(list, request, filter)
     resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
     return resultSet
   }
@@ -642,7 +642,11 @@ constructor(
     return UIToast.createToast(translate("administration.reindexFull.successful"), color = UIColor.SUCCESS)
   }
 
-  abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>, request: HttpServletRequest): ResultSet<*>
+  abstract fun processResultSetBeforeExport(
+    resultSet: ResultSet<O>,
+    request: HttpServletRequest,
+    magicFilter: MagicFilter,
+  ): ResultSet<*>
 
   /**
    * Gets the item from the database.

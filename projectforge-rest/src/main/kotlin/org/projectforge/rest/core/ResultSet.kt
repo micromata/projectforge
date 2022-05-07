@@ -23,6 +23,8 @@
 
 package org.projectforge.rest.core
 
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.api.MagicFilter
 import java.io.Serializable
 
 /**
@@ -36,11 +38,38 @@ class ResultSet<O : Any>(
   var totalSize: Int? = null,
   var highlightRowId: Int? = null,
   var selectedEntityIds: Collection<Serializable>? = null,
+  magicFilter: MagicFilter, // only needed to check if the result set was truncated (has size of magicFilter.maxRows).
 ) {
+  /**
+   * Result info as mark down to display. Is usable for statistics as well as for important note, that the
+   * result set was runcated due to maxRows limitation.
+   */
+  var resultInfo: String? = null
+    private set
+
   val size = resultSet.size
+
   init {
     if (origResultSet != null && selectedEntityIds == null) {
       selectedEntityIds = origResultSet.selectedEntityIds
     }
+    if (resultSet.size == magicFilter.maxRows) {
+      val msg = translateMsg("search.maxRowsExceeded", magicFilter.maxRows)
+      resultInfo = "<span style=\"color:red; font-weight: bold;\">$msg</span>"
+    }
   }
+
+  fun addResultInfo(info: String?) {
+    if (info.isNullOrBlank()) {
+      return
+    }
+    resultInfo.let { value ->
+      if (resultInfo.isNullOrBlank()) {
+        resultInfo = info
+      } else {
+        resultInfo = "$value\n\n$info"
+      }
+    }
+  }
+
 }
