@@ -136,7 +136,9 @@ Formatter.propTypes = {
     timestampFormatMinutes: PropTypes.string,
     locale: PropTypes.string,
     currency: PropTypes.string,
-    valueIconMap: PropTypes.shape({}),
+    valueIconMap: PropTypes.shape({
+        length: PropTypes.number,
+    }),
 };
 
 Formatter.defaultProps = {

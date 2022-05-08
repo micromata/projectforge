@@ -7,52 +7,61 @@ import style from '../../../components/design/input/Input.module.scss';
 
 const CalendarToolBar = (toolbar) => {
     const goToBack = () => {
-        toolbar.onNavigate('PREV');
+        const { onNavigate } = toolbar;
+        onNavigate('PREV');
     };
     const goToNext = () => {
-        toolbar.onNavigate('NEXT');
+        const { onNavigate } = toolbar;
+        onNavigate('NEXT');
     };
     const goToToday = () => {
-        toolbar.onNavigate('TODAY');
+        const { onNavigate } = toolbar;
+        onNavigate('TODAY');
     };
 
     const goToDayView = () => {
-        toolbar.onView('day');
+        const { onView } = toolbar;
+        onView('day');
     };
     const goToWeekView = () => {
-        toolbar.onView('week');
+        const { onView } = toolbar;
+        onView('week');
     };
 
     const goToWorkWeekView = () => {
-        toolbar.onView('work_week');
+        const { onView } = toolbar;
+        onView('work_week');
     };
 
     const goToMonthView = () => {
-        toolbar.onView('month');
+        const { onView } = toolbar;
+        onView('month');
     };
 
     const goToAgendaView = () => {
-        toolbar.onView('agenda');
+        const { onView } = toolbar;
+        onView('agenda');
     };
 
     const { view } = toolbar;
 
     const label = () => {
-        const date = moment_timezone(toolbar.date);
+        const { date } = toolbar;
+        const momentDate = moment_timezone(date);
         if (view === 'day') {
             return (
                 <>
-                    <b>{date.format('dddd')}</b>
+                    <b>{momentDate.format('dddd')}</b>
                     {' '}
-                    {date.format('DD.MM.YYYY')}
+                    {momentDate.format('DD.MM.YYYY')}
                 </>
             );
         }
         return (
             <>
-                <b>{date.format('MMMM')}</b>
+                <b>{momentDate.format('MMMM')}</b>
                 {' '}
-                {date.format('YYYY')}
+                {momentDate.format('YYYY')}
             </>
         );
     };

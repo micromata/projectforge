@@ -129,8 +129,8 @@ function DynamicReactSelect(props) {
 DynamicReactSelect.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
-    values: PropTypes.arrayOf(PropTypes.object),
-    favorites: PropTypes.arrayOf(PropTypes.object),
+    values: PropTypes.arrayOf({}),
+    favorites: PropTypes.arrayOf({}),
     additionalLabel: PropTypes.string,
     autoCompletion: PropTypes.shape({
         url: PropTypes.string,

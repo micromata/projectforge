@@ -45,6 +45,7 @@ ConsumptionBar.propTypes = {
         status: PropTypes.string,
         width: PropTypes.string,
         id: PropTypes.number,
+        percentage: PropTypes.number,
     }),
     taskId: PropTypes.number,
     identifier: PropTypes.string,
