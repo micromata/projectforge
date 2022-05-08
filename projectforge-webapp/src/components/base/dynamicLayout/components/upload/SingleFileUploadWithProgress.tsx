@@ -11,12 +11,16 @@ import { FileHeader } from './FileHeader';
 export interface SingleFileUploadWithProgressProps {
     file: File;
     url: string;
-    onDelete: (file: File) => void;
     onUpload: (file: File, url: string) => void;
-    afterFileUpload: (response: string) => void;
+    afterFileUpload: (file: File, response: string) => void;
 }
 
-function uploadFile(file: File, url: string, onProgress: (percentage: number) => void, afterFileUpload: (response: string) => void) {
+function uploadFile(
+    file: File,
+    url: string,
+    onProgress: (percentage: number) => void,
+    afterFileUpload: (file: File, response: string) => void,
+) {
     const key = 'docs_upload_example_us_preset';
 
     return new Promise<string>((res, rej) => {
@@ -37,7 +41,7 @@ function uploadFile(file: File, url: string, onProgress: (percentage: number) =>
         };
         xhr.onreadystatechange = () => {
             if (xhr.readyState === 4) {
-                afterFileUpload(xhr.responseText);
+                afterFileUpload(file, xhr.responseText);
             }
         };
         const formData = new FormData();
@@ -51,7 +55,6 @@ function uploadFile(file: File, url: string, onProgress: (percentage: number) =>
 export function SingleFileUploadWithProgress({
     file,
     url,
-    onDelete,
     onUpload,
     afterFileUpload,
 }: SingleFileUploadWithProgressProps) {
@@ -75,7 +78,7 @@ export function SingleFileUploadWithProgress({
 
     return (
         <div>
-            <FileHeader file={file} onDelete={onDelete} />
+            <FileHeader file={file} />
             <Progress
                 animated={animated}
                 color={color}
