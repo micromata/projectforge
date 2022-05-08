@@ -39,6 +39,7 @@
     "react-cookies": "^0.1.1",
     "react-day-picker": "^7.4.10",
     "react-dom": "^17.0.2",
+    "react-dropzone": "^14.2.1",
     "react-helmet": "^6.1.0",
     "react-markdown": "^8.0.2",
     "react-number-format": "^4.5.5",
@@ -62,8 +63,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "postbuild": "mv build/index.html build/react-app.html",
-    "eslint": "eslint \"src/**/**/*.{js,jsx}\"",
-    "eslint.fix": "eslint \"src/**/**/*.{js,jsx}\" --fix"
+    "eslint": "eslint \"src/**/**/*.{js,jsx,tsx}\"",
+    "eslint.fix": "eslint \"src/**/**/*.{js,jsx,tsx}\" --fix"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -82,6 +83,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "eslint": "^7.32.0",
     "react-test-renderer": "^17.0.2",
     "react-testing-library": "^8.0.1",
     "sass": "^1.22.10",

@@ -2,10 +2,9 @@ import { faDownload, faEdit, faLock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { evalServiceURL, getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
+import { evalServiceURL, getServiceURL } from '../../../../../utilities/rest';
 import { Table } from '../../../../design';
-import DropArea from '../../../../design/droparea';
-import LoadingContainer from '../../../../design/loading-container';
+import { MultipleFileUploadField } from '../upload/MultipleFileUploadField';
 import { DynamicLayoutContext } from '../../context';
 
 function DynamicAttachmentList(
@@ -28,34 +27,7 @@ function DynamicAttachmentList(
         ui,
     } = React.useContext(DynamicLayoutContext);
 
-    const [loading, setLoading] = React.useState(false);
-
     const { attachments } = data;
-
-    const uploadFile = (files) => {
-        setLoading(true);
-        const formData = new FormData();
-        formData.append('file', files[0]);
-        fetch(
-            getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}`),
-            {
-                credentials: 'include',
-                method: 'POST',
-                body: formData,
-            },
-        )
-            .then(handleHTTPErrors)
-            .then((response) => response.json())
-            .then((json) => {
-                callAction({ responseAction: json });
-                setLoading(false);
-            })
-            .catch((catchError) => {
-                // eslint-disable-next-line no-alert
-                alert(catchError);
-                setLoading(false);
-            });
-    };
 
     const download = (entryId) => {
         callAction({
@@ -156,15 +128,14 @@ function DynamicAttachmentList(
                 return (<>{table}</>);
             }
             return (
-                <LoadingContainer loading={loading}>
-                    <DropArea
-                        setFiles={uploadFile}
-                        noStyle
+                <>
+                    <MultipleFileUploadField
+                        url={getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}`)}
+                        // noStyle
                         title={ui.translations['file.upload.dropArea']}
-                    >
-                        {table}
-                    </DropArea>
-                </LoadingContainer>
+                    />
+                    {table}
+                </>
             );
         }
         return (
@@ -172,7 +143,7 @@ function DynamicAttachmentList(
                 {ui.translations['attachment.onlyAvailableAfterSave']}
             </>
         );
-    }, [setData, loading, id, attachments]);
+    }, [setData, id, attachments]);
 }
 
 DynamicAttachmentList.propTypes = {
