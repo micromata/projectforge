@@ -52,8 +52,9 @@ export function MultipleFileUploadArea({ url, title, afterFileUpload }: { url: s
         }));
     };
 
-    const onDelete = (file: File) => {
+    const onAfterUpload = (file: File, response: string) => {
         setFiles((curr) => curr.filter((fw) => fw.file !== file));
+        afterFileUpload(response);
     };
 
     const { getRootProps, getInputProps } = useDropzone({
@@ -79,15 +80,13 @@ export function MultipleFileUploadArea({ url, title, afterFileUpload }: { url: s
                         <UploadError
                             file={fileWrapper.file}
                             errors={fileWrapper.errors}
-                            onDelete={onDelete}
                         />
                     ) : (
                         <SingleFileUploadWithProgress
-                            onDelete={onDelete}
                             onUpload={onUpload}
                             file={fileWrapper.file}
                             url={url}
-                            afterFileUpload={afterFileUpload}
+                            afterFileUpload={onAfterUpload}
                         />
                     )}
                 </div>
