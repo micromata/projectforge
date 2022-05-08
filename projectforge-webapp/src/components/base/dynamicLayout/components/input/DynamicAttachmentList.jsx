@@ -30,8 +30,8 @@ function DynamicAttachmentList(
     const { attachments } = data;
 
     const afterFileUpload = (response) => {
-        console.log(response);
-        callAction(response);
+        const json = JSON.parse(response);
+        callAction({ responseAction: json });
     };
 
     const download = (entryId) => {
