@@ -32,7 +32,6 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractPagesRest
-import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.ServerData
 
@@ -345,7 +344,7 @@ object LayoutUtils {
               "createdBy",
               "delete",
               "description",
-              "file.upload.dropArea",
+              "attachment.upload.title",
               "modified",
               "modifiedBy",
               "reload",

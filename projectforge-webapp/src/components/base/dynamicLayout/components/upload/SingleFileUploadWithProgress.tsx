@@ -6,14 +6,17 @@ import { FileHeader } from './FileHeader';
  * Thanks to: https://github.com/bmvantunes/youtube-2021-feb-multiple-file-upload-formik/blob/main/src/upload/SingleFileUploadWithProgress.tsx
  */
 
+/* eslint-disable max-len */
+
 export interface SingleFileUploadWithProgressProps {
     file: File;
     url: string;
     onDelete: (file: File) => void;
     onUpload: (file: File, url: string) => void;
+    afterFileUpload: (response: string) => void;
 }
 
-function uploadFile(file: File, url: string, onProgress: (percentage: number) => void) {
+function uploadFile(file: File, url: string, onProgress: (percentage: number) => void, afterFileUpload: (response: string) => void) {
     const key = 'docs_upload_example_us_preset';
 
     return new Promise<string>((res, rej) => {
@@ -32,7 +35,11 @@ function uploadFile(file: File, url: string, onProgress: (percentage: number) =>
                 onProgress(Math.round(percentage));
             }
         };
-
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4) {
+                afterFileUpload(xhr.responseText);
+            }
+        };
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', key);
@@ -46,12 +53,20 @@ export function SingleFileUploadWithProgress({
     url,
     onDelete,
     onUpload,
+    afterFileUpload,
 }: SingleFileUploadWithProgressProps) {
     const [progress, setProgress] = useState(0);
 
+    let color = 'warning';
+    let animated = true;
+    if (progress === 100) {
+        color = 'success';
+        animated = false;
+    }
+
     useEffect(() => {
         async function upload() {
-            await uploadFile(file, url, setProgress);
+            await uploadFile(file, url, setProgress, afterFileUpload);
             onUpload(file, url);
         }
 
@@ -62,8 +77,8 @@ export function SingleFileUploadWithProgress({
         <div>
             <FileHeader file={file} onDelete={onDelete} />
             <Progress
-                animated
-                color="warning"
+                animated={animated}
+                color={color}
                 value={progress}
             >
                 {progress}

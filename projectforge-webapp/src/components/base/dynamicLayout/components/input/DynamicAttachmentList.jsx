@@ -29,6 +29,11 @@ function DynamicAttachmentList(
 
     const { attachments } = data;
 
+    const afterFileUpload = (response) => {
+        console.log(response);
+        callAction(response);
+    };
+
     const download = (entryId) => {
         callAction({
             responseAction: {
@@ -132,10 +137,10 @@ function DynamicAttachmentList(
                     <MultipleFileUploadArea
                         url={getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}`)}
                         // noStyle
-                        title={ui.translations['file.upload.dropArea']}
-                    >
-                        {table}
-                    </MultipleFileUploadArea>
+                        title={ui.translations['attachment.upload.title']}
+                        afterFileUpload={afterFileUpload}
+                    />
+                    {table}
                 </>
             );
         }

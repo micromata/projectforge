@@ -26,7 +26,6 @@ package org.projectforge.plugins.datatransfer.rest
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.NumberOfBytes
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -111,7 +110,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       // Download all not for attachments with size of more than 1 GB in total.
       attachmentsFieldset.add(
         UIButton.createDownloadButton(
-          id ="downloadAll",
+          id = "downloadAll",
           title = "plugins.datatransfer.button.downloadAll",
           tooltip = "plugins.datatransfer.button.downloadAll.info",
           responseAction = ResponseAction(
@@ -276,7 +275,8 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       // observe state of logged in user wasn't changed: do nothing.
       return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
-    val dbObj = dataTransferAreaDao.internalGetById(id) // Get entry including external access settings (see DataTransferDao#hasAccess).
+    val dbObj =
+      dataTransferAreaDao.internalGetById(id) // Get entry including external access settings (see DataTransferDao#hasAccess).
     val newObservers = dbDto.observers?.toMutableList() ?: mutableListOf()
     if (postData.data.userWantsToObserve == true) {
       val user = User()
