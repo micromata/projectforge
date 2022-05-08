@@ -65,7 +65,10 @@ export function SingleFileUploadWithProgress({
                 animated
                 color="warning"
                 value={progress}
-            />
+            >
+                {progress}
+                {' %'}
+            </Progress>
         </div>
     );
 }

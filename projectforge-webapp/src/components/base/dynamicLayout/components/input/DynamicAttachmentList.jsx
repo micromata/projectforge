@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { evalServiceURL, getServiceURL } from '../../../../../utilities/rest';
 import { Table } from '../../../../design';
-import { MultipleFileUploadField } from '../upload/MultipleFileUploadField';
+import { MultipleFileUploadArea } from '../upload/MultipleFileUploadArea';
 import { DynamicLayoutContext } from '../../context';
 
 function DynamicAttachmentList(
@@ -129,12 +129,13 @@ function DynamicAttachmentList(
             }
             return (
                 <>
-                    <MultipleFileUploadField
+                    <MultipleFileUploadArea
                         url={getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}`)}
                         // noStyle
                         title={ui.translations['file.upload.dropArea']}
-                    />
-                    {table}
+                    >
+                        {table}
+                    </MultipleFileUploadArea>
                 </>
             );
         }
