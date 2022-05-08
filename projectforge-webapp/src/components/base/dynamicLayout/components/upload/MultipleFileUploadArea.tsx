@@ -1,7 +1,11 @@
 import React, { useCallback, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FileError, FileRejection, useDropzone } from 'react-dropzone';
 import { SingleFileUploadWithProgress } from './SingleFileUploadWithProgress';
 import { UploadError } from './UploadError';
+
+/* eslint-disable max-len */
 
 /*
  * Thanks to: https://github.com/bmvantunes/youtube-2021-feb-multiple-file-upload-formik/blob/main/src/upload/MultipleFileUploadField.tsx
@@ -24,7 +28,7 @@ export interface UploadableFile {
     errors: FileError[];
 }
 
-export function MultipleFileUploadField({ url, title }: { url: string, title: string }) {
+export function MultipleFileUploadArea({ url, title }: { url: string, title: string }) {
     // const [_, __, helpers] = useField(name);
     // const classes = useStyles();
     const [files, setFiles] = useState<UploadableFile[]>([]);
@@ -54,16 +58,19 @@ export function MultipleFileUploadField({ url, title }: { url: string, title: st
 
     const { getRootProps, getInputProps } = useDropzone({
         onDrop,
-        maxSize: 300 * 1024, // 300KB
+        maxSize: 300 * 1024 * 1024, // 300MB
     });
 
     return (
         <>
             <div {...getRootProps()}>
+                <p>
+                    <FontAwesomeIcon icon={faUpload} />
+                    {' '}
+                    {title}
+                </p>
                 <input {...getInputProps()} />
 
-                <p>{title}</p>
-                {JSON.stringify(files)}
             </div>
 
             {files.map((fileWrapper) => (
