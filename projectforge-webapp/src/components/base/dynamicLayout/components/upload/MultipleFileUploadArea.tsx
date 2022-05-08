@@ -28,7 +28,7 @@ export interface UploadableFile {
     errors: FileError[];
 }
 
-export function MultipleFileUploadArea({ url, title }: { url: string, title: string }) {
+export function MultipleFileUploadArea({ url, title, afterFileUpload }: { url: string, title: string, afterFileUpload: (response: string) => void }) {
     // const [_, __, helpers] = useField(name);
     // const classes = useStyles();
     const [files, setFiles] = useState<UploadableFile[]>([]);
@@ -87,6 +87,7 @@ export function MultipleFileUploadArea({ url, title }: { url: string, title: str
                             onUpload={onUpload}
                             file={fileWrapper.file}
                             url={url}
+                            afterFileUpload={afterFileUpload}
                         />
                     )}
                 </div>
