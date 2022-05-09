@@ -29,6 +29,7 @@ import org.projectforge.SystemStatus
 import org.projectforge.rest.ChangePasswordPageRest
 import org.projectforge.rest.ChangeWlanPasswordPageRest
 import org.projectforge.rest.admin.AdminLogViewerPageRest
+import org.projectforge.ui.AutoCompletion
 
 class ProjectForge2FAInitializationTest {
   @Test
@@ -38,6 +39,7 @@ class ProjectForge2FAInitializationTest {
     val my2FARequestHandler = My2FARequestHandler()
     initialization.my2FARequestHandler = my2FARequestHandler
     val config = My2FARequestConfiguration()
+    config.internalSet4TestCases(expiryPeriodHours8 = "ADMIN;SCRIPT;FINANCE_WRITE;ORGA_WRITE;HR_WRITE")
     initialization.my2FARequestHandler.internalSet4UnitTests(config)
     initialization.init()
     initialization.registerShortCutClasses(My2FAShortCut.INTERNAL_TEST, ChangePasswordPageRest::class.java)
@@ -62,5 +64,11 @@ class ProjectForge2FAInitializationTest {
     Assertions.assertEquals("/rs/myAccount;/rs/tokenInfo;/rs/user/renewToken;", my2FARequestHandler.getShortCutResolved(
       My2FAShortCut.MY_ACCOUNT
     ))
+
+    Assertions.assertNull(my2FARequestHandler.getRemainingPeriod("/rs/user/${AutoCompletion.AUTOCOMPLETE_TEXT}"))
+    Assertions.assertEquals(0, my2FARequestHandler.getRemainingPeriod("/rs/user/notautosearch"), "New 2FA requested for /rs/user*.")
+    Assertions.assertNull(my2FARequestHandler.getRemainingPeriod("/rs/user/${AutoCompletion.AUTOCOMPLETE_TEXT}?search=abc"))
+    Assertions.assertNull(my2FARequestHandler.getRemainingPeriod("/rs/user/${AutoCompletion.AUTOCOMPLETE_OBJECT}"))
+    Assertions.assertNull(my2FARequestHandler.getRemainingPeriod("/rs/user/${AutoCompletion.AUTOCOMPLETE_OBJECT}?search=abc"))
   }
 }
