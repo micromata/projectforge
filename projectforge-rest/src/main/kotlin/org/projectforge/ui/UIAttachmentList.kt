@@ -94,15 +94,15 @@ class UIAttachmentList(
       "createdBy",
       "delete",
       "description",
-      "file.upload.fileAlreadyExists",
-      "file.upload.toManyFiles",
+      "file.upload.error.fileAlreadyExists",
+      "file.upload.error.toManyFiles",
       "modified",
       "modifiedBy",
       "reload",
     )
     layout.addTranslation(
-      "file.upload.maxSizeOfExceeded",
-      translateMsg("file.upload.maxSizeOfExceeded", FormatterUtils.formatBytes(maxSizeInKB * 1024))
+      "file.upload.error.maxSizeOfExceeded",
+      translateMsg("file.upload.error.maxSizeOfExceeded", FormatterUtils.formatBytes(maxSizeInKB * 1024))
     )
   }
 }
