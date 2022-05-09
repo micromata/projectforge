@@ -77,7 +77,7 @@ open class My2FARequestHandler {
     return getRemainingPeriod(request.requestURI)
   }
 
-  internal fun getRemainingPeriod(uri: String): Long? {
+  fun getRemainingPeriod(uri: String): Long? {
     val expiryPeriod = matchesUri(uri) ?: return null // No expiryPeriod matches: return null
     return expiryPeriod.remainingPeriod()
   }
@@ -324,10 +324,18 @@ open class My2FARequestHandler {
 
     private val NO_2FA_URLS = arrayOf("/rs/menu", "/rs/userStatus", "/rs/2FA", "/rsPublic", "/rs/webauthn/webAuthn")
 
+    private val NO_2FA_URL_MATCHERS = arrayOf("^/rs/\\w*/autosearch".toRegex(), "^/rs/\\w*/autocomplete".toRegex())
+
     private fun no2FAUrl(normalizedUri: String): Boolean {
       NO_2FA_URLS.forEach { url ->
         if (normalizedUri.startsWith(url)) {
           // /rs/userStatus, /rs/2FA/, /rs/menu etc. should never require 2FA.
+          return true
+        }
+      }
+      NO_2FA_URL_MATCHERS.forEach { regexp ->
+        if (normalizedUri.matches(regexp)) {
+          // /rs/user/autosearch, /rs/group/autosearch, ...
           return true
         }
       }

@@ -137,4 +137,17 @@ open class My2FARequestConfiguration {
       else -> true
     }*/
   }
+
+  fun internalSet4TestCases(
+    expiryPeriodMinutes1: String? = null,
+    expiryPeriodMinutes10: String? = null,
+    expiryPeriodHours1: String? = null,
+    expiryPeriodHours8: String? = null,
+  ) {
+    this.expiryPeriodMinutes1 = expiryPeriodMinutes1
+    this.expiryPeriodMinutes10 = expiryPeriodMinutes10
+    this.expiryPeriodHours1 = expiryPeriodHours1
+    this.expiryPeriodHours8 = expiryPeriodHours8
+
+  }
 }
