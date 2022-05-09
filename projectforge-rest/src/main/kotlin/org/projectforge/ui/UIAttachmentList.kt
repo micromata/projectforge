@@ -23,6 +23,8 @@
 
 package org.projectforge.ui
 
+import org.projectforge.common.FormatterUtils
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsService
 
 /**
@@ -48,6 +50,10 @@ class UIAttachmentList(
    */
   val listId: String = AttachmentsService.DEFAULT_NODE,
   /**
+   * The maximum size of the uploadable files will be also handled by the client before uploading.
+   */
+  val maxSizeInKB: Int,
+  /**
    * If true, only download of attachments is allowed.
    */
   val readOnly: Boolean = false,
@@ -71,6 +77,36 @@ class UIAttachmentList(
    * If true, the expiry info of the attachments will be displayed (if given in [org.projectforge.framework.jcr.Attachment.info] as string value with key 'expiryInfo'.
    */
   val showExpiryInfo: Boolean? = null,
+  /**
+   * Client may check existing files by name before uploading them.
+   */
+  val existingFiles: Array<String>? = null,
 ) :
   UIElement(type = UIElementType.ATTACHMENT_LIST) {
+  fun addTranslations(layout: UILayout) {
+    if (layout.translations.containsKey("attachment.fileName")) {
+      // Translations already added.
+      return
+    }
+    layout.addTranslations(
+      "attachment.expires",
+      "attachment.fileName",
+      "attachment.onlyAvailableAfterSave",
+      "attachment.size",
+      "attachment.upload.title",
+      "created",
+      "createdBy",
+      "delete",
+      "description",
+      "file.upload.fileAlreadyExists",
+      "file.upload.toManyFiles",
+      "modified",
+      "modifiedBy",
+      "reload",
+    )
+    layout.addTranslation(
+      "file.upload.maxSizeOfExceeded",
+      translateMsg("file.upload.maxSizeOfExceeded", FormatterUtils.formatBytes(maxSizeInKB * 1024))
+    )
+  }
 }

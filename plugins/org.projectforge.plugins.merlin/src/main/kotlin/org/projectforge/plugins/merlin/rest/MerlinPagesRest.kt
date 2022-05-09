@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.merlin.rest
 
-import org.projectforge.SystemStatus
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
@@ -66,9 +65,6 @@ class MerlinPagesRest :
 
   @Autowired
   private lateinit var merlinHandler: MerlinHandler
-
-  @Autowired
-  private lateinit var merlinRunner: MerlinRunner
 
   @Autowired
   private lateinit var merlinTemplateDefinitionHandler: MerlinTemplateDefinitionHandler
@@ -415,8 +411,15 @@ class MerlinPagesRest :
         )
         .add(
           UIFieldset(title = "attachment.list")
-            .add(UIAttachmentList(instance.category, dto.id))
+            .add(
+              UIAttachmentList(
+                instance.category,
+                dto.id,
+                maxSizeInKB = instance.attachmentsAccessChecker.fileSizeChecker.maxFileSizeKB,
+              )
+            )
         )
+
       layout.add(
         UIButton.createExportButton(
           "exportExcelTemplate",

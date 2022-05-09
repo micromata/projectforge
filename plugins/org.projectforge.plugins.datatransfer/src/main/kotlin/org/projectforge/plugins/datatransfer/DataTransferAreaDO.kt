@@ -27,14 +27,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
+import org.projectforge.Constants
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.ToStringUtil.Companion.toJsonString
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsInfo
-import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
-import java.util.Locale
+import java.util.*
 import javax.persistence.*
 
 /**
@@ -147,6 +147,10 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
   @get:Column(name = "max_upload_size_kb")
   open var maxUploadSizeKB: Int? = null
 
+  @get:Transient
+  val capacity
+    get() = (maxUploadSizeKB ?: DataTransferAreaDao.MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB) * 2048L
+
   @JsonIgnore
   @Field
   @field:NoHistory
@@ -164,6 +168,9 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
   @get:Column(name = "attachments_counter")
   override var attachmentsCounter: Int? = null
 
+  /**
+   * Size of all attachments in bytes.
+   */
   @JsonIgnore
   @field:NoHistory
   @get:Column(name = "attachments_size")

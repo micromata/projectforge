@@ -23,33 +23,37 @@
 
 package org.projectforge.plugins.datatransfer
 
-import mu.KotlinLogging
-import org.projectforge.jcr.FileInfo
-import org.projectforge.jcr.FileSizeChecker
-import org.projectforge.plugins.datatransfer.DataTransferAreaDao.Companion.calculateMaxUploadFileSize
-
-private val log = KotlinLogging.logger {}
+import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.common.FormatterUtils
+import org.projectforge.framework.i18n.translateMsg
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class DataTransferFileSizeChecker(val globalMaxFileSizeOfDataTransfer: Long) : FileSizeChecker {
+class DataTransferAreaCapacity(
+  used: Long?,
+  var capacity: Long,
+  maxUploadSizeKB: Int?,
+) {
+  var used: Long = used ?: 0L
+  var maxUploadSize = 1024L * (maxUploadSizeKB ?: DataTransferAreaDao.MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB)
+  val usedFormatted: String
+    @JsonProperty
+    get() = FormatterUtils.formatBytes(used)
 
-  override fun checkSize(file: FileInfo, data: Any?, displayUserMessage: Boolean) {
-    checkSize(
-      file,
-      globalMaxFileSizeOfDataTransfer,
-      DataTransferAreaDao.MAX_FILE_SIZE_SPRING_PROPERTY,
-      displayUserMessage
-    )
-    if (data == null || data !is DataTransferAreaDO) {
-      log.warn { "maxUploadsizeKB of area not given. area not given or not of Type DataTransferAreadDO: $data" }
-      return
-    }
-    val capacity = calculateMaxUploadFileSize(data)
-    checkSize(file, capacity, null)
-  }
+  val capacityFormatted: String
+    @JsonProperty
+    get() = FormatterUtils.formatBytes(capacity)
 
-  override val maxFileSize: Long
-    get() = throw java.lang.IllegalArgumentException("Use DataTransferAreaDao.getFreeCapacity instead.")
+  val maxUploadSizeFormatted: String
+    @JsonProperty
+    get() = FormatterUtils.formatBytes(maxUploadSize)
+
+  val percentage: Int
+    @JsonProperty
+    get() = (100 * used / capacity).toInt()
+
+  val capacityAsMessage: String
+    @JsonProperty
+    get() = translateMsg("plugins.datatransfer.capacity.stats", usedFormatted, capacityFormatted, percentage)
 }

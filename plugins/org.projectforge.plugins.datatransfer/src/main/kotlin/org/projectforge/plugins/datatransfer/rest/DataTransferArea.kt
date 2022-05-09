@@ -26,9 +26,9 @@ package org.projectforge.plugins.datatransfer.rest
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
-import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.jcr.Attachment
+import org.projectforge.plugins.datatransfer.DataTransferAreaCapacity
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.IDataTransferArea
@@ -94,18 +94,7 @@ class DataTransferArea(
     @Transient
     get() = TimeAgo.getMessage(lastUpdate)
 
-  /**
-   * The number and soue of attachments attached to this data object.
-   */
-  val maxUploadSizeFormatted: String?
-    @JsonProperty
-    @Transient
-    get() {
-      return maxUploadSizeKB?.let {
-        FormatterUtils.formatBytes(1024L * it)
-      }
-    }
-
+  var capacity: DataTransferAreaCapacity? = null
 
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: DataTransferAreaDO) {
@@ -157,6 +146,7 @@ class DataTransferArea(
       dto.observersAsString = dto.observers?.joinToString { it.displayName ?: "???" } ?: ""
       dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
       dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
+      dto.capacity = DataTransferAreaCapacity(obj.attachmentsSize, obj.capacity, obj.maxUploadSizeKB)
       return dto
     }
   }

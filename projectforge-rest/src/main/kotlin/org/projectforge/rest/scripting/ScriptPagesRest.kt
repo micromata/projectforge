@@ -222,7 +222,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
       }
       layout.add(
         UIFieldset(title = "attachment.list")
-          .add(UIAttachmentList(category, dto.id))
+          .add(UIAttachmentList(category, dto.id, maxSizeInKB = getMaxFileSizeKB()))
       )
     }
     UIFieldset(12, "access").let { fieldset ->

@@ -31,7 +31,6 @@ import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferFileSizeChecker
-import org.projectforge.rest.config.RestUtils
 import javax.servlet.http.HttpServletRequest
 
 /**
@@ -42,7 +41,7 @@ open class DataTransferPublicAccessChecker(
   val dataTransferPublicSession: DataTransferPublicSession
 ) : AttachmentsAccessChecker {
   override val fileSizeChecker: DataTransferFileSizeChecker =
-    DataTransferFileSizeChecker(dataTransferAreaDao.maxFileSize.toBytes())
+    DataTransferFileSizeChecker(DataTransferAreaDao.globalMaxFileSize.toBytes())
 
   /**
    * If user has no download access, only attachments uploaded inside his session are available.

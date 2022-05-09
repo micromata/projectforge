@@ -26,6 +26,7 @@ package org.projectforge.plugins.datatransfer.restPublic
 import org.projectforge.common.NumberOfBytes
 import org.projectforge.framework.i18n.translate
 import org.projectforge.model.rest.RestPaths
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.rest.config.Rest
@@ -48,7 +49,7 @@ import javax.servlet.http.HttpServletResponse
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/datatransfer")
 class DataTransferPublicPageRest : AbstractDynamicPageRest() {
-  private lateinit var attachmentsAccessChecker: DataTransferPublicAccessChecker
+  private lateinit var dataTransferPublicAccessChecker: DataTransferPublicAccessChecker
 
   @Autowired
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
@@ -61,7 +62,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
 
   @PostConstruct
   private fun postConstruct() {
-    attachmentsAccessChecker = DataTransferPublicAccessChecker(dataTransferAreaDao, dataTransferPublicSession)
+    dataTransferPublicAccessChecker = DataTransferPublicAccessChecker(dataTransferAreaDao, dataTransferPublicSession)
   }
 
   /**
@@ -72,7 +73,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     dataTransferPublicSession.checkLogin(request, accessToken = externalAccessToken)?.let {
       // Already logged-in, accessToken, password and settings of the area are OK.
       val data = dataTransferPublicServicesRest.convert(request, it.first, it.second.userInfo)
-      return FormLayoutData(data, getAttachmentLayout(data), ServerData())
+      return FormLayoutData(data, getAttachmentLayout(it.first, data), ServerData())
     }
 
     // User isn't logged-in:
@@ -104,7 +105,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     val data = dataTransferPublicServicesRest.convert(request, dbo, userInfo)
 
     return ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("ui", getAttachmentLayout(data)) // Show list of attachments.
+      .addVariable("ui", getAttachmentLayout(dbo, data)) // Show list of attachments.
       .addVariable("data", data)
   }
 
@@ -119,8 +120,9 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     //return ResponseAction("/${RestResolver.REACT_PUBLIC_PATH}/datatransfer/dynamic/$externalAccessToken")
   }
 
-  private fun getAttachmentLayout(dataTransfer: DataTransferPublicArea): UILayout {
+  private fun getAttachmentLayout(dbObj: DataTransferAreaDO, dataTransfer: DataTransferPublicArea): UILayout {
     val fieldSet = UIFieldset(12, title = "'${dataTransfer.areaName}")
+    val maxFileSizeInKB = DataTransferAreaDao.calculateMaxUploadFileSizeKB(dbObj)
     fieldSet.add(
       UIFieldset(title = "attachment.list")
         .add(
@@ -136,12 +138,13 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
             downloadOnRowClick = false,
             uploadDisabled = dataTransfer.externalUploadEnabled != true,
             showExpiryInfo = true,
+            maxSizeInKB = maxFileSizeInKB,
           )
         )
     )
     val layout = UILayout("plugins.datatransfer.title.heading")
       .add(fieldSet)
-    if (dataTransfer.attachmentsSize ?: 0 in 1..NumberOfBytes.GIGA_BYTES) {
+    if ((dataTransfer.attachmentsSize ?: 0) in 1..NumberOfBytes.GIGA_BYTES) {
       // Download all not for attachments with size of more than 1 GB in total.
       fieldSet.add(
         UIButton.createDownloadButton(

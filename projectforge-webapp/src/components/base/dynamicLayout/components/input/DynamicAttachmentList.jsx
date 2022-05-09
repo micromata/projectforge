@@ -18,6 +18,7 @@ function DynamicAttachmentList(
         downloadOnRowClick,
         uploadDisabled,
         showExpiryInfo,
+        maxSizeInKB,
     },
 ) {
     const {
@@ -139,6 +140,7 @@ function DynamicAttachmentList(
                         // noStyle
                         title={ui.translations['attachment.upload.title']}
                         afterFileUpload={afterFileUpload}
+                        maxSizeInKB={maxSizeInKB}
                     />
                     {table}
                 </>
@@ -162,6 +164,7 @@ DynamicAttachmentList.propTypes = {
     downloadOnRowClick: PropTypes.bool,
     uploadDisabled: PropTypes.bool,
     showExpiryInfo: PropTypes.bool,
+    maxSizeInKB: PropTypes.number,
 };
 
 DynamicAttachmentList.defaultProps = {
@@ -172,6 +175,7 @@ DynamicAttachmentList.defaultProps = {
     downloadOnRowClick: false,
     uploadDisabled: false,
     showExpiryInfo: undefined,
+    maxSizeInKB: 1000000, // 1 MB at default
 };
 
 export default DynamicAttachmentList;

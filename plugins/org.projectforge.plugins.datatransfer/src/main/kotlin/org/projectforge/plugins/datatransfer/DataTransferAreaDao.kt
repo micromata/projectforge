@@ -73,12 +73,9 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
   @Value("\${${MAX_FILE_SIZE_SPRING_PROPERTY}:100MB}")
   internal open lateinit var maxFileSizeConfig: String
 
-  open lateinit var maxFileSize: DataSize
-    internal set
-
   @PostConstruct
   private fun postConstruct() {
-    maxFileSize = DataSizeConfig.init(maxFileSizeConfig, DataUnit.MEGABYTES)
+    globalMaxFileSize = DataSizeConfig.init(maxFileSizeConfig, DataUnit.MEGABYTES)
     log.info { "Maximum configured size of uploads: ${MAX_FILE_SIZE_SPRING_PROPERTY}=$maxFileSizeConfig." }
     notificationMailService.dataTransferAreaDao = this
   }
@@ -93,7 +90,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     file.externalAccessToken = generateExternalAccessToken()
     file.externalPassword = generateExternalPassword()
     file.expiryDays = 7
-    file.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE // 100MB
+    file.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB // 100MB
     return file
   }
 
@@ -174,7 +171,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
   override fun afterLoad(obj: DataTransferAreaDO) {
     if (obj.maxUploadSizeKB == null)
-      obj.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE
+      obj.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB
   }
 
   open fun ensurePersonalBox(userId: Int): DataTransferAreaDO? {
@@ -297,6 +294,12 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
   }
 
   companion object {
+    /**
+     * No data transfer area may have more than this global max file size.
+     */
+    lateinit var globalMaxFileSize: DataSize
+      internal set
+
     fun generateExternalAccessToken(): String {
       return NumberHelper.getSecureRandomAlphanumeric(ACCESS_TOKEN_LENGTH)
     }
@@ -307,13 +310,29 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
     fun ensureSecureExternalAccess(obj: IDataTransferArea) {
       if (obj.externalDownloadEnabled == true || obj.externalUploadEnabled == true) {
-        if (obj.externalAccessToken?.length ?: 0 < ACCESS_TOKEN_LENGTH) {
+        if ((obj.externalAccessToken?.length ?: 0) < ACCESS_TOKEN_LENGTH) {
           obj.externalAccessToken = generateExternalAccessToken()
         }
         if (obj.externalPassword.isNullOrBlank()) {
           obj.externalPassword = generateExternalPassword()
         }
       }
+    }
+
+    /**
+     * @return Maximum file size in kb: The minimum value of free area capacity and configured max-upload-file-size.
+     */
+    fun calculateMaxUploadFileSize(data: DataTransferAreaDO): Long {
+      val used = data.attachmentsSize ?: 0
+      val freeCapacity = data.capacity - used
+      return minOf(freeCapacity, (data.maxUploadSizeKB ?: MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB) * 1024L)
+    }
+
+    /**
+     * @return Maximum file size in kb: Capacity - used space by already uploaded attachments.
+     */
+    fun calculateMaxUploadFileSizeKB(data: DataTransferAreaDO): Int {
+      return (calculateMaxUploadFileSize(data) / 1024).toInt()
     }
 
     const val MAX_FILE_SIZE_SPRING_PROPERTY = "projectforge.plugin.datatransfer.maxFileSize"
@@ -336,7 +355,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     val MAX_UPLOAD_SIZE_VALUES =
       arrayOf(20 * MB, 50 * MB, 100 * MB, 200 * MB, 500 * MB, GB, 1536 * MB, 2 * GB, 3 * GB, 5 * GB, 10 * GB)
 
-    private const val MAX_UPLOAD_SIZE_DEFAULT_VALUE = 100 * MB
+    const val MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB = 100 * MB
 
     const val ACCESS_TOKEN_LENGTH = 30
     const val PASSWORD_LENGTH = 6

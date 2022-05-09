@@ -205,7 +205,11 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
       )
       .add(
         UIFieldset(title = "attachment.list")
-          .add(UIAttachmentList(category, dto.id))
+          .add(
+            UIAttachmentList(
+              category, dto.id, maxSizeInKB = getMaxFileSizeKB()
+            )
+          )
       )
     //layout.enableHistoryBackButton()
     return LayoutUtils.processEditPage(layout, dto, this)
