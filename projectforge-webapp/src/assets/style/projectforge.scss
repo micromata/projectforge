@@ -46,6 +46,30 @@
 	background-color: #f4d5cb !important;
 }
 
+div.dropZone {
+	:-moz-drag-over {
+		border-radius: 5px;
+		border: 2px dashed rgb(0, 135, 247);
+		border-image: none;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	span.info {
+		padding: 15px 30px;
+		text-align: center;
+		font-size: 16px;
+		color: #656565;
+		display: table-cell;
+		vertical-align: middle;
+		margin-top: 20px;
+		cursor: pointer;
+		.icon {
+			margin-right: 10px;
+		}
+	}
+}
+
 .icon::before {
 	display: inline-block;
 	text-rendering: auto;

@@ -120,12 +120,12 @@ export function MultipleFileUploadArea(
 
     return (
         <>
-            <div {...getRootProps()}>
-                <p>
+            <div {...getRootProps()} className="dropZone">
+                <span className="info">
                     <FontAwesomeIcon icon={faUpload} />
                     {' '}
                     {title}
-                </p>
+                </span>
                 <input {...getInputProps()} />
 
             </div>
