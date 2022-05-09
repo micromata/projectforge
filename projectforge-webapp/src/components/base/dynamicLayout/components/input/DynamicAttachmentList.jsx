@@ -141,6 +141,7 @@ function DynamicAttachmentList(
                         title={ui.translations['attachment.upload.title']}
                         afterFileUpload={afterFileUpload}
                         maxSizeInKB={maxSizeInKB}
+                        existingFiles={attachments}
                     />
                     {table}
                 </>

@@ -28,18 +28,28 @@ export interface UploadableFile {
     errors: FileError[];
 }
 
+/*
+ Prepared for existingFiles
+export interface UploadedFile {
+    fileId: string;
+    name: string;
+    size: number;
+} */
+
 export function MultipleFileUploadArea(
     {
         url,
         title,
         afterFileUpload,
         maxSizeInKB,
+        // existingFiles,
     }:
         {
             url: string,
             title: string,
             afterFileUpload: (response: string) => void,
             maxSizeInKB: number,
+            // existingFiles: UploadedFile[],
         },
 ) {
     // const [_, __, helpers] = useField(name);
@@ -64,6 +74,20 @@ export function MultipleFileUploadArea(
             return fw;
         }));
     };
+
+    /*
+    const validator = (file: File) => {
+        // Return FileError
+        existingFiles.map((existingFile) => {
+            if (file.name === existingFile.name) {
+                return {
+                    message: 'File already exists.',
+                    code: 'FileAlreadyEsists',
+                };
+            }
+            return undefined;
+        });
+    }; */
 
     const onAfterUpload = (file: File, response: string) => {
         setFiles((curr) => curr.filter((fw) => fw.file !== file));
