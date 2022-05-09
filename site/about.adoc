@@ -38,6 +38,7 @@ Kai Reinhard cannot be held responsible for the contents of external websites to
 |Role
 
 | Kai Reinhard | Micromata GmbH | architect, developer
+| Fin Reinhard | Micromata GmbH | developer
 | Wolfgang Jung | Micromata GmbH | architect, developer
 | Christian Claus | Micromata GmbH | developer
 | Daniel Ludwig | Micromata GmbH | developer
