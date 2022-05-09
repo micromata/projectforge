@@ -31,6 +31,9 @@ left:
       - title: Migration
         url: /docs/migration/
 
+      - title: GitHub
+        url: https://github.com/micromata/projectforge/
+
   - title: FAQ
     url: /misc/faqs
 
