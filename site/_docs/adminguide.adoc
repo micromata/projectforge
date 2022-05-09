@@ -929,6 +929,15 @@ projectforge.login.handlerClass=LoginDefaultHandler
 ...
 ----
 
+=== Troubleshouting
+==== NullPointerException on pages with diagrams und Linux
+If you will receive exceptions while calling pages with diagrams such as under menu project management -> my statistics:
+----
+Caused by: java.lang.NullPointerException
+        at java.desktop/sun.awt.FontConfiguration.getVersion(FontConfiguration.java:1262)
+----
+you probably use JDK11+ and the linux package *fontconfig* isn't installed. Please install this package and restart ProjectForge.
+
 == Maintenance
 
 === Updating by simple clicks
