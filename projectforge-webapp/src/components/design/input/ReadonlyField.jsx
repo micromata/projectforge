@@ -61,14 +61,14 @@ function ReadonlyField(
                         {tooltip && (
                             <>
                                 <TooltipIcon />
-                                <UncontrolledTooltip placement="auto" target={id}>
+                                <UncontrolledTooltip placement="auto" target={String.idify(id)}>
                                     {tooltip}
                                 </UncontrolledTooltip>
                             </>
                         )}
                     </>
                 )}
-                id={id}
+                id={String.idify(id)}
                 isActive
                 onClick={handleContainerClick}
                 readOnly
