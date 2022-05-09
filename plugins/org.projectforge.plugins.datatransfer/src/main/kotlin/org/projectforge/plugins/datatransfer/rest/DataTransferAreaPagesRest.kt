@@ -128,7 +128,7 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
           .add(UITableColumn("lastUpdateTimeAgo", "lastUpdate"))
           .add(lc, "areaName", "description")
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP, sortable = false))
-          .add(UITableColumn("maxUploadSizeFormatted", "plugins.datatransfer.maxUploadSize", sortable = false))
+          .add(UITableColumn("capacity.maxUploadSizeFormatted", "plugins.datatransfer.maxUploadSize", sortable = false))
           .add(
             UITableColumn(
               "externalDownloadEnabled",

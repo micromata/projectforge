@@ -28,7 +28,20 @@ export interface UploadableFile {
     errors: FileError[];
 }
 
-export function MultipleFileUploadArea({ url, title, afterFileUpload }: { url: string, title: string, afterFileUpload: (response: string) => void }) {
+export function MultipleFileUploadArea(
+    {
+        url,
+        title,
+        afterFileUpload,
+        maxSizeInKB,
+    }:
+        {
+            url: string,
+            title: string,
+            afterFileUpload: (response: string) => void,
+            maxSizeInKB: number,
+        },
+) {
     // const [_, __, helpers] = useField(name);
     // const classes = useStyles();
     const [files, setFiles] = useState<UploadableFile[]>([]);
@@ -59,7 +72,8 @@ export function MultipleFileUploadArea({ url, title, afterFileUpload }: { url: s
 
     const { getRootProps, getInputProps } = useDropzone({
         onDrop,
-        maxSize: 300 * 1024 * 1024, // 300MB
+        maxSize: maxSizeInKB * 1024,
+        maxFiles: 10, // Limit to 10 parallels uploads.
     });
 
     return (

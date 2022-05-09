@@ -334,22 +334,7 @@ object LayoutUtils {
           it.positionLabel = translate(it.positionLabel)
         }
         is UIAttachmentList -> {
-          if (!layout.translations.containsKey("attachment.fileName")) {
-            layout.addTranslations(
-              "attachment.expires",
-              "attachment.fileName",
-              "attachment.onlyAvailableAfterSave",
-              "attachment.size",
-              "created",
-              "createdBy",
-              "delete",
-              "description",
-              "attachment.upload.title",
-              "modified",
-              "modifiedBy",
-              "reload",
-            )
-          }
+          it.addTranslations(layout)
         }
         is UIDropArea -> {
           it.title = getLabelTransformation(it.title, it as UIElement)

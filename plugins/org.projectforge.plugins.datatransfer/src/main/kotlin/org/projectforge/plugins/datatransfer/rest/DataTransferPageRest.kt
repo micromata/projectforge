@@ -105,8 +105,9 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val dto = pair.second
     val layout = UILayout("plugins.datatransfer.title.heading")
     val attachmentsFieldset = UIFieldset(title = "'${dto.areaName}")
-    attachmentsFieldset.add(UIAttachmentList(DataTransferPlugin.ID, id, showExpiryInfo = true))
-    if (dto.attachmentsSize ?: 0 in 1..NumberOfBytes.GIGA_BYTES) {
+    val maxFileSizeInKB = DataTransferAreaDao.calculateMaxUploadFileSizeKB(dbObj)
+    attachmentsFieldset.add(UIAttachmentList(DataTransferPlugin.ID, id, showExpiryInfo = true, maxSizeInKB = maxFileSizeInKB))
+    if ((dto.attachmentsSize ?: 0) in 1..NumberOfBytes.GIGA_BYTES) {
       // Download all not for attachments with size of more than 1 GB in total.
       attachmentsFieldset.add(
         UIButton.createDownloadButton(
@@ -198,9 +199,15 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
           UICol(UILength(md = 4))
             .add(
               UIReadOnlyField(
-                "maxUploadSizeFormatted",
+                "capacity.maxUploadSizeFormatted",
                 label = "plugins.datatransfer.maxUploadSize",
                 tooltip = "plugins.datatransfer.maxUploadSize.info"
+              )
+            )
+            .add(
+              UIReadOnlyField(
+                "capacity.capacityAsMessage",
+                label = "plugins.datatransfer.capacity",
               )
             )
         )

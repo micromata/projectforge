@@ -193,6 +193,10 @@ constructor(
   @Autowired
   private lateinit var userPrefService: UserPrefService
 
+  protected fun getMaxFileSizeKB(): Int {
+    return this.attachmentsAccessChecker.fileSizeChecker.maxFileSizeKB
+  }
+
   /**
    * Override this method for initializing fields for new objects.
    * @return new instance of class ExtendedDO.

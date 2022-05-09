@@ -194,7 +194,7 @@ class ContractPagesRest
       )
       .add(
         UIFieldset(title = "attachment.list")
-          .add(UIAttachmentList(category, dto.id))
+          .add(UIAttachmentList(category, dto.id, maxSizeInKB = getMaxFileSizeKB()))
       )
 
     JiraSupport.createJiraElement(dto.text, layout.getLabelledElementById("text"))?.let { textFieldSet.add(it) }

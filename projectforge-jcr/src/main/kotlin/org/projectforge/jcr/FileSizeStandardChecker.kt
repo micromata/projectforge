@@ -27,7 +27,7 @@ package org.projectforge.jcr
  * Checks the file size before storing it.
  */
 class FileSizeStandardChecker(
-  val maxFileSize: Long,
+  maxFileSize: Long,
   val maxFileSizeSpringProperty: String? = null
 ) : FileSizeChecker {
   /**
@@ -37,4 +37,6 @@ class FileSizeStandardChecker(
   override fun checkSize(file: FileInfo, data: Any?, displayUserMessage: Boolean) {
      checkSize(file, maxFileSize, maxFileSizeSpringProperty, displayUserMessage)
   }
+
+  override val maxFileSize: Long = maxFileSize
 }

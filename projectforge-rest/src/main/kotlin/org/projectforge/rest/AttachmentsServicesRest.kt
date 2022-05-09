@@ -28,10 +28,16 @@ import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.jcr.*
+import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.jcr.AttachmentsAccessChecker
+import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.jcr.*
+import org.projectforge.jcr.FileInfo
+import org.projectforge.jcr.FileObject
+import org.projectforge.jcr.ZipMode
+import org.projectforge.jcr.ZipUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -269,8 +275,8 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     @PathVariable("listId") listId: String?,
     @RequestParam("file") file: MultipartFile
   )
-//@RequestParam("files") files: Array<MultipartFile>)
-      : ResponseEntity<*>? {
+      : ResponseEntity<*> {
+    //@RequestParam("files") files: Array<MultipartFile>) // Multiple file handling is done by client.
     val pagesRest = getPagesRest(category, listId)
     //files.forEach { file ->
     val filename = file.originalFilename
