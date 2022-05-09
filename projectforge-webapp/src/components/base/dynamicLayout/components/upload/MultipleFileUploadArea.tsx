@@ -4,6 +4,7 @@ import { faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FileError, FileRejection, useDropzone } from 'react-dropzone';
 import { SingleFileUploadWithProgress } from './SingleFileUploadWithProgress';
 import { UploadError } from './UploadError';
+import { DynamicLayoutContext } from '../../context';
 
 /* eslint-disable max-len */
 
@@ -52,6 +53,9 @@ export function MultipleFileUploadArea(
             // existingFiles: UploadedFile[],
         },
 ) {
+    const { ui } = React.useContext(DynamicLayoutContext);
+    const { translations } = ui;
+
     // const [_, __, helpers] = useField(name);
     // const classes = useStyles();
     const [files, setFiles] = useState<UploadableFile[]>([]);
@@ -100,6 +104,20 @@ export function MultipleFileUploadArea(
         maxFiles: 10, // Limit to 10 parallels uploads.
     });
 
+    const translateError = (errors: FileError[]) => {
+        if (!errors || errors.length === 0) {
+            return 'Unknown upload error.';
+        }
+        const error = errors[0];
+        if (error.code === 'file-too-large') {
+            return translations['file.upload.maxSizeOfExceeded'];
+        }
+        if (error.code === 'too-many-files') {
+            return translations['file.upload.toManyFiles'];
+        }
+        return error.message;
+    };
+
     return (
         <>
             <div {...getRootProps()}>
@@ -117,7 +135,7 @@ export function MultipleFileUploadArea(
                     {fileWrapper.errors.length ? (
                         <UploadError
                             file={fileWrapper.file}
-                            errors={fileWrapper.errors}
+                            error={translateError(fileWrapper.errors)}
                         />
                     ) : (
                         <SingleFileUploadWithProgress
