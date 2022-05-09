@@ -77,7 +77,7 @@ export function SingleFileUploadWithProgress({
     }, []);
 
     return (
-        <div>
+        <div className="uploadProgress">
             <FileHeader file={file} />
             <Progress
                 animated={animated}

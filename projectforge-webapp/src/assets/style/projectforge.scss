@@ -70,6 +70,13 @@ div.dropZone {
 	}
 }
 
+div.uploadProgress {
+	div.progress {
+		height: 1.5em;
+		font-size: 1em;
+	}
+}
+
 .icon::before {
 	display: inline-block;
 	text-rendering: auto;

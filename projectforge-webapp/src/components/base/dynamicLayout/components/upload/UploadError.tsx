@@ -13,11 +13,11 @@ export interface UploadErrorProps {
 
 export function UploadError({ file, error }: UploadErrorProps) {
     return (
-        <>
+        <div className="uploadProgress">
             <FileHeader file={file} />
             <Progress color="danger" value={100}>
                 {error}
             </Progress>
-        </>
+        </div>
     );
 }

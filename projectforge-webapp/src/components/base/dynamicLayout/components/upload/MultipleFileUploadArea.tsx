@@ -110,10 +110,10 @@ export function MultipleFileUploadArea(
         }
         const error = errors[0];
         if (error.code === 'file-too-large') {
-            return translations['file.upload.maxSizeOfExceeded'];
+            return translations['file.upload.error.maxSizeOfExceeded'];
         }
         if (error.code === 'too-many-files') {
-            return translations['file.upload.toManyFiles'];
+            return translations['file.upload.error.toManyFiles'];
         }
         return error.message;
     };

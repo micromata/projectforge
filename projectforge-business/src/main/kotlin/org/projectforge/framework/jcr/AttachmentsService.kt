@@ -356,9 +356,9 @@ open class AttachmentsService {
     val attachments = getAttachments(path, obj.id, null, subPath)
     if (!allowDuplicateFiles) {
       attachments?.forEach { attachment ->
-        if (attachment.name == fileInfo.fileName && attachment.size == fileInfo.size) {
-          log.warn { "Can't upload file '${fileInfo.fileName}' of size ${FormatterUtils.formatBytes(fileInfo.size)}. A file with same name and of same size does already exist." }
-          throw UserException("plugins.datatransfer.validation.error.fileAlreadyExists")
+        if (attachment.name == fileInfo.fileName) {
+          log.warn { "Can't upload file '${fileInfo.fileName}' of size ${FormatterUtils.formatBytes(fileInfo.size)}. A file with same name does already exist." }
+          throw UserException("file.upload.error.fileAlreadyExists", fileInfo.fileName)
         }
       }
     }
