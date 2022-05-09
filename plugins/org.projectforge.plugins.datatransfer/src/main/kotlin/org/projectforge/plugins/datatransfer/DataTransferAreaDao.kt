@@ -325,14 +325,11 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     fun calculateMaxUploadFileSize(data: DataTransferAreaDO): Long {
       val used = data.attachmentsSize ?: 0
       val freeCapacity = data.capacity - used
-      return minOf(freeCapacity, (data.maxUploadSizeKB ?: MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB) * 1024L)
+      return minOf(freeCapacity, getMaxUploadFileSizeKB(data) * 1024L)
     }
 
-    /**
-     * @return Maximum file size in kb: Capacity - used space by already uploaded attachments.
-     */
-    fun calculateMaxUploadFileSizeKB(data: DataTransferAreaDO): Int {
-      return (calculateMaxUploadFileSize(data) / 1024).toInt()
+    fun getMaxUploadFileSizeKB(data: DataTransferAreaDO): Int {
+      return data.maxUploadSizeKB ?: MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB
     }
 
     const val MAX_FILE_SIZE_SPRING_PROPERTY = "projectforge.plugin.datatransfer.maxFileSize"

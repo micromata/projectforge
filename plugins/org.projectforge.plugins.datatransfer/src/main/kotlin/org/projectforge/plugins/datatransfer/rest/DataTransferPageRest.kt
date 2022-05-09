@@ -34,6 +34,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.*
+import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
@@ -45,6 +46,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
@@ -54,6 +56,9 @@ import javax.validation.Valid
 class DataTransferPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var attachmentsService: AttachmentsService
+
+  @Autowired
+  private lateinit var attachmentsServicesRest: AttachmentsServicesRest
 
   @Autowired
   private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
@@ -69,6 +74,14 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
   @Autowired
   private lateinit var userService: UserService
+
+  @PostConstruct
+  private fun postConstruct() {
+    attachmentsServicesRest.register(
+      dataTransferAreaPagesRest.category,
+      DataTransferAttachmentsActionListener(attachmentsService, dataTransferAreaDao, groupService, userService)
+    )
+  }
 
   @GetMapping("downloadAll/{id}")
   fun downloadAll(
@@ -105,8 +118,14 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val dto = pair.second
     val layout = UILayout("plugins.datatransfer.title.heading")
     val attachmentsFieldset = UIFieldset(title = "'${dto.areaName}")
-    val maxFileSizeInKB = DataTransferAreaDao.calculateMaxUploadFileSizeKB(dbObj)
-    attachmentsFieldset.add(UIAttachmentList(DataTransferPlugin.ID, id, showExpiryInfo = true, maxSizeInKB = maxFileSizeInKB))
+    attachmentsFieldset.add(
+      UIAttachmentList(
+        DataTransferPlugin.ID,
+        id,
+        showExpiryInfo = true,
+        maxSizeInKB = DataTransferAreaDao.getMaxUploadFileSizeKB(dbObj)
+      )
+    )
     if ((dto.attachmentsSize ?: 0) in 1..NumberOfBytes.GIGA_BYTES) {
       // Download all not for attachments with size of more than 1 GB in total.
       attachmentsFieldset.add(
