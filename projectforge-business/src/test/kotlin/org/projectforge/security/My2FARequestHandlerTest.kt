@@ -51,6 +51,9 @@ class My2FARequestHandlerTest {
     Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 90, handler.matchesUri("/unknown-url")?.expiryMillis)
     handler = getHandler("PASSWORD;", "", "ADMIN;MY_ACCOUNT")
     Assertions.assertNull(handler.matchesUri("/unknown-url")?.expiryMillis)
+
+    Assertions.assertNull(handler.matchesUri("/rs/user/autosearch"))
+    Assertions.assertNull(handler.matchesUri("/rs/user/autosearch?search=hurzel"))
   }
 
   @Test
@@ -124,6 +127,7 @@ class My2FARequestHandlerTest {
         My2FAShortCut.ADMIN,
         "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin",
         "/rs/change.*Password",
+        "/rs/user",
         "/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin"
       )
       handler.registerShortCutValues(My2FAShortCut.HR, "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed")
