@@ -59,11 +59,10 @@ open class AttachmentsActionListener(
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?
   ): ResponseEntity<*> {
-    val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId)
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = TargetType.UPDATE, merge = true)
-          .addVariable("data", AttachmentsServicesRest.ResponseData(list))
+          .addVariable("data",  createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
       )
   }
 
@@ -77,11 +76,10 @@ open class AttachmentsActionListener(
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?
   ): ResponseEntity<*> {
-    val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId)
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-          .addVariable("data", AttachmentsServicesRest.ResponseData(list))
+          .addVariable("data", createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
       )
   }
 
@@ -111,5 +109,15 @@ open class AttachmentsActionListener(
       encryptionSupport,
       data
     )
+  }
+
+  open fun createResponseData(
+    obj: ExtendedBaseDO<Int>,
+    jcrPath: String,
+    attachmentsAccessChecker: AttachmentsAccessChecker,
+    listId: String?,
+  ): Any {
+    val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId) ?: emptyList()
+    return AttachmentsServicesRest.ResponseData(list)
   }
 }

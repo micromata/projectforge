@@ -119,7 +119,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
 
   @PostMapping("modify")
   fun modify(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentData>)
-      : ResponseEntity<*>? {
+      : ResponseEntity<*> {
     validateCsrfToken(request, postData)?.let { return it }
     val data = postData.data
     val category = data.category
@@ -133,8 +133,6 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       pagesRest.jcrPath!!, data.fileId, pagesRest.baseDao, obj, attachment.name, attachment.description,
       pagesRest.attachmentsAccessChecker, data.listId
     )
-    val list =
-      attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
     val actionListener = getListener(category)
     return actionListener.afterModification(attachment, obj, pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, listId)
   }
@@ -205,12 +203,12 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       data.listId,
       encryptionInProgress = true,
     )
-    val list =
-      attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
+    val actionListener = getListener(data.category)
+    val obj = getDataObject(pagesRest, data.id) // Check data object availability.
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-          .addVariable("data", ResponseData(list))
+          .addVariable("data", actionListener.createResponseData(obj, pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, data.listId))
       )
   }
 
@@ -312,6 +310,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       : ResponseEntity<ResponseAction>? {
     validateCsrfToken(request, postData)?.let { return it }
     val data = postData.data
+    val category = data.category
     val pagesRest = getPagesRest(data.category, data.listId)
     val obj = getDataObject(pagesRest, data.id) // Check data object availability.
     attachmentsService.deleteAttachment(
@@ -322,13 +321,11 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       pagesRest.attachmentsAccessChecker,
       data.listId
     )
-    val list =
-      attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
-        ?: emptyList() // Client needs empty list to update data of attachments.
+    val actionListener = getListener(category)
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-          .addVariable("data", ResponseData(list))
+          .addVariable("data", actionListener.createResponseData(obj, pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, data.listId))
       )
   }
 

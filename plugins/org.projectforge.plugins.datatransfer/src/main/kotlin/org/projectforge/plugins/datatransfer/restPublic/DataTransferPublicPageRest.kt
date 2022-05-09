@@ -122,7 +122,6 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
 
   private fun getAttachmentLayout(dbObj: DataTransferAreaDO, dataTransfer: DataTransferPublicArea): UILayout {
     val fieldSet = UIFieldset(12, title = "'${dataTransfer.areaName}")
-    val maxFileSizeInKB = DataTransferAreaDao.calculateMaxUploadFileSizeKB(dbObj)
     fieldSet.add(
       UIFieldset(title = "attachment.list")
         .add(
@@ -138,7 +137,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
             downloadOnRowClick = false,
             uploadDisabled = dataTransfer.externalUploadEnabled != true,
             showExpiryInfo = true,
-            maxSizeInKB = maxFileSizeInKB,
+            maxSizeInKB = DataTransferAreaDao.getMaxUploadFileSizeKB(dbObj),
           )
         )
     )
