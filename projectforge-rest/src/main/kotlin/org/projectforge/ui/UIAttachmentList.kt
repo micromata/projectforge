@@ -77,10 +77,6 @@ class UIAttachmentList(
    * If true, the expiry info of the attachments will be displayed (if given in [org.projectforge.framework.jcr.Attachment.info] as string value with key 'expiryInfo'.
    */
   val showExpiryInfo: Boolean? = null,
-  /**
-   * Client may check existing files by name before uploading them.
-   */
-  val existingFiles: Array<String>? = null,
 ) :
   UIElement(type = UIElementType.ATTACHMENT_LIST) {
   fun addTranslations(layout: UILayout) {

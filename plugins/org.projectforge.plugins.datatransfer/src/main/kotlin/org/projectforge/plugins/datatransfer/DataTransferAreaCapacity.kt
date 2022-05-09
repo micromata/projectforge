@@ -38,22 +38,22 @@ class DataTransferAreaCapacity(
   var used: Long = used ?: 0L
   var maxUploadSize = 1024L * (maxUploadSizeKB ?: DataTransferAreaDao.MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB)
   val usedFormatted: String
-    @JsonProperty
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     get() = FormatterUtils.formatBytes(used)
 
   val capacityFormatted: String
-    @JsonProperty
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     get() = FormatterUtils.formatBytes(capacity)
 
   val maxUploadSizeFormatted: String
-    @JsonProperty
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     get() = FormatterUtils.formatBytes(maxUploadSize)
 
   val percentage: Int
-    @JsonProperty
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     get() = (100 * used / capacity).toInt()
 
   val capacityAsMessage: String
-    @JsonProperty
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     get() = translateMsg("plugins.datatransfer.capacity.stats", usedFormatted, capacityFormatted, percentage)
 }

@@ -68,7 +68,7 @@ class DataTransferArea(
   /**
    * Needed for updating UILayout for watchfields.
    */
-  var layoutUid: String? = null
+  var layoutUid: String? = null,
 ) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport, IDataTransferArea {
   override var attachments: List<Attachment>? = null
 
