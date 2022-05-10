@@ -60,7 +60,16 @@ function DynamicAttachmentList(
         if (selectedIds.length === 0) {
             return; // Do nothing, no rows selected.
         }
-        download(selectedIds.map((fileId) => String.truncate(fileId, 4)).join());
+        callAction({
+            responseAction: {
+                targetType: 'DOWNLOAD',
+                url: getServiceURL(`${restBaseUrl}/multiDownload/${category}/${id}`, {
+                    fileIds: selectedIds.map((fileId) => String.truncate(fileId, 4)).join(),
+                    listId,
+                }),
+                absolute: true,
+            },
+        });
     }, [gridApi]);
 
     const handleRowClick = (event) => {

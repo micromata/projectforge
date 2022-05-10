@@ -22,5 +22,5 @@ hero:
 ++++
 
 ++++
-{% include team.html authors="kai, fin, wolfgang, christian, daniel, roger" title="We are here to help" subtitle="Our team is just an email away ready to answer your questions" %}
+{% include team.html authors="kai, fin, wolfgang, christian, daniel, roger" title="We are here to help" subtitle="Our team is just an e-mail away ready to answer your questions" %}
 ++++

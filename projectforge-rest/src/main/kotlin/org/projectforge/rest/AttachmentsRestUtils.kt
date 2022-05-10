@@ -38,13 +38,13 @@ object AttachmentsRestUtils {
     response: HttpServletResponse,
     attachmentsService: AttachmentsService,
     attachmentsAccessChecker: AttachmentsAccessChecker,
-    filename: String?,
+    filebasename: String?,
     jcrPath: String,
     id: Int,
     attachments: List<Attachment>? = null,
   ) {
     response.status = HttpServletResponse.SC_OK
-    val filename = ReplaceUtils.encodeFilename("${filename}_${PFDay.now().isoString}.zip")
+    val filename = ReplaceUtils.encodeFilename("${filebasename}_${PFDay.now().isoString}.zip")
     RestUtils.setContentDisposition(response, filename)
     val zipOutputStream = ZipOutputStream(response.outputStream)
     if (attachments == null) {
