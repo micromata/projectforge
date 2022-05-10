@@ -16,6 +16,7 @@ function DynamicAgGrid({
     rowSelection,
     rowMultiSelectWithClick,
     rowClickRedirectUrl,
+    rowClickFunction,
     onColumnStatesChangedUrl,
     onGridApiReady,
     pagination,
@@ -69,6 +70,9 @@ function DynamicAgGrid({
     };
 
     const onRowClicked = (event) => {
+        if (rowClickFunction) {
+            rowClickFunction(event);
+        }
         if (!rowClickRedirectUrl) {
             // Do nothing
             return;
@@ -196,6 +200,7 @@ DynamicAgGrid.propTypes = {
     rowSelection: PropTypes.string,
     rowMultiSelectWithClick: PropTypes.bool,
     rowClickRedirectUrl: PropTypes.string,
+    rowClickFunction: PropTypes.func,
     onColumnStatesChangedUrl: PropTypes.string,
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
@@ -208,6 +213,7 @@ DynamicAgGrid.defaultProps = {
     paginationPageSize: undefined,
     getRowClass: undefined,
     rowClickRedirectUrl: undefined,
+    onRowClicked: undefined,
 };
 
 export default DynamicAgGrid;
