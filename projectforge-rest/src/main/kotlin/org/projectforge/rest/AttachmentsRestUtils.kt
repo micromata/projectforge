@@ -21,49 +21,51 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.datatransfer.rest
+package org.projectforge.rest
 
-import org.projectforge.framework.i18n.translate
+import de.micromata.merlin.utils.ReplaceUtils
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
-import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.jcr.FileInfo
-import org.projectforge.plugins.datatransfer.DataTransferAreaDO
-import org.projectforge.plugins.datatransfer.NotificationMailService
-import org.projectforge.rest.AttachmentsRestUtils
+import org.projectforge.framework.time.PFDay
+import org.projectforge.rest.config.RestUtils
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import javax.servlet.http.HttpServletResponse
 
-object DataTransferRestUtils {
+object AttachmentsRestUtils {
   fun downloadAll(
     response: HttpServletResponse,
     attachmentsService: AttachmentsService,
     attachmentsAccessChecker: AttachmentsAccessChecker,
-    notificationMailService: NotificationMailService,
-    dbObj: DataTransferAreaDO,
-    areaName: String?,
+    filename: String?,
     jcrPath: String,
     id: Int,
     attachments: List<Attachment>? = null,
-    byUser: PFUserDO? = null,
-    byExternalUser: String? = null,
   ) {
-    AttachmentsRestUtils.downloadAll(
-      response,
-      attachmentsService,
-      attachmentsAccessChecker,
-      areaName,
-      jcrPath,
-      id,
-      attachments,
-    )
-    notificationMailService.sendMail(
-      AttachmentsEventType.DOWNLOAD_ALL,
-      FileInfo(translate("plugins.datatransfer.mail.action.DOWNLOAD_ALL.filename")),
-      dbObj,
-      byUser = byUser,
-      byExternalUser = byExternalUser,
-    )
+    response.status = HttpServletResponse.SC_OK
+    val filename = ReplaceUtils.encodeFilename("${filename}_${PFDay.now().isoString}.zip")
+    RestUtils.setContentDisposition(response, filename)
+    val zipOutputStream = ZipOutputStream(response.outputStream)
+    if (attachments == null) {
+      zipOutputStream.putNextEntry(ZipEntry("empty.txt"))
+      zipOutputStream.write("Area is empty. Thank you for using ProjectForge!".toByteArray())
+      zipOutputStream.closeEntry()
+    } else {
+      for (attachment in attachments) {
+        zipOutputStream.putNextEntry(ZipEntry(attachment.name ?: "unknown"))
+        val result = attachmentsService.getAttachmentInputStream(
+          jcrPath,
+          id,
+          attachment.fileId!!,
+          attachmentsAccessChecker
+        ) ?: continue
+        result.second.use {
+          it.copyTo(zipOutputStream)
+        }
+        zipOutputStream.closeEntry()
+      }
+    }
+    zipOutputStream.close()
   }
 }

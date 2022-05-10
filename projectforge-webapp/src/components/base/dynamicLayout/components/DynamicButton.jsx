@@ -13,6 +13,7 @@ function DynamicButton(props) {
         tooltip,
         disabled,
         responseAction,
+        handleButtonClick,
         ...stylingProps
     } = props;
 
@@ -28,11 +29,21 @@ function DynamicButton(props) {
             return;
         }
 
+        if (handleButtonClick) {
+            handleButtonClick();
+            return;
+        }
+
         callAction(props);
     };
 
     const toggleShowConfirmMessage = () => setShowConfirmMessage(!showConfirmMessage);
     const confirmAction = () => {
+        if (handleButtonClick) {
+            handleButtonClick();
+            setShowConfirmMessage(false);
+            return;
+        }
         callAction(props);
         setShowConfirmMessage(false);
     };
@@ -106,6 +117,7 @@ DynamicButton.propTypes = {
     responseAction: PropTypes.shape({}),
     tooltip: PropTypes.string,
     disabled: PropTypes.bool,
+    handleButtonClick: PropTypes.func,
 };
 
 DynamicButton.defaultProps = {
@@ -115,6 +127,7 @@ DynamicButton.defaultProps = {
     responseAction: {},
     tooltip: undefined,
     disabled: undefined,
+    handleButtonClick: undefined,
 };
 
 export default DynamicButton;
