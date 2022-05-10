@@ -75,6 +75,8 @@ function DynamicAttachmentList(
             columnDefs={agGrid.columnDefs}
             id="attachments"
             rowClickFunction={handleRowClick}
+            rowSelection="multiple"
+            suppressRowClickSelection="true"
         />
         /*
             <tbody>
