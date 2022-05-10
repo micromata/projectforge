@@ -60,6 +60,10 @@ open class UIAgGridColumnDef(
    */
   var width: Int? = null,
   var resizable: Boolean? = true,
+  /**
+   * https://www.ag-grid.com/react-data-grid/value-formatters/
+   */
+  var valueFormatter: String? = null,
 ) {
 
   var pinned: String? = null
@@ -76,12 +80,6 @@ open class UIAgGridColumnDef(
    * https://www.ag-grid.com/react-data-grid/column-properties/
    */
   var headerClass: Array<String>? = null
-
-  /**
-   * https://www.ag-grid.com/react-data-grid/value-formatters/
-   * Not yet implemented.
-   */
-  //var valueFormatter: String? = null
 
   /**
    * https://www.ag-grid.com/react-data-grid/column-definitions/#right-aligned-and-numeric-columns

@@ -395,10 +395,10 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
   ) {
     val pagesRest = getPagesRest(category, listId)
     log.info { "User tries to download multiple attachments: ${paramsToString(category, id, fileIds, listId)}." }
-    val fileIds = fileIds.split(",")
+    val fileIdList = fileIds.split(",")
     val attachments = attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker)
       ?.filter { attachment ->
-        fileIds.any { attachment.fileId?.startsWith(it) == true }
+        fileIdList.any { attachment.fileId?.startsWith(it) == true }
       }
     val actionListener = getListener(category)
     val obj = getDataObject(pagesRest, id) // Check data object availability.

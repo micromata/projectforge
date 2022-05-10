@@ -108,9 +108,23 @@ class UIAttachmentList(
           )
         )
       if (showExpiryInfo == true) {
-        it.add(UIAgGridColumnDef("info.expiryInfo", translate("attachment.expires"), width = 120))
+        it.add(UIAgGridColumnDef(
+          "info.expiryInfo",
+          translate("attachment.expires"),
+          sortable = true,
+          valueFormatter = "data.info.expiryInfo",
+          width = 120,
+        ))
       }
-      it.add(UIAgGridColumnDef("createdFormatted", translate("created"), width = UIAgGridColumnDef.TIMESTAMP_WIDTH))
+      it.add(
+        UIAgGridColumnDef(
+          "created",
+          translate("created"),
+          sortable = true,
+          valueFormatter = "data.createdFormatted",
+          width = UIAgGridColumnDef.TIMESTAMP_WIDTH,
+        )
+      )
         .add(
           UIAgGridColumnDef(
             "createdByUser",
@@ -119,7 +133,15 @@ class UIAttachmentList(
             width = UIAgGridColumnDef.USER_WIDTH,
           )
         )
-        .add(UIAgGridColumnDef("lastUpdateTimeAgo", translate("modified"), width = UIAgGridColumnDef.DATE_WIDTH))
+        .add(
+          UIAgGridColumnDef(
+            "lastUpdate",
+            translate("modified"),
+            sortable = true,
+            valueFormatter = "data.lastUpdateTimeAgo",
+            width = UIAgGridColumnDef.DATE_WIDTH
+          ),
+        )
         .add(
           UIAgGridColumnDef(
             "lastUpdateByUser",
