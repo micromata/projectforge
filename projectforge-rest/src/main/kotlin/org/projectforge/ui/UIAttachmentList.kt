@@ -95,6 +95,7 @@ class UIAttachmentList(
           sortable = true,
           width = 300,
           checkboxSelection = true,
+          headerCheckboxSelection = true,
         )
       )
         .add(UIAgGridColumnDef("sizeHumanReadable", translate("attachment.size"), width = 80))
@@ -150,6 +151,8 @@ class UIAttachmentList(
       "modified",
       "modifiedBy",
       "reload",
+      "multiselection.aggrid.selection.info.message",
+      "multiselection.aggrid.selection.info.title",
     )
     layout.addTranslation(
       "file.upload.error.maxSizeOfExceeded",

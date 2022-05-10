@@ -4,6 +4,7 @@ import { evalServiceURL, getServiceURL } from '../../../../../utilities/rest';
 import { MultipleFileUploadArea } from '../upload/MultipleFileUploadArea';
 import { DynamicLayoutContext } from '../../context';
 import DynamicAgGrid from '../table/DynamicAgGrid';
+import DynamicAlert from '../DynamicAlert';
 
 function DynamicAttachmentList(
     {
@@ -27,6 +28,7 @@ function DynamicAttachmentList(
     } = React.useContext(DynamicLayoutContext);
 
     const { attachments } = data;
+    const { translations } = ui;
 
     const afterFileUpload = (response) => {
         const json = JSON.parse(response);
@@ -71,13 +73,21 @@ function DynamicAttachmentList(
     }; */
 
     const table = attachments && attachments.length > 0 && (
-        <DynamicAgGrid
-            columnDefs={agGrid.columnDefs}
-            id="attachments"
-            rowClickFunction={handleRowClick}
-            rowSelection="multiple"
-            suppressRowClickSelection="true"
-        />
+        <>
+            <DynamicAgGrid
+                columnDefs={agGrid.columnDefs}
+                id="attachments"
+                rowClickFunction={handleRowClick}
+                rowSelection="multiple"
+                suppressRowClickSelection="true"
+            />
+            <DynamicAlert
+                markdown
+                color="info"
+                title={translations['multiselection.aggrid.selection.info.title']}
+                message={translations['multiselection.aggrid.selection.info.message']}
+            />
+        </>
         /*
             <tbody>
                 { attachments.map((entry) => (
