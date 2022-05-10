@@ -1,11 +1,9 @@
-import { faDownload, faEdit, faLock } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { evalServiceURL, getServiceURL } from '../../../../../utilities/rest';
-import { Table } from '../../../../design';
 import { MultipleFileUploadArea } from '../upload/MultipleFileUploadArea';
 import { DynamicLayoutContext } from '../../context';
+import DynamicAgGrid from '../table/DynamicAgGrid';
 
 function DynamicAttachmentList(
     {
@@ -17,8 +15,8 @@ function DynamicAttachmentList(
         restBaseUrl,
         downloadOnRowClick,
         uploadDisabled,
-        showExpiryInfo,
         maxSizeInKB,
+        agGrid,
     },
 ) {
     const {
@@ -48,8 +46,8 @@ function DynamicAttachmentList(
         });
     };
 
-    const handleRowClick = (entry) => (event) => {
-        event.stopPropagation();
+    const handleRowClick = (event) => {
+        const entry = event.data;
         if (readOnly || downloadOnRowClick) {
             download(entry.fileId);
         } else {
@@ -66,28 +64,19 @@ function DynamicAttachmentList(
         }
     };
 
+    /*
     const handleDownload = (entryId) => (event) => {
         event.stopPropagation();
         download(entryId);
-    };
+    }; */
 
     const table = attachments && attachments.length > 0 && (
-        <Table striped hover>
-            <thead>
-                <tr>
-                    <th>{ui.translations['attachment.fileName']}</th>
-                    <th>{ui.translations['attachment.size']}</th>
-                    <th>{ui.translations.description}</th>
-                    {showExpiryInfo === true
-                    && (
-                        <th>{ui.translations['attachment.expires']}</th>
-                    )}
-                    <th>{ui.translations.created}</th>
-                    <th>{ui.translations.createdBy}</th>
-                    <th>{ui.translations.modified}</th>
-                    <th>{ui.translations.modifiededBy}</th>
-                </tr>
-            </thead>
+        <DynamicAgGrid
+            columnDefs={agGrid.columnDefs}
+            id="attachments"
+            rowClickFunction={handleRowClick}
+        />
+        /*
             <tbody>
                 { attachments.map((entry) => (
                     <tr key={entry.fileId} onClick={handleRowClick(entry)}>
@@ -112,20 +101,10 @@ function DynamicAttachmentList(
                                 </span>
                             )}
                         </td>
-                        <td>{entry.sizeHumanReadable}</td>
-                        <td>{entry.description}</td>
-                        {showExpiryInfo
-                        && (
-                            <td>{(entry.info && entry.info.expiryInfo) ? entry.info.expiryInfo : ''}</td>
-                        )}
-                        <td>{entry.createdFormatted}</td>
-                        <td>{entry.createdByUser}</td>
-                        <td>{entry.lastUpdateTimeAgo}</td>
-                        <td>{entry.lastUpdateByUser}</td>
                     </tr>
                 ))}
             </tbody>
-        </Table>
+        </Table> */
     );
 
     return React.useMemo(() => {
@@ -164,7 +143,6 @@ DynamicAttachmentList.propTypes = {
     restBaseUrl: PropTypes.string,
     downloadOnRowClick: PropTypes.bool,
     uploadDisabled: PropTypes.bool,
-    showExpiryInfo: PropTypes.bool,
     maxSizeInKB: PropTypes.number,
 };
 
@@ -175,7 +153,6 @@ DynamicAttachmentList.defaultProps = {
     restBaseUrl: '/rs/attachments',
     downloadOnRowClick: false,
     uploadDisabled: false,
-    showExpiryInfo: undefined,
     maxSizeInKB: 1000000, // 1 MB at default
 };
 

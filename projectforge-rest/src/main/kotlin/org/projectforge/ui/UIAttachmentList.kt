@@ -24,6 +24,7 @@
 package org.projectforge.ui
 
 import org.projectforge.common.FormatterUtils
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsService
 
@@ -79,6 +80,48 @@ class UIAttachmentList(
   val showExpiryInfo: Boolean? = null,
 ) :
   UIElement(type = UIElementType.ATTACHMENT_LIST) {
+  /**
+   * For displaying the attachments as AG Grid.
+   */
+  var agGrid: UIAgGrid? = null
+
+  init {
+    UIAgGrid("attachments").let {
+      this.agGrid = it
+      it.add(UIAgGridColumnDef("name", translate("attachment.fileName"), sortable = true, width = 300))
+        .add(UIAgGridColumnDef("sizeHumanReadable", translate("attachment.size"), width = 80))
+        .add(
+          UIAgGridColumnDef(
+            "description",
+            translate("description"),
+            sortable = true,
+            width = UIAgGridColumnDef.DESCRIPTION_WIDTH,
+          )
+        )
+      if (showExpiryInfo == true) {
+        it.add(UIAgGridColumnDef("info.expiryInfo", translate("attachment.expires"), width = 120))
+      }
+      it.add(UIAgGridColumnDef("createdFormatted", translate("created"), width = UIAgGridColumnDef.TIMESTAMP_WIDTH))
+        .add(
+          UIAgGridColumnDef(
+            "createdByUser",
+            translate("createdBy"),
+            sortable = true,
+            width = UIAgGridColumnDef.USER_WIDTH,
+          )
+        )
+        .add(UIAgGridColumnDef("lastUpdateTimeAgo", translate("modified"), width = UIAgGridColumnDef.DATE_WIDTH))
+        .add(
+          UIAgGridColumnDef(
+            "lastUpdateByUser",
+            translate("modifiedBy"),
+            sortable = true,
+            width = UIAgGridColumnDef.USER_WIDTH,
+          )
+        )
+    }
+  }
+
   fun addTranslations(layout: UILayout) {
     if (layout.translations.containsKey("attachment.fileName")) {
       // Translations already added.

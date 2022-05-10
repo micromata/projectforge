@@ -55,12 +55,12 @@ open class UIAgGridColumnDef(
   var headerCheckboxSelection: Boolean? = null,
   var minWidth: Int? = null,
   var maxWidth: Int? = null,
-  var resizable: Boolean? = true,
-) {
   /**
    * width in Pixel.
    */
-  var width: Int? = null
+  var width: Int? = null,
+  var resizable: Boolean? = true,
+) {
 
   var pinned: String? = null
 
@@ -217,7 +217,7 @@ open class UIAgGridColumnDef(
             }
           } else if (elementInfo.propertyClass == String::class.java) {
             if ((elementInfo.maxLength ?: 0) > 1000 && width == null) {
-              col.width = 500 // Extra wide column
+              col.width = LONG_DESCRIPTION_WIDTH // Extra wide column
             }
           } else if (elementInfo.propertyClass == Boolean::class.java || elementInfo.propertyClass == java.lang.Boolean::class.java) {
             useFormatter = Formatter.BOOLEAN
@@ -241,18 +241,18 @@ open class UIAgGridColumnDef(
         when (it) {
           Formatter.CURRENCY -> {
             if (width == null) {
-              col.width = 120
+              col.width = CURRENCY_WIDTH
               col.type = AG_TYPE.NUMERIC_COLUMN.agType
             }
           }
           Formatter.NUMBER -> {
             if (width == null) {
-              col.width = 100
+              col.width = NUMBER_WIDTH
               col.type = AG_TYPE.NUMERIC_COLUMN.agType
             }
           }
           Formatter.DATE -> {
-            col.width = 100
+            col.width = DATE_WIDTH
           }
           else -> {}
         }
@@ -281,5 +281,13 @@ open class UIAgGridColumnDef(
       }
       return result
     }
+
+    const val CURRENCY_WIDTH = 120
+    const val DATE_WIDTH = 100
+    const val DESCRIPTION_WIDTH = 300
+    const val LONG_DESCRIPTION_WIDTH = 500
+    const val NUMBER_WIDTH = 100
+    const val TIMESTAMP_WIDTH = 120
+    const val USER_WIDTH = 100
   }
 }
