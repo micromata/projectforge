@@ -98,7 +98,13 @@ class UIAttachmentList(
           headerCheckboxSelection = true,
         )
       )
-        .add(UIAgGridColumnDef("sizeHumanReadable", translate("attachment.size"), width = 80))
+        .add(UIAgGridColumnDef(
+          "size",
+          translate("attachment.size"),
+          sortable = true,
+          valueFormatter = "data.sizeHumanReadable",
+          width = 80,
+        ))
         .add(
           UIAgGridColumnDef(
             "description",
@@ -111,8 +117,6 @@ class UIAttachmentList(
         it.add(UIAgGridColumnDef(
           "info.expiryInfo",
           translate("attachment.expires"),
-          sortable = true,
-          valueFormatter = "data.info.expiryInfo",
           width = 120,
         ))
       }
