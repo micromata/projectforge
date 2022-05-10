@@ -5,6 +5,7 @@ import { MultipleFileUploadArea } from '../upload/MultipleFileUploadArea';
 import { DynamicLayoutContext } from '../../context';
 import DynamicAgGrid from '../table/DynamicAgGrid';
 import DynamicAlert from '../DynamicAlert';
+import DynamicButton from '../DynamicButton';
 
 function DynamicAttachmentList(
     {
@@ -86,6 +87,19 @@ function DynamicAttachmentList(
                 color="info"
                 title={translations['multiselection.aggrid.selection.info.title']}
                 message={translations['multiselection.aggrid.selection.info.message']}
+            />
+            <DynamicButton
+                id="deleteSelected"
+                color="danger"
+                confirmMessage={translations['file.upload.deleteSelected.confirm']}
+                outline
+                title={translations['file.upload.deleteSelected']}
+            />
+            <DynamicButton
+                id="downloadSelected"
+                color="success"
+                outline
+                title={translations['file.upload.downloadSelected']}
             />
         </>
         /*

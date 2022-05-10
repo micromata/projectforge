@@ -142,17 +142,21 @@ class UIAttachmentList(
       "attachment.onlyAvailableAfterSave",
       "attachment.size",
       "attachment.upload.title",
+      "cancel", "yes", // For delete confirmation dialogue
       "created",
       "createdBy",
       "delete",
       "description",
+      "file.upload.deleteSelected",
+      "file.upload.deleteSelected.confirm",
+      "file.upload.downloadSelected",
       "file.upload.error.fileAlreadyExists",
       "file.upload.error.toManyFiles",
       "modified",
       "modifiedBy",
-      "reload",
       "multiselection.aggrid.selection.info.message",
       "multiselection.aggrid.selection.info.title",
+      "reload",
     )
     layout.addTranslation(
       "file.upload.error.maxSizeOfExceeded",
