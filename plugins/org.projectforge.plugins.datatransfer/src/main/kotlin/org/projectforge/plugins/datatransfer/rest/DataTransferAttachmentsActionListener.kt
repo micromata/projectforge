@@ -59,4 +59,13 @@ class DataTransferAttachmentsActionListener(
       return super.createResponseData(obj, jcrPath, attachmentsAccessChecker, listId)
     }
   }
+
+  override fun createDownloadBasefileName(obj: Any): String {
+    if (obj is DataTransferAreaDO) {
+      return obj.displayName
+    } else {
+      // Shouldn't occur.
+      return super.createDownloadBasefileName(obj)
+    }
+  }
 }
