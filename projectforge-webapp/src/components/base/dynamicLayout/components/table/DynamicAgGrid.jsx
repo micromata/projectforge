@@ -22,6 +22,7 @@ function DynamicAgGrid({
     pagination,
     paginationPageSize,
     getRowClass,
+    suppressRowClickSelection,
 }) {
     // eslint-disable-next-line no-new-func
     const getRowClassFunction = Function('params', getRowClass);
@@ -168,6 +169,7 @@ function DynamicAgGrid({
                 rowClass={rowClass}
                 getRowClass={usedGetRowClass}
                 accentedSort
+                suppressRowClickSelection={suppressRowClickSelection}
             />
         </div>
     ),
@@ -205,6 +207,8 @@ DynamicAgGrid.propTypes = {
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
     getRowClass: PropTypes.shape({}),
+    suppressRowClickSelection: PropTypes.bool,
+    checkboxSelection: PropTypes.bool,
 };
 
 DynamicAgGrid.defaultProps = {
@@ -214,6 +218,7 @@ DynamicAgGrid.defaultProps = {
     getRowClass: undefined,
     rowClickRedirectUrl: undefined,
     onRowClicked: undefined,
+    suppressRowClickSelection: undefined,
 };
 
 export default DynamicAgGrid;

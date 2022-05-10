@@ -88,7 +88,15 @@ class UIAttachmentList(
   init {
     UIAgGrid("attachments").let {
       this.agGrid = it
-      it.add(UIAgGridColumnDef("name", translate("attachment.fileName"), sortable = true, width = 300))
+      it.add(
+        UIAgGridColumnDef(
+          "name",
+          translate("attachment.fileName"),
+          sortable = true,
+          width = 300,
+          checkboxSelection = true,
+        )
+      )
         .add(UIAgGridColumnDef("sizeHumanReadable", translate("attachment.size"), width = 80))
         .add(
           UIAgGridColumnDef(
