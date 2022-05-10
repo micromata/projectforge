@@ -41,9 +41,7 @@ function DynamicListPageAgGrid({
 
     const { ui } = React.useContext(DynamicLayoutContext);
 
-    const handleCancel = React.useCallback((event) => {
-        event.preventDefault();
-        event.stopPropagation();
+    const handleCancel = React.useCallback(() => {
         fetch(
             getServiceURL(handleCancelUrl), {
                 method: 'GET',
@@ -57,9 +55,7 @@ function DynamicListPageAgGrid({
             });
     }, [gridApi]);
 
-    const handleClick = React.useCallback((event) => {
-        event.preventDefault();
-        event.stopPropagation();
+    const handleClick = React.useCallback(() => {
         const selectedIds = gridApi.getSelectedRows().map((item) => item.id);
         fetchJsonPost(urlAfterMultiSelect,
             { selectedIds },

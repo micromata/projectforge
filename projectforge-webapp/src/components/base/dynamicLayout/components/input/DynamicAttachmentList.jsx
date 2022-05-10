@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useState } from 'react';
 import { evalServiceURL, getServiceURL } from '../../../../../utilities/rest';
 import { MultipleFileUploadArea } from '../upload/MultipleFileUploadArea';
 import { DynamicLayoutContext } from '../../context';
@@ -28,6 +28,12 @@ function DynamicAttachmentList(
         ui,
     } = React.useContext(DynamicLayoutContext);
 
+    const [gridApi, setGridApi] = useState();
+
+    const onGridApiReady = React.useCallback((api) => {
+        setGridApi(api);
+    }, []);
+
     const { attachments } = data;
     const { translations } = ui;
 
@@ -49,6 +55,14 @@ function DynamicAttachmentList(
         });
     };
 
+    const handleDownloadSelectedClick = React.useCallback(() => {
+        const selectedIds = gridApi.getSelectedRows().map((item) => item.fileId);
+        if (selectedIds.length === 0) {
+            return; // Do nothing, no rows selected.
+        }
+        download(selectedIds.map((fileId) => String.truncate(fileId, 4)).join());
+    }, [gridApi]);
+
     const handleRowClick = (event) => {
         const entry = event.data;
         if (readOnly || downloadOnRowClick) {
@@ -67,6 +81,26 @@ function DynamicAttachmentList(
         }
     };
 
+    const handleDeleteSelectedClick = React.useCallback(() => {
+        const selectedIds = gridApi.getSelectedRows().map((item) => item.fileId);
+        if (selectedIds.length === 0) {
+            return; // Do nothing, no rows selected.
+        }
+        callAction({
+            responseAction: {
+                targetType: 'POST',
+                url: `${restBaseUrl}/multiDelete`,
+                myData: {
+                    category,
+                    id,
+                    fileIds: selectedIds,
+                    listId,
+                },
+                absolute: true,
+            },
+        });
+    }, [gridApi]);
+
     /*
     const handleDownload = (entryId) => (event) => {
         event.stopPropagation();
@@ -76,6 +110,7 @@ function DynamicAttachmentList(
     const table = attachments && attachments.length > 0 && (
         <>
             <DynamicAgGrid
+                onGridApiReady={onGridApiReady}
                 columnDefs={agGrid.columnDefs}
                 id="attachments"
                 rowClickFunction={handleRowClick}
@@ -94,12 +129,14 @@ function DynamicAttachmentList(
                 confirmMessage={translations['file.upload.deleteSelected.confirm']}
                 outline
                 title={translations['file.upload.deleteSelected']}
+                handleButtonClick={handleDeleteSelectedClick}
             />
             <DynamicButton
                 id="downloadSelected"
                 color="success"
                 outline
                 title={translations['file.upload.downloadSelected']}
+                handleButtonClick={handleDownloadSelectedClick}
             />
         </>
         /*
@@ -157,7 +194,7 @@ function DynamicAttachmentList(
                 {ui.translations['attachment.onlyAvailableAfterSave']}
             </>
         );
-    }, [setData, id, attachments]);
+    }, [setData, id, attachments, handleDeleteSelectedClick]);
 }
 
 DynamicAttachmentList.propTypes = {

@@ -205,10 +205,11 @@ export const callAction = (
 
             let filename;
             let body;
+            const { myData } = action;
 
             if (action.targetType !== 'GET') {
                 body = JSON.stringify({
-                    data,
+                    data: myData || data,
                     watchFieldsTriggered,
                     serverData,
                 });
