@@ -57,6 +57,7 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -351,10 +352,6 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       )
   }
 
-  /**
-   * @param fileId File id of attachement to download or csv of fileIds of attachments to download. For preserving
-   * url length, fileIds may also be shortened (e. g. first 4 chars).
-   */
   @GetMapping("download/{category}/{id}")
   fun download(
     @PathVariable("category", required = true) category: String,
@@ -363,6 +360,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     @RequestParam("listId") listId: String?
   )
       : ResponseEntity<InputStreamResource> {
+
     log.info { "User tries to download attachment: ${paramsToString(category, id, fileId, listId)}." }
     val pagesRest = getPagesRest(category, listId)
 
@@ -378,10 +376,39 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
             )
           }."
         )
-
     val filename = result.first.fileName ?: "file"
     val inputStream = result.second
     return RestUtils.downloadFile(filename, inputStream)
+  }
+
+  /**
+   * @param fileIds csv of fileIds of attachments to download. For preserving url length, fileIds may also be shortened
+   * (e. g. first 4 chars).
+   */
+  @GetMapping("multiDownload/{category}/{id}")
+  fun multiDownload(
+    response: HttpServletResponse,
+    @PathVariable("category", required = true) category: String,
+    @PathVariable("id", required = true) id: Int,
+    @RequestParam("fileIds", required = true) fileIds: String,
+    @RequestParam("listId") listId: String?
+  ) {
+    val pagesRest = getPagesRest(category, listId)
+    log.info { "User tries to download multiple attachments: ${paramsToString(category, id, fileIds, listId)}." }
+    val fileIds = fileIds.split(",")
+    val attachments = attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker)
+      ?.filter { attachment ->
+        fileIds.any { attachment.fileId?.startsWith(it) == true }
+      }
+    AttachmentsRestUtils.downloadAll(
+      response,
+      attachmentsService,
+      pagesRest.attachmentsAccessChecker,
+      "download",
+      pagesRest.jcrPath!!,
+      id,
+      attachments,
+    )
   }
 
   @PostMapping("multiDelete")
@@ -449,7 +476,10 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       )
   }
 
-  internal fun getAttachment(pagesRest: AbstractPagesRest<*, *, *>, data: AttachmentsServicesRest.AttachmentData): Attachment {
+  internal fun getAttachment(
+    pagesRest: AbstractPagesRest<*, *, *>,
+    data: AttachmentsServicesRest.AttachmentData
+  ): Attachment {
     return getAttachment(pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, data)
   }
 

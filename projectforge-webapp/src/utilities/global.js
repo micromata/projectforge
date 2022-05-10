@@ -99,7 +99,7 @@ Array.findByField = (array, field, value) => array.reduce((accumulator, currentV
 // Replace all selector characters to prevent that they appear in an id.
 String.idify = (string) => string.replace(/[.#*, >+~/[\]=|^$:()]/g, '-');
 
-String.truncate = (str, length) => (str?.length > length ? str.substring(0, length - 1) : str);
+String.truncate = (str, length) => (str?.length > length ? str.substring(0, length) : str);
 
 Object.getResponseHeaderFilename = (contentDisposition) => {
     // attachment; filename*=UTF-8''document.pdf; filename=document.pdf
