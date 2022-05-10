@@ -120,4 +120,8 @@ open class AttachmentsActionListener(
     val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId) ?: emptyList()
     return AttachmentsServicesRest.ResponseData(list)
   }
+
+  open fun createDownloadBasefileName(obj: Any): String {
+    return "download"
+  }
 }

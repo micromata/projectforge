@@ -400,11 +400,14 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       ?.filter { attachment ->
         fileIds.any { attachment.fileId?.startsWith(it) == true }
       }
+    val actionListener = getListener(category)
+    val obj = getDataObject(pagesRest, id) // Check data object availability.
+    val basefilename = actionListener.createDownloadBasefileName(obj)
     AttachmentsRestUtils.downloadAll(
       response,
       attachmentsService,
       pagesRest.attachmentsAccessChecker,
-      "download",
+      basefilename,
       pagesRest.jcrPath!!,
       id,
       attachments,
@@ -412,9 +415,10 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
   }
 
   @PostMapping("multiDelete")
-  fun multiDelete(request: HttpServletRequest, @RequestBody postData: PostData<FileListData>) {
+  fun multiDelete(request: HttpServletRequest, @RequestBody postData: PostData<FileListData>)
+      : ResponseEntity<ResponseAction>? {
     validateCsrfToken(request, postData)?.let {
-      return
+      return it
     }
     val data = postData.data
     val category = data.category
@@ -442,6 +446,15 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         )
       }
     }
+    val actionListener = getListener(category)
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.UPDATE, merge = true)
+          .addVariable(
+            "data",
+            actionListener.createResponseData(obj, pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, data.listId)
+          )
+      )
   }
 
   internal fun getPagesRest(
