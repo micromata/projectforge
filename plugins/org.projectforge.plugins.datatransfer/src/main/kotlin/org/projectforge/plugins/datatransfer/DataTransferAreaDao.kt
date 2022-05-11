@@ -62,10 +62,13 @@ private val log = KotlinLogging.logger {}
 @Repository
 open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO::class.java), AttachmentsEventListener {
   @Autowired
-  private lateinit var notificationMailService: NotificationMailService
+  private lateinit var configurationChecker: ConfigurationChecker
 
   @Autowired
-  private lateinit var configurationChecker: ConfigurationChecker
+  private lateinit var dataTransferAuditDao: DataTransferAuditDao
+
+  @Autowired
+  private lateinit var notificationMailService: NotificationMailService
 
   @Autowired
   private lateinit var userService: UserService
@@ -286,7 +289,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       if (!byExternalUser.isNullOrBlank() && event == AttachmentsEventType.DOWNLOAD) {
         // internalUpdateAny(data) // Must call update. On upload event, the data will stored by caller.
       }
-      notificationMailService.sendMail(event, file, data as DataTransferAreaDO, byUser, byExternalUser)
+      dataTransferAuditDao.insertAudit(event, data as DataTransferAreaDO, byUser, byExternalUser, file)
 
     } catch (ex: Exception) {
       log.error("Exception while calling SendMailService: ${ex.message}.", ex)
