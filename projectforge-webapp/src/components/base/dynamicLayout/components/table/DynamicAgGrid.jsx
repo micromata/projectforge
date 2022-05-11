@@ -23,6 +23,7 @@ function DynamicAgGrid({
     paginationPageSize,
     getRowClass,
     suppressRowClickSelection,
+    components,
 }) {
     // eslint-disable-next-line no-new-func
     const getRowClassFunction = Function('params', getRowClass);
@@ -73,6 +74,7 @@ function DynamicAgGrid({
     const onRowClicked = (event) => {
         if (rowClickFunction) {
             rowClickFunction(event);
+            return;
         }
         if (!rowClickRedirectUrl) {
             // Do nothing
@@ -129,8 +131,9 @@ function DynamicAgGrid({
         await postColumnStatesDebounced(event);
     };
 
-    const [components] = useState({
+    const [allComponents] = useState({
         formatter: Formatter,
+        ...components,
     });
 
     const usedGetRowClass = React.useCallback((params) => {
@@ -154,7 +157,7 @@ function DynamicAgGrid({
             <AgGridReact
                 ref={gridRef}
                 rowData={entries}
-                components={components}
+                components={allComponents}
                 columnDefs={columnDefs}
                 rowSelection={rowSelection}
                 rowMultiSelectWithClick={rowMultiSelectWithClick}
@@ -209,6 +212,10 @@ DynamicAgGrid.propTypes = {
     getRowClass: PropTypes.shape({}),
     suppressRowClickSelection: PropTypes.bool,
     checkboxSelection: PropTypes.bool,
+    components: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.any,
+    ]),
 };
 
 DynamicAgGrid.defaultProps = {
@@ -219,6 +226,7 @@ DynamicAgGrid.defaultProps = {
     rowClickRedirectUrl: undefined,
     onRowClicked: undefined,
     suppressRowClickSelection: undefined,
+    components: undefined,
 };
 
 export default DynamicAgGrid;

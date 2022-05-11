@@ -95,9 +95,16 @@ class UIAttachmentList(
           sortable = true,
           width = 300,
           checkboxSelection = true,
+          cellRenderer = "filename",
           headerCheckboxSelection = true,
         )
       )
+        .add(UIAgGridColumnDef(
+          "action",
+          "",
+          cellRenderer = "action",
+          width = 50,
+        ))
         .add(UIAgGridColumnDef(
           "size",
           translate("attachment.size"),

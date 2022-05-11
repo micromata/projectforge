@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faDownload, faEdit, faLock } from '@fortawesome/free-solid-svg-icons';
 import { evalServiceURL, getServiceURL } from '../../../../../utilities/rest';
 import { MultipleFileUploadArea } from '../upload/MultipleFileUploadArea';
 import { DynamicLayoutContext } from '../../context';
@@ -37,11 +39,6 @@ function DynamicAttachmentList(
     const { attachments } = data;
     const { translations } = ui;
 
-    const afterFileUpload = (response) => {
-        const json = JSON.parse(response);
-        callAction({ responseAction: json });
-    };
-
     const download = (entryId) => {
         callAction({
             responseAction: {
@@ -53,6 +50,53 @@ function DynamicAttachmentList(
                 absolute: true,
             },
         });
+    };
+
+    function Action(param) {
+        const { data: entry } = param; // Entry
+        return (
+            <>
+                <span
+                    role="presentation"
+                    onKeyDown={() => {
+                    }}
+                    ref={(ref) => {
+                        if (!ref) return;
+                        // eslint-disable-next-line no-param-reassign
+                        ref.onclick = (event) => {
+                            download(entry.fileId);
+                            event.stopPropagation(); // works not span.onclick :-(
+                        };
+                    }}
+                >
+                    <FontAwesomeIcon icon={faDownload} />
+                </span>
+                {!downloadOnRowClick
+                    && (
+                        <span className="ml-2">
+                            <FontAwesomeIcon icon={faEdit} />
+                        </span>
+                    )}
+            </>
+        );
+    }
+
+    function Filename(param) {
+        const { data: entry } = param; // Entry
+        return (
+            <>
+                {`${entry.name} `}
+                {entry.encrypted
+                        && (
+                            <FontAwesomeIcon icon={faLock} />
+                        )}
+            </>
+        );
+    }
+
+    const afterFileUpload = (response) => {
+        const json = JSON.parse(response);
+        callAction({ responseAction: json });
     };
 
     const handleDownloadSelectedClick = React.useCallback(() => {
@@ -110,12 +154,6 @@ function DynamicAttachmentList(
         });
     }, [gridApi]);
 
-    /*
-    const handleDownload = (entryId) => (event) => {
-        event.stopPropagation();
-        download(entryId);
-    }; */
-
     const table = attachments && attachments.length > 0 && (
         <>
             <DynamicAgGrid
@@ -125,6 +163,10 @@ function DynamicAttachmentList(
                 rowClickFunction={handleRowClick}
                 rowSelection="multiple"
                 suppressRowClickSelection="true"
+                components={{
+                    action: Action,
+                    filename: Filename,
+                }}
             />
             <DynamicAlert
                 markdown
@@ -148,35 +190,6 @@ function DynamicAttachmentList(
                 handleButtonClick={handleDownloadSelectedClick}
             />
         </>
-        /*
-            <tbody>
-                { attachments.map((entry) => (
-                    <tr key={entry.fileId} onClick={handleRowClick(entry)}>
-                        <td>
-                            <span
-                                role="presentation"
-                                onKeyDown={() => {
-                                }}
-                                onClick={handleDownload(entry.fileId)}
-                            >
-                                {entry.encrypted
-                                && (
-                                    <FontAwesomeIcon icon={faLock} />
-                                )}
-                                {`${entry.name} `}
-                                <FontAwesomeIcon icon={faDownload} />
-                            </span>
-                            {!downloadOnRowClick
-                            && (
-                                <span className="ml-2">
-                                    <FontAwesomeIcon icon={faEdit} />
-                                </span>
-                            )}
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </Table> */
     );
 
     return React.useMemo(() => {
