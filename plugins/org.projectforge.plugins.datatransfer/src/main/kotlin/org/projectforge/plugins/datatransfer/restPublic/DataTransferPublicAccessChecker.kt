@@ -37,7 +37,6 @@ import javax.servlet.http.HttpServletRequest
  * Checks access to attachments by external anonymous users.
  */
 open class DataTransferPublicAccessChecker(
-  dataTransferAreaDao: DataTransferAreaDao,
   val dataTransferPublicSession: DataTransferPublicSession
 ) : AttachmentsAccessChecker {
   override val fileSizeChecker: DataTransferFileSizeChecker =

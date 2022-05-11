@@ -52,9 +52,6 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
   private lateinit var dataTransferPublicAccessChecker: DataTransferPublicAccessChecker
 
   @Autowired
-  private lateinit var dataTransferAreaDao: DataTransferAreaDao
-
-  @Autowired
   private lateinit var dataTransferPublicServicesRest: DataTransferPublicServicesRest
 
   @Autowired
@@ -62,7 +59,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
 
   @PostConstruct
   private fun postConstruct() {
-    dataTransferPublicAccessChecker = DataTransferPublicAccessChecker(dataTransferAreaDao, dataTransferPublicSession)
+    dataTransferPublicAccessChecker = DataTransferPublicAccessChecker(dataTransferPublicSession)
   }
 
   /**

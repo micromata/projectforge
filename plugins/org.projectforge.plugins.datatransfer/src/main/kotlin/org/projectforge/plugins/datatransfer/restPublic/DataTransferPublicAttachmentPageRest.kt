@@ -64,8 +64,7 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
 
   @PostConstruct
   private fun postConstruct() {
-    val baseDao = dataTransferAreaPagesRest.baseDao
-    dataTransferPublicAccessChecker = DataTransferPublicAccessChecker(baseDao, dataTransferPublicSession)
+    dataTransferPublicAccessChecker = DataTransferPublicAccessChecker(dataTransferPublicSession)
   }
 
   /**
