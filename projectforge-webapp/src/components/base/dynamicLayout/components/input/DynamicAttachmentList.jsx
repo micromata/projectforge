@@ -162,7 +162,7 @@ function DynamicAttachmentList(
                 id="attachments"
                 rowClickFunction={handleRowClick}
                 rowSelection="multiple"
-                suppressRowClickSelection="true"
+                suppressRowClickSelection
                 components={{
                     action: Action,
                     filename: Filename,

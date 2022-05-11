@@ -192,7 +192,7 @@ function DynamicAgGrid({
 
 DynamicAgGrid.propTypes = {
     columnDefs: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.string.isRequired,
+        field: PropTypes.string.isRequired,
         title: PropTypes.string,
         titleIcon: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
