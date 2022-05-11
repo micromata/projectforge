@@ -38,6 +38,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateFormats
+import org.projectforge.reporting.Kunde
 import java.time.LocalDate
 
 /**
@@ -64,15 +65,14 @@ open class UIAgGridColumnDef(
    * https://www.ag-grid.com/react-data-grid/value-formatters/
    */
   var valueFormatter: String? = null,
-) {
-
-  var pinned: String? = null
-
   /**
    * https://www.ag-grid.com/react-data-grid/components/
    * If formatter is used, it's set to "formatter".
    */
   var cellRenderer: String? = null
+) {
+
+  var pinned: String? = null
 
   var cellRendererParams: Map<String, Any>? = null
 
@@ -199,6 +199,8 @@ open class UIAgGridColumnDef(
             useFormatter = Formatter.COST1
           } else if (elementInfo.propertyClass == Kost2DO::class.java) {
             useFormatter = Formatter.COST2
+          } else if (elementInfo.propertyClass == Kunde::class.java) {
+            useFormatter = Formatter.CUSTOMER
           } else if (elementInfo.propertyClass == KontoDO::class.java) {
             useFormatter = Formatter.KONTO
           } else if (elementInfo.propertyClass == AddressbookDO::class.java) {
