@@ -40,11 +40,11 @@ import javax.persistence.*
 @NamedQueries(
   NamedQuery(
     name = DataTransferAuditDO.FIND_BY_AREA_ID,
-    query = "from DataTransferAuditDO where areaId=:areaId"
+    query = "from DataTransferAuditDO where areaId=:areaId order by timestamp desc"
   ),
   NamedQuery(
     name = DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID,
-    query = "from DataTransferAuditDO where areaId=:areaId and notificationsSent=false and timestamp<=:timestamp"
+    query = "from DataTransferAuditDO where areaId=:areaId and notificationsSent=false and timestamp<=:timestamp order by timestamp desc"
   ),
   NamedQuery(
     name = DataTransferAuditDO.FIND_BY_ID,
@@ -125,8 +125,16 @@ open class DataTransferAuditDO {
     get() = eventType?.i18nKey?.let { translate(it) } ?: ""
 
   @get:Transient
-  open val userAsString
+  open val byUserAsString
     get() = byUser?.getFullname() ?: byExternalUser
+
+  @get:Transient
+  open val filenameAsString
+    get() = filename ?: ""
+
+  @get:Transient
+  open val descriptionAsString
+    get() = description ?: ""
 
   companion object {
     internal const val FIND_BY_AREA_ID = "DataTransferAuditDO_FindByAreaId"
