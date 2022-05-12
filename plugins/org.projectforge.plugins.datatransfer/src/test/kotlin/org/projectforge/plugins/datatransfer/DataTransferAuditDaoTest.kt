@@ -55,7 +55,7 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
     Assertions.assertEquals(4, dataTransferAuditDao.getEntriesByAreaId(areaId)!!.size)
     dataTransferAuditDao.getQueuedEntriesByAreaId(areaId).let { entries ->
       Assertions.assertEquals(2, entries!!.size, "2 entries older than 1 hour queued.")
-      dataTransferAuditDao.notificationsSentFor(entries)
+      dataTransferAuditDao.removeFromQueue(entries)
     }
     Assertions.assertEquals(0, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size, "No more queued entries. 2 were processed and 2 are newer")
     Assertions.assertEquals(1, dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusDays(1)))

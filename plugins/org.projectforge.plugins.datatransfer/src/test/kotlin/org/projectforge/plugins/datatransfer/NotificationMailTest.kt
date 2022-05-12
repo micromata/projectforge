@@ -28,9 +28,11 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.jcr.FileInfo
 import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.test.AbstractTestBase
@@ -39,45 +41,67 @@ import java.util.*
 
 class NotificationMailTest : AbstractTestBase() {
   @Autowired
+  private lateinit var dataTransferAuditDao: DataTransferAuditDao
+
+  @Autowired
   private lateinit var domainService: DomainService
 
   @Autowired
   private lateinit var notificationMailService: NotificationMailService
 
   init {
-    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName)
+    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(
+      DataTransferAreaDO::class.java.canonicalName,
+      DataTransferAuditDO::class.java.canonicalName,
+    )
   }
 
   @Test
   fun mailTest() {
-    val recipient = createUser()
+    val recipient = getUser(TEST_USER)
+    val byUser = getUser(TEST_USER2)
     val area = createDataTransferArea(42, "Area")
     area.adminIds = "${recipient.id}"
     val link = createLink(area.id)
-    val byUser = createUser(firstname = "Mr.", lastname = "Modifier", id = 2)
-    /*var mail = notificationMailService.prepareMail(
-      recipient,
+    val timestamp = PFDateTime.now().minusDays(1)
+    dataTransferAuditDao.insertAudit(
       AttachmentsEventType.UPLOAD,
-      "Mail.kt",
       area,
-      link,
       recipient,
-      null
-    )
-    Assertions.assertNull(mail, "Don't send the recipient his own notification.")
-    mail =
-      notificationMailService.prepareMail(recipient, AttachmentsEventType.UPLOAD, "Mail.kt", area, link, byUser, null)
-    Assertions.assertNotNull(mail)
-    mail = notificationMailService.prepareMail(
-      recipient,
-      AttachmentsEventType.UPLOAD,
-      "Mail.kt",
-      area,
-      link,
       null,
-      "External: 127.0.0.1"
+      FileInfo("ownFile.txt"),
+      timestamp,
     )
-    Assertions.assertNotNull(mail)*/
+    dataTransferAuditDao.insertAudit(
+      AttachmentsEventType.UPLOAD,
+      area,
+      null,
+      "External user 123.123.123.123",
+      FileInfo("externalFile.txt"),
+      timestamp,
+    )
+    dataTransferAuditDao.insertAudit(
+      AttachmentsEventType.DOWNLOAD_ALL,
+      area,
+      byUser,
+      null,
+      timestamp4TestCase = timestamp,
+    )
+    dataTransferAuditDao.insertAudit(
+      AttachmentsEventType.DELETE,
+      area,
+      byUser,
+      null,
+      FileInfo("externalFile.txt"),
+      timestamp4TestCase = timestamp,
+    )
+    val mail = notificationMailService.prepareMail(
+      recipient,
+      area,
+      link,
+      dataTransferAuditDao.getQueuedEntriesByAreaId(area.id)!!
+    )
+    Assertions.assertNotNull(mail)
   }
 
   @Test

@@ -25,6 +25,7 @@ package org.projectforge.plugins.datatransfer
 
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.Constants
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
@@ -118,6 +119,14 @@ open class DataTransferAuditDO {
    */
   @get:Column(name = "notifications_sent")
   open var notificationsSent: Boolean = false
+
+  @get:Transient
+  open val eventAsString
+    get() = eventType?.i18nKey?.let { translate(it) } ?: ""
+
+  @get:Transient
+  open val userAsString
+    get() = byUser?.getFullname() ?: byExternalUser
 
   companion object {
     internal const val FIND_BY_AREA_ID = "DataTransferAuditDO_FindByAreaId"

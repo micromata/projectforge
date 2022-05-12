@@ -2,25 +2,41 @@
 #INCLUDE{mail/mailHead.html}
 <body>
 <div id="mail">
-  <div class="container">
-    <div class="content">
-      #INCLUDE{mail/mailOpening.html}
-      <p>
-        <%= eventInfo.message %>
-      </p>
-      <a
-              href="${eventInfo.link}"
-              class="button"
-              target="_blank"
-              rel="noreferrer"
-      >
-        <%= pf.getI18nString("plugins.datatransfer.mail.link") %>
-      </a>
-
-      #INCLUDE{mail/mailClosing.html}
-      #INCLUDE{mail/mailFooter.html}
+    <div class="container">
+        <div class="content">
+            #INCLUDE{mail/mailOpening.html}
+            <p>
+                <%= message %>
+            </p>
+            <tr>
+                <th><%= pf.getI18nString("date") %></th>
+                <th><%= pf.getI18nString("attachment.fileName") %></th>
+                <th><%= pf.getI18nString("attachment.description") %></th>
+                <th><%= pf.getI18nString("plugins.datatransfer.mail.action") %></th>
+                <th><%= pf.getI18nString("lastUpdateByUser") %></th>
+            </tr>
+            <% for (audit in auditEntries) { %>
+            <tr>
+                <td class="no-wrap"><%= pf.getString(audit.timestamp) %></td>
+                <td><%= audit.filename %></td>
+                <td><%= audit.description %></td>
+                <td><%= audit.eventAsString %></td>
+                <td><%= audit.userAsString %></td>
+            </tr>
+            <% } %>
+            </table>
+            <a
+                    href="${eventInfo.link}"
+                    class="button"
+                    target="_blank"
+                    rel="noreferrer"
+            >
+                <%= pf.getI18nString("plugins.datatransfer.mail.link") %>
+            </a>
+            #INCLUDE{mail/mailClosing.html}
+            #INCLUDE{mail/mailFooter.html}
+        </div>
     </div>
-  </div>
 </div>
 </body>
 </html>
