@@ -64,7 +64,7 @@ open class DataTransferAuditDao {
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  open fun notificationsSentFor(auditEntries: Collection<DataTransferAuditDO>) {
+  open fun removeFromQueue(auditEntries: Collection<DataTransferAuditDO>) {
     auditEntries.chunked(50).forEach { subList ->
       em.createNamedQuery(DataTransferAuditDO.UPDATE_NOTIFICATION_STATUS)
         .setParameter("idList", subList.map { it.id })
@@ -104,6 +104,7 @@ open class DataTransferAuditDao {
     byUser: PFUserDO?,
     byExternalUser: String?,
     file: FileInfo? = null,
+    timestamp4TestCase: PFDateTime? = null,
   ) {
     val audit = DataTransferAuditDO()
     audit.areaId = dbObj.id
@@ -111,6 +112,9 @@ open class DataTransferAuditDao {
     audit.byUser = byUser
     audit.byExternalUser = byExternalUser
     audit.filename = file?.fileName
+    timestamp4TestCase?.let {
+      audit.timestamp = it.utilDate
+    }
     insert(audit)
   }
 }

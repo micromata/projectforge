@@ -67,6 +67,7 @@ class DatatransferAuditJob {
       val auditEntries = dataTransferAuditDao.getQueuedEntriesByAreaId(area.id)
       if (!auditEntries.isNullOrEmpty()) {
         notificationMailService.sendMail(area, auditEntries)
+        dataTransferAuditDao.removeFromQueue(auditEntries)
       }
     }
     dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusDays(30))

@@ -148,49 +148,20 @@ open class NotificationMailService {
       // Recipient has no access, so skip mail.
       return null
     }
-    return null
-/*
-    val titleKey: String
-    val messageKey: String
-    val byUserString: String
-    if (byUser != null || byExternalUser == DataTransferJCRCleanUpJob.SYSTEM_USER) {
-      titleKey = "plugins.datatransfer.mail.subject.title"
-      messageKey = "plugins.datatransfer.mail.subject.msg"
-      byUserString = byUser?.getFullname() ?: DataTransferJCRCleanUpJob.SYSTEM_USER
-    } else {
-      titleKey = "plugins.datatransfer.mail.subject.external.title"
-      messageKey = "plugins.datatransfer.mail.subject.external.msg"
-      byUserString = byExternalUser ?: "???"
-    }
-    val title = I18nHelper.getLocalizedMessage(
-      recipient,
-      titleKey,
-      dataTransfer.displayName,
-      translate("plugins.datatransfer.mail.action.$event")
-    )
-    val message = I18nHelper.getLocalizedMessage(
-      recipient,
-      messageKey,
-      fileName,
-      dataTransfer.displayName,
-      byUserString,
-      translate("plugins.datatransfer.mail.action.$event")
-    )
-    // EventInfo is given to mail renderer.
-    val eventInfo = EventInfo(link = link, user = byUserString, message = message)
-
+    val title = I18nHelper.getLocalizedMessage("plugins.datatransfer.mail.subject", dataTransfer.displayName)
+    val message = I18nHelper.getLocalizedMessage("plugins.datatransfer.mail.message", dataTransfer.displayName)
     val mail = Mail()
-    mail.subject = message // Subject equals to message
+    mail.subject = title // Subject equals to message
     mail.contentType = Mail.CONTENTTYPE_HTML
     mail.setTo(recipient.email, recipient.getFullname())
     if (mail.to.isEmpty()) {
       log.error { "Recipient without mail address, no mail will be sent to '${recipient.getFullname()}: $dataTransfer" }
       return null
     }
-    val data = mutableMapOf<String, Any?>("eventInfo" to eventInfo)
+    val data = mutableMapOf<String, Any?>("link" to link, "message" to message, "auditEntries" to foreignAuditEntries)
     mail.content =
       sendMail.renderGroovyTemplate(mail, "mail/dataTransferMail.html", data, title, recipient)
-    return mail*/
+    return mail
   }
 
   internal fun prepareMail(recipient: PFUserDO, notificationInfoList: List<AttachmentNotificationInfo>): Mail? {
@@ -237,6 +208,4 @@ open class NotificationMailService {
       sendMail.renderGroovyTemplate(mail, "mail/dataTransferFilesBeingDeletedMail.html", data, mail.subject, recipient)
     return mail
   }
-
-  internal class EventInfo(val link: String, val user: String?, val message: String)
 }
