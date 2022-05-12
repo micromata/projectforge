@@ -8,25 +8,26 @@
             <p>
                 <%= message %>
             </p>
-            <tr>
-                <th><%= pf.getI18nString("date") %></th>
-                <th><%= pf.getI18nString("attachment.fileName") %></th>
-                <th><%= pf.getI18nString("attachment.description") %></th>
-                <th><%= pf.getI18nString("plugins.datatransfer.mail.action") %></th>
-                <th><%= pf.getI18nString("lastUpdateByUser") %></th>
-            </tr>
-            <% for (audit in auditEntries) { %>
-            <tr>
-                <td class="no-wrap"><%= pf.getString(audit.timestamp) %></td>
-                <td><%= audit.filename %></td>
-                <td><%= audit.description %></td>
-                <td><%= audit.eventAsString %></td>
-                <td><%= audit.userAsString %></td>
-            </tr>
-            <% } %>
+            <table>
+                <tr>
+                    <th><%= pf.getI18nString("date") %></th>
+                    <th><%= pf.getI18nString("attachment.fileName") %></th>
+                    <th><%= pf.getI18nString("description") %></th>
+                    <th><%= pf.getI18nString("plugins.datatransfer.mail.action") %></th>
+                    <th><%= pf.getI18nString("modifiedBy") %></th>
+                </tr>
+                <% for (audit in auditEntries) { %>
+                <tr>
+                    <td class="no-wrap"><%= pf.getString(audit.timestamp) %></td>
+                    <td><%= audit.filenameAsString %></td>
+                    <td><%= audit.descriptionAsString %></td>
+                    <td><%= audit.eventAsString %></td>
+                    <td><%= audit.byUserAsString %></td>
+                </tr>
+                <% } %>
             </table>
             <a
-                    href="${eventInfo.link}"
+                    href="${link}"
                     class="button"
                     target="_blank"
                     rel="noreferrer"
