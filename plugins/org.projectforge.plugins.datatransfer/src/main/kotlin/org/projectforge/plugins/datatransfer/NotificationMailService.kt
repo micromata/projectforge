@@ -70,10 +70,10 @@ open class NotificationMailService {
     val expiresInTimeLeft = DataTransferUtils.expiryTimeLeft(attachment, dataTransferArea.expiryDays, locale)
   }
 
-  fun sendMail(
+  fun sendMails(
     area: DataTransferAreaDO,
     auditEntries: List<DataTransferAuditDO>,
-  ) {
+  ): Int {
     // First detect all recipients by checking all audit entries:
     val recipients = mutableSetOf<Int>()
     auditEntries.forEach { audit ->
@@ -95,7 +95,7 @@ open class NotificationMailService {
     }*/
     if (recipients.isEmpty()) {
       // No observers, admins and deleted files of other createdByUsers.
-      return
+      return 0
     }
     val link = domainService.getDomain(
       PagesResolver.getDynamicPageUrl(
@@ -103,13 +103,21 @@ open class NotificationMailService {
         id = area.id ?: 0
       )
     )
+    var counter = 0
     recipients.distinct().forEach { id ->
       val recipient = userService.internalGetById(id)
       val mail = prepareMail(recipient, area, link, auditEntries)
       mail?.let {
-        sendMail.send(it)
+        try {
+          if (sendMail.send(it)) {
+            ++counter
+          }
+        } catch (ex: Exception) {
+          log.error(ex.message, ex)
+        }
       }
     }
+    return counter
   }
 
   /**
