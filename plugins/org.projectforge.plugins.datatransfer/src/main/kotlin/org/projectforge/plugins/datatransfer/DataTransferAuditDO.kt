@@ -42,8 +42,8 @@ import javax.persistence.*
     query = "from DataTransferAuditDO where areaId=:areaId"
   ),
   NamedQuery(
-    name = DataTransferAuditDO.FIND_WITHOUT_NOTIFICATIONS_SENT_BY_AREA_ID,
-    query = "from DataTransferAuditDO where areaId=:areaId and notificationsSent=false"
+    name = DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID,
+    query = "from DataTransferAuditDO where areaId=:areaId and notificationsSent=false and timestamp<=:timestamp"
   ),
   NamedQuery(
     name = DataTransferAuditDO.FIND_BY_ID,
@@ -76,7 +76,7 @@ open class DataTransferAuditDO {
   open var areaId: Int? = null
 
   @get:ManyToOne(fetch = FetchType.LAZY)
-  @get:JoinColumn(name = "by_user_fk", nullable = false)
+  @get:JoinColumn(name = "by_user_fk")
   open var byUser: PFUserDO? = null
 
   @get:Column(name = "by_external_user", length = 4000)
@@ -101,7 +101,7 @@ open class DataTransferAuditDO {
    * this user about the deletion and any other modifications and downloads.
    */
   @get:ManyToOne(fetch = FetchType.LAZY)
-  @get:JoinColumn(name = "upload_by_user_fk", nullable = false)
+  @get:JoinColumn(name = "upload_by_user_fk")
   open var uploadByUser: PFUserDO? = null
 
   @get:Column(length = 1000)
@@ -121,7 +121,7 @@ open class DataTransferAuditDO {
 
   companion object {
     internal const val FIND_BY_AREA_ID = "DataTransferAuditDO_FindByAreaId"
-    internal const val FIND_WITHOUT_NOTIFICATIONS_SENT_BY_AREA_ID = "DataTransferAuditDO_FindWithoutNotificationsSentByAreaId"
+    internal const val FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID = "DataTransferAuditDO_FindQueuedEntriesByAreaId"
     internal const val FIND_BY_ID = "DataTransferAuditDO_FindById"
     internal const val DELETE_OLD_ENTRIES = "DataTransferAuditDO_DeleteOldEntries"
     internal const val UPDATE_NOTIFICATION_STATUS = "DataTransferAuditDO_UpdateNotificationStatus"

@@ -30,6 +30,7 @@ import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 
@@ -46,36 +47,36 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
 
   @Test
   fun daoTest() {
-    val size = 60
-    for (i in 1..size) {
-      dataTransferAuditDao.insert(create(1, PFDateTime.now().minusDays(10).utilDate))
-    }
-    for (i in 1..size) {
-      dataTransferAuditDao.insert(create(2, PFDateTime.now().utilDate))
-    }
-    dataTransferAuditDao.getEntriesWithoutNotificationsSentByAreaId(1).let { entries ->
-      Assertions.assertEquals(size, entries!!.size, "No notifications sent.")
-    }
-    dataTransferAuditDao.getEntriesByAreaId(1).let { entries ->
-      Assertions.assertEquals(size, entries!!.size)
+    val areaId = 1
+    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
+    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
+    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(5, ChronoUnit.MINUTES).utilDate))
+    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().utilDate))
+    Assertions.assertEquals(4, dataTransferAuditDao.getEntriesByAreaId(areaId)!!.size)
+    dataTransferAuditDao.getQueuedEntriesByAreaId(areaId).let { entries ->
+      Assertions.assertEquals(2, entries!!.size, "2 entries older than 1 hour queued.")
       dataTransferAuditDao.notificationsSentFor(entries)
     }
-    dataTransferAuditDao.getEntriesWithoutNotificationsSentByAreaId(1).let { entries ->
-      Assertions.assertEquals(0, entries!!.size, "All notifications sent.")
+    Assertions.assertEquals(0, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size, "No more queued entries. 2 were processed and 2 are newer")
+    Assertions.assertEquals(1, dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusDays(1)))
+    dataTransferAuditDao.getEntriesByAreaId(areaId).let { entries ->
+      Assertions.assertEquals(3, entries!!.size, "1 entry older than 1 day should be deleted.")
     }
-    dataTransferAuditDao.getEntriesByAreaId(1).let { entries ->
+  }
+
+  @Test
+  fun daoDeleteOldTest() {
+    val size = 60
+    val areaId = 2
+    for (i in 1..size) {
+      dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
+    }
+    dataTransferAuditDao.getEntriesByAreaId(areaId).let { entries ->
       Assertions.assertEquals(size, entries!!.size)
-      entries.forEach {
-        Assertions.assertTrue(it.notificationsSent)
-      }
     }
-    Assertions.assertEquals(size, dataTransferAuditDao.getEntriesByAreaId(2)!!.size)
     Assertions.assertEquals(size, dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusDays(1)))
-    dataTransferAuditDao.getEntriesByAreaId(1).let { entries ->
+    dataTransferAuditDao.getEntriesByAreaId(areaId).let { entries ->
       Assertions.assertEquals(0, entries!!.size, "All entries of area 1 should be deleted now")
-    }
-    dataTransferAuditDao.getEntriesByAreaId(2).let { entries ->
-      Assertions.assertEquals(size, entries!!.size, "All entries of area 2 should exist")
     }
   }
 

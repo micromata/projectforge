@@ -31,11 +31,9 @@ import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsEventType
-import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
-import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
 import org.projectforge.rest.core.PagesResolver
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,12 +47,6 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class NotificationMailService {
-  @Autowired
-  private lateinit var attachmentsService: AttachmentsService
-
-  @Autowired
-  private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
-
   @Autowired
   private lateinit var domainService: DomainService
 
