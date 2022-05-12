@@ -42,6 +42,10 @@ import javax.persistence.*
     query = "from DataTransferAuditDO where areaId=:areaId"
   ),
   NamedQuery(
+    name = DataTransferAuditDO.FIND_WITHOUT_NOTIFICATIONS_SENT_BY_AREA_ID,
+    query = "from DataTransferAuditDO where areaId=:areaId and notificationsSent=false"
+  ),
+  NamedQuery(
     name = DataTransferAuditDO.FIND_BY_ID,
     query = "from DataTransferAuditDO where id=:id"
   ),
@@ -92,6 +96,14 @@ open class DataTransferAuditDO {
   @get:Column(name = "description_old", length = Constants.LENGTH_TEXT)
   open var descriptionOld: String? = null
 
+  /**
+   * The user uploaded the file. It's stored here, because the file could be deleted in the mean time to inform
+   * this user about the deletion and any other modifications and downloads.
+   */
+  @get:ManyToOne(fetch = FetchType.LAZY)
+  @get:JoinColumn(name = "upload_by_user_fk", nullable = false)
+  open var uploadByUser: PFUserDO? = null
+
   @get:Column(length = 1000)
   open var filename: String? = null
 
@@ -105,10 +117,11 @@ open class DataTransferAuditDO {
    * Notification to all observers sent? Is also set to true after processing, if no observer is registered.
    */
   @get:Column(name = "notifications_sent")
-  open var notificationsSent: Boolean? = null
+  open var notificationsSent: Boolean = false
 
   companion object {
     internal const val FIND_BY_AREA_ID = "DataTransferAuditDO_FindByAreaId"
+    internal const val FIND_WITHOUT_NOTIFICATIONS_SENT_BY_AREA_ID = "DataTransferAuditDO_FindWithoutNotificationsSentByAreaId"
     internal const val FIND_BY_ID = "DataTransferAuditDO_FindById"
     internal const val DELETE_OLD_ENTRIES = "DataTransferAuditDO_DeleteOldEntries"
     internal const val UPDATE_NOTIFICATION_STATUS = "DataTransferAuditDO_UpdateNotificationStatus"

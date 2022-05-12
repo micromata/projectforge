@@ -38,7 +38,6 @@ object DataTransferRestUtils {
     response: HttpServletResponse,
     attachmentsService: AttachmentsService,
     attachmentsAccessChecker: AttachmentsAccessChecker,
-    dataTransferAuditDao: DataTransferAuditDao,
     dbObj: DataTransferAreaDO,
     areaName: String?,
     jcrPath: String,
@@ -63,4 +62,6 @@ object DataTransferRestUtils {
       byExternalUser = byExternalUser,
     )
   }
+
+  internal lateinit var dataTransferAuditDao: DataTransferAuditDao
 }

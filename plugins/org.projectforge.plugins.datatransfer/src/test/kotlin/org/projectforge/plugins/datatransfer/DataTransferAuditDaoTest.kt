@@ -53,23 +53,29 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
     for (i in 1..size) {
       dataTransferAuditDao.insert(create(2, PFDateTime.now().utilDate))
     }
+    dataTransferAuditDao.getEntriesWithoutNotificationsSentByAreaId(1).let { entries ->
+      Assertions.assertEquals(size, entries!!.size, "No notifications sent.")
+    }
     dataTransferAuditDao.getEntriesByAreaId(1).let { entries ->
-      Assertions.assertEquals(size, entries.size)
+      Assertions.assertEquals(size, entries!!.size)
       dataTransferAuditDao.notificationsSentFor(entries)
     }
+    dataTransferAuditDao.getEntriesWithoutNotificationsSentByAreaId(1).let { entries ->
+      Assertions.assertEquals(0, entries!!.size, "All notifications sent.")
+    }
     dataTransferAuditDao.getEntriesByAreaId(1).let { entries ->
-      Assertions.assertEquals(size, entries.size)
+      Assertions.assertEquals(size, entries!!.size)
       entries.forEach {
-        Assertions.assertTrue(it.notificationsSent == true)
+        Assertions.assertTrue(it.notificationsSent)
       }
     }
-    Assertions.assertEquals(size, dataTransferAuditDao.getEntriesByAreaId(2).size)
-    dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusDays(1).utilDate)
+    Assertions.assertEquals(size, dataTransferAuditDao.getEntriesByAreaId(2)!!.size)
+    Assertions.assertEquals(size, dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusDays(1)))
     dataTransferAuditDao.getEntriesByAreaId(1).let { entries ->
-      Assertions.assertEquals(0, entries.size, "All entries of area 1 should be deleted now")
+      Assertions.assertEquals(0, entries!!.size, "All entries of area 1 should be deleted now")
     }
     dataTransferAuditDao.getEntriesByAreaId(2).let { entries ->
-      Assertions.assertEquals(size, entries.size, "All entries of area 2 should exist")
+      Assertions.assertEquals(size, entries!!.size, "All entries of area 2 should exist")
     }
   }
 

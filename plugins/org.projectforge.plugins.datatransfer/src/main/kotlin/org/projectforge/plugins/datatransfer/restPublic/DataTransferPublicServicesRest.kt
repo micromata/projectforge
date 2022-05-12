@@ -28,7 +28,10 @@ import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileInfo
-import org.projectforge.plugins.datatransfer.*
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferPlugin
+import org.projectforge.plugins.datatransfer.DataTransferUtils
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.plugins.datatransfer.rest.DataTransferRestUtils
 import org.projectforge.rest.AttachmentsRestUtils
@@ -65,9 +68,6 @@ class DataTransferPublicServicesRest {
 
   @Autowired
   private lateinit var dataTransferPublicSession: DataTransferPublicSession
-
-  @Autowired
-  private lateinit var notificationMailService: NotificationMailService
 
   private lateinit var attachmentsAccessChecker: DataTransferPublicAccessChecker
 
@@ -140,7 +140,6 @@ class DataTransferPublicServicesRest {
       response,
       attachmentsService,
       attachmentsAccessChecker,
-      notificationMailService,
       area,
       dto.areaName,
       jcrPath = dataTransferAreaPagesRest.jcrPath!!,

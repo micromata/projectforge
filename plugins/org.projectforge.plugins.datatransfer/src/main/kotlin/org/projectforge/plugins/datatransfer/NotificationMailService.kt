@@ -29,14 +29,13 @@ import org.projectforge.business.user.UserLocale
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.I18nHelper
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsEventType
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.jcr.FileInfo
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
 import org.projectforge.rest.core.PagesResolver
 import org.springframework.beans.factory.annotation.Autowired
@@ -50,6 +49,12 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class NotificationMailService {
+  @Autowired
+  private lateinit var attachmentsService: AttachmentsService
+
+  @Autowired
+  private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+
   @Autowired
   private lateinit var domainService: DomainService
 
@@ -74,22 +79,22 @@ open class NotificationMailService {
   }
 
   fun sendMail(
-    event: AttachmentsEventType,
-    file: FileInfo,
-    dataTransfer: DataTransferAreaDO,
-    byUser: PFUserDO?,
-    byExternalUser: String?
+    area: DataTransferAreaDO,
+    auditEntries: List<DataTransferAuditDO>,
   ) {
-    val recipients = mutableListOf<Int>()
-    if (event == AttachmentsEventType.DELETE) {
-      val createdByUserId = file.createdByUser?.toIntOrNull()
-      if (createdByUserId != null && createdByUserId != ThreadLocalUserContext.getUserId()) {
-        // File object created by another user was deleted, so notify createdBy user:
-        recipients.add(createdByUserId)
+    // First detect all recipients by checking all audit entries:
+    val recipients = mutableSetOf<Int>()
+    auditEntries.forEach { audit ->
+      if (audit.eventType == AttachmentsEventType.DELETE) {
+        val uploadByUserId = audit.uploadByUser?.id
+        if (uploadByUserId != null && uploadByUserId != audit.byUser?.id) {
+          // File object created by another user was deleted, so notify uploadBy user:
+          recipients.add(uploadByUserId)
+        }
       }
-    }
-    StringHelper.splitToInts(dataTransfer.observerIds, ",", false).forEach {
-      recipients.add(it)
+      StringHelper.splitToInts(area.observerIds, ",", false).forEach {
+        recipients.add(it)
+      }
     }
     /*
     Don't notify admins anymore.
@@ -103,12 +108,12 @@ open class NotificationMailService {
     val link = domainService.getDomain(
       PagesResolver.getDynamicPageUrl(
         DataTransferPageRest::class.java,
-        id = dataTransfer.id ?: 0
+        id = area.id ?: 0
       )
     )
     recipients.distinct().forEach { id ->
       val recipient = userService.internalGetById(id)
-      val mail = prepareMail(recipient, event, file.fileName ?: "???", dataTransfer, link, byUser, byExternalUser)
+      val mail = prepareMail(recipient, area, link, auditEntries)
       mail?.let {
         sendMail.send(it)
       }
@@ -138,14 +143,12 @@ open class NotificationMailService {
 
   internal fun prepareMail(
     recipient: PFUserDO,
-    event: AttachmentsEventType,
-    fileName: String,
     dataTransfer: DataTransferAreaDO,
     link: String,
-    byUser: PFUserDO?,
-    byExternalUser: String?
+    auditEntries: List<DataTransferAuditDO>,
   ): Mail? {
-    if (recipient.id == byUser?.id) {
+    val foreignAuditEntries = auditEntries.filter { it.byUser?.id != recipient.id }
+    if (foreignAuditEntries.isEmpty()) {
       // Don't send user his own events.
       return null
     }
@@ -153,7 +156,8 @@ open class NotificationMailService {
       // Recipient has no access, so skip mail.
       return null
     }
-
+    return null
+/*
     val titleKey: String
     val messageKey: String
     val byUserString: String
@@ -194,7 +198,7 @@ open class NotificationMailService {
     val data = mutableMapOf<String, Any?>("eventInfo" to eventInfo)
     mail.content =
       sendMail.renderGroovyTemplate(mail, "mail/dataTransferMail.html", data, title, recipient)
-    return mail
+    return mail*/
   }
 
   internal fun prepareMail(recipient: PFUserDO, notificationInfoList: List<AttachmentNotificationInfo>): Mail? {

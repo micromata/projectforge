@@ -26,7 +26,9 @@ package org.projectforge.plugins.datatransfer
 import mu.KotlinLogging
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.jcr.FileInfo
+import org.projectforge.plugins.datatransfer.rest.DataTransferRestUtils
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -44,6 +46,10 @@ private val log = KotlinLogging.logger {}
 open class DataTransferAuditDao {
   @PersistenceContext
   private lateinit var em: EntityManager
+
+  init {
+    DataTransferRestUtils.dataTransferAuditDao = this
+  }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   open fun insert(audit: DataTransferAuditDO) {
@@ -63,15 +69,26 @@ open class DataTransferAuditDao {
     }
   }
 
-  open fun getEntriesByAreaId(areaId: Int): List<DataTransferAuditDO> {
+  open fun getEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
+    areaId ?: return null
     return em.createNamedQuery(DataTransferAuditDO.FIND_BY_AREA_ID, DataTransferAuditDO::class.java)
       .setParameter("areaId", areaId).resultList
   }
 
+  open fun getEntriesWithoutNotificationsSentByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
+    areaId ?: return null
+    return em.createNamedQuery(DataTransferAuditDO.FIND_WITHOUT_NOTIFICATIONS_SENT_BY_AREA_ID, DataTransferAuditDO::class.java)
+      .setParameter("areaId", areaId).resultList
+  }
+
   @Transactional(propagation = Propagation.REQUIRED)
-  open fun deleteOldEntries(beforeDate: Date) {
-    em.createNamedQuery(DataTransferAuditDO.DELETE_OLD_ENTRIES)
-      .setParameter("timestamp", beforeDate).executeUpdate()
+  open fun deleteOldEntries(beforeDate: PFDateTime): Int {
+    val deletedAuditEntries = em.createNamedQuery(DataTransferAuditDO.DELETE_OLD_ENTRIES)
+      .setParameter("timestamp", beforeDate.utilDate).executeUpdate()
+    if (deletedAuditEntries>0) {
+      log.info { "$deletedAuditEntries outdated audit entries deleted (before ${beforeDate.isoStringSeconds})." }
+    }
+    return deletedAuditEntries
   }
 
   fun insertAudit(

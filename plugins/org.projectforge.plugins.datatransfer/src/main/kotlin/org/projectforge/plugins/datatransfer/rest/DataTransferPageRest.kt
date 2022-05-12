@@ -33,7 +33,10 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
-import org.projectforge.plugins.datatransfer.*
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferPlugin
+import org.projectforge.plugins.datatransfer.DataTransferUtils
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -70,9 +73,6 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
   private lateinit var groupService: GroupService
 
   @Autowired
-  private lateinit var notificationMailService: NotificationMailService
-
-  @Autowired
   private lateinit var userService: UserService
 
   @PostConstruct
@@ -95,7 +95,6 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       response,
       attachmentsService,
       dataTransferAreaPagesRest.attachmentsAccessChecker,
-      notificationMailService,
       dbObj,
       dto.areaName,
       jcrPath = dataTransferAreaPagesRest.jcrPath!!,
