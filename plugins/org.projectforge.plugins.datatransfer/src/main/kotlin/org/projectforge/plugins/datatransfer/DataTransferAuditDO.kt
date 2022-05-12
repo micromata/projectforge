@@ -65,7 +65,7 @@ open class DataTransferAuditDO {
   @get:Id
   @get:GeneratedValue
   @get:Column(name = "pk")
-  var id: Int? = null
+  open var id: Int? = null
 
   @get:Column
   open var timestamp: Date? = null
