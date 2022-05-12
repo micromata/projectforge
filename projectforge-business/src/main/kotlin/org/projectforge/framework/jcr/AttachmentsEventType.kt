@@ -38,6 +38,10 @@ enum class AttachmentsEventType(
   DELETE("delete"),
   MODIFICATION("modification");
 
+  open fun isIn(vararg types: AttachmentsEventType): Boolean {
+    return types.contains(this)
+  }
+
   /**
    * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
    */

@@ -44,7 +44,7 @@ import javax.persistence.*
   ),
   NamedQuery(
     name = DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID,
-    query = "from DataTransferAuditDO where areaId=:areaId and notificationsSent=false and timestamp<=:timestamp order by timestamp desc"
+    query = "from DataTransferAuditDO where areaId=:areaId and notificationsSent=false order by timestamp desc"
   ),
   NamedQuery(
     name = DataTransferAuditDO.FIND_BY_ID,

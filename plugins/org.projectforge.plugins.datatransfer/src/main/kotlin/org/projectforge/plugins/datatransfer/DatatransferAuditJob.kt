@@ -24,6 +24,7 @@
 package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
@@ -51,8 +52,8 @@ class DatatransferAuditJob {
   @Autowired
   private lateinit var pluginAdminService: PluginAdminService
 
-  // Every hour, starting 10 minutes after starting.
-  @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 600 * 1000)
+  // Every 5 minutes, starting 5 minutes after starting.
+  @Scheduled(fixedDelay = 5 * Constants.MILLIS_PER_MINUTE, initialDelay = 5 * Constants.MILLIS_PER_MINUTE)
   fun execute() {
     if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
       log.info("Plugin data transfer not activated. Don't need to send any notification.")
@@ -66,7 +67,7 @@ class DatatransferAuditJob {
     areas.forEach { area ->
       val auditEntries = dataTransferAuditDao.getQueuedEntriesByAreaId(area.id)
       if (!auditEntries.isNullOrEmpty()) {
-        notificationMailService.sendMail(area, auditEntries)
+        notificationMailService.sendMails(area, auditEntries)
         dataTransferAuditDao.removeFromQueue(auditEntries)
       }
     }

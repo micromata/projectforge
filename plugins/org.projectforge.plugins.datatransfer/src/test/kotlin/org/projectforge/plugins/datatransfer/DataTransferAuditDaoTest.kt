@@ -46,47 +46,56 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
   }
 
   @Test
-  fun daoTest() {
+  fun removeFromQueueTest() {
     val areaId = 1
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
-    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(5, ChronoUnit.MINUTES).utilDate))
-    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().utilDate))
-    Assertions.assertEquals(4, dataTransferAuditDao.getEntriesByAreaId(areaId)!!.size)
+    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(11, ChronoUnit.MINUTES).utilDate))
+    Assertions.assertEquals(3, dataTransferAuditDao.getEntriesByAreaId(areaId)!!.size)
     dataTransferAuditDao.getQueuedEntriesByAreaId(areaId).let { entries ->
-      Assertions.assertEquals(2, entries!!.size, "2 entries older than 1 hour queued.")
+      Assertions.assertEquals(3, entries!!.size, "3 entries queued.")
       dataTransferAuditDao.removeFromQueue(entries)
     }
-    Assertions.assertEquals(0, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size, "No more queued entries. 2 were processed and 2 are newer")
-    Assertions.assertEquals(1, dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusDays(1)))
-    dataTransferAuditDao.getEntriesByAreaId(areaId).let { entries ->
-      Assertions.assertEquals(3, entries!!.size, "1 entry older than 1 day should be deleted.")
-    }
+    Assertions.assertEquals(0, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size, "No more queued entries. 3 were processed.")
   }
 
   @Test
-  fun daoDeleteOldTest() {
+  fun deleteOldTest() {
     val size = 60
     val areaId = 2
     for (i in 1..size) {
-      dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
+      dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusMonths(10).utilDate))
     }
     dataTransferAuditDao.getEntriesByAreaId(areaId).let { entries ->
       Assertions.assertEquals(size, entries!!.size)
     }
-    Assertions.assertEquals(size, dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusDays(1)))
+    Assertions.assertEquals(size, dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusMonths(9)))
     dataTransferAuditDao.getEntriesByAreaId(areaId).let { entries ->
       Assertions.assertEquals(0, entries!!.size, "All entries of area 1 should be deleted now")
     }
   }
 
-  private fun create(areaId: Int, timestamp: Date? = null): DataTransferAuditDO {
+  @Test
+  fun queueTest() {
+    val areaId = 3
+    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
+    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
+    Assertions.assertEquals(2, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size)
+    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(2, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.DOWNLOAD_ALL))
+    Assertions.assertEquals(3, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size, "Download all events should be ignored.")
+    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(2, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.DOWNLOAD))
+    Assertions.assertEquals(4, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size, "Download events should be ignored.")
+    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(2, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.MODIFICATION))
+    Assertions.assertNull(dataTransferAuditDao.getQueuedEntriesByAreaId(areaId), "An audit entry newer than 5 minutes found. Queue should return nothing.")
+  }
+
+  private fun create(areaId: Int, timestamp: Date? = null, eventType: AttachmentsEventType? = AttachmentsEventType.UPLOAD): DataTransferAuditDO {
     val user = getUser(TEST_USER)
     val obj = DataTransferAuditDO()
     obj.byUser = user
     obj.areaId = areaId
     obj.timestamp = timestamp
-    obj.eventType = AttachmentsEventType.UPLOAD
+    obj.eventType = eventType
     return obj
   }
 }
