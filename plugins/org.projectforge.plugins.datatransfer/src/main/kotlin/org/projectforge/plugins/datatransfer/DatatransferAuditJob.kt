@@ -24,6 +24,7 @@
 package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -34,9 +35,10 @@ private val log = KotlinLogging.logger {}
 /**
  * This job is running hourly and will sent notifications to observers if any action was audited in their observed
  * data transfer areas.
+ * Outdated audit entries (older than 30 days will be deleted).
  */
 @Component
-class DatatransferMailNotificationJob {
+class DatatransferAuditJob {
   @Autowired
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
@@ -56,13 +58,18 @@ class DatatransferMailNotificationJob {
       log.info("Plugin data transfer not activated. Don't need to send any notification.")
       return
     }
-    log.info("Data transfer notification job started.")
+    log.info("Data transfer audit job started.")
     val startTimeInMillis = System.currentTimeMillis()
 
     var sentMailCounter = 0
     val areas = dataTransferAreaDao.internalLoadAll()
-    areas.forEach {
+    areas.forEach { area ->
+      val auditEntries = dataTransferAuditDao.getEntriesWithoutNotificationsSentByAreaId(area.id)
+      if (!auditEntries.isNullOrEmpty()) {
+        notificationMailService.sendMail(area, auditEntries)
+      }
     }
-    log.info("DataTransfer notification job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of sent mails: $sentMailCounter.")
+    dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusDays(30))
+    log.info("DataTransfer audit job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of sent mails: $sentMailCounter.")
   }
 }
