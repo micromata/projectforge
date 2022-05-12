@@ -64,7 +64,7 @@ class DatatransferAuditJob {
     var sentMailCounter = 0
     val areas = dataTransferAreaDao.internalLoadAll()
     areas.forEach { area ->
-      val auditEntries = dataTransferAuditDao.getEntriesWithoutNotificationsSentByAreaId(area.id)
+      val auditEntries = dataTransferAuditDao.getQueuedEntriesByAreaId(area.id)
       if (!auditEntries.isNullOrEmpty()) {
         notificationMailService.sendMail(area, auditEntries)
       }

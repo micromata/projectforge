@@ -32,6 +32,7 @@ import org.projectforge.plugins.datatransfer.rest.DataTransferRestUtils
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.persistence.EntityManager
 import javax.persistence.PersistenceContext
@@ -57,6 +58,7 @@ open class DataTransferAuditDao {
       // Should only be preset for test cases.
       audit.timestamp = Date()
     }
+    audit.notificationsSent = false
     em.persist(audit)
     em.flush()
   }
@@ -65,26 +67,31 @@ open class DataTransferAuditDao {
   open fun notificationsSentFor(auditEntries: Collection<DataTransferAuditDO>) {
     auditEntries.chunked(50).forEach { subList ->
       em.createNamedQuery(DataTransferAuditDO.UPDATE_NOTIFICATION_STATUS)
-        .setParameter("idList", subList.map { it.id }).executeUpdate()
+        .setParameter("idList", subList.map { it.id })
+        .executeUpdate()
     }
   }
 
   open fun getEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
     areaId ?: return null
     return em.createNamedQuery(DataTransferAuditDO.FIND_BY_AREA_ID, DataTransferAuditDO::class.java)
-      .setParameter("areaId", areaId).resultList
+      .setParameter("areaId", areaId)
+      .resultList
   }
 
-  open fun getEntriesWithoutNotificationsSentByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
+  open fun getQueuedEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
     areaId ?: return null
-    return em.createNamedQuery(DataTransferAuditDO.FIND_WITHOUT_NOTIFICATIONS_SENT_BY_AREA_ID, DataTransferAuditDO::class.java)
-      .setParameter("areaId", areaId).resultList
+    return em.createNamedQuery(DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID, DataTransferAuditDO::class.java)
+      .setParameter("areaId", areaId)
+      .setParameter("timestamp", PFDateTime.now().minus(1, ChronoUnit.HOURS).utilDate)
+      .resultList
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
   open fun deleteOldEntries(beforeDate: PFDateTime): Int {
     val deletedAuditEntries = em.createNamedQuery(DataTransferAuditDO.DELETE_OLD_ENTRIES)
-      .setParameter("timestamp", beforeDate.utilDate).executeUpdate()
+      .setParameter("timestamp", beforeDate.utilDate)
+      .executeUpdate()
     if (deletedAuditEntries>0) {
       log.info { "$deletedAuditEntries outdated audit entries deleted (before ${beforeDate.isoStringSeconds})." }
     }
