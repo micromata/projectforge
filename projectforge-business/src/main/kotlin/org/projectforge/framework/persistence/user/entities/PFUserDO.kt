@@ -333,14 +333,14 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     /**
      * Gibt den Vor- und Nachnamen zurück, falls gegeben. Vor- und Nachname sind durch ein Leerzeichen getrennt.
      *
-     * @return first name and last name, separated by space.
+     * @return first name and last name, separated by space, or username if neither last name nor first name is given.
      */
     @Transient
     fun getFullname(): String {
         val first = this.firstname
         val last = this.lastname
         return if (first.isNullOrBlank()) {
-            if (last.isNullOrBlank()) ""
+            if (last.isNullOrBlank()) this.username ?: ""
             else last
         } else {
             if (last.isNullOrBlank()) first
