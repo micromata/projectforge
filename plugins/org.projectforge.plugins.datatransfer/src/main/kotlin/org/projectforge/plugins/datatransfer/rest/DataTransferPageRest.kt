@@ -54,6 +54,9 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
 
+/**
+ * Page of data transfer area with attachments list (including upload/download and editing).
+ */
 @RestController
 @RequestMapping("${Rest.URL}/datatransferfiles")
 class DataTransferPageRest : AbstractDynamicPageRest() {
@@ -269,6 +272,14 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     if (hasEditAccess(dto, dbObj)) {
       layout.add(
         MenuItem(
+          "audit",
+          i18nKey = "plugins.datatransfer.audit.display",
+          url = PagesResolver.getDynamicPageUrl(DataTransferAuditPageRest::class.java, id = dto.id),
+          type = MenuItemTargetType.MODAL
+        )
+      )
+      layout.add(
+        MenuItem(
           "EDIT",
           i18nKey = "plugins.datatransfer.title.edit",
           url = PagesResolver.getEditPageUrl(DataTransferAreaPagesRest::class.java, dto.id),
@@ -334,8 +345,8 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
   private fun convertData(id: Int): Pair<DataTransferAreaDO, DataTransferArea> {
     val dbObj = dataTransferAreaDao.getById(id)
     val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService, userService)
-    if (!hasEditAccess(dto, dbObj)) {
-      dto.externalPassword = null
+    if (hasEditAccess(dto, dbObj)) {
+      dto.externalPassword = dbObj.externalPassword
     }
     dto.attachments = attachmentsService.getAttachments(
       dataTransferAreaPagesRest.jcrPath!!,
