@@ -124,6 +124,9 @@ class DataTransferArea(
   }
 
   companion object {
+    /**
+     * externalPassword will not be copied due to security reasons.
+     */
     fun transformFromDB(
       obj: DataTransferAreaDO,
       dataTransferAreaDao: DataTransferAreaDao,
@@ -147,6 +150,7 @@ class DataTransferArea(
       dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
       dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
       dto.capacity = DataTransferAreaCapacity(obj.attachmentsSize, obj.capacity, obj.maxUploadSizeKB)
+      dto.externalPassword = null
       return dto
     }
   }
