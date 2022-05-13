@@ -47,5 +47,5 @@ enum class AttachmentsEventType(
    * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
    */
   override val i18nKey: String
-    get() = "plugins.datatransfer.mail.action.$key"
+    get() = "file.upload.audit.action.$key"
 }
