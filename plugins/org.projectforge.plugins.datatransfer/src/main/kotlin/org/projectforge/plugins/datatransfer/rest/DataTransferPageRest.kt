@@ -91,7 +91,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val pair = convertData(id)
     val dbObj = pair.first
     val dto = pair.second
-    DataTransferRestUtils.downloadAll(
+    DataTransferRestUtils.multiDownload(
       response,
       attachmentsService,
       dataTransferAreaPagesRest.attachmentsAccessChecker,

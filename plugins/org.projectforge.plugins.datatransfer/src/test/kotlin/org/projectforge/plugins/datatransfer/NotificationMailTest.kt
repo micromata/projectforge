@@ -88,6 +88,21 @@ class NotificationMailTest : AbstractTestBase() {
       timestamp4TestCase = timestamp,
     )
     dataTransferAuditDao.insertAudit(
+      AttachmentsEventType.DOWNLOAD_MULTI,
+      area,
+      byUser,
+      null,
+      timestamp4TestCase = timestamp,
+    )
+    dataTransferAuditDao.insertAudit(
+      AttachmentsEventType.DOWNLOAD,
+      area,
+      null,
+      "externalUser: 127.0.0.1",
+      FileInfo("externalFile.txt"),
+      timestamp4TestCase = timestamp,
+    )
+    dataTransferAuditDao.insertAudit(
       AttachmentsEventType.DELETE,
       area,
       byUser,
@@ -99,7 +114,8 @@ class NotificationMailTest : AbstractTestBase() {
       recipient,
       area,
       link,
-      dataTransferAuditDao.getQueuedEntriesByAreaId(area.id)!!
+      dataTransferAuditDao.getQueuedEntriesByAreaId(area.id)!!,
+      dataTransferAuditDao.getDownloadEntriesByAreaId(area.id),
     )
     Assertions.assertNotNull(mail)
   }

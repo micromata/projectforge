@@ -403,7 +403,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     val actionListener = getListener(category)
     val obj = getDataObject(pagesRest, id) // Check data object availability.
     val basefilename = actionListener.createDownloadBasefileName(obj)
-    AttachmentsRestUtils.downloadAll(
+    AttachmentsRestUtils.multiDownload(
       response,
       attachmentsService,
       pagesRest.attachmentsAccessChecker,

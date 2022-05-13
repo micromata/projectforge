@@ -58,7 +58,7 @@ open class DataTransferAuditDao {
       // Should only be preset for test cases.
       audit.timestamp = Date()
     }
-    audit.notificationsSent = false
+    audit.notified = false
     em.persist(audit)
     em.flush()
   }
@@ -91,21 +91,31 @@ open class DataTransferAuditDao {
     val resultList =
       em.createNamedQuery(DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID, DataTransferAuditDO::class.java)
         .setParameter("areaId", areaId)
+        .setParameter("eventTypes", downloadEventTypes)
         .resultList
     val tenMinutesAgo = PFDateTime.now().minus(10, ChronoUnit.MINUTES).utilDate
     if (!resultList.isNullOrEmpty()) {
       if (resultList.any {
           val timestamp = it.timestamp
-          it.eventType?.isIn(
-            AttachmentsEventType.DOWNLOAD_ALL,
-            AttachmentsEventType.DOWNLOAD
-          ) == false && timestamp != null && timestamp > tenMinutesAgo
+          timestamp != null && timestamp > tenMinutesAgo
         }) {
         // Data transfer area has modifications newer than 10 minutes, wait for other actions before notification.
         return null
       }
     }
     return resultList
+  }
+
+  /**
+   * @return list of unprocessed audit entries, if exists. If any audit entry (not DOWNLOAD{_ALL}) exists newer than
+   * 10 minutes, null is returned.
+   */
+  open fun getDownloadEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO> {
+    areaId ?: return emptyList()
+    return em.createNamedQuery(DataTransferAuditDO.FIND_DOWNLOADS_BY_AREA_ID, DataTransferAuditDO::class.java)
+        .setParameter("areaId", areaId)
+        .setParameter("eventTypes", downloadEventTypes)
+        .resultList
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
@@ -138,4 +148,9 @@ open class DataTransferAuditDao {
     }
     insert(audit)
   }
+
+  /**
+   * Notifications will not be sent on download event types.
+   */
+  private val downloadEventTypes = listOf(AttachmentsEventType.DOWNLOAD, AttachmentsEventType.DOWNLOAD_MULTI, AttachmentsEventType.DOWNLOAD_ALL)
 }
