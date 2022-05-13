@@ -360,7 +360,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         @Transient
         get() {
             val str = getFullname()
-            return if (str.isBlank())
+            return if (str.isBlank() || str.equals(this.username))
                 this.username
             else
                 "$str (${this.username})"
