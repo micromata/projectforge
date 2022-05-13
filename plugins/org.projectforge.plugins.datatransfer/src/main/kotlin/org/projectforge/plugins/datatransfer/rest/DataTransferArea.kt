@@ -96,6 +96,9 @@ class DataTransferArea(
 
   var capacity: DataTransferAreaCapacity? = null
 
+  /**
+   * The external password isn't copied due to security reasons.
+   */
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: DataTransferAreaDO) {
     super.copyFrom(src)
@@ -108,6 +111,7 @@ class DataTransferArea(
     observers = User.toUserList(src.observerIds)
     accessGroups = Group.toGroupList(src.accessGroupIds)
     accessUsers = User.toUserList(src.accessUserIds)
+    externalPassword = null
   }
 
   // The user and group ids are stored as csv list of integers in the data base.
@@ -150,7 +154,6 @@ class DataTransferArea(
       dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
       dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
       dto.capacity = DataTransferAreaCapacity(obj.attachmentsSize, obj.capacity, obj.maxUploadSizeKB)
-      dto.externalPassword = null
       return dto
     }
   }
