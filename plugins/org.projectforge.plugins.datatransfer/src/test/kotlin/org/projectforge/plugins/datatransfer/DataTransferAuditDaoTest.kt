@@ -81,12 +81,19 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
     Assertions.assertEquals(2, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size)
-    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(2, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.DOWNLOAD_ALL))
-    Assertions.assertEquals(3, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size, "Download all events should be ignored.")
+    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(1, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.DOWNLOAD_ALL))
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(2, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.DOWNLOAD))
-    Assertions.assertEquals(4, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size, "Download events should be ignored.")
+    dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(3, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.DOWNLOAD_MULTI))
+    Assertions.assertEquals(2, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size, "Download events should be ignored.")
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(2, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.MODIFICATION))
     Assertions.assertNull(dataTransferAuditDao.getQueuedEntriesByAreaId(areaId), "An audit entry newer than 5 minutes found. Queue should return nothing.")
+
+    dataTransferAuditDao.getDownloadEntriesByAreaId(areaId).let { result ->
+      Assertions.assertEquals(3, result.size, "2 download events should be there.")
+      Assertions.assertEquals(result[0].eventType, AttachmentsEventType.DOWNLOAD_ALL)
+      Assertions.assertEquals(result[1].eventType, AttachmentsEventType.DOWNLOAD)
+      Assertions.assertEquals(result[2].eventType, AttachmentsEventType.DOWNLOAD_MULTI)
+    }
   }
 
   private fun create(areaId: Int, timestamp: Date? = null, eventType: AttachmentsEventType? = AttachmentsEventType.UPLOAD): DataTransferAuditDO {

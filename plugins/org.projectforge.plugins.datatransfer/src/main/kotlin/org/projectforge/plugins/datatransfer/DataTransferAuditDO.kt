@@ -39,24 +39,28 @@ import javax.persistence.*
 @Table(name = "t_plugin_datatransfer_audit")
 @NamedQueries(
   NamedQuery(
-    name = DataTransferAuditDO.FIND_BY_AREA_ID,
-    query = "from DataTransferAuditDO where areaId=:areaId order by timestamp desc"
+    name = DataTransferAuditDO.DELETE_OLD_ENTRIES,
+    query = "delete from DataTransferAuditDO where timestamp<=:timestamp"
   ),
   NamedQuery(
-    name = DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID,
-    query = "from DataTransferAuditDO where areaId=:areaId and notificationsSent=false order by timestamp desc"
+    name = DataTransferAuditDO.FIND_DOWNLOADS_BY_AREA_ID,
+    query = "from DataTransferAuditDO where areaId=:areaId and eventType in :eventTypes order by timestamp desc"
+  ),
+  NamedQuery(
+    name = DataTransferAuditDO.FIND_BY_AREA_ID,
+    query = "from DataTransferAuditDO where areaId=:areaId order by timestamp desc"
   ),
   NamedQuery(
     name = DataTransferAuditDO.FIND_BY_ID,
     query = "from DataTransferAuditDO where id=:id"
   ),
   NamedQuery(
-    name = DataTransferAuditDO.DELETE_OLD_ENTRIES,
-    query = "delete from DataTransferAuditDO where timestamp<=:timestamp"
+    name = DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID,
+    query = "from DataTransferAuditDO where areaId=:areaId and notified=false and eventType not in :eventTypes order by timestamp desc"
   ),
   NamedQuery(
     name = DataTransferAuditDO.UPDATE_NOTIFICATION_STATUS,
-    query = "update DataTransferAuditDO set notificationsSent=true where id IN :idList"
+    query = "update DataTransferAuditDO set notified=true where id IN :idList"
   ),
 )
 open class DataTransferAuditDO {
@@ -117,8 +121,8 @@ open class DataTransferAuditDO {
   /**
    * Notification to all observers sent? Is also set to true after processing, if no observer is registered.
    */
-  @get:Column(name = "notifications_sent")
-  open var notificationsSent: Boolean = false
+  @get:Column(name = "notified")
+  open var notified: Boolean = false
 
   @get:Transient
   open val eventAsString
@@ -137,10 +141,11 @@ open class DataTransferAuditDO {
     get() = description ?: ""
 
   companion object {
-    internal const val FIND_BY_AREA_ID = "DataTransferAuditDO_FindByAreaId"
-    internal const val FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID = "DataTransferAuditDO_FindQueuedEntriesByAreaId"
-    internal const val FIND_BY_ID = "DataTransferAuditDO_FindById"
     internal const val DELETE_OLD_ENTRIES = "DataTransferAuditDO_DeleteOldEntries"
+    internal const val FIND_BY_AREA_ID = "DataTransferAuditDO_FindByAreaId"
+    internal const val FIND_BY_ID = "DataTransferAuditDO_FindById"
+    internal const val FIND_DOWNLOADS_BY_AREA_ID = "DataTransferAuditDO_FindDownloadsByAreaId"
+    internal const val FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID = "DataTransferAuditDO_FindQueuedEntriesByAreaId"
     internal const val UPDATE_NOTIFICATION_STATUS = "DataTransferAuditDO_UpdateNotificationStatus"
   }
 }

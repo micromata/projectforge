@@ -34,7 +34,10 @@ import java.util.zip.ZipOutputStream
 import javax.servlet.http.HttpServletResponse
 
 object AttachmentsRestUtils {
-  fun downloadAll(
+  /**
+   * @param attachments If not given, all attachments will be downloaded, otherwise only these given attachments.
+   */
+  fun multiDownload(
     response: HttpServletResponse,
     attachmentsService: AttachmentsService,
     attachmentsAccessChecker: AttachmentsAccessChecker,

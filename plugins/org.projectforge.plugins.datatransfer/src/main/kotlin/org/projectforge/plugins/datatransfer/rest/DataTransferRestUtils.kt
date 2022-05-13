@@ -34,7 +34,10 @@ import org.projectforge.rest.AttachmentsRestUtils
 import javax.servlet.http.HttpServletResponse
 
 object DataTransferRestUtils {
-  fun downloadAll(
+  /**
+   * @param attachments If not given, all attachments will be downloaded, otherwise only these given attachments.
+   */
+  fun multiDownload(
     response: HttpServletResponse,
     attachmentsService: AttachmentsService,
     attachmentsAccessChecker: AttachmentsAccessChecker,
@@ -46,7 +49,7 @@ object DataTransferRestUtils {
     byUser: PFUserDO? = null,
     byExternalUser: String? = null,
   ) {
-    AttachmentsRestUtils.downloadAll(
+    AttachmentsRestUtils.multiDownload(
       response,
       attachmentsService,
       attachmentsAccessChecker,
@@ -56,7 +59,7 @@ object DataTransferRestUtils {
       attachments,
     )
     dataTransferAuditDao.insertAudit(
-      AttachmentsEventType.DOWNLOAD_ALL,
+      if (attachments.isNullOrEmpty()) AttachmentsEventType.DOWNLOAD_ALL else AttachmentsEventType.DOWNLOAD_MULTI,
       dbObj,
       byUser = byUser,
       byExternalUser = byExternalUser,

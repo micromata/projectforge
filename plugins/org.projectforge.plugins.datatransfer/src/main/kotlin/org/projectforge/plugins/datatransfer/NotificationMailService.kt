@@ -73,6 +73,7 @@ open class NotificationMailService {
   fun sendMails(
     area: DataTransferAreaDO,
     auditEntries: List<DataTransferAuditDO>,
+    downloadAuditEntries: List<DataTransferAuditDO>,
   ): Int {
     // First detect all recipients by checking all audit entries:
     val recipients = mutableSetOf<Int>()
@@ -106,7 +107,7 @@ open class NotificationMailService {
     var counter = 0
     recipients.distinct().forEach { id ->
       val recipient = userService.internalGetById(id)
-      val mail = prepareMail(recipient, area, link, auditEntries)
+      val mail = prepareMail(recipient, area, link, auditEntries, downloadAuditEntries)
       mail?.let {
         try {
           if (sendMail.send(it)) {
@@ -146,6 +147,7 @@ open class NotificationMailService {
     dataTransfer: DataTransferAreaDO,
     link: String,
     auditEntries: List<DataTransferAuditDO>,
+    downloadAuditEntries: List<DataTransferAuditDO>,
   ): Mail? {
     val foreignAuditEntries = auditEntries.filter { it.byUser?.id != recipient.id }
     if (foreignAuditEntries.isEmpty()) {
@@ -166,7 +168,12 @@ open class NotificationMailService {
       log.error { "Recipient without mail address, no mail will be sent to '${recipient.getFullname()}: $dataTransfer" }
       return null
     }
-    val data = mutableMapOf<String, Any?>("link" to link, "message" to message, "auditEntries" to foreignAuditEntries)
+    val data = mutableMapOf<String, Any?>(
+      "link" to link,
+      "message" to message,
+      "auditEntries" to foreignAuditEntries,
+      "downloadAuditEntries" to downloadAuditEntries,
+    )
     mail.content =
       sendMail.renderGroovyTemplate(mail, "mail/dataTransferMail.html", data, title, recipient)
     return mail

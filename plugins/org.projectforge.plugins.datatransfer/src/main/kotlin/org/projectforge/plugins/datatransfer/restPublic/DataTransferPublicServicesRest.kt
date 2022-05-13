@@ -136,7 +136,7 @@ class DataTransferPublicServicesRest {
       return RestUtils.badRequest("Download not enabled.")
     }
     val dto = convert(request, area, sessionData.userInfo)
-    DataTransferRestUtils.downloadAll(
+    DataTransferRestUtils.multiDownload(
       response,
       attachmentsService,
       attachmentsAccessChecker,
@@ -185,7 +185,7 @@ class DataTransferPublicServicesRest {
         fileIdList.any { attachment.fileId?.startsWith(it) == true }
       }
     val basefilename = dto.areaName
-    AttachmentsRestUtils.downloadAll(
+    AttachmentsRestUtils.multiDownload(
       response,
       attachmentsService,
       attachmentsAccessChecker,

@@ -33,6 +33,7 @@ enum class AttachmentsEventType(
   val key: String
 ) : I18nEnum {
   DOWNLOAD("download"),
+  DOWNLOAD_MULTI("downloadMulti"),
   DOWNLOAD_ALL("downloadAll"),
   UPLOAD("upload"),
   DELETE("delete"),
