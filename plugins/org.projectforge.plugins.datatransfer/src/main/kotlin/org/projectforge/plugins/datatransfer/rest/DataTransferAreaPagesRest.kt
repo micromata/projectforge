@@ -84,7 +84,11 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
   }
 
   override fun transformFromDB(obj: DataTransferAreaDO, editMode: Boolean): DataTransferArea {
-    return DataTransferArea.transformFromDB(obj, baseDao, groupService, userService)
+    val dto = DataTransferArea.transformFromDB(obj, baseDao, groupService, userService)
+    if (editMode == true) {
+      dto.externalPassword = obj.externalPassword
+    }
+    return dto
   }
 
   /**
