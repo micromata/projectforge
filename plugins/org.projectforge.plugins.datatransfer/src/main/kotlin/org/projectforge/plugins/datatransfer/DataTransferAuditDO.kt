@@ -23,8 +23,10 @@
 
 package org.projectforge.plugins.datatransfer
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.Constants
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -124,19 +126,49 @@ open class DataTransferAuditDO {
   @get:Column(name = "notified")
   open var notified: Boolean = false
 
+  /**
+   * Time stamp of event as human-readable time ago message.
+   */
   @get:Transient
+  @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  open val timeAgo
+    get() = TimeAgo.getMessage(timestamp)
+
+  @get:Transient
+  @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
   open val eventAsString
     get() = eventType?.i18nKey?.let { translate(it) } ?: ""
 
   @get:Transient
-  open val byUserAsString
-    get() = byUser?.getFullname() ?: byExternalUser
+  @get:JsonProperty
+  open var byUserAsString: String? = null
+    get() {
+      if (field == null) {
+        createByUserAsString()
+      }
+      return field
+    }
+
+  fun createByUserAsString(locale: Locale? = null) {
+    byUser?.let {
+      byUserAsString = it.getFullname()
+      return
+    }
+    byExternalUser?.let {
+      val prefix = translate(locale, "plugins.datatransfer.external.userPrefix")
+      byUserAsString = it.replace(DataTransferAreaDao.EXTERNAL_USER_PREFIX, prefix)
+      return
+    }
+    byUserAsString = ""
+  }
 
   @get:Transient
+  @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
   open val filenameAsString
     get() = filename ?: ""
 
   @get:Transient
+  @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
   open val descriptionAsString
     get() = description ?: ""
 

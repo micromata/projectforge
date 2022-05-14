@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.datatransfer.rest
 
+import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsEventType
@@ -66,5 +67,13 @@ object DataTransferRestUtils {
     )
   }
 
-  internal lateinit var dataTransferAuditDao: DataTransferAuditDao
+  val dataTransferAuditDao: DataTransferAuditDao
+  get() {
+     if (_dataTransferAuditDao == null) {
+       _dataTransferAuditDao =  ApplicationContextProvider.getApplicationContext().getBean(DataTransferAuditDao::class.java)
+     }
+    return _dataTransferAuditDao!!
+  }
+
+  private var _dataTransferAuditDao: DataTransferAuditDao? = null
 }

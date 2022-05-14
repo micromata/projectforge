@@ -149,6 +149,7 @@ open class NotificationMailService {
     auditEntries: List<DataTransferAuditDO>,
     downloadAuditEntries: List<DataTransferAuditDO>,
   ): Mail? {
+    val locale = UserLocale.determineUserLocale(recipient)
     val foreignAuditEntries = auditEntries.filter { it.byUser?.id != recipient.id }
     if (foreignAuditEntries.isEmpty()) {
       // Don't send user his own events.
@@ -158,8 +159,9 @@ open class NotificationMailService {
       // Recipient has no access, so skip mail.
       return null
     }
-    val title = I18nHelper.getLocalizedMessage("plugins.datatransfer.mail.subject", dataTransfer.displayName)
-    val message = I18nHelper.getLocalizedMessage("plugins.datatransfer.mail.message", dataTransfer.displayName)
+    foreignAuditEntries.forEach { it.createByUserAsString(locale) }
+    val title = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.subject", dataTransfer.displayName)
+    val message = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.message", dataTransfer.displayName)
     val mail = Mail()
     mail.subject = title // Subject equals to message
     mail.contentType = Mail.CONTENTTYPE_HTML
@@ -180,6 +182,7 @@ open class NotificationMailService {
   }
 
   internal fun prepareMail(recipient: PFUserDO, notificationInfoList: List<AttachmentNotificationInfo>): Mail? {
+    val locale = UserLocale.determineUserLocale(recipient)
     notificationInfoList.forEach { info ->
       if (info.link == null) {
         info.link = domainService.getDomain(
@@ -193,7 +196,7 @@ open class NotificationMailService {
         DataTransferUtils.expiryTimeLeft(
           info.attachment,
           info.dataTransferArea.expiryDays,
-          UserLocale.determineUserLocale(recipient),
+          locale,
         )
       )
     }
@@ -217,7 +220,7 @@ open class NotificationMailService {
     val data = mutableMapOf<String, Any?>(
       "attachments" to sortedList,
       "subject" to mail.subject,
-      "locale" to UserLocale.determineUserLocale(recipient),
+      "locale" to locale,
     )
     mail.content =
       sendMail.renderGroovyTemplate(mail, "mail/dataTransferFilesBeingDeletedMail.html", data, mail.subject, recipient)

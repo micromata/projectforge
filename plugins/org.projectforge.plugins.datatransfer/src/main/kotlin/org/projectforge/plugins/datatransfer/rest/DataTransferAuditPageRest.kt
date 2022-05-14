@@ -23,15 +23,16 @@
 
 package org.projectforge.plugins.datatransfer.rest
 
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferAuditDO
+import org.projectforge.plugins.datatransfer.DataTransferAuditDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILayout
+import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -46,15 +47,15 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/datatransferaudit")
 class DataTransferAuditPageRest : AbstractDynamicPageRest() {
   @Autowired
-  private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+  private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
   @Autowired
-  private lateinit var dataTransferAreaDao: DataTransferAreaDao
+  private lateinit var dataTransferAuditDao: DataTransferAuditDao
 
   class AreaAuditData(
     var area: DataTransferArea? = null,
     val auditEntries: List<DataTransferAuditDO>? = null,
-    val downloadAditEntries: List<DataTransferAuditDO>? = null,
+    val downloadAuditEntries: List<DataTransferAuditDO>? = null,
   )
 
   @GetMapping("dynamic")
@@ -68,11 +69,61 @@ class DataTransferAuditPageRest : AbstractDynamicPageRest() {
     val areaDO = dataTransferAreaDao.getById(id)
     val area = DataTransferArea()
     area.copyFrom(areaDO)
+    val areaId = area.id
+    requireNotNull(areaId)
     val layout = UILayout("plugins.datatransfer.audit")
-
+    val events = dataTransferAuditDao.getEntriesByAreaId(areaId)
+    val formData =
+      AreaAuditData(
+        area,
+        events?.filter { !DataTransferAuditDao.downloadEventTypes.contains(it.eventType) },
+        events?.filter { DataTransferAuditDao.downloadEventTypes.contains(it.eventType) },
+      )
+    UIFieldset(12, "plugins.datatransfer.audit.events").let { fieldset ->
+      layout.add(fieldset)
+      if (!formData.auditEntries.isNullOrEmpty()) {
+        val grid = UIAgGrid("auditEntries")
+        initAGGrid(grid)
+        fieldset.add(grid)
+      } else {
+        fieldset.add(UIAlert("plugins.datatransfer.audit.events.noEvents", color = UIColor.INFO))
+      }
+    }
+    if (area.externalDownloadEnabled == true) {
+      UIFieldset(12, "plugins.datatransfer.audit.downloadEvents").let { fieldset ->
+        layout.add(fieldset)
+        if (!formData.downloadAuditEntries.isNullOrEmpty()) {
+          val grid = UIAgGrid("downloadAuditEntries")
+          initAGGrid(grid, false)
+          fieldset.add(grid)
+        } else {
+          fieldset.add(UIAlert("plugins.datatransfer.audit.events.noEvents", color = UIColor.INFO))
+        }
+      }
+    }
     LayoutUtils.process(layout)
     layout.postProcessPageMenu()
-    val formData = AreaAuditData(area)
     return FormLayoutData(formData, layout, createServerData(request))
+  }
+
+  private fun initAGGrid(agGrid: UIAgGrid, editAction: Boolean = true) {
+    agGrid.add(UIAgGridColumnDef("timestamp", translate("timestamp"), valueFormatter = "data.timeAgo", sortable = true))
+    agGrid.add(UIAgGridColumnDef("filenameAsString", translate("attachment.fileName"), sortable = true))
+    agGrid.paginationPageSize = 25
+    if (editAction) {
+      agGrid.add(UIAgGridColumnDef("description", translate("description"), sortable = true))
+    }
+    agGrid.add(UIAgGridColumnDef("eventAsString", translate("plugins.datatransfer.audit.action"), sortable = true))
+    if (editAction) {
+      agGrid.add(UIAgGridColumnDef("byUserAsString", translate("modifiedBy"), sortable = true))
+    } else {
+      agGrid.add(
+        UIAgGridColumnDef(
+          "byUserAsString",
+          translate("plugins.datatransfer.audit.downloadedBy"),
+          sortable = true
+        )
+      )
+    }
   }
 }

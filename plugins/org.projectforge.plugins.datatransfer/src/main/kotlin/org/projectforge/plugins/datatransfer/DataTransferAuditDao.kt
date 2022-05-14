@@ -28,7 +28,6 @@ import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.jcr.FileInfo
-import org.projectforge.plugins.datatransfer.rest.DataTransferRestUtils
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -47,10 +46,6 @@ private val log = KotlinLogging.logger {}
 open class DataTransferAuditDao {
   @PersistenceContext
   private lateinit var em: EntityManager
-
-  init {
-    DataTransferRestUtils.dataTransferAuditDao = this
-  }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   open fun insert(audit: DataTransferAuditDO) {
@@ -107,8 +102,7 @@ open class DataTransferAuditDao {
   }
 
   /**
-   * @return list of unprocessed audit entries, if exists. If any audit entry (not DOWNLOAD{_ALL}) exists newer than
-   * 10 minutes, null is returned.
+   * @return list of all download events (download, download multi or download all).
    */
   open fun getDownloadEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO> {
     areaId ?: return emptyList()
@@ -129,7 +123,8 @@ open class DataTransferAuditDao {
     return deletedAuditEntries
   }
 
-  fun insertAudit(
+  @Transactional(propagation = Propagation.REQUIRED)
+  open fun insertAudit(
     eventType: AttachmentsEventType,
     dbObj: DataTransferAreaDO,
     byUser: PFUserDO?,
@@ -143,14 +138,18 @@ open class DataTransferAuditDao {
     audit.byUser = byUser
     audit.byExternalUser = byExternalUser
     audit.filename = file?.fileName
+    audit.description = file?.description
     timestamp4TestCase?.let {
       audit.timestamp = it.utilDate
     }
     insert(audit)
   }
 
-  /**
-   * Notifications will not be sent on download event types.
-   */
-  private val downloadEventTypes = listOf(AttachmentsEventType.DOWNLOAD, AttachmentsEventType.DOWNLOAD_MULTI, AttachmentsEventType.DOWNLOAD_ALL)
+  companion object {
+    /**
+     * Notifications will not be sent on download event types.
+     */
+    val downloadEventTypes =
+      listOf(AttachmentsEventType.DOWNLOAD, AttachmentsEventType.DOWNLOAD_MULTI, AttachmentsEventType.DOWNLOAD_ALL)
+  }
 }

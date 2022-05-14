@@ -95,9 +95,9 @@ class AGGridSupport {
     layout.add(agGrid)
     if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
       layout.hideSearchFilter = true
-      MultiSelectionSupport.getSessionContext(request, pagesRest::class.java)?.paginationPageSize?.let { pageSize ->
+      MultiSelectionSupport.getSessionContext(request, pagesRest::class.java)?.paginationPageSize?.let { paginationPageSize ->
         // pageSize was initially set by Wicket's list page. So use the same pagination size.
-        agGrid.paginationPageSize = pageSize
+        agGrid.paginationPageSize = paginationPageSize
       }
       if (pageAfterMultiSelect != null) {
         agGrid.urlAfterMultiSelect =

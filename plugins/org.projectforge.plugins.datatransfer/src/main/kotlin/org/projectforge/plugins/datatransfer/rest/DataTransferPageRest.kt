@@ -269,15 +269,15 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
     layout.add(fieldSet)
 
-    if (hasEditAccess(dto, dbObj)) {
-      layout.add(
-        MenuItem(
-          "audit",
-          i18nKey = "plugins.datatransfer.audit.display",
-          url = PagesResolver.getDynamicPageUrl(DataTransferAuditPageRest::class.java, id = dto.id),
-          type = MenuItemTargetType.MODAL
-        )
+    layout.add(
+      MenuItem(
+        "HIGHLIGHT",
+        i18nKey = "plugins.datatransfer.audit.display",
+        url = PagesResolver.getDynamicPageUrl(DataTransferAuditPageRest::class.java, id = dto.id),
+        type = MenuItemTargetType.MODAL
       )
+    )
+    if (hasEditAccess(dto, dbObj)) {
       layout.add(
         MenuItem(
           "EDIT",

@@ -277,17 +277,9 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
   ) {
     check(data != null)
     try {
-      if (byUser != null && event == AttachmentsEventType.DOWNLOAD) {
-        // Do not notify on downloads and deletions of internal users.
-        return
-      }
       if (file.encryptionInProgress == true) {
         // Don't notificate observers if one user encrypts a file.
         return
-      }
-      // log download access of external users.
-      if (!byExternalUser.isNullOrBlank() && event == AttachmentsEventType.DOWNLOAD) {
-        // internalUpdateAny(data) // Must call update. On upload event, the data will stored by caller.
       }
       dataTransferAuditDao.insertAudit(event, data as DataTransferAreaDO, byUser, byExternalUser, file)
 
@@ -359,5 +351,10 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
     const val ACCESS_TOKEN_LENGTH = 30
     const val PASSWORD_LENGTH = 6
+
+    /**
+     * External (anonymous user are marked by this prefix), needed for internationalization.
+     */
+    const val EXTERNAL_USER_PREFIX = "#EXTERNAL#:"
   }
 }

@@ -72,7 +72,8 @@ class DatatransferAuditJob {
         dataTransferAuditDao.removeFromQueue(auditEntries)
       }
     }
-    dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusDays(30))
+    dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusDays(30)) // If you change this, you should change:
+    // i18n: plugins.datatransfer.audit.events, plugins.datatransfer.audit.downloadEvents
     log.info("DataTransfer audit job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of sent mails: $sentMailCounter.")
   }
 }
