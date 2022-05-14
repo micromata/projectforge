@@ -49,7 +49,7 @@
                 <tr>
                     <td class="no-wrap"><%= pf.getString(audit.timestamp) %></td>
                     <td><%= audit.filenameAsString %></td>
-                    <td><%= audit.eventAsString %></td>
+                    <td><%= pf.getString(audit.eventType) %></td>
                     <td><%= audit.byUserAsString %></td>
                 </tr>
                 <% } %>

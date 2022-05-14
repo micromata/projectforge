@@ -160,6 +160,7 @@ open class NotificationMailService {
       return null
     }
     foreignAuditEntries.forEach { it.createByUserAsString(locale) }
+    downloadAuditEntries.forEach { it.createByUserAsString(locale) }
     val title = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.subject", dataTransfer.displayName)
     val message = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.message", dataTransfer.displayName)
     val mail = Mail()

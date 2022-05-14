@@ -107,21 +107,37 @@ class DataTransferAuditPageRest : AbstractDynamicPageRest() {
   }
 
   private fun initAGGrid(agGrid: UIAgGrid, editAction: Boolean = true) {
-    agGrid.add(UIAgGridColumnDef("timestamp", translate("timestamp"), valueFormatter = "data.timeAgo", sortable = true))
-    agGrid.add(UIAgGridColumnDef("filenameAsString", translate("attachment.fileName"), sortable = true))
+    agGrid.add(
+      UIAgGridColumnDef(
+        "timestamp",
+        translate("timestamp"),
+        valueFormatter = "data.timeAgo",
+        sortable = true,
+        width = UIAgGridColumnDef.DATE_WIDTH,
+      )
+    )
+    agGrid.add(UIAgGridColumnDef("filenameAsString", translate("attachment.fileName"), sortable = true, filter = true))
     agGrid.paginationPageSize = 25
     if (editAction) {
-      agGrid.add(UIAgGridColumnDef("description", translate("description"), sortable = true))
+      agGrid.add(UIAgGridColumnDef("description", translate("description"), sortable = true, filter = true))
     }
-    agGrid.add(UIAgGridColumnDef("eventAsString", translate("plugins.datatransfer.audit.action"), sortable = true))
+    agGrid.add(
+      UIAgGridColumnDef(
+        "eventAsString",
+        translate("plugins.datatransfer.audit.action"),
+        sortable = true,
+        filter = true,
+      )
+    )
     if (editAction) {
-      agGrid.add(UIAgGridColumnDef("byUserAsString", translate("modifiedBy"), sortable = true))
+      agGrid.add(UIAgGridColumnDef("byUserAsString", translate("modifiedBy"), sortable = true, filter = true))
     } else {
       agGrid.add(
         UIAgGridColumnDef(
           "byUserAsString",
           translate("plugins.datatransfer.audit.downloadedBy"),
-          sortable = true
+          sortable = true,
+          filter = true,
         )
       )
     }
