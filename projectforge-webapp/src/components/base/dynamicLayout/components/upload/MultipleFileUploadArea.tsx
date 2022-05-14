@@ -103,7 +103,7 @@ export function MultipleFileUploadArea(
     const { getRootProps, getInputProps } = useDropzone({
         onDrop,
         maxSize: maxSizeInKB * 1024,
-        maxFiles: 10, // Limit to 10 parallels uploads.
+        maxFiles: 20, // Limit to 10 parallels uploads.
     });
 
     const translateError = (errors: FileError[]) => {

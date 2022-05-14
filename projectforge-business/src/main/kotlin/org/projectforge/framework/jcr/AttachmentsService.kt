@@ -197,12 +197,8 @@ open class AttachmentsService {
       file = fileObject,
       subPath = subPath
     )
-    val inputStream = if (fileObject != null) {
-      repoService.retrieveFileInputStream(fileObject)
-    } else {
-      null
-    }
-    if (fileObject == null || inputStream == null) {
+    val inputStream = repoService.retrieveFileInputStream(fileObject)
+    if (inputStream == null) {
       log.error {
         "Can't download file of ${
           getPath(
@@ -415,6 +411,7 @@ open class AttachmentsService {
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null,
     encryptionInProgress: Boolean? = null,
+    userString: String? = null,
   )
       : Boolean {
     accessChecker.checkDeleteAccess(
@@ -424,7 +421,8 @@ open class AttachmentsService {
       fileId = fileId,
       subPath = subPath
     )
-    return internalDeleteAttachment(path, fileId, baseDao, obj, subPath, encryptionInProgress = encryptionInProgress)
+    return internalDeleteAttachment(path, fileId, baseDao, obj, subPath, encryptionInProgress = encryptionInProgress,
+    userString = userString)
   }
 
   /**
@@ -532,6 +530,8 @@ open class AttachmentsService {
       updateLastUpdateInfo = updateLastUpdateInfo,
     )
     if (result != null) {
+      fileObject.description = result.description
+      fileObject.fileName = result.fileName
       val fileNameChanged = if (!newFileName.isNullOrBlank()) "filename='$newFileName'" else null
       val descriptionChanged = if (newDescription != null) "description='$newDescription'" else null
       updateAttachmentsInfo(

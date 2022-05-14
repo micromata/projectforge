@@ -45,7 +45,7 @@ open class AttachmentsActionListener(
    * Will be called on upload. If ResponseEntity is returned, further processing of this upload will be prevented.
    * Useful e. g. to allow only special file extensions etc.
    */
-  open fun onUpload(fileInfo: FileInfo, obj: ExtendedBaseDO<Int>): ResponseEntity<*>? {
+  open fun onBeforeUpload(fileInfo: FileInfo, obj: ExtendedBaseDO<Int>): ResponseEntity<*>? {
     return null
   }
 
@@ -71,6 +71,22 @@ open class AttachmentsActionListener(
    */
   open fun afterModification(
     attachment: Attachment,
+    obj: ExtendedBaseDO<Int>,
+    jcrPath: String,
+    attachmentsAccessChecker: AttachmentsAccessChecker,
+    listId: String?
+  ): ResponseEntity<*> {
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
+          .addVariable("data", createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
+      )
+  }
+
+  /**
+   * Will be called after upload.
+   */
+  open fun afterDeletion(
     obj: ExtendedBaseDO<Int>,
     jcrPath: String,
     attachmentsAccessChecker: AttachmentsAccessChecker,

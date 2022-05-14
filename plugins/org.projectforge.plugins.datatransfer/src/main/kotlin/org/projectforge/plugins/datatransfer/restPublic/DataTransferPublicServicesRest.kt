@@ -30,6 +30,7 @@ import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileInfo
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao.Companion.EXTERNAL_USER_PREFIX
 import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.DataTransferUtils
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
@@ -257,7 +258,8 @@ class DataTransferPublicServicesRest {
             dataTransferAreaDao,
             area,
             attachmentsAccessChecker,
-            data.listId
+            data.listId,
+            userString = getExternalUserString(request, sessionData.userInfo)
           )
         }
       }
@@ -363,7 +365,8 @@ class DataTransferPublicServicesRest {
       dataTransferAreaDao,
       area,
       attachmentsAccessChecker,
-      listId
+      listId,
+      userString = getExternalUserString(request, sessionData.userInfo)
     )
     val list =
       attachmentsService.getAttachments(
@@ -426,7 +429,7 @@ class DataTransferPublicServicesRest {
   }
 
   internal fun getExternalUserString(request: HttpServletRequest, userString: String?): String {
-    return "external: ${RestUtils.getClientIp(request)} ('${userString?.take(255)}')"
+    return "${EXTERNAL_USER_PREFIX} ${RestUtils.getClientIp(request)} ('${userString?.take(255) ?: "???"}')"
   }
 
   internal fun convert(
