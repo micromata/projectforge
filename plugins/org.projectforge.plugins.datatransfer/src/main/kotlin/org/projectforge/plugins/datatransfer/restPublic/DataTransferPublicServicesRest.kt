@@ -35,7 +35,6 @@ import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.DataTransferUtils
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.plugins.datatransfer.rest.DataTransferRestUtils
-import org.projectforge.rest.AttachmentsRestUtils
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -185,15 +184,16 @@ class DataTransferPublicServicesRest {
       ?.filter { attachment ->
         fileIdList.any { attachment.fileId?.startsWith(it) == true }
       }
-    val basefilename = dto.areaName
-    AttachmentsRestUtils.multiDownload(
+    DataTransferRestUtils.multiDownload(
       response,
       attachmentsService,
       attachmentsAccessChecker,
-      basefilename,
-      dataTransferAreaPagesRest.jcrPath!!,
+      area,
+      dto.areaName,
+      jcrPath = dataTransferAreaPagesRest.jcrPath!!,
       id,
       attachments,
+      byExternalUser = getExternalUserString(request, sessionData.userInfo)
     )
   }
 
