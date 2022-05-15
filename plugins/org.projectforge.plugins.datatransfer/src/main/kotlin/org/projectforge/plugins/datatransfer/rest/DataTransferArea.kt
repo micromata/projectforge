@@ -36,6 +36,7 @@ import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
+import java.util.*
 import javax.persistence.Transient
 
 class DataTransferArea(
@@ -74,8 +75,8 @@ class DataTransferArea(
     set(value) {
       // Replace #EXTERNAL# by translated marker:
       value?.forEach { attachment ->
-        attachment.createdByUser = DataTransferAreaDO.getTranslatedUserString(null, attachment.createdByUser)
-        attachment.lastUpdateByUser = DataTransferAreaDO.getTranslatedUserString(null, attachment.lastUpdateByUser)
+        attachment.createdByUser = DataTransferAreaDao.getTranslatedUserString(null, attachment.createdByUser)
+        attachment.lastUpdateByUser = DataTransferAreaDao.getTranslatedUserString(null, attachment.lastUpdateByUser)
       }
       field = value
     }

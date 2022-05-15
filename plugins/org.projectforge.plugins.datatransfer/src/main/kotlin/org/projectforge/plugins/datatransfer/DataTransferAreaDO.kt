@@ -31,15 +31,11 @@ import org.projectforge.Constants
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.ToStringUtil.Companion.toJsonString
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.config.RestUtils
 import java.util.*
 import javax.persistence.*
-import javax.servlet.http.HttpServletRequest
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -251,23 +247,5 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
     internal const val FIND_BY_EXTERNAL_ACCESS_TOKEN = "DataTransferAreaDO_FindByExternalAccessToken"
     internal const val FIND_PERSONAL_BOX = "DataTransferAreaDO_FindPersonalBox"
     const val PERSONAL_BOX_AREA_NAME = "<PERSONAL_BOX>"
-    internal fun getExternalUserString(request: HttpServletRequest, userString: String?): String {
-      return "${DataTransferAreaDao.EXTERNAL_USER_PREFIX}${RestUtils.getClientIp(request)} ('${userString?.take(255) ?: "???"}')"
-    }
-
-    internal fun getTranslatedUserString(user: PFUserDO?, externalUser: String?, locale: Locale? = null): String {
-      if (user != null) {
-        return user.getFullname()
-      }
-      if (externalUser != null) {
-        if (externalUser.startsWith(DataTransferAreaDao.EXTERNAL_USER_PREFIX)) {
-          val marker = translate(locale, "plugins.datatransfer.external.userPrefix")
-          return "${externalUser.removePrefix(DataTransferAreaDao.EXTERNAL_USER_PREFIX)}, $marker"
-        } else {
-          return externalUser // Shouldn't occur (only, if EXTERNAL_USER_PREFIX was changed).
-        }
-      }
-      return ""
-
-    } }
+  }
 }

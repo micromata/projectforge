@@ -31,6 +31,7 @@ import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigurationChecker
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsEventListener
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.api.BaseDao
@@ -43,13 +44,16 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileInfo
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Repository
 import org.springframework.util.unit.DataSize
 import org.springframework.util.unit.DataUnit
+import java.util.*
 import javax.annotation.PostConstruct
+import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -356,5 +360,25 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
      * External (anonymous user are marked by this prefix), needed for internationalization.
      */
     const val EXTERNAL_USER_PREFIX = "#EXTERNAL#:"
+
+
+    internal fun getExternalUserString(request: HttpServletRequest, userString: String?): String {
+      return "${EXTERNAL_USER_PREFIX}${RestUtils.getClientIp(request)} ('${userString?.take(255) ?: "???"}')"
+    }
+
+    internal fun getTranslatedUserString(user: PFUserDO?, externalUser: String?, locale: Locale? = null): String {
+      if (user != null) {
+        return user.getFullname()
+      }
+      if (externalUser != null) {
+        if (externalUser.startsWith(DataTransferAreaDao.EXTERNAL_USER_PREFIX)) {
+          val marker = translate(locale, "plugins.datatransfer.external.userPrefix")
+          return "${externalUser.removePrefix(EXTERNAL_USER_PREFIX)}, $marker"
+        } else {
+          return externalUser // Shouldn't occur (only, if EXTERNAL_USER_PREFIX was changed).
+        }
+      }
+      return ""
+    }
   }
 }

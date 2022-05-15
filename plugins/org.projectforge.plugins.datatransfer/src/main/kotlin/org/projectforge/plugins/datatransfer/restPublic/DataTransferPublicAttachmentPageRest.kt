@@ -25,7 +25,7 @@ package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
 import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.rest.AttachmentPageRest
@@ -87,7 +87,7 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
 
     log.info {
       "User tries to edit/view details of attachment: category=$category, id=$id, fileId=$fileId, listId=$listId)}, user='${
-        DataTransferAreaDO.getExternalUserString(request, sessionData.userInfo)
+        DataTransferAreaDao.getExternalUserString(request, sessionData.userInfo)
       }'."
     }
     val attachmentData =
