@@ -9,8 +9,8 @@ import DynamicAgGrid from '../table/DynamicAgGrid';
 import DynamicAlert from '../DynamicAlert';
 import DynamicButton from '../DynamicButton';
 
-function DynamicAttachmentList(
-    {
+function DynamicAttachmentList(props) {
+    const {
         category,
         id,
         listId,
@@ -21,8 +21,8 @@ function DynamicAttachmentList(
         uploadDisabled,
         maxSizeInKB,
         agGrid,
-    },
-) {
+    } = props;
+
     const {
         callAction,
         data,
@@ -157,6 +157,7 @@ function DynamicAttachmentList(
     const table = attachments && attachments.length > 0 && (
         <>
             <DynamicAgGrid
+                {...agGrid}
                 onGridApiReady={onGridApiReady}
                 columnDefs={agGrid.columnDefs}
                 id="attachments"

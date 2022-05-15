@@ -1,6 +1,7 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React, { useRef, useState } from 'react';
+import { connect } from 'react-redux';
 import { AgGridReact } from 'ag-grid-react';
 import { DynamicLayoutContext } from '../../context';
 import Formatter from '../../../Formatter';
@@ -8,23 +9,27 @@ import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import history from '../../../../../utilities/history';
 import { getServiceURL } from '../../../../../utilities/rest';
+import { AG_GRID_LOCALE_DE } from './agGridLocalization';
 
-function DynamicAgGrid({
-    columnDefs,
-    id,
-    sortModel,
-    rowSelection,
-    rowMultiSelectWithClick,
-    rowClickRedirectUrl,
-    rowClickFunction,
-    onColumnStatesChangedUrl,
-    onGridApiReady,
-    pagination,
-    paginationPageSize,
-    getRowClass,
-    suppressRowClickSelection,
-    components,
-}) {
+function DynamicAgGrid(props) {
+    const {
+        columnDefs,
+        id,
+        sortModel,
+        rowSelection,
+        rowMultiSelectWithClick,
+        rowClickRedirectUrl,
+        rowClickFunction,
+        onColumnStatesChangedUrl,
+        onGridApiReady,
+        pagination,
+        paginationPageSize,
+        getRowClass,
+        suppressRowClickSelection,
+        components,
+        locale,
+    } = props;
+
     // eslint-disable-next-line no-new-func
     const getRowClassFunction = Function('params', getRowClass);
     const rowClass = 'ag-row-standard';
@@ -63,6 +68,11 @@ function DynamicAgGrid({
             gridApi.redrawRows();
         }
     }, [gridApi, data.highlightRowId]);
+
+    const localeTextFunc = (key, defaultValue) => {
+        if (locale === 'de') return AG_GRID_LOCALE_DE[key] || defaultValue;
+        return defaultValue;
+    };
 
     const modifyRedirectUrl = (redirectUrl, clickedId) => {
         if (redirectUrl.includes('{id}')) {
@@ -148,13 +158,13 @@ function DynamicAgGrid({
         }
         return myClass;
     }, [data.highlightRowId]);
-
     return React.useMemo(() => (
         <div
             className="ag-theme-alpine"
             style={gridStyle}
         >
             <AgGridReact
+                {...props}
                 ref={gridRef}
                 rowData={entries}
                 components={allComponents}
@@ -173,6 +183,7 @@ function DynamicAgGrid({
                 getRowClass={usedGetRowClass}
                 accentedSort
                 suppressRowClickSelection={suppressRowClickSelection}
+                localeTextFunc={localeTextFunc}
             />
         </div>
     ),
@@ -216,6 +227,7 @@ DynamicAgGrid.propTypes = {
         PropTypes.string,
         PropTypes.any,
     ]),
+    locale: PropTypes.string,
 };
 
 DynamicAgGrid.defaultProps = {
@@ -227,6 +239,11 @@ DynamicAgGrid.defaultProps = {
     onRowClicked: undefined,
     suppressRowClickSelection: undefined,
     components: undefined,
+    locale: undefined,
 };
 
-export default DynamicAgGrid;
+const mapStateToProps = ({ authentication }) => ({
+    locale: authentication.user.locale,
+});
+
+export default connect(mapStateToProps)(DynamicAgGrid);

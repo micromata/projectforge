@@ -3,6 +3,10 @@ Object.getByString = (object, multiKey) => {
     if (!multiKey) {
         return undefined;
     }
+    if (!(typeof multiKey === 'string' || multiKey instanceof String)) {
+        console.log("Warning: multiKey isn't of type String.", multiKey, typeof multiKey);
+        return undefined;
+    }
 
     let obj = object;
 
