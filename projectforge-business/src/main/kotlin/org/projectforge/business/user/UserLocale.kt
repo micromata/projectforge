@@ -54,7 +54,7 @@ object UserLocale {
   @JvmStatic
   @JvmOverloads
   fun determineUserLocale(
-    user: PFUserDO? = null,
+    user: PFUserDO? = ThreadLocalUserContext.getUser(),
     defaultLocale: Locale? = null,
     request: HttpServletRequest? = null
   ): Locale {
@@ -95,6 +95,39 @@ object UserLocale {
       request.getSession(true).setAttribute(SESSION_LOCALE_KEY, locale)
     }
   }
+
+  /**
+   * @return "de" or "en".
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun determineUserLocaleAsIdentifier(
+    user: PFUserDO? = ThreadLocalUserContext.getUser(),
+    defaultLocale: Locale? = null,
+    request: HttpServletRequest? = null
+  ): String {
+    val locale = determineUserLocale(user, defaultLocale, request)
+    return if (locale == Locale.GERMAN) {
+      "de"
+    } else {
+      "en"
+    }
+  }
+
+  // Available Loacles for external i18n-files
+  @JvmField
+  val I18NSERVICE_LANGUAGES = arrayOf(Locale.GERMAN, Locale.ENGLISH, Locale.ROOT)
+
+  /**
+   * Available Localization for the wicket module
+   * If you add new languages don't forget to add the I18nResources_##.properties also for all used plugins.
+   * You need also to add the language to I18nResources*.properties such as<br></br>
+   * locale.de=German<br></br>
+   * locale.en=English<br></br>
+   * locale.zh=Chinese
+   */
+  @JvmField
+  val LOCALIZATIONS = arrayOf("en", "de")
 
   private const val SESSION_LOCALE_KEY = "UserLocale.locale"
 

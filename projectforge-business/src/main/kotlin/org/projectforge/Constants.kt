@@ -24,7 +24,6 @@
 package org.projectforge
 
 import java.math.BigDecimal
-import java.util.*
 
 /**
  * Defines different constants (typical length of string columns) usable by plugins and core package.
@@ -63,21 +62,6 @@ object Constants {
   const val REACT_APP_PATH = "react/"
   const val WICKET_APPLICATION_PATH = "wa/"
   const val WICKET_REQUEST_TIMEOUT_MINUTES = 5
-
-  // Available Loacles for external i18n-files
-  @JvmField
-  val I18NSERVICE_LANGUAGES = arrayOf(Locale.GERMAN, Locale.ENGLISH, Locale.ROOT)
-
-  /**
-   * Available Localization for the wicket module
-   * If you add new languages don't forget to add the I18nResources_##.properties also for all used plugins.
-   * You need also to add the language to I18nResources*.properties such as<br></br>
-   * locale.de=German<br></br>
-   * locale.en=English<br></br>
-   * locale.zh=Chinese
-   */
-  @JvmField
-  val LOCALIZATIONS = arrayOf("en", "de")
 
   /**
    * the name of the event class.

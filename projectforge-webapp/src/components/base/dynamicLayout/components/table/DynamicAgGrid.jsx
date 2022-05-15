@@ -1,7 +1,6 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React, { useRef, useState } from 'react';
-import { connect } from 'react-redux';
 import { AgGridReact } from 'ag-grid-react';
 import { DynamicLayoutContext } from '../../context';
 import Formatter from '../../../Formatter';
@@ -27,6 +26,7 @@ function DynamicAgGrid(props) {
         getRowClass,
         suppressRowClickSelection,
         components,
+        // can't use locale from authentication, because AG-Grid is also used in public pages:
         locale,
     } = props;
 
@@ -242,8 +242,4 @@ DynamicAgGrid.defaultProps = {
     locale: undefined,
 };
 
-const mapStateToProps = ({ authentication }) => ({
-    locale: authentication.user.locale,
-});
-
-export default connect(mapStateToProps)(DynamicAgGrid);
+export default DynamicAgGrid;

@@ -23,6 +23,7 @@
 
 package org.projectforge.ui
 
+import org.projectforge.business.user.UserLocale
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.core.aggrid.SortModelEntry
@@ -84,6 +85,8 @@ open class UIAgGrid(
    */
   var getRowClass: String? = GET_ROW_CLASS
     private set
+
+  var locale = UserLocale.determineUserLocaleAsIdentifier()
 
   companion object {
     @JvmStatic

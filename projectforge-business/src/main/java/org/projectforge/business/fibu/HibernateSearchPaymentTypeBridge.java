@@ -26,7 +26,7 @@ package org.projectforge.business.fibu;
 import org.apache.lucene.document.Document;
 import org.hibernate.search.bridge.FieldBridge;
 import org.hibernate.search.bridge.LuceneOptions;
-import org.projectforge.Constants;
+import org.projectforge.business.user.UserLocale;
 import org.projectforge.framework.i18n.I18nHelper;
 
 import java.util.Locale;
@@ -36,8 +36,7 @@ import java.util.Locale;
  *
  * @author Stefan Niemczyk (s.niemczyk@micromata.de)
  */
-public class HibernateSearchPaymentTypeBridge implements FieldBridge
-{
+public class HibernateSearchPaymentTypeBridge implements FieldBridge {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(HibernateSearchPaymentTypeBridge.class);
 
@@ -46,8 +45,7 @@ public class HibernateSearchPaymentTypeBridge implements FieldBridge
    * org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)
    */
   @Override
-  public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
-  {
+  public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions) {
     final PaymentType paymentType = (PaymentType) value;
     if (paymentType == null) {
       return;
@@ -55,7 +53,7 @@ public class HibernateSearchPaymentTypeBridge implements FieldBridge
 
     final StringBuilder buf = new StringBuilder();
 
-    for (final Locale locale : Constants.I18NSERVICE_LANGUAGES) {
+    for (final Locale locale : UserLocale.I18NSERVICE_LANGUAGES) {
       final String localized = I18nHelper.getLocalizedMessage(locale, paymentType.getI18nKey());
 
       if (localized == null) {

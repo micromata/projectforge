@@ -37,7 +37,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.projectforge.Constants;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.ldap.*;
@@ -306,7 +305,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.locale"));
     final LabelValueChoiceRenderer<Locale> localeChoiceRenderer = new LabelValueChoiceRenderer<Locale>();
     localeChoiceRenderer.addValue(null, gridBuilder.getString("user.defaultLocale"));
-    for (final String str : Constants.LOCALIZATIONS) {
+    for (final String str : UserLocale.LOCALIZATIONS) {
       localeChoiceRenderer.addValue(new Locale(str), gridBuilder.getString("locale." + str));
     }
     @SuppressWarnings("serial") final DropDownChoice<Locale> localeChoice = new DropDownChoice<Locale>(fs.getDropDownChoiceId(),
@@ -323,7 +322,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
 
       @Override
       protected Locale convertChoiceIdToChoice(final String id) {
-        if (StringHelper.isIn(id, Constants.LOCALIZATIONS) == true) {
+        if (StringHelper.isIn(id, UserLocale.LOCALIZATIONS) == true) {
           return new Locale(id);
         } else {
           return null;
