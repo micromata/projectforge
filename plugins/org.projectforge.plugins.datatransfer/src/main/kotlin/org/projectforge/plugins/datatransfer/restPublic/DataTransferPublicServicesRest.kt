@@ -29,8 +29,8 @@ import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileInfo
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
-import org.projectforge.plugins.datatransfer.DataTransferAreaDO.Companion.getExternalUserString
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao.Companion.getExternalUserString
 import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.DataTransferUtils
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
