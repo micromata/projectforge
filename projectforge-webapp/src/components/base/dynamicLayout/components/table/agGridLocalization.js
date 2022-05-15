@@ -71,7 +71,7 @@ export const AG_GRID_LOCALE_DE = {
 
     // Other
     loadingOoo: 'Laden...',
-    noRowsToShow: 'Keine Zeilen zum Anzeigen',
+    noRowsToShow: 'leer',
     enabled: 'Eingeschaltet',
 
     // Menu

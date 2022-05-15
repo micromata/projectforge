@@ -81,24 +81,16 @@ class DataTransferAuditPageRest : AbstractDynamicPageRest() {
       )
     UIFieldset(12, "plugins.datatransfer.audit.events").let { fieldset ->
       layout.add(fieldset)
-      if (!formData.auditEntries.isNullOrEmpty()) {
-        val grid = UIAgGrid("auditEntries")
-        initAGGrid(grid)
-        fieldset.add(grid)
-      } else {
-        fieldset.add(UIAlert("plugins.datatransfer.audit.events.noEvents", color = UIColor.INFO))
-      }
+      val grid = UIAgGrid("auditEntries")
+      initAGGrid(grid)
+      fieldset.add(grid)
     }
     if (area.externalDownloadEnabled == true) {
       UIFieldset(12, "plugins.datatransfer.audit.downloadEvents").let { fieldset ->
         layout.add(fieldset)
-        if (!formData.downloadAuditEntries.isNullOrEmpty()) {
-          val grid = UIAgGrid("downloadAuditEntries")
-          initAGGrid(grid, false)
-          fieldset.add(grid)
-        } else {
-          fieldset.add(UIAlert("plugins.datatransfer.audit.events.noEvents", color = UIColor.INFO))
-        }
+        val grid = UIAgGrid("downloadAuditEntries")
+        initAGGrid(grid, false)
+        fieldset.add(grid)
       }
     }
     LayoutUtils.process(layout)
