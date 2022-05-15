@@ -102,6 +102,7 @@ class UIAttachmentList(
           checkboxSelection = true,
           cellRenderer = "filename",
           headerCheckboxSelection = true,
+          filter = true,
         )
       )
         .add(
@@ -110,6 +111,7 @@ class UIAttachmentList(
             "",
             cellRenderer = "action",
             width = 50,
+            filter = true,
           )
         )
         .add(
@@ -127,6 +129,7 @@ class UIAttachmentList(
             translate("description"),
             sortable = true,
             width = UIAgGridColumnDef.DESCRIPTION_WIDTH,
+            filter = true,
           )
         )
       if (showExpiryInfo == true) {
@@ -154,6 +157,7 @@ class UIAttachmentList(
             translate("createdBy"),
             sortable = true,
             width = UIAgGridColumnDef.USER_WIDTH,
+            filter = true,
           )
         )
       }
@@ -173,6 +177,7 @@ class UIAttachmentList(
             translate("modifiedBy"),
             sortable = true,
             width = UIAgGridColumnDef.USER_WIDTH,
+            filter = true,
           )
         )
       }
