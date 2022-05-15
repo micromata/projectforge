@@ -24,8 +24,8 @@
 package org.projectforge.framework.i18n;
 
 import de.micromata.genome.util.types.Pair;
-import org.projectforge.Constants;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.user.UserLocale;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,8 +37,7 @@ import java.net.URLClassLoader;
 import java.util.*;
 
 @Service
-public class I18nServiceImpl implements I18nService
-{
+public class I18nServiceImpl implements I18nService {
   @Autowired
   private ConfigurationService configurationService;
 
@@ -47,22 +46,20 @@ public class I18nServiceImpl implements I18nService
   private Map<Pair<Locale, String>, ResourceBundle> localeResourceBundleMap;
 
   @PostConstruct
-  public void init()
-  {
+  public void init() {
     I18nHelper.setI18nService(this);
     loadResourceBundles();
   }
 
   @Override
-  public void loadResourceBundles()
-  {
+  public void loadResourceBundles() {
     if (localeResourceBundleMap == null) {
       localeResourceBundleMap = new HashMap<>();
     }
     File file = new File(configurationService.getResourceDirName());
     URL[] urls = new URL[0];
     try {
-      urls = new URL[] { file.toURI().toURL() };
+      urls = new URL[]{file.toURI().toURL()};
     } catch (MalformedURLException e) {
       e.printStackTrace();
     }
@@ -75,14 +72,14 @@ public class I18nServiceImpl implements I18nService
     }
 
     ClassLoader loader = new URLClassLoader(urls);
-    for (Locale locale : Constants.I18NSERVICE_LANGUAGES) {
+    for (Locale locale : UserLocale.I18NSERVICE_LANGUAGES) {
       for (String bundleName : resourceBundles) {
         try {
           if (new File(configurationService.getResourceDirName() + File.separator + bundleName + "_" + locale.toString() + ".properties").exists()) {
             localeResourceBundleMap.put(new Pair<>(locale, bundleName), ResourceBundle.getBundle(bundleName, locale, loader));
           } else {
             ResourceBundle defaultBundle = ResourceBundle.getBundle(bundleName, Locale.ROOT,
-                new URLClassLoader(new URL[] { new File(configurationService.getResourceDirName()).toURI().toURL() }));
+                new URLClassLoader(new URL[]{new File(configurationService.getResourceDirName()).toURI().toURL()}));
             localeResourceBundleMap.put(new Pair<>(locale, bundleName), defaultBundle);
           }
         } catch (MissingResourceException ignored) {
@@ -95,8 +92,7 @@ public class I18nServiceImpl implements I18nService
   }
 
   @Override
-  public String getLocalizedStringForKey(String i18nKey, Locale locale)
-  {
+  public String getLocalizedStringForKey(String i18nKey, Locale locale) {
     ResourceBundle resourceBundle = getResourceBundleFor("I18NResources", locale);
     if (resourceBundle != null) {
       return (String) resourceBundle.getObject(i18nKey);
@@ -107,13 +103,11 @@ public class I18nServiceImpl implements I18nService
   }
 
   @Override
-  public String getAdditionalString(String key, Locale locale)
-  {
+  public String getAdditionalString(String key, Locale locale) {
     return getValueFromBundles(key, locale);
   }
 
-  private String getValueFromBundles(String key, Locale locale)
-  {
+  private String getValueFromBundles(String key, Locale locale) {
     for (String resourceBundle : resourceBundles) {
       // the pair searched for
       Pair<Locale, String> localeStringPair = new Pair<>(locale, resourceBundle);
@@ -142,8 +136,7 @@ public class I18nServiceImpl implements I18nService
   }
 
   @Override
-  public ResourceBundle getResourceBundleFor(String name, Locale locale)
-  {
+  public ResourceBundle getResourceBundleFor(String name, Locale locale) {
     return localeResourceBundleMap.get(new Pair<>(locale, name));
   }
 }
