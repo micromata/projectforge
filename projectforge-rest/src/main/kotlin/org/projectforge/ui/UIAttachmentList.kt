@@ -78,6 +78,11 @@ class UIAttachmentList(
    * If true, the expiry info of the attachments will be displayed (if given in [org.projectforge.framework.jcr.Attachment.info] as string value with key 'expiryInfo'.
    */
   val showExpiryInfo: Boolean? = null,
+  /**
+   * If true, the createdBy- and lastUpdateBy-user is displayed (default). Should be false for public usage (e. g.
+   * external DataTransfer usage.)
+   */
+  showUserInfo: Boolean = true,
 ) :
   UIElement(type = UIElementType.ATTACHMENT_LIST) {
   /**
@@ -99,19 +104,23 @@ class UIAttachmentList(
           headerCheckboxSelection = true,
         )
       )
-        .add(UIAgGridColumnDef(
-          "action",
-          "",
-          cellRenderer = "action",
-          width = 50,
-        ))
-        .add(UIAgGridColumnDef(
-          "size",
-          translate("attachment.size"),
-          sortable = true,
-          valueFormatter = "data.sizeHumanReadable",
-          width = 80,
-        ))
+        .add(
+          UIAgGridColumnDef(
+            "action",
+            "",
+            cellRenderer = "action",
+            width = 50,
+          )
+        )
+        .add(
+          UIAgGridColumnDef(
+            "size",
+            translate("attachment.size"),
+            sortable = true,
+            valueFormatter = "data.sizeHumanReadable",
+            width = 80,
+          )
+        )
         .add(
           UIAgGridColumnDef(
             "description",
@@ -121,11 +130,13 @@ class UIAttachmentList(
           )
         )
       if (showExpiryInfo == true) {
-        it.add(UIAgGridColumnDef(
-          "info.expiryInfo",
-          translate("attachment.expires"),
-          width = 120,
-        ))
+        it.add(
+          UIAgGridColumnDef(
+            "info.expiryInfo",
+            translate("attachment.expires"),
+            width = 120,
+          )
+        )
       }
       it.add(
         UIAgGridColumnDef(
@@ -136,7 +147,8 @@ class UIAttachmentList(
           width = UIAgGridColumnDef.TIMESTAMP_WIDTH,
         )
       )
-        .add(
+      if (showUserInfo) {
+        it.add(
           UIAgGridColumnDef(
             "createdByUser",
             translate("createdBy"),
@@ -144,16 +156,18 @@ class UIAttachmentList(
             width = UIAgGridColumnDef.USER_WIDTH,
           )
         )
-        .add(
-          UIAgGridColumnDef(
-            "lastUpdate",
-            translate("modified"),
-            sortable = true,
-            valueFormatter = "data.lastUpdateTimeAgo",
-            width = UIAgGridColumnDef.DATE_WIDTH
-          ),
-        )
-        .add(
+      }
+      it.add(
+        UIAgGridColumnDef(
+          "lastUpdate",
+          translate("modified"),
+          sortable = true,
+          valueFormatter = "data.lastUpdateTimeAgo",
+          width = UIAgGridColumnDef.DATE_WIDTH
+        ),
+      )
+      if (showUserInfo) {
+        it.add(
           UIAgGridColumnDef(
             "lastUpdateByUser",
             translate("modifiedBy"),
@@ -161,6 +175,7 @@ class UIAttachmentList(
             width = UIAgGridColumnDef.USER_WIDTH,
           )
         )
+      }
     }
   }
 

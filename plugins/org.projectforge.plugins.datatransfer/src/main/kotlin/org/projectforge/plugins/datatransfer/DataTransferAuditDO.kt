@@ -30,8 +30,10 @@ import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.rest.config.RestUtils
 import java.util.*
 import javax.persistence.*
+import javax.servlet.http.HttpServletRequest
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -144,22 +146,13 @@ open class DataTransferAuditDO {
   open var byUserAsString: String? = null
     get() {
       if (field == null) {
-        createByUserAsString()
+        createdByUserAsString()
       }
       return field
     }
 
-  fun createByUserAsString(locale: Locale? = null) {
-    byUser?.let {
-      byUserAsString = it.getFullname()
-      return
-    }
-    byExternalUser?.let {
-      val prefix = translate(locale, "plugins.datatransfer.external.userPrefix")
-      byUserAsString = it.replace(DataTransferAreaDao.EXTERNAL_USER_PREFIX, prefix)
-      return
-    }
-    byUserAsString = ""
+  fun createdByUserAsString(locale: Locale? = null) {
+    byUserAsString = DataTransferAreaDO.getTranslatedUserString(byUser, byExternalUser, locale)
   }
 
   @get:Transient

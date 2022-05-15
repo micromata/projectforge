@@ -71,6 +71,14 @@ class DataTransferArea(
   var layoutUid: String? = null,
 ) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport, IDataTransferArea {
   override var attachments: List<Attachment>? = null
+    set(value) {
+      // Replace #EXTERNAL# by translated marker:
+      value?.forEach { attachment ->
+        attachment.createdByUser = DataTransferAreaDO.getTranslatedUserString(null, attachment.createdByUser)
+        attachment.lastUpdateByUser = DataTransferAreaDO.getTranslatedUserString(null, attachment.lastUpdateByUser)
+      }
+      field = value
+    }
 
   /**
    * Link for external users.

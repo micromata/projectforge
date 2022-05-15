@@ -159,8 +159,8 @@ open class NotificationMailService {
       // Recipient has no access, so skip mail.
       return null
     }
-    foreignAuditEntries.forEach { it.createByUserAsString(locale) }
-    downloadAuditEntries.forEach { it.createByUserAsString(locale) }
+    foreignAuditEntries.forEach { it.createdByUserAsString(locale) }
+    downloadAuditEntries.forEach { it.createdByUserAsString(locale) }
     val title = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.subject", dataTransfer.displayName)
     val message = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.message", dataTransfer.displayName)
     val mail = Mail()

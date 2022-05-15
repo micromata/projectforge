@@ -135,6 +135,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
             uploadDisabled = dataTransfer.externalUploadEnabled != true,
             showExpiryInfo = true,
             maxSizeInKB = DataTransferAreaDao.getMaxUploadFileSizeKB(dbObj),
+            showUserInfo = false,
           )
         )
     )
