@@ -24,6 +24,30 @@ function CategoriesDropdown({ badge, categories }) {
         [], [], [], [],
     ];
 
+    function useOutsideAlerter(ref) {
+        React.useEffect(() => {
+            function handleClickOutside(event) {
+                if (ref.current && !ref.current.contains(event.target)) {
+                    setOpen(false);
+                }
+            }
+            function handleKeyPress(event) {
+                if (event.key === 'Escape') {
+                    setOpen(false);
+                }
+            }
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('keydown', handleKeyPress, false);
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+                document.removeEventListener('keydown', handleClickOutside);
+            };
+        }, [ref]);
+    }
+
+    const wrapperRef = React.useRef(null);
+    useOutsideAlerter(wrapperRef);
+
     // Add the 'Common' category to the first column, so it will always be first.
     columns[0].push(categories[0]);
 
@@ -44,69 +68,71 @@ function CategoriesDropdown({ badge, categories }) {
             .push(category));
 
     return (
-        <Nav>
-            <Manager>
-                <Reference>
-                    {({ ref }) => (
-                        <NavItem>
-                            <NavLink onClick={() => setOpen(!open)} tag={Button} color="link" ref={ref}>
-                                <FontAwesomeIcon icon={faListUl} />
-                                {badge && (
-                                    <MenuBadge
-                                        elementKey="DROPDOWN_TOGGLE"
-                                        isFlying
-                                        color={badge.style}
-                                    >
-                                        {badge.counter}
-                                    </MenuBadge>
-                                )}
-                            </NavLink>
-                        </NavItem>
-                    )}
-                </Reference>
-                <Popper placement="bottom-start">
-                    {(
-                        {
-                            ref,
-                            style: popperStyle,
-                            placement,
-                            arrowProps,
-                        },
-                    ) => (
-                        <div
-                            ref={ref}
-                            style={popperStyle}
-                            data-placement={placement}
-                            className={classNames(
-                                style.categoryListDropdownMenu,
-                                open && style.open,
-                            )}
-                        >
-                            <Container>
-                                <div className={style.categories}>
-                                    {columns.map((column) => (
-                                        <div
-                                            key={`menu-column-${column.map(({ id }) => id)
-                                                .join('-')}`}
-                                            className={style.categoryColumn}
+        <div ref={wrapperRef}>
+            <Nav>
+                <Manager>
+                    <Reference>
+                        {({ ref }) => (
+                            <NavItem>
+                                <NavLink onClick={() => setOpen(!open)} tag={Button} color="link" ref={ref}>
+                                    <FontAwesomeIcon icon={faListUl} />
+                                    {badge && (
+                                        <MenuBadge
+                                            elementKey="DROPDOWN_TOGGLE"
+                                            isFlying
+                                            color={badge.style}
                                         >
-                                            {column.map((category) => (
-                                                <Category
-                                                    category={category}
-                                                    key={`category-${category.id}`}
-                                                    closeMenu={() => setOpen(false)}
-                                                />
-                                            ))}
-                                        </div>
-                                    ))}
-                                </div>
-                            </Container>
-                            <div ref={arrowProps.ref} style={arrowProps.style} />
-                        </div>
-                    )}
-                </Popper>
-            </Manager>
-        </Nav>
+                                            {badge.counter}
+                                        </MenuBadge>
+                                    )}
+                                </NavLink>
+                            </NavItem>
+                        )}
+                    </Reference>
+                    <Popper placement="bottom-start">
+                        {(
+                            {
+                                ref,
+                                style: popperStyle,
+                                placement,
+                                arrowProps,
+                            },
+                        ) => (
+                            <div
+                                ref={ref}
+                                style={popperStyle}
+                                data-placement={placement}
+                                className={classNames(
+                                    style.categoryListDropdownMenu,
+                                    open && style.open,
+                                )}
+                            >
+                                <Container>
+                                    <div className={style.categories}>
+                                        {columns.map((column) => (
+                                            <div
+                                                key={`menu-column-${column.map(({ id }) => id)
+                                                    .join('-')}`}
+                                                className={style.categoryColumn}
+                                            >
+                                                {column.map((category) => (
+                                                    <Category
+                                                        category={category}
+                                                        key={`category-${category.id}`}
+                                                        closeMenu={() => setOpen(false)}
+                                                    />
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Container>
+                                <div ref={arrowProps.ref} style={arrowProps.style} />
+                            </div>
+                        )}
+                    </Popper>
+                </Manager>
+            </Nav>
+        </div>
     );
 }
 
