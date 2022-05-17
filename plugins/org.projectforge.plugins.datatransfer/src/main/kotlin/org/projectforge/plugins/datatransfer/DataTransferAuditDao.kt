@@ -52,7 +52,7 @@ open class DataTransferAuditDao {
   internal open lateinit var dataTransferAreaDao: DataTransferAreaDao
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  open fun insert(audit: DataTransferAuditDO) {
+  internal open fun insert(audit: DataTransferAuditDO) {
     if (audit.timestamp == null) {
       // Should only be preset for test cases.
       audit.timestamp = Date()
@@ -66,7 +66,7 @@ open class DataTransferAuditDao {
    * Set the notificationsSent=true for the given auditEntries.
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  open fun removeFromQueue(auditEntries: Collection<DataTransferAuditDO>) {
+  internal open fun removeFromQueue(auditEntries: Collection<DataTransferAuditDO>) {
     auditEntries.chunked(50).forEach { subList ->
       em.createNamedQuery(DataTransferAuditDO.UPDATE_NOTIFICATION_STATUS)
         .setParameter("idList", subList.map { it.id })
@@ -87,6 +87,11 @@ open class DataTransferAuditDao {
       // It's not the logged-in user's personal box. No permission on audit entries.
       return emptyList()
     }
+    return internalGetEntriesByAreaId(areaId)
+  }
+
+  internal open fun internalGetEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
+    areaId ?: return null
     return em.createNamedQuery(DataTransferAuditDO.FIND_BY_AREA_ID, DataTransferAuditDO::class.java)
       .setParameter("areaId", areaId)
       .resultList
@@ -96,7 +101,7 @@ open class DataTransferAuditDao {
    * @return list of unprocessed audit entries, if exists. If any audit entry (not DOWNLOAD{_ALL}) exists newer than
    * 10 minutes, null is returned.
    */
-  open fun internalGetQueuedEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
+  internal open fun internalGetQueuedEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
     areaId ?: return null
     val resultList =
       em.createNamedQuery(DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID, DataTransferAuditDO::class.java)
@@ -119,7 +124,7 @@ open class DataTransferAuditDao {
   /**
    * @return list of all download events (download, download multi or download all).
    */
-  open fun internalGetDownloadEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO> {
+  internal open fun internalGetDownloadEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO> {
     areaId ?: return emptyList()
     return em.createNamedQuery(DataTransferAuditDO.FIND_DOWNLOADS_BY_AREA_ID, DataTransferAuditDO::class.java)
       .setParameter("areaId", areaId)
@@ -128,7 +133,7 @@ open class DataTransferAuditDao {
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
-  open fun deleteOldEntries(beforeDate: PFDateTime): Int {
+  internal open fun deleteOldEntries(beforeDate: PFDateTime): Int {
     val deletedAuditEntries = em.createNamedQuery(DataTransferAuditDO.DELETE_OLD_ENTRIES)
       .setParameter("timestamp", beforeDate.utilDate)
       .executeUpdate()

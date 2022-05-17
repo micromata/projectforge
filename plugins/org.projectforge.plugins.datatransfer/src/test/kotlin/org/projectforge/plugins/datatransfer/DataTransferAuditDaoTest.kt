@@ -38,6 +38,10 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
   @Autowired
   private lateinit var dataTransferAuditDao: DataTransferAuditDao
 
+  // Needed to initialize dataTransferAuditDao.dataTransferAreaDao
+  @Autowired
+  private lateinit var dataTransferAreaDao: DataTransferAreaDao
+
   init {
     MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(
       DataTransferAreaDO::class.java.canonicalName,
@@ -48,10 +52,11 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
   @Test
   fun removeFromQueueTest() {
     val areaId = 1
+    logon(TEST_USER)
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(11, ChronoUnit.MINUTES).utilDate))
-    Assertions.assertEquals(3, dataTransferAuditDao.getEntriesByAreaId(areaId)!!.size)
+    Assertions.assertEquals(3, dataTransferAuditDao.internalGetEntriesByAreaId(areaId)!!.size)
     dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId).let { entries ->
       Assertions.assertEquals(3, entries!!.size, "3 entries queued.")
       dataTransferAuditDao.removeFromQueue(entries)
@@ -66,11 +71,11 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
     for (i in 1..size) {
       dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusMonths(10).utilDate))
     }
-    dataTransferAuditDao.getEntriesByAreaId(areaId).let { entries ->
+    dataTransferAuditDao.internalGetEntriesByAreaId(areaId).let { entries ->
       Assertions.assertEquals(size, entries!!.size)
     }
     Assertions.assertEquals(size, dataTransferAuditDao.deleteOldEntries(PFDateTime.now().minusMonths(9)))
-    dataTransferAuditDao.getEntriesByAreaId(areaId).let { entries ->
+    dataTransferAuditDao.internalGetEntriesByAreaId(areaId).let { entries ->
       Assertions.assertEquals(0, entries!!.size, "All entries of area 1 should be deleted now")
     }
   }
