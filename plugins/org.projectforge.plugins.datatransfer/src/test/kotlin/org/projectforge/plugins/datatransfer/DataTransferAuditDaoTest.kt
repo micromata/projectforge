@@ -52,11 +52,11 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(11, ChronoUnit.MINUTES).utilDate))
     Assertions.assertEquals(3, dataTransferAuditDao.getEntriesByAreaId(areaId)!!.size)
-    dataTransferAuditDao.getQueuedEntriesByAreaId(areaId).let { entries ->
+    dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId).let { entries ->
       Assertions.assertEquals(3, entries!!.size, "3 entries queued.")
       dataTransferAuditDao.removeFromQueue(entries)
     }
-    Assertions.assertEquals(0, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size, "No more queued entries. 3 were processed.")
+    Assertions.assertEquals(0, dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId)!!.size, "No more queued entries. 3 were processed.")
   }
 
   @Test
@@ -80,15 +80,15 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
     val areaId = 3
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minusDays(10).utilDate))
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(62, ChronoUnit.MINUTES).utilDate))
-    Assertions.assertEquals(2, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size)
+    Assertions.assertEquals(2, dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId)!!.size)
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(1, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.DOWNLOAD_ALL))
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(2, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.DOWNLOAD))
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(3, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.DOWNLOAD_MULTI))
-    Assertions.assertEquals(2, dataTransferAuditDao.getQueuedEntriesByAreaId(areaId)!!.size, "Download events should be ignored.")
+    Assertions.assertEquals(2, dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId)!!.size, "Download events should be ignored.")
     dataTransferAuditDao.insert(create(areaId, PFDateTime.now().minus(2, ChronoUnit.MINUTES).utilDate, AttachmentsEventType.MODIFICATION))
-    Assertions.assertNull(dataTransferAuditDao.getQueuedEntriesByAreaId(areaId), "An audit entry newer than 5 minutes found. Queue should return nothing.")
+    Assertions.assertNull(dataTransferAuditDao.internalGetQueuedEntriesByAreaId(areaId), "An audit entry newer than 5 minutes found. Queue should return nothing.")
 
-    dataTransferAuditDao.getDownloadEntriesByAreaId(areaId).let { result ->
+    dataTransferAuditDao.internalGetDownloadEntriesByAreaId(areaId).let { result ->
       Assertions.assertEquals(3, result.size, "2 download events should be there.")
       Assertions.assertEquals(result[0].eventType, AttachmentsEventType.DOWNLOAD_ALL)
       Assertions.assertEquals(result[1].eventType, AttachmentsEventType.DOWNLOAD)
