@@ -114,8 +114,8 @@ class NotificationMailTest : AbstractTestBase() {
       recipient,
       area,
       link,
-      dataTransferAuditDao.getQueuedEntriesByAreaId(area.id)!!,
-      dataTransferAuditDao.getDownloadEntriesByAreaId(area.id),
+      dataTransferAuditDao.internalGetQueuedEntriesByAreaId(area.id)!!,
+      dataTransferAuditDao.internalGetDownloadEntriesByAreaId(area.id),
     )
     Assertions.assertNotNull(mail)
   }

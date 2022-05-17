@@ -24,7 +24,9 @@
 package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.jcr.AttachmentsEventType
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.jcr.FileInfo
@@ -46,6 +48,8 @@ private val log = KotlinLogging.logger {}
 open class DataTransferAuditDao {
   @PersistenceContext
   private lateinit var em: EntityManager
+
+  internal open lateinit var dataTransferAreaDao: DataTransferAreaDao
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   open fun insert(audit: DataTransferAuditDO) {
@@ -72,6 +76,17 @@ open class DataTransferAuditDao {
 
   open fun getEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
     areaId ?: return null
+    val area = dataTransferAreaDao.getById(areaId)
+    val loggedInUser = ThreadLocalUserContext.getUser()
+    requireNotNull(loggedInUser)
+    if (!dataTransferAreaDao.hasAccess(loggedInUser, area,null, OperationType.SELECT, false)) {
+      // User has no select access to given area.
+      return emptyList()
+    }
+    if (area.isPersonalBox() && area.getPersonalBoxUserId() != loggedInUser.id) {
+      // It's not the logged-in user's personal box. No permission on audit entries.
+      return emptyList()
+    }
     return em.createNamedQuery(DataTransferAuditDO.FIND_BY_AREA_ID, DataTransferAuditDO::class.java)
       .setParameter("areaId", areaId)
       .resultList
@@ -81,7 +96,7 @@ open class DataTransferAuditDao {
    * @return list of unprocessed audit entries, if exists. If any audit entry (not DOWNLOAD{_ALL}) exists newer than
    * 10 minutes, null is returned.
    */
-  open fun getQueuedEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
+  open fun internalGetQueuedEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
     areaId ?: return null
     val resultList =
       em.createNamedQuery(DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID, DataTransferAuditDO::class.java)
@@ -104,12 +119,12 @@ open class DataTransferAuditDao {
   /**
    * @return list of all download events (download, download multi or download all).
    */
-  open fun getDownloadEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO> {
+  open fun internalGetDownloadEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO> {
     areaId ?: return emptyList()
     return em.createNamedQuery(DataTransferAuditDO.FIND_DOWNLOADS_BY_AREA_ID, DataTransferAuditDO::class.java)
-        .setParameter("areaId", areaId)
-        .setParameter("eventTypes", downloadEventTypes)
-        .resultList
+      .setParameter("areaId", areaId)
+      .setParameter("eventTypes", downloadEventTypes)
+      .resultList
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
