@@ -1,0 +1,48 @@
+---
+title: ProjectForge 7.4 released
+date: 2022-05-19
+---
+:page-liquid:
+
+Security issues of pentests, DataTransfer improved.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- 2FA (use SMS, mail, Authenticator app or Webauthn/Fido2 as 2nd factor for much more security.)
+- Password reset for users implemented (it's only usable for users with configured 2FA / mail isn't supported for password reset due to security reasons).
+- Scripts may be executed by users/groups without special rights (sudo functionality is supported). You may configure reports e. g. for project managers including financial data.
+- mass update and selection of invoices for e. g. bank transfers etc.
+- Datatransfer:
+  * Multiple upload with progress bars implemented. Very nice.
+  * Multi selection of files for deletion and download.
+  * Audit on areas added (for seeing what happened)
+  * E-mail notifications improved: files being deleted and audit log on areas.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- CSRF-Handling: if session token was changed, the user is able to simply reload the page for continuing.
+- mass update functionality refactored and improved.
+- pagination for result lists of new UI introduced.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Several minor bugfixes
+
+++++
+{% include tag.html tag="admin" %}
+- Password reset for users: Admins may enter cell numbers of users to enable password for users without any configured 2FA.
+++++
+
+++++
+{% include tag.html tag="security" %}
+++++
+- 2FA is now fully supported. You may configure:
+  * 2FA after login (expires after x days after if stay-logged-in is used)
+  * 2FA expiry time (from 1 minute to 90 days) for special usage (e. g. user administration, password changing, financial stuff etc.)
+
+++++
+{% include download-link.html %}
+++++
