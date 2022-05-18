@@ -48,7 +48,10 @@ class DataTransferAccessTest : AbstractTestBase() {
   private var initialized = false
 
   init {
-    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName)
+    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(
+      DataTransferAreaDO::class.java.canonicalName,
+      DataTransferAuditDO::class.java.canonicalName,
+    )
   }
 
   @PostConstruct
