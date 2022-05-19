@@ -218,9 +218,6 @@ class AddressPagesRest
     }
   }
 
-  override val classicsLinkListUrl: String?
-    get() = "wa/addressList"
-
   /**
    * @return the address view page.
    */

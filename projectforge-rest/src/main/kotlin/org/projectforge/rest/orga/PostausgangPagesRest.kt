@@ -57,9 +57,6 @@ class PostausgangPagesRest() :
     }
   }
 
-  override val classicsLinkListUrl: String?
-    get() = "wa/outgoingMailList"
-
   /**
    * LAYOUT List page
    */
