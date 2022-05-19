@@ -55,9 +55,6 @@ class PosteingangPagesRest() :
     }
   }
 
-  override val classicsLinkListUrl: String?
-    get() = "wa/incomingMailList"
-
   /**
    * LAYOUT List page
    */
