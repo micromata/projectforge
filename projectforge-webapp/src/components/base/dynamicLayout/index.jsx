@@ -49,8 +49,7 @@ function DynamicLayout(
             };
         }
 
-        return () => {
-        };
+        return () => undefined;
     }, [setBrowserTitle, title]);
 
     // Render PageMenu if the option displayPageMenu is true.
