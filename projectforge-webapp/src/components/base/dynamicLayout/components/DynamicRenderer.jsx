@@ -32,9 +32,9 @@ export const registerComponent = (type, tag) => {
 };
 
 // Renders the components out of a content array.
-export default (content) => {
+export default function DynamicRenderer(content) {
     if (!content) {
-        return <></>;
+        return null;
     }
 
     return (
@@ -62,7 +62,7 @@ export default (content) => {
             })}
         </>
     );
-};
+}
 
 // register default components
 registerComponent('ALERT', DynamicAlert);

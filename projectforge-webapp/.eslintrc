@@ -7,6 +7,9 @@
   "plugins": [
     "react"
   ],
+  "parserOptions": {
+    "ecmaVersion": 2020
+  },
   "settings": {
     "import/resolver": {
       "node": {

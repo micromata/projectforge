@@ -5,7 +5,7 @@ import { faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import style from '../../../components/design/input/Input.module.scss';
 
-const CalendarToolBar = (toolbar) => {
+function CalendarToolBar(toolbar) {
     const goToBack = () => {
         const { onNavigate } = toolbar;
         onNavigate('PREV');
@@ -108,5 +108,5 @@ const CalendarToolBar = (toolbar) => {
             </span>
         </div>
     );
-};
+}
 export default (CalendarToolBar);

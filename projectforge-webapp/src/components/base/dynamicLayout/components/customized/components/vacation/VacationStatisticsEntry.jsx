@@ -18,7 +18,7 @@ function VacationStatisticsEntry(
     const prevField = prev[field];
 
     if (!(currentField || prevField)) {
-        return <></>;
+        return null;
     }
 
     const Tag = isHead ? 'th' : 'td';

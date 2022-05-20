@@ -4,6 +4,7 @@ Object.getByString = (object, multiKey) => {
         return undefined;
     }
     if (!(typeof multiKey === 'string' || multiKey instanceof String)) {
+        /* eslint-disable-next-line no-console */
         console.log("Warning: multiKey isn't of type String.", multiKey, typeof multiKey);
         return undefined;
     }

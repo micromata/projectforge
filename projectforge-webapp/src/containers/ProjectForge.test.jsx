@@ -11,11 +11,13 @@ describe('renders without crashing', () => {
         const div = document.createElement('div');
         const store = createStore(reducer, applyMiddleware(thunk));
 
-        ReactDOM.render((
-            <Provider store={store}>
-                <ProjectForge />
-            </Provider>
-        ), div);
+        ReactDOM.render(
+            (
+                <Provider store={store}>
+                    <ProjectForge />
+                </Provider>
+            ), div,
+        );
     });
 
     it('with logged in state', () => {
@@ -32,10 +34,12 @@ describe('renders without crashing', () => {
             applyMiddleware(thunk),
         );
 
-        ReactDOM.render((
-            <Provider store={store}>
-                <ProjectForge />
-            </Provider>
-        ), div);
+        ReactDOM.render(
+            (
+                <Provider store={store}>
+                    <ProjectForge />
+                </Provider>
+            ), div,
+        );
     });
 });

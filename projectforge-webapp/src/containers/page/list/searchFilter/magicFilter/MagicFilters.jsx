@@ -27,7 +27,7 @@ function MagicFilters(
     const searchRef = React.useRef(null);
 
     if (!searchFilter) {
-        return <></>;
+        return null;
     }
 
     const setIsOpen = (open) => {

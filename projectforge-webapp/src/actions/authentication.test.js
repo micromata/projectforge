@@ -1,3 +1,4 @@
+/* eslint-disable */
 import fetchMock from 'fetch-mock/es5/client';
 import cookies from 'react-cookies';
 import configureMockStore from 'redux-mock-store';

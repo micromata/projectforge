@@ -22,6 +22,7 @@ function VacationStatistics() {
                 <Col sm={12}>
                     <Table striped className={style.statistics}>
                         <VacationStatisticsContext.Provider
+                            /* eslint-disable-next-line react/jsx-no-constructed-context-values */
                             value={{
                                 current,
                                 prev,
