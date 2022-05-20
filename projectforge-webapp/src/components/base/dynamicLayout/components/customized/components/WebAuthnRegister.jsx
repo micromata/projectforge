@@ -23,19 +23,19 @@ function WebAuthnRegister({ values }) {
     };
 
     const register = () => {
-        fetchJsonGet('webauthn/register',
+        fetchJsonGet(
+            'webauthn/register',
             { },
             (json) => {
                 finishRegister(json);
-            });
+            },
+        );
     };
 
     return (
-        <>
-            <Button color="secondary" outline onClick={register}>
-                {ui.translations['webauthn.registration.button.register']}
-            </Button>
-        </>
+        <Button color="secondary" outline onClick={register}>
+            {ui.translations['webauthn.registration.button.register']}
+        </Button>
     );
 }
 

@@ -25,21 +25,19 @@ function FavoriteNameInput(
     };
 
     return (
-        <>
-            <Input
-                label={label}
-                icon={faCheckSquare}
-                iconProps={{
-                    size: 'lg',
-                    onClick: handleCreateClick,
-                }}
-                id={id}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                value={filterName}
-                {...props}
-            />
-        </>
+        <Input
+            label={label}
+            icon={faCheckSquare}
+            iconProps={{
+                size: 'lg',
+                onClick: handleCreateClick,
+            }}
+            id={id}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            value={filterName}
+            {...props}
+        />
     );
 }
 

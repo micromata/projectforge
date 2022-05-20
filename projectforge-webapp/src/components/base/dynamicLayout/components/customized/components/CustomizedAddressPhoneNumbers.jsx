@@ -25,7 +25,7 @@ function CustomizedAddressPhoneNumbers({ data }) {
     return React.useMemo(
         () => {
             if (!address) {
-                return <></>;
+                return null;
             }
 
             add(address.businessPhone, 'BUSINESS', false, 0);

@@ -68,7 +68,8 @@ function TimesheetTemplatesAndRecent() {
                 ({ timesheetFavorites: response }) => setTimesheetFavorites(response),
             );
 
-            const handleFavoriteSelect = (id) => fetchJsonPost('timesheet/favorites/select',
+            const handleFavoriteSelect = (id) => fetchJsonPost(
+                'timesheet/favorites/select',
                 {
                     id,
                     timesheet: data,
@@ -81,7 +82,8 @@ function TimesheetTemplatesAndRecent() {
                 ) => {
                     setData(responseData);
                     setVariables(responseVariables);
-                });
+                },
+            );
 
             const handleFavoriteRename = (favoriteId, newName) => fetchJsonGet(
                 'timesheet/favorites/rename',

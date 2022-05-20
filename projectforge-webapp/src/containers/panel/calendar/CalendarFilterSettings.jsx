@@ -54,24 +54,28 @@ class CalendarFilterSettings extends Component {
         const { onTimesheetUserChange } = this.props;
         const { saveUpdateResponseInState } = this.context;
         const user = { id: event.target.checked ? 1 : -1 };
-        fetchJsonGet('calendar/changeTimesheetUser',
+        fetchJsonGet(
+            'calendar/changeTimesheetUser',
             { userId: user.id },
             (json) => {
                 onTimesheetUserChange(user);
                 saveUpdateResponseInState(json);
-            });
+            },
+        );
     }
 
     handleTimesheetUserChange(user) {
         const { onTimesheetUserChange } = this.props;
         const { saveUpdateResponseInState } = this.context;
         const userId = user ? user.id : undefined;
-        fetchJsonGet('calendar/changeTimesheetUser',
+        fetchJsonGet(
+            'calendar/changeTimesheetUser',
             { userId },
             (json) => {
                 onTimesheetUserChange(user);
                 saveUpdateResponseInState(json);
-            });
+            },
+        );
     }
 
     handleVacationGroupsChange(groups) {
@@ -104,24 +108,28 @@ class CalendarFilterSettings extends Component {
         const { onGridSizeChange } = this.props;
         const { saveUpdateResponseInState } = this.context;
         const size = gridSize ? gridSize.value : 30;
-        fetchJsonGet('calendar/changeGridSizer',
+        fetchJsonGet(
+            'calendar/changeGridSizer',
             { size },
             (json) => {
                 onGridSizeChange(size);
                 saveUpdateResponseInState(json);
-            });
+            },
+        );
     }
 
     handleDefaultCalendarChange(value) {
         const { onDefaultCalendarChange } = this.props;
         const { saveUpdateResponseInState } = this.context;
         const id = value ? value.id : '';
-        fetchJsonGet('calendar/changeDefaultCalendar',
+        fetchJsonGet(
+            'calendar/changeDefaultCalendar',
             { id },
             (json) => {
                 onDefaultCalendarChange(id);
                 saveUpdateResponseInState(json);
-            });
+            },
+        );
     }
 
     toggle() {

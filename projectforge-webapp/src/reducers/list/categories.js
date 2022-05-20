@@ -27,7 +27,7 @@ const initialCategoryState = {
     variables: {},
 };
 
-const categoryReducer = (state = initialCategoryState, { type, payload }) => {
+const categoryReducer = (state = initialCategoryState, { type, payload } = {}) => {
     switch (type) {
         case LIST_DISMISS_ERROR:
             return {
@@ -165,7 +165,7 @@ const categoryReducer = (state = initialCategoryState, { type, payload }) => {
     }
 };
 
-const reducer = (state = initialState, action) => {
+const reducer = (state = initialState, action = {}) => {
     const { type, payload } = action;
     switch (type) {
         case USER_LOGIN_BEGIN:

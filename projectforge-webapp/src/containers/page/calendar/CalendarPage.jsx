@@ -95,30 +95,38 @@ class CalendarPage extends React.Component {
     }
 
     onFavoriteCreate(newFilterName) {
-        fetchJsonGet('calendar/createNewFilter',
+        fetchJsonGet(
+            'calendar/createNewFilter',
             { newFilterName },
-            this.saveUpdateResponseInState);
+            this.saveUpdateResponseInState,
+        );
     }
 
     onFavoriteDelete(id) {
-        fetchJsonGet('calendar/deleteFilter',
+        fetchJsonGet(
+            'calendar/deleteFilter',
             { id },
-            this.saveUpdateResponseInState);
+            this.saveUpdateResponseInState,
+        );
     }
 
     onFavoriteSelect(id) {
-        fetchJsonGet('calendar/selectFilter',
+        fetchJsonGet(
+            'calendar/selectFilter',
             { id },
-            this.saveUpdateResponseInState);
+            this.saveUpdateResponseInState,
+        );
     }
 
     onFavoriteRename(id, newName) {
-        fetchJsonGet('calendar/renameFilter',
+        fetchJsonGet(
+            'calendar/renameFilter',
             {
                 id,
                 newName,
             },
-            this.saveUpdateResponseInState);
+            this.saveUpdateResponseInState,
+        );
     }
 
     onChange(activeCalendars) {
@@ -133,16 +141,20 @@ class CalendarPage extends React.Component {
     }
 
     onFavoriteUpdate(id) {
-        fetchJsonGet('calendar/updateFilter',
+        fetchJsonGet(
+            'calendar/updateFilter',
             { id },
-            this.saveUpdateResponseInState);
+            this.saveUpdateResponseInState,
+        );
     }
 
     fetchInitial() {
         this.setState({ loading: true });
-        fetchJsonGet('calendar/initial',
+        fetchJsonGet(
+            'calendar/initial',
             undefined,
-            this.saveUpdateResponseInState);
+            this.saveUpdateResponseInState,
+        );
     }
 
     saveUpdateResponseInState(json) {
@@ -195,6 +207,7 @@ class CalendarPage extends React.Component {
             <Container fluid>
                 <LoadingContainer loading={loading}>
                     <CalendarContext.Provider
+                        /* eslint-disable-next-line react/jsx-no-constructed-context-values */
                         value={{
                             ...calendarContextDefaultValues,
                             saveUpdateResponseInState: this.saveUpdateResponseInState,

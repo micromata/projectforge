@@ -196,7 +196,7 @@ function DynamicAttachmentList(props) {
     return React.useMemo(() => {
         if (id && id > 0) {
             if (readOnly || uploadDisabled) {
-                return (<>{table}</>);
+                return table;
             }
             return (
                 <>
@@ -212,11 +212,7 @@ function DynamicAttachmentList(props) {
                 </>
             );
         }
-        return (
-            <>
-                {ui.translations['attachment.onlyAvailableAfterSave']}
-            </>
-        );
+        return ui.translations['attachment.onlyAvailableAfterSave'];
     }, [setData, id, attachments, handleDeleteSelectedClick]);
 }
 

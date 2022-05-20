@@ -8,7 +8,7 @@ import style from './ConsumptionBar.module.scss';
 
 function ConsumptionBar({ progress, taskId, identifier }) {
     if (!progress) {
-        return <></>;
+        return null;
     }
     const {
         title,
