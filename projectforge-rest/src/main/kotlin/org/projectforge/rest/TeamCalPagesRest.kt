@@ -32,6 +32,7 @@ import org.projectforge.business.teamcal.service.CalendarFeedService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -119,13 +120,13 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "title", "externalSubscriptionUrlAnonymized", "description", "owner",
                                 "accessStatusString", "lastUpdate"))//, "externalSubscription"))
-        layout.getTableColumnById("owner").formatter = Formatter.USER
-        layout.getTableColumnById("lastUpdate").formatter = Formatter.TIMESTAMP_MINUTES
+        layout.getTableColumnById("owner").formatter = UITableColumn.Formatter.USER
+        layout.getTableColumnById("lastUpdate").formatter = UITableColumn.Formatter.TIMESTAMP_MINUTES
         layout.getTableColumnById("accessStatusString").title = "access.title.heading"
 
         val exportMenu = MenuItem("calendar.export", i18nKey = "export")

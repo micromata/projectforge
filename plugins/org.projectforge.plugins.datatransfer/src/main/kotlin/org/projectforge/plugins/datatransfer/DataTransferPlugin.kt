@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.admin.SystemStatistics
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
@@ -82,13 +82,13 @@ class DataTransferPlugin :
 
     menuCreator.register(
       MenuItemDefId.MISC,
-      MenuItemDef(info.id, "plugins.datatransfer.menu", "${Const.REACT_APP_PATH}datatransfer")
+      MenuItemDef(info.id, "plugins.datatransfer.menu", "${Constants.REACT_APP_PATH}datatransfer")
     )
 
     menuCreator.registerPluginMenu(
       "DataTransferPersonalBox",
       "plugins.datatransfer.personalBox",
-      "${Const.REACT_APP_PATH}datatransferfiles/dynamic/-1"
+      "${Constants.REACT_APP_PATH}datatransferfiles/dynamic/-1"
     )
 
     // All the i18n stuff:

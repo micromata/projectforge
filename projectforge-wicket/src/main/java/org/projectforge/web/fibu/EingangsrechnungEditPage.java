@@ -28,7 +28,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.*;
 import org.projectforge.common.i18n.UserException;
-import org.projectforge.common.props.PropUtils;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -93,34 +92,8 @@ public class EingangsrechnungEditPage
           return;
         }
 
-        List<String> missingFields = new ArrayList<>();
-
-        // check invoice
-        for (org.projectforge.business.fibu.SEPATransferGenerator.SEPATransferError error : result.getErrors().get(invoice)) {
-          switch (error) {
-            case SUM:
-              missingFields.add(this.getString("fibu.common.brutto"));
-              break;
-            case BANK_TRANSFER:
-              missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "paymentType")));
-              break;
-            case IBAN:
-              missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "iban")));
-              break;
-            case BIC:
-              missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "bic")));
-              break;
-            case RECEIVER:
-              missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "receiver")));
-              break;
-            case REFERENCE:
-              missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "referenz")));
-              break;
-          }
-        }
-
-        String missingFieldsStr = String.join(", ", missingFields);
-        this.form.addError("fibu.rechnung.transferExport.error.missing", missingFieldsStr);
+        String missingFieldsStr = SEPATransferResult.getMissingFields(result, invoice);
+        this.form.addError(SEPATransferResult.MISSING_FIELDS_ERROR_I18N_KEY, missingFieldsStr);
 
         return;
       }

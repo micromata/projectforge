@@ -101,16 +101,21 @@ class ContractPagesRest
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(): UILayout {
-    val layout = super.createListLayout()
-      .add(
-        UITable.createUIResultSetTable()
-          .add(lc, "number", "date", "type")
-          .add(UITableColumn("statusAsString", "status"))
-          .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
-          .add(lc, "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate")
-      )
-    layout.getTableColumnById("date").formatter = Formatter.DATE
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+    val layout = super.createListLayout(request, magicFilter)
+    val table = agGridSupport.prepareUIGrid4ListPage(
+      request,
+      layout,
+      magicFilter,
+      this,
+    )
+    val typeWidth = configurationService.contractTypes.maxByOrNull { it.value.length }?.value?.length ?: 1
+    table.add(lc, "number", width = 50)
+      .add(lc, "date")
+      .add(lc, "type", width = typeWidth * 10)
+      .add(lc, "statusAsString", headerName = "status")
+      .add(lc, "attachmentsSizeFormatted") //, titleIcon = UIIconType.PAPER_CLIP)
+      .add(lc, "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate")
     return LayoutUtils.processListPage(layout, this)
   }
 
@@ -189,7 +194,7 @@ class ContractPagesRest
       )
       .add(
         UIFieldset(title = "attachment.list")
-          .add(UIAttachmentList(category, dto.id))
+          .add(UIAttachmentList(category, dto.id, maxSizeInKB = getMaxFileSizeKB()))
       )
 
     JiraSupport.createJiraElement(dto.text, layout.getLabelledElementById("text"))?.let { textFieldSet.add(it) }

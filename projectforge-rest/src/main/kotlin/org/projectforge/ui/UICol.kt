@@ -45,7 +45,7 @@ open class UICol(
   md: Int? = null,
   lg: Int? = null,
   var collapseTitle: String? = null,
-) : UIElement(type) {
+) : UIElement(type), IUIContainer {
 
   constructor(xsLength: Int) : this(length = UILength(xsLength))
 
@@ -55,7 +55,7 @@ open class UICol(
     }
   }
 
-  fun add(element: UIElement): UICol {
+  override fun add(element: UIElement): UICol {
     content.add(element)
     return this
   }

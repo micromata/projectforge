@@ -26,36 +26,57 @@ package org.projectforge.ui
 import org.projectforge.framework.i18n.I18nKeyAndParams
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 
-data class ValidationError(var message: String? = null,
-                           var fieldId: String? = null,
-                           var messageId: String? = null) {
-    companion object {
-        fun create(i18nKey: String, fieldId: String? = null): ValidationError {
-            val validationError = ValidationError()
-            validationError.fieldId = fieldId
-            validationError.messageId = i18nKey
-            validationError.message = translate(i18nKey)
-            return validationError
-        }
-
-        fun create(i18nKeyAndParams: I18nKeyAndParams, fieldId: String? = null): ValidationError {
-            val validationError = ValidationError()
-            validationError.fieldId = fieldId
-            validationError.messageId = i18nKeyAndParams.key
-            validationError.message = translateMsg(i18nKeyAndParams.key, *i18nKeyAndParams.params)
-            return validationError
-        }
-
-        fun createFieldRequired(clazz: Class<*>, fieldId: String): ValidationError {
-            val i18nKey = "validation.error.fieldRequired"
-            val fieldI18nKey = ElementsRegistry.getElementInfo(clazz, fieldId)?.i18nKey
-            val fieldName = if (fieldI18nKey != null) translate(fieldI18nKey) else fieldId
-            val validationError = ValidationError()
-            validationError.fieldId = fieldId
-            validationError.messageId = i18nKey
-            validationError.message = translateMsg(i18nKey, fieldName)
-            return validationError
-        }
+data class ValidationError(
+  var message: String? = null,
+  var fieldId: String? = null,
+  var messageId: String? = null
+) {
+  companion object {
+    fun create(i18nKey: String, fieldId: String? = null): ValidationError {
+      val validationError = ValidationError()
+      validationError.fieldId = fieldId
+      validationError.messageId = i18nKey
+      validationError.message = translate(i18nKey)
+      return validationError
     }
+
+    fun create(i18nKeyAndParams: I18nKeyAndParams, fieldId: String? = null): ValidationError {
+      val validationError = ValidationError()
+      validationError.fieldId = fieldId
+      validationError.messageId = i18nKeyAndParams.key
+      validationError.message = translateMsg(i18nKeyAndParams.key, *i18nKeyAndParams.params)
+      return validationError
+    }
+
+    /**
+     * @param clazz: For getting PropertyInfo of field.
+     * @param fieldId
+     */
+    fun createFieldRequired(clazz: Class<*>, fieldId: String): ValidationError {
+      val fieldI18nKey = ElementsRegistry.getElementInfo(clazz, fieldId)?.i18nKey
+      val fieldName = if (fieldI18nKey != null) translate(fieldI18nKey) else fieldId
+      return createFieldRequired(fieldId, fieldName)
+    }
+
+    /**
+     * @param fieldId
+     * @param fieldName Name of field (already translated)
+     */
+    fun createFieldRequired(fieldId: String, fieldName: String): ValidationError {
+      val i18nKey = "validation.error.fieldRequired"
+      val validationError = ValidationError()
+      validationError.fieldId = fieldId
+      validationError.messageId = i18nKey
+      validationError.message = translateMsg(i18nKey, fieldName)
+      return validationError
+    }
+
+    fun createResponseEntity(i18nKey: String, fieldId: String? = null): ResponseEntity<ResponseAction> {
+      val validationErrors = listOf(create(i18nKey, fieldId))
+      return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+    }
+  }
 }

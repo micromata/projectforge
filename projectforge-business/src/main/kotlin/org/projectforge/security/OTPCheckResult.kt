@@ -24,7 +24,7 @@
 package org.projectforge.security
 
 enum class OTPCheckResult {
-  SUCCESS, WRONG_LOGIN_PASSWORD, BLOCKED, NOT_CONFIGURED, FAILED;
+  SUCCESS, WRONG_LOGIN_PASSWORD, BLOCKED, NOT_CONFIGURED, FAILED, CODE_EMPTY;
 
   var userMessage: String? = null
 

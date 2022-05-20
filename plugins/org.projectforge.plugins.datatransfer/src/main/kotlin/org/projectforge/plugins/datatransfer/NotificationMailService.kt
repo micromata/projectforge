@@ -24,16 +24,14 @@
 package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
-import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.business.configuration.DomainService
+import org.projectforge.business.user.UserLocale
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.I18nHelper
-import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsEventType
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.jcr.FileInfo
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
 import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
@@ -58,123 +56,175 @@ open class NotificationMailService {
   @Autowired
   private lateinit var userService: UserService
 
-  fun sendMail(
-    event: AttachmentsEventType,
-    file: FileInfo,
-    dataTransfer: DataTransferAreaDO,
-    byUser: PFUserDO?,
-    byExternalUser: String?
+  internal lateinit var dataTransferAreaDao: DataTransferAreaDao
+
+  @Suppress("unused")
+  class AttachmentNotificationInfo(
+    val attachment: Attachment,
+    val dataTransferArea: DataTransferAreaDO,
+    val expiryDate: Date, // Used by e-mail template
+    val expiresInMillis: Long,
+    locale: Locale,
   ) {
-    val recipients = mutableListOf<Int>()
-    if (event == AttachmentsEventType.DELETE) {
-      val createdByUserId = file.createdByUser?.toIntOrNull()
-      if (createdByUserId != null && createdByUserId != ThreadLocalUserContext.getUserId()) {
-        // File object created by another user was deleted, so notify createdBy user:
-        recipients.add(createdByUserId)
+    var link: String? = null // link to dataTransferArea.
+    val expiresInTimeLeft = DataTransferUtils.expiryTimeLeft(attachment, dataTransferArea.expiryDays, locale)
+  }
+
+  fun sendMails(
+    area: DataTransferAreaDO,
+    auditEntries: List<DataTransferAuditDO>,
+    downloadAuditEntries: List<DataTransferAuditDO>,
+  ): Int {
+    // First detect all recipients by checking all audit entries:
+    val recipients = mutableSetOf<Int>()
+    auditEntries.forEach { audit ->
+      if (audit.eventType == AttachmentsEventType.DELETE) {
+        val uploadByUserId = audit.uploadByUser?.id
+        if (uploadByUserId != null && uploadByUserId != audit.byUser?.id) {
+          // File object created by another user was deleted, so notify uploadBy user:
+          recipients.add(uploadByUserId)
+        }
       }
-    }
-    StringHelper.splitToInts(dataTransfer.observerIds, ",", false).forEach {
-      recipients.add(it)
+      StringHelper.splitToInts(area.observerIds, ",", false).forEach {
+        recipients.add(it)
+      }
     }
     /*
     Don't notify admins anymore.
     StringHelper.splitToInts(dataTransfer.adminIds, ",", false).forEach {
       recipients.add(it)
     }*/
-    if (recipients.isNullOrEmpty()) {
+    if (recipients.isEmpty()) {
       // No observers, admins and deleted files of other createdByUsers.
-      return
+      return 0
     }
     val link = domainService.getDomain(
       PagesResolver.getDynamicPageUrl(
         DataTransferPageRest::class.java,
-        id = dataTransfer.id ?: 0
+        id = area.id ?: 0
       )
     )
+    var counter = 0
     recipients.distinct().forEach { id ->
       val recipient = userService.internalGetById(id)
-      val mail = prepareMail(recipient, event, file.fileName ?: "???", dataTransfer, link, byUser, byExternalUser)
+      val mail = prepareMail(recipient, area, link, auditEntries, downloadAuditEntries)
       mail?.let {
-        sendMail.send(it)
+        try {
+          if (sendMail.send(it)) {
+            ++counter
+          }
+        } catch (ex: Exception) {
+          log.error(ex.message, ex)
+        }
       }
+    }
+    return counter
+  }
+
+  /**
+   * Sends an email with files being deleted to an observer.
+   */
+  fun sendNotificationMail(userId: Int, notificationInfoList: List<AttachmentNotificationInfo>?) {
+    if (notificationInfoList.isNullOrEmpty()) {
+      return
+    }
+    val recipient = userService.internalGetById(userId)
+    if (recipient == null) {
+      log.error { "Can't determine observer by id: $userId" }
+      return
+    }
+    if (!recipient.hasSystemAccess()) {
+      // Observer has now system access (anymore). Don't send any notification.
+      return
+    }
+    prepareMail(recipient, notificationInfoList)?.let {
+      sendMail.send(it)
     }
   }
 
   internal fun prepareMail(
     recipient: PFUserDO,
-    event: AttachmentsEventType,
-    fileName: String,
     dataTransfer: DataTransferAreaDO,
     link: String,
-    byUser: PFUserDO?,
-    byExternalUser: String?
+    auditEntries: List<DataTransferAuditDO>,
+    downloadAuditEntries: List<DataTransferAuditDO>,
   ): Mail? {
-    if (recipient.id == byUser?.id) {
+    val locale = UserLocale.determineUserLocale(recipient)
+    val foreignAuditEntries = auditEntries.filter { it.byUser?.id != recipient.id }
+    if (foreignAuditEntries.isEmpty()) {
       // Don't send user his own events.
       return null
     }
-    val titleKey: String
-    val messageKey: String
-    val byUserString: String
-    if (byUser != null || byExternalUser == DataTransferJCRCleanUpJob.SYSTEM_USER) {
-      titleKey = "plugins.datatransfer.mail.subject.title"
-      messageKey = "plugins.datatransfer.mail.subject.msg"
-      byUserString = byUser?.getFullname() ?: DataTransferJCRCleanUpJob.SYSTEM_USER
-    } else {
-      titleKey = "plugins.datatransfer.mail.subject.external.title"
-      messageKey = "plugins.datatransfer.mail.subject.external.msg"
-      byUserString = byExternalUser ?: "???"
+    if (!dataTransferAreaDao.hasSelectAccess(dataTransfer, recipient)) {
+      // Recipient has no access, so skip mail.
+      return null
     }
-    val title = myTranslate(
-      recipient,
-      titleKey,
-      dataTransfer.displayName,
-      translate("plugins.datatransfer.mail.action.$event")
-    )
-    val message = myTranslate(
-      recipient,
-      messageKey,
-      fileName,
-      dataTransfer.displayName,
-      byUserString,
-      translate("plugins.datatransfer.mail.action.$event")
-    )
-    // EventInfo is given to mail renderer.
-    val eventInfo = EventInfo(link = link, user = byUserString, message = message)
-
+    foreignAuditEntries.forEach { it.createdByUserAsString(locale) }
+    downloadAuditEntries.forEach { it.createdByUserAsString(locale) }
+    val title = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.subject", dataTransfer.displayName)
+    val message = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.message", dataTransfer.displayName)
     val mail = Mail()
-    mail.subject = message // Subject equals to message
+    mail.subject = title // Subject equals to message
     mail.contentType = Mail.CONTENTTYPE_HTML
     mail.setTo(recipient.email, recipient.getFullname())
     if (mail.to.isEmpty()) {
       log.error { "Recipient without mail address, no mail will be sent to '${recipient.getFullname()}: $dataTransfer" }
       return null
     }
-    val data = mutableMapOf<String, Any?>("eventInfo" to eventInfo)
+    val data = mutableMapOf<String, Any?>(
+      "link" to link,
+      "message" to message,
+      "auditEntries" to foreignAuditEntries,
+      "downloadAuditEntries" to downloadAuditEntries,
+    )
     mail.content =
       sendMail.renderGroovyTemplate(mail, "mail/dataTransferMail.html", data, title, recipient)
     return mail
   }
 
-  internal class EventInfo(val link: String, val user: String?, val message: String)
-
-  companion object {
-    private var _defaultLocale: Locale? = null
-    private val defaultLocale: Locale
-      get() {
-        if (_defaultLocale == null) {
-          _defaultLocale = ConfigurationServiceAccessor.get().defaultLocale ?: Locale.getDefault()
-        }
-        return _defaultLocale!!
+  internal fun prepareMail(recipient: PFUserDO, notificationInfoList: List<AttachmentNotificationInfo>): Mail? {
+    val locale = UserLocale.determineUserLocale(recipient)
+    notificationInfoList.forEach { info ->
+      if (info.link == null) {
+        info.link = domainService.getDomain(
+          PagesResolver.getDynamicPageUrl(
+            DataTransferPageRest::class.java,
+            id = info.dataTransferArea.id ?: 0
+          )
+        )
       }
-
-    private fun myTranslate(recipient: PFUserDO?, i18nKey: String, vararg params: Any): String {
-      val locale = recipient?.locale ?: defaultLocale
-      return I18nHelper.getLocalizedMessage(locale, i18nKey, *params)
+      info.attachment.addExpiryInfo(
+        DataTransferUtils.expiryTimeLeft(
+          info.attachment,
+          info.dataTransferArea.expiryDays,
+          locale,
+        )
+      )
     }
+    val sortedList = notificationInfoList.filter {
+      dataTransferAreaDao.hasSelectAccess(it.dataTransferArea, recipient)
+    }.sortedBy { it.expiresInMillis }
 
-    private fun myTranslate(recipient: PFUserDO?, value: Boolean?): String {
-      return myTranslate(recipient, if (value == true) "yes" else "no")
+    if (sortedList.isEmpty()) {
+      // OK, all entries with no user access (does it really occur?)
+      return null
     }
+    val mail = Mail()
+    mail.subject =
+      I18nHelper.getLocalizedMessage(recipient, "plugins.datatransfer.mail.subject.notificationBeforeDeletion")
+    mail.contentType = Mail.CONTENTTYPE_HTML
+    mail.setTo(recipient.email, recipient.getFullname())
+    if (mail.to.isEmpty()) {
+      log.error { "Recipient without mail address, no mail will be sent to '${recipient.getFullname()} about files being deleted." }
+      return null
+    }
+    val data = mutableMapOf<String, Any?>(
+      "attachments" to sortedList,
+      "subject" to mail.subject,
+      "locale" to locale,
+    )
+    mail.content =
+      sendMail.renderGroovyTemplate(mail, "mail/dataTransferFilesBeingDeletedMail.html", data, mail.subject, recipient)
+    return mail
   }
 }

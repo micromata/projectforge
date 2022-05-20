@@ -25,11 +25,13 @@ package org.projectforge.rest.hr
 
 import org.projectforge.business.humanresources.HRPlanningDO
 import org.projectforge.business.humanresources.HRPlanningDao
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/hrPlanning")
@@ -38,8 +40,8 @@ class HRPlanningPagesRest : AbstractDOPagesRest<HRPlanningDO, HRPlanningDao>(HRP
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "user")
                         .add(UITableColumn("totalHours", title = "hr.planning.sum"))

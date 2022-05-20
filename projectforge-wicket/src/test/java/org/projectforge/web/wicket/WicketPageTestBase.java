@@ -40,7 +40,6 @@ import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginResult;
-import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.core.AbstractPlugin;
@@ -137,7 +136,6 @@ public class WicketPageTestBase extends AbstractTestBase {
     private void addResourceBundle(String bundleName) {
       // Prepend the resource bundle for overwriting some Wicket default localizations (such as StringValidator.*)
       getResourceSettings().getStringResourceLoaders().add(new BundleStringResourceLoader(bundleName));
-      I18nHelper.addBundleName(bundleName);
     }
   }
 

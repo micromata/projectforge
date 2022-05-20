@@ -24,9 +24,9 @@
 package org.projectforge.plugins.datatransfer
 
 import mu.KotlinLogging
-import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.jcr.FileInfo
 import org.projectforge.jcr.FileSizeChecker
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao.Companion.calculateMaxUploadFileSize
 
 private val log = KotlinLogging.logger {}
 
@@ -36,33 +36,20 @@ private val log = KotlinLogging.logger {}
 class DataTransferFileSizeChecker(val globalMaxFileSizeOfDataTransfer: Long) : FileSizeChecker {
 
   override fun checkSize(file: FileInfo, data: Any?, displayUserMessage: Boolean) {
-    checkSize(file, globalMaxFileSizeOfDataTransfer, DataTransferAreaDao.MAX_FILE_SIZE_SPRING_PROPERTY, displayUserMessage)
+    checkSize(
+      file,
+      globalMaxFileSizeOfDataTransfer,
+      DataTransferAreaDao.MAX_FILE_SIZE_SPRING_PROPERTY,
+      displayUserMessage
+    )
     if (data == null || data !is DataTransferAreaDO) {
       log.warn { "maxUploadsizeKB of area not given. area not given or not of Type DataTransferAreadDO: $data" }
       return
     }
-    val maxUploadSizeKB = data.maxUploadSizeKB
-    if (maxUploadSizeKB == null) {
-      log.warn { "maxUploadsizeKB of area not given. Can't check this size: $data" }
-      return
-    }
-    checkSize(file, 1024L * maxUploadSizeKB, null)
-    data.attachmentsSize?.let { totalSize ->
-      file.size?.let { fileSize ->
-        // Total size of area is 2 times of maxUploadSize:
-        if (fileSize + totalSize > 2048L * maxUploadSizeKB) {
-          val ex = MaxFileSizeExceeded(
-            2048L * maxUploadSizeKB,
-            fileSize + totalSize,
-            file.fileName,
-            info = file
-          )
-          log.error { ex.message }
-          throw ex
-        }
-      }
-    } ?: run {
-      log.warn { "Size of attachments of area not given. Can't check total size of area: $data" }
-    }
+    val capacity = calculateMaxUploadFileSize(data)
+    checkSize(file, capacity, null)
   }
+
+  override val maxFileSize: Long
+    get() = throw java.lang.IllegalArgumentException("Use DataTransferAreaDao.getFreeCapacity instead.")
 }

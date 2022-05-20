@@ -29,7 +29,7 @@ import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
-import org.projectforge.framework.persistence.api.Constants
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.util.*
 import javax.persistence.*

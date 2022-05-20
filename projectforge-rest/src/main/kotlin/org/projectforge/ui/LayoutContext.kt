@@ -23,14 +23,16 @@
 
 package org.projectforge.ui
 
+import mu.KotlinLogging
+
+private val log = KotlinLogging.logger {}
+
 data class LayoutContext(
         /**
          * Data class for auto-detecting JPA-property (@Column), PropertyInfo and property type.
          */
         val dataObjectClazz: Class<*>?,
         var idPrefix: String? = null) {
-    private val log = org.slf4j.LoggerFactory.getLogger(LayoutContext::class.java)
-
     private val listElements = mutableMapOf<String, ElementInfo>()
 
     constructor(layoutContext: LayoutContext) : this(layoutContext.dataObjectClazz) {

@@ -32,7 +32,7 @@ import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
-import org.projectforge.framework.persistence.api.Constants
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 import javax.persistence.*

@@ -1,6 +1,95 @@
 @import '../fonts/roboto/index.css';
 @import './theming.scss';
 @import '~bootstrap/scss/bootstrap';
+@import '@fortawesome/fontawesome-free/scss/solid';
+
+.ag-theme-alpine .ag-row {
+	font-size: 12px !important;
+}
+
+.ag-theme-alpine {
+	font-size: 12px !important;
+}
+
+.ag-theme-alpine .ag-cell, .ag-theme-alpine .ag-full-width-row .ag-cell-wrapper.ag-row-group {
+	padding-left: 5px !important;
+	padding-right: 5px !important;
+}
+.ag-theme-alpine .ag-row > .ag-cell-wrapper {
+	padding-left: 5px !important;
+	padding-right: 5px !important;
+}
+
+.ag-theme-alpine .ag-header-cell, .ag-theme-alpine .ag-header-group-cell {
+	padding-left: 6px !important;
+	padding-right: 6px !important;
+}
+
+.ag-row-standard {
+}
+
+.ag-row-red {
+	color: red !important;
+}
+
+.ag-row-blue {
+	color: blue !important;
+}
+
+.ag-row-deleted {
+	color: red !important;
+	text-decoration: line-through !important;
+	font-style: italic !important;
+}
+
+.ag-row-highlighted {
+	background-color: #f4d5cb !important;
+}
+
+div.dropZone {
+	:-moz-drag-over {
+		border-radius: 5px;
+		border: 2px dashed rgb(0, 135, 247);
+		border-image: none;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	span.info {
+		padding: 15px 30px;
+		text-align: center;
+		font-size: 16px;
+		color: #656565;
+		display: table-cell;
+		vertical-align: middle;
+		margin-top: 20px;
+		cursor: pointer;
+		.icon {
+			margin-right: 10px;
+		}
+	}
+}
+
+div.uploadProgress {
+	div.progress {
+		height: 1.5em;
+		font-size: 1em;
+	}
+}
+
+.icon::before {
+	display: inline-block;
+	text-rendering: auto;
+	-webkit-font-smoothing: antialiased;
+}
+
+.icon-solid::before {
+	font: var(--fa-font-solid);
+}
+
+.icon-paperclip::before {
+	content: fa-content($fa-var-paperclip);
+}
 
 html {
 	font-size: 62.5%;
@@ -66,30 +155,6 @@ nav.bg-light {
 		.nav-link {
 			padding: 3px 6px 0 0;
 			font-size: 13px;
-		}
-	}
-}
-
-.ml-auto.nav {
-
-	.nav-item {
-		background: #FFF;
-		height: 25px;
-		border-radius: 3px;
-
-		span,
-		a {
-			font-size: 13px;
-			padding: 3px 9px;
-			cursor: pointer;
-			line-height: 20px;
-			border-radius: 3px;
-			margin: 0;
-			color: #666 !important;
-
-			&:hover {
-				color: #000 !important;
-			}
 		}
 	}
 }

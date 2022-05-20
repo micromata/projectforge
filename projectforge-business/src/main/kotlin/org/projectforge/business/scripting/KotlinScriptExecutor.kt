@@ -69,8 +69,8 @@ class KotlinScriptExecutor : ScriptExecutor() {
     return scriptExecutionResult
   }
 
-  override fun autoImports(): List<String> {
-    return AUTO_IMPORTS.map{ it.replace("import static", "import") } + kotlinImports
+  override fun standardImports(): List<String> {
+    return STANDARD_IMPORTS.map{ it.replace("import static", "import") } + kotlinImports
   }
 
   override fun appendBlockAfterImports(sb: StringBuilder) {

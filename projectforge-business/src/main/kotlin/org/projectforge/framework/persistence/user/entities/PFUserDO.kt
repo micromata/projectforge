@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.NoHistory
-import de.micromata.genome.jpa.metainf.EntityDependencies
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
@@ -65,7 +64,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String
         @Transient
-        get() = "${getFullname()}"
+        get() = getFullname()
 
     @Transient
     private var attributeMap: MutableMap<String, Any>? = null
@@ -334,14 +333,14 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     /**
      * Gibt den Vor- und Nachnamen zurück, falls gegeben. Vor- und Nachname sind durch ein Leerzeichen getrennt.
      *
-     * @return first name and last name, separated by space.
+     * @return first name and last name, separated by space, or username if neither last name nor first name is given.
      */
     @Transient
     fun getFullname(): String {
         val first = this.firstname
         val last = this.lastname
         return if (first.isNullOrBlank()) {
-            if (last.isNullOrBlank()) ""
+            if (last.isNullOrBlank()) this.username ?: ""
             else last
         } else {
             if (last.isNullOrBlank()) first
@@ -361,7 +360,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         @Transient
         get() {
             val str = getFullname()
-            return if (str.isBlank())
+            return if (str.isBlank() || str.equals(this.username))
                 this.username
             else
                 "$str (${this.username})"

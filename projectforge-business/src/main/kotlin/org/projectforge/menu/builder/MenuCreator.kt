@@ -105,6 +105,7 @@ open class MenuCreator {
     /**
      * If test cases fails, try to set testCase to true.
      */
+    @JvmStatic
     var testCase = false
   }
 
@@ -217,8 +218,9 @@ open class MenuCreator {
       if (it.isNotEmpty())
         commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
     }
-    if (smsSenderConfig.isSmsConfigured())
+    if (smsSenderConfig.isSmsConfigured()) {
       commonMenu.add(MenuItemDef(MenuItemDefId.SEND_SMS))
+    }
     commonMenu.add(MenuItemDef(MenuItemDefId.SEARCH))
 
     //////////////////////////////////////
@@ -252,6 +254,8 @@ open class MenuCreator {
               0
           })
       )
+      .add(MenuItemDef(MenuItemDefId.MY_SCRIPT_LIST))
+
 
     //////////////////////////////////////
     //
@@ -496,7 +500,7 @@ open class MenuCreator {
         )
     }
     adminMenu
-      .add(MenuItemDef(MenuItemDefId.LOG_VIEWER, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+      .add(MenuItemDef(MenuItemDefId.ADMIN_LOG_VIEWER, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
       .add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
       .add(MenuItemDef(MenuItemDefId.CONFIGURATION, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
       .add(

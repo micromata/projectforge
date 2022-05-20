@@ -29,7 +29,6 @@ import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.security.SecurityShutdown;
-import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;

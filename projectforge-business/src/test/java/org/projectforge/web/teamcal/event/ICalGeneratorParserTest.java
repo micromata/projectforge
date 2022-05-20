@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.*;
-import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
@@ -67,7 +66,7 @@ public class ICalGeneratorParserTest extends AbstractTestBase
 
     // set alarm
     event.setReminderActionType(ReminderActionType.MESSAGE);
-    event.setReminderDuration(100);
+    event.setReminderDuration(100L);
     event.setReminderDurationUnit(ReminderDurationUnit.MINUTES);
 
     // set Attendees
@@ -121,7 +120,7 @@ public class ICalGeneratorParserTest extends AbstractTestBase
 
     // set alarm
     Assertions.assertTrue(ical.contains("BEGIN:VALARM"));
-    Assertions.assertTrue(ical.contains("TRIGGER:-PT100M"));
+    Assertions.assertTrue(ical.contains("TRIGGER:-PT1H40"));
     Assertions.assertTrue(ical.contains("ACTION:DISPLAY"));
     Assertions.assertTrue(ical.contains("END:VALARM"));
 
@@ -275,7 +274,7 @@ public class ICalGeneratorParserTest extends AbstractTestBase
     generator.reset();
     generator.addEvent(event);
     Assertions.assertFalse(generator.isEmpty());
-    String ics = new String(generator.getCalendarAsByteStream().toByteArray());
+    String ics = generator.getCalendarAsByteStream().toString();
     parser.reset();
     Assertions.assertTrue(parser.parse(ics));
     Assertions.assertEquals(parser.getExtractedEvents().size(), 1);
@@ -290,7 +289,7 @@ public class ICalGeneratorParserTest extends AbstractTestBase
     TeamEventDO event = new TeamEventDO();
 
     event.setReminderActionType(ReminderActionType.MESSAGE);
-    event.setReminderDuration(100);
+    event.setReminderDuration(100L);
     event.setReminderDurationUnit(ReminderDurationUnit.MINUTES);
     TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
     attendee.setUrl("test@test.de");

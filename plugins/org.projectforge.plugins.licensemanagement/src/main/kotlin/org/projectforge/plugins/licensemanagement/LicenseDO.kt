@@ -27,7 +27,7 @@ import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.annotations.Type
 import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.Constants
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.utils.ReflectionToString
 import java.time.LocalDate

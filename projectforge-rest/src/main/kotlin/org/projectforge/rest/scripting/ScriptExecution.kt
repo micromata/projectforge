@@ -30,21 +30,19 @@ import org.projectforge.business.scripting.*
 import org.projectforge.business.scripting.xstream.RecentScriptCalls
 import org.projectforge.business.scripting.xstream.ScriptCallData
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.common.DateFormatType
 import org.projectforge.export.ExportJFreeChart
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.json.JsonUtils
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.DownloadFileSupport
 import org.projectforge.rest.dto.Script
 import org.projectforge.rest.task.TaskServicesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
-import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
@@ -53,16 +51,12 @@ private val log = KotlinLogging.logger {}
 @Controller
 class ScriptExecution {
   @Autowired
-  private lateinit var scriptDao: ScriptDao
-
-  @Autowired
   private lateinit var userPrefService: UserPrefService
 
   @Autowired
   private lateinit var attachmentsService: AttachmentsService
 
-  @Autowired
-  private lateinit var scriptPagesRest: ScriptPagesRest
+  internal val downloadFileSupport = DownloadFileSupport(EXPIRING_SESSION_ATTRIBUTE, DOWNLOAD_EXPIRY_MINUTES)
 
   /**
    * @return task, if some task of recent call was found (for updating ui variables)
@@ -85,37 +79,55 @@ class ScriptExecution {
     return task
   }
 
+  internal fun getEffectiveScript(
+    script: Script,
+    parameters: List<ScriptParameter>,
+    scriptDao: AbstractScriptDao,
+    scriptPagesRest: AbstractPagesRest<*, *, *>,
+  ): String {
+    val initData = prepareScriptInit(script, scriptDao, scriptPagesRest)
+    return scriptDao.getEffectiveScript(initData.scriptDO, parameters, initData.additionalVariables, initData.myImports)
+  }
+
+  internal fun getVariableNames(
+    script: Script,
+    parameters: List<ScriptParameter>,
+    scriptDao: AbstractScriptDao,
+    scriptPagesRest: AbstractPagesRest<*, *, *>,
+  ): List<String> {
+    val initData = prepareScriptInit(script, scriptDao, scriptPagesRest)
+    return scriptDao.getScriptVariableNames(
+      initData.scriptDO,
+      parameters,
+      initData.additionalVariables,
+      initData.myImports
+    )
+  }
+
   internal fun execute(
     request: HttpServletRequest,
     script: Script,
-    parameters: List<ScriptParameter>
+    parameters: List<ScriptParameter>,
+    scriptDao: AbstractScriptDao,
+    scriptPagesRest: AbstractPagesRest<*, *, *>,
   ): ScriptExecutionResult {
     log.info {
       "Execute script '${script.name}' with params: ${
         parameters.filter { it.parameterName != null }.joinToString { it.asString }
       }"
     }
-
-    val scriptDO: ScriptDO
-    if (script.id != null) {
-      // Exceuting db script:
-      scriptDO = scriptDao.getById(script.id)
-    } else {
-      // Executing ad-hoc script (from editor instead of data base).
-      scriptDO = ScriptDO()
-      script.copyTo(scriptDO)
-      scriptDO.scriptAsString = script.script
-    }
     // Store as recent script call params:
     val recentScriptCalls = userPrefService.ensureEntry(USER_PREF_AREA, USER_PREF_KEY, RecentScriptCalls())
     val scriptCallData = ScriptCallData("${script.id}", parameters)
     recentScriptCalls.append(scriptCallData)
 
-    val additionalVariables = mutableMapOf<String, Any>()
-    if (script.id != null) {
-      additionalVariables["files"] = ScriptFileAccessor(attachmentsService, scriptPagesRest, scriptDO)
+    val initData = prepareScriptInit(script, scriptDao, scriptPagesRest)
+    val saveUserContext = ThreadLocalUserContext.getUserContext()
+    val scriptExecutionResult = try {
+      scriptDao.execute(initData.scriptDO, parameters, initData.additionalVariables, initData.myImports)
+    } finally {
+      ThreadLocalUserContext.setUserContext(saveUserContext) // If script was executed as.
     }
-    val scriptExecutionResult = scriptDao.execute(scriptDO, parameters, additionalVariables)
     if (scriptExecutionResult.hasException()) {
       scriptExecutionResult.scriptLogger.error(scriptExecutionResult.exception.toString())
       return scriptExecutionResult
@@ -140,6 +152,35 @@ class ScriptExecution {
       }
     }
     return scriptExecutionResult
+  }
+
+  private fun prepareScriptInit(
+    script: Script,
+    scriptDao: AbstractScriptDao,
+    scriptPagesRest: AbstractPagesRest<*, *, *>,
+  ): ScriptInitData {
+    val scriptDO: ScriptDO
+    if (script.id != null) {
+      // Exceuting db script:
+      scriptDO =
+        scriptDao.getById(script.id) ?: throw IllegalArgumentException("Script with id #${script.id} not found.")
+    } else {
+      // Executing ad-hoc script (from editor instead of data base).
+      scriptDO = ScriptDO()
+      script.copyTo(scriptDO)
+      scriptDO.scriptAsString = script.script
+    }
+    val additionalVariables = mutableMapOf<String, Any>()
+    if (script.id != null) {
+      additionalVariables[SCRIPT_VAR_NAME_FILES] = ScriptFileAccessor(attachmentsService, scriptPagesRest, scriptDO)
+    }
+    additionalVariables["scriptUser"] = ScriptUser()
+    var myImports: List<String>? = null
+    scriptDO.executeAsUser?.let { executeAsUser ->
+      additionalVariables[SCRIPT_VAR_NAME_EXECUTE_USER] = ExecuteAsUser(executeAsUser, scriptDO)
+      myImports = listOf("import org.projectforge.rest.scripting.ExecuteAsUser")
+    }
+    return ScriptInitData(scriptDO, additionalVariables, myImports)
   }
 
   private fun exportExcel(
@@ -223,21 +264,14 @@ class ScriptExecution {
     }
   }
 
-  internal fun storeDownloadFile(
+  private fun storeDownloadFile(
     request: HttpServletRequest,
     filename: String,
     bytes: ByteArray,
     scriptExecutionResult: ScriptExecutionResult
   ) {
-    val expires = PFDateTime.now().plus(DOWNLOAD_EXPIRY_MINUTES.toLong(), ChronoUnit.MINUTES)
-    val expiresTime = expires.format(DateFormatType.TIME_OF_DAY_MINUTES)
-    val downloadFile = DownloadFile(filename, bytes, expiresTime)
-    ExpiringSessionAttributes.setAttribute(request, EXPIRING_SESSION_ATTRIBUTE, downloadFile, DOWNLOAD_EXPIRY_MINUTES)
+    downloadFileSupport.storeDownloadFile(request, filename, bytes)
     scriptExecutionResult.scriptLogger.info("File '$filename' prepared for download (up-to $DOWNLOAD_EXPIRY_MINUTES minutes available).")
-  }
-
-  internal fun getDownloadFile(request: HttpServletRequest): DownloadFile? {
-    return ExpiringSessionAttributes.getAttribute(request, EXPIRING_SESSION_ATTRIBUTE, DownloadFile::class.java)
   }
 
   internal fun createDownloadFilename(filename: String?, extension: String): String {
@@ -249,18 +283,22 @@ class ScriptExecution {
     }
   }
 
-  data class DownloadFile(val filename: String, val bytes: ByteArray, val availableUntil: String) {
-    val sizeHumanReadable
-      get() = NumberHelper.formatBytes(bytes.size)
+  internal fun getDownloadFile(request: HttpServletRequest): DownloadFileSupport.DownloadFile? {
+    return downloadFileSupport.getDownloadFile(request)
   }
 
+  data class ScriptInitData(
+    val scriptDO: ScriptDO,
+    val additionalVariables: MutableMap<String, Any>,
+    val myImports: List<String>?
+  )
+
   companion object {
-    /**
-     * Names of additional variables used on script executions.
-     */
-    val additionalVariables = mapOf<String, Any?>("files" to "<ScriptFileAccessor>")
     private val USER_PREF_AREA = "ScriptExecution:"
     private val USER_PREF_KEY = "recentCalls"
+
+    private val SCRIPT_VAR_NAME_EXECUTE_USER = "executeAsUser"
+    private val SCRIPT_VAR_NAME_FILES = "files"
 
     private val DOWNLOAD_EXPIRY_MINUTES = 5
 

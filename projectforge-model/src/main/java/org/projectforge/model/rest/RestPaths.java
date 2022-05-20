@@ -81,6 +81,8 @@ public class RestPaths
 
   public static final String CANCEL = "cancel";
 
+  public static final String CANCEL_MULTI_SELECTION = "cancelMultiSelection";
+
   public static final String EDIT = "edit";
 
   public static final String SAVE = "save";
@@ -104,6 +106,8 @@ public class RestPaths
   public static final String TEAMCAL = "teamcal";
 
   public static final String TEAMEVENTS = "teamevents";
+
+  public static final String UPDATE_COLUMN_STATES = "updateColumnStates";
 
   public static final String WATCH_FIELDS = "watchFields";
 

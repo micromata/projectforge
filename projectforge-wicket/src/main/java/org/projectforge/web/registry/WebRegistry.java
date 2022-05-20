@@ -43,7 +43,6 @@ import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
 import org.projectforge.web.humanresources.HRPlanningEditPage;
 import org.projectforge.web.humanresources.HRPlanningListPage;
-import org.projectforge.web.orga.*;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskListPage;
@@ -231,8 +230,13 @@ public class WebRegistry
 
   public String getMountPoint(Class<? extends Page> pageClass) {
     for (Map.Entry<String, Class<? extends WebPage>> entry : mountPages.entrySet()) {
-      if (pageClass.equals(entry.getValue()))
+      if (pageClass.equals(entry.getValue())) {
+        final String key = entry.getKey();
+        if (key.contains("wa")) {
+          return key;
+        }
         return "wa/" + entry.getKey();
+      }
     }
     return "wa/wicket/bookmarkable/" + pageClass.getName();
   }
@@ -242,7 +246,6 @@ public class WebRegistry
     // This order is used by SearchPage:
     register(DaoConst.ADDRESS, AddressListPage.class);
     addMountPages(DaoConst.ADDRESS, AddressListPage.class, AddressEditPage.class);
-    addMountPage(DaoConst.ADDRESS + "View", AddressViewPage.class);
 
     register(DaoConst.TASK, TaskListPage.class);
     addMountPages(DaoConst.TASK, TaskListPage.class, TaskEditPage.class);
@@ -258,9 +261,6 @@ public class WebRegistry
 
     register(DaoConst.ORDERBOOK, AuftragListPage.class);
     addMountPages(DaoConst.ORDERBOOK, AuftragListPage.class, AuftragEditPage.class);
-
-    register(DaoConst.CONTRACT, ContractListPage.class);
-    addMountPages(DaoConst.CONTRACT, ContractListPage.class, ContractEditPage.class);
 
     register(DaoConst.INCOMING_INVOICE, EingangsrechnungListPage.class);
     addMountPages(DaoConst.INCOMING_INVOICE, EingangsrechnungListPage.class, EingangsrechnungEditPage.class);

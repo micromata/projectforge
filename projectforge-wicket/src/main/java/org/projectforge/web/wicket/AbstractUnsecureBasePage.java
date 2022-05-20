@@ -42,6 +42,7 @@ import org.apache.wicket.request.http.handler.RedirectRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.template.PackageTextTemplate;
+import org.projectforge.Constants;
 import org.projectforge.ProjectForgeVersion;
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.systeminfo.SystemService;
@@ -123,7 +124,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage {
 
     final PFUserDO user = ThreadLocalUserContext.getUser();
     AbstractLink link;
-    link = new ExternalLink("footerNewsLink", "https://www.projectforge.org/changelog-posts/");
+    link = new ExternalLink("footerNewsLink", Constants.WEB_DOCS_NEWS_LINK);
     body.add(link);
     link.add(new Label("version", "Version " + ProjectForgeVersion.VERSION_NUMBER + ", " + ProjectForgeVersion.BUILD_DATE)
             .setRenderBodyOnly(true));

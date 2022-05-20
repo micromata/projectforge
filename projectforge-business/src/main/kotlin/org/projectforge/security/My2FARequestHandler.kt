@@ -24,10 +24,10 @@
 package org.projectforge.security
 
 import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuItemDefId
-import org.projectforge.model.rest.RestPaths
+import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import javax.servlet.http.HttpServletRequest
@@ -41,11 +41,11 @@ private val log = KotlinLogging.logger {}
 @Service
 open class My2FARequestHandler {
   @Autowired
-  internal lateinit var configuration: My2FARequestConfiguration // internal for test case
+  private lateinit var configuration: My2FARequestConfiguration
 
   private val shortCuts = mutableMapOf<String, String>()
 
-  private var expiryPeriods = mutableListOf<ExpiryPeriod>()
+  private var expiryPeriods = mutableListOf<My2FAExpiryPeriod>()
 
   // expiryPeriods are dirty, if shortCuts were modified.
   private var expiryPeriodsDirty = true
@@ -53,13 +53,21 @@ open class My2FARequestHandler {
   /**
    * For caching matching urls.
    */
-  internal var uriMap = mutableMapOf<String, ExpiryPeriod>()
+  internal var uriMap = mutableMapOf<String, My2FAExpiryPeriod>()
 
   /**
    * For caching expiry periods for entities (WRITE:<entity>). Key is the entity name.
    * If the key is given, but the expiry period is null, then no write protection is defined.
    */
-  private var entitiesWriteAccessMap = mutableMapOf<String, ExpiryPeriod?>()
+  private var entitiesWriteAccessMap = mutableMapOf<String, My2FAExpiryPeriod?>()
+
+  /**
+   * For caching expiry periods for entities (ENTITY:<entity>). Key is the entity name.
+   * If the key is given, but the expiry period is null, then no entity protection is defined.
+   */
+  private var entitiesAccessMap = mutableMapOf<String, My2FAExpiryPeriod?>()
+
+  private var my2FAPage: My2FAPage? = null
 
   /**
    * Gets the remaining period until the current 2FA is expired, or null if no 2FA is required.
@@ -69,7 +77,7 @@ open class My2FARequestHandler {
     return getRemainingPeriod(request.requestURI)
   }
 
-  internal fun getRemainingPeriod(uri: String): Long? {
+  fun getRemainingPeriod(uri: String): Long? {
     val expiryPeriod = matchesUri(uri) ?: return null // No expiryPeriod matches: return null
     return expiryPeriod.remainingPeriod()
   }
@@ -85,17 +93,25 @@ open class My2FARequestHandler {
 
   /**
    * Checks for the given request, if a 2FA is required and not expired. If a 2FA is required (because it's not yet given or expired
-   * for the requested url, then a redirection to a 2FA is forced.
-   * @return true, if no 2FA is required (the http filter chain should be continued) or false, if a 2FA is required and the filter
-   * chain shouldn't be continued.
+   * for the requested url, then a redirection to a 2FA is forced (if [sendRedirect] is true). If [sendRedirect]
+   * is false, the caller has to proceed the redirection to the 2FA page.
+   * @param sendRedirect If true (default), a redirection is done, if 2FA is required.
+   * @return null, if no 2FA is required (the http filter chain should be continued) or the expiry period in millis, if a 2FA is required
+   * and the filter chain shouldn't be continued.
    */
-  fun handleRequest(request: HttpServletRequest, response: HttpServletResponse): Boolean {
-    val expiryPeriod = matchesUri(request.requestURI) ?: return true // No expiryPeriod matches: return true.
-    if (expiryPeriod.valid(request.requestURI)) {
-      return true
+  @JvmOverloads
+  fun handleRequest(request: HttpServletRequest, response: HttpServletResponse, sendRedirect: Boolean = true): Long? {
+    val expiryPeriod = matchesUri(request.requestURI) ?: return null // No expiryPeriod matches: return true.
+    if (expiryPeriod.valid(request.requestURI, request)) {
+      return null
     }
-    response.sendRedirect("/react/2FA/dynamic")
-    return false
+    if (my2FAPage == null) {
+      throw java.lang.Exception("my2FAPage not set (should be My2FAPageRest)!")
+    }
+    if (sendRedirect) {
+      my2FAPage!!.redirect(request, response, expiryPeriod.expiryMillis)
+    }
+    return expiryPeriod.expiryMillis
   }
 
   /**
@@ -108,7 +124,21 @@ open class My2FARequestHandler {
     return !period.valid("write access of $entity")
   }
 
-  internal fun matchesEntity(entity: String): ExpiryPeriod? {
+  private fun getExpiryPeriodForShortCut(shortCut: My2FAShortCut): My2FAExpiryPeriod? {
+    synchronized(shortCuts) {
+      if (expiryPeriodsDirty) {
+        reload()
+      }
+    }
+    expiryPeriods.forEach { period ->
+      if (period.usedShortCuts.contains(shortCut.name)) {
+        return period
+      }
+    }
+    return null
+  }
+
+  private fun matchesEntity(entity: String): My2FAExpiryPeriod? {
     synchronized(entitiesWriteAccessMap) {
       if (entitiesWriteAccessMap.containsKey(entity)) {
         return entitiesWriteAccessMap[entity]
@@ -137,7 +167,7 @@ open class My2FARequestHandler {
     return null
   }
 
-  internal fun matchesUri(uri: String): ExpiryPeriod? {
+  internal fun matchesUri(uri: String): My2FAExpiryPeriod? {
     if (uri.isEmpty()) {
       return null
     }
@@ -146,8 +176,13 @@ open class My2FARequestHandler {
         reload()
       }
     }
-    var result: ExpiryPeriod?
-    val paths = getParentPaths(uri)
+    var result: My2FAExpiryPeriod?
+    val normalizedUri = WebUtils.normalizeUri(uri) ?: uri
+    if (no2FAUrl(normalizedUri)) {
+      // /rs/userStatus and /rs/2FA/ should never require 2FA.
+      return null
+    }
+    val paths = getParentPaths(normalizedUri)
     synchronized(uriMap) {
       paths.forEach { path ->
         result = uriMap[path]
@@ -174,6 +209,7 @@ open class My2FARequestHandler {
         }
       }
     }
+    // invoiceSelected: massUpate
     return null
   }
 
@@ -181,7 +217,7 @@ open class My2FARequestHandler {
    * Should be called, if any modification was done.
    */
   fun reload() {
-    val periods = mutableListOf<ExpiryPeriod>()
+    val periods = mutableListOf<My2FAExpiryPeriod>()
     addPeriod(periods, configuration.expiryPeriodMinutes1, AbstractCache.TICKS_PER_MINUTE, "minutes1")
     addPeriod(periods, configuration.expiryPeriodMinutes10, AbstractCache.TICKS_PER_MINUTE * 10, "minutes10")
     addPeriod(periods, configuration.expiryPeriodHours1, AbstractCache.TICKS_PER_HOUR, "hours1")
@@ -200,19 +236,18 @@ open class My2FARequestHandler {
   }
 
   private fun addPeriod(
-    periods: MutableList<ExpiryPeriod>,
+    periods: MutableList<My2FAExpiryPeriod>,
     regex: String?,
     expireMillis: Long,
     expiryPeriod: String
   ) {
-    periods.add(ExpiryPeriod(regex, expireMillis, expiryPeriod, shortCuts))
-
+    periods.add(My2FAExpiryPeriod(regex, expireMillis, expiryPeriod, shortCuts))
   }
 
   fun printConfiguration(): String {
     val sb = StringBuilder()
     sb.appendLine("  *")
-    sb.appendLine("  * Please refer documentation: https://projectforge.org/docs/adminguide/#securityconfig")
+    sb.appendLine("  * Please refer documentation: ${Constants.WEB_DOCS_ADMIN_GUIDE_SECURITY_CONFIG_LINK}")
     sb.appendLine("  *")
     synchronized(shortCuts) {
       if (expiryPeriodsDirty) {
@@ -222,7 +257,7 @@ open class My2FARequestHandler {
     expiryPeriods.forEach { period ->
       sb.appendLine(period.expiryPeriod)
       sb.appendLine("  config value=${period.regex}")
-      period.regexArray.forEach {
+      period.regexArray.sortedBy { it.pattern }.forEach {
         sb.appendLine("    $it")
       }
       period.writeAccessEntities.forEach { entity ->
@@ -261,7 +296,24 @@ open class My2FARequestHandler {
     }
     sb.appendLine("  unmatched")
     unmatched.forEach { uri ->
-      sb.appendLine("  - ${uri}")
+      if (no2FAUrl(uri)) {
+        sb.appendLine("  - ${uri} (ignored: no-2FA-url, OK)")
+      } else {
+        sb.appendLine("  - ${uri}")
+      }
+    }
+    return sb.toString()
+  }
+
+  fun printResolvedShortCuts(): String {
+    val sb = StringBuilder()
+    My2FAShortCut.values().forEach { shortCut ->
+      sb.appendLine("  ${shortCut.name}")
+      shortCuts[shortCut.name]?.split(";")?.sorted()?.forEach { value ->
+        if (value.isNotBlank()) {
+          sb.appendLine("    $value")
+        }
+      }
     }
     return sb.toString()
   }
@@ -269,6 +321,26 @@ open class My2FARequestHandler {
   companion object {
     @JvmField
     val MY_2FA_URL = MenuItemDefId.MY_2FA.url!!
+
+    private val NO_2FA_URLS = arrayOf("/rs/menu", "/rs/userStatus", "/rs/2FA", "/rsPublic", "/rs/webauthn/webAuthn")
+
+    private val NO_2FA_URL_MATCHERS = arrayOf("^/rs/\\w*/autosearch".toRegex(), "^/rs/\\w*/autocomplete".toRegex())
+
+    private fun no2FAUrl(normalizedUri: String): Boolean {
+      NO_2FA_URLS.forEach { url ->
+        if (normalizedUri.startsWith(url)) {
+          // /rs/userStatus, /rs/2FA/, /rs/menu etc. should never require 2FA.
+          return true
+        }
+      }
+      NO_2FA_URL_MATCHERS.forEach { regexp ->
+        if (normalizedUri.matches(regexp)) {
+          // /rs/user/autosearch, /rs/group/autosearch, ...
+          return true
+        }
+      }
+      return false
+    }
 
     /**
      * For getting the shortest matching url.
@@ -293,121 +365,48 @@ open class My2FARequestHandler {
     }
   }
 
-  internal class ExpiryPeriod(
-    val regex: String?,
-    val expiryMillis: Long,
-    val expiryPeriod: String,
-    shortCuts: Map<String, String>
-  ) {
-    val regexArray: Array<Regex>
-    val writeAccessEntities = mutableListOf<String>()
-
-    init {
-      val list = mutableListOf<String>()
-      regex?.split(';')?.forEach { value ->
-        val exp = value.trim()
-        // println("regex=$regex, exp=$exp")
-        if (exp.isNotBlank()) { // ignore blank expressions.
-          if (!exp.startsWith("WRITE:") && exp[0].isUpperCase()) {
-            // Proceed shortcuts such as ADMIN, FINANCE, ...
-            var found = false
-            shortCuts.forEach { (shortCut, shortCutRegex) ->
-              if (!found && exp == shortCut) {
-                found = true
-                shortCutRegex.split(';').forEach { shortCutExp ->
-                  // println("regex=$regex, exp=$exp, regexp=$shortCutRegex, shortCutExp: $shortCutExp")
-                  addRegex(list, shortCutExp)
-                }
-              }
-            }
-            if (!found) {
-              // Started with uppercase  but not of list "ADMIN, FINANCE, ..."
-              log.error { "Configuration error for projectforge.2fa.expiryPeriod.$expiryPeriod: '$exp' not defined." }
-              //
-              // ********** SECURITY SHUTDOWN **********
-              //
-              // ProjectForge might not work as expected, so shutdown and inform the administrator.
-              //
-              SecurityShutdown.shutdownSystemOnFatalError(
-                log, "Configuration error in projectforge.2fa.expiryPeriod.$expiryPeriod:",
-                "'$exp' not defined."
-              )
-              addRegex(list, exp)
-            }
-          } else {
-            // Regex
-            addRegex(list, exp)
-          }
+  /**
+   * Register (appends) the given values to the specified shortCut.
+   * @param shortCut to create or modify by appending (separated by ';').
+   * @param values List of values to append (each value may contain several values separated by ';' or might be a single
+   * value.
+   * @return this for chaining.
+   */
+  fun registerShortCutValues(shortCut: My2FAShortCut, vararg values: String)
+      : My2FARequestHandler {
+    synchronized(shortCuts) {
+      val sb = StringBuilder()
+      shortCuts[shortCut.name]?.let {
+        sb.append(it)
+        if (!it.endsWith(";")) {
+          sb.append(";")
         }
       }
-      regexArray = list.map { it.toRegex() }.toTypedArray()
-    }
-
-    /**
-     * Compares [org.projectforge.framework.persistence.user.api.UserContext.lastSuccessful2FA] of
-     * [ThreadLocalUserContext.getUserContext] given time stamp with current time in millis and [expiryMillis].
-     * @param action Only for logging the demanded user action if 2FA is required.
-     * @return true if the time stamp (epoch ms) of UserContext isn't null and isn't expired.
-     */
-    fun valid(action: String): Boolean {
-      val user = ThreadLocalUserContext.getUserContext()
-      val lastSuccessful2FA = user?.lastSuccessful2FA
-      if (lastSuccessful2FA != null && lastSuccessful2FA > System.currentTimeMillis() - expiryMillis) {
-        return true
+      values.forEach { value ->
+        sb.append(value)
+        if (!value.endsWith(";")) {
+          sb.append(";")
+        }
       }
-      log.info { "2FA is required for user '${user.user?.username}' for period '$expiryPeriod' for: $action" }
-      return false
-    }
-
-    /**
-     * Compares [org.projectforge.framework.persistence.user.api.UserContext.lastSuccessful2FA] of
-     * [ThreadLocalUserContext.getUserContext] given time stamp with current time in millis and [expiryMillis].
-     * @return Remaining period in ms if last successful 2FA isn't expired, or 0, if 2FA is expired or never done before.
-     */
-    fun remainingPeriod(): Long {
-      val user = ThreadLocalUserContext.getUserContext()
-      val lastSuccessful2FA = user?.lastSuccessful2FA
-      val limit = System.currentTimeMillis() - expiryMillis
-      return if (lastSuccessful2FA != null && lastSuccessful2FA > limit) {
-        lastSuccessful2FA - limit
-      } else {
-        return 0 // 2FA is expired or was never done before.
-      }
-    }
-
-    private fun addRegex(list: MutableList<String>, exp: String) {
-      if (exp.startsWith("WRITE:")) {
-        val entity = exp.removePrefix("WRITE:").trim()
-        writeAccessEntities.add(entity)
-        // Add all write access rest calls of entity:
-        list.add("^/rs/$entity/${RestPaths.CLONE}.*")
-        list.add("^/rs/$entity/${RestPaths.DELETE}.*")
-        list.add("^/rs/$entity/${RestPaths.EDIT}.*")
-        list.add("^/rs/$entity/${RestPaths.FORCE_DELETE}.*")
-        list.add("^/rs/$entity/${RestPaths.MARK_AS_DELETED}.*")
-        list.add("^/rs/$entity/${RestPaths.SAVE}.*")
-        list.add("^/rs/$entity/${RestPaths.SAVE_OR_UDATE}.*")
-        list.add("^/rs/$entity/${RestPaths.UNDELETE}.*")
-        list.add("^/rs/$entity/${RestPaths.UPDATE}.*")
-        list.add("^/rs/$entity/${RestPaths.WATCH_FIELDS}.*")
-        return
-      }
-      if (exp.startsWith("/")) {
-        list.add("^${exp.trim()}.*")
-      } else {
-        list.add(exp.trim())
-      }
-    }
-  }
-
-  fun registerShortCut(shortCut: String, resolved: String) {
-    synchronized(shortCuts) {
-      shortCuts[shortCut] = resolved
+      shortCuts[shortCut.name] = sb.toString()
       expiryPeriodsDirty = true
     }
+    return this
   }
 
   init {
-    registerShortCut("ALL", "/")
+    registerShortCutValues(My2FAShortCut.ALL, "/wa", "/rs/")
+  }
+
+  fun getShortCutResolved(shortCut: My2FAShortCut): String? {
+    return shortCuts[shortCut.name]
+  }
+
+  fun register(page: My2FAPage) {
+    my2FAPage = page
+  }
+
+  fun internalSet4UnitTests(configuration: My2FARequestConfiguration) {
+    this.configuration = configuration
   }
 }

@@ -35,54 +35,58 @@ import javax.annotation.PostConstruct
 
 @Component
 class SystemStatus {
-    private val log = org.slf4j.LoggerFactory.getLogger(SystemStatus::class.java)
+  @Autowired
+  private lateinit var configurationService: ConfigurationService
 
-    @Autowired
-    private lateinit var configurationService: ConfigurationService
+  @Autowired
+  private lateinit var databaseService: DatabaseService
 
-    @Autowired
-    private lateinit var databaseService: DatabaseService
+  val appname = ProjectForgeVersion.APP_ID
+  val version = ProjectForgeVersion.VERSION_STRING
+  val buildTimestamp = ProjectForgeVersion.BUILD_TIMESTAMP
+  val buildDate = ProjectForgeVersion.BUILD_DATE
+  val releaseYear = ProjectForgeVersion.YEAR
+  val scmIdFull = ProjectForgeVersion.SCM_ID_FULL
+  val scmId = ProjectForgeVersion.SCM_ID
+  var messageOfTheDay: String? = null
+    private set
+  var logoFile: String? = null
+    private set
+  val copyRightYears = ProjectForgeVersion.COPYRIGHT_YEARS
 
-    val appname = ProjectForgeVersion.APP_ID
-    val version = ProjectForgeVersion.VERSION_STRING
-    val buildTimestamp = ProjectForgeVersion.BUILD_TIMESTAMP
-    val buildDate = ProjectForgeVersion.BUILD_DATE
-    val releaseYear = ProjectForgeVersion.YEAR
-    val scmIdFull = ProjectForgeVersion.SCM_ID_FULL
-    val scmId = ProjectForgeVersion.SCM_ID
-    var messageOfTheDay: String? = null
-        private set
-    var logoFile: String? = null
-        private set
-    val copyRightYears = ProjectForgeVersion.COPYRIGHT_YEARS
-    @Value("\${projectforge.development.mode}")
-    var developmentMode: Boolean = false
-        private set
-    var setupRequiredFirst: Boolean? = null
-    var updateRequiredFirst: Boolean? = null
-    /**
-     * This flag is set to true if ProjectForge's start is completed.
-     */
-    var upAndRunning: Boolean = false
-    val startTimeMillis: Long = System.currentTimeMillis()
+  @Value("\${projectforge.development.mode}")
+  var developmentMode: Boolean = false
+    private set
+  var setupRequiredFirst: Boolean? = null
+  var updateRequiredFirst: Boolean? = null
 
-    @PostConstruct
-    private fun postConstruct() {
-        messageOfTheDay = Configuration.instance
-                .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
-        logoFile = configurationService.syntheticLogoName
-        if (!databaseService.databaseTablesWithEntriesExists())
-            setupRequiredFirst = true
-        devMode = developmentMode
+  /**
+   * This flag is set to true if ProjectForge's start is completed.
+   */
+  var upAndRunning: Boolean = false
+  val startTimeMillis: Long = System.currentTimeMillis()
+
+  @PostConstruct
+  private fun postConstruct() {
+    messageOfTheDay = Configuration.instance
+      .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
+    logoFile = configurationService.syntheticLogoName
+    if (!databaseService.databaseTablesWithEntriesExist())
+      setupRequiredFirst = true
+    devMode = developmentMode
+  }
+
+  companion object {
+    private var devMode: Boolean? = null
+
+    @JvmStatic
+    fun isDevelopmentMode(): Boolean {
+      return devMode == true
     }
 
-    companion object {
-        private var devMode: Boolean? = null
-
-        @JvmStatic
-        fun isDevelopmentMode(): Boolean {
-            return devMode == true
-        }
+    fun internalSet4JunitTests(developmentMode: Boolean) {
+      devMode = developmentMode
     }
+  }
 }
 

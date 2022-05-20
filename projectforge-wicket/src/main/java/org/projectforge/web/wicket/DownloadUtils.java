@@ -28,16 +28,15 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
 import org.apache.wicket.request.resource.ContentDisposition;
 import org.apache.wicket.util.resource.IResourceStream;
+import org.apache.wicket.util.time.Duration;
 import org.projectforge.common.MimeType;
 
 import javax.servlet.http.HttpServletResponse;
 
-public class DownloadUtils
-{
+public class DownloadUtils {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DownloadUtils.class);
 
-  public static void setCharacterEncoding(final Response response, final String encoding)
-  {
+  public static void setCharacterEncoding(final Response response, final String encoding) {
     final Object cresp = response.getContainerResponse();
     if (cresp instanceof HttpServletResponse) {
       ((HttpServletResponse) cresp).setCharacterEncoding(encoding);
@@ -46,38 +45,35 @@ public class DownloadUtils
     }
   }
 
-  public static void setUTF8CharacterEncoding(final Response response)
-  {
+  public static void setUTF8CharacterEncoding(final Response response) {
     setCharacterEncoding(response, "utf-8");
   }
 
   /**
    * Mime type etc. is done automatically.
-   * @param content The content of the file to download.
+   *
+   * @param content  The content of the file to download.
    * @param filename
    */
-  public static void setDownloadTarget(final byte[] content, final String filename)
-  {
+  public static void setDownloadTarget(final byte[] content, final String filename) {
     setDownloadTarget(content, filename, (String) null);
   }
 
   /**
-   * @param content The content of the file to download.
+   * @param content     The content of the file to download.
    * @param filename
    * @param contentType For setting contentType manually.
    */
-  public static void setDownloadTarget(final byte[] content, final String filename, final MimeType mimeType)
-  {
+  public static void setDownloadTarget(final byte[] content, final String filename, final MimeType mimeType) {
     setDownloadTarget(content, filename, mimeType != null ? mimeType.getMimeTypeString() : (String) null);
   }
 
   /**
-   * @param content The content of the file to download.
+   * @param content     The content of the file to download.
    * @param filename
    * @param contentType For setting contentType manually.
    */
-  public static void setDownloadTarget(final byte[] content, final String filename, final String contentType)
-  {
+  public static void setDownloadTarget(final byte[] content, final String filename, final String contentType) {
     final ByteArrayResourceStream byteArrayResourceStream;
     if (contentType != null) {
       byteArrayResourceStream = new ByteArrayResourceStream(content, filename, contentType);
@@ -86,12 +82,12 @@ public class DownloadUtils
     }
     final ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(byteArrayResourceStream);
     handler.setFileName(filename).setContentDisposition(ContentDisposition.ATTACHMENT);
+    handler.setCacheDuration(Duration.ONE_SECOND);
     RequestCycle.get().scheduleRequestHandlerAfterCurrent(handler);
     log.info("Starting download for file. filename:" + filename + ", content-type:" + byteArrayResourceStream.getContentType());
   }
 
-  public static void setDownloadTarget(final String filename, final IResourceStream resourceStream)
-  {
+  public static void setDownloadTarget(final String filename, final IResourceStream resourceStream) {
     final ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(resourceStream);
     handler.setFileName(filename).setContentDisposition(ContentDisposition.ATTACHMENT);
     RequestCycle.get().scheduleRequestHandlerAfterCurrent(handler);
@@ -101,11 +97,11 @@ public class DownloadUtils
   /**
    * Determines content type dependent on the file name suffix. Yet supported: application/pdf (*.pdf), application/vnd.ms-excel (*.xls),
    * image/jpeg (*.jpg, *.jpeg), image/svg+xml (*.svg), image/png (*.xml), application/xml (*.xml) and text (*.txt, *.csv).
+   *
    * @param filename
    * @return
    */
-  public static String getContentType(final String filename)
-  {
+  public static String getContentType(final String filename) {
     final MimeType mimeType = MimeType.getMimeType(filename);
     if (mimeType != null) {
       return mimeType.getMimeTypeString();

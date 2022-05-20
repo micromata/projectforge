@@ -29,7 +29,7 @@ import org.apache.wicket.request.http.WebResponse.CacheScope;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.DynamicImageResource;
 import org.apache.wicket.util.time.Duration;
-import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.projectforge.export.JFreeChartImageType;
 
@@ -75,9 +75,9 @@ public class JFreeChartImage extends Image
           final JFreeChart chart = (JFreeChart) getDefaultModelObject();
           final ByteArrayOutputStream baos = new ByteArrayOutputStream();
           if (imageType == JFreeChartImageType.JPEG) {
-            ChartUtilities.writeChartAsJPEG(baos, chart, width, height);
+            ChartUtils.writeChartAsJPEG(baos, chart, width, height);
           } else {
-            ChartUtilities.writeChartAsPNG(baos, chart, width, height);
+            ChartUtils.writeChartAsPNG(baos, chart, width, height);
           }
           final byte[] ba = baos.toByteArray();
           return ba;

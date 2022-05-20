@@ -28,11 +28,11 @@ import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
+import org.projectforge.plugins.licensemanagement.rest.LicensePagesRest;
 import org.projectforge.registry.RegistryEntry;
+import org.projectforge.security.My2FAShortCut;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -64,6 +64,9 @@ public class LicenseManagementPlugin extends AbstractPlugin {
    */
   @Override
   protected void initialize() {
+    registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:license;/wa/licenseManagementEdit");
+    registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "/wa/licenseManagement");
+    registerShortCutClasses(My2FAShortCut.FINANCE, LicensePagesRest.class);
     final RegistryEntry entry = new RegistryEntry(ID, LicenseDao.class, licenseDao,
             "plugins.licensemanagement");
     // The LicenseDao is automatically available by the scripting engine!

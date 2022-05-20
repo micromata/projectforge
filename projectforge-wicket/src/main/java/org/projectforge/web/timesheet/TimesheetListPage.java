@@ -66,12 +66,12 @@ import org.projectforge.jira.JiraUtils;
 import org.projectforge.registry.Registry;
 import org.projectforge.renderer.custom.Formatter;
 import org.projectforge.renderer.custom.FormatterFactory;
+import org.projectforge.rest.TimesheetPagesRest;
 import org.projectforge.web.task.TaskPropertyColumn;
 import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.user.UserPropertyColumn;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
@@ -79,14 +79,13 @@ import java.util.*;
 
 @ListPage(editPage = TimesheetEditPage.class)
 public class TimesheetListPage extends AbstractListPage<TimesheetListForm, TimesheetDao, TimesheetDO> implements
-    IListPageColumnsCreator<TimesheetDO>
-{
+    IListPageColumnsCreator<TimesheetDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetListPage.class);
 
   private static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
-      BOOKMARKABLE_INITIAL_PROPERTIES, new String[] {
+      BOOKMARKABLE_INITIAL_PROPERTIES, new String[]{
           "f.userId|user", "f.taskId|task", "f.startTime|t1", "f.stopTime|t2", "f.marked", "f.longFormat|long",
-          "f.recursive" });
+          "f.recursive"});
 
   /**
    * Key for pre-setting the task id.
@@ -127,8 +126,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
 
   private TimesheetsICSExportDialog icsExportDialog;
 
-  public TimesheetListPage(final PageParameters parameters)
-  {
+  public TimesheetListPage(final PageParameters parameters) {
     super(parameters, "timesheet");
     if (WicketUtils.contains(parameters, PARAMETER_KEY_CLEAR_ALL) == true) {
       final boolean clear = WicketUtils.getAsBoolean(parameters, PARAMETER_KEY_CLEAR_ALL);
@@ -175,8 +173,9 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
+    dataTable = createDataTable(createColumns(this, true), "startTime", SortOrder.DESCENDING);
+    form.add(dataTable);
     final BookmarkablePageLink<Void> addTemplatesLink = UserPrefListPage.createLink("link",
         UserPrefArea.TIMESHEET_TEMPLATE);
     final ContentMenuEntryPanel menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), addTemplatesLink,
@@ -185,11 +184,9 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     final ContentMenuEntryPanel exportMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), getString("export"));
     addContentMenuEntry(exportMenu);
     {
-      final SubmitLink exportPDFButton = new SubmitLink(ContentMenuEntryPanel.LINK_ID, form)
-      {
+      final SubmitLink exportPDFButton = new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           exportPDF();
         }
       };
@@ -198,11 +195,9 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
               .setTooltip(getString("tooltip.export.pdf")));
     }
     {
-      final SubmitLink exportExcelButton = new SubmitLink(ContentMenuEntryPanel.LINK_ID, form)
-      {
+      final SubmitLink exportExcelButton = new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           exportExcel();
         }
       };
@@ -215,14 +210,12 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     add(icsExportDialog);
     icsExportDialog.init(ThreadLocalUserContext.getUserId());
     icsExportDialog.redraw();
-    final AjaxLink<Void> icsExportDialogButton = new AjaxLink<Void>(ContentMenuEntryPanel.LINK_ID)
-    {
+    final AjaxLink<Void> icsExportDialogButton = new AjaxLink<Void>(ContentMenuEntryPanel.LINK_ID) {
       /**
        * @see org.apache.wicket.ajax.markup.html.AjaxLink#onClick(org.apache.wicket.ajax.AjaxRequestTarget)
        */
       @Override
-      public void onClick(final AjaxRequestTarget target)
-      {
+      public void onClick(final AjaxRequestTarget target) {
         icsExportDialog.open(target);
       }
 
@@ -231,40 +224,13 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     // getString("timesheet.iCalSubscription"), iCalExportLink);
     exportMenu.addSubMenuEntry(new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(), icsExportDialogButton,
         getString("timesheet.icsExport")).setTooltip(getString("timesheet.iCalSubscription")));
-  }
-
-  @Override
-  protected void onNextSubmit()
-  {
-    if (CollectionUtils.isEmpty(this.selectedItems) == true) {
-      return;
-    }
-    final List<TimesheetDO> list = timesheetDao.internalLoad(this.selectedItems);
-    setResponsePage(new TimesheetMassUpdatePage(this, list));
-  }
-
-  @Override
-  public boolean isSupportsMassUpdate()
-  {
-    return true;
-  }
-
-  @Override
-  protected void createDataTable()
-  {
-    final List<IColumn<TimesheetDO, String>> columns = createColumns(getUserGroupCache(), this,
-        !isMassUpdateMode(),
-        isMassUpdateMode(),
-        form.getSearchFilter(),
-        getTaskTree(), userFormatter, dateTimeFormatter);
-    dataTable = createDataTable(columns, "startTime", SortOrder.DESCENDING);
-    form.add(dataTable);
+    addNewMassSelect(TimesheetPagesRest.class);
   }
 
   @Override
   public List<IColumn<TimesheetDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    return createColumns(getUserGroupCache(), returnToPage, sortable, false, form.getSearchFilter(), getTaskTree(),
+    return createColumns(getUserGroupCache(), returnToPage, form.getSearchFilter(), getTaskTree(),
         userFormatter,
         dateTimeFormatter);
   }
@@ -273,25 +239,20 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
    * For re-usage in other pages.
    *
    * @param page
-   * @param isMassUpdateMode
-   * @param timesheetFilter  If given, then the long format filter setting will be used for displaying the description,
-   *                         otherwise the short description is used.
+   * @param timesheetFilter If given, then the long format filter setting will be used for displaying the description,
+   *                        otherwise the short description is used.
    */
   @SuppressWarnings("serial")
   protected static final List<IColumn<TimesheetDO, String>> createColumns(
       UserGroupCache userGroupCache, final WebPage page,
-      final boolean sortable,
-      final boolean isMassUpdateMode, final TimesheetFilter timesheetFilter, final TaskTree taskTree,
+      final TimesheetFilter timesheetFilter, final TaskTree taskTree,
       final UserFormatter userFormatter,
-      final HtmlDateTimeFormatter dateTimeFormatter)
-  {
+      final HtmlDateTimeFormatter dateTimeFormatter) {
     final List<IColumn<TimesheetDO, String>> columns = new ArrayList<IColumn<TimesheetDO, String>>();
-    final CellItemListener<TimesheetDO> cellItemListener = new CellItemListener<TimesheetDO>()
-    {
+    final CellItemListener<TimesheetDO> cellItemListener = new CellItemListener<TimesheetDO>() {
       @Override
       public void populateItem(final Item<ICellPopulator<TimesheetDO>> item, final String componentId,
-          final IModel<TimesheetDO> rowModel)
-      {
+                               final IModel<TimesheetDO> rowModel) {
         final TimesheetDO timesheet = rowModel.getObject();
         final Serializable highlightedRowId;
         if (page instanceof AbstractListPage<?, ?, ?>) {
@@ -302,82 +263,49 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
         appendCssClasses(item, timesheet.getId(), highlightedRowId, timesheet.isDeleted());
       }
     };
-    if (page instanceof TimesheetMassUpdatePage) {
-      columns.add(new UserPropertyColumn<TimesheetDO>(userGroupCache, page.getString("timesheet.user"),
-          getSortable("user.fullname", sortable), "user",
-          cellItemListener).withUserFormatter(userFormatter));
-    } else {
-      // Show first column not for TimesheetMassUpdatePage!
-      if (isMassUpdateMode == true && page instanceof TimesheetListPage) {
-        final TimesheetListPage timesheetListPage = (TimesheetListPage) page;
-        columns.add(new CellItemListenerPropertyColumn<TimesheetDO>("", null, "selected", cellItemListener)
-        {
-          @Override
-          public void populateItem(final Item<ICellPopulator<TimesheetDO>> item, final String componentId,
-              final IModel<TimesheetDO> rowModel)
-          {
-            final TimesheetDO timesheet = rowModel.getObject();
-            final CheckBoxPanel checkBoxPanel = new CheckBoxPanel(componentId,
-                timesheetListPage.new SelectItemModel(timesheet.getId()),
-                null);
-            item.add(checkBoxPanel);
-            cellItemListener.populateItem(item, componentId, rowModel);
-            addRowClick(item, isMassUpdateMode);
-          }
-        });
-        columns.add(new UserPropertyColumn<TimesheetDO>(userGroupCache, page.getString("timesheet.user"),
-            getSortable("user.fullname", sortable), "user",
-            cellItemListener).withUserFormatter(userFormatter));
-      } else {
-        columns.add(new UserPropertyColumn<TimesheetDO>(userGroupCache, page.getString("timesheet.user"),
-            getSortable("user.fullname", sortable), "user",
-            cellItemListener)
-        {
-          @Override
-          public void populateItem(final Item<ICellPopulator<TimesheetDO>> item, final String componentId,
-              final IModel<TimesheetDO> rowModel)
-          {
-            item.add(new ListSelectActionPanel(componentId, rowModel, TimesheetEditPage.class,
-                rowModel.getObject().getId(), page,
-                getLabelString(rowModel)));
-            cellItemListener.populateItem(item, componentId, rowModel);
-            addRowClick(item);
-          }
-        }.withUserFormatter(userFormatter));
+    columns.add(new UserPropertyColumn<TimesheetDO>(userGroupCache, page.getString("timesheet.user"),
+        getSortable("user.fullname", true), "user",
+        cellItemListener) {
+      @Override
+      public void populateItem(final Item<ICellPopulator<TimesheetDO>> item, final String componentId,
+                               final IModel<TimesheetDO> rowModel) {
+        item.add(new ListSelectActionPanel(componentId, rowModel, TimesheetEditPage.class,
+            rowModel.getObject().getId(), page,
+            getLabelString(rowModel)));
+        cellItemListener.populateItem(item, componentId, rowModel);
+        addRowClick(item);
       }
-    }
+    }.withUserFormatter(userFormatter));
     final SystemInfoCache systemInfoCache = SystemInfoCache.instance();
     if (systemInfoCache.isCost2EntriesExists() == true) {
       columns.add(
           new CellItemListenerPropertyColumn<TimesheetDO>(new Model<String>(page.getString("fibu.kunde")), getSortable(
-              "kost2.projekt.kunde.name", sortable), "kost2.projekt.kunde.name", cellItemListener));
+              "kost2.projekt.kunde.name", true), "kost2.projekt.kunde.name", cellItemListener));
       columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(new Model<String>(page.getString("fibu.projekt")),
           getSortable(
-              "kost2.projekt.name", sortable),
+              "kost2.projekt.name", true),
           "kost2.projekt.name", cellItemListener));
     }
     columns.add(new TaskPropertyColumn<TimesheetDO>(page.getString("task"),
-        getSortable("task.title", sortable), "task",
+        getSortable("task.title", true), "task",
         cellItemListener)
         .withTaskTree(taskTree));
     if (systemInfoCache.isCost2EntriesExists() == true) {
       columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("fibu.kost2"),
           getSortable("kost2.displayName",
-              sortable),
+              true),
           "kost2.displayName", cellItemListener));
     }
     columns.add(
         new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("calendar.weekOfYearShortLabel"), getSortable(
-            "formattedWeekOfYear", sortable), "formattedWeekOfYear", cellItemListener));
+            "formattedWeekOfYear", true), "formattedWeekOfYear", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("calendar.dayOfWeekShortLabel"),
         getSortable("startTime",
-            sortable),
-        "startTime", cellItemListener)
-    {
+            true),
+        "startTime", cellItemListener) {
       @Override
       public void populateItem(final Item<ICellPopulator<TimesheetDO>> item, final String componentId,
-          final IModel<TimesheetDO> rowModel)
-      {
+                               final IModel<TimesheetDO> rowModel) {
         final TimesheetDO timesheet = rowModel.getObject();
         final Label label = new Label(componentId, dateTimeFormatter.getFormattedDate(timesheet.getStartTime(),
             DateFormats.getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)));
@@ -386,13 +314,11 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       }
     });
     columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("timePeriod"),
-        getSortable("startTime", sortable),
-        "timePeriod", cellItemListener)
-    {
+        getSortable("startTime", true),
+        "timePeriod", cellItemListener) {
       @Override
       public void populateItem(final Item<ICellPopulator<TimesheetDO>> item, final String componentId,
-          final IModel<TimesheetDO> rowModel)
-      {
+                               final IModel<TimesheetDO> rowModel) {
         final TimesheetDO timesheet = rowModel.getObject();
         final Label label = new Label(componentId, dateTimeFormatter.getFormattedTimePeriod(timesheet.getTimePeriod()));
         label.setEscapeModelStrings(false);
@@ -401,13 +327,11 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       }
     });
     columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("timesheet.duration"),
-        getSortable("duration", sortable),
-        "duration", cellItemListener)
-    {
+        getSortable("duration", true),
+        "duration", cellItemListener) {
       @Override
       public void populateItem(final Item<ICellPopulator<TimesheetDO>> item, final String componentId,
-          final IModel<TimesheetDO> rowModel)
-      {
+                               final IModel<TimesheetDO> rowModel) {
         final TimesheetDO timesheet = rowModel.getObject();
         final Label label = new Label(componentId, dateTimeFormatter.getFormattedDuration(timesheet.getDuration()));
         label.setEscapeModelStrings(false);
@@ -416,33 +340,25 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       }
     });
     columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("timesheet.location"),
-        getSortable("location", sortable),
+        getSortable("location", true),
         "location", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("description"),
-        getSortable("shortDescription", sortable),
-        "shortDescription", cellItemListener)
-    {
+        getSortable("shortDescription", true),
+        "shortDescription", cellItemListener) {
       @Override
       public void populateItem(final Item<ICellPopulator<TimesheetDO>> item, final String componentId,
-          final IModel<TimesheetDO> rowModel)
-      {
+                               final IModel<TimesheetDO> rowModel) {
         final TimesheetDO timesheet = rowModel.getObject();
-        final Label label = new Label(componentId, new Model<String>()
-        {
+        final Label label = new Label(componentId, new Model<String>() {
           @Override
-          public String getObject()
-          {
+          public String getObject() {
             String text;
             if (timesheetFilter != null && timesheetFilter.isLongFormat() == true) {
               text = HtmlHelper.escapeXml(timesheet.getDescription());
             } else {
               text = HtmlHelper.escapeXml(timesheet.getShortDescription());
             }
-            if (isMassUpdateMode == true) {
-              return text;
-            } else {
-              return JiraUtils.linkJiraIssues(text); // Not in mass update mode: link on table row results otherwises in JIRA-Link.
-            }
+            return JiraUtils.linkJiraIssues(text);
           }
         });
         label.setEscapeModelStrings(false);
@@ -451,25 +367,23 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       }
     });
     columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("timesheet.reference"),
-        getSortable("reference", sortable),
+        getSortable("reference", true),
         "reference", cellItemListener));
     if (!CollectionUtils.isEmpty(Registry.getInstance().getDao(TimesheetDao.class).getTags())) {
       columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("timesheet.tag"),
-          getSortable("tag", sortable),
+          getSortable("tag", true),
           "tag", cellItemListener));
     }
     return columns;
   }
 
   @Override
-  protected TimesheetListForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
-  {
+  protected TimesheetListForm newListForm(final AbstractListPage<?, ?, ?> parentPage) {
     return new TimesheetListForm(this);
   }
 
   @Override
-  public TimesheetDao getBaseDao()
-  {
+  public TimesheetDao getBaseDao() {
     return timesheetDao;
   }
 
@@ -477,8 +391,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
    * @see org.projectforge.web.wicket.AbstractListPage#select(java.lang.String, java.lang.Object)
    */
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     if ("taskId".equals(property) == true) {
       form.getSearchFilter().setTaskId((Integer) selectedValue);
       refresh();
@@ -494,8 +407,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
   @Override
-  public void unselect(final String property)
-  {
+  public void unselect(final String property) {
     if ("taskId".equals(property) == true) {
       form.getSearchFilter().setTaskId(null);
       refresh();
@@ -511,8 +423,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
    * @see org.projectforge.web.wicket.AbstractListPage#buildList()
    */
   @Override
-  protected List<TimesheetDO> buildList()
-  {
+  protected List<TimesheetDO> buildList() {
     final TimesheetFilter filter = form.getSearchFilter();
     if (filter.getStartTime() == null && filter.getStopTime() == null && filter.getTaskId() == null) {
       return new ArrayList<>(); // return null results in an addition error message! (search.error)
@@ -520,8 +431,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     return super.buildList();
   }
 
-  void exportPDF()
-  {
+  void exportPDF() {
     refresh();
     final List<TimesheetDO> timeSheets = getList();
     if (timeSheets == null || timeSheets.size() == 0) {
@@ -534,7 +444,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     final TimesheetFilter filter = form.getSearchFilter();
     if (filter.getUserId() != null) {
       buf.append(FileHelper
-          .createSafeFilename(UserGroupCache.getInstance().getUser(filter.getUserId()).getLastname(), 20))
+              .createSafeFilename(UserGroupCache.getInstance().getUser(filter.getUserId()).getLastname(), 20))
           .append("_");
     }
     if (filter.getTaskId() != null) {
@@ -562,8 +472,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     DownloadUtils.setDownloadTarget(content, filename);
   }
 
-  protected void exportExcel()
-  {
+  protected void exportExcel() {
     refresh();
     final List<TimesheetDO> timeSheets = getList();
     if (timeSheets == null || timeSheets.size() == 0) {
@@ -587,23 +496,18 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
    */
   @SuppressWarnings("serial")
   @Override
-  protected ISortableDataProvider<TimesheetDO, String> createSortableDataProvider(final SortParam<String> sortParam)
-  {
-    this.listPageSortableDataProvider = new MyListPageSortableDataProvider<TimesheetDO>(sortParam, null, this)
-    {
+  protected ISortableDataProvider<TimesheetDO, String> createSortableDataProvider(final SortParam<String> sortParam) {
+    this.listPageSortableDataProvider = new MyListPageSortableDataProvider<TimesheetDO>(sortParam, null, this) {
       @Override
       protected Comparator<TimesheetDO> getComparator(final SortParam<String> sortParam,
-          final SortParam<String> secondSortParam)
-      {
+                                                      final SortParam<String> secondSortParam) {
         final String sortProperty = sortParam != null ? sortParam.getProperty() : null;
         final boolean ascending = sortParam != null ? sortParam.isAscending() : true;
         final String secondSortProperty = secondSortParam != null ? secondSortParam.getProperty() : null;
         final boolean secondAscending = secondSortParam != null ? secondSortParam.isAscending() : true;
-        return new MyBeanComparator<TimesheetDO>(sortProperty, ascending, secondSortProperty, secondAscending)
-        {
+        return new MyBeanComparator<TimesheetDO>(sortProperty, ascending, secondSortProperty, secondAscending) {
           @Override
-          public int compare(final TimesheetDO t1, final TimesheetDO t2)
-          {
+          public int compare(final TimesheetDO t1, final TimesheetDO t2) {
             if ("user.fullname".equals(sortProperty) == true) {
               PFUserDO user = t1.getUser();
               if (user != null && Hibernate.isInitialized(user) == false) {
@@ -635,13 +539,11 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
    * @see org.projectforge.web.wicket.AbstractListPage#getBookmarkableInitialProperties()
    */
   @Override
-  protected String[] getBookmarkableInitialProperties()
-  {
+  protected String[] getBookmarkableInitialProperties() {
     return MY_BOOKMARKABLE_INITIAL_PROPERTIES;
   }
 
-  private TaskTree getTaskTree()
-  {
+  private TaskTree getTaskTree() {
     if (taskTree == null) {
       taskTree = TaskTreeHelper.getTaskTree();
     }

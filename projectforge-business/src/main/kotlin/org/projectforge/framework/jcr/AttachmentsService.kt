@@ -197,12 +197,8 @@ open class AttachmentsService {
       file = fileObject,
       subPath = subPath
     )
-    val inputStream = if (fileObject != null) {
-      repoService.retrieveFileInputStream(fileObject)
-    } else {
-      null
-    }
-    if (fileObject == null || inputStream == null) {
+    val inputStream = repoService.retrieveFileInputStream(fileObject)
+    if (inputStream == null) {
       log.error {
         "Can't download file of ${
           getPath(
@@ -356,9 +352,9 @@ open class AttachmentsService {
     val attachments = getAttachments(path, obj.id, null, subPath)
     if (!allowDuplicateFiles) {
       attachments?.forEach { attachment ->
-        if (attachment.name == fileInfo.fileName && attachment.size == fileInfo.size) {
-          log.warn { "Can't upload file '${fileInfo.fileName}' of size ${FormatterUtils.formatBytes(fileInfo.size)}. A file with same name and of same size does already exist." }
-          throw UserException("plugins.datatransfer.validation.error.fileAlreadyExists")
+        if (attachment.name == fileInfo.fileName) {
+          log.warn { "Can't upload file '${fileInfo.fileName}' of size ${FormatterUtils.formatBytes(fileInfo.size)}. A file with same name does already exist." }
+          throw UserException("file.upload.error.fileAlreadyExists", fileInfo.fileName)
         }
       }
     }
@@ -415,6 +411,7 @@ open class AttachmentsService {
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null,
     encryptionInProgress: Boolean? = null,
+    userString: String? = null,
   )
       : Boolean {
     accessChecker.checkDeleteAccess(
@@ -424,7 +421,8 @@ open class AttachmentsService {
       fileId = fileId,
       subPath = subPath
     )
-    return internalDeleteAttachment(path, fileId, baseDao, obj, subPath, encryptionInProgress = encryptionInProgress)
+    return internalDeleteAttachment(path, fileId, baseDao, obj, subPath, encryptionInProgress = encryptionInProgress,
+    userString = userString)
   }
 
   /**
@@ -532,6 +530,8 @@ open class AttachmentsService {
       updateLastUpdateInfo = updateLastUpdateInfo,
     )
     if (result != null) {
+      fileObject.description = result.description
+      fileObject.fileName = result.fileName
       val fileNameChanged = if (!newFileName.isNullOrBlank()) "filename='$newFileName'" else null
       val descriptionChanged = if (newDescription != null) "description='$newDescription'" else null
       updateAttachmentsInfo(

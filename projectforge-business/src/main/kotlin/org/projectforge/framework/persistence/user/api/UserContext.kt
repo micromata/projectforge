@@ -82,9 +82,7 @@ class UserContext() : Serializable {
     Validate.notNull(user)
     this.user = user
     if (user.hasSecretFieldValues()) {
-      log.warn(
-        "Should instantiate UserContext with user containing secret values (makes now a copy of the given user)."
-      )
+      log.warn("Shouldn't instantiate UserContext containing secret values (makes now a copy of the given user).")
       this.user = createCopyWithoutSecretFields(user)
     } else {
       this.user = user

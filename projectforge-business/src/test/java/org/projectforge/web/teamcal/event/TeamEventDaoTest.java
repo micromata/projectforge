@@ -92,7 +92,7 @@ public class TeamEventDaoTest extends AbstractTestBase {
       event.setAllDay(true);
       final Collection<ICalendarEvent> col = teamEventDao.rollOutRecurrenceEvents(getDate("2011-03-01", timeZone),
               getDate("2011-03-31", timeZone), event, timeZone);
-      assertEquals(2, col.size());
+      assertEquals(3, col.size());
       final Iterator<ICalendarEvent> it = col.iterator();
       assertEquals(DateHelper.formatAsUTC(DateHelper.parseIsoTimestamp("2011-03-03 00:00:00.0", timeZone)),
               DateHelper.formatAsUTC(it.next().getStartDate()));
@@ -170,7 +170,7 @@ public class TeamEventDaoTest extends AbstractTestBase {
 
     final String utcString = DateHelper.formatIsoDate(rRule.getRecur().getUntil(), DateHelper.UTC);
 
-    assertEquals("WEEKLY", rRule.getRecur().getFrequency());
+    assertEquals(Recur.Frequency.WEEKLY, rRule.getRecur().getFrequency());
     assertEquals(untilInTimeZone, utcString);
     assertEquals(2, rRule.getRecur().getInterval());
 

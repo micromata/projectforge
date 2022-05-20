@@ -224,15 +224,15 @@ public class ICal4JUtils {
    * @param interval
    * @return
    */
-  public static String getCal4JFrequencyString(final RecurrenceFrequency interval) {
+  public static Recur.Frequency getCal4JFrequency(final RecurrenceFrequency interval) {
     if (interval == RecurrenceFrequency.DAILY) {
-      return Recur.DAILY;
+      return Recur.Frequency.DAILY;
     } else if (interval == RecurrenceFrequency.WEEKLY) {
-      return Recur.WEEKLY;
+      return Recur.Frequency.WEEKLY;
     } else if (interval == RecurrenceFrequency.MONTHLY) {
-      return Recur.MONTHLY;
+      return Recur.Frequency.MONTHLY;
     } else if (interval == RecurrenceFrequency.YEARLY) {
-      return Recur.YEARLY;
+      return Recur.Frequency.YEARLY;
     }
     return null;
   }
@@ -245,14 +245,14 @@ public class ICal4JUtils {
     if (recur == null) {
       return null;
     }
-    final String freq = recur.getFrequency();
-    if (Recur.WEEKLY.equals(freq)) {
+    final Recur.Frequency freq = recur.getFrequency();
+    if (Recur.Frequency.WEEKLY.equals(freq)) {
       return RecurrenceFrequency.WEEKLY;
-    } else if (Recur.MONTHLY.equals(freq)) {
+    } else if (Recur.Frequency.MONTHLY.equals(freq)) {
       return RecurrenceFrequency.MONTHLY;
-    } else if (Recur.DAILY.equals(freq)) {
+    } else if (Recur.Frequency.DAILY.equals(freq)) {
       return RecurrenceFrequency.DAILY;
-    } else if (Recur.YEARLY.equals(freq)) {
+    } else if (Recur.Frequency.YEARLY.equals(freq)) {
       return RecurrenceFrequency.YEARLY;
     }
     return null;

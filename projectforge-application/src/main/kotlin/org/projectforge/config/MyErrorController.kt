@@ -34,10 +34,6 @@ import javax.servlet.http.HttpServletRequest
 @Controller
 class MyErrorController : ErrorController {
 
-    override fun getErrorPath(): String {
-        return "/error"
-    }
-
     @RequestMapping("/error")
     fun handleError(request: HttpServletRequest): String {
         val status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE)

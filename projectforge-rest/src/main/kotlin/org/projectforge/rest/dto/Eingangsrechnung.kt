@@ -24,75 +24,83 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.*
-import org.projectforge.framework.utils.NumberFormatter
+import org.projectforge.framework.i18n.translate
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class Eingangsrechnung(var receiver: String? = null,
-                       var iban: String? = null,
-                       var bic: String? = null,
-                       var referenz: String? = null,
-                       var kreditor: String? = null,
-                       var paymentType: PaymentType? = null,
-                       var customernr: String? = null,
-                       var datum: LocalDate? = null,
-                       var betreff: String? = null,
-                       var bemerkung: String? = null,
-                       var besonderheiten: String? = null,
-                       var faelligkeit: LocalDate? = null,
-                       var zahlungsZielInTagen: Int? = null,
-                       var discountZahlungsZielInTagen: Int? = null,
-                       var bezahlDatum: LocalDate? = null,
-                       override var zahlBetrag: BigDecimal? = null,
-                       var konto: Konto? = null,
-                       var discountPercent: BigDecimal? = null,
-                       var discountMaturity: LocalDate? = null
+class Eingangsrechnung(
+  var receiver: String? = null,
+  var iban: String? = null,
+  var ibanFormatted: String? = null,
+  var bic: String? = null,
+  var referenz: String? = null,
+  var kreditor: String? = null,
+  var paymentType: PaymentType? = null,
+  var customernr: String? = null,
+  var datum: LocalDate? = null,
+  var betreff: String? = null,
+  var bemerkung: String? = null,
+  var besonderheiten: String? = null,
+  var faelligkeit: LocalDate? = null,
+  var faelligkeitOrDiscountMaturity: LocalDate? = null,
+  var ueberfaellig: Boolean? = null,
+  var zahlungsZielInTagen: Int? = null,
+  var discountZahlungsZielInTagen: Int? = null,
+  var bezahlDatum: LocalDate? = null,
+  override var zahlBetrag: BigDecimal? = null,
+  var konto: Konto? = null,
+  var discountPercent: BigDecimal? = null,
+  var discountMaturity: LocalDate? = null
 ) : BaseDTO<EingangsrechnungDO>(), IRechnung {
-    override var positionen: MutableList<EingangsrechnungsPosition>? = null
+  override var positionen: MutableList<EingangsrechnungsPosition>? = null
 
-    override val netSum: BigDecimal
-        get() = RechnungCalculator.calculateNetSum(this)
+  override var netSum: BigDecimal = BigDecimal.ZERO
 
-    override val vatAmountSum: BigDecimal
-        get() = RechnungCalculator.calculateVatAmountSum(this)
+  override var vatAmountSum: BigDecimal= BigDecimal.ZERO
 
-    val grossSum: BigDecimal
-        get() = RechnungCalculator.calculateGrossSum(this)
+  var grossSum: BigDecimal = BigDecimal.ZERO
 
-    var formattedNetSum: String? = null
+  var grossSumWithDiscount: BigDecimal = BigDecimal.ZERO
 
-    var formattedVatAmountSum: String? = null
+  var paymentTypeAsString: String? = null
 
-    var formattedGrossSum: String? = null
+  val isBezahlt: Boolean
+    get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
+      true
+    } else this.bezahlDatum != null && this.zahlBetrag != null
 
-    val isBezahlt: Boolean
-        get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
-            true
-        } else this.bezahlDatum != null && this.zahlBetrag != null
-
-
-    override fun copyFrom(src: EingangsrechnungDO) {
-        super.copyFrom(src)
-        val list = positionen ?: mutableListOf()
-        src.positionen?.forEach {
-            val pos = EingangsrechnungsPosition()
-            pos.copyFrom(it)
-            list.add(pos)
-        }
-        positionen = list
-        formattedNetSum = NumberFormatter.formatCurrency(netSum)
-        formattedGrossSum = NumberFormatter.formatCurrency(grossSum)
-        formattedVatAmountSum = NumberFormatter.formatCurrency(vatAmountSum)
+  override fun copyFrom(src: EingangsrechnungDO) {
+    super.copyFrom(src)
+    src.paymentType?.let {
+      paymentTypeAsString = translate(it.i18nKey)
     }
+    ueberfaellig = src.isUeberfaellig
+    ibanFormatted = src.ibanFormatted
+    this.faelligkeitOrDiscountMaturity = src.faelligkeitOrDiscountMaturity
+    this.netSum = RechnungCalculator.calculateNetSum(src)
+    this.vatAmountSum = RechnungCalculator.calculateVatAmountSum(src)
+    this.grossSum = RechnungCalculator.calculateGrossSum(src)
+    this.grossSumWithDiscount = src.grossSumWithDiscount
+  }
 
-    override fun copyTo(dest: EingangsrechnungDO) {
-        super.copyTo(dest)
-        val list = dest.positionen ?: mutableListOf()
-        positionen?.forEach {
-            val pos = EingangsrechnungsPositionDO()
-            it.copyTo(pos)
-            list.add(pos)
-        }
-        dest.positionen = list
+  fun copyPositionenFrom(src: EingangsrechnungDO) {
+    val list = positionen ?: mutableListOf()
+    src.positionen?.forEach {
+      val pos = EingangsrechnungsPosition()
+      pos.copyFrom(it)
+      list.add(pos)
     }
+    positionen = list
+  }
+
+  override fun copyTo(dest: EingangsrechnungDO) {
+    super.copyTo(dest)
+    val list = dest.positionen ?: mutableListOf()
+    positionen?.forEach {
+      val pos = EingangsrechnungsPositionDO()
+      it.copyTo(pos)
+      list.add(pos)
+    }
+    dest.positionen = list
+  }
 }

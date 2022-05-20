@@ -25,7 +25,6 @@ package org.projectforge.rest
 
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.rest.calendar.BarcodeServicesRest
@@ -44,60 +43,70 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/tokenInfo")
 class TokenInfoPageRest : AbstractDynamicPageRest() {
-    @Autowired
-    private lateinit var authenticationsService: UserAuthenticationsService
+  @Autowired
+  private lateinit var authenticationsService: UserAuthenticationsService
 
-    @Autowired
-    private lateinit var authenticationPublicServicesRest: AuthenticationPublicServicesRest
+  @Autowired
+  private lateinit var authenticationPublicServicesRest: AuthenticationPublicServicesRest
 
-    class TokenInfoData(var info: String? = null,
-                        val token: String? = null)
+  class TokenInfoData(
+    var info: String? = null,
+    val token: String? = null
+  )
 
-    @GetMapping("dynamic")
-    fun getForm(request: HttpServletRequest, @RequestParam("token") token: UserTokenType): FormLayoutData {
-        val userId = ThreadLocalUserContext.getUserId()
+  @GetMapping("dynamic")
+  fun getForm(request: HttpServletRequest, @RequestParam("token") token: UserTokenType): FormLayoutData {
+    val userId = ThreadLocalUserContext.getUserId()
 
-        val data = TokenInfoData(authenticationsService.getUserAccessLogEntries(token, userId)?.asText("\n\n"),
-                authenticationsService.getToken(userId, token))
+    val data = TokenInfoData(
+      authenticationsService.getUserAccessLogEntries(token, userId)?.asText("\n\n"),
+      authenticationsService.getToken(userId, token)
+    )
 
-        val layout = UILayout("user.authenticationToken.button.showUsage")
+    val layout = UILayout("user.authenticationToken.button.showUsage")
 
-        val tokenId = when (token) {
-            UserTokenType.CALENDAR_REST -> "calendarExportToken"
-            UserTokenType.DAV_TOKEN -> "davToken"
-            UserTokenType.REST_CLIENT -> "restClientToken"
-            UserTokenType.STAY_LOGGED_IN_KEY -> "stayLoggedInKey"
-            UserTokenType.AUTHENTICATOR_KEY -> throw IllegalArgumentException("Authentication token is protected. Illegal access.")
-        }
-
-        val elementInfo = ElementsRegistry.getElementInfo(UserAuthenticationsDO::class.java, tokenId)
-
-        layout
-                .add(UIReadOnlyField("token",
-                        label = elementInfo?.i18nKey,
-                        canCopy = true, coverUp = true,
-                        tooltip = elementInfo?.tooltipI18nKey))
-                .add(UIReadOnlyField(id = "info", label = "user.authenticationToken.button.showUsage.tooltip"))
-
-        layout.addAction(UIButton("${token}-cancel",
-                title = translate("cancel"),
-                color = UIColor.SECONDARY,
-                outline = true,
-                responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)))
-
-        if (token == UserTokenType.REST_CLIENT) {
-            val queryURL = authenticationPublicServicesRest.createQueryURL()
-            val barcodeUrl = BarcodeServicesRest.getBarcodeGetUrl(queryURL)
-            layout.add(UIFieldset(UILength(md = 12, lg = 12))
-                    .add(UIRow()
-                            .add(UICol()
-                                    .add(UICustomized("image", mutableMapOf("src" to barcodeUrl, "alt" to barcodeUrl))))))
-        }
-
-        layout.addTranslations("cancel", "yes")
-        LayoutUtils.process(layout)
-
-        return FormLayoutData(data, layout, createServerData(request))
+    val tokenId = when (token) {
+      UserTokenType.CALENDAR_REST -> "calendarExportToken"
+      UserTokenType.DAV_TOKEN -> "davToken"
+      UserTokenType.REST_CLIENT -> "restClientToken"
+      UserTokenType.STAY_LOGGED_IN_KEY -> "stayLoggedInKey"
+      UserTokenType.AUTHENTICATOR_KEY -> throw IllegalArgumentException("Authentication token is protected. Illegal access.")
     }
+
+    val elementInfo = ElementsRegistry.getElementInfo(UserAuthenticationsDO::class.java, tokenId)
+
+    layout
+      .add(
+        UIReadOnlyField(
+          "token",
+          label = elementInfo?.i18nKey,
+          canCopy = true, coverUp = true,
+          tooltip = elementInfo?.tooltipI18nKey
+        )
+      )
+      .add(UIReadOnlyField(id = "info", label = "user.authenticationToken.button.showUsage.tooltip"))
+
+    layout.addAction(UIButton.createCancelButton(responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)))
+
+    if (token == UserTokenType.REST_CLIENT) {
+      val queryURL = authenticationPublicServicesRest.createQueryURL()
+      val barcodeUrl = BarcodeServicesRest.getBarcodeGetUrl(queryURL)
+      layout.add(
+        UIFieldset(UILength(md = 12, lg = 12))
+          .add(
+            UIRow()
+              .add(
+                UICol()
+                  .add(UICustomized("image", mutableMapOf("src" to barcodeUrl, "alt" to barcodeUrl)))
+              )
+          )
+      )
+    }
+
+    layout.addTranslations("cancel", "yes")
+    LayoutUtils.process(layout)
+
+    return FormLayoutData(data, layout, createServerData(request))
+  }
 
 }

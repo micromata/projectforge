@@ -28,7 +28,7 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.business.excel.ExcelImport;
 import org.projectforge.business.fibu.*;
 import org.projectforge.framework.i18n.I18nHelper;
@@ -53,7 +53,7 @@ public class OrderExportTest extends AbstractTestBase
   {
     List<AuftragDO> auftragDOList = new ArrayList<>();
 
-    I18nHelper.addBundleName(Const.RESOURCE_BUNDLE_NAME);
+    I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME);
 
     AuftragDO e = new AuftragDO();
     e.setAngebotsDatum(LocalDate.now());
@@ -96,7 +96,7 @@ public class OrderExportTest extends AbstractTestBase
   {
     List<AuftragDO> auftragDOList = new ArrayList<>();
 
-    I18nHelper.addBundleName(Const.RESOURCE_BUNDLE_NAME);
+    I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME);
 
     AuftragDO e = new AuftragDO();
     e.setAngebotsDatum(LocalDate.now());

@@ -174,11 +174,9 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
 
       if (writeAccess) {
         layout.addAction(
-          UIButton(
-            "delete",
-            translate("delete"),
-            UIColor.DANGER,
-            confirmMessage = translate("file.panel.deleteExistingFile.heading"),
+          UIButton.createDeleteButton(
+            layout,
+            confirmMessage = "file.panel.deleteExistingFile.heading",
             responseAction = ResponseAction(
               RestResolver.getRestUrl(restClass, "delete"),
               targetType = TargetType.POST
@@ -186,23 +184,18 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
           )
         )
         layout.addAction(
-          UIButton(
+          UIButton.createDefaultButton(
             "update",
-            translate("update"),
-            UIColor.SUCCESS,
+            title = "update",
             responseAction = ResponseAction(
               RestResolver.getRestUrl(restClass, "modify"),
               targetType = TargetType.POST
             ),
-            default = true
           )
         )
       }
       layout.addAction(
-        UIButton(
-          "download",
-          translate("download"),
-          UIColor.LINK,
+        UIButton.createDownloadButton(
           responseAction = ResponseAction(
             RestResolver.getRestUrl(
               restClass,
@@ -257,15 +250,15 @@ class AttachmentPageRest : AbstractDynamicPageRest() {
           .add(
             UICol(UILength(md = 3))
               .add(
-                UIButton(
-                  function,
-                  title = translate("attachment.$function"),
-                  color = UIColor.DARK,
+                UIButton.createSecondaryButton(
+                  layout,
                   responseAction = ResponseAction(
                     RestResolver.getRestUrl(restClass, function),
                     targetType = TargetType.POST
                   ),
-                  confirmMessage = if (!attachment.encrypted) translate("attachment.encrypt.question") else null
+                  id = function,
+                  title = "attachment.$function",
+                  confirmMessage = if (!attachment.encrypted) "attachment.encrypt.question" else null
                 )
               )
           )

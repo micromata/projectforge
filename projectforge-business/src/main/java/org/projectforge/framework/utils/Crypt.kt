@@ -211,7 +211,7 @@ object Crypt {
     val dest = ByteArray(src.size)
 
     for (i in src.indices) {
-      dest[i] = src[i].toByte()
+      dest[i] = src[i].code.toByte()
     }
     return dest
   }

@@ -71,8 +71,8 @@ To configure a different directory you have several options (*choose Your favori
 
 Please note the detailed documentations for administrators, developers as well as for users.
 
-Java version 8 is required since ProjectForge 6.0.
-Please note, that Java version 8 is needed for developing and running ProjectForge.
+Java version >8 is required since ProjectForge 6.0.
+Please note, that OpenJdk 11 is currently used in production for developing and running ProjectForge.
 
 === Quickstart with IntelliJ
 

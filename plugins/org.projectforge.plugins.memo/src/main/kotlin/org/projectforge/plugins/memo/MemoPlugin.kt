@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.memo
 
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
@@ -56,7 +56,7 @@ class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
     // Both: Wicket and React
     pluginWicketRegistrationService.registerMenuItem(
       MenuItemDefId.MISC,
-      MenuItemDef(info.id, "plugins.memo.menu", "${Const.REACT_APP_PATH}memo"),
+      MenuItemDef(info.id, "plugins.memo.menu", "${Constants.REACT_APP_PATH}memo"),
       MemoListPage::class.java
     )
     // Later: React only:

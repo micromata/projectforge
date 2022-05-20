@@ -29,7 +29,7 @@ import org.projectforge.rest.core.AbstractPagesRest
 import org.springframework.util.ClassUtils
 
 data class UIInput(
-  val id: String,
+  override var id: String,
   @Transient
   override val layoutContext: LayoutContext? = null,
   var maxLength: Int? = null,
@@ -48,7 +48,7 @@ data class UIInput(
    * AutoComplete Types for HTML Input fields.
    */
   val autoComplete: AutoCompleteType? = null
-) : UIElement(UIElementType.INPUT), UILabelledElement {
+) : UIElement(UIElementType.INPUT), UILabelledElement, IUIId {
   var autoCompletionUrl: String? = null
 
   /**

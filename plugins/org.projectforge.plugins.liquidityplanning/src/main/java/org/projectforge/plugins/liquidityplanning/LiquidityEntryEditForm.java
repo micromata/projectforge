@@ -25,7 +25,7 @@ package org.projectforge.plugins.liquidityplanning;
 
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.framework.utils.Constants;
+import org.projectforge.Constants;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.*;
@@ -39,9 +39,9 @@ import java.time.LocalDate;
 
 /**
  * This is the edit formular page.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class LiquidityEntryEditForm extends AbstractEditForm<LiquidityEntryDO, LiquidityEntryEditPage>
 {

@@ -26,6 +26,7 @@ package org.projectforge.rest.orga
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
 import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -33,6 +34,7 @@ import org.projectforge.rest.dto.Buchungssatz
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/accountingRecord")
@@ -53,16 +55,16 @@ class AccountingRecordPagesRest: AbstractDTOPagesRest<BuchungssatzDO, Buchungssa
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(UITableColumn("satzNr", title = "fibu.buchungssatz.satznr"))
                         .add(lc, "betrag", "beleg", "kost1", "kost2", "konto", "gegenKonto",
                                 "sh", "text", "comment"))
-        layout.getTableColumnById("kost1").formatter = Formatter.COST1
-        layout.getTableColumnById("kost2").formatter = Formatter.COST2
-        layout.getTableColumnById("konto").formatter = Formatter.KONTO
-        layout.getTableColumnById("gegenKonto").formatter = Formatter.KONTO
+        layout.getTableColumnById("kost1").formatter = UITableColumn.Formatter.COST1
+        layout.getTableColumnById("kost2").formatter = UITableColumn.Formatter.COST2
+        layout.getTableColumnById("konto").formatter = UITableColumn.Formatter.KONTO
+        layout.getTableColumnById("gegenKonto").formatter = UITableColumn.Formatter.KONTO
         return LayoutUtils.processListPage(layout, this)
     }
 

@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Employee
@@ -53,16 +54,16 @@ class EmployeePagesRest : AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(UITableColumn("fibu.employee.user.name", "name"))
                         .add(UITableColumn("fibu.employee.user.firstname", "firstName"))
                         .add(lc, "status", "staffNumber")
-                        .add(UITableColumn("kost1", "fibu.kost1", formatter = Formatter.COST1))
+                        .add(UITableColumn("kost1", "fibu.kost1", formatter = UITableColumn.Formatter.COST1))
                         .add(lc, "position", "abteilung", "eintrittsDatum", "austrittsDatum", "comment"))
-        layout.getTableColumnById("eintrittsDatum").formatter = Formatter.DATE
-        layout.getTableColumnById("austrittsDatum").formatter = Formatter.DATE
+        layout.getTableColumnById("eintrittsDatum").formatter = UITableColumn.Formatter.DATE
+        layout.getTableColumnById("austrittsDatum").formatter = UITableColumn.Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
     }
 

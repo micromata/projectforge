@@ -221,7 +221,7 @@ public class TeamEventDiff
   private TeamEventFieldDiff<String> note;
   private TeamEventFieldDiff<Date> lastEmail;
   private TeamEventFieldDiff<Integer> sequence;
-  private TeamEventFieldDiff<Integer> reminderDuration;
+  private TeamEventFieldDiff<Long> reminderDuration;
   private TeamEventFieldDiff<ReminderDurationUnit> reminderDurationUnit;
   private TeamEventFieldDiff<ReminderActionType> reminderActionType;
 

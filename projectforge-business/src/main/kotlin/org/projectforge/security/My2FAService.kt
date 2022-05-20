@@ -25,7 +25,9 @@ package org.projectforge.security
 
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
@@ -34,11 +36,15 @@ import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
+import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
 @Service
 open class My2FAService {
+  @Autowired
+  private lateinit var groupService: GroupService
+
   @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
 
@@ -48,10 +54,43 @@ open class My2FAService {
   @Autowired
   private lateinit var bruteForceProtection: My2FABruteForceProtection
 
+  @Autowired
+  private lateinit var my2FARequestConfiguration: My2FARequestConfiguration
+
   val smsConfigured
     get() = smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()
 
+  private var mail2FADisabledGroupIds: MutableList<Int>? = null
+
   enum class Unit { MINUTES, HOURS, DAYS }
+
+  @PostConstruct
+  private fun init() {
+    setDisabled(my2FARequestConfiguration.disableEmail2FAForGroups)
+  }
+
+  internal fun setDisabled(groupNames: String?) {
+    if (groupNames.isNullOrBlank()) {
+      mail2FADisabledGroupIds = null
+      return
+    }
+    val foundGroupNames = mutableListOf<String>()
+    val list = mutableListOf<Int>()
+    groupNames.split(";,:").forEach { groupName ->
+      if (groupName.isNotBlank()) {
+        val allGroups = groupService.allGroups
+        val group = allGroups.find { it.name == groupName }
+        if (group == null) {
+          log.error { "Group with name '$groupName' not foud in data base. Will be ignored for parameter projectforge.2fa.disableMail2FAForGroups=${my2FARequestConfiguration.disableEmail2FAForGroups}" }
+        } else {
+          list.add(group.id)
+          foundGroupNames.add(group.name ?: "???")
+        }
+      }
+      mail2FADisabledGroupIds = list
+    }
+    log.info("2FA by e-mail is disabled for users of group(s): ${foundGroupNames.joinToString()} ")
+  }
 
   /**
    * Does also Brute force protection. Does also a OTP check against Authenticator-App-Token, if exist.
@@ -63,11 +102,15 @@ open class My2FAService {
     preCheck(code)?.let { result -> // User is blocked.
       return result
     }
+    if (code.isBlank()) {
+      return OTPCheckResult.CODE_EMPTY
+    }
     var failed = false
     expectedToken.forEach { token ->
       if (!token.isNullOrBlank()) {
         if (token == code) {
           bruteForceProtection.registerOTPSuccess()
+          log.info { "Successful OTP check (via SMS or e-mail)." }
           ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
           return OTPCheckResult.SUCCESS
         } else {
@@ -114,10 +157,14 @@ open class My2FAService {
       }
       return OTPCheckResult.NOT_CONFIGURED
     }
+    if (code.isBlank()) {
+      return OTPCheckResult.CODE_EMPTY
+    }
     if (!TimeBased2FA.standard.validate(authenticatorToken, code)) {
       SecurityLogging.logSecurityWarn(this::class.java, "2FA WRONG CODE", "The entered 2FA code was wrong.")
       return OTPCheckResult.FAILED
     }
+    log.info { "Successful OTP check (via authenticator app)." }
     // Update last
     ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
     bruteForceProtection.registerOTPSuccess()
@@ -151,6 +198,22 @@ open class My2FAService {
       Unit.DAYS -> timePeriod * TimeUnit.DAY.millis
     }
     return System.currentTimeMillis() - timeAgo < lastSuccessful2FA
+  }
+
+  /**
+   * @return true if the logged in user is member of any group configured via [My2FARequestConfiguration.disableEmail2FAForGroups].
+   */
+  fun isMail2FADisabledForUser(userContext: UserContext? = null): Boolean {
+    val disabledGroupIds = mail2FADisabledGroupIds
+    if (disabledGroupIds.isNullOrEmpty()) {
+      return false
+    }
+    val user = userContext?.user ?: ThreadLocalUserContext.getUser()
+    requireNotNull(user)
+    val userGroups =
+      UserGroupCache.getInstance().getUserGroups(user) ?: return false // User without groups shouldn't occur.
+    return userGroups.intersect(disabledGroupIds)
+      .isNotEmpty() // return true, if at least one disabledGroupIds is part of user group id's.
   }
 
   companion object {

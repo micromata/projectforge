@@ -1,15 +1,16 @@
-import { faDownload, faEdit, faLock } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
-import React from 'react';
-import { evalServiceURL, getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
-import { Table } from '../../../../design';
-import DropArea from '../../../../design/droparea';
-import LoadingContainer from '../../../../design/loading-container';
+import React, { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faDownload, faEdit, faLock } from '@fortawesome/free-solid-svg-icons';
+import { evalServiceURL, getServiceURL } from '../../../../../utilities/rest';
+import { MultipleFileUploadArea } from '../upload/MultipleFileUploadArea';
 import { DynamicLayoutContext } from '../../context';
+import DynamicAgGrid from '../table/DynamicAgGrid';
+import DynamicAlert from '../DynamicAlert';
+import DynamicButton from '../DynamicButton';
 
-function DynamicAttachmentList(
-    {
+function DynamicAttachmentList(props) {
+    const {
         category,
         id,
         listId,
@@ -18,9 +19,10 @@ function DynamicAttachmentList(
         restBaseUrl,
         downloadOnRowClick,
         uploadDisabled,
-        showExpiryInfo,
-    },
-) {
+        maxSizeInKB,
+        agGrid,
+    } = props;
+
     const {
         callAction,
         data,
@@ -28,34 +30,14 @@ function DynamicAttachmentList(
         ui,
     } = React.useContext(DynamicLayoutContext);
 
-    const [loading, setLoading] = React.useState(false);
+    const [gridApi, setGridApi] = useState();
+
+    const onGridApiReady = React.useCallback((api) => {
+        setGridApi(api);
+    }, []);
 
     const { attachments } = data;
-
-    const uploadFile = (files) => {
-        setLoading(true);
-        const formData = new FormData();
-        formData.append('file', files[0]);
-        fetch(
-            getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}`),
-            {
-                credentials: 'include',
-                method: 'POST',
-                body: formData,
-            },
-        )
-            .then(handleHTTPErrors)
-            .then((response) => response.json())
-            .then((json) => {
-                callAction({ responseAction: json });
-                setLoading(false);
-            })
-            .catch((catchError) => {
-                // eslint-disable-next-line no-alert
-                alert(catchError);
-                setLoading(false);
-            });
-    };
+    const { translations } = ui;
 
     const download = (entryId) => {
         callAction({
@@ -70,8 +52,72 @@ function DynamicAttachmentList(
         });
     };
 
-    const handleRowClick = (entry) => (event) => {
-        event.stopPropagation();
+    function Action(param) {
+        const { data: entry } = param; // Entry
+        return (
+            <>
+                <span
+                    role="presentation"
+                    onKeyDown={() => {
+                    }}
+                    ref={(ref) => {
+                        if (!ref) return;
+                        // eslint-disable-next-line no-param-reassign
+                        ref.onclick = (event) => {
+                            download(entry.fileId);
+                            event.stopPropagation(); // works not span.onclick :-(
+                        };
+                    }}
+                >
+                    <FontAwesomeIcon icon={faDownload} />
+                </span>
+                {!downloadOnRowClick
+                    && (
+                        <span className="ml-2">
+                            <FontAwesomeIcon icon={faEdit} />
+                        </span>
+                    )}
+            </>
+        );
+    }
+
+    function Filename(param) {
+        const { data: entry } = param; // Entry
+        return (
+            <>
+                {`${entry.name} `}
+                {entry.encrypted
+                        && (
+                            <FontAwesomeIcon icon={faLock} />
+                        )}
+            </>
+        );
+    }
+
+    const afterFileUpload = (response) => {
+        const json = JSON.parse(response);
+        callAction({ responseAction: json });
+    };
+
+    const handleDownloadSelectedClick = React.useCallback(() => {
+        const selectedIds = gridApi.getSelectedRows().map((item) => item.fileId);
+        if (selectedIds.length === 0) {
+            return; // Do nothing, no rows selected.
+        }
+        callAction({
+            responseAction: {
+                targetType: 'DOWNLOAD',
+                url: getServiceURL(`${restBaseUrl}/multiDownload/${category}/${id}`, {
+                    fileIds: selectedIds.map((fileId) => String.truncate(fileId, 4)).join(),
+                    listId,
+                }),
+                absolute: true,
+            },
+        });
+    }, [gridApi]);
+
+    const handleRowClick = (event) => {
+        const entry = event.data;
         if (readOnly || downloadOnRowClick) {
             download(entry.fileId);
         } else {
@@ -88,66 +134,63 @@ function DynamicAttachmentList(
         }
     };
 
-    const handleDownload = (entryId) => (event) => {
-        event.stopPropagation();
-        download(entryId);
-    };
+    const handleDeleteSelectedClick = React.useCallback(() => {
+        const selectedIds = gridApi.getSelectedRows().map((item) => item.fileId);
+        if (selectedIds.length === 0) {
+            return; // Do nothing, no rows selected.
+        }
+        callAction({
+            responseAction: {
+                targetType: 'POST',
+                url: `${restBaseUrl}/multiDelete`,
+                myData: {
+                    category,
+                    id,
+                    fileIds: selectedIds,
+                    listId,
+                },
+                absolute: true,
+            },
+        });
+    }, [gridApi]);
 
     const table = attachments && attachments.length > 0 && (
-        <Table striped hover>
-            <thead>
-                <tr>
-                    <th>{ui.translations['attachment.fileName']}</th>
-                    <th>{ui.translations['attachment.size']}</th>
-                    <th>{ui.translations.description}</th>
-                    {showExpiryInfo === true
-                    && (
-                        <th>{ui.translations['attachment.expires']}</th>
-                    )}
-                    <th>{ui.translations.created}</th>
-                    <th>{ui.translations.createdBy}</th>
-                    <th>{ui.translations.modified}</th>
-                    <th>{ui.translations.modifiededBy}</th>
-                </tr>
-            </thead>
-            <tbody>
-                { attachments.map((entry) => (
-                    <tr key={entry.fileId} onClick={handleRowClick(entry)}>
-                        <td>
-                            <span
-                                role="presentation"
-                                onKeyDown={() => {
-                                }}
-                                onClick={handleDownload(entry.fileId)}
-                            >
-                                {entry.encrypted
-                                && (
-                                    <FontAwesomeIcon icon={faLock} />
-                                )}
-                                {`${entry.name} `}
-                                <FontAwesomeIcon icon={faDownload} />
-                            </span>
-                            {!downloadOnRowClick
-                            && (
-                                <span className="ml-2">
-                                    <FontAwesomeIcon icon={faEdit} />
-                                </span>
-                            )}
-                        </td>
-                        <td>{entry.sizeHumanReadable}</td>
-                        <td>{entry.description}</td>
-                        {showExpiryInfo
-                        && (
-                            <td>{(entry.info && entry.info.expiryInfo) ? entry.info.expiryInfo : ''}</td>
-                        )}
-                        <td>{entry.createdFormatted}</td>
-                        <td>{entry.createdByUser}</td>
-                        <td>{entry.lastUpdateTimeAgo}</td>
-                        <td>{entry.lastUpdateByUser}</td>
-                    </tr>
-                ))}
-            </tbody>
-        </Table>
+        <>
+            <DynamicAgGrid
+                {...agGrid}
+                onGridApiReady={onGridApiReady}
+                columnDefs={agGrid.columnDefs}
+                id="attachments"
+                rowClickFunction={handleRowClick}
+                rowSelection="multiple"
+                suppressRowClickSelection
+                components={{
+                    action: Action,
+                    filename: Filename,
+                }}
+            />
+            <DynamicAlert
+                markdown
+                color="info"
+                title={translations['multiselection.aggrid.selection.info.title']}
+                message={translations['multiselection.aggrid.selection.info.message']}
+            />
+            <DynamicButton
+                id="deleteSelected"
+                color="danger"
+                confirmMessage={translations['file.upload.deleteSelected.confirm']}
+                outline
+                title={translations['file.upload.deleteSelected']}
+                handleButtonClick={handleDeleteSelectedClick}
+            />
+            <DynamicButton
+                id="downloadSelected"
+                color="success"
+                outline
+                title={translations['file.upload.downloadSelected']}
+                handleButtonClick={handleDownloadSelectedClick}
+            />
+        </>
     );
 
     return React.useMemo(() => {
@@ -156,19 +199,21 @@ function DynamicAttachmentList(
                 return table;
             }
             return (
-                <LoadingContainer loading={loading}>
-                    <DropArea
-                        setFiles={uploadFile}
-                        noStyle
-                        title={ui.translations['file.upload.dropArea']}
-                    >
-                        {table}
-                    </DropArea>
-                </LoadingContainer>
+                <>
+                    <MultipleFileUploadArea
+                        url={getServiceURL(`${restBaseUrl}/upload/${category}/${id}/${listId}`)}
+                        // noStyle
+                        title={ui.translations['attachment.upload.title']}
+                        afterFileUpload={afterFileUpload}
+                        maxSizeInKB={maxSizeInKB}
+                        existingFiles={attachments}
+                    />
+                    {table}
+                </>
             );
         }
         return ui.translations['attachment.onlyAvailableAfterSave'];
-    }, [setData, loading, id, attachments]);
+    }, [setData, id, attachments, handleDeleteSelectedClick]);
 }
 
 DynamicAttachmentList.propTypes = {
@@ -180,7 +225,7 @@ DynamicAttachmentList.propTypes = {
     restBaseUrl: PropTypes.string,
     downloadOnRowClick: PropTypes.bool,
     uploadDisabled: PropTypes.bool,
-    showExpiryInfo: PropTypes.bool,
+    maxSizeInKB: PropTypes.number,
 };
 
 DynamicAttachmentList.defaultProps = {
@@ -190,7 +235,7 @@ DynamicAttachmentList.defaultProps = {
     restBaseUrl: '/rs/attachments',
     downloadOnRowClick: false,
     uploadDisabled: false,
-    showExpiryInfo: undefined,
+    maxSizeInKB: 1000000, // 1 MB at default
 };
 
 export default DynamicAttachmentList;

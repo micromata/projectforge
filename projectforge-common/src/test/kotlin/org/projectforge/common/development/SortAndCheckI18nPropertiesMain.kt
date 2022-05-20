@@ -39,8 +39,8 @@ import java.nio.charset.StandardCharsets
  * Please note: You should make a copy of the resource files before using this script. Otherwise you may loose entries.
  */
 object SortAndCheckI18nPropertiesMain {
-  val ENCODING = StandardCharsets.ISO_8859_1 // The charset to use.
-  val LANGUAGES = listOf("de")               // Add here all used languages in addition to the default language.
+  val ENCODING = StandardCharsets.UTF_8 // The charset to use.
+  val LANGUAGES = listOf("de")          // Add here all used languages in addition to the default language.
   val FILES = listOf(
     "projectforge-business/src/main/resources/I18nResources",
     "plugins/org.projectforge.plugins.extendemployeedata/src/main/resources/ExtendEmployeeDataI18nResources",
@@ -287,9 +287,6 @@ object SortAndCheckI18nPropertiesMain {
   internal fun fixApostrophCharsAndReplaceUTFChars(str: String?): String? {
     str ?: return null
     var result: String = str
-    umlaute.forEach { umlaut ->
-      result = result.replace(umlaut.ch, umlaut.utf8)
-    }
     if (!result.contains("{0}") && !result.contains("{1}") && !result.contains("\${")) {
       return result
     }
@@ -329,19 +326,5 @@ object SortAndCheckI18nPropertiesMain {
 
   internal fun commentMultiLine(value: String): String {
     return value.replace("\\\n", "\\\n#")
-  }
-
-  internal val umlaute = arrayOf(
-    Umlaut("ß", "DF"),
-    Umlaut("ä", "E4"),
-    Umlaut("ö", "F6"),
-    Umlaut("ü", "FC"),
-    Umlaut("Ä", "C4"),
-    Umlaut("Ö", "D6"),
-    Umlaut("Ü", "DC"),
-  )
-
-  class Umlaut(val ch: String, val asciiCode: String) {
-    val utf8 = "\\u00$asciiCode"
   }
 }

@@ -37,9 +37,10 @@ open class DataTransferAccessChecker(
   val dataTransferAreaDao: DataTransferAreaDao
 ) : AttachmentsAccessChecker {
   override val fileSizeChecker: DataTransferFileSizeChecker =
-    DataTransferFileSizeChecker(dataTransferAreaDao.maxFileSize.toBytes())
+    DataTransferFileSizeChecker(DataTransferAreaDao.globalMaxFileSize.toBytes())
 
   /**
+   * @param id Data base id of data transfer area.
    * @param subPath Equals to listId.
    */
   override fun checkSelectAccess(user: PFUserDO?, path: String, id: Any, subPath: String?) {

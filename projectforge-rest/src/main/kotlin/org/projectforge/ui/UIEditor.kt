@@ -32,6 +32,10 @@ class UIEditor(
   val id: String,
   var mode: String = "kotlin",
   type: ScriptDO.ScriptType? = null,
+  /**
+   * Optional height of editor, default is '600px' (by client React component if null)
+   */
+  var height: String? = null,
 ) : UIElement(UIElementType.EDITOR) {
   init {
     type?.let {

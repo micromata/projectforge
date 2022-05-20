@@ -47,7 +47,7 @@ import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.rest.ChangePasswordPageRest;
-import org.projectforge.rest.My2FASetupPageRest;
+import org.projectforge.rest.my2fa.My2FASetupPageRest;
 import org.projectforge.rest.MyAccountPageRest;
 import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.WicketLoginService;

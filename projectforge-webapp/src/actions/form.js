@@ -102,7 +102,15 @@ export const loadFormPage = (category, id, url, params = {}) => (dispatch, getSt
     )
         .then(handleHTTPErrors)
         .then((response) => response.json())
-        .then((json) => dispatch(callSuccess(category, Object.combine(params, json))))
+        .then((json) => {
+            const { targetType, url: redirectUrl } = json;
+            if (targetType === 'REDIRECT' && redirectUrl) {
+                history.push(redirectUrl);
+                return;
+            }
+
+            dispatch(callSuccess(category, Object.combine(params, json)));
+        })
         .catch((error) => callFailure(category, error));
 };
 
@@ -198,10 +206,11 @@ export const callAction = (
 
             let filename;
             let body;
+            const { myData } = action;
 
             if (action.targetType !== 'GET') {
                 body = JSON.stringify({
-                    data,
+                    data: myData || data,
                     watchFieldsTriggered,
                     serverData,
                 });

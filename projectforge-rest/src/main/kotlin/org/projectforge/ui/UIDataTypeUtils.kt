@@ -28,7 +28,6 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
-import java.rmi.server.UID
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.*
@@ -45,7 +44,7 @@ class UIDataTypeUtils {
 
         internal fun getDataType(elementInfo: ElementInfo?): UIDataType? {
             elementInfo ?: return null
-            return when (elementInfo.propertyType) {
+            return when (elementInfo.propertyClass) {
                 String::class.java -> UIDataType.STRING
                 Boolean::class.java, java.lang.Boolean::class.java -> UIDataType.BOOLEAN
                 Date::class.java -> UIDataType.TIMESTAMP

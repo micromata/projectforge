@@ -153,6 +153,11 @@ enum class TargetType {
   CLOSE_MODAL,
 
   /**
+   * The client should reload the page.
+   */
+  RELOAD,
+
+  /**
    * No action by the client required.
    */
   NOTHING,

@@ -29,7 +29,9 @@ import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
+import org.projectforge.plugins.liquidityplanning.rest.LiquidityEntryPagesRest;
 import org.projectforge.registry.RegistryEntry;
+import org.projectforge.security.My2FAShortCut;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -68,6 +70,9 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
    */
   @Override
   protected void initialize() {
+    registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:liquidityEntry;/wa/liquidityplanningEdit");
+    registerShortCutValues(My2FAShortCut.FINANCE, "/wa/liquidityplanning;/wa/liquidityForecast");
+    registerShortCutClasses(My2FAShortCut.FINANCE, LiquidityEntryPagesRest.class);
     final RegistryEntry entry = new RegistryEntry(ID, LiquidityEntryDao.class, liquidityEntryDao,
             "plugins.liquidityplanning");
     register(entry);

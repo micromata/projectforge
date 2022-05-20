@@ -41,6 +41,7 @@ import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.security.My2FARequestConfiguration
 import org.projectforge.security.My2FAService
 import org.projectforge.security.OTPCheckResult
+import org.projectforge.security.SecurityLogging
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -111,6 +112,11 @@ class My2FAHttpService {
    * Creates a OTP (valid for 2 minutes), stores it in the user's session and mails this code to the user.
    */
   fun createAndMailOTP(request: HttpServletRequest): Result {
+    require(!my2FAService.isMail2FADisabledForUser()) {
+      val msg = "2FA via mail is disabled for users of the configured groups. Does the user try to attack the system by forcing 2FA by mail?"
+      SecurityLogging.logSecurityWarn(this::class.java, "Illegal rest call", msg)
+      msg
+    }
     val code = createOTP(request)
     val mail = Mail()
     val user = ThreadLocalUserContext.getUser()
@@ -157,9 +163,15 @@ class My2FAHttpService {
    * If no otp is available, the code is checked by [My2FAService.validateAuthenticatorOTP]
    * @param password Is only needed, if user received code by mail (due to security reasons).
    */
-  fun checkOTP(request: HttpServletRequest, code: String, password: CharArray? = null): OTPCheckResult {
+  fun checkOTP(request: HttpServletRequest, code: String?, password: CharArray? = null): OTPCheckResult {
+    if (code.isNullOrBlank()) {
+      return OTPCheckResult.CODE_EMPTY
+    }
     val smsCode = ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_MOBILE_OTP, String::class.java)
     val mailCode = ExpiringSessionAttributes.getAttribute(request, SESSSION_ATTRIBUTE_MAIL_OTP, String::class.java)
+    if (!mailCode.isNullOrBlank()) {
+      require(!my2FAService.isMail2FADisabledForUser()) { "2FA via mail is disabled for users of the configured groups. How does the user got this mail code?" }
+    }
     val result = my2FAService.validateOTP(code, smsCode, mailCode)
     if (code == mailCode && my2FARequestConfiguration.checkLoginPasswordRequired4Mail2FA()) {
       // Code sent by E-Mail and password required as additional trust.

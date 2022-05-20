@@ -25,7 +25,9 @@ package org.projectforge.rest.core
 
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
+import javax.servlet.http.HttpServletRequest
 
 /**
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
@@ -36,68 +38,72 @@ import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
  * by these rest services.
  */
 abstract class AbstractDOPagesRest<
-        O : ExtendedBaseDO<Int>,
-        B : BaseDao<O>>
+    O : ExtendedBaseDO<Int>,
+    B : BaseDao<O>>
 @JvmOverloads
 constructor(
-        baseDaoClazz: Class<B>,
-        i18nKeyPrefix: String,
-        cloneSupport: CloneSupport = CloneSupport.NONE)
-    : AbstractPagesRest<O, O, B>(baseDaoClazz, i18nKeyPrefix, cloneSupport) {
+  baseDaoClazz: Class<B>,
+  i18nKeyPrefix: String,
+  cloneSupport: CloneSupport = CloneSupport.NONE
+) : AbstractPagesRest<O, O, B>(baseDaoClazz, i18nKeyPrefix, cloneSupport) {
 
-    companion object {
-        // For caching historizable flag:
-        private val historizableMap = mutableMapOf<Class<*>, Boolean>()
+  companion object {
+    // For caching historizable flag:
+    private val historizableMap = mutableMapOf<Class<*>, Boolean>()
 
-        internal fun isHistorizable(clazz: Class<out ExtendedBaseDO<*>>): Boolean {
-            var result = historizableMap.get(clazz)
-            if (result != null)
-                return result
-            result = HistoryBaseDaoAdapter.isHistorizable(clazz)
-            historizableMap.put(clazz.javaClass, result)
-            return result
-        }
+    internal fun isHistorizable(clazz: Class<out ExtendedBaseDO<*>>): Boolean {
+      var result = historizableMap.get(clazz)
+      if (result != null)
+        return result
+      result = HistoryBaseDaoAdapter.isHistorizable(clazz)
+      historizableMap.put(clazz.javaClass, result)
+      return result
     }
+  }
 
-    override fun processResultSetBeforeExport(resultSet: ResultSet<O>) : ResultSet<*> {
-        resultSet.resultSet.forEach { transformFromDB(it) }
-        return resultSet
-    }
+  override fun processResultSetBeforeExport(
+    resultSet: ResultSet<O>,
+    request: HttpServletRequest,
+    magicFilter: MagicFilter,
+  ): ResultSet<*> {
+    resultSet.resultSet.forEach { transformFromDB(it) }
+    return resultSet
+  }
 
-    /**
-     * @return dto object itself (it's already of type O)
-     */
-    override fun transformForDB(dto: O): O {
-        return dto
-    }
+  /**
+   * @return dto object itself (it's already of type O)
+   */
+  override fun transformForDB(dto: O): O {
+    return dto
+  }
 
-    /**
-     * @return obj object itself (it's already of same type)
-     */
-    override fun transformFromDB(obj: O, editMode: Boolean): O {
-        return obj
-    }
+  /**
+   * @return obj object itself (it's already of same type)
+   */
+  override fun transformFromDB(obj: O, editMode: Boolean): O {
+    return obj
+  }
 
-    /**
-     * @param dto Expected as O
-     */
-    override fun getId(dto: Any): Int? {
-        @Suppress("UNCHECKED_CAST")
-        return (dto as O).id
-    }
+  /**
+   * @param dto Expected as O
+   */
+  override fun getId(dto: Any): Int? {
+    @Suppress("UNCHECKED_CAST")
+    return (dto as O).id
+  }
 
-    /**
-     * @param dto Expected as O
-     */
-    override fun isDeleted(dto: Any): Boolean {
-        @Suppress("UNCHECKED_CAST")
-        return (dto as O).isDeleted
-    }
+  /**
+   * @param dto Expected as O
+   */
+  override fun isDeleted(dto: Any): Boolean {
+    @Suppress("UNCHECKED_CAST")
+    return (dto as O).isDeleted
+  }
 
-    /**
-     * Override this method if your data object isn't historizable.
-     */
-    override fun isHistorizable(): Boolean {
-        return isHistorizable(baseDao.doClass)
-    }
+  /**
+   * Override this method if your data object isn't historizable.
+   */
+  override fun isHistorizable(): Boolean {
+    return isHistorizable(baseDao.doClass)
+  }
 }

@@ -28,13 +28,9 @@ import org.projectforge.ProjectForgeVersion;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.common.i18n.Priority;
-import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.web.registry.WebRegistry;
-import org.projectforge.web.wicket.WicketApplication;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -44,20 +40,8 @@ import java.util.TimeZone;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GroovyEngineTest extends AbstractTestBase {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroovyEngineTest.class);
-
   @Autowired
   private ConfigurationService configurationService;
-
-  @Autowired
-  private PluginAdminService pluginAdminService;
-
-  @Override
-  protected void beforeAll() {
-    I18nHelper.addBundleName(WicketApplication.RESOURCE_BUNDLE_NAME);
-    WebRegistry.getInstance().init();
-    pluginAdminService.initializeAllPluginsForUnitTest();
-  }
 
   @Test
   public void renderTest() {
@@ -76,6 +60,7 @@ public class GroovyEngineTest extends AbstractTestBase {
     PFUserDO user = new PFUserDO();
     user.setFirstname("Kai");
     user.setLastname("Reinhard");
+    user.setLocale(Locale.GERMAN);
     engine.putVariable("recipient", user);
     ToDoDO todo = new ToDoDO();
     todo.setType(ToDoType.IMPROVEMENT);
@@ -87,8 +72,8 @@ public class GroovyEngineTest extends AbstractTestBase {
     engine.putVariable("history", new ArrayList<DisplayHistoryEntry>());
     engine.putVariable("requestUrl", "https://localhost:8443/wa/toDoEditPage/id/42");
     final String result = engine.executeTemplateFile("mail/todoChangeNotification.html");
-    assertTrue(result.contains("hoch"), "I18n priorty expected.");
-    assertTrue(result.contains("???plugins.todo.type.improvement???"), "I18n key for type improvement expected.");
+    assertTrue(result.contains("hoch"), "I18n priority expected.");
+    assertTrue(result.contains("Verbesserung"), "I18n key for type improvement expected.");
   }
 
   @Test

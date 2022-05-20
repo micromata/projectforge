@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.projectforge</groupId>
         <artifactId>projectforge-parent</artifactId>
-        <version>7.3.1-SNAPSHOT</version><!-- projectforge.version -->
+        <version>7.4.1-SNAPSHOT</version><!-- projectforge.version -->
     </parent>
 
     <licenses>
@@ -21,11 +21,10 @@
     <properties>
         <!-- Thanx to https://medium.com/@itzgeoff/including-react-in-your-spring-boot-maven-build-ae3b8f8826e -->
         <!-- https://nodejs.org/dist -->
-        <node.version>v15.14.0</node.version>
-        <npm.version>7.11.2</npm.version>
+        <node.version>v16.15.0</node.version>
         <!-- https://github.com/yarnpkg/yarn/releases -->
         <yarn.version>v1.22.10</yarn.version>
-        <frontend-maven-plugin.version>1.11.3</frontend-maven-plugin.version>
+        <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
     </properties>
 
     <build>
@@ -49,18 +48,12 @@
                         <goals>
                             <goal>npm</goal>
                         </goals>
-                        <configuration>
-                            <arguments>install</arguments>
-                        </configuration>
                     </execution>
                     <execution>
                         <id>npm run build</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
-                        <configuration>
-                            <arguments>run build</arguments>
-                        </configuration>
                     </execution>
                 </executions>
                 <!-- YARN: -->
@@ -99,7 +92,6 @@
                 </executions-->
                 <configuration>
                     <nodeVersion>${node.version}</nodeVersion>
-                    <npmVersion>${npm.version}</npmVersion>
                     <yarnVersion>${yarn.version}</yarnVersion>
                     <installDirectory>${project.build.directory}</installDirectory>
                     <workingDirectory>${project.basedir}</workingDirectory>

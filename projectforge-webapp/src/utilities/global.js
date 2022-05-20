@@ -3,6 +3,10 @@ Object.getByString = (object, multiKey) => {
     if (!multiKey) {
         return undefined;
     }
+    if (!(typeof multiKey === 'string' || multiKey instanceof String)) {
+        console.log("Warning: multiKey isn't of type String.", multiKey, typeof multiKey);
+        return undefined;
+    }
 
     let obj = object;
 
@@ -98,6 +102,8 @@ Array.findByField = (array, field, value) => array.reduce((accumulator, currentV
 
 // Replace all selector characters to prevent that they appear in an id.
 String.idify = (string) => string.replace(/[.#*, >+~/[\]=|^$:()]/g, '-');
+
+String.truncate = (str, length) => (str?.length > length ? str.substring(0, length) : str);
 
 Object.getResponseHeaderFilename = (contentDisposition) => {
     // attachment; filename*=UTF-8''document.pdf; filename=document.pdf

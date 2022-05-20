@@ -31,6 +31,7 @@ import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigurationChecker
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsEventListener
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.api.BaseDao
@@ -43,13 +44,16 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileInfo
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Repository
 import org.springframework.util.unit.DataSize
 import org.springframework.util.unit.DataUnit
+import java.util.*
 import javax.annotation.PostConstruct
+import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -62,10 +66,13 @@ private val log = KotlinLogging.logger {}
 @Repository
 open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO::class.java), AttachmentsEventListener {
   @Autowired
-  private lateinit var notificationMailService: NotificationMailService
+  private lateinit var configurationChecker: ConfigurationChecker
 
   @Autowired
-  private lateinit var configurationChecker: ConfigurationChecker
+  private lateinit var dataTransferAuditDao: DataTransferAuditDao
+
+  @Autowired
+  private lateinit var notificationMailService: NotificationMailService
 
   @Autowired
   private lateinit var userService: UserService
@@ -73,13 +80,12 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
   @Value("\${${MAX_FILE_SIZE_SPRING_PROPERTY}:100MB}")
   internal open lateinit var maxFileSizeConfig: String
 
-  open lateinit var maxFileSize: DataSize
-    internal set
-
   @PostConstruct
   private fun postConstruct() {
-    maxFileSize = DataSizeConfig.init(maxFileSizeConfig, DataUnit.MEGABYTES)
+    globalMaxFileSize = DataSizeConfig.init(maxFileSizeConfig, DataUnit.MEGABYTES)
     log.info { "Maximum configured size of uploads: ${MAX_FILE_SIZE_SPRING_PROPERTY}=$maxFileSizeConfig." }
+    notificationMailService.dataTransferAreaDao = this
+    dataTransferAuditDao.dataTransferAreaDao = this
   }
 
   @Autowired
@@ -92,7 +98,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     file.externalAccessToken = generateExternalAccessToken()
     file.externalPassword = generateExternalPassword()
     file.expiryDays = 7
-    file.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE // 100MB
+    file.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB // 100MB
     return file
   }
 
@@ -173,7 +179,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
   override fun afterLoad(obj: DataTransferAreaDO) {
     if (obj.maxUploadSizeKB == null)
-      obj.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE
+      obj.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB
   }
 
   open fun ensurePersonalBox(userId: Int): DataTransferAreaDO? {
@@ -232,7 +238,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       return operationType == OperationType.SELECT
     }
     val adminIds = StringHelper.splitToIntegers(obj.adminIds, ",")
-    if (adminIds.contains(user.id)) {
+    if (adminIds?.contains(user.id) == true) {
       return true
     }
     if (operationType == OperationType.SELECT) {
@@ -276,19 +282,11 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
   ) {
     check(data != null)
     try {
-      if (byUser != null && event == AttachmentsEventType.DOWNLOAD) {
-        // Do not notify on downloads and deletions of internal users.
-        return
-      }
       if (file.encryptionInProgress == true) {
         // Don't notificate observers if one user encrypts a file.
         return
       }
-      // log download access of external users.
-      if (!byExternalUser.isNullOrBlank() && event == AttachmentsEventType.DOWNLOAD) {
-        // internalUpdateAny(data) // Must call update. On upload event, the data will stored by caller.
-      }
-      notificationMailService.sendMail(event, file, data as DataTransferAreaDO, byUser, byExternalUser)
+      dataTransferAuditDao.insertAudit(event, data as DataTransferAreaDO, byUser, byExternalUser, file)
 
     } catch (ex: Exception) {
       log.error("Exception while calling SendMailService: ${ex.message}.", ex)
@@ -296,6 +294,12 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
   }
 
   companion object {
+    /**
+     * No data transfer area may have more than this global max file size.
+     */
+    lateinit var globalMaxFileSize: DataSize
+      internal set
+
     fun generateExternalAccessToken(): String {
       return NumberHelper.getSecureRandomAlphanumeric(ACCESS_TOKEN_LENGTH)
     }
@@ -306,7 +310,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
     fun ensureSecureExternalAccess(obj: IDataTransferArea) {
       if (obj.externalDownloadEnabled == true || obj.externalUploadEnabled == true) {
-        if (obj.externalAccessToken?.length ?: 0 < ACCESS_TOKEN_LENGTH) {
+        if ((obj.externalAccessToken?.length ?: 0) < ACCESS_TOKEN_LENGTH) {
           obj.externalAccessToken = generateExternalAccessToken()
         }
         if (obj.externalPassword.isNullOrBlank()) {
@@ -315,18 +319,31 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
       }
     }
 
+    /**
+     * @return Maximum file size in kb: The minimum value of free area capacity and configured max-upload-file-size.
+     */
+    fun calculateMaxUploadFileSize(data: DataTransferAreaDO): Long {
+      val used = data.attachmentsSize ?: 0
+      val freeCapacity = data.capacity - used
+      return minOf(freeCapacity, getMaxUploadFileSizeKB(data) * 1024L)
+    }
+
+    fun getMaxUploadFileSizeKB(data: DataTransferAreaDO): Int {
+      return data.maxUploadSizeKB ?: MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB
+    }
+
     const val MAX_FILE_SIZE_SPRING_PROPERTY = "projectforge.plugin.datatransfer.maxFileSize"
-    val EXPIRY_DAYS_VALUES = "plugins.datatransfer.expiryDays".let {
+    val EXPIRY_DAYS_VALUES = "duration.days".let {
       mapOf(
-        1 to "$it.day",
-        3 to "$it.days",
-        7 to "$it.days",
-        14 to "$it.days",
-        30 to "$it.days",
-        60 to "$it.days",
-        90 to "$it.days",
-        180 to "$it.days",
-        365 to "$it.days"
+        1 to "$it.one",
+        3 to it,
+        7 to it,
+        14 to it,
+        30 to it,
+        60 to it,
+        90 to it,
+        180 to it,
+        365 to it
       )
     }
     private const val MB = 1024
@@ -335,9 +352,34 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     val MAX_UPLOAD_SIZE_VALUES =
       arrayOf(20 * MB, 50 * MB, 100 * MB, 200 * MB, 500 * MB, GB, 1536 * MB, 2 * GB, 3 * GB, 5 * GB, 10 * GB)
 
-    private const val MAX_UPLOAD_SIZE_DEFAULT_VALUE = 100 * MB
+    const val MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB = 100 * MB
 
     const val ACCESS_TOKEN_LENGTH = 30
     const val PASSWORD_LENGTH = 6
+
+    /**
+     * External (anonymous user are marked by this prefix), needed for internationalization.
+     */
+    const val EXTERNAL_USER_PREFIX = "#EXTERNAL#:"
+
+
+    internal fun getExternalUserString(request: HttpServletRequest, userString: String?): String {
+      return "${EXTERNAL_USER_PREFIX}${RestUtils.getClientIp(request)} ('${userString?.take(255) ?: "???"}')"
+    }
+
+    internal fun getTranslatedUserString(user: PFUserDO?, externalUser: String?, locale: Locale? = null): String {
+      if (user != null) {
+        return user.getFullname()
+      }
+      if (externalUser != null) {
+        if (externalUser.startsWith(DataTransferAreaDao.EXTERNAL_USER_PREFIX)) {
+          val marker = translate(locale, "plugins.datatransfer.external.userPrefix")
+          return "${externalUser.removePrefix(EXTERNAL_USER_PREFIX)}, $marker"
+        } else {
+          return externalUser // Shouldn't occur (only, if EXTERNAL_USER_PREFIX was changed).
+        }
+      }
+      return ""
+    }
   }
 }

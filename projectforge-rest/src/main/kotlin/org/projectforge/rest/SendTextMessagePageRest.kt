@@ -44,59 +44,75 @@ private const val USER_PREF_KEY_RECENTS = "messagingReceivers"
 @RestController
 @RequestMapping("${Rest.URL}/sendTextMessage")
 class SendTextMessagePageRest {
-    @Autowired
-    private lateinit var addressDao: AddressDao
+  @Autowired
+  private lateinit var addressDao: AddressDao
 
-    @Autowired
-    private lateinit var configurationService: ConfigurationService
+  @Autowired
+  private lateinit var configurationService: ConfigurationService
 
-    @Autowired
-    private lateinit var smsSenderConfig: SmsSenderConfig
+  @Autowired
+  private lateinit var smsSenderConfig: SmsSenderConfig
 
-    @Autowired
-    private lateinit var userPrefService: UserPrefService
+  @Autowired
+  private lateinit var userPrefService: UserPrefService
 
-    class Data(var message: String? = null,
-               var phoneNumber: String? = null)
+  class Data(
+    var message: String? = null,
+    var phoneNumber: String? = null
+  )
 
-    @GetMapping("dynamic")
-    fun getForm(): FormLayoutData {
-        val layout = UILayout("address.sendSms.title")
-        val lc = LayoutContext(Data::class.java)
+  @GetMapping("dynamic")
+  fun getForm(): FormLayoutData {
+    val layout = UILayout("address.sendSms.title")
+    val lc = LayoutContext(Data::class.java)
 
-        val buttonCol = UICol(6)
-        buttonCol.add(UIButton("send", translate("send"),
-                UIColor.SUCCESS,
-                responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java, absolute = true))))
-        val numberField = UISelect<String>("cellPhoneNumber", lc,
-                label = translate("address.sendSms.phoneNumber"),
-                tooltip = translate("address.sendSms.phoneNumber.info"),
-                autoCompletion = AutoCompletion<String>(url = "address/acLang?search=:search"))
-        layout.add(UIFieldset(12)
-                .add(UIRow()
-                        .add(UICol(UILength(md = 6, sm = 12))
-                                .add(numberField)
-                                .add(UICol(UILength(md = 6, sm = 12))
-                                        .add(UITextArea("message", lc, label = translate("address.sendSms.message"))))))
-                .add(UIRow().add(buttonCol)))
+    val buttonCol = UICol(6)
+    buttonCol.add(
+      UIButton.createDefaultButton(
+        "send", title = "send",
+        responseAction = ResponseAction(PagesResolver.getEditPageUrl(VacationPagesRest::class.java, absolute = true))
+      )
+    )
+    val numberField = UISelect<String>(
+      "cellPhoneNumber", lc,
+      label = translate("address.sendSms.phoneNumber"),
+      tooltip = translate("address.sendSms.phoneNumber.info"),
+      autoCompletion = AutoCompletion<String>(url = "address/acLang?search=:search")
+    )
+    layout.add(
+      UIFieldset(12)
+        .add(
+          UIRow()
+            .add(
+              UICol(UILength(md = 6, sm = 12))
+                .add(numberField)
+                .add(
+                  UICol(UILength(md = 6, sm = 12))
+                    .add(UITextArea("message", lc, label = translate("address.sendSms.message")))
+                )
+            )
+        )
+        .add(UIRow().add(buttonCol))
+    )
 
-        LayoutUtils.process(layout)
+    LayoutUtils.process(layout)
 
-        return FormLayoutData(null, layout, null)
+    return FormLayoutData(null, layout, null)
+  }
+
+  protected fun getRecentSearchTermsQueue(): RecentQueue<String> {
+    @Suppress("UNCHECKED_CAST")
+    var recentSearchTermsQueue =
+      userPrefService.getEntry("address", USER_PREF_KEY_RECENTS, RecentQueue::class.java) as? RecentQueue<String>
+    if (recentSearchTermsQueue == null) {
+      recentSearchTermsQueue = RecentQueue<String>()
+      userPrefService.putEntry("address", USER_PREF_KEY_RECENTS, recentSearchTermsQueue, true)
     }
+    return recentSearchTermsQueue
+  }
 
-    protected fun getRecentSearchTermsQueue(): RecentQueue<String> {
-        @Suppress("UNCHECKED_CAST")
-        var recentSearchTermsQueue = userPrefService.getEntry("address", USER_PREF_KEY_RECENTS, RecentQueue::class.java) as? RecentQueue<String>
-        if (recentSearchTermsQueue == null) {
-            recentSearchTermsQueue = RecentQueue<String>()
-            userPrefService.putEntry("address", USER_PREF_KEY_RECENTS, recentSearchTermsQueue, true)
-        }
-        return recentSearchTermsQueue
-    }
-
-    fun getInitalMessageText(): String? {
-        return "${ThreadLocalUserContext.getUser()?.getFullname()}. ${translate("address.sendSms.doNotReply")}"
-    }
+  fun getInitalMessageText(): String? {
+    return "${ThreadLocalUserContext.getUser()?.getFullname()}. ${translate("address.sendSms.doNotReply")}"
+  }
 
 }

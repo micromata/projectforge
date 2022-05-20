@@ -80,7 +80,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
       return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
     }
     log.info { "The user wants to change his password." }
-    val errorMsgKeys = userService.changePassword(userDao.getById(data.userId), data.oldPassword, data.newPassword)
+    val errorMsgKeys = userService.changePassword(data.userId, data.oldPassword, data.newPassword)
     data.clear() // Clear all passwords, if not already done, due to security reasons.
     processErrorKeys(errorMsgKeys)?.let {
       return it // Error messages occured:
@@ -124,21 +124,10 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     layout.add(oldPassword)
       .add(newPassword)
       .add(passwordRepeat)
+      .addAction(UIButton.createCancelButton())
       .addAction(
-        UIButton(
-          "cancel",
-          translate("cancel"),
-          UIColor.DANGER,
-          responseAction = ResponseAction(PagesResolver.getDefaultUrl(), targetType = TargetType.REDIRECT)
-        )
-      )
-      .addAction(
-        UIButton(
-          "update",
-          translate("update"),
-          UIColor.SUCCESS,
+        UIButton.createUpdateButton(
           responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
-          default = true
         )
       )
     LayoutUtils.process(layout)

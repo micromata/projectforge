@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.todo.rest
 
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.plugins.todo.ToDoDO
 import org.projectforge.plugins.todo.ToDoDao
 import org.projectforge.rest.config.Rest
@@ -46,12 +47,12 @@ class ToDoPagesRest() : AbstractDOPagesRest<ToDoDO, ToDoDao>(ToDoDao::class.java
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "modified", "subject", "assignee", "reporter", "dueDate", "status",
                                 "priority", "type", "task", "group", "description"))
-        layout.getTableColumnById("group").formatter = Formatter.GROUP
+        layout.getTableColumnById("group").formatter = UITableColumn.Formatter.GROUP
         return LayoutUtils.processListPage(layout, this)
     }
 

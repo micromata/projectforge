@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberFormatter
@@ -80,7 +81,7 @@ class LayoutListFilterUtils {
 
       elements.add(
         UIFilterListElement(
-          "pageSize",
+          MagicFilter.PAGINATION_PAGE_SIZE,
           pageValues,
           translate("label.pageSize"),
           multi = false,
@@ -96,15 +97,15 @@ class LayoutListFilterUtils {
           log.warn("Search field '${baseDao.doClass}.$it' not found. Ignoring it.")
         } else {
           val element: UIElement
-          if (elInfo.propertyType.isEnum) {
+          if (elInfo.propertyClass.isEnum) {
             @Suppress("UNCHECKED_CAST")
             element = UIFilterListElement(it)
-              .buildValues(i18nEnum = elInfo.propertyType as Class<out Enum<*>>)
+              .buildValues(i18nEnum = elInfo.propertyClass as Class<out Enum<*>>)
             element.label = element.id // Default label if no translation will be found below.
           } else {
             element = UIFilterElement(it)
             element.label = element.id // Default label if no translation will be found below.
-            element.determine(elInfo.propertyType)
+            element.determine(elInfo.propertyClass)
           }
           element as UILabelledElement
           element.label = getLabel(elInfo)

@@ -73,7 +73,7 @@ public class ExDateConverter extends PropertyConverter
   @Override
   public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
   {
-    PropertyList exDateProperties = vEvent.getProperties(Property.EXDATE);
+    PropertyList<? extends Property> exDateProperties = vEvent.getProperties(Property.EXDATE);
 
     if (exDateProperties != null) {
       final boolean isAllDay = this.isAllDay(vEvent);

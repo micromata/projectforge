@@ -31,6 +31,8 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.servlet.http.HttpServlet;
+
 @Configuration
 public class ProjectForgeRestConfiguration {
   /**
@@ -45,9 +47,9 @@ public class ProjectForgeRestConfiguration {
   public static final String REST_WEB_APP_PUBLIC_URL = Rest.PUBLIC_URL + "/";
 
   @Bean
-  public ServletRegistrationBean privateJersey() {
-    ServletRegistrationBean privateJersey
-        = new ServletRegistrationBean(new ServletContainer(new RestPrivateConfiguration()));
+  public ServletRegistrationBean<HttpServlet> privateJersey() {
+    ServletRegistrationBean<HttpServlet> privateJersey
+        = new ServletRegistrationBean<HttpServlet>(new ServletContainer(new RestPrivateConfiguration()));
     privateJersey.addUrlMappings("/" + RestPaths.OLD_REST + "/*");
     privateJersey.setName("RestPrivate");
     privateJersey.setLoadOnStartup(0);

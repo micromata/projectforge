@@ -30,6 +30,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
+import org.projectforge.Constants
 import org.projectforge.business.fibu.AbstractRechnungsPositionDO
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.business.fibu.EmployeeSalaryDO
@@ -37,7 +38,6 @@ import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.utils.Constants
 import org.projectforge.framework.utils.CurrencyHelper
 import java.math.BigDecimal
 import javax.persistence.*

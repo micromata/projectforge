@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.kost.BuchungssatzDao;
 import org.projectforge.business.fibu.kost.BuchungssatzFilter;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.xmlstream.XStreamHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -51,8 +52,7 @@ public class ReportDao {
   private BuchungssatzDao buchungssatzDao;
 
   public ReportDao() {
-    xstream = new XStream();
-    xstream.processAnnotations(ReportObjective.class);
+    xstream = XStreamHelper.createXStream(ReportObjective.class);
   }
 
   /**
@@ -64,7 +64,7 @@ public class ReportDao {
    */
   public Report createReport(InputStream reportObjectiveAsXml) {
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP);
+        ProjectForgeGroup.CONTROLLING_GROUP);
     ReportObjective reportObjective = deserializeFromXML(reportObjectiveAsXml);
 
     if (reportObjective == null) {
@@ -83,7 +83,7 @@ public class ReportDao {
    */
   public Report createReport(String reportObjectiveAsXml) {
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP);
+        ProjectForgeGroup.CONTROLLING_GROUP);
     ReportObjective reportObjective = deserializeFromXML(reportObjectiveAsXml);
     Report report = new Report(reportObjective);
     return report;
@@ -98,7 +98,7 @@ public class ReportDao {
    */
   public void loadReport(Report report) {
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP);
+        ProjectForgeGroup.CONTROLLING_GROUP);
     final BuchungssatzFilter filter = new BuchungssatzFilter();
     filter.setFromYear(report.getFromYear());
     filter.setFromMonth(report.getFromMonth());

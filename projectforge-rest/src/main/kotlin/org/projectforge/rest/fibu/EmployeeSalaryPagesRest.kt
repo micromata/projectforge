@@ -25,12 +25,14 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.EmployeeSalaryDO
 import org.projectforge.business.fibu.EmployeeSalaryDao
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.EmployeeSalary
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/employeeSalary")
@@ -54,8 +56,8 @@ class EmployeeSalaryPagesRest
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "month")
                         .add(UITableColumn("fibu.employee.user.lastname", "name"))

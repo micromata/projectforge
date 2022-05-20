@@ -33,7 +33,7 @@ function CheckBox(
                     />
                     <span
                         className={classNames(style.text, style[color])}
-                        id={`checkbox-label-${id}`}
+                        id={`checkbox-label-${String.idify(id)}`}
                     >
                         {label}
                         {tooltip && <TooltipIcon />}
@@ -42,7 +42,7 @@ function CheckBox(
                 <AdditionalLabel title={additionalLabel} />
             </div>
             {tooltip && (
-                <UncontrolledTooltip placement="auto" target={`checkbox-label-${id}`}>
+                <UncontrolledTooltip placement="auto" target={`checkbox-label-${String.idify(id)}`}>
                     {tooltip}
                 </UncontrolledTooltip>
             )}

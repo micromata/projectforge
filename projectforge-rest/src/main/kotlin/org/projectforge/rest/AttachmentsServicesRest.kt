@@ -28,10 +28,16 @@ import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.jcr.*
+import org.projectforge.framework.jcr.Attachment
+import org.projectforge.framework.jcr.AttachmentsAccessChecker
+import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
+import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.jcr.*
+import org.projectforge.jcr.FileInfo
+import org.projectforge.jcr.FileObject
+import org.projectforge.jcr.ZipMode
+import org.projectforge.jcr.ZipUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -51,6 +57,7 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -86,6 +93,13 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     lateinit var attachment: Attachment
   }
 
+  class FileListData(
+    var category: String? = null,
+    var id: Int? = null,
+    var fileIds: Array<String>? = null,
+    var listId: String? = null,
+  )
+
   class ResponseData(var attachments: List<Attachment>?)
 
   /**
@@ -113,7 +127,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
 
   @PostMapping("modify")
   fun modify(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentData>)
-      : ResponseEntity<*>? {
+      : ResponseEntity<*> {
     validateCsrfToken(request, postData)?.let { return it }
     val data = postData.data
     val category = data.category
@@ -127,14 +141,43 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       pagesRest.jcrPath!!, data.fileId, pagesRest.baseDao, obj, attachment.name, attachment.description,
       pagesRest.attachmentsAccessChecker, data.listId
     )
-    val list =
-      attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
     val actionListener = getListener(category)
-    return actionListener.afterModification(attachment, obj, pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, listId)
+    return actionListener.afterModification(
+      attachment,
+      obj,
+      pagesRest.jcrPath!!,
+      pagesRest.attachmentsAccessChecker,
+      listId
+    )
+  }
+
+  @PostMapping("delete")
+  fun delete(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentData>)
+      : ResponseEntity<*> {
+    validateCsrfToken(request, postData)?.let { return it }
+    val data = postData.data
+    val category = data.category
+    val pagesRest = getPagesRest(data.category, data.listId)
+    val obj = getDataObject(pagesRest, data.id) // Check data object availability.
+    attachmentsService.deleteAttachment(
+      pagesRest.jcrPath!!,
+      data.fileId,
+      pagesRest.baseDao,
+      obj,
+      pagesRest.attachmentsAccessChecker,
+      data.listId
+    )
+    val actionListener = getListener(category)
+    return actionListener.afterDeletion(
+      obj,
+      pagesRest.jcrPath!!,
+      pagesRest.attachmentsAccessChecker,
+      data.listId,
+    )
   }
 
   @PostMapping("encrypt")
-  fun encrypt(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentData>)
+  fun encrypt(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>)
       : Any? {
     validateCsrfToken(request, postData)?.let { return it }
     val password = postData.data.attachment.password
@@ -199,17 +242,23 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       data.listId,
       encryptionInProgress = true,
     )
-    val list =
-      attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
+    val actionListener = getListener(data.category)
+    val obj = getDataObject(pagesRest, data.id) // Check data object availability.
     return ResponseEntity.ok()
       .body(
         ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-          .addVariable("data", ResponseData(list))
+          .addVariable(
+            "data",
+            actionListener.createResponseData(obj, pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, data.listId)
+          )
       )
   }
 
   @PostMapping("testDecryption")
-  fun testDecryption(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentData>)
+  fun testDecryption(
+    request: HttpServletRequest,
+    @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>
+  )
       : Any {
     validateCsrfToken(request, postData)?.let { return it }
     val result = prepareEncryption(postData)
@@ -233,7 +282,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     )
   }
 
-  private fun prepareEncryption(postData: PostData<AttachmentData>): MyResult {
+  private fun prepareEncryption(postData: PostData<AttachmentsServicesRest.AttachmentData>): MyResult {
     val data = postData.data
     val attachment = data.attachment
     val pagesRest = getPagesRest(data.category, data.listId)
@@ -269,8 +318,8 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     @PathVariable("listId") listId: String?,
     @RequestParam("file") file: MultipartFile
   )
-//@RequestParam("files") files: Array<MultipartFile>)
-      : ResponseEntity<*>? {
+      : ResponseEntity<*> {
+    //@RequestParam("files") files: Array<MultipartFile>) // Multiple file handling is done by client.
     val pagesRest = getPagesRest(category, listId)
     //files.forEach { file ->
     val filename = file.originalFilename
@@ -285,7 +334,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     val obj = getDataObject(pagesRest, id) // Check data object availability.
     val fileInfo = FileInfo(file.originalFilename, fileSize = file.size)
     val actionListener = getListener(category)
-    actionListener.onUpload(fileInfo, obj)?.let {
+    actionListener.onBeforeUpload(fileInfo, obj)?.let {
       return it
     }
     val attachment = attachmentsService.addAttachment(
@@ -301,31 +350,6 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     return actionListener.afterUpload(attachment, obj, pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, listId)
   }
 
-  @PostMapping("delete")
-  fun delete(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentData>)
-      : ResponseEntity<ResponseAction>? {
-    validateCsrfToken(request, postData)?.let { return it }
-    val data = postData.data
-    val pagesRest = getPagesRest(data.category, data.listId)
-    val obj = getDataObject(pagesRest, data.id) // Check data object availability.
-    attachmentsService.deleteAttachment(
-      pagesRest.jcrPath!!,
-      data.fileId,
-      pagesRest.baseDao,
-      obj,
-      pagesRest.attachmentsAccessChecker,
-      data.listId
-    )
-    val list =
-      attachmentsService.getAttachments(pagesRest.jcrPath!!, data.id, pagesRest.attachmentsAccessChecker, data.listId)
-        ?: emptyList() // Client needs empty list to update data of attachments.
-    return ResponseEntity.ok()
-      .body(
-        ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-          .addVariable("data", ResponseData(list))
-      )
-  }
-
   @GetMapping("download/{category}/{id}")
   fun download(
     @PathVariable("category", required = true) category: String,
@@ -334,11 +358,17 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     @RequestParam("listId") listId: String?
   )
       : ResponseEntity<InputStreamResource> {
+
     log.info { "User tries to download attachment: ${paramsToString(category, id, fileId, listId)}." }
     val pagesRest = getPagesRest(category, listId)
 
     val result =
-      attachmentsService.getAttachmentInputStream(pagesRest.jcrPath!!, id, fileId, pagesRest.attachmentsAccessChecker)
+      attachmentsService.getAttachmentInputStream(
+        pagesRest.jcrPath!!,
+        id,
+        fileId,
+        pagesRest.attachmentsAccessChecker,
+      )
         ?: throw TechnicalException(
           "File to download not accessible for user or not found: ${
             paramsToString(
@@ -349,10 +379,85 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
             )
           }."
         )
-
     val filename = result.first.fileName ?: "file"
     val inputStream = result.second
     return RestUtils.downloadFile(filename, inputStream)
+  }
+
+  /**
+   * @param fileIds csv of fileIds of attachments to download. For preserving url length, fileIds may also be shortened
+   * (e. g. first 4 chars).
+   */
+  @GetMapping("multiDownload/{category}/{id}")
+  fun multiDownload(
+    response: HttpServletResponse,
+    @PathVariable("category", required = true) category: String,
+    @PathVariable("id", required = true) id: Int,
+    @RequestParam("fileIds", required = true) fileIds: String,
+    @RequestParam("listId") listId: String?
+  ) {
+    val pagesRest = getPagesRest(category, listId)
+    log.info { "User tries to download multiple attachments: ${paramsToString(category, id, fileIds, listId)}." }
+    val fileIdList = fileIds.split(",")
+    val attachments = attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker)
+      ?.filter { attachment ->
+        fileIdList.any { attachment.fileId?.startsWith(it) == true }
+      }
+    val actionListener = getListener(category)
+    val obj = getDataObject(pagesRest, id) // Check data object availability.
+    val basefilename = actionListener.createDownloadBasefileName(obj)
+    AttachmentsRestUtils.multiDownload(
+      response,
+      attachmentsService,
+      pagesRest.attachmentsAccessChecker,
+      basefilename,
+      pagesRest.jcrPath!!,
+      id,
+      attachments,
+    )
+  }
+
+  @PostMapping("multiDelete")
+  fun multiDelete(request: HttpServletRequest, @RequestBody postData: PostData<FileListData>)
+      : ResponseEntity<ResponseAction>? {
+    validateCsrfToken(request, postData)?.let {
+      return it
+    }
+    val data = postData.data
+    val category = data.category
+    val id = data.id
+    val listId = data.listId
+    val fileIds = data.fileIds
+    requireNotNull(category)
+    requireNotNull(id)
+    requireNotNull(fileIds)
+    log.info { "User tries to delete attachments: ${paramsToString(category, id, fileIds, listId)}." }
+    val pagesRest = getPagesRest(category, listId)
+    val obj = getDataObject(pagesRest, id) // Check data object availability.
+    val selectedAttachments =
+      attachmentsService.getAttachments(pagesRest.jcrPath!!, id, pagesRest.attachmentsAccessChecker)
+        ?.filter { fileIds.contains(it.fileId) }
+    selectedAttachments?.forEach {
+      it.fileId?.let { fileId ->
+        attachmentsService.deleteAttachment(
+          pagesRest.jcrPath!!,
+          fileId,
+          pagesRest.baseDao,
+          obj,
+          pagesRest.attachmentsAccessChecker,
+          data.listId
+        )
+      }
+    }
+    val actionListener = getListener(category)
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.UPDATE, merge = true)
+          .addVariable(
+            "data",
+            actionListener.createResponseData(obj, pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, data.listId)
+          )
+      )
   }
 
   internal fun getPagesRest(
@@ -372,7 +477,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
   fun getAttachment(
     jcrPath: String,
     attachmentsAccessChecker: AttachmentsAccessChecker,
-    data: AttachmentData
+    data: AttachmentsServicesRest.AttachmentData
   ): Attachment {
     return attachmentsService.getAttachmentInfo(
       jcrPath,
@@ -387,7 +492,10 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
       )
   }
 
-  internal fun getAttachment(pagesRest: AbstractPagesRest<*, *, *>, data: AttachmentData): Attachment {
+  internal fun getAttachment(
+    pagesRest: AbstractPagesRest<*, *, *>,
+    data: AttachmentsServicesRest.AttachmentData
+  ): Attachment {
     return getAttachment(pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, data)
   }
 
@@ -404,6 +512,10 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     return "category='$category', id='$id', fileId='$fileId', listId='$listId'"
   }
 
+  private fun paramsToString(category: String, id: Any, fileIds: Array<String>, listId: String?): String {
+    return "category='$category', id='$id', fileIds='${fileIds.joinToString()}', listId='$listId'"
+  }
+
   private class MyResult(
     val responseAction: ResponseAction? = null,
     val inputStream: InputStream? = null,
@@ -415,6 +527,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
 
   companion object {
     internal const val REST_PATH = "${Rest.URL}/attachments"
+
     @JvmStatic
     fun getDownloadUrl(attachment: Attachment, category: String, id: Any, listId: String? = null): String {
       val listIdParam = if (listId.isNullOrBlank()) "" else "&listId=$listId"

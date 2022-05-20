@@ -184,7 +184,7 @@ open class PluginAdminService {
   companion object {
     const val PLUGIN_DATA_TRANSFER_ID = "datatransfer"
     const val PLUGIN_LICENSE_MANAGEMENT_ID = "licenseManagementPlugin"
-    const val PLUGIN_LIQUIDITY_PLANNING_ID = "liquididityplanning"
+    const val PLUGIN_LIQUIDITY_PLANNING_ID = "liquidityplanning"
     const val PLUGIN_MEMO_ID = "memo"
     const val PLUGIN_MERLIN_ID = "merlin"
     const val PLUGIN_SKILL_MATRIX_ID = "skillmatrix"

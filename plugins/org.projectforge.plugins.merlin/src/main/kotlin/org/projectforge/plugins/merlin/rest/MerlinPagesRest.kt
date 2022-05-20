@@ -23,10 +23,10 @@
 
 package org.projectforge.plugins.merlin.rest
 
-import org.projectforge.SystemStatus
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -65,9 +65,6 @@ class MerlinPagesRest :
 
   @Autowired
   private lateinit var merlinHandler: MerlinHandler
-
-  @Autowired
-  private lateinit var merlinRunner: MerlinRunner
 
   @Autowired
   private lateinit var merlinTemplateDefinitionHandler: MerlinTemplateDefinitionHandler
@@ -124,8 +121,8 @@ class MerlinPagesRest :
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(): UILayout {
-    val layout = super.createListLayout()
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+    val layout = super.createListLayout(request, magicFilter)
       .add(
         UITable.createUIResultSetTable()
           .add(lc, "created", "modified", "name", "description")
@@ -339,10 +336,9 @@ class MerlinPagesRest :
             .add(
               UICol()
                 .add(
-                  UIButton(
+                  UIButton.createDefaultButton(
                     "add",
-                    title = translate("plugins.merlin.variable.add"),
-                    color = UIColor.SECONDARY,
+                    title = "plugins.merlin.variable.add",
                     responseAction = ResponseAction(
                       RestResolver.getRestUrl(
                         MerlinVariablePageRest::class.java,
@@ -415,14 +411,20 @@ class MerlinPagesRest :
         )
         .add(
           UIFieldset(title = "attachment.list")
-            .add(UIAttachmentList(instance.category, dto.id))
+            .add(
+              UIAttachmentList(
+                instance.category,
+                dto.id,
+                maxSizeInKB = instance.attachmentsAccessChecker.fileSizeChecker.maxFileSizeKB,
+              )
+            )
         )
+
       layout.add(
-        UIButton(
+        UIButton.createExportButton(
           "exportExcelTemplate",
-          title = translate("plugins.merlin.exportExcelTemplate"),
+          title = "plugins.merlin.exportExcelTemplate",
           tooltip = "plugins.merlin.exportExcelTemplate.info",
-          color = UIColor.LINK,
           responseAction = ResponseAction(
             RestResolver.getRestUrl(
               instance.javaClass,

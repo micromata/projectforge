@@ -102,7 +102,7 @@ public class ExportCell
     if (poiCell == null) {
       return null;
     }
-    switch (poiCell.getCellTypeEnum()) {
+    switch (poiCell.getCellType()) {
       case STRING:
         return poiCell.getRichStringCellValue().getString();
       case NUMERIC:
@@ -124,7 +124,7 @@ public class ExportCell
     if (poiCell == null) {
       return false;
     }
-    return poiCell.getCellTypeEnum() == CellType.NUMERIC;
+    return poiCell.getCellType() == CellType.NUMERIC;
   }
 
   public Date getDateCellValue()

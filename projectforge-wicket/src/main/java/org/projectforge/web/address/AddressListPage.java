@@ -42,12 +42,14 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.*;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.rest.AddressViewPageRest;
 import org.projectforge.sms.SmsSenderConfig;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.*;
@@ -64,6 +66,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+/**
+ *
+ */
 @ListPage(editPage = AddressEditPage.class)
 public class AddressListPage extends AbstractListPage<AddressListForm, AddressDao, AddressDO>
         implements IListPageColumnsCreator<AddressDO> {
@@ -161,10 +166,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
 
                   @Override
                   public void onClick() {
-                    final PageParameters params = new PageParameters();
-                    params.add(AbstractEditPage.PARAMETER_KEY_ID, address.getId());
-                    final AddressViewPage addressViewPage = new AddressViewPage(params);
-                    setResponsePage(addressViewPage);
+                    throw new RedirectToUrlException(AddressViewPageRest.getPageUrl(address.getId()));
                   }
                 }));
         addRowClick(item);

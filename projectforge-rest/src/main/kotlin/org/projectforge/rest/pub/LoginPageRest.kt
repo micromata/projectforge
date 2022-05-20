@@ -24,7 +24,7 @@
 package org.projectforge.rest.pub
 
 import mu.KotlinLogging
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
@@ -33,12 +33,13 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.login.LoginData
 import org.projectforge.login.LoginService
-import org.projectforge.rest.My2FAServicesRest
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.ServerData
+import org.projectforge.rest.my2fa.My2FAServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -62,7 +63,7 @@ open class LoginPageRest {
   private lateinit var my2FAServicesRest: My2FAServicesRest
 
   /**
-   * @param via url the caller can modify the url to redirect after login (used by WicketUtils).
+   * @param url the caller can modify the url to redirect after login (used by WicketUtils).
    */
   @GetMapping("dynamic")
   fun getForm(
@@ -72,7 +73,7 @@ open class LoginPageRest {
     val userContext = LoginService.getUserContext(request)
     val form = if (userContext != null) {
       if (userContext.new2FARequired) {
-        return get2FALayout(userContext, url)
+        return get2FALayout(request, userContext, url)
       }
       // User is already logged-in:
       UILayout("login.title")
@@ -158,12 +159,19 @@ open class LoginPageRest {
         )
       )
       .add(
-        UIButton(
-          "login",
-          translate("login"),
-          UIColor.SUCCESS,
-          responseAction = responseAction,
-          default = true
+        UIButton.createDefaultButton("login", responseAction = responseAction)
+      )
+      .add(
+        UIButton.createLinkButton(
+          id ="passwordForgotten",
+          title ="password.forgotten.link",
+          responseAction = ResponseAction(
+            PagesResolver.getDynamicPageUrl(
+              PasswordForgottenPageRest::
+              class.java, absolute = true
+            ),
+            targetType = TargetType.REDIRECT
+          ),
         )
       )
 
@@ -178,10 +186,10 @@ open class LoginPageRest {
     return layout
   }
 
-  private fun get2FALayout(userContext: UserContext, url: String?): FormLayoutData {
+  private fun get2FALayout(request: HttpServletRequest, userContext: UserContext, url: String?): FormLayoutData {
     val layout = UILayout("login.title")
     val data = LoginData()
-    my2FAServicesRest.fillLayout4LoginPage(layout, userContext, url)
+    my2FAServicesRest.fillLayout4PublicPage(layout, userContext, redirectUrl = url)
     LayoutUtils.process(layout)
     return FormLayoutData(data, layout, ServerData(returnToCaller = url))
   }
@@ -192,8 +200,8 @@ open class LoginPageRest {
       val returnToCaller = serverData?.returnToCaller
       if (!returnToCaller.isNullOrBlank()) {
         redirect = URLDecoder.decode(returnToCaller, "UTF-8")
-      } else if (request.getHeader("Referer").contains("/public/login")) {
-        redirect = "/${Const.REACT_APP_PATH}calendar"
+      } else if (request.getHeader("Referer")?.contains("/public/login") == true) {
+        redirect = "/${Constants.REACT_APP_PATH}calendar"
       }
       // redirect might be "null" (string):
       return if (redirect.isNullOrBlank() || redirect == "null") null else redirect

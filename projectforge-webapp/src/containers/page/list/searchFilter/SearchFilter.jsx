@@ -56,7 +56,6 @@ function SearchFilter(props) {
 
     return (
         <>
-            <h4 className={styles.uiTitle}>{ui.title}</h4>
             <div className={styles.searchRow}>
                 {/* FLEX-BOX IS SET TO REVERSE ON BIG SCREENS */}
                 <div className={classNames(styles.container, styles.flex)}>

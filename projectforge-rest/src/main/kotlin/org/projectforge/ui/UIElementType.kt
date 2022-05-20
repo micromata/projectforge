@@ -29,6 +29,9 @@ enum class UIElementType {
      * Attachments including list view, downloading, uploading and deleting files.
      */
     ATTACHMENT_LIST,
+    AG_GRID,
+    AG_GRID_LIST_PAGE,
+    AG_GRID_COLUMN_DEF,
     BADGE,
     BADGE_LIST,
     BUTTON,
@@ -49,6 +52,7 @@ enum class UIElementType {
     READONLY_FIELD,
     RATING,
     ROW,
+    SPACER,
     SELECT,
     TABLE,
     TABLE_LIST_PAGE,

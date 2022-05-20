@@ -37,6 +37,7 @@ import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.annotation.PostConstruct
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/order")
@@ -65,8 +66,8 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(): UILayout {
-    val layout = super.createListLayout()
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+    val layout = super.createListLayout(request, magicFilter)
       .add(
         UITable.createUIResultSetTable()
           .add(lc, "nummer")
@@ -105,10 +106,10 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
           .add(UITableColumn("formattedZuFakturierenSum", title = "fibu.tobeinvoiced"))
           .add(lc, "periodOfPerformanceBegin", "periodOfPerformanceEnd", "probabilityOfOccurrence", "auftragsStatus")
       )
-    layout.getTableColumnById("erfassungsDatum").formatter = Formatter.DATE
-    layout.getTableColumnById("entscheidungsDatum").formatter = Formatter.DATE
-    layout.getTableColumnById("periodOfPerformanceBegin").formatter = Formatter.DATE
-    layout.getTableColumnById("periodOfPerformanceEnd").formatter = Formatter.DATE
+    layout.getTableColumnById("erfassungsDatum").formatter = UITableColumn.Formatter.DATE
+    layout.getTableColumnById("entscheidungsDatum").formatter = UITableColumn.Formatter.DATE
+    layout.getTableColumnById("periodOfPerformanceBegin").formatter = UITableColumn.Formatter.DATE
+    layout.getTableColumnById("periodOfPerformanceEnd").formatter = UITableColumn.Formatter.DATE
     return LayoutUtils.processListPage(layout, this)
   }
 
@@ -204,7 +205,11 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
       )
       .add(
         UIFieldset(title = "attachment.list")
-          .add(UIAttachmentList(category, dto.id))
+          .add(
+            UIAttachmentList(
+              category, dto.id, maxSizeInKB = getMaxFileSizeKB()
+            )
+          )
       )
     //layout.enableHistoryBackButton()
     return LayoutUtils.processEditPage(layout, dto, this)

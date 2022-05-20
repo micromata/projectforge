@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -33,6 +34,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/group")
@@ -67,8 +69,8 @@ class GroupPagesRest: AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::c
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "name", "organization", "description", "assignedUsers", "ldapValues"))
         return LayoutUtils.processListPage(layout, this)

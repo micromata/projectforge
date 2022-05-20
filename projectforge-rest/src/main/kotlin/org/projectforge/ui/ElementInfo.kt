@@ -23,12 +23,13 @@
 
 package org.projectforge.ui
 
+import org.projectforge.common.props.PropertyType
 import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
 
 class ElementInfo(val propertyName: String,
                   propertyField: Field? = null,
-                  propertyType: Class<*>? = null,
+                  propertyClass: Class<*>? = null,
                   var maxLength: Int? = null,
                   var required: Boolean? = null,
                   /**
@@ -36,6 +37,7 @@ class ElementInfo(val propertyName: String,
                    */
                   var readOnly: Boolean = false,
                   var i18nKey: String? = null,
+                  var propertyType: PropertyType? = null,
                   var additionalI18nKey: String? = null,
                   var tooltipI18nKey: String? = null,
                   /**
@@ -43,14 +45,14 @@ class ElementInfo(val propertyName: String,
                    */
                   var parent: ElementInfo? = null) {
 
-    var propertyType: Class<*> = String::class.java
+    var propertyClass: Class<*> = String::class.java
 
     private var propertyField: Field? = null
         set(value) {
             field = value
             genericType = null
             if (value != null) {
-                propertyType = value.type
+                propertyClass = value.type
                 val type = value.genericType
                 if (type is ParameterizedType) {
                     val typeArg = type.actualTypeArguments[0]
@@ -63,8 +65,8 @@ class ElementInfo(val propertyName: String,
 
     init {
         this.propertyField = propertyField
-        if (propertyType != null)
-            this.propertyType = propertyType
+        if (propertyClass != null)
+            this.propertyClass = propertyClass
     }
 
     /**

@@ -31,13 +31,16 @@ enum class BookType(
          * @return
          */
         val key: String) : I18nEnum {
+    AUDIO_BOOK("audiobook"),
     BOOK("book"),
+    EBOOK("ebook"),
     MAGAZINE("magazine"),
     ARTICLE("article"),
     NEWSPAPER("newspaper"),
     PERIODICAL("periodical"),
     FILM("film"),
     SOFTWARE("software"),
+    THESIS("thesis"),
     MISC("misc");
 
     /**

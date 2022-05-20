@@ -50,7 +50,7 @@ class MerlinAttachmentsActionListener(
   /**
    * Allows only upload of Word and Excel documents.
    */
-  override fun onUpload(fileInfo: FileInfo, obj: ExtendedBaseDO<Int>): ResponseEntity<*>? {
+  override fun onBeforeUpload(fileInfo: FileInfo, obj: ExtendedBaseDO<Int>): ResponseEntity<*>? {
     return if (fileInfo.fileExtension != "docx" && fileInfo.fileExtension != "xlsx") {
       ResponseEntity.ok().body(
         UIToast.createToast(
