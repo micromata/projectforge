@@ -59,8 +59,7 @@ function HistoryEntry(
             onClick={() => setActive(!active)}
             role="button"
             tabIndex={-1}
-            onKeyDown={() => {
-            }}
+            onKeyDown={() => undefined}
         >
             <Row>
                 <Col>

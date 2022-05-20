@@ -19,7 +19,7 @@ function uploadFile(
     file: File,
     url: string,
     onProgress: (percentage: number) => void,
-    afterFileUpload: (file: File, response: string) => void,
+    afterFileUpload: (afterFile: File, response: string) => void,
 ) {
     const key = 'docs_upload_example_us_preset';
 

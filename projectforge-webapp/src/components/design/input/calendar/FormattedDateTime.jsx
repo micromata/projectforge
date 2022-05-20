@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 function FormattedDateTime(
     {
         date,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         dispatch,
         jsDateFormat,
         jsTimestampFormatMinutes,

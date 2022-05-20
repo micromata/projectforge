@@ -77,15 +77,17 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "@typescript-eslint/parser": "^5.25.0",
     "eslint": "^8.15.0",
-    "react-test-renderer": "^17.0.2",
-    "react-testing-library": "^8.0.1",
-    "sass": "^1.22.10",
-    "sass-loader": "^7.2.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jsx-a11y": "^6.5.1",
     "eslint-plugin-react": "^7.30.0",
-    "typescript": "^4.2.4"
+    "react-test-renderer": "^17.0.2",
+    "react-testing-library": "^8.0.1",
+    "sass": "^1.22.10",
+    "sass-loader": "^7.2.0",
+    "typescript": "^4.6.4"
   }
 }
