@@ -38,17 +38,15 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
 
-public class ICal4JUtilsTest
-{
+public class ICal4JUtilsTest {
 
   @Test
-  public void recurTests()
-  {
+  public void recurTests() {
     final TimeZone timeZone = DateHelper.EUROPE_BERLIN;
-    final Recur recur = new Recur();
-    recur.setFrequency(ICal4JUtils.getCal4JFrequencyString(RecurrenceFrequency.WEEKLY));
-    recur.setUntil(getDate("2013-01-31", timeZone));
-    recur.setInterval(2);
+    final Recur recur = new Recur.Builder()
+        .frequency(ICal4JUtils.getCal4JFrequency(RecurrenceFrequency.WEEKLY))
+        .until(getDate("2013-01-31", timeZone))
+        .interval(2).build();
     final DateList dateList = recur.getDates(getDate("2013-01-01", timeZone), getDate("2012-01-02", timeZone),
         getDate("2013-03-31", timeZone), Value.TIME);
     Assertions.assertEquals(3, dateList.size());
@@ -60,8 +58,7 @@ public class ICal4JUtilsTest
   }
 
   @Test
-  public void testSqlDate()
-  {
+  public void testSqlDate() {
     final net.fortuna.ical4j.model.Date date = ICal4JUtils.getICal4jDateTime(
         DateHelper.parseIsoDate("2012-12-22", DateHelper.EUROPE_BERLIN),
         DateHelper.EUROPE_BERLIN);
@@ -69,8 +66,7 @@ public class ICal4JUtilsTest
   }
 
   @Test
-  public void parseIsoDate()
-  {
+  public void parseIsoDate() {
     final java.util.Date date = ICal4JUtils.parseISODateString("2013-03-21 08:47:00");
     Assertions.assertNotNull(date);
     Assertions.assertEquals("2013-03-21 08:47:00", ICal4JUtils.asISODateTimeString(date));
@@ -79,22 +75,19 @@ public class ICal4JUtilsTest
     Assertions.assertNull(ICal4JUtils.asISODateTimeString(null));
   }
 
-  private net.fortuna.ical4j.model.Date getDate(final String dateString, final TimeZone timeZone)
-  {
+  private net.fortuna.ical4j.model.Date getDate(final String dateString, final TimeZone timeZone) {
     final java.util.Date date = DateHelper.parseIsoDate(dateString, timeZone);
     return ICal4JUtils.getICal4jDateTime(date, timeZone);
   }
 
   @Test
-  public void parseISODateStringsAsICal4jDates()
-  {
+  public void parseISODateStringsAsICal4jDates() {
     parseISODateStringsAsICal4jDates(DateHelper.EUROPE_BERLIN);
     parseISODateStringsAsICal4jDates(DateHelper.UTC);
     parseISODateStringsAsICal4jDates(TimeZone.getTimeZone("America/Los_Angeles"));
   }
 
-  private void parseISODateStringsAsICal4jDates(final TimeZone timeZone)
-  {
+  private void parseISODateStringsAsICal4jDates(final TimeZone timeZone) {
     // date and time
     final List<net.fortuna.ical4j.model.Date> dateTimes = ICal4JUtils.parseCSVDatesAsICal4jDates(
         "2013-03-21 08:47:00,20130327T090000", true,

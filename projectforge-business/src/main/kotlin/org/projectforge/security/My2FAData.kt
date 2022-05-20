@@ -23,8 +23,10 @@
 
 package org.projectforge.security
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.projectforge.common.anots.PropertyInfo
 
+@JsonIgnoreProperties(ignoreUnknown = true) // mobile phone etc. of setup data must be ignored.
 open class My2FAData {
   @PropertyInfo(i18nKey = "user.My2FACode.code", tooltip = "user.My2FACode.code.info")
   var code: String? = null
@@ -38,4 +40,9 @@ open class My2FAData {
    * Info string: last successful 2FA as human readable String (TimeAgo): "3 minutes ago"
    */
   var lastSuccessful2FA: String? = null
+
+  /**
+   * Optional target url to redirect after successful 2FA.
+   */
+  var target: String? = null
 }

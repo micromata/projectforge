@@ -121,7 +121,7 @@ public class DatabaseService {
    */
   public void initializeDefaultData(final PFUserDO adminUser, final TimeZone adminUserTimezone) {
     log.info("Init admin user and root task.");
-    if (databaseTablesWithEntriesExists()) {
+    if (databaseTablesWithEntriesExist()) {
       databaseNotEmpty();
     }
 
@@ -453,7 +453,7 @@ public class DatabaseService {
    *
    * @return
    */
-  public boolean databaseTablesWithEntriesExists() {
+  public boolean databaseTablesWithEntriesExist() {
     try {
       final String tableName = "T_PF_USER";
       return internalDoesTableExist(tableName) && !internalIsTableEmpty(tableName);

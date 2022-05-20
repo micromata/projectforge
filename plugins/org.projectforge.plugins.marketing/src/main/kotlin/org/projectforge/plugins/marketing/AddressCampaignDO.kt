@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.Constants
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import javax.persistence.Column
 import javax.persistence.Entity

@@ -52,8 +52,7 @@ import org.slf4j.Logger;
 
 import java.util.Date;
 
-public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, TimesheetListPage>
-{
+public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, TimesheetListPage> {
   private static final long serialVersionUID = 3167681159669386691L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetListForm.class);
@@ -67,25 +66,21 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init(false);
 
     // Task
     {
       gridBuilder.newSplitPanel(GridSize.COL66);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("task")).suppressLabelForWarning();
-      final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new Model<TaskDO>()
-      {
+      final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new Model<TaskDO>() {
         @Override
-        public TaskDO getObject()
-        {
+        public TaskDO getObject() {
           return getTaskTree().getTaskById(getSearchFilter().getTaskId());
         }
 
         @Override
-        public void setObject(final TaskDO task)
-        {
+        public void setObject(final TaskDO task) {
           if (task != null) {
             getSearchFilter().setTaskId(task.getId());
           } else {
@@ -103,17 +98,14 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
     {
       gridBuilder.newSplitPanel(GridSize.COL33);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("user"));
-      final UserSelectPanel assigneeSelectPanel = new UserSelectPanel(fs.newChildId(), new Model<PFUserDO>()
-      {
+      final UserSelectPanel assigneeSelectPanel = new UserSelectPanel(fs.newChildId(), new Model<PFUserDO>() {
         @Override
-        public PFUserDO getObject()
-        {
+        public PFUserDO getObject() {
           return UserGroupCache.getInstance().getUser(filter.getUserId());
         }
 
         @Override
-        public void setObject(final PFUserDO object)
-        {
+        public void setObject(final PFUserDO object) {
           if (object == null) {
             filter.setUserId(null);
           } else {
@@ -142,11 +134,9 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
     {
       gridBuilder.newSplitPanel(GridSize.COL33);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.totalDuration")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           long duration = 0;
           if (parentPage.getList() != null) {
             for (final TimesheetDO sheet : parentPage.getList()) {
@@ -157,27 +147,22 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
         }
       }));
 
-      add(new IFormValidator()
-      {
-        final FormComponent<?>[] dependentFormComponents = new FormComponent<?>[] { timePeriodPanel };
+      add(new IFormValidator() {
+        final FormComponent<?>[] dependentFormComponents = new FormComponent<?>[]{timePeriodPanel};
 
         @Override
-        public FormComponent<?>[] getDependentFormComponents()
-        {
+        public FormComponent<?>[] getDependentFormComponents() {
           return dependentFormComponents;
         }
 
         @Override
-        public void validate(final Form<?> form)
-        {
-          if (parentPage.isMassUpdateMode() == false) {
-            final TimesheetFilter filter = getSearchFilter();
-            final TimePeriod timePeriod = timePeriodPanel.getConvertedInput();
-            final Date from = timePeriod.getFromDate();
-            final Date to = timePeriod.getToDate();
-            if (from == null && to == null && filter.getTaskId() == null) {
-              error(getString("timesheet.error.filter.needMore"));
-            }
+        public void validate(final Form<?> form) {
+          final TimesheetFilter filter = getSearchFilter();
+          final TimePeriod timePeriod = timePeriodPanel.getConvertedInput();
+          final Date from = timePeriod.getFromDate();
+          final Date to = timePeriod.getToDate();
+          if (from == null && to == null && filter.getTaskId() == null) {
+            error(getString("timesheet.error.filter.needMore"));
           }
         }
       });
@@ -190,8 +175,7 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
    * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
-  {
+  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
     optionsCheckBoxesPanel.add(new CheckBoxButton(
         optionsCheckBoxesPanel.newChildId(),
         new PropertyModel<>(getSearchFilter(), "longFormat"),
@@ -223,8 +207,7 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
   /**
    * @return the exportFormat
    */
-  public String getExportFormat()
-  {
+  public String getExportFormat() {
 
     if (exportFormat == null) {
       exportFormat = (String) parentPage.getUserPrefEntry(this.getClass().getName() + ":exportFormat");
@@ -239,37 +222,26 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
   /**
    * @param exportFormat the exportFormat to set
    */
-  public void setExportFormat(final String exportFormat)
-  {
+  public void setExportFormat(final String exportFormat) {
     this.exportFormat = exportFormat;
     parentPage.putUserPrefEntry(this.getClass().getName() + ":exportFormat", this.exportFormat, true);
   }
 
-  public TimesheetListForm(final TimesheetListPage parentPage)
-  {
+  public TimesheetListForm(final TimesheetListPage parentPage) {
     super(parentPage);
   }
 
   @Override
-  protected TimesheetListFilter newSearchFilterInstance()
-  {
+  protected TimesheetListFilter newSearchFilterInstance() {
     return new TimesheetListFilter();
   }
 
   @Override
-  protected boolean isFilterVisible()
-  {
-    return parentPage.isMassUpdateMode() == false;
-  }
-
-  @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 
-  private TaskTree getTaskTree()
-  {
+  private TaskTree getTaskTree() {
     if (taskTree == null) {
       taskTree = TaskTreeHelper.getTaskTree();
     }

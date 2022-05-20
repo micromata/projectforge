@@ -37,7 +37,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.projectforge.Const;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.ldap.*;
@@ -52,6 +51,7 @@ import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
+import org.projectforge.framework.i18n.TimeAgo;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.Gender;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
@@ -219,10 +219,11 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
 
   public static void createMobilePhone(final GridBuilder gridBuilder, final PFUserDO user) {
     // E-Mail
-    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.mobilePhone"), gridBuilder.getString("user.mobilePhone.info"));
+    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.mobilePhone"));
     MaxLengthTextField mobilePhone = new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(user, "mobilePhone"));
     mobilePhone.setMarkupId("mobilePhone").setOutputMarkupId(true);
     mobilePhone.setRequired(false);
+    fs.addHelpIcon(gridBuilder.getString("user.mobilePhone.info"));
     fs.add(mobilePhone);
   }
 
@@ -280,6 +281,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("login.lastLogin"))
             .suppressLabelForWarning();
     fs.add(new DivTextPanel(fs.newChildId(), DateTimeFormatter.instance().getFormattedDateTime(user.getLastLogin())));
+    if (user.getLastLogin() != null) {
+      fs.add(new DivTextPanel(fs.newChildId(), "(" + TimeAgo.getMessage(user.getLastLogin()) + ")"));
+    }
     @SuppressWarnings("serial") final Button button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("invalidateStayLoggedInSessions")) {
       @Override
       public final void onSubmit() {
@@ -301,7 +305,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.locale"));
     final LabelValueChoiceRenderer<Locale> localeChoiceRenderer = new LabelValueChoiceRenderer<Locale>();
     localeChoiceRenderer.addValue(null, gridBuilder.getString("user.defaultLocale"));
-    for (final String str : Const.LOCALIZATIONS) {
+    for (final String str : UserLocale.LOCALIZATIONS) {
       localeChoiceRenderer.addValue(new Locale(str), gridBuilder.getString("locale." + str));
     }
     @SuppressWarnings("serial") final DropDownChoice<Locale> localeChoice = new DropDownChoice<Locale>(fs.getDropDownChoiceId(),
@@ -318,7 +322,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
 
       @Override
       protected Locale convertChoiceIdToChoice(final String id) {
-        if (StringHelper.isIn(id, Const.LOCALIZATIONS) == true) {
+        if (StringHelper.isIn(id, UserLocale.LOCALIZATIONS) == true) {
           return new Locale(id);
         } else {
           return null;

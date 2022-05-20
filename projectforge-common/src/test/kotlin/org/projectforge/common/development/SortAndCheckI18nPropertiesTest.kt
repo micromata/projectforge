@@ -39,7 +39,7 @@ class SortAndCheckI18nPropertiesTest {
     check("Field ''\${label}'' is", "Field ''\${label}'' is")
     val germanText = "Dies ist ein gültiger Deutscher Text mit allen Umlauten: äöüÄÖÜß"
     check(
-      "Dies ist ein g\\u00FCltiger Deutscher Text mit allen Umlauten: \\u00E4\\u00F6\\u00FC\\u00C4\\u00D6\\u00DC\\u00DF",
+      "Dies ist ein gültiger Deutscher Text mit allen Umlauten: äöüÄÖÜß",
       germanText
     )
   }

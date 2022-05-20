@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.memo.rest
 
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.memo.MemoDO
 import org.projectforge.plugins.memo.MemoDao
@@ -50,8 +51,8 @@ class MemoPagesRest() : AbstractDOPagesRest<MemoDO, MemoDao>(MemoDao::class.java
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "lastUpdate", "subject", "memo"))
         return LayoutUtils.processListPage(layout, this)

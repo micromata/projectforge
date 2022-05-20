@@ -23,9 +23,7 @@
 
 package org.projectforge.web.wicket;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DefaultDataTable;
@@ -34,31 +32,36 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.common.StringHelper;
 import org.projectforge.common.anots.PropertyInfo;
-import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.common.i18n.UserException;
+import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.framework.utils.ReflectionHelper;
+import org.projectforge.rest.core.AbstractPagesRest;
+import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.rest.multiselect.MultiSelectionSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D extends IDao<?>, O extends IdObject<?>>
-        extends AbstractSecuredPage implements ISelectCallerPage {
+    extends AbstractSecuredPage implements ISelectCallerPage {
   private static final long serialVersionUID = 622509418161777195L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractListPage.class);
@@ -77,15 +80,10 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   private boolean refreshResultList = true;
 
-  /**
-   * For selecting items for mass update (only used by some pages).
-   */
-  protected Set<Integer> selectedItems;
-
   protected static final String[] BOOKMARKABLE_INITIAL_PROPERTIES = new String[]{"f.searchString|s",
-          "f.useModificationFilter|mod",
-          "f.modifiedByUserId|mUser", "f.startTimeOfLastModification|mStart", "f.stopTimeOfLastModification|mStop",
-          "f.deleted|del", "pageSize"};
+      "f.useModificationFilter|mod",
+      "f.modifiedByUserId|mUser", "f.startTimeOfLastModification|mStart", "f.stopTimeOfLastModification|mStop",
+      "f.deleted|del", "pageSize"};
 
   protected static final String[] mergeStringArrays(final String[] a1, final String a2[]) {
     final String[] result = new String[a1.length + a2.length];
@@ -115,15 +113,11 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   protected ContentMenuEntryPanel newItemMenuEntry;
 
-  protected ContentMenuEntryPanel massUpdateMenuEntry;
-
   protected ContentMenuEntryPanel selectAllMenuEntry;
 
   protected ContentMenuEntryPanel deselectAllMenuEntry;
 
   protected boolean storeFilter = true;
-
-  private boolean massUpdateMode = false;
 
   protected MyListPageSortableDataProvider<O> listPageSortableDataProvider;
 
@@ -137,21 +131,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   public static void addRowClick(final Item<?> cellItem) {
     final Item<?> row = (cellItem.findParent(Item.class));
     WicketUtils.addRowClick(row);
-  }
-
-  /**
-   * @param cellItem
-   * @param massUpdate If true then a mouse click on the row should (de)activate the check box to select the row for the
-   *                   mass update, otherwise this method calls addRowClick(Item).
-   * @see #addRowClick(Item)
-   */
-  protected static void addRowClick(final Item<?> cellItem, final boolean massUpdate) {
-    if (massUpdate == true) {
-      final Item<?> row = (cellItem.findParent(Item.class));
-      row.add(AttributeModifier.replace("onmousedown", "javascript:rowCheckboxClick(this, event);"));
-    } else {
-      addRowClick(cellItem);
-    }
   }
 
   protected AbstractListPage(final PageParameters parameters, final String i18nPrefix) {
@@ -315,7 +294,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     body.add(form);
     form.init();
     if (isSelectMode() == false
-            && (accessChecker.isDemoUser() == true || getBaseDao().hasInsertAccess(getUser()) == true)) {
+        && (accessChecker.isDemoUser() == true || getBaseDao().hasInsertAccess(getUser()) == true)) {
       newItemMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), new Link<Object>("link") {
         @Override
         public void onClick() {
@@ -324,62 +303,28 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
       }, IconType.PLUS);
       newItemMenuEntry.setAccessKey(WebConstants.ACCESS_KEY_ADD).setTooltip(
-              getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP_TITLE),
-              getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP));
+          getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP_TITLE),
+          getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP));
       contentMenuBarPanel.addMenuEntry(newItemMenuEntry);
     }
     final Label hintQuickSelectLabel = new Label("hintQuickSelect",
-            new Model<String>(getString("hint.selectMode.quickselect"))) {
+        new Model<String>(getString("hint.selectMode.quickselect"))) {
       @Override
       public boolean isVisible() {
         return isSelectMode();
       }
     };
-    if (isSupportsMassUpdate() == true) {
-      massUpdateMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), new Link<Object>("link") {
-        @Override
-        public void onClick() {
-          setMassUpdateMode(true);
-        }
-
-      }, getMassUpdateLabel());
-      contentMenuBarPanel.addMenuEntry(massUpdateMenuEntry);
-
-      ExternalLink link = new ExternalLink("link", "#");
-      link.add(AttributeModifier.replace("onclick", "javascript:selectAll();"));
-      selectAllMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), link, getString("selectAll"));
-      selectAllMenuEntry.setVisible(false);
-      contentMenuBarPanel.addMenuEntry(selectAllMenuEntry);
-
-      link = new ExternalLink("link", "#");
-      link.add(AttributeModifier.replace("onclick", "javascript:deselectAll();"));
-      deselectAllMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), link,
-              getString("deselectAll"));
-      deselectAllMenuEntry.setVisible(false);
-      contentMenuBarPanel.addMenuEntry(deselectAllMenuEntry);
-    }
     form.add(hintQuickSelectLabel);
     addTopRightMenu();
     addTopPanel();
     addBottomPanel("bottomPanel");
     init();
-    createDataTable();
-  }
-
-  protected String getMassUpdateLabel() {
-    return getString("massUpdate");
   }
 
   /**
    * Will be called by the constructors.
    */
   protected abstract void init();
-
-  /**
-   * For list pages which supports mass update, please implement this method.
-   */
-  protected void createDataTable() {
-  }
 
   /**
    * Called if the user clicks on the "new" (new entry) link.
@@ -394,7 +339,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     }
     final Class<?> editPageClass = getClass().getAnnotation(ListPage.class).editPage();
     final AbstractEditPage<?, ?, ?> editPage = (AbstractEditPage<?, ?, ?>) ReflectionHelper.newInstance(editPageClass,
-            PageParameters.class, params);
+        PageParameters.class, params);
     editPage.setReturnToPage(AbstractListPage.this);
     setResponsePage(editPage);
     return editPage;
@@ -449,30 +394,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     if (isSelectMode() == true && caller != null) {
       WicketUtils.setResponsePage(this, caller);
       caller.cancelSelection(selectProperty);
-    } else if (isMassUpdateMode() == true) {
-      selectedItems = new HashSet<Integer>();
-      setMassUpdateMode(false);
     }
-  }
-
-  public void setMassUpdateMode(final boolean mode) {
-    massUpdateMenuEntry.setVisible(!mode);
-    selectAllMenuEntry.setVisible(mode);
-    deselectAllMenuEntry.setVisible(mode);
-    if (newItemMenuEntry != null) {
-      newItemMenuEntry.setVisible(!mode);
-    }
-    this.massUpdateMode = mode;
-    form.remove(dataTable);
-    createDataTable();
-    form.setComponentsVisibility();
-    if (mode == true && selectedItems == null) {
-      selectedItems = new HashSet<Integer>();
-    }
-  }
-
-  protected void onNextSubmit() {
-    setResponsePage(new MessagePage("message.notYetImplemented"));
   }
 
   /**
@@ -504,30 +426,9 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
         // An error occured:
         form.addError("search.error");
       }
-      if (massUpdateMode == true && CollectionUtils.isNotEmpty(selectedItems)) {
-        // check, if all previous selected items are still visible:
-        for (Integer id : selectedItems) {
-          boolean contained = false;
-          for (O obj : resultList) {
-            if (Objects.equals(id, obj.getId())) {
-              contained = true;
-              break;
-            }
-          }
-          if (!contained) {
-            // At least one item isn't contained in result list, therefore continue with no selected items.
-            // This prevents, that not shown items from previous mass updates will be updated too.
-            selectedItems = new HashSet<>();
-            break;
-          }
-        }
-        if (selectedItems.size() > 0) {
-          log.info("Mass update mode with " + selectedItems.size() + " restored selected items.");
-        }
-      }
       return this.resultList;
     } catch (
-            final Exception ex) {
+        final Exception ex) {
       if (ex instanceof UserException) {
         final UserException userException = (UserException) ex;
         error(getLocalizedMessage(userException.getI18nKey(), userException.getParams()));
@@ -540,7 +441,19 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   @SuppressWarnings("unchecked")
   protected List<O> buildList() {
-    return (List<O>) getBaseDao().getList(form.getSearchFilter());
+    List<O> list = (List<O>) getBaseDao().getList(form.getSearchFilter());
+    int size = 0;
+    if (list != null) {
+      size = list.size();
+    }
+    int maxRows = form.getSearchFilter().getMaxRows();
+    if (maxRows <= 0) {
+      maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS;
+    }
+    if (list != null && list.size() == maxRows) {
+      form.addError("search.maxRowsExceeded", maxRows);
+    }
+    return list;
   }
 
   /**
@@ -572,7 +485,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   @SuppressWarnings("serial")
   protected void addTopRightMenu() {
     if (isSelectMode() == false
-            && ((getBaseDao() instanceof BaseDao<?>) || providesOwnRebuildDatabaseIndex() == true || true)) {
+        && ((getBaseDao() instanceof BaseDao<?>) || providesOwnRebuildDatabaseIndex() == true || true)) {
       new AbstractReindexTopRightMenu(this.contentMenuBarPanel, accessChecker.isLoggedInUserMemberOfAdminGroup()) {
         @Override
         protected void rebuildDatabaseIndex(final boolean onlyNewest) {
@@ -620,19 +533,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     form.add(bottomPanel);
   }
 
-  public boolean isMassUpdateMode() {
-    return massUpdateMode;
-  }
-
-  /**
-   * Overwrite this method if your list page does support mass update.
-   *
-   * @return false at default.
-   */
-  public boolean isSupportsMassUpdate() {
-    return false;
-  }
-
   /**
    * Later: Try AjaxFallBackDatatable again.
    *
@@ -648,7 +548,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       pageSize = 50;
     }
     final SortParam<String> sortParam = sortProperty != null
-            ? new SortParam<String>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
+        ? new SortParam<String>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
     return new DefaultDataTable<O, String>("table", columns, createSortableDataProvider(sortParam), pageSize);
     // return new AjaxFallbackDefaultDataTable<O>("table", columns, createSortableDataProvider(sortProperty, ascending), pageSize);
   }
@@ -729,14 +629,50 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    */
   public void addExcelExport(final String filenameIdentifier, final String sheetTitle) {
     exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-            new Link<Object>("link") {
-              @Override
-              public void onClick() {
-                exportExcel(filenameIdentifier, sheetTitle);
-              }
+        new Link<Object>("link") {
+          @Override
+          public void onClick() {
+            exportExcel(filenameIdentifier, sheetTitle);
+          }
 
-            }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
+        }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
     addContentMenuEntry(exportExcelButton);
+  }
+
+  public void addNewMassSelect(final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz) {
+    addNewMassSelect("multiselection.button", pagesRestClazz, null, null);
+  }
+
+  public void addNewMassSelect(final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz, final Object data) {
+    addNewMassSelect("multiselection.button", pagesRestClazz, null, data);
+  }
+
+  public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz) {
+    addNewMassSelect(buttonTitleKey, pagesRestClazz, null, null);
+  }
+
+  public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClass, final String toolTipKey) {
+    addNewMassSelect(buttonTitleKey, pagesRestClass, toolTipKey, null);
+  }
+
+  public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClass, final String toolTipKey,
+                               final Object data) {
+    final String caller = ((String) urlFor(this.getClass(), new PageParameters())).replace("./", "/wa/");
+    final ContentMenuEntryPanel button = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+        new Link<Object>("link") {
+          @Override
+          public void onClick() {
+            MultiSelectionSupport.registerEntitiesForSelection(WicketUtils.getHttpServletRequest(getRequest()), pagesRestClass, getList(),
+                caller, data, getForm().searchFilter.getPageSize());
+            final String redirectUrl = PagesResolver.getMultiSelectionPageUrl(pagesRestClass, true);
+            throw new RedirectToUrlException(redirectUrl);
+          }
+
+        }, getString(buttonTitleKey));
+    if (toolTipKey != null) {
+      button.setTooltip(getString(toolTipKey));
+    }
+    addContentMenuEntry(button);
   }
 
   protected DOListExcelExporter createExcelExporter(final String filenameIdentifier) {
@@ -872,30 +808,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    */
   public boolean isCalledBySearchPage() {
     return calledBySearchPage;
-  }
-
-  @SuppressWarnings("serial")
-  public class SelectItemModel extends Model<Boolean> {
-    Integer id;
-
-    public SelectItemModel(final Integer id) {
-      this.id = id;
-    }
-
-    @Override
-    public Boolean getObject() {
-      return selectedItems.contains(id);
-    }
-
-    @Override
-    public void setObject(final Boolean object) {
-      if (Boolean.TRUE.equals(object) == true) {
-        selectedItems.add(id);
-      } else {
-        selectedItems.remove(id);
-      }
-    }
-
   }
 
   /**

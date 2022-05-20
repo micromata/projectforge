@@ -26,9 +26,9 @@ package org.projectforge.plugins.datatransfer.rest
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
-import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.jcr.Attachment
+import org.projectforge.plugins.datatransfer.DataTransferAreaCapacity
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.IDataTransferArea
@@ -36,6 +36,7 @@ import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
+import java.util.*
 import javax.persistence.Transient
 
 class DataTransferArea(
@@ -68,9 +69,17 @@ class DataTransferArea(
   /**
    * Needed for updating UILayout for watchfields.
    */
-  var layoutUid: String? = null
+  var layoutUid: String? = null,
 ) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport, IDataTransferArea {
   override var attachments: List<Attachment>? = null
+    set(value) {
+      // Replace #EXTERNAL# by translated marker:
+      value?.forEach { attachment ->
+        attachment.createdByUser = DataTransferAreaDao.getTranslatedUserString(null, attachment.createdByUser)
+        attachment.lastUpdateByUser = DataTransferAreaDao.getTranslatedUserString(null, attachment.lastUpdateByUser)
+      }
+      field = value
+    }
 
   /**
    * Link for external users.
@@ -94,19 +103,11 @@ class DataTransferArea(
     @Transient
     get() = TimeAgo.getMessage(lastUpdate)
 
+  var capacity: DataTransferAreaCapacity? = null
+
   /**
-   * The number and soue of attachments attached to this data object.
+   * The external password isn't copied due to security reasons.
    */
-  val maxUploadSizeFormatted: String?
-    @JsonProperty
-    @Transient
-    get() {
-      return maxUploadSizeKB?.let {
-        FormatterUtils.formatBytes(1024L * it)
-      }
-    }
-
-
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: DataTransferAreaDO) {
     super.copyFrom(src)
@@ -119,6 +120,7 @@ class DataTransferArea(
     observers = User.toUserList(src.observerIds)
     accessGroups = Group.toGroupList(src.accessGroupIds)
     accessUsers = User.toUserList(src.accessUserIds)
+    externalPassword = null
   }
 
   // The user and group ids are stored as csv list of integers in the data base.
@@ -135,6 +137,9 @@ class DataTransferArea(
   }
 
   companion object {
+    /**
+     * externalPassword will not be copied due to security reasons.
+     */
     fun transformFromDB(
       obj: DataTransferAreaDO,
       dataTransferAreaDao: DataTransferAreaDao,
@@ -157,6 +162,7 @@ class DataTransferArea(
       dto.observersAsString = dto.observers?.joinToString { it.displayName ?: "???" } ?: ""
       dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
       dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
+      dto.capacity = DataTransferAreaCapacity(obj.attachmentsSize, obj.capacity, obj.maxUploadSizeKB)
       return dto
     }
   }

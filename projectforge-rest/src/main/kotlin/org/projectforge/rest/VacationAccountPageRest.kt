@@ -33,7 +33,6 @@ import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStatsFormatted
 import org.projectforge.common.DateFormatType
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTimeUtils
@@ -163,13 +162,13 @@ class VacationAccountPageRest {
     )
     responseAction.addVariable("returnToCaller", "account")
     // TODO: Add employee for preselecting edit form
-    buttonCol.add(UIButton("add", translate("add"), UIColor.SUCCESS, responseAction = responseAction))
+    buttonCol.add(UIButton.createAddButton(responseAction = responseAction))
     if (this.vacationService.hasLoggedInUserHRVacationAccess() &&
       !NumberHelper.isEqual(currentStats.remainingLeaveFromPreviousYear, prevStats.vacationDaysLeftInYear)
     ) {
       buttonCol.add(
-        UIButton(
-          "recalculate", translate("vacation.recalculateRemainingLeave"), UIColor.DANGER,
+        UIButton.createDangerButton(
+          id = "recalculate", title = "vacation.recalculateRemainingLeave",
           responseAction = ResponseAction("vacationAccount/recalculate", targetType = TargetType.POST)
         )
       )

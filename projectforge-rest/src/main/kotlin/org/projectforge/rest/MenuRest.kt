@@ -30,6 +30,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.menu.builder.*
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.my2fa.My2FASetupMenuBadge
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -49,6 +50,9 @@ class MenuRest {
   private lateinit var menuCreator: MenuCreator
 
   @Autowired
+  private lateinit var my2FASetupMenuBadge: My2FASetupMenuBadge
+
+  @Autowired
   private lateinit var favoritesMenuCreator: FavoritesMenuCreator
 
   @GetMapping
@@ -59,22 +63,22 @@ class MenuRest {
     favoritesMenu.add(goClassicsMenu)
 
     val myAccountMenu = Menu()
-    val item = MenuItem("username", ThreadLocalUserContext.getUser()?.getFullname())
-    myAccountMenu.add(item)
-    item.add(MenuItem(MenuItemDefId.FEEDBACK))
-    item.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
-    item.add(MenuItemDef(MenuItemDefId.MY_2FA_SETUP))
+    val userNameItem = MenuItem("username", ThreadLocalUserContext.getUser()?.getFullname(), key = "MY_MENU")
+    myAccountMenu.add(userNameItem)
+    userNameItem.add(MenuItem(MenuItemDefId.FEEDBACK))
+    userNameItem.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
+    userNameItem.add(MenuItemDef(MenuItemDefId.MY_2FA_SETUP, badgeCounter = { my2FASetupMenuBadge.badgeCounter }))
     if (!accessChecker.isRestrictedUser) {
       if (ThreadLocalUserContext.getUserContext().employeeId != null) {
-        item.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
+        userNameItem.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
       }
       menuCreator.personalMenuPluginEntries.forEach { menuItemDef ->
-        item.add(menuItemDef)
+        userNameItem.add(menuItemDef)
       }
     }
 
-    item.add(MenuItem(MenuItemDefId.LOGOUT, type = MenuItemTargetType.RESTCALL))
-    item.subMenu?.forEach { it.postProcess() }
+    userNameItem.add(MenuItem(MenuItemDefId.LOGOUT, type = MenuItemTargetType.RESTCALL))
+    userNameItem.postProcess()
     return Menus(mainMenu, favoritesMenu, myAccountMenu)
   }
 }

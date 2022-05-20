@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.config
 
+import org.projectforge.business.user.UserLocale
 import kotlin.Throws
 import java.io.IOException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -47,7 +48,7 @@ class LocaleFilter : Filter {
   override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
     try {
       // LoginService.getUser is only given for public services on 2FA check on login.
-      val locale = LoginService.getUser(request as HttpServletRequest)?.locale ?: request.locale
+      val locale = UserLocale.determineUserLocale(LoginService.getUser(request as HttpServletRequest), request = request)
       ThreadLocalUserContext.setLocale(locale)
       chain.doFilter(request, response)
     } finally {

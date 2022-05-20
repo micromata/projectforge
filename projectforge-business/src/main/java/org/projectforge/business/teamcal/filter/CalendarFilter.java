@@ -25,7 +25,7 @@ package org.projectforge.business.teamcal.filter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 import java.util.Date;
@@ -72,7 +72,7 @@ public class CalendarFilter extends AbstractCalendarFilter
   {
     super();
     timesheetUserId = ThreadLocalUserContext.getUserId();
-    selectedCalendar = Const.EVENT_CLASS_NAME;
+    selectedCalendar = Constants.EVENT_CLASS_NAME;
   }
 
   public boolean isShowBirthdays()
@@ -159,7 +159,7 @@ public class CalendarFilter extends AbstractCalendarFilter
   /**
    * If the time sheets of an user are displayed and this option is set, then also all breaks between time-sheets of
    * ones day will be displayed.
-   * 
+   *
    * @return the showBreaks
    */
   public boolean isShowBreaks()

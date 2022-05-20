@@ -25,13 +25,14 @@ package org.projectforge.plugins.marketing.dto
 
 import org.projectforge.plugins.marketing.AddressCampaignDO
 import org.projectforge.rest.dto.BaseDTO
-import java.util.*
 
-class AddressCampaign(id: Int? = null,
-                      deleted: Boolean = false,
-                      created: Date? = null,
-                      lastUpdate: Date? = null,
-                      var title: String? = null,
-                      var values: String? = null,
-                      var comment: String? = null)
-    : BaseDTO<AddressCampaignDO>(id, deleted, created, lastUpdate)
+class AddressCampaign(
+  var title: String? = null,
+  var values: Array<String>? = null,
+  var comment: String? = null
+) : BaseDTO<AddressCampaignDO>() {
+  override fun copyFrom(src: AddressCampaignDO) {
+    super.copyFrom(src)
+    values = src.valuesArray
+  }
+}

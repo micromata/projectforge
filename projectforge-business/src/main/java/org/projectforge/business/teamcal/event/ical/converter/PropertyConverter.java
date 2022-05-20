@@ -23,7 +23,8 @@
 
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import net.fortuna.ical4j.model.ParameterFactoryImpl;
+import net.fortuna.ical4j.model.Parameter;
+import net.fortuna.ical4j.model.ParameterBuilder;
 import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.component.VEvent;
@@ -65,8 +66,6 @@ public abstract class PropertyConverter implements VEventComponentConverter
     if (list == null || additonalParams == null) {
       return;
     }
-
-    ParameterFactoryImpl parameterFactory = ParameterFactoryImpl.getInstance();
     StringBuilder sb = new StringBuilder();
     boolean escaped = false;
     char[] chars = additonalParams.toCharArray();
@@ -77,7 +76,8 @@ public abstract class PropertyConverter implements VEventComponentConverter
         case ';':
           if (!escaped && name != null && sb.length() > 0) {
             try {
-              list.add(parameterFactory.createParameter(name, sb.toString().replaceAll("\"", "")));
+              Parameter parameter = new ParameterBuilder().name(name).value(sb.toString().replaceAll("\"", "")).build();
+              list.add(parameter);
             } catch (URISyntaxException e) {
               // TODO
               e.printStackTrace();
@@ -103,7 +103,8 @@ public abstract class PropertyConverter implements VEventComponentConverter
 
     if (!escaped && name != null && sb.length() > 0) {
       try {
-        list.add(parameterFactory.createParameter(name, sb.toString().replaceAll("\"", "")));
+        Parameter parameter = new ParameterBuilder().name(name).value(sb.toString().replaceAll("\"", "")).build();
+        list.add(parameter);
       } catch (URISyntaxException e) {
         // TODO
         e.printStackTrace();

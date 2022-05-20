@@ -23,11 +23,15 @@
 
 package org.projectforge.rest.core
 
-import org.projectforge.Const
+import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.springframework.web.bind.annotation.RequestMapping
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Helper for getting url of list and edit pages.
@@ -35,15 +39,15 @@ import org.springframework.web.bind.annotation.RequestMapping
 object PagesResolver {
   const val REACT_PATH = "react"
 
-  private val log = org.slf4j.LoggerFactory.getLogger(PagesResolver::class.java)
-
   private val pagesRegistry = mutableMapOf<String, AbstractPagesRest<*, *, *>>()
 
+  @JvmStatic
   fun getEditPageUrl(
     pagesRestClass: Class<out AbstractPagesRest<*, *, *>>,
     id: Int? = null,
     params: Map<String, Any?>? = null,
-    absolute: Boolean = false
+    absolute: Boolean = false,
+    returnToCaller: String? = null,
   ): String {
     val path = getRequestMappingPath(pagesRestClass) ?: return "NOT_FOUND"
     val prefix = if (absolute) "/" else ""
@@ -53,9 +57,9 @@ object PagesResolver {
       ""
     }
     if (path.startsWith('/')) {
-      return "$path/edit$idString${getQueryString(params)}"
+      return "$path/edit$idString${getQueryString(params, returnToCaller)}"
     }
-    return "$prefix$path/edit$idString${getQueryString(params)}"
+    return "$prefix$path/edit$idString${getQueryString(params, returnToCaller)}"
   }
 
 
@@ -63,26 +67,41 @@ object PagesResolver {
    * @return Path of react page.
    */
   fun getBasePageUrl(
-    pagesRestClass: Class<out AbstractPagesRest<*, *, *>>,
+    pagesRestClass: Class<*>,
     subPath: String? = null,
     params: Map<String, Any?>? = null,
-    absolute: Boolean = false
+    absolute: Boolean = false,
+    returnToCaller: String? = null,
   ): String {
     val path = getRequestMappingPath(pagesRestClass) ?: return "NOT_FOUND"
     val subPathString = if (subPath != null) "/$subPath" else ""
     val prefix = if (absolute) "/" else ""
-    return "$prefix$path$subPathString${getQueryString(params)}"
+    return "$prefix$path$subPathString${getQueryString(params, returnToCaller)}"
   }
 
   /**
    * @return Path of react page.
    */
+  @JvmStatic
+  @JvmOverloads
   fun getListPageUrl(
     pagesRestClass: Class<out AbstractPagesRest<*, *, *>>,
     params: Map<String, Any?>? = null,
     absolute: Boolean = false
   ): String {
     return getBasePageUrl(pagesRestClass, null, params, absolute)
+  }
+
+  /**
+   * @return Path of react page.
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun getMultiSelectionPageUrl(
+    multiSelectedPageClass: Class<out AbstractPagesRest<*, *, *>>,
+    absolute: Boolean = false
+  ): String {
+    return getBasePageUrl(multiSelectedPageClass, null, MultiSelectionSupport.getMultiSelectionParamMap(), absolute)
   }
 
   /**
@@ -94,21 +113,22 @@ object PagesResolver {
   fun getDynamicPageUrl(
     pageRestClass: Class<*>,
     params: Map<String, Any?>? = null,
-    id: Int? = null,
+    id: Any? = null,
     absolute: Boolean = false,
     trailingSlash: Boolean = true,
+    returnToCaller: String? = null,
   ): String {
     val path = getRequestMappingPath(pageRestClass, "/dynamic") ?: return "NOT_FOUND"
     val prefix = if (absolute) "/" else ""
     val idPart = if (id != null) "/$id" else if (trailingSlash) "/" else ""
-    return "$prefix$path$idPart${getQueryString(params)}"
+    return "$prefix$path$idPart${getQueryString(params, returnToCaller)}"
   }
 
   /**
    * @return the default url (calendar url).
    */
   fun getDefaultUrl(): String {
-    return "/${Const.REACT_APP_PATH}calendar"
+    return "/${Constants.REACT_APP_PATH}calendar"
   }
 
   fun register(category: String, pagesRest: AbstractPagesRest<*, *, *>) {
@@ -138,7 +158,14 @@ object PagesResolver {
     }
   }
 
-  private fun getQueryString(params: Map<String, Any?>? = null): String {
+  private fun getQueryString(params: Map<String, Any?>? = null, returnToCaller: String? = null): String {
+    if (returnToCaller != null) {
+      val queryParams = mutableMapOf<String, Any?>("returnToCaller" to returnToCaller)
+      if (params != null) {
+        queryParams.putAll(params)
+      }
+      return RestResolver.getQueryString(queryParams)
+    }
     return RestResolver.getQueryString(params)
   }
 }

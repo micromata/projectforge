@@ -23,6 +23,9 @@
 
 package org.projectforge.ui
 
+import org.projectforge.common.FormatterUtils
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsService
 
 /**
@@ -48,6 +51,10 @@ class UIAttachmentList(
    */
   val listId: String = AttachmentsService.DEFAULT_NODE,
   /**
+   * The maximum size of the uploadable files will be also handled by the client before uploading.
+   */
+  val maxSizeInKB: Int,
+  /**
    * If true, only download of attachments is allowed.
    */
   val readOnly: Boolean = false,
@@ -71,6 +78,142 @@ class UIAttachmentList(
    * If true, the expiry info of the attachments will be displayed (if given in [org.projectforge.framework.jcr.Attachment.info] as string value with key 'expiryInfo'.
    */
   val showExpiryInfo: Boolean? = null,
+  /**
+   * If true, the createdBy- and lastUpdateBy-user is displayed (default). Should be false for public usage (e. g.
+   * external DataTransfer usage.)
+   */
+  showUserInfo: Boolean = true,
 ) :
   UIElement(type = UIElementType.ATTACHMENT_LIST) {
+  /**
+   * For displaying the attachments as AG Grid.
+   */
+  var agGrid: UIAgGrid? = null
+
+  init {
+    UIAgGrid("attachments").let {
+      this.agGrid = it
+      it.add(
+        UIAgGridColumnDef(
+          "name",
+          translate("attachment.fileName"),
+          sortable = true,
+          width = 300,
+          checkboxSelection = true,
+          cellRenderer = "filename",
+          headerCheckboxSelection = true,
+          filter = true,
+        )
+      )
+        .add(
+          UIAgGridColumnDef(
+            "action",
+            "",
+            cellRenderer = "action",
+            width = 50,
+            filter = true,
+          )
+        )
+        .add(
+          UIAgGridColumnDef(
+            "size",
+            translate("attachment.size"),
+            sortable = true,
+            valueFormatter = "data.sizeHumanReadable",
+            width = 80,
+          )
+        )
+        .add(
+          UIAgGridColumnDef(
+            "description",
+            translate("description"),
+            sortable = true,
+            width = UIAgGridColumnDef.DESCRIPTION_WIDTH,
+            filter = true,
+          )
+        )
+      if (showExpiryInfo == true) {
+        it.add(
+          UIAgGridColumnDef(
+            "info.expiryInfo",
+            translate("attachment.expires"),
+            width = 120,
+          )
+        )
+      }
+      it.add(
+        UIAgGridColumnDef(
+          "created",
+          translate("created"),
+          sortable = true,
+          valueFormatter = "data.createdFormatted",
+          width = UIAgGridColumnDef.TIMESTAMP_WIDTH,
+        )
+      )
+      if (showUserInfo) {
+        it.add(
+          UIAgGridColumnDef(
+            "createdByUser",
+            translate("createdBy"),
+            sortable = true,
+            width = UIAgGridColumnDef.USER_WIDTH,
+            filter = true,
+          )
+        )
+      }
+      it.add(
+        UIAgGridColumnDef(
+          "lastUpdate",
+          translate("modified"),
+          sortable = true,
+          valueFormatter = "data.lastUpdateTimeAgo",
+          width = UIAgGridColumnDef.DATE_WIDTH
+        ),
+      )
+      if (showUserInfo) {
+        it.add(
+          UIAgGridColumnDef(
+            "lastUpdateByUser",
+            translate("modifiedBy"),
+            sortable = true,
+            width = UIAgGridColumnDef.USER_WIDTH,
+            filter = true,
+          )
+        )
+      }
+    }
+  }
+
+  fun addTranslations(layout: UILayout) {
+    if (layout.translations.containsKey("attachment.fileName")) {
+      // Translations already added.
+      return
+    }
+    layout.addTranslations(
+      "attachment.expires",
+      "attachment.fileName",
+      "attachment.onlyAvailableAfterSave",
+      "attachment.size",
+      "attachment.upload.title",
+      "cancel", "yes", // For delete confirmation dialogue
+      "created",
+      "createdBy",
+      "delete",
+      "description",
+      "file.upload.deleteSelected",
+      "file.upload.deleteSelected.confirm",
+      "file.upload.downloadSelected",
+      "file.upload.error.fileAlreadyExists",
+      "file.upload.error.toManyFiles",
+      "modified",
+      "modifiedBy",
+      "multiselection.aggrid.selection.info.message",
+      "multiselection.aggrid.selection.info.title",
+      "reload",
+    )
+    layout.addTranslation(
+      "file.upload.error.maxSizeOfExceeded",
+      translateMsg("file.upload.error.maxSizeOfExceeded", FormatterUtils.formatBytes(maxSizeInKB * 1024))
+    )
+  }
 }

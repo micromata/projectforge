@@ -30,6 +30,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.http.HttpStatus
@@ -40,13 +41,21 @@ private val log = KotlinLogging.logger {}
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
     getList(
+  request: HttpServletRequest,
   pagesRest: AbstractPagesRest<O, DTO, B>,
   baseDao: BaseDao<O>,
   magicFilter: MagicFilter
 )
     : ResultSet<O> {
+  if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
+    val entityIds = MultiSelectionSupport.getRegisteredEntityIds(request, pagesRest::class.java)
+    val selectedEntityIds =
+      MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java) ?: listOf()
+    val list = pagesRest.getListByIds(entityIds)
+    return ResultSet(list, null, selectedEntityIds = selectedEntityIds, magicFilter = magicFilter)
+  }
   val list = getObjectList(pagesRest, baseDao, magicFilter)
-  val resultSet = ResultSet(pagesRest.filterList(list, magicFilter), list.size)
+  val resultSet = ResultSet(pagesRest.filterList(list, magicFilter), null, list.size, magicFilter = magicFilter)
   return resultSet
 }
 

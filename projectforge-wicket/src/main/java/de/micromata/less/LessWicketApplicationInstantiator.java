@@ -41,9 +41,9 @@ import java.io.Serializable;
 
 /**
  * Compiler utility class for less resource files
- * 
+ *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
- * 
+ *
  */
 public class LessWicketApplicationInstantiator implements Serializable
 {
@@ -77,7 +77,7 @@ public class LessWicketApplicationInstantiator implements Serializable
   private boolean compileCss = true;
 
   /**
-   * 
+   *
    * @param application
    * @param folder
    * @param lessPath
@@ -108,7 +108,7 @@ public class LessWicketApplicationInstantiator implements Serializable
 
   /**
    * compiles the saved .less to the wanted .css file
-   * 
+   *
    * @return
    * @throws Exception
    */
@@ -122,7 +122,7 @@ public class LessWicketApplicationInstantiator implements Serializable
     try {
       mainLessSource = new LessSource(lessTargetFile, folder);
     } catch (FileNotFoundException e) {
-      log.info("LessSource by file not working. Trying with Stream.");
+      log.debug("LessSource by file not working. Trying with Stream: " + e.getMessage());
       mainLessSource = new LessSource(lessTargetStream, lessTargetFile, folder);
     }
 
@@ -133,7 +133,7 @@ public class LessWicketApplicationInstantiator implements Serializable
 
   /**
    * instantiates the actual less compilement
-   * 
+   *
    * @throws Exception
    */
   public void instantiate() throws Exception
@@ -166,7 +166,7 @@ public class LessWicketApplicationInstantiator implements Serializable
 
   /**
    * adds a resource watcher entry to the given less source
-   * 
+   *
    * @param resourceWatcher
    * @param importedSource
    */
@@ -193,7 +193,7 @@ public class LessWicketApplicationInstantiator implements Serializable
 
   /**
    * Renders the compiled css reference to the given response
-   * 
+   *
    * @param response
    */
   public static void renderCompiledCssResource(final IHeaderResponse response)

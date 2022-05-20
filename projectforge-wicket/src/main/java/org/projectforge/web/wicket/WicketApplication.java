@@ -44,7 +44,7 @@ import org.apache.wicket.resource.loader.BundleStringResourceLoader;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.time.Duration;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
@@ -82,7 +82,7 @@ import java.util.Map;
  */
 @Controller
 public class WicketApplication extends WebApplication implements WicketApplicationInterface/* , SmartLifecycle */ {
-  public static final String RESOURCE_BUNDLE_NAME = Const.RESOURCE_BUNDLE_NAME;
+  public static final String RESOURCE_BUNDLE_NAME = Constants.RESOURCE_BUNDLE_NAME;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketApplication.class);
 
@@ -285,7 +285,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     // getSessionSettings().setMaxPageMaps(20); // Map up to 20 pages per session (default is 5).
     getComponentInstantiationListeners().add(new SpringComponentInjector(this));
     getApplicationSettings().setInternalErrorPage(ErrorPage.class);
-    getRequestCycleSettings().setTimeout(Duration.minutes(Const.WICKET_REQUEST_TIMEOUT_MINUTES));
+    getRequestCycleSettings().setTimeout(Duration.minutes(Constants.WICKET_REQUEST_TIMEOUT_MINUTES));
 
     // getRequestCycleSettings().setGatherExtendedBrowserInfo(true); // For getting browser width and height.
 
@@ -340,7 +340,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
           "projectforge.less", "projectforge.css", this.baseDir, configurationService.getCompileCss());
       lessInstantiator.instantiate();
     } catch (final Exception e) {
-      log.error("Unable to instantiate wicket less compiler", e);
+      log.error("Unable to instantiate wicket less compiler: " + e.getMessage(), e);
     }
 
     getPageSettings().setRecreateBookmarkablePagesAfterExpiry(false);

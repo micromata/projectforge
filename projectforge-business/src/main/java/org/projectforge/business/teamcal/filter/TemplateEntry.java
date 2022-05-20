@@ -26,7 +26,7 @@ package org.projectforge.business.teamcal.filter;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
@@ -459,8 +459,8 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
 
   public static String calcCalendarStringForCalendar(final Integer calendarId)
   {
-    if (Const.TIMESHEET_CALENDAR_ID.equals(calendarId) || calendarId == null) {
-      return Const.EVENT_CLASS_NAME;
+    if ( calendarId == null || Constants.isTimesheetCalendarId(calendarId)) {
+      return Constants.EVENT_CLASS_NAME;
     } else {
       return String.valueOf(calendarId);
     }

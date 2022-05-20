@@ -23,7 +23,7 @@
 
 package org.projectforge.export;
 
-import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 
 import java.io.IOException;
@@ -61,10 +61,10 @@ public class ExportJFreeChart
     try {
       if (getImageType() == JFreeChartImageType.PNG) {
         extension = "png";
-        ChartUtilities.writeChartAsPNG(out, chart, width, height);
+        ChartUtils.writeChartAsPNG(out, chart, width, height);
       } else {
         extension = "jpg";
-        ChartUtilities.writeChartAsJPEG(out, chart, width, height);
+        ChartUtils.writeChartAsJPEG(out, chart, width, height);
       }
     } catch (final IOException ex) {
       log.error("Exception encountered " + ex, ex);

@@ -399,7 +399,7 @@ public class TeamEventDiffTest
     EVENT_3.setSubject("Subject 2");
 
     EVENT_4 = EVENT_1.clone();
-    EVENT_4.setReminderDuration(2);
+    EVENT_4.setReminderDuration(2L);
 
     EVENT_5 = EVENT_1.clone();
     EVENT_5.setNote("Note");

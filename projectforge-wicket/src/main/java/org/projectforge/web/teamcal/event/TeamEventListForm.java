@@ -57,8 +57,7 @@ import java.util.Date;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEventListPage>
-{
+public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEventListPage> {
   private static final long serialVersionUID = 3659495003810851072L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventListForm.class);
@@ -74,8 +73,7 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
 
   private final FormComponent<?>[] dependentFormComponents = new FormComponent<?>[2];
 
-  public TeamEventListForm(final TeamEventListPage parentPage)
-  {
+  public TeamEventListForm(final TeamEventListPage parentPage) {
     super(parentPage);
   }
 
@@ -83,8 +81,7 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
    * @see org.projectforge.web.wicket.AbstractListForm#newSearchFilterInstance()
    */
   @Override
-  protected TeamEventFilter newSearchFilterInstance()
-  {
+  protected TeamEventFilter newSearchFilterInstance() {
     return new TeamEventFilter();
   }
 
@@ -93,46 +90,36 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
    */
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
     getParentPage().onFormInit();
-    add(new IFormValidator()
-    {
+    add(new IFormValidator() {
       @Override
-      public FormComponent<?>[] getDependentFormComponents()
-      {
+      public FormComponent<?>[] getDependentFormComponents() {
         return dependentFormComponents;
       }
 
       @Override
-      public void validate(final Form<?> form)
-      {
-        if (parentPage.isMassUpdateMode() == false) {
-          final Date from = startDate.getConvertedInput();
-          final Date to = endDate.getConvertedInput();
-          if (from != null && to != null && from.after(to) == true) {
-            error(getString("timePeriodPanel.startTimeAfterStopTime"));
-          }
+      public void validate(final Form<?> form) {
+        final Date from = startDate.getConvertedInput();
+        final Date to = endDate.getConvertedInput();
+        if (from != null && to != null && from.after(to) == true) {
+          error(getString("timePeriodPanel.startTimeAfterStopTime"));
         }
       }
     });
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("templates")).suppressLabelForWarning();
-      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("all"))
-      {
+      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("all")) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           final Collection<TeamCalDO> assignedItems = teamCalCache.getAllAccessibleCalendars();
           calendarsListHelper.setAssignedItems(assignedItems);
         }
       }, getString("selectAll"), SingleButtonPanel.NORMAL));
-      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("own"))
-      {
+      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("own")) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           final Collection<TeamCalDO> assignedItems = teamCalCache.getAllOwnCalendars();
           calendarsListHelper.setAssignedItems(assignedItems);
         }
@@ -146,8 +133,7 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
    */
   @SuppressWarnings("serial")
   @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
-  {
+  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
     {
       optionsFieldsetPanel.setOutputMarkupId(true);
       startDate = new LocalDatePanel(optionsFieldsetPanel.newChildId(),
@@ -160,11 +146,9 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
           DatePanelSettings.get().withSelectPeriodMode(true), true);
       optionsFieldsetPanel.add(dependentFormComponents[1] = endDate);
       {
-        final SubmitLink unselectPeriod = new SubmitLink(IconLinkPanel.LINK_ID)
-        {
+        final SubmitLink unselectPeriod = new SubmitLink(IconLinkPanel.LINK_ID) {
           @Override
-          public void onSubmit()
-          {
+          public void onSubmit() {
             getSearchFilter().setStartDate(null);
             getSearchFilter().setEndDate(null);
             clearInput();
@@ -182,11 +166,9 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
           startDate);
       optionsFieldsetPanel.add(quickSelectPanel);
       quickSelectPanel.init();
-      optionsFieldsetPanel.add(new HtmlCommentPanel(optionsFieldsetPanel.newChildId(), new Model<String>()
-      {
+      optionsFieldsetPanel.add(new HtmlCommentPanel(optionsFieldsetPanel.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return WicketUtils.getUTCDates(getSearchFilter().getStartDate(), getSearchFilter().getEndDate());
         }
       }));
@@ -214,16 +196,14 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
    * @see org.projectforge.web.wicket.AbstractListForm#getLogger()
    */
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 
   /**
    * @return the filter
    */
-  public TeamEventFilter getFilter()
-  {
+  public TeamEventFilter getFilter() {
     return getSearchFilter();
   }
 }

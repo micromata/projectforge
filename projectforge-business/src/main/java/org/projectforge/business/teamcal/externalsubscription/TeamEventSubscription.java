@@ -23,11 +23,13 @@
 
 package org.projectforge.business.teamcal.externalsubscription;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.ical.ICalParser;
@@ -49,8 +51,7 @@ import java.util.Objects;
  *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  */
-public class TeamEventSubscription implements Serializable
-{
+public class TeamEventSubscription implements Serializable {
   private static final long serialVersionUID = -9200146874015146227L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventSubscription.class);
@@ -73,31 +74,27 @@ public class TeamEventSubscription implements Serializable
 
   private static final Long TIME_IN_THE_PAST = 60L * 24 * 60 * 60 * 1000; // 60 days in millis in the past to subscribe
 
-  public TeamEventSubscription()
-  {
+  public TeamEventSubscription() {
   }
 
   /**
    * @return the lastErrorMessage
    */
-  public String getLastErrorMessage()
-  {
+  public String getLastErrorMessage() {
     return lastErrorMessage;
   }
 
   /**
    * @return the numberOfFailedUpdates
    */
-  public int getNumberOfFailedUpdates()
-  {
+  public int getNumberOfFailedUpdates() {
     return numberOfFailedUpdates;
   }
 
   /**
    * @return the lastFailedUpdate
    */
-  public Long getLastFailedUpdate()
-  {
+  public Long getLastFailedUpdate() {
     return lastFailedUpdate;
   }
 
@@ -105,8 +102,7 @@ public class TeamEventSubscription implements Serializable
    * We update the cache softly, therefore we create a new instance and replace the old instance in the cached map then
    * creation and update is therefore the same two lines of code, but semantically different things.
    */
-  public void update(final TeamCalDao teamCalDao, final TeamCalDO teamCalDO)
-  {
+  public void update(final TeamCalDao teamCalDao, final TeamCalDO teamCalDO) {
     this.teamCalId = teamCalDO.getId();
     currentInitializedHash = null;
     lastUpdated = null;
@@ -124,33 +120,35 @@ public class TeamEventSubscription implements Serializable
     try {
 
       // Create a method instance.
-      final GetMethod method = new GetMethod(url);
-      final HttpClient client = new HttpClient();
-      final int statusCode = client.executeMethod(method);
+      try (final CloseableHttpClient client = HttpClients.createDefault()) {
+        final HttpGet method = new HttpGet(url);
+        final HttpResponse httpResponse = client.execute(method);
+        final int statusCode = httpResponse.getStatusLine().getStatusCode();
+        if (statusCode != HttpStatus.SC_OK) {
+          error("Unable to gather subscription calendar #"
+              + teamCalDO.getId()
+              + " information, using database from url '"
+              + displayUrl
+              + "'. Received statusCode: "
+              + statusCode, null);
+          return;
+        }
 
-      if (statusCode != HttpStatus.SC_OK) {
-        error("Unable to gather subscription calendar #"
-            + teamCalDO.getId()
-            + " information, using database from url '"
-            + displayUrl
-            + "'. Received statusCode: "
-            + statusCode, null);
-        return;
-      }
+        final MessageDigest md = MessageDigest.getInstance("MD5");
 
-      final MessageDigest md = MessageDigest.getInstance("MD5");
+        // Read the response body.
+        try (final InputStream stream = httpResponse.getEntity().getContent()) {
+          bytes = IOUtils.toByteArray(stream);
+        }
 
-      // Read the response body.
-      final InputStream stream = method.getResponseBodyAsStream();
-      bytes = IOUtils.toByteArray(stream);
-
-      final String md5 = calcHexHash(md.digest(bytes));
-      if (!StringUtils.equals(md5, teamCalDO.getExternalSubscriptionHash())) {
-        teamCalDO.setExternalSubscriptionHash(md5);
-        teamCalDO.setExternalSubscriptionCalendarBinary(bytes);
-        teamCalDO.setMinorChange(true); // Don't need to re-index (failed).
-        // internalUpdate is valid at this point, because we are calling this method in an async thread
-        teamCalDao.internalUpdate(teamCalDO);
+        final String md5 = calcHexHash(md.digest(bytes));
+        if (!StringUtils.equals(md5, teamCalDO.getExternalSubscriptionHash())) {
+          teamCalDO.setExternalSubscriptionHash(md5);
+          teamCalDO.setExternalSubscriptionCalendarBinary(bytes);
+          teamCalDO.setMinorChange(true); // Don't need to re-index (failed).
+          // internalUpdate is valid at this point, because we are calling this method in an async thread
+          teamCalDao.internalUpdate(teamCalDO);
+        }
       }
     } catch (final Exception e) {
       bytes = teamCalDO.getExternalSubscriptionCalendarBinary();
@@ -219,8 +217,7 @@ public class TeamEventSubscription implements Serializable
     }
   }
 
-  private void clear()
-  {
+  private void clear() {
     this.lastErrorMessage = null;
     this.lastFailedUpdate = null;
     this.numberOfFailedUpdates = 0;
@@ -231,8 +228,7 @@ public class TeamEventSubscription implements Serializable
     error(errorMessage, null);
   }
 
-  private void error(final String errorMessage, final Exception ex)
-  {
+  private void error(final String errorMessage, final Exception ex) {
     this.numberOfFailedUpdates++;
     final StringBuilder sb = new StringBuilder();
     sb.append(errorMessage).append(" (").append(this.numberOfFailedUpdates).append(". failed attempts");
@@ -255,8 +251,7 @@ public class TeamEventSubscription implements Serializable
    * @param md5
    * @return
    */
-  private String calcHexHash(final byte[] md5)
-  {
+  private String calcHexHash(final byte[] md5) {
     String result = null;
     if (md5 != null) {
       result = new BigInteger(1, md5).toString(16);
@@ -265,8 +260,7 @@ public class TeamEventSubscription implements Serializable
   }
 
 
-  public TeamEventDO getEvent(final String uid)
-  {
+  public TeamEventDO getEvent(final String uid) {
     if (StringUtils.isEmpty(uid)) {
       return null;
     }
@@ -284,8 +278,7 @@ public class TeamEventSubscription implements Serializable
     return null;
   }
 
-  public List<TeamEventDO> getEvents(final Long startTime, final Long endTime, final boolean minimalAccess)
-  {
+  public List<TeamEventDO> getEvents(final Long startTime, final Long endTime, final boolean minimalAccess) {
     if (subscription == null) {
       return new ArrayList<>();
     }
@@ -304,21 +297,18 @@ public class TeamEventSubscription implements Serializable
     return result;
   }
 
-  public Integer getTeamCalId()
-  {
+  public Integer getTeamCalId() {
     return teamCalId;
   }
 
   /**
    * @return Time of last update (successfully).
    */
-  public Long getLastUpdated()
-  {
+  public Long getLastUpdated() {
     return lastUpdated;
   }
 
-  public List<TeamEventDO> getRecurrenceEvents()
-  {
+  public List<TeamEventDO> getRecurrenceEvents() {
     return recurrenceEvents;
   }
 

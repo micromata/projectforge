@@ -283,7 +283,9 @@ public class InitTestDB {
         .addRight(new UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
-        .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)); //
+        .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.ORGA_CONTRACTS, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE)); //
     addUser(user);
     user = new PFUserDO();
     user.setUsername(AbstractTestBase.TEST_HR_USER);
@@ -303,7 +305,8 @@ public class InitTestDB {
         .addRight(new UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
-        .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)); //
+        .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE)); //
     userService.createEncryptedPassword(user, AbstractTestBase.TEST_FULL_ACCESS_USER_PASSWORD);
     addUser(user);
     addUser(AbstractTestBase.TEST_USER, AbstractTestBase.TEST_USER_PASSWORD);

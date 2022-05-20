@@ -33,6 +33,7 @@ import org.apache.wicket.validation.IValidator;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.web.common.IbanValidator;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -177,7 +178,7 @@ public class EingangsrechnungEditForm extends
       fs.add(paymentTypeChoice);
     }
     {
-      // Reciever
+      // Receiver
       final FieldsetPanel fs = gridBuilder.newFieldset(EingangsrechnungDO.class, "receiver");
       recieverField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "receiver"));
       recieverField.setOutputMarkupId(true);
@@ -188,6 +189,7 @@ public class EingangsrechnungEditForm extends
       final FieldsetPanel fs = gridBuilder.newFieldset(EingangsrechnungDO.class, "iban");
       ibanField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "iban"));
       ibanField.setOutputMarkupId(true);
+      ibanField.add(new IbanValidator());
       fs.add(ibanField);
     }
     {

@@ -54,8 +54,6 @@ import org.projectforge.rest.calendar.TeamCalDOSerializer
 import org.projectforge.rest.config.JacksonConfiguration.Companion.registerAllowedUnknownProperties
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.json.*
-import org.projectforge.security.My2FAData
-import org.projectforge.security.My2FADataDeserializer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -286,8 +284,6 @@ open class JacksonConfiguration {
     module.addDeserializer(ICalendarEvent::class.java, ICalendarEventDeserializer())
 
     module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
-
-    module.addDeserializer(My2FAData::class.java, My2FADataDeserializer())
 
     registeredSerializers.forEach {
       //module.addSerializer(it.cls, it.serializer) // Type hassle

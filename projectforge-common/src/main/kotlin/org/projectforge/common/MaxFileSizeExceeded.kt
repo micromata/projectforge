@@ -38,7 +38,7 @@ class MaxFileSizeExceeded(
   val info: Any? = null
 ) :
   UserException(
-    "file.upload.maxSizeExceeded",
+    "file.upload.error.maxSizeExceeded",
     fileName ?: "<unknown>",
     FormatterUtils.formatBytes(fileSize),
     FormatterUtils.formatBytes(maxFileSize)

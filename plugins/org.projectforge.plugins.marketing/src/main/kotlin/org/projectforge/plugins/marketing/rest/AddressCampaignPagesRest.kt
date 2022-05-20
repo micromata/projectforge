@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.marketing.rest
 
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.plugins.marketing.AddressCampaignDO
 import org.projectforge.plugins.marketing.AddressCampaignDao
 import org.projectforge.plugins.marketing.dto.AddressCampaign
@@ -33,6 +34,7 @@ import org.projectforge.ui.UILayout
 import org.projectforge.ui.UITable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/addressCampaign")
@@ -52,8 +54,8 @@ class AddressCampaignPagesRest: AbstractDTOPagesRest<AddressCampaignDO, AddressC
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "lastUpdate", "title", "values", "comment"))
         return LayoutUtils.processListPage(layout, this)

@@ -44,6 +44,7 @@ import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.rest.fibu.RechnungPagesRest;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
@@ -56,8 +57,7 @@ import java.util.Set;
 
 @ListPage(editPage = RechnungEditPage.class)
 public class RechnungListPage extends AbstractListPage<RechnungListForm, RechnungDao, RechnungDO> implements
-    IListPageColumnsCreator<RechnungDO>
-{
+    IListPageColumnsCreator<RechnungDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungListPage.class);
 
   private static final long serialVersionUID = -8406452960003792763L;
@@ -73,21 +73,18 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
 
   private RechnungsStatistik rechnungsStatistik;
 
-  RechnungsStatistik getRechnungsStatistik()
-  {
+  RechnungsStatistik getRechnungsStatistik() {
     if (rechnungsStatistik == null) {
       rechnungsStatistik = rechnungDao.buildStatistik(getList());
     }
     return rechnungsStatistik;
   }
 
-  public RechnungListPage(final PageParameters parameters)
-  {
+  public RechnungListPage(final PageParameters parameters) {
     super(parameters, "fibu.rechnung");
   }
 
-  public RechnungListPage(final ISelectCallerPage caller, final String selectProperty)
-  {
+  public RechnungListPage(final ISelectCallerPage caller, final String selectProperty) {
     super(caller, selectProperty, "fibu.rechnung");
   }
 
@@ -97,23 +94,19 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
    * @see org.projectforge.web.wicket.AbstractListPage#refresh()
    */
   @Override
-  public void refresh()
-  {
+  public void refresh() {
     super.refresh();
     this.rechnungsStatistik = null;
   }
 
   @SuppressWarnings("serial")
   @Override
-  public List<IColumn<RechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
-  {
+  public List<IColumn<RechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable) {
     final List<IColumn<RechnungDO, String>> columns = new ArrayList<IColumn<RechnungDO, String>>();
-    final CellItemListener<RechnungDO> cellItemListener = new CellItemListener<RechnungDO>()
-    {
+    final CellItemListener<RechnungDO> cellItemListener = new CellItemListener<RechnungDO>() {
       @Override
       public void populateItem(final Item<ICellPopulator<RechnungDO>> item, final String componentId,
-          final IModel<RechnungDO> rowModel)
-      {
+                               final IModel<RechnungDO> rowModel) {
         final RechnungDO rechnung = rowModel.getObject();
         if (rechnung.getStatus() == null) {
           // Should not occur:
@@ -132,16 +125,14 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
     columns.add(new CellItemListenerPropertyColumn<RechnungDO>(
         new Model<String>(getString("fibu.rechnung.nummer.short")), getSortable(
         "nummer", sortable),
-        "nummer", cellItemListener)
-    {
+        "nummer", cellItemListener) {
       /**
        * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
        *      java.lang.String, org.apache.wicket.model.IModel)
        */
       @Override
       public void populateItem(final Item<ICellPopulator<RechnungDO>> item, final String componentId,
-          final IModel<RechnungDO> rowModel)
-      {
+                               final IModel<RechnungDO> rowModel) {
         final RechnungDO rechnung = rowModel.getObject();
         String nummer = String.valueOf(rechnung.getNummer());
         if (form.getSearchFilter().isShowKostZuweisungStatus() == true) {
@@ -165,16 +156,14 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
         new CellItemListenerPropertyColumn<RechnungDO>(getString("fibu.projekt"), getSortable("projekt.name", sortable),
             "projekt.name", cellItemListener));
     if (kontoCache.isEmpty() == false) {
-      columns.add(new CellItemListenerPropertyColumn<RechnungDO>(RechnungDO.class, getSortable("konto", sortable), "konto", cellItemListener)
-      {
+      columns.add(new CellItemListenerPropertyColumn<RechnungDO>(RechnungDO.class, getSortable("konto", sortable), "konto", cellItemListener) {
         /**
          * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
          *      java.lang.String, org.apache.wicket.model.IModel)
          */
         @Override
         public void populateItem(final Item<ICellPopulator<RechnungDO>> item, final String componentId,
-            final IModel<RechnungDO> rowModel)
-        {
+                                 final IModel<RechnungDO> rowModel) {
           final RechnungDO invoice = rowModel.getObject();
           final KontoDO konto = kontoCache.getKonto(invoice);
           item.add(new Label(componentId, konto != null ? konto.formatKonto() : ""));
@@ -213,21 +202,17 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
     // "zahlBetrag",
     // cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<RechnungDO>(getString("fibu.auftrag.auftraege"), null, null,
-        cellItemListener)
-    {
+        cellItemListener) {
       @Override
       public void populateItem(final Item<ICellPopulator<RechnungDO>> item, final String componentId,
-          final IModel<RechnungDO> rowModel)
-      {
+                               final IModel<RechnungDO> rowModel) {
         final Set<AuftragsPositionVO> orderPositions = rowModel.getObject().getAuftragsPositionVOs();
         if (CollectionUtils.isEmpty(orderPositions) == true) {
           item.add(AbstractUnsecureBasePage.createInvisibleDummyComponent(componentId));
         } else {
-          final OrderPositionsPanel panel = new OrderPositionsPanel(componentId)
-          {
+          final OrderPositionsPanel panel = new OrderPositionsPanel(componentId) {
             @Override
-            protected void onBeforeRender()
-            {
+            protected void onBeforeRender() {
               super.onBeforeRender();
               // Lazy initialization because getString(...) of OrderPositionsPanel fails if panel.init(orderPositions) is called directly
               // after instantiation.
@@ -250,40 +235,35 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     dataTable = createDataTable(createColumns(this, true), "nummer", SortOrder.DESCENDING);
     form.add(dataTable);
     addExcelExport(getString("fibu.common.debitor"), getString("fibu.rechnungen"));
     if (Configuration.getInstance().isCostConfigured() == true) {
       final ContentMenuEntryPanel exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-          new Link<Object>("link")
-          {
+          new Link<Object>("link") {
             @Override
-            public void onClick()
-            {
+            public void onClick() {
               exportExcelWithCostAssignments();
             }
           }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
       addContentMenuEntry(exportExcelButton);
     }
+    addNewMassSelect(RechnungPagesRest.class);
   }
 
   /**
    * @see org.projectforge.web.wicket.AbstractListPage#createExcelExporter(java.lang.String)
    */
   @Override
-  protected DOListExcelExporter createExcelExporter(final String filenameIdentifier)
-  {
-    return new DOListExcelExporter(filenameIdentifier)
-    {
+  protected DOListExcelExporter createExcelExporter(final String filenameIdentifier) {
+    return new DOListExcelExporter(filenameIdentifier) {
       /**
        * @see ExcelExporter#onBeforeSettingColumns(java.util.List)
        */
       @Override
       protected List<ExportColumn> onBeforeSettingColumns(final ContentProvider sheetProvider,
-          final List<ExportColumn> columns)
-      {
+                                                          final List<ExportColumn> columns) {
         final List<ExportColumn> sortedColumns = reorderColumns(columns, "nummer", "kunde", "projekt", "konto",
             "betreff", "datum",
             "faelligkeit", "bezahlDatum", "zahlBetrag");
@@ -304,8 +284,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
        *      java.lang.reflect.Field)
        */
       @Override
-      public void addMapping(final PropertyMapping mapping, final Object entry, final Field field)
-      {
+      public void addMapping(final PropertyMapping mapping, final Object entry, final Field field) {
         if ("kunde".equals(field.getName()) == true) {
           final RechnungDO rechnung = (RechnungDO) entry;
           mapping.add(field.getName(),
@@ -326,8 +305,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
        * @see ExcelExporter#addMappings(PropertyMapping, java.lang.Object)
        */
       @Override
-      protected void addMappings(final PropertyMapping mapping, final Object entry)
-      {
+      protected void addMappings(final PropertyMapping mapping, final Object entry) {
         final RechnungDO invoice = (RechnungDO) entry;
         String kontoBezeichnung = null;
         final KontoDO konto = kontoCache.getKonto(invoice);
@@ -341,8 +319,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
     };
   }
 
-  protected void exportExcelWithCostAssignments()
-  {
+  protected void exportExcelWithCostAssignments() {
     refresh();
     final RechnungFilter filter = new RechnungFilter();
     final RechnungFilter src = form.getSearchFilter();
@@ -371,14 +348,12 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
   }
 
   @Override
-  protected RechnungListForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
-  {
+  protected RechnungListForm newListForm(final AbstractListPage<?, ?, ?> parentPage) {
     return new RechnungListForm(this);
   }
 
   @Override
-  public RechnungDao getBaseDao()
-  {
+  public RechnungDao getBaseDao() {
     return rechnungDao;
   }
 }

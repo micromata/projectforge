@@ -38,6 +38,9 @@ import io.milton.resource.SchedulingResponseItem
 import net.fortuna.ical4j.data.CalendarBuilder
 import net.fortuna.ical4j.data.ParserException
 import net.fortuna.ical4j.model.Calendar
+import net.fortuna.ical4j.model.Property
+import net.fortuna.ical4j.model.component.VEvent
+import net.fortuna.ical4j.model.property.RRule
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.io.StringReader
@@ -111,7 +114,7 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
             }
             // check if event fulfills properties
             if (propFilter != null) {
-                if (cal != null && cal.getComponent("VEVENT").getProperty(propFilter.key).value != propFilter.value) {
+                if (cal != null && cal.getComponent<VEvent>("VEVENT")?.getProperty<Property>(propFilter.key)?.value != propFilter.value) {
                     log.debug("Does not match properties filter: '{}'", r.uniqueId)
                     it.remove()
                 }
@@ -124,8 +127,8 @@ class ProjectForgeCalendarSearchService(builderEnt: HttpManagerBuilderEnt?) : Ca
 
     private fun extractRRule(calender: Calendar?): Map<String, String>? {
         if (calender == null) return null
-        val vevent = calender.getComponent("VEVENT") ?: return null
-        val rrule = vevent.getProperty("RRULE") ?: return null
+        val vevent = calender.getComponent<VEvent>("VEVENT") ?: return null
+        val rrule = vevent.getProperty<RRule>("RRULE") ?: return null
         val value = rrule.value ?: return null
         val values = value.split(";".toRegex()).toTypedArray()
         val keyValues: MutableMap<String, String> = TreeMap()

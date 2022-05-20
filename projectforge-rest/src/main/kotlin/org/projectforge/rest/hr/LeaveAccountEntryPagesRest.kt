@@ -26,6 +26,7 @@ package org.projectforge.rest.hr
 import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.VacationAccountPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOPagesRest
@@ -34,6 +35,7 @@ import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.math.RoundingMode
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/leaveAccountEntry")
@@ -51,11 +53,11 @@ class LeaveAccountEntryPagesRest() : AbstractDOPagesRest<LeaveAccountEntryDO, Le
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "created", "employee", "date", "amount", "description"))
-        layout.getTableColumnById("employee").formatter = Formatter.EMPLOYEE
+        layout.getTableColumnById("employee").formatter = UITableColumn.Formatter.EMPLOYEE
         return LayoutUtils.processListPage(layout, this)
     }
 

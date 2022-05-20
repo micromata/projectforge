@@ -23,7 +23,8 @@
 
 package org.projectforge.rest
 
-import org.projectforge.Const
+import org.projectforge.Constants
+import org.projectforge.business.common.ListStatisticsSupport
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2Dao
@@ -34,8 +35,8 @@ import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFavoritesService
 import org.projectforge.business.timesheet.TimesheetRecentService
 import org.projectforge.business.user.service.UserService
-import org.projectforge.common.DateFormatType
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
@@ -113,7 +114,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     val weekOfYear: String,
     val dayName: String,
     val timePeriod: String,
-    val duration: String
+    val duration: String,
+    val deleted: Boolean? = null,
   )
 
   /**
@@ -128,6 +130,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   override fun transformFromDB(obj: TimesheetDO, editMode: Boolean): Timesheet {
     val timesheet = Timesheet()
     timesheet.copyFrom(obj)
+    val day = PFDay.fromOrNull(timesheet.startTime)
     return timesheet
   }
 
@@ -147,7 +150,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     val taskId = NumberHelper.parseInteger(request.getParameter("taskId")) ?: return super.getInitialList(request)
     val filter = MagicFilter()
     filter.entries.add(MagicFilterEntry("task", "$taskId"))
-    return super.getInitialList(filter)
+    return super.getInitialList(request, filter)
   }
 
   override fun newBaseDTO(request: HttpServletRequest?): Timesheet {
@@ -191,28 +194,40 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     val timesheet = postData.data
     timesheetRecentService.addRecentTimesheet(transformForDB(timesheet))
 
-    return ResponseAction("/${Const.REACT_APP_PATH}calendar")
+    return ResponseAction("/${Constants.REACT_APP_PATH}calendar")
       .addVariable("date", obj.startTime)
       .addVariable("id", obj.id ?: -1)
   }
 
-  override fun processResultSetBeforeExport(resultSet: ResultSet<TimesheetDO>): ResultSet<*> {
+  override fun processResultSetBeforeExport(
+    resultSet: ResultSet<TimesheetDO>,
+    request: HttpServletRequest,
+    magicFilter: MagicFilter,
+  ): ResultSet<*> {
     val list: List<Timesheet4ListExport> = resultSet.resultSet.map {
       val timesheet = Timesheet()
       timesheet.copyFrom(it)
+      val day = PFDay.fromOrNull(it.startTime)
       Timesheet4ListExport(
         timesheet,
         id = it.id,
         weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime),
-        dayName = dateTimeFormatter.getFormattedDate(
-          it.startTime,
-          DateFormats.getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)
-        ),
+        dayName = day?.dayOfWeekAsShortString ?: "??",
         timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
-        duration = dateTimeFormatter.getFormattedDuration(it.timePeriod)
+        duration = dateTimeFormatter.getFormattedDuration(it.timePeriod),
+        deleted = timesheet.deleted,
       )
     }
-    return ResultSet(list, list.size)
+    val myResultSet = ResultSet(list, resultSet, list.size, magicFilter = magicFilter)
+    var duration = 0L
+    resultSet.resultSet.forEach { timesheet ->
+      duration += timesheet.getDuration()
+    }
+    val stats = ListStatisticsSupport()
+    stats.append("timesheet.totalDuration", dateTimeFormatter.getPrettyFormattedDuration(duration), ListStatisticsSupport.Color.BLUE)
+    myResultSet.addResultInfo(stats.asMarkdown)
+
+    return myResultSet
   }
 
   override fun isAutocompletionPropertyEnabled(property: String): Boolean {
@@ -244,28 +259,34 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(): UILayout {
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     lc.idPrefix = "timesheet."
-    val table = UITable.createUIResultSetTable()
+    val layout = super.createListLayout(request, magicFilter)
+    val table = agGridSupport.prepareUIGrid4ListPage(
+      request,
+      layout,
+      magicFilter,
+      this,
+      TimesheetMultiSelectedPageRest::class.java,
+    )
       .add(lc, "user")
-      .add(UITableColumn("timesheet.kost2.project.customer", "fibu.kunde", formatter = Formatter.CUSTOMER))
-      .add(UITableColumn("timesheet.kost2.project", "fibu.projekt", formatter = Formatter.PROJECT))
-      .add(lc, "task")
-      .add(UITableColumn("timesheet.kost2", "fibu.kost2", formatter = Formatter.COST2))
-      .add(UITableColumn("weekOfYear", "calendar.weekOfYearShortLabel"))
-      .add(UITableColumn("dayName", "calendar.dayOfWeekShortLabel"))
-      .add(UITableColumn("timePeriod", "timePeriod"))
-      .add(UITableColumn("duration", "timesheet.duration"))
-      .add(lc, "location", "reference")
-    if (!baseDao.getTags().isNullOrEmpty()) {
-      table.add(lc, "tag")
+    //.add(lc, "kost2.project.customer", lcField = "kost2.projekt.kunde")
+    //.add(lc, "kost2.project", lcField = "kost2.projekt")
+    if (Configuration.instance.isCostConfigured) {
+      table.add(lc, "kost2")
     }
-    table.add(lc, "description")
-    val layout = super.createListLayout()
-      .add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
-      .add(table)
-    layout.getTableColumnById("timesheet.user").formatter = Formatter.USER
-    layout.getTableColumnById("timesheet.task").formatter = Formatter.TASK_PATH
+    table.add(lc, "task")
+      .add("weekOfYear", headerName = "calendar.weekOfYearShortLabel", width = 30)
+      .add("dayName", headerName = "calendar.dayOfWeekShortLabel", width = 30)
+      .add("timePeriod", headerName = "timePeriod", width = 140)
+      .add("duration", headerName = "timesheet.duration", width = 50)
+      .add(lc, "location", "reference")
+      .withMultiRowSelection(request, magicFilter)
+    if (!baseDao.getTags().isNullOrEmpty()) {
+      table.add(lc, "tag", width = 100)
+    }
+    table.add(lc, "description", width = 1000)
+    layout.add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
     return LayoutUtils.processListPage(layout, this)
   }
 
@@ -290,21 +311,19 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       .add(dayRange)
       .add(UICustomized("task.consumption"))
       .add(UIInput("location", lc).enableAutoCompletion(this))
-    val tags = timesheetDao.getTags(dto.tag)
     val row = UIRow()
     layout.add(row)
-    if (!tags.isNullOrEmpty()) {
-      row.add(UICol(md = 6).add(UISelect("tag", lc, required = false, values = tags.map { UISelectValue(it, it) })))
+    createTagUISelect(dto)?.let { select ->
+      row.add(UICol(md = 6).add(select))
     }
     row.add(UICol(md = 6).add(referenceField))
     layout.add(descriptionArea)
     JiraSupport.createJiraElement(dto.description, descriptionArea)?.let { layout.add(UIRow().add(UICol().add(it))) }
     Favorites.addTranslations(layout.translations)
     layout.addAction(
-      UIButton(
-        "switch",
-        title = translate("plugins.teamcal.switchToTeamEventButton"),
-        color = UIColor.DARK,
+      UIButton.createSecondaryButton(
+        id = "switch",
+        title = "plugins.teamcal.switchToTeamEventButton",
         responseAction = ResponseAction(getRestRootPath("switch2CalendarEvent"), targetType = TargetType.POST)
       )
     )
@@ -421,7 +440,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       timesheet.description = "${calendarEvent.subject ?: ""} ${calendarEvent.note ?: ""}"
     val editLayoutData = getItemAndLayout(request, timesheet, UILayout.UserAccess(false, true))
     return ResponseAction(
-      url = "/${Const.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}",
+      url = "/${Constants.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}",
       targetType = TargetType.UPDATE
     )
       .addVariable("data", editLayoutData.data)
@@ -478,5 +497,19 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       )
     )
     elements.add(element)
+  }
+
+  /**
+   * @param timesheet Only needed, if the tag of the given timesheet should be added to the tag list and is not
+   * configured (after changing configuration of tag list).
+   * @param id Field (id) is "tag" as default.
+   * @return UISelect or null, if no tags exist (neither configured nor given in timesheet).
+   */
+  fun createTagUISelect(timesheet: Timesheet? = null, id: String = "tag"): UISelect<String>? {
+    val tags = timesheetDao.getTags(timesheet?.tag)
+    if (tags.isNullOrEmpty()) {
+      return null
+    }
+    return UISelect(id, label = "timesheet.tag", required = false, values = tags.map { UISelectValue(it, it) })
   }
 }

@@ -33,11 +33,11 @@ import org.projectforge.model.rest.RestPaths
 class My2FARequestHandlerTest {
   @Test
   fun matchesTest() {
-    var handler = getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPTING", "/")
-    Assertions.assertEquals(AbstractCache.TICKS_PER_MINUTE, handler.matchesUri("/react/changePassword")?.expiryMillis)
+    var handler = getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPT", "/")
+    Assertions.assertEquals(AbstractCache.TICKS_PER_MINUTE, handler.matchesUri("/rs/changePassword")?.expiryMillis)
     Assertions.assertEquals(
       AbstractCache.TICKS_PER_MINUTE,
-      handler.matchesUri("/react/changeWlanPassword")?.expiryMillis
+      handler.matchesUri("/rs/changeWlanPassword")?.expiryMillis
     )
     Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/wa/userEdit")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/wa/userEdit/124")?.expiryMillis)
@@ -49,8 +49,11 @@ class My2FARequestHandlerTest {
     Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/react/myAccount")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 30, handler.matchesUri("/wa/outgoingInvoice")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 90, handler.matchesUri("/unknown-url")?.expiryMillis)
-    handler = getHandler("PASSWORD; ACCESS", "", "ADMIN;MY_ACCOUNT")
+    handler = getHandler("PASSWORD;", "", "ADMIN;MY_ACCOUNT")
     Assertions.assertNull(handler.matchesUri("/unknown-url")?.expiryMillis)
+
+    Assertions.assertNull(handler.matchesUri("/rs/user/autosearch"))
+    Assertions.assertNull(handler.matchesUri("/rs/user/autosearch?search=hurzel"))
   }
 
   @Test
@@ -79,7 +82,7 @@ class My2FARequestHandlerTest {
 
   @Test
   fun remainingPeriodTest() {
-    val handler = getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPTING", "/")
+    val handler = getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPT", "/")
     val user = PFUserDO()
     ThreadLocalUserContext.setUser(user)
     Assertions.assertEquals(0L, handler.getRemainingPeriod4WriteAccess("user"))
@@ -120,25 +123,28 @@ class My2FARequestHandlerTest {
       config.expiryPeriodDays30 = days30
       config.expiryPeriodDays90 = days90
       val handler = My2FARequestHandler()
-      handler.registerShortCut(
-        "ADMIN",
-        "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin;/react/change.*Password;/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin"
+      handler.registerShortCutValues(
+        My2FAShortCut.ADMIN,
+        "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin",
+        "/rs/change.*Password",
+        "/rs/user",
+        "/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin"
       )
-      handler.registerShortCut("HR", "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed")
-      handler.registerShortCut(
-        "FINANCE",
+      handler.registerShortCutValues(My2FAShortCut.HR, "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed")
+      handler.registerShortCutValues(
+        My2FAShortCut.FINANCE,
         "WRITE:incomingInvoice;WRITE:outgoingInvoice;/wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice"
       )
-      handler.registerShortCut(
-        "ORGA",
+      handler.registerShortCutValues(
+        My2FAShortCut.ORGA,
         "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract"
       )
-      handler.registerShortCut("SCRIPTING", "/react/script")
-      handler.registerShortCut("MY_ACCOUNT", "/react/tokenInfo;/react/myAccount;/rs/tokenInfo;/rs/user/renewToken")
-      handler.registerShortCut("PASSWORD", "/react/change.*Password")
-      handler.registerShortCut("ACCESS", "/rs/groupAccess/")
-      handler.registerShortCut("ALL", "/")
-      handler.configuration = config
+      handler.registerShortCutValues(My2FAShortCut.SCRIPT, "/react/script")
+      handler.registerShortCutValues(My2FAShortCut.MY_ACCOUNT, "/react/tokenInfo;/react/myAccount;/rs/tokenInfo;/rs/user/renewToken")
+      handler.registerShortCutValues(My2FAShortCut.PASSWORD, "/rs/change.*Password")
+      handler.registerShortCutValues(My2FAShortCut.ADMIN, "/rs/groupAccess/")
+      handler.registerShortCutValues(My2FAShortCut.ALL, "/")
+      handler.internalSet4UnitTests(config)
       return handler
     }
   }

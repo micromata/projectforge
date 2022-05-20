@@ -26,23 +26,18 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.KontoStatus
 
-class Konto(id: Int? = null,
-            var nummer: Int? = null,
-            var bezeichnung: String? = null,
-            var description: String? = null,
-            var status: KontoStatus? = null
+class Konto(
+  id: Int? = null,
+  var nummer: Int? = null,
+  var bezeichnung: String? = null,
+  var description: String? = null,
+  var status: KontoStatus? = null
 ) : BaseDTODisplayObject<KontoDO>(id) {
 
-    /**
-     * @see copyFromMinimal
-     */
-    constructor(src: KontoDO) : this() {
-        this.copyFromMinimal(src)
-    }
-
-    override fun copyFromMinimal(src: KontoDO) {
-        super.copyFromMinimal(src)
-        nummer = src.nummer
-        bezeichnung = src.bezeichnung
-    }
+  /**
+   * @see copyFromMinimal
+   */
+  constructor(src: KontoDO) : this() {
+    this.copyFromMinimal(src)
+  }
 }

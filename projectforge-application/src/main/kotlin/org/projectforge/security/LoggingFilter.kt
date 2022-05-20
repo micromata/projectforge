@@ -89,24 +89,11 @@ class LoggingFilter : Filter {
   }
 
   companion object {
-    private fun logSuspiciousURI(request: HttpServletRequest, username: String?): Boolean {
-      val uri = request.requestURI
+    internal fun logSuspiciousURI(request: HttpServletRequest, username: String?): Boolean {
+      val uri = WebUtils.getNormalizedUri(request)
       if (uri.isNullOrBlank() ||
-        uri.startsWith("/rs/") ||
-        uri.startsWith("/react/") ||
-        uri.startsWith("/wa/") || // Wicket
-        uri.startsWith("/rsPublic/") ||
-        uri == "/favicon.ico" ||
-        uri == "/favicon.png" ||
-        uri.startsWith("/static/") || // resources (css, images, js, ...)
-        uri.startsWith("/export/") || // ProjectForge.ics
-        uri.startsWith("/styles/") || // Used by Wicket pages
-        uri.startsWith("/fonts/") || // Used by Wicket pages
-        uri.startsWith("/images/") || // Used by Wicket pages
-        uri.startsWith("/include/") || // Used by Wicket pages
-        uri.startsWith("/scripts/") || // Used by Wicket pages
-        uri.startsWith("/secure/") || // Used by Wicket pages (/secure/Logo.png)
-        uri == "/wa" || // Wicket start page
+        KNOWN_PATHES.any { uri.startsWith(it) } ||
+        KNOWN_URLS.any { uri == it } ||
         DAVMethodsInterceptor.handledByMiltonFilter(request)
       ) {
         return false
@@ -120,5 +107,28 @@ class LoggingFilter : Filter {
       SecurityLogging.logWarn(request, this::class.java, title, logAccess = true, logSecurity = true)
       return true
     }
+
+    private val KNOWN_PATHES = arrayOf(
+      "/rs/", // Rest services
+      "/react/",
+      "/wa/", // Wicket stuff
+      "/rsPublic/", // Public rest services (no login required)
+      "/static/", // resources (css, images, js, ...)
+      "/export/", // ProjectForge.ics
+      "/styles/", // Used by Wicket pages
+      "/fonts/", // Used by Wicket pages
+      "/images/", // Used by Wicket pages
+      "/include/", // Used by Wicket pages
+      "/scripts/", // Used by Wicket pages
+      "/apple-touch-icon", // Requested by Safari
+      // "/secure/", // Used by Wicket pages (/secure/Logo.png)
+    )
+    private val KNOWN_URLS = arrayOf(
+      "/",
+      "/wa", // Wicket start page
+      "/favicon.ico",
+      "/favicon.png",
+      "/manifest.json", // Requested by Safari
+    )
   }
 }

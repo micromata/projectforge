@@ -25,7 +25,6 @@ package org.projectforge.rest
 
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.Const
 import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
 import org.projectforge.business.configuration.ConfigurationService
@@ -49,7 +48,6 @@ import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
-import org.projectforge.ui.Formatter
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -220,9 +218,6 @@ class AddressPagesRest
     }
   }
 
-  override val classicsLinkListUrl: String?
-    get() = "wa/addressList"
-
   /**
    * @return the address view page.
    */
@@ -233,10 +228,10 @@ class AddressPagesRest
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(): UILayout {
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val addressLC = LayoutContext(lc)
     addressLC.idPrefix = "address."
-    val layout = super.createListLayout()
+    val layout = super.createListLayout(request, magicFilter)
       .add(
         UITable.createUIResultSetTable()
           .add(addressLC, "isFavoriteCard", "lastUpdate")
@@ -252,9 +247,10 @@ class AddressPagesRest
           )
           .add(lc, "address.addressbookList")
       )
-    layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
+    layout.getTableColumnById("address.lastUpdate").formatter = UITableColumn.Formatter.DATE
     layout.getTableColumnById("address.imagePreview").set(sortable = false)
-    layout.getTableColumnById("address.addressbookList").set(formatter = Formatter.ADDRESS_BOOK, sortable = false)
+    layout.getTableColumnById("address.addressbookList")
+      .set(formatter = UITableColumn.Formatter.ADDRESS_BOOK, sortable = false)
     layout.getTableColumnById("address.isFavoriteCard").set(
       sortable = false,
       title = "address.columnHead.myFavorites",
@@ -520,8 +516,8 @@ class AddressPagesRest
         MenuItem(
           "address.printView",
           i18nKey = "printView",
-          url = "${Const.REACT_APP_PATH}addressView/dynamic/${dto.id}",
-          type = MenuItemTargetType.REDIRECT
+          url = AddressViewPageRest.getPageUrl(dto.id, absolute = false),
+          type = MenuItemTargetType.REDIRECT,
         )
       )
       layout.add(
@@ -547,7 +543,11 @@ class AddressPagesRest
   /**
    * @return New result set of dto's, transformed from data base objects.
    */
-  override fun processResultSetBeforeExport(resultSet: ResultSet<AddressDO>): ResultSet<*> {
+  override fun processResultSetBeforeExport(
+    resultSet: ResultSet<AddressDO>,
+    request: HttpServletRequest,
+    magicFilter: MagicFilter,
+  ): ResultSet<*> {
     val newList = resultSet.resultSet.map {
       ListAddress(
         transformFromDB(it),
@@ -561,7 +561,7 @@ class AddressPagesRest
       it.address.imageData = null
       it.address.imageDataPreview = null
     }
-    return ResultSet(newList, newList.size)
+    return ResultSet(newList, resultSet, newList.size, magicFilter = magicFilter)
   }
 
   private fun createFavoriteRow(id: String, inputElement: UIElement): UIRow {

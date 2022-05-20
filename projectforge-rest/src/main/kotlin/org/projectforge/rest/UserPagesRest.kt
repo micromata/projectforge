@@ -23,11 +23,12 @@
 
 package org.projectforge.rest
 
-import org.projectforge.Const
 import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.UserLocale
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.rest.config.Rest
@@ -45,111 +46,125 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/user")
 class UserPagesRest
-    : AbstractDTOPagesRest<PFUserDO, User, UserDao>(UserDao::class.java, "user.title") {
+  : AbstractDTOPagesRest<PFUserDO, User, UserDao>(UserDao::class.java, "user.title") {
 
-    override fun transformFromDB(obj: PFUserDO, editMode: Boolean): User {
-        val user = User()
-        val copy = PFUserDO.createCopyWithoutSecretFields(obj)
-        if (copy != null) {
-            user.copyFrom(copy)
-        }
-        return user
+  override fun transformFromDB(obj: PFUserDO, editMode: Boolean): User {
+    val user = User()
+    val copy = PFUserDO.createCopyWithoutSecretFields(obj)
+    if (copy != null) {
+      user.copyFrom(copy)
+    }
+    return user
+  }
+
+  override fun transformForDB(dto: User): PFUserDO {
+    val userDO = PFUserDO()
+    dto.copyTo(userDO)
+    return userDO
+  }
+
+  @Autowired
+  private lateinit var userDao: UserDao
+
+  /**
+   * LAYOUT List page
+   */
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+    val layout = super.createListLayout(request, magicFilter)
+      .add(
+        UITable.createUIResultSetTable()
+          .add(
+            lc, "username", "deactivated", "lastname", "firstname", "personalPhoneIdentifiers",
+            "description", "rights", "ldapValues"
+          )
+      )
+    return LayoutUtils.processListPage(layout, this)
+  }
+
+  /**
+   * LAYOUT Edit page
+   */
+  override fun createEditLayout(dto: User, userAccess: UILayout.UserAccess): UILayout {
+    val layout = super.createEditLayout(dto, userAccess)
+      .add(
+        UIRow()
+          .add(
+            UICol()
+              .add(
+                lc, "username", "firstname", "lastname", "organization", "email",
+                /*"authenticationToken",*/
+                "jiraUsername", "hrPlanning", "deactivated"/*, "password"*/
+              )
+          )
+          .add(createUserSettingsCol(UILength(1)))
+          .add(UICol().add(lc, "sshPublicKey"))
+      )
+      /*.add(UISelect<Int>("readonlyAccessUsers", lc,
+              multi = true,
+              label = "user.assignedGroups",
+              additionalLabel = "access.groups",
+              autoCompletion = AutoCompletion<Int>(url = "group/aco"),
+              labelProperty = "name",
+              valueProperty = "id"))
+      .add(UISelect<Int>("readonlyAccessUsers", lc,
+              multi = true,
+              label = "multitenancy.assignedTenants",
+              additionalLabel = "access.groups",
+              autoCompletion = AutoCompletion<Int>(url = "group/aco"),
+              labelProperty = "name",
+              valueProperty = "id"))*/
+      .add(lc, "description")
+
+    return LayoutUtils.processEditPage(layout, dto, this)
+  }
+
+  override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")
+
+  override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<PFUserDO> {
+    val list = super.queryAutocompleteObjects(request, filter)
+    if (filter.searchString.isNullOrBlank() || request.getParameter(AutoCompletion.SHOW_ALL_PARAM) != "true") {
+      // Show deactivated users only if search string is given or param SHOW_ALL_PARAM is true:
+      return list.filter { !it.deactivated } // Remove deactivated users when returning all.
+    }
+    return list
+  }
+
+  companion object {
+    internal fun createUserSettingsCol(uiLength: UILength): UICol {
+      val userLC = LayoutContext(PFUserDO::class.java)
+
+      val locales = UserLocale.LOCALIZATIONS.map { UISelectValue(Locale(it), translate("locale.$it")) }.toMutableList()
+      locales.add(0, UISelectValue(Locale("DEFAULT"), translate("user.defaultLocale")))
+
+      val today = LocalDate.now()
+      val formats = Configuration.instance.dateFormats
+      val dateFormats = formats.map { createUISelectValue(it, today) }.toMutableList()
+      val excelDateFormats = formats.map { createUISelectValue(it, today, true) }.toMutableList()
+
+      val timeNotations = listOf(
+        UISelectValue(TimeNotation.H12, translate("timeNotation.12")),
+        UISelectValue(TimeNotation.H24, translate("timeNotation.24"))
+      )
+
+      return UICol(uiLength).add(UIReadOnlyField("lastLogin", userLC))
+        .add(userLC, "timeZone", "personalPhoneIdentifiers")
+        .add(UISelect("locale", userLC, required = true, values = locales))
+        .add(UISelect("dateFormat", userLC, required = false, values = dateFormats))
+        .add(UISelect("excelDateFormat", userLC, required = false, values = excelDateFormats))
+        .add(UISelect("timeNotation", userLC, required = false, values = timeNotations))
     }
 
-    override fun transformForDB(dto: User): PFUserDO {
-        val userDO = PFUserDO()
-        dto.copyTo(userDO)
-        return userDO
+    private fun createUISelectValue(
+      pattern: String,
+      today: LocalDate,
+      excelDateFormat: Boolean = false
+    ): UISelectValue<String> {
+      val str = if (excelDateFormat) {
+        pattern.replace('y', 'Y').replace('d', 'D')
+      } else {
+        pattern
+      }
+      return UISelectValue(str, "$str: ${java.time.format.DateTimeFormatter.ofPattern(pattern).format(today)}")
     }
-
-    @Autowired
-    private lateinit var userDao: UserDao
-
-    /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
-                .add(UITable.createUIResultSetTable()
-                        .add(lc, "username", "deactivated", "lastname", "firstname", "personalPhoneIdentifiers",
-                                "description", "rights", "ldapValues"))
-        return LayoutUtils.processListPage(layout, this)
-    }
-
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: User, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-                .add(UIRow()
-                        .add(UICol()
-                                .add(lc, "username", "firstname", "lastname", "organization", "email",
-                                        /*"authenticationToken",*/
-                                        "jiraUsername", "hrPlanning", "deactivated"/*, "password"*/))
-                        .add(createUserSettingsCol(UILength(1)))
-                        .add(UICol().add(lc, "sshPublicKey")))
-                /*.add(UISelect<Int>("readonlyAccessUsers", lc,
-                        multi = true,
-                        label = "user.assignedGroups",
-                        additionalLabel = "access.groups",
-                        autoCompletion = AutoCompletion<Int>(url = "group/aco"),
-                        labelProperty = "name",
-                        valueProperty = "id"))
-                .add(UISelect<Int>("readonlyAccessUsers", lc,
-                        multi = true,
-                        label = "multitenancy.assignedTenants",
-                        additionalLabel = "access.groups",
-                        autoCompletion = AutoCompletion<Int>(url = "group/aco"),
-                        labelProperty = "name",
-                        valueProperty = "id"))*/
-                .add(lc, "description")
-
-        return LayoutUtils.processEditPage(layout, dto, this)
-    }
-
-    override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")
-
-    override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<PFUserDO> {
-        val list = super.queryAutocompleteObjects(request, filter)
-        if (filter.searchString.isNullOrBlank() || request.getParameter(AutoCompletion.SHOW_ALL_PARAM) != "true") {
-            // Show deactivated users only if search string is given or param SHOW_ALL_PARAM is true:
-            return list.filter { !it.deactivated } // Remove deactivated users when returning all.
-        }
-        return list
-    }
-
-    companion object {
-        internal fun createUserSettingsCol(uiLength: UILength): UICol {
-            val userLC = LayoutContext(PFUserDO::class.java)
-
-            val locales = Const.LOCALIZATIONS.map { UISelectValue(Locale(it), translate("locale.$it")) }.toMutableList()
-            locales.add(0, UISelectValue(Locale("DEFAULT"), translate("user.defaultLocale")))
-
-            val today = LocalDate.now()
-            val formats = Configuration.instance.dateFormats
-            val dateFormats = formats.map { createUISelectValue(it, today) }.toMutableList()
-            val excelDateFormats = formats.map { createUISelectValue(it, today, true) }.toMutableList()
-
-            val timeNotations = listOf(
-                    UISelectValue(TimeNotation.H12, translate("timeNotation.12")),
-                    UISelectValue(TimeNotation.H24, translate("timeNotation.24"))
-            )
-
-            return UICol(uiLength).add(UIReadOnlyField("lastLogin", userLC))
-                    .add(userLC, "timeZone", "personalPhoneIdentifiers")
-                    .add(UISelect("locale", userLC, required = true, values = locales))
-                    .add(UISelect("dateFormat", userLC, required = false, values = dateFormats))
-                    .add(UISelect("excelDateFormat", userLC, required = false, values = excelDateFormats))
-                    .add(UISelect("timeNotation", userLC, required = false, values = timeNotations))
-        }
-
-        private fun createUISelectValue(pattern: String, today: LocalDate, excelDateFormat: Boolean = false): UISelectValue<String> {
-            val str = if (excelDateFormat) {
-                pattern.replace('y', 'Y').replace('d', 'D')
-            } else {
-                pattern
-            }
-            return UISelectValue(str, "$str: ${java.time.format.DateTimeFormatter.ofPattern(pattern).format(today)}")
-        }
-    }
+  }
 }

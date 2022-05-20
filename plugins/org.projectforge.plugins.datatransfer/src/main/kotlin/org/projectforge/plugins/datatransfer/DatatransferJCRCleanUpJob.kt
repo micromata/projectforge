@@ -33,6 +33,7 @@ import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
 
 private val log = KotlinLogging.logger {}
 
@@ -144,6 +145,8 @@ class DataTransferJCRCleanUpJob {
 
   companion object {
     internal const val MILLIS_PER_DAY = 1000L * 60 * 60 * 24
+
+    internal val BD_MILLIS_PER_DAY = BigDecimal(MILLIS_PER_DAY)
 
     internal const val SYSTEM_USER = "ProjectForge system"
   }

@@ -26,7 +26,6 @@ package org.projectforge.plugins.datatransfer.rest
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.NumberOfBytes
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -34,7 +33,11 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
-import org.projectforge.plugins.datatransfer.*
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferPlugin
+import org.projectforge.plugins.datatransfer.DataTransferUtils
+import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
@@ -46,15 +49,22 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
 
+/**
+ * Page of data transfer area with attachments list (including upload/download and editing).
+ */
 @RestController
 @RequestMapping("${Rest.URL}/datatransferfiles")
 class DataTransferPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var attachmentsService: AttachmentsService
+
+  @Autowired
+  private lateinit var attachmentsServicesRest: AttachmentsServicesRest
 
   @Autowired
   private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
@@ -66,10 +76,15 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
   private lateinit var groupService: GroupService
 
   @Autowired
-  private lateinit var notificationMailService: NotificationMailService
-
-  @Autowired
   private lateinit var userService: UserService
+
+  @PostConstruct
+  private fun postConstruct() {
+    attachmentsServicesRest.register(
+      dataTransferAreaPagesRest.category,
+      DataTransferAttachmentsActionListener(attachmentsService, dataTransferAreaDao, groupService, userService)
+    )
+  }
 
   @GetMapping("downloadAll/{id}")
   fun downloadAll(
@@ -79,11 +94,10 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val pair = convertData(id)
     val dbObj = pair.first
     val dto = pair.second
-    DataTransferRestUtils.downloadAll(
+    DataTransferRestUtils.multiDownload(
       response,
       attachmentsService,
       dataTransferAreaPagesRest.attachmentsAccessChecker,
-      notificationMailService,
       dbObj,
       dto.areaName,
       jcrPath = dataTransferAreaPagesRest.jcrPath!!,
@@ -106,15 +120,21 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val dto = pair.second
     val layout = UILayout("plugins.datatransfer.title.heading")
     val attachmentsFieldset = UIFieldset(title = "'${dto.areaName}")
-    attachmentsFieldset.add(UIAttachmentList(DataTransferPlugin.ID, id, showExpiryInfo = true))
-    if (dto.attachmentsSize ?: 0 in 1..NumberOfBytes.GIGA_BYTES) {
+    attachmentsFieldset.add(
+      UIAttachmentList(
+        DataTransferPlugin.ID,
+        id,
+        showExpiryInfo = true,
+        maxSizeInKB = DataTransferAreaDao.getMaxUploadFileSizeKB(dbObj)
+      )
+    )
+    if ((dto.attachmentsSize ?: 0) in 1..NumberOfBytes.GIGA_BYTES) {
       // Download all not for attachments with size of more than 1 GB in total.
       attachmentsFieldset.add(
-        UIButton(
-          "downloadAll",
-          translate("plugins.datatransfer.button.downloadAll"),
-          UIColor.LINK,
-          tooltip = "'${translate("plugins.datatransfer.button.downloadAll.info")}",
+        UIButton.createDownloadButton(
+          id = "downloadAll",
+          title = "plugins.datatransfer.button.downloadAll",
+          tooltip = "plugins.datatransfer.button.downloadAll.info",
           responseAction = ResponseAction(
             RestResolver.getRestUrl(
               this.javaClass,
@@ -127,10 +147,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     }
     layout.add(attachmentsFieldset)
     layout.add(
-      UIButton(
-        "back",
-        translate("back"),
-        UIColor.SUCCESS,
+      UIButton.createBackButton(
         responseAction = ResponseAction(
           PagesResolver.getListPageUrl(
             DataTransferAreaPagesRest::class.java,
@@ -203,9 +220,15 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
           UICol(UILength(md = 4))
             .add(
               UIReadOnlyField(
-                "maxUploadSizeFormatted",
+                "capacity.maxUploadSizeFormatted",
                 label = "plugins.datatransfer.maxUploadSize",
                 tooltip = "plugins.datatransfer.maxUploadSize.info"
+              )
+            )
+            .add(
+              UIReadOnlyField(
+                "capacity.capacityAsMessage",
+                label = "plugins.datatransfer.capacity",
               )
             )
         )
@@ -246,6 +269,14 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
     layout.add(fieldSet)
 
+    layout.add(
+      MenuItem(
+        "HIGHLIGHT",
+        i18nKey = "plugins.datatransfer.audit.display",
+        url = PagesResolver.getDynamicPageUrl(DataTransferAuditPageRest::class.java, id = dto.id),
+        type = MenuItemTargetType.MODAL
+      )
+    )
     if (hasEditAccess(dto, dbObj)) {
       layout.add(
         MenuItem(
@@ -280,7 +311,8 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       // observe state of logged in user wasn't changed: do nothing.
       return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
-    val dbObj = dataTransferAreaDao.internalGetById(id) // Get entry including external access settings (see DataTransferDao#hasAccess).
+    val dbObj =
+      dataTransferAreaDao.internalGetById(id) // Get entry including external access settings (see DataTransferDao#hasAccess).
     val newObservers = dbDto.observers?.toMutableList() ?: mutableListOf()
     if (postData.data.userWantsToObserve == true) {
       val user = User()
@@ -313,8 +345,8 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
   private fun convertData(id: Int): Pair<DataTransferAreaDO, DataTransferArea> {
     val dbObj = dataTransferAreaDao.getById(id)
     val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService, userService)
-    if (!hasEditAccess(dto, dbObj)) {
-      dto.externalPassword = null
+    if (hasEditAccess(dto, dbObj)) {
+      dto.externalPassword = dbObj.externalPassword
     }
     dto.attachments = attachmentsService.getAttachments(
       dataTransferAreaPagesRest.jcrPath!!,
@@ -322,7 +354,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       dataTransferAreaPagesRest.attachmentsAccessChecker
     )
     dto.attachments?.forEach {
-      it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it.lastUpdate, dbObj.expiryDays))
+      it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it, dbObj.expiryDays))
     }
     dto.internalLink = getUrl(PagesResolver.getDynamicPageUrl(this::class.java, id = id))
     if (!dbObj.accessGroupIds.isNullOrBlank()) {

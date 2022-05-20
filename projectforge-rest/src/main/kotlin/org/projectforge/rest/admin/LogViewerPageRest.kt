@@ -40,6 +40,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
@@ -50,36 +51,42 @@ private val log = KotlinLogging.logger {}
  */
 @RestController
 @RequestMapping("${Rest.URL}/logViewer")
-class LogViewerPageRest : AbstractDynamicPageRest() {
+open class LogViewerPageRest : AbstractDynamicPageRest() {
   @Autowired
   lateinit var accessChecker: AccessChecker
 
   @Autowired
   private lateinit var userPrefService: UserPrefService
 
+  protected var adminLogViewer = false
+
   /**
    * @param id Number of a [LogSubscription] is used by id, for -1 all log entries of the queues are used (for admins only).
    */
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, @RequestParam("id") id: Int): FormLayoutData {
-    if (id == -1) {
+  fun getForm(request: HttpServletRequest, response: HttpServletResponse, @RequestParam("id") id: Int): FormLayoutData {
+    if (adminLogViewer) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+    } else {
+      require(id >= 0)
     }
     val lc = LayoutContext(LogViewerEvent::class.java)
     val filterLc = LayoutContext(LogViewFilter::class.java)
-    val logViewFilter = if (id == -1) {
+    val logViewFilter = if (adminLogViewer) {
       getUserPref()
     } else {
       LogViewFilter(logSubscriptionId = id)
     }
-
+    val logSubscription = LogSubscription.getSubscription(id)
     val logEntriesTable = UITable(
       "logEntries",
-      refreshUrl = "/rs/logViewer/refresh",
+      refreshUrl = RestResolver.getRestUrl(this::class.java, "/refresh"),
       refreshIntervalSeconds = 5,
       autoRefreshFlag = "autoRefresh"
     )
-    if (id == -1) {
+    var title = logSubscription?.displayTitle
+    if (adminLogViewer) {
+      title = translate("system.admin.adminLogViewer.title")
       logEntriesTable.add(lc, "timestamp", "level", "user", "message", "userAgent", "stackTrace", sortable = false)
     } else {
       // Don't bother normal user with technical stuff:
@@ -88,7 +95,7 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
 
     val layout = UILayout("system.admin.logViewer.title")
       .add(
-        UIFieldset()
+        UIFieldset(title = "'$title")
           .add(
             UIRow()
               .add(
@@ -108,26 +115,20 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
           )
       )
 
-    if (id != -1) {
+    if (adminLogViewer) {
       layout.add(
-        UIButton(
-          "reset",
-          title = translate("reset"),
-          color = UIColor.DANGER,
-          default = true,
+        UIButton.createResetButton(
           responseAction = ResponseAction(
             RestResolver.getRestUrl(this::class.java, "reset"),
             targetType = TargetType.POST
-          )
+          ),
         )
       )
     }
     layout.add(
-      UIButton(
+      UIButton.createDefaultButton(
         "refresh",
-        title = translate("refresh"),
-        color = UIColor.SUCCESS,
-        default = true,
+        title = "refresh",
         responseAction = ResponseAction(
           RestResolver.getRestUrl(this::class.java, "search"),
           targetType = TargetType.POST
@@ -196,9 +197,11 @@ class LogViewerPageRest : AbstractDynamicPageRest() {
 
   private fun queryList(filter: LogViewFilter): List<LogViewerEvent> {
     val logSubscriptionId = filter.logSubscriptionId ?: -1
-    if (logSubscriptionId == -1) {
+    if (adminLogViewer) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
       return LoggerMemoryAppender.getInstance().query(filter.logFilter).map { LogViewerEvent(it) }
+    } else {
+      require(logSubscriptionId >= 0)
     }
     // Log subscription:
     val logSubscription = LogSubscription.getSubscription(logSubscriptionId) ?: return emptyList()

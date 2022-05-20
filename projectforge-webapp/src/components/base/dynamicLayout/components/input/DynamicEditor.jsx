@@ -10,7 +10,14 @@ import 'ace-builds/src-noconflict/theme-monokai';
 import 'ace-builds/src-noconflict/ext-searchbox';
 import 'ace-builds/src-noconflict/ext-language_tools';
 
-function DynamicEditor({ id, mode, ...props }) {
+function DynamicEditor(
+    {
+        id,
+        mode,
+        height,
+        ...props
+    },
+) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
     const value = Object.getByString(data, id) || '';
@@ -24,8 +31,8 @@ function DynamicEditor({ id, mode, ...props }) {
                 <AceEditor
                     mode={mode || 'kotlin'}
                     theme="monokai"
-                    height="600px"
-                    width="1024px"
+                    height={height}
+                    width="100%"
                     value={value}
                     onChange={handleInputChange}
                     name={`${ui.uid}-${id}`}
@@ -47,9 +54,11 @@ function DynamicEditor({ id, mode, ...props }) {
 DynamicEditor.propTypes = {
     id: PropTypes.string.isRequired,
     mode: PropTypes.string,
+    height: PropTypes.string,
 };
 
 DynamicEditor.defaultProps = {
+    height: '600px',
 };
 
 export default DynamicEditor;

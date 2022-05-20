@@ -111,7 +111,7 @@ public class EmployeeSalaryExportDao {
     final ExportSheet sheet = xls.addSheet(sheetTitle);
     sheet.createFreezePane(0, 1);
 
-    final ExportSheet employeeSheet = xls.addSheet(ThreadLocalUserContext.getLocalizedString("fibu.employee"));
+    final ExportSheet employeeSheet = xls.addSheet(ThreadLocalUserContext.getLocalizedString("fibu.employees"));
     employeeSheet.setColumnWidth(0, MyXlsContentProvider.LENGTH_USER * 256);
     employeeSheet.setColumnWidth(1, 14 * 256);
     employeeSheet.setColumnWidth(2, 12 * 256);

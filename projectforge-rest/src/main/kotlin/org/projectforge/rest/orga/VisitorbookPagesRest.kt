@@ -27,6 +27,7 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService
 import org.projectforge.business.orga.VisitorbookDO
 import org.projectforge.business.orga.VisitorbookDao
 import org.projectforge.business.orga.VisitorbookTimedDO
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Visitorbook
@@ -34,6 +35,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/visitorBook")
@@ -66,8 +68,8 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "id", "lastname", "firstname", "company", "visitortype")
                         .add(UITableColumn("arrive", title = "orga.visitorbook.arrive"))

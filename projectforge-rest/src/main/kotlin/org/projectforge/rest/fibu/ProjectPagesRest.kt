@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Project
@@ -33,6 +34,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/project")
@@ -62,16 +64,16 @@ class ProjectPagesRest
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(UITableColumn("kost", title = "fibu.projekt.nummer"))
                         .add(lc, "identifier", "kunde.name", "name", "kunde.division", "task", "konto", "status", "projektManagerGroup")
                         .add(UITableColumn("kost2Arten", title = "fibu.kost2art.kost2arten"))
                         .add(lc,"description"))
-        layout.getTableColumnById("konto").formatter = Formatter.KONTO
-        layout.getTableColumnById("task").formatter = Formatter.TASK_PATH
-        layout.getTableColumnById("projektManagerGroup").formatter = Formatter.GROUP
+        layout.getTableColumnById("konto").formatter = UITableColumn.Formatter.KONTO
+        layout.getTableColumnById("task").formatter = UITableColumn.Formatter.TASK_PATH
+        layout.getTableColumnById("projektManagerGroup").formatter = UITableColumn.Formatter.GROUP
         return LayoutUtils.processListPage(layout, this)
     }
 

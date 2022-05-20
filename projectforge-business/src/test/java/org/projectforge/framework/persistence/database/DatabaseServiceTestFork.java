@@ -58,7 +58,7 @@ public class DatabaseServiceTestFork extends AbstractTestBase
   public void initializeEmptyDatabase()
   {
     userGroupCache.setExpired();
-    assertFalse(databaseService.databaseTablesWithEntriesExists());
+    assertFalse(databaseService.databaseTablesWithEntriesExist());
     final PFUserDO admin = new PFUserDO();
     admin.setUsername(DatabaseService.DEFAULT_ADMIN_USER);
     admin.setId(1);

@@ -25,7 +25,10 @@ package org.projectforge.rest.scripting
 
 import de.micromata.merlin.utils.ReplaceUtils
 import mu.KotlinLogging
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.scripting.*
+import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.jcr.FileInfo
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -34,9 +37,12 @@ import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestButtonEvent
+import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Script
+import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -47,12 +53,25 @@ import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Script listing and editing for financial and controlling staff.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/script")
 class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
   baseDaoClazz = ScriptDao::class.java,
-  i18nKeyPrefix = "scripting.title"
+  i18nKeyPrefix = "scripting.title",
+  cloneSupport = CloneSupport.CLONE,
 ) {
+  @Autowired
+  private lateinit var groupService: GroupService
+
+  @Autowired
+  private lateinit var userService: UserService
+
+  @Autowired
+  private lateinit var scriptExecution: ScriptExecution
+
   @PostConstruct
   private fun postConstruct() {
     /**
@@ -73,7 +92,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     scriptDO.scriptAsString = dto.script
     if (dto.id != null) {
       // Restore filename and file for older scripts, edited by classical Wicket-version:
-      val origScript = baseDao.getById(dto.id)
+      val origScript = baseDao.getById(dto.id) ?: throw IllegalArgumentException("Script with id #${dto.id} not found.")
       scriptDO.filename = origScript.filename
       scriptDO.file = origScript.file
     }
@@ -84,24 +103,47 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     val script = Script()
     script.filename = obj.filename
     script.copyFrom(obj)
-    script.availableVariables = baseDao.getScriptVariableNames(obj, ScriptExecution.additionalVariables).joinToString()
+    script.availableVariables =
+      scriptExecution.getVariableNames(script, script.parameters, baseDao, this).joinToString()
     script.script = obj.scriptAsString
+    // Group names needed by React client (for ReactSelect):
+    Group.restoreDisplayNames(script.executableByGroups, groupService)
+    // Usernames needed by React client (for ReactSelect):
+    User.restoreDisplayNames(script.executableByUsers, userService)
+    script.executableByUsersAsString = script.executableByUsers?.joinToString { it.displayName ?: "???" } ?: ""
+    script.executableByGroupsAsString = script.executableByGroups?.joinToString { it.displayName ?: "???" } ?: ""
     return script
   }
 
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(): UILayout {
-    val layout = super.createListLayout()
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+    val layout = super.createListLayout(request, magicFilter)
       .add(
         UITable.createUIResultSetTable()
           .add(lc, "name", "description")
-          .add(UITableColumn("parameter", title = "scripting.script.parameter"))
+          .add(UITableColumn("parameterNames", title = "scripting.script.parameter", sortable = false))
           .add(UITableColumn("type", title = "scripting.script.type"))
-          .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
+          .add(UITableColumn("executeAsUser", title = "scripting.script.executeAsUser"))
+          .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP, sortable = false))
+          .add(
+            UITableColumn(
+              "executableByGroupsAsString",
+              sortable = false,
+              title = "scripting.script.executableByGroups"
+            )
+          )
+          .add(
+            UITableColumn(
+              "executableByUsersAsString",
+              sortable = false,
+              title = "scripting.script.executableByUsers"
+            )
+          )
           .add(lc, "lastUpdate")
       )
+    layout.getTableColumnById("executeAsUser").formatter = UITableColumn.Formatter.USER
     layout.add(
       MenuItem(
         "exeute",
@@ -121,11 +163,16 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     return "${PagesResolver.getDynamicPageUrl(ScriptExecutePageRest::class.java)}:id"
   }
 
-
   /**
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: Script, userAccess: UILayout.UserAccess): UILayout {
+    val numberOfLines = dto.script?.lines()?.size ?: 0
+    val editorHeight = if (numberOfLines > 200) {
+      "1024px"
+    } else {
+      null
+    }
     val langs = listOf(
       UISelectValue(ScriptDO.ScriptType.KOTLIN, "Kotlin script"),
       UISelectValue(ScriptDO.ScriptType.GROOVY, "Groovy script"),
@@ -153,19 +200,64 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     if (!dto.filename.isNullOrBlank()) {
       layout.add(lc, "filename")
     }
-    if (dto.type != ScriptDO.ScriptType.INCLUDE) {
-      for (i in 1..6) {
-        layout.add(createParameterRow(i))
-      }
-    }
     layout.add(lc, "description")
     if (dto.type != ScriptDO.ScriptType.INCLUDE) {
+      UIFieldset(12, "scripting.script.parameters").let { fieldset ->
+        layout.add(fieldset)
+        UIRow().let { row ->
+          fieldset.add(row)
+          UICol(md = 6).let { col ->
+            row.add(col)
+            for (i in 1..3) {
+              col.add(createParameterRow(i))
+            }
+          }
+          UICol(md = 6).let { col ->
+            row.add(col)
+            for (i in 4..6) {
+              col.add(createParameterRow(i))
+            }
+          }
+        }
+      }
       layout.add(
         UIFieldset(title = "attachment.list")
-          .add(UIAttachmentList(category, dto.id))
+          .add(UIAttachmentList(category, dto.id, maxSizeInKB = getMaxFileSizeKB()))
       )
     }
-    layout.add(UIEditor("script", type = ScriptExecutor.getScriptType(dto.script, dto.type)))
+    UIFieldset(12, "access").let { fieldset ->
+      layout.add(fieldset)
+      UIRow().let { row ->
+        fieldset.add(row)
+        UICol(lg = 6).let { col ->
+          row.add(col)
+          col
+            .add(
+              UISelect.createGroupSelect(
+                lc,
+                "executableByGroups",
+                true,
+                "scripting.script.executableByGroups",
+                tooltip = "scripting.script.executableByGroups.info"
+              )
+            )
+            .add(lc, "executeAsUser")
+        }
+        UICol(lg = 6).let { col ->
+          row.add(col)
+          col.add(
+            UISelect.createUserSelect(
+              lc,
+              "executableByUsers",
+              true,
+              "scripting.script.executableByUsers",
+              tooltip = "scripting.script.executableByUsers.info"
+            )
+          )
+        }
+      }
+    }
+    layout.add(UIEditor("script", type = ScriptExecutor.getScriptType(dto.script, dto.type), height = editorHeight))
       .add(UIReadOnlyField("availableVariables", label = "scripting.script.availableVariables"))
 
     if (dto.id != null) {
@@ -194,8 +286,8 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
    * Redirect to execution page after modification.
    */
   override fun afterOperationRedirectTo(obj: ScriptDO, postData: PostData<Script>, event: RestButtonEvent): String {
-    return if (event == RestButtonEvent.DELETE) {
-      // Stay on edit page after saving for uploading Word template and Excel template definition.
+    return if (event == RestButtonEvent.DELETE || obj.type == ScriptDO.ScriptType.INCLUDE) {
+      // Return to list page for deleted scripts or Include-Scripts
       PagesResolver.getListPageUrl(
         ScriptPagesRest::class.java,
         absolute = true
@@ -228,11 +320,11 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
   @GetMapping("downloadEffectiveScript/{id}")
   fun downloadEffectiveScript(@PathVariable("id") id: Int?): ResponseEntity<*> {
     log.info("Downloading effective script of script with id=$id")
-    val script = baseDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
-    val scriptExecutor = ScriptExecutor.createScriptExecutor(script)
-    scriptExecutor.init(script, baseDao, ScriptExecution.additionalVariables)
-    val filename = ReplaceUtils.encodeFilename("${script.name}-effective.${baseDao.getScriptSuffix(script)}")
-    return RestUtils.downloadFile(filename, scriptExecutor.effectiveScript ?: "")
+    val scriptDO = baseDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+    val script = transformFromDB(scriptDO)
+    val effectiveScript = scriptExecution.getEffectiveScript(script, script.parameters, baseDao, this)
+    val filename = ReplaceUtils.encodeFilename("${scriptDO.name}-effective.${baseDao.getScriptSuffix(scriptDO)}")
+    return RestUtils.downloadFile(filename, effectiveScript ?: "")
   }
 
   override fun onBeforeUpdate(request: HttpServletRequest, obj: ScriptDO, postData: PostData<Script>) {

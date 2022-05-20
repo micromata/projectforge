@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.core
 
+import mu.KotlinLogging
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.rest.converter.DateTimeFormat
@@ -31,10 +32,9 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import javax.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
 
 object RestHelper {
-    private val log = org.slf4j.LoggerFactory.getLogger(RestHelper::class.java)
-
     fun buildUri(request: HttpServletRequest, path: String): URI {
         return URI("${getRootUrl(request)}/$path")
     }

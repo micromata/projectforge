@@ -4,6 +4,9 @@ left:
   - title: Home
     url: /
 
+  - title: GitHub
+    url: https://github.com/micromata/projectforge/
+
   - title: Features
     url: /features/
 

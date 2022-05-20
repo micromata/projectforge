@@ -90,7 +90,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
   public void initializeEmptyDatabase() {
     final char[] testPassword = "demo123".toCharArray();
     userGroupCache.setExpired(); // Force reload (because it's may be expired due to previous tests).
-    assertFalse(databaseService.databaseTablesWithEntriesExists());
+    assertFalse(databaseService.databaseTablesWithEntriesExist());
     PFUserDO admin = new PFUserDO();
     admin.setUsername("myadmin");
     userService.createEncryptedPassword(admin, testPassword);

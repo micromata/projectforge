@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.liquidityplanning.rest
 
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.plugins.liquidityplanning.LiquidityEntryDO
 import org.projectforge.plugins.liquidityplanning.LiquidityEntryDao
 import org.projectforge.rest.config.Rest
@@ -30,6 +31,7 @@ import org.projectforge.rest.core.AbstractDOPagesRest
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/liquidity")
@@ -38,11 +40,11 @@ class LiquidityEntryPagesRest: AbstractDOPagesRest<LiquidityEntryDO, LiquidityEn
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "dateOfPayment", "amount", "paid", "subject", "comment"))
-        layout.getTableColumnById("dateOfPayment").formatter = Formatter.DATE
+        layout.getTableColumnById("dateOfPayment").formatter = UITableColumn.Formatter.DATE
         return LayoutUtils.processListPage(layout, this)
     }
 

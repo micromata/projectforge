@@ -25,6 +25,9 @@ package org.projectforge.rest.config
 
 import mu.KotlinLogging
 import org.projectforge.common.StringHelper
+import org.projectforge.rest.core.PagesResolver
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
 import org.projectforge.web.WebUtils
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.InputStreamResource
@@ -33,15 +36,12 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import java.io.InputStream
-import java.net.InetAddress
 import java.net.URLEncoder
-import java.net.UnknownHostException
 import java.nio.charset.StandardCharsets
 import javax.servlet.Filter
 import javax.servlet.FilterRegistration
 import javax.servlet.ServletContext
 import javax.servlet.ServletRequest
-import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
@@ -112,5 +112,9 @@ object RestUtils {
 
   fun badRequest(message: String): ResponseEntity<String> {
     return ResponseEntity.badRequest().body(message)
+  }
+
+  fun getRedirectToDefaultPageAction(): ResponseAction {
+    return ResponseAction(PagesResolver.getDefaultUrl(), targetType = TargetType.CHECK_AUTHENTICATION)
   }
 }

@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.group.service.GroupService
@@ -34,7 +34,6 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.service.UserService
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
@@ -137,7 +136,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
       employeeService.updateAttribute(userId, employee.country, "country")
       employeeService.updateAttribute(userId, employee.birthday, "birthday")
     }
-    return ResponseEntity(ResponseAction("/${Const.REACT_APP_PATH}calendar"), HttpStatus.OK)
+    return ResponseEntity(ResponseAction("/${Constants.REACT_APP_PATH}calendar"), HttpStatus.OK)
   }
 
   @GetMapping("dynamic")
@@ -200,14 +199,15 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     val leftTokenCol = UICol(lg = 6)
     val rightTokenCol = UICol(lg = 6)
     addAuthenticationToken(
+      layout,
       leftTokenCol,
       authenticationsLC, "stayLoggedInKey",
       UserTokenType.STAY_LOGGED_IN_KEY,
       "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"
     )
-    addAuthenticationToken(leftTokenCol, authenticationsLC, "calendarExportToken", UserTokenType.CALENDAR_REST)
-    addAuthenticationToken(rightTokenCol, authenticationsLC, "davToken", UserTokenType.DAV_TOKEN)
-    addAuthenticationToken(rightTokenCol, authenticationsLC, "restClientToken", UserTokenType.REST_CLIENT)
+    addAuthenticationToken(layout, leftTokenCol, authenticationsLC, "calendarExportToken", UserTokenType.CALENDAR_REST)
+    addAuthenticationToken(layout, rightTokenCol, authenticationsLC, "davToken", UserTokenType.DAV_TOKEN)
+    addAuthenticationToken(layout, rightTokenCol, authenticationsLC, "restClientToken", UserTokenType.REST_CLIENT)
     layout.add(
       UIFieldset(12)
         .add(
@@ -235,12 +235,8 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
           .add(UITextArea("sshPublicKey", userLC))
       )
       .addAction(
-        UIButton(
-          "update",
-          translate("update"),
-          UIColor.SUCCESS,
+        UIButton.createUpdateButton(
           responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
-          default = true
         )
       )
 
@@ -271,6 +267,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
   }
 
   private fun addAuthenticationToken(
+    layout: UILayout,
     col: UICol,
     lc: LayoutContext,
     id: String,
@@ -293,21 +290,25 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
         .add(
           UICol(3)
             .add(
-              UIButton(
-                "${id}-renew",
-                title = translate("user.authenticationToken.renew"),
+              UIButton.createDangerButton(
+                layout,
+                id = "${id}-renew",
+                title = "user.authenticationToken.renew",
                 tooltip = tooltip ?: "user.authenticationToken.renew.tooltip",
-                confirmMessage = translate("user.authenticationToken.renew.securityQuestion"),
-                color = UIColor.DANGER,
-                responseAction = ResponseAction("/rs/user/renewToken?token=$token", targetType = TargetType.POST)
+                confirmMessage = "user.authenticationToken.renew.securityQuestion",
+                responseAction = ResponseAction(
+                  RestResolver.getRestUrl(
+                    UserServicesRest::class.java,
+                    "renewToken?token=$token"
+                  ), targetType = TargetType.POST
+                )
               )
             )
             .add(
-              UIButton(
-                "${id}-access",
-                title = translate("user.authenticationToken.button.showUsage"),
+              UIButton.createLinkButton(
+                id = "${id}-access",
+                title = "user.authenticationToken.button.showUsage",
                 tooltip = "user.authenticationToken.button.showUsage.tooltip",
-                color = UIColor.LINK,
                 responseAction = ResponseAction(
                   PagesResolver.getDynamicPageUrl(
                     TokenInfoPageRest::class.java,

@@ -541,7 +541,7 @@ public class TeamEventServiceImpl implements TeamEventService {
     String msg = "";
     StringBuilder stringBuilder = new StringBuilder();
     switch (rRule.getRecur().getFrequency()) {
-      case "DAILY": {
+      case DAILY: {
         //JEDEN
         if (rRule.getRecur().getInterval() == -1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyDay");
@@ -551,7 +551,7 @@ public class TeamEventServiceImpl implements TeamEventService {
         }
       }
       break;
-      case "WEEKLY": {
+      case WEEKLY: {
         //JEDEN
         if (rRule.getRecur().getInterval() == -1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyWeek");
@@ -561,7 +561,7 @@ public class TeamEventServiceImpl implements TeamEventService {
         }
       }
       break;
-      case "MONTHLY": {
+      case MONTHLY: {
         //JEDEN
         if (rRule.getRecur().getInterval() == -1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyMonth");
@@ -571,7 +571,7 @@ public class TeamEventServiceImpl implements TeamEventService {
         }
       }
       break;
-      case "YEARLY": {
+      case YEARLY: {
         //JEDEN
         if (rRule.getRecur().getInterval() == -1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyYear");

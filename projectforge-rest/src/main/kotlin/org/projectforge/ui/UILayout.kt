@@ -27,250 +27,253 @@ import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
 
-class UILayout {
-    class UserAccess(
-            /**
-             * The user has access to the object's history, if given.
-             */
-            var history: Boolean? = null,
-            /**
-             * The user has access to insert new objects.
-             */
-            var insert: Boolean? = null,
-            var update: Boolean? = null,
-            var delete: Boolean? = null,
-            /**
-             * Cancel button is visible for all users at default.
-             */
-            var cancel: Boolean? = true,
-    ) {
-        fun copyFrom(userAccess: UserAccess?) {
-            this.history = userAccess?.history
-            this.insert = userAccess?.insert
-            this.update = userAccess?.update
-            this.delete = userAccess?.delete
-            this.cancel = userAccess?.cancel ?: true
-        }
-        fun onlySelectAccess(): Boolean {
-            return (insert != true && update != true && delete != true)
-        }
-    }
-
+class UILayout(
+  title: String,
+  /** restBaseUrl is needed, if [UIAttachmentList] is used. */
+  var restBaseUrl: String? = null,
+  ): IUIContainer {
+  class UserAccess(
     /**
-     * @param restBaseUrl is needed, if [UIAttachmentList] is used.
+     * The user has access to the object's history, if given.
      */
-    constructor(title: String, restBaseUrl: String? = null) {
-        this.title = LayoutUtils.getLabelTransformation(title)
-        this.restBaseUrl = restBaseUrl
-    }
-
-    var title: String?
-
-    var restBaseUrl: String? = null
-
+    var history: Boolean? = null,
     /**
-     * UserAccess only for displaying purposes. The real user access will be definitely checked before persisting any
-     * data.
+     * The user has access to insert new objects.
      */
-    val userAccess = UserAccess()
+    var insert: Boolean? = null,
+    var update: Boolean? = null,
+    var delete: Boolean? = null,
     /**
-     * Should only be true for edit pages, if history entries are supported or given (normally not, if editing new entries).
-     * Show history is only true, if userAccess.history is also true.
+     * Cancel button is visible for all users at default.
      */
-    var showHistory: Boolean? = null
-    val layout: MutableList<UIElement> = mutableListOf()
-    val namedContainers: MutableList<UINamedContainer> = mutableListOf()
-    /**
-     * The action buttons.
-     */
-    val actions = mutableListOf<UIElement>()
-
-    val pageMenu = mutableListOf<MenuItem>()
-
-    var excelExportSupported = false
-
-    val watchFields = mutableListOf<String>()
-
-    /**
-     * UID usable by the client for having unique dialoque ids.
-     */
-    var uid = "layout${System.currentTimeMillis()}"
-
-    /**
-     * All required translations for the frontend dependent on the logged-in-user's language.
-     */
-    val translations = mutableMapOf<String, String>()
-
-    /**
-     * Name of the history back button or null, if now history back button should be shown (default).
-     * Please use [enableHistoryBackButton] for enabling back button with localized button title.
-     */
-    var historyBackButton: String? = null
-
-    fun enableHistoryBackButton() {
-        historyBackButton = translate("back")
+    var cancel: Boolean? = true,
+  ) {
+    fun copyFrom(userAccess: UserAccess?) {
+      this.history = userAccess?.history
+      this.insert = userAccess?.insert
+      this.update = userAccess?.update
+      this.delete = userAccess?.delete
+      this.cancel = userAccess?.cancel ?: true
     }
 
-    /**
-     * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
-     * @return this for chaining.
-     */
-    fun addTranslations(translations: Map<String, String>): UILayout {
-        this.translations.putAll(translations)
-        return this
+    fun onlySelectAccess(): Boolean {
+      return (insert != true && update != true && delete != true)
     }
+  }
 
-    /**
-     * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
-     * @return this for chaining.
-     */
-    fun addTranslations(vararg i18nKeys: String): UILayout {
-        addTranslations(*i18nKeys, translations = translations)
-        return this
-    }
+  var title: String?
 
-    /**
-     * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
-     * @return this for chaining.
-     */
-    fun addTranslation(i18nKey: String, translation: String): UILayout {
-        translations.put(i18nKey, translation)
-        return this
-    }
+  /**
+   * UserAccess only for displaying purposes. The real user access will be definitely checked before persisting any
+   * data.
+   */
+  val userAccess = UserAccess()
 
-    fun add(element: UIElement): UILayout {
-        layout.add(element)
-        return this
-    }
+  /**
+   * Should only be true for edit pages, if history entries are supported or given (normally not, if editing new entries).
+   * Show history is only true, if userAccess.history is also true.
+   */
+  var showHistory: Boolean? = null
+  /**
+   * Used for list pages, if true, the search filter of the list page will be hidden.
+   */
+  var hideSearchFilter: Boolean? = null
 
-    fun addAction(element: UIElement): UILayout {
-        actions.add(element)
-        return this
-    }
+  val layout: MutableList<UIElement> = mutableListOf()
+  val namedContainers: MutableList<UINamedContainer> = mutableListOf()
 
-    fun add(namedContainer: UINamedContainer): UILayout {
-        namedContainers.add(namedContainer)
-        return this
-    }
+  /**
+   * The action buttons.
+   */
+  val actions = mutableListOf<UIElement>()
 
-    fun add(menu: MenuItem, index: Int? = null): UILayout {
-        if (index != null)
-            pageMenu.add(index, menu)
-        else
-            pageMenu.add(menu)
-        return this
-    }
+  val pageMenu = mutableListOf<MenuItem>()
 
-    fun postProcessPageMenu() {
-        pageMenu.forEach {
-            it.postProcess()
-        }
-    }
+  var excelExportSupported = false
 
-    /**
-     * Convenient method for adding a bunch of UIInput fields with the given ids.
-     * @param createRowCol If true (default), the elements will be surrounded with [UIRow] and [UICol] each, otherwise not.
-     */
-    @JvmOverloads
-    fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UILayout {
-        ids.forEach {
-            val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
-            if (element != null) {
-                add(LayoutUtils.prepareElementToAdd(element, createRowCol))
-            }
-        }
-        return this
-    }
+  val watchFields = mutableListOf<String>()
 
-    fun getAllElements(): List<Any> {
-        val list = mutableListOf<Any>()
-        addAllElements(list, layout)
-        namedContainers.forEach { addAllElements(list, it.content) }
-        addAllElements(list, actions)
-        return list
-    }
+  /**
+   * UID usable by the client for having unique dialoque ids.
+   */
+  var uid = "layout${System.currentTimeMillis()}"
 
-    fun getElementById(id: String): UIElement? {
-        var element = getElementById(id, layout)
-        if (element != null)
-            return element
-        return null
-    }
+  /**
+   * All required translations for the frontend dependent on the logged-in-user's language.
+   */
+  val translations = mutableMapOf<String, String>()
 
-    fun getTableColumnById(id: String): UITableColumn {
-        return getElementById(id) as UITableColumn
-    }
+  /**
+   * Name of the history back button or null, if now history back button should be shown (default).
+   * Please use [enableHistoryBackButton] for enabling back button with localized button title.
+   */
+  var historyBackButton: String? = null
 
-    fun getInputById(id: String): UIInput {
-        return getElementById(id) as UIInput
-    }
+  fun enableHistoryBackButton() {
+    historyBackButton = translate("back")
+  }
 
-    fun getTextAreaById(id: String): UITextArea {
-        return getElementById(id) as UITextArea
-    }
+  /**
+   * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
+   * @return this for chaining.
+   */
+  fun addTranslations(translations: Map<String, String>): UILayout {
+    this.translations.putAll(translations)
+    return this
+  }
 
-    fun getLabelledElementById(id: String): UILabelledElement {
-        return getElementById(id) as UILabelledElement
-    }
+  /**
+   * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
+   * @return this for chaining.
+   */
+  fun addTranslations(vararg i18nKeys: String): UILayout {
+    addTranslations(*i18nKeys, translations = translations)
+    return this
+  }
 
-    fun getNamedContainerById(id: String): UINamedContainer? {
-        namedContainers.forEach {
-            if (it.id == id) {
-                return it
-            }
-        }
-        return null
-    }
+  /**
+   * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
+   * @return this for chaining.
+   */
+  fun addTranslation(i18nKey: String, translation: String): UILayout {
+    translations.put(i18nKey, translation)
+    return this
+  }
 
-    fun getMenuById(id: String): MenuItem? {
-        pageMenu.forEach {
-            val found = it.get(id)
-            if (found != null) {
-                return found
-            }
-        }
-        return null
-    }
+  override fun add(element: UIElement): UILayout {
+    layout.add(element)
+    return this
+  }
 
-    private fun getElementById(id: String, elements: List<UIElement>): UIElement? {
-        elements.forEach {
-            if (LayoutUtils.getId(it, followLabelReference = false) == id)
-                return it
-            val element = when (it) {
-                is UIGroup -> getElementById(id, it.content)
-                is UIRow -> getElementById(id, it.content)
-                is UICol -> getElementById(id, it.content)
-                is UITable -> getElementById(id, it.columns)
-                is UIList -> getElementById(id, it.content)
-                else -> null
-            }
-            if (element != null)
-                return element
-        }
-        return null
-    }
+  fun addAction(element: UIElement): UILayout {
+    actions.add(element)
+    return this
+  }
 
-    private fun addAllElements(list: MutableList<Any>, elements: MutableList<UIElement>) {
-        elements.forEach { addAllElements(list, it) }
-    }
+  fun add(namedContainer: UINamedContainer): UILayout {
+    namedContainers.add(namedContainer)
+    return this
+  }
 
-    private fun addAllCols(list: MutableList<Any>, cols: MutableList<UICol>) {
-        cols.forEach { addAllElements(list, it) }
-    }
+  fun add(menu: MenuItem, index: Int? = null): UILayout {
+    if (index != null)
+      pageMenu.add(index, menu)
+    else
+      pageMenu.add(menu)
+    return this
+  }
 
-    private fun addAllElements(list: MutableList<Any>, element: UIElement) {
-        list.add(element)
-        when (element) {
-            is UIGroup -> addAllElements(list, element.content)
-            is UIRow -> addAllCols(list, element.content)
-            is UICol -> addAllElements(list, element.content)
-            is UISelect<*> -> {
-                val values = element.values
-                if (values != null)
-                    values.forEach { list.add(it) }
-            }
-            is UITable -> element.columns.forEach { list.add(it) }
-            is UIList -> addAllElements(list, element.content)
-        }
+  fun postProcessPageMenu() {
+    pageMenu.forEach {
+      it.postProcess()
     }
+  }
+
+  /**
+   * Convenient method for adding a bunch of UIInput fields with the given ids.
+   * @param createRowCol If true (default), the elements will be surrounded with [UIRow] and [UICol] each, otherwise not.
+   */
+  @JvmOverloads
+  fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UILayout {
+    ids.forEach {
+      val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
+      if (element != null) {
+        add(LayoutUtils.prepareElementToAdd(element, createRowCol))
+      }
+    }
+    return this
+  }
+
+  fun getAllElements(): List<Any> {
+    val list = mutableListOf<Any>()
+    addAllElements(list, layout)
+    namedContainers.forEach { addAllElements(list, it.content) }
+    addAllElements(list, actions)
+    return list
+  }
+
+  fun getElementById(id: String): UIElement? {
+    val element = getElementById(id, layout)
+    if (element != null)
+      return element
+    return null
+  }
+
+  fun getTableColumnById(id: String): UITableColumn {
+    return getElementById(id) as UITableColumn
+  }
+
+  fun getInputById(id: String): UIInput {
+    return getElementById(id) as UIInput
+  }
+
+  fun getTextAreaById(id: String): UITextArea {
+    return getElementById(id) as UITextArea
+  }
+
+  fun getLabelledElementById(id: String): UILabelledElement {
+    return getElementById(id) as UILabelledElement
+  }
+
+  fun getNamedContainerById(id: String): UINamedContainer? {
+    namedContainers.forEach {
+      if (it.id == id) {
+        return it
+      }
+    }
+    return null
+  }
+
+  fun getMenuById(id: String): MenuItem? {
+    pageMenu.forEach {
+      val found = it.get(id)
+      if (found != null) {
+        return found
+      }
+    }
+    return null
+  }
+
+  private fun getElementById(id: String, elements: List<UIElement>): UIElement? {
+    elements.forEach {
+      if (LayoutUtils.getId(it, followLabelReference = false) == id)
+        return it
+      val element = when (it) {
+        is UIGroup -> getElementById(id, it.content)
+        is UIRow -> getElementById(id, it.content)
+        is UICol -> getElementById(id, it.content)
+        is UITable -> getElementById(id, it.columns)
+        is UIList -> getElementById(id, it.content)
+        else -> null
+      }
+      if (element != null)
+        return element
+    }
+    return null
+  }
+
+  private fun addAllElements(list: MutableList<Any>, elements: MutableList<UIElement>) {
+    elements.forEach { addAllElements(list, it) }
+  }
+
+  private fun addAllElements(list: MutableList<Any>, element: UIElement) {
+    list.add(element)
+    when (element) {
+      is UIGroup -> addAllElements(list, element.content)
+      is UIRow -> addAllElements(list, element.content)
+      is UICol -> addAllElements(list, element.content)
+      is UISelect<*> -> {
+        val values = element.values
+        if (values != null)
+          values.forEach { list.add(it) }
+      }
+      is UITable -> element.columns.forEach { list.add(it) }
+      is UIAgGrid -> element.columnDefs.forEach { list.add(it) }
+      is UIList -> addAllElements(list, element.content)
+    }
+  }
+
+  init {
+    this.title = LayoutUtils.getLabelTransformation(title)
+  }
 }

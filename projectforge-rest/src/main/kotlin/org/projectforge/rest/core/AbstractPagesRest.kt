@@ -26,7 +26,7 @@ package org.projectforge.rest.core
 import mu.KotlinLogging
 import org.apache.commons.beanutils.NestedNullException
 import org.apache.commons.beanutils.PropertyUtils
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.DisplayNameCapable
@@ -41,12 +41,16 @@ import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.dto.*
+import org.projectforge.rest.dto.aggrid.AGColumnState
+import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.projectforge.ui.filter.UIFilterElement
@@ -55,6 +59,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.io.Serializable
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
@@ -177,6 +182,9 @@ constructor(
   protected lateinit var attachmentsService: AttachmentsService
 
   @Autowired
+  lateinit var agGridSupport: AGGridSupport
+
+  @Autowired
   private lateinit var historyService: HistoryService
 
   @Autowired
@@ -184,6 +192,10 @@ constructor(
 
   @Autowired
   private lateinit var userPrefService: UserPrefService
+
+  protected fun getMaxFileSizeKB(): Int {
+    return this.attachmentsAccessChecker.fileSizeChecker.maxFileSizeKB
+  }
 
   /**
    * Override this method for initializing fields for new objects.
@@ -201,7 +213,7 @@ constructor(
     return transformFromDB(newBaseDO(request))
   }
 
-  open fun createListLayout(): UILayout {
+  open fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val ui = UILayout("$i18nKeyPrefix.list")
     val gearMenu = MenuItem(GEAR_MENU, title = "*")
     gearMenu.add(
@@ -346,7 +358,7 @@ constructor(
   }
 
   protected open fun getInitialList(request: HttpServletRequest): InitialListData {
-    return getInitialList(getCurrentFilter())
+    return getInitialList(request, getCurrentFilter())
   }
 
   /**
@@ -360,11 +372,11 @@ constructor(
     }
   }
 
-  protected fun getInitialList(filter: MagicFilter): InitialListData {
+  protected fun getInitialList(request: HttpServletRequest, filter: MagicFilter): InitialListData {
     val favorites = getFilterFavorites()
-    val resultSet = processResultSetBeforeExport(getList(this, baseDao, filter))
+    val resultSet = processResultSetBeforeExport(getList(request, this, baseDao, filter), request, filter)
     resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
-    val ui = createListLayout()
+    val ui = createListLayout(request, filter)
       .addTranslations(
         "table.showing",
         "searchFilter",
@@ -390,7 +402,9 @@ constructor(
         ), 0
       )
     }
-    ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Const.REACT_APP_PATH}$category/edit"))
+    if (ui.userAccess.insert != false) {
+      ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Constants.REACT_APP_PATH}$category/edit"))
+    }
 
     return InitialListData(
       ui = ui,
@@ -406,7 +420,7 @@ constructor(
    * @return the standard edit page at default.
    */
   protected open fun getStandardEditPage(): String {
-    return "${Const.REACT_APP_PATH}$category/edit/:id"
+    return "${Constants.REACT_APP_PATH}$category/edit/:id"
   }
 
   /**
@@ -446,14 +460,21 @@ constructor(
    * Please note: filter.deleted is ignored (entries.field == "deleted" is used instead).
    */
   @RequestMapping(RestPaths.LIST)
-  fun getList(@RequestBody filter: MagicFilter): ResultSet<*> {
+  fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResultSet<*> {
     filter.autoWildcardSearch = true
     fixMagicFilterFromClient(filter)
-    val list = getList(this, baseDao, filter)
+    val list = getList(request, this, baseDao, filter)
     saveCurrentFilter(filter)
-    val resultSet = processResultSetBeforeExport(list)
+    val resultSet = processResultSetBeforeExport(list, request, filter)
     resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
     return resultSet
+  }
+
+  /**
+   * Get the list by ids.
+   */
+  open fun getListByIds(entityIds: Collection<Serializable>?): List<O> {
+    return baseDao.getListByIds(entityIds) ?: listOf()
   }
 
   /**
@@ -494,7 +515,7 @@ constructor(
     magicFilter.entries.removeIf { it.isEmpty }
   }
 
-  private fun getCurrentFilter(): MagicFilter {
+  fun getCurrentFilter(): MagicFilter {
     var currentFilter = userPrefService.getEntry(category, Favorites.PREF_NAME_CURRENT, MagicFilter::class.java)
     if (currentFilter == null) {
       currentFilter = MagicFilter()
@@ -511,7 +532,7 @@ constructor(
   }
 
   @GetMapping("filter/select")
-  fun selectFavoriteFilter(@RequestParam("id", required = true) id: Int): InitialListData {
+  fun selectFavoriteFilter(request: HttpServletRequest, @RequestParam("id", required = true) id: Int): InitialListData {
     val favorites = getFilterFavorites()
     val currentFilter = favorites.get(id)
     if (currentFilter != null) {
@@ -522,7 +543,7 @@ constructor(
     } else {
       log.warn("Can't select filter $id, because it's not found in favorites list.")
     }
-    return getInitialList(currentFilter ?: getCurrentFilter())
+    return getInitialList(request, currentFilter ?: getCurrentFilter())
   }
 
   /**
@@ -600,7 +621,8 @@ constructor(
   @GetMapping("filter/reset")
   fun resetListFilter(request: HttpServletRequest): ResponseAction {
     saveCurrentFilter(MagicFilter())
-    return ResponseAction(targetType = TargetType.UPDATE)
+    agGridSupport.resetGridState(category)
+    return ResponseAction(targetType = TargetType.RELOAD)
       .addVariable("filter", MagicFilter())
   }
 
@@ -624,7 +646,11 @@ constructor(
     return UIToast.createToast(translate("administration.reindexFull.successful"), color = UIColor.SUCCESS)
   }
 
-  abstract fun processResultSetBeforeExport(resultSet: ResultSet<O>): ResultSet<*>
+  abstract fun processResultSetBeforeExport(
+    resultSet: ResultSet<O>,
+    request: HttpServletRequest,
+    magicFilter: MagicFilter,
+  ): ResultSet<*>
 
   /**
    * Gets the item from the database.
@@ -698,7 +724,8 @@ constructor(
     onBeforeGetItemAndLayout(request, item, userAccess)
     val formLayoutData = getItemAndLayout(request, item, userAccess)
     returnToCaller?.let {
-      formLayoutData.serverData!!.returnToCaller = returnToCaller
+      // Fix doubled encoding:
+      formLayoutData.serverData!!.returnToCaller = returnToCaller.replace("%2F", "/")
     }
     return ResponseEntity(formLayoutData, HttpStatus.OK)
   }
@@ -856,6 +883,15 @@ constructor(
     )
   }
 
+  /**
+   * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
+   * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
+   */
+  @PostMapping(RestPaths.UPDATE_COLUMN_STATES)
+  fun updateColumnStates(request: HttpServletRequest, @Valid @RequestBody columnStates: List<AGColumnState>): String {
+    agGridSupport.storeColumnState(category, columnStates)
+    return "OK"
+  }
 
   protected open fun autoSaveOnClone(
     request: HttpServletRequest,
@@ -993,6 +1029,17 @@ constructor(
   }
 
   /**
+   * This rest service will be called on multi selection list pages, if the user wants to cancel the multi selection.
+   * @return redirect url
+   */
+  @GetMapping(RestPaths.CANCEL_MULTI_SELECTION)
+  fun handleCancelUrl(request: HttpServletRequest): String {
+    val callerUrl = MultiSelectionSupport.clear(request, this)
+      ?: PagesResolver.getListPageUrl(this::class.java, absolute = true)
+    return callerUrl
+  }
+
+  /**
    * The current filter will be reset and returned.
    */
   @GetMapping(RestPaths.FILTER_RESET)
@@ -1127,8 +1174,14 @@ constructor(
       }
       return responseAction
     }
-    returnToCaller =
-      afterOperationRedirectTo(obj, postData, event) ?: PagesResolver.getListPageUrl(this::class.java, absolute = true)
+    returnToCaller = afterOperationRedirectTo(obj, postData, event)
+        // Workarround to force reload to restore the AG Grid state:
+      ?: PagesResolver.getListPageUrl(
+        this::class.java,
+        absolute = true,
+        // Force new hash for getting initialList (including ui on actions/list/index.js
+        params = mapOf("hash" to NumberHelper.getSecureRandomAlphanumeric(4))
+      )
     return ResponseAction(returnToCaller)
       .addVariable("id", obj.id ?: -1)
   }
@@ -1200,7 +1253,8 @@ constructor(
   /**
    * Implement on how to transform objects from the data base (of type O, ExtendedBaseDO) to dto objects.
    * @param obj The object to transform.
-   * @param editMode If true, this object will be prepared for editing by the user. (Used e. g. by [org.projectforge.rest.TeamCalPagesRest].
+   * @param editMode If true, this object will be prepared for editing by the user. (Used e. g. by [org.projectforge.rest.TeamCalPagesRest]. EditMode
+   * may also used for transforming from data base for list views (with minimal set of data) or edit mode with more data.
    */
   abstract fun transformFromDB(obj: O, editMode: Boolean = false): DTO
 

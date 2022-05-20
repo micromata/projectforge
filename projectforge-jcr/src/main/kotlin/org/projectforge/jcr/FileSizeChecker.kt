@@ -41,6 +41,14 @@ interface FileSizeChecker {
    */
   fun checkSize(file: FileInfo, data: Any? = null, displayUserMessage: Boolean = true)
 
+  /**
+   * In bytes.
+   */
+  abstract val maxFileSize: Long
+
+  val maxFileSizeKB
+   get() = (maxFileSize / 1024).toInt()
+
   fun checkSize(
     file: FileInfo,
     maxFileSize: Long,

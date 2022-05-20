@@ -24,6 +24,30 @@ function CategoriesDropdown({ badge, categories }) {
         [], [], [], [],
     ];
 
+    function useOutsideAlerter(ref) {
+        React.useEffect(() => {
+            function handleClickOutside(event) {
+                if (ref.current && !ref.current.contains(event.target)) {
+                    setOpen(false);
+                }
+            }
+            function handleKeyPress(event) {
+                if (event.key === 'Escape') {
+                    setOpen(false);
+                }
+            }
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('keydown', handleKeyPress, false);
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+                document.removeEventListener('keydown', handleClickOutside);
+            };
+        }, [ref]);
+    }
+
+    const wrapperRef = React.useRef(null);
+    useOutsideAlerter(wrapperRef);
+
     // Add the 'Common' category to the first column, so it will always be first.
     columns[0].push(categories[0]);
 

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.calendar
 
-import org.projectforge.Const
+import org.projectforge.Constants
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
@@ -32,7 +32,7 @@ import org.projectforge.business.teamcal.event.model.CalEventDO
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.utils.NumberHelper
@@ -155,7 +155,7 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
     }
 
     override fun onAfterEdit(obj: CalEventDO, postData: PostData<CalEvent>, event: RestButtonEvent): ResponseAction {
-        return ResponseAction("/${Const.REACT_APP_PATH}calendar")
+        return ResponseAction("/${Constants.REACT_APP_PATH}calendar")
                 .addVariable("date", postData.data.startDate)
                 .addVariable("id", obj.id ?: -1)
     }
@@ -229,7 +229,7 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
             calendarEvent.calendar?.id = calendarId
         }
         val editLayoutData = getItemAndLayout(request, calendarEvent, UILayout.UserAccess(false, true))
-        return ResponseAction(url = "/${Const.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
+        return ResponseAction(url = "/${Constants.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}", targetType = TargetType.UPDATE)
                 .addVariable("data", editLayoutData.data)
                 .addVariable("ui", editLayoutData.ui)
                 .addVariable("variables", editLayoutData.variables)
@@ -238,8 +238,8 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "subject"))
         return LayoutUtils.processListPage(layout, this)
@@ -289,9 +289,8 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
                                 .add(lc, "note"))))
                 .add(UICustomized("calendar.reminder"))
                 .add(UIRow().add(UICol(12).add(UICustomized("calendar.recurrency"))))
-        layout.addAction(UIButton("switch",
-                title = translate("plugins.teamcal.switchToTimesheetButton"),
-                color = UIColor.DARK,
+        layout.addAction(UIButton.createSecondaryButton(id ="switch",
+                title = "plugins.teamcal.switchToTimesheetButton",
                 responseAction = ResponseAction(getRestRootPath("switch2Timesheet"), targetType = TargetType.POST)))
         layout.addTranslations("plugins.teamcal.event.recurrence",
                 "plugins.teamcal.event.recurrence.customized",

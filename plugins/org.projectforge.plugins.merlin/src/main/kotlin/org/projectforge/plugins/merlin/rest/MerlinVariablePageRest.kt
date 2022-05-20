@@ -282,37 +282,31 @@ class MerlinVariablePageRest : AbstractDynamicPageRest() {
     layout.watchFields.clear()
     layout.watchFields.addAll(arrayOf("currentVariable.type", "currentVariable.dependsOnName"))
     layout.addAction(
-      UIButton(
-        "cancel",
-        translate("cancel"),
-        UIColor.WARNING,
+      UIButton.createCancelButton(
         responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL)
       )
     )
     if (variable.used == false) {
       // Deleting only of unused variables supported.
       layout.addAction(
-        UIButton(
-          "delete",
-          translate("delete"),
-          UIColor.DANGER,
+        UIButton.createDeleteButton(
+          layout,
           responseAction = ResponseAction(
             RestResolver.getRestUrl(this::class.java, "delete"),
             targetType = TargetType.POST
-          )
+          ),
+          confirmMessage = null, // Show no dialog.
         )
       )
     }
     layout.addAction(
-      UIButton(
+      UIButton.createDefaultButton(
         "update",
-        translate("update"),
-        UIColor.SUCCESS,
+        title ="update",
         responseAction = ResponseAction(
           RestResolver.getRestUrl(this::class.java, "update"),
           targetType = TargetType.POST
         ),
-        default = true
       )
     )
     LayoutUtils.process(layout)

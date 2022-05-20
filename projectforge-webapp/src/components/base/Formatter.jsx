@@ -10,6 +10,7 @@ const ADDRESSBOOK_FORMATTER = 'ADDRESS_BOOK';
 const COST1_FORMATTER = 'COST1';
 const COST2_FORMATTER = 'COST2';
 const CUSTOMER_FORMATTER = 'CUSTOMER';
+const CURRENCY_FORMATTER = 'CURRENCY';
 const DATE_FORMATTER = 'DATE';
 const EMPLOYEE_FORMATTER = 'EMPLOYEE';
 const KONTO_FORMATTER = 'KONTO';
@@ -24,6 +25,7 @@ const GROUP_FORMATTER = 'GROUP';
 function Formatter(
     {
         formatter,
+        value,
         data,
         id,
         dataType,
@@ -31,62 +33,71 @@ function Formatter(
         timestampFormatSeconds,
         timestampFormatMinutes,
         valueIconMap,
+        locale,
+        currency,
     },
 ) {
-    const value = Object.getByString(data, id);
-    if (value === undefined) {
+    const useValue = value || Object.getByString(data, id);
+    if (useValue === undefined) {
         return null;
     }
 
-    let result = value;
+    let result = useValue;
     const valueIconsPresent = valueIconMap && valueIconMap.length !== 0;
     const useFormatter = !valueIconsPresent && (formatter || dataType);
 
-    // TODO FORMAT NUMBERS RIGHT ALIGNED
     if (useFormatter) {
         switch (useFormatter) {
             case COST1_FORMATTER:
+                result = useValue.formattedNumber;
+                break;
             case COST2_FORMATTER:
-                result = value.formattedNumber;
+                result = useValue.longDisplayName || useValue.formattedNumber;
+                break;
+            case CURRENCY_FORMATTER:
+                result = Intl.NumberFormat(locale, {
+                    style: 'currency',
+                    currency,
+                }).format(useValue);
                 break;
             case CUSTOMER_FORMATTER:
             case KONTO_FORMATTER:
             case PROJECT_FORMATTER:
             case EMPLOYEE_FORMATTER:
-                result = value.displayName;
+                result = useValue.displayName;
                 break;
             case DATE_FORMATTER:
-                result = moment(value)
+                result = moment(useValue)
                     .format(dateFormat);
                 break;
             case TASK_FORMATTER:
-                result = value.title;
+                result = useValue.title;
                 break;
             case TIMESTAMP_FORMATTER:
-                result = moment(value)
+                result = moment(useValue)
                     .format(timestampFormatSeconds);
                 break;
             case TIMESTAMP_MINUTES_FORMATTER:
-                result = moment(value)
+                result = moment(useValue)
                     .format(timestampFormatMinutes);
                 break;
             case USER_FORMATTER:
-                result = value.displayName || value.fullname || value.username;
+                result = useValue.displayName || useValue.fullname || useValue.username;
                 break;
             case AUFTRAGPOSITION_FORMATTER:
-                result = value.number;
+                result = useValue.number;
                 break;
             case GROUP_FORMATTER:
-                result = value.name;
+                result = useValue.name;
                 break;
             case ADDRESSBOOK_FORMATTER:
-                result = value
+                result = useValue
                     .map(({ displayName }) => displayName)
                     .join(', ');
                 break;
             case RATING:
-                if (value > 0) {
-                    result = [...Array(value).keys()].map((v) => (
+                if (useValue > 0) {
+                    result = [...Array(useValue).keys()].map((v) => (
                         <FontAwesomeIcon
                             icon={faStar}
                             color="#ffc107"
@@ -100,10 +111,10 @@ function Formatter(
             default:
         }
     } else if (dataType === 'DATE') {
-        result = moment(value)
+        result = moment(useValue)
             .format(timestampFormatMinutes);
     } else if (valueIconsPresent) {
-        const valueIcon = valueIconMap[value];
+        const valueIcon = valueIconMap[useValue];
 
         if (valueIcon) {
             result = <FontAwesomeIcon icon={valueIcon} />;
@@ -115,23 +126,32 @@ function Formatter(
 
 Formatter.propTypes = {
     data: PropTypes.shape({}),
+    // eslint-disable-next-line react/forbid-prop-types
+    value: PropTypes.any,
     dataType: PropTypes.string,
     dateFormat: PropTypes.string,
     id: PropTypes.string,
     formatter: PropTypes.string,
     timestampFormatSeconds: PropTypes.string,
     timestampFormatMinutes: PropTypes.string,
-    valueIconMap: PropTypes.shape({}),
+    locale: PropTypes.string,
+    currency: PropTypes.string,
+    valueIconMap: PropTypes.shape({
+        length: PropTypes.number,
+    }),
 };
 
 Formatter.defaultProps = {
     data: undefined,
     id: undefined,
+    value: undefined,
     formatter: undefined,
     dataType: undefined,
     dateFormat: 'DD/MM/YYYY',
     timestampFormatSeconds: 'DD.MM.YYYY HH:mm:ss',
     timestampFormatMinutes: 'DD.MM.YYYY HH:mm',
+    locale: undefined,
+    currency: undefined,
     valueIconMap: undefined,
 };
 

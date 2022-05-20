@@ -29,9 +29,9 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
 /**
- * For configuration of required 2FA. Uri's for which 2FA is required may be definied as coma separated regex's. Some sets of
- * uri expressions may be used by name:
- * - ADMIN: WRITE:{user};/wa/userEdit;/wa/groupEdit;/wa/admin;/react/change.*Password;/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin
+ * For configuration of required 2FA. Uri's for which 2FA is required may be defined as coma separated regex's. Some sets of
+ * uri expressions may be used by name, see org.projectforge.rest.config.ProjectForge2FAInitialization:
+ * - ADMIN: WRITE:{user};/wa/userEdit;/wa/groupEdit;/wa/admin;/react/change.*Password;/wa/license;/wa/access;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin
  * - HR: /wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed
  * - FINANCE: /wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice
  * - ORGA: /wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract
@@ -51,6 +51,13 @@ import org.springframework.context.annotation.Configuration
 open class My2FARequestConfiguration {
   @Autowired
   lateinit var accessChecker: AccessChecker
+
+  /**
+   * If given, an e-mail as 2nd factor isn't allowed / provided for users of these groups (coma separated). Recommended is PF_Admin
+   */
+  @Value("\${projectforge.2fa.disableMail2FAForGroups}")
+  var disableEmail2FAForGroups: String? = null
+    private set // internal for test cases
 
   /**
    * If given, 2FA is required at least after given days, if stay-logged-in functionality is used. Without
@@ -129,5 +136,18 @@ open class My2FARequestConfiguration {
       "" -> false
       else -> true
     }*/
+  }
+
+  fun internalSet4TestCases(
+    expiryPeriodMinutes1: String? = null,
+    expiryPeriodMinutes10: String? = null,
+    expiryPeriodHours1: String? = null,
+    expiryPeriodHours8: String? = null,
+  ) {
+    this.expiryPeriodMinutes1 = expiryPeriodMinutes1
+    this.expiryPeriodMinutes10 = expiryPeriodMinutes10
+    this.expiryPeriodHours1 = expiryPeriodHours1
+    this.expiryPeriodHours8 = expiryPeriodHours8
+
   }
 }

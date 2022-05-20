@@ -1,4 +1,6 @@
 target
+# For backup in projectforge-web
+target.tgz
 *.jar
 *.war
 *.ear
@@ -43,3 +45,4 @@ derby.log
 projectforge-repository/jackrabbit
 projectforge-jcr/test/out
 plugins/org.projectforge.plugins.datatransfer/test
+.DS_Store

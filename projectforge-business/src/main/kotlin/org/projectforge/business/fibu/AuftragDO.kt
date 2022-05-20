@@ -511,7 +511,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
         get() {
             if (this.paymentSchedules != null) {
                 for (pos in this.paymentSchedules!!) {
-                    if (pos.reached && !pos.vollstaendigFakturiert) {
+                    if (!pos.isDeleted && pos.reached && !pos.vollstaendigFakturiert) {
                         return true
                     }
                 }

@@ -23,4 +23,29 @@
 
 package org.projectforge.framework.jcr
 
-enum class AttachmentsEventType { DOWNLOAD, DOWNLOAD_ALL, UPLOAD, DELETE, MODIFICATION }
+import org.projectforge.common.i18n.I18nEnum
+
+enum class AttachmentsEventType(
+  /**
+   * The key will be used e. g. for i18n.
+   * @return
+   */
+  val key: String
+) : I18nEnum {
+  DOWNLOAD("download"),
+  DOWNLOAD_MULTI("downloadMulti"),
+  DOWNLOAD_ALL("downloadAll"),
+  UPLOAD("upload"),
+  DELETE("delete"),
+  MODIFICATION("modification");
+
+  open fun isIn(vararg types: AttachmentsEventType): Boolean {
+    return types.contains(this)
+  }
+
+  /**
+   * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
+   */
+  override val i18nKey: String
+    get() = "file.upload.audit.action.$key"
+}

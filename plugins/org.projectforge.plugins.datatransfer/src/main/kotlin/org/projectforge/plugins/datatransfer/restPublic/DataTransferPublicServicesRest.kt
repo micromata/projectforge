@@ -25,9 +25,14 @@ package org.projectforge.plugins.datatransfer.restPublic
 
 import mu.KotlinLogging
 import org.projectforge.framework.api.TechnicalException
+import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileInfo
-import org.projectforge.plugins.datatransfer.*
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferAreaDao.Companion.getExternalUserString
+import org.projectforge.plugins.datatransfer.DataTransferPlugin
+import org.projectforge.plugins.datatransfer.DataTransferUtils
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
 import org.projectforge.plugins.datatransfer.rest.DataTransferRestUtils
 import org.projectforge.rest.AttachmentsServicesRest
@@ -64,14 +69,11 @@ class DataTransferPublicServicesRest {
   @Autowired
   private lateinit var dataTransferPublicSession: DataTransferPublicSession
 
-  @Autowired
-  private lateinit var notificationMailService: NotificationMailService
-
   private lateinit var attachmentsAccessChecker: DataTransferPublicAccessChecker
 
   @PostConstruct
   private fun postConstruct() {
-    attachmentsAccessChecker = DataTransferPublicAccessChecker(dataTransferAreaDao, dataTransferPublicSession)
+    attachmentsAccessChecker = DataTransferPublicAccessChecker(dataTransferPublicSession)
   }
 
   /**
@@ -93,12 +95,7 @@ class DataTransferPublicServicesRest {
     val area: DataTransferAreaDO = data.first
     val sessionData = data.second
     log.info {
-      "User tries to download attachment: category=$category, id=$id, fileId=$fileId, listId=$listId)}, user='${
-        getExternalUserString(
-          request,
-          sessionData.userInfo
-        )
-      }'."
+      "User tries to download attachment: ${createLogInfo(request, sessionData, category, id, listId, fileId)}."
     }
     if (!attachmentsAccessChecker.hasDownloadAccess(request, area, fileId)) {
       return RestUtils.badRequest("Download not enabled.")
@@ -133,22 +130,16 @@ class DataTransferPublicServicesRest {
     val area: DataTransferAreaDO = data.first
     val sessionData = data.second
     log.info {
-      "User tries to download all attachments: category=$category, id=$id}, user='${
-        getExternalUserString(
-          request,
-          sessionData.userInfo
-        )
-      }'."
+      "User tries to download all attachments: ${createLogInfo(request, sessionData, category, id)}."
     }
     if (area.externalDownloadEnabled != true) {
       return RestUtils.badRequest("Download not enabled.")
     }
     val dto = convert(request, area, sessionData.userInfo)
-    DataTransferRestUtils.downloadAll(
+    DataTransferRestUtils.multiDownload(
       response,
       attachmentsService,
       attachmentsAccessChecker,
-      notificationMailService,
       area,
       dto.areaName,
       jcrPath = dataTransferAreaPagesRest.jcrPath!!,
@@ -157,6 +148,134 @@ class DataTransferPublicServicesRest {
       byExternalUser = getExternalUserString(request, sessionData.userInfo)
     )
     return null
+  }
+
+  /**
+   * @param fileIds csv of fileIds of attachments to download. For preserving url length, fileIds may also be shortened
+   * (e. g. first 4 chars).
+   */
+  @GetMapping("multiDownload/{category}/{id}")
+  fun multiDownload(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    @PathVariable("category", required = true) category: String,
+    @PathVariable("id", required = true) id: Int,
+    @RequestParam("fileIds", required = true) fileIds: String,
+    @RequestParam("listId") listId: String?
+  ) {
+    check(category == DataTransferPlugin.ID)
+    check(listId == AttachmentsService.DEFAULT_NODE)
+    val data = dataTransferPublicSession.checkLogin(request, id) ?: return // No valid login.
+    val area: DataTransferAreaDO = data.first
+    val sessionData = data.second
+    log.info {
+      "User tries to download multiple attachments: ${createLogInfo(request, sessionData, category, id, listId)}."
+    }
+    if (area.externalDownloadEnabled != true) {
+      return // Download not enabled
+    }
+    val dto = convert(request, area, sessionData.userInfo)
+    val fileIdList = fileIds.split(",")
+    val attachments = attachmentsService.getAttachments(
+      dataTransferAreaPagesRest.jcrPath!!,
+      id,
+      attachmentsAccessChecker,
+    )
+      ?.filter { attachment ->
+        fileIdList.any { attachment.fileId?.startsWith(it) == true }
+      }
+    DataTransferRestUtils.multiDownload(
+      response,
+      attachmentsService,
+      attachmentsAccessChecker,
+      area,
+      dto.areaName,
+      jcrPath = dataTransferAreaPagesRest.jcrPath!!,
+      id,
+      attachments,
+      byExternalUser = getExternalUserString(request, sessionData.userInfo)
+    )
+  }
+
+  @PostMapping("multiDelete")
+  fun multiDelete(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentsServicesRest.FileListData>)
+      : ResponseEntity<*>? {
+    val data = postData.data
+    val category = data.category
+    val id = data.id
+    val listId = data.listId
+    val fileIds = data.fileIds
+    check(category == DataTransferPlugin.ID)
+    check(listId == AttachmentsService.DEFAULT_NODE)
+    checkNotNull(id)
+    checkNotNull(fileIds)
+
+    val loginResult =
+      dataTransferPublicSession.checkLogin(request, id) ?: return RestUtils.badRequest("No valid login.")
+    val area: DataTransferAreaDO = loginResult.first
+    val sessionData = loginResult.second
+    log.info {
+      "User tries to delete multiple attachments: ${
+        createLogInfo(
+          request,
+          sessionData,
+          category,
+          id,
+          listId,
+          fileIds.joinToString()
+        )
+      }."
+    }
+    if (area.externalUploadEnabled != true) {
+      return RestUtils.badRequest("Deleting not enabled.")
+    }
+    val selectedAttachments =
+      attachmentsService.getAttachments(
+        dataTransferAreaPagesRest.jcrPath!!,
+        id,
+        attachmentsAccessChecker
+      )
+        ?.filter { fileIds.contains(it.fileId) }
+    selectedAttachments?.forEach {
+      it.fileId?.let { fileId ->
+        if (!attachmentsAccessChecker.hasDeleteAccess(request, area, fileId)) {
+          log.info {
+            "Deleting attachment not allowed: ${
+              createLogInfo(
+                request,
+                sessionData,
+                category,
+                id,
+                listId,
+                fileId
+              )
+            }."
+          }
+        } else {
+          attachmentsService.deleteAttachment(
+            dataTransferAreaPagesRest.jcrPath!!,
+            fileId,
+            dataTransferAreaDao,
+            area,
+            attachmentsAccessChecker,
+            data.listId,
+            userString = getExternalUserString(request, sessionData.userInfo)
+          )
+        }
+      }
+    }
+    val list =
+      attachmentsAccessChecker.filterAttachments(
+        request,
+        area.externalDownloadEnabled,
+        area.id!!,
+        attachmentsService.getAttachments(dataTransferAreaPagesRest.jcrPath!!, id, attachmentsAccessChecker, null)
+      )
+    return ResponseEntity.ok()
+      .body(
+        ResponseAction(targetType = TargetType.UPDATE, merge = true)
+          .addVariable("data", AttachmentsServicesRest.ResponseData(list))
+      )
   }
 
   @PostMapping("upload/{category}/{id}/{listId}")
@@ -177,12 +296,7 @@ class DataTransferPublicServicesRest {
     val sessionData = data.second
     val filename = file.originalFilename
     log.info {
-      "User tries to upload attachment: id='$id', filename='$filename', page='${this::class.java.name}', user='${
-        getExternalUserString(
-          request,
-          sessionData.userInfo
-        )
-      }'."
+      "User tries to upload attachment: ${createLogInfo(request, sessionData, category, id, listId, filename)}."
     }
 
     if (area.externalUploadEnabled != true) {
@@ -226,14 +340,17 @@ class DataTransferPublicServicesRest {
     val data = dataTransferPublicSession.checkLogin(request, id) ?: return RestUtils.badRequest("No valid login.")
     val area: DataTransferAreaDO = data.first
     val sessionData = data.second
-
     log.info {
-      "User tries to delete attachment: id='$id', fileId='${postData.data.fileId}', file=${postData.data.attachment}, user='${
-        getExternalUserString(
+      "User tries to delete attachment: ${
+        createLogInfo(
           request,
-          sessionData.userInfo
+          sessionData,
+          category,
+          id,
+          listId,
+          file = postData.data.attachment,
         )
-      }'."
+      }."
     }
 
     val fileId = postData.data.fileId
@@ -248,7 +365,8 @@ class DataTransferPublicServicesRest {
       dataTransferAreaDao,
       area,
       attachmentsAccessChecker,
-      listId
+      listId,
+      userString = getExternalUserString(request, sessionData.userInfo)
     )
     val list =
       attachmentsService.getAttachments(
@@ -280,12 +398,9 @@ class DataTransferPublicServicesRest {
 
     val fileId = postData.data.fileId
     log.info {
-      "User tries to modify attachment: id='$id', fileId='$fileId', file=${postData.data.attachment}, user='${
-        getExternalUserString(
-          request,
-          sessionData.userInfo
-        )
-      }'."
+      "User tries to modify attachment: ${
+        createLogInfo(request, sessionData, category, id, listId, file = postData.data.attachment)
+      }."
     }
 
     attachmentsService.changeFileInfo(
@@ -313,10 +428,6 @@ class DataTransferPublicServicesRest {
       )
   }
 
-  internal fun getExternalUserString(request: HttpServletRequest, userString: String?): String {
-    return "external: ${RestUtils.getClientIp(request)} ('${userString?.take(255)}')"
-  }
-
   internal fun convert(
     request: HttpServletRequest,
     dbo: DataTransferAreaDO,
@@ -335,9 +446,40 @@ class DataTransferPublicServicesRest {
       )
     )
     dto.attachments?.forEach {
-      it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it.lastUpdate, dbo.expiryDays))
+      it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it, dbo.expiryDays))
     }
     dto.userInfo = userInfo
     return dto
+  }
+
+  private fun createLogInfo(
+    request: HttpServletRequest,
+    sessionData: DataTransferPublicSession.TransferAreaData,
+    category: String,
+    id: Int,
+    listId: String? = null,
+    fileId: String? = null,
+    file: Attachment? = null,
+  ): String {
+    val sb = StringBuilder()
+    sb.append("category=$category, id=$id,")
+    if (!listId.isNullOrBlank()) {
+      sb.append("fileId=$listId,")
+    }
+    if (!fileId.isNullOrBlank()) {
+      sb.append("fileId=$fileId,")
+    }
+    if (file != null) {
+      sb.append("file=$file,")
+    }
+    sb.append(
+      "user='${
+        getExternalUserString(
+          request,
+          sessionData.userInfo
+        )
+      }'"
+    )
+    return sb.toString()
   }
 }

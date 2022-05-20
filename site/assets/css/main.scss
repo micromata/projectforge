@@ -25,6 +25,11 @@
 // Own ProjectForge Styles
 // Overwrite Docs Theme Styles
 
-@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
 @import "theme/projectforge";
 @import "tipuesearch/tipuesearch";
+
+@font-face {
+  font-family: "Assistant";
+  font-display: swap;
+  src: url(/assets/fonts/Assistant-VariableFont_wght.woff2) format("woff2");
+}

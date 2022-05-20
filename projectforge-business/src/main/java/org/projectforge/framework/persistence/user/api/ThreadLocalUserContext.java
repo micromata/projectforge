@@ -212,11 +212,11 @@ public class ThreadLocalUserContext {
   }
 
   public static String getLocalizedMessage(final String messageKey, final Object... params) {
-    return I18nHelper.getLocalizedMessage(getLocale(), messageKey, params);
+    return I18nHelper.getLocalizedMessage(getUser(), messageKey, params);
   }
 
   public static String getLocalizedString(final String key) {
-    return I18nHelper.getLocalizedMessage(getLocale(), key);
+    return I18nHelper.getLocalizedMessage(getUser(), key);
   }
 
   /**

@@ -222,9 +222,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
       )
     layout.add(variablesFieldset)
     layout.add(
-      UIButton(
-        "back",
-        translate("back"),
+      UIButton.createBackButton(
         responseAction = ResponseAction(
           PagesResolver.getListPageUrl(
             MerlinPagesRest::class.java,
@@ -233,17 +231,15 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         ),
       )
     ).add(
-      UIButton(
+      UIButton.createDefaultButton(
         "execute",
-        translate("plugins.merlin.templateExecutor.execute"),
-        UIColor.SUCCESS,
+        title ="plugins.merlin.templateExecutor.execute",
         responseAction = ResponseAction(
           RestResolver.getRestUrl(
             this::class.java,
             subPath = "execute"
           ), targetType = TargetType.POST
         ),
-        default = true
       )
     )
 

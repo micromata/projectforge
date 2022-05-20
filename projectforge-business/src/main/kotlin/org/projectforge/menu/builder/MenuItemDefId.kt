@@ -23,7 +23,7 @@
 
 package org.projectforge.menu.builder
 
-import org.projectforge.Const
+import org.projectforge.Constants
 
 enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = null) {
     // Main menus in alphabetical order
@@ -73,12 +73,13 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     IMAGE_CROPPER("menu.imageCropper"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
     INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", "wa/incomingInvoiceList"), //
-    LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("logViewer")}/-1"), //
+    ADMIN_LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("adminLogViewer")}/-1"), //
     LOGOUT("menu.logout", url = "logout"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "wa/monthlyEmployeeReport"), //
     MY_ACCOUNT("menu.myAccount", getReactDynamicPageUrl("myAccount")), //
     MY_2FA("menu.2FA", getReactDynamicPageUrl(MenuItemDefId.TWO_FACTOR_AUTHENTIFICATION_SUB_URL)), //
     MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //
+    MY_SCRIPT_LIST("menu.myScriptList", getReactListUrl("myscript")), //
     MY_PREFERENCES("menu.myPreferences", "wa/userPrefList"), //
     ORDER_LIST("menu.fibu.orderbook", "wa/orderBookList"), //
     OUTBOX_LIST("menu.orga.postausgang", getReactListUrl("outgoingMail")), //
@@ -117,9 +118,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
 }
 
 private fun getReactListUrl(name: String): String {
-    return "${Const.REACT_APP_PATH}$name"
+    return "${Constants.REACT_APP_PATH}$name"
 }
 
 private fun getReactDynamicPageUrl(name: String): String {
-    return "${Const.REACT_APP_PATH}$name/dynamic"
+    return "${Constants.REACT_APP_PATH}$name/dynamic"
 }

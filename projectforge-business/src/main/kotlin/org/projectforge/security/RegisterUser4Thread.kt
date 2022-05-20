@@ -26,6 +26,7 @@ package org.projectforge.security
 import org.projectforge.common.logging.MDC_USER
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.slf4j.MDC
 import javax.servlet.http.HttpServletRequest
 
@@ -39,10 +40,19 @@ object RegisterUser4Thread {
    *
    * @param request
    */
-  fun registerUser(userContext: UserContext): UserContext {
+  fun registerUser(userContext: UserContext) {
     ThreadLocalUserContext.setUserContext(userContext)
     MDC.put(MDC_USER, userContext.user!!.username)
-    return userContext
+  }
+
+  /**
+   * You must use try { registerUser(...) } finally { unregisterUser() }!!!!
+   * Please note: ip, session, userAgent is already added by LoggingFilter.
+   *
+   * @param request
+   */
+  fun registerUser(user: PFUserDO) {
+    registerUser(UserContext(user))
   }
 
   fun unregister() {

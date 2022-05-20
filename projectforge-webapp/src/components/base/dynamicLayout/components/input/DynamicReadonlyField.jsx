@@ -11,23 +11,24 @@ function DynamicReadonlyField(
     {
         id,
         dataType,
+        value,
         ...props
     },
 ) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
-    const value = Object.getByString(data, id) || '';
+    const dataValue = value || Object.getByString(data, id) || '';
 
     return React.useMemo(() => (
         <DynamicValidationManager id={id}>
             <ReadonlyField
                 id={`${ui.uid}-${id}`}
                 {...props}
-                value={value}
+                value={dataValue}
                 dataType={dataType}
             />
         </DynamicValidationManager>
-    ), [value, setData, id, dataType, props]);
+    ), [dataValue, setData, id, dataType, props]);
 }
 
 DynamicReadonlyField.propTypes = {

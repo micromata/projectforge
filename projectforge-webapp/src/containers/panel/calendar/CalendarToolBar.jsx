@@ -39,21 +39,21 @@ function CalendarToolBar(toolbar) {
     const { view } = toolbar;
 
     const label = () => {
-        const date = momentTimezone(toolbarDate);
+        const momentDate = momentTimezone(toolbarDate);
         if (view === 'day') {
             return (
                 <>
-                    <b>{date.format('dddd')}</b>
+                    <b>{momentDate.format('dddd')}</b>
                     {' '}
-                    {date.format('DD.MM.YYYY')}
+                    {momentDate.format('DD.MM.YYYY')}
                 </>
             );
         }
         return (
             <>
-                <b>{date.format('MMMM')}</b>
+                <b>{momentDate.format('MMMM')}</b>
                 {' '}
-                {date.format('YYYY')}
+                {momentDate.format('YYYY')}
             </>
         );
     };

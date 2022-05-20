@@ -24,6 +24,7 @@
 package org.projectforge.rest.core
 
 import mu.KotlinLogging
+import org.apache.catalina.connector.ClientAbortException
 import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.api.TechnicalException
@@ -61,6 +62,10 @@ internal class GlobalDefaultExceptionHandler {
         )
       log.error("${translateMsg(userEx)} ${userEx.logHintMessage}")
       return ResponseEntity.badRequest().body(UIToast.createExceptionToast(userEx))
+    }
+    if (ex is ClientAbortException) {
+      log.info { ex::class.java.name }
+      return ex::class.java.name
     }
     if (ex is UserException) {
       if (ex.logHintMessage.isNullOrBlank()) {

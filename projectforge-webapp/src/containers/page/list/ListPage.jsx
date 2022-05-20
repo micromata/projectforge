@@ -1,10 +1,14 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import { connect } from 'react-redux';
 import { loadList } from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
 import { Card, Container } from '../../../components/design';
 import SearchFilter from './searchFilter/SearchFilter';
+import styles from './ListPage.module.scss';
 
 function ListPage(
     {
@@ -39,7 +43,13 @@ function ListPage(
                         }}
                         variables={category.variables}
                     >
-                        <SearchFilter />
+                        <h4 className={styles.uiTitle}>{category.ui.title}</h4>
+                        {!category.ui.hideSearchFilter && (
+                            <SearchFilter />
+                        )}
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                            {category.data.resultInfo}
+                        </ReactMarkdown>
                     </DynamicLayout>
                 )}
             </Card>
@@ -61,8 +71,13 @@ ListPage.propTypes = {
     }).isRequired,
     onCategoryChange: PropTypes.func.isRequired,
     category: PropTypes.shape({
-        ui: PropTypes.shape({ }),
-        data: PropTypes.shape({ }),
+        ui: PropTypes.shape({
+            title: PropTypes.string,
+            hideSearchFilter: PropTypes.bool,
+        }),
+        data: PropTypes.shape({
+            resultInfo: PropTypes.shape,
+        }),
         variables: PropTypes.shape({ }),
     }),
 };

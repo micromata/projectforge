@@ -28,6 +28,7 @@ import org.projectforge.business.fibu.KontoDao
 import org.projectforge.business.fibu.KontoStatus
 import org.projectforge.business.fibu.kost.AccountingConfig
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.utils.IntRanges
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/account")
@@ -91,8 +93,8 @@ class KontoPagesRest
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(): UILayout {
-        val layout = super.createListLayout()
+    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+        val layout = super.createListLayout(request, magicFilter)
                 .add(UITable.createUIResultSetTable()
                         .add(lc, "nummer", "status", "bezeichnung", "description"))
         return LayoutUtils.processListPage(layout, this)
