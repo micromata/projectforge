@@ -129,6 +129,20 @@ public class UserXmlPreferencesService {
    * @return The removed entry if found.
    */
   public Object removeEntry(final String key) {
+    return removeEntry(key, false);
+  }
+
+  /**
+   * Removes the entry under the given key.
+   *
+   * @param key
+   * @return The removed entry if found.
+   */
+  public Object removeEntryIfNotExists(final String key) {
+    return removeEntry(key, true);
+  }
+
+  private Object removeEntry(final String key, final boolean ifNotExists) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     if (user == null) {
       // Should only occur, if user is not logged in.
@@ -137,6 +151,10 @@ public class UserXmlPreferencesService {
     if (AccessChecker.isDemoUser(user)) {
       return key; // Dummy return
     }
-    return userXmlPreferencesCache.removeEntry(user.getId(), key);
+    if (ifNotExists) {
+      return userXmlPreferencesCache.removeEntryIfExists(user.getId(), key);
+    } else {
+      return userXmlPreferencesCache.removeEntry(user.getId(), key);
+    }
   }
 }

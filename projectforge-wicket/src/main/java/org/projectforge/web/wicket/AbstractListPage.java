@@ -39,6 +39,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.Constants;
 import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.common.StringHelper;
 import org.projectforge.common.anots.PropertyInfo;
@@ -78,7 +79,11 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   private List<O> resultList;
 
-  private boolean refreshResultList = true;
+  // Don't refresh result list on default (only, if last getList() run was <10s)
+  private boolean refreshResultList = false;
+
+  // Page is displayed initial after user's click on the menu item.
+  private boolean intialDisplay = true;
 
   protected static final String[] BOOKMARKABLE_INITIAL_PROPERTIES = new String[]{"f.searchString|s",
       "f.useModificationFilter|mod",
@@ -415,10 +420,41 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   }
 
   public List<O> getList() {
-    if (this.refreshResultList == false && this.resultList != null) {
+    return internalGetList();
+  }
+
+  private List<O> internalGetList() {
+    final String userPrefKey = this.getClass().getName() + ".durationOfLastGetList";
+    if (this.intialDisplay) {
+      this.intialDisplay = false;
+      // Detect to show the result list on initial display or not.
+      Object obj = getUserPrefEntry(userPrefKey);
+      Long durationOfLastGetList = null;
+      if (obj instanceof Long) {
+        durationOfLastGetList = (Long) obj;
+      }
+      if (durationOfLastGetList != null && durationOfLastGetList < Constants.MILLIS_PER_SECOND * 10L) {
+        this.refreshResultList = true;
+      }
+    }
+    if (!this.refreshResultList) {
       return this.resultList;
     }
+    try {
+      long startMillis = System.currentTimeMillis();
+      internalBuildList();
+      long duration = System.currentTimeMillis() - startMillis;
+      putUserPrefEntry(userPrefKey, duration, true);
+    } catch (Exception ex) {
+      // Just for case any exception occurred, avoid to reload page on next page view.
+      // Otherwise an filter producing db errors can't be reset by user, if db query will be done instantly on page view.
+      removeUserPrefEntryIfNotExists(userPrefKey);
+    }
     this.refreshResultList = false;
+    return this.resultList;
+  }
+
+  private void internalBuildList() {
     try {
       this.resultList = buildList();
       listPageSortableDataProvider.setCompleteList(this.resultList);
@@ -426,7 +462,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
         // An error occured:
         form.addError("search.error");
       }
-      return this.resultList;
+      return;
     } catch (
         final Exception ex) {
       if (ex instanceof UserException) {
@@ -436,7 +472,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
         log.error(ex.getMessage(), ex);
       }
     }
-    return this.resultList = new ArrayList<O>();
+    this.resultList = new ArrayList<O>();
   }
 
   @SuppressWarnings("unchecked")
@@ -461,9 +497,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    */
   @Override
   protected void onBeforeRender() {
-    if (this.refreshResultList == true) {
-      getList();
-    }
+    internalGetList();
     super.onBeforeRender();
   }
 
