@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 // TODO This controller should be moved to a controller package in the business-module, but for now it has
 // to much dependencies on wicket to do so. This could be solved by reimplementing the UserPreference stuff
 @Controller
-@RequestMapping("/secure/menucustomization")
+@RequestMapping("/rs/menucustomization")
 public class MenuCustomizationController
 {
 
