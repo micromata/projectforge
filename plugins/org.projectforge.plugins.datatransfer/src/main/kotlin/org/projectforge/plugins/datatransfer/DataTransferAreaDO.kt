@@ -112,6 +112,10 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
   @get:Column(length = 100, name = "external_upload_enabled")
   override var externalUploadEnabled: Boolean? = null
 
+  val externalAccessEnabled: Boolean
+    @Transient
+    get() = externalDownloadEnabled == true || externalUploadEnabled == true
+
   /**
    * Optional password for external access.
    */

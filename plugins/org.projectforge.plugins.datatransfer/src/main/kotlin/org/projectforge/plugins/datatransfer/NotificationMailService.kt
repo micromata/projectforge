@@ -175,6 +175,7 @@ open class NotificationMailService {
       "link" to link,
       "message" to message,
       "auditEntries" to foreignAuditEntries,
+      "externalAccessEnabled" to dataTransfer.externalAccessEnabled,
       "downloadAuditEntries" to downloadAuditEntries,
     )
     mail.content =
