@@ -696,8 +696,10 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
         new Link<Object>("link") {
           @Override
           public void onClick() {
+            refreshResultList = true; // List was deleted due to not wasting memory.
             MultiSelectionSupport.registerEntitiesForSelection(WicketUtils.getHttpServletRequest(getRequest()), pagesRestClass, getList(),
                 caller, data, getForm().searchFilter.getPageSize());
+            resultList = null; // Don't waste memory.
             final String redirectUrl = PagesResolver.getMultiSelectionPageUrl(pagesRestClass, true);
             throw new RedirectToUrlException(redirectUrl);
           }
