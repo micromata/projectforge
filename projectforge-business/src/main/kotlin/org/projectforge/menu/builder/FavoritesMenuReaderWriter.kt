@@ -57,7 +57,6 @@ class FavoritesMenuReaderWriter {
             if (menu == null || menu.menuItems.isNullOrEmpty()) {
                 val userPrefService = UserPrefService()
                 UserPreferencesHelper.putEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_ENTRIES_KEY, "", true)
-                UserPreferencesHelper.removeEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_KEY)
                 return
             }
             val document = DocumentHelper.createDocument()
@@ -70,7 +69,6 @@ class FavoritesMenuReaderWriter {
                 throw UserException("menu.favorite.maxSizeExceeded")
             }
             UserPreferencesHelper.putEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_ENTRIES_KEY, xml, true)
-            UserPreferencesHelper.putEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_KEY, this, false)
             log.info("Favorites menu stored: $xml")
         }
 
