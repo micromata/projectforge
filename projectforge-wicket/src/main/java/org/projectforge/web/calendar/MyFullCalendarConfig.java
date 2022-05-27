@@ -68,7 +68,7 @@ public class MyFullCalendarConfig extends Config
   public MyFullCalendarConfig(final Component parent)
   {
     this.parent = parent;
-    setIgnoreTimezone(true);
+    //setIgnoreTimezone(true);
     setSlotMinutes(15);
     setFirstHour(8);
     setHeight("get_calendar_height()");
