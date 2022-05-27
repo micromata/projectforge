@@ -77,7 +77,7 @@ Object.isObject = (object) => typeof object === 'object'
 Object.combine = (o1, o2) => ({
     ...o1,
     ...o2,
-    ...Object.keys(o1)
+    ...Object.keys(o1 || {})
         .map((key) => ({
             key,
             v1: o1[key],
