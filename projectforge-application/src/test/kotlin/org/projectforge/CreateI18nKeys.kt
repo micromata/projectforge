@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.projectforge.business.book.BookStatus
 import org.projectforge.business.user.UserRightId
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.calendar.MonthHolder
 import org.projectforge.framework.persistence.api.IUserRightId
@@ -36,6 +37,7 @@ import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.web.wicket.WebConstants
 import org.reflections.Reflections
+import org.reflections.scanners.Scanners
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -78,12 +80,13 @@ class CreateI18nKeys {
   private val resourceBundleNames = mutableListOf<String>()
   private val resourceBundles = mutableListOf<ResourceBundle>()
   private val resourceBundlesDE = mutableListOf<ResourceBundle>()
+  private val reflections = Reflections("org.projectforge", Scanners.values())
+
+  private var htmlTemplatesCounter = 0
 
   init {
     srcMainDirs = Files.walk(Paths.get(basePath), 4) // plugins has depth 4
       .filter { Files.isDirectory(it) && it.name == "main" && it.parent?.name == "src" }.toList()
-    println(srcMainDirs)
-
     srcMainDirs.forEach { main ->
       val resourcesDir = Files.walk(main, 1) // src/main/resourcres/***I18n*.properties
         .filter { Files.isDirectory(it) && it.name == "resources" }.toList()
@@ -96,7 +99,7 @@ class CreateI18nKeys {
     }
     resourceBundleNames.sort()
     resourceBundleNames.forEach {
-      resourceBundles.add(ResourceBundle.getBundle(it))
+      resourceBundles.add(ResourceBundle.getBundle(it, Locale.ENGLISH))
       resourceBundlesDE.add(ResourceBundle.getBundle(it, Locale.GERMAN))
     }
     resourceBundles.forEach { bundle ->
@@ -109,7 +112,7 @@ class CreateI18nKeys {
         ensureI18nKeyInfo(key).translationDE = bundle.getString(key)
       }
     }
-    // println(resourceBundleNames)
+    println(resourceBundleNames)
   }
 
   @Throws(IOException::class)
@@ -119,8 +122,10 @@ class CreateI18nKeys {
       parseJava(path)
       parseKotlin(path)
       parseWicketHtml(path)
+      parseHtmlMailTemplates(path)
     }
     getI18nEnums()
+    getPropertyInfos()
     val workbook = ExcelWorkbook.createEmptyWorkbook()
     val sheet = workbook.createOrGetSheet("I18n keys")
     sheet.registerColumn("I18n key|60", "i18nKey")
@@ -128,14 +133,17 @@ class CreateI18nKeys {
     sheet.registerColumn("German|60", "translationDE")
     sheet.registerColumn("Locations|60")
     sheet.createRow().fillHeadRow()
-    i18nKeyMap.keys.sorted().forEach {key ->
+    i18nKeyMap.keys.sorted().forEach { key ->
       val row = sheet.createRow()
       row.autoFillFromObject(i18nKeyMap[key])
     }
     sheet.setAutoFilter()
+    val file = File("i18nKeys.xlsx")
     workbook.asByteArrayOutputStream.use { baos ->
-      File("i18nKeys.xlsx").writeBytes(baos.toByteArray())
+      file.writeBytes(baos.toByteArray())
     }
+    println("File '${file.absolutePath}' written.")
+    println("Matching html mail templates: $htmlTemplatesCounter")
   }
 
   @Throws(IOException::class)
@@ -147,8 +155,40 @@ class CreateI18nKeys {
     }
   }
 
+  @Throws(IOException::class)
+  private fun parseHtmlMailTemplates(path: Path) {
+    val files = listFiles(path, "html")
+    for (file in files) {
+      val content = getContent(file)
+      find(content, "pf.getI18nString\\(\"([a-zA-Z0-9\\.]+)\"\\)").forEach {
+        ++htmlTemplatesCounter
+        add(it, file)
+      }
+    }
+  }
+
+  private fun getPropertyInfos() {
+    // val annotations = reflections.getTypesAnnotatedWith(PropertyInfo::class.java)
+    reflections.getFieldsAnnotatedWith(PropertyInfo::class.java)?.forEach { field ->
+      val ann = field.getAnnotation(PropertyInfo::class.java)
+      addAnnotationKeys(ann.i18nKey, ann.additionalI18nKey, field.declaringClass)
+    }
+    reflections.getMethodsAnnotatedWith(PropertyInfo::class.java)?.forEach { method ->
+      val ann = method.getAnnotation(PropertyInfo::class.java)
+      addAnnotationKeys(ann.i18nKey, ann.additionalI18nKey, method.declaringClass)
+    }
+  }
+
+  private fun addAnnotationKeys(i18nKey: String?, additionalI18nKey: String?, declaringClass: Class<*>) {
+    if (!i18nKey.isNullOrBlank()) {
+      add(i18nKey, declaringClass.simpleName)
+    }
+    if (!additionalI18nKey.isNullOrBlank()) {
+      add(additionalI18nKey, declaringClass.simpleName)
+    }
+  }
+
   private fun getI18nEnums() {
-    val reflections = Reflections("org.projectforge")
     val subTypes = reflections.getSubTypesOf(I18nEnum::class.java)
     subTypes.forEach {
       if (IUserRightId::class.java.isAssignableFrom(it)) {
@@ -156,11 +196,10 @@ class CreateI18nKeys {
       } else {
         it.enumConstants.let { enumConstants ->
           if (enumConstants != null) {
-            val instance = it.enumConstants.first()
             BookStatus.DISPOSED.i18nKey
             if (it.isEnum) {
               it.enumConstants.forEach { enum ->
-                add("${instance.i18nKey}.$enum", it.simpleName)
+                add("${enum.i18nKey}", it.simpleName)
               }
             }
           } else {
