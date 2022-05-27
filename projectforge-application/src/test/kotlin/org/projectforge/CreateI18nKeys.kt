@@ -23,12 +23,12 @@
 
 package org.projectforge
 
+import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
 import org.apache.commons.io.FileUtils
-import org.apache.commons.io.IOUtils
 import org.projectforge.business.book.BookStatus
+import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.I18nEnum
-import org.projectforge.common.i18n.Priority
 import org.projectforge.framework.calendar.MonthHolder
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.time.DayHolder
@@ -37,7 +37,6 @@ import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.web.wicket.WebConstants
 import org.reflections.Reflections
 import java.io.File
-import java.io.FileWriter
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -61,40 +60,82 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class CreateI18nKeys {
-  private val i18nKeyUsage = mutableMapOf<String, MutableSet<String>>()
+  private class I18nKeyInfo(val i18nKey: String) {
+    var translation: String? = null
+    var translationDE: String? = null
+    val locationList = mutableListOf<String>()
+    fun addLocation(location: String) {
+      locationList.add(location)
+    }
+
+    val locations: String
+      get() = locationList.sorted().joinToString()
+  }
+
+  private val i18nKeyMap = mutableMapOf<String, I18nKeyInfo>()
+
+  private val srcMainDirs: List<Path>
+  private val resourceBundleNames = mutableListOf<String>()
+  private val resourceBundles = mutableListOf<ResourceBundle>()
+  private val resourceBundlesDE = mutableListOf<ResourceBundle>()
+
+  init {
+    srcMainDirs = Files.walk(Paths.get(basePath), 4) // plugins has depth 4
+      .filter { Files.isDirectory(it) && it.name == "main" && it.parent?.name == "src" }.toList()
+    println(srcMainDirs)
+
+    srcMainDirs.forEach { main ->
+      val resourcesDir = Files.walk(main, 1) // src/main/resourcres/***I18n*.properties
+        .filter { Files.isDirectory(it) && it.name == "resources" }.toList()
+      if (resourcesDir.isNotEmpty()) {
+        val propertiesFiles = listFiles(resourcesDir[0], "properties")
+        propertiesFiles.filter { it.name.endsWith("_en.properties") }.forEach {
+          resourceBundleNames.add(it.name.removeSuffix("_en.properties"))
+        }
+      }
+    }
+    resourceBundleNames.sort()
+    resourceBundleNames.forEach {
+      resourceBundles.add(ResourceBundle.getBundle(it))
+      resourceBundlesDE.add(ResourceBundle.getBundle(it, Locale.GERMAN))
+    }
+    resourceBundles.forEach { bundle ->
+      bundle.keySet().forEach { key ->
+        ensureI18nKeyInfo(key).translation = bundle.getString(key)
+      }
+    }
+    resourceBundlesDE.forEach { bundle ->
+      bundle.keySet().forEach { key ->
+        ensureI18nKeyInfo(key).translationDE = bundle.getString(key)
+      }
+    }
+    // println(resourceBundleNames)
+  }
 
   @Throws(IOException::class)
   fun run() {
     log.info("Create file with all detected i18n keys.")
-    val srcDirs = getMainSourceDirs(basePath)
-    srcDirs.forEach { path ->
+    srcMainDirs.forEach { path ->
       parseJava(path)
       parseKotlin(path)
       parseWicketHtml(path)
     }
-    //getI18nEnums()
-    val writer = FileWriter(I18N_KEYS_FILE)
-    writer
-      .append(
-        "# Don't edit this file. This file is only for developers for checking i18n keys and detecting missed and unused ones.\n"
-      )
-    val i18nKeys: Set<String> = TreeSet(i18nKeyUsage.keys)
-    for (i18nKey in i18nKeys) {
-      writer.append(i18nKey).append("=")
-      val set: Set<String> = i18nKeyUsage[i18nKey]!!
-      var first = true
-      for (filename in set) {
-        if (first == false) {
-          writer.append(',')
-        } else {
-          first = false
-        }
-        writer.append(filename)
-      }
-      writer.append("\n")
+    getI18nEnums()
+    val workbook = ExcelWorkbook.createEmptyWorkbook()
+    val sheet = workbook.createOrGetSheet("I18n keys")
+    sheet.registerColumn("I18n key|60", "i18nKey")
+    sheet.registerColumn("English|60", "translation")
+    sheet.registerColumn("German|60", "translationDE")
+    sheet.registerColumn("Locations|60")
+    sheet.createRow().fillHeadRow()
+    i18nKeyMap.keys.sorted().forEach {key ->
+      val row = sheet.createRow()
+      row.autoFillFromObject(i18nKeyMap[key])
     }
-    IOUtils.closeQuietly(writer)
-    log.info("Creation of file of found i18n keys done: " + I18N_KEYS_FILE)
+    sheet.setAutoFilter()
+    workbook.asByteArrayOutputStream.use { baos ->
+      File("i18nKeys.xlsx").writeBytes(baos.toByteArray())
+    }
   }
 
   @Throws(IOException::class)
@@ -127,6 +168,9 @@ class CreateI18nKeys {
           }
         }
       }
+    }
+    UserRightId.values().forEach {
+      add("${it.i18nKey}", UserRightId::class.java.simpleName)
     }
   }
 
@@ -255,13 +299,18 @@ class CreateI18nKeys {
   }
 
   private fun add(key: String, location: String) {
-    var set = i18nKeyUsage[key]
-    if (set == null) {
-      set = TreeSet()
-      i18nKeyUsage[key] = set
+    val info = ensureI18nKeyInfo(key)
+    //println("$key: $location, en=${info.translation}, de=${info.translationDE}")
+    info.addLocation(location)
+  }
+
+  private fun ensureI18nKeyInfo(key: String): I18nKeyInfo {
+    var info = i18nKeyMap[key]
+    if (info == null) {
+      info = I18nKeyInfo(key)
+      i18nKeyMap[key] = info
     }
-    println("$key: $location")
-    set.add(location)
+    return info
   }
 
   private fun listFiles(path: String, suffix: String): Collection<File> {
@@ -270,13 +319,6 @@ class CreateI18nKeys {
 
   private fun listFiles(path: Path, suffix: String): Collection<File> {
     return FileUtils.listFiles(path.toFile(), arrayOf(suffix), true)
-  }
-
-  private fun getMainSourceDirs(path: String): List<Path> {
-    val dirs = Files.walk(Paths.get(basePath), 4) // plugins has depth 4
-      .filter { Files.isDirectory(it) && it.name == "main" && it.parent?.name == "src" }.toList()
-    println(dirs)
-    return dirs
   }
 
   @Throws(IOException::class)
@@ -289,12 +331,14 @@ class CreateI18nKeys {
       return System.getProperty("user.dir")
     }
 
+  private fun getResourceBundle(bundleName: String, locale: Locale?): ResourceBundle {
+    return if (locale != null) ResourceBundle.getBundle(bundleName, locale) else ResourceBundle.getBundle(bundleName)
+  }
+
   companion object {
-    private const val PATH = "src/main/"
     private val PATH_DAYHOLDER = getPathForClass(DayHolder::class.java)
     private val PATH_MONTHHOLDER = getPathForClass(MonthHolder::class.java)
     private val PATH_MENU_ITEM_DEF = getPathForClass(MenuItemDef::class.java)
-    private val PATH_PRIORITY = getPathForClass(Priority::class.java)
     private const val I18N_KEYS_FILE = "src/main/resources/" + WebConstants.FILE_I18N_KEYS
 
     @Throws(IOException::class)
