@@ -354,10 +354,11 @@ internal class I18nKeysSourceAnalyzer {
         if (field == null) {
           var path = Paths.get(System.getProperty("user.dir"))
           for (i in 0..10) { // Paranoia for avoiding endless loops
-            if (Files.walk(path, 1).toList().any { it.name == "projectforge-application" }) {
-              field = path
-              log.info { "Using source directory '${path.toAbsolutePath()}'." }
-              return path
+            val applicationDir = Files.walk(path, 1).toList().find { it.name == "projectforge-application" }
+            if (applicationDir != null) {
+              field = applicationDir.parent
+              log.info { "Using source directory '${field?.toAbsolutePath()}'." }
+              return field
             }
             if (path.parent != null) {
               path = path.parent
@@ -368,7 +369,10 @@ internal class I18nKeysSourceAnalyzer {
         return field
       }
 
-    private val jsonFile = File(Path(basePath!!.toString(), "projectforge-application", "src", "main", "resources").toFile(), "i18nKeys.json")
+    private val jsonFile = File(
+      Path(basePath!!.toString(), "projectforge-application", "src", "main", "resources").toFile(),
+      "i18nKeys.json"
+    )
 
     private const val I18N_FILE = "i18nKeys.json"
 
