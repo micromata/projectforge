@@ -21,9 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge
+package org.projectforge.i18n
 
-import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.projectforge.business.book.BookStatus
@@ -31,11 +30,11 @@ import org.projectforge.business.user.UserRightId
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.calendar.MonthHolder
+import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.time.DayHolder
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
-import org.projectforge.web.wicket.WebConstants
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
 import java.io.File
@@ -45,13 +44,10 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import java.util.regex.Pattern
+import kotlin.io.path.Path
 import kotlin.io.path.name
 import kotlin.streams.toList
 
-
-fun main() {
-  CreateI18nKeys().run()
-}
 
 private val log = KotlinLogging.logger {}
 
@@ -61,31 +57,20 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class CreateI18nKeys {
-  private class I18nKeyInfo(val i18nKey: String) {
-    var translation: String? = null
-    var translationDE: String? = null
-    val locationList = mutableListOf<String>()
-    fun addLocation(location: String) {
-      locationList.add(location)
-    }
+internal class I18nKeysSourceAnalyzer {
+  private val i18nKeyMap = mutableMapOf<String, I18nKeyUsageEntry>()
 
-    val locations: String
-      get() = locationList.sorted().joinToString()
-  }
-
-  private val i18nKeyMap = mutableMapOf<String, I18nKeyInfo>()
-
-  private val srcMainDirs: List<Path>
   private val resourceBundleNames = mutableListOf<String>()
   private val resourceBundles = mutableListOf<ResourceBundle>()
   private val resourceBundlesDE = mutableListOf<ResourceBundle>()
-  private val reflections = Reflections("org.projectforge", Scanners.values())
+  private lateinit var reflections: Reflections
 
   private var htmlTemplatesCounter = 0
 
-  init {
-    srcMainDirs = Files.walk(Paths.get(basePath), 4) // plugins has depth 4
+  fun run(): Map<String, I18nKeyUsageEntry> {
+    log.info("Create file with all detected i18n keys.")
+    reflections = Reflections("org.projectforge", Scanners.values())
+    val srcMainDirs = Files.walk(basePath, 4) // plugins has depth 4
       .filter { Files.isDirectory(it) && it.name == "main" && it.parent?.name == "src" }.toList()
     srcMainDirs.forEach { main ->
       val resourcesDir = Files.walk(main, 1) // src/main/resourcres/***I18n*.properties
@@ -104,20 +89,16 @@ class CreateI18nKeys {
     }
     resourceBundles.forEach { bundle ->
       bundle.keySet().forEach { key ->
-        ensureI18nKeyInfo(key).translation = bundle.getString(key)
+        val usage = ensureI18nKeyUsage(key)
+        usage.translation = bundle.getString(key)
+        usage.bundleName = bundle.baseBundleName
       }
     }
     resourceBundlesDE.forEach { bundle ->
       bundle.keySet().forEach { key ->
-        ensureI18nKeyInfo(key).translationDE = bundle.getString(key)
+        ensureI18nKeyUsage(key).translationDE = bundle.getString(key)
       }
     }
-    println(resourceBundleNames)
-  }
-
-  @Throws(IOException::class)
-  fun run() {
-    log.info("Create file with all detected i18n keys.")
     srcMainDirs.forEach { path ->
       parseJava(path)
       parseKotlin(path)
@@ -126,25 +107,30 @@ class CreateI18nKeys {
     }
     getI18nEnums()
     getPropertyInfos()
-    val workbook = ExcelWorkbook.createEmptyWorkbook()
-    val sheet = workbook.createOrGetSheet("I18n keys")
-    sheet.registerColumn("I18n key|60", "i18nKey")
-    sheet.registerColumn("English|60", "translation")
-    sheet.registerColumn("German|60", "translationDE")
-    sheet.registerColumn("Locations|60")
-    sheet.createRow().fillHeadRow()
-    i18nKeyMap.keys.sorted().forEach { key ->
-      val row = sheet.createRow()
-      row.autoFillFromObject(i18nKeyMap[key])
-    }
-    sheet.setAutoFilter()
-    val file = File("i18nKeys.xlsx")
-    workbook.asByteArrayOutputStream.use { baos ->
-      file.writeBytes(baos.toByteArray())
-    }
-    println("File '${file.absolutePath}' written.")
+    writeJson()
     println("Matching html mail templates: $htmlTemplatesCounter")
+    return i18nKeyMap
   }
+
+  private fun writeJson() {
+    log.info { "Writing (pretty) json formatted file: ${jsonFile.absolutePath}..." }
+    // jsonFile.writeText(JsonUtils.toJson(orderedEntries))
+    jsonFile.printWriter().use { out ->
+      out.println("[")
+      orderedEntries.forEachIndexed { index, entry ->
+        if (index > 0) {
+          out.println(",")
+        }
+        out.print("  ")
+        out.print(entry)
+      }
+      out.println("")
+      out.println("]")
+    }
+  }
+
+  private val orderedEntries: List<I18nKeyUsageEntry>
+    get() = I18nKeysUsage.getOrderedEntries(i18nKeyMap.values)
 
   @Throws(IOException::class)
   private fun parseWicketHtml(path: Path) {
@@ -181,10 +167,10 @@ class CreateI18nKeys {
 
   private fun addAnnotationKeys(i18nKey: String?, additionalI18nKey: String?, declaringClass: Class<*>) {
     if (!i18nKey.isNullOrBlank()) {
-      add(i18nKey, declaringClass.simpleName)
+      add(i18nKey, declaringClass)
     }
     if (!additionalI18nKey.isNullOrBlank()) {
-      add(additionalI18nKey, declaringClass.simpleName)
+      add(additionalI18nKey, declaringClass)
     }
   }
 
@@ -199,7 +185,7 @@ class CreateI18nKeys {
             BookStatus.DISPOSED.i18nKey
             if (it.isEnum) {
               it.enumConstants.forEach { enum ->
-                add("${enum.i18nKey}", it.simpleName)
+                add("${enum.i18nKey}", it)
               }
             }
           } else {
@@ -209,7 +195,7 @@ class CreateI18nKeys {
       }
     }
     UserRightId.values().forEach {
-      add("${it.i18nKey}", UserRightId::class.java.simpleName)
+      add("${it.i18nKey}", UserRightId::class.java)
     }
   }
 
@@ -304,18 +290,6 @@ class CreateI18nKeys {
     }
   }
 
-  private fun find(
-    file: File, content: String,
-    regexp: String,
-    prefix: String? = null
-  ) {
-    val list = find(content, regexp)
-    for (entry in list) {
-      val key = if (prefix != null) prefix + entry else entry
-      add(key, file)
-    }
-  }
-
   private fun find(file: File, content: String, regexp: String) {
     find(content, regexp).forEach {
       add(it, file)
@@ -334,26 +308,23 @@ class CreateI18nKeys {
 
 
   private fun add(key: String, file: File) {
-    add(key, file.name)
+    val info = ensureI18nKeyUsage(key)
+    info.addUsage(file)
   }
 
-  private fun add(key: String, location: String) {
-    val info = ensureI18nKeyInfo(key)
+  private fun add(key: String, clazz: Class<*>) {
+    val info = ensureI18nKeyUsage(key)
     //println("$key: $location, en=${info.translation}, de=${info.translationDE}")
-    info.addLocation(location)
+    info.addUsage(clazz)
   }
 
-  private fun ensureI18nKeyInfo(key: String): I18nKeyInfo {
+  private fun ensureI18nKeyUsage(key: String): I18nKeyUsageEntry {
     var info = i18nKeyMap[key]
     if (info == null) {
-      info = I18nKeyInfo(key)
+      info = I18nKeyUsageEntry(key)
       i18nKeyMap[key] = info
     }
     return info
-  }
-
-  private fun listFiles(path: String, suffix: String): Collection<File> {
-    return FileUtils.listFiles(File(path), arrayOf(suffix), true)
   }
 
   private fun listFiles(path: Path, suffix: String): Collection<File> {
@@ -365,26 +336,45 @@ class CreateI18nKeys {
     return FileUtils.readFileToString(file, "UTF-8")
   }
 
-  private val basePath: String
-    get() {
-      return System.getProperty("user.dir")
+  companion object {
+    fun readJson(): MutableMap<String, I18nKeyUsageEntry> {
+      val map = mutableMapOf<String, I18nKeyUsageEntry>()
+      if (jsonFile.exists() && jsonFile.canRead()) {
+        val json = jsonFile.readText()
+        val array = JsonUtils.fromJson(json, Array<I18nKeyUsageEntry>::class.java)
+        array?.forEach {
+          map[it.i18nKey] = it
+        }
+      }
+      return map
     }
 
-  private fun getResourceBundle(bundleName: String, locale: Locale?): ResourceBundle {
-    return if (locale != null) ResourceBundle.getBundle(bundleName, locale) else ResourceBundle.getBundle(bundleName)
-  }
+    private var basePath: Path? = null
+      get() {
+        if (field == null) {
+          var path = Paths.get(System.getProperty("user.dir"))
+          for (i in 0..10) { // Paranoia for avoiding endless loops
+            if (Files.walk(path, 1).toList().any { it.name == "projectforge-application" }) {
+              field = path
+              log.info { "Using source directory '${path.toAbsolutePath()}'." }
+              return path
+            }
+            if (path.parent != null) {
+              path = path.parent
+            }
+          }
+          throw java.lang.IllegalArgumentException("Oups, can't find ProjectForge source directory containing projectforge-application directory")
+        }
+        return field
+      }
 
-  companion object {
+    private val jsonFile = File(Path(basePath!!.toString(), "projectforge-application", "src", "main", "resources").toFile(), "i18nKeys.json")
+
+    private const val I18N_FILE = "i18nKeys.json"
+
     private val PATH_DAYHOLDER = getPathForClass(DayHolder::class.java)
     private val PATH_MONTHHOLDER = getPathForClass(MonthHolder::class.java)
     private val PATH_MENU_ITEM_DEF = getPathForClass(MenuItemDef::class.java)
-    private const val I18N_KEYS_FILE = "src/main/resources/" + WebConstants.FILE_I18N_KEYS
-
-    @Throws(IOException::class)
-    @JvmStatic
-    fun main(args: Array<String>) {
-      CreateI18nKeys().run()
-    }
 
     private fun getPathForClass(clazz: Class<*>): String {
       return clazz.name.replace(".", "/") + ".java"
