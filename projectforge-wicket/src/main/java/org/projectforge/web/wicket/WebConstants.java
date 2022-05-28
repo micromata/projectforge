@@ -29,8 +29,6 @@ public class WebConstants
 {
   public static final String FILE_IMAGE_DIMENSIONS = "imageDimensions.xml";
 
-  public static final String FILE_I18N_KEYS = "i18nKeys.properties";
-
   public static final String HTML_TEXT_DIVIDER = " | ";
 
   /**

@@ -25,11 +25,11 @@ package org.projectforge.web.admin;
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
 import de.micromata.genome.util.runtime.RuntimeIOException;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.SystemAlertMessage;
+import org.projectforge.SystemStatus;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
@@ -40,6 +40,7 @@ import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.i18n.I18nKeysUsageInterface;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
@@ -48,10 +49,12 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.jcr.JCRCheckSanityJob;
 import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.wicket.*;
+import org.projectforge.web.wicket.AbstractStandardFormPage;
+import org.projectforge.web.wicket.DownloadUtils;
+import org.projectforge.web.wicket.MessagePage;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
 import java.io.ByteArrayOutputStream;
@@ -79,6 +82,9 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   @SpringBean
   private DatabaseService databaseService;
+
+  @SpringBean
+  private I18nKeysUsageInterface i18nKeysUsage;
 
   @SpringBean
   private JCRCheckSanityJob jcrCheckSanityJob;
@@ -293,10 +299,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   @SuppressWarnings("serial")
   protected void addDevelopmentMenu() {
-    if (WebConfiguration.isDevelopmentMode() == false) {
-      // Do nothing.
-      return;
-    }
     // Development actions
     final ContentMenuEntryPanel developmentMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), "Development");
     addContentMenuEntry(developmentMenu);
@@ -312,6 +314,10 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
         checkI18nPropertiesLink, getString("system.admin.button.checkI18nProperties"))
         .setTooltip(getString("system.admin.button.checkI18nProperties.tooltip"));
     developmentMenu.addSubMenuEntry(checkI18nPropertiesLinkMenuItem);
+    if (SystemStatus.isDevelopmentMode() == false) {
+      // Do nothing.
+      return;
+    }
     // Create test objects
     final Link<Void> createTestObjectsLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID) {
       @Override
@@ -393,63 +399,8 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void checkI18nProperties() {
     log.info("Administration: check i18n properties.");
     checkAccess();
-    final StringBuilder buf = new StringBuilder();
-    final StringBuilder warnMessages = new StringBuilder();
-    final Properties propsFound = new Properties();
-    try {
-      final ClassLoader cLoader = this.getClass().getClassLoader();
-      final InputStream is = cLoader.getResourceAsStream(WebConstants.FILE_I18N_KEYS);
-      propsFound.load(is);
-    } catch (final IOException ex) {
-      log.error("Could not load i18n properties: " + ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    }
-    final SortedMap<String, String> defaultMap = load(warnMessages, "");
-    final SortedMap<String, String> deMap = load(warnMessages, "_de");
-    buf.append("Checking the differences between the i18n resource properties (default and _de)\n\n");
-    buf.append("Found " + defaultMap.size() + " entries in default property file (en).\n\n");
-    buf.append("Missing in _de:\n");
-    buf.append("---------------\n");
-    for (final String key : defaultMap.keySet()) {
-      if (deMap.containsKey(key) == false) {
-        buf.append(key).append("=").append(defaultMap.get(key)).append("\n");
-      }
-    }
-    buf.append("\n\nOnly in _de (not in _en):\n");
-    buf.append("-------------------------\n");
-    for (final String key : deMap.keySet()) {
-      if (defaultMap.containsKey(key) == false) {
-        buf.append(key).append("=").append(deMap.get(key)).append("\n");
-      }
-    }
-    buf.append("\n\nWarnings and errors:\n");
-    buf.append("--------------------\n");
-    buf.append(warnMessages);
-    buf.append("\n\nMaybe not defined but used (found in java, jsp or Wicket's html code):\n");
-    buf.append("----------------------------------------------------------------------\n");
-    for (final Object key : propsFound.keySet()) {
-      if (defaultMap.containsKey(key) == false && deMap.containsKey(key) == false) {
-        buf.append(key).append("=").append(propsFound.getProperty((String) key)).append("\n");
-      }
-    }
-    buf.append("\n\nExperimental (in progress): Maybe unused (not found in java, jsp or Wicket's html code):\n");
-    buf.append("----------------------------------------------------------------------------------------\n");
-    final Set<String> all = new TreeSet<String>();
-    CollectionUtils.addAll(all, defaultMap.keySet().iterator());
-    CollectionUtils.addAll(all, deMap.keySet().iterator());
-    for (final String key : all) {
-      if (propsFound.containsKey(key) == true) {
-        continue;
-      }
-      String value = defaultMap.get(key);
-      if (value == null) {
-        value = deMap.get(key);
-      }
-      buf.append(key + "=" + value + "\n");
-    }
-    final String result = buf.toString();
-    final String filename = "projectforge_i18n_check" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
-    DownloadUtils.setDownloadTarget(result.getBytes(), filename);
+    I18nKeysUsageInterface.ExcelFile excelFile = i18nKeysUsage.createExcelFile();
+    DownloadUtils.setDownloadTarget(excelFile.getBytes(), excelFile.getFilename());
   }
 
   protected void dump() {
