@@ -37,90 +37,85 @@ import java.time.LocalDate
 @XStreamAlias("AuftragFilter")
 class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPerformance {
 
-    var user: PFUserDO? = null
+  var user: PFUserDO? = null
 
-    var startDate: LocalDate? = null
+  var startDate: LocalDate? = null
 
-    var endDate: LocalDate? = null
+  var endDate: LocalDate? = null
 
-    override var periodOfPerformanceStartDate: LocalDate? = null
+  override var periodOfPerformanceStartDate: LocalDate? = null
 
-    override var periodOfPerformanceEndDate: LocalDate? = null
+  override var periodOfPerformanceEndDate: LocalDate? = null
 
-    val auftragsStatuses = mutableListOf<AuftragsStatus>()
+  val auftragsStatuses = mutableListOf<AuftragsStatus>()
 
-    val auftragsPositionStatuses: List<AuftragsPositionsStatus>
-        get() = auftragsStatuses.map { it.asAuftragsPositionStatus() }
+  val auftragsPositionStatuses: List<AuftragsPositionsStatus>
+    get() = auftragsStatuses.map { it.asAuftragsPositionStatus() }
 
-    val auftragsPositionsArten = ArrayList<AuftragsPositionsArt>()
+  val auftragsPositionsArten = ArrayList<AuftragsPositionsArt>()
 
-    var auftragFakturiertFilterStatus: AuftragFakturiertFilterStatus? = null
-        get() {
-            if (field == null) {
-                this.auftragFakturiertFilterStatus = AuftragFakturiertFilterStatus.ALL
-            }
-            return field
-        }
-
-    /**
-     * null represents all.
-     */
-    var auftragsPositionsPaymentType: AuftragsPositionsPaymentType? = null
-
-    @JvmOverloads
-    constructor(filter: BaseSearchFilter? = null) : super(filter)
-
-    override fun reset(): AuftragFilter {
-        searchString = ""
-        startDate = null
-        endDate = null
-        periodOfPerformanceStartDate = null
-        periodOfPerformanceEndDate = null
-        user = null
-        auftragsStatuses.clear()
-        auftragsPositionsArten.clear()
-        auftragFakturiertFilterStatus = null
-        auftragsPositionsPaymentType = null
-        return this
+  var auftragFakturiertFilterStatus: AuftragFakturiertFilterStatus? = null
+    get() {
+      if (field == null) {
+        this.auftragFakturiertFilterStatus = AuftragFakturiertFilterStatus.ALL
+      }
+      return field
     }
 
-    fun filterFakturiert(list: List<AuftragDO>): List<AuftragDO> {
-        if (auftragFakturiertFilterStatus == null || auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ALL) {
-            // do not filter
-            return list
-        }
-        return list.filter { checkFakturiert(it) }
+  /**
+   * null represents all.
+   */
+  var auftragsPositionsPaymentType: AuftragsPositionsPaymentType? = null
+
+  @JvmOverloads
+  constructor(filter: BaseSearchFilter? = null) : super(filter)
+
+  override fun reset(): AuftragFilter {
+    searchString = ""
+    startDate = null
+    endDate = null
+    periodOfPerformanceStartDate = null
+    periodOfPerformanceEndDate = null
+    user = null
+    auftragsStatuses.clear()
+    auftragsPositionsArten.clear()
+    auftragFakturiertFilterStatus = null
+    auftragsPositionsPaymentType = null
+    return this
+  }
+
+  fun filterFakturiert(list: List<AuftragDO>): List<AuftragDO> {
+    if (auftragFakturiertFilterStatus == null || auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ALL) {
+      // do not filter
+      return list
     }
+    return list.filter { checkFakturiert(it) }
+  }
 
-    private fun checkFakturiert(auftrag: AuftragDO): Boolean {
-        val orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert
+  private fun checkFakturiert(auftrag: AuftragDO): Boolean {
+    val orderIsCompletelyInvoiced = AuftragsCache.instance.isVollstaendigFakturiert(auftrag)
 
-        val filterVollstaendigFakturiert = AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus
-        // special case
-        if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
-                !filterVollstaendigFakturiert && (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN) ||
-                        auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN)) {
-            // Don't remember why only Non-HSQLDB is supported...
+    val filterVollstaendigFakturiert = AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus
+    // special case
+    if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
+      !filterVollstaendigFakturiert && (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN) ||
+          auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN)
+    ) {
+      // Don't remember why only Non-HSQLDB is supported...
 
-            // if order is completed and not all positions are completely invoiced
-            if (auftrag.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN && !orderIsCompletelyInvoiced) {
-                return true
-            }
-            // if order is completed and not completely invoiced
-            for (pos in auftrag.positionenExcludingDeleted) {
-                if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert) {
-                    return true
-                }
-            }
-            if (auftrag.paymentSchedules != null) {
-                for (schedule in auftrag.paymentSchedules!!) {
-                    if (!schedule.isDeleted && schedule.reached && !schedule.vollstaendigFakturiert) {
-                        return true
-                    }
-                }
-            }
-            return false
-        }
-        return orderIsCompletelyInvoiced == filterVollstaendigFakturiert
+      // if order is completed and not all positions are completely invoiced
+      if (auftrag.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN && !orderIsCompletelyInvoiced) {
+        return true
+      }
+      // if order is completed and not completely invoiced
+      if (AuftragsCache.instance.getPositionAbgeschlossenUndNichtVollstaendigFakturiert(auftrag)) {
+        return true
+      }
+      if (AuftragsCache.instance.getPaymentSchedulesReached(auftrag)) {
+        return true
+      }
+      return false
     }
+    return orderIsCompletelyInvoiced == filterVollstaendigFakturiert
+  }
 }
