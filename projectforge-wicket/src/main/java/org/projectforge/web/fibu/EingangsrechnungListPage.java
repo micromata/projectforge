@@ -23,7 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -43,14 +42,11 @@ import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.configuration.Configuration;
-import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.rest.fibu.EingangsrechnungPagesRest;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -162,7 +158,7 @@ public class EingangsrechnungListPage
         addRowClick(item);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(getString("fibu.konto")), getSortable("konto", sortable),
+    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(getString("fibu.konto")), getSortable("konto.nummer", sortable),
         "konto",
         cellItemListener)
     {

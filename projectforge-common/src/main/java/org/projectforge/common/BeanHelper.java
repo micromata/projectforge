@@ -38,6 +38,16 @@ import java.util.*;
 public class BeanHelper {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BeanHelper.class);
 
+  private static final Map<Class<?>, Field[]> declaredFieldsCache = new HashMap<>();
+
+  private static final Map<Class<?>, Method[]> declaredMethodsCache = new HashMap<>();
+
+  private static final Map<String, Annotation[]> declaredFieldAnnotationsCache = new HashMap<>();
+
+  private static final Map<String, Method> getterMethodsCache = new HashMap<>();
+
+  private static final Map<String, Method[]> declaredGetterMethodsCache = new HashMap<>();
+
   private static boolean TEST_MODE = false;
 
   /**
@@ -82,6 +92,13 @@ public class BeanHelper {
   public static Annotation[] getDeclaredAnnotations(final Class<?> clazz, final String fieldname) {
     Class<?> classToCheck = clazz;
     String fieldnameToCheck = fieldname;
+
+    final String key = clazz.getName() + ":" + fieldname;
+    synchronized (declaredFieldAnnotationsCache) { // Caches all annotations for improving performance especially on sorting Wicket lists.
+      if (declaredFieldAnnotationsCache.containsKey(key)) {
+        return declaredFieldAnnotationsCache.get(key); // Might be null
+      }
+    }
     if (fieldname.contains(".")) {
       String[] fieldSplit = fieldname.split("\\.");
       fieldnameToCheck = fieldSplit[fieldSplit.length - 1];
@@ -92,7 +109,11 @@ public class BeanHelper {
       }
     }
     Field field = getDeclaredField(classToCheck, fieldnameToCheck);
-    return field == null ? null : field.getDeclaredAnnotations();
+    Annotation[] annotations = field != null ? field.getDeclaredAnnotations() : null;
+    synchronized (declaredFieldAnnotationsCache) {
+      declaredFieldAnnotationsCache.put(key, annotations);
+    }
+    return annotations;
   }
 
   /**
@@ -102,8 +123,15 @@ public class BeanHelper {
    * @return
    */
   public static Method determineGetter(final Class<?> clazz, final String fieldname, final boolean onlyPublicGetter) {
+    String key = clazz.getName() + ":" + fieldname;
+    synchronized (getterMethodsCache) { // Caches all annotations for improving performance especially on sorting Wicket lists.
+      if (getterMethodsCache.containsKey(key)) {
+        return getterMethodsCache.get(key); // Might be null
+      }
+    }
     final String cap = StringUtils.capitalize(fieldname);
     final Method[] methods = getAllDeclaredMethods(clazz);
+    Method getterMethod = null;
     for (final Method method : methods) {
       if (onlyPublicGetter == true && Modifier.isPublic(method.getModifiers()) == false) {
         continue;
@@ -119,73 +147,17 @@ public class BeanHelper {
       if (matches == true) {
         if (method.isBridge() == false) {
           // Don't return bridged methods (methods defined in interface or super class with different return type).
-          return method;
+          getterMethod = method;
+          break;
         }
       }
     }
-    return null;
+    synchronized (getterMethodsCache) { // Caches all annotations for improving performance especially on sorting Wicket lists.
+      getterMethodsCache.put(key, getterMethod);
+    }
+    return getterMethod;
   }
 
-  /**
-   * Return all methods starting with 'get*' or 'is*' without parameters and non-bridged of given class and all
-   * interfaces and super classes.
-   *
-   * @param clazz
-   * @return
-   */
-  public static List<Method> getAllGetterMethods(final Class<?> clazz) {
-    return getAllGetterMethods(clazz, true);
-  }
-
-  /**
-   * Return all methods starting with 'get*' or 'is*' without parameters and non-bridged of given class and all
-   * interfaces and super classes.
-   *
-   * @param clazz
-   * @param includingSuperClasses default is true.
-   * @return
-   */
-  public static List<Method> getAllGetterMethods(final Class<?> clazz, final boolean includingSuperClasses) {
-    final Method[] methods;
-    if (includingSuperClasses == true) {
-      methods = getAllDeclaredMethods(clazz);
-    } else {
-      methods = clazz.getDeclaredMethods();
-    }
-    final List<Method> list = new LinkedList<Method>();
-    for (final Method method : methods) {
-      final String name = method.getName();
-      if (name.startsWith("get") == true && name.length() > 3 || //
-          name.startsWith("has") == true
-          || name.startsWith("is") == true
-          && name.length() > 2) {
-        if (method.getParameterTypes().length == 0 && method.isBridge() == false) {
-          // Don't return bridged methods (methods defined in interface or super class with different return type).
-          list.add(method);
-        }
-      }
-    }
-    return list;
-  }
-
-  /**
-   * getProperty -> property, isValid -> valid.
-   *
-   * @param method
-   */
-  public static String getProperty(final Method method) {
-    final String name = method.getName();
-    int pos = 0;
-    if ((name.startsWith("get") == true || name.startsWith("has") == true) && name.length() > 3) {
-      pos = 3;
-    } else if (name.startsWith("is") == true && name.length() > 2) {
-      pos = 2;
-    } else {
-      return null;
-    }
-    final String property = name.substring(pos);
-    return StringUtils.uncapitalize(property);
-  }
 
   public static Class<?> determinePropertyType(final Class<?> clazz, final String fieldname) {
     return determinePropertyType(determineGetter(clazz, fieldname));
@@ -309,7 +281,8 @@ public class BeanHelper {
     if (constructor == null) {
       try {
         return clazz.getDeclaredConstructor().newInstance();
-      } catch (final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
+      } catch (final InstantiationException | IllegalAccessException | InvocationTargetException |
+                     NoSuchMethodException ex) {
         logInstantiationException(ex, clazz);
       }
       return null;
@@ -317,7 +290,8 @@ public class BeanHelper {
     constructor.setAccessible(true);
     try {
       return constructor.newInstance();
-    } catch (final IllegalArgumentException | InstantiationException | InvocationTargetException | IllegalAccessException ex) {
+    } catch (final IllegalArgumentException | InstantiationException | InvocationTargetException |
+                   IllegalAccessException ex) {
       logInstantiationException(ex, clazz);
     }
     return null;
@@ -343,7 +317,8 @@ public class BeanHelper {
     constructor.setAccessible(true);
     try {
       return constructor.newInstance(params);
-    } catch (final IllegalArgumentException | InstantiationException | InvocationTargetException | IllegalAccessException ex) {
+    } catch (final IllegalArgumentException | InstantiationException | InvocationTargetException |
+                   IllegalAccessException ex) {
       logInstantiationException(ex, clazz);
     }
     return null;
@@ -360,11 +335,22 @@ public class BeanHelper {
    * @return
    * @see Class#getDeclaredFields()
    */
-  public static Field[] getAllDeclaredFields(Class<?> clazz) {
-    Field[] fields = clazz.getDeclaredFields();
-    while (clazz.getSuperclass() != null) {
-      clazz = clazz.getSuperclass();
-      fields = (Field[]) ArrayUtils.addAll(fields, clazz.getDeclaredFields());
+  public static Field[] getAllDeclaredFields(final Class<?> clazz) {
+    Field[] fields;
+    synchronized (declaredFieldsCache) { // Caches all fields for improving performance especially on sorting Wicket lists.
+      fields = declaredFieldsCache.get(clazz);
+      if (fields != null) {
+        return fields;
+      }
+    }
+    fields = clazz.getDeclaredFields();
+    Class<?> superClass = clazz.getSuperclass();
+    while (superClass != null) {
+      fields = ArrayUtils.addAll(fields, superClass.getDeclaredFields());
+      superClass = superClass.getSuperclass();
+    }
+    synchronized (declaredFieldsCache) {
+      declaredFieldsCache.put(clazz, fields);
     }
     return fields;
   }
@@ -393,11 +379,22 @@ public class BeanHelper {
    * @return
    * @see Class#getDeclaredMethods()
    */
-  public static Method[] getAllDeclaredMethods(Class<?> clazz) {
-    Method[] methods = clazz.getDeclaredMethods();
-    while (clazz.getSuperclass() != null) {
-      clazz = clazz.getSuperclass();
-      methods = (Method[]) ArrayUtils.addAll(methods, clazz.getDeclaredMethods());
+  public static Method[] getAllDeclaredMethods(final Class<?> clazz) {
+    Method[] methods;
+    synchronized (declaredMethodsCache) { // Caches all fields for improving performance especially on sorting Wicket lists.
+      methods = declaredMethodsCache.get(clazz);
+      if (methods != null) {
+        return methods;
+      }
+    }
+    methods = clazz.getDeclaredMethods();
+    Class<?> superClass = clazz.getSuperclass();
+    while (superClass != null) {
+      methods = ArrayUtils.addAll(methods, superClass.getDeclaredMethods());
+      superClass = superClass.getSuperclass();
+    }
+    synchronized (declaredMethodsCache) {
+      declaredMethodsCache.put(clazz, methods);
     }
     return methods;
   }

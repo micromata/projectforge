@@ -29,6 +29,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DefaultDataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.util.SingleSortState;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -84,6 +85,10 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   // Page is displayed initial after user's click on the menu item.
   private boolean intialDisplay = true;
+
+  // For detecting new sort order (for forcing list reload)
+  private Object lastSortProperty;
+  private boolean lastSortAscending;
 
   protected static final String[] BOOKMARKABLE_INITIAL_PROPERTIES = new String[]{"f.searchString|s",
       "f.useModificationFilter|mod",
@@ -497,6 +502,17 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    */
   @Override
   protected void onBeforeRender() {
+    final SingleSortState<?> newSortState = (SingleSortState<?>) listPageSortableDataProvider.getSortState();
+    final SortParam<?> sortParam = newSortState.getSort();
+    final Object newSortProperty = sortParam != null ? sortParam.getProperty() : null;
+    final boolean newAscending = sortParam != null && sortParam.isAscending();
+    if (!intialDisplay) {
+      if (!Objects.equals(newSortProperty, lastSortProperty) || newAscending != lastSortAscending)
+        // User pressed the head of the colum to sort the result list.
+        refreshResultList = true;
+    }
+    lastSortProperty = newSortProperty;
+    lastSortAscending = newAscending;
     internalGetList();
     super.onBeforeRender();
   }
