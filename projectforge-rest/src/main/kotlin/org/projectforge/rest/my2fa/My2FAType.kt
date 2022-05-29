@@ -23,4 +23,4 @@
 
 package org.projectforge.rest.my2fa
 
-enum class My2FAType { MAIL, SMS, AUTHENTICATOR }
+enum class My2FAType { MAIL, SMS }
