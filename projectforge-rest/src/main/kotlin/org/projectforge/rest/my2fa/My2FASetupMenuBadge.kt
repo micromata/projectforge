@@ -23,13 +23,11 @@
 
 package org.projectforge.rest.my2fa
 
-import org.projectforge.SystemStatus
-import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDefId
-import org.projectforge.sms.SmsSenderConfig
+import org.projectforge.security.My2FAService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
@@ -41,15 +39,10 @@ import javax.annotation.PostConstruct
 @Service
 class My2FASetupMenuBadge : AbstractCache(TICKS_PER_HOUR) {
   @Autowired
-  private lateinit var authenticationsService: UserAuthenticationsService
-
-  @Autowired
   private lateinit var menuCreator: MenuCreator
 
   @Autowired
-  private lateinit var smsSenderConfig: SmsSenderConfig
-
-  private var smsConfigured: Boolean = false
+  private lateinit var my2FAService: My2FAService
 
   /**
    * State by userId. True: setup finished, false: badge counter is 1.
@@ -59,7 +52,6 @@ class My2FASetupMenuBadge : AbstractCache(TICKS_PER_HOUR) {
   @PostConstruct
   private fun postConstruct() {
     menuCreator.findById(MenuItemDefId.MY_2FA_SETUP)!!.badgeCounter = { badgeCounter }
-    smsConfigured = smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()
   }
 
   /**
@@ -71,8 +63,7 @@ class My2FASetupMenuBadge : AbstractCache(TICKS_PER_HOUR) {
         synchronized(stateMap) {
           var state = stateMap[user.id]
           if (state == null) {
-            state = !authenticationsService.getAuthenticatorToken()
-              .isNullOrBlank() && (!smsConfigured || !user.mobilePhone.isNullOrBlank())
+            state = my2FAService.userConfigured2FA
             stateMap[user.id] = state
           }
           return if (state) {

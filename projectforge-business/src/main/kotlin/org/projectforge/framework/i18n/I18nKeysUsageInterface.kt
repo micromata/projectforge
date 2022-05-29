@@ -21,6 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.my2fa
+package org.projectforge.framework.i18n
 
-enum class My2FAType { MAIL, SMS }
+interface I18nKeysUsageInterface {
+  class ExcelFile(val bytes: ByteArray, val filename: String)
+
+  fun createExcelFile(): ExcelFile
+}

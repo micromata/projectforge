@@ -128,6 +128,10 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
     return userPreferencesService.removeEntry(key);
   }
 
+  public Object removeUserPrefEntryIfNotExists(final String key) {
+    return userPreferencesService.removeEntryIfNotExists(key);
+  }
+
   /**
    * @see UserXmlPreferencesCache#flushToDB(Integer)
    */

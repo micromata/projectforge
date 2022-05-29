@@ -62,7 +62,7 @@
   //save the menu configuration
   function update() {
     // var callbackUrl = $("#mm_configure").data("callback");
-    var callbackUrl = "/secure/menucustomization/customize";
+    var callbackUrl = "/rs/menucustomization/customize";
     $.post(callbackUrl, calcConfiguration());
 
     $('.pf_menueconfig .dropdown-menu').css('top', $('.pf_sortable').height());

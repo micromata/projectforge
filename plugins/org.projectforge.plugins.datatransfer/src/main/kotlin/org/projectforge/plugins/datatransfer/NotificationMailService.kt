@@ -161,8 +161,8 @@ open class NotificationMailService {
     }
     foreignAuditEntries.forEach { it.createdByUserAsString(locale) }
     downloadAuditEntries.forEach { it.createdByUserAsString(locale) }
-    val title = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.subject", dataTransfer.displayName)
-    val message = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.message", dataTransfer.displayName)
+    val title = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.observe.subject", dataTransfer.displayName)
+    val message = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.observe.message", dataTransfer.displayName)
     val mail = Mail()
     mail.subject = title // Subject equals to message
     mail.contentType = Mail.CONTENTTYPE_HTML
@@ -175,6 +175,7 @@ open class NotificationMailService {
       "link" to link,
       "message" to message,
       "auditEntries" to foreignAuditEntries,
+      "externalAccessEnabled" to dataTransfer.externalAccessEnabled,
       "downloadAuditEntries" to downloadAuditEntries,
     )
     mail.content =
@@ -211,7 +212,7 @@ open class NotificationMailService {
     }
     val mail = Mail()
     mail.subject =
-      I18nHelper.getLocalizedMessage(recipient, "plugins.datatransfer.mail.subject.notificationBeforeDeletion")
+      I18nHelper.getLocalizedMessage(recipient, "plugins.datatransfer.mail.notificationBeforeDeletion.subject")
     mail.contentType = Mail.CONTENTTYPE_HTML
     mail.setTo(recipient.email, recipient.getFullname())
     if (mail.to.isEmpty()) {

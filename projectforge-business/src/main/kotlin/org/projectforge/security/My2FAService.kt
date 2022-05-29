@@ -32,6 +32,7 @@ import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.time.TimeUnit
+import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -42,6 +43,9 @@ private val log = KotlinLogging.logger {}
 
 @Service
 open class My2FAService {
+  @Autowired
+  private lateinit var authenticationsService: UserAuthenticationsService
+
   @Autowired
   private lateinit var groupService: GroupService
 
@@ -57,6 +61,9 @@ open class My2FAService {
   @Autowired
   private lateinit var my2FARequestConfiguration: My2FARequestConfiguration
 
+  @Autowired
+  private lateinit var webAuthnSupport: WebAuthnSupport
+
   val smsConfigured
     get() = smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()
 
@@ -68,6 +75,26 @@ open class My2FAService {
   private fun init() {
     setDisabled(my2FARequestConfiguration.disableEmail2FAForGroups)
   }
+
+  /**
+   * User's are requested to configure at least one 2FA.
+   * @return false if user is requested to configure at least one 2FA and true, if the user has configured 2FA.
+   */
+  val userConfigured2FA: Boolean
+    get() {
+      ThreadLocalUserContext.getUser()?.let { user ->
+        if (!authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
+          return true
+        }
+        if (smsConfigured && !user.mobilePhone.isNullOrBlank()) {
+          return true
+        }
+        if (webAuthnSupport.isAvailableForUser(user.id)) {
+          return true
+        }
+      }
+      return false
+    }
 
   internal fun setDisabled(groupNames: String?) {
     if (groupNames.isNullOrBlank()) {

@@ -72,6 +72,9 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       "positionen.status", "positionen.titel", "positionen.bemerkung", "positionen.nettoSumme"};
 
   @Autowired
+  private AuftragsCache auftragsCache;
+
+  @Autowired
   private UserDao userDao;
 
   @Autowired
@@ -154,30 +157,14 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   public AuftragsStatistik buildStatistik(final List<AuftragDO> list) {
-    final AuftragsStatistik stats = new AuftragsStatistik();
+    final AuftragsStatistik stats = new AuftragsStatistik(auftragsCache);
     if (list == null) {
       return stats;
     }
     for (final AuftragDO auftrag : list) {
-      calculateInvoicedSum(auftrag);
       stats.add(auftrag);
     }
     return stats;
-  }
-
-  /**
-   * Get all invoices and set the field fakturiertSum for every order of the given col.
-   *
-   * @param col
-   * @see RechnungCache#getRechnungsPositionVOSetByAuftragsPositionId(Integer)
-   */
-  public void calculateInvoicedSum(final Collection<AuftragDO> col) {
-    if (col == null) {
-      return;
-    }
-    for (final AuftragDO auftrag : col) {
-      calculateInvoicedSum(auftrag);
-    }
   }
 
   /**
@@ -190,13 +177,11 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     if (order == null) {
       return;
     }
-    if (order.getPositionenExcludingDeleted() != null) {
-      for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
-        final Set<RechnungsPositionVO> set = rechnungCache
-            .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
-        if (set != null) {
-          pos.setFakturiertSum(RechnungDao.getNettoSumme(set));
-        }
+    for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
+      final Set<RechnungsPositionVO> set = rechnungCache
+          .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
+      if (set != null) {
+        pos.setFakturiertSum(RechnungDao.getNettoSumme(set));
       }
     }
   }
@@ -531,6 +516,12 @@ public class AuftragDao extends BaseDao<AuftragDO> {
 
       throw new UserException("fibu.auftrag.error.datesInPaymentScheduleNotWithinPeriodOfPerformanceOfPosition", positions);
     }
+  }
+
+  @Override
+  protected void afterUpdate(AuftragDO obj, AuftragDO dbObj) {
+    super.afterUpdate(obj, dbObj);
+    auftragsCache.setExpired(obj);
   }
 
   void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(final AuftragDO auftrag) {

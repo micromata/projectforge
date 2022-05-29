@@ -87,7 +87,8 @@ object UserLocale {
     request?.locale?.let { return it }
     // 8. The locale configured in ProjectForge config file: projectforge.defaultLocale
     // 9. The system's locale
-    return ConfigurationServiceAccessor.get().defaultLocale ?: Locale.getDefault()
+    // ConfigurationServiceAccessor.get() may only null in test cases
+    return ConfigurationServiceAccessor.get()?.defaultLocale ?: Locale.getDefault()
   }
 
   fun registerLocale(request: HttpServletRequest, user: PFUserDO?) {

@@ -69,6 +69,9 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
   private AuftragDao auftragDao;
 
   @SpringBean
+  private AuftragsCache auftragsCache;
+
+  @SpringBean
   private OrderExport orderExport;
 
   @SpringBean
@@ -137,7 +140,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
       public void populateItem(final Item<ICellPopulator<AuftragDO>> cellItem, final String componentId,
                                final IModel<AuftragDO> rowModel) {
         final AuftragDO auftrag = rowModel.getObject();
-        auftragDao.calculateInvoicedSum(auftrag);
+        auftrag.setFakturiertSum(auftragsCache.getFakturiertSum(auftrag));
         final List<AuftragsPositionDO> list = auftrag.getPositionenExcludingDeleted();
         final Label label = new Label(componentId, new Model<String>("#" + list.size()));
 
