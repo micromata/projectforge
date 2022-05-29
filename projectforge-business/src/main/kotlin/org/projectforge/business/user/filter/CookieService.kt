@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.login.Login
 import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.UserContext
@@ -52,6 +53,9 @@ class CookieService {
 
   @Autowired
   private lateinit var userService: UserService
+
+  @Autowired
+  private lateinit var userDao: UserDao
 
   /**
    * User is not logged. Checks a stay-logged-in-cookie.
@@ -91,6 +95,7 @@ class CookieService {
       }
       // update the cookie, especially the max age
       addCookie(request, response, stayLoggedInCookie, COOKIE_STAY_LOGGED_IN_MAX_AGE)
+      userDao.updateUserAfterLoginSuccess(user)
       log.info("User successfully logged in using stay-logged-in method: " + user.userDisplayName + " (request=" + request.requestURI + ").")
       val userContext = UserContext(createCopyWithoutSecretFields(user)!!)
       // Restore any last successful 2FA from cookie:
