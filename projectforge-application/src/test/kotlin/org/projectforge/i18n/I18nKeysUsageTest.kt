@@ -34,7 +34,7 @@ class I18nKeysUsageTest {
    */
   @Test
   fun createI18nKeysUsageFile() {
-    val usage = I18nKeysUsage(true) // Creates all i18n usages by analyzing sources and writes it to json file.
+    val usage = I18nKeysUsage(I18nKeysUsage.RUN_MODE.CREATE) // Creates all i18n usages by analyzing sources and writes it to json file.
     val readUsage = I18nKeysUsage() // Loads all i18n usages from json file generated above.
     Assertions.assertEquals(usage.i18nKeyMap.size, readUsage.i18nKeyMap.size, "Size of analyze run should be the same after read from json.")
     usage.i18nKeyMap.values.forEach { entry ->
