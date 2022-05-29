@@ -399,7 +399,9 @@ class My2FAServicesRest {
     val type = lowerType.replaceFirstChar { it.uppercase() }
     return UIButton.createLinkButton(
       "send${type}Code",
+      // "user.My2FACode.sendCode.mail", "user.My2FACode.sendCode.sms" (needed by I18nKeysUsage)
       title = "user.My2FACode.sendCode.$lowerType", // user.My2FACode.sendCode.mail
+      // "user.My2FACode.sendCode.mail.info", "user.My2FACode.sendCode.sms.info" (needed by I18nKeysUsage)
       tooltip = "user.My2FACode.sendCode.$lowerType.info",
       responseAction = ResponseAction(
         RestResolver.getRestUrl(restServiceClass, "send${type}Code"),

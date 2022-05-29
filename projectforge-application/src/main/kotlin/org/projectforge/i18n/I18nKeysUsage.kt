@@ -24,6 +24,7 @@
 package org.projectforge.i18n
 
 import de.micromata.merlin.excel.ExcelWorkbook
+import org.apache.poi.ss.usermodel.IndexedColors
 import org.projectforge.framework.i18n.I18nKeysUsageInterface
 import org.springframework.stereotype.Service
 import java.io.File
@@ -65,6 +66,13 @@ class I18nKeysUsage(create: Boolean = false) : I18nKeysUsageInterface {
 
   override fun createExcelFile(): I18nKeysUsageInterface.ExcelFile {
     val workbook = ExcelWorkbook.createEmptyWorkbook()
+    val boldFont = workbook.createOrGetFont("bold", bold = true)
+    val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
+    val redFont = workbook.createOrGetFont("error-font")
+    redFont.fontName = "Arial"
+    redFont.color = IndexedColors.RED.index
+    val redStyle = workbook.createOrGetCellStyle("red", redFont)
+    redStyle.fillForegroundColor
     val sheet = workbook.createOrGetSheet("I18n keys")
     sheet.registerColumn("I18n key|60", "i18nKey")
     sheet.registerColumn("English|60", "translation")
@@ -72,11 +80,13 @@ class I18nKeysUsage(create: Boolean = false) : I18nKeysUsageInterface {
     sheet.registerColumn("Bundle|bundleName|60")
     sheet.registerColumn("Classes|60")
     sheet.registerColumn("Files|60")
-    sheet.createRow().fillHeadRow()
+    sheet.createRow().fillHeadRow().setCellStyle(boldStyle)
     orderedEntries.forEach { entry ->
       val row = sheet.createRow()
-      //row.setCellStyle()
       row.autoFillFromObject(entry)
+      if (entry.usedInClasses.isEmpty() && entry.usedInFiles.isEmpty()) {
+        row.setCellStyle(redStyle)
+      }
     }
     sheet.setAutoFilter()
     val ba: ByteArray
@@ -89,7 +99,7 @@ class I18nKeysUsage(create: Boolean = false) : I18nKeysUsageInterface {
   companion object {
     internal fun getOrderedEntries(i18nKeyEntries: Collection<I18nKeyUsageEntry>): List<I18nKeyUsageEntry> {
       return i18nKeyEntries.sortedWith(Comparator { o1, o2 ->
-        val compare = (o1.bundleName ?: "ZZZ").compareTo(o2.bundleName ?: "ZZZx")
+        val compare = (o1.bundleName ?: "ZZZ").compareTo(o2.bundleName ?: "ZZZ")
         if (compare != 0) {
           return@Comparator compare
         }
