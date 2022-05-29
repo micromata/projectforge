@@ -60,6 +60,9 @@ private val log = KotlinLogging.logger {}
 internal class I18nKeysSourceAnalyzer {
   private val i18nKeyMap = mutableMapOf<String, I18nKeyUsageEntry>()
 
+  // All string constants of form "..." are stored here with their occurrences in files.
+  private val stringConstantsMap = mutableMapOf<String, MutableSet<File>>()
+
   private val resourceBundleNames = mutableListOf<String>()
   private val resourceBundles = mutableListOf<ResourceBundle>()
   private val resourceBundlesDE = mutableListOf<ResourceBundle>()
@@ -107,6 +110,12 @@ internal class I18nKeysSourceAnalyzer {
     }
     getI18nEnums()
     getPropertyInfos()
+    // Now, add all found occurences of all i18n keys detected:
+    i18nKeyMap.values.forEach { entry ->
+      stringConstantsMap[entry.i18nKey]?.forEach { file ->
+        entry.addUsage(file)
+      }
+    }
     writeJson()
     println("Matching html mail templates: $htmlTemplatesCounter")
     return i18nKeyMap
@@ -146,6 +155,7 @@ internal class I18nKeysSourceAnalyzer {
     val files = listFiles(path, "html")
     for (file in files) {
       val content = getContent(file)
+      parseStringConstants(content, file)
       find(content, "pf.getI18nString\\(\"([a-zA-Z0-9\\.]+)\"\\)").forEach {
         ++htmlTemplatesCounter
         add(it, file)
@@ -199,11 +209,27 @@ internal class I18nKeysSourceAnalyzer {
     }
   }
 
+  /**
+   * Parses the given file for all "..." string constants for getting all possible occurrences
+   * of all i18n keys of the resource bundles.
+   */
+  private fun parseStringConstants(fileContent: String, file: File) {
+    find(fileContent, "\"([a-zA-Z0-9\\.]+)\"").forEach { stringConstant ->
+      var fileSet = stringConstantsMap[stringConstant]
+      if (fileSet == null) {
+        fileSet = mutableSetOf()
+        stringConstantsMap[stringConstant] = fileSet
+      }
+      fileSet.add(file)
+    }
+  }
+
   @Throws(IOException::class)
   private fun parseJava(path: Path) {
     val files = listFiles(path, "java")
     for (file in files) {
       val content = getContent(file)
+      parseStringConstants(content, file)
       find(file, content, "getString\\(\"([a-zA-Z0-9\\.]+)\"\\)") // getString("i18nKey")
       find(
         file,
@@ -284,6 +310,7 @@ internal class I18nKeysSourceAnalyzer {
     val files = listFiles(path, "kt")
     for (file in files) {
       val content = getContent(file)
+      parseStringConstants(content, file)
       find(file, content, "translate\\(\"([a-zA-Z0-9\\.]+)\"\\)") // translate("i18nKey")
       //find(file, content, "translateMsg\\(\"([a-zA-Z0-9\\.]+,") // translateMst("i18nKey",...)
       //find(file, content, "addTranslations\\(\"([a-zA-Z0-9\\.]+)\"\\)") // addError("i18nkey")

@@ -41,108 +41,105 @@ private val PAGE_SIZES = intArrayOf(25, 50, 100, 250, 500, 1000)
 /**
  * Utils for the Layout classes for handling filter settings in list views.
  */
-class LayoutListFilterUtils {
-  companion object {
-
-    fun createNamedSearchFilterContainer(
-      pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
-      lc: LayoutContext
-    ): UINamedContainer {
-      val container = UINamedContainer("searchFilter")
-      val elements = mutableListOf<UILabelledElement>()
-      elements.add(
-        UIFilterObjectElement(
-          MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName,
-          label = translate(MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.i18nKey),
-          autoCompletion = AutoCompletion.getAutoCompletion4Users()
+object LayoutListFilterUtils {
+  fun createNamedSearchFilterContainer(
+    pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
+    lc: LayoutContext
+  ): UINamedContainer {
+    val container = UINamedContainer("searchFilter")
+    val elements = mutableListOf<UILabelledElement>()
+    elements.add(
+      UIFilterObjectElement(
+        MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName,
+        label = translate(MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.i18nKey),
+        autoCompletion = AutoCompletion.getAutoCompletion4Users()
+      )
+    )
+    elements.add(
+      UIFilterTimestampElement(
+        MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName,
+        label = translate(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.i18nKey),
+        openInterval = true,
+        selectors = listOf(
+          UIFilterTimestampElement.QuickSelector.YEAR,
+          UIFilterTimestampElement.QuickSelector.MONTH,
+          UIFilterTimestampElement.QuickSelector.WEEK,
+          UIFilterTimestampElement.QuickSelector.DAY,
+          UIFilterTimestampElement.QuickSelector.UNTIL_NOW
         )
       )
-      elements.add(
-        UIFilterTimestampElement(
-          MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.fieldName,
-          label = translate(MagicFilterEntry.HistorySearch.MODIFIED_INTERVAL.i18nKey),
-          openInterval = true,
-          selectors = listOf(
-            UIFilterTimestampElement.QuickSelector.YEAR,
-            UIFilterTimestampElement.QuickSelector.MONTH,
-            UIFilterTimestampElement.QuickSelector.WEEK,
-            UIFilterTimestampElement.QuickSelector.DAY,
-            UIFilterTimestampElement.QuickSelector.UNTIL_NOW
-          )
-        )
+    )
+    elements.add(
+      UIFilterElement(
+        MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName,
+        label = translate(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.i18nKey)
       )
-      elements.add(
-        UIFilterElement(
-          MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.fieldName,
-          label = translate(MagicFilterEntry.HistorySearch.MODIFIED_HISTORY_VALUE.i18nKey)
-        )
+    )
+    elements.add(UIFilterElement("deleted", UIFilterElement.FilterType.BOOLEAN, translate("deleted")))
+
+    elements.add(
+      UIFilterListElement(
+        MagicFilter.PAGINATION_PAGE_SIZE,
+        pageValues,
+        translate("label.pageSize"),
+        multi = false,
+        defaultFilter = true
       )
-      elements.add(UIFilterElement("deleted", UIFilterElement.FilterType.BOOLEAN, translate("deleted")))
+    )
 
-      elements.add(
-        UIFilterListElement(
-          MagicFilter.PAGINATION_PAGE_SIZE,
-          pageValues,
-          translate("label.pageSize"),
-          multi = false,
-          defaultFilter = true
-        )
-      )
-
-      val baseDao = pagesRest.baseDao
-      val searchFields = baseDao.searchFields
-      searchFields.forEach {
-        val elInfo = ElementsRegistry.getElementInfo(lc, it)
-        if (elInfo == null) {
-          log.warn("Search field '${baseDao.doClass}.$it' not found. Ignoring it.")
-        } else {
-          val element: UIElement
-          if (elInfo.propertyClass.isEnum) {
-            @Suppress("UNCHECKED_CAST")
-            element = UIFilterListElement(it)
-              .buildValues(i18nEnum = elInfo.propertyClass as Class<out Enum<*>>)
-            element.label = element.id // Default label if no translation will be found below.
-          } else {
-            element = UIFilterElement(it)
-            element.label = element.id // Default label if no translation will be found below.
-            element.determine(elInfo.propertyClass)
-          }
-          element as UILabelledElement
-          element.label = getLabel(elInfo)
-          elements.add(element)
-        }
-      }
-      pagesRest.addMagicFilterElements(elements)
-
-      elements.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.label })
-      elements.forEach { container.add(it as UIElement) }
-      return container
-    }
-
-    fun getLabel(elInfo: ElementInfo): String {
-      val sb = StringBuilder()
-      addLabel(sb, elInfo)
-      return sb.toString()
-    }
-
-    private fun addLabel(sb: StringBuilder, elInfo: ElementInfo?) {
-      if (elInfo == null) return
-      if (sb.length > 1000) { // Paranoia test for endless loops
-        log.error("Oups, paranoia test detects endless loop in ElementInfo.parent '$sb'!")
-        return
-      }
-      addLabel(sb, elInfo.parent)
-      if (elInfo.parent != null) sb.append(" - ")
-      if (!elInfo.i18nKey.isNullOrBlank()) {
-        sb.append(translate(elInfo.i18nKey))
+    val baseDao = pagesRest.baseDao
+    val searchFields = baseDao.searchFields
+    searchFields.forEach {
+      val elInfo = ElementsRegistry.getElementInfo(lc, it)
+      if (elInfo == null) {
+        log.warn("Search field '${baseDao.doClass}.$it' not found. Ignoring it.")
       } else {
-        sb.append(elInfo.simplePropertyName)
-      }
-      if (!elInfo.additionalI18nKey.isNullOrBlank()) {
-        sb.append(" (").append(translate(elInfo.additionalI18nKey)).append(")")
+        val element: UIElement
+        if (elInfo.propertyClass.isEnum) {
+          @Suppress("UNCHECKED_CAST")
+          element = UIFilterListElement(it)
+            .buildValues(i18nEnum = elInfo.propertyClass as Class<out Enum<*>>)
+          element.label = element.id // Default label if no translation will be found below.
+        } else {
+          element = UIFilterElement(it)
+          element.label = element.id // Default label if no translation will be found below.
+          element.determine(elInfo.propertyClass)
+        }
+        element as UILabelledElement
+        element.label = getLabel(elInfo)
+        elements.add(element)
       }
     }
+    pagesRest.addMagicFilterElements(elements)
 
-    private val pageValues = PAGE_SIZES.map { UISelectValue("$it", NumberFormatter.format(it)) }
+    elements.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.label })
+    elements.forEach { container.add(it as UIElement) }
+    return container
   }
+
+  fun getLabel(elInfo: ElementInfo): String {
+    val sb = StringBuilder()
+    addLabel(sb, elInfo)
+    return sb.toString()
+  }
+
+  private fun addLabel(sb: StringBuilder, elInfo: ElementInfo?) {
+    if (elInfo == null) return
+    if (sb.length > 1000) { // Paranoia test for endless loops
+      log.error("Oups, paranoia test detects endless loop in ElementInfo.parent '$sb'!")
+      return
+    }
+    addLabel(sb, elInfo.parent)
+    if (elInfo.parent != null) sb.append(" - ")
+    if (!elInfo.i18nKey.isNullOrBlank()) {
+      sb.append(translate(elInfo.i18nKey))
+    } else {
+      sb.append(elInfo.simplePropertyName)
+    }
+    if (!elInfo.additionalI18nKey.isNullOrBlank()) {
+      sb.append(" (").append(translate(elInfo.additionalI18nKey)).append(")")
+    }
+  }
+
+  private val pageValues = PAGE_SIZES.map { UISelectValue("$it", NumberFormatter.format(it)) }
 }
