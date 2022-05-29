@@ -48,6 +48,9 @@ import javax.servlet.http.HttpServletResponse
 @RequestMapping("${Rest.URL}/WebAuthnSetup")
 class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
   @Autowired
+  private lateinit var my2FASetupMenuBadge: My2FASetupMenuBadge
+
+  @Autowired
   private lateinit var webAuthnEntryDao: WebAuthnEntryDao
 
   @Autowired
@@ -143,6 +146,7 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
     requireNotNull(webAuthnFinishRequest)
     val result = webAuthnServicesRest.doRegisterFinish(request, webAuthnFinishRequest, displayName = data.displayName)
     if (result.success) {
+      my2FASetupMenuBadge.refreshUserBadgeCounter()
       return ResponseEntity.ok(redirectToSetupPage())
     }
     // Authentication wasn't successful:
@@ -160,6 +164,7 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
     val id = postData.data.id
     requireNotNull(id) { "Can't delete WebAuthn entry without id." }
     webAuthnEntryDao.delete(id)
+    my2FASetupMenuBadge.refreshUserBadgeCounter()
     return redirectToSetupPage()
   }
 
