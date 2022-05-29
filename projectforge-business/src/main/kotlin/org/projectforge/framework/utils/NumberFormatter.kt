@@ -163,5 +163,6 @@ object NumberFormatter {
     }
   }
 
-  private val CURRENCY_SYMBOL = ConfigurationServiceAccessor.get().currencySymbol
+  // ConfigurationServiceAccessor.get() may only null in test cases.
+  private val CURRENCY_SYMBOL = ConfigurationServiceAccessor.get()?.currencySymbol ?: "€"
 }

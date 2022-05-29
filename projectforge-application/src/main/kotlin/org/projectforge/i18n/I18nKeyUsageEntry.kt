@@ -31,8 +31,8 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
   var bundleName: String? = null
   var translation: String? = null
   var translationDE: String? = null
-  val usedInClasses = mutableSetOf<Class<*>>()
-  val usedInFiles = mutableSetOf<File>()
+  private val usedInClasses = mutableSetOf<Class<*>>()
+  private val usedInFiles = mutableSetOf<File>()
 
   val classes: String
     @JsonIgnore
@@ -42,8 +42,17 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
     @JsonIgnore
     get() = usedInFiles.joinToString { it.name }
 
+  /**
+   * If file represents a Java or Kotlin class, the class will be get byName and the class will be added instead of
+   * the file.
+   */
   fun addUsage(file: File) {
-    usedInFiles.add(file)
+    val clazz = getClassByFile(file)
+    if (clazz != null) {
+      addUsage(clazz)
+    } else {
+      usedInFiles.add(file)
+    }
   }
 
   fun addUsage(clazz: Class<*>) {
@@ -55,8 +64,30 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
   }
 
   companion object {
+    private val classCacheMap = mutableMapOf<File, Class<*>>()
     fun read(str: String): I18nKeyUsageEntry? {
       return JsonUtils.fromJson(str, I18nKeyUsageEntry::class.java)
+    }
+
+    internal fun getClassByFile(file: File, showError: Boolean = true): Class<*>? {
+      classCacheMap[file]?.let { return it }
+      val className = if (file.extension == "java") {
+        file.absolutePath.substringAfter("/src/main/java/").removeSuffix(".java").replace('/', '.')
+      } else if (file.extension == "kt") {
+        file.absolutePath.substringAfter("/src/main/kotlin/").removeSuffix(".kt").replace('/', '.')
+      } else {
+        return null
+      }
+      return try {
+        val clazz = Class.forName(className)
+        classCacheMap[file] = clazz
+        clazz
+      } catch (ex: Throwable) {
+        if (showError) {
+          println("*** Class '$className' not found: ${ex.message}")
+        }
+        null
+      }
     }
   }
 }
