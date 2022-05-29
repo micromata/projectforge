@@ -64,6 +64,9 @@ public class RechnungDao extends BaseDao<RechnungDO> {
           "projekt.kunde.name", "positionen.auftragsPosition.auftrag.nummer"};
 
   @Autowired
+  private AuftragsCache auftragsCache;
+
+  @Autowired
   private KundeDao kundeDao;
 
   @Autowired
@@ -244,6 +247,7 @@ public class RechnungDao extends BaseDao<RechnungDO> {
   @Override
   protected void afterSaveOrModify(final RechnungDO obj) {
     getRechnungCache().setExpired(); // Expire the cache because assignments to order position may be changed.
+    auftragsCache.setExpired();
   }
 
   @Override
