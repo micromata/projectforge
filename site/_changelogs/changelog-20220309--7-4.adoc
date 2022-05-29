@@ -4,7 +4,7 @@ date: 2022-05-19
 ---
 :page-liquid:
 
-Security issues of pentests, DataTransfer improved.
+2FA (SMS, Authenticator, Fidu2) now fully supported. Multi-upload with progress bars for data-transfer-areas.
 
 ++++
 {% include tag.html tag="added" %}

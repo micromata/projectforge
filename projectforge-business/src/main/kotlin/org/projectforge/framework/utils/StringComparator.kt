@@ -64,7 +64,7 @@ object StringComparator {
      * @see .compare
      */
     @JvmStatic
-    fun compare(s1: String, s2: String, locale: Locale): Int {
+    fun compare(s1: String?, s2: String?, locale: Locale): Int {
         return compare(s1, s2, true, locale)
     }
 

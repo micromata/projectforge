@@ -89,6 +89,11 @@ public class UserXmlPreferencesCache extends AbstractCache
    */
   public Object removeEntry(final Integer userId, final String key)
   {
+    return removeEntry(userId,key, true);
+  }
+
+  private Object removeEntry(final Integer userId, final String key, final boolean warnIfNotExists)
+  {
     final UserXmlPreferencesMap data = getUserPreferencesData(userId);
     if (data == null) {
       // Should only occur for the pseudo-first-login-user setting up the system.
@@ -97,10 +102,23 @@ public class UserXmlPreferencesCache extends AbstractCache
     if (data.getPersistentData().containsKey(key)) {
       userXmlPreferencesDao.remove(userId, key);
     } else if (!data.getVolatileData().containsKey(key)) {
-      log.warn("Oups, user preferences object with key '" + key + "' is wether persistent nor volatile!");
+      if (warnIfNotExists) {
+        log.warn("Oups, user preferences object with key '" + key + "' is wether persistent nor volatile!");
+      }
+      return null;
     }
     checkRefresh();
     return data.removeEntry(key);
+  }
+
+  /**
+   * Please use UserPreferenceHelper instead for correct handling of demo user's preferences!
+   *
+   * @see org.projectforge.business.user.UserXmlPreferencesMap#removeEntry(String)
+   */
+  public Object removeEntryIfExists(final Integer userId, final String key)
+  {
+    return removeEntry(userId, key, false);
   }
 
   /**

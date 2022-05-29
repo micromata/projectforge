@@ -101,8 +101,6 @@ open class FavoritesMenuCreator {
     }
 
     companion object {
-        const val USER_PREF_FAVORITES_MENU_KEY = "usersFavoritesMenu"
-
         internal const val USER_PREF_FAVORITES_MENU_ENTRIES_KEY = "usersFavoriteMenuEntries"
     }
 }

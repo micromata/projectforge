@@ -44,7 +44,6 @@ import org.projectforge.security.WebAuthnServicesRest
 import org.projectforge.security.webauthn.WebAuthnEntryDO
 import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.ui.*
-import org.projectforge.web.My2FAHttpService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -63,9 +62,6 @@ private val log = KotlinLogging.logger {}
 class My2FASetupPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var authenticationsService: UserAuthenticationsService
-
-  @Autowired
-  private lateinit var my2FAHttpService: My2FAHttpService
 
   @Autowired
   private lateinit var my2FAService: My2FAService
@@ -126,7 +122,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     request: HttpServletRequest,
     response: HttpServletResponse,
     data: My2FASetupData,
-  ):ResponseEntity<ResponseAction> {
+  ): ResponseEntity<ResponseAction> {
     if (result.body?.targetType == TargetType.UPDATE) {
       // Update also the ui of the client (on success, the password fields will be shown after 2FA).
       result.body.let {
@@ -266,7 +262,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
 
   private fun createLayout(request: HttpServletRequest, response: HttpServletResponse, data: My2FASetupData): UILayout {
     data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
-    val smsConfigured = my2FAHttpService.smsConfigured
+    val smsConfigured = my2FAService.smsConfigured
     val authenticatorKey = authenticationsService.getAuthenticatorToken()
     val layout = UILayout("user.My2FA.setup.title")
     val userLC = LayoutContext(PFUserDO::class.java)
@@ -280,7 +276,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
           color = UIColor.LIGHT
         )
       )
-    if (authenticatorKey.isNullOrBlank() || smsConfigured && data.mobilePhone.isNullOrBlank()) {
+    if (!my2FAService.userConfigured2FA) {
       // Authenticator App and mobile phone is highly recommended:
       fieldset.add(
         UIAlert(
@@ -339,6 +335,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     }
 
     fieldset = UIFieldset(title = "webauthn.title")
+    fieldset.add(UIAlert(message = "webauthn.info", color = UIColor.LIGHT))
     leftCol.add(fieldset)
     if (!data.webAuthnEntries.isNullOrEmpty()) {
       val grid = UIAgGrid("webAuthnEntries")
