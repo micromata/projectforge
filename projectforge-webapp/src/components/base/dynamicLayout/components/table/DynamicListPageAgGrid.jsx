@@ -42,12 +42,10 @@ function DynamicListPageAgGrid({
     const { ui } = React.useContext(DynamicLayoutContext);
 
     const handleCancel = React.useCallback(() => {
-        fetch(
-            getServiceURL(handleCancelUrl), {
-                method: 'GET',
-                credentials: 'include',
-            },
-        )
+        fetch(getServiceURL(handleCancelUrl), {
+            method: 'GET',
+            credentials: 'include',
+        })
             .then(handleHTTPErrors)
             .then((response) => response.text())
             .then((url) => {
@@ -57,62 +55,66 @@ function DynamicListPageAgGrid({
 
     const handleClick = React.useCallback(() => {
         const selectedIds = gridApi.getSelectedRows().map((item) => item.id);
-        fetchJsonPost(urlAfterMultiSelect,
+        fetchJsonPost(
+            urlAfterMultiSelect,
             { selectedIds },
             (json) => {
                 const { url } = json;
                 history.push(url);
-            });
+            },
+        );
     }, [gridApi]);
 
     // getSelectedNodes
-    return React.useMemo(() => (
-        <div>
-            {multiSelectButtonTitle && (
+    return React.useMemo(
+        () => (
+            <div>
+                {multiSelectButtonTitle && (
                 // Show these buttons only for multi selection with e. g. mass update:
-                <>
-                    <Button
-                        id="cancel"
-                        onClick={handleCancel}
-                        color="danger"
-                        outline
-                    >
-                        {ui.translations.cancel}
-                    </Button>
-                    <Button
-                        id="next"
-                        onClick={handleClick}
-                        color="success"
-                        outline
-                    >
-                        {multiSelectButtonTitle}
-                    </Button>
-                </>
-            )}
-            <DynamicAgGrid
-                onGridApiReady={onGridApiReady}
-                columnDefs={columnDefs}
-                id={id}
-                sortModel={sortModel}
-                rowSelection={rowSelection}
-                rowMultiSelectWithClick={rowMultiSelectWithClick}
-                rowClickRedirectUrl={rowClickRedirectUrl}
-                onColumnStatesChangedUrl={onColumnStatesChangedUrl}
-                pagination={pagination}
-                paginationPageSize={paginationPageSize}
-                getRowClass={getRowClass}
-            />
-        </div>
-    ),
-    [
-        handleClick,
-        multiSelectButtonTitle,
-        columnDefs,
-        sortModel,
-        rowSelection,
-        rowMultiSelectWithClick,
-        ui,
-    ]);
+                    <>
+                        <Button
+                            id="cancel"
+                            onClick={handleCancel}
+                            color="danger"
+                            outline
+                        >
+                            {ui.translations.cancel}
+                        </Button>
+                        <Button
+                            id="next"
+                            onClick={handleClick}
+                            color="success"
+                            outline
+                        >
+                            {multiSelectButtonTitle}
+                        </Button>
+                    </>
+                )}
+                <DynamicAgGrid
+                    onGridApiReady={onGridApiReady}
+                    columnDefs={columnDefs}
+                    id={id}
+                    sortModel={sortModel}
+                    rowSelection={rowSelection}
+                    rowMultiSelectWithClick={rowMultiSelectWithClick}
+                    rowClickRedirectUrl={rowClickRedirectUrl}
+                    onColumnStatesChangedUrl={onColumnStatesChangedUrl}
+                    pagination={pagination}
+                    paginationPageSize={paginationPageSize}
+                    getRowClass={getRowClass}
+                />
+            </div>
+        ),
+        [
+            handleClick,
+            multiSelectButtonTitle,
+            columnDefs,
+            sortModel,
+            rowSelection,
+            rowMultiSelectWithClick,
+            ui,
+        ],
+    );
 }
 
 DynamicListPageAgGrid.propTypes = {
