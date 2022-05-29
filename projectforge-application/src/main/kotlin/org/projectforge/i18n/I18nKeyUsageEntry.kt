@@ -31,16 +31,16 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
   var bundleName: String? = null
   var translation: String? = null
   var translationDE: String? = null
-  private val usedInClasses = mutableSetOf<Class<*>>()
-  private val usedInFiles = mutableSetOf<File>()
+  private var usedInClasses = mutableSetOf<Class<*>>()
+  private var usedInFiles = mutableSetOf<File>()
 
   val classes: String
     @JsonIgnore
-    get() = usedInClasses.joinToString { it.simpleName }
+    get() = usedInClasses.sortedBy { it.name }.joinToString { it.simpleName }
 
   val files: String
     @JsonIgnore
-    get() = usedInFiles.joinToString { it.name }
+    get() = usedInFiles.sortedBy { it.name }.joinToString { it.name }
 
   /**
    * If file represents a Java or Kotlin class, the class will be get byName and the class will be added instead of
@@ -78,13 +78,21 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
       } else {
         return null
       }
+      if (
+        className == "org.projectforge.framework.i18n.I18n" ||
+        className == "org.projectforge.common.logging.LogConstants" ||
+        className == "org.projectforge.rest.json.Deserializers"
+      ) {
+        // No such classes.
+        return null
+      }
       return try {
         val clazz = Class.forName(className)
         classCacheMap[file] = clazz
         clazz
       } catch (ex: Throwable) {
         if (showError) {
-          println("*** Class '$className' not found: ${ex.message}")
+          println("*** Class '$className' not found (file=${file.absolutePath}): ${ex.message}")
         }
         null
       }

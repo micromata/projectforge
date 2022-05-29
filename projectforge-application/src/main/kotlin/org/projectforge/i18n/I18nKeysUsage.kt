@@ -44,7 +44,7 @@ fun main() {
  */
 @Service
 class I18nKeysUsage(create: Boolean = false) : I18nKeysUsageInterface {
-  private val i18nKeyMap: Map<String, I18nKeyUsageEntry>
+  internal val i18nKeyMap: Map<String, I18nKeyUsageEntry>
 
   private val orderedEntries: List<I18nKeyUsageEntry>
     get() = getOrderedEntries(i18nKeyMap.values)
@@ -53,7 +53,6 @@ class I18nKeysUsage(create: Boolean = false) : I18nKeysUsageInterface {
     if (create) {
       i18nKeyMap = I18nKeysSourceAnalyzer().run()
     } else {
-      // TODO
       i18nKeyMap = I18nKeysSourceAnalyzer.readJson()
     }
   }
@@ -76,6 +75,7 @@ class I18nKeysUsage(create: Boolean = false) : I18nKeysUsageInterface {
     sheet.createRow().fillHeadRow()
     orderedEntries.forEach { entry ->
       val row = sheet.createRow()
+      //row.setCellStyle()
       row.autoFillFromObject(entry)
     }
     sheet.setAutoFilter()
