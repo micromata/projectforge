@@ -31,8 +31,8 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
   var bundleName: String? = null
   var translation: String? = null
   var translationDE: String? = null
-  private var usedInClasses = mutableSetOf<Class<*>>()
-  private var usedInFiles = mutableSetOf<File>()
+  var usedInClasses = mutableSetOf<Class<*>>()
+  var usedInFiles = mutableSetOf<File>()
 
   val classes: String
     @JsonIgnore

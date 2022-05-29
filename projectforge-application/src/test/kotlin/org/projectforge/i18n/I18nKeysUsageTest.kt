@@ -23,16 +23,24 @@
 
 package org.projectforge.i18n
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 
-class CreateI18nKeysTest {
+class I18nKeysUsageTest {
   /**
    * Creates the i18n key usage file on each test run (should be committed to Git after modifications).
    * This file is used for download Excel-file with i18 translations and usages from running ProjectForge-App.
    */
   @Test
   fun createI18nKeysUsageFile() {
-    I18nKeysSourceAnalyzer().run()
+    val usage = I18nKeysUsage(true) // Creates all i18n usages by analyzing sources and writes it to json file.
+    val readUsage = I18nKeysUsage() // Loads all i18n usages from json file generated above.
+    Assertions.assertEquals(usage.i18nKeyMap.size, readUsage.i18nKeyMap.size, "Size of analyze run should be the same after read from json.")
+    usage.i18nKeyMap.values.forEach { entry ->
+      val readEntry = readUsage.i18nKeyMap[entry.i18nKey]
+      Assertions.assertNotNull(readEntry, "Entry should be load from json.")
+      Assertions.assertEquals(entry.files, readEntry!!.files)
+    }
   }
 }
