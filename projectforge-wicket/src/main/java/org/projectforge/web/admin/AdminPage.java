@@ -37,6 +37,7 @@ import org.projectforge.business.systeminfo.SystemService;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
@@ -82,9 +83,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   @SpringBean
   private DatabaseService databaseService;
-
-  @SpringBean
-  private I18nKeysUsageInterface i18nKeysUsage;
 
   @SpringBean
   private JCRCheckSanityJob jcrCheckSanityJob;
@@ -399,6 +397,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void checkI18nProperties() {
     log.info("Administration: check i18n properties.");
     checkAccess();
+    I18nKeysUsageInterface i18nKeysUsage = ApplicationContextProvider.getApplicationContext().getBean(I18nKeysUsageInterface.class);
     I18nKeysUsageInterface.ExcelFile excelFile = i18nKeysUsage.createExcelFile();
     DownloadUtils.setDownloadTarget(excelFile.getBytes(), excelFile.getFilename());
   }
