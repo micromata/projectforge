@@ -31,30 +31,32 @@ import java.io.File
 
 
 fun main() {
-  I18nKeysUsage(true).writeExcelFile()
+  I18nKeysUsage(I18nKeysUsage.RUN_MODE.CREATE).writeExcelFile()
 }
 
 /**
  * Tries to get all used i18n keys from the sources (java and html). As result a file is written which will be checked
  * by AdminAction.checkI18nProperties. Unused i18n keys should be detected.
  *
- * @param create If true, the i18n keys will be analyzed and the i18n keys file will be created (only possible if
- * sources are available)
+ * @param runMode If CREATE, the i18n keys will be analyzed and the i18n keys file will be created (only possible if
+ * sources are available). Otherwise, the i18n keys will be load from json file. If runMode is FILESYSTEM the i18n keys
+ * will be load from the filesystem (source dir) instead of the classpath (in production mode).
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-class I18nKeysUsage(create: Boolean = false) : I18nKeysUsageInterface {
+class I18nKeysUsage(runmode: RUN_MODE? = null) : I18nKeysUsageInterface {
   internal val i18nKeyMap: Map<String, I18nKeyUsageEntry>
+  enum class RUN_MODE { CREATE, FILESYSTEM }
 
   private val orderedEntries: List<I18nKeyUsageEntry>
     get() = getOrderedEntries(i18nKeyMap.values)
 
   init {
-    if (create) {
+    if (runmode == RUN_MODE.CREATE) {
       i18nKeyMap = I18nKeysSourceAnalyzer().run()
     } else {
-      i18nKeyMap = I18nKeysSourceAnalyzer.readJson()
+      i18nKeyMap = I18nKeysSourceAnalyzer.readJson(runmode == RUN_MODE.FILESYSTEM)
     }
   }
 

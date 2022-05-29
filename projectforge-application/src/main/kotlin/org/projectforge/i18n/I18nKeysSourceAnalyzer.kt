@@ -364,14 +364,17 @@ internal class I18nKeysSourceAnalyzer {
   }
 
   companion object {
-    fun readJson(): MutableMap<String, I18nKeyUsageEntry> {
+    fun readJson(useFileSystem: Boolean): MutableMap<String, I18nKeyUsageEntry> {
       val map = mutableMapOf<String, I18nKeyUsageEntry>()
-      if (jsonFile.exists() && jsonFile.canRead()) {
-        val json = jsonFile.readText()
-        val array = JsonUtils.fromJson(json, Array<I18nKeyUsageEntry>::class.java)
-        array?.forEach {
-          map[it.i18nKey] = it
-        }
+      val json: String
+      if (useFileSystem && jsonFile.exists() && jsonFile.canRead()) {
+        json = jsonFile.readText()
+      } else {
+        json = this::class.java.classLoader.getResource(JSON_FILENAME)?.readText() ?: ""
+      }
+      val array = JsonUtils.fromJson(json, Array<I18nKeyUsageEntry>::class.java)
+      array?.forEach {
+        map[it.i18nKey] = it
       }
       return map
     }
@@ -391,14 +394,15 @@ internal class I18nKeysSourceAnalyzer {
               path = path.parent
             }
           }
-          throw java.lang.IllegalArgumentException("Oups, can't find ProjectForge source directory containing projectforge-application directory")
+          field = Path(".") // In production environment
         }
         return field
       }
 
+    private const val JSON_FILENAME = "i18nKeys.json"
     private val jsonFile = File(
       Path(basePath!!.toString(), "projectforge-application", "src", "main", "resources").toFile(),
-      "i18nKeys.json"
+      JSON_FILENAME
     )
 
     private const val I18N_FILE = "i18nKeys.json"
