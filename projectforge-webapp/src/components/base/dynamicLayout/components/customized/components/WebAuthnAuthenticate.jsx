@@ -27,11 +27,13 @@ function WebAuthn({ values }) {
     };
 
     const authenticate = () => {
-        fetchJsonGet(values.authenticateUrl || 'webauthn/webAuthn',
+        fetchJsonGet(
+            values.authenticateUrl || 'webauthn/webAuthn',
             {},
             (json) => {
                 finishAuthenticate(json);
-            });
+            },
+        );
     };
 
     return (
