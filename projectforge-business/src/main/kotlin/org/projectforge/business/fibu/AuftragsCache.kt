@@ -123,8 +123,10 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListe
       positionAbgeschlossenUndNichtVollstaendigFakturiert = positionAbgeschlossenUndNichtVollstaendigFakturiert,
       paymentSchedulesReached = paymentSchedulesReached,
     )
-    synchronized(orderMap) {
-      orderMap[order.id] = info
+    order.id?.let { id -> // id might be null on test cases.
+      synchronized(orderMap) {
+        orderMap[id] = info
+      }
     }
     return info
   }
