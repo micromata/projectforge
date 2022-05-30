@@ -117,7 +117,7 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListe
       akquiseSum = akquiseSum,
       fakturiertSum = fakturiertSum,
       abgeschlossenNichtFakturiertSum = order.abgeschlossenNichtFakturiert ?: BigDecimal.ZERO,
-      zuFakturierenSum = order.nettoSumme - fakturiertSum,
+      zuFakturierenSum = order.beauftragtNettoSumme - fakturiertSum,
       beauftragtNettoSumme = order.beauftragtNettoSumme,
       isVollstaendigFakturiert = order.isVollstaendigFakturiert,
       positionAbgeschlossenUndNichtVollstaendigFakturiert = positionAbgeschlossenUndNichtVollstaendigFakturiert,
