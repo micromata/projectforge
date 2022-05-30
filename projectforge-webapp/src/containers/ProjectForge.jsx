@@ -81,6 +81,7 @@ function ProjectForge(
 
     return (
         <SystemStatusContext.Provider
+            /* eslint-disable-next-line react/jsx-no-constructed-context-values */
             value={{
                 ...systemStatusContextDefaultValues,
                 ...systemStatus,

@@ -54,6 +54,7 @@ function DynamicList(
                             bodyIsOpenInitial={!list.length}
                             renderBody={() => (
                                 <DynamicLayoutContext.Provider
+                                    // eslint-disable-next-line
                                     value={{
                                         ...context,
                                         data: {

@@ -39,7 +39,7 @@ function Formatter(
 ) {
     const useValue = value || Object.getByString(data, id);
     if (useValue === undefined) {
-        return <></>;
+        return null;
     }
 
     let result = useValue;

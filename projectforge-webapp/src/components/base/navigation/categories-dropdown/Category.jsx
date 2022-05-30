@@ -69,6 +69,7 @@ class Category extends React.Component {
             category,
             className,
             // destructuring is necessary. Otherwise its in the dom.
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             closeMenu,
             ...props
         } = this.props;

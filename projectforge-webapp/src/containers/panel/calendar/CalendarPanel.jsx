@@ -73,7 +73,8 @@ class CalendarPanel extends React.Component {
             // timeZone,
         } = this.props;
         // Doesn't work: moment.tz.setDefault(timeZone); Bug: shifts day selection 1 day!!!
-        moment.updateLocale(locale || 'en',
+        moment.updateLocale(
+            locale || 'en',
             {
                 week: {
                     dow: firstDayOfWeek, // First day of week, 1 - Sunday, 2 - Monday, ....
@@ -82,7 +83,8 @@ class CalendarPanel extends React.Component {
                     // doy: 12 // Arab: First week of year must contain 1 January (7 + 6 - 1)
                     // doy: 7  // Also common: First week of year must contain 1 January (7 + 1 - 1)
                 },
-            });
+            },
+        );
 
         const { defaultDate, defaultView } = props;
 
@@ -235,7 +237,8 @@ class CalendarPanel extends React.Component {
 
     fetchAction(action, startDate, endDate, calendar, allDay, event) {
         const { match } = this.props;
-        fetchJsonGet('calendar/action',
+        fetchJsonGet(
+            'calendar/action',
             {
                 action,
                 startDate: startDate ? startDate.toISOString() : '',
@@ -253,7 +256,8 @@ class CalendarPanel extends React.Component {
             (json) => {
                 const { url } = json;
                 history.push(`${match.url}${url}`);
-            });
+            },
+        );
     }
 
     eventStyle(event) {
@@ -288,7 +292,8 @@ class CalendarPanel extends React.Component {
         const { activeCalendars, timesheetUserId } = this.props;
         const activeCalendarIds = activeCalendars ? activeCalendars.map((obj) => obj.id) : [];
         this.setState({ loading: true });
-        fetchJsonPost('calendar/events',
+        fetchJsonPost(
+            'calendar/events',
             {
                 start,
                 end,
@@ -314,7 +319,8 @@ class CalendarPanel extends React.Component {
                         specialDays,
                     },
                 );
-            });
+            },
+        );
     }
 
     render() {
@@ -380,9 +386,11 @@ class CalendarPanel extends React.Component {
                         event: renderEvent,
                         month: {
                             event: renderMonthEvent,
-                            dateHeader: (entry) => renderDateHeader(entry,
+                            dateHeader: (entry) => renderDateHeader(
+                                entry,
                                 specialDays,
-                                this.navigateToDay),
+                                this.navigateToDay,
+                            ),
                         },
                         week: {
                             // header: renderDateHeader

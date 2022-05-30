@@ -12,7 +12,6 @@ import useMagicInput from './inputs/MagicInputHook';
 
 function MagicFilterPill(
     {
-        children,
         id,
         isNew,
         isRemovable,
@@ -128,7 +127,6 @@ MagicFilterPill.propTypes = {
         delete: PropTypes.string,
         save: PropTypes.string,
     }).isRequired,
-    children: PropTypes.node,
     isNew: PropTypes.bool,
     isRemovable: PropTypes.bool,
     filterType: PropTypes.string,
@@ -136,7 +134,6 @@ MagicFilterPill.propTypes = {
 };
 
 MagicFilterPill.defaultProps = {
-    children: undefined,
     isNew: false,
     isRemovable: false,
     filterType: undefined,

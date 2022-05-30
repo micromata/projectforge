@@ -4,6 +4,7 @@ Object.getByString = (object, multiKey) => {
         return undefined;
     }
     if (!(typeof multiKey === 'string' || multiKey instanceof String)) {
+        /* eslint-disable-next-line no-console */
         console.log("Warning: multiKey isn't of type String.", multiKey, typeof multiKey);
         return undefined;
     }
@@ -76,7 +77,7 @@ Object.isObject = (object) => typeof object === 'object'
 Object.combine = (o1, o2) => ({
     ...o1,
     ...o2,
-    ...Object.keys(o1)
+    ...Object.keys(o1 || {})
         .map((key) => ({
             key,
             v1: o1[key],

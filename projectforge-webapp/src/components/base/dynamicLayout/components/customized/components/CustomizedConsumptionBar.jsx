@@ -9,7 +9,7 @@ function CustomizedConsumptionBar() {
     return React.useMemo(
         () => {
             if (!variables.task) {
-                return <></>;
+                return null;
             }
             const { consumption } = variables.task;
             return (

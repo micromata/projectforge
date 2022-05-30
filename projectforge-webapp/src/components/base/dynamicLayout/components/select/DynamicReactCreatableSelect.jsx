@@ -36,17 +36,15 @@ function DynamicReactSelect(props) {
         };
 
         return (
-            <>
-                <DynamicValidationManager id={id}>
-                    <ReactCreatableSelect
-                        className="invalid"
-                        onChange={onChange}
-                        translations={ui.translations}
-                        {...props}
-                        value={value}
-                    />
-                </DynamicValidationManager>
-            </>
+            <DynamicValidationManager id={id}>
+                <ReactCreatableSelect
+                    className="invalid"
+                    onChange={onChange}
+                    translations={ui.translations}
+                    {...props}
+                    value={value}
+                />
+            </DynamicValidationManager>
         );
     }, [data[id], value, setData]);
 }
