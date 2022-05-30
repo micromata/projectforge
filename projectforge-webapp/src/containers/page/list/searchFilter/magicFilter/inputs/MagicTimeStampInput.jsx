@@ -21,7 +21,7 @@ function MagicTimeStampInput(
             from: null,
             to: null,
         });
-        return null;
+        return fragment;
     }
 
     if (typeof value.from === 'string' || typeof value.to === 'string') {
@@ -29,7 +29,7 @@ function MagicTimeStampInput(
             from: new Date(value.from),
             to: new Date(value.to),
         });
-        return null;
+        return fragment;
     }
 
     // TODO CHECK IF FROM IS AFTER TO (AND VICE VERSA)

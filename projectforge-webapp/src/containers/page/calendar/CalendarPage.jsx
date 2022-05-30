@@ -33,10 +33,6 @@ class CalendarPage extends React.Component {
             translations: undefined,
             vacationGroups: [],
             vacationUsers: [],
-            calendarContextValue: {
-                ...calendarContextDefaultValues,
-                saveUpdateResponseInState: this.saveUpdateResponseInState,
-            },
         };
 
         this.fetchInitial = this.fetchInitial.bind(this);
@@ -193,7 +189,6 @@ class CalendarPage extends React.Component {
             view,
             vacationGroups,
             vacationUsers,
-            calendarContextValue,
         } = this.state;
 
         if (!translations) {

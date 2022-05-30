@@ -157,7 +157,7 @@ ReactSelect.propTypes = {
         PropTypes.arrayOf(PropTypes.shape({})),
     ]),
     valueProperty: PropTypes.string,
-    values: PropTypes.arrayOf(PropTypes.shape({})),
+    values: PropTypes.arrayOf({}),
 };
 
 ReactSelect.defaultProps = {

@@ -1,7 +1,8 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
-import { usePopper } from 'react-popper';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Manager, Popper as PopperJs, Reference } from 'react-popper';
 import style from './Popper.module.scss';
 
 function Popper(
@@ -14,28 +15,38 @@ function Popper(
         ...props
     },
 ) {
-    const [targetRef, setTargetRef] = useState(null);
-    const [popperElement, setPopperElement] = useState(null);
-    const [arrowElement, setArrowElement] = useState(null);
-    const { styles, attributes } = usePopper(targetRef, popperElement, {
-        placement: direction,
-        modifiers: [{ name: 'arrow', options: { element: arrowElement } }],
-    });
-
     return (
-        <>
-            <div ref={setTargetRef}>{target}</div>
-            <div
-                ref={setPopperElement}
-                style={styles.popper}
-                {...attributes.popper}
-                className={classNames(style.popper, className)}
-                {...props}
-            >
-                {children}
-                <div ref={setArrowElement} style={styles.arrow} />
-            </div>
-        </>
+        <Manager>
+            <Reference>
+                {({ ref }) => <div ref={ref}>{target}</div>}
+            </Reference>
+            {isOpen
+                ? ReactDOM.createPortal(
+                    <PopperJs placement={direction}>
+                        {(
+                            {
+                                ref,
+                                style: popperStyle,
+                                placement,
+                                arrowProps,
+                            },
+                        ) => (
+                            <div
+                                ref={ref}
+                                style={popperStyle}
+                                data-placement={placement}
+                                className={classNames(style.popper, className)}
+                                {...props}
+                            >
+                                {children}
+                                <div ref={arrowProps.ref} style={arrowProps.style} />
+                            </div>
+                        )}
+                    </PopperJs>,
+                    document.body,
+                )
+                : undefined}
+        </Manager>
     );
 }
 
