@@ -55,18 +55,19 @@ public class OrderExportTest extends AbstractTestBase
 
     I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME);
 
-    AuftragDO e = new AuftragDO();
-    e.setAngebotsDatum(LocalDate.now());
-    e.setTitel("Titel_TEST");
+    AuftragDO a = new AuftragDO();
+    a.setId(1);
+    a.setAngebotsDatum(LocalDate.now());
+    a.setTitel("Titel_TEST");
     KundeDO kunde = new KundeDO();
     kunde.setName("Kundenname");
-    e.setKunde(kunde);
-    e.setAuftragsStatus(AuftragsStatus.ESKALATION);
-    e.setStatusBeschreibung("TESTBESCHREIBUNG");
-    e.setPeriodOfPerformanceBegin(LocalDate.of(2020, Month.OCTOBER, 2));
-    e.setPeriodOfPerformanceEnd(LocalDate.of(2030, Month.OCTOBER, 2));
+    a.setKunde(kunde);
+    a.setAuftragsStatus(AuftragsStatus.ESKALATION);
+    a.setStatusBeschreibung("TESTBESCHREIBUNG");
+    a.setPeriodOfPerformanceBegin(LocalDate.of(2020, Month.OCTOBER, 2));
+    a.setPeriodOfPerformanceEnd(LocalDate.of(2030, Month.OCTOBER, 2));
 
-    auftragDOList.add(e);
+    auftragDOList.add(a);
     byte[] export = orderExport.export(auftragDOList);
     boolean hasperformaceBegin = false, hasPerformanceEnd = false, hasStatusBeschreibung = false;
     ExcelImport excelImport = new ExcelImport(new ByteArrayInputStream(export));
@@ -98,20 +99,21 @@ public class OrderExportTest extends AbstractTestBase
 
     I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME);
 
-    AuftragDO e = new AuftragDO();
-    e.setAngebotsDatum(LocalDate.now());
-    e.setTitel("Titel_TEST");
+    AuftragDO a = new AuftragDO();
+    a.setId(2);
+    a.setAngebotsDatum(LocalDate.now());
+    a.setTitel("Titel_TEST");
     KundeDO kunde = new KundeDO();
     kunde.setName("Kundenname");
-    e.setKunde(kunde);
-    e.setAuftragsStatus(AuftragsStatus.ESKALATION);
-    e.setStatusBeschreibung("TESTBESCHREIBUNG");
-    e.setPeriodOfPerformanceBegin(LocalDate.of(2020, Month.OCTOBER, 2));
-    e.setPeriodOfPerformanceEnd(LocalDate.of(2030, Month.OCTOBER, 2));
+    a.setKunde(kunde);
+    a.setAuftragsStatus(AuftragsStatus.ESKALATION);
+    a.setStatusBeschreibung("TESTBESCHREIBUNG");
+    a.setPeriodOfPerformanceBegin(LocalDate.of(2020, Month.OCTOBER, 2));
+    a.setPeriodOfPerformanceEnd(LocalDate.of(2030, Month.OCTOBER, 2));
 
     ArrayList<PaymentScheduleDO> paymentSchedules = new ArrayList<>();
     PaymentScheduleDO schedule1 = new PaymentScheduleDO();
-    schedule1.setAuftrag(e);
+    schedule1.setAuftrag(a);
     schedule1.setReached(true);
     schedule1.setComment("SCHEDULE1");
     schedule1.setAmount(new BigDecimal(111));
@@ -120,7 +122,7 @@ public class OrderExportTest extends AbstractTestBase
     schedule1.setVollstaendigFakturiert(true);
 
     PaymentScheduleDO schedule2 = new PaymentScheduleDO();
-    schedule2.setAuftrag(e);
+    schedule2.setAuftrag(a);
     schedule2.setReached(false);
     schedule2.setComment("SCHEDULE2");
     schedule2.setAmount(new BigDecimal(222));
@@ -130,8 +132,8 @@ public class OrderExportTest extends AbstractTestBase
     paymentSchedules.add(schedule1);
     paymentSchedules.add(schedule2);
     paymentSchedules.add(new PaymentScheduleDO());
-    e.setPaymentSchedules(paymentSchedules);
-    auftragDOList.add(e);
+    a.setPaymentSchedules(paymentSchedules);
+    auftragDOList.add(a);
     byte[] export = orderExport.export(auftragDOList);
     boolean hasFirstScheduleDate = false, hasSecondScheduleDate = false, hasCommentfirstSchedule = false,
         hasCommentSecondSchedule = false, hasScheduleNumber = false, hasSetBoolean = false,
