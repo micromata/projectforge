@@ -108,10 +108,10 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
         return true
       }
       // if order is completed and not completely invoiced
-      if (AuftragsCache.instance.getPositionAbgeschlossenUndNichtVollstaendigFakturiert(auftrag)) {
+      if (AuftragsCache.instance.isPositionAbgeschlossenUndNichtVollstaendigFakturiert(auftrag)) {
         return true
       }
-      if (AuftragsCache.instance.getPaymentSchedulesReached(auftrag)) {
+      if (AuftragsCache.instance.isPaymentSchedulesReached(auftrag)) {
         return true
       }
       return false

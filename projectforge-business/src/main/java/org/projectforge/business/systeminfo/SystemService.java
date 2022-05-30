@@ -25,6 +25,7 @@ package org.projectforge.business.systeminfo;
 
 import org.apache.commons.io.FileUtils;
 import org.projectforge.business.address.BirthdayCache;
+import org.projectforge.business.fibu.AuftragsCache;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.kost.KostCache;
@@ -63,6 +64,9 @@ public class SystemService {
 
   @Autowired
   private SystemInfoCache systemInfoCache;
+
+  @Autowired
+  private AuftragsCache auftragsCache;
 
   @Autowired
   private RechnungCache rechnungCache;
@@ -168,8 +172,9 @@ public class SystemService {
     kontoCache.forceReload();
     kostCache.forceReload();
     rechnungCache.forceReload();
+    auftragsCache.forceReload();
     systemInfoCache.forceReload();
     BirthdayCache.getInstance().forceReload();
-    return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, SystemInfoCache, BirthdayCache";
+    return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, AuftragsCache, SystemInfoCache, BirthdayCache";
   }
 }

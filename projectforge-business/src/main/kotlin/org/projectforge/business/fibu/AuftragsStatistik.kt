@@ -49,19 +49,20 @@ class AuftragsStatistik(private val auftragsCache: AuftragsCache) : Serializable
   /**
    * Sum of the "fakturiert sums" of all orders.
    */
-  var fakturiertSum: BigDecimal
+  var invoicedSum: BigDecimal
     private set
 
   /**
    * Difference between net sum and invoiced positions.
    */
-  var zuFakturierenSum: BigDecimal
+  var notYetInvoicedSum: BigDecimal
     private set
 
   /**
-   * Sum of the "zu fakturieren sums" of the orders which are ABGESCHLOSSEN and not "vollstaendig fakturiert".
+   * Sum of the to-be-invoiced-sums of the orders which are ABGESCHLOSSEN and not "vollstaendig fakturiert" or with
+   * reached payment schedules.
    */
-  var abgeschlossenNichtFakturiertSum: BigDecimal
+  var toBeInvoiced: BigDecimal
     private set
 
   /**
@@ -73,26 +74,26 @@ class AuftragsStatistik(private val auftragsCache: AuftragsCache) : Serializable
     private set
   var counterBeauftragt: Int
     private set
-  var counterZuFakturieren: Int
+  var counterNotYetInvoiced: Int
     private set
-  var counterAbgeschlossenNichtFakturiert: Int
+  var counterToBeInvoiced: Int
     private set
-  var counterFakturiert: Int
+  var counterInvoiced: Int
     private set
 
   init {
-    zuFakturierenSum = BigDecimal.ZERO
-    fakturiertSum = BigDecimal.ZERO
+    notYetInvoicedSum = BigDecimal.ZERO
+    invoicedSum = BigDecimal.ZERO
     beauftragtSum = BigDecimal.ZERO
     akquiseSum = BigDecimal.ZERO
     nettoSum = BigDecimal.ZERO
-    abgeschlossenNichtFakturiertSum = BigDecimal.ZERO
+    toBeInvoiced = BigDecimal.ZERO
 
-    counterFakturiert = 0
-    counterZuFakturieren = 0
+    counterInvoiced = 0
+    counterNotYetInvoiced = 0
     counterBeauftragt = 0
     counter = 0
-    counterAbgeschlossenNichtFakturiert = 0
+    counterToBeInvoiced = 0
   }
 
   fun add(auftrag: AuftragDO) {
@@ -105,17 +106,17 @@ class AuftragsStatistik(private val auftragsCache: AuftragsCache) : Serializable
       beauftragtSum = add(beauftragtSum, info.beauftragtNettoSumme)
       counterBeauftragt++
     }
-    if (info.zuFakturierenSum > BigDecimal.ZERO) {
-      zuFakturierenSum = add(zuFakturierenSum, info.zuFakturierenSum)
-      counterZuFakturieren++
+    if (info.notYetInvoicedSum > BigDecimal.ZERO) {
+      notYetInvoicedSum = add(notYetInvoicedSum, info.notYetInvoicedSum)
+      counterNotYetInvoiced++
     }
-    if (info.abgeschlossenNichtFakturiertSum > BigDecimal.ZERO) {
-      abgeschlossenNichtFakturiertSum = add(abgeschlossenNichtFakturiertSum, info.abgeschlossenNichtFakturiertSum)
-      counterAbgeschlossenNichtFakturiert++
+    if (info.toBeInvoicedSum > BigDecimal.ZERO) {
+      toBeInvoiced = add(toBeInvoiced, info.toBeInvoicedSum)
+      counterToBeInvoiced++
     }
-    if (info.fakturiertSum > BigDecimal.ZERO) {
-      fakturiertSum = add(fakturiertSum, info.fakturiertSum)
-      counterFakturiert++
+    if (info.invoicedSum > BigDecimal.ZERO) {
+      invoicedSum = add(invoicedSum, info.invoicedSum)
+      counterInvoiced++
     }
     counter++
     nettoSum = add(nettoSum, info.netSum)

@@ -206,7 +206,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
 
   @PropertyInfo(i18nKey = "fibu.fakturiert")
   @get:Transient
-  open var fakturiertSum: BigDecimal? = null
+  open var invoicedSum: BigDecimal? = null
     /**
      * Sums all positions. Must be set in all positions before usage. The value is not calculated automatically!
      *
@@ -216,8 +216,8 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
       if (field == null) {
         field = BigDecimal.ZERO
         positionenExcludingDeleted.forEach { pos ->
-          if (NumberHelper.isNotZero(pos.fakturiertSum)) {
-            field = field!!.add(pos.fakturiertSum)
+          if (NumberHelper.isNotZero(pos.invoicedSum)) {
+            field = field!!.add(pos.invoicedSum)
           }
         }
       }
@@ -329,7 +329,13 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @Transient
     get() {
       var sum = BigDecimal.ZERO
-      if (auftragsStatus?.isIn(AuftragsStatus.LOI, AuftragsStatus.BEAUFTRAGT, AuftragsStatus.ESKALATION) == true) {
+      if (auftragsStatus?.isIn(
+          AuftragsStatus.LOI,
+          AuftragsStatus.BEAUFTRAGT,
+          AuftragsStatus.ESKALATION,
+          AuftragsStatus.ABGESCHLOSSEN
+        ) == true
+      ) {
         positionenExcludingDeleted.forEach { pos ->
           val nettoSumme = pos.nettoSumme
           if (nettoSumme != null
@@ -413,27 +419,22 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
         ) {
           return false
         }
-      } ?: return false
-      return true
-    }
-
-  val isAbgeschlossenUndNichtVollstaendigFakturiert: Boolean
-    @Transient
-    get() {
-      if (this.auftragsStatus!!.isIn(AuftragsStatus.ABGESCHLOSSEN) && !isVollstaendigFakturiert) {
-        return true
       }
-      if (positionenIncludingDeleted != null) {
-        for (pos in positionenIncludingDeleted!!) {
-          if (pos.isDeleted) {
-            continue
-          }
-          if (pos.status == AuftragsPositionsStatus.ABGESCHLOSSEN && pos.vollstaendigFakturiert != true) {
-            return true
+      paymentSchedules?.forEach { paymentSchedule ->
+        if (paymentSchedule.valid && !paymentSchedule.vollstaendigFakturiert) {
+          positionen?.find { it.number == paymentSchedule.number }?.let { pos ->
+            if (!pos.isDeleted && pos.status?.isIn(
+                AuftragsPositionsStatus.ABGESCHLOSSEN,
+                AuftragsPositionsStatus.BEAUFTRAGT,
+                AuftragsPositionsStatus.ESKALATION,
+              ) == true && pos.vollstaendigFakturiert != true
+            ) {
+                return false
+              }
           }
         }
       }
-      return false
+      return true
     }
 
   /**
@@ -476,15 +477,30 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
       return result
     }
 
-  open var abgeschlossenNichtFakturiert: BigDecimal? = null
+  /**
+   * Gets the sum of reached payment schedules amounts and finished positions (abgeschlossen) but not yet invoiced.
+   */
+  open var toBeInvoicedSum: BigDecimal? = null
     @Transient
     get() {
       if (field == null) {
         var sum = BigDecimal.ZERO
+        val posWithPaymentReached = mutableSetOf<Short?>()
+        this.paymentSchedules?.forEach { paymentSchedule ->
+          if (paymentSchedule.toBeInvoiced) {
+            posWithPaymentReached.add(paymentSchedule.positionNumber)
+            paymentSchedule.amount?.let { amount ->
+              sum = sum.add(amount)
+            }
+          }
+        }
         positionenExcludingDeleted.forEach { pos ->
-          if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert) {
-            pos.nettoSumme?.let { nettoSumme ->
-              sum = sum.add(nettoSumme)
+          if (pos.toBeInvoiced) {
+            if (!posWithPaymentReached.contains(pos.number)) {
+              // Amount wasn't already added from payment schedule:
+              pos.nettoSumme?.let { nettoSumme ->
+                sum = sum.add(nettoSumme)
+              }
             }
           }
         }
@@ -493,24 +509,17 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
       return field
     }
 
-  open var zuFakturierenSum: BigDecimal? = null
+  val toBeInvoiced: Boolean
+    @Transient
+    get() = (toBeInvoicedSum ?: BigDecimal.ZERO) > BigDecimal.ZERO
+
+  open var notYetInvoicedSum: BigDecimal? = null
     @Transient
     get() {
       if (field == null) {
-        field = nettoSumme - (fakturiertSum ?: BigDecimal.ZERO)
+        field = beauftragtNettoSumme - (invoicedSum ?: BigDecimal.ZERO)
       }
       return field
-    }
-
-  val isZahlplanAbgeschlossenUndNichtVollstaendigFakturiert: Boolean
-    @Transient
-    get() {
-      this.paymentSchedules?.forEach { paymentSchedule ->
-        if (!paymentSchedule.isDeleted && paymentSchedule.reached && !paymentSchedule.vollstaendigFakturiert) {
-          return true
-        }
-      }
-      return false
     }
 
   val projectManagerId: Int?

@@ -56,13 +56,13 @@ import java.util.List;
 
 @ListPage(editPage = AuftragEditPage.class)
 public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDao, AuftragDO>
-        implements IListPageColumnsCreator<AuftragDO> {
+    implements IListPageColumnsCreator<AuftragDO> {
   private static final long serialVersionUID = -8406452960003792763L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuftragListPage.class);
 
   private static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
-          BOOKMARKABLE_INITIAL_PROPERTIES, new String[]{"f.year|y", "f.listType|lt", "f.auftragsPositionsArt|art"}
+      BOOKMARKABLE_INITIAL_PROPERTIES, new String[]{"f.year|y", "f.listType|lt", "f.auftragsPositionsArt|art"}
   );
 
   @SpringBean
@@ -96,85 +96,84 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
       public void populateItem(final Item<ICellPopulator<AuftragDO>> item, final String componentId,
                                final IModel<AuftragDO> rowModel) {
         final AuftragDO auftrag = rowModel.getObject();
+        auftragsCache.setValues(auftrag);
         if (auftrag.getAuftragsStatus() == null) {
           // Should not occur:
           return;
         }
-        final boolean isDeleted = auftrag.isDeleted() == true
-                || auftrag.getAuftragsStatus().isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true;
+        final boolean isDeleted = auftrag.isDeleted()
+            || auftrag.getAuftragsStatus().isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT);
         appendCssClasses(item, auftrag.getId(), auftrag.isDeleted());
         if (isDeleted) {
           // Do nothing further.
-        } else if (auftrag.isAbgeschlossenUndNichtVollstaendigFakturiert() == true
-                || auftrag.isZahlplanAbgeschlossenUndNichtVollstaendigFakturiert() == true) {
+        } else if (auftrag.getToBeInvoiced()) {
           appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
-        } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI) == true) {
+        } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI)) {
           appendCssClasses(item, RowCssClass.SUCCESS_ROW);
-        } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.ESKALATION) == true) {
+        } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.ESKALATION)) {
           appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
         }
       }
     };
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(new Model<String>(getString("fibu.auftrag.nummer.short")),
-            "nummer",
-            "nummer", cellItemListener) {
+        "nummer",
+        "nummer", cellItemListener) {
       @Override
       public void populateItem(final Item<ICellPopulator<AuftragDO>> item, final String componentId,
                                final IModel<AuftragDO> rowModel) {
         final AuftragDO auftrag = rowModel.getObject();
         item.add(new ListSelectActionPanel(componentId, rowModel, AuftragEditPage.class, auftrag.getId(), returnToPage,
-                String
-                        .valueOf(auftrag.getNummer())));
+            String
+                .valueOf(auftrag.getNummer())));
         cellItemListener.populateItem(item, componentId, rowModel);
         addRowClick(item);
       }
     });
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.kunde"), "kundeAsString", "kundeAsString",
-            cellItemListener));
+        cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.projekt"), "projekt.name", "projekt.name",
-            cellItemListener));
+        cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.titel"), "titel", "titel",
-            cellItemListener));
+        cellItemListener));
     columns.add(new AbstractColumn<AuftragDO, String>(new Model<String>(getString("label.position.short"))) {
       @Override
       public void populateItem(final Item<ICellPopulator<AuftragDO>> cellItem, final String componentId,
                                final IModel<AuftragDO> rowModel) {
         final AuftragDO auftrag = rowModel.getObject();
-        auftrag.setFakturiertSum(auftragsCache.getFakturiertSum(auftrag));
         final List<AuftragsPositionDO> list = auftrag.getPositionenExcludingDeleted();
         final Label label = new Label(componentId, new Model<String>("#" + list.size()));
 
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         list.forEach(pos -> {
-          buf.append("#").append(pos.getNumber()).append(": ");
+          sb.append("#").append(pos.getNumber()).append(": ");
           if (pos.getPersonDays() != null && pos.getPersonDays().compareTo(BigDecimal.ZERO) != 0) {
-            buf.append("(").append(NumberFormatter.format(pos.getPersonDays())).append(" ")
-                    .append(getString("projectmanagement.personDays.short")).append(") ");
+            sb.append("(").append(NumberFormatter.format(pos.getPersonDays())).append(" ")
+                .append(getString("projectmanagement.personDays.short")).append(") ");
           }
           if (pos.getNettoSumme() != null) {
-            buf.append(CurrencyFormatter.format(pos.getNettoSumme()));
+            sb.append(CurrencyFormatter.format(pos.getNettoSumme()));
             if (StringUtils.isNotBlank(pos.getTitel()) == true) {
-              buf.append(": ").append(pos.getTitel());
+              sb.append(": ").append(pos.getTitel());
             }
-            buf.append(": ");
+            sb.append(": ");
           }
           if (pos.getTaskId() != null) {
-            buf.append(WicketTaskFormatter.getTaskPath(pos.getTaskId(), false, OutputType.HTML));
+            sb.append(WicketTaskFormatter.getTaskPath(pos.getTaskId(), false, OutputType.HTML));
           } else {
-            buf.append(getString("fibu.auftrag.position.noTaskGiven"));
+            sb.append(getString("fibu.auftrag.position.noTaskGiven"));
           }
           if (pos.getStatus() != null) {
-            buf.append(", ").append(getString(pos.getStatus().getI18nKey()));
+            sb.append(", ").append(getString(pos.getStatus().getI18nKey()));
           }
-          buf.append("\n");
+          sb.append("\n");
         });
 
-        if (buf.length() > 1 && (buf.lastIndexOf("\n") == buf.length() - 1)) {
-          buf.delete(buf.length() - 1, buf.length());
+        if (sb.length() > 1 && (sb.lastIndexOf("\n") == sb.length() - 1)) {
+          sb.delete(sb.length() - 1, sb.length());
         }
         WicketUtils.addTooltip(label, NumberFormatter.format(auftrag.getPersonDays())
-                + " "
-                + getString("projectmanagement.personDays.short"), buf.toString());
+            + " "
+            + getString("projectmanagement.personDays.short"), sb.toString());
 
         cellItem.add(label);
         cellItemListener.populateItem(cellItem, componentId, rowModel);
@@ -184,9 +183,9 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(
 
-            getString("projectmanagement.personDays.short"),
-            "personDays", "personDays",
-            cellItemListener) {
+        getString("projectmanagement.personDays.short"),
+        "personDays", "personDays",
+        cellItemListener) {
       @Override
       public void populateItem(final Item<ICellPopulator<AuftragDO>> item, final String componentId,
                                final IModel<AuftragDO> rowModel) {
@@ -196,39 +195,39 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
       }
     });
     columns
-            .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.common.customer.reference"), "referenz", "referenz",
-                    cellItemListener));
+        .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.common.customer.reference"), "referenz", "referenz",
+            cellItemListener));
     columns
-            .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.common.assignedPersons"), "assignedPersons", "assignedPersons",
-                    cellItemListener));
+        .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.common.assignedPersons"), "assignedPersons", "assignedPersons",
+            cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.erfassung.datum"), "erfassungsDatum", "erfassungsDatum",
-            cellItemListener));
+        cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.entscheidung.datum"), "entscheidungsDatum", "entscheidungsDatum",
-            cellItemListener));
+        cellItemListener));
     columns.add(new CurrencyPropertyColumn<AuftragDO>(getString("fibu.auftrag.nettoSumme"), "nettoSumme", "nettoSumme",
-            cellItemListener));
+        cellItemListener));
     columns.add(new CurrencyPropertyColumn<AuftragDO>(
 
-            getString("fibu.auftrag.commissioned"), "beauftragtNettoSumme",
-            "beauftragtNettoSumme", cellItemListener));
+        getString("fibu.auftrag.commissioned"), "beauftragtNettoSumme",
+        "beauftragtNettoSumme", cellItemListener));
     columns.add(new CurrencyPropertyColumn<AuftragDO>(
 
-            getString("fibu.fakturiert"), "fakturiertSum", "fakturiertSum",
-            cellItemListener));
-    columns.add(new CurrencyPropertyColumn<AuftragDO>(getString("fibu.tobeinvoiced"), "zuFakturierenSum", "zuFakturierenSum",
-            cellItemListener));
+        getString("fibu.fakturiert"), "invoicedSum", "invoicedSum",
+        cellItemListener));
+    columns.add(new CurrencyPropertyColumn<AuftragDO>(getString("fibu.notYetInvoiced"), "notYetInvoicedSum", "notYetInvoicedSum",
+        cellItemListener));
     columns
-            .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.periodOfPerformance.from"), "periodOfPerformanceBegin", "periodOfPerformanceBegin",
-                    cellItemListener));
+        .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.periodOfPerformance.from"), "periodOfPerformanceBegin", "periodOfPerformanceBegin",
+            cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.periodOfPerformance.to"), "periodOfPerformanceEnd", "periodOfPerformanceEnd",
-            cellItemListener));
+        cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.probabilityOfOccurrence"), "probabilityOfOccurrence", "probabilityOfOccurrence",
-            cellItemListener));
+        cellItemListener));
     columns.add(
-            new CellItemListenerPropertyColumn<AuftragDO>(new Model<String>(
+        new CellItemListenerPropertyColumn<AuftragDO>(new Model<String>(
 
-                    getString("status")), "auftragsStatusAsString",
-                    "auftragsStatusAsString", cellItemListener));
+            getString("status")), "auftragsStatusAsString",
+            "auftragsStatusAsString", cellItemListener));
     return columns;
   }
 
@@ -239,42 +238,43 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
     form.add(dataTable);
 
     final ContentMenuEntryPanel exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-            new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
-              @Override
-              public void onSubmit() {
-                final List<AuftragDO> list = getList();
-                final byte[] xls = orderExport.export(list);
-                if (xls == null || xls.length == 0) {
-                  form.addError("datatable.no-records-found");
-                  return;
-                }
-                final String filename = "ProjectForge-OrderExport_" + DateHelper.getDateAsFilenameSuffix(new Date())
-                        + ".xls";
-                DownloadUtils.setDownloadTarget(xls, filename);
-              }
-            }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
+        new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
+          @Override
+          public void onSubmit() {
+            refresh();
+            final List<AuftragDO> list = getList();
+            final byte[] xls = orderExport.export(list);
+            if (xls == null || xls.length == 0) {
+              form.addError("datatable.no-records-found");
+              return;
+            }
+            final String filename = "ProjectForge-OrderExport_" + DateHelper.getDateAsFilenameSuffix(new Date())
+                + ".xls";
+            DownloadUtils.setDownloadTarget(xls, filename);
+          }
+        }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
     addContentMenuEntry(exportExcelButton);
 
     final ContentMenuEntryPanel forecastExportButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-            new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
-              @Override
-              public void onSubmit() {
-                byte[] xls = null;
-                try {
-                  xls = forecastExport.export(form.getSearchFilter());
-                } catch (Exception e) {
-                  log.error("Exception while creating forecast report: " + e.getMessage(), e);
-                  throw new UserException("error", e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
-                }
-                if (xls == null || xls.length == 0) {
-                  form.addError("datatable.no-records-found");
-                  return;
-                }
-                final String filename = "ProjectForge-Forecast_" + DateHelper.getDateAsFilenameSuffix(new Date())
-                        + ".xlsx";
-                DownloadUtils.setDownloadTarget(xls, filename);
-              }
-            }, getString("fibu.auftrag.forecastExportAsXls")).setTooltip(getString("fibu.auftrag.forecastExportAsXls.tooltip"));
+        new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
+          @Override
+          public void onSubmit() {
+            byte[] xls = null;
+            try {
+              xls = forecastExport.export(form.getSearchFilter());
+            } catch (Exception e) {
+              log.error("Exception while creating forecast report: " + e.getMessage(), e);
+              throw new UserException("error", e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
+            }
+            if (xls == null || xls.length == 0) {
+              form.addError("datatable.no-records-found");
+              return;
+            }
+            final String filename = "ProjectForge-Forecast_" + DateHelper.getDateAsFilenameSuffix(new Date())
+                + ".xlsx";
+            DownloadUtils.setDownloadTarget(xls, filename);
+          }
+        }, getString("fibu.auftrag.forecastExportAsXls")).setTooltip(getString("fibu.auftrag.forecastExportAsXls.tooltip"));
     addContentMenuEntry(forecastExportButton);
   }
 

@@ -125,7 +125,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
    * @see AuftragDao.calculateInvoicedSum
    */
   @get:Transient
-  open var fakturiertSum: BigDecimal? = null
+  open var invoicedSum: BigDecimal? = null
 
   /**
    * Dieses Flag wird manuell von der FiBu gesetzt und kann nur für abgeschlossene Aufträge gesetzt werden.
@@ -147,7 +147,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Column(name = "mode_of_payment_type", length = 13)
   open var modeOfPaymentType: ModeOfPaymentType? = null
 
-  val isAbgeschlossenUndNichtVollstaendigFakturiert: Boolean
+  val toBeInvoiced: Boolean
     @Transient
     get() {
       if (status != null && status!!.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT)) {

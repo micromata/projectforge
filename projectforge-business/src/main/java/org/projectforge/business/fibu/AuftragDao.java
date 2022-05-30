@@ -178,12 +178,12 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       return;
     }
     auftragsCache.setExpired(order);   // Refresh cache
-    auftragsCache.getOrderInfo(order); // Refresh cache
+    auftragsCache.setValues(order);    // Get and set new values.
     for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
       final Set<RechnungsPositionVO> set = rechnungCache
           .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
       if (set != null) {
-        pos.setFakturiertSum(RechnungDao.getNettoSumme(set));
+        pos.setInvoicedSum(RechnungDao.getNettoSumme(set));
       }
     }
   }

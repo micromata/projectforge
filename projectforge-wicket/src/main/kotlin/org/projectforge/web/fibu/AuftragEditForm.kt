@@ -139,9 +139,9 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
       fs.add(orderedPanel)
       val orderInvoiceInfo = I18nHelper.getLocalizedMessage(
         "fibu.auftrag.invoice.info", CurrencyFormatter.format(
-          data!!.fakturiertSum
+          data!!.invoicedSum
         ),
-        CurrencyFormatter.format(data!!.zuFakturierenSum)
+        CurrencyFormatter.format(data!!.notYetInvoicedSum)
       )
       fs.add(DivTextPanel(fs.newChildId(), orderInvoiceInfo))
     }
@@ -503,7 +503,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
       data!!.addPosition(AuftragsPositionDO())
     }
     for (position in data!!.positionenIncludingDeleted!!) {
-      val abgeschlossenUndNichtFakturiert = position.isAbgeschlossenUndNichtVollstaendigFakturiert
+      val abgeschlossenUndNichtFakturiert = position.toBeInvoiced
       val positionsPanel: ToggleContainerPanel = object : ToggleContainerPanel(positionsRepeater!!.newChildId()) {
         /**
          * @see org.projectforge.web.wicket.flowlayout.ToggleContainerPanel.wantsOnStatusChangedNotification

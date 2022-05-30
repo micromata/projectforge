@@ -361,7 +361,7 @@ open class ForecastExport { // open needed by Wicket.
     ).cellStyle = ctx.currencyCellStyle
 
     val netSum = pos.nettoSumme ?: BigDecimal.ZERO
-    val invoicedSum = pos.fakturiertSum ?: BigDecimal.ZERO
+    val invoicedSum = pos.invoicedSum ?: BigDecimal.ZERO
     val probabilityNetSum = ForecastUtils.computeProbabilityNetSum(order, pos)
     val toBeInvoicedSum = if (probabilityNetSum > invoicedSum) probabilityNetSum - invoicedSum else BigDecimal.ZERO
 
