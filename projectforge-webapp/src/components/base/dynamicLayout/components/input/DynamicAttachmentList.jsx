@@ -58,8 +58,7 @@ function DynamicAttachmentList(props) {
             <>
                 <span
                     role="presentation"
-                    onKeyDown={() => {
-                    }}
+                    onKeyDown={() => undefined}
                     ref={(ref) => {
                         if (!ref) return;
                         // eslint-disable-next-line no-param-reassign

@@ -12,6 +12,7 @@ function DynamicButton(props) {
         title,
         tooltip,
         disabled,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         responseAction,
         handleButtonClick,
         ...stylingProps
@@ -61,8 +62,7 @@ function DynamicButton(props) {
             return () => document.removeEventListener('keydown', listener);
         }
 
-        return () => {
-        };
+        return () => undefined;
     }, [showConfirmMessage]);
 
     let type = 'button';

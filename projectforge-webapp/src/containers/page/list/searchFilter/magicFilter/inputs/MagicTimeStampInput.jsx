@@ -14,6 +14,8 @@ function MagicTimeStampInput(
         value,
     },
 ) {
+    const fragment = null;
+
     if (value.to === undefined || value.from === undefined) {
         onChange({
             from: null,

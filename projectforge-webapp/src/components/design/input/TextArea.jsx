@@ -17,6 +17,7 @@ function TextArea(
         cssClass,
         id,
         label,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         maxRows,
         onChange,
         onKeyDown,

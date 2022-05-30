@@ -49,8 +49,7 @@ function DynamicLayout(
             };
         }
 
-        return () => {
-        };
+        return () => undefined;
     }, [setBrowserTitle, title]);
 
     // Render PageMenu if the option displayPageMenu is true.
@@ -73,7 +72,14 @@ function DynamicLayout(
 
     return (
         <DynamicLayoutContext.Provider
-            value={dynamicLayoutContextValue}
+            /* eslint-disable-next-line react/jsx-no-constructed-context-values */
+            value={{
+                ...dynamicLayoutContextDefaultValues,
+                ui,
+                options,
+                renderLayout,
+                ...props,
+            }}
         >
             {menu}
             {children}

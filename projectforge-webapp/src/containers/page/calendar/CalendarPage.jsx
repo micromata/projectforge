@@ -211,7 +211,13 @@ class CalendarPage extends React.Component {
         return (
             <Container fluid>
                 <LoadingContainer loading={loading}>
-                    <CalendarContext.Provider value={calendarContextValue}>
+                    <CalendarContext.Provider
+                        /* eslint-disable-next-line react/jsx-no-constructed-context-values */
+                        value={{
+                            ...calendarContextDefaultValues,
+                            saveUpdateResponseInState: this.saveUpdateResponseInState,
+                        }}
+                    >
                         <Card>
                             <CardBody>
                                 <form>
