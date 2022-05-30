@@ -476,7 +476,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
       return result
     }
 
-  open var zuFakturierenSum: BigDecimal? = null
+  open var abgeschlossenNichtFakturiert: BigDecimal? = null
     @Transient
     get() {
       if (field == null) {
@@ -489,6 +489,15 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
           }
         }
         field = sum
+      }
+      return field
+    }
+
+  open var zuFakturierenSum: BigDecimal? = null
+    @Transient
+    get() {
+      if (field == null) {
+        field = nettoSumme - (fakturiertSum ?: BigDecimal.ZERO)
       }
       return field
     }

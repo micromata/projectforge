@@ -53,9 +53,15 @@ class AuftragsStatistik(private val auftragsCache: AuftragsCache) : Serializable
     private set
 
   /**
-   * Sum of the "zu fakturieren sums" of the orders which are ABGESCHLOSSEN and not "vollstaendig fakturiert".
+   * Difference between net sum and invoiced positions.
    */
   var zuFakturierenSum: BigDecimal
+    private set
+
+  /**
+   * Sum of the "zu fakturieren sums" of the orders which are ABGESCHLOSSEN and not "vollstaendig fakturiert".
+   */
+  var abgeschlossenNichtFakturiertSum: BigDecimal
     private set
 
   /**
@@ -69,19 +75,24 @@ class AuftragsStatistik(private val auftragsCache: AuftragsCache) : Serializable
     private set
   var counterZuFakturieren: Int
     private set
+  var counterAbgeschlossenNichtFakturiert: Int
+    private set
   var counterFakturiert: Int
     private set
 
   init {
     zuFakturierenSum = BigDecimal.ZERO
-    fakturiertSum = zuFakturierenSum
-    beauftragtSum = fakturiertSum
-    akquiseSum = beauftragtSum
-    nettoSum = akquiseSum
+    fakturiertSum = BigDecimal.ZERO
+    beauftragtSum = BigDecimal.ZERO
+    akquiseSum = BigDecimal.ZERO
+    nettoSum = BigDecimal.ZERO
+    abgeschlossenNichtFakturiertSum = BigDecimal.ZERO
+
     counterFakturiert = 0
-    counterZuFakturieren = counterFakturiert
-    counterBeauftragt = counterZuFakturieren
-    counter = counterBeauftragt
+    counterZuFakturieren = 0
+    counterBeauftragt = 0
+    counter = 0
+    counterAbgeschlossenNichtFakturiert = 0
   }
 
   fun add(auftrag: AuftragDO) {
@@ -97,6 +108,10 @@ class AuftragsStatistik(private val auftragsCache: AuftragsCache) : Serializable
     if (info.zuFakturierenSum > BigDecimal.ZERO) {
       zuFakturierenSum = add(zuFakturierenSum, info.zuFakturierenSum)
       counterZuFakturieren++
+    }
+    if (info.abgeschlossenNichtFakturiertSum > BigDecimal.ZERO) {
+      abgeschlossenNichtFakturiertSum = add(abgeschlossenNichtFakturiertSum, info.abgeschlossenNichtFakturiertSum)
+      counterAbgeschlossenNichtFakturiert++
     }
     if (info.fakturiertSum > BigDecimal.ZERO) {
       fakturiertSum = add(fakturiertSum, info.fakturiertSum)

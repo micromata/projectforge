@@ -177,6 +177,8 @@ public class AuftragDao extends BaseDao<AuftragDO> {
     if (order == null) {
       return;
     }
+    auftragsCache.setExpired(order);   // Refresh cache
+    auftragsCache.getOrderInfo(order); // Refresh cache
     for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
       final Set<RechnungsPositionVO> set = rechnungCache
           .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
