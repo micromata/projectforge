@@ -32,7 +32,7 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
   var translation: String? = null
   var translationDE: String? = null
   var usedInClasses = mutableSetOf<Class<*>>()
-  var usedInFiles = mutableSetOf<File>()
+  var usedInFiles = mutableSetOf<String>()
 
   val classes: String
     @JsonIgnore
@@ -40,7 +40,7 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
 
   val files: String
     @JsonIgnore
-    get() = usedInFiles.sortedBy { it.name }.joinToString { it.name }
+    get() = usedInFiles.sorted().joinToString()
 
   /**
    * If file represents a Java or Kotlin class, the class will be get byName and the class will be added instead of
@@ -51,7 +51,7 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
     if (clazz != null) {
       addUsage(clazz)
     } else {
-      usedInFiles.add(file)
+      usedInFiles.add(file.absolutePath.replace(basePath, "."))
     }
   }
 
@@ -65,6 +65,8 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
 
   companion object {
     private val classCacheMap = mutableMapOf<File, Class<*>>()
+    private val basePath = I18nKeysSourceAnalyzer.basePath!!.toFile().absolutePath
+
     fun read(str: String): I18nKeyUsageEntry? {
       return JsonUtils.fromJson(str, I18nKeyUsageEntry::class.java)
     }

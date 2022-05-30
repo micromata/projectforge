@@ -379,7 +379,7 @@ internal class I18nKeysSourceAnalyzer {
       return map
     }
 
-    private var basePath: Path? = null
+    internal var basePath: Path? = null
       get() {
         if (field == null) {
           var path = Paths.get(System.getProperty("user.dir"))
