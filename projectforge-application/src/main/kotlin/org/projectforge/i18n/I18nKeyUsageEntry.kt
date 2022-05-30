@@ -31,8 +31,8 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
   var bundleName: String? = null
   var translation: String? = null
   var translationDE: String? = null
-  var usedInClasses = mutableSetOf<Class<*>>()
-  var usedInFiles = mutableSetOf<String>()
+  var usedInClasses = mutableListOf<Class<*>>()
+  var usedInFiles = mutableListOf<String>()
 
   val classes: String
     @JsonIgnore
@@ -51,12 +51,19 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
     if (clazz != null) {
       addUsage(clazz)
     } else {
-      usedInFiles.add(file.absolutePath.replace(basePath, "."))
+      val path = file.absolutePath.replace(basePath, ".")
+      if (!usedInFiles.contains(path)) {
+        usedInFiles.add(path)
+        usedInFiles.sort()
+      }
     }
   }
 
   fun addUsage(clazz: Class<*>) {
-    usedInClasses.add(clazz)
+    if (!usedInClasses.contains(clazz)) {
+      usedInClasses.add(clazz)
+      usedInClasses.sortBy { it.name }
+    }
   }
 
   override fun toString(): String {
