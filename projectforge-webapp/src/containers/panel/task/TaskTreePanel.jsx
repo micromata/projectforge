@@ -177,27 +177,6 @@ function TaskTreePanel(
         }
     }, [visible, loading, translations]);
 
-    const taskTreeContextValue = React.useMemo(
-        () => ({
-            ...taskTreeContextDefaultValues,
-            columnsVisibility,
-            highlightTaskId,
-            selectTask,
-            shortForm,
-            toggleTask,
-            translations,
-        }),
-        [
-            taskTreeContextDefaultValues,
-            columnsVisibility,
-            highlightTaskId,
-            selectTask,
-            shortForm,
-            toggleTask,
-            translations,
-        ],
-    );
-
     return (
         <LoadingContainer loading={loading}>
             <TaskTreeContext.Provider

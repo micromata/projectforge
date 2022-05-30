@@ -62,14 +62,6 @@ function DynamicLayout(
         actions && showActionButtons && <DynamicActionGroup actions={actions} />
     ), [actions, showActionButtons]);
 
-    const dynamicLayoutContextValue = React.useMemo(() => ({
-        ...dynamicLayoutContextDefaultValues,
-        ui,
-        options,
-        renderLayout,
-        ...props,
-    }), [ui, options, renderLayout, props]);
-
     return (
         <DynamicLayoutContext.Provider
             /* eslint-disable-next-line react/jsx-no-constructed-context-values */

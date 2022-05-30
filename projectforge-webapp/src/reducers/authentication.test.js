@@ -1,4 +1,3 @@
-// eslint-disable
 import reducer from './authentication';
 
 const exampleError = 'Uncool error message.';

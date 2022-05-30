@@ -1,43 +1,53 @@
 import React from 'react';
-import momentTimezone from 'moment-timezone';
+// eslint-disable-next-line camelcase
+import moment_timezone from 'moment-timezone';
 import { faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import style from '../../../components/design/input/Input.module.scss';
 
 function CalendarToolBar(toolbar) {
     const goToBack = () => {
+        const { onNavigate } = toolbar;
         onNavigate('PREV');
     };
     const goToNext = () => {
+        const { onNavigate } = toolbar;
         onNavigate('NEXT');
     };
     const goToToday = () => {
+        const { onNavigate } = toolbar;
         onNavigate('TODAY');
     };
 
     const goToDayView = () => {
+        const { onView } = toolbar;
         onView('day');
     };
     const goToWeekView = () => {
+        const { onView } = toolbar;
         onView('week');
     };
 
     const goToWorkWeekView = () => {
+        const { onView } = toolbar;
         onView('work_week');
     };
 
     const goToMonthView = () => {
+        const { onView } = toolbar;
         onView('month');
     };
 
     const goToAgendaView = () => {
+        const { onView } = toolbar;
         onView('agenda');
     };
 
     const { view } = toolbar;
 
     const label = () => {
-        const momentDate = momentTimezone(toolbarDate);
+        const { date } = toolbar;
+        const momentDate = moment_timezone(date);
         if (view === 'day') {
             return (
                 <>
