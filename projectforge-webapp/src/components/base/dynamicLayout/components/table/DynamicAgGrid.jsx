@@ -114,14 +114,16 @@ function DynamicAgGrid(props) {
     const postColumnStates = (event) => {
         if (onColumnStatesChangedUrl) {
             const columnState = event.columnApi.getColumnState();
-            fetch(getServiceURL(onColumnStatesChangedUrl), {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
+            fetch(
+                getServiceURL(onColumnStatesChangedUrl), {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(columnState),
                 },
-                body: JSON.stringify(columnState),
-            });
+            );
         }
     };
 
@@ -156,49 +158,47 @@ function DynamicAgGrid(props) {
         }
         return myClass;
     }, [data.highlightRowId]);
-    return React.useMemo(
-        () => (
-            <div
-                className="ag-theme-alpine"
-                style={gridStyle}
-            >
-                <AgGridReact
-                    {...props}
-                    ref={gridRef}
-                    rowData={entries}
-                    components={allComponents}
-                    columnDefs={columnDefs}
-                    rowSelection={rowSelection}
-                    rowMultiSelectWithClick={rowMultiSelectWithClick}
-                    onGridReady={onGridReady}
-                    onSelectionChanged={onSelectionChanged}
-                    onSortChanged={onSortChanged}
-                    onColumnMoved={onColumnMoved}
-                    onColumnResized={onColumnResized}
-                    onRowClicked={onRowClicked}
-                    pagination={pagination}
-                    paginationPageSize={paginationPageSize}
-                    rowClass={rowClass}
-                    getRowClass={usedGetRowClass}
-                    accentedSort
-                    suppressRowClickSelection={suppressRowClickSelection}
-                    localeTextFunc={localeTextFunc}
-                />
-            </div>
-        ),
-        [
-            entries,
-            ui,
-            sortModel,
-            data.highlightRowId,
-            gridStyle,
-            columnDefs,
-            rowSelection,
-            rowMultiSelectWithClick,
-            usedGetRowClass,
-            onGridReady,
-        ],
-    );
+    return React.useMemo(() => (
+        <div
+            className="ag-theme-alpine"
+            style={gridStyle}
+        >
+            <AgGridReact
+                {...props}
+                ref={gridRef}
+                rowData={entries}
+                components={allComponents}
+                columnDefs={columnDefs}
+                rowSelection={rowSelection}
+                rowMultiSelectWithClick={rowMultiSelectWithClick}
+                onGridReady={onGridReady}
+                onSelectionChanged={onSelectionChanged}
+                onSortChanged={onSortChanged}
+                onColumnMoved={onColumnMoved}
+                onColumnResized={onColumnResized}
+                onRowClicked={onRowClicked}
+                pagination={pagination}
+                paginationPageSize={paginationPageSize}
+                rowClass={rowClass}
+                getRowClass={usedGetRowClass}
+                accentedSort
+                suppressRowClickSelection={suppressRowClickSelection}
+                localeTextFunc={localeTextFunc}
+            />
+        </div>
+    ),
+    [
+        entries,
+        ui,
+        sortModel,
+        data.highlightRowId,
+        gridStyle,
+        columnDefs,
+        rowSelection,
+        rowMultiSelectWithClick,
+        usedGetRowClass,
+        onGridReady,
+    ]);
 }
 
 DynamicAgGrid.propTypes = {
