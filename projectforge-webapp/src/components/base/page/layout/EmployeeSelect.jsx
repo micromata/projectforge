@@ -100,6 +100,9 @@ EmployeeSelect.propTypes = {
         PropTypes.shape({}),
         PropTypes.arrayOf(PropTypes.shape({})),
     ]),
+    employee: PropTypes.shape({
+        id: PropTypes.string,
+    }).isRequired,
 };
 
 EmployeeSelect.defaultProps = {

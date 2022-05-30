@@ -45,6 +45,7 @@ function ObjectAutoCompletion(
 
     return (
         <AutoCompletion
+            /* eslint-disable-next-line react/no-unstable-nested-components */
             input={({ ref, ...otherInputsProps }) => (
                 <AdvancedPopperInput
                     forwardRef={ref}

@@ -13,7 +13,7 @@ const initialState = {
     myAccountMenu: [],
 };
 
-const reducer = (state = initialState, { type, payload }) => {
+const reducer = (state = initialState, { type, payload } = {}) => {
     switch (type) {
         case USER_LOGIN_BEGIN:
         case MENU_LOAD_BEGIN:

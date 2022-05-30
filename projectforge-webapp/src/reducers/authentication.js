@@ -6,7 +6,7 @@ const initialState = {
     user: null,
 };
 
-const reducer = (state = initialState, { type, payload }) => {
+const reducer = (state = initialState, { type, payload } = {}) => {
     switch (type) {
         case USER_LOGIN_BEGIN:
             return {

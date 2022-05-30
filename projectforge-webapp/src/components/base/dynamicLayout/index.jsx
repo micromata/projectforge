@@ -49,30 +49,22 @@ function DynamicLayout(
             };
         }
 
-        return () => {
-        };
+        return () => undefined;
     }, [setBrowserTitle, title]);
 
     // Render PageMenu if the option displayPageMenu is true.
     const menu = React.useMemo(() => (
-        <>
-            {displayPageMenu
-                ? <DynamicPageMenu menu={pageMenu} title={title} />
-                : undefined}
-        </>
+        displayPageMenu && <DynamicPageMenu menu={pageMenu} title={title} />
     ), [displayPageMenu, pageMenu, title]);
 
     // Render ActionGroup if actions were found in the ui object.
     const actionGroup = React.useMemo(() => (
-        <>
-            {actions && showActionButtons
-                ? <DynamicActionGroup actions={actions} />
-                : undefined}
-        </>
+        actions && showActionButtons && <DynamicActionGroup actions={actions} />
     ), [actions, showActionButtons]);
 
     return (
         <DynamicLayoutContext.Provider
+            /* eslint-disable-next-line react/jsx-no-constructed-context-values */
             value={{
                 ...dynamicLayoutContextDefaultValues,
                 ui,

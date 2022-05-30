@@ -180,6 +180,7 @@ function TaskTreePanel(
     return (
         <LoadingContainer loading={loading}>
             <TaskTreeContext.Provider
+                /* eslint-disable-next-line react/jsx-no-constructed-context-values */
                 value={{
                     ...taskTreeContextDefaultValues,
                     columnsVisibility,

@@ -106,8 +106,7 @@ class NavigationAction extends React.Component {
                         <NavLink
                             id={id}
                             onClick={this.handleClick}
-                            onKeyPress={() => {
-                            }}
+                            onKeyPress={() => undefined}
                         >
                             {content}
                         </NavLink>

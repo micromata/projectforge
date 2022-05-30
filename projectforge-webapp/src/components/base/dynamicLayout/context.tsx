@@ -10,7 +10,7 @@ export interface DynamicLayout {
     /**
      * @type {Object} Stores data for input fields etc. Can be changed via setData().
      */
-    data: {},
+    data: Record<string, unknown>,
     /**
      * @type {Boolean} Is the current layout in a fetching state.
      */
@@ -97,7 +97,7 @@ export interface DynamicLayout {
      * @type {Object} The variables object sent by the server. @see AbstractBaseRest.kt >
      *  EditLayoutData. Only sometimes present.
      */
-    variables: {},
+    variables: Record<string, unknown>,
 }
 
 // Default values for the context. Everything you can use, should be listed here.
@@ -108,7 +108,7 @@ export const defaultValues: DynamicLayout = {
      * @param {Object} action The action object, delivered by the rest api (ui).
      */
     // Disable no-unused-vars so its clear what you need to override the function.
-    /* eslint-disable-next-line no-unused-vars */
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     callAction: (action: any) => {
         throw Error('not implemented yet.');
     },
@@ -154,8 +154,8 @@ export const defaultValues: DynamicLayout = {
      * @returns {Node} The node that should be rendered in render() function of a React component.
      */
     // Disable no-unused-vars so its clear what you need to override the function.
-    /* eslint-disable-next-line no-unused-vars */
-    renderLayout: (content: any) => <></>,
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    renderLayout: (content: any) => null,
     /**
      * Modifies the context data object in a way like Reacts setState().
      *
@@ -170,7 +170,7 @@ export const defaultValues: DynamicLayout = {
      *  function you can go with the returned promise.
      */
     // Disable no-unused-vars so its clear what you need to override the function.
-    /* eslint-disable-next-line no-unused-vars */
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     setData: async (newData: any, callback: any) => {
         throw new Error('not implemented yet');
     },
@@ -187,7 +187,7 @@ export const defaultValues: DynamicLayout = {
      *  function you can go with the returned promise.
      */
     // Disable no-unused-vars so its clear what you need to override the function.
-    /* eslint-disable-next-line no-unused-vars */
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     setVariables: async (newVariables: any, callback: any) => {
         throw new Error('not implemented yet');
     },

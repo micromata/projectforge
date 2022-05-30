@@ -39,9 +39,9 @@ export const renderEvent = (event) => {
     );
 };
 
-export const renderMonthEvent = (event) => <>{event.title}</>;
+export const renderMonthEvent = (event) => event.title;
 
-export const renderAgendaEvent = (event) => <>{event.title}</>;
+export const renderAgendaEvent = (event) => event.title;
 
 export const renderDateHeader = (entry, specialDays, navigateToDay) => {
     const isoDate = timezone(entry.date)
@@ -52,15 +52,13 @@ export const renderDateHeader = (entry, specialDays, navigateToDay) => {
         dayInfo = `${specialDay.holidayTitle} `;
     }
     return (
-        <>
-            <div
-                role="presentation"
-                onClick={() => navigateToDay(entry.date)}
-            >
-                {dayInfo}
-                {entry.label}
-            </div>
-        </>
+        <div
+            role="presentation"
+            onClick={() => navigateToDay(entry.date)}
+        >
+            {dayInfo}
+            {entry.label}
+        </div>
     );
 };
 

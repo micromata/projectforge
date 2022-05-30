@@ -28,7 +28,7 @@ const loadCompletionsBounced = (
         .then(handleHTTPErrors)
         .then((response) => response.json())
         .then(setCompletions)
-        .catch(() => {});
+        .catch(() => undefined);
 };
 
 function AutoCompletion(

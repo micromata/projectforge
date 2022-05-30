@@ -97,8 +97,7 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
                     onClick={() => setIsOpen(!isOpen)}
                     role="button"
                     tabIndex={-1}
-                    onKeyPress={() => {
-                    }}
+                    onKeyPress={() => undefined}
                 >
                     <components.MultiValueLabel
                         data={data}

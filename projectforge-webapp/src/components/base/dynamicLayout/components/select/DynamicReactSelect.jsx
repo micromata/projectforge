@@ -109,19 +109,17 @@ function DynamicReactSelect(props) {
         }
 
         return (
-            <>
-                <DynamicValidationManager id={id}>
-                    <ReactSelect
-                        className="invalid"
-                        onChange={onChange}
-                        translations={ui.translations}
-                        {...props}
-                        value={value}
-                        loadOptions={(url && url.length > 0) ? loadOptions : undefined}
-                    />
-                    {favoritesElement}
-                </DynamicValidationManager>
-            </>
+            <DynamicValidationManager id={id}>
+                <ReactSelect
+                    className="invalid"
+                    onChange={onChange}
+                    translations={ui.translations}
+                    {...props}
+                    value={value}
+                    loadOptions={(url && url.length > 0) ? loadOptions : undefined}
+                />
+                {favoritesElement}
+            </DynamicValidationManager>
         );
     }, [data[id], value, setData, values, autoCompletionData]);
 }

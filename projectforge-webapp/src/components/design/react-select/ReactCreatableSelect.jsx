@@ -17,6 +17,7 @@ function ReactCreatableSelect(
         label,
         required,
         tooltip,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         translations,
         values,
         ...props
