@@ -201,7 +201,16 @@ function TaskTreePanel(
     return (
         <LoadingContainer loading={loading}>
             <TaskTreeContext.Provider
-                value={taskTreeContextValue}
+                /* eslint-disable-next-line react/jsx-no-constructed-context-values */
+                value={{
+                    ...taskTreeContextDefaultValues,
+                    columnsVisibility,
+                    highlightTaskId,
+                    selectTask,
+                    shortForm,
+                    toggleTask,
+                    translations,
+                }}
             >
                 <TaskFilter
                     filter={filter}

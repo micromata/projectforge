@@ -25,7 +25,8 @@ function JiraIssuesLinks(
             >
                 {`${issue} `}
             </a>
-        )));
+        ))
+    );
 }
 
 JiraIssuesLinks.propTypes = {

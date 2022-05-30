@@ -46,30 +46,30 @@ function DynamicList(
                     });
                 };
 
-                return (
-                    <ListElement
-                        key={`dynamic-list-${element.number}`}
-                        label={`${positionLabel} #${element.number}`}
-                        bodyIsOpenInitial={!list.length}
-                        renderBody={() => (
-                            <DynamicLayoutContext.Provider
-                                // eslint-disable-next-line react/jsx-no-constructed-context-values
-                                value={{
-                                    ...context,
-                                    data: {
-                                        [elementVar]: element,
-                                    },
-                                    setData: setElementData,
-                                }}
-                            >
-                                {renderLayout(content)}
-                            </DynamicLayoutContext.Provider>
-                        )}
-                    />
-                );
-            }),
-        [list, setData],
-    );
+                    return (
+                        <ListElement
+                            key={`dynamic-list-${element.number}`}
+                            label={`${positionLabel} #${element.number}`}
+                            bodyIsOpenInitial={!list.length}
+                            renderBody={() => (
+                                <DynamicLayoutContext.Provider
+                                    // eslint-disable-next-line
+                                    value={{
+                                        ...context,
+                                        data: {
+                                            [elementVar]: element,
+                                        },
+                                        setData: setElementData,
+                                    }}
+                                >
+                                    {renderLayout(content)}
+                                </DynamicLayoutContext.Provider>
+                            )}
+                        />
+                    );
+                })}
+        </>
+    ), [list, setData]);
 }
 
 DynamicList.propTypes = {

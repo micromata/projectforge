@@ -8,6 +8,7 @@ import ObjectAutoCompletion from './ObjectAutoCompletion';
 
 function ObjectSelect(
     {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         dispatch,
         id,
         label,

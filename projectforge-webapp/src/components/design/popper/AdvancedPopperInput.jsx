@@ -9,6 +9,7 @@ function AdvancedPopperInput(
         children,
         dark,
         // Extract 'dispatch' so it's not passed to the input tag
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         dispatch,
         forwardRef,
         icon,

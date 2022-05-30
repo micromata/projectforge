@@ -99,8 +99,7 @@ class DropArea extends React.Component {
             <div
                 id={id}
                 role="button"
-                onKeyDown={() => {
-                }}
+                onKeyDown={() => undefined}
                 onClick={() => this.input.current.click()}
                 className={classNames(style.dropArea, {
                     [style.inDrag]: inDrag,

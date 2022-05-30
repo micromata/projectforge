@@ -1,12 +1,21 @@
 {
-  "extends": "airbnb",
+  "root": true,
+  "extends": [
+    "airbnb",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "env": {
     "browser": true,
     "jest": true
   },
   "plugins": [
-    "react"
+    "react",
+    "@typescript-eslint"
   ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2020
+  },
   "settings": {
     "import/resolver": {
       "node": {
@@ -20,6 +29,7 @@
     }
   },
   "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
     "indent": [
       "error",
       4,

@@ -5,8 +5,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import style from '../../../components/design/input/Input.module.scss';
 
 function CalendarToolBar(toolbar) {
-    const { onNavigate, onView, date: toolbarDate } = toolbar;
-
     const goToBack = () => {
         onNavigate('PREV');
     };
