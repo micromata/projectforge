@@ -76,8 +76,8 @@ class Auftrag(
         assignedPersons = src.assignedPersons
         formattedNettoSumme = NumberFormatter.formatCurrency(src.nettoSumme)
         formattedBeauftragtNettoSumme = NumberFormatter.formatCurrency(src.beauftragtNettoSumme)
-        formattedFakturiertSum = NumberFormatter.formatCurrency(src.fakturiertSum)
-        formattedZuFakturierenSum = NumberFormatter.formatCurrency(src.zuFakturierenSum)
+        formattedFakturiertSum = NumberFormatter.formatCurrency(src.invoicedSum)
+        formattedZuFakturierenSum = NumberFormatter.formatCurrency(src.notYetInvoicedSum)
         pos = "#" + positionen?.size
     }
 }

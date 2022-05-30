@@ -40,14 +40,16 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListe
   class OrderInfo(
     val netSum: BigDecimal,
     val akquiseSum: BigDecimal,
-    val fakturiertSum: BigDecimal,
-    val abgeschlossenNichtFakturiertSum: BigDecimal,
-    val zuFakturierenSum: BigDecimal,
+    val invoicedSum: BigDecimal,
+    val toBeInvoicedSum: BigDecimal,
+    val notYetInvoicedSum: BigDecimal,
     val beauftragtNettoSumme: BigDecimal,
     val isVollstaendigFakturiert: Boolean,
     val positionAbgeschlossenUndNichtVollstaendigFakturiert: Boolean,
     val paymentSchedulesReached: Boolean,
-  )
+  ) {
+    val toBeInvoiced: Boolean = toBeInvoicedSum > BigDecimal.ZERO
+  }
 
   @Autowired
   private lateinit var rechnungCache: RechnungCache
@@ -63,22 +65,29 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListe
     rechnungDao.register(this)
   }
 
+  open fun setValues(order: AuftragDO) {
+    val info = getOrderInfo(order)
+    order.invoicedSum = info.invoicedSum
+    order.toBeInvoicedSum = info.toBeInvoicedSum
+    order.notYetInvoicedSum = info.notYetInvoicedSum
+  }
+
   open fun getFakturiertSum(order: AuftragDO?): BigDecimal {
     if (order == null) {
       return BigDecimal.ZERO
     }
-    return getOrderInfo(order).fakturiertSum
+    return getOrderInfo(order).invoicedSum
   }
 
   open fun isVollstaendigFakturiert(order: AuftragDO): Boolean {
     return getOrderInfo(order).isVollstaendigFakturiert
   }
 
-  open fun getPositionAbgeschlossenUndNichtVollstaendigFakturiert(order: AuftragDO): Boolean {
+  open fun isPositionAbgeschlossenUndNichtVollstaendigFakturiert(order: AuftragDO): Boolean {
     return getOrderInfo(order).positionAbgeschlossenUndNichtVollstaendigFakturiert
   }
 
-  open fun getPaymentSchedulesReached(order: AuftragDO): Boolean {
+  open fun isPaymentSchedulesReached(order: AuftragDO): Boolean {
     return getOrderInfo(order).paymentSchedulesReached
   }
 
@@ -88,13 +97,13 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListe
         return it
       }
     }
-    var fakturiertSum = BigDecimal.ZERO
+    var invoicedSum = BigDecimal.ZERO
     var positionAbgeschlossenUndNichtVollstaendigFakturiert = false
     order.positionenExcludingDeleted.forEach { pos ->
       rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(pos.id)?.let { set ->
-        fakturiertSum += RechnungDao.getNettoSumme(set)
+        invoicedSum += RechnungDao.getNettoSumme(set)
       }
-      if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert) {
+      if (pos.toBeInvoiced) {
         positionAbgeschlossenUndNichtVollstaendigFakturiert = true
       }
     }
@@ -112,12 +121,13 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListe
     if (status.isIn(AuftragsStatus.POTENZIAL, AuftragsStatus.IN_ERSTELLUNG, AuftragsStatus.GELEGT)) {
       akquiseSum = order.nettoSumme
     }
+    order.invoicedSum = invoicedSum
     val info = OrderInfo(
       netSum = order.nettoSumme,
       akquiseSum = akquiseSum,
-      fakturiertSum = fakturiertSum,
-      abgeschlossenNichtFakturiertSum = order.abgeschlossenNichtFakturiert ?: BigDecimal.ZERO,
-      zuFakturierenSum = order.beauftragtNettoSumme - fakturiertSum,
+      invoicedSum = invoicedSum,
+      toBeInvoicedSum = order.toBeInvoicedSum ?: BigDecimal.ZERO,
+      notYetInvoicedSum = order.notYetInvoicedSum ?: BigDecimal.ZERO,
       beauftragtNettoSumme = order.beauftragtNettoSumme,
       isVollstaendigFakturiert = order.isVollstaendigFakturiert,
       positionAbgeschlossenUndNichtVollstaendigFakturiert = positionAbgeschlossenUndNichtVollstaendigFakturiert,

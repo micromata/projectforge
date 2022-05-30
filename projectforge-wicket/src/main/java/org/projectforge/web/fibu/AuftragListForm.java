@@ -122,41 +122,41 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
       @Override
       public String getObject() {
         return WebConstants.HTML_TEXT_DIVIDER
-            + getStatisticsValue("fibu.fakturiert", getAuftragsStatistik().getFakturiertSum(),
-            getAuftragsStatistik().getCounterFakturiert());
+            + getStatisticsValue("fibu.fakturiert", getAuftragsStatistik().getInvoicedSum(),
+            getAuftragsStatistik().getCounterInvoiced());
       }
     }) {
       @Override
       public boolean isVisible() {
-        return (getAuftragsStatistik().getCounterFakturiert() > 0);
+        return (getAuftragsStatistik().getCounterInvoiced() > 0);
       }
     });
     fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
       public String getObject() {
         return WebConstants.HTML_TEXT_DIVIDER
-            + getStatisticsValue("fibu.auftrag.filter.type.zuFakturieren",
-            getAuftragsStatistik().getZuFakturierenSum(),
-            getAuftragsStatistik().getCounterZuFakturieren());
+            + getStatisticsValue("fibu.notYetInvoiced",
+            getAuftragsStatistik().getNotYetInvoicedSum(),
+            getAuftragsStatistik().getCounterNotYetInvoiced());
       }
     }) {
       @Override
       public boolean isVisible() {
-        return (getAuftragsStatistik().getCounterZuFakturieren() > 0);
+        return (getAuftragsStatistik().getCounterNotYetInvoiced() > 0);
       }
     });
     fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
       public String getObject() {
         return WebConstants.HTML_TEXT_DIVIDER
-            + getStatisticsValue("fibu.auftrag.filter.type.abgeschlossenNichtFakturiert",
-            getAuftragsStatistik().getAbgeschlossenNichtFakturiertSum(),
-            getAuftragsStatistik().getCounterAbgeschlossenNichtFakturiert());
+            + getStatisticsValue("fibu.toBeInvoiced",
+            getAuftragsStatistik().getToBeInvoiced(),
+            getAuftragsStatistik().getCounterToBeInvoiced());
       }
     }, TextStyle.RED) {
       @Override
       public boolean isVisible() {
-        return (getAuftragsStatistik().getCounterAbgeschlossenNichtFakturiert() > 0);
+        return (getAuftragsStatistik().getCounterToBeInvoiced() > 0);
       }
     });
   }

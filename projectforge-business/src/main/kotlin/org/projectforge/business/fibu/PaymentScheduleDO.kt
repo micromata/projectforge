@@ -37,88 +37,103 @@ import javax.persistence.*
  * @author Werner Feder (werner.feder@t-online.de)
  */
 @Entity
-@Table(name = "T_FIBU_PAYMENT_SCHEDULE", uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_id", "number"])], indexes = [Index(name = "idx_fk_t_fibu_payment_schedule_auftrag_id", columnList = "auftrag_id")])
+@Table(
+  name = "T_FIBU_PAYMENT_SCHEDULE",
+  uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_id", "number"])],
+  indexes = [Index(name = "idx_fk_t_fibu_payment_schedule_auftrag_id", columnList = "auftrag_id")]
+)
 open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val displayName: String
-        @Transient
-        get() = "$auftragId:$number"
+  override val displayName: String
+    @Transient
+    get() = "$auftragId:$number"
 
-    /**
-     * Not used as object due to performance reasons.
-     */
-    // @JsonIgnore needed due to circular references.
-    @JsonIgnore
-    @get:ManyToOne(fetch = FetchType.EAGER)
-    @get:JoinColumn(name = "auftrag_id", nullable = false)
-    open var auftrag: AuftragDO? = null
+  /**
+   * Not used as object due to performance reasons.
+   */
+  // @JsonIgnore needed due to circular references.
+  @JsonIgnore
+  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:JoinColumn(name = "auftrag_id", nullable = false)
+  open var auftrag: AuftragDO? = null
 
-    /**
-     * The position's number this payment schedule is assigned to.
-     */
-    @get:Column(name = "position_number")
-    open var positionNumber: Short? = null
+  /**
+   * The position's number this payment schedule is assigned to.
+   */
+  @get:Column(name = "position_number")
+  open var positionNumber: Short? = null
 
-    @get:Column
-    open var number: Short = 0
+  @get:Column
+  open var number: Short = 0
 
-    @PropertyInfo(i18nKey = "fibu.rechnung.datum.short")
-    @get:Column(name = "schedule_date")
-    open var scheduleDate: LocalDate? = null
+  @PropertyInfo(i18nKey = "fibu.rechnung.datum.short")
+  @get:Column(name = "schedule_date")
+  open var scheduleDate: LocalDate? = null
 
-    @PropertyInfo(i18nKey = "fibu.common.betrag")
-    @get:Column(scale = 2, precision = 12)
-    open var amount: BigDecimal? = null
+  @PropertyInfo(i18nKey = "fibu.common.betrag")
+  @get:Column(scale = 2, precision = 12)
+  open var amount: BigDecimal? = null
 
-    @PropertyInfo(i18nKey = "comment")
-    @get:Column
-    open var comment: String? = null
+  @PropertyInfo(i18nKey = "comment")
+  @get:Column
+  open var comment: String? = null
 
-    @PropertyInfo(i18nKey = "fibu.common.reached")
-    @get:Column
-    open var reached: Boolean = false
+  @PropertyInfo(i18nKey = "fibu.common.reached")
+  @get:Column
+  open var reached: Boolean = false
 
-    /**
-     * Dieses Flag wird manuell von der FiBu gesetzt und kann nur für abgeschlossene Aufträge gesetzt werden.
-     */
-    @PropertyInfo(i18nKey = "fibu.auftrag.vollstaendigFakturiert")
-    @get:Column(name = "vollstaendig_fakturiert", nullable = false)
-    open var vollstaendigFakturiert: Boolean = false
+  /**
+   * Dieses Flag wird manuell von der FiBu gesetzt und kann nur für abgeschlossene Aufträge gesetzt werden.
+   */
+  @PropertyInfo(i18nKey = "fibu.auftrag.vollstaendigFakturiert")
+  @get:Column(name = "vollstaendig_fakturiert", nullable = false)
+  open var vollstaendigFakturiert: Boolean = false
 
-    val auftragId: Int?
-        @Transient
-        get() = if (this.auftrag == null) {
-            null
-        } else auftrag!!.id
+  val toBeInvoiced: Boolean
+    @Transient
+    get() = valid && reached && !vollstaendigFakturiert
 
-    val isEmpty: Boolean
-        @Transient
-        get() {
-            if (!StringUtils.isBlank(comment)) {
-                return false
-            }
-            return if (amount != null && amount!!.compareTo(BigDecimal.ZERO) != 0) {
-                false
-            } else scheduleDate == null
-        }
+  /**
+   * Not deleted and amount is given > 0,00.
+   */
+  val valid: Boolean
+    @Transient
+    get() = !isDeleted && (amount ?: BigDecimal.ZERO) > BigDecimal.ZERO
 
-    override fun equals(other: Any?): Boolean {
-        if (other is PaymentScheduleDO) {
-            val o = other as PaymentScheduleDO?
-            if (this.number != o!!.number) {
-                return false
-            }
-            return this.auftragId == o.auftragId
-        }
+  val auftragId: Int?
+    @Transient
+    get() = if (this.auftrag == null) {
+      null
+    } else auftrag!!.id
+
+  val isEmpty: Boolean
+    @Transient
+    get() {
+      if (!StringUtils.isBlank(comment)) {
         return false
+      }
+      return if (amount != null && amount!!.compareTo(BigDecimal.ZERO) != 0) {
+        false
+      } else scheduleDate == null
     }
 
-    override fun hashCode(): Int {
-        val hcb = HashCodeBuilder()
-        hcb.append(number)
-        if (auftrag != null) {
-            hcb.append(auftrag!!.id)
-        }
-        return hcb.toHashCode()
+  override fun equals(other: Any?): Boolean {
+    if (other is PaymentScheduleDO) {
+      val o = other as PaymentScheduleDO?
+      if (this.number != o!!.number) {
+        return false
+      }
+      return this.auftragId == o.auftragId
     }
+    return false
+  }
+
+  override fun hashCode(): Int {
+    val hcb = HashCodeBuilder()
+    hcb.append(number)
+    if (auftrag != null) {
+      hcb.append(auftrag!!.id)
+    }
+    return hcb.toHashCode()
+  }
 }
