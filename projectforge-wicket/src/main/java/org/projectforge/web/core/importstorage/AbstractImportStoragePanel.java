@@ -201,21 +201,11 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
         }
       }, getString("common.import.action.reconcile"), getString("common.import.action.reconcile.tooltip"));
     } else if (sheet.isReconciled() == true) {
-<<<<<<< HEAD
       addActionLink(actionLinkRepeater, new AjaxSubmitLink("actionLink", parentPage.form)
       {
         @Override
         protected void onSubmit(final AjaxRequestTarget target)
         {
-=======
-      addActionLink(actionLinkRepeater, new AjaxSubmitLink("actionLink", parentPage.form) {
-        /**
-         * @see org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink#onSubmit(org.apache.wicket.ajax.AjaxRequestTarget,
-         *      org.apache.wicket.markup.html.form.Form)
-         */
-        @Override
-        protected void onSubmit(final AjaxRequestTarget target, final Form<?> form) {
->>>>>>> develop
           commitDialog.sheetName = sheet.getName();
           commitDialog.open(target);
         }

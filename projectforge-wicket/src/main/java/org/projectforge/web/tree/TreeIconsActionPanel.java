@@ -23,12 +23,6 @@
 
 package org.projectforge.web.tree;
 
-<<<<<<< HEAD
-import java.io.Serializable;
-import java.util.Optional;
-
-=======
->>>>>>> develop
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
@@ -48,11 +42,9 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.PresizedImage;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketUtils;
-<<<<<<< HEAD
-=======
 
 import java.io.Serializable;
->>>>>>> develop
+import java.util.Optional;
 
 /**
  * Panel showing the icons of a tree list table.
@@ -60,8 +52,7 @@ import java.io.Serializable;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @SuppressWarnings("serial")
-public class TreeIconsActionPanel<T extends Serializable> extends Panel
-{
+public class TreeIconsActionPanel<T extends Serializable> extends Panel {
   public static final String LABEL_ID = "label";
 
   private final Link<?> link;
@@ -89,15 +80,12 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
    * @param label          The label to show (additional to the row_pointer.png). The id of the label should be LABEL_ID.
    */
   public TreeIconsActionPanel(final String id, final IModel<?> model, final ISelectCallerPage caller, final String selectProperty,
-      final Integer objectId, final Label label, final TreeTable<?> treeTable)
-  {
+                              final Integer objectId, final Label label, final TreeTable<?> treeTable) {
     super(id, model);
     this.treeTable = treeTable;
-    final Link<Void> selectLink = new Link<Void>("select")
-    {
+    final Link<Void> selectLink = new Link<Void>("select") {
       @Override
-      public void onClick()
-      {
+      public void onClick() {
         WicketUtils.setResponsePage(this, caller);
         caller.select(selectProperty, objectId);
       }
@@ -115,8 +103,7 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
    * @param label     The label to show (additional to the row_pointer.png). The id of the label should be LABEL_ID.
    */
   public TreeIconsActionPanel(final String id, final IModel<?> model, final Class<? extends AbstractEditPage<?, ?, ?>> editClass,
-      final Integer objectId, final Label label, final TreeTable<?> treeTable)
-  {
+                              final Integer objectId, final Label label, final TreeTable<?> treeTable) {
     super(id, model);
     this.treeTable = treeTable;
     final BookmarkablePageLink<Void> bookmarkablePagelink = new BookmarkablePageLink<Void>("select", editClass);
@@ -133,15 +120,12 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
    * @param model model for contact
    * @param label The label to show (additional to the row_pointer.png). The id of the label should be LABEL_ID.
    */
-  public TreeIconsActionPanel(final String id, final IModel<?> model, final Label label, final TreeTable<?> treeTable)
-  {
+  public TreeIconsActionPanel(final String id, final IModel<?> model, final Label label, final TreeTable<?> treeTable) {
     super(id, model);
     this.treeTable = treeTable;
-    final Link<Void> selectLink = new Link<Void>("select")
-    {
+    final Link<Void> selectLink = new Link<Void>("select") {
       @Override
-      public void onClick()
-      {
+      public void onClick() {
         // Do nothing
       }
     };
@@ -151,8 +135,7 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
     add(label);
   }
 
-  public TreeIconsActionPanel<T> setUseAjaxAtDefault(final boolean useAjaxAtDefault)
-  {
+  public TreeIconsActionPanel<T> setUseAjaxAtDefault(final boolean useAjaxAtDefault) {
     this.useAjaxAtDefault = useAjaxAtDefault;
     return this;
   }
@@ -162,14 +145,12 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
    *
    * @param useSubmitLinkImages
    */
-  public TreeIconsActionPanel<T> setUseSubmitLinkImages(final boolean useSubmitLinkImages)
-  {
+  public TreeIconsActionPanel<T> setUseSubmitLinkImages(final boolean useSubmitLinkImages) {
     this.useSubmitLinkImages = useSubmitLinkImages;
     return this;
   }
 
-  public void init(final TreeTablePanel page, final TreeTableNode treeNode)
-  {
+  public void init(final TreeTablePanel page, final TreeTableNode treeNode) {
     this.treeNode = treeNode;
     final ContextImage spacerImage = new PresizedImage("spacer", WebConstants.IMAGE_SPACER);
     final boolean showExploreIcon = treeNode.hasChildren();
@@ -195,11 +176,9 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
     {
       final WebMarkupContainer exploreLink;
       if (useAjaxAtDefault == true) {
-        exploreLink = new AjaxFallbackLink<Object>("explore")
-        {
+        exploreLink = new AjaxFallbackLink<Object>("explore") {
           @Override
-          public void onClick(final Optional<AjaxRequestTarget> target)
-          {
+          public void onClick(final Optional<AjaxRequestTarget> target) {
             if (target.isPresent() == false || treeTable == null) {
               // Link with right mouse button and select new browser window / tab?
               return;
@@ -215,21 +194,17 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
           }
         };
       } else if (useSubmitLinkImages == true) {
-        exploreLink = new SubmitLink("explore")
-        {
+        exploreLink = new SubmitLink("explore") {
           @Override
-          public void onSubmit()
-          {
+          public void onSubmit() {
             treeTable.setOpenedStatusOfNode(TreeTableEvent.EXPLORE, treeNode.getHashId());
             page.setEventNode(treeNode.getHashId());
           }
         };
       } else {
-        exploreLink = new Link<Object>("explore")
-        {
+        exploreLink = new Link<Object>("explore") {
           @Override
-          public void onClick()
-          {
+          public void onClick() {
             treeTable.setOpenedStatusOfNode(TreeTableEvent.EXPLORE, treeNode.getHashId());
             page.setEventNode(treeNode.getHashId());
           }
@@ -244,11 +219,9 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
     {
       final WebMarkupContainer folderLink;
       if (useAjaxAtDefault == true) {
-        folderLink = new AjaxFallbackLink<TreeTableNode>("folder", new Model<TreeTableNode>(treeNode))
-        {
+        folderLink = new AjaxFallbackLink<TreeTableNode>("folder", new Model<TreeTableNode>(treeNode)) {
           @Override
-          public void onClick(final Optional<AjaxRequestTarget> target)
-          {
+          public void onClick(final Optional<AjaxRequestTarget> target) {
             if (target.isPresent() == false || treeTable == null) {
               // Link with right mouse button and select new browser window / tab?
               return;
@@ -263,11 +236,9 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
           }
         };
       } else if (useSubmitLinkImages == true) {
-        folderLink = new SubmitLink("folder", new Model<TreeTableNode>(treeNode))
-        {
+        folderLink = new SubmitLink("folder", new Model<TreeTableNode>(treeNode)) {
           @Override
-          public void onSubmit()
-          {
+          public void onSubmit() {
             if (((TreeTableNode) getDefaultModelObject()).isOpened() == true) {
               treeTable.setOpenedStatusOfNode(TreeTableEvent.CLOSE, treeNode.getHashId());
               page.setEventNode(treeNode.getHashId());
@@ -278,11 +249,9 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
           }
         };
       } else {
-        folderLink = new Link<TreeTableNode>("folder", new Model<TreeTableNode>(treeNode))
-        {
+        folderLink = new Link<TreeTableNode>("folder", new Model<TreeTableNode>(treeNode)) {
           @Override
-          public void onClick()
-          {
+          public void onClick() {
             if (getModelObject().isOpened() == true) {
               treeTable.setOpenedStatusOfNode(TreeTableEvent.CLOSE, treeNode.getHashId());
               page.setEventNode(treeNode.getHashId());
@@ -308,8 +277,7 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
     add(clickedEntryLabel);
   }
 
-  public static ContextImage getCurrentFolderImage(final Response response, final AbstractLink folderLink, final TreeTableNode node)
-  {
+  public static ContextImage getCurrentFolderImage(final Response response, final AbstractLink folderLink, final TreeTableNode node) {
     final ContextImage folderImage = (ContextImage) folderLink.get("folderImage");
     final ContextImage folderOpenImage = (ContextImage) folderLink.get("folderOpenImage");
     final boolean isOpen = node.isOpened();
@@ -323,8 +291,7 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
   }
 
   @Override
-  protected void onBeforeRender()
-  {
+  protected void onBeforeRender() {
     final boolean isOpen = treeNode.isOpened();
     folderImage.setVisible(!isOpen);
     folderOpenImage.setVisible(isOpen);

@@ -528,7 +528,6 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
 
   @SuppressWarnings("serial")
   protected CheckBoxButton createCheckBoxButton(final String id, final IModel<Boolean> model, final String label, final String tooltip,
-<<<<<<< HEAD
       final boolean autoRefresh)
   {
     final FormComponentUpdatingBehavior updatingBehavior;
@@ -547,15 +546,6 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     }
 
     final CheckBoxButton checkBoxPanel = new CheckBoxButton(id, model, label, updatingBehavior);
-=======
-                                                final boolean autoRefresh) {
-    final CheckBoxButton checkBoxPanel = new CheckBoxButton(id, model, label, autoRefresh) {
-      @Override
-      protected void onSelectionChanged(final Boolean newSelection) {
-        parentPage.refresh();
-      }
-    };
->>>>>>> develop
     if (tooltip != null) {
       checkBoxPanel.setTooltip(tooltip);
     }

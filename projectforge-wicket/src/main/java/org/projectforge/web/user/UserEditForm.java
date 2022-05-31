@@ -715,12 +715,8 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
                                  final boolean updateSambaAccount) {
     final AjaxButton createButton = new AjaxButton(SingleButtonPanel.WICKET_ID, this) {
       @Override
-<<<<<<< HEAD
       protected void onSubmit(final AjaxRequestTarget target)
       {
-=======
-      protected void onSubmit(final AjaxRequestTarget target, final Form<?> form) {
->>>>>>> develop
         data.setUsername(usernameTextField.getRawInput());
         if (updatePosixAccount == true) {
           ldapPosixAccountsUtils.setDefaultValues(ldapUserValues, data);
@@ -760,12 +756,8 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
       }
 
       @Override
-<<<<<<< HEAD
       protected void onError(final AjaxRequestTarget target)
       {
-=======
-      protected void onError(final AjaxRequestTarget target, final Form<?> form) {
->>>>>>> develop
         target.add(UserEditForm.this.feedbackPanel);
       }
     };

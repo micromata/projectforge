@@ -147,29 +147,11 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
     {
       final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
       final RadioGroupPanel<PaymentStatus> radioGroup = new RadioGroupPanel<PaymentStatus>(radioGroupPanel.newChildId(),
-<<<<<<< HEAD
           "paymentStatus", new PropertyModel<>(getSearchFilter(), "paymentStatus"), new FormComponentUpdatingBehavior()
       {
         @Override
         public void onUpdate()
         {
-=======
-              "paymentStatus",
-              new PropertyModel<>(getSearchFilter(), "paymentStatus")) {
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#wantOnSelectionChangedNotifications()
-         */
-        @Override
-        protected boolean wantOnSelectionChangedNotifications() {
-          return true;
-        }
-
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#onSelectionChanged(java.lang.Object)
-         */
-        @Override
-        protected void onSelectionChanged(final Object newSelection) {
->>>>>>> develop
           parentPage.refresh();
         }
       });
@@ -181,29 +163,11 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
     {
       final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
       final RadioGroupPanel<AmountType> radioGroup = new RadioGroupPanel<AmountType>(radioGroupPanel.newChildId(),
-<<<<<<< HEAD
           "amountType", new PropertyModel<>(getSearchFilter(), "amountType"), new FormComponentUpdatingBehavior()
       {
         @Override
         public void onUpdate()
         {
-=======
-              "amountType",
-              new PropertyModel<>(getSearchFilter(), "amountType")) {
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#wantOnSelectionChangedNotifications()
-         */
-        @Override
-        protected boolean wantOnSelectionChangedNotifications() {
-          return true;
-        }
-
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#onSelectionChanged(java.lang.Object)
-         */
-        @Override
-        protected void onSelectionChanged(final Object newSelection) {
->>>>>>> develop
           parentPage.refresh();
         }
       });

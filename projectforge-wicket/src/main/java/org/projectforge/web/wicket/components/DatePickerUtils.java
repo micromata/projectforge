@@ -23,14 +23,7 @@
 
 package org.projectforge.web.wicket.components;
 
-<<<<<<< HEAD
-import java.util.Locale;
-import java.util.Optional;
-
-import org.apache.commons.lang.StringUtils;
-=======
 import org.apache.commons.lang3.StringUtils;
->>>>>>> develop
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
@@ -40,6 +33,7 @@ import org.projectforge.framework.time.DateFormats;
 import org.projectforge.web.I18nCore;
 
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

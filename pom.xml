@@ -260,8 +260,8 @@
         <spring.version>5.3.18</spring.version> <!-- Should match spring boot's parent pom -->
         <spring.boot.version>2.6.6</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
         <webauthn4j.version>0.19.2.RELEASE</webauthn4j.version>
-        <wicket.version>7.18.0</wicket.version>
-        <wicket-stuff.version>7.18.0</wicket-stuff.version>
+        <wicket.version>8.14.0</wicket.version>
+        <wicket-stuff.version>8.14.0</wicket-stuff.version>
         <xmlgraphics-commons.version>2.7</xmlgraphics-commons.version>
         <xmlgraphics-batik-codec.version>1.14</xmlgraphics-batik-codec.version>
         <xstream.version>1.4.19</xstream.version> <!-- com.thoughtworks.xstream -->

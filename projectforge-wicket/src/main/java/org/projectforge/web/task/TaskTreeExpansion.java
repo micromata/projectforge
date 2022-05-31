@@ -23,13 +23,7 @@
 
 package org.projectforge.web.task;
 
-<<<<<<< HEAD
-import java.util.Set;
-
-=======
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.apache.wicket.model.AbstractReadOnlyModel;
->>>>>>> develop
 import org.apache.wicket.model.IModel;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;

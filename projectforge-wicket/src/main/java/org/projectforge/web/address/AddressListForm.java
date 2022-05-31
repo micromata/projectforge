@@ -23,15 +23,7 @@
 
 package org.projectforge.web.address;
 
-<<<<<<< HEAD
-import java.io.Serializable;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
-=======
->>>>>>> develop
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;

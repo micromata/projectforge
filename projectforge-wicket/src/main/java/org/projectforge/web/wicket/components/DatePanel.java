@@ -24,7 +24,7 @@
 package org.projectforge.web.wicket.components;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.datetime.markup.html.form.DateTextField;
+import org.apache.wicket.extensions.markup.html.form.DateTextField;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.FormComponentPanel;
@@ -33,12 +33,7 @@ import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
-<<<<<<< HEAD
-import org.projectforge.Const;
-=======
 import org.projectforge.Constants;
-import org.projectforge.web.wicket.LambdaModel;
->>>>>>> develop
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.converter.MyDateConverter;
@@ -54,8 +49,7 @@ import java.util.function.BooleanSupplier;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class DatePanel extends FormComponentPanel<Date> implements ComponentWrapperPanel
-{
+public class DatePanel extends FormComponentPanel<Date> implements ComponentWrapperPanel {
   private static final long serialVersionUID = 3785639935585959803L;
 
   private BooleanSupplier requiredSupplier;
@@ -76,8 +70,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @param id
    * @param model
    */
-  public DatePanel(final String id, final IModel<Date> model)
-  {
+  public DatePanel(final String id, final IModel<Date> model) {
     this(id, model, new DatePanelSettings());
   }
 
@@ -86,8 +79,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @param model
    * @param useModelDirectly use the given model directly in the internal dateField
    */
-  public DatePanel(final String id, final IModel<Date> model, final boolean useModelDirectly)
-  {
+  public DatePanel(final String id, final IModel<Date> model, final boolean useModelDirectly) {
     this(id, model, new DatePanelSettings(), useModelDirectly, null);
   }
 
@@ -96,8 +88,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @param model
    * @param settings with target type etc.
    */
-  public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings)
-  {
+  public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings) {
     this(id, model, settings, false, null);
   }
 
@@ -107,8 +98,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @param settings         with target type etc.
    * @param useModelDirectly use the given model directly in the internal dateField
    */
-  public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings, final boolean useModelDirectly)
-  {
+  public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings, final boolean useModelDirectly) {
     this(id, model, settings, useModelDirectly, null);
   }
 
@@ -118,8 +108,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @param settings         with target type etc.
    * @param requiredSupplier a callback which supplies the return value for the isRequired method of the date field.
    */
-  public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings, final BooleanSupplier requiredSupplier)
-  {
+  public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings, final BooleanSupplier requiredSupplier) {
     this(id, model, settings, false, requiredSupplier);
   }
 
@@ -132,30 +121,27 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    */
   @SuppressWarnings("serial")
   public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings, final boolean useModelDirectly,
-      final BooleanSupplier requiredSupplier)
-  {
+                   final BooleanSupplier requiredSupplier) {
     super(id, model);
     this.requiredSupplier = requiredSupplier;
     setType(settings.targetType);
     final MyDateConverter dateConverter = new MyDateConverter(settings.targetType, "M-");
     dateConverter.setTimeZone(settings.timeZone);
     final IModel<Date> modelForDateField = useModelDirectly ? model : LambdaModel.<Date>of(() -> this.date, date -> this.date = date);
-    dateField = new DateTextField("dateField", modelForDateField, dateConverter)
-    {
+    System.err.println("***************** " + this.getClass().getName() + " TO MIGRATE **************");
+    dateField = new DateTextField("dateField", modelForDateField) { //, dateConverter) {
       /**
        * @see org.apache.wicket.Component#renderHead(org.apache.wicket.markup.head.IHeaderResponse)
        */
       @Override
-      public void renderHead(final IHeaderResponse response)
-      {
+      public void renderHead(final IHeaderResponse response) {
         super.renderHead(response);
         WicketRenderHeadUtils.renderMainJavaScriptIncludes(response);
         DatePickerUtils.renderHead(response, getLocale(), dateField.getMarkupId(), autosubmit);
       }
 
       @Override
-      public boolean isRequired()
-      {
+      public boolean isRequired() {
         return (DatePanel.this.requiredSupplier != null) ? DatePanel.this.requiredSupplier.getAsBoolean() : super.isRequired();
       }
     };
@@ -168,12 +154,10 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
     if (settings.tabIndex != null) {
       dateField.add(AttributeModifier.replace("tabindex", String.valueOf(settings.tabIndex)));
     }
-    dateField.add(new IValidator<Date>()
-    {
+    dateField.add(new IValidator<Date>() {
 
       @Override
-      public void validate(final IValidatable<Date> validatable)
-      {
+      public void validate(final IValidatable<Date> validatable) {
         final Date date = validatable.getValue();
         if (date != null) {
           final Calendar cal = Calendar.getInstance();
@@ -189,8 +173,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
   }
 
   @Override
-  public void validate()
-  {
+  public void validate() {
     dateField.validate();
     super.validate();
   }
@@ -201,8 +184,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @param minYear the minYear to set
    * @return this for chaining.
    */
-  public DatePanel setMinYear(final int minYear)
-  {
+  public DatePanel setMinYear(final int minYear) {
     this.minYear = minYear;
     return this;
   }
@@ -213,8 +195,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @param maxYear the maxYear to set
    * @return this for chaining.
    */
-  public DatePanel setMaxYear(final int maxYear)
-  {
+  public DatePanel setMaxYear(final int maxYear) {
     this.maxYear = maxYear;
     return this;
   }
@@ -223,15 +204,13 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @see org.apache.wicket.markup.html.form.FormComponent#setLabel(org.apache.wicket.model.IModel)
    */
   @Override
-  public DatePanel setLabel(final IModel<String> labelModel)
-  {
+  public DatePanel setLabel(final IModel<String> labelModel) {
     dateField.setLabel(labelModel);
     super.setLabel(labelModel);
     return this;
   }
 
-  public DatePanel setFocus()
-  {
+  public DatePanel setFocus() {
     dateField.add(WicketUtils.setFocus());
     return this;
   }
@@ -242,14 +221,12 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @param autosubmit the autosubmit to set
    * @return this for chaining.
    */
-  public DatePanel setAutosubmit(final boolean autosubmit)
-  {
+  public DatePanel setAutosubmit(final boolean autosubmit) {
     this.autosubmit = autosubmit;
     return this;
   }
 
-  public void setRequiredSupplier(final BooleanSupplier requiredSupplier)
-  {
+  public void setRequiredSupplier(final BooleanSupplier requiredSupplier) {
     this.requiredSupplier = requiredSupplier;
   }
 
@@ -257,14 +234,12 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * Work around: If you change the model call this method, so onBeforeRender calls DateField.modelChanged() for updating the form text
    * field.
    */
-  public void markModelAsChanged()
-  {
+  public void markModelAsChanged() {
     modelMarkedAsChanged = true;
   }
 
   @Override
-  protected void onBeforeRender()
-  {
+  protected void onBeforeRender() {
     date = (Date) getDefaultModelObject(); // copy the value from the outer model to the dateField's model
     if (modelMarkedAsChanged == true) {
       dateField.modelChanged();
@@ -282,8 +257,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @see org.apache.wicket.markup.html.form.FormComponent#updateModel()
    */
   @Override
-  public void updateModel()
-  {
+  public void updateModel() {
     if (modelMarkedAsChanged == true) {
       // Work-around: update model only if not marked as changed. Prevent overwriting the model by the user's input.
       modelMarkedAsChanged = false;
@@ -292,20 +266,17 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
     }
   }
 
-  public DateTextField getDateField()
-  {
+  public DateTextField getDateField() {
     return dateField;
   }
 
   @Override
-  public void convertInput()
-  {
+  public void convertInput() {
     setConvertedInput(dateField.getConvertedInput());
   }
 
   @Override
-  public String getInput()
-  {
+  public String getInput() {
     return dateField.getInput();
   }
 
@@ -313,8 +284,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getComponentOutputId()
    */
   @Override
-  public String getComponentOutputId()
-  {
+  public String getComponentOutputId() {
     return dateField.getMarkupId();
   }
 
@@ -322,8 +292,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getFormComponent()
    */
   @Override
-  public FormComponent<?> getFormComponent()
-  {
+  public FormComponent<?> getFormComponent() {
     return dateField;
   }
 }

@@ -189,15 +189,9 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
         }
       };
       final LabelValueChoiceRenderer<UserPrefArea> areaChoiceRenderer = createAreaChoiceRenderer(this);
-<<<<<<< HEAD
       final DropDownChoice<UserPrefArea> areaDropDownChoice = new DropDownChoice<>(
           fieldset.getDropDownChoiceId(), new PropertyModel<UserPrefArea>(data, "area"), areaChoiceRenderer.getValues(), areaChoiceRenderer);
       areaDropDownChoice.add(new FormComponentUpdatingBehavior()
-=======
-      final DropDownChoice<UserPrefArea> areaDropDownChoice = new DropDownChoice<UserPrefArea>(
-          fieldset.getDropDownChoiceId(),
-          new PropertyModel<UserPrefArea>(data, "areaObject"), areaChoiceRenderer.getValues(), areaChoiceRenderer)
->>>>>>> develop
       {
         @Override
         protected void onUpdate()

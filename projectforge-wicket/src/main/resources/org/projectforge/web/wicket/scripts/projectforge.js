@@ -382,7 +382,6 @@ function doAfterAjaxHandling() {
     });
     // quickfix to handle wicket checkboxes to work with bootstrap3
     $(document).on("change", "[data-toggle^=button] [type=checkbox]", function () {
-<<<<<<< HEAD
         handleWicketToggleButton(this);
     });
     $(document).on("change", "[data-toggle^=button] [type=radio]", function () {
@@ -410,13 +409,6 @@ function handleWicketToggleButton(button) {
     }
 
     return false;
-=======
-        eval($(this).attr("onclick"));
-    });
-    $(document).on("change", "[data-toggle^=button] [type=radio]", function () {
-        eval($(this).attr("onclick"));
-    });
->>>>>>> develop
 }
 
 function initColorPicker() {
