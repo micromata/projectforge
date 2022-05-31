@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,24 +23,19 @@
 
 package org.projectforge.web.teamcal.event.importics;
 
-import java.io.StringReader;
-
-import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.model.Calendar;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.projectforge.web.wicket.components.DropFileContainer;
 
 /**
  * Adaption of {@link DropFileContainer} for dropped {@link Calendar} files.
+ *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
- * 
  */
 public abstract class DropIcsPanel extends DropFileContainer
 {
   private static final long serialVersionUID = 1094945928912822172L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DropIcsPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DropIcsPanel.class);
 
   /**
    * @param id
@@ -49,24 +44,4 @@ public abstract class DropIcsPanel extends DropFileContainer
   {
     super(id, "text/calendar");
   }
-
-  /**
-   * @see org.projectforge.web.wicket.components.DropFileContainer#onStringImport(org.apache.wicket.ajax.AjaxRequestTarget,
-   *      java.lang.String, java.lang.String)
-   */
-  @Override
-  protected void onStringImport(final AjaxRequestTarget target, final String fileName, final String content)
-  {
-
-    try {
-      final CalendarBuilder builder = new CalendarBuilder();
-      final Calendar calendar = builder.build(new StringReader(content));
-      onIcsImport(target, calendar);
-    } catch (final Exception ex) {
-      // TODO ju: handle exception
-      log.fatal("unable to import dropped calendar", ex);
-    }
-  }
-
-  protected abstract void onIcsImport(final AjaxRequestTarget target, final Calendar calendar);
 }

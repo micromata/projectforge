@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,20 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = CustomerListPage.class)
 public class CustomerEditPage extends AbstractEditPage<KundeDO, CustomerEditForm, KundeDao>
 {
   private static final long serialVersionUID = 8763884579951937296L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CustomerEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomerEditPage.class);
 
   @SpringBean
   private KundeDao kundeDao;
@@ -63,5 +63,15 @@ public class CustomerEditPage extends AbstractEditPage<KundeDO, CustomerEditForm
   protected Logger getLogger()
   {
     return log;
+  }
+
+  @Override
+  public boolean isNew()
+  {
+    boolean isNew = super.isNew();
+    if (isNew == false) {
+      isNew = getData().getCreated() == null;
+    }
+    return isNew;
   }
 }

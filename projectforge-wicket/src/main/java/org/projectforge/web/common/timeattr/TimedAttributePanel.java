@@ -1,12 +1,34 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.web.common.timeattr;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup.DayMonthGranularity;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.genome.util.types.DateUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -27,27 +49,28 @@ import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.dialog.ModalQuestionDialog;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.converter.MyDateConverter;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup.DayMonthGranularity;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import de.micromata.genome.util.types.DateUtils;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttrRow<PK>> extends BaseAttributePanel
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimedAttributePanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimedAttributePanel.class);
 
   private static final MyDateConverter dateConverter = new MyDateConverter("M-"); // same style as the date panel
 
@@ -155,8 +178,8 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
           @Override
           public Object getDisplayValue(T attrRow)
           {
-            final Date startTime = attrRow.getStartTime();
-            return dateConverter.convertToString(startTime, null);
+            final PFDay startDay = PFDay.fromOrNullUTC(attrRow.getStartTime());
+            return startDay != null ? startDay.format() : "";
           }
 
           @Override
@@ -295,15 +318,13 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
   {
     final String startTimeLabel = getString(attrGroup.getI18nKeyStartTime());
     final FieldsetPanel dateFs = gridBuilder.newFieldset(startTimeLabel);
-    final PropertyModel<Date> dateModel = new PropertyModel<>(attrRow, "startTime");
-    final DatePanel dp = new DatePanel(dateFs.newChildId(), dateModel,
-        DatePanelSettings.get().withTargetType(java.sql.Date.class));
+    final LocalDatePanel dp = new LocalDatePanel(dateFs.newChildId(), new LocalDateModel(new PropertyModel<>(attrRow, "startDay")));
     dp.setRequired(true);
     dp.add(this::validateDate);
     dateFs.add(dp);
 
     final DateTextField dateField = dp.getDateField();
-    dateField.setMarkupId(attrGroup.getName() + "-startTime").setOutputMarkupId(true);
+    dateField.setMarkupId(attrGroup.getName() + "-startDay").setOutputMarkupId(true);
   }
 
   private void validateDate(IValidatable<Date> iValidatable)

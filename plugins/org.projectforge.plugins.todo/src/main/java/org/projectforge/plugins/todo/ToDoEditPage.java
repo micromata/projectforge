@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,7 @@
 
 package org.projectforge.plugins.todo;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -35,13 +33,16 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.WicketUtils;
+import org.slf4j.Logger;
+
+import java.util.Objects;
 
 @EditPage(defaultReturnPage = ToDoListPage.class)
 public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao> implements ISelectCallerPage
 {
   private static final long serialVersionUID = -5058143025817192156L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ToDoEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ToDoEditPage.class);
 
   @SpringBean
   private ToDoDao toDoDao;
@@ -52,7 +53,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   {
     super(parameters, "plugins.todo");
     init();
-    if (isNew() == true) {
+    if (isNew()) {
       final ToDoDO pref = getToDoPrefData(false);
       if (pref != null) {
         copyPrefValues(pref, getData());
@@ -70,13 +71,13 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   protected void onAfterRender()
   {
     super.onAfterRender();
-    if (accessChecker.isRestrictedOrDemoUser() == true) {
+    if (accessChecker.isRestrictedOrDemoUser()) {
       // Do nothing.
       return;
     }
-    if (ObjectUtils.equals(ThreadLocalUserContext.getUserId(), getData().getAssigneeId()) == true) {
+    if (Objects.equals(ThreadLocalUserContext.getUserId(), getData().getAssigneeId())) {
       // OK, user has now seen this to-do: delete recent flag:
-      if (isNew() == false && getData().isRecent() == true) {
+      if (!isNew() && getData().getRecent()) {
         getData().setRecent(false);
         toDoDao.update(getData());
       }
@@ -97,13 +98,13 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
     copyPrefValues(getData(), pref);
     // Does the user want to store this to-do as template?
     boolean sendNotification = false;
-    if (form.sendNotification == true) {
+    if (form.sendNotification) {
       sendNotification = true;
     } else if (oldToDo == null) {
       // Send notification on new to-do's.
       sendNotification = true;
     } else {
-      if (ObjectUtils.equals(oldToDo.getAssigneeId(), getData().getAssigneeId()) == false) {
+      if (!Objects.equals(oldToDo.getAssigneeId(), getData().getAssigneeId())) {
         // Assignee was changed.
         sendNotification = true;
       } else if (oldToDo.getStatus() != getData().getStatus()) {
@@ -114,14 +115,14 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
         sendNotification = true;
       }
     }
-    if (sendNotification == true) {
+    if (sendNotification) {
       sendNotification();
     }
     // if (form.sendShortMessage == true) {
     // final PFUserDO assignee = getData().getAssignee();
     // final String mobileNumber = assignee != null ? assignee.getPersonalMebMobileNumbers() : null;
     // }
-    if (BooleanUtils.isTrue(form.saveAsTemplate) == true) {
+    if (BooleanUtils.isTrue(form.saveAsTemplate)) {
       final UserPrefEditPage userPrefEditPage = new UserPrefEditPage(ToDoPlugin.USER_PREF_AREA, getData());
       userPrefEditPage.setReturnToPage(this.returnToPage);
       return userPrefEditPage;
@@ -131,7 +132,8 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
 
   private void copyPrefValues(final ToDoDO src, final ToDoDO dest)
   {
-    dest.setPriority(src.getPriority()).setType(src.getType());
+    dest.setPriority(src.getPriority());
+    dest.setType(src.getType());
   }
 
   /**
@@ -140,7 +142,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   private ToDoDO getToDoPrefData(final boolean force)
   {
     ToDoDO pref = (ToDoDO) getUserPrefEntry(ToDoDO.class.getName());
-    if (pref == null && force == true) {
+    if (pref == null && force) {
       pref = new ToDoDO();
       putUserPrefEntry(ToDoDO.class.getName(), pref, true);
     }
@@ -150,11 +152,12 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
    */
+  @Override
   public void select(final String property, final Object selectedValue)
   {
-    if ("taskId".equals(property) == true) {
+    if ("taskId".equals(property)) {
       toDoDao.setTask(getData(), (Integer) selectedValue);
-    } else if ("groupId".equals(property) == true) {
+    } else if ("groupId".equals(property)) {
       toDoDao.setGroup(getData(), (Integer) selectedValue);
       form.groupSelectPanel.getTextField().modelChanged();
     } else {
@@ -165,11 +168,12 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
+  @Override
   public void unselect(final String property)
   {
-    if ("taskId".equals(property) == true) {
+    if ("taskId".equals(property)) {
       getData().setTask(null);
-    } else if ("groupId".equals(property) == true) {
+    } else if ("groupId".equals(property)) {
       getData().setGroup(null);
       form.groupSelectPanel.getTextField().modelChanged();
     } else {
@@ -180,6 +184,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#cancelSelection(java.lang.String)
    */
+  @Override
   public void cancelSelection(final String property)
   {
     // Do nothing.

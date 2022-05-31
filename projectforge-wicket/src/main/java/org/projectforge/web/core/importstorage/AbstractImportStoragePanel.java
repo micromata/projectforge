@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,15 @@
 
 package org.projectforge.web.core.importstorage;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import de.micromata.merlin.excel.ExcelSheet;
+import de.micromata.merlin.excel.ExcelWorkbook;
+import de.micromata.merlin.excel.importer.ImportStatus;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
+import de.micromata.merlin.importer.PropertyDelta;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -45,10 +48,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.persistence.utils.ImportStatus;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.web.dialog.ModalQuestionDialog;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.PlainLabel;
@@ -57,13 +56,14 @@ import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 import org.springframework.util.CollectionUtils;
 
-import de.micromata.hibernate.history.delta.PropertyDelta;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>> extends Panel
-{
+public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>> extends Panel {
   private static final long serialVersionUID = 6755444819211298966L;
 
   protected WebMarkupContainer errorPropertiesTable;
@@ -85,8 +85,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
   /**
    * @param id
    */
-  public AbstractImportStoragePanel(final String id, final P parentPage, final ImportFilter filter)
-  {
+  public AbstractImportStoragePanel(final String id, final P parentPage, final ImportFilter filter) {
     super(id);
     this.parentPage = parentPage;
     this.filter = filter;
@@ -97,8 +96,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
     commitDialog.init();
   }
 
-  public void refresh()
-  {
+  public void refresh() {
     if (errorPropertiesTable != null) {
       remove(errorPropertiesTable);
     }
@@ -106,8 +104,8 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
       remove(storageHeadingLabel);
     }
     add(storageHeadingLabel = new Label("storageHeading",
-        "Import storage: " + (storage != null ? storage.getFilename() : "")))
-        .setRenderBodyOnly(true);
+            "Import storage: " + (storage != null ? storage.getFilename() : "")))
+            .setRenderBodyOnly(true);
 
     add(errorPropertiesTable = new WebMarkupContainer("errorPropertiesTable"));
     if (MapUtils.isNotEmpty(errorProperties) == true) {
@@ -142,8 +140,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
   }
 
   @SuppressWarnings("serial")
-  protected void addSheet(final ImportedSheet<?> sheet)
-  {
+  protected void addSheet(final ImportedSheet<?> sheet) {
     final WebMarkupContainer cont = new WebMarkupContainer(sheetRepeatingView.newChildId());
     sheetRepeatingView.add(cont);
     StringBuffer buf = new StringBuffer();
@@ -157,28 +154,22 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
       buf.append(getString(ImportStatus.NOT_RECONCILED.getI18nKey()));
     }
     cont.add(new Label("sheetName", buf.toString()));
-    final SubmitLink toggleLink = new SubmitLink("toggle")
-    {
+    final SubmitLink toggleLink = new SubmitLink("toggle") {
       @Override
-      public void onSubmit()
-      {
+      public void onSubmit() {
         sheet.setOpen(!sheet.isOpen()); // Toggle open status.
       }
     };
     cont.add(toggleLink);
-    toggleLink.add(new IconPanel("zoomInImage", IconType.ZOOM_IN)
-    {
+    toggleLink.add(new IconPanel("zoomInImage", IconType.ZOOM_IN) {
       @Override
-      public boolean isVisible()
-      {
+      public boolean isVisible() {
         return !sheet.isOpen();
       }
     });
-    toggleLink.add(new IconPanel("zoomOutImage", IconType.ZOOM_OUT)
-    {
+    toggleLink.add(new IconPanel("zoomOutImage", IconType.ZOOM_OUT) {
       @Override
-      public boolean isVisible()
-      {
+      public boolean isVisible() {
         return sheet.isOpen();
       }
     });
@@ -189,83 +180,109 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
     }
     if (sheet.getNumberOfModifiedElements() > 0) {
       buf.append(" | Modified=<span style=\"color: red;\">").append(sheet.getNumberOfModifiedElements())
-          .append("</span>");
+              .append("</span>");
     }
     if (sheet.getNumberOfUnmodifiedElements() > 0) {
       buf.append(" | Unmodified=").append(sheet.getNumberOfUnmodifiedElements());
     }
     if (sheet.getNumberOfFaultyElements() > 0) {
       buf.append(" | Errors=<span style=\"color: red; font-weight: bold;\">").append(sheet.getNumberOfFaultyElements())
-          .append("</span>");
+              .append("</span>");
     }
     cont.add(new PlainLabel("statistics", buf.toString()).setEscapeModelStrings(false));
     final RepeatingView actionLinkRepeater = new RepeatingView("actionLinkRepeater");
     cont.add(actionLinkRepeater);
     if (sheet.isReconciled() == false
-        || sheet.getStatus().isIn(ImportStatus.IMPORTED, ImportStatus.NOTHING_TODO, ImportStatus.HAS_ERRORS) == true) {
-      addActionLink(actionLinkRepeater, new SubmitLink("actionLink")
-      {
+            || sheet.getStatus().isIn(ImportStatus.IMPORTED, ImportStatus.NOTHING_TODO, ImportStatus.HAS_ERRORS) == true) {
+      addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           parentPage.reconcile(sheet.getName());
         }
       }, getString("common.import.action.reconcile"), getString("common.import.action.reconcile.tooltip"));
     } else if (sheet.isReconciled() == true) {
+<<<<<<< HEAD
       addActionLink(actionLinkRepeater, new AjaxSubmitLink("actionLink", parentPage.form)
       {
         @Override
         protected void onSubmit(final AjaxRequestTarget target)
         {
+=======
+      addActionLink(actionLinkRepeater, new AjaxSubmitLink("actionLink", parentPage.form) {
+        /**
+         * @see org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink#onSubmit(org.apache.wicket.ajax.AjaxRequestTarget,
+         *      org.apache.wicket.markup.html.form.Form)
+         */
+        @Override
+        protected void onSubmit(final AjaxRequestTarget target, final Form<?> form) {
+>>>>>>> develop
           commitDialog.sheetName = sheet.getName();
           commitDialog.open(target);
         }
       }, getString("common.import.action.commit"), getString("common.import.action.commit.tooltip"));
-      addActionLink(actionLinkRepeater, new SubmitLink("actionLink")
-      {
+      addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           parentPage.selectAll(sheet.getName());
         }
       }, getString("common.import.action.selectAll"));
-      addActionLink(actionLinkRepeater, new SubmitLink("actionLink")
-      {
+      addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           parentPage.select(sheet.getName(), 100);
         }
       }, getString("common.import.action.select100"));
-      addActionLink(actionLinkRepeater, new SubmitLink("actionLink")
-      {
+      addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           parentPage.select(sheet.getName(), 500);
         }
       }, getString("common.import.action.select500"));
-      addActionLink(actionLinkRepeater, new SubmitLink("actionLink")
-      {
+      addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           parentPage.deselectAll(sheet.getName());
         }
       }, getString("common.import.action.deselectAll"));
     }
     if (sheet.isFaulty() == true) {
-      addActionLink(actionLinkRepeater, new SubmitLink("actionLink")
-      {
+      addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
         @Override
-        public void onSubmit()
-        {
+        public void onSubmit() {
           parentPage.showErrorSummary(sheet.getName());
         }
       }, getString("common.import.action.showErrorSummary"));
     }
-    appendSheetActionLinks(sheet, actionLinkRepeater);
-    addSheetTable(sheet, cont);
+    if (sheet.getLogger().getHasErrorEvents() || storage.getLogger().getHasErrorEvents()) {
+      addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
+        @Override
+        public void onSubmit() {
+          parentPage.downloadErrorLog(sheet);
+        }
+      }, getString("common.import.action.showErrorLog"));
+    }
+    if (sheet.getLogger().getHasEvents() || storage.getLogger().getHasEvents() || sheet.getLogger().getExcelSheet() != null) {
+      addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
+        @Override
+        public void onSubmit() {
+          parentPage.downloadInfoLog(sheet);
+        }
+      }, getString("common.import.action.showInfoLog"));
+    }
+    try (final ExcelWorkbook excelWorkbook = parentPage.getStorage().getWorkbook()) {
+      final ExcelSheet excelSheet = excelWorkbook != null ? excelWorkbook.getSheet(sheet.getOrigName()) : null;
+      if (excelSheet != null && excelSheet.hasValidationErrors()) {
+        addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
+          @Override
+          public void onSubmit() {
+            excelWorkbook.setActiveSheet(excelSheet.getSheetIndex());
+            parentPage.downloadValidatedExcel(sheet.getName());
+          }
+        }, getString("common.import.action.downloadValidatedExcel"));
+      }
+      appendSheetActionLinks(sheet, actionLinkRepeater);
+      addSheetTable(sheet, cont);
+    }
   }
 
   /**
@@ -273,18 +290,15 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
    *
    * @param actionLinkRepeater
    */
-  protected void appendSheetActionLinks(final ImportedSheet<?> sheet, final RepeatingView actionLinkRepeater)
-  {
+  protected void appendSheetActionLinks(final ImportedSheet<?> sheet, final RepeatingView actionLinkRepeater) {
   }
 
-  protected void addActionLink(final RepeatingView actionLinkRepeater, final AbstractLink link, final String label)
-  {
+  protected void addActionLink(final RepeatingView actionLinkRepeater, final AbstractLink link, final String label) {
     addActionLink(actionLinkRepeater, link, label, null);
   }
 
   protected void addActionLink(final RepeatingView actionLinkRepeater, final AbstractLink link, final String labelText,
-      final String tooltip)
-  {
+                               final String tooltip) {
     final WebMarkupContainer actionLinkContainer = new WebMarkupContainer(actionLinkRepeater.newChildId());
     actionLinkRepeater.add(actionLinkContainer);
     final Label label = new Label("label", labelText);
@@ -297,10 +311,9 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
   protected abstract void addHeadColumns(final RepeatingView headColRepeater);
 
   protected abstract void addColumns(final RepeatingView cellRepeater, final ImportedElement<?> element,
-      final String style);
+                                     final String style);
 
-  private void addSheetTable(final ImportedSheet<?> sheet, final WebMarkupContainer container)
-  {
+  private void addSheetTable(final ImportedSheet<?> sheet, final WebMarkupContainer container) {
     final WebMarkupContainer table = new WebMarkupContainer("sheetTable");
     container.add(table);
     final List<?> elements = sheet.getElements();
@@ -319,10 +332,10 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
     for (final ImportedElement<?> element : sheet.getElements()) {
       final String listType = filter.getListType();
       if ("all".equals(listType) == true //
-          || ("faulty".equals(listType) == true && element.isFaulty() == true)//
-          || ("modified".equals(listType) == true
-          && (element.isNew() == true || element.isModified() == true || element.isFaulty() == true)) //
-          ) {
+              || ("faulty".equals(listType) == true && element.isFaulty() == true)//
+              || ("modified".equals(listType) == true
+              && (element.isNew() == true || element.isModified() == true || element.isFaulty() == true)) //
+      ) {
         // Yes, show this element.
       } else {
         // Don't show this element.
@@ -371,13 +384,13 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
         boolean first = true;
         // TODO HISTORY
         for (final PropertyDelta delta : element.getPropertyChanges()) {
-          StringHelper.append(buf, first, delta.getPropertyName(), "; ");
-          first = StringHelper.append(oldValue, first, delta.getPropertyName(), "; ");
+          StringHelper.append(buf, first, delta.getProperty(), "; ");
+          first = StringHelper.append(oldValue, first, delta.getProperty(), "; ");
           buf.append("=").append(delta.getNewValue());
           oldValue.append("=").append(delta.getOldValue());
         }
         final DiffTextPanel diffTextPanel = new DiffTextPanel("value", Model.of(buf.toString()),
-            Model.of(oldValue.toString()));
+                Model.of(oldValue.toString()));
         addCell(cellRepeater, diffTextPanel, style);
       } else {
         addCell(cellRepeater, "", null);
@@ -398,8 +411,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
     }
   }
 
-  protected Component addCell(final RepeatingView cellRepeater, final Component comp, final String style)
-  {
+  protected Component addCell(final RepeatingView cellRepeater, final Component comp, final String style) {
     final WebMarkupContainer cell = new WebMarkupContainer(cellRepeater.newChildId());
     cellRepeater.add(cell);
     cell.add(comp);
@@ -409,14 +421,12 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
     return comp;
   }
 
-  protected Component addCell(final RepeatingView cellRepeater, final String value, final String style)
-  {
+  protected Component addCell(final RepeatingView cellRepeater, final String value, final String style) {
     final Component comp = new Label("value", StringUtils.defaultString(value));
     return addCell(cellRepeater, comp, style);
   }
 
-  protected Component addCell(final RepeatingView cellRepeater, final Integer value, final String style)
-  {
+  protected Component addCell(final RepeatingView cellRepeater, final Integer value, final String style) {
     if (value == null) {
       return addCell(cellRepeater, "", style);
     } else {
@@ -425,23 +435,20 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
   }
 
   @SuppressWarnings("serial")
-  private class MyModalQuestionDialog extends ModalQuestionDialog
-  {
+  private class MyModalQuestionDialog extends ModalQuestionDialog {
     String sheetName;
 
-    MyModalQuestionDialog()
-    {
+    MyModalQuestionDialog() {
       super(parentPage.newModalDialogId(), new ResourceModel("common.import.commitQuestionDialog.heading"),
-          new ResourceModel(
-              "common.import.commitQuestionDialog.question"));
+              new ResourceModel(
+                      "common.import.commitQuestionDialog.question"));
     }
 
     /**
      * @see org.projectforge.web.dialog.ModalQuestionDialog#onCloseButtonSubmit(org.apache.wicket.ajax.AjaxRequestTarget)
      */
     @Override
-    protected boolean onCloseButtonSubmit(final AjaxRequestTarget target)
-    {
+    protected boolean onCloseButtonSubmit(final AjaxRequestTarget target) {
       super.onCloseButtonSubmit(target);
       if (isConfirmed() == true) {
         parentPage.commit(sheetName);

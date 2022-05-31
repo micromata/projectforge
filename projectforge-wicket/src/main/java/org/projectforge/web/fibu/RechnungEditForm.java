@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,7 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,15 +31,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
-import org.projectforge.business.fibu.KontoCache;
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.RechnungDO;
-import org.projectforge.business.fibu.RechnungStatus;
-import org.projectforge.business.fibu.RechnungTyp;
-import org.projectforge.business.fibu.RechnungsPositionDO;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
@@ -48,20 +39,17 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, RechnungsPositionDO, RechnungEditPage>
 {
   private static final long serialVersionUID = -6018131069720611834L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RechnungEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungEditForm.class);
 
   private final PeriodOfPerformanceHelper periodOfPerformanceHelper = new PeriodOfPerformanceHelper();
 
@@ -155,7 +143,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true) {
+          if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true && projektSelectPanel.getModelObject() != null) {
             getData().setKunde(projektSelectPanel.getModelObject().getKunde());
           }
           target.add(customerSelectPanel.getTextField());
@@ -204,7 +192,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
   }
 
   @Override
-  protected void onRenderPosition(final GridBuilder posGridBuilder, final RechnungsPositionDO position)
+  protected void onRenderPosition(final GridBuilder posGridBuilder, final AbstractRechnungsPositionDO position)
   {
     // Period of performance
     posGridBuilder.newSplitPanel(GridSize.COL100);
@@ -246,7 +234,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
         return;
       }
       numberRange = customer.getNummernkreis();
-      number = customer.getBereich();
+      number = customer.getNummer();
     }
     boolean differs = false;
     if (numberRange >= 0 && cost2.getNummernkreis() != numberRange) {

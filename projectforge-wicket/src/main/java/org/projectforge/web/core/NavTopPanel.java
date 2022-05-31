@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,149 +23,98 @@
 
 package org.projectforge.web.core;
 
-import java.util.Collection;
-
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.multitenancy.TenantService;
-import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.api.UserContext;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.web.FavoritesMenu;
-import org.projectforge.web.LoginPage;
-import org.projectforge.web.LoginService;
-import org.projectforge.web.MenuEntry;
-import org.projectforge.web.MenuItemRegistry;
+import org.projectforge.menu.builder.MenuCreator;
+import org.projectforge.menu.builder.MenuItemDef;
+import org.projectforge.menu.builder.MenuItemDefId;
+import org.projectforge.rest.ChangePasswordPageRest;
+import org.projectforge.rest.my2fa.My2FASetupPageRest;
+import org.projectforge.rest.MyAccountPageRest;
+import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.web.WicketLoginService;
+import org.projectforge.web.WicketMenuBuilder;
+import org.projectforge.web.WicketMenuEntry;
 import org.projectforge.web.core.menuconfig.MenuConfig;
 import org.projectforge.web.dialog.ModalDialog;
-import org.projectforge.web.doc.DocumentationPage;
-import org.projectforge.web.mobile.MenuMobilePage;
 import org.projectforge.web.session.MySession;
-import org.projectforge.web.user.ChangePasswordPage;
-import org.projectforge.web.user.MyAccountEditPage;
-import org.projectforge.web.vacation.VacationViewPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.FeedbackPage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
+import java.util.Collection;
+import java.util.Optional;
+
 /**
  * Displays the favorite menu.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class NavTopPanel extends NavAbstractPanel
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(NavTopPanel.class);
+public class NavTopPanel extends NavAbstractPanel {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NavTopPanel.class);
 
   private static final long serialVersionUID = -7858806882044188339L;
 
-  private FavoritesMenu favoritesMenu;
-
-  @SpringBean
-  private UserXmlPreferencesCache userXmlPreferencesCache;
-
   private BookmarkDialog bookmarkDialog;
-
-  @SpringBean
-  private MenuItemRegistry menuItemRegistry;
 
   @SpringBean
   private AccessChecker accessChecker;
 
   @SpringBean
-  private UserRightService userRights;
-
-  @SpringBean
-  private TenantService tenantService;
-
-  @SpringBean
   private VacationService vacationService;
 
   @SpringBean
-  private LoginService loginService;
+  private WicketLoginService loginService;
+
+  @SpringBean
+  private WicketMenuBuilder menuBuilder;
+
+  @SpringBean
+  private MenuCreator menuCreator;
 
   /**
    * Cross site request forgery token.
    */
   private CsrfTokenHandler csrfTokenHandler;
+  private RepeatingView menuRepeater;
 
-  public NavTopPanel(final String id)
-  {
+  public NavTopPanel(final String id) {
     super(id);
   }
 
   @SuppressWarnings("serial")
-  public void init(final AbstractSecuredPage page)
-  {
+  public void init(final AbstractSecuredPage page) {
     getMenu();
-    this.favoritesMenu = FavoritesMenu.get(menuItemRegistry, accessChecker, userRights);
-    final WebMarkupContainer goMobile = new WebMarkupContainer("goMobile");
-    add(goMobile);
-    if (page.getMySession().isMobileUserAgent() == true) {
-      goMobile.add(new BookmarkablePageLink<Void>("link", MenuMobilePage.class));
-    } else {
-      goMobile.setVisible(false);
-    }
-    add(new MenuConfig("menuconfig", getMenu(), favoritesMenu));
-    final Form<String> searchForm = new Form<String>("searchForm")
-    {
-      private String searchString;
-
-      /**
-       * @see org.apache.wicket.markup.html.form.Form#onSubmit()
-       */
-      @Override
-      protected void onSubmit()
-      {
-        csrfTokenHandler.onSubmit();
-        if (StringUtils.isNotBlank(searchString) == true) {
-          final SearchPage searchPage = new SearchPage(new PageParameters(), searchString);
-          setResponsePage(searchPage);
-        }
-        super.onSubmit();
-      }
-    };
-    csrfTokenHandler = new CsrfTokenHandler(searchForm);
-    add(searchForm);
-    final TextField<String> searchField = new TextField<String>("searchField",
-        new PropertyModel<String>(searchForm, "searchString"));
-    WicketUtils.setPlaceHolderAttribute(searchField, getString("search.search"));
-    searchForm.add(searchField);
+    favoritesMenu = menuBuilder.getFavoriteMenu();
+    add(new MenuConfig("menuconfig", getMenu()));
     add(new BookmarkablePageLink<Void>("feedbackLink", FeedbackPage.class));
     {
-      final AjaxLink<Void> showBookmarkLink = new AjaxLink<Void>("showBookmarkLink")
-      {
+      final AjaxLink<Void> showBookmarkLink = new AjaxLink<Void>("showBookmarkLink") {
         /**
          * @see org.apache.wicket.ajax.markup.html.AjaxLink#onClick(org.apache.wicket.ajax.AjaxRequestTarget)
          */
         @Override
-        public void onClick(final AjaxRequestTarget target)
-        {
+        public void onClick(final AjaxRequestTarget target) {
           bookmarkDialog.open(target);
           // Redraw the content:
           bookmarkDialog.redraw().addContent(target);
@@ -175,114 +124,66 @@ public class NavTopPanel extends NavAbstractPanel
       addBookmarkDialog();
     }
     {
-      // Tenants
-      final Collection<TenantDO> tenants = tenantService.isMultiTenancyAvailable() == true
-          ? tenantService.getTenantsOfLoggedInUser() : null;
-      if (tenants == null || tenants.size() <= 1) {
-        // Tenants not available or user is only assigned to one or less tenants.
-        add(new WebMarkupContainer("currentTenant").setVisible(false));
-      } else {
-        final UserContext userContext = MySession.get().getUserContext();
-        final WebMarkupContainer tenantMenu = new WebMarkupContainer("currentTenant");
-        add(tenantMenu);
-        tenantMenu.add(new Label("label", new Model<String>()
-        {
-          @Override
-          public String getObject()
-          {
-            final TenantDO currentTenant = userContext.getCurrentTenant();
-            return currentTenant != null ? currentTenant.getShortName() : "???";
-          }
-
-        }).setRenderBodyOnly(true));
-        final RepeatingView tenantsRepeater = new RepeatingView("tenantsRepeater");
-        tenantMenu.add(tenantsRepeater);
-        for (final TenantDO tenant : tenants) {
-          final WebMarkupContainer li = new WebMarkupContainer(tenantsRepeater.newChildId());
-          tenantsRepeater.add(li);
-          final Link<Void> changeTenantLink = new Link<Void>("changeTenantLink")
-          {
-            @Override
-            public void onClick()
-            {
-              userContext.setCurrentTenant(tenant);
-              throw new RestartResponseAtInterceptPageException(getPage().getPageClass());
-            }
-
-          };
-          li.add(changeTenantLink);
-          changeTenantLink.add(new Label("label", tenant.getName()));
-        }
-
-      }
-    }
-    {
       add(new Label("user", ThreadLocalUserContext.getUser().getFullname()));
+
+      final RepeatingView pluginPersonalMenuEntriesRepeater = new RepeatingView("pluginPersonalMenuEntriesRepeater");
+      add(pluginPersonalMenuEntriesRepeater);
       if (accessChecker.isRestrictedUser() == true) {
         // Show ChangePaswordPage as my account for restricted users.
-        final BookmarkablePageLink<Void> changePasswordLink = new BookmarkablePageLink<Void>("myAccountLink",
-            ChangePasswordPage.class);
+        final ExternalLink changePasswordLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(ChangePasswordPageRest.class));
         add(changePasswordLink);
-        addVacationViewLink();
+        addVacationViewLink().setVisible(false);
+        pluginPersonalMenuEntriesRepeater.setVisible(false);
       } else {
-        final BookmarkablePageLink<Void> myAccountLink = new BookmarkablePageLink<Void>("myAccountLink",
-            MyAccountEditPage.class);
+        final ExternalLink myAccountLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(MyAccountPageRest.class, null, null, true));
         add(myAccountLink);
+        final ExternalLink my2FactorAuthentificationLink = new ExternalLink("my2FactorAuthentificationLink", PagesResolver.getDynamicPageUrl(My2FASetupPageRest.class, null, null, true));
+        add(my2FactorAuthentificationLink);
         addVacationViewLink();
-      }
-      final BookmarkablePageLink<Void> documentationLink = new BookmarkablePageLink<Void>("documentationLink",
-          DocumentationPage.class);
-      add(documentationLink);
-      final Link<Void> logoutLink = new Link<Void>("logoutLink")
-      {
-        @Override
-        public void onClick()
-        {
-          loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(), userXmlPreferencesCache, menuBuilder);
-          setResponsePage(LoginPage.class);
+        for (MenuItemDef menu : menuCreator.getPersonalMenuPluginEntries()) {
+          // Now we add a new menu area (title with sub menus):
+          final WebMarkupContainer linkContainer = new WebMarkupContainer(pluginPersonalMenuEntriesRepeater.newChildId());
+          pluginPersonalMenuEntriesRepeater.add(linkContainer);
+          String link = menu.getUrl();
+          if (link != null && !link.startsWith("/")) {
+            link = "/" + link;
+          }
+          String title = getString(menu.getI18nKey());
+          final ExternalLink menuLink = new ExternalLink("menuLink", link);
+          linkContainer.add(menuLink);
+          menuLink.add(new Label("menuLabel", title));
         }
-
+      }
+      final Link<Void> logoutLink = new Link<Void>("logoutLink") {
+        @Override
+        public void onClick() {
+          loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse());
+          WicketUtils.redirectToLogin(this);
+        }
       };
       logoutLink.setMarkupId("logout").setOutputMarkupId(true);
       add(logoutLink);
     }
     addCompleteMenu();
-    addFavoriteMenu();
   }
 
-  private void addVacationViewLink()
-  {
-    final BookmarkablePageLink<Void> vacationViewLink = new BookmarkablePageLink<Void>("vacationViewLink",
-        VacationViewPage.class)
-    {
+  private ExternalLink addVacationViewLink() {
+    final ExternalLink vacationViewLink = new ExternalLink("vacationViewLink", "/" + MenuItemDefId.VACATION_ACCOUNT.getUrl()) {
       @Override
-      public boolean isVisible()
-      {
-        return vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false);
+      public boolean isVisible() {
+        return vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false);
       }
     };
     add(vacationViewLink);
+    return vacationViewLink;
   }
 
   @SuppressWarnings("serial")
-  private void addCompleteMenu()
-  {
-    final Label totalMenuSuffixLabel = new MenuSuffixLabel("totalMenuCounter", new Model<Integer>()
-    {
+  private void addCompleteMenu() {
+    final Label totalMenuSuffixLabel = new MenuSuffixLabel("totalMenuCounter", new Model<Integer>() {
       @Override
-      public Integer getObject()
-      {
-        int counter = 0;
-        if (menu.getMenuEntries() == null) {
-          return counter;
-        }
-        for (final MenuEntry menuEntry : menu.getMenuEntries()) {
-          final IModel<Integer> newCounterModel = menuEntry.getNewCounterModel();
-          if (newCounterModel != null && newCounterModel.getObject() != null) {
-            counter += newCounterModel.getObject();
-          }
-        }
-        return counter;
+      public Integer getObject() {
+        return menu.getTotalBadgeCounter();
       }
 
     });
@@ -291,7 +192,7 @@ public class NavTopPanel extends NavAbstractPanel
     final RepeatingView completeMenuCategoryRepeater = new RepeatingView("completeMenuCategoryRepeater");
     add(completeMenuCategoryRepeater);
     if (menu.getMenuEntries() != null) {
-      for (final MenuEntry menuEntry : menu.getMenuEntries()) {
+      for (final WicketMenuEntry menuEntry : menu.getMenuEntries()) {
         if (menuEntry.getSubMenuEntries() == null) {
           continue;
         }
@@ -311,7 +212,7 @@ public class NavTopPanel extends NavAbstractPanel
 
         final RepeatingView completeSubMenuRepeater = new RepeatingView("completeSubMenuRepeater");
         categoryContainer.add(completeSubMenuRepeater);
-        for (final MenuEntry subMenuEntry : menuEntry.getSubMenuEntries()) {
+        for (final WicketMenuEntry subMenuEntry : menuEntry.getSubMenuEntries()) {
           if (subMenuEntry.getSubMenuEntries() != null) {
             log.error(
                 "Oups: sub sub menus not supported: " + menuEntry.getId() + " has child menus which are ignored.");
@@ -331,14 +232,13 @@ public class NavTopPanel extends NavAbstractPanel
 
   }
 
-  private void addFavoriteMenu()
-  {
+  private void addFavoriteMenu() {
     // Favorite menu:
-    final RepeatingView menuRepeater = new RepeatingView("menuRepeater");
+    menuRepeater = new RepeatingView("menuRepeater");
     add(menuRepeater);
-    final Collection<MenuEntry> menuEntries = favoritesMenu.getMenuEntries();
+    final Collection<WicketMenuEntry> menuEntries = favoritesMenu.getMenuEntries();
     if (menuEntries != null) {
-      for (final MenuEntry menuEntry : menuEntries) {
+      for (final WicketMenuEntry menuEntry : menuEntries) {
         // Now we add a new menu area (title with sub menus):
         final WebMarkupContainer menuItem = new WebMarkupContainer(menuRepeater.newChildId());
         menuRepeater.add(menuItem);
@@ -363,7 +263,7 @@ public class NavTopPanel extends NavAbstractPanel
         link.add(AttributeModifier.append("data-toggle", "dropdown"));
         final RepeatingView subMenuRepeater = new RepeatingView("subMenuRepeater");
         subMenuContainer.add(subMenuRepeater);
-        for (final MenuEntry subMenuEntry : menuEntry.getSubMenuEntries()) {
+        for (final WicketMenuEntry subMenuEntry : menuEntry.getSubMenuEntries()) {
           // Now we add the next menu entry to the area:
           if (subMenuEntry.hasSubMenuEntries() == false) {
             final WebMarkupContainer subMenuItem = new WebMarkupContainer(subMenuRepeater.newChildId());
@@ -387,7 +287,7 @@ public class NavTopPanel extends NavAbstractPanel
           // }
           // final RepeatingView subsubMenuRepeater = new RepeatingView("subsubMenuRepeater");
           // subsubMenuContainer.add(subsubMenuRepeater);
-          for (final MenuEntry subsubMenuEntry : subMenuEntry.getSubMenuEntries()) {
+          for (final WicketMenuEntry subsubMenuEntry : subMenuEntry.getSubMenuEntries()) {
             // Now we add the next menu entry to the sub menu:
             final WebMarkupContainer subMenuItem = new WebMarkupContainer(subMenuRepeater.newChildId());
             subMenuRepeater.add(subMenuItem);
@@ -409,8 +309,15 @@ public class NavTopPanel extends NavAbstractPanel
     }
   }
 
-  private void addBookmarkDialog()
-  {
+
+  @Override
+  protected void onBeforeRender() {
+    super.onBeforeRender();
+    Optional.ofNullable(menuRepeater).ifPresent(this::remove);
+    addFavoriteMenu();
+  }
+
+  private void addBookmarkDialog() {
     final AbstractSecuredPage parentPage = (AbstractSecuredPage) getPage();
     bookmarkDialog = new BookmarkDialog(parentPage.newModalDialogId());
     bookmarkDialog.setOutputMarkupId(true);
@@ -419,26 +326,22 @@ public class NavTopPanel extends NavAbstractPanel
   }
 
   @SuppressWarnings("serial")
-  private class BookmarkDialog extends ModalDialog
-  {
+  private class BookmarkDialog extends ModalDialog {
     /**
      * @param id
      */
-    public BookmarkDialog(final String id)
-    {
+    public BookmarkDialog(final String id) {
       super(id);
     }
 
     @Override
-    public void init()
-    {
+    public void init() {
       setTitle(getString("bookmark.title"));
       init(new Form<String>(getFormId()));
       gridBuilder.newFormHeading(""); // Otherwise it's empty and an IllegalArgumentException is thrown.
     }
 
-    private BookmarkDialog redraw()
-    {
+    private BookmarkDialog redraw() {
       clearContent();
       final AbstractSecuredPage page = (AbstractSecuredPage) NavTopPanel.this.getPage();
       {

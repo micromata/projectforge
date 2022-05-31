@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,6 @@
 
 package org.projectforge.web.wicket.components;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.function.BooleanSupplier;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -37,11 +33,20 @@ import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
+<<<<<<< HEAD
 import org.projectforge.Const;
+=======
+import org.projectforge.Constants;
+import org.projectforge.web.wicket.LambdaModel;
+>>>>>>> develop
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.converter.MyDateConverter;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.function.BooleanSupplier;
 
 /**
  * Panel for date selection. Works for java.util.Date and java.sql.Date. For java.sql.Date don't forget to call the constructor with
@@ -65,7 +70,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
 
   private boolean autosubmit;
 
-  private int minYear = Const.MINYEAR, maxYear = Const.MAXYEAR;
+  private int minYear = Constants.MINYEAR, maxYear = Constants.MAXYEAR;
 
   /**
    * @param id

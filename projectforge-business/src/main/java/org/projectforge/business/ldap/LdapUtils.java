@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,15 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.common.StringHelper;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
-
-import org.apache.commons.lang.StringUtils;
-import org.projectforge.common.StringHelper;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -40,6 +39,55 @@ import org.projectforge.common.StringHelper;
 public class LdapUtils
 {
   private static final String ATTRIBUTE_SEPARATOR_CHAR = ",";
+
+  // https://github.com/ESAPI/esapi-java-legacy/blob/develop/src/main/java/org/owasp/esapi/reference/DefaultEncoder.java
+  public static String encodeForLDAP(String input) {
+    return encodeForLDAP(input, true);
+  }
+
+  /**
+   * '\' -> "\5c", '(' -> "\\28", ')' -> "\\29", '\0' -> "\00"
+   * If encodeWildcads == true: '*' -> "\2a"
+   * @param input
+   * @param encodeWildcards Default ist true
+   * @return encode input string.
+   * https://github.com/ESAPI/esapi-java-legacy/blob/develop/src/main/java/org/owasp/esapi/reference/DefaultEncoder.java
+   */
+  public static String encodeForLDAP(String input, boolean encodeWildcards) {
+    if (input == null) {
+      return null;
+    }
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < input.length(); i++) {
+      char c = input.charAt(i);
+
+      switch (c) {
+        case '\\':
+          sb.append("\\5c");
+          break;
+        case '*':
+          if (encodeWildcards) {
+            sb.append("\\2a");
+          } else {
+            sb.append(c);
+          }
+
+          break;
+        case '(':
+          sb.append("\\28");
+          break;
+        case ')':
+          sb.append("\\29");
+          break;
+        case '\0':
+          sb.append("\\00");
+          break;
+        default:
+          sb.append(c);
+      }
+    }
+    return sb.toString();
+  }
 
   /**
    * Escapes the following characters: , (comma), = (equals), + (plus), < (less than), > (greater than), # (number sign), ; (semicolon), \
@@ -52,7 +100,7 @@ public class LdapUtils
     if (name == null) {
       return null;
     }
-    final StringBuffer buf = new StringBuffer(name.length() + 5);
+    final StringBuilder buf = new StringBuilder(name.length() + 5);
     for (int i = 0; i < name.length(); i++) {
       final char ch = name.charAt(i);
       if (",=+<>#;\\\"".indexOf(ch) >= 0) {
@@ -68,7 +116,7 @@ public class LdapUtils
     if (organizationalUnits == null) {
       return "";
     }
-    if (organizationalUnits.length == 1 && organizationalUnits[0] != null && organizationalUnits[0].startsWith("ou=") == true) {
+    if (organizationalUnits.length == 1 && organizationalUnits[0] != null && organizationalUnits[0].startsWith("ou=")) {
       // organizationalUnit is already in the form ou=...,ou=.... Nothing to be done.
       return organizationalUnits[0];
     }
@@ -92,7 +140,7 @@ public class LdapUtils
     boolean first = true;
     if (ou != null) {
       first = false;
-      if (ou.startsWith("ou=") == false) {
+      if (!ou.startsWith("ou=")) {
         buf.append("ou=");
       }
       buf.append(ou);
@@ -101,12 +149,12 @@ public class LdapUtils
       if (unit == null) {
         continue;
       }
-      if (first == true) {
+      if (first) {
         first = false;
       } else {
         buf.append(',');
       }
-      if (unit.startsWith("ou=") == false) {
+      if (!unit.startsWith("ou=")) {
         buf.append("ou=");
       }
       buf.append(unit);
@@ -128,7 +176,7 @@ public class LdapUtils
         continue;
       }
       buf.append(',');
-      if (ou.startsWith("ou=") == false) {
+      if (!ou.startsWith("ou=")) {
         buf.append("ou=");
       }
       buf.append(ou);
@@ -137,21 +185,21 @@ public class LdapUtils
 
   public static String getOrganizationalUnit(final String dn)
   {
-    if (dn == null || dn.indexOf("ou=") < 0) {
+    if (dn == null || !dn.contains("ou=")) {
       return null;
     }
     final String[] entries = StringUtils.split(dn, ",");
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (String entry : entries) {
       if (entry == null) {
         continue;
       }
       entry = entry.trim();
-      if (entry.startsWith("ou=") == false || entry.length() < 4) {
+      if (!entry.startsWith("ou=") || entry.length() < 4) {
         continue;
       }
-      if (first == true) {
+      if (first) {
         first = false;
       } else {
         buf.append(",");
@@ -163,7 +211,7 @@ public class LdapUtils
 
   public static String getOrganizationalUnit(final String dn, final String ouBase)
   {
-    if (StringUtils.isNotBlank(ouBase) == true) {
+    if (StringUtils.isNotBlank(ouBase)) {
       return getOrganizationalUnit(dn + "," + ouBase);
     } else {
       return getOrganizationalUnit(dn);
@@ -195,8 +243,8 @@ public class LdapUtils
       return null;
     }
     final NamingEnumeration< ? > enumeration = attr.getAll();
-    final List<String> list = new ArrayList<String>();
-    while (enumeration.hasMore() == true) {
+    final List<String> list = new ArrayList<>();
+    while (enumeration.hasMore()) {
       final Object attrValue = enumeration.next();
       if (attrValue == null) {
         list.add(null);
@@ -244,10 +292,10 @@ public class LdapUtils
       return attrId + "=" + value;
     }
     final String[] strs = StringHelper.splitAndTrim(value, ATTRIBUTE_SEPARATOR_CHAR);
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final String str : strs) {
-      if (first == true) {
+      if (first) {
         first = false;
       } else {
         buf.append(", ");
@@ -261,13 +309,13 @@ public class LdapUtils
       final String[] objectClasses)
       {
     List<String> list = null;
-    if (expectedObjectClass != null && (objectClasses == null || StringHelper.isIn(expectedObjectClass, objectClasses) == false)) {
+    if (expectedObjectClass != null && (objectClasses == null || !StringHelper.isIn(expectedObjectClass, objectClasses))) {
       list = addEntry(list, expectedObjectClass);
     }
     if (expectedAdditionalObjectClasses != null) {
       for (final String objectClass : expectedAdditionalObjectClasses) {
         // objectClasses of users doesn't match the expected ones.
-        if (objectClasses == null || StringHelper.isIn(objectClass, objectClasses) == false) {
+        if (objectClasses == null || !StringHelper.isIn(objectClass, objectClasses)) {
           list = addEntry(list, objectClass);
         }
       }
@@ -278,7 +326,7 @@ public class LdapUtils
   private static List<String> addEntry(List<String> list, final String entry)
   {
     if (list == null) {
-      list = new ArrayList<String>();
+      list = new ArrayList<>();
     }
     list.add(entry);
     return list;

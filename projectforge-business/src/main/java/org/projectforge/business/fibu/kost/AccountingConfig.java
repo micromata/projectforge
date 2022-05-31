@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,21 @@
 
 package org.projectforge.business.fibu.kost;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.utils.IntRanges;
-import org.projectforge.framework.xstream.AliasMap;
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
-import org.projectforge.framework.xstream.XmlObjectReader;
+import org.projectforge.framework.xmlstream.AliasMap;
+import org.projectforge.framework.xmlstream.XmlField;
+import org.projectforge.framework.xmlstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlObjectReader;
+
+import java.io.Serializable;
 
 /**
  * Used in config.xml for the definition of the used business assessment schema. The business assessment is displayed in different
  * accounting areas, such as for DATEV accounting records.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XmlObject(alias = "accounting")
 public class AccountingConfig implements Serializable

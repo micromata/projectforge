@@ -1,39 +1,56 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.fibu;
 
-import static org.testng.Assert.*;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-
-import javax.persistence.NoResultException;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+
+import javax.persistence.NoResultException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class EmployeeServiceTest extends AbstractTestBase
 {
   @Autowired
   private EmployeeService employeeService;
 
-  @Autowired
-  private UserService userService;
-
   @Test
   public void testInsertDelete()
   {
-    logon(TEST_FULL_ACCESS_USER);
-
-    PFUserDO pfUserDO = getPfUserDO();
-
+    logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
+    PFUserDO pfUserDO = getUser(TEST_FINANCE_USER);
     EmployeeDO employeeDO = new EmployeeDO();
+    employeeDO.setAccountHolder("Horst Mustermann");
+    employeeDO.setAbteilung("Finance");
     employeeDO.setUser(pfUserDO);
-    employeeDO.setAccountHolder("Vorname Name");
     Integer id = employeeService.save(employeeDO);
     assertTrue(id != null && id > 0);
     employeeService.delete(employeeDO);
@@ -45,20 +62,15 @@ public class EmployeeServiceTest extends AbstractTestBase
       exceptionList.add(e);
     }
 
-    assertEquals(exceptionList.size(), 1);
-    assertEquals(employeeDO1, null);
-  }
-
-  private PFUserDO getPfUserDO()
-  {
-    return userService.getUserDao().getUserGroupCache().getAllUsers().iterator().next();
+    assertEquals(1, exceptionList.size());
+    assertNull(employeeDO1);
   }
 
   @Test
   public void testUpdateAttribute()
   {
-    logon(TEST_FULL_ACCESS_USER);
-    PFUserDO pfUserDO = getPfUserDO();
+    logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
+    PFUserDO pfUserDO = getUser(TEST_PROJECT_ASSISTANT_USER);
     EmployeeDO employeeDO = new EmployeeDO();
     employeeDO.setAccountHolder("Vorname Name");
     String abteilung = "Test";
@@ -84,9 +96,8 @@ public class EmployeeServiceTest extends AbstractTestBase
   public void isEmployeeActiveWithAustrittsdatumTest()
   {
     EmployeeDO employee = new EmployeeDO();
-    Calendar cal = Calendar.getInstance();
-    cal.add(Calendar.MONTH, 1);
-    employee.setAustrittsDatum(cal.getTime());
+    LocalDate dt = LocalDate.now().plusMonths(1);
+    employee.setAustrittsDatum(dt);
     boolean result = employeeService.isEmployeeActive(employee);
     assertTrue(result);
   }
@@ -95,9 +106,8 @@ public class EmployeeServiceTest extends AbstractTestBase
   public void isEmployeeActiveWithAustrittsdatumBeforeTest()
   {
     EmployeeDO employee = new EmployeeDO();
-    Calendar cal = Calendar.getInstance();
-    cal.add(Calendar.MONTH, -1);
-    employee.setAustrittsDatum(cal.getTime());
+    LocalDate dt = LocalDate.now().minusMonths(1);
+    employee.setAustrittsDatum(dt);
     boolean result = employeeService.isEmployeeActive(employee);
     assertFalse(result);
   }
@@ -106,10 +116,9 @@ public class EmployeeServiceTest extends AbstractTestBase
   public void isEmployeeActiveWithAustrittsdatumNowTest()
   {
     EmployeeDO employee = new EmployeeDO();
-    Calendar cal = Calendar.getInstance();
-    employee.setAustrittsDatum(cal.getTime());
+    LocalDate dt = LocalDate.now();
+    employee.setAustrittsDatum(dt);
     boolean result = employeeService.isEmployeeActive(employee);
     assertFalse(result);
   }
-
 }

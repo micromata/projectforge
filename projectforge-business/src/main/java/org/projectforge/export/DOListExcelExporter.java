@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.export;
 
-import java.lang.reflect.Field;
-import java.util.Date;
-
 import org.projectforge.business.excel.ContentProvider;
 import org.projectforge.business.excel.ExportColumn;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.time.DateHelper;
+
+import java.lang.reflect.Field;
+import java.util.Date;
 
 /**
  * MyExcelExporter with minor optimizations e. g. for AbstractListPage.
@@ -59,7 +59,7 @@ public class DOListExcelExporter extends MyExcelExporter
       final ExportColumn exportColumn)
   {
     super.putFieldFormat(sheetProvider, field, propInfo, exportColumn);
-    if ("deleted".equals(field.getName()) == true) {
+    if ("deleted".equals(field.getName())) {
       exportColumn.setWidth(8);
     }
   }

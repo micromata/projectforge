@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,7 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 
 public class ReflectionHelper
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ReflectionHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReflectionHelper.class);
 
   /**
    * Convenient method.
@@ -78,16 +78,7 @@ public class ReflectionHelper
     try {
       final Constructor< ? > constructor = clazz.getConstructor(argClasses);
       return constructor.newInstance(args);
-    } catch (NoSuchMethodException ex) {
-      log.error(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    } catch (IllegalAccessException ex) {
-      log.error(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    } catch (InstantiationException ex) {
-      log.error(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    } catch (InvocationTargetException ex) {
+    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
       log.error(ex.getMessage(), ex);
       throw new RuntimeException(ex);
     }

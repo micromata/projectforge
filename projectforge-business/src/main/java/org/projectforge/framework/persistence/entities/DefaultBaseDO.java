@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,40 +23,37 @@
 
 package org.projectforge.framework.persistence.entities;
 
+import org.apache.lucene.analysis.standard.ClassicAnalyzer;
+import org.hibernate.search.annotations.Analyzer;
+import org.projectforge.common.anots.PropertyInfo;
+
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
-import org.apache.lucene.analysis.standard.ClassicAnalyzer;
-import org.hibernate.search.annotations.Analyzer;
-import org.projectforge.common.anots.PropertyInfo;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @MappedSuperclass
 @Analyzer(impl = ClassicAnalyzer.class)
-public class DefaultBaseDO extends AbstractHistorizableBaseDO<Integer>
-{
+public class DefaultBaseDO extends AbstractHistorizableBaseDO<Integer> {
   private static final long serialVersionUID = 659687830219996653L;
 
   @PropertyInfo(i18nKey = "id")
-  //  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO)
   private Integer id;
 
   @Override
   @Id
   @GeneratedValue
   @Column(name = "pk")
-  public Integer getId()
-  {
+  public Integer getId() {
     return id;
   }
 
   @Override
-  public void setId(final Integer id)
-  {
+  public void setId(final Integer id) {
     this.id = id;
   }
 }

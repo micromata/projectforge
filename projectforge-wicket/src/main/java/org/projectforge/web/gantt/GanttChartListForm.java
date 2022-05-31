@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.web.gantt;
 
-import org.apache.log4j.Logger;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.slf4j.Logger;
 
 public class GanttChartListForm extends AbstractListForm<GanttChartListFilter, GanttChartListPage>
 {
   private static final long serialVersionUID = 80462620378178721L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttChartListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttChartListForm.class);
 
   public GanttChartListForm(final GanttChartListPage parentPage)
   {

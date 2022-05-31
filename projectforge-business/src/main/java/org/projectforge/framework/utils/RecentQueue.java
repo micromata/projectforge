@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,12 @@
 
 package org.projectforge.framework.utils;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.commons.collections.CollectionUtils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
 
 /**
  * For storing recent entries for selecting as templates by the user (recent time sheets, task etc.)
@@ -39,7 +40,8 @@ public class RecentQueue<T> implements Serializable
 
   protected int maxSize = 25;
 
-  protected List<T> recents;
+  @XStreamAlias("recents") // Was named recents in former version (before 2020-04-05.
+  protected List<T> recentList;
 
   public RecentQueue()
   {
@@ -51,19 +53,26 @@ public class RecentQueue<T> implements Serializable
   }
 
   /**
+   * Get the recent entries (the newest). Is equivalent to get(0).
+   */
+  public T getRecent() {
+    return get(0);
+  }
+
+  /**
    * Does not throw IndexOutOfBoundsException.
    * @param pos
    * @return Entry of recent list if exist, otherwise null.
    */
   public T get(Integer pos)
   {
-    if (CollectionUtils.isEmpty(recents) == true) {
+    if (CollectionUtils.isEmpty(recentList)) {
       return null;
     }
     if (pos == null) {
-      return recents.get(0);
-    } else if (pos >= 0 && pos < recents.size()) {
-      return recents.get(pos);
+      return recentList.get(0);
+    } else if (pos >= 0 && pos < recentList.size()) {
+      return recentList.get(pos);
     }
     return null;
   }
@@ -75,42 +84,42 @@ public class RecentQueue<T> implements Serializable
   public void addOnly(T entry)
   {
     synchronized (this) {
-      if (recents == null) {
-        recents = new ArrayList<T>();
+      if (recentList == null) {
+        recentList = new ArrayList<>();
       }
     }
-    if (recents.indexOf(entry) == -1) {
-      recents.add(entry);
+    if (recentList.indexOf(entry) == -1) {
+      recentList.add(entry);
     }
   }
 
   public RecentQueue<T> append(T entry)
   {
     synchronized (this) {
-      if (recents == null) {
-        recents = new ArrayList<T>();
+      if (recentList == null) {
+        recentList = new ArrayList<>();
       }
     }
-    int idx = recents.indexOf(entry);
+    int idx = recentList.indexOf(entry);
     if (idx >= 0) {
       // Prevent duplicate entry:
-      recents.remove(idx);
+      recentList.remove(idx);
     }
-    while (recents.size() >= maxSize && recents.size() > 0) {
-      recents.remove(recents.size() - 1);
+    while (recentList.size() >= maxSize && recentList.size() > 0) {
+      recentList.remove(recentList.size() - 1);
     }
-    recents.add(0, entry);
+    recentList.add(0, entry);
     return this;
   }
 
-  public List<T> getRecents()
+  public List<T> getRecentList()
   {
-    return recents;
+    return recentList;
   }
 
-  public void setRecents(List<T> recents)
+  public void setRecentList(List<T> recentList)
   {
-    this.recents = recents;
+    this.recentList = recentList;
   }
 
   public void setMaxSize(int maxSize)
@@ -120,9 +129,9 @@ public class RecentQueue<T> implements Serializable
 
   public int size()
   {
-    if (recents == null) {
+    if (recentList == null) {
       return 0;
     }
-    return recents.size();
+    return recentList.size();
   }
 }

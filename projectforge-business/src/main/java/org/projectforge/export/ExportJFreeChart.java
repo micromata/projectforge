@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.export;
 
+import org.jfree.chart.ChartUtils;
+import org.jfree.chart.JFreeChart;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.jfree.chart.ChartUtilities;
-import org.jfree.chart.JFreeChart;
-
 public class ExportJFreeChart
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportJFreeChart.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportJFreeChart.class);
 
   private final JFreeChart jFreeChart;
 
@@ -61,10 +61,10 @@ public class ExportJFreeChart
     try {
       if (getImageType() == JFreeChartImageType.PNG) {
         extension = "png";
-        ChartUtilities.writeChartAsPNG(out, chart, width, height);
+        ChartUtils.writeChartAsPNG(out, chart, width, height);
       } else {
         extension = "jpg";
-        ChartUtilities.writeChartAsJPEG(out, chart, width, height);
+        ChartUtils.writeChartAsJPEG(out, chart, width, height);
       }
     } catch (final IOException ex) {
       log.error("Exception encountered " + ex, ex);

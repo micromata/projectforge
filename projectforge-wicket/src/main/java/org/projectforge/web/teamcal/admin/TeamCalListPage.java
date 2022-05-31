@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,7 @@
 
 package org.projectforge.web.teamcal.admin;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -48,15 +45,13 @@ import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.service.CalendarFeedService;
 import org.projectforge.web.calendar.AbstractICSExportDialog;
 import org.projectforge.web.teamcal.dialog.TeamCalICSExportDialog;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.AjaxIconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -99,6 +94,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
 
     final CellItemListener<TeamCalDO> cellItemListener = new CellItemListener<TeamCalDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<TeamCalDO>> item, final String componentId,
           final IModel<TeamCalDO> rowModel)
       {
@@ -208,7 +204,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
                 icsExportDialog.addContent(target);
                 icsExportDialog.setCalendarTitle(target, teamCal.getTitle());
                 icsExportDialog.open(target);
-              };
+              }
             });
           }
         }
@@ -259,7 +255,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
             {
               openExportICSDialog(exportDialog, target, "plugins.teamcal.export.timesheets",
                   calendarFeedService.getUrl4Timesheets(getUserId()));
-            };
+            }
           }, getString("plugins.teamcal.export.timesheets"));
       menuEntry.setMarkupId("exportTimesheets").setOutputMarkupId(true);
       addContentMenuEntry(menuEntry);
@@ -273,7 +269,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
             {
               openExportICSDialog(exportDialog, target, "plugins.teamcal.export.holidays",
                   calendarFeedService.getUrl4Holidays());
-            };
+            }
           }, getString("plugins.teamcal.export.holidays"))
               .setTooltip(getString("plugins.teamcal.export.holidays.tooltip"));
       menuEntry.setMarkupId("exportHolidays").setOutputMarkupId(true);
@@ -288,7 +284,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
             {
               openExportICSDialog(exportDialog, target, "plugins.teamcal.export.weekOfYears",
                   calendarFeedService.getUrl4WeekOfYears());
-            };
+            }
           }, getString("plugins.teamcal.export.weekOfYears"))
               .setTooltip(getString("plugins.teamcal.export.weekOfYears.tooltip"));
       menuEntry.setMarkupId("exportWeekOfYears").setOutputMarkupId(true);
@@ -346,5 +342,5 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
     {
       return url;
     }
-  };
+  }
 }

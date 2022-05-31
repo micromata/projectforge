@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,24 +23,21 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import java.util.List;
-
-import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
+import org.projectforge.menu.builder.MenuItemDef;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.core.PluginAdminService;
+import org.projectforge.plugins.licensemanagement.rest.LicensePagesRest;
 import org.projectforge.registry.RegistryEntry;
-import org.projectforge.web.MenuItemDef;
-import org.projectforge.web.MenuItemDefId;
+import org.projectforge.security.My2FAShortCut;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
-public class LicenseManagementPlugin extends AbstractPlugin
-{
+public class LicenseManagementPlugin extends AbstractPlugin {
   public static final String ID = "licenseManagement";
 
   public static final String RESOURCE_BUNDLE_NAME = "LicenseManagementI18nResources";
@@ -50,7 +47,7 @@ public class LicenseManagementPlugin extends AbstractPlugin
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
   // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[] { LicenseDO.class };
+  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{LicenseDO.class};
 
   @Autowired
   private LicenseDao licenseDao;
@@ -58,16 +55,20 @@ public class LicenseManagementPlugin extends AbstractPlugin
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  public LicenseManagementPlugin() {
+    super(PluginAdminService.PLUGIN_LICENSE_MANAGEMENT_ID, "LicenseManagementPlugin", "For managing software licenses, keys and usage.");
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
-  protected void initialize()
-  {
-    // DatabaseUpdateDao is needed by the updater:
-    LicenseManagementPluginUpdates.dao = myDatabaseUpdater;
+  protected void initialize() {
+    registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:license;/wa/licenseManagementEdit");
+    registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "/wa/licenseManagement");
+    registerShortCutClasses(My2FAShortCut.FINANCE, LicensePagesRest.class);
     final RegistryEntry entry = new RegistryEntry(ID, LicenseDao.class, licenseDao,
-        "plugins.licensemanagement");
+            "plugins.licensemanagement");
     // The LicenseDao is automatically available by the scripting engine!
     register(entry);
 
@@ -75,32 +76,13 @@ public class LicenseManagementPlugin extends AbstractPlugin
     pluginWicketRegistrationService.registerWeb(ID, LicenseListPage.class, LicenseEditPage.class);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.MISC);
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 10, "plugins.licensemanagement.menu", LicenseListPage.class));
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(ID, "plugins.licensemanagement.menu"),
+            LicenseListPage.class);
 
     // Define the access management:
     registerRight(new LicenseManagementRight(accessChecker));
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);
-  }
-
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
-   */
-  @Override
-  public List<UpdateEntry> getUpdateEntries()
-  {
-    return LicenseManagementPluginUpdates.getUpdateEntries();
-  }
-
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
-   */
-  @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
-    return LicenseManagementPluginUpdates.getInitializationUpdateEntry();
   }
 }

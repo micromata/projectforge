@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,7 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -38,31 +35,23 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.business.fibu.kost.AccountingConfig;
-import org.projectforge.business.fibu.kost.BuchungssatzDO;
-import org.projectforge.business.fibu.kost.BuchungssatzDao;
-import org.projectforge.business.fibu.kost.BusinessAssessment;
-import org.projectforge.business.fibu.kost.BusinessAssessmentRow;
-import org.projectforge.business.fibu.kost.Kost1DO;
-import org.projectforge.business.fibu.kost.Kost2DO;
+import org.projectforge.business.fibu.kost.*;
 import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.CurrencyPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightValue;
+import org.projectforge.web.wicket.*;
 import org.springframework.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ListPage(editPage = AccountingRecordEditPage.class)
 public class AccountingRecordListPage
     extends AbstractListPage<AccountingRecordListForm, BuchungssatzDao, BuchungssatzDO> implements
     IListPageColumnsCreator<BuchungssatzDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AccountingRecordListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountingRecordListPage.class);
 
   private static final long serialVersionUID = -34213362189153025L;
 
@@ -110,6 +99,13 @@ public class AccountingRecordListPage
   public AccountingRecordListPage(final PageParameters parameters)
   {
     super(parameters, "fibu.buchungssatz");
+    checkAccess();
+  }
+
+  private void checkAccess()
+  {
+    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
+    accessChecker.checkRestrictedOrDemoUser();
   }
 
   @Override
@@ -137,6 +133,7 @@ public class AccountingRecordListPage
     final List<IColumn<BuchungssatzDO, String>> columns = new ArrayList<IColumn<BuchungssatzDO, String>>();
     final CellItemListener<BuchungssatzDO> cellItemListener = new CellItemListener<BuchungssatzDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<BuchungssatzDO>> item, final String componentId,
           final IModel<BuchungssatzDO> rowModel)
       {
@@ -166,7 +163,7 @@ public class AccountingRecordListPage
             cellItemListener));
     columns
         .add(new CellItemListenerPropertyColumn<BuchungssatzDO>(new Model<String>(getString("fibu.kost1")), getSortable(
-            "kost1.shortDisplayName", sortable), "kost1.shortDisplayName", cellItemListener)
+            "kost1.displayName", sortable), "kost1.displayName", cellItemListener)
         {
           @Override
           public String getTooltip(final BuchungssatzDO satz)
@@ -181,7 +178,7 @@ public class AccountingRecordListPage
         });
     columns
         .add(new CellItemListenerPropertyColumn<BuchungssatzDO>(new Model<String>(getString("fibu.kost2")), getSortable(
-            "kost2.shortDisplayName", sortable), "kost2.shortDisplayName", cellItemListener)
+            "kost2.displayName", sortable), "kost2.displayName", cellItemListener)
         {
           @Override
           public String getTooltip(final BuchungssatzDO satz)
@@ -196,8 +193,8 @@ public class AccountingRecordListPage
         });
     columns.add(new CellItemListenerPropertyColumn<BuchungssatzDO>(
         new Model<String>(getString("fibu.buchungssatz.konto")), getSortable(
-            "konto.shortDisplayName", sortable),
-        "konto.shortDisplayName", cellItemListener)
+            "konto.displayName", sortable),
+        "konto.displayName", cellItemListener)
     {
       @Override
       public String getTooltip(final BuchungssatzDO satz)
@@ -212,7 +209,7 @@ public class AccountingRecordListPage
     });
     columns.add(
         new CellItemListenerPropertyColumn<BuchungssatzDO>(new Model<String>(getString("fibu.buchungssatz.gegenKonto")),
-            getSortable("gegenKonto.shortDisplayName", sortable), "gegenKonto.shortDisplayName", cellItemListener)
+            getSortable("gegenKonto.displayName", sortable), "gegenKonto.displayName", cellItemListener)
         {
           @Override
           public String getTooltip(final BuchungssatzDO satz)

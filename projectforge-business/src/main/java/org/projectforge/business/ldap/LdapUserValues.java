@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.business.ldap;
 
-import java.io.Serializable;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlField;
+import org.projectforge.framework.xmlstream.XmlObject;
+
+import java.io.Serializable;
 
 /**
  * Bean used for serialization and deserialization of the ldap values as xml string in {@link PFUserDO#getLdapValues()} ConfigXML
@@ -56,14 +56,14 @@ public class LdapUserValues implements Serializable
 
   public boolean isValuesEmpty()
   {
-    return isPosixValuesEmpty() == true && isSambaValuesEmpty() == true;
+    return isPosixValuesEmpty() && isSambaValuesEmpty();
   }
 
   public boolean isPosixValuesEmpty()
   {
     return getUidNumber() == null
-        && StringUtils.isBlank(getHomeDirectory()) == true
-        && StringUtils.isBlank(getLoginShell()) == true
+        && StringUtils.isBlank(getHomeDirectory())
+        && StringUtils.isBlank(getLoginShell())
         && getGidNumber() == null;
   }
 

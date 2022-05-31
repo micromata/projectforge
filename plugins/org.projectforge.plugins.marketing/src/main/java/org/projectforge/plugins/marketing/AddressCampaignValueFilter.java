@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,9 +27,7 @@ import org.projectforge.business.address.AddressFilter;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AddressCampaignValueFilter extends AddressFilter
 {
@@ -41,11 +39,17 @@ public class AddressCampaignValueFilter extends AddressFilter
 
   public AddressCampaignValueFilter()
   {
+
   }
 
   public AddressCampaignValueFilter(final BaseSearchFilter filter)
   {
     super(filter);
+    if (filter instanceof AddressCampaignValueFilter) {
+      AddressCampaignValueFilter obj = (AddressCampaignValueFilter) filter;
+      this.addressCampaign = obj.getAddressCampaign();
+      this.addressCampaignValue = obj.getAddressCampaignValue();
+    }
   }
 
   public AddressCampaignDO getAddressCampaign()

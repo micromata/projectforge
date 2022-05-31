@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -22,11 +22,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 package org.projectforge.web.fibu;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -47,20 +42,19 @@ import org.projectforge.business.fibu.datev.EmployeeSalaryExportDao;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.CurrencyPropertyColumn;
-import org.projectforge.web.wicket.DownloadUtils;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @ListPage(editPage = EmployeeSalaryEditPage.class)
 public class EmployeeSalaryListPage
     extends AbstractListPage<EmployeeSalaryListForm, EmployeeSalaryDao, EmployeeSalaryDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeSalaryListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryListPage.class);
 
   private static final long serialVersionUID = -8406452960003792763L;
 
@@ -87,6 +81,7 @@ public class EmployeeSalaryListPage
 
     final CellItemListener<EmployeeSalaryDO> cellItemListener = new CellItemListener<EmployeeSalaryDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<EmployeeSalaryDO>> item, final String componentId,
           final IModel<EmployeeSalaryDO> rowModel)
       {
@@ -180,7 +175,7 @@ public class EmployeeSalaryListPage
         @Override
         public void onSubmit()
         {
-          if (form.getSearchFilter().getMonth() < 0 || form.getSearchFilter().getMonth() > 11) {
+          if (form.getSearchFilter().getMonth() == null) {
             form.addError("fibu.employee.salary.error.monthNotGiven");
             return;
           }
@@ -231,7 +226,7 @@ public class EmployeeSalaryListPage
         if ("month".equals(field.getName()) == true) {
           final EmployeeSalaryDO salary = (EmployeeSalaryDO) entry;
           // Excel month starts with 1 instead of 0:
-          mapping.add(field.getName(), salary.getMonth() + 1);
+          mapping.add(field.getName(), salary.getMonth());
         } else {
           super.addMapping(mapping, entry, field);
         }

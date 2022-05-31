@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import java.math.BigDecimal;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.html.basic.Label;
@@ -34,6 +32,8 @@ import org.apache.wicket.model.Model;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.web.wicket.components.PlainLabel;
+
+import java.math.BigDecimal;
 
 public class CurrencyPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
 {

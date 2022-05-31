@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -42,13 +39,10 @@ import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.TimedAttrColumn;
+import org.projectforge.web.wicket.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ListPage(editPage = EmployeeEditPage.class)
 public class EmployeeListPage extends AbstractListPage<EmployeeListForm, EmployeeService, EmployeeDO> implements
@@ -125,9 +119,9 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
             "staffNumber",
             cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("fibu.kost1"),
-        getSortable("kost1.shortDisplayName",
+        getSortable("kost1.displayName",
             sortable),
-        "kost1.shortDisplayName", cellItemListener));
+        "kost1.displayName", cellItemListener));
     columns.add(
         new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("position", sortable), "position",
             cellItemListener));

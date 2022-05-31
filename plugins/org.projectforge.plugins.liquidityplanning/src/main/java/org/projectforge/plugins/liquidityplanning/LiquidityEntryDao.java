@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,35 +23,29 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.math.BigDecimal;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.projectforge.business.fibu.AmountType;
 import org.projectforge.business.fibu.PaymentStatus;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Repository
-public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO>
-{
-  public LiquidityEntryDao()
-  {
+public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO> {
+  public LiquidityEntryDao() {
     super(LiquidityEntryDO.class);
     userRightId = LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING;
   }
 
-  public LiquidityEntriesStatistics buildStatistics(final List<LiquidityEntryDO> list)
-  {
+  public LiquidityEntriesStatistics buildStatistics(final List<LiquidityEntryDO> list) {
     final LiquidityEntriesStatistics stats = new LiquidityEntriesStatistics();
     if (list == null) {
       return stats;
@@ -63,8 +57,7 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO>
   }
 
   @Override
-  public List<LiquidityEntryDO> getList(final BaseSearchFilter filter)
-  {
+  public List<LiquidityEntryDO> getList(final BaseSearchFilter filter) {
     final LiquidityFilter myFilter;
     if (filter instanceof LiquidityFilter) {
       myFilter = (LiquidityFilter) filter;
@@ -74,42 +67,34 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO>
     final QueryFilter queryFilter = new QueryFilter(myFilter);
     final List<LiquidityEntryDO> list = getList(queryFilter);
     if (myFilter.getPaymentStatus() == PaymentStatus.ALL
-        && myFilter.getAmountType() == AmountType.ALL
-        && myFilter.getNextDays() <= 0
-        || myFilter.isDeleted() == true) {
+            && myFilter.getAmountType() == AmountType.ALL
+            && myFilter.getNextDays() <= 0
+            || myFilter.isDeleted()) {
       return list;
     }
-    final List<LiquidityEntryDO> result = new ArrayList<LiquidityEntryDO>();
-    final DayHolder today = new DayHolder();
+    final List<LiquidityEntryDO> result = new ArrayList<>();
+    final PFDay baseDate = PFDay.fromOrNow(myFilter.getBaseDate());
     for (final LiquidityEntryDO entry : list) {
-      if (myFilter.getPaymentStatus() == PaymentStatus.PAID && entry.isPaid() == false) {
+      if (myFilter.getPaymentStatus() == PaymentStatus.PAID && !entry.getPaid()) {
         continue;
       }
-      if (myFilter.getPaymentStatus() == PaymentStatus.UNPAID && entry.isPaid() == true) {
+      if (myFilter.getPaymentStatus() == PaymentStatus.UNPAID && entry.getPaid()) {
         continue;
-      }
-      if (entry.getAmount() != null) {
-        if (myFilter.getAmountType() == AmountType.CREDIT && entry.getAmount().compareTo(BigDecimal.ZERO) >= 0) {
-          continue;
-        }
-        if (myFilter.getAmountType() == AmountType.DEBIT && entry.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-          continue;
-        }
       }
       if (myFilter.getNextDays() > 0) {
-        Date dateOfPayment = entry.getDateOfPayment();
+        LocalDate dateOfPayment = entry.getDateOfPayment();
         if (dateOfPayment == null) {
-          dateOfPayment = today.getSQLDate();
+          dateOfPayment = baseDate.getLocalDate();
         }
-        if (dateOfPayment.before(today.getDate()) == true) {
+        if (dateOfPayment.isBefore(baseDate.getLocalDate())) {
           // Entry is before today:
-          if (myFilter.getPaymentStatus() == PaymentStatus.PAID || entry.isPaid() == true) {
+          if (myFilter.getPaymentStatus() == PaymentStatus.PAID || entry.getPaid()) {
             // Ignore entries of the past if they were paid. Also ignore unpaid entries of the past if the user wants to filter only paid
             // entries.
             continue;
           }
         } else {
-          if (today.daysBetween(entry.getDateOfPayment()) > myFilter.getNextDays()) {
+          if (baseDate.daysBetween(entry.getDateOfPayment()) > myFilter.getNextDays()) {
             continue;
           }
         }
@@ -120,17 +105,7 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO>
   }
 
   @Override
-  public LiquidityEntryDO newInstance()
-  {
+  public LiquidityEntryDO newInstance() {
     return new LiquidityEntryDO();
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
-  @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
-    return true;
   }
 }

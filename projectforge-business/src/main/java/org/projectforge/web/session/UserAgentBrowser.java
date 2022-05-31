@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,8 @@
 
 package org.projectforge.web.session;
 
+import org.apache.commons.lang3.StringUtils;
+
 public enum UserAgentBrowser
 {
   IE, MOZILLA, SAFARI, KONQUEROR, OPERA, FIREFOX, CHROME, OMNIWEB, ICAB, CAMINO, NETSCAPE, UNKNOWN;
@@ -35,5 +37,19 @@ public enum UserAgentBrowser
       }
     }
     return false;
+  }
+
+  public static UserAgentBrowser getBrowserFromUserAgentString(String userAgent)
+  {
+    if (StringUtils.isNotEmpty(userAgent)) {
+      //TODO: Add mor browsers for user agent
+      if (userAgent.contains("Version")) {
+        return UserAgentBrowser.SAFARI;
+      }
+      if (userAgent.contains("Chrome")) {
+        return UserAgentBrowser.CHROME;
+      }
+    }
+    return UserAgentBrowser.UNKNOWN;
   }
 }

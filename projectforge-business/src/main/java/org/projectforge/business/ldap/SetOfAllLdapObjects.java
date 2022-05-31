@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,9 +34,9 @@ import java.util.Set;
  */
 public class SetOfAllLdapObjects
 {
-  Set<String> setOfDNs = new HashSet<String>();
+  Set<String> setOfDNs = new HashSet<>();
 
-  Set<Serializable> setOfIds = new HashSet<Serializable>();
+  Set<Serializable> setOfIds = new HashSet<>();
 
   public void add(final LdapObject< ? > obj)
   {
@@ -48,10 +48,10 @@ public class SetOfAllLdapObjects
 
   public boolean contains(final LdapObject< ? > obj, final String dn)
   {
-    if (obj.getId() != null && setOfIds.contains(obj.getId()) == true) {
+    if (obj.getId() != null && setOfIds.contains(obj.getId())) {
       return true;
     }
-    if (setOfDNs.contains(dn) == true) {
+    if (setOfDNs.contains(dn)) {
       return true;
     }
     return false;

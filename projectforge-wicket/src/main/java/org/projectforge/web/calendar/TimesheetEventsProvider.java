@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,12 @@
 
 package org.projectforge.web.calendar;
 
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import net.ftlines.wicket.fullcalendar.Event;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.task.TaskDO;
@@ -46,19 +42,23 @@ import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.web.teamcal.event.MyWicketEvent;
 
-import net.ftlines.wicket.fullcalendar.Event;
+import java.time.Month;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Creates events for FullCalendar.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimesheetEventsProvider.class);
+public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetEventsProvider.class);
 
   private static final long serialVersionUID = 2241430630558260146L;
 
@@ -68,9 +68,9 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
 
   private long totalDuration;
 
-  private Integer month;
+  private Month month;
 
-  private DateTime firstDayOfMonth;
+  private PFDateTime firstDayOfMonth;
 
   private int days;
 
@@ -87,8 +87,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
    * @param timesheetDao
    * @param calFilter
    */
-  public TimesheetEventsProvider(final TimesheetDao timesheetDao, final ICalendarFilter calFilter)
-  {
+  public TimesheetEventsProvider(final TimesheetDao timesheetDao, final ICalendarFilter calFilter) {
     this.timesheetDao = timesheetDao;
     this.calFilter = calFilter;
   }
@@ -98,8 +97,9 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
    * org.joda.time.DateTime)
    */
   @Override
-  protected void buildEvents(final DateTime start, final DateTime end)
-  {
+  protected void buildEvents(final DateTime start, final DateTime end) {
+    final PFDateTime startDate = PFDateTime.from(start.toDate()).getBeginOfDay();
+    final PFDateTime endDate = PFDateTime.from(end.toDate()).getEndOfDay();
     totalDuration = 0;
     for (int i = 0; i < durationsPerDayOfMonth.length; i++) {
       durationsPerDayOfMonth[i] = 0;
@@ -115,8 +115,8 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
     int breaksCounter = 0;
     final TimesheetFilter filter = new TimesheetFilter();
     filter.setUserId(userId);
-    filter.setStartTime(start.toDate());
-    filter.setStopTime(end.toDate());
+    filter.setStartTime(startDate.getUtilDate());
+    filter.setStopTime(endDate.getUtilDate());
     filter.setOrderType(OrderDirection.ASC);
     timesheets = timesheetDao.getList(filter);
     boolean longFormat = false;
@@ -128,35 +128,35 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
       firstDayOfMonth = null;
     } else {
       // Month view:
-      final DateTime currentMonth = new DateTime(start.plusDays(10), ThreadLocalUserContext.getDateTimeZone()); // Now we're definitely in the right
+      final PFDateTime currentMonth = startDate.plusDays(10); // Now we're definitely in the right
       // month.
-      month = currentMonth.getMonthOfYear();
-      firstDayOfMonth = currentMonth.withDayOfMonth(1);
+      month = currentMonth.getMonth();
+      firstDayOfMonth = currentMonth.getBeginOfMonth();
     }
-    if (CollectionUtils.isEmpty(timesheets) == false) {
-      DateTime lastStopTime = null;
+    if (CollectionUtils.isNotEmpty(timesheets)) {
+      PFDateTime lastStopTime = null;
       for (final TimesheetDO timesheet : timesheets) {
-        final DateTime startTime = new DateTime(timesheet.getStartTime(), ThreadLocalUserContext.getDateTimeZone());
-        final DateTime stopTime = new DateTime(timesheet.getStopTime(), ThreadLocalUserContext.getDateTimeZone());
-        if (stopTime.isBefore(start) == true || startTime.isAfter(end) == true) {
+        final PFDateTime startTime = PFDateTime.from(timesheet.getStartTime());
+        final PFDateTime stopTime = PFDateTime.from(timesheet.getStopTime());
+        if (stopTime.isBefore(startDate) || startTime.isAfter(endDate)) {
           // Time sheet doesn't match time period start - end.
           continue;
         }
-        if (calFilter.isShowBreaks() == true) {
+        if (calFilter.isShowBreaks()) {
           if (lastStopTime != null
-              && DateHelper.isSameDay(stopTime, lastStopTime) == true
-              && startTime.getMillis() - lastStopTime.getMillis() > 60000) {
+              && lastStopTime.isSameDay(stopTime)
+              && startTime.getEpochMilli() - lastStopTime.getEpochMilli() > 60000) {
             // Show breaks between time sheets of one day (> 60s).
             final Event breakEvent = new Event();
             breakEvent.setEditable(false);
             final String breakId = String.valueOf(++breaksCounter);
-            breakEvent.setClassName(Const.BREAK_EVENT_CLASS_NAME).setId(breakId).setStart(lastStopTime)
-                .setEnd(startTime)
+            breakEvent.setClassName(Constants.BREAK_EVENT_CLASS_NAME).setId(breakId).setStart(convert(lastStopTime))
+                .setEnd(convert(startTime))
                 .setTitle(getString("timesheet.break"));
             breakEvent.setTextColor("#666666").setBackgroundColor("#F9F9F9").setColor("#F9F9F9");
             events.put(breakId, breakEvent);
-            final TimesheetDO breakTimesheet = new TimesheetDO().setStartDate(lastStopTime.toDate())
-                .setStopTime(startTime.getMillis());
+            final TimesheetDO breakTimesheet = new TimesheetDO().setStartDate(lastStopTime.getUtilDate())
+                .setStopDate(startTime.getUtilDate());
             breaksMap.put(breakId, breakTimesheet);
           }
           lastStopTime = stopTime;
@@ -164,24 +164,24 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
         final long duration = timesheet.getDuration();
         final MyWicketEvent event = new MyWicketEvent();
         final String id = "" + timesheet.getId();
-        event.setClassName(Const.EVENT_CLASS_NAME);
+        event.setClassName(Constants.EVENT_CLASS_NAME);
         event.setId(id);
-        event.setStart(startTime);
-        event.setEnd(stopTime);
+        event.setStart(convert(startTime));
+        event.setEnd(convert(stopTime));
         final String title = CalendarHelper.getTitle(timesheet);
-        if (longFormat == true) {
+        if (longFormat) {
           // Week or day view:
           event.setTitle(title + "\n" + getToolTip(timesheet) + "\n" + formatDuration(duration, false));
         } else {
           // Month view:
           event.setTitle(title);
         }
-        if (month != null && startTime.getMonthOfYear() != month && stopTime.getMonthOfYear() != month) {
+        if (month != null && startTime.getMonth() != month && stopTime.getMonth() != month) {
           // Display time sheets of other month as grey blue:
           event.setTextColor("#222222").setBackgroundColor("#ACD9E8").setColor("#ACD9E8");
         }
         events.put(id, event);
-        if (month == null || startTime.getMonthOfYear() == month) {
+        if (month == null || startTime.getMonth() == month) {
           totalDuration += duration;
           addDurationOfDay(startTime.getDayOfMonth(), duration);
         }
@@ -189,21 +189,19 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
         addDurationOfDayOfYear(dayOfYear, duration);
         event.setTooltip(
             getString("timesheet"),
-            new String[][] {
-                { title },
-                { timesheet.getLocation(), getString("timesheet.location") },
-                { KostFormatter.formatLong(timesheet.getKost2()), getString("fibu.kost2") },
-                { WicketTaskFormatter.getTaskPath(timesheet.getTaskId(), true, OutputType.PLAIN),
-                    getString("task") },
-                { timesheet.getDescription(), getString("description") } });
+            new String[][]{
+                {title},
+                {timesheet.getLocation(), getString("timesheet.location")},
+                {KostFormatter.formatLong(timesheet.getKost2()), getString("fibu.kost2")},
+                {WicketTaskFormatter.getTaskPath(timesheet.getTaskId(), true, OutputType.PLAIN),
+                    getString("task")},
+                {timesheet.getDescription(), getString("description")}});
       }
     }
-    if (calFilter.isShowStatistics() == true) {
+    if (calFilter.isShowStatistics()) {
       // Show statistics: duration of every day is shown as all day event.
       DateTime day = start;
-      final Calendar cal = DateHelper.getCalendar();
-      cal.setTime(start.toDate());
-      final int numberOfDaysInYear = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
+      final int numberOfDaysInYear = PFDay.from(start.toDate()).getNumberOfDaysInYear();
       int paranoiaCounter = 0;
       do {
         if (++paranoiaCounter > 1000) {
@@ -213,8 +211,8 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
         }
         final int dayOfYear = day.getDayOfYear();
         final long duration = durationsPerDayOfYear[dayOfYear];
-        final boolean firstDayOfWeek = day.getDayOfWeek() == ThreadLocalUserContext.getJodaFirstDayOfWeek();
-        if (firstDayOfWeek == false && duration == 0) {
+        final boolean firstDayOfWeek = day.getDayOfWeek() == ThreadLocalUserContext.getFirstDayOfWeekValue();
+        if (!firstDayOfWeek && duration == 0) {
           day = day.plusDays(1);
           continue;
         }
@@ -223,7 +221,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
         event.setId(id);
         event.setStart(day);
         final String durationString = formatDuration(duration, false);
-        if (firstDayOfWeek == true) {
+        if (firstDayOfWeek) {
           // Show week of year at top of first day of week.
           long weekDuration = 0;
           for (short i = 0; i < 7; i++) {
@@ -233,16 +231,16 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
             }
             weekDuration += durationsPerDayOfYear[d];
           }
-          final StringBuffer buf = new StringBuffer();
-          buf.append(getString("calendar.weekOfYearShortLabel")).append(DateHelper.getWeekOfYear(day));
+          final StringBuilder sb = new StringBuilder();
+          sb.append(getString("calendar.weekOfYearShortLabel")).append(DateHelper.getWeekOfYear(day));
           if (days > 1 && weekDuration > 0) {
             // Show total sum of durations over all time sheets of current week (only in week and month view).
-            buf.append(": ").append(formatDuration(weekDuration, false));
+            sb.append(": ").append(formatDuration(weekDuration, false));
           }
           if (duration > 0) {
-            buf.append(", ").append(durationString);
+            sb.append(", ").append(durationString);
           }
-          event.setTitle(buf.toString());
+          event.setTitle(sb.toString());
         } else {
           event.setTitle(durationString);
         }
@@ -250,26 +248,24 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
         event.setEditable(false);
         events.put(id, event);
         day = day.plusDays(1);
-      } while (day.isAfter(end) == false);
+      } while (!day.isAfter(end));
     }
   }
 
-  public TimesheetDO getBreakTimesheet(final String id)
-  {
+  public TimesheetDO getBreakTimesheet(final String id) {
     return breaksMap != null ? breaksMap.get(id) : null;
   }
 
-  public TimesheetDO getLatestTimesheetOfDay(final DateTime date)
-  {
+  public TimesheetDO getLatestTimesheetOfDay(final DateTime date) {
     if (timesheets == null) {
       return null;
     }
     TimesheetDO latest = null;
     for (final TimesheetDO timesheet : timesheets) {
-      if (DateHelper.isSameDay(timesheet.getStopTime(), date.toDate()) == true) {
+      if (DateHelper.isSameDay(timesheet.getStopTime(), date.toDate())) {
         if (latest == null) {
           latest = timesheet;
-        } else if (latest.getStopTime().before(timesheet.getStopTime()) == true) {
+        } else if (latest.getStopTime().before(timesheet.getStopTime())) {
           latest = timesheet;
         }
       }
@@ -277,60 +273,58 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
     return latest;
   }
 
-  public String formatDuration(final long millis)
-  {
+  public String formatDuration(final long millis) {
     return formatDuration(millis, firstDayOfMonth != null);
   }
 
-  private String formatDuration(final long millis, final boolean showTimePeriod)
-  {
+  private String formatDuration(final long millis, final boolean showTimePeriod) {
     final int[] fields = TimePeriod.getDurationFields(millis, 8, 200);
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     if (fields[0] > 0) {
-      buf.append(fields[0]).append(ThreadLocalUserContext.getLocalizedString("calendar.unit.day")).append(" ");
+      sb.append(fields[0]).append(ThreadLocalUserContext.getLocalizedString("calendar.unit.day")).append(" ");
     }
-    buf.append(fields[1]).append(":").append(StringHelper.format2DigitNumber(fields[2]))
+    sb.append(fields[1]).append(":").append(StringHelper.format2DigitNumber(fields[2]))
         .append(ThreadLocalUserContext.getLocalizedString("calendar.unit.hour"));
-    if (showTimePeriod == true) {
-      buf.append(" (").append(ThreadLocalUserContext.getLocalizedString("calendar.month")).append(")");
+    if (showTimePeriod) {
+      sb.append(" (").append(ThreadLocalUserContext.getLocalizedString("calendar.month")).append(")");
     }
-    return buf.toString();
+    return sb.toString();
   }
 
-  public static String getToolTip(final TimesheetDO timesheet)
-  {
+  public static String getToolTip(final TimesheetDO timesheet) {
     final String location = timesheet.getLocation();
     final String description = timesheet.getShortDescription();
     final TaskDO task = timesheet.getTask();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     if (StringUtils.isNotBlank(location) == true) {
-      buf.append(location);
+      sb.append(location);
       if (StringUtils.isNotBlank(description) == true) {
-        buf.append(": ");
+        sb.append(": ");
       }
     }
-    buf.append(description);
+    sb.append(description);
     if (timesheet.getKost2() == null) {
-      buf.append("; \n").append(task.getTitle());
+      sb.append("; \n").append(task.getTitle());
     }
-    return buf.toString();
+    return sb.toString();
   }
 
   /**
    * @return the duration
    */
-  public long getTotalDuration()
-  {
+  public long getTotalDuration() {
     return totalDuration;
   }
 
-  private void addDurationOfDay(final int dayOfMonth, final long duration)
-  {
+  private void addDurationOfDay(final int dayOfMonth, final long duration) {
     durationsPerDayOfMonth[dayOfMonth] += duration;
   }
 
-  private void addDurationOfDayOfYear(final int dayOfYear, final long duration)
-  {
+  private void addDurationOfDayOfYear(final int dayOfYear, final long duration) {
     durationsPerDayOfYear[dayOfYear] += duration;
+  }
+
+  private DateTime convert(final PFDateTime dateTime) {
+    return new DateTime(dateTime.getEpochMilli(), ThreadLocalUserContext.getDateTimeZone());
   }
 }

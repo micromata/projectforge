@@ -1,0 +1,1508 @@
+---
+title: User guide
+subtitle: Hints, tips and best practices for the usage of ProjectForge
+author: kai
+tags: [userguide]
+---
+:hide-uri-scheme:
+
+:toc:
+:toclevels: 4
+
+:last-update-label: Copyright (C) 2021, Last updated
+
+:sectnums:
+
+== Introduction
+
+This document includes some hints tips and best practices for the usage
+of ProjectForge®. It will never contain the whole functionality of
+ProjectForge® because a well-designed web application is easy to use
+and self-explained by tool tips etc.
+
+== Common concepts
+
+
+=== Full-indexed search
+
+All list views support a search field. Refer the tool tip to see which
+fields of the data objects are part of the index. (see figure 1).
+
+image::/uploads/userguide/searchfield.png[image]
+
+[cols="1,4",]
+|===
+|Figure 1: |Enter a free text in the search field to start a full text
+query. Part of words are as well supported as logical expressions.
+|===
+
+A detailed description of the possibilities may be find on Lucene
+page https://lucene.apache.org/core/2_9_4/queryparsersyntax.html[window=_blank].
+
+The following table shows some common used queries.
+
+[cols="1,4",]
+|===
+|Expression |Function
+
+|abc |The search result contains all objects with fields contain words
+beginning with 'abc'. The search isn't case-sensitive.
+
+|+++*+++abc+++*+++ |The search result contains all objects with fields contain words
+containing 'abc'. The search isn't case-sensitive.
+
+|meier~ |Phonetic search: Fields containing e. g. 'mayer' will also be
+found as 'meier'!
+
+|abc def |Searches for fields which contain words beginning with 'abc'
+and/or 'def'.
+
+|+abc -def |Search for fields containing words beginning with 'abc' but
+not with 'def'.
+
+|name:abc def |Search for all objects where the field 'name' contains
+words beginning with 'abc' and searches for 'def' in all object fields.
+|===
+
+==== Automatical wildcards
+
+*Hint*
+
+____
+If the search field contains only sub-string with alphanumerical
+characters (including @._* and spaces) ProjectForge® appends
+automatically the wildcard character '*'. For all other expressions the
+entered term will be leaved untouched. Logical expressions of Lucene
+(the keywords AND, OR and NOT) will also be leaved untouched).
+____
+
+[cols="1,3",]
+|===
+|Expression |Modification by ProjectForge
+
+|hello |hello*
+
+|hello ProjectForge |hello* ProjectForge*
+
+|k.reinhard@projectforge |k.reinhard@projectforge*
+
+|hello AND 2008-11-21 NOT hurz OR test |hello* AND 2008-11-21 NOT hurz*
+OR test* +
+(Expressions containing special characters such as -+, will be leaved
+untouched.)
+
+|hello AND name:hurzel |hello AND name:hurzel hello AND name:hurzel +
+(no substituion because of ':'.)
+
+|+hello and hurzel |+hello and hurzel +
+(no substituion because of '+'.)
+|===
+
+If in doubt, ProjectForge® displays any substitution of the user's
+input below the search field.d).
+
+==== Search for structure elements
+
+ProjectForge® searches also for names of ancestor structure
+elements. If you search for time-sheets for 'Yellow logistics' all
+time-sheets assigned to the structure element 'Yellow logistics' or
+descendant structure elements will be found.
+
+=== Quick-select
+
+If you choose any list view for selection (e. g. structure element) and
+only one entry is found by the search this entry will be selected
+automatically and ProjectForge® returns to the caller page.
+
+=== Filter for search in history of changes
+
+Almost all list pages supports an extended filter for searching for
+objects regarding the history of changes, e. g. the user wants to find
+any object which was changed during the last 10 minutes etc. Click on
+the plus sign at the right bottom of the search field's label to see the
+opportunities.  +
+All other filter criterias will also be used. (see figure 2)
+
+image::/uploads/userguide/extendedFilter.png[image]
+
+[cols="1,4",]
+|===
+|Figure 2: |Through the extended search filter you may search for
+objects which were changed during a given time period.
+|===
+
+_ _
+
+=== Auto completion
+
+For more and more fields an auto-completion is supported. After entering
+2 characters a list of entries suggested by the server will be displayed
+for a convenient selection. You may enter the cursor up- and down-keys
+to select entries without using your mouse.  +
+A double-mouse-click, if supported by the input field, will show recent
+used entries or a list of all available objects.
+
+=== Favorites / bookmarks
+
+For sending pages of ProjectForge® as link via e-mail or for
+bookmarking them in your browser, you should use the menu entry 'Show as
+bookmark'. ProjectForge® offers a link including all settings of the
+page (e. g. the filter settings of the list view).  +
+Please do not use the displayed url in your browser because this URL
+isn't valid outside your current session.
+
+==== Favorites / bookmarks in list views
+
+As figure 3 shows ProjectForge® offers two links in list views:
+
+. Direct link for list view without preset of the filter parameter (the
+default view is used with the recent parameters).
+. Direct link for list view with preset of the filter parameters.
+
+image::/uploads/userguide/Bookmark-list.png[image]
+
+[cols="1,4",]
+|===
+|Figure 3: |This figure demonstrates the bookmarking functionality of
+the list views. The first link contains only a bookmark for the list
+view without the preset of any parameters (the default view is used).
+The second link contains a bookmark with the preset of all filter
+parameters.
+|===
+
+==== Favorites / bookmarks of time-sheets
+
+As figure 4 shows, ProjectForge® offers also two links in time-sheet
+edit pages:
+
+. Direct link for displaying an object by id.
+. Direct link including parameters for calling the edit page with
+pre-filled parameters. This is usefull for adding new time-sheets with
+pre-filled parameters.
+
+The second link may be used for creation of new time-sheets with
+templates (e. g. in JIRA or e-mails).
+
+image::/uploads/userguide/Bookmark-edit.png[image]
+
+[cols="1,4",]
+|===
+|Figure 4: | Bookmarks
+|===
+
+=== Stay logged-in
+
+On the login-screen the user may choose the 'stay-logged-in' option.
+
+* ProjectForge® creates a browser cookie with a validity of 30 days.
+* At the next login from the same browser ProjectForge® detects this
+cookie, renews it and proceed the automatical login.
+* If the user chooses the menu entry 'log-out' the cookie will be
+deleted (if exists) and the user/passwort authentication is required
+again in this browser.
+* The cookie will be invalid if the user haven't used it for 30 or more
+day or the user's password and/or username has been changed.
+* The cooky stores the user id, the username and a code. All three
+parameters are checked by ProjectForge®.
+* Under 'My account' the user may renew the previous mentioned code. All
+stay-logged-in-sessions in all browsers are invalid directly after
+renewing this code. Please note: Any valid session isn't effected by
+this action.
+* The stay-logged-in option may be re-activated at any time after
+entering username and password on the login-screen.
+
+== Calendar
+
+The calendar is one of the most important functionalities of
+ProjectForge®. You may organize your time-sheets and personal events
+as well as team events in a convenient way. ProjectForge® is
+designed to improve the efficiency of projects and project teams from
+single-person-projects up to large-sized projects.
+
+=== Quick-time-period-selection
+
+You may browse very fast through month and/or weeks with the following
+element of ProjectForge®. (see figure 5)
+
+image::/uploads/userguide/Zeitblaettern.png[image]
+
+[cols="1,4",]
+|===
+|Figure 5: |Quick-time-period selection with browse mode for months and
+weeks
+|===
+
+=== Holidays
+
+ProjectForge® support holidays and you may configure own holidays
+in `config.xml.`
+
+=== Support of different time zones
+
+ProjectForge® supports different time-zones at once. The user may
+change his time-zone if he travels through different time-zones.
+
+=== View modes
+
+==== Calendar views: month, week, day
+
+image::/uploads/userguide/PF-TeamCal-MonthView.png[image]
+
+[cols="1,4",]
+|===
+|Figure 6: |Month display mode of team calendar.
+|===
+
+image::/uploads/userguide/PF-TeamCal-Weekview-preview.png[image]
+
+[cols="1,4",]
+|===
+|Figure 7: |Week display mode of team calendar. The red line is the
+current time-line.
+|===
+
+==== Customizable views with fast switch
+
+You're able to customize different filters of your calendars to show and
+use. Switch the view with only two clicks. You may give your different
+calendars different colors.
+
+image::/uploads/userguide/PF-TeamCal-filters-preview.png[image]
+
+[cols="1,4",]
+|===
+|Figure 8: |Customize your view filters with own colors etc. You may
+switch the view with only two clicks.
+|===
+
+=== Drag & drop and range-select functionality
+
+You may create, move, resize and copy events by drag&drop and
+range-select functionality. The the videos or demo system for experience
+this convenient feature.
+
+* *Download and subscription of calendars*  +
+You can download or subscribe all calendars as ics files. Subscribe
+ProjectForge's calendars in Google calendar, MS Outlook oder Apples
+iCal.
+
+image::/uploads/userguide/PF-TeamCal-Subscription.png[image]
+
+[cols="1,4",]
+|===
+|Figure 9: |An example of subscribed calendars of ProjectForge in
+Apple's ical.
+|===
+
+image::/uploads/userguide/PF-TeamCal-ical.png[image]
+
+[cols="1,4",]
+|===
+|Figure 10: |An example of subscribed calendars of ProjectForge in
+Apple's ical.
+|===
+
+* *Share your calendars*  +
+Use ProjectForge for team calendars. How to add a new calendar.
+* *Recurrence*  +
+ProjectForge supports recurrence of events. You may remove or modify
+single events or future events of recurrence events.
+
+image::/uploads/userguide/PF-TeamCal-RecurrenceDialog.png[image]
+
+[cols="1,4",]
+|===
+|Figure 11: |You may remove or modify single events or future events of
+recurrence events
+|===
+
+**3 access modes**
+
+. *Full access*  +
+The assigned groups and users are able to read, insert, update and
+delete any event of the calendar.-
+. *Read-only access*  +
+The assigned groups and users are only able to read all events including
+the subscription and download.
+. *Minimal access*  +
+The assigned groups and users are only able to read all event start and
+stop times including the subscription and download. All other properties
+of events such as title, notes etc. are removed and aren't visible.
+
+image::/uploads/userguide/PF-TeamCal-Access.png[image]
+
+[cols="1,4",]
+|===
+|Figure 12: |You may configure the access to any calendar for groups
+and/or users.
+|===
+
+* *Import new events per Drag'n drop*  +
+You may import new events by simply dropping the ics files into the drop
+area at the top of the calendar page.
+
+=== Roadmap
+
+Further planned developments are described here.
+
+* *Attendees*  +
+** *ProjectForge user's as attendees*  +
+Badge with new invitations.
+** *External user's as attendees*  +
+. *Invitation per e-mail*  +
+Send e-mail with an ics attachment, a summary and a link to accept/deny
+and comment an invitation.
+. *User's e-mail as return-to-address*  +
+The return-to-address will be the user's e-mail address, so any response
+of invitation is sent to the user and has to be handled by the user.
+. *ProjectForge's e-mail as return-to-address*  +
+The return-to-address will be ProjectForge's e-mail address, so any
+response of invitations is parsed by ProjectForge and the event is
+updated.
+** *Update events and multi event import*  +
+Currently ics files can be dropped as files into ProjectForge only if
+the contain only a single event which isn't already present. Later an
+update dialog with differences to accept/deny will be shown and a
+multi-import should be supported.
+* *More complex recurrence pattern*
+* *Subsciption of external calendars in ProjectForge*  +
+Starting with icloud. An user is able to share his icloud calendars via
+ProjectForge.
+
+== Address book
+
+=== Reverse search of phone numbers
+
+ProjectForge® adds every phone number without any special characters
+and white spaces to the search index. You may enter any sub string of
+the phone number to find the address connected to this phone number (if
+exist).
+
+**Hint**
+
+____
+Sometimes you may omit the country prefix of the phone number to find
+the address.
+____
+
+=== Personal favorites
+
+You may import addresses of the list view in your personal address book
+(e. g. Apple contacts) and synchronize the addresses with your mobile
+device. The export format is VCard (vcf) for addresses and a csv format
+for phone numbers (e. g. for your telephony system).  +
+Your favorite addresses will be highlighted in the list view.
+
+==== Export of vcards
+
+You may choose the check-box 'Favorite' beside the form of address in
+the edit view of an address for marking the whole address as favorite
+(see figure 13). Click the button 'Export vCards' for downloading all
+marked addresses. You may choose single phone number for exporting them
+in csv format by clicking the check-box '*' right after the desired
+phone number.
+
+**Hint**
+
+____
+Please use UTF-8 as encoding in your address book software!
+____
+
+image::/uploads/userguide/AddressEdit-Favorites.png[image]
+
+[cols="1,4",]
+|===
+|Figure 13: |This figure demonstrates the possibility to mark addresses
+or phone numbers as favorites.
+|===
+
+===== Hint for Apple contacts
+
+Multiple exports of addresses may result in multiple note entries.
+Please use the following Apple script for removing such multiple note
+entries:
+
+[source,linenums,applescript]
+----
+tell application "Address Book"
+repeat with thisPerson in every person
+if (exists (note of thisPerson)) and ((note of thisPerson) contains "CLASS: WORK") then
+log "Name: " & (name of thisPerson)
+delete note of thisPerson
+end if
+end repeat
+save
+end tell
+----
+
+. You may excecute this script directly in your Apple-Script editor.
+(The result 'missing value' is expected.)
+. Afterwards you should import the ProjectForge® download (vCard).
+
+==== Export of personal list of telephone numbers
+
+You may export telephone numbers of addresses (marked in the address
+edit page by clicking the check-box '*', refer
+fig. 13).
+You may import phone numbers to your mobile device or system telephone
+(e. g. SNOM telephone) if vCard isn't supported.  +
+Via the button 'Export phone list' all' all marked phone numbers will be
+exported with ISO-8859 encoding as csv file. ProjectForge® extends
+the names of the contacs automaticall with "mobile" or "private", if the
+number is not the business phone number.
+
+
+
+==== Personal list of phone numbers for your Snom telephone
+
+The exported list may be uploaded directly via the web site of the
+desired Snom telephone. The following figures 14 and 15 demonstrate the
+procedure of such an import.
+
+**Hint**
+
+____
+Any previous imported phone number will be overwritten (no multiple
+entries are expected).
+____
+
+=== Export of the list of addresses
+
+You may export the current displayed list of addresses for usage with
+LibreOffice or MS Excel. For reasons of data-protection only the user's
+favorite addresses will be exported. Members of the
+groups `PF_Finance` or `PF_Marketing` are able to download all address
+for using them for marketing events etc.
+
+**Hint**
+
+____
+The first address of each row is the mailing address. It's the postal
+address if exist, otherwise the business address.
+____
+
+=== Animation of phone number / zoom
+
+Figure 16 shows the Mouse-over-functionality, if the mouse cursor is
+positioned over a phone number. You may dial the number with your phone
+now.
+
+image::/uploads/userguide/AddressList-NumberZoom.png[image]
+
+[cols="1,4",]
+|===
+|Figure 16: |Animated zoom of phone numbers
+|===
+
+=== Direct call via telephony system
+
+The user may configure one or more telephone numbers under 'My account'.
+Afterwards he is able to initiate phone calls directly from
+ProjectForge® if configured by the administrators and supported by
+the telephony system. Figure  +
+17 demonstrates the possibility to initiate a phone call directly from
+ProjectForge®.
+
+image::/uploads/userguide/Direktwahl-Adressbuch.png[image]
+
+
+[cols="1,4",]
+|===
+|Figure 17: |shows the auto-completion functionality to initiate phone
+calls very easy.
+|===
+
+**Hint**
+
+____
+Please use the 'return' key for initiating the phone call. Like on most
+pages the 'return' key result in the default action.
+____
+
+image::/uploads/userguide/Direktwahl.png[image]
+
+[cols="1,4",]
+|===
+|Figure 18: |
+|===
+
+==== Configuration
+
+Please add your personal phone number (or a list of phone number) under
+'My account'.
+
+== Structure elements in ProjectForge (former tasks)
+
+The term 'structure element' is used in a generic way and represents
+customers, projects, releases, structure elements etc. They're organized
+hierarchical. Access rights may depend on structure elements (and are
+derived from ancestor structure elements if configured). Figure 19 shows
+a typical tree view of structure elements in ProjectForge®.
+
+image::/uploads/userguide/TaskTree.png[image]
+
+[cols="1,4",]
+|===
+|Figure 19: |Hierarchy of structure elements in ProjectForge®
+|===
+
+The following table describes the fields of structure elements:
+
+[cols="1,3",]
+|===
+|Field |Description
+
+|Parent structure element |The structure element is a descendant
+structure element of the parent structure element. The structure
+elements at the top of the hierarchy is the root node which is the
+onliest structure element without a parent structure element.
+
+|Name |
+
+|Referenz |Multi purpose field, optional. This field is derived for all
+descendant structure elements if not overwritten in such structure
+elements. This is useful for exports etc.
+
+|Status |
+
+|Priority |
+
+|Short description |
+
+|Description |
+
+|Progress |optional without further functionality.
+
+|Maximum hours |If given, the consumption will be displayed in the
+structure tree as well as during booking a time sheet, see 5.1 .
+
+|Responsible |ProjectForge®-User for information
+
+|Cost2 |All cost2 values are project specific if a project was assigned
+to this structure element or any ancestor structure element. The black
+list defines cost 2 entries which should be excluded of the assigned
+project. If no project is assigned, cost 2 value are configurable by
+using a white list.
+
+|Protect time sheets until |If set, only time sheets with start dates
+after the given date may-be inserted and updated. Members of the
+financial staff are able to insert, update and delete older time-sheets
+of other users (not own time sheets).
+
+|Protection of privacy |If checked the time sheets of this structure
+element and any descendent structure elements are invisible for other
+users (except the members of the financial staff).
+|===
+
+=== Consumption
+
+Consumptions are displayed as part of the structure tree as well as
+during every booking process of time sheets. The consumption of already
+used hours of a structure element including all structure sub elements
+is displayed as a tool tip.
+
+==== Consumption bars for open structure elements
+
+[cols="1,3,3",]
+|===
+|Color |Meaning |Tool tip
+
+| image:/uploads/userguide/Consumption-empty.png[image, width=100]
+|No budget given |Total consumption in man-days.
+
+| image:/uploads/userguide/Consumption-green.png[image, width=100]
+|Consumption 0-80% |Total consumption in man-days and percent, green
+bar.
+
+| image:/uploads/userguide/Consumption-yellow.png[image, width=100]
+|Consumption 80%-90% |Total consumption in man-days and percent.
+
+| image:/uploads/userguide/Consumption-orange.png[image, width=100]
+|Consumption 90%-100% |Total consumption in man-days and percent.
+
+| image:/uploads/userguide/Consumption-orange-red.png[image, width=100]
+|Consumption over 100% |Total consumption in man-days and percent.
+|===
+
+==== Consumption bars for finished structure elements
+
+[cols="1,3,3",]
+|===
+|Color |Meaning |Tool tip
+| image:/uploads/userguide/Consumption-empty.png[image, width=100]
+|No budget given |Total consumption in man-days.
+| image:/uploads/userguide/Consumption-green.png[image, width=100]
+|Consumption 0-100% |Total consumption in man-days and percent.
+| image:/uploads/userguide/Consumption-red.png[image, width=100]
+|Consumption 100%-110% |Total consumption in man-days and percent.
+| image:/uploads/userguide/Consumption-orange-red.png[image, width=100]
+|Consumption über 110% |Total consumption in man-days and percent.
+|===
+
+==== Suppressing the status of consumption bars
+
+Enter 0 as maximum hours of a structure element for suppressing the
+status (color and percentage) of a consumption bar. This is use-ful for
+not demotivating a team or if not all orders with budgets are assigned
+to a structure element.
+
+=== Booking of time sheets
+
+Time sheets must be assigned to a structure element. For improving the
+quality of time sheets different rules may be definied in
+ProjectForge®.  +
+Following rules are implemented, if the user doesn't hit the rules he
+won't be able to book his working time on such structure elements.
+
+. The user needs the access to this structure element or any ancestor
+structure element including the right of booking time sheets.
+. The structure element or any ancestor structure element may not have a
+time-protection setting. The users will not be able to modify or add
+time sheets for a day before time-protection (date field).
+. The structure element or any ancestor structure element is closed or
+deleted.
+. The booking status of a structure element or any ancestor structure
+element is 'completely closed'.
+. If the structure element is not a structure leaf element (has
+descendents) and the booking status is configured as 'only leaf nodes'.
+. If any descendent structure element has an assigned order. This rule
+is important because otherwise ProjectForge® won't be able to
+calculate the consumption of budgets defined by orders.
+
+If a structure element is closed for booking of time sheets the user may
+modify fields not affecting financial parameters (such as description
+but not times, duration, cost settings etc.) The user may therefore
+correct typos etc. in time sheets.
+
+== Order book
+
+Offers and orders may be managed by ProjectForge®. The may-be
+assigned to project managers having access to their orders and offers.
+Administrative staff members may have access to all orders if they have
+the right to do (see user administration of ProjectForge®).
+
+=== E-mail notification
+
+All modifications of orders, if not done by the project manager itself
+will be sent by e-mail including a quick link to the order, see figure
+20, a notication is suppressed if the check-box is disabled..
+
+image::/uploads/userguide/Auftragsbuch-Notification.png[image]
+
+[cols="1,4",]
+|===
+|Figure 20: |Order book with e-mail notification
+|===
+
+== Scripting in ProjectForge®
+
+You may edit, store and execute scripts in ProjectForge for generating
+Excel files out of the database of ProjectForge® as well as charts
+etc. It's also possible to upload Excel master file to scripts for
+modifiing existing Excel files.  +
+A script editor is built-in in ProjectForge®.
+
+=== Examples
+
+You may use some predefined scripts for getting an idea how powerful the scripting
+in ProjectForge® is.
+
+==== Example: Easy Excel-file generation
+
+[source,kotlin,linenums]
+----
+// Simple otlin script
+val users = userDao.getList()
+val workbook = ExcelUtils.prepareWorkbook("Userlist.xlsx")
+val sheet = workbook.createOrGetSheet("Users")
+sheet.registerColumns(
+  "Username|20", // Title Username is also property name, length = 20
+  "Full name|fullname|30", // Title differs from property name
+  "Email|30",
+  "Id|10|:integer",
+  "Description|50",
+)
+sheet.createRow().fillHeadRow()
+users.forEach { user ->
+  val row = sheet.createRow()
+  ExcelUtils.autoFill(row, user)
+}
+sheet.setAutoFilter() // optional Excel auto filter
+workbook
+----
+
+==== Example: Usage of ProjectForge® filters
+
+[source,kotlin,linenums]
+----
+val filter = TimesheetFilter()
+filter.startTime = PFDateTime.withDate(2022, Month.JANUARY, 1).utilDate
+filter.stopTime = PFDateTime.withDate(2022, Month.JUNE, 30).utilDate
+val list = timesheetDao.getList(filter)
+
+"Number of found time sheets: ${list?.size}"
+----
+
+PFDateTime and PFDay uses automatically the time zone of the current logged-in
+user as default.
+
+
+=== Access rights (DAOs)
+
+You may access all database entries by using the DAOs
+(DataAccessObjects) of ProjectForge®. The DAOs ensures that only
+such entities are returned for those the user has access to. All
+entities without the user's access are removed by the DAOs of the result
+lists.
+
+
+=== Creation of diagrams and charts
+
+You may create charts using (www.jfree.org).
+
+image::/uploads/userguide/ExportJFreeChart.png[image]
+
+[cols="1,4",]
+|===
+|Figure 21: |Example of a script producing a chart
+|===
+
+[source,java,linenums]
+----
+import org.jfree.chart.*
+import org.jfree.chart.plot.*
+import org.jfree.data.general.*
+import org.jfree.util.*
+import org.projectforge.excel.*
+
+DefaultPieDataset dataset = new DefaultPieDataset()
+dataset.setValue("Linux", 15)
+dataset.setValue("Mac", 8)
+dataset.setValue("Windows", 70)
+dataset.setValue("Others", 7)
+JFreeChart chart = ChartFactory.createPieChart3D("Users on www.heise.de", dataset, true, true, false)
+PiePlot3D plot = (PiePlot3D) chart.getPlot()
+
+ExportJFreeChart export = new ExportJFreeChart(chart, 800, 600)
+return export
+----
+
+=== Creation of zip archives containing multiple files
+
+You may create zip files containing multiple files (Excel sheets and
+diagrams).
+
+[source,java,linenums]
+----
+import ...
+ExportZipArchive zip = new ExportZipArchive("my-first-archive") // File name will be: my-first-archive.zip
+ExportWorkbook workbook = new ExportWorkbook(...)
+zip.add("sheet.xls", workbook)
+ExportJFreeChart chart = new ExportJFreeChart(...)
+zip.add("chart.jpg", chart)
+return zip
+----
+
+=== Nested and indexed properties
+
+You may use bean properties using the common used notation:
+
+[source,java,linenums]
+----
+sheet.propertyNames = ["user.username", "description", "startTime", "stopTime", +
+         "kost2.kost2Art.fakturiert"]
+----
+
+as well as indexed properties (such as the property username of the
+user).  +
+Nested and indexed properties are supported as
+well: `users[3].name` or `result.userList[0].`
+
+=== Import of Excel files
+
+Figure 22 shows an example file.
+
+image::/uploads/userguide/Excel-import-example.png[image]
+
+[cols="1,4",]
+|===
+|Figure 22: |Example file for an Excel import
+|===
+
+[source,java,linenums]
+----
+import java.text.*;
+import org.projectforge.excel.*
+NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.UK);
+
+xls = reportScriptingStorage.getFile("import-example.xls") // Was uploaded with this name.
+ExportWorkbook workbook = new ExportWorkbook(xls);// Use script.file instead of xls in script list.
+ExportSheet sheet = workbook.getSheet("Sheet-1"); // Gets sheet with the given title.
+rows = sheet.rows; // Get all rows.
+result = "";
+total = 0.0;
+
+for (int i = 1; i < sheet.rows.size; i++) {
+  row = sheet.getRow(i);
+  no = row.getCell(0).getNumericCellValue();
+  name = row.getCell(1).getStringCellValue();
+  amount = row.getCell(2).getNumericCellValue();
+  total += amount;
+  result += (int)no + ". The amount of " + name + " is: " + nf.format(amount) + "\n";
+}
+result += "The total amount is: " + nf.format(total);
+return result;
+----
+
+The output is:
+
+[source,linenums,shell]
+----
+ The amount of Susan is: £50.23
+ The amount of Hugo is: £17.00
+ The amount of Lisa is: £15.00
+ The amount of Mona is: £10.00
+The total amount is: £92.23
+----
+
+== Financial administration with ProjectForge®
+
+=== Invoices
+
+ProjectForge® supportes the management of invoices (inbound and
+outbound, creditors and debitors):
+
+* Inovices may contain an unlimited number of positions.
+* If the cost-module is configured you may assign the amount to one or
+an unlimited number of cost units (as amount or as percent).
+
+==== Assignment of cost units
+
+It's recommended to try this feature for a better understanding.  +
+You may assign positions of invoices to cost1 and cost2 units. An
+autocomplete functionality helps you to distribute the amounts to cost
+units very fast. You may enter numbers of cost units as well as text (e.
+g. text fields of a cost unit such as description. customer, type
+etc.).  +
+An unlimitited number of assignments are supported. After adding new
+assignments ProjectForge® prefills the amount of the invoice which
+wasn't assigned yet. The amount may be given as amount or as percent
+value.  +
+For better tracebility you may not delete positions (after stored in the
+database). If an entry should be removed, enter '0' as amount.
+
+==== Clone functionality for invoices (inbound and outbound)
+
+You may clone existing invoices for a faster process of inserting new
+invoices:
+
+* The date will be replaced by 'today'.
+* The positions as well as any existing assignment to cost units will be
+copied.
+
+=== Liquidity planning / forecast
+
+Based on invoices and additional liquidity entries (others than
+invoices) ProjectForge® gives you the opportunity to manage your
+cash flow very easy including a forecast of your cash flow.
+
+==== Calculation of expected dates of payments
+
+ProjectForge® uses due dates for forecasting the cash flow and
+account balance. For invoices ProjectForge® calculates the expected
+dates of payment based on already paid invoices in the last 12 month of
+the same:
+
+. Project: Do paid invoices already exist for the same project?
+. Customer number: Do paid invoices already exist for the customer
+(given by the cost number)?
+. Customer text: Do paid invoices already exist for the customer (full
+text)?
+. Customer short text: Do paid invoices already exist for the customer
+(the beginning of the customer text will be used)?
+
+If any paid invoice was found (starting with project) a mean time of
+payment of the paid invoices is used for calculating the expected date
+of payment.
+
+image::/uploads/userguide/PF-liquidity.png[image]
+
+
+[cols="1,4",]
+|===
+|Figure 23: |Liquidity with forecast of the cash flow
+|===
+
+Please refer the AdministrationGuide for enabling the liquidity plugin of ProjectForge®.
+
+=== Datev-Import (German)
+
+Über diese Funktion werden die Konten (Kontenplan) und die Buchungssätze
+eingelesen. Diese Daten werden vom Steuerbüro in Form eines
+Excel-Exports geliefert.
+
+==== Grundsätzliches zum ProjectForge®-Excel-Import
+
+* ProjectForge® liest Tabellenblätter mit bestimmten Namen bzw.
+Namensmustern ein. Tabellenblätter, deren Namen ProjectForge® im
+Import nicht unterstützt, werden ignoriert.
+* ProjectForge® erkennt die Werte in den Spalten anhand des Namens
+der Kopfspalte
+* Die Reihenfolge der Spalten ist variabel.
+* Es können zusätzliche Spalten enthalten sein. Diese Spalten werden
+ignoriert.
+* Die Importdaten werden im Import-Storage innerhalb der Benutzersitzung
+gespeichert. Der Anwender kann beliebige Schritte innerhalb seiner
+Benutzersitzung durchführen, ohne dass die Importdaten verloren gehen.
+Auch die Reihenfolge beim Import von mehreren Tabellenblättern
+(Verproben, Prüfen, Selektieren, Speichern etc.) ist beliebig.
+ProjectForge® stellt sicher, dass nur fehlerfreie und verprobte
+Datensätze importiert werden können.
+* Die Übernahme von Daten kann auch schrittweise erfolgen (s. Beispiel
+unten: Schritt 3 bis 5 können beliebig oft wiederholt werden, solange
+noch nicht alle Daten auch in ProjectForge® nicht übernommen
+wurden.)
+
+Im folgenden wird anhand des Kontenplans der Import und die notwendigen
+Prüfschritte erläutert.
+
+===== Schritt 1: Auswahl der zu importierenden Excel-Datei
+
+* Figure 24 zeigt den ersten Schritt: Es wird die zu importierende
+Excel-Datei über den Browserknopf "Datei auswählen" im lokalen
+Dateisystem selektiert. Anschließend wird die gewünschte Importfunktion
+(z. B. "Import Kontenplan") gewählt.
+
+image::/uploads/userguide/Datev-Import-step1.png[image]
+
+
+[cols="1,4",]
+|===
+|Figure 24: |Datev-Import, Schritt 1: Auswahl der Importdatei
+|===
+
+===== Schritt 2: Daten werden eingelesen
+
+* Figure 25 zeigt den zweiten Schritt: Die Daten wurden erfolgreich
+eingelesen und die importierten Tabellenblätter (Sheets) untereinander
+angezeigt (standardmäßig sind alle Blätter zugeklappt). Im Fehlerfalle
+wird der Fehler mit Tabellenblatt, Zeilennummer und Spaltennummer
+angezeigt (z. B. wenn ein nicht passendes Zahlenformat in einer Zelle
+erkannt wurde.) Fehlerhafte Datensätze können bereits eingesehen werden
+(durch Aufklappen des Importbereichs).
+
+image::/uploads/userguide/Datev-Import-step2.png[image]
+
+[cols="1,4",]
+|===
+|Figure 25: |Datev-Import, Schritt 2: Einlesen der Datei
+|===
+
+===== Schritt 3: Verproben
+
+* Figure 26 zeigt den zweiten Schritt: Die Daten wurden erfolgreich
+eingelesen und die importierten Tabellenblätter (Sheets) untereinander
+angezeigt (standardmäßig sind alle Blätter zugeklappt). Nun sollte die
+Funktion "Verproben" für das gewünschte Tabellenblatt / die gewünschten
+Tabellenblätter gewählt werden.  +
+Beim Verproben gleicht ProjectForge® die importierten Datensätze mit
+evtl. bereits vorhandenen Datensätzen ab. Nach dem Verproben werden auch
+neue und modifizierte Datensätze angezeigt.
+
+image::/uploads/userguide/Datev-Import-step3.png[image]
+
+[cols="1,4",]
+|===
+|Figure 26: |Datev-Import, Schritt 3: Verproben
+|===
+
+===== Schritt 3: VerprobenPrüfen, selektieren und Übernahme
+
+* Figure 27 zeigt den vierten Schritt: Nach der Verprobung können nun
+die zu speichernden Datensätze einer Sichtprüfung unterzogen werden. Bei
+modifizierten Einträgen wird über einen Tool tip der ursprüngliche Wert
+angezeigt. +
+Nach der Prüfung können die Datensätze selektiert werden, die in
+ProjectForge® übernommen werden sollen. Mit der Funktion "Select
+all" können auch alle angezeigten Datensätze markiert werden.
+Anschließend kann über "Commit" eine Übernahme bestätigt und angestoßen
+werden.
+
+image::/uploads/userguide/Datev-Import-step4.png[image]
+
+[cols="1,4",]
+|===
+|Figure 27:__ |_Datev-Import, Schritt 4: Prüfen, Selektion und
+Übernahme_
+|===
+
+===== Schritt 5: Import abgeschlossen
+
+* Figure 28 zeigt den fünften Schritt: Nach dem Import wird angezeigt,
+wieviel Datensätze übernommen wurden. Ein abschließendes "Verproben"
+sollte aufgerufen werden. Wenn alle Änderungen erfolgreich übernommen
+wurden und alle Datensätze selektiert worden waren, so müsste
+abschließend für das Tabellenblatt "nichts zu tun" angezeigt werden.
+Wurde nur ein Teilsatz der Daten selektiert, so werden die übrigen noch
+zur Auswahl angeboten.
+
+image::/uploads/userguide/Datev-Import-step5.png[image]
+
+[cols="1,4",]
+|===
+|Figure 28: |Datev-Import, Schritt 5: Abschluss
+|===
+
+==== Import der Buchungskonten (Kontenplan)
+
+Für den Import der Buchungskonten wird im zu importierenden
+Exceldokument ein Tabellenreiter mit dem Namen "Kontenplan" erwartet.
+Dieses Tabellenblatt wird für den Import verwendet. Alle anderen
+Tabellenblätter werden ignoriert.
+
+===== Format
+
+Folgendes Format wird erwartet (see figure 29).
+
+image::/uploads/userguide/Datev-Import-Kontenplan.png[image]
+
+[cols="1,4",]
+|===
+|Figure 29: |Excelformat für Datev-Import des Kontenplans
+|===
+
+In Zeile 2 wird die Kopfspalte mit den Namen "Konto" und "Bezeichnung"
+erwartet. Vorhandene Konten werden nicht gelöscht, sondern bei
+Vorhandensein modifiziert.
+
+==== Import der Buchungssätze (01-12)
+
+Für den Import der Buchungssätze werden im zu importierenden
+Exceldokument die Tabellenblätter mit dem Namen "01", "02", ..., "12"
+berücksichtigt. Diese Blätter stehen für die zu importierenden
+Buchungsmonate.
+
+* Beim Import werden die Buchungssätze unabhängig vom Datum dem
+Buchungsmonat zugeordnet.
+* Datumsangaben von Buchungssätzen dürfen nicht in der Zukunft bezüglich
+des Buchungsmonats liegen.
+* Das Kalenderjahr zum Buchungsmonat erkennt ProjectForge®
+automatisch anhand des Datums der Buchungssätze.
+* Die Spalte "Kostenstelle/-träger" wird als "Kost2" interpretiert.
+Alternativ kann diese Spalte auch in "Kost2" umbenannt werden.
+* Die Spalte "Alt.-Kst." wird "Kost1" interpretiert. Alternativ kann
+diese Spalte auch in "Kost1" umbenannt werden.
+* Die Spalten "SH" tauchen Datev-bedingt doppelt auf. Die Reihenfolge
+darf nicht vertauscht werden, da die erste Spalte "SH" für die Übernahme
+"Soll/Haben" verwendet wird.
+* Die Spalte Bemerkung ist optional. Hier können Zusatzinformationen,
+Hinweise oder Marker zu einzelnen Zeilen angegeben werden.
+
+===== Format
+
+Folgendes Format wird erwartet (see figure 30).
+
+image::/uploads/userguide/Datev-Import-Buchungssaetze.png[image]
+
+
+[cols="1,4",]
+|===
+|Figure 30: |Excelformat für Datev-Import der Buchungssätze
+|===
+
+In Zeile 2 wird die Kopfspalte mit den Namen "Konto" und "Bezeichnung"
+erwartet. Vorhandene Konten werden nicht gelöscht, sondern bei
+Vorhandensein modifiziert.
+
+=== Other imports
+
+==== Salaries of employees
+
+The following Excel format is assumed:
+
+. A monthly sheet has the title of format 'yyyy-mm', e. g. "2009-05".
+. The columns are:
+.. Cost1 unit of the employee, e. g. '3.050.00.00'
+.. Employee: Last name, surname
+.. Gross salary including taxes and insurance, e. g. '1,846.77'
+.. bonus, royalty, overtime premium etc. as decimal value
+.. Special payment as decimal value
+.. Car as decimal value
+.. Total will be ignored
+.. Comment as text field
+
+The following script generates the database SQL-Statement for importing
+the salaries:
+
+[source,java,linenums]
+----
+import org.projectforge.core.*
+import org.projectforge.excel.*
+import java.text.*
+
+year = 2009; month = 4;
+
+if (month < 10) monthString = "0" + month
+else monthString = "" + month
+NumberFormat nf = NumberFormat.getNumberInstance(Locale.GERMANY);
+nf.setMaximumFractionDigits(2);
+nf.setMinimumFractionDigits(2);
+
+xls = reportScriptingStorage.getFile("2009-Gehaltslisten.xls") // Was uploaded with this name.
+ExportWorkbook workbook = new ExportWorkbook(xls); // Uses the uploaded Excel file.
+ExportSheet sheet = workbook.getSheet(year + "-" + monthString); // Gets the sheet.
+rows = sheet.rows; // get all rows
+String result = "";
+
+for (int i = 4; i < sheet.rows.size; i++) {
+  row = sheet.getRow(i);
+  cost1String = row.getCell(0).getStringCellValue();
+  employeeName = row.getCell(1).getStringCellValue();
+  gross = row.getCell(2).getNumericCellValue();
+  bonus = row.getCell(3).getNumericCellValue();
+  special = row.getCell(4).getNumericCellValue();
+  car = row.getCell(5).getNumericCellValue();
+  comment = row.getCell(7).getStringCellValue();
+  total = new BigDecimal(gross + bonus + special + car).setScale(2, java.math.RoundingMode.HALF_UP);
+  if (employeeName != null)
+    employee = employeeDao.getByName(employeeName);
+  if (kost1String == null)
+    break;
+  kost1 = kost1Dao.getKost1(kost1String);
+  if (kost1 == null) {
+    result += "\n-- **********" + kost1String;
+  } else if (kost1.getDescription().equals(employeeName) == false) {
+    result += "\n-- **********" + kost1.getDescription() + " != " + employeeName;
+  } else if (employee == null) {
+    result += "\n-- ********** Employee '" + employeeName + "' not found.";
+  } else {
+    text = "Excel-Import Kai";
+    if (tantieme_zv > 0) text += "; bonus/royalty/overtime: " + nf.format(bonus);
+    if (special > 0) text += "; Special: " + nf.format(special);
+    if (car > 0) text += "; car: " + nf.format(car);
+    if (comment != null && comment.trim().size() > 0) text += "; " + comment;
+    result += "\ninsert into t_fibu_employee_salary (pk,created,last_update,deleted,gross,month,type,year,comment,employee_id) values (nextval('hibernate_sequence'),now(), now(),false," + total + ", " + (month - 1)+ ", 'SALARY', " + year + ",'" + text + "'," + employee.id + ");";
+  }
+}
+return result;
+----
+
+=== Time sheets
+
+==== Protection
+
+You may protect time sheets by date for structure elements (including
+all descendent structure elements). This protection ensures that no
+employee is able to modifiy time sheets with dates before the date where
+the protection ends.  +
+This is useful if the time sheets are invoiced or taken over by other
+accounting systems. Figure 31 shows a structure element with a
+protection of time sheets until 30/06/2013.  +
+Time sheets with dates before the date of protection may only be changed
+by members of the financial administration staff (regarding times and
+cost assignements).
+
+image::/uploads/userguide/Zeitberichtsschutz.png[image]
+
+[cols="1,4",]
+|===
+|Figure 31: |Time sheet protection for structure elements (incl.
+structure sub elements)
+|===
+
+==== Cost units
+
+* You may assign projects and/or cost2 units to a structure element.
+* If a project is assigned, all existing cost2 units of this projects
+are automatically assigned to this structure element.
+* If there is now project or cost unit assigned to a structure element,
+all settings of the parent structure element are used. If no such
+setting found for the parent element the grand parent element is used
+and so on.
+* Only such cost units are used which have no status value or the status
+value 'ACTIVE'.
+
+If there is any cost2 unit associated with a structure element (directly
+or derived), an user has to select a suitable cost unit while booking
+time sheets. +
+Figure 32 shows a structure element with the assigned project '5.200.00
+- ProjectForge®' and the cost unit '5.200.00.*'.
+
+image::/uploads/userguide/Aufgabe_Kost2.png[image]
+
+
+[cols="1,4",]
+|===
+|Figure 32: |Assigning cost2 units to structure elements.
+|===
+
+**Hint**
+
+____
+If you are missing cost units you may add them via project edit page
+(with status 'ACTIVE').  +
+If you want to disable cost units you may change the status of such
+units to 'INACTIVE' or 'ENDED' or you may remove them by using the
+black- or white list (see fig. ref label="fig:aufgabeKost2" type="full"
+/>).
+____
+
+==== Booking of time sheets
+
+For time sheets assigned to structure elements with assigned cost units
+a selection of a cost unit is required as shown in figure 33.
+
+image::/uploads/userguide/Zeitbericht_anlegen_kost2.png[image]
+
+
+[cols="1,4",]
+|===
+|Figure 33: |Booking of time sheets to structure elements with given
+cost units
+|===
+
+==== Monthly employee reports
+
+A monthly employee report for users with all time sheets ordered by cost
+units, structure element, user and weeks are also available as PDF for
+download. These reports may me used for e. g. signing monthly reports of
+employees by their managers.
+
+
+
+==== JIRA support
+
+JIRA issues are supported if configured. If JIRA issues are contained in
+e. g. time sheets or description of structure elements then the will be
+displayed with links to the configured JIRA system.
+
+=== Cost unit accounting
+
+==== Fraction of working time
+
+You may configure a fraction for single cost units or cost unit types
+(default is 1). Example: if the travelling time should be counted only
+as half regarding the employees working time, you may configure the
+fraction as 0,5.
+
+
+
+=== Reporting via Report objectives (in progress)
+
+[source,xml,linenums]
+----
+<ReportObjective title="Customer ACME" id="ACME" suppressOther="true" suppressDuplicates="true">
+  <kost1-include>3.*</kost1-include>
+  <kost1-exclude>*.01</kost1-exclude>
+  <kost1-exclude>*.12</kost1-exclude>
+  <kost2-include>5.*</kost2-include>
+  <kost2-exclude>*.02</kost2-exclude>
+  <kost2-exclude>*.11</kost2-exclude>
+  <ReportObjective title="Project ACME-WEB-Portal" id="ACME-WEB-Portal">
+    <kost2-include>5.020.01.*</kost2-include>
+  </ReportObjective>
+  <ReportObjective title="Project ACME-Java-Migration" id="ACME-Java-Migration">
+    <kost2-include>5.020.02.*</kost2-include>
+  </ReportObjective>
+</ReportObjective>
+----
+
+. If an include list is empty, all records will match for this include
+list (wildcard).
+. If an include list isn't empty, at least one entry must match.
+. For multiple include lists a record must match all include lists
+(logical 'and').
+. If a record matches at least one entry of any exclude list, this
+record will be excluded.
+
+The method `String.matches(regExp)` is used for evaluating the regular
+expressions. You may refer the expression syntax of the Java
+class `java.util.regex.Pattern` for a better understanding. For your
+convenience ProjectForge® modifies automatically the configured
+expressions before usage: All points ('.') will be escaped and the
+wildcard character '*' is replaced by '.*'. You may suppress the
+automatical modification by prepending an apostrophe, e. g. "'^5\.510.*"
+will not be modified (only the apostrophe itself is removed before
+evaluation).  +
+Examples:
+
+* +++"3.*"+++ -> +++"3\..*"+++ (matches all strings beginning with "3.".
+* +++"*.02"+++ -> +++".*.02"+++ (matches all strings ending with ".02".
+* +++"'^5.02.*"+++ -> +++"^5.02.*"+++ (matches all strings starting with "5?02".
+
+(This strategy of replacement is for convenience purposes because '.'
+means normally any character and '*' means a multiple occurence of the
+character before the asterisk: for example "3.1*" will match "3x1111"
+but not "3.120.08.02".)
+
+**Hint**
+
+____
+A child ReportObjective may only consist of entries of the parent
+ReportObjective (only a subset)!
+____
+
+You may access the ReportObjectives directly.
+
+[source,java,linenums]
+----
+import org.fibu.*
+import org.fibu.kost.*
+import org.projectforge.excel.*
+import org.projectforge.core.*
+
+class JoinedObject {
+  BuchungssatzDO satz
+  EmployeeDO employee
+}
+
+// Loading the list with all accounting records:
+def records = reportStorage.getCurrentReport().getBuchungssaetze()
+records = records.findAll{ satz -> (5000..5999).contains(satz.konto.nummer) }
+
+// Loading the list of employees:
+def employees = employeeDao.getList().findAll{it.kost1 != null}
+
+def result = new ArrayList()
+records.each{bs ->
+  el = new JoinedObject()
+  el.satz = bs
+  el.employee = employees.find{employee -> employee.kost1Id == bs.kost1.id}
+  result.add(el)
+}
+
+// Generation of an Excel workbook:
+ExportWorkbook workbook = new ExportWorkbook();
+ExportSheet sheet = workbook.addSheet("Ergebnis")
+sheet.contentProvider.colWidths = [10, 10, 8, 8, 10, 10, 20, 20]
+sheet.addRow().setValues("Date", "Amount", "Account", "Contra account", "Cost 1", "Cost 2", "Name")
+sheet.contentProvider.putFormat("satz.datum", "DD.MM.YYYY")
+sheet.contentProvider.putFormat("satz.betrag", "#,##0.00$;[Red]-#,##0.00$") // English format
+sheet.contentProvider.putFormat("satz.konto.nummer", "0")
+sheet.contentProvider.putFormat("satz.gegenKonto.nummer", "0")
+sheet.propertyNames = ["satz.datum", "satz.betrag", "satz.konto.nummer", "satz.gegenKonto.nummer",
+  "satz.kost1.formattedNumber", "satz.kost2.formattedNumber", "employee.user.fullname"]
+sheet.addRows(result)
+
+return workbook
+----
+
+== Data protection
+
+=== Passwords
+
+Passwords will be stored SHA-encrypted in the database. Directly after
+usage of passwords (such as in the login screen) all password variables
+will be deleted. Passwords are not part of any log file entry.
+
+
+
+=== History of changes
+
+All modifications of entities (create, update, delete) are stored with
+time stamp, user who cause the modification and the modified fields with
+the old and new value. The history of changes is displayed at the edit
+page of an entity. There are single special fields which are not part of
+this history mechanism.
+
+
+
+=== Logging
+
+Access violations and actions of users (such as modification of
+entities) as well as any error message are stored in log files. The log
+file is important for analyzing error etc.
+
+
+
+=== Phone call - numbers
+
+Every phone call will be logged. A log file entry contains:
+
+. User causes the phone call
+. Source phone number
+. Destination phone number without the last 3 digits, eg 012345xxx.
+
+== Glossary
+
+The developers of ProjectForge® were using the German language until
+several years ago for some financial terms. Nowadays English is the main
+language of the development (for Java classes, documentation etc.). Here
+you may find translation and description of common used terms.
+
+[cols="1,1,3",]
+|===
+|German |English |Description
+
+|Aufgabe |task |Since mid of 2013 the term task was replaced by
+'structure elements' because such elements may represent not only tasks,
+they represent customers, projects, releases, tasks etc.
+
+|Auftrag |order |
+
+|Beleg |receipt |
+
+|Betrag |ammount |
+
+|Brutto |gross (amount) |
+
+|Buchungssatz |accounting records |Accounting records are entities which
+are imported by external financial systems (e. g. DATEV in Germany). The
+recommended workflow is to organize invoices, salaries of the employees
+etc. with ProjectForge® and then to import the data in the external
+financial system. The re-imported accounting records should match the
+data in ProjectForge. +
+ProjectForge® and the scripts also work if you don't have accounting
+records, you may use the origin entities such as invoices etc. directly
+in your scripts. +
+The plural of accounting record is: Buchungssaetze
+
+|BWA |business assessment |Term used inside the financial module of
+ProjectForge®.
+
+|DATEV |  |Software common used in Germany for financial administration.
+ProjectForge® offers import and export interfaces.
+
+|Datum |date |
+
+|Eingangsrechnung |invoice |Used for incoming invoices (creditors).
+
+|fakturiert |invoiced |
+
+|Fibu |financial administration |Fibu is the abbreviation of the German
+term 'Finanzbuchhaltung'.
+
+|Gegenkonto |contra account |Term used inside the financial module of
+ProjectForge®.
+
+|Kontenplan |account structure |Term used inside the financial module of
+ProjectForge®.
+
+|Konto |account |Term used inside the financial module of ProjectForge®.
+
+|Kost |cost |Term used inside the financial module of ProjectForge®.
+Kost1/Kost2 -> cost1/cost2 is the short form of 'cost unit'.
+
+|Kostenträger |cost unit |Term used inside the financial module of
+ProjectForge®.
+
+|Kostenträgerart |type of cost unit |Term used inside the financial
+module of ProjectForge®. Examples for types of cost units are:
+'Travelling', 'Acquisition', 'Meetings' etc. Types are customizable and
+used for specifiing different types of costs in projects and/or company
+wide.
+
+|Kostenzuweisung |cost assignment |Term used inside the financial module
+of ProjectForge®. Costs, such as employee salaries, position of invoices
+(incoming and outgoing) etc. are assigned to cost units.
+
+|Kunde |customer |
+
+|Menge |amount |
+
+|Netto |net (amount) |
+
+|Projekt |project |
+
+|Rechnung |invoice |Used for outgoing invoices (debitors).
+|===

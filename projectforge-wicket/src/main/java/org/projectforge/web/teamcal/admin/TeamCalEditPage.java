@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.web.teamcal.admin;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -37,6 +36,7 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -46,7 +46,7 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm, TeamCalDao>
     implements ISelectCallerPage
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalEditPage.class);
 
   private static final long serialVersionUID = -3352981782657771662L;
 
@@ -84,7 +84,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
       addContentMenuEntry(menu);
       final TeamCalRight right = new TeamCalRight(accessChecker);
       if (isNew() == true
-          || right.hasFullAccess(getData(), getUserId()) == true && getData().isExternalSubscription() == false) {
+          || right.hasFullAccess(getData(), getUserId()) && !getData().getExternalSubscription()) {
         menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new Link<Void>(ContentMenuEntryPanel.LINK_ID)
         {
           @Override
@@ -95,7 +95,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
             final TeamCalImportPage importPage = new TeamCalImportPage(parameters);
             importPage.setReturnToPage(TeamCalEditPage.this);
             setResponsePage(importPage);
-          };
+          }
         }, getString("import")).setTooltip(getString("plugins.teamcal.import.ics.tooltip"));
         addContentMenuEntry(menu);
       }
@@ -112,7 +112,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
     teamCalDao.setReadonlyAccessGroups(getData(), form.readonlyAccessGroupsListHelper.getAssignedItems());
     teamCalDao.setMinimalAccessGroups(getData(), form.minimalAccessGroupsListHelper.getAssignedItems());
     TeamCalDO data = form.getData();
-    if (data.isExternalSubscription() == false) {
+    if (!data.getExternalSubscription()) {
       data.setExternalSubscriptionUrl("");
       data.setExternalSubscriptionUpdateInterval(null);
     }

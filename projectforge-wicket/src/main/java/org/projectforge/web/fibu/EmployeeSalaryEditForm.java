@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,19 +23,16 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.fibu.EmployeeSalaryType;
 import org.projectforge.common.StringHelper;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
@@ -43,12 +40,15 @@ import org.projectforge.web.wicket.converter.CurrencyConverter;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
+
+import java.math.BigDecimal;
 
 public class EmployeeSalaryEditForm extends AbstractEditForm<EmployeeSalaryDO, EmployeeSalaryEditPage>
 {
   private static final long serialVersionUID = 8746545908106124484L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeSalaryEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryEditForm.class);
 
   public EmployeeSalaryEditForm(final EmployeeSalaryEditPage parentPage, final EmployeeSalaryDO data)
   {
@@ -76,8 +76,8 @@ public class EmployeeSalaryEditForm extends AbstractEditForm<EmployeeSalaryDO, E
       final FieldsetPanel fs = gridBuilder.newFieldset(WicketUtils.createMultipleFieldsetLabel(getString("calendar.month"),
           getString("calendar.year")));
       final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
-      for (int i = 0; i <= 11; i++) {
-        monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
+      for (int month = 1; month <= 12; month++) {
+        monthChoiceRenderer.addValue(month, StringHelper.format2DigitNumber(month));
       }
       final DropDownChoice<Integer> monthChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<Integer>(data,
           "month"), monthChoiceRenderer.getValues(), monthChoiceRenderer);

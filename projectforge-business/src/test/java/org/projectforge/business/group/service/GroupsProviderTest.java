@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,21 @@
 
 package org.projectforge.business.group.service;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
-
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.springframework.util.CollectionUtils;
-import org.testng.annotations.Test;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GroupsProviderTest
 {
@@ -74,13 +74,14 @@ public class GroupsProviderTest
   private GroupDO cg(final String name, final int id)
   {
     final GroupDO group = new GroupDO();
-    group.setName(name).setId(id);
+    group.setName(name);
+    group.setId(id);
     return group;
   }
 
   private Collection<GroupDO> createGroupsCol(final int... groupIds)
   {
-    final Collection<GroupDO> col = new TreeSet<GroupDO>(new GroupsComparator());
+    final Collection<GroupDO> col = new TreeSet<>(new GroupsComparator());
     for (final int id : groupIds) {
       col.add(cg(String.valueOf(id), id));
     }
@@ -94,7 +95,7 @@ public class GroupsProviderTest
       return;
     }
     assertEquals(expectedIds.length, actualGroupSet.size());
-    final Set<Integer> actualIdSet = new HashSet<Integer>();
+    final Set<Integer> actualIdSet = new HashSet<>();
     for (final GroupDO actualGroup : actualGroupSet) {
       actualIdSet.add(actualGroup.getId());
     }

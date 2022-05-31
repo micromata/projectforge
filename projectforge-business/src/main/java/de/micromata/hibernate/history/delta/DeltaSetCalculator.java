@@ -1,37 +1,29 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-//$RCSfile: DeltaSetCalculator.java,v $
+// Project ProjectForge Community Edition
+//         www.projectforge.org
 //
-//Project   BaseApp
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
-//Author    Wolfgang Jung (w.jung@micromata.de)
-//Created   Mar 7, 2005
+// ProjectForge is dual-licensed.
 //
-//$Id: DeltaSetCalculator.java,v 1.3 2007/04/04 08:45:24 wolle Exp $
-//$Revision: 1.3 $
-//$Date: 2007/04/04 08:45:24 $
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package de.micromata.hibernate.history.delta;
 
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.log4j.Logger;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.QueryException;
@@ -40,35 +32,42 @@ import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.type.CollectionType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.*;
 
 /**
  * Legacy used for XML persistence of DB.
- * 
+ *
  * @author Wolfgang Jung (w.jung@micromata.de)
- * 
  */
-public class DeltaSetCalculator
-{
-  private static final Logger log = Logger.getLogger(DeltaSetCalculator.class);
+public class DeltaSetCalculator {
+  private static final Logger log = LoggerFactory.getLogger(DeltaSetCalculator.class);
 
-  private DeltaSetCalculator()
-  {
+  private DeltaSetCalculator() {
     // do nothing
   }
 
   /*
    * A hibernate-specific calculation. Uses the values passed to the Hibernate Interceptor.onFlushDirty() to perform the
    * calculation.
-   * 
+   *
    * @param propertyNames A string array of all the property names passed in to the obFlushDirty method. @param
    * previousState The Object array representing the previous state of the properties named in the propertyNames
    * array. @param currentState The Object array representing the current state of the properties named in the
    * propertyNames array. @return The DeltaSet representing the changes encountered in the property states.
    */
   public static DeltaSet calculateDeltaSet(SessionFactory sf, Set<String> validPropertyNames,
-      Set<String> invalidPropertyNames,
-      Serializable entityId, Object entity, String[] propertyNames, Object[] previousState, Object[] currentState)
-  {
+                                           Set<String> invalidPropertyNames,
+                                           Serializable entityId, Object entity, String[] propertyNames, Object[] previousState, Object[] currentState) {
     if (previousState == null) {
       previousState = new Object[currentState.length];
     }
@@ -84,7 +83,7 @@ public class DeltaSetCalculator
     deltaSet.setId(entityId);
     try {
       checkProperties(entity, sf, validPropertyNames, invalidPropertyNames, propertyNames, previousState, currentState,
-          deltaSet);
+              deltaSet);
     } catch (Throwable t) {
       log.error("Error determining delta-set", t);
     } finally {
@@ -100,21 +99,20 @@ public class DeltaSetCalculator
    * @param deltaSet
    */
   private static void checkProperties(Object entity, SessionFactory sf, Set<String> validPropertyNames,
-      Set<String> invalidPropertyNames,
-      String[] propertyNames, Object[] previousState, Object[] currentState, DeltaSet deltaSet)
-  {
+                                      Set<String> invalidPropertyNames,
+                                      String[] propertyNames, Object[] previousState, Object[] currentState, DeltaSet deltaSet) {
     Class<?> propertyType = null;
     for (int i = 0; i < propertyNames.length; i++) {
       String property = propertyNames[i];
-      if (validPropertyNames != null && validPropertyNames.contains(property) == false) {
+      if (validPropertyNames != null && !validPropertyNames.contains(property)) {
         log.debug("ignoring not valid property [" + property + "]");
         continue;
       }
-      if (invalidPropertyNames != null && invalidPropertyNames.contains(property) == true) {
+      if (invalidPropertyNames != null && invalidPropertyNames.contains(property)) {
         log.debug("ignoring invalid property [" + property + "]");
         continue;
       }
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("Starting property [" + property + "]");
       }
       propertyType = null;
@@ -144,7 +142,7 @@ public class DeltaSetCalculator
 
       if (Hibernate.isInitialized(propertyPreviousState) || Hibernate.isInitialized(propertyCurrentState)) {
         final PropertyDelta delta = getDeltaOrNull(entity, sf, propertyNames[i], propertyType, propertyPreviousState,
-            propertyCurrentState);
+                propertyCurrentState);
         if (delta != null) {
           deltaSet.addDelta(delta);
         }
@@ -156,9 +154,8 @@ public class DeltaSetCalculator
    * General use DeltaSet caluclator.
    */
   public static DeltaSet calculateDeltaSet(Object entity, SessionFactory sf, Serializable entityId, Class<?> entityType,
-      Object obj1,
-      Object obj2)
-  {
+                                           Object obj1,
+                                           Object obj2) {
     if (obj1 == null || obj2 == null) {
       throw new IllegalArgumentException("Both objects passed to calculate a delta-set must be non-null");
     }
@@ -170,9 +167,9 @@ public class DeltaSetCalculator
       BeanInfo beanInfo = Introspector.getBeanInfo(obj1.getClass(), Object.class);
       PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
 
-      for (int i = 0; i < pds.length; i++) {
-        final String propertyName = pds[i].getName();
-        final Class<?> propertyType = pds[i].getPropertyType();
+      for (PropertyDescriptor pd : pds) {
+        final String propertyName = pd.getName();
+        final Class<?> propertyType = pd.getPropertyType();
         final Object oldValue = PropertyUtils.getProperty(obj1, propertyName);
         final Object newValue = PropertyUtils.getProperty(obj2, propertyName);
 
@@ -190,9 +187,8 @@ public class DeltaSetCalculator
   }
 
   public static PropertyDelta getDeltaOrNull(Object entity, SessionFactory sf, String propertyName,
-      Class<?> propertyType,
-      Object oldValue, Object newValue)
-  {
+                                             Class<?> propertyType,
+                                             Object oldValue, Object newValue) {
     PropertyDelta delta = null;
     log.debug("Checking property [name=" + propertyName + ", type=" + propertyType + "]");
     // TODO HISTORY
@@ -203,7 +199,7 @@ public class DeltaSetCalculator
       if (Collection.class.isAssignableFrom(propertyType)) {
         log.debug("Encountered property is a collection type");
         delta = getCollectionDelta(entity, (SessionFactoryImplementor) sf, propertyName, propertyType, oldValue,
-            newValue, delta);
+                newValue, delta);
       } else if (propertyType.isArray()) {
         log.debug("Encountered property is an array type");
         delta = getArrayDelta(sf, propertyName, propertyType, oldValue, newValue, delta);
@@ -229,8 +225,7 @@ public class DeltaSetCalculator
     return delta;
   }
 
-  private static Object convertElement(final SessionFactory factory, Object element)
-  {
+  private static Object convertElement(final SessionFactory factory, Object element) {
     if (element == null) {
       return null;
     }
@@ -240,19 +235,18 @@ public class DeltaSetCalculator
         return classMetadata.getIdentifier(element/* , EntityMode.POJO */);
       }
     } catch (HibernateException ex) {
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
       return null;
     }
     return element;
   }
 
   @SuppressWarnings("unchecked")
-  private static Collection<Object> convertCollection(final SessionFactory factory, Collection<Object> coll)
-  {
+  private static Collection<Object> convertCollection(final SessionFactory factory, Collection<Object> coll) {
     if (coll == null) {
       return Collections.EMPTY_SET;
     }
-    List<Object> convList = new ArrayList<Object>(coll.size());
+    List<Object> convList = new ArrayList<>(coll.size());
     for (Object o : coll) {
       convList.add(convertElement(factory, o));
     }
@@ -268,9 +262,8 @@ public class DeltaSetCalculator
    * @return
    */
   private static PropertyDelta getArrayDelta(SessionFactory factory, String propertyName, Class<?> propertyType,
-      Object oldValue,
-      Object newValue, PropertyDelta delta)
-  {
+                                             Object oldValue,
+                                             Object newValue, PropertyDelta delta) {
     Collection<Object> oldList = Arrays.asList((Object[]) oldValue);
     Collection<Object> newList = Arrays.asList((Object[]) newValue);
     oldList = convertCollection(factory, oldList);
@@ -294,8 +287,7 @@ public class DeltaSetCalculator
    */
   @SuppressWarnings("unchecked")
   private static PropertyDelta getCollectionDelta(Object entity, SessionFactoryImplementor factory, String propertyName,
-      Class propertyType, Object oldValue, Object newValue, PropertyDelta delta)
-  {
+                                                  Class propertyType, Object oldValue, Object newValue, PropertyDelta delta) {
     Collection<Object> oldCollectionValue = (Collection<Object>) oldValue;
     Collection<Object> newCollectionValue = (Collection<Object>) newValue;
     if (oldCollectionValue instanceof PersistentCollection) {
@@ -314,20 +306,20 @@ public class DeltaSetCalculator
       Class returnedClass = Object.class;
       try {
         CollectionType propertyType2 = (CollectionType) factory.getClassMetadata(entity.getClass())
-            .getPropertyType(propertyName);
+                .getPropertyType(propertyName);
         returnedClass = propertyType2.getElementType(factory).getReturnedClass();
       } catch (QueryException ex) {
-        if (oldCollectionValue != null && oldCollectionValue.isEmpty() == false) {
+        if (oldCollectionValue != null && !oldCollectionValue.isEmpty()) {
           returnedClass = oldCollectionValue.iterator().next().getClass();
         }
-        if (newCollectionValue != null && newCollectionValue.isEmpty() == false) {
+        if (newCollectionValue != null && !newCollectionValue.isEmpty()) {
           returnedClass = newCollectionValue.iterator().next().getClass();
         }
       }
       oldCollectionValue = convertCollection(factory, oldCollectionValue);
       newCollectionValue = convertCollection(factory, newCollectionValue);
       collectionDelta = new CollectionPropertyDelta(propertyName, returnedClass, oldCollectionValue,
-          newCollectionValue);
+              newCollectionValue);
       if (collectionDelta.anyChangeDetected()) {
         delta = collectionDelta;
       }
@@ -338,8 +330,7 @@ public class DeltaSetCalculator
     return delta;
   }
 
-  public static boolean areEqual(Object obj1, Object obj2, SessionFactory sf)
-  {
+  public static boolean areEqual(Object obj1, Object obj2, SessionFactory sf) {
     if (obj1 == null && obj2 == null) {
       log.debug("Both were null");
       return true;
@@ -347,13 +338,13 @@ public class DeltaSetCalculator
       log.debug("One or the other were null (but not both)");
       return false;
     } else if ((Date.class.isAssignableFrom(obj1.getClass()))
-        || (Timestamp.class.isAssignableFrom(obj1.getClass()))
-        || (java.sql.Date.class.isAssignableFrom(obj1.getClass()))
-        || (Time.class.isAssignableFrom(obj1.getClass()))) {
+            || (java.sql.Date.class.isAssignableFrom(obj1.getClass()))
+            || (Timestamp.class.isAssignableFrom(obj1.getClass()))
+            || (Time.class.isAssignableFrom(obj1.getClass()))) {
       Date d1 = (Date) obj1;
       Date d2 = (Date) obj2;
       return d1.equals(d2) || d2.equals(d1);
-    } else if (BigDecimal.class.isAssignableFrom(obj1.getClass()) == true) {
+    } else if (BigDecimal.class.isAssignableFrom(obj1.getClass())) {
       // Use compareTo instead of equals (for ignoring the scale):
       return ((BigDecimal) obj1).compareTo((BigDecimal) obj2) == 0;
     } else {
@@ -368,15 +359,14 @@ public class DeltaSetCalculator
    * @param sf
    * @return
    */
-  private static boolean areEntitiesEqual(Object obj1, Object obj2, SessionFactory sf)
-  {
+  private static boolean areEntitiesEqual(Object obj1, Object obj2, SessionFactory sf) {
     try {
       // compare the database identifier
       ClassMetadata clazz = sf.getClassMetadata(obj1.getClass());
       if (clazz != null) {
-        if (clazz.hasIdentifierProperty() == true) {
+        if (clazz.hasIdentifierProperty()) {
           if (clazz.getIdentifier(obj1/* , EntityMode.POJO */)
-              .equals(clazz.getIdentifier(obj2/* , EntityMode.POJO */)) == true) {
+                  .equals(clazz.getIdentifier(obj2/* , EntityMode.POJO */))) {
             return true;
           }
         }

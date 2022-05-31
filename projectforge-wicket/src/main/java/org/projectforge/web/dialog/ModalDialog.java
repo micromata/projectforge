@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,8 @@
 
 package org.projectforge.web.dialog;
 
+import de.micromata.wicket.ajax.AjaxCallback;
+import de.micromata.wicket.ajax.AjaxFormSubmitCallback;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -45,9 +47,6 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
-
-import de.micromata.wicket.ajax.AjaxCallback;
-import de.micromata.wicket.ajax.AjaxFormSubmitCallback;
 
 /**
  * Base component for the ProjectForge modal dialogs.<br/>

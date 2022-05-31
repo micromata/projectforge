@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,31 +23,31 @@
 
 package org.projectforge.business.gantt;
 
-import java.io.Serializable;
-import java.math.RoundingMode;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDay;
+import org.projectforge.framework.time.PFDayUtils;
 import org.projectforge.framework.utils.NumberHelper;
 
-public class GanttUtils
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttUtils.class);
+import java.io.Serializable;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
+public class GanttUtils {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttUtils.class);
 
   public static Comparator<GanttTask> GANTT_OBJECT_COMPARATOR = new Comparator<GanttTask>() {
-    public int compare(final GanttTask o1, final GanttTask o2)
-    {
-      if (ObjectUtils.equals(o1.getId(), o2.getId()) == true) {
+    @Override
+    public int compare(final GanttTask o1, final GanttTask o2) {
+      if (Objects.equals(o1.getId(), o2.getId())) {
         return 0;
       }
-      final Date start1 = o1.getCalculatedStartDate();
-      final Date start2 = o2.getCalculatedStartDate();
+      final LocalDate start1 = o1.getCalculatedStartDate();
+      final LocalDate start2 = o2.getCalculatedStartDate();
       if (start1 == null) {
         if (start2 != null) {
           return 1;
@@ -60,8 +60,8 @@ public class GanttUtils
           return result;
         }
       }
-      final Date end1 = o1.getCalculatedEndDate();
-      final Date end2 = o2.getCalculatedEndDate();
+      final LocalDate end1 = o1.getCalculatedEndDate();
+      final LocalDate end2 = o2.getCalculatedEndDate();
       if (end1 == null) {
         if (end2 != null) {
           return 1;
@@ -74,7 +74,7 @@ public class GanttUtils
           return result;
         }
       }
-      if (StringUtils.equals(o1.getTitle(), o2.getTitle()) == false) {
+      if (!StringUtils.equals(o1.getTitle(), o2.getTitle())) {
         return StringHelper.compareTo(o1.getTitle(), o2.getTitle());
       }
       return StringHelper.compareTo(String.valueOf(o1.getId()), String.valueOf(o2.getId()));
@@ -84,46 +84,45 @@ public class GanttUtils
   /**
    * Please note: If the start date is after the start date of the earliest task of any child then the start date of this child is returned.
    * Otherwise the set start date or if not set the calculated start date is returned.
+   *
    * @param node
    */
-  public static Date getCalculatedStartDate(final GanttTask node)
-  {
-    final Date start = getCalculatedStartDate(node, new HashSet<Serializable>(), new HashSet<Serializable>());
+  public static LocalDate getCalculatedStartDate(final GanttTask node) {
+    final LocalDate start = getCalculatedStartDate(node, new HashSet<>(), new HashSet<>());
     return start;
   }
 
-  private static Date getCalculatedStartDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet)
-  {
+  private static LocalDate getCalculatedStartDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet) {
     if (node == null) {
       return null;
     }
     if (node.getStartDate() != null) {
       return node.getStartDate();
     }
-    if (node.isStartDateCalculated() == true) {
+    if (node.isStartDateCalculated()) {
       return node.getCalculatedStartDate();
     }
     final int durationDays = node.getDuration() != null ? node.getDuration().setScale(0, RoundingMode.HALF_UP).intValue() : 0;
     if (node.getDuration() != null && node.getEndDate() != null) {
-      final Date startDate = calculateDate(node.getEndDate(), -durationDays);
+      final LocalDate startDate = calculateDate(node.getEndDate(), -durationDays);
       node.setCalculatedStartDate(startDate).setStartDateCalculated(true);
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("calculated start date=" + startDate + " for: " + node);
       }
       return startDate;
     }
-    if (startDateSet.contains(node.getId()) == true) {
+    if (startDateSet.contains(node.getId())) {
       log.error("Circular reference detection (couldn't calculate start date: " + node);
       return null;
     } else {
       startDateSet.add(node.getId());
     }
-    Date startDate = null;
+    LocalDate startDate = null;
     final GanttTask predecessor = node.getPredecessor();
     if (predecessor != null) {
       startDate = getPredecessorRelDate(node.getRelationType(), predecessor, startDateSet, endDateSet);
       if (startDate != null) {
-        if (NumberHelper.isNotZero(node.getPredecessorOffset()) == true) {
+        if (NumberHelper.isNotZero(node.getPredecessorOffset())) {
           startDate = calculateDate(startDate, node.getPredecessorOffset());
         }
         if (node.getRelationType() == GanttRelationType.START_FINISH || node.getRelationType() == GanttRelationType.FINISH_FINISH) {
@@ -134,15 +133,15 @@ public class GanttUtils
       }
     }
     if ((predecessor == null || (node.getRelationType() != null && node.getRelationType().isIn(GanttRelationType.FINISH_FINISH,
-        GanttRelationType.START_FINISH) == true))
-        && node.getChildren() != null) {
+            GanttRelationType.START_FINISH)))
+            && node.getChildren() != null) {
       // Calculate start date from the earliest child.
       for (final GanttTask child : node.getChildren()) {
-        final Date date = getCalculatedStartDate(child, startDateSet, endDateSet);
+        final LocalDate date = getCalculatedStartDate(child, startDateSet, endDateSet);
         if (startDate == null) {
           startDate = date;
-        } else if (date != null && date.before(startDate) == true) {
-          if (log.isDebugEnabled() == true) {
+        } else if (date != null && date.isBefore(startDate)) {
+          if (log.isDebugEnabled()) {
             log.debug("Start date of child is before start date=" + date + " of parent: " + child);
           }
           startDate = date;
@@ -150,26 +149,25 @@ public class GanttUtils
       }
     }
     if (startDate == null && node.getDuration() != null) {
-      final Date calculatedEndDate = getCalculatedEndDate(node, startDateSet, endDateSet);
+      final LocalDate calculatedEndDate = getCalculatedEndDate(node, startDateSet, endDateSet);
       if (calculatedEndDate != null) {
         startDate = calculateDate(calculatedEndDate, -durationDays);
       }
     }
     node.setCalculatedStartDate(startDate).setStartDateCalculated(true);
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("calculated start date=" + startDate + " for: " + node);
     }
     return startDate;
   }
 
-  private static Date getPredecessorRelDate(final GanttRelationType relationType, final GanttTask predecessor,
-      final Set<Serializable> startDateSet, final Set<Serializable> endDateSet)
-  {
+  private static LocalDate getPredecessorRelDate(final GanttRelationType relationType, final GanttTask predecessor,
+                                            final Set<Serializable> startDateSet, final Set<Serializable> endDateSet) {
     if (relationType == GanttRelationType.START_START || relationType == GanttRelationType.START_FINISH) {
-      final Date calculatedStartDate = getCalculatedStartDate(predecessor, startDateSet, endDateSet);
+      final LocalDate calculatedStartDate = getCalculatedStartDate(predecessor, startDateSet, endDateSet);
       return calculatedStartDate;
     } else {
-      final Date calculatedEndDate = getCalculatedEndDate(predecessor, startDateSet, endDateSet);
+      final LocalDate calculatedEndDate = getCalculatedEndDate(predecessor, startDateSet, endDateSet);
       return calculatedEndDate;
     }
   }
@@ -179,49 +177,45 @@ public class GanttUtils
    * given, then the start date is taken and durationDays (only working days) will be added. If no start date is given, the start date will
    * be calculated from the node this node depends on.
    */
-  public static Date getCalculatedEndDate(final GanttTask node)
-  {
-    final Date end = getCalculatedEndDate(node, new HashSet<Serializable>(), new HashSet<Serializable>());
+  public static LocalDate getCalculatedEndDate(final GanttTask node) {
+    final LocalDate end = getCalculatedEndDate(node, new HashSet<>(), new HashSet<>());
     return end;
   }
 
   /**
    * @param node
-   * @param depth For avoiding stack overflow errors
-   * @return
    */
-  private static Date getCalculatedEndDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet)
-  {
+  private static LocalDate getCalculatedEndDate(final GanttTask node, final Set<Serializable> startDateSet, final Set<Serializable> endDateSet) {
     if (node == null) {
       return null;
     }
     if (node.getEndDate() != null) {
       return node.getEndDate();
     }
-    if (node.isEndDateCalculated() == true) {
+    if (node.isEndDateCalculated()) {
       return node.getCalculatedEndDate();
     }
     final int durationDays = node.getDuration() != null ? node.getDuration().setScale(0, RoundingMode.HALF_UP).intValue() : 0;
     if (node.getDuration() != null && node.getStartDate() != null) {
-      final Date endDate = calculateDate(node.getStartDate(), durationDays);
+      final LocalDate endDate = calculateDate(node.getStartDate(), durationDays);
       node.setCalculatedEndDate(endDate).setEndDateCalculated(true);
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("calculated end date=" + endDate + " for: " + node);
       }
       return endDate;
     }
-    if (endDateSet.contains(node.getId()) == true) {
+    if (endDateSet.contains(node.getId())) {
       log.error("Circular reference detection (couldn't calculate end date: " + node);
       return null;
     } else {
       endDateSet.add(node.getId());
     }
-    Date endDate = null;
+    LocalDate endDate = null;
     final GanttTask predecessor = node.getPredecessor();
     if (predecessor != null) {
       endDate = getPredecessorRelDate(node.getRelationType(), predecessor, startDateSet, endDateSet);
       if (endDate != null) {
-        if (NumberHelper.isNotZero(node.getPredecessorOffset()) == true) {
+        if (NumberHelper.isNotZero(node.getPredecessorOffset())) {
           endDate = calculateDate(endDate, node.getPredecessorOffset());
         }
         if (node.getRelationType() != GanttRelationType.START_FINISH && node.getRelationType() != GanttRelationType.FINISH_FINISH) {
@@ -231,35 +225,34 @@ public class GanttUtils
         }
       }
     }
-    if ((predecessor == null || (node.getRelationType() == null || node.getRelationType().isIn(GanttRelationType.FINISH_FINISH,
-        GanttRelationType.START_FINISH) == false))
-        && node.getChildren() != null
-        && node.getDuration() == null) {
+    if ((predecessor == null || (node.getRelationType() == null || !node.getRelationType().isIn(GanttRelationType.FINISH_FINISH,
+            GanttRelationType.START_FINISH)))
+            && node.getChildren() != null
+            && node.getDuration() == null) {
       // There are children and the end date is not fix defined by a predecessor.
       for (final GanttTask child : node.getChildren()) {
-        final Date date = getCalculatedEndDate(child, startDateSet, endDateSet);
-        if (date != null && (endDate == null || date.after(endDate)) == true) {
+        final LocalDate date = getCalculatedEndDate(child, startDateSet, endDateSet);
+        if (date != null && (endDate == null || date.isAfter(endDate))) {
           endDate = date;
         }
       }
     }
     if (endDate == null && node.getDuration() != null) {
-      final Date calculatedStartDate = getCalculatedStartDate(node, startDateSet, endDateSet);
+      final LocalDate calculatedStartDate = getCalculatedStartDate(node, startDateSet, endDateSet);
       if (calculatedStartDate != null) {
         endDate = calculateDate(calculatedStartDate, durationDays);
       }
     }
     node.setCalculatedEndDate(endDate).setEndDateCalculated(true);
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("calculated end date=" + endDate + " for: " + node);
     }
     return endDate;
   }
 
-  private static Date calculateDate(final Date date, final int workingDayOffset)
-  {
-    final DateHolder dh = new DateHolder(date);
-    dh.addWorkingDays(workingDayOffset);
-    return dh.getDate();
+  private static LocalDate calculateDate(final LocalDate date, final int workingDayOffset) {
+    PFDay day = PFDay.from(date); // not null
+    day = PFDayUtils.addWorkingDays(day, workingDayOffset);
+    return day.getDate();
   }
 }

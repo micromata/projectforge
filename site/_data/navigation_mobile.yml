@@ -1,0 +1,23 @@
+# Mobile menu navigation links
+
+- title: Home
+  url: /
+
+- title: Features
+  url: /features/
+
+- title: Changelog
+  url: /changelog-posts/
+
+- title: Download
+  url: /download/
+
+- title: FAQ
+  url: /misc/faqs
+
+- title: About
+  url: /about/
+
+- title: Search
+  url: /search/
+

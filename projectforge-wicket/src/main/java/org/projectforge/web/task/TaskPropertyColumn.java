@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,12 +30,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.hibernate.Hibernate;
 import org.projectforge.business.common.OutputType;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.common.BeanHelper;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.WicketUtils;
@@ -45,8 +43,6 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
   private static final long serialVersionUID = -26352961662061891L;
 
   private transient TaskTree taskTree;
-
-  private TenantDO tenant;
 
   /**
    * @param clazz
@@ -132,14 +128,13 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
   public TaskPropertyColumn<T> withTaskTree(final TaskTree taskTree)
   {
     this.taskTree = taskTree;
-    this.tenant = taskTree.getTenant();
     return this;
   }
 
   private TaskTree getTaskTree()
   {
     if (taskTree == null) {
-      taskTree = TenantRegistryMap.getInstance().getTenantRegistry(tenant).getTaskTree();
+      taskTree = TaskTree.getInstance();
     }
     return taskTree;
   }

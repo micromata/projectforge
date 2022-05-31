@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,6 @@
 package org.projectforge.web.wicket;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.authorization.Action;
 import org.apache.wicket.authorization.IAuthorizationStrategy;
 import org.apache.wicket.authorization.IUnauthorizedComponentInstantiationListener;
@@ -32,9 +31,6 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.component.IRequestableComponent;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
-import org.projectforge.web.LoginPage;
-import org.projectforge.web.mobile.AbstractSecuredMobilePage;
-import org.projectforge.web.mobile.LoginMobilePage;
 import org.projectforge.web.session.MySession;
 
 /**
@@ -66,8 +62,7 @@ public class MyAuthorizationStrategy implements IAuthorizationStrategy, IUnautho
         return true;
       }
       if (AbstractSecuredBasePage.class.isAssignableFrom(componentClass) == true
-          || AbstractSecuredBasePage.class.isAssignableFrom(componentClass) == true
-          || AbstractSecuredMobilePage.class.isAssignableFrom(componentClass) == true) {
+          || AbstractSecuredBasePage.class.isAssignableFrom(componentClass) == true) {
         return false;
       }
     }
@@ -77,11 +72,6 @@ public class MyAuthorizationStrategy implements IAuthorizationStrategy, IUnautho
   @Override
   public void onUnauthorizedInstantiation(final Component component)
   {
-    if (MySession.get().isMobileUserAgent() == true) {
-      throw new RestartResponseAtInterceptPageException(LoginMobilePage.class);
-    } else {
-      throw new RestartResponseAtInterceptPageException(LoginPage.class);
-    }
+    WicketUtils.redirectToLogin(component);
   }
-
 }

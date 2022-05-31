@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,6 @@
 
 package org.projectforge.web.task;
 
-import java.io.Serializable;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -39,13 +31,16 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskFilter;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
+import java.io.Serializable;
+import java.util.*;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TaskTreeProvider implements ITreeProvider<TaskNode>
 {
@@ -81,7 +76,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
   public Iterator<TaskNode> getRoots()
   {
     ensureTaskTree();
-    return iterator(taskTree.getRootTaskNode().getChilds(), showRootNode);
+    return iterator(taskTree.getRootTaskNode().getChildren(), showRootNode);
   }
 
   @Override
@@ -91,7 +86,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
       // Don't show children of root node again.
       return false;
     }
-    return taskNode.hasChilds();
+    return taskNode.hasChildren();
   }
 
   @Override
@@ -101,7 +96,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
       // Don't show children of root node again.
       return new LinkedList<TaskNode>().iterator();
     }
-    return iterator(taskNode.getChilds());
+    return iterator(taskNode.getChildren());
   }
 
   /**
@@ -155,7 +150,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
     final PFUserDO user = ThreadLocalUserContext.getUser();
     for (final TaskNode node : nodes) {
       if (taskFilter.match(node, taskDao, user) == true
-          && taskDao.hasSelectAccess(user, node.getTask(), false) == true) {
+          && taskDao.hasUserSelectAccess(user, node.getTask(), false) == true) {
         list.add(node);
       }
     }
@@ -164,9 +159,9 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
 
   /**
    * A {@link Model} which uses an id to load its {@link Foo}.
-   * 
+   *
    * If {@link Foo}s were {@link Serializable} you could just use a standard {@link Model}.
-   * 
+   *
    * @see #equals(Object)
    * @see #hashCode()
    */

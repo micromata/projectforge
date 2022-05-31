@@ -1,27 +1,50 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.framework.persistence.history.entities;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
-import org.apache.log4j.Logger;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
 import de.micromata.genome.db.jpa.xmldump.api.XmlDumpRestoreContext;
 import de.micromata.genome.jpa.StdRecord;
 import de.micromata.genome.jpa.metainf.EntityMetadata;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Restore History entries with new Pks.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
 public class PfHistoryMasterXmlBeforePersistListener implements JpaXmlBeforePersistListener
 {
-  private static final Logger LOG = Logger.getLogger(PfHistoryMasterXmlBeforePersistListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PfHistoryMasterXmlBeforePersistListener.class);
 
   @Override
   public Object preparePersist(EntityMetadata entityMetadata, Object entity, XmlDumpRestoreContext ctx)
@@ -36,7 +59,7 @@ public class PfHistoryMasterXmlBeforePersistListener implements JpaXmlBeforePers
   private void setRefEntityPk(PfHistoryMasterDO pfm, XmlDumpRestoreContext ctx)
   {
     String entn = pfm.getEntityName();
-    if (StringUtils.isBlank(entn) == true) {
+    if (StringUtils.isBlank(entn)) {
       LOG.warn("History entry has no entityName");
       return;
     }
@@ -72,7 +95,7 @@ public class PfHistoryMasterXmlBeforePersistListener implements JpaXmlBeforePers
   {
 
     String smodby = pfm.getModifiedBy();
-    if (NumberUtils.isDigits(smodby) == false) {
+    if (!NumberUtils.isDigits(smodby)) {
       return;
     }
     Integer olduserpk = Integer.parseInt(smodby);
@@ -83,7 +106,7 @@ public class PfHistoryMasterXmlBeforePersistListener implements JpaXmlBeforePers
     }
     Integer pk = user.getId();
     if (pk == null) {
-      LOG.warn("User id is null: " + user.getDisplayUsername());
+      LOG.warn("User id is null: " + user.getUserDisplayName());
       return;
     }
     String spk = Integer.toString(pk);
@@ -97,7 +120,7 @@ public class PfHistoryMasterXmlBeforePersistListener implements JpaXmlBeforePers
   private void setNewCollectionRefPks(PfHistoryMasterDO pfm, XmlDumpRestoreContext ctx)
   {
     for (String key : pfm.getAttributes().keySet()) {
-      if (key.endsWith(":ov") == false && key.endsWith(":nv") == false) {
+      if (!key.endsWith(":ov") && !key.endsWith(":nv")) {
         continue;
       }
       PfHistoryAttrDO row = (PfHistoryAttrDO) pfm.getAttributeRow(key);
@@ -135,7 +158,7 @@ public class PfHistoryMasterXmlBeforePersistListener implements JpaXmlBeforePers
 
   private List<Integer> parseIntList(String value)
   {
-    if (StringUtils.isBlank(value) == true) {
+    if (StringUtils.isBlank(value)) {
       return null;
     }
     String[] values = StringUtils.split(value, ',');

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,17 @@
 
 package org.projectforge.framework.persistence.utils;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.hibernate.Hibernate;
+import org.projectforge.framework.DisplayNameCapable;
+import org.projectforge.framework.persistence.api.BaseDO;
+import org.projectforge.framework.persistence.api.HibernateUtils;
+
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.TimeZone;
-
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.hibernate.Hibernate;
-import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 
 /**
  * 
@@ -51,22 +51,22 @@ public class ReflectionToString extends ReflectionToStringBuilder
   public ToStringBuilder append(final String fieldName, final Object object)
   {
     if (object != null) {
-      if (Hibernate.isInitialized(object) == false) {
-        if (BaseDO.class.isAssignableFrom(object.getClass()) == true) {
+      if (!Hibernate.isInitialized(object)) {
+        if (BaseDO.class.isAssignableFrom(object.getClass())) {
           // Work around for Jassist bug:
           final Serializable id = HibernateUtils.getIdentifier((BaseDO< ? >) object);
           return super.append(fieldName, id != null ? id : "<id>");
         }
         return super.append(fieldName, "LazyCollection");
-      } else if (ShortDisplayNameCapable.class.isAssignableFrom(object.getClass()) == true) {
+      } else if (DisplayNameCapable.class.isAssignableFrom(object.getClass())) {
         return super.append(fieldName, myToString(object));
-      } else if (BaseDO.class.isAssignableFrom(object.getClass()) == true) {
+      } else if (BaseDO.class.isAssignableFrom(object.getClass())) {
         return super.append(fieldName, myToString(object));
       } else if (object instanceof Collection) {
         final StringBuilder sb = new StringBuilder().append("[");
         boolean first = true;
         for (final Object el : (Collection< ? >) object) {
-          if (first == true)
+          if (first)
             first = false;
           else sb.append(", ");
           sb.append(myToString(el));
@@ -83,13 +83,13 @@ public class ReflectionToString extends ReflectionToStringBuilder
   {
     if (obj == null) {
       return "<null>";
-    } else if (ShortDisplayNameCapable.class.isAssignableFrom(obj.getClass()) == true) {
-      if (BaseDO.class.isAssignableFrom(obj.getClass()) == true) {
+    } else if (DisplayNameCapable.class.isAssignableFrom(obj.getClass())) {
+      if (BaseDO.class.isAssignableFrom(obj.getClass())) {
         final Serializable id = HibernateUtils.getIdentifier((BaseDO< ? >) obj);
-        return id + ":" + ((ShortDisplayNameCapable) obj).getShortDisplayName();
+        return id + ":" + ((DisplayNameCapable) obj).getDisplayName();
       }
-      return ((ShortDisplayNameCapable) obj).getShortDisplayName();
-    } else if (BaseDO.class.isAssignableFrom(obj.getClass()) == true) {
+      return ((DisplayNameCapable) obj).getDisplayName();
+    } else if (BaseDO.class.isAssignableFrom(obj.getClass())) {
       final Serializable id = HibernateUtils.getIdentifier((BaseDO< ? >) obj);
       return id != null ? id.toString() : "<id>";
     }
@@ -101,13 +101,11 @@ public class ReflectionToString extends ReflectionToStringBuilder
   {
     try {
       final Object value = getValue(field);
-      if (Hibernate.isInitialized(value) == false) {
+      if (!Hibernate.isInitialized(value)) {
         append(field.getName(), value);
         return false;
       }
-    } catch (final IllegalArgumentException ex) {
-      return false;
-    } catch (final IllegalAccessException ex) {
+    } catch (final IllegalArgumentException | IllegalAccessException ex) {
       return false;
     }
     return super.accept(field);

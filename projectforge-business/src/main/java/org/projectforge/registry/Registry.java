@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,39 +23,16 @@
 
 package org.projectforge.registry;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.address.PersonalAddressDO;
 import org.projectforge.business.book.BookDao;
-import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.EingangsrechnungDao;
-import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
-import org.projectforge.business.fibu.EmployeeDao;
-import org.projectforge.business.fibu.EmployeeSalaryDao;
-import org.projectforge.business.fibu.EmployeeScriptingDao;
-import org.projectforge.business.fibu.KontoDao;
-import org.projectforge.business.fibu.KundeDao;
-import org.projectforge.business.fibu.PaymentScheduleDO;
-import org.projectforge.business.fibu.ProjektDao;
-import org.projectforge.business.fibu.RechnungDao;
-import org.projectforge.business.fibu.RechnungsPositionDO;
-import org.projectforge.business.fibu.kost.BuchungssatzDao;
-import org.projectforge.business.fibu.kost.Kost1Dao;
-import org.projectforge.business.fibu.kost.Kost1ScriptingDao;
-import org.projectforge.business.fibu.kost.Kost2ArtDao;
-import org.projectforge.business.fibu.kost.Kost2Dao;
-import org.projectforge.business.fibu.kost.KostZuweisungDao;
+import org.projectforge.business.fibu.*;
+import org.projectforge.business.fibu.kost.*;
 import org.projectforge.business.gantt.GanttChartDao;
 import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
-import org.projectforge.business.meb.MebDao;
-import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.orga.ContractDao;
 import org.projectforge.business.orga.PostausgangDao;
 import org.projectforge.business.orga.PosteingangDao;
@@ -77,25 +54,30 @@ import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.springframework.context.ApplicationContext;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Registry for dao's. Here you can register additional daos and plugins (extensions of ProjectForge).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class Registry
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Registry.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Registry.class);
 
   public static final Registry instance = new Registry();
 
-  private static final Map<String, RegistryEntry> mapByName = new HashMap<String, RegistryEntry>();
+  private static final Map<String, RegistryEntry> mapByName = new HashMap<>();
 
-  private static final Map<Class<? extends BaseDao<?>>, RegistryEntry> mapByDao = new HashMap<Class<? extends BaseDao<?>>, RegistryEntry>();
+  private static final Map<Class<? extends BaseDao<?>>, RegistryEntry> mapByDao = new HashMap<>();
 
-  private static final Map<Class<? extends BaseDO<?>>, RegistryEntry> mapByDO = new HashMap<Class<? extends BaseDO<?>>, RegistryEntry>();
+  private static final Map<Class<? extends BaseDO<?>>, RegistryEntry> mapByDO = new HashMap<>();
 
-  private static final List<RegistryEntry> orderedList = new ArrayList<RegistryEntry>();
+  private static final List<RegistryEntry> orderedList = new ArrayList<>();
 
   public static Registry getInstance()
   {
@@ -108,7 +90,6 @@ public class Registry
     register(DaoConst.CONFIGURATION, ConfigurationDao.class, applicationContext.getBean(ConfigurationDao.class),
         "administration.configuration")
             .setSearchable(false);
-    register(DaoConst.TENANT, TenantDao.class, applicationContext.getBean(TenantDao.class), "tenant");
     register(DaoConst.USER, UserDao.class, applicationContext.getBean(UserDao.class), "user");
     register(DaoConst.GROUP, GroupDao.class, applicationContext.getBean(GroupDao.class), "group");
     register(DaoConst.TASK, TaskDao.class, applicationContext.getBean(TaskDao.class), "task"); // needs PFUserDO
@@ -117,6 +98,7 @@ public class Registry
 
     register(DaoConst.ADDRESS, AddressDao.class, applicationContext.getBean(AddressDao.class), "address")
         .setNestedDOClasses(PersonalAddressDO.class);
+    register(DaoConst.ADDRESSBOOK, AddressbookDao.class, applicationContext.getBean(AddressbookDao.class), "addressbook");
     register(DaoConst.TIMESHEET, TimesheetDao.class, applicationContext.getBean(TimesheetDao.class), "timesheet") //
         .setSearchFilterClass(TimesheetFilter.class);
     register(DaoConst.BOOK, BookDao.class, applicationContext.getBean(BookDao.class), "book");
@@ -162,7 +144,6 @@ public class Registry
     register(DaoConst.HR_PLANNING, HRPlanningDao.class, applicationContext.getBean(HRPlanningDao.class), "hr.planning") //
         .setNestedDOClasses(HRPlanningEntryDO.class).setSearchable(false);
 
-    register(DaoConst.MEB, MebDao.class, applicationContext.getBean(MebDao.class), "meb");
     register(DaoConst.SCRIPT, ScriptDao.class, applicationContext.getBean(ScriptDao.class), "scripting")
         .setSearchable(false);
     register(DaoConst.USER_PREF, UserPrefDao.class, applicationContext.getBean(UserPrefDao.class)).setSearchable(false);
@@ -176,7 +157,7 @@ public class Registry
 
   /**
    * Registers a new dao, which is available
-   * 
+   *
    * @param id
    * @param daoClassType
    * @param dao
@@ -205,7 +186,7 @@ public class Registry
 
   /**
    * Registers the given entry and appends it to the ordered list of registry entries.
-   * 
+   *
    * @param entry The entry to register.
    * @return this for chaining.
    */
@@ -221,7 +202,7 @@ public class Registry
 
   /**
    * Registers the given entry and inserts it to the ordered list of registry entries at the given position.
-   * 
+   *
    * @param existingEntry A previous added entry, at which the new entry should be inserted.
    * @param insertBefore If true then the given entry will be added before the existing entry, otherwise after.
    * @param entry The entry to register.
@@ -238,7 +219,7 @@ public class Registry
     if (idx < 0) {
       log.error("Registry entry '" + existingEntry.getId() + "' not found. Appending the given entry to the list.");
       orderedList.add(entry);
-    } else if (insertBefore == true) {
+    } else if (insertBefore) {
       orderedList.add(idx, entry);
     } else {
       orderedList.add(idx + 1, entry);
@@ -254,6 +235,11 @@ public class Registry
   public RegistryEntry getEntry(final Class<? extends BaseDao<?>> daoClass)
   {
     return mapByDao.get(daoClass);
+  }
+
+  public <T extends BaseDao<?>> T getDao(final Class<T> daoClass)
+  {
+    return (T)mapByDao.get(daoClass).getDao();
   }
 
   public RegistryEntry getEntryByDO(final Class<? extends BaseDO<?>> doClass)

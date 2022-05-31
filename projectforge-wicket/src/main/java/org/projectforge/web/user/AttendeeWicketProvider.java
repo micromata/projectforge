@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,6 @@
 
 package org.projectforge.web.user;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
@@ -38,9 +32,15 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
 public class AttendeeWicketProvider extends ChoiceProvider<TeamEventAttendeeDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AttendeeWicketProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AttendeeWicketProvider.class);
 
   private static final long serialVersionUID = 6228672635966093257L;
 
@@ -124,8 +124,10 @@ public class AttendeeWicketProvider extends ChoiceProvider<TeamEventAttendeeDO>
       } else {
         name = "[" + I18nHelper.getLocalizedMessage("address.addressText") + "] " + choice.getAddress().getFullName();
       }
+    } else if (choice.getUser() != null) {
+      name = "[" + I18nHelper.getLocalizedMessage("user") + "] " + choice.getUser().getFullname();
     }
-    String mail = choice.getAddress() != null ? choice.getAddress().getEmail() : choice.getUrl();
+    String mail = choice.getEMailAddress() != null ? choice.getEMailAddress() : choice.getUrl();
     if (mail == null) {
       mail = "";
     }
@@ -170,7 +172,8 @@ public class AttendeeWicketProvider extends ChoiceProvider<TeamEventAttendeeDO>
     }
 
     if (result.size() == 0) {
-      TeamEventAttendeeDO newAttendee = new TeamEventAttendeeDO().setUrl(term);
+      TeamEventAttendeeDO newAttendee = new TeamEventAttendeeDO();
+      newAttendee.setUrl(term);
       newAttendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
       newAttendee.setId(getAndDecreaseInternalNewAttendeeSequence());
       customAttendees.add(newAttendee);

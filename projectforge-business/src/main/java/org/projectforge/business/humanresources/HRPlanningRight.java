@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,7 @@
 
 package org.projectforge.business.humanresources;
 
-import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserRightAccessCheck;
-import org.projectforge.business.user.UserRightCategory;
-import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.user.UserRightServiceImpl;
-import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -70,7 +65,7 @@ public class HRPlanningRight extends UserRightAccessCheck<HRPlanningDO>
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final HRPlanningDO obj)
   {
-    if (accessChecker.userEquals(user, obj.getUser()) == true) {
+    if (accessChecker.userEquals(user, obj.getUser())) {
       return true;
     }
     return accessChecker.hasRight(user, getId(), UserRightValue.READONLY, UserRightValue.READWRITE);

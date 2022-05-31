@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.utils.BaseFormatter;
 import org.projectforge.framework.access.AccessException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProjektFormatter extends BaseFormatter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ProjektFormatter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjektFormatter.class);
 
   @Autowired
   private ProjektDao projektDao;
@@ -47,14 +47,14 @@ public class ProjektFormatter extends BaseFormatter
    */
   public static String formatProjektKundeAsString(final ProjektDO projekt, final KundeDO kunde, final String kundeText)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
-    if (StringUtils.isNotBlank(kundeText) == true) {
+    if (StringUtils.isNotBlank(kundeText)) {
       first = false;
       buf.append(kundeText);
     }
-    if (kunde != null && StringUtils.isNotBlank(kunde.getName()) == true) {
-      if (first == true)
+    if (kunde != null && StringUtils.isNotBlank(kunde.getName())) {
+      if (first)
         first = false;
       else
         buf.append("; ");
@@ -62,15 +62,15 @@ public class ProjektFormatter extends BaseFormatter
     }
     if (projekt != null) {
       // Show kunde name only, if not already given in buffer before.
-      if (projekt.getKunde() != null && StringUtils.contains(buf.toString(), projekt.getKunde().getName()) == false) {
-        if (first == true)
+      if (projekt.getKunde() != null && !StringUtils.contains(buf.toString(), projekt.getKunde().getName())) {
+        if (first)
           first = false;
         else
           buf.append("; ");
         buf.append(projekt.getKunde().getName());
       }
-      if (StringUtils.isNotBlank(projekt.getName()) == true) {
-        if (first == true)
+      if (StringUtils.isNotBlank(projekt.getName())) {
+        if (first)
           first = false;
         else
           buf.append(" - ");
@@ -109,13 +109,13 @@ public class ProjektFormatter extends BaseFormatter
     if (projekt == null) {
       return "";
     }
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     // final KundeDO kunde = projekt.getKunde();
     boolean hasAccess = projektDao.hasLoggedInUserSelectAccess(false);
-    if (hasAccess == false) {
+    if (!hasAccess) {
       return null;
     } else if (projekt != null) {
-      if (showOnlyNumber == true) {
+      if (showOnlyNumber) {
         sb.append(KostFormatter.format(projekt));
       } else {
         sb.append(KostFormatter.formatProjekt(projekt));

@@ -1,0 +1,35 @@
+$transitionTime: .3s;
+
+.searchContainer {
+  float: right;
+  width: 50%;
+
+  .searchInput {
+    padding: 10px 15px;
+  }
+
+  .additional {
+    width: 100%;
+    padding: 15px 15px 0 15px;
+  }
+}
+
+.tasks {
+  .task {
+    &.highlighted {
+      background-color: #f4d5cb;
+
+      &:hover {
+        background-color: #e5c5bb;
+      }
+    }
+
+    .taskIcon {
+      display: inline-block;
+      cursor: pointer;
+      margin: 0 5px;
+      min-width: 10px;
+      color: #009BA3;
+    }
+  }
+}

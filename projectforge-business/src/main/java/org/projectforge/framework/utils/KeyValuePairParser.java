@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.framework.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Simple key value parser
@@ -92,7 +92,7 @@ public class KeyValuePairParser
       final String value = parseValue();
       if (key != null) {
         if (keyValuePairs == null) {
-          keyValuePairs = new HashMap<String, String>();
+          keyValuePairs = new HashMap<>();
         }
         keyValuePairs.put(key, value);
       }
@@ -120,7 +120,7 @@ public class KeyValuePairParser
   public String parseKey()
   {
     skipWhitespaces();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     while (true) {
       nextToken();
       if (type != Type.CHAR) {
@@ -135,7 +135,6 @@ public class KeyValuePairParser
         buf.append(cval);
       }
     }
-    ;
     return buf.toString();
   }
 
@@ -151,24 +150,24 @@ public class KeyValuePairParser
       quoted = true; // value is quoted.
       nextToken();
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     while (true) {
       if (type != Type.CHAR) {
-        if (quoted == true) {
+        if (quoted) {
           throw new RuntimeException(createMessage(ERROR_QUOTATIONMARK_MISSED_AT_END_OF_CELL));
         }
         return buf.toString();
       }
       if (cval == '"') {
-        if (quoted == false) {
+        if (!quoted) {
           throw new RuntimeException(createMessage(ERROR_UNEXPECTED_QUOTATIONMARK, buf.toString()));
         }
         nextToken();
         if (type != Type.CHAR || cval == pairsSeparatorChar) { // End of cell
           break;
-        } else if (quoted == true && cval == '"') { // Escaped quotation mark
+        } else if (quoted && cval == '"') { // Escaped quotation mark
           buf.append(cval);
-        } else if (Character.isWhitespace(cval) == true) {
+        } else if (Character.isWhitespace(cval)) {
           skipWhitespaces();
           nextToken();
           if (type != Type.CHAR || cval == pairsSeparatorChar) {
@@ -179,7 +178,7 @@ public class KeyValuePairParser
         } else {
           throw new RuntimeException(createMessage(ERROR_UNEXPECTED_CHARACTER_AFTER_QUOTATION_MARK));
         }
-      } else if (quoted == false && cval == pairsSeparatorChar) {
+      } else if (!quoted && cval == pairsSeparatorChar) {
         break;
       } else {
         buf.append(cval);
@@ -216,7 +215,7 @@ public class KeyValuePairParser
   {
     while (true) {
       nextToken();
-      if (type != Type.CHAR || Character.isWhitespace(cval) == false) {
+      if (type != Type.CHAR || !Character.isWhitespace(cval)) {
         unread();
         break;
       }

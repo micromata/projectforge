@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,12 @@
 
 package org.projectforge.business.ldap;
 
-import org.projectforge.business.ldap.LdapOrganizationalUnitDao;
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Disabled;
 
-@Test(enabled=false)
+@Disabled
 public class LdapOrganizationalUnitDaoTest
 {
-  /*  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  /*  private static final org.slf4j.Logger log = org.slf4j.Logger
       .getLogger(LdapOrganizationalUnitDaoTest.class);
 
   private LdapOrganizationalUnitDao ldapOrganizationalUnitDao;
@@ -56,13 +53,13 @@ public class LdapOrganizationalUnitDaoTest
     final String ou = "deactivated";
     final String path = "ou=pf-test-ou";
     ldapOrganizationalUnitDao.createIfNotExist(path, "description");
-    Assert.assertTrue(ldapOrganizationalUnitDao.doesExist(path));
+    Assertions.assertTrue(ldapOrganizationalUnitDao.doesExist(path));
     ldapOrganizationalUnitDao.createIfNotExist(ou, "description", path);
-    Assert.assertTrue(ldapOrganizationalUnitDao.doesExist(ou, path));
+    Assertions.assertTrue(ldapOrganizationalUnitDao.doesExist(ou, path));
 
     ldapOrganizationalUnitDao.deleteIfExists(ou, path);
-    Assert.assertFalse(ldapOrganizationalUnitDao.doesExist(ou, path));
+    Assertions.assertFalse(ldapOrganizationalUnitDao.doesExist(ou, path));
     ldapOrganizationalUnitDao.deleteIfExists(path);
-    Assert.assertFalse(ldapOrganizationalUnitDao.doesExist(path));
+    Assertions.assertFalse(ldapOrganizationalUnitDao.doesExist(path));
   }*/
 }

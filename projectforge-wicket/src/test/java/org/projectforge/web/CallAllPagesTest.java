@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,60 +23,57 @@
 
 package org.projectforge.web;
 
-import java.util.Map;
-
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.systeminfo.SystemInfoCache;
+import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.web.address.AddressMobileViewPage;
-import org.projectforge.web.address.AddressViewPage;
+import org.projectforge.web.address.AddressEditPage;
+import org.projectforge.web.address.AddressListPage;
 import org.projectforge.web.admin.SetupPage;
-import org.projectforge.web.doc.TutorialPage;
-import org.projectforge.web.mobile.LoginMobilePage;
+import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.registry.WebRegistry;
-import org.projectforge.web.scripting.ScriptExecutePage;
-import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketPageTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.Test;
 
-public class CallAllPagesTest extends WicketPageTestBase
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CallAllPagesTest.class);
+import java.util.Map;
+
+public class CallAllPagesTest extends WicketPageTestBase {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CallAllPagesTest.class);
 
   static int counter;
 
   @Autowired
   private SystemInfoCache systemInfoCache;
 
-  @SuppressWarnings("unchecked")
-  private final Class<? extends WebPage>[] skipPages = new Class[] { //
-      // Checked below:
-      LoginPage.class, LoginMobilePage.class, SetupPage.class, TutorialPage.class, //
-      AddressViewPage.class, AddressMobileViewPage.class, // Checked in AddressPagesTest
-      // Not yet checked:
-      ScriptExecutePage.class };
+  @Autowired
+  private MenuCreator menuCreator;
 
-  @AfterClass
-  public static void logNumberOfTestesPages()
-  {
+  @SuppressWarnings("unchecked")
+  private final Class<? extends WebPage>[] skipPages = new Class[]{ //
+      // Not yet checked:
+      AddressEditPage.class, // Shouldn't be used anymore (only available for compilation of AddressListPage).
+      AddressListPage.class, // Shouldn't be used anymore (AddressListPage.filter used in Marketing plugin).
+      SetupPage.class,       // Tested separately (works only on empty data bas
+  };
+
+  @Override
+  protected void afterAll() {
     log.info("Number of tested Wicket pages: " + counter);
+    recreateDataBase();
   }
 
   @Test
-  public void testAllMountedPages()
-  {
+  public void testAllMountedPages() {
+    MenuCreator.setTestCase(true);
     _testAllMountedPages();
-    testPage(LoginPage.class);
-    testPage(LoginMobilePage.class);
-    clearDatabase();
-    testPage(SetupPage.class);
+    testPage(SetupPage.class, CalendarPage.class); // Data base isn't empty.
+    // clearDatabase();
+    // testPage(SetupPage.class); // Doesn't work (table t_pf_user exists).
   }
 
-  private void _testAllMountedPages()
-  {
+  private void _testAllMountedPages() {
     log.info("Test all web pages with.");
     login(AbstractTestBase.TEST_FULL_ACCESS_USER, AbstractTestBase.TEST_FULL_ACCESS_USER_PASSWORD);
     SystemInfoCache.internalInitialize(systemInfoCache);
@@ -95,29 +92,24 @@ public class CallAllPagesTest extends WicketPageTestBase
       }
       testPage(entry.getValue());
     }
-    testPage(TutorialPage.class, MessagePage.class); // Tutorial page not available at default.
     logout();
   }
 
-  private void testPage(final Class<? extends WebPage> pageClass)
-  {
+  private void testPage(final Class<? extends WebPage> pageClass) {
     testPage(pageClass, null, pageClass);
   }
 
   @SuppressWarnings("unused")
-  private void testPage(final Class<? extends WebPage> pageClass, final PageParameters params)
-  {
+  private void testPage(final Class<? extends WebPage> pageClass, final PageParameters params) {
     testPage(pageClass, params, pageClass);
   }
 
-  private void testPage(final Class<? extends WebPage> pageClass, final Class<? extends WebPage> expectedRenderedPage)
-  {
+  private void testPage(final Class<? extends WebPage> pageClass, final Class<? extends WebPage> expectedRenderedPage) {
     testPage(pageClass, null, expectedRenderedPage);
   }
 
   private void testPage(final Class<? extends WebPage> pageClass, final PageParameters params,
-      final Class<? extends WebPage> expectedRenderedPage)
-  {
+                        final Class<? extends WebPage> expectedRenderedPage) {
     log.info("Calling page: " + pageClass.getName());
     if (params != null) {
       tester.startPage(pageClass, params);

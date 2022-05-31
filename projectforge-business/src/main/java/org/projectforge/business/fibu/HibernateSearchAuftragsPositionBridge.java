@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,43 +23,38 @@
 
 package org.projectforge.business.fibu;
 
-import org.apache.lucene.document.Document;
-import org.hibernate.search.bridge.FieldBridge;
-import org.hibernate.search.bridge.LuceneOptions;
+import org.hibernate.search.bridge.StringBridge;
 
 /**
  * Bridge for hibernate search to search for order positions of form ###.## (&lt;order number&gt;.&lt;position
  * number&gt>).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class HibernateSearchAuftragsPositionBridge implements FieldBridge
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
-      .getLogger(HibernateSearchAuftragsPositionBridge.class);
+public class HibernateSearchAuftragsPositionBridge implements StringBridge {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
+          .getLogger(HibernateSearchAuftragsPositionBridge.class);
 
-  /**
-   * @see org.hibernate.search.bridge.FieldBridge#set(java.lang.String, java.lang.Object,
-   *      org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)
-   */
-  public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
-  {
-    final AuftragsPositionDO position = (AuftragsPositionDO) value;
+  @Override
+  public String objectToString(Object object) {
+    if (object instanceof String) {
+      return object.toString();
+    }
+    final AuftragsPositionDO position = (AuftragsPositionDO) object;
     if (position == null) {
-      log.fatal("AuftragsPositionDO object is null.");
-      return;
+      log.error("AuftragsPositionDO object is null.");
+      return "";
     }
     final AuftragDO auftrag = position.getAuftrag();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     if (auftrag == null || auftrag.getNummer() == null) {
-      log.fatal("AuftragDO for AuftragsPositionDO: " + position.getId() + "  is null.");
-      return;
+      log.error("AuftragDO for AuftragsPositionDO: " + position.getId() + "  is null.");
+      return "";
     }
-    buf.append(auftrag.getNummer()).append(".").append(position.getNumber());
-    if (log.isDebugEnabled() == true) {
-      log.debug(buf.toString());
+    sb.append(auftrag.getNummer()).append(".").append(position.getNumber());
+    if (log.isDebugEnabled()) {
+      log.debug(sb.toString());
     }
-    luceneOptions.addFieldToDocument(name, buf.toString(), document);
+    return sb.toString();
   }
 }

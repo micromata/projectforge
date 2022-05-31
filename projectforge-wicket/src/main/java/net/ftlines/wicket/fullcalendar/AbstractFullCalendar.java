@@ -1,9 +1,32 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 /**
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p>
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -12,6 +35,9 @@
 
 package net.ftlines.wicket.fullcalendar;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.WicketAjaxJQueryResourceReference;
 import org.apache.wicket.markup.head.CssReferenceHeaderItem;
@@ -21,39 +47,72 @@ import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.html.IHeaderContributor;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
+import org.joda.time.DateTime;
+import org.joda.time.LocalTime;
+import org.joda.time.format.ISODateTimeFormat;
+import org.projectforge.framework.ToStringUtil;
+
+import java.io.IOException;
 
 abstract class AbstractFullCalendar extends MarkupContainer implements IHeaderContributor {
-	public AbstractFullCalendar(String id) {
-		super(id);
-	}
+  public AbstractFullCalendar(String id) {
+    super(id);
+  }
 
-	// TODO see if it makes sense to switch these to Css/JavaScriptResourceReference
-	private static final ResourceReference CSS = new PackageResourceReference(AbstractFullCalendar.class,
-		"res/fullcalendar.css");
-	private static final ResourceReference JS = new PackageResourceReference(AbstractFullCalendar.class,
-		"res/fullcalendar.js");
-	private static final ResourceReference JS_EXT = new PackageResourceReference(AbstractFullCalendar.class,
-		"res/fullcalendar.ext.js");
-	private static final ResourceReference JS_MIN = new PackageResourceReference(AbstractFullCalendar.class,
-		"res/fullcalendar.min.js");
+  // TODO see if it makes sense to switch these to Css/JavaScriptResourceReference
+  private static final ResourceReference CSS = new PackageResourceReference(AbstractFullCalendar.class,
+          "res/fullcalendar.css");
+  private static final ResourceReference JS = new PackageResourceReference(AbstractFullCalendar.class,
+          "res/fullcalendar.js");
+  private static final ResourceReference JS_EXT = new PackageResourceReference(AbstractFullCalendar.class,
+          "res/fullcalendar.ext.js");
+  private static final ResourceReference JS_MIN = new PackageResourceReference(AbstractFullCalendar.class,
+          "res/fullcalendar.min.js");
 
-	@Override
-	public void renderHead(IHeaderResponse response) {
+  private static ToStringUtil.Serializer dateTimeSerializer = new ToStringUtil.Serializer(DateTime.class, new DateTimeSerializer());
 
-		response.render(JavaScriptHeaderItem.forReference(WicketAjaxJQueryResourceReference.get()));
+  private static ToStringUtil.Serializer localTimeSerializer = new ToStringUtil.Serializer(LocalTime.class, new LocalTimeSerializer());
 
-		response.render(CssReferenceHeaderItem.forReference(CSS));
+  @Override
+  public void renderHead(IHeaderResponse response) {
 
-		if (getApplication().usesDeploymentConfig()) {
-			response.render(JavaScriptReferenceHeaderItem.forReference(JS_MIN));
-		} else {
-			response.render(JavaScriptReferenceHeaderItem.forReference(JS));
-		}
-		response.render(JavaScriptReferenceHeaderItem.forReference(JS_EXT));
+    response.render(JavaScriptHeaderItem.forReference(WicketAjaxJQueryResourceReference.get()));
 
-	}
+    response.render(CssReferenceHeaderItem.forReference(CSS));
 
-	public final String toJson(Object value) {
-		return Json.toJson(value);
-	}
+    if (getApplication().usesDeploymentConfig()) {
+      response.render(JavaScriptReferenceHeaderItem.forReference(JS_MIN));
+    } else {
+      response.render(JavaScriptReferenceHeaderItem.forReference(JS));
+    }
+    response.render(JavaScriptReferenceHeaderItem.forReference(JS_EXT));
+
+  }
+
+  public final String toJson(Object value) {
+    return ToStringUtil.toJsonStringExtended(value, dateTimeSerializer);//, localTimeSerializer);
+  }
+
+
+  static class DateTimeSerializer extends StdSerializer<DateTime> {
+    public DateTimeSerializer() {
+      super(DateTime.class);
+    }
+
+    @Override
+    public void serialize(DateTime value, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+      jgen.writeString(ISODateTimeFormat.dateTime().print(value));
+    }
+  }
+
+  static class LocalTimeSerializer extends StdSerializer<LocalTime> {
+    public LocalTimeSerializer() {
+      super(LocalTime.class);
+    }
+
+    @Override
+    public void serialize(LocalTime value, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+      jgen.writeString(value.toString("h:mmaa"));
+    }
+  }
 }

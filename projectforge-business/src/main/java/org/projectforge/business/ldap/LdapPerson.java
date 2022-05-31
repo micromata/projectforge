@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.business.ldap;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -53,14 +53,14 @@ public class LdapPerson extends LdapObject<String>
   @Override
   public String getCommonName()
   {
-    if (StringUtils.isBlank(commonName) == true) {
-      if (StringUtils.isBlank(getGivenName()) == false) {
-        if (StringUtils.isBlank(getSurname()) == false) {
+    if (StringUtils.isBlank(commonName)) {
+      if (!StringUtils.isBlank(getGivenName())) {
+        if (!StringUtils.isBlank(getSurname())) {
           commonName = getGivenName() + " " + getSurname();
         } else {
           commonName = getGivenName();
         }
-      } else if (StringUtils.isBlank(getSurname()) == false) {
+      } else if (!StringUtils.isBlank(getSurname())) {
         commonName = getSurname();
       } else {
         commonName = uid;
@@ -130,7 +130,7 @@ public class LdapPerson extends LdapObject<String>
    */
   public LdapPerson setEmployeeNumber(final String employeeNumber)
   {
-    if (employeeNumber != null && employeeNumber.startsWith(PFUserDOConverter.ID_PREFIX) == false) {
+    if (employeeNumber != null && !employeeNumber.startsWith(PFUserDOConverter.ID_PREFIX)) {
       this.employeeNumber = PFUserDOConverter.ID_PREFIX + employeeNumber;
     } else {
       this.employeeNumber = employeeNumber;

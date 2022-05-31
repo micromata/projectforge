@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,14 @@
 
 package org.projectforge.framework.persistence.history;
 
-import java.util.Locale;
-
-import org.apache.commons.lang.StringUtils;
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.hibernate.history.delta.PropertyDelta;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.hibernate.history.delta.PropertyDelta;
+import java.util.Locale;
 
 /**
  * @author wolle
@@ -40,7 +39,7 @@ import de.micromata.hibernate.history.delta.PropertyDelta;
 public class PrintingHistoryFormatter extends DefaultHistoryFormatter
 {
   /** The logger */
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PrintingHistoryFormatter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PrintingHistoryFormatter.class);
 
   public PrintingHistoryFormatter(final String resourceBundleName)
   {

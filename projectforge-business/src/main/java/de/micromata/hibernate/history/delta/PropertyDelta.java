@@ -1,29 +1,41 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-// $RCSfile: PropertyDelta.java,v $
+// Project ProjectForge Community Edition
+//         www.projectforge.org
 //
-// Project   BaseApp
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
-// Author    Wolfgang Jung (w.jung@micromata.de)
-// Created   Mar 7, 2005
+// ProjectForge is dual-licensed.
 //
-// $Id: PropertyDelta.java,v 1.1 2007/03/08 22:50:48 wolle Exp $
-// $Revision: 1.1 $
-// $Date: 2007/03/08 22:50:48 $
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package de.micromata.hibernate.history.delta;
 
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.query.Query;
+import org.hibernate.type.IntegerType;
+import org.hibernate.type.LongType;
+import org.hibernate.type.StringType;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Legacy used for XML persistence of DB.
@@ -33,7 +45,7 @@ import org.hibernate.metadata.ClassMetadata;
  */
 public abstract class PropertyDelta
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PropertyDelta.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PropertyDelta.class);
 
   private Integer id;
 
@@ -131,7 +143,7 @@ public abstract class PropertyDelta
       Map<String, ClassMetadata> map = factory.getAllClassMetadata();
       ClassMetadata meta = null;
       for (String entry : map.keySet()) {
-        if (entry.endsWith(type) == true) {
+        if (entry.endsWith(type)) {
           meta = factory.getClassMetadata(entry);
           break;
         }
@@ -141,16 +153,16 @@ public abstract class PropertyDelta
         return null;
       }
       Class<?> pkType = meta.getIdentifierType().getReturnedClass();
-      if (ClassUtils.isAssignable(pkType, Number.class) == true) {
+      if (ClassUtils.isAssignable(pkType, Number.class)) {
         if (pkType == Integer.class) {
           Integer pk = Integer.parseInt(id);
-          query.setInteger("pk", pk);
+          query.setParameter("pk", pk, IntegerType.INSTANCE);
         } else {
           Long pk = Long.parseLong(id);
-          query.setLong("pk", pk);
+          query.setParameter("pk", pk, LongType.INSTANCE);
         }
       } else {
-        query.setString("pk", id);
+        query.setParameter("pk", id, StringType.INSTANCE);
       }
       query.setCacheable(true);
       query.setMaxResults(1);

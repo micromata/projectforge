@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.business.utils;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
-
 public class HtmlHelper
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HtmlHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HtmlHelper.class);
 
   private static final int TAB_WIDTH = 8;
 
@@ -39,29 +39,29 @@ public class HtmlHelper
    * Only xml characters will be escaped (for compatibility with fop rendering engine).
    *
    * @return
-   * @see StringEscapeUtils#escapeXml(String)
+   * @see StringEscapeUtils#escapeXml11(String)
    */
   public static String escapeXml(final String str)
   {
-    return StringEscapeUtils.escapeXml(str);
+    return StringEscapeUtils.escapeXml11(str);
   }
 
   /**
    * @param str              The string to convert.
    * @param createLineBreaks If true then new lines will be replaced by newlines and &lt;br/&gt;
    * @return
-   * @see StringEscapeUtils#escapeHtml(String)
+   * @see StringEscapeUtils#escapeHtml4(String)
    */
   public static String escapeHtml(final String str, final boolean createLineBreaks)
   {
     if (str == null) {
       return null;
     }
-    final String result = StringEscapeUtils.escapeHtml(str);
-    if (createLineBreaks == false) {
+    final String result = StringEscapeUtils.escapeHtml4(str);
+    if (!createLineBreaks) {
       return result;
     } else {
-      if (result.contains("\r\n") == true) {
+      if (result.contains("\r\n")) {
         return StringUtils.replace(result, "\r\n", "<br/>\r\n");
       } else {
         return StringUtils.replace(result, "\n", "<br/>\n");
@@ -100,7 +100,7 @@ public class HtmlHelper
     try {
       return URLEncoder.encode(url, "UTF-8");
     } catch (final UnsupportedEncodingException ex) {
-      log.warn(ex);
+      log.warn(ex.toString());
       return url;
     }
   }
@@ -116,14 +116,14 @@ public class HtmlHelper
    */
   public static String formatText(final String str, final boolean escapeChars)
   {
-    if (StringUtils.isEmpty(str) == true) {
+    if (StringUtils.isEmpty(str)) {
       return "";
     }
     String s = str;
-    if (escapeChars == true) {
+    if (escapeChars) {
       s = escapeXml(str);
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean doubleSpace = false;
     int col = 0;
     for (int i = 0; i < s.length(); i++) {
@@ -134,7 +134,7 @@ public class HtmlHelper
       } else if (ch == '\r') {
         // Do nothing
       } else if (ch == ' ') {
-        if (doubleSpace == true) {
+        if (doubleSpace) {
           buf.append("&nbsp;");
         } else {
           buf.append(' ');
@@ -156,7 +156,7 @@ public class HtmlHelper
   public static String formatXSLFOText(final String str, final boolean escapeChars)
   {
     String s = str;
-    if (escapeChars == true) {
+    if (escapeChars) {
       s = escapeXml(str);
     }
     return StringUtils.replace(s, "\n", "<br/>");

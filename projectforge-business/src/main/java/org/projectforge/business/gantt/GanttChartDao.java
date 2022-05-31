@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,8 @@
 
 package org.projectforge.business.gantt;
 
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -48,35 +39,36 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.AliasMap;
-import org.projectforge.framework.xstream.ProjectForgeRootElement;
-import org.projectforge.framework.xstream.Status;
-import org.projectforge.framework.xstream.XmlConstants;
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlHelper;
-import org.projectforge.framework.xstream.XmlObject;
-import org.projectforge.framework.xstream.XmlObjectReader;
-import org.projectforge.framework.xstream.XmlObjectWriter;
-import org.projectforge.framework.xstream.XmlRegistry;
-import org.projectforge.framework.xstream.converter.ISODateConverter;
+import org.projectforge.framework.xmlstream.*;
+import org.projectforge.framework.xmlstream.converter.ISOLocalDateConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Repository
-public class GanttChartDao extends BaseDao<GanttChartDO>
-{
+public class GanttChartDao extends BaseDao<GanttChartDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.PM_GANTT;
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "task.title", "task.taskpath",
-      "owner.username",
-      "owner.firstname", "owner.lastname" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"task.title", "task.taskpath",
+          "owner.username",
+          "owner.firstname", "owner.lastname"};
 
   @Autowired
   private TaskDao taskDao;
+
+  @Autowired
+  private TaskTree taskTree;
 
   @Autowired
   private UserDao userDao;
@@ -90,12 +82,11 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
 
   private AliasMap xmlGanttObjectAliasMap;
 
-  public GanttChartDao()
-  {
+  public GanttChartDao() {
     super(GanttChartDO.class);
     userRightId = USER_RIGHT_ID;
     AccessibleObject.setAccessible(taskFields, true);
-    fieldMapping = new HashMap<String, String>();
+    fieldMapping = new HashMap<>();
     fieldMapping.put("predecessor", "ganttPredecessor");
     fieldMapping.put("predecessorOffset", "ganttPredecessorOffset");
     fieldMapping.put("relationType", "ganttRelationType");
@@ -103,46 +94,39 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
   @Override
-  protected void onSaveOrModify(final GanttChartDO obj)
-  {
+  protected void onSaveOrModify(final GanttChartDO obj) {
     final String styleAsXml = XmlObjectWriter.writeAsXml(obj.getStyle());
     obj.setStyleAsXml(styleAsXml);
     final String settingsAsXml = XmlObjectWriter.writeAsXml(obj.getSettings());
     obj.setSettingsAsXml(settingsAsXml);
   }
 
-  public String exportAsXml(final GanttChart ganttChart)
-  {
+  public String exportAsXml(final GanttChart ganttChart) {
     return exportAsXml(ganttChart, false);
   }
 
   @XmlObject(alias = "ProjectForge")
-  public class MyRootElement extends ProjectForgeRootElement
-  {
+  public class MyRootElement extends ProjectForgeRootElement {
     @SuppressWarnings("unused")
     private GanttChart ganttChart;
   }
 
-  public String exportAsXml(final GanttChart ganttChart, final boolean prettyFormat)
-  {
+  public String exportAsXml(final GanttChart ganttChart, final boolean prettyFormat) {
     final Document document = DocumentHelper.createDocument();
     final XmlObjectWriter writer = getXmlGanttObjectWriter();
-    final XmlRegistry xmlRegistry = new XmlRegistry();
-    xmlRegistry.registerConverter(Date.class, new ISODateConverter());
-    writer.setXmlRegistry(xmlRegistry);
+    writer.setXmlRegistry(createXmlRegistry());
     final MyRootElement root = new MyRootElement();
     root.ganttChart = ganttChart;
     root.setCreated().setTimeZone(ThreadLocalUserContext.getTimeZone()).setVersion("1.0");
     final Element element = writer.write(document, root);
     // Now, remove all elements with no information from the DOM:
     final String xml;
-    if (removeUnnecessaryElements(element) == true) {
+    if (removeUnnecessaryElements(element)) {
       // Nothing to write (no further information in the GanttObject tree given).
       xml = "";
     } else {
@@ -154,17 +138,16 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
   /**
    * Writes all Gantt objects as tree as xml. Writes only those values which are different to the original values of the
    * task with the same id.
-   * 
+   *
    * @param obj
    * @param rootObject
    */
-  public void writeGanttObjects(final GanttChartDO obj, final GanttTask rootObject)
-  {
+  public void writeGanttObjects(final GanttChartDO obj, final GanttTask rootObject) {
     final Document document = DocumentHelper.createDocument();
     final Element element = getXmlGanttObjectWriter().write(document, rootObject);
     // Now, remove all elements with no information from the DOM:
     final String xml;
-    if (removeUnnecessaryElements(element) == true) {
+    if (removeUnnecessaryElements(element)) {
       // Nothing to write (no further information in the GanttObject tree given).
       xml = "";
     } else {
@@ -176,30 +159,29 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
   /**
    * Removes all unnecessary GanttObject elements from the DOM (those without any information rather than the id).
    */
-  private boolean removeUnnecessaryElements(final Element element)
-  {
-    if (CollectionUtils.isNotEmpty(element.elements()) == true) {
+  private boolean removeUnnecessaryElements(final Element element) {
+    if (CollectionUtils.isNotEmpty(element.elements())) {
       for (final Object childObj : element.elements()) {
         final Element child = (Element) childObj;
-        if (removeUnnecessaryElements(child) == true) {
+        if (removeUnnecessaryElements(child)) {
           element.remove(child);
         }
       }
     }
-    if (CollectionUtils.isNotEmpty(element.elements()) == true) {
+    if (CollectionUtils.isNotEmpty(element.elements())) {
       // Element has descendants.
       return false;
     }
-    if (StringUtils.isBlank(element.getText()) == false) {
+    if (!StringUtils.isBlank(element.getText())) {
       // Element has non blank content.
       return false;
     }
     // Element has no descendants:
-    if (CollectionUtils.isEmpty(element.attributes()) == true) {
+    if (CollectionUtils.isEmpty(element.attributes())) {
       // Element has no attributes.
       return true;
     }
-    if ("predecessor".equals(element.getName()) == true) {
+    if ("predecessor".equals(element.getName())) {
       if (element.attribute(XmlObjectWriter.ATTR_ID) != null) {
         // Describes a complete Gantt task which is referenced, so full output is needed.
         return false;
@@ -227,31 +209,27 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
 
   /**
    * Reads all Gantt objects as tree from xml and TaskTree.
-   * 
+   *
    * @param obj
    * @return The root object of the read xml data.
    */
-  public GanttChartData readGanttObjects(final GanttChartDO obj)
-  {
-    final TaskTree taskTree = taskDao.getTaskTree();
+  public GanttChartData readGanttObjects(final GanttChartDO obj) {
     final GanttChartData ganttChartData = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree, obj.getTask());
-    final XmlObjectReader reader = new XmlObjectReader()
-    {
+    final XmlObjectReader reader = new XmlObjectReader() {
       @Override
       protected Object newInstance(final Class<?> clazz, final Element el, final String attrName,
-          final String attrValue)
-      {
-        if ("predecessor".equals(attrName) == true && XmlConstants.NULL_IDENTIFIER.equals(attrValue) == true) {
+                                   final String attrValue) {
+        if ("predecessor".equals(attrName) && XmlConstants.NULL_IDENTIFIER.equals(attrValue)) {
           // Field should set to null.
           return Status.IGNORE;
         }
-        if (GanttTask.class.isAssignableFrom(clazz) == true) {
+        if (GanttTask.class.isAssignableFrom(clazz)) {
           final GanttTask ganttObject = getGanttObject(taskTree, ganttChartData, el);
           if (ganttObject == null) {
             return new GanttTaskImpl(); // Gantt task not related to a ProjectForge task.
           }
           return ganttObject;
-        } else if (Collection.class.isAssignableFrom(clazz) == true) {
+        } else if (Collection.class.isAssignableFrom(clazz)) {
           final GanttTask ganttObject = getGanttObject(taskTree, ganttChartData, el.getParent());
           if (ganttObject != null && ganttObject.getChildren() != null) {
             return ganttObject.getChildren();
@@ -261,9 +239,8 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
       }
 
       @Override
-      protected boolean addCollectionEntry(final Collection<?> col, final Object obj, final Element el)
-      {
-        if (obj instanceof GanttTask == false) {
+      protected boolean addCollectionEntry(final Collection<?> col, final Object obj, final Element el) {
+        if (!(obj instanceof GanttTask)) {
           return false;
         }
         final GanttTask ganttTask = (GanttTask) obj;
@@ -280,10 +257,9 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
 
       @Override
       protected void setField(final Field field, final Object obj, final Object value, final Element element,
-          final String key,
-          final String attrValue)
-      {
-        if (XmlConstants.NULL_IDENTIFIER.equals(attrValue) == true) {
+                              final String key,
+                              final String attrValue) {
+        if (XmlConstants.NULL_IDENTIFIER.equals(attrValue)) {
           // Overwrite value from task with null.
           setField(field, obj, null);
           return;
@@ -292,13 +268,13 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
       }
 
     };
+    reader.setXmlRegistry(createXmlRegistry());
     reader.setAliasMap(getXmlGanttObjectAliasMap()).setIgnoreEmptyCollections(true);
     reader.read(obj.getGanttObjectsAsXml()); // Ignore the return value. If the task tree has changed, the task tree of root rules.
     return ganttChartData;
   }
 
-  private GanttTask getGanttObject(final TaskTree taskTree, final GanttChartData ganttChartData, final Element el)
-  {
+  private GanttTask getGanttObject(final TaskTree taskTree, final GanttChartData ganttChartData, final Element el) {
     final String idString = el.attributeValue("id");
     final Integer id = NumberHelper.parseInteger(idString);
     GanttTask ganttObject = ganttChartData.findById(id);
@@ -309,14 +285,14 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
   }
 
   @Override
-  public void afterLoad(final GanttChartDO obj)
-  {
+  public void afterLoad(final GanttChartDO obj) {
     final XmlObjectReader reader = new XmlObjectReader();
+    reader.setXmlRegistry(createXmlRegistry());
     reader.initialize(GanttChartStyle.class);
     reader.initialize(GanttChartSettings.class);
     final String styleAsXml = obj.getStyleAsXml();
     final GanttChartStyle style;
-    if (StringUtils.isEmpty(styleAsXml) == true) {
+    if (StringUtils.isEmpty(styleAsXml)) {
       style = new GanttChartStyle();
     } else {
       style = (GanttChartStyle) reader.read(styleAsXml);
@@ -324,7 +300,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
     obj.setStyle(style);
     final String settingsAsXml = obj.getSettingsAsXml();
     final GanttChartSettings settings;
-    if (StringUtils.isEmpty(settingsAsXml) == true) {
+    if (StringUtils.isEmpty(settingsAsXml)) {
       settings = new GanttChartSettings();
     } else {
       settings = (GanttChartSettings) reader.read(settingsAsXml);
@@ -332,8 +308,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
     obj.setSettings(settings);
   }
 
-  private AliasMap getXmlGanttObjectAliasMap()
-  {
+  private AliasMap getXmlGanttObjectAliasMap() {
     if (this.xmlGanttObjectAliasMap == null) {
       this.xmlGanttObjectAliasMap = new AliasMap();
       this.xmlGanttObjectAliasMap.put(GanttTaskImpl.class, "ganttObject");
@@ -344,30 +319,26 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
   /**
    * Ignores all field values in output which are equal to the values of the corresponding task.
    */
-  private XmlObjectWriter getXmlGanttObjectWriter()
-  {
-    final XmlObjectWriter xmlGanttObjectWriter = new XmlObjectWriter()
-    {
+  private XmlObjectWriter getXmlGanttObjectWriter() {
+    final XmlObjectWriter xmlGanttObjectWriter = new XmlObjectWriter() {
       @Override
-      protected boolean ignoreField(final Object obj, final Field field)
-      {
-        if (super.ignoreField(obj, field) == true) {
+      protected boolean ignoreField(final Object obj, final Field field) {
+        if (super.ignoreField(obj, field)) {
           return true;
         }
         if (obj instanceof GanttTask) {
-          final TaskTree taskTree = taskDao.getTaskTree();
           final String fieldName = field.getName();
-          if ("id".equals(fieldName) == true) {
+          if ("id".equals(fieldName)) {
             // Id should always be equals and needed in output for the identification of the gantt object.
             return false;
           }
-          if ("description".equals(fieldName) == true) {
+          if ("description".equals(fieldName)) {
             return true;
           }
           final GanttTask ganttObject = (GanttTask) obj;
           final TaskDO task = taskTree.getTaskById((Integer) ganttObject.getId());
           if (task != null) {
-            if ("predecessor".equals(field.getName()) == true) {
+            if ("predecessor".equals(field.getName())) {
               // Predecessor unmodified?
               return NumberHelper.isEqual((Integer) ganttObject.getPredecessorId(), task.getGanttPredecessorId());
             }
@@ -376,14 +347,14 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
               taskFieldname = fieldName;
             }
             for (final Field taskField : taskFields) {
-              if (taskFieldname.equals(taskField.getName()) == true) {
+              if (taskFieldname.equals(taskField.getName())) {
                 final Object value = BeanHelper.getFieldValue(obj, field);
                 final Object taskValue = BeanHelper.getFieldValue(task, taskField);
                 if (value instanceof BigDecimal) {
                   // Needed, because 10.0 is not equal to 10.000 (if scale is different).
                   return NumberHelper.isEqual((BigDecimal) value, (BigDecimal) taskValue);
                 }
-                return ObjectUtils.equals(value, taskValue) == true;
+                return Objects.equals(value, taskValue);
               }
             }
           }
@@ -393,12 +364,10 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
 
       @Override
       protected void writeField(final Field field, final Object obj, final Object fieldValue, final XmlField annotation,
-          final Element element)
-      {
-        if (GanttTask.class.isAssignableFrom(field.getDeclaringClass()) == true) {
+                                final Element element) {
+        if (GanttTask.class.isAssignableFrom(field.getDeclaringClass())) {
           final String fieldName = field.getName();
-          if ("id".equals(fieldName) == false) {
-            final TaskTree taskTree = taskDao.getTaskTree();
+          if (!"id".equals(fieldName)) {
             final GanttTask ganttObject = (GanttTask) obj;
             final TaskDO task = taskTree.getTaskById((Integer) ganttObject.getId());
             if (task != null) {
@@ -407,7 +376,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
                 taskFieldname = fieldName;
               }
               for (final Field taskField : taskFields) {
-                if (taskFieldname.equals(taskField.getName()) == true) {
+                if (taskFieldname.equals(taskField.getName())) {
                   final Object value = BeanHelper.getFieldValue(obj, field);
                   final Object taskValue = BeanHelper.getFieldValue(task, taskField);
                   if (taskValue != null && value == null) {
@@ -429,30 +398,35 @@ public class GanttChartDao extends BaseDao<GanttChartDO>
 
   /**
    * @param ganttChart
-   * @param taskId If null, then task will be set to null;
+   * @param taskId     If null, then task will be set to null;
    * @see TaskTree#getTaskById(Integer)
    */
-  public void setTask(final GanttChartDO ganttChart, final Integer taskId)
-  {
+  public void setTask(final GanttChartDO ganttChart, final Integer taskId) {
     final TaskDO task = taskDao.getOrLoad(taskId);
     ganttChart.setTask(task);
   }
 
   /**
-   * @param sheet
-   * @param userId If null, then task will be set to null;
+   * @param ganttChart
+   * @param userId     If null, then task will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setOwner(final GanttChartDO ganttChart, final Integer userId)
-  {
+  public void setOwner(final GanttChartDO ganttChart, final Integer userId) {
     final PFUserDO user = userDao.getOrLoad(userId);
     ganttChart.setOwner(user);
   }
 
   @Override
-  public GanttChartDO newInstance()
-  {
-    return new GanttChartDO().setSettings(new GanttChartSettings()).setStyle(new GanttChartStyle());
+  public GanttChartDO newInstance() {
+    GanttChartDO instance = new GanttChartDO();
+    instance.setSettings(new GanttChartSettings());
+    instance.setStyle(new GanttChartStyle());
+    return instance;
   }
 
+  private XmlRegistry createXmlRegistry() {
+    final XmlRegistry xmlRegistry = new XmlRegistry();
+    xmlRegistry.registerConverter(LocalDate.class, new ISOLocalDateConverter());
+    return xmlRegistry;
+  }
 }

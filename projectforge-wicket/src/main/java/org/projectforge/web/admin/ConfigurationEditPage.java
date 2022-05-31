@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,31 +23,29 @@
 
 package org.projectforge.web.admin;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.web.MenuItemRegistry;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = ConfigurationListPage.class)
 public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, ConfigurationEditForm, ConfigurationDao>
     implements
     ISelectCallerPage
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ConfigurationEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ConfigurationEditPage.class);
 
   private static final long serialVersionUID = -8192471994161712577L;
 
   @SpringBean
   private ConfigurationDao configurationDao;
-
-  @SpringBean
-  private MenuItemRegistry menuItemRegistry;
 
   public ConfigurationEditPage(final PageParameters parameters)
   {
@@ -57,7 +55,7 @@ public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, Con
 
   /**
    * Calls {@link MenuItemRegistry#refresh()} for the case that the visibility of some menu entries might have change.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractEditPage#afterSaveOrUpdate()
    */
 
@@ -67,7 +65,7 @@ public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, Con
   @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
-    menuItemRegistry.refresh();
+    WicketSupport.getMenuCreator().refresh();
     return null;
   }
 
@@ -89,33 +87,28 @@ public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, Con
     return log;
   }
 
+  @Override
   public void cancelSelection(final String property)
   {
   }
 
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if (property == null) {
       log.error("Oups, null property not supported for selection.");
       return;
     }
-    if ("taskId".equals(property) == true) {
-      form.setTask((Integer) selectedValue);
-    } else {
-      log.error("Property '" + property + "' not supported for selection.");
-    }
+    log.error("Property '" + property + "' not supported for selection.");
   }
 
+  @Override
   public void unselect(final String property)
   {
     if (property == null) {
       log.error("Oups, null property not supported for selection.");
       return;
     }
-    if ("taskId".equals(property) == true) {
-      form.setTask((Integer) null);
-    } else {
-      log.error("Property '" + property + "' not supported for unselection.");
-    }
+    log.error("Property '" + property + "' not supported for unselection.");
   }
 }

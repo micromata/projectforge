@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.business.fibu.kost;
 
+import org.projectforge.framework.utils.LabelValueBean;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.projectforge.framework.utils.LabelValueBean;
 
 /**
  * Stores multiple business assessments in a list. A table with different business assessment columns can be used.
@@ -39,7 +39,7 @@ public class BusinessAssessmentTable
 
   public BusinessAssessmentTable()
   {
-    businessAssessmentList = new ArrayList<LabelValueBean<String, BusinessAssessment>>();
+    businessAssessmentList = new ArrayList<>();
   }
 
   public List<LabelValueBean<String, BusinessAssessment>> getBusinessAssessmentList()
@@ -49,6 +49,6 @@ public class BusinessAssessmentTable
 
   public void addBusinessAssessment(final String label, final BusinessAssessment businessAssessment)
   {
-    businessAssessmentList.add(new LabelValueBean<String, BusinessAssessment>(label, businessAssessment));
+    businessAssessmentList.add(new LabelValueBean<>(label, businessAssessment));
   }
 }

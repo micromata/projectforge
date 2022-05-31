@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,23 +23,12 @@
 
 package org.projectforge.framework.persistence.xstream;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
-import org.hibernate.collection.internal.PersistentBag;
-import org.hibernate.collection.internal.PersistentList;
-import org.hibernate.collection.internal.PersistentMap;
-import org.hibernate.collection.internal.PersistentSet;
-import org.hibernate.collection.internal.PersistentSortedMap;
-import org.hibernate.collection.internal.PersistentSortedSet;
-import org.hibernate.proxy.HibernateProxy;
-
 import com.thoughtworks.xstream.mapper.Mapper;
 import com.thoughtworks.xstream.mapper.MapperWrapper;
+import org.hibernate.collection.internal.*;
+import org.hibernate.proxy.HibernateProxy;
+
+import java.util.*;
 
 /**
  * Replaces Hibernate 3 specific collections with java.util implementations.
@@ -54,7 +43,7 @@ import com.thoughtworks.xstream.mapper.MapperWrapper;
 public class HibernateMapper extends MapperWrapper
 {
 
-  private Map<Class<?>, Class<?>> collectionMap = new HashMap<Class<?>, Class<?>>();
+  private Map<Class<?>, Class<?>> collectionMap = new HashMap<>();
 
   public HibernateMapper(MapperWrapper arg0)
   {

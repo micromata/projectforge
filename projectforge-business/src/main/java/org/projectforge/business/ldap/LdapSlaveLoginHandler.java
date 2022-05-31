@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,22 +23,22 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.naming.NameNotFoundException;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginDefaultHandler;
+import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.naming.NameNotFoundException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * This LDAP login handler acts as a LDAP slave, meaning, that LDAP will be accessed in read-only mode. There are 3
@@ -67,15 +67,16 @@ import org.springframework.stereotype.Service;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-public class LdapSlaveLoginHandler extends LdapLoginHandler
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapSlaveLoginHandler.class);
+public class LdapSlaveLoginHandler extends LdapLoginHandler {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapSlaveLoginHandler.class);
 
   @Autowired
   PFUserDOConverter pfUserDOConverter;
 
-  enum Mode
-  {
+  @Autowired
+  private UserGroupCache userGroupCache;
+
+  enum Mode {
     SIMPLE, USERS, USER_GROUPS
   }
 
@@ -88,8 +89,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    *
    * @param mode
    */
-  void setMode(final Mode mode)
-  {
+  void setMode(final Mode mode) {
     this.mode = mode;
   }
 
@@ -97,12 +97,11 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.ldap.LdapLoginHandler#initialize()
    */
   @Override
-  public void initialize()
-  {
+  public void initialize() {
     super.initialize();
-    if (StringUtils.isBlank(ldapConfig.getManagerUser()) == true) {
+    if (StringUtils.isBlank(ldapConfig.getManagerUser())) {
       mode = Mode.SIMPLE;
-    } else if (StringUtils.isNotBlank(ldapConfig.getGroupBase()) == true) {
+    } else if (StringUtils.isNotBlank(ldapConfig.getGroupBase())) {
       mode = Mode.USERS;// Mode.USER_GROUPS;
       log.warn("Groups aren't yet supported by this LDAP handler.");
     } else {
@@ -122,19 +121,18 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   }
 
   /**
-   * Uses the standard implementation {@link LoginDefaultHandler#checkLogin(String, String)} for local users. For all
+   * Uses the standard implementation {@link LoginDefaultHandler#checkLogin(String, char[])} for local users. For all
    * other users a LDAP authentication is checked. If the LDAP authentication fails then
    * {@link LoginResultStatus#FAILED} is returned. If successful then {@link LoginResultStatus#SUCCESS} is returned with
    * the user settings of ProjectForge database. If the user doesn't yet exist in ProjectForge's data-base, it will be
    * created after and then returned.
    *
-   * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, java.lang.String, boolean)
+   * @see LoginHandler#checkLogin(String, char[])
    */
   @Override
-  public LoginResult checkLogin(final String username, final String password)
-  {
-    PFUserDO user = userService.getByUsername(username);
-    if (user != null && user.isLocalUser() == true) {
+  public LoginResult checkLogin(final String username, final char[] password) {
+    PFUserDO user = userService.getInternalByUsername(username);
+    if (user != null && user.getLocalUser()) {
       return loginDefaultHandler.checkLogin(username, password);
     }
     final LoginResult loginResult = new LoginResult();
@@ -145,25 +143,25 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
       return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
     }
     log.info("LDAP authentication was successful for: " + username);
-    user = userService.getByUsername(username); // Get again (may-be the user does no exist since last call of getInternalByName(String).
+    user = userService.getInternalByUsername(username); // Get again (may-be the user does no exist since last call of getInternalByName(String).
     if (user == null) {
       log.info("LDAP user '" + username + "' doesn't yet exist in ProjectForge's data base. Creating new user...");
       user = pfUserDOConverter.convert(ldapUser);
       user.setId(null); // Force new id.
-      if (mode == Mode.SIMPLE || ldapConfig.isStorePasswords() == false) {
+      if (mode == Mode.SIMPLE || !ldapConfig.isStorePasswords()) {
         user.setNoPassword();
       } else {
         userService.createEncryptedPassword(user, password);
       }
-      userService.save(user);
+      userDao.internalSave(user);
     } else if (mode != Mode.SIMPLE) {
       PFUserDOConverter.copyUserFields(pfUserDOConverter.convert(ldapUser), user);
-      if (ldapConfig.isStorePasswords() == true) {
+      if (ldapConfig.isStorePasswords()) {
         userService.createEncryptedPassword(user, password);
       }
-      userService.update(user);
-      if (user.hasSystemAccess() == false) {
-        log.info("User has no system access (is deleted/deactivated): " + user.getDisplayUsername());
+      userDao.internalUpdate(user);
+      if (!user.hasSystemAccess()) {
+        log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
         return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
       }
     }
@@ -181,8 +179,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#getAllGroups()
    */
   @Override
-  public List<GroupDO> getAllGroups()
-  {
+  public List<GroupDO> getAllGroups() {
     final List<GroupDO> groups = loginDefaultHandler.getAllGroups();
     return groups;
   }
@@ -194,19 +191,17 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#getAllUsers()
    */
   @Override
-  public List<PFUserDO> getAllUsers()
-  {
+  public List<PFUserDO> getAllUsers() {
     final List<PFUserDO> users = loginDefaultHandler.getAllUsers();
     return users;
   }
 
-  private PFUserDO getUser(final Collection<PFUserDO> col, final String username)
-  {
+  private PFUserDO getUser(final Collection<PFUserDO> col, final String username) {
     if (col == null || username == null) {
       return null;
     }
     for (final PFUserDO user : col) {
-      if (username.equals(user.getUsername()) == true) {
+      if (username.equals(user.getUsername())) {
         return user;
       }
     }
@@ -218,14 +213,12 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#isPasswordChangeSupported(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
-  public boolean isPasswordChangeSupported(final PFUserDO user)
-  {
-    return user.isLocalUser();
+  public boolean isPasswordChangeSupported(final PFUserDO user) {
+    return user.getLocalUser();
   }
 
   @Override
-  public boolean isWlanPasswordChangeSupported(PFUserDO user)
-  {
+  public boolean isWlanPasswordChangeSupported(PFUserDO user) {
     return false;
   }
 
@@ -235,24 +228,21 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    * @see org.projectforge.business.login.LoginHandler#afterUserGroupCacheRefresh(java.util.List, java.util.List)
    */
   @Override
-  public void afterUserGroupCacheRefresh(final Collection<PFUserDO> users, final Collection<GroupDO> groups)
-  {
-    if (mode == Mode.SIMPLE || refreshInProgress == true) {
+  public void afterUserGroupCacheRefresh(final Collection<PFUserDO> users, final Collection<GroupDO> groups) {
+    if (mode == Mode.SIMPLE || refreshInProgress) {
       return;
     }
-    new Thread()
-    {
+    new Thread() {
       @Override
-      public void run()
-      {
+      public void run() {
         synchronized (LdapSlaveLoginHandler.this) {
-          if (refreshInProgress == true) {
+          if (refreshInProgress) {
             return;
           }
           try {
             refreshInProgress = true;
             updateLdap(users, groups);
-            TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().internalGetNumberOfUsers(); // Force refresh of UserGroupCache.
+            userGroupCache.internalGetNumberOfUsers(); // Force refresh of UserGroupCache.
           } finally {
             refreshInProgress = false;
           }
@@ -264,22 +254,18 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   /**
    * @return true if currently a cache refresh is running, otherwise false.
    */
-  public boolean isRefreshInProgress()
-  {
+  public boolean isRefreshInProgress() {
     return refreshInProgress;
   }
 
-  private void updateLdap(final Collection<PFUserDO> users, final Collection<GroupDO> groups)
-  {
-    new LdapTemplate(ldapConnector)
-    {
+  private void updateLdap(final Collection<PFUserDO> users, final Collection<GroupDO> groups) {
+    new LdapTemplate(ldapConnector) {
       @Override
-      protected Object call() throws NameNotFoundException, Exception
-      {
+      protected Object call() throws NameNotFoundException, Exception {
         log.info("Updating LDAP...");
         final List<LdapUser> ldapUsers = getAllLdapUsers(ctx);
-        final List<PFUserDO> dbUsers = userService.loadAll();
-        final List<PFUserDO> users = new ArrayList<PFUserDO>(ldapUsers.size());
+        final List<PFUserDO> dbUsers = userService.internalLoadAll();
+        final List<PFUserDO> users = new ArrayList<>(ldapUsers.size());
         int error = 0, unmodified = 0, created = 0, updated = 0, deleted = 0, undeleted = 0, ignoredLocalUsers = 0,
             localUsers = 0;
         for (final LdapUser ldapUser : ldapUsers) {
@@ -289,10 +275,10 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
             PFUserDO dbUser = getUser(dbUsers, user.getUsername());
             if (dbUser == null) {
               // Double check if added between internalLoadAll() and here:
-              dbUser = userService.getByUsername(user.getUsername());
+              dbUser = userService.getInternalByUsername(user.getUsername());
             }
             if (dbUser != null) {
-              if (dbUser.isLocalUser() == true) {
+              if (dbUser.getLocalUser()) {
                 // Ignore local users.
                 log.warn("Please note: the user '"
                     + dbUser.getUsername()
@@ -301,11 +287,11 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
                 continue;
               }
               PFUserDOConverter.copyUserFields(user, dbUser);
-              if (dbUser.isDeleted() == true) {
-                userService.undelete(dbUser);
+              if (dbUser.isDeleted()) {
+                userDao.internalUndelete(dbUser);
                 ++undeleted;
               }
-              final ModificationStatus modificationStatus = userService.update(dbUser);
+              final ModificationStatus modificationStatus = userDao.internalUpdate(dbUser);
               if (modificationStatus != ModificationStatus.NONE) {
                 ++updated;
               } else {
@@ -314,7 +300,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
             } else {
               // New user:
               user.setId(null);
-              userService.save(user);
+              userDao.internalSave(user);
               ++created;
             }
           } catch (final Exception ex) {
@@ -324,16 +310,16 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
         }
         for (final PFUserDO dbUser : dbUsers) {
           try {
-            if (dbUser.isLocalUser() == true) {
+            if (dbUser.getLocalUser()) {
               // Ignore local users.
               ++localUsers;
               continue;
             }
             final PFUserDO user = getUser(users, dbUser.getUsername());
             if (user == null) {
-              if (dbUser.isDeleted() == false) {
+              if (!dbUser.isDeleted()) {
                 // User isn't available in LDAP, therefore mark the db user as deleted.
-                userService.markAsDeleted(dbUser);
+                userDao.internalMarkAsDeleted(dbUser);
                 ++deleted;
               } else {
                 ++unmodified;

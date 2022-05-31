@@ -1,12 +1,30 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
@@ -25,6 +43,8 @@ import org.projectforge.export.DOWithAttrListExcelExporter;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDayUtils;
 import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
 import org.projectforge.web.core.MenuBarPanel;
 import org.projectforge.web.wicket.AbstractListPage;
@@ -32,15 +52,17 @@ import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm, EmployeeService, EmployeeDO> implements
-    IListPageColumnsCreator<EmployeeDO>
-{
+        IListPageColumnsCreator<EmployeeDO> {
   private static final long serialVersionUID = -9117648731994041528L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeListEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeListEditPage.class);
 
   @SpringBean
   private EmployeeService employeeService;
@@ -53,35 +75,32 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
 
   private List<EmployeeDO> dataList;
 
-  public EmployeeListEditPage(final PageParameters parameters)
-  {
+  public EmployeeListEditPage(final PageParameters parameters) {
     super(parameters, "fibu.employee");
   }
 
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return getString("plugins.eed.listcare.title");
   }
 
   @Override
-  public List<IColumn<EmployeeDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
-  {
+  public List<IColumn<EmployeeDO, String>> createColumns(final WebPage returnToPage, final boolean sortable) {
     final List<IColumn<EmployeeDO, String>> columns = new ArrayList<>();
 
     final CellItemListener<EmployeeDO> cellItemListener = (CellItemListener<EmployeeDO>) (item, componentId,
-        rowModel) -> {
+                                                                                          rowModel) -> {
       final EmployeeDO employee = rowModel.getObject();
       appendCssClasses(item, employee.getId(), employee.isDeleted());
     };
 
     columns.add(new CellItemListenerPropertyColumn<>(new ResourceModel("name"),
-        getSortable("user.lastname", sortable),
-        "user.lastname", cellItemListener));
+            getSortable("user.lastname", sortable),
+            "user.lastname", cellItemListener));
 
     columns.add(new CellItemListenerPropertyColumn<>(new ResourceModel("firstName"),
-        getSortable("user.firstname", sortable),
-        "user.firstname", cellItemListener));
+            getSortable("user.firstname", sortable),
+            "user.firstname", cellItemListener));
 
     createAttrColumns(form.selectedOption, columns, sortable, cellItemListener);
 
@@ -89,46 +108,42 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   }
 
   private void createAttrColumns(ExtendEmployeeDataEnum eede, List<IColumn<EmployeeDO, String>> columns,
-      boolean sortable,
-      CellItemListener<EmployeeDO> cellItemListener)
-  {
+                                 boolean sortable,
+                                 CellItemListener<EmployeeDO> cellItemListener) {
     if (eede != null) {
       columns.addAll(
-          eede.getAttrColumnDescriptions()
-              .stream()
-              .map(desc -> new AttrInputCellItemListenerPropertyColumn<>(
-                  new ResourceModel(desc.getI18nKey()),
-                  getSortable(desc.getI18nKey(), sortable),
-                  desc.getGroupName(),
-                  desc.getPropertyName(),
-                  cellItemListener,
-                  timeableService,
-                  employeeService,
-                  guiAttrSchemaService,
-                  form.selectedMonth,
-                  form.selectedYear))
-              .collect(Collectors.toList()));
+              eede.getAttrColumnDescriptions()
+                      .stream()
+                      .map(desc -> new AttrInputCellItemListenerPropertyColumn<>(
+                              new ResourceModel(desc.getI18nKey()),
+                              getSortable(desc.getI18nKey(), sortable),
+                              desc.getGroupName(),
+                              desc.getPropertyName(),
+                              cellItemListener,
+                              timeableService,
+                              employeeService,
+                              guiAttrSchemaService,
+                              form.selectedMonth,
+                              form.selectedYear))
+                      .collect(Collectors.toList()));
     }
   }
 
   @Override
-  protected DOListExcelExporter createExcelExporter(final String filenameIdentifier)
-  {
+  protected DOListExcelExporter createExcelExporter(final String filenameIdentifier) {
     final ExtendEmployeeDataEnum selectedOption = form.selectedOption;
     if (selectedOption == null) {
       return null;
     }
-    final String[] fieldsToExport = { "id", "user" };
+    final String[] fieldsToExport = {"id", "user"};
     final List<AttrColumnDescription> attrFieldsToExport = selectedOption.getAttrColumnDescriptions();
-    final Date dateToSelectAttrRow = new GregorianCalendar(form.selectedYear, form.selectedMonth - 1, 1, 0, 0)
-        .getTime();
+    final Date dateToSelectAttrRow = PFDateTime.withDate(form.selectedYear, PFDayUtils.getMonth(form.selectedMonth), 1).getUtilDate();
     return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport,
-        dateToSelectAttrRow);
+            dateToSelectAttrRow);
   }
 
   @Override
-  protected void init()
-  {
+  protected void init() {
     final List<IColumn<EmployeeDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "user.lastname", SortOrder.ASCENDING);
     form.add(dataTable);
@@ -139,20 +154,17 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   }
 
   @Override
-  protected EmployeeListEditForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
-  {
+  protected EmployeeListEditForm newListForm(final AbstractListPage<?, ?, ?> parentPage) {
     return new EmployeeListEditForm(this);
   }
 
   @Override
-  public EmployeeService getBaseDao()
-  {
+  public EmployeeService getBaseDao() {
     return employeeService;
   }
 
   @Override
-  protected void addBottomPanel(final String id)
-  {
+  protected void addBottomPanel(final String id) {
     // add the save button only if the user has write access
     try {
       checkAccess();
@@ -162,22 +174,20 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
     }
   }
 
-  public void refreshDataTable()
-  {
+  public void refreshDataTable() {
     final List<IColumn<EmployeeDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "user.lastname", SortOrder.ASCENDING);
     form.addOrReplace(dataTable);
   }
 
-  public void saveList()
-  {
+  public void saveList() {
     checkAccess();
     for (EmployeeDO e : this.dataList) {
       List<EmployeeTimedDO> unusedTimeableAttributes = new ArrayList<>();
       for (EmployeeTimedDO timed : e.getTimeableAttributes()) {
         if (log.isDebugEnabled()) {
           log.debug("Timed attributes for employee: " + e.getUser().getFullname() + " Attribute group: "
-              + timed.getGroupName() + " Start-Date: " + timed.getStartTime());
+                  + timed.getGroupName() + " Start-Date: " + timed.getStartTime());
         }
         Map<String, JpaTabAttrBaseDO<EmployeeTimedDO, Integer>> attributes = timed.getAttributes();
         if (attributes.size() < 1) {
@@ -192,16 +202,14 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   }
 
   @Override
-  public List<EmployeeDO> getList()
-  {
+  public List<EmployeeDO> getList() {
     EmployeeFilter searchFilter = form.getSearchFilter();
     searchFilter.setShowOnlyActiveEntries(form.showOnlyActiveEntries);
     this.dataList = super.getList();
     return this.dataList;
   }
 
-  protected void checkAccess()
-  {
+  protected void checkAccess() {
     accessChecker.checkLoggedInUserRight(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE);
     accessChecker.checkRestrictedOrDemoUser();
   }

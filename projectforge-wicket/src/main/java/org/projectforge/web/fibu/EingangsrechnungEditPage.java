@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,40 +23,30 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.EingangsrechnungDao;
-import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
-import org.projectforge.business.fibu.PaymentType;
-import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
-import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
-import org.projectforge.common.props.PropUtils;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.business.fibu.*;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @EditPage(defaultReturnPage = EingangsrechnungListPage.class)
 public class EingangsrechnungEditPage
     extends AbstractEditPage<EingangsrechnungDO, EingangsrechnungEditForm, EingangsrechnungDao> implements
-    ISelectCallerPage
-{
+    ISelectCallerPage {
   private static final long serialVersionUID = 6847624027377867591L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EingangsrechnungEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungEditPage.class);
 
   @SpringBean
   private EingangsrechnungDao eingangsrechnungDao;
@@ -64,96 +54,69 @@ public class EingangsrechnungEditPage
   @SpringBean
   private SEPATransferGenerator SEPATransferGenerator;
 
-  public EingangsrechnungEditPage(final PageParameters parameters)
-  {
+  public EingangsrechnungEditPage(final PageParameters parameters) {
     super(parameters, "fibu.eingangsrechnung");
     init();
   }
 
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
 
     final ContentMenuEntryPanel exportInvoiceButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-        new Link<Object>("link")
-        {
+        new Link<Object>("link") {
           @Override
-          public void onClick()
-          {
+          public void onClick() {
             EingangsrechnungEditPage.this.exportInvoiceAsXML();
           }
         }, getString("fibu.rechnung.transferExport")).setTooltip(getString("fibu.rechnung.transferExport.tootlip"));
+    if (isNew()) {
+      exportInvoiceButton.setVisible(false);
+    }
     addContentMenuEntry(exportInvoiceButton);
   }
 
-  private void exportInvoiceAsXML()
-  {
+  private void exportInvoiceAsXML() {
     this.form.getFeedbackMessages().clear();
     final EingangsrechnungDO invoice = this.getData();
 
     final String filename = String.format("transfer-%s-%s.xml", invoice.getPk(), DateHelper.getTimestampAsFilenameSuffix(new Date()));
-    SEPATransferResult result = this.SEPATransferGenerator.format(this.getData());
+    try {
+      SEPATransferResult result = this.SEPATransferGenerator.format(this.getData());
 
-    if (result.isSuccessful() == false) {
-      if (result.getErrors().isEmpty()) {
-        // unknown error
-        this.log.error("Oups, xml has zero size. Filename: " + filename);
-        this.form.addError("fibu.rechnung.transferExport.error");
+      if (!result.isSuccessful()) {
+        if (result.getErrors().isEmpty()) {
+          // unknown error
+          this.log.error("Oups, xml has zero size. Filename: " + filename);
+          this.form.addError("fibu.rechnung.transferExport.error");
+          return;
+        }
+
+        String missingFieldsStr = SEPATransferResult.getMissingFields(result, invoice);
+        this.form.addError(SEPATransferResult.MISSING_FIELDS_ERROR_I18N_KEY, missingFieldsStr);
+
         return;
       }
 
-      List<String> missingFields = new ArrayList<>();
-
-      // check invoice
-      for (org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator.SEPATransferError error : result.getErrors().get(invoice)) {
-        switch (error) {
-          case SUM:
-            missingFields.add(this.getString("fibu.common.brutto"));
-            break;
-          case BANK_TRANSFER:
-            missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "paymentType")));
-            break;
-          case IBAN:
-            missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "iban")));
-            break;
-          case BIC:
-            missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "bic")));
-            break;
-          case RECEIVER:
-            missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "receiver")));
-            break;
-          case REFERENCE:
-            missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "referenz")));
-            break;
-        }
-      }
-
-      String missingFieldsStr = String.join(", ", missingFields);
-      this.form.addError("fibu.rechnung.transferExport.error.missing", missingFieldsStr);
-
-      return;
+      DownloadUtils.setDownloadTarget(result.getXml(), filename);
+    } catch (UserException e) {
+      this.form.addError("error", e.getParams()[0]);
     }
-
-    DownloadUtils.setDownloadTarget(result.getXml(), filename);
   }
 
   @Override
-  protected EingangsrechnungDao getBaseDao()
-  {
+  protected EingangsrechnungDao getBaseDao() {
     return eingangsrechnungDao;
   }
 
   @Override
   protected EingangsrechnungEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage,
-      final EingangsrechnungDO data)
-  {
+                                                 final EingangsrechnungDO data) {
     return new EingangsrechnungEditForm(this, data);
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 
@@ -161,22 +124,21 @@ public class EingangsrechnungEditPage
    * @see org.projectforge.web.wicket.AbstractEditPage#cloneData()
    */
   @Override
-  protected void cloneData()
-  {
+  protected void cloneData() {
     super.cloneData();
     final EingangsrechnungDO rechnung = getData();
     final int zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
-    final DayHolder day = new DayHolder();
-    rechnung.setDatum(day.getSQLDate());
-    day.add(Calendar.DAY_OF_MONTH, zahlungsZielInTagen);
-    rechnung.setFaelligkeit(day.getSQLDate());
+    PFDay day = PFDay.now();
+    rechnung.setDatum(day.getLocalDate());
+    day = day.plusDays(zahlungsZielInTagen);
+    rechnung.setFaelligkeit(day.getLocalDate());
     rechnung.setBezahlDatum(null);
     rechnung.setZahlBetrag(null);
     final List<EingangsrechnungsPositionDO> positionen = getData().getPositionen();
     if (positionen != null) {
-      rechnung.setPositionen(new ArrayList<EingangsrechnungsPositionDO>());
+      rechnung.setPositionen(new ArrayList<>());
       for (final EingangsrechnungsPositionDO origPosition : positionen) {
-        final EingangsrechnungsPositionDO position = (EingangsrechnungsPositionDO) origPosition.newClone();
+        final EingangsrechnungsPositionDO position = origPosition.newClone();
         rechnung.addPosition(position);
       }
     }
@@ -184,20 +146,17 @@ public class EingangsrechnungEditPage
   }
 
   @Override
-  public void cancelSelection(final String property)
-  {
+  public void cancelSelection(final String property) {
     // Do nothing.
   }
 
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     log.error("Property '" + property + "' not supported for selection.");
   }
 
   @Override
-  public void unselect(final String property)
-  {
+  public void unselect(final String property) {
     log.error("Property '" + property + "' not supported for selection.");
   }
 }

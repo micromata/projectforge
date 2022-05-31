@@ -6,7 +6,7 @@
 <template-fo systemDate="${systemDate}" title="${title}" createdLabel="${createdLabel}" loggedInUser="${loggedInUser.fullname}">
   <h1-color>${title}</h1-color>
   <table width="100%">
-    <table-column column-width="25mm" />
+    <table-column column-width="30mm" />
     <table-column column-width="45mm" />
     <table-column column-width="proportional-column-width(1)" />
     <table-body>

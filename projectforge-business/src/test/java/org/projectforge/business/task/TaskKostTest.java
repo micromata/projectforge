@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,25 +23,20 @@
 
 package org.projectforge.business.task;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.internal.junit.ArrayAsserts.assertArrayEquals;
-
-import java.util.List;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2ArtDao;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskDao;
-import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TaskKostTest extends AbstractTestBase
 {
@@ -49,6 +44,9 @@ public class TaskKostTest extends AbstractTestBase
 
   @Autowired
   TaskDao taskDao;
+
+  @Autowired
+  private TaskTree taskTree;
 
   @Autowired
   AccessDao accessDao;
@@ -65,17 +63,28 @@ public class TaskKostTest extends AbstractTestBase
   @Test
   public void checkKost2()
   {
-    logon(getUser(TEST_FINANCE_USER));
-    final TaskTree taskTree = taskDao.getTaskTree();
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
+    Kost2DO kost = new Kost2DO();
+    kost.setNummernkreis(1);
+    kost.setBereich(137);
+    kost.setTeilbereich(05);
+    kost.setKost2Art(new Kost2ArtDO().withId(1));
     final Kost2DO kost2a = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(1).setBereich(137).setTeilbereich(05).setKost2Art(
-            new Kost2ArtDO().withId(1)))); // Kost2: 1.137.05.01
+        .getById(kost2Dao.save(kost)); // Kost2: 1.137.05.01
+    kost = new Kost2DO();
+    kost.setNummernkreis(1);
+    kost.setBereich(137);
+    kost.setTeilbereich(05);
+    kost.setKost2Art(new Kost2ArtDO().withId(2));
     final Kost2DO kost2b = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(1).setBereich(137).setTeilbereich(05).setKost2Art(
-            new Kost2ArtDO().withId(2)))); // Kost2: 1.137.05.02
+        .getById(kost2Dao.save(kost)); // Kost2: 1.137.05.02
+    kost = new Kost2DO();
+    kost.setNummernkreis(2);
+    kost.setBereich(423);
+    kost.setTeilbereich(12);
+    kost.setKost2Art(new Kost2ArtDO().withId(1));
     final Kost2DO kost2c = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(2).setBereich(423).setTeilbereich(12).setKost2Art(
-            new Kost2ArtDO().withId(1)))); // Kost2: 2.423.12.01
+        .getById(kost2Dao.save(kost)); // Kost2: 2.423.12.01
     final TaskDO task = initTestDB.addTask("kost2test2", "root");
     task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01");
     taskDao.update(task);
@@ -84,11 +93,13 @@ public class TaskKostTest extends AbstractTestBase
     assertKost2(kost2a, list.get(0));
     assertKost2(kost2b, list.get(1));
     assertKost2(kost2c, list.get(2));
-    task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01").setKost2IsBlackList(true);
+    task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01");
+    task.setKost2IsBlackList(true);
     taskDao.update(task);
     list = taskTree.getKost2List(task.getId());
     assertNull(list);
-    task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01, jwe9jdkjn").setKost2IsBlackList(false);
+    task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01, jwe9jdkjn");
+    task.setKost2IsBlackList(false);
     taskDao.update(task);
     list = taskTree.getKost2List(task.getId());
     assertEquals(3, list.size());
@@ -100,30 +111,53 @@ public class TaskKostTest extends AbstractTestBase
   @Test
   public void checkProjektKost2()
   {
-    logon(getUser(TEST_FINANCE_USER));
-    final TaskTree taskTree = taskDao.getTaskTree();
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final TaskDO task = initTestDB.addTask("kost2test1", "root");
+    final ProjektDO find = new ProjektDO();
+    find.setName("Kost2 test project");
+    find.setInternKost2_4(137);
+    find.setNummer(05);
+    find.setTask(task);
     final ProjektDO projekt = projektDao
-        .getById(projektDao.save(new ProjektDO().setName("Kost2 test project").setInternKost2_4(137)
-            .setNummer(05).setTask(task))); // Kost2: 4.137.05
+        .getById(projektDao.save(find)); // Kost2: 4.137.05
     List<Kost2DO> list = taskTree.getKost2List(task.getId());
     assertNull(list);
+    Kost2DO kost = new Kost2DO();
+    kost.setNummernkreis(4);
+    kost.setBereich(137);
+    kost.setProjekt(projekt);
+    kost.setTeilbereich(05);
+    kost.setKost2Art(new Kost2ArtDO().withId(1));
     final Kost2DO kost2a = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(4).setBereich(137).setTeilbereich(05).setProjekt(
-            projekt).setKost2Art(new Kost2ArtDO().withId(1)))); // Kost2: 4.137.05.01
+        .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.01
+    kost = new Kost2DO();
+    kost.setNummernkreis(4);
+    kost.setBereich(137);
+    kost.setProjekt(projekt);
+    kost.setTeilbereich(05);
+    kost.setKost2Art(new Kost2ArtDO().withId(2));
     final Kost2DO kost2b = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(4).setBereich(137).setTeilbereich(05).setProjekt(
-            projekt).setKost2Art(new Kost2ArtDO().withId(2)))); // Kost2: 4.137.05.02
+        .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.02
     list = taskTree.getKost2List(task.getId());
     assertEquals(2, list.size());
     assertKost2(kost2a, list.get(0));
     assertKost2(kost2b, list.get(1));
+    kost = new Kost2DO();
+    kost.setNummernkreis(4);
+    kost.setBereich(137);
+    kost.setProjekt(projekt);
+    kost.setTeilbereich(05);
+    kost.setKost2Art(new Kost2ArtDO().withId(3));
     final Kost2DO kost2c = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(4).setBereich(137).setTeilbereich(05).setProjekt(
-            projekt).setKost2Art(new Kost2ArtDO().withId(3)))); // Kost2: 4.137.05.03
+        .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.03
+    kost = new Kost2DO();
+    kost.setNummernkreis(4);
+    kost.setBereich(137);
+    kost.setProjekt(projekt);
+    kost.setTeilbereich(05);
+    kost.setKost2Art(new Kost2ArtDO().withId(4));
     final Kost2DO kost2d = kost2Dao
-        .getById(kost2Dao.save(new Kost2DO().setNummernkreis(4).setBereich(137).setTeilbereich(05).setProjekt(
-            projekt).setKost2Art(new Kost2ArtDO().withId(4)))); // Kost2: 4.137.05.04
+        .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.04
     list = taskTree.getKost2List(task.getId());
     assertEquals(4, list.size());
     assertKost2(kost2a, list.get(0));
@@ -137,22 +171,26 @@ public class TaskKostTest extends AbstractTestBase
     assertEquals(2, list.size());
     assertKost2(kost2b, list.get(0));
     assertKost2(kost2c, list.get(1));
-    task.setKost2BlackWhiteList("05.02; 4.137.05.03, 5.123.423.11").setKost2IsBlackList(true); // Black list
+    task.setKost2BlackWhiteList("05.02; 4.137.05.03, 5.123.423.11");
+    task.setKost2IsBlackList(true); // Black list
     // 5.123.423.11 will be ignored.
     taskDao.update(task);
     list = taskTree.getKost2List(task.getId());
     assertEquals(2, list.size());
     assertKost2(kost2a, list.get(0));
     assertKost2(kost2d, list.get(1));
-    task.setKost2BlackWhiteList("*").setKost2IsBlackList(true); // Black list (ignore all)
+    task.setKost2BlackWhiteList("*");
+    task.setKost2IsBlackList(true); // Black list (ignore all)
     taskDao.update(task);
     list = taskTree.getKost2List(task.getId());
     assertNull(list);
-    task.setKost2BlackWhiteList("-").setKost2IsBlackList(false); // White list
+    task.setKost2BlackWhiteList("-");
+    task.setKost2IsBlackList(false); // White list
     taskDao.update(task);
     list = taskTree.getKost2List(task.getId());
     assertNull(list);
-    task.setKost2BlackWhiteList("*").setKost2IsBlackList(false); // White list
+    task.setKost2BlackWhiteList("*");
+    task.setKost2IsBlackList(false); // White list
     taskDao.update(task);
     list = taskTree.getKost2List(task.getId());
     assertEquals(4, list.size());
@@ -160,9 +198,10 @@ public class TaskKostTest extends AbstractTestBase
 
   private void assertKost2(final Kost2DO expected, final Kost2DO actual)
   {
-    assertArrayEquals("Kost2DO not expected.", new Integer[] { expected.getNummernkreis(), expected.getBereich(),
+    assertArrayEquals( new Integer[] { expected.getNummernkreis(), expected.getBereich(),
         expected.getTeilbereich(), expected.getKost2ArtId() },
         new Integer[] { actual.getNummernkreis(), actual.getBereich(),
-            actual.getTeilbereich(), actual.getKost2ArtId() });
+            actual.getTeilbereich(), actual.getKost2ArtId() },
+            "Kost2DO not expected.");
   }
 }

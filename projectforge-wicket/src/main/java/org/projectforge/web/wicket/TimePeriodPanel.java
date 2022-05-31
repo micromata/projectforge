@@ -1,25 +1,51 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.web.wicket;
 
-import java.util.Date;
-
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.FormComponentPanel;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.web.CSSColor;
 import org.projectforge.web.calendar.QuickSelectPanel;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
 import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.LocalDate;
+import java.util.Date;
 
 /**
  * This Panel consists of two date pickers (start and end date) and a quick select for month and week.
@@ -27,22 +53,20 @@ import org.projectforge.web.wicket.flowlayout.IconType;
  * <p>
  * It extends FormComponentPanel to have the validate() and getConvertedInput() method.
  */
-public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements ISelectCallerPage
-{
-  private static final Logger log = Logger.getLogger(TimePeriodPanel.class);
+public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements ISelectCallerPage {
+  private static final Logger log = LoggerFactory.getLogger(TimePeriodPanel.class);
 
-  private final IModel<Date> startDateModel;
+  private final IModel<LocalDate> startDateModel;
 
-  private final IModel<Date> endDateModel;
+  private final IModel<LocalDate> endDateModel;
 
   private final AbstractListPage<?, ?, ?> parentPage;
 
-  private final DatePanel startDatePanel;
+  private final LocalDatePanel startDatePanel;
 
-  private final DatePanel endDatePanel;
+  private final LocalDatePanel endDatePanel;
 
-  public TimePeriodPanel(final String id, final IModel<Date> startDateModel, final IModel<Date> endDateModel, final AbstractListPage<?, ?, ?> parentPage)
-  {
+  public TimePeriodPanel(final String id, final IModel<LocalDate> startDateModel, final IModel<LocalDate> endDateModel, final AbstractListPage<?, ?, ?> parentPage) {
     // We have to pass a model just to satisfy the needs of the FormComponentPanel. The model is actually not used.
     super(id, new Model<>());
 
@@ -50,18 +74,17 @@ public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements I
     this.endDateModel = endDateModel;
     this.parentPage = parentPage;
 
-    startDatePanel = new DatePanel("startDate", startDateModel, DatePanelSettings.get().withSelectPeriodMode(true));
+    startDatePanel = new LocalDatePanel("startDate", new LocalDateModel(startDateModel), DatePanelSettings.get().withSelectPeriodMode(true), true);
+
     add(startDatePanel);
 
-    endDatePanel = new DatePanel("endDate", endDateModel, DatePanelSettings.get().withSelectPeriodMode(true));
+    endDatePanel = new LocalDatePanel("endDate", new LocalDateModel(endDateModel), DatePanelSettings.get().withSelectPeriodMode(true), true);
     add(endDatePanel);
 
     // clear button
-    final SubmitLink unselectPeriodLink = new SubmitLink(IconLinkPanel.LINK_ID)
-    {
+    final SubmitLink unselectPeriodLink = new SubmitLink(IconLinkPanel.LINK_ID) {
       @Override
-      public void onSubmit()
-      {
+      public void onSubmit() {
         startDateModel.setObject(null);
         endDateModel.setObject(null);
         refreshPage();
@@ -70,7 +93,7 @@ public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements I
     unselectPeriodLink.setDefaultFormProcessing(false);
 
     final IconLinkPanel unselectLinkPanel = new IconLinkPanel("unselectLink", IconType.REMOVE_SIGN,
-        new ResourceModel("calendar.tooltip.unselectPeriod"), unselectPeriodLink);
+            new ResourceModel("calendar.tooltip.unselectPeriod"), unselectPeriodLink);
     unselectLinkPanel.setColor(CSSColor.RED);
     add(unselectLinkPanel);
 
@@ -81,34 +104,31 @@ public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements I
 
     // calendar week
     add(new DivTextPanel("calendarWeek",
-        LambdaModel.of(() -> WicketUtils.getCalendarWeeks(this, startDateModel.getObject(), endDateModel.getObject()))
+            LambdaModel.of(() -> WicketUtils.getCalendarWeeks(this, startDateModel.getObject(), endDateModel.getObject()))
     ));
 
     // html comment
     add(new HtmlCommentPanel("htmlComment",
-        LambdaModel.of(() -> WicketUtils.getUTCDates(startDateModel.getObject(), endDateModel.getObject()))
+            LambdaModel.of(() -> WicketUtils.getUTCDates(startDateModel.getObject(), endDateModel.getObject()))
     ));
   }
 
-  private void refreshPage()
-  {
+  private void refreshPage() {
     startDatePanel.markModelAsChanged();
     endDatePanel.markModelAsChanged();
     parentPage.refresh();
   }
 
   @Override
-  public void convertInput()
-  {
+  public void convertInput() {
     setConvertedInput(new TimePeriod(
-        startDatePanel.getConvertedInput(),
-        endDatePanel.getConvertedInput()
+            startDatePanel.getConvertedInput(),
+            endDatePanel.getConvertedInput()
     ));
   }
 
   @Override
-  public void validate()
-  {
+  public void validate() {
     super.validate(); // calls convertInput
 
     final Date start = startDatePanel.getConvertedInput();
@@ -124,8 +144,7 @@ public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements I
    * @return The markup ID of the start date field.
    */
   @Override
-  public String getMarkupId()
-  {
+  public String getMarkupId() {
     return startDatePanel.getDateField().getMarkupId();
   }
 
@@ -133,35 +152,32 @@ public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements I
    * This is called from the QuickSelectPanel, when the user clicks one of its buttons.
    */
   @Override
-  public void select(final String property, final Object selectedValue)
-  {
+  public void select(final String property, final Object selectedValue) {
     if (property.startsWith("quickSelect.")) {
-      final Date startDate = (Date) selectedValue;
+      final LocalDate startDate = (LocalDate) selectedValue;
       startDateModel.setObject(startDate);
 
-      final DateHolder endDateHolder = new DateHolder(startDate);
+      PFDay endDateHolder = PFDay.from(startDate);
       if (property.endsWith(".month") == true) {
-        endDateHolder.setEndOfMonth();
+        endDateHolder = endDateHolder.getEndOfMonth();
       } else if (property.endsWith(".week") == true) {
-        endDateHolder.setEndOfWeek();
+        endDateHolder = endDateHolder.getEndOfWeek();
       } else {
         log.error("Property '" + property + "' not supported for selection.");
       }
-      endDateModel.setObject(endDateHolder.getDate());
+      endDateModel.setObject(endDateHolder.getLocalDate());
 
       refreshPage();
     }
   }
 
   @Override
-  public void unselect(final String property)
-  {
+  public void unselect(final String property) {
     // unused
   }
 
   @Override
-  public void cancelSelection(final String property)
-  {
+  public void cancelSelection(final String property) {
     // unused
   }
 }

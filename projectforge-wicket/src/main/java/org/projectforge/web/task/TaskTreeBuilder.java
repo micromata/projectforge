@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -22,11 +22,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 package org.projectforge.web.task;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
@@ -55,13 +50,11 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.projectforge.business.fibu.AuftragsPositionVO;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskFilter;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.user.UserGroupCache;
@@ -71,19 +64,18 @@ import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.fibu.OrderPositionsPanel;
 import org.projectforge.web.user.UserPropertyColumn;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.AbstractSecuredPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.DatePropertyColumn;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 @Scope("prototype")
@@ -107,6 +99,9 @@ public class TaskTreeBuilder implements Serializable
 
   @Autowired
   private UserFormatter userFormatter;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   @Autowired
   private DateTimeFormatter dateTimeFormatter;
@@ -172,6 +167,7 @@ public class TaskTreeBuilder implements Serializable
   {
     final CellItemListener<TaskNode> cellItemListener = new CellItemListener<TaskNode>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
           final IModel<TaskNode> rowModel)
       {
@@ -199,7 +195,7 @@ public class TaskTreeBuilder implements Serializable
           view.add(
               new ListSelectActionPanel(view.newChildId(), rowModel, caller, selectProperty, taskNode.getId(), ""));
         }
-        AbstractListPage.addRowClick(cellItem);
+        //AbstractListPage.addRowClick(cellItem);
         final NodeModel<TaskNode> nodeModel = (NodeModel<TaskNode>) rowModel;
         final Component nodeComponent = getTree().newNodeComponent(view.newChildId(), nodeModel.getWrappedModel());
         nodeComponent.add(new NodeBorder(nodeModel.getBranches()));
@@ -256,7 +252,7 @@ public class TaskTreeBuilder implements Serializable
                 // Lazy initialization because getString(...) of OrderPositionsPanel fails if panel.init(orderPositions) is called directly
                 // after instantiation.
                 init(orderPositions);
-              };
+              }
             };
             item.add(orderPositionsPanel);
           }
@@ -268,8 +264,7 @@ public class TaskTreeBuilder implements Serializable
         "task.shortDescription",
         cellItemListener));
     if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP) == true) {
-      columns.add(new DatePropertyColumn<TaskNode>(dateTimeFormatter,
-          parentPage.getString("task.protectTimesheetsUntil.short"), null,
+      columns.add(new LocalDatePropertyColumn<TaskNode>(parentPage.getString("task.protectTimesheetsUntil.short"), null,
           "task.protectTimesheetsUntil", cellItemListener));
     }
     columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("task.reference"), null, "reference",
@@ -299,21 +294,11 @@ public class TaskTreeBuilder implements Serializable
             cellItemListener.populateItem(item, componentId, rowModel);
           }
         });
-    final UserPropertyColumn<TaskNode> userPropertyColumn = new UserPropertyColumn<TaskNode>(getUserGroupCache(),
+    final UserPropertyColumn<TaskNode> userPropertyColumn = new UserPropertyColumn<TaskNode>(userGroupCache,
         parentPage.getString("task.assignedUser"),
         null, "task.responsibleUserId", cellItemListener).withUserFormatter(userFormatter);
     columns.add(userPropertyColumn);
     return columns;
-  }
-
-  private TenantRegistry getTenantRegistry()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  private UserGroupCache getUserGroupCache()
-  {
-    return getTenantRegistry().getUserGroupCache();
   }
 
   protected void addColumn(final WebMarkupContainer parent, final Component component, final String cssStyle)

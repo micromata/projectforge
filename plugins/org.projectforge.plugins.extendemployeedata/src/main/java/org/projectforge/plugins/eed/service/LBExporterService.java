@@ -1,25 +1,46 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.plugins.eed.service;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.List;
-
-import org.jfree.util.Log;
+import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import org.projectforge.business.excel.ExportRow;
 import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @author blumenstein
@@ -27,6 +48,8 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 @Service
 public class LBExporterService
 {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LBExporterService.class);
+
   private static final int START_ROW_NR_FULLTIME = 3;
 
   private static final BigDecimal FOOD_VOUCHER_DAYS_PER_MONTH = new BigDecimal(15);
@@ -43,7 +66,7 @@ public class LBExporterService
   @Autowired
   private EmployeeConfigurationService employeeConfigurationService;
 
-  public byte[] getExcel(final List<EmployeeDO> employeeList, Calendar selectedDate)
+  public byte[] getExcel(final List<EmployeeDO> employeeList, PFDateTime selectedDate)
   {
     if (employeeList.size() < 1) {
       return new byte[0];
@@ -53,7 +76,7 @@ public class LBExporterService
     try {
       workbook = new ExportWorkbook(classPathResource.getInputStream());
     } catch (IOException e) {
-      Log.error("Something went wrong when loading xls template", e);
+      log.error("Something went wrong when loading xls template", e);
       return new byte[0];
     }
 
@@ -64,8 +87,8 @@ public class LBExporterService
         .getSingleEmployeeConfigurationDO();
 
     for (EmployeeDO employee : employeeList) {
-      if (employeeService.isEmployeeActive(employee) == true) {
-        if (employeeService.isFulltimeEmployee(employee, selectedDate) == true) {
+      if (employeeService.isEmployeeActive(employee)) {
+        if (employeeService.isFulltimeEmployee(employee, selectedDate)) {
           sheetFulltimeEmployee.copyRow(copyRowFulltime);
           copyRowNrFulltime++;
           final ExportRow currentRow = sheetFulltimeEmployee.getRow(copyRowNrFulltime - 1);
@@ -137,16 +160,16 @@ public class LBExporterService
   }
 
   private String getAttrValueForMonthAsString(EmployeeDO employee, String attrGroup, String attrProperty,
-      Calendar selectedDate)
+      PFDateTime selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getUtilDate());
     return attribute != null ? attribute.getStringAttribute(attrProperty) : null;
   }
 
   private boolean getAttrValueForMonthAsBoolean(EmployeeDO employee, String attrGroup, String attrProperty,
-      Calendar selectedDate)
+      PFDateTime selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getUtilDate());
 
     if (attribute == null) {
       return false;
@@ -157,15 +180,15 @@ public class LBExporterService
   }
 
   private BigDecimal getAttrValueForMonthAsBigDecimal(EmployeeDO employee, String attrGroupString, String attrProperty,
-      Calendar selectedDate)
+                                                      PFDateTime selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroupString, selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroupString, selectedDate.getUtilDate());
     return attribute != null ? attribute.getAttribute(attrProperty, BigDecimal.class) : null;
   }
 
-  private BigDecimal getAttrValueForMonthAsBigDecimal(EmployeeConfigurationDO configuration, String attrGroup, String attrProperty, Calendar selectedDate)
+  private BigDecimal getAttrValueForMonthAsBigDecimal(EmployeeConfigurationDO configuration, String attrGroup, String attrProperty, PFDateTime selectedDate)
   {
-    EmployeeConfigurationTimedDO attribute = timeableService.getAttrRowForSameMonth(configuration, attrGroup, selectedDate.getTime());
+    EmployeeConfigurationTimedDO attribute = timeableService.getAttrRowForSameMonth(configuration, attrGroup, selectedDate.getUtilDate());
     return attribute != null ? attribute.getAttribute(attrProperty, BigDecimal.class) : null;
   }
 

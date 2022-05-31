@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.Serializable;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.framework.i18n.InternalErrorException;
 import org.projectforge.web.session.MySession;
+
+import java.io.Serializable;
 
 /**
  * Every form should use this handler for preventing cross site request forgery attacks.
@@ -42,7 +42,7 @@ public class CsrfTokenHandler implements Serializable
 {
   private static final long serialVersionUID = -9129345307409567900L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CsrfTokenHandler.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CsrfTokenHandler.class);
 
   private String csrfToken;
 

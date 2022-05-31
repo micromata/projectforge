@@ -1,31 +1,39 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-// $RCSfile: SimplePropertyDelta.java,v $
+// Project ProjectForge Community Edition
+//         www.projectforge.org
 //
-// Project   BaseApp
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
-// Author    Wolfgang Jung (w.jung@micromata.de)
-// Created   Mar 7, 2005
+// ProjectForge is dual-licensed.
 //
-// $Id: SimplePropertyDelta.java,v 1.1 2007/03/08 22:50:48 wolle Exp $
-// $Revision: 1.1 $
-// $Date: 2007/03/08 22:50:48 $
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package de.micromata.hibernate.history.delta;
 
+import org.apache.commons.beanutils.ConvertUtils;
+import org.hibernate.Session;
+
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-
-import org.apache.commons.beanutils.ConvertUtils;
-import org.hibernate.Session;
 
 /**
  * @author Wolfgang Jung (w.jung@micromata.de)
@@ -105,19 +113,17 @@ public class SimplePropertyDelta extends PropertyDelta
       return null;
     }
     try {
-      if ("java.sql.Date".equals(propertyType) == true) {
+      if ("java.sql.Date".equals(propertyType)) {
         return new java.sql.Date(SDF_DATE.get().parse(value).getTime());
-      } else if ("java.sql.Time".equals(propertyType) == true) {
+      } else if ("java.sql.Time".equals(propertyType)) {
         return new Time(SDF_TIMEDATE.get().parse(value).getTime());
-      } else if ("java.sql.Timestamp".equals(propertyType) == true) {
+      } else if ("java.sql.Timestamp".equals(propertyType)) {
         return new Timestamp(SDF_TIMEDATE.get().parse(value).getTime());
-      } else if ("java.util.Date".equals(propertyType) == true) {
+      } else if ("java.util.Date".equals(propertyType)) {
         return SDF_TIMEDATE.get().parse(value);
       }
       return ConvertUtils.convert(value, Class.forName(propertyType));
-    } catch (ClassNotFoundException ex) {
-      return value;
-    } catch (ParseException e) {
+    } catch (ClassNotFoundException | ParseException ex) {
       return value;
     }
   }

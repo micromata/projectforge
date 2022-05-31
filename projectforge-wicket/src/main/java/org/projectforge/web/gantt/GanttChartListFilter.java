@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,8 @@
 
 package org.projectforge.web.gantt;
 
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 @XStreamAlias("ContractFilter")
 public class GanttChartListFilter extends BaseSearchFilter

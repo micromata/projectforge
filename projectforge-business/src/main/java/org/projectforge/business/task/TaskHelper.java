@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.business.task;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.common.StringHelper;
@@ -63,7 +63,7 @@ public class TaskHelper
    */
   public static String normalizeKost2BlackWhiteList(final String kost2BlackWhiteList)
   {
-    final String[] items = TaskDO.getKost2BlackWhiteItems(kost2BlackWhiteList);
+    final String[] items = TaskDO.Companion.getKost2BlackWhiteItems(kost2BlackWhiteList);
     final String[] sortedItems = StringHelper.sortAndUnique(items);
     return StringHelper.listToString(",", sortedItems);
   }
@@ -81,8 +81,8 @@ public class TaskHelper
     if (kost == null) {
       return task.getKost2BlackWhiteList();
     }
-    final StringBuffer buf = new StringBuffer();
-    if (StringUtils.isNotBlank(task.getKost2BlackWhiteList()) == true) {
+    final StringBuilder buf = new StringBuilder();
+    if (StringUtils.isNotBlank(task.getKost2BlackWhiteList())) {
       buf.append(task.getKost2BlackWhiteList()).append(",");
     }
     if (task.getId() == null && task.getParentTaskId() != null) {
@@ -94,7 +94,7 @@ public class TaskHelper
       } else {
         final String projektKost2 = projekt.getKost();
         final String kost2 = kost.getFormattedNumber();
-        if (kost2.startsWith(projektKost2) == false) {
+        if (!kost2.startsWith(projektKost2)) {
           buf.append(kost.getFormattedNumber());
         } else {
           buf.append(StringHelper.format2DigitNumber(kost.getKost2ArtId()));

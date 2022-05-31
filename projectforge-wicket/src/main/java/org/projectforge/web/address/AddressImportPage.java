@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.web.address;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
@@ -31,6 +30,7 @@ import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -40,7 +40,7 @@ import org.projectforge.web.wicket.EditPage;
 @EditPage(defaultReturnPage = AddressListPage.class)
 public class AddressImportPage extends AbstractEditPage<AddressDO, AddressImportForm, AddressDao>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressImportPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressImportPage.class);
 
   @SpringBean
   private AddressDao addressDao;

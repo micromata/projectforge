@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,17 @@
 
 package org.projectforge.fibu.kost;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.fibu.KontoDO;
+import org.projectforge.business.fibu.kost.BuchungssatzDO;
+import org.projectforge.business.fibu.kost.BusinessAssessment;
+import org.projectforge.business.fibu.kost.BusinessAssessmentConfig;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.kost.BuchungssatzDO;
-import org.projectforge.business.fibu.kost.BusinessAssessment;
-import org.projectforge.business.fibu.kost.BusinessAssessmentConfig;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BusinessAssessmentTest
 {
@@ -46,7 +46,7 @@ public class BusinessAssessmentTest
     // <row no='1260' id='sonstigeKosten' accountRange='6300,6800-6855' priority='low' title='sonstige Kosten' />
 
     final BusinessAssessmentConfig bwaConfig = BusinessAssessmentConfigTest.getBusinessAssessmentConfig();
-    final List<BuchungssatzDO> records = new ArrayList<BuchungssatzDO>();
+    final List<BuchungssatzDO> records = new ArrayList<>();
     records.add(createRecord(8.08, 4000));
     records.add(createRecord(16.16, 4123));
     records.add(createRecord(32.32, 4799));

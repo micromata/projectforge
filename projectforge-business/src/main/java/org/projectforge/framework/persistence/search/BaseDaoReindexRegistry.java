@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,14 @@
 
 package org.projectforge.framework.persistence.search;
 
+import org.projectforge.framework.persistence.api.BaseDO;
+import org.projectforge.framework.persistence.api.BaseDao;
+import org.springframework.cglib.proxy.Enhancer;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.BaseDao;
-
-import net.sf.cglib.proxy.Enhancer;
 
 /**
  * Hotfix: Hibernate-search does not update index of dependent objects.
@@ -46,7 +45,7 @@ public class BaseDaoReindexRegistry
     return instance;
   }
 
-  protected Map<Class< ? extends BaseDO< ? >>, Set<BaseDao< ? >>> registeredDependents = new HashMap<Class< ? extends BaseDO< ? >>, Set<BaseDao< ? >>>();
+  protected Map<Class< ? extends BaseDO< ? >>, Set<BaseDao< ? >>> registeredDependents = new HashMap<>();
 
   /**
    * Register dao to be called after updating an object of type clazz for updating search index of dependent objects managed by the given
@@ -56,12 +55,12 @@ public class BaseDaoReindexRegistry
    */
   public void registerDependent(Class< ? extends BaseDO< ? >> clazz, BaseDao< ? > dao)
   {
-    if (Enhancer.isEnhanced(dao.getClass()) == true) {
+    if (Enhancer.isEnhanced(dao.getClass())) {
       return;
     }
     Set<BaseDao< ? >> set = this.registeredDependents.get(clazz);
     if (set == null) {
-      set = new HashSet<BaseDao< ? >>();
+      set = new HashSet<>();
       this.registeredDependents.put(clazz, set);
     }
     set.add(dao);

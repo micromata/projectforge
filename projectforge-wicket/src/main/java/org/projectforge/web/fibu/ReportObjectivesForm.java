@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.Date;
-
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -42,6 +40,8 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
+
+import java.util.Date;
 
 public class ReportObjectivesForm extends AbstractStandardForm<ReportObjectivesFilter, ReportObjectivesPage>
 {
@@ -82,7 +82,7 @@ public class ReportObjectivesForm extends AbstractStandardForm<ReportObjectivesF
       {
         final Date fromDate = fromDatePanel.getConvertedInput();
         final Date toDate = toDatePanel.getConvertedInput();
-        if (toDate != null && fromDate != null && fromDate.after(toDate) == true) {
+        if (toDate != null && fromDate != null && fromDate.after(toDate)) {
           toDatePanel.getDateField().error(getString("fibu.buchungssatz.error.invalidTimeperiod"));
         }
       }
@@ -99,7 +99,7 @@ public class ReportObjectivesForm extends AbstractStandardForm<ReportObjectivesF
       };
       fileUploadField = new FileUploadField(FileUploadPanel.WICKET_ID);
       fs.add(new FileUploadPanel(fs.newChildId(), fileUploadField));
-      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("import")) {
+      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<>("import")) {
         @Override
         public final void onSubmit()
         {
@@ -115,13 +115,13 @@ public class ReportObjectivesForm extends AbstractStandardForm<ReportObjectivesF
           return reportObjectivesPanel.isVisible();
         }
       };
-      fs.add(fromDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(filter, "fromDate"), DatePanelSettings.get()
+      fs.add(fromDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(filter, "fromDate"), DatePanelSettings.get()
           .withRequired(true)));
       dependentFormComponents[0] = fromDatePanel;
       fs.add(new DivTextPanel(fs.newChildId(), " - "));
-      fs.add(toDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(filter, "toDate"), DatePanelSettings.get()));
+      fs.add(toDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(filter, "toDate"), DatePanelSettings.get()));
       dependentFormComponents[1] = toDatePanel;
-      final Button createReportButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("createReport")) {
+      final Button createReportButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("createReport")) {
         @Override
         public final void onSubmit()
         {
@@ -131,7 +131,7 @@ public class ReportObjectivesForm extends AbstractStandardForm<ReportObjectivesF
       setDefaultButton(createReportButton);
       fs.add(new SingleButtonPanel(fs.newChildId(), createReportButton, getString("fibu.kost.reporting.createReport"),
           SingleButtonPanel.DEFAULT_SUBMIT));
-      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clear")) {
+      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<>("clear")) {
         @Override
         public final void onSubmit()
         {
@@ -155,9 +155,9 @@ public class ReportObjectivesForm extends AbstractStandardForm<ReportObjectivesF
     filter = new ReportObjectivesFilter();
     final DateHolder day = new DateHolder();
     day.setBeginOfYear();
-    filter.setFromDate(day.getDate());
+    filter.setFromDate(day.getUtilDate());
     day.setEndOfYear();
-    filter.setToDate(day.getDate());
+    filter.setToDate(day.getUtilDate());
     parentPage.putUserPrefEntry(KEY_REPORT_FILTER, filter, true);
     return filter;
   }

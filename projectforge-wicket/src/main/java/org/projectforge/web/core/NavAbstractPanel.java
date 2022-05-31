@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.web.core;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -33,49 +33,36 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.web.FavoritesMenu;
-import org.projectforge.web.Menu;
-import org.projectforge.web.MenuBuilder;
-import org.projectforge.web.MenuEntry;
-import org.projectforge.web.wicket.AbstractSecuredPage;
+import org.projectforge.web.WicketMenu;
+import org.projectforge.web.WicketMenuBuilder;
+import org.projectforge.web.WicketMenuEntry;
+import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public abstract class NavAbstractPanel extends Panel
-{
+public abstract class NavAbstractPanel extends Panel {
   private static final long serialVersionUID = -1019454504282157440L;
 
-  public static final String USER_PREF_MENU_KEY = "usersMenu";
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NavAbstractPanel.class);
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(NavAbstractPanel.class);
+  protected WicketMenu menu;
 
-  protected Menu menu;
-
-  protected FavoritesMenu favoritesMenu;
+  protected WicketMenu favoritesMenu;
 
   @SpringBean
-  MenuBuilder menuBuilder;
+  private WicketMenuBuilder menuBuilder;
 
-  public NavAbstractPanel(final String id)
-  {
+  public NavAbstractPanel(final String id) {
     super(id);
   }
 
-  static public AbstractLink getMenuEntryLink(final MenuEntry menuEntry, final boolean showModifiedNames)
-  {
+  static public AbstractLink getMenuEntryLink(final WicketMenuEntry menuEntry, final boolean showModifiedNames) {
     final AbstractLink link;
     if (menuEntry.isWicketPage() == true) {
-      if (menuEntry.getParams() == null) {
-        link = new BookmarkablePageLink<String>("link", menuEntry.getPageClass());
-      } else {
-        final PageParameters params = WicketUtils.getPageParameters(menuEntry.getParams());
-        link = new BookmarkablePageLink<String>("link", menuEntry.getPageClass(), params);
-      }
+      link = new BookmarkablePageLink<String>("link", menuEntry.getPageClass());
     } else {
       final String url = menuEntry.getUrl();
       if (url != null) {
@@ -86,9 +73,6 @@ public abstract class NavAbstractPanel extends Panel
           // TODO Add empty
         }
       }
-    }
-    if (menuEntry.isNewWindow() == true) {
-      link.add(AttributeModifier.replace("target", "_blank"));
     }
     final String i18nKey = menuEntry.getI18nKey();
     if (showModifiedNames == true && StringUtils.isNotBlank(menuEntry.getName()) == true || i18nKey == null) {
@@ -107,14 +91,13 @@ public abstract class NavAbstractPanel extends Panel
     return link;
   }
 
-  static protected Label getSuffixLabel(final MenuEntry menuEntry)
-  {
+  static protected Label getSuffixLabel(final WicketMenuEntry menuEntry) {
     final Label suffixLabel;
-    final IModel<Integer> newCounterModel = menuEntry != null ? menuEntry.getNewCounterModel() : null;
+    final IModel<Integer> newCounterModel = menuEntry != null ? menuEntry.getBadgeCounter() : null;
     if (newCounterModel != null && newCounterModel.getObject() != null) {
       suffixLabel = new MenuSuffixLabel(newCounterModel);
-      if (menuEntry != null && menuEntry.getNewCounterTooltip() != null) {
-        WicketUtils.addTooltip(suffixLabel, new ResourceModel(menuEntry.getNewCounterTooltip()));
+      if (menuEntry != null && menuEntry.getBadgeCounterTooltip() != null) {
+        WicketUtils.addTooltip(suffixLabel, new ResourceModel(menuEntry.getBadgeCounterTooltip()));
       }
     } else {
       suffixLabel = new Label("suffix");
@@ -123,25 +106,9 @@ public abstract class NavAbstractPanel extends Panel
     return suffixLabel;
   }
 
-  public Menu getMenu()
-  {
-    if (menu != null) {
-      return menu;
-    }
-    AbstractSecuredPage securedPage = null;
-    if (getPage() instanceof AbstractSecuredPage) {
-      securedPage = ((AbstractSecuredPage) getPage());
-      menu = (Menu) securedPage.getUserPrefEntry(USER_PREF_MENU_KEY);
-      if (menu != null) {
-        return menu;
-      }
-    }
-    if (log.isDebugEnabled() == true) {
-      log.debug("Build new menu.");
-    }
-    menu = menuBuilder.getMenu(ThreadLocalUserContext.getUser());
-    if (securedPage != null) {
-      securedPage.putUserPrefEntry(USER_PREF_MENU_KEY, menu, false);
+  public WicketMenu getMenu() {
+    if (menu == null) {
+      menu = menuBuilder.getMenu(ThreadLocalUserContext.getUser());
     }
     return menu;
   }

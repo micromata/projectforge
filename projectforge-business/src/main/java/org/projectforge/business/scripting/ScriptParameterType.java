@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.business.scripting;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.i18n.I18nEnum;
 
 
 /**
- * 
+ *
  * Type of input parameter for script.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  *         <ul>
  *         <li>INTEGER</li>
  *         <li>STRING</li>
@@ -42,17 +42,17 @@ import org.projectforge.common.i18n.I18nEnum;
  */
 public enum ScriptParameterType implements I18nEnum
 {
-  INTEGER("integer"), DECIMAL("decimal"), STRING("string"), DATE("date"), TIME_PERIOD("timePeriod"), TASK("task"), USER("user");
+  INTEGER("integer"), DECIMAL("decimal"), STRING("string"), BOOLEAN("boolean"), DATE("date"), TIME_PERIOD("timePeriod"), TASK("task"), USER("user");
 
   private String key;
 
   public static ScriptParameterType get(String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
     for (final ScriptParameterType type : ScriptParameterType.values()) {
-      if (s.equals(type.name()) == true) {
+      if (s.equals(type.name())) {
         return type;
       }
     }
@@ -78,6 +78,7 @@ public enum ScriptParameterType implements I18nEnum
     return key;
   }
 
+  @Override
   public String getI18nKey()
   {
     return "scripting.script.parameterType." + key;

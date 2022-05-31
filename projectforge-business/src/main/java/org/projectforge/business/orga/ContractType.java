@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,17 @@
 
 package org.projectforge.business.orga;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.persistence.utils.ReflectionToString;
 import org.projectforge.framework.utils.ILabelValueBean;
-import org.projectforge.framework.xstream.XmlField;
-import org.projectforge.framework.xstream.XmlObject;
+import org.projectforge.framework.xmlstream.XmlField;
+import org.projectforge.framework.xmlstream.XmlObject;
+
+import java.io.Serializable;
 
 /**
  * Can't use LabelValueBean because XStream doesn't support generics (does it?).
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XmlObject(alias = "contractType")
 public class ContractType implements ILabelValueBean<String, String>, Serializable

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,18 @@
 
 package org.projectforge.fibu.kost;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.fibu.kost.Kost2ArtDO;
+import org.projectforge.business.fibu.kost.Kost2DO;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.projectforge.business.fibu.kost.Kost2ArtDO;
-import org.projectforge.business.fibu.kost.Kost2DO;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Kost2Test
 {
-  private Map<Integer, Kost2ArtDO> map = new HashMap<Integer, Kost2ArtDO>();
+  private Map<Integer, Kost2ArtDO> map = new HashMap<>();
 
   @Test
   public void testGetNummer()

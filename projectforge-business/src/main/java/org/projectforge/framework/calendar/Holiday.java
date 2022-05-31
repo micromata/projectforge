@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.calendar;
 
-import java.math.BigDecimal;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import java.math.BigDecimal;
 
 /**
  * 
@@ -34,7 +34,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  */
 public class Holiday
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Holiday.class);;
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Holiday.class);
 
   private boolean workingDay;
 
@@ -56,7 +56,7 @@ public class Holiday
     this.label = label;
     this.workingDay = workingDay;
     this.workFraction = workingFraction;
-    if (workingDay == false && workFraction != null) {
+    if (!workingDay && workFraction != null) {
       log.warn("Non-working days should not have a work fraction: " + this);
     }
   }

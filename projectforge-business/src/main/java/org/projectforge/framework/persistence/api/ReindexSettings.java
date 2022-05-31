@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.util.Date;
-
 import org.projectforge.framework.persistence.utils.ReflectionToString;
+
+import java.util.Date;
 
 
 public class ReindexSettings

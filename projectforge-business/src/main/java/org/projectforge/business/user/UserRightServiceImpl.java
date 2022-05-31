@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,25 +23,14 @@
 
 package org.projectforge.business.user;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
-
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.collections.list.UnmodifiableList;
-import org.jfree.util.Log;
+import org.projectforge.business.address.AddressbookRight;
 import org.projectforge.business.fibu.AuftragRight;
 import org.projectforge.business.fibu.ProjektRight;
 import org.projectforge.business.gantt.GanttChartRight;
 import org.projectforge.business.humanresources.HRPlanningRight;
-import org.projectforge.business.meb.MebRight;
-import org.projectforge.business.multitenancy.TenantChecker;
-import org.projectforge.business.multitenancy.TenantRight;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
+import org.projectforge.business.teamcal.event.right.CalEventRight;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.IUserRightId;
@@ -50,24 +39,25 @@ import org.projectforge.framework.persistence.api.UserRightService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import java.io.Serializable;
+import java.util.*;
+
 @Service
 public class UserRightServiceImpl implements UserRightService, Serializable
 {
   private static final long serialVersionUID = 7745893362798312310L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserRightServiceImpl.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserRightServiceImpl.class);
 
   @Autowired
   AccessChecker accessChecker;
 
-  @Autowired
-  TenantChecker tenantChecker;
+  private final Map<IUserRightId, UserRight> rights = new HashMap<>();
 
-  private final Map<IUserRightId, UserRight> rights = new HashMap<IUserRightId, UserRight>();
+  private final Map<String, IUserRightId> rightIds = new HashMap<>();
 
-  private final Map<String, IUserRightId> rightIds = new HashMap<String, IUserRightId>();
-
-  private final List<UserRight> orderedRights = new ArrayList<UserRight>();
+  private final List<UserRight> orderedRights = new ArrayList<>();
   /**
    * The user rights ids.
    */
@@ -136,14 +126,14 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     addRight(UserRightCategory.ORGA, UserRightId.ORGA_OUTGOING_MAIL, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
         .setReadOnlyForControlling();
     addRight(UserRightCategory.ORGA, UserRightId.ORGA_VISITORBOOK, FALSE_READONLY_READWRITE, ProjectForgeGroup.ORGA_TEAM);
-    addRight(new TenantRight(accessChecker, tenantChecker));
     addRight(new ProjektRight(accessChecker));
     addRight(new AuftragRight(accessChecker));
-    addRight(new MebRight(accessChecker));
     addRight(new GanttChartRight(accessChecker));
     addRight(new HRPlanningRight(accessChecker));
     addRight(new TeamCalRight(accessChecker));
     addRight(new TeamEventRight(accessChecker));
+    addRight(new CalEventRight(accessChecker));
+    addRight(new AddressbookRight(accessChecker));
 
     addRight(UserRightCategory.ADMIN, UserRightId.ADMIN_CORE, FALSE_READONLY_READWRITE, ProjectForgeGroup.ADMIN_GROUP);
   }
@@ -156,8 +146,8 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     for (RightRightIdProviderService service : serviceLoader) {
       String cname = service.getClass().getName();
       for (IUserRightId uid : service.getUserRightIds()) {
-        if (userRightIds.containsKey(uid.getId()) == true) {
-          Log.error("Duplicated UserId: " + uid.getId());
+        if (userRightIds.containsKey(uid.getId())) {
+          log.error("Duplicated UserId: " + uid.getId());
         }
         userRightIds.put(uid.getId(), uid);
       }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,33 +23,25 @@
 
 package org.projectforge.business.ldap;
 
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.common.StringHelper;
+
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.ModificationItem;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-
-import org.apache.commons.lang.StringUtils;
-import org.projectforge.common.StringHelper;
-
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapDao.class);
 
   protected LdapConnector ldapConnector;
 
@@ -84,7 +76,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * @param ctx
    * @param ouBase If organizational units are given by the given obj then this parameter will be ignored, otherwise
-   *          this is the ou where the new object will be inserted.
+   *               this is the ou where the new object will be inserted.
    * @param obj
    * @param args
    * @throws NamingException
@@ -95,7 +87,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     final String dn = buildDn(ouBase, obj);
     log.info("Create " + getObjectClass() + ": " + dn + ": " + getLogInfo(obj));
     final Attributes attrs = new BasicAttributes();
-    final List<ModificationItem> modificationItems = getModificationItems(new ArrayList<ModificationItem>(), obj);
+    final List<ModificationItem> modificationItems = getModificationItems(new ArrayList<>(), obj);
     modificationItems.add(createModificationItem(DirContext.ADD_ATTRIBUTE, "objectClass", getObjectClass()));
     final String[] additionalObjectClasses = getAdditionalObjectClasses(obj);
     if (additionalObjectClasses != null) {
@@ -120,7 +112,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * Please do not use this method for bulk updates, use {@link #createOrUpdate(Set, Object, Object...)} instead! Calls
    * {@link #getSetOfAllObjects()} before creation or update.
-   * 
+   *
    * @param obj
    * @see #createOrUpdate(Set, Object, Object...)
    */
@@ -132,7 +124,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * Please do not use this method for bulk updates, use {@link #createOrUpdate(Set, Object, Object...)} instead! Calls
    * {@link #getSetOfAllObjects()} before creation or update.
-   * 
+   *
    * @param obj
    * @throws NamingException
    * @see #createOrUpdate(Set, Object, Object...)
@@ -145,14 +137,14 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Calls {@link #create(Object)} if the object isn't part of the given set, otherwise {@link #update(Object)}.
-   * 
+   *
    * @param setOfAllLdapObjects List generated before via {@link #getSetOfAllObjects()}.
    * @param obj
    */
   public void createOrUpdate(final SetOfAllLdapObjects setOfAllLdapObjects, final String ouBase, final T obj,
       final Object... args)
   {
-    if (setOfAllLdapObjects.contains(obj, buildDn(ouBase, obj)) == true) {
+    if (setOfAllLdapObjects.contains(obj, buildDn(ouBase, obj))) {
       update(ouBase, obj, args);
     } else {
       create(ouBase, obj, args);
@@ -161,7 +153,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Calls {@link #create(Object)} if the object isn't part of the given set, otherwise {@link #update(Object)}.
-   * 
+   *
    * @param setOfAllLdapObjects List generated before via {@link #getSetOfAllObjects()}.
    * @param obj
    * @throws NamingException
@@ -170,7 +162,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
       final T obj,
       final Object... args) throws NamingException
   {
-    if (setOfAllLdapObjects.contains(obj, buildDn(ouBase, obj)) == true) {
+    if (setOfAllLdapObjects.contains(obj, buildDn(ouBase, obj))) {
       update(ctx, ouBase, obj, args);
     } else {
       create(ctx, ouBase, obj, args);
@@ -193,14 +185,14 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   public void update(final DirContext ctx, final String ouBase, final T obj, final Object... objs)
       throws NamingException
   {
-    modify(ctx, obj, getModificationItems(new ArrayList<ModificationItem>(), obj));
+    modify(ctx, obj, getModificationItems(new ArrayList<>(), obj));
   }
 
   protected abstract List<ModificationItem> getModificationItems(final List<ModificationItem> list, final T obj);
 
   /**
    * Helper method.
-   * 
+   *
    * @param attrId
    * @param attrValue
    * @return
@@ -212,9 +204,9 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Helper method.
-   * 
-   * @param {@link DirContext#REPLACE_ATTRIBUTE}, {@link DirContext#ADD_ATTRIBUTE} or
-   *          {@link DirContext#REMOVE_ATTRIBUTE}.
+   *
+   * @param {@link    DirContext#REPLACE_ATTRIBUTE}, {@link DirContext#ADD_ATTRIBUTE} or
+   *                  {@link DirContext#REMOVE_ATTRIBUTE}.
    * @param attrId
    * @param attrValue
    * @return
@@ -227,11 +219,11 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * Helper method for appending modification item(s) to a given list. At least one entry will be added if no attrValue
    * is given.
-   * 
+   *
    * @param list
    * @param attrId
    * @param attrValues If null then a null-value will be assumed. If more than one string is given, multiple
-   *          modification items will be added.
+   *                   modification items will be added.
    * @return
    */
   protected void createAndAddModificationItems(final List<ModificationItem> list, final String attrId,
@@ -243,11 +235,11 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     }
     boolean added = false;
     for (final String attrValue : attrValues) {
-      if (StringUtils.isEmpty(attrValue) == true && added == true) {
+      if (StringUtils.isEmpty(attrValue) && added) {
         continue;
       }
-      final String val = StringUtils.isEmpty(attrValue) == true ? null : attrValue;
-      if (added == false) {
+      final String val = StringUtils.isEmpty(attrValue) ? null : attrValue;
+      if (!added) {
         list.add(createModificationItem(DirContext.REPLACE_ATTRIBUTE, attrId, val));
         added = true;
       } else {
@@ -259,11 +251,11 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * Helper method for appending modification item(s) to a given list. At least one entry will be added if no attrValue
    * is given.
-   * 
+   *
    * @param list
    * @param attrId
    * @param attrValues If null then a null-value will be assumed. If more than one string is given, multiple
-   *          modification items will be added.
+   *                   modification items will be added.
    * @return
    */
   protected void createAndAddModificationItems(final List<ModificationItem> list, final String attrId,
@@ -275,11 +267,11 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     }
     boolean added = false;
     for (final String attrValue : attrValues) {
-      if (StringUtils.isEmpty(attrValue) == true && added == true) {
+      if (StringUtils.isEmpty(attrValue) && added) {
         continue;
       }
-      final String val = StringUtils.isEmpty(attrValue) == true ? null : attrValue;
-      if (added == false) {
+      final String val = StringUtils.isEmpty(attrValue) ? null : attrValue;
+      if (!added) {
         list.add(createModificationItem(DirContext.REPLACE_ATTRIBUTE, attrId, val));
         added = true;
       } else {
@@ -317,6 +309,14 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     }
     final String dn = origObject.getDn();
     log.info("Modify attributes of " + getObjectClass() + ": " + dn + ": " + getLogInfo(obj));
+
+    if (log.isDebugEnabled()) {
+      for (ModificationItem mi : modificationItems) {
+        if (mi != null)
+          log.debug("\t" + mi.toString());
+      }
+    }
+
     final ModificationItem[] items = modificationItems.toArray(new ModificationItem[modificationItems.size()]);
     ctx.modifyAttributes(dn, items);
     // Don't move object.
@@ -354,7 +354,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     }
     final String ou = LdapUtils.getOrganizationalUnit(newOrganizationalUnit);
     final String origOu = LdapUtils.getOu(origObject.getOrganizationalUnit());
-    if (StringUtils.equals(origOu, ou) == false) {
+    if (!StringUtils.equals(origOu, ou)) {
       log.info("Move object with id '" + obj.getId() + "' from '" + origOu + "' to '" + ou);
       final String dnIdentifier = buildDnIdentifier(obj);
       ctx.rename(dnIdentifier + "," + origOu, dnIdentifier + "," + ou);
@@ -365,7 +365,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   {
     final String newDnIdentifier = buildDnIdentifier(obj);
     final String oldDnIdentifier = buildDnIdentifier(oldObj);
-    if (StringUtils.equals(newDnIdentifier, oldDnIdentifier) == true) {
+    if (StringUtils.equals(newDnIdentifier, oldDnIdentifier)) {
       // Nothing to rename.
       return;
     }
@@ -430,7 +430,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   public List<T> findAll(final DirContext ctx, final String organizationalUnit) throws NamingException
   {
-    final LinkedList<T> list = new LinkedList<T>();
+    final LinkedList<T> list = new LinkedList<>();
     NamingEnumeration<?> results = null;
     final SearchControls controls = new SearchControls();
     controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -466,13 +466,13 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     final String searchBase = getSearchBase(organizationalUnits);
     final String args = "(&(objectClass=" + getObjectClass() + ")(" + getIdAttrId() + "=" + buildId(id) + "))";
     results = ctx.search(searchBase, args, controls);
-    if (results.hasMore() == false) {
+    if (!results.hasMore()) {
       return null;
     }
     final SearchResult searchResult = (SearchResult) results.next();
     final String dn = searchResult.getName();
     final Attributes attributes = searchResult.getAttributes();
-    if (results.hasMore() == true) {
+    if (results.hasMore()) {
       log.error("Oups, found entries with multiple id's: " + getObjectClass() + "." + id);
     }
     return mapToObject(dn, searchBase, attributes);
@@ -481,7 +481,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * The given id is modified if the id in id-attr is stored e. g. with a prefix. See implementation of
    * {@link LdapUserDao#buildId(Object)} as an example.
-   * 
+   *
    * @param id
    */
   protected String buildId(final Object id)
@@ -497,7 +497,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     final SetOfAllLdapObjects set = new SetOfAllLdapObjects();
     final List<T> all = findAll(organizationalUnit);
     for (final T obj : all) {
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("Adding: " + obj.getDn());
       }
       set.add(obj);
@@ -507,7 +507,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Set of all objects (the string is built from the method {@link #buildDn(Object)}).
-   * 
+   *
    * @throws NamingException
    */
   public SetOfAllLdapObjects getSetOfAllObjects(final DirContext ctx, final String organizationalUnit)
@@ -516,7 +516,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     final SetOfAllLdapObjects set = new SetOfAllLdapObjects();
     final List<T> all = findAll(ctx, organizationalUnit);
     for (final T obj : all) {
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("Adding: " + obj.getDn());
       }
       set.add(obj);
@@ -527,7 +527,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * At default the identifier in dn is cn (cn=xxx,ou=yyy,ou=zzz). But for users the dn is may-be
    * (uid=xxx,ou=yyy,ou=zzz).
-   * 
+   *
    * @param obj
    * @return
    */
@@ -538,9 +538,9 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Sets dn of object and organizationalUnit if not already given.
-   * 
+   *
    * @param ouBase If {@link T#getOrganizationalUnit()} is not given, ouBase is used for building dn, otherwise ouBase
-   *          is ignored.
+   *               is ignored.
    * @param obj
    * @return
    */
@@ -563,7 +563,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   protected T mapToObject(final String dn, final String ouBase, final Attributes attributes) throws NamingException
   {
     String fullDn;
-    if (StringUtils.isNotBlank(ouBase) == true) {
+    if (StringUtils.isNotBlank(ouBase)) {
       fullDn = dn + "," + ouBase;
     } else {
       fullDn = dn;
@@ -577,7 +577,6 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   }
 
   /**
-   * 
    * @param dn
    * @param attributes
    * @return
@@ -587,7 +586,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Used by {@link #findById(DirContext, Object, String...)} etc. for setting search-base if not given.
-   * 
+   *
    * @return
    */
   protected abstract String getOuBase();
@@ -595,9 +594,9 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   protected String getSearchBase(final String... organizationalUnits)
   {
     String searchBase = LdapUtils.getOu(organizationalUnits);
-    if (StringUtils.isBlank(searchBase) == true) {
+    if (StringUtils.isBlank(searchBase)) {
       searchBase = getOuBase();
-      if (StringUtils.isBlank(searchBase) == true) {
+      if (StringUtils.isBlank(searchBase)) {
         log.warn("Oups, no search-base (ou) given. Searching in whole LDAP tree!");
       }
     }

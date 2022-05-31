@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.business.fibu;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+
+import java.io.Serializable;
+import java.time.LocalDate;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -43,7 +43,7 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
 
   private static final long serialVersionUID = 3078373853576678481L;
 
-  protected Date fromDate, toDate;
+  protected LocalDate fromDate, toDate;
 
   protected String listType = FILTER_ALL;
 
@@ -144,7 +144,7 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
     return this;
   }
 
-  public Date getFromDate()
+  public LocalDate getFromDate()
   {
     return fromDate;
   }
@@ -153,13 +153,13 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
    * @param fromDate the fromDate to set
    * @return this for chaining.
    */
-  public RechnungFilter setFromDate(final Date fromDate)
+  public RechnungFilter setFromDate(final LocalDate fromDate)
   {
     this.fromDate = fromDate;
     return this;
   }
 
-  public Date getToDate()
+  public LocalDate getToDate()
   {
     return toDate;
   }
@@ -168,7 +168,7 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
    * @param toDate the toDate to set
    * @return this for chaining.
    */
-  public RechnungFilter setToDate(final Date toDate)
+  public RechnungFilter setToDate(final LocalDate toDate)
   {
     this.toDate = toDate;
     return this;

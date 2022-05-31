@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,16 @@
 
 package org.projectforge.framework.persistence.database.timeable;
 
-import java.sql.Timestamp;
-import java.util.Date;
-
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+
+import java.util.Date;
 
 /**
  * Test of persistence of attributes.
@@ -59,14 +58,14 @@ public class EmployeeAttrTest extends AbstractTestBase
   @Test
   public void persistTimeAttr()
   {
-    logon(TEST_FULL_ACCESS_USER);
+    logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
     final PFUserDO user = initTestDB.addUser("EmployeeAttrTest");
     final EmployeeDO e = employeeDao.newInstance();
     e.setUser(user);
     e.setComment("EmployeeAttrTest");
     final EmployeeTimedDO et = employeeDao.newEmployeeTimeAttrRow(e);
     et.setGroupName("PERIOD");
-    et.setStartTime(new Timestamp(new Date().getTime()));
+    et.setStartTime(new Date());
     et.putAttribute("hollydays", 42);
     et.putAttribute("longValue", longValue);
     et.putAttribute("longValue2", longValue);
@@ -75,22 +74,22 @@ public class EmployeeAttrTest extends AbstractTestBase
 
     EmployeeDO luser = employeeDao.getById(e.getId());
     final String comment = luser.getComment();
-    Assert.assertTrue(luser.getTimeableAttributes().isEmpty() == false);
-    Assert.assertTrue(luser.getTimeableAttributes().size() == 1);
+    Assertions.assertTrue(!luser.getTimeableAttributes().isEmpty());
+    Assertions.assertTrue(luser.getTimeableAttributes().size() == 1);
 
     EmployeeTimedDO row = luser.getTimeableAttributes().get(0);
     Integer rhol = row.getAttribute("hollydays", Integer.class);
-    Assert.assertEquals(42, rhol.intValue());
+    Assertions.assertEquals(42, rhol.intValue());
     String rlongVal = row.getAttribute("longValue", String.class);
-    Assert.assertEquals(longValue, rlongVal);
+    Assertions.assertEquals(longValue, rlongVal);
     row.putAttribute("hollydays", 43);
     employeeDao.update(luser);
     luser = employeeDao.getById(e.getId());
     row = luser.getTimeableAttributes().get(0);
     rhol = row.getAttribute("hollydays", Integer.class);
-    Assert.assertEquals(43, rhol.intValue());
+    Assertions.assertEquals(43, rhol.intValue());
     rlongVal = row.getAttribute("longValue", String.class);
-    Assert.assertEquals(longValue, rlongVal);
+    Assertions.assertEquals(longValue, rlongVal);
 
     final String nlongValue = longValue + "X";
     row.putAttribute("longValue", nlongValue);
@@ -99,9 +98,9 @@ public class EmployeeAttrTest extends AbstractTestBase
     //    luser = employeeDao.getById(e.getId());
     //    row = luser.getTimeableAttributes().get(0);
     //    rlongVal = row.getAttribute("longValue", String.class);
-    //    Assert.assertEquals(nlongValue, rlongVal);
+    //    Assertions.assertEquals(nlongValue, rlongVal);
     //    rlongVal = row.getAttribute("longValue2", String.class);
-    //    Assert.assertEquals("XSHORT", rlongVal);
+    //    Assertions.assertEquals("XSHORT", rlongVal);
 
   }
 

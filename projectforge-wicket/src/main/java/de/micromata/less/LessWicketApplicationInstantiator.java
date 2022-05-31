@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,6 @@
 
 package de.micromata.less;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.Serializable;
-
 import org.apache.wicket.markup.head.CssReferenceHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.util.listener.IChangeListener;
@@ -40,16 +35,25 @@ import org.projectforge.web.wicket.WicketApplication;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.Serializable;
+
 /**
  * Compiler utility class for less resource files
  *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
+<<<<<<< HEAD
+=======
+ *
+>>>>>>> develop
  */
 public class LessWicketApplicationInstantiator implements Serializable
 {
   private static final long serialVersionUID = 243362344112860106L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(LessWicketApplicationInstantiator.class);
 
   private static LessWicketApplicationInstantiator instance;
@@ -77,6 +81,10 @@ public class LessWicketApplicationInstantiator implements Serializable
   private boolean compileCss = true;
 
   /**
+<<<<<<< HEAD
+=======
+   *
+>>>>>>> develop
    * @param application
    * @param folder
    * @param lessPath
@@ -121,7 +129,7 @@ public class LessWicketApplicationInstantiator implements Serializable
     try {
       mainLessSource = new LessSource(lessTargetFile, folder);
     } catch (FileNotFoundException e) {
-      log.info("LessSource by file not working. Trying with Stream.");
+      log.debug("LessSource by file not working. Trying with Stream: " + e.getMessage());
       mainLessSource = new LessSource(lessTargetStream, lessTargetFile, folder);
     }
 

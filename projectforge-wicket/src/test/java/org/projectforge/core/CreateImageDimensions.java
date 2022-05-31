@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,9 +36,9 @@ import javax.swing.ImageIcon;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.projectforge.framework.xstream.AliasMap;
-import org.projectforge.framework.xstream.XmlHelper;
-import org.projectforge.framework.xstream.XmlObjectWriter;
+import org.projectforge.framework.xmlstream.AliasMap;
+import org.projectforge.framework.xmlstream.XmlHelper;
+import org.projectforge.framework.xmlstream.XmlObjectWriter;
 import org.projectforge.web.core.ImageDimension;
 import org.projectforge.web.wicket.WebConstants;
 
@@ -46,13 +46,13 @@ import org.projectforge.web.wicket.WebConstants;
  * Creates a dimenstion file for setting the html markup attributes width and size for images. It generates a dimension
  * file which is read by PresizedImage. Test case should be executed every time after modifying dimensions of web app
  * images or adding new images.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class CreateImageDimensions
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CreateImageDimensions.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CreateImageDimensions.class);
 
   private static final String PATH = "src/main/webapp/";
 

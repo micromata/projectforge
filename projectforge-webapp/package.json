@@ -1,0 +1,93 @@
+{
+  "name": "projectforge-webapp",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.1.1",
+    "@fortawesome/fontawesome-svg-core": "^6.1.1",
+    "@fortawesome/free-regular-svg-icons": "^6.1.1",
+    "@fortawesome/free-solid-svg-icons": "^6.1.1",
+    "@fortawesome/react-fontawesome": "^0.1.18",
+    "@popperjs/core": "^2.11.4",
+    "@use-hooks/interval": "^1.0.1",
+    "ace-builds": "^1.4.14",
+    "ag-grid-community": "^27.1.0",
+    "ag-grid-react": "^27.1.0",
+    "awesome-debounce-promise": "^2.1.0",
+    "bootstrap": "^4.6.1",
+    "classnames": "^2.3.1",
+    "clipboard-copy": "^4.0.1",
+    "fetch-mock": "^9.11.0",
+    "history": "^5.3.0",
+    "jquery": "^3.6.0",
+    "js-file-download": "^0.4.12",
+    "micromark-extension-gfm-table": "^1.0.5",
+    "moment": "^2.29.2",
+    "moment-timezone": "^0.5.34",
+    "node-fetch": "^3.2.4",
+    "prop-types": "^15.7.2",
+    "rc-time-picker": "^3.7.3",
+    "react": "^17.0.2",
+    "react-ace": "^9.5.0",
+    "react-big-calendar": "^0.33.2",
+    "react-color": "^2.19.3",
+    "react-cookies": "^0.1.1",
+    "react-day-picker": "^7.4.10",
+    "react-dom": "^17.0.2",
+    "react-dropzone": "^14.2.1",
+    "react-helmet": "^6.1.0",
+    "react-markdown": "^8.0.2",
+    "react-number-format": "^4.5.5",
+    "react-popper": "^2.3.0",
+    "react-redux": "^7.2.4",
+    "react-router-dom": "^5.2.0",
+    "react-rrule-generator": "^1.2.0",
+    "react-scripts": "^5.0.1",
+    "react-select": "^4.3.0",
+    "reactstrap": "^8.9.0",
+    "redux": "^4.1.0",
+    "redux-mock-store": "^1.5.4",
+    "redux-thunk": "^2.3.0",
+    "rehype-raw": "^6.1.1",
+    "remark-gfm": "^3.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "postbuild": "mv build/index.html build/react-app.html",
+    "eslint": "eslint \"src/**/**/*.{js,jsx,tsx}\"",
+    "eslint.fix": "eslint \"src/**/**/*.{js,jsx,tsx}\" --fix"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx}",
+      "!src/index.js",
+      "!src/serviceWorker.js"
+    ]
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "@typescript-eslint/parser": "^5.25.0",
+    "eslint": "^8.15.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-react": "^7.30.0",
+    "react-test-renderer": "^17.0.2",
+    "react-testing-library": "^8.0.1",
+    "sass": "^1.22.10",
+    "sass-loader": "^7.2.0",
+    "typescript": "^4.6.4"
+  }
+}

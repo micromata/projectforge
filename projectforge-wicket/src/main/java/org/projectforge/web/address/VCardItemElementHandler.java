@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,19 +23,14 @@
 
 package org.projectforge.web.address;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-
-import org.apache.commons.lang.StringUtils;
-
 import net.fortuna.ical4j.vcard.Group;
 import net.fortuna.ical4j.vcard.Parameter;
 import net.fortuna.ical4j.vcard.Property;
 import net.fortuna.ical4j.vcard.Property.Id;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.*;
+import java.util.ArrayList;
 
 /**
  * Handle vCard item entries.<br />
@@ -45,7 +40,7 @@ import net.fortuna.ical4j.vcard.Property.Id;
  */
 public class VCardItemElementHandler
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(VCardItemElementHandler.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VCardItemElementHandler.class);
 
   private final ArrayList<Property> itemList;
 

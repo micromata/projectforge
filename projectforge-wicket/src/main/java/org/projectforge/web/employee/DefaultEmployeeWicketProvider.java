@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,7 @@
 
 package org.projectforge.web.employee;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeStatus;
@@ -37,9 +32,10 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.AbstractEmployeeWicketProvider;
 import org.wicketstuff.select2.Response;
 
-public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvider
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DefaultEmployeeWicketProvider.class);
+import java.util.*;
+
+public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvider {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DefaultEmployeeWicketProvider.class);
 
   private static final long serialVersionUID = 6228672123966093257L;
 
@@ -47,35 +43,40 @@ public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvide
 
   private List<EmployeeStatus> employeeStatusFilter;
 
-  public DefaultEmployeeWicketProvider(EmployeeService employeeService, boolean withMyself, EmployeeStatus... employeeStatusFilter)
-  {
+  public DefaultEmployeeWicketProvider(EmployeeService employeeService, boolean withMyself, EmployeeStatus... employeeStatusFilter) {
     super(employeeService);
     this.withMyself = withMyself;
     this.employeeStatusFilter = Arrays.asList(employeeStatusFilter);
   }
 
   @Override
-  public void query(String term, final int page, final Response<EmployeeDO> response)
-  {
+  public void query(String term, final int page, final Response<EmployeeDO> response) {
     boolean hasMore = false;
     Collection<EmployeeDO> result = new ArrayList<>();
-    List<EmployeeDO> employeesWithoutLoginedUser = employeeService.findAllActive(false).stream()
-        .filter(emp -> this.withMyself || emp.getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == false)
-        .filter(emp -> this.employeeStatusFilter.size() < 1 || (employeeService.getEmployeeStatus(emp) != null && this.employeeStatusFilter
-            .contains(employeeService.getEmployeeStatus(emp))))
-        .filter(emp -> emp.getUser().getEmail() != null && emp.getUser().getEmail().length() > 0)
-        .collect(Collectors.toList());
-    for (EmployeeDO emp : employeesWithoutLoginedUser) {
-      if (StringUtils.isBlank(term) == false) {
-        if (emp.getUser().getFullname().toLowerCase().contains(term.toLowerCase())) {
+    Collection<EmployeeDO> employeesWithoutLoggedInUser = employeeService.findAllActive(false);
+    if (CollectionUtils.isEmpty(employeesWithoutLoggedInUser)) {
+      employeesWithoutLoggedInUser = new ArrayList<>();
+    } else {
+      final Integer loggedInUserId = ThreadLocalUserContext.getUserId();
+      for (EmployeeDO emp : employeesWithoutLoggedInUser) {
+        if (!withMyself && Objects.equals(emp.getUserId(), loggedInUserId)) {
+          // Don't add myself as employee.
+          continue;
+        }
+        if (CollectionUtils.isNotEmpty(employeeStatusFilter) && !employeeStatusFilter.contains(employeeService.getEmployeeStatus(emp))) {
+          continue;
+        }
+        if (StringUtils.isNotBlank(term)) {
+          if (emp.getUser().getFullname().toLowerCase().contains(term.toLowerCase())) {
+            result.add(emp);
+          }
+        } else {
           result.add(emp);
         }
-      } else {
-        result.add(emp);
-      }
-      if (result.size() == pageSize) {
-        hasMore = true;
-        break;
+        if (result.size() == pageSize) {
+          hasMore = true;
+          break;
+        }
       }
     }
     response.addAll(result);

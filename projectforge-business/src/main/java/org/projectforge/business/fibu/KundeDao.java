@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,96 +23,101 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.List;
-
-import org.hibernate.criterion.Order;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public class KundeDao extends BaseDao<KundeDO>
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(KundeDao.class);
+import java.util.List;
 
-  public KundeDao()
-  {
+@Repository
+public class KundeDao extends BaseDao<KundeDO> {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KundeDao.class);
+
+  public KundeDao() {
     super(KundeDO.class);
     avoidNullIdCheckBeforeSave = true;
+    this.idProperty = "nummer";
   }
 
   @Override
-  public List<KundeDO> getList(final BaseSearchFilter filter)
-  {
+  public List<KundeDO> getList(final BaseSearchFilter filter) {
     final QueryFilter queryFilter = new QueryFilter(filter);
-    queryFilter.addOrder(Order.asc("id"));
+    queryFilter.addOrder(SortProperty.asc("nummer"));
     return getList(queryFilter);
   }
 
   /**
    * return Always true, no generic select access needed for address objects.
-   * 
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
-  {
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.CONTROLLING_GROUP,
-        ProjectForgeGroup.PROJECT_MANAGER, ProjectForgeGroup.PROJECT_ASSISTANT);
+            ProjectForgeGroup.CONTROLLING_GROUP,
+            ProjectForgeGroup.PROJECT_MANAGER, ProjectForgeGroup.PROJECT_ASSISTANT);
   }
 
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final KundeDO obj, final boolean throwException)
-  {
+  public boolean hasUserSelectAccess(final PFUserDO user, final KundeDO obj, final boolean throwException) {
     if (obj == null) {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.CONTROLLING_GROUP) == true) {
+            ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER,
-        ProjectForgeGroup.PROJECT_ASSISTANT) == true) {
+            ProjectForgeGroup.PROJECT_ASSISTANT)) {
       if (obj.getStatus() != null
-          && obj.getStatus().isIn(KundeStatus.ENDED, KundeStatus.NONACTIVE, KundeStatus.NONEXISTENT) == false
-          && obj.isDeleted() == false) {
+              && !obj.getStatus().isIn(KundeStatus.ENDED, KundeStatus.NONACTIVE, KundeStatus.NONEXISTENT)
+              && !obj.isDeleted()) {
         // Ein Projektleiter sieht keine nicht mehr aktiven oder gelöschten Kunden.
         return true;
       }
     }
-    if (throwException == true) {
+    if (throwException) {
       accessChecker.checkIsUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP);
       log.error("Should not occur! An exception should be thrown.");
     }
     return false;
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
-   */
   @Override
   public boolean hasAccess(final PFUserDO user, final KundeDO obj, final KundeDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
-  {
+                           final OperationType operationType,
+                           final boolean throwException) {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP);
   }
 
   @Override
-  public boolean hasHistoryAccess(final PFUserDO user, final boolean throwException)
-  {
+  public boolean hasHistoryAccess(final PFUserDO user, final boolean throwException) {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP,
-        ProjectForgeGroup.CONTROLLING_GROUP);
+            ProjectForgeGroup.CONTROLLING_GROUP);
   }
 
   @Override
-  public KundeDO newInstance()
-  {
+  public KundeDO newInstance() {
     return new KundeDO();
+  }
+
+  @Override
+  protected void onSave(KundeDO obj) {
+    if (doesNumberAlreadyExist(obj)) {
+      obj.setCreated(null);
+      throw new UserException("fibu.kunde.validation.existingCustomerNr");
+    }
+  }
+
+  public boolean doesNumberAlreadyExist(final KundeDO customer) {
+    if (customer == null || customer.getId() == null) {
+      return false;
+    }
+    KundeDO existingCustomer = internalGetById(customer.getId());
+    return existingCustomer != null;
   }
 }

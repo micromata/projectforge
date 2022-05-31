@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,32 +23,29 @@
 
 package org.projectforge.core;
 
-import static org.testng.AssertJUnit.*;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Locale;
-
-import org.junit.Ignore;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookStatus;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.test.AbstractTestBase;
-import org.testng.annotations.Test;
 
-public class AbstractBaseDOTest extends AbstractTestBase
-{
+import java.time.Month;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Locale;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class AbstractBaseDOTest extends AbstractTestBase {
   @Override
-  protected void initDb()
-  {
+  protected void initDb() {
     init(false);
   }
 
   @Test
-  public void determinePropertyName() throws NoSuchMethodException
-  {
+  public void determinePropertyName() {
     BookDO obj = createBookDO(21, 22, false, BookStatus.DISPOSED, "Hurzel");
     final String created = DateHelper.getForTestCase(obj.getCreated());
     final String lastUpdate = DateHelper.getForTestCase(obj.getLastUpdate());
@@ -66,7 +63,7 @@ public class AbstractBaseDOTest extends AbstractTestBase
     obj = createBookDO(21, 22, false, BookStatus.MISSED, "Hurzel");
     src = createBookDO(19, 20, false, BookStatus.MISSED, null);
     obj.copyValuesFrom(src);
-    assertEquals("Expected, that the property will be overwritten by null", null, obj.getTitle());
+    assertEquals(null, obj.getTitle(), "Expected, that the property will be overwritten by null");
     assertEquals(false, obj.isDeleted());
     assertEquals(BookStatus.MISSED, obj.getStatus());
     assertEquals(created, DateHelper.getForTestCase(obj.getCreated()));
@@ -74,15 +71,14 @@ public class AbstractBaseDOTest extends AbstractTestBase
   }
 
   private BookDO createBookDO(final int createdDayOfMonth, final int lastUpdateDateOfMonth, final boolean deleted,
-      final BookStatus bookStatus, final String testString)
-  {
+                              final BookStatus bookStatus, final String testString) {
     BookDO obj = new BookDO();
-    DateHolder dateHolder = new DateHolder(DatePrecision.SECOND, Locale.GERMAN);
+    PFDateTime dateTime = PFDateTime.now(ZoneId.of("UTC"), Locale.GERMAN).withPrecision(DatePrecision.SECOND);
     obj.setId(42);
-    dateHolder.setDate(1970, Calendar.NOVEMBER, createdDayOfMonth, 4, 50, 0);
-    obj.setCreated(dateHolder.getDate());
-    dateHolder.setDate(1970, Calendar.NOVEMBER, lastUpdateDateOfMonth, 4, 50, 0);
-    obj.setLastUpdate(dateHolder.getDate());
+    dateTime = dateTime.withDate(1970, Month.NOVEMBER, createdDayOfMonth, 4, 50, 0);
+    obj.setCreated(dateTime.getUtilDate());
+    dateTime = dateTime.withDayOfMonth(lastUpdateDateOfMonth);
+    obj.setLastUpdate(dateTime.getUtilDate());
     obj.setDeleted(deleted);
 
     obj.setStatus(bookStatus);
@@ -93,38 +89,36 @@ public class AbstractBaseDOTest extends AbstractTestBase
   /**
    * does not work with entities, which are not in Emgr.
    */
-  @Ignore
   //  @Test
-  public void copyValuesFrom()
-  {
+  public void copyValuesFrom() {
     final FooDO srcFoo = new FooDO();
-    srcFoo.setManagedChilds(new ArrayList<BarDO>());
-    srcFoo.setUnmanagedChilds1(new ArrayList<BarDO>());
-    srcFoo.setUnmanagedChilds2(new ArrayList<BarDO>());
-    srcFoo.getManagedChilds().add(new BarDO(1, "src1"));
-    srcFoo.getManagedChilds().add(new BarDO(2, "src2"));
-    srcFoo.getUnmanagedChilds1().add(new BarDO(3, "src3"));
-    srcFoo.getUnmanagedChilds1().add(new BarDO(4, "src4"));
-    srcFoo.getUnmanagedChilds2().add(new BarDO(5, "src5"));
-    srcFoo.getUnmanagedChilds2().add(new BarDO(6, "src6"));
+    srcFoo.setManagedChildren(new ArrayList<>());
+    srcFoo.setUnmanagedChildren1(new ArrayList<>());
+    srcFoo.setUnmanagedChildren2(new ArrayList<>());
+    srcFoo.getManagedChildren().add(new BarDO(1, "src1"));
+    srcFoo.getManagedChildren().add(new BarDO(2, "src2"));
+    srcFoo.getUnmanagedChildren1().add(new BarDO(3, "src3"));
+    srcFoo.getUnmanagedChildren1().add(new BarDO(4, "src4"));
+    srcFoo.getUnmanagedChildren2().add(new BarDO(5, "src5"));
+    srcFoo.getUnmanagedChildren2().add(new BarDO(6, "src6"));
     final FooDO destFoo = new FooDO();
-    destFoo.setManagedChilds(new ArrayList<BarDO>());
-    destFoo.setUnmanagedChilds1(new ArrayList<BarDO>());
-    destFoo.setUnmanagedChilds2(new ArrayList<BarDO>());
-    destFoo.getManagedChilds().add(new BarDO(1, "dest1"));
-    destFoo.getManagedChilds().add(new BarDO(2, "dest2"));
-    destFoo.getUnmanagedChilds1().add(new BarDO(3, "dest3"));
-    destFoo.getUnmanagedChilds1().add(new BarDO(4, "dest4"));
-    destFoo.getUnmanagedChilds2().add(new BarDO(5, "dest5"));
-    destFoo.getUnmanagedChilds2().add(new BarDO(6, "dest6"));
+    destFoo.setManagedChildren(new ArrayList<>());
+    destFoo.setUnmanagedChildren1(new ArrayList<>());
+    destFoo.setUnmanagedChildren2(new ArrayList<>());
+    destFoo.getManagedChildren().add(new BarDO(1, "dest1"));
+    destFoo.getManagedChildren().add(new BarDO(2, "dest2"));
+    destFoo.getUnmanagedChildren1().add(new BarDO(3, "dest3"));
+    destFoo.getUnmanagedChildren1().add(new BarDO(4, "dest4"));
+    destFoo.getUnmanagedChildren2().add(new BarDO(5, "dest5"));
+    destFoo.getUnmanagedChildren2().add(new BarDO(6, "dest6"));
     destFoo.copyValuesFrom(srcFoo);
-    ArrayList<BarDO> list = (ArrayList<BarDO>) destFoo.getManagedChilds();
+    ArrayList<BarDO> list = (ArrayList<BarDO>) destFoo.getManagedChildren();
     assertEquals("src1", list.get(0).getTestString());
     assertEquals("src2", list.get(1).getTestString());
-    list = (ArrayList<BarDO>) destFoo.getUnmanagedChilds1();
+    list = (ArrayList<BarDO>) destFoo.getUnmanagedChildren1();
     assertEquals("dest3", list.get(0).getTestString());
     assertEquals("dest4", list.get(1).getTestString());
-    list = (ArrayList<BarDO>) destFoo.getUnmanagedChilds2();
+    list = (ArrayList<BarDO>) destFoo.getUnmanagedChildren2();
     assertEquals("dest5", list.get(0).getTestString());
     assertEquals("dest6", list.get(1).getTestString());
   }

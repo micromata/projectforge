@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,7 @@
 
 package org.projectforge.access;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -45,12 +35,19 @@ import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AccessTestFork extends AbstractTestBase
 {
-  private static final Logger log = Logger.getLogger(AccessTestFork.class);
+  private static final Logger log = LoggerFactory.getLogger(AccessTestFork.class);
 
   @Autowired
   private AccessDao accessDao;
@@ -61,18 +58,21 @@ public class AccessTestFork extends AbstractTestBase
   @Autowired
   private TimesheetDao timesheetDao;
 
+  @Autowired
+  private UserGroupCache userGroupCache;
+
   @Test
   public void testAccessDO()
   {
-    logon(TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     final List<GroupTaskAccessDO> list = accessDao.internalLoadAll();
     for (final GroupTaskAccessDO access : list) {
-      log.info(access);
+      log.info(access.toString());
     }
     initTestDB.addTask("accesstest", "root");
     GroupTaskAccessDO groupTaskAccess = new GroupTaskAccessDO();
     accessDao.setTask(groupTaskAccess, getTask("accesstest").getId());
-    groupTaskAccess.setGroup(getGroup(TEST_GROUP));
+    groupTaskAccess.setGroup(getGroup(AbstractTestBase.TEST_GROUP));
     final AccessEntryDO taskEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.TASKS);
     taskEntry.setAccess(true, true, true, true);
     final AccessEntryDO timesheetEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.TIMESHEETS);
@@ -94,14 +94,13 @@ public class AccessTestFork extends AbstractTestBase
   @Test
   public void checkTaskMoves()
   {
-    logon(TEST_ADMIN_USER);
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     // First check initialization:
     final PFUserDO user1 = getUser("user1");
-    assertTrue("user1 should be member of group1",
-        userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group1").getId()));
-    assertFalse("user1 should not be member of group3",
-        userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group3").getId()));
+    assertTrue(userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group1").getId()),
+            "user1 should be member of group1");
+    assertFalse(userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group3").getId()),
+            "user1 should not be member of group3");
     initTestDB.addTask("checkTaskMoves", "root");
     initTestDB.addTask("cTm.1", "checkTaskMoves");
     initTestDB.addTask("cTm.child", "cTm.1");
@@ -128,8 +127,8 @@ public class AccessTestFork extends AbstractTestBase
     timesheet.setLocation("Office");
     timesheet.setDescription("A lot of stuff done and more.");
     final long current = System.currentTimeMillis();
-    timesheet.setStartTime(new Timestamp(current));
-    timesheet.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
+    timesheet.setStartTime(new Date(current));
+    timesheet.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
     final Serializable id = timesheetDao.internalSave(timesheet);
 
     logon(user1); // user1 is in group1, but not in group3

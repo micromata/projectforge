@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,24 +23,22 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.INullAcceptingValidator;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.fibu.kost.KostFilter;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
 
 public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
 {
@@ -106,7 +104,11 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
   protected List<Kost1DO> getChoices(final String input)
   {
     final KostFilter filter = new KostFilter();
-    filter.setSearchString(input);
+    if (input.indexOf('*') >= 0) {
+      filter.setSearchString(input);
+    } else {
+      filter.setSearchString(input + "*");
+    }
     filter.setListType(KostFilter.FILTER_NOT_ENDED);
     final List<Kost1DO> list = kost1Dao.getList(filter);
     Collections.sort(list, new Comparator<Kost1DO>()

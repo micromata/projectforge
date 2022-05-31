@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,22 +23,21 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.Locale;
-
 import org.apache.lucene.document.Document;
 import org.hibernate.search.bridge.FieldBridge;
 import org.hibernate.search.bridge.LuceneOptions;
-import org.projectforge.Const;
+import org.projectforge.business.user.UserLocale;
 import org.projectforge.framework.i18n.I18nHelper;
+
+import java.util.Locale;
 
 /**
  * Bridge for hibernate search to search for payment type of incomming invoices.
  *
  * @author Stefan Niemczyk (s.niemczyk@micromata.de)
  */
-public class HibernateSearchPaymentTypeBridge implements FieldBridge
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+public class HibernateSearchPaymentTypeBridge implements FieldBridge {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(HibernateSearchPaymentTypeBridge.class);
 
   /**
@@ -46,17 +45,15 @@ public class HibernateSearchPaymentTypeBridge implements FieldBridge
    * org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)
    */
   @Override
-  public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
-  {
+  public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions) {
     final PaymentType paymentType = (PaymentType) value;
     if (paymentType == null) {
-      log.fatal("PaymentType object is null.");
       return;
     }
 
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
 
-    for (final Locale locale : Const.I18NSERVICE_LANGUAGES) {
+    for (final Locale locale : UserLocale.I18NSERVICE_LANGUAGES) {
       final String localized = I18nHelper.getLocalizedMessage(locale, paymentType.getI18nKey());
 
       if (localized == null) {
@@ -66,7 +63,7 @@ public class HibernateSearchPaymentTypeBridge implements FieldBridge
       buf.append(localized + " ");
     }
 
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(buf.toString());
     }
 

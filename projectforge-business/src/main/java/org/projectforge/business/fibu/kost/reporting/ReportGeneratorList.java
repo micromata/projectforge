@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,7 @@ import java.util.Map;
 
 public class ReportGeneratorList
 {
-  private List<ReportGenerator> reports = new ArrayList<ReportGenerator>();
+  private List<ReportGenerator> reports = new ArrayList<>();
   
   public void addReportGenerator(ReportGenerator generator) {
     reports.add(generator);

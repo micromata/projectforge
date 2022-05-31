@@ -10,6 +10,35 @@ function toggle(component) {
     $(component).toggle('fast');
 }
 
+/**
+ * Function for tree view, which disable the row click to enable expanding and collapsing tree model.
+ *
+ */
+$(function () {
+    $('body').on('click', '.tableTree tr', function (e) {
+        // console.group('click')
+        // console.log(e.target);
+        // console.log(e.currentTarget);
+        // console.groupEnd();
+        // if ($(e.target).is('.tree-label, .tree-junction-expanded, .tree-junction-collapsed, .tree-folder-open, .tree-folder-closed')) {
+        if ($(e.target).hasClass('tree-label') || $(e.target).hasClass('tree-junction-expanded') || $(e.target).hasClass('tree-junction-collapsed') || $(e.target).hasClass('tree-folder-open') || $(e.target).hasClass('tree-folder-closed')) {
+            e.preventDefault();
+        } else {
+            rowClick(e.currentTarget);
+        }
+    });
+});
+
+$(function () {
+    $('.icon-link-panel-link').on('click', function (e) {
+        // console.group('click')
+        // console.log(e.target);
+        // console.log(e.currentTarget);
+        // console.groupEnd();
+        e.stopPropagation();
+    });
+});
+
 function rowClick(row) {
     if (suppressRowClick != 'true') {
         link = $(row).find("a:first");
@@ -353,6 +382,7 @@ function doAfterAjaxHandling() {
     });
     // quickfix to handle wicket checkboxes to work with bootstrap3
     $(document).on("change", "[data-toggle^=button] [type=checkbox]", function () {
+<<<<<<< HEAD
         handleWicketToggleButton(this);
     });
     $(document).on("change", "[data-toggle^=button] [type=radio]", function () {
@@ -380,6 +410,13 @@ function handleWicketToggleButton(button) {
     }
 
     return false;
+=======
+        eval($(this).attr("onclick"));
+    });
+    $(document).on("change", "[data-toggle^=button] [type=radio]", function () {
+        eval($(this).attr("onclick"));
+    });
+>>>>>>> develop
 }
 
 function initColorPicker() {
@@ -534,3 +571,4 @@ if (!window.JSON) {
         }
     };
 }
+

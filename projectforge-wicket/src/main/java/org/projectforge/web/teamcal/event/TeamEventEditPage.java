@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,20 @@
 
 package org.projectforge.web.teamcal.event;
 
-import java.io.ByteArrayOutputStream;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -55,6 +48,13 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
+
+import java.io.ByteArrayOutputStream;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -64,13 +64,10 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
 {
   private static final long serialVersionUID = 1221484611148024273L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventEditPage.class);
 
   @SpringBean
   private TimesheetDao timesheetDao;
-
-  @SpringBean
-  private TeamCalServiceImpl teamEventConverter;
 
   @SpringBean
   private TeamEventService teamEventService;
@@ -80,7 +77,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   /**
    * Only given if called by recurrence dialog.
    */
-  private TeamEvent eventOfCaller;
+  private ICalendarEvent eventOfCaller;
 
   /**
    * Used for recurrence events in {@link #onSaveOrUpdate()} and {@link #afterSaveOrUpdate()}
@@ -112,14 +109,14 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   /**
    * @param parameters
    */
-  public TeamEventEditPage(final PageParameters parameters, final TeamEvent event, final Timestamp newStartDate,
-      final Timestamp newEndDate, final RecurrencyChangeType recurrencyChangeType)
+  public TeamEventEditPage(final PageParameters parameters, final ICalendarEvent event, final Timestamp newStartDate,
+                           final Timestamp newEndDate, final RecurrencyChangeType recurrencyChangeType)
   {
     super(parameters, "plugins.teamcal.event");
     Validate.notNull(event);
     Validate.notNull(recurrencyChangeType);
     // event contains the new start and/or stop date if modified.
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("TeamEvent is: newStartDate="
           + newStartDate
           + ", newEndDate="
@@ -168,14 +165,11 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     init(teamEventDO);
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractEditPage#init(org.projectforge.core.AbstractBaseDO)
-   */
   @Override
   protected void init(final TeamEventDO data)
   {
     super.init(data);
-    if (isNew() == false) {
+    if (!isNew()) {
       @SuppressWarnings("serial")
       final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
           new Link<Void>(ContentMenuEntryPanel.LINK_ID)
@@ -184,13 +178,13 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
             public void onClick()
             {
               final TimesheetDO timesheet = new TimesheetDO();
-              timesheet.setStartDate(getData().getStartDate())//
-                  .setStopTime(getData().getEndDate()) //
-                  .setLocation(getData().getLocation());
+              timesheet.setStartDate(getData().getStartDate());
+              timesheet.setStopTime(getData().getEndDate()) ;
+              timesheet.setLocation(getData().getLocation());
               final StringBuffer buf = new StringBuffer();
               buf.append(getData().getSubject());
               final String note = getData().getNote();
-              if (StringUtils.isNotBlank(note) == true) {
+              if (StringUtils.isNotBlank(note)) {
                 buf.append("\n").append(note);
               }
               timesheet.setDescription(buf.toString());
@@ -203,7 +197,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
           }, getString("plugins.teamcal.event.convert2Timesheet"));
       addContentMenuEntry(menu);
     }
-    if (isNew() == true) {
+    if (isNew()) {
       @SuppressWarnings("serial")
       final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
           ContentMenuEntryPanel.LINK_ID, form)
@@ -227,17 +221,20 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       addContentMenuEntry(menu);
     } else {
       @SuppressWarnings("serial")
-      final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
-          ContentMenuEntryPanel.LINK_ID, form)
+      final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(ContentMenuEntryPanel.LINK_ID, form)
       {
         @Override
         public void onSubmit()
         {
           final TeamEventDO event = getData();
           log.info("Export ics for: " + event.getSubject());
-          ByteArrayOutputStream baos = teamEventConverter.getIcsFile(event, false, false, null);
-          if (baos != null) {
-            DownloadUtils.setDownloadTarget(baos.toByteArray(), event.getSubject().replace(" ", "") + ".ics");
+
+          final ICalGenerator generator = ICalGenerator.exportAllFields();
+          generator.addEvent(event);
+          ByteArrayOutputStream icsFile = generator.getCalendarAsByteStream();
+
+          if (icsFile != null) {
+            DownloadUtils.setDownloadTarget(icsFile.toByteArray(), event.getSubject().replace(" ", "") + ".ics");
           }
         }
 
@@ -326,8 +323,10 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     if (getData().getCreator() == null) {
       getData().setCreator(ThreadLocalUserContext.getUser());
     }
+
     if (getData() != null && getData().getId() != null) {
-      this.teamEventBeforeSaveOrUpdate = teamEventService.getById(getData().getPk());
+      //Clone Object to evaluate the sendMail()
+      this.teamEventBeforeSaveOrUpdate = teamEventService.getById(getData().getPk()).clone();
       this.isNew = false;
     } else {
       this.isNew = true;
@@ -459,10 +458,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     return log;
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractEditPage#newEditForm(org.projectforge.web.wicket.AbstractEditPage,
-   * org.projectforge.core.AbstractBaseDO)
-   */
   @Override
   protected TeamEventEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final TeamEventDO data)
   {

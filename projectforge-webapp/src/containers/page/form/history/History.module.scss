@@ -1,0 +1,81 @@
+@import '../../../../assets/style/mixins';
+
+div.entry {
+  border-bottom: 1px solid #ddd;
+  padding: 5px;
+  cursor: default;
+
+  &.active {
+    .icon {
+      @include transform(rotate(90deg));
+    }
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+
+  .icon {
+    display: inline-block;
+    @include transition-transform($defaultTransitionTime, rotate(0));
+  }
+
+  span {
+    font-size: 14px;
+  }
+
+  span.username {
+    margin-left: 10px;
+    display: inline-block;
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  h5 {
+    font-size: 15px;
+  }
+
+  span.changesAmount {
+    display: block;
+    color: #888;
+
+    span::after {
+      content: ', ';
+    }
+
+    span:last-child::after {
+      content: '';
+    }
+  }
+
+  span.modifiedAt {
+    display: block;
+    width: 100%;
+    text-align: right;
+  }
+
+  span {
+    &.Insert {
+      color: #28a745;
+    }
+
+    &.Update {
+      color: #007bff;
+    }
+
+    &.Delete {
+      color: #dc3545;
+    }
+  }
+  div.details {
+    padding-top: 10px;
+
+    span.detail {
+      display: block;
+    }
+  }
+}

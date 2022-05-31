@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,7 @@ package org.projectforge.framework.utils;
 
 public class ClassHelper
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ClassHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClassHelper.class);
 
   /**
    * Returns the default values of primitive types (if given). Boolean: false, Integer: 0.
@@ -35,13 +35,13 @@ public class ClassHelper
    */
   public static Object getDefaultType(final Class< ? > type)
   {
-    if (type.isPrimitive() == false) {
+    if (!type.isPrimitive()) {
       return null;
     }
-    if (Boolean.TYPE.equals(type) == true) {
+    if (Boolean.TYPE.equals(type)) {
       return false;
     }
-    if (Integer.TYPE.equals(type) == true) {
+    if (Integer.TYPE.equals(type)) {
       return 0;
     }
     log.warn("Unsupported type for null value of type: " + type);
@@ -58,7 +58,7 @@ public class ClassHelper
     if (value == null) {
       return true;
     }
-    if ((value instanceof Boolean || Boolean.TYPE.equals(type) == true) && (Boolean) value == false) {
+    if ((value instanceof Boolean || Boolean.TYPE.equals(type)) && !((Boolean) value)) {
       return true;
     }
     return false;

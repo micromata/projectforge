@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,56 +23,51 @@
 
 package org.projectforge.calendar;
 
-import static org.testng.AssertJUnit.assertEquals;
-
-import java.util.Calendar;
-import java.util.Locale;
-
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.calendar.WeekHolder;
-import org.projectforge.framework.configuration.ConfigXmlTest;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DatePrecision;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.projectforge.framework.time.PFDay;
+import org.projectforge.test.TestSetup;
 
-public class WeekHolderTest
-{
+import java.time.DayOfWeek;
+import java.time.Month;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class WeekHolderTest {
   //private final static Logger log = Logger.getLogger(WeekHolderTest.class);
 
-  @BeforeClass
-  public static void setUp()
-  {
+  @BeforeAll
+  public static void setUp() {
     // Needed if this tests runs before the ConfigurationTest.
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test
-  public void testWeekHolder()
-  {
-    final Calendar cal = Calendar.getInstance(Locale.GERMAN);
-    WeekHolder week = new WeekHolder(cal);
+  public void testWeekHolder() {
+    final PFDay dt = PFDay.now();
+    WeekHolder week = new WeekHolder(dt);
     assertEquals(7, week.getDays().length);
-    assertEquals(2, week.getDays()[0].getDayOfWeek());
-    assertEquals("monday", week.getDays()[0].getDayKey());
-    final DateHolder dateHolder = new DateHolder(DatePrecision.DAY, Locale.GERMAN);
-    dateHolder.setDate(1970, Calendar.NOVEMBER, 21, 4, 50, 23);
-    week = new WeekHolder(dateHolder.getCalendar());
+    assertEquals(1, week.getDays()[0].getDayOfWeek().getValue());
+    assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());
+    PFDay date = PFDay.now().withDate(1970, Month.NOVEMBER, 21);
+    week = new WeekHolder(date);
     assertEquals(7, week.getDays().length);
-    assertEquals(2, week.getDays()[0].getDayOfWeek());
-    assertEquals("monday", week.getDays()[0].getDayKey());
-    assertEquals("sunday", week.getDays()[6].getDayKey());
+    assertEquals(1, week.getDays()[0].getDayOfWeek().getValue());
+    assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());
+    assertEquals(DayOfWeek.SUNDAY, week.getDays()[6].getDayOfWeek());
     assertEquals(16, week.getDays()[0].getDayOfMonth());
-    assertEquals("saturday", week.getDays()[5].getDayKey());
+    assertEquals(DayOfWeek.SATURDAY, week.getDays()[5].getDayOfWeek());
     assertEquals(21, week.getDays()[5].getDayOfMonth());
-    dateHolder.setDate(2007, Calendar.MARCH, 1, 4, 50, 23);
-    assertEquals(Calendar.MARCH, dateHolder.getMonth());
-    week = new WeekHolder(dateHolder.getCalendar(), dateHolder.getMonth());
-    assertEquals("monday", week.getDays()[0].getDayKey());
+    date = date.withDate(2007, Month.MARCH, 1);
+    assertEquals(Month.MARCH, date.getMonth());
+    week = new WeekHolder(date);
+    assertEquals(DayOfWeek.MONDAY, week.getDays()[0].getDayOfWeek());
     assertEquals(26, week.getDays()[0].getDayOfMonth());
-    assertEquals(true, week.getDays()[0].isMarker()); // February, 26
-    assertEquals(true, week.getDays()[1].isMarker()); // February, 27
-    assertEquals(true, week.getDays()[2].isMarker()); // February, 28
+    //assertTrue(week.getDays()[0].isMarker()); // February, 26
+    //assertTrue(week.getDays()[1].isMarker()); // February, 27
+    //assertTrue(week.getDays()[2].isMarker()); // February, 28
     assertEquals(1, week.getDays()[3].getDayOfMonth());
-    assertEquals("Day is not of current month and should be marked.", false, week.getDays()[3].isMarker()); // March, 1
+    //assertFalse(week.getDays()[3].isMarker(), "Day is not of current month and should be marked."); // March, 1
   }
 }

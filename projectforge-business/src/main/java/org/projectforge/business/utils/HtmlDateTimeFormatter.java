@@ -1,12 +1,35 @@
-package org.projectforge.business.utils;
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
 
-import java.util.Date;
+package org.projectforge.business.utils;
 
 import org.projectforge.framework.renderer.RenderType;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.TimePeriod;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 
 @Service
 public class HtmlDateTimeFormatter extends DateTimeFormatter
@@ -25,7 +48,7 @@ public class HtmlDateTimeFormatter extends DateTimeFormatter
       return "";
     }
     final StringBuffer buf = new StringBuffer();
-    if (timePeriod.getMarker() == true) {
+    if (timePeriod.getMarker()) {
       // Time collision is marked!
       buf.append("<span");
       if (renderType == RenderType.FOP) {
@@ -37,7 +60,7 @@ public class HtmlDateTimeFormatter extends DateTimeFormatter
     }
     if (timePeriod.getFromDate() != null) {
       appendCSSDate(buf, timePeriod.getFromDate(), renderType);
-      if (timePeriod.getMarker() == true) {
+      if (timePeriod.getMarker()) {
         buf.append("***</span>");
       }
       buf.append(" ");
@@ -46,8 +69,8 @@ public class HtmlDateTimeFormatter extends DateTimeFormatter
         buf.append("-");
         appendCSSTime(buf, timePeriod.getToDate(), renderType);
         final DayHolder day = new DayHolder(timePeriod.getFromDate());
-        if (day.isSameDay(timePeriod.getToDate()) == false) {
-          if (multiLines == true) {
+        if (!day.isSameDay(timePeriod.getToDate())) {
+          if (multiLines) {
             buf.append("<br/>(");
           } else {
             buf.append(" (");
@@ -59,7 +82,7 @@ public class HtmlDateTimeFormatter extends DateTimeFormatter
       if (timePeriod.getToDate() != null) {
         buf.append(getFormattedDateTime(timePeriod.getFromDate()));
       }
-      if (timePeriod.getMarker() == true) {
+      if (timePeriod.getMarker()) {
         buf.append("***</span>");
       }
     }

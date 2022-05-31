@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,35 @@
 
 package org.projectforge.business.ldap;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import org.projectforge.business.ldap.LdapUtils;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class LdapUtilsTest
 {
+  @Test
+  void encodeLdap() {
+    assertNull(LdapUtils.encodeForLDAP(null));
+    assertEquals("", LdapUtils.encodeForLDAP(""));
+    assertEquals("abc", LdapUtils.encodeForLDAP("abc"));
+    assertEquals("\\2a", LdapUtils.encodeForLDAP("*"));
+    //   * '\' -> "\5c", '(' -> "\\28", ')' -> "\\29", '\0' -> "\00"
+    assertEquals("Test \\5c \\28\\2a\\29 \\00", LdapUtils.encodeForLDAP("Test \\ (*) \0"));
+  }
+
+  @Test
+  void toJsonStringTest() {
+    LdapUser user = new LdapUser();
+    user.setSurname("Reinhard");
+    user.setUid("kai");
+    user.setSambaNTPassword("secret");
+    assertEquals("{\"uid\":\"kai\",\"surname\":\"Reinhard\",\"deleted\":false,\"deactivated\":false,\"restrictedUser\":false,\"passwordGiven\":false}", user.toString());
+  }
+
   @Test
   public void escapeUserGroupNames()
   {
@@ -111,13 +129,13 @@ public class LdapUtilsTest
   private void assertList(final List<String> list, final String... expected)
   {
     if (expected == null) {
-      Assert.assertNull(list);
+      Assertions.assertNull(list);
       return;
     }
-    Assert.assertNotNull(list);
-    Assert.assertEquals(expected.length, list.size());
+    Assertions.assertNotNull(list);
+    Assertions.assertEquals(expected.length, list.size());
     for (int i = 0; i < expected.length; i++) {
-      Assert.assertEquals(expected[i], list.get(i));
+      Assertions.assertEquals(expected[i], list.get(i));
     }
   }
 }

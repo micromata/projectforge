@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,26 +23,20 @@
 
 package org.projectforge.business.user;
 
-import static org.testng.AssertJUnit.*;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.projectforge.business.multitenancy.TenantDao;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UserRightTest extends AbstractTestBase
 {
@@ -53,18 +47,18 @@ public class UserRightTest extends AbstractTestBase
   private GroupDao groupDao;
 
   @Autowired
+  private UserGroupCache userGroupCache;
+
+  @Autowired
   private UserRightService userRights;
 
   @Autowired
   private UserRightDao userRightDao;
 
-  @Autowired
-  private TenantDao tenantDao;
-
   @Test
   public void testUserDO()
   {
-    logon(TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     PFUserDO user = new PFUserDO();
     user.setUsername("UserRightTest");
     user//
@@ -74,43 +68,44 @@ public class UserRightTest extends AbstractTestBase
 
     final List<UserRightDO> userRights = new ArrayList<>(user.getRights());
     user.getRights().clear();
-    user = userService.getById(userService.save(user));
+    Integer userId = userService.save(user);
     userRightDao.save(userRights);
+    user = userService.internalGetById(userId);
 
-    assignToDefaultTenant(user);
     Set<UserRightDO> rights = user.getRights();
-    assertEquals("3 rights added to user", 3, rights.size());
+    assertEquals( 3, rights.size(),"3 rights added to user");
     logon(user.getUsername());
-    assertFalse("User not in required groups.",
-        accessChecker.hasLoggedInUserRight(UserRightId.FIBU_AUSGANGSRECHNUNGEN, false, UserRightValue.TRUE));
-    assertFalse("User not in required groups.",
-        accessChecker.hasLoggedInUserRight(UserRightId.FIBU_EINGANGSRECHNUNGEN, false, UserRightValue.READONLY));
+    assertFalse(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_AUSGANGSRECHNUNGEN, false, UserRightValue.TRUE),
+            "User not in required groups.");
+    assertFalse(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_EINGANGSRECHNUNGEN, false, UserRightValue.READONLY),
+            "User not in required groups.");
     try {
       accessChecker.hasLoggedInUserRight(UserRightId.FIBU_EINGANGSRECHNUNGEN, true, UserRightValue.READONLY);
       fail("AccessException required.");
     } catch (final AccessException ex) {
       // OK
     }
-    assertFalse("Right valid but not available (user is not in fibu group).",
-        accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, false, UserRightValue.FALSE));
-    assertFalse("Right valid but not available (user is not in fibu group).",
-        accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, false, UserRightValue.TRUE));
-    logon(TEST_ADMIN_USER);
+    assertFalse(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, false, UserRightValue.FALSE),
+            "Right valid but not available (user is not in fibu group).");
+    assertFalse(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, false, UserRightValue.TRUE),
+            "Right valid but not available (user is not in fibu group).");
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     final GroupDO group = getGroup(ProjectForgeGroup.FINANCE_GROUP.toString());
     group.getAssignedUsers().add(user);
     groupDao.update(group);
     logon(user.getUsername());
-    user = userService.getById(user.getId());
+    user = userService.internalGetById(user.getId());
     rights = user.getRights();
-    assertEquals("3 rights added to user", 3, rights.size());
-    assertTrue("Invalid setting but value matches.",
-        accessChecker.hasLoggedInUserRight(UserRightId.FIBU_AUSGANGSRECHNUNGEN, false, UserRightValue.TRUE));
-    assertTrue("Right matches.",
-        accessChecker.hasLoggedInUserRight(UserRightId.FIBU_EINGANGSRECHNUNGEN, false, UserRightValue.READONLY));
-    assertTrue("Right valid.",
-        accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, false, UserRightValue.FALSE));
-    assertFalse("Right valid.",
-        accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, false, UserRightValue.TRUE));
+    assertEquals( 3, rights.size(),
+            "3 rights added to user");
+    assertTrue(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_AUSGANGSRECHNUNGEN, false, UserRightValue.TRUE),
+            "Invalid setting but value matches.");
+    assertTrue(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_EINGANGSRECHNUNGEN, false, UserRightValue.READONLY),
+            "Right matches.");
+    assertTrue(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, false, UserRightValue.FALSE),
+            "Right valid.");
+    assertFalse(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, false, UserRightValue.TRUE),
+            "Right valid.");
     try {
       accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, true, UserRightValue.TRUE);
       fail("AccessException required.");
@@ -119,18 +114,10 @@ public class UserRightTest extends AbstractTestBase
     }
   }
 
-  private void assignToDefaultTenant(PFUserDO user)
-  {
-    Set<TenantDO> tenantsToAssign = new HashSet<>();
-    tenantsToAssign.add(tenantDao.getDefaultTenant());
-    tenantDao.internalAssignTenants(user, tenantsToAssign, null, false, false);
-    TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().forceReload();
-  }
-
   @Test
   public void testControllingUserDO()
   {
-    logon(TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     PFUserDO user = new PFUserDO();
     user.setUsername("UserRightTestControlling");
     user//
@@ -141,25 +128,20 @@ public class UserRightTest extends AbstractTestBase
 
     final List<UserRightDO> userRights = new ArrayList<>(user.getRights());
     user.getRights().clear();
-    user = userService.getById(userService.save(user));
+    user = userService.internalGetById(userService.save(user));
     userRightDao.save(userRights);
 
-    assignToDefaultTenant(user);
     final GroupDO group = getGroup(ProjectForgeGroup.CONTROLLING_GROUP.toString());
-    group.getAssignedUsers().add(user);
-    groupDao.update(group);
+    groupDao.assignGroups(user, Collections.singleton(group), null, false);
+
     logon(user.getUsername());
-    user = userService.getById(user.getId());
+    user = userService.internalGetById(user.getId());
     final Set<UserRightDO> rights = user.getRights();
-    assertEquals("4 rights added to user", 4, rights.size());
-    assertTrue("Right matches.",
-        accessChecker.hasLoggedInUserRight(UserRightId.FIBU_AUSGANGSRECHNUNGEN, false, UserRightValue.READONLY));
-    assertFalse("Right matches but not available.",
-        accessChecker.hasLoggedInUserRight(UserRightId.FIBU_EINGANGSRECHNUNGEN, false, UserRightValue.READWRITE));
-    assertTrue("Right valid.",
-        accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, false, UserRightValue.TRUE));
-    assertFalse("Right valid.",
-        accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, false, UserRightValue.FALSE));
+    assertEquals( 4, rights.size(),"4 rights added to user");
+    assertTrue(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_AUSGANGSRECHNUNGEN, false, UserRightValue.READONLY),"Right matches.");
+    assertFalse(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_EINGANGSRECHNUNGEN, false, UserRightValue.READWRITE),"Right matches but not available.");
+    assertTrue(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, false, UserRightValue.TRUE),"Right valid.");
+    assertFalse(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, false, UserRightValue.FALSE),"Right valid.");
     try {
       accessChecker.hasLoggedInUserRight(UserRightId.FIBU_EINGANGSRECHNUNGEN, true, UserRightValue.READWRITE);
       fail("AccessException required.");
@@ -178,51 +160,46 @@ public class UserRightTest extends AbstractTestBase
   @Test
   public void testConfigurable()
   {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final UserRight right = userRights.getRight(UserRightId.PM_HR_PLANNING);
-    logon(TEST_PROJECT_MANAGER_USER);
-    assertFalse(
-        "Right is not configurable, because all available right values are automatically assigned to the current user",
-        right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()));
-    logon(TEST_ADMIN_USER);
-    assertFalse("Right is not configurable, because no right values are available.",
-        right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()));
+    logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
+    assertFalse(right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()),
+            "Right is not configurable, because all available right values are automatically assigned to the current user");
+    logon(AbstractTestBase.TEST_ADMIN_USER);
+    assertFalse(right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()),
+            "Right is not configurable, because no right values are available.");
     PFUserDO user = new PFUserDO();
     user.setUsername("testConfigurableRight");
-    user = userService.getById(userService.save(user));
+    user = userService.internalGetById(userService.save(user));
     GroupDO group = getGroup(ProjectForgeGroup.FINANCE_GROUP.toString());
     group.getAssignedUsers().add(user);
     groupDao.update(group);
     logon(user.getUsername());
-    assertTrue("Right is configurable, because serveral right values are available.",
-        right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()));
-    logon(TEST_ADMIN_USER);
+    assertTrue(right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()),
+            "Right is configurable, because serveral right values are available.");
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     group = getGroup(ProjectForgeGroup.PROJECT_MANAGER.toString());
     group.getAssignedUsers().add(user);
     groupDao.update(group);
     logon(user.getUsername());
-    assertFalse(
-        "Right is not configurable, because all available right values are automatically assigned to the current user",
-        right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()));
+    assertFalse(right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()),
+            "Right is not configurable, because all available right values are automatically assigned to the current user");
   }
 
   @Test
   public void testHRPlanningRight()
   {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final UserRight right = userRights.getRight(UserRightId.PM_HR_PLANNING);
-    logon(TEST_PROJECT_MANAGER_USER);
-    assertTrue("Right valid.",
-        accessChecker.hasLoggedInUserRight(UserRightId.PM_HR_PLANNING, false, UserRightValue.READWRITE));
-    logon(TEST_ADMIN_USER);
-    assertFalse("Right invalid.",
-        accessChecker.hasLoggedInUserRight(UserRightId.PM_HR_PLANNING, false, UserRightValue.READWRITE));
-    assertFalse("Right is not configurable, because no right values are available.",
-        right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()));
+    logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
+    assertTrue(accessChecker.hasLoggedInUserRight(UserRightId.PM_HR_PLANNING, false, UserRightValue.READWRITE),
+            "Right valid.");
+    logon(AbstractTestBase.TEST_ADMIN_USER);
+    assertFalse(accessChecker.hasLoggedInUserRight(UserRightId.PM_HR_PLANNING, false, UserRightValue.READWRITE),
+            "Right invalid.");
+    assertFalse(right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()),
+            "Right is not configurable, because no right values are available.");
     PFUserDO user = new PFUserDO();
     user.setUsername("testHRPlanningRight");
-    user = userService.getById(userService.save(user));
-    assignToDefaultTenant(user);
+    user = userService.internalGetById(userService.save(user));
     GroupDO group = getGroup(ProjectForgeGroup.CONTROLLING_GROUP.toString());
     group.getAssignedUsers().add(user);
     groupDao.update(group);
@@ -230,19 +207,18 @@ public class UserRightTest extends AbstractTestBase
     group.getAssignedUsers().add(user);
     groupDao.update(group);
     logon(user.getUsername());
-    assertFalse("Right invalid.",
-        accessChecker.hasLoggedInUserRight(UserRightId.PM_HR_PLANNING, false, UserRightValue.READWRITE));
-    assertTrue("Right is configurable, because serveral right values are available.",
-        right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()));
-    logon(TEST_ADMIN_USER);
+    assertFalse(accessChecker.hasLoggedInUserRight(UserRightId.PM_HR_PLANNING, false, UserRightValue.READWRITE),
+            "Right invalid.");
+    assertTrue(right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()),
+            "Right is configurable, because serveral right values are available.");
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     group = getGroup(ProjectForgeGroup.PROJECT_MANAGER.toString());
     group.getAssignedUsers().add(user);
     groupDao.update(group);
     logon(user.getUsername());
-    assertTrue("Right now valid because project managers have always READWRITE access.",
-        accessChecker.hasLoggedInUserRight(UserRightId.PM_HR_PLANNING, false, UserRightValue.READWRITE));
-    assertFalse(
-        "Right is not configurable, because all available right values are automatically assigned to the current user",
-        right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()));
+    assertTrue(accessChecker.hasLoggedInUserRight(UserRightId.PM_HR_PLANNING, false, UserRightValue.READWRITE),
+            "Right now valid because project managers have always READWRITE access.");
+    assertFalse(right.isConfigurable(userGroupCache, ThreadLocalUserContext.getUser()),
+            "Right is not configurable, because all available right values are automatically assigned to the current user");
   }
 }

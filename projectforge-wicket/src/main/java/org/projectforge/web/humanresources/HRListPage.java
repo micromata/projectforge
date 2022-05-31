@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,6 @@
 
 package org.projectforge.web.humanresources;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -41,46 +36,40 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.humanresources.HRDao;
-import org.projectforge.business.humanresources.HRFilter;
-import org.projectforge.business.humanresources.HRPlanningDO;
-import org.projectforge.business.humanresources.HRPlanningEntryDO;
-import org.projectforge.business.humanresources.HRViewData;
-import org.projectforge.business.humanresources.HRViewUserData;
-import org.projectforge.business.humanresources.HRViewUserEntryData;
+import org.projectforge.business.humanresources.*;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseDao;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.UserPropertyColumn;
-import org.projectforge.web.wicket.AbstractEditPage;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.WebConstants;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * 
+ *
  * @author Mario Groß (m.gross@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @ListPage(editPage = HRPlanningEditPage.class)
-public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserData> implements ISelectCallerPage
+public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUserData> implements ISelectCallerPage
 {
   private static final long serialVersionUID = -718881597957595460L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRListPage.class);
 
   @SpringBean
-  private HRDao hrDao;
+  private HRViewDao hrViewDao;
 
   @SpringBean
   private DatabaseDao databaseDao;
@@ -109,14 +98,15 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
   @SuppressWarnings("serial")
   private void recreateDataTable()
   {
-    final Date date = form.getSearchFilter().getStartTime();
-    weekMillis = date != null ? date.getTime() : null;
+    final LocalDate date = form.getSearchFilter().getStartDay();
+    weekMillis = date != null ? PFDateTime.from(date).getBeginOfWeek().getEpochMilli() : null;
     if (dataTable != null) {
       form.remove(dataTable);
     }
     final List<IColumn<HRViewUserData, String>> columns = new ArrayList<IColumn<HRViewUserData, String>>();
     final CellItemListener<HRViewUserData> cellItemListener = new CellItemListener<HRViewUserData>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<HRViewUserData>> item, final String componentId,
           final IModel<HRViewUserData> rowModel)
       {
@@ -166,8 +156,8 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
                 // Redirect to time sheet list page and show the corresponding time sheets.
                 final PageParameters parameters = new PageParameters();
                 parameters.add(TimesheetListPage.PARAMETER_KEY_STORE_FILTER, false);
-                parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, filter.getStartTime().getTime());
-                parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, filter.getStopTime().getTime());
+                parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, PFDateTime.from(filter.getStartDay()).getBeginOfDay().getEpochMilli());
+                parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, PFDateTime.from(filter.getStopDay()).getEpochMilli());
                 parameters.add(TimesheetListPage.PARAMETER_KEY_USER_ID, userData.getUserId());
                 final TimesheetListPage timesheetListPage = new TimesheetListPage(parameters);
                 setResponsePage(timesheetListPage);
@@ -218,8 +208,8 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
                       final PageParameters parameters = new PageParameters();
                       parameters.add(TimesheetListPage.PARAMETER_KEY_STORE_FILTER, false);
                       parameters.add(TimesheetListPage.PARAMETER_KEY_TASK_ID, project.getTaskId());
-                      parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, filter.getStartTime().getTime());
-                      parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, filter.getStopTime().getTime());
+                      parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, PFDateTime.from(filter.getStartDay()).getEpochMilli());
+                      parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, PFDateTime.from(filter.getStopDay()).getEpochMilli());
                       parameters.add(TimesheetListPage.PARAMETER_KEY_USER_ID, userData.getUserId());
                       final TimesheetListPage timesheetListPage = new TimesheetListPage(parameters);
                       setResponsePage(timesheetListPage);
@@ -281,8 +271,6 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
 
   /**
    * Get the current date (start date) and preset this date for the edit page.
-   * 
-   * @see org.projectforge.web.wicket.AbstractListPage#onNewEntryClick(org.apache.wicket.PageParameters)
    */
   @Override
   protected AbstractEditPage<?, ?, ?> redirectToEditPage(PageParameters params)
@@ -303,13 +291,13 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
   {
     final DivPanel panel = new DivPanel(id);// DivType.GRID12, DivType.BOX, DivType.ROUND_ALL);
     form.add(panel);
-    resourceLinkPanel = new HRListResourceLinkPanel(panel.newChildId(), this, hrDao, userFormatter)
+    resourceLinkPanel = new HRListResourceLinkPanel(panel.newChildId(), this, hrViewDao, userFormatter)
     {
       @Override
       public boolean isVisible()
       {
         return form.getSearchFilter().isOnlyMyProjects() == false;
-      };
+      }
     };
     panel.add(resourceLinkPanel);
     recreateBottomPanel();
@@ -317,7 +305,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
 
   private void recreateBottomPanel()
   {
-    resourceLinkPanel.refresh(getHRViewData(), form.getSearchFilter().getStartTime());
+    resourceLinkPanel.refresh(getHRViewData(), form.getSearchFilter().getStartDay());
   }
 
   @Override
@@ -329,7 +317,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
   private HRViewData getHRViewData()
   {
     if (hrViewData == null) {
-      hrViewData = hrDao.getResources(form.getSearchFilter());
+      hrViewData = hrViewDao.getResources(form.getSearchFilter());
     }
     return hrViewData;
   }
@@ -348,9 +336,9 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
   }
 
   @Override
-  public HRDao getBaseDao()
+  public HRViewDao getBaseDao()
   {
-    return hrDao;
+    return hrViewDao;
   }
 
   @Override
@@ -363,11 +351,9 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
   public void select(final String property, final Object selectedValue)
   {
     if (property.equals("week") == true) {
-      final Date date = (Date) selectedValue;
-      final DateHolder dateHolder = new DateHolder(date);
-      form.getSearchFilter().setStartTime(dateHolder.getDate());
-      dateHolder.setEndOfWeek();
-      form.getSearchFilter().setStopTime(dateHolder.getDate());
+      final LocalDate date = (LocalDate) selectedValue;
+      form.getSearchFilter().setStartDay(date);
+      form.getSearchFilter().setStopDay(PFDay.from(date).getEndOfWeek().getLocalDate());
       form.startDate.markModelAsChanged();
       form.stopDate.markModelAsChanged();
       refresh();

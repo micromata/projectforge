@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,15 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BuchungssatzDao;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightValue;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = AccountingRecordListPage.class)
 public class AccountingRecordEditPage
@@ -37,7 +39,7 @@ public class AccountingRecordEditPage
 {
   private static final long serialVersionUID = -3899191243765232906L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AccountingRecordEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountingRecordEditPage.class);
 
   @SpringBean
   private BuchungssatzDao buchungssatzDao;
@@ -45,7 +47,14 @@ public class AccountingRecordEditPage
   public AccountingRecordEditPage(final PageParameters parameters)
   {
     super(parameters, "fibu.buchungssatz");
+    checkAccess();
     init();
+  }
+
+  private void checkAccess()
+  {
+    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
+    accessChecker.checkRestrictedOrDemoUser();
   }
 
   @Override

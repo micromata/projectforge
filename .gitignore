@@ -1,4 +1,6 @@
 target
+# For backup in projectforge-web
+target.tgz
 *.jar
 *.war
 *.ear
@@ -11,25 +13,36 @@ target
 *.pydevproject
 .project
 .metadata
-bin/
+/bin/
 tmp/
 test-output
-work/
+/work/
 *.tmp
 *.bak
 *.swp
 *~.nib
-local.properties
+/local.properties
 .classpath
 .settings/
 .loadpath
 
-.springBeans
+/.springBeans
 
 # External tool builders
-.externalToolBuilders/
+/.externalToolBuilders/
 
 # Locally stored "Eclipse launch configurations"
 *.launch
 
 /log4j-dev.properties
+
+#Node
+/projectforge-webapp/node_modules
+/ProjectForge
+projectforge-caldav/src/main/resources/milton.license.properties
+projectforge-caldav/src/main/resources/milton.license.sig
+derby.log
+projectforge-repository/jackrabbit
+projectforge-jcr/test/out
+plugins/org.projectforge.plugins.datatransfer/test
+.DS_Store

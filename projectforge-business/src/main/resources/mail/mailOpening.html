@@ -1,2 +1,6 @@
-<%= pf.getMessage("mail.template.opening", recipient.fullname) %>
-<br />
+<% if (pf.isVariableGiven("logoUrl")) { %>
+<a href="<%= pf.getString(baseUrl) %>" target="_blank" rel="noreferrer">
+    <img src="<%= pf.getString(logoUrl) %>" class="logo" alt="Logo">
+</a> <% } %>
+<h1 class="title"><%= pf.getString(title) %></h1>
+<p><%= pf.getMessage("mail.template.opening", recipient.fullname) %></p>

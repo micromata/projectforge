@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.business.address;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**
@@ -49,14 +49,14 @@ public enum AddressStatus implements I18nEnum
 
   public static AddressStatus get(final String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
-    if ("LEAVED".equals(s) == true) {
+    if ("LEAVED".equals(s)) {
       return LEAVED;
-    } else if ("OUTDATED".equals(s) == true) {
+    } else if ("OUTDATED".equals(s)) {
       return OUTDATED;
-    } else if ("UPTODATE".equals(s) == true) {
+    } else if ("UPTODATE".equals(s)) {
       return UPTODATE;
     }
     throw new UnsupportedOperationException("Unknown AddressStatus: '" + s + "'");
@@ -73,6 +73,7 @@ public enum AddressStatus implements I18nEnum
   /**
    * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
    */
+  @Override
   public String getI18nKey()
   {
     return "address.addressStatus." + key;

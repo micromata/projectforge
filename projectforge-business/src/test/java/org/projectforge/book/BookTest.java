@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,95 +23,63 @@
 
 package org.projectforge.book;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.io.Serializable;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.testng.annotations.Test;
 
-public class BookTest extends AbstractTestBase
-{
+import java.io.Serializable;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class BookTest extends AbstractTestBase {
   @Autowired
   private BookDao bookDao;
 
-  @Autowired
-  private TransactionTemplate txTemplate;
-
   @Test
-  public void testUniqueSignatureDO()
-  {
+  public void testUniqueSignatureDO() {
     final Serializable[] ids = new Integer[3];
-    txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback()
-    {
-      public Object doInTransaction(TransactionStatus status)
-      {
+    emf.runInTrans(emgr -> {
         BookDO book = createTestBook("42");
         ids[0] = bookDao.internalSave(book);
         book = createTestBook(null);
         ids[1] = bookDao.internalSave(book);
         return null;
-      }
     });
-    txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback()
-    {
-      public Object doInTransaction(TransactionStatus status)
-      {
+    emf.runInTrans(emgr -> {
         BookDO book = createTestBook("42");
-        assertTrue("Signature should already exist.", bookDao.doesSignatureAlreadyExist(book));
+        assertTrue(bookDao.doesSignatureAlreadyExist(book), "Signature should already exist.");
         book.setSignature("5");
-        assertFalse("Signature should not exist.", bookDao.doesSignatureAlreadyExist(book));
+        assertFalse(bookDao.doesSignatureAlreadyExist(book), "Signature should not exist.");
         bookDao.internalSave(book);
         return null;
-      }
     });
-    txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback()
-    {
-      public Object doInTransaction(TransactionStatus status)
-      {
+    emf.runInTrans(emgr -> {
         BookDO dbBook = bookDao.internalGetById(ids[1]);
         BookDO book = new BookDO();
         book.copyValuesFrom(dbBook);
-        assertFalse("Signature should not exist.", bookDao.doesSignatureAlreadyExist(book));
+        assertFalse(bookDao.doesSignatureAlreadyExist(book),"Signature should not exist.");
         book.setSignature("42");
-        assertTrue("Signature should already exist.", bookDao.doesSignatureAlreadyExist(book));
+        assertTrue( bookDao.doesSignatureAlreadyExist(book),"Signature should already exist.");
         book.setSignature("4711");
-        assertFalse("Signature should not exist.", bookDao.doesSignatureAlreadyExist(book));
+        assertFalse( bookDao.doesSignatureAlreadyExist(book),"Signature should not exist.");
         bookDao.internalUpdate(book);
         return null;
-      }
     });
-    txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback()
-    {
-      public Object doInTransaction(TransactionStatus status)
-      {
+    emf.runInTrans(emgr -> {
         BookDO book = bookDao.internalGetById(ids[1]);
-        assertFalse("Signature should not exist.", bookDao.doesSignatureAlreadyExist(book));
+        assertFalse( bookDao.doesSignatureAlreadyExist(book),"Signature should not exist.");
         book.setSignature(null);
-        assertFalse("Signature should not exist.", bookDao.doesSignatureAlreadyExist(book));
+        assertFalse( bookDao.doesSignatureAlreadyExist(book),"Signature should not exist.");
         bookDao.internalUpdate(book);
         return null;
-      }
     });
   }
 
   @Test
-  public void testGetSignature4Sort()
-  {
+  public void testGetSignature4Sort() {
     final BookDO book = new BookDO();
     book.setSignature(null);
     assertNull(book.getSignature4Sort());
@@ -127,10 +95,8 @@ public class BookTest extends AbstractTestBase
     assertEquals("WT-00002-00005", book.getSignature4Sort());
   }
 
-  private BookDO createTestBook(String signature)
-  {
+  private BookDO createTestBook(String signature) {
     BookDO book = new BookDO();
-    book.setTask(getTask("root"));
     book.setSignature(signature);
     book.setStatus(BookStatus.PRESENT);
     return book;

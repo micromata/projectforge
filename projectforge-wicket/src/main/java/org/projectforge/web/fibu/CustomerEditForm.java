@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,33 +23,29 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeStatus;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.web.wicket.AbstractEditForm;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
+import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.IntegerConverter;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class CustomerEditForm extends AbstractEditForm<KundeDO, CustomerEditPage>
 {
   private static final long serialVersionUID = -6018131069720611834L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CustomerEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomerEditForm.class);
 
   @SpringBean
   KontoCache kontoCache;
@@ -79,6 +75,7 @@ public class CustomerEditForm extends AbstractEditForm<KundeDO, CustomerEditPage
           return new IntegerConverter(3);
         }
       };
+      number.setRequired(true);
       WicketUtils.setSize(number, 7);
       fs.add(number);
       if (isNew() == true) {
@@ -136,5 +133,11 @@ public class CustomerEditForm extends AbstractEditForm<KundeDO, CustomerEditPage
   protected Logger getLogger()
   {
     return log;
+  }
+
+  @Override
+  public boolean isNew()
+  {
+    return parentPage.isNew();
   }
 }

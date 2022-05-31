@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,7 +35,7 @@ public class LdapGroup extends LdapObject<String>
 
   private String description, organization, businessCategory;
 
-  private final Set<String> members = new HashSet<String>();
+  private final Set<String> members = new HashSet<>();
 
   /**
    * @see org.projectforge.business.ldap.LdapObject#getId()
@@ -48,7 +48,7 @@ public class LdapGroup extends LdapObject<String>
 
   public LdapGroup addMember(final String dn, final String baseDN)
   {
-    if (dn.endsWith(baseDN) == true) {
+    if (dn.endsWith(baseDN)) {
       members.add(dn);
     } else {
       members.add(dn + "," + baseDN);

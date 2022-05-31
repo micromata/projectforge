@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.web.core;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -31,6 +31,7 @@ import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.registry.WebRegistry;
@@ -41,7 +42,7 @@ public class SearchPage extends AbstractStandardFormPage implements ISelectCalle
 {
   private static final long serialVersionUID = -8416731462457080883L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SearchPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SearchPage.class);
 
   private final SearchForm form;
 
@@ -78,16 +79,18 @@ public class SearchPage extends AbstractStandardFormPage implements ISelectCalle
   {
   }
 
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if ("userId".equals(property) == true) {
-      final PFUserDO user = getTenantRegistry().getUserGroupCache().getUser((Integer) selectedValue);
+      final PFUserDO user = UserGroupCache.getInstance().getUser((Integer) selectedValue);
       form.filter.setModifiedByUser(user);
     } else {
       log.error("Property '" + property + "' not supported for selection.");
     }
   }
 
+  @Override
   public void unselect(final String property)
   {
     log.error("Property '" + property + "' not supported for unselection.");

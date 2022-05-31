@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,58 +23,117 @@
 
 package org.projectforge.common.props;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.common.anots.PropertyInfo;
-import org.projectforge.shared.storage.StorageUtils;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class PropUtils
-{
+public class PropUtils {
   private static Field[] EMPTY_FIELDS = new Field[0];
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(StorageUtils.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PropUtils.class);
 
   private static final Map<Class<?>, Field[]> fieldsMap = new HashMap<Class<?>, Field[]>();
+  private static final Set<String> unknownFields = new HashSet<>();
 
-  public static PropertyInfo get(final Class<?> clazz, final String property)
-  {
-    final Field field = getField(clazz, property);
-    if (field != null) {
-      return field.getAnnotation(PropertyInfo.class);
+  public static PropertyInfo get(final Class<?> clazz, final String property) {
+    final Object result = getFieldOrGetter(clazz, property, false);
+    if (result == null) {
+      return null;
     }
-    return null;
+    if (result instanceof Field) {
+       return ((Field) result).getAnnotation(PropertyInfo.class);
+    }
+    return ((Method) result).getAnnotation(PropertyInfo.class);
   }
 
-  public static PropertyInfo get(final Field field)
-  {
+  public static PropertyInfo get(final Field field) {
     if (field == null) {
       return null;
     }
     return field.getAnnotation(PropertyInfo.class);
   }
 
-  public static Field getField(final Class<?> clazz, final String property)
-  {
-    final Field[] declaredFields = BeanHelper.getAllDeclaredFields(clazz);
-    for (final Field field : declaredFields) {
-      if (property.equals(field.getName()) == true) {
-        return field;
-      }
+  /**
+   * @param clazz
+   * @param property Nested properties are supported: task.project.title
+   * @return
+   */
+  public static Field getField(final Class<?> clazz, final String property) {
+    return getField(clazz, property, false);
+  }
+
+  /**
+   * @param clazz
+   * @param property        Nested properties are supported: task.project.title
+   * @param suppressWarning If true, no warning message will be logged, if property not found.
+   * @return
+   */
+  public static Field getField(final Class<?> clazz, final String property, boolean suppressWarning) {
+    final Object result = getFieldOrGetter(clazz, property, suppressWarning, true);
+    if (result != null) {
+      return (Field)result;
     }
-    log.warn("Field '" + clazz.getName() + "." + property + "' not found.");
     return null;
   }
 
-  public static String getI18nKey(final Class<?> clazz, final String property)
-  {
+  /**
+   * @param clazz
+   * @param property        Nested properties are supported: task.project.title
+   * @param suppressWarning If true, no warning message will be logged, if property not found.
+   * @return Found field or getter or null, if both not found.
+   */
+  public static Object getFieldOrGetter(final Class<?> clazz, final String property, boolean suppressWarning) {
+    return getFieldOrGetter(clazz, property, suppressWarning, false);
+  }
+
+  private static Object getFieldOrGetter(final Class<?> clazz, final String property, boolean suppressWarning, boolean ignoreGetter) {
+    String[] nestedProps = StringUtils.split(property, '.');
+    if (nestedProps == null || nestedProps.length == 0) {
+      if (!suppressWarning) {
+        log.warn("Field '" + clazz.getName() + "." + property + "' not found (no property given).");
+      }
+      return null;
+    }
+    Class<?> cls = clazz;
+    Field field = null;
+    for (String nestedProp : nestedProps) {
+      field = null; // Reset field from previous loops.
+      final Field[] declaredFields = BeanHelper.getAllDeclaredFields(cls);
+      for (final Field declaredField : declaredFields) {
+        if (nestedProp.equals(declaredField.getName())) {
+          field = declaredField;
+          cls = field.getType();
+          break;
+        }
+      }
+      if (field == null && !ignoreGetter) {
+        final Method getter = BeanHelper.determineGetter(clazz, nestedProp);
+        if (getter != null) {
+          return getter;
+        }
+      }
+    }
+    if (field == null && !suppressWarning) {
+      final String unknownField =  clazz.getName() + "." + property;
+      synchronized (unknownFields) {
+        if (!unknownFields.contains(unknownField)) {
+          unknownFields.add(unknownField);
+          log.warn("Field '" + unknownField + "' not found.");
+        }
+      }
+    }
+    return field;
+
+  }
+
+  public static String getI18nKey(final Class<?> clazz, final String property) {
     final PropertyInfo info = get(clazz, property);
     if (info == null) {
       log.error("PropertyInfo not found for field '" + clazz.getName() + "." + property + "' not found.");
@@ -83,8 +142,7 @@ public class PropUtils
     return info.i18nKey();
   }
 
-  public static Field[] getPropertyInfoFields(final Class<?> clazz)
-  {
+  public static Field[] getPropertyInfoFields(final Class<?> clazz) {
     Field[] fields = fieldsMap.get(clazz);
     if (fields != null) {
       return fields;

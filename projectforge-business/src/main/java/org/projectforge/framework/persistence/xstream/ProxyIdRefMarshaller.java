@@ -1,18 +1,26 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-// $RCSfile: ProxyIdRefMarshaller.java,v $
+// Project ProjectForge Community Edition
+//         www.projectforge.org
 //
-// Project   Hibernate3History
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
-// Author    Wolfgang Jung (w.jung@micromata.de)
-// Created   Jan 13, 2006
-// Copyright Micromata Jan 13, 2006
+// ProjectForge is dual-licensed.
 //
-// $Id: ProxyIdRefMarshaller.java,v 1.1 2007/03/08 22:50:48 wolle Exp $
-// $Revision: 1.1 $
-// $Date: 2007/03/08 22:50:48 $
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.framework.persistence.xstream;
 
 import com.thoughtworks.xstream.converters.Converter;
@@ -22,13 +30,13 @@ import com.thoughtworks.xstream.core.SequenceGenerator;
 import com.thoughtworks.xstream.core.util.ObjectIdDictionary;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.Mapper;
+import org.springframework.cglib.proxy.Enhancer;
 
-import net.sf.cglib.proxy.Enhancer;
 
 public class ProxyIdRefMarshaller extends ReferenceByIdMarshaller
 {
   /** The logger */
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ProxyIdRefMarshaller.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProxyIdRefMarshaller.class);
 
   private ObjectIdDictionary references = new ObjectIdDictionary();
 
@@ -53,7 +61,7 @@ public class ProxyIdRefMarshaller extends ReferenceByIdMarshaller
   public void convertAnother(Object item)
   {
     Class<?> targetClass = item.getClass();
-    while (Enhancer.isEnhanced(targetClass) == true) {
+    while (Enhancer.isEnhanced(targetClass)) {
       targetClass = targetClass.getSuperclass();
     }
 

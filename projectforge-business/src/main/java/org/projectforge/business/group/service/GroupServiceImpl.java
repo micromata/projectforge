@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,11 @@
 
 package org.projectforge.business.group.service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
-import org.apache.commons.lang.StringUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.UsersComparator;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
@@ -41,42 +35,49 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Service
-public class GroupServiceImpl implements GroupService
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroupServiceImpl.class);
+import java.util.*;
 
-  private UserGroupCache userGroupCache;
+@Service
+public class GroupServiceImpl implements GroupService {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroupServiceImpl.class);
 
   @Autowired
   private GroupDao groupDao;
 
+  @Autowired
+  private UserGroupCache userGroupCache;
+
   private final GroupsComparator groupsComparator = new GroupsComparator();
+
+  private final UsersComparator usersComparator = new UsersComparator();
 
 
   @Override
-  public GroupDO getGroup(final Integer groupId)
-  {
+  public GroupDO getGroup(final Integer groupId) {
     return groupDao.getOrLoad(groupId);
   }
 
   @Override
-  public String getGroupname(final Integer groupId)
-  {
+  public String getGroupname(final Integer groupId) {
     final GroupDO group = getGroup(groupId);
     return group == null ? null : group.getName();
   }
 
   @Override
-  public String getGroupnames(final Integer userId)
-  {
-    final Set<Integer> groupSet = getUserGroupCache().getUserGroupIdMap().get(userId);
+  public String getDisplayName(final Integer groupId) {
+    final GroupDO group = getGroup(groupId);
+    return group == null ? null : group.getDisplayName();
+  }
+
+  @Override
+  public String getGroupnames(final Integer userId) {
+    final Set<Integer> groupSet = userGroupCache.getUserGroupIdMap().get(userId);
     if (groupSet == null) {
       return "";
     }
-    final List<String> list = new ArrayList<String>();
+    final List<String> list = new ArrayList<>();
     for (final Integer groupId : groupSet) {
-      final GroupDO group = getGroup(groupId);
+      final GroupDO group = userGroupCache.getGroup(groupId);
       if (group != null) {
         list.add(group.getName());
       } else {
@@ -91,15 +92,14 @@ public class GroupServiceImpl implements GroupService
    * @return
    */
   @Override
-  public List<String> getGroupNames(final String groupIds)
-  {
-    if (StringUtils.isEmpty(groupIds) == true) {
+  public List<String> getGroupNames(final String groupIds) {
+    if (StringUtils.isEmpty(groupIds)) {
       return null;
     }
     final int[] ids = StringHelper.splitToInts(groupIds, ",", false);
-    final List<String> list = new ArrayList<String>();
+    final List<String> list = new ArrayList<>();
     for (final int id : ids) {
-      final GroupDO group = getGroup(id);
+      final GroupDO group = userGroupCache.getGroup(id);
       if (group != null) {
         list.add(group.getName());
       } else {
@@ -110,17 +110,15 @@ public class GroupServiceImpl implements GroupService
   }
 
   /**
-   * 
    * @param groupIds
    * @return
    */
   @Override
-  public Collection<GroupDO> getSortedGroups(final String groupIds)
-  {
-    if (StringUtils.isEmpty(groupIds) == true) {
+  public Collection<GroupDO> getSortedGroups(final String groupIds) {
+    if (StringUtils.isEmpty(groupIds)) {
       return null;
     }
-    Collection<GroupDO> sortedGroups = new TreeSet<GroupDO>(groupsComparator);
+    Collection<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
     final int[] ids = StringHelper.splitToInts(groupIds, ",", false);
     for (final int id : ids) {
       final GroupDO group = getGroup(id);
@@ -134,8 +132,7 @@ public class GroupServiceImpl implements GroupService
   }
 
   @Override
-  public String getGroupIds(final Collection<GroupDO> groups)
-  {
+  public String getGroupIds(final Collection<GroupDO> groups) {
     final StringBuffer buf = new StringBuffer();
     boolean first = true;
     for (final GroupDO group : groups) {
@@ -147,29 +144,35 @@ public class GroupServiceImpl implements GroupService
   }
 
   @Override
-  public Collection<GroupDO> getSortedGroups()
-  {
+  public Collection<GroupDO> getSortedGroups() {
 
-      final Collection<GroupDO> allGroups = getUserGroupCache().getAllGroups();
-    TreeSet<GroupDO> sortedGroups = new TreeSet<GroupDO>(groupsComparator);
-      final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
-      for (final GroupDO group : allGroups) {
-        if (group.isDeleted() == false && groupDao.hasSelectAccess(loggedInUser, group, false) == true) {
-          sortedGroups.add(group);
-        }
+    final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
+    TreeSet<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
+    final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+    for (final GroupDO group : allGroups) {
+      if (!group.isDeleted() && groupDao.hasUserSelectAccess(loggedInUser, group, false)) {
+        sortedGroups.add(group);
       }
+    }
     return sortedGroups;
   }
 
-  /**
-   * @return the userGroupCache
-   */
-  private UserGroupCache getUserGroupCache()
-  {
-    if (userGroupCache == null) {
-      userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
+  @Override
+  public Collection<PFUserDO> getGroupUsers(int[] groupIds) {
+    Collection<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
+    if (groupIds == null) {
+      return sortedUsers;
     }
-    return userGroupCache;
+    for (int groupId : groupIds) {
+      final GroupDO group = getGroup(groupId);
+      if (group != null) {
+        final Set<PFUserDO> users = group.getAssignedUsers();
+        if (users != null) {
+          sortedUsers.addAll(users);
+        }
+      }
+    }
+    return sortedUsers;
   }
 
   /**
@@ -177,8 +180,7 @@ public class GroupServiceImpl implements GroupService
    *
    * @param userGroupCache
    */
-  public void setUserGroupCache(UserGroupCache userGroupCache)
-  {
+  public void setUserGroupCache(UserGroupCache userGroupCache) {
     this.userGroupCache = userGroupCache;
   }
 
@@ -187,14 +189,12 @@ public class GroupServiceImpl implements GroupService
    *
    * @param groupDao
    */
-  public void setGroupDao(GroupDao groupDao)
-  {
+  public void setGroupDao(GroupDao groupDao) {
     this.groupDao = groupDao;
   }
 
   @Override
-  public List<GroupDO> getAllGroups()
-  {
+  public List<GroupDO> getAllGroups() {
     return groupDao.internalLoadAll();
   }
 

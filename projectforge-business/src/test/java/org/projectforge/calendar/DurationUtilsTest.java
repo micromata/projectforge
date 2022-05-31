@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,25 +23,50 @@
 
 package org.projectforge.calendar;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.calendar.DurationUtils;
-import org.testng.Assert;
-import org.testng.annotations.Test;
 
-public class DurationUtilsTest
-{
+public class DurationUtilsTest {
   @Test
-  public void formattedHoursAndMinutes()
-  {
-    Assert.assertEquals("0:00", getFormattedHoursAndMinutes(0, 0));
-    Assert.assertEquals("0:01", getFormattedHoursAndMinutes(0, 1));
-    Assert.assertEquals("0:59", getFormattedHoursAndMinutes(0, 59));
-    Assert.assertEquals("1:00", getFormattedHoursAndMinutes(0, 60));
-    Assert.assertEquals("9:59", getFormattedHoursAndMinutes(9, 59));
-    Assert.assertEquals("10:59", getFormattedHoursAndMinutes(10, 59));
+  public void formattedHoursAndMinutes() {
+    Assertions.assertEquals("0:00", getFormattedHoursAndMinutes(0, 0));
+    Assertions.assertEquals("0:01", getFormattedHoursAndMinutes(0, 1));
+    Assertions.assertEquals("0:59", getFormattedHoursAndMinutes(0, 59));
+    Assertions.assertEquals("1:00", getFormattedHoursAndMinutes(0, 60));
+    Assertions.assertEquals("9:59", getFormattedHoursAndMinutes(9, 59));
+    Assertions.assertEquals("10:59", getFormattedHoursAndMinutes(10, 59));
   }
 
-  private String getFormattedHoursAndMinutes(final int hours, final int minutes)
-  {
+  @Test
+  public void formattedDaysHoursAndMinutes() {
+    assertFormattedDaysHoursAndMinutes("", 0);
+    assertFormattedDaysHoursAndMinutes("1d ", 1);
+    assertFormattedDaysHoursAndMinutes("2d ", 2);
+    assertFormattedDaysHoursAndMinutes("5d ", 5);
+
+    Assertions.assertEquals("1d 0:00", getFormattedDaysHoursAndMinutes(0, 24, 0));
+    Assertions.assertEquals("1d 0:59", getFormattedDaysHoursAndMinutes(0, 24, 59));
+    Assertions.assertEquals("1d 1:59", getFormattedDaysHoursAndMinutes(0, 25, 59));
+
+    Assertions.assertEquals("-1d -3:-5", DurationUtils.getFormattedDaysHoursAndMinutes(-3600000 * 24 - 3 * 3600000 - 5 * 60000));
+  }
+
+  private String getFormattedHoursAndMinutes(final int hours, final int minutes) {
     return DurationUtils.getFormattedHoursAndMinutes(hours * 3600000 + minutes * 60000);
+  }
+
+  private void assertFormattedDaysHoursAndMinutes(final String dayString, final int days) {
+    Assertions.assertEquals(dayString + "0:00", getFormattedDaysHoursAndMinutes(days, 0, 0));
+    Assertions.assertEquals(dayString + "0:01", getFormattedDaysHoursAndMinutes(days, 0, 1));
+    Assertions.assertEquals(dayString + "0:59", getFormattedDaysHoursAndMinutes(days, 0, 59));
+    Assertions.assertEquals(dayString + "1:00", getFormattedDaysHoursAndMinutes(days, 0, 60));
+    Assertions.assertEquals(dayString + "9:59", getFormattedDaysHoursAndMinutes(days, 9, 59));
+    Assertions.assertEquals(dayString + "10:59", getFormattedDaysHoursAndMinutes(days, 10, 59));
+    Assertions.assertEquals(dayString + "23:59", getFormattedDaysHoursAndMinutes(days, 23, 59));
+  }
+
+  private String getFormattedDaysHoursAndMinutes(final int days, final int hours, final int minutes) {
+    return DurationUtils.getFormattedDaysHoursAndMinutes(days * 3600000 * 24 + hours * 3600000 + minutes * 60000);
   }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,39 +23,31 @@
 
 package org.projectforge.business.orga;
 
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class VisitorbookDao extends BaseDao<VisitorbookDO>
-{
+public class VisitorbookDao extends BaseDao<VisitorbookDO> {
+  public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_VISITORBOOK;
   @Autowired
   private TimeableService timeableService;
 
-  public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_VISITORBOOK;
-
-  protected VisitorbookDao()
-  {
+  protected VisitorbookDao() {
     super(VisitorbookDO.class);
     userRightId = USER_RIGHT_ID;
   }
 
   @Override
-  public List<VisitorbookDO> getList(final BaseSearchFilter filter)
-  {
+  public List<VisitorbookDO> getList(final BaseSearchFilter filter) {
     final VisitorbookFilter myFilter;
     if (filter instanceof VisitorbookFilter) {
       myFilter = (VisitorbookFilter) filter;
@@ -67,31 +59,31 @@ public class VisitorbookDao extends BaseDao<VisitorbookDO>
     final List<VisitorbookDO> resultList = getList(queryFilter);
 
     final Predicate<VisitorbookDO> afterStartTimeOrSameDay = visitor -> timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit").stream()
-        .anyMatch(timeAttr -> timeAttr.getStartTime().before(myFilter.getStartTime()) == false); // before() == false -> after or same day
+            .anyMatch(timeAttr -> !timeAttr.getStartTime().before(myFilter.getUTCStartTime())); // before() == false -> after or same day
 
     final Predicate<VisitorbookDO> beforeStopTimeOrSameDay = visitor -> timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit").stream()
-        .anyMatch(timeAttr -> timeAttr.getStartTime().after(myFilter.getStopTime()) == false); // after() == false -> before or same day
+            .anyMatch(timeAttr -> !timeAttr.getStartTime().after(myFilter.getUTCStopTime())); // after() == false -> before or same day
 
-    if (myFilter.getStartTime() != null && myFilter.getStopTime() == null) {
+    if (myFilter.getStartDay() != null && myFilter.getStopDay() == null) {
       return resultList
-          .stream()
-          .filter(afterStartTimeOrSameDay)
-          .collect(Collectors.toList());
+              .stream()
+              .filter(afterStartTimeOrSameDay)
+              .collect(Collectors.toList());
     }
 
-    if (myFilter.getStartTime() == null && myFilter.getStopTime() != null) {
+    if (myFilter.getStartDay() == null && myFilter.getStopDay() != null) {
       return resultList
-          .stream()
-          .filter(beforeStopTimeOrSameDay)
-          .collect(Collectors.toList());
+              .stream()
+              .filter(beforeStopTimeOrSameDay)
+              .collect(Collectors.toList());
     }
 
-    if (myFilter.getStartTime() != null && myFilter.getStopTime() != null) {
+    if (myFilter.getStartDay() != null && myFilter.getStopDay() != null) {
       return resultList
-          .stream()
-          .filter(afterStartTimeOrSameDay)
-          .filter(beforeStopTimeOrSameDay)
-          .collect(Collectors.toList());
+              .stream()
+              .filter(afterStartTimeOrSameDay)
+              .filter(beforeStopTimeOrSameDay)
+              .collect(Collectors.toList());
     }
 
     // no time filter set
@@ -99,8 +91,7 @@ public class VisitorbookDao extends BaseDao<VisitorbookDO>
   }
 
   @Override
-  public VisitorbookDO newInstance()
-  {
+  public VisitorbookDO newInstance() {
     return new VisitorbookDO();
   }
 }

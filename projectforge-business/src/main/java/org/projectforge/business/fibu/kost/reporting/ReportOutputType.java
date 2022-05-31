@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu.kost.reporting;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public enum ReportOutputType
 {
@@ -46,11 +46,11 @@ public enum ReportOutputType
    */
   public static ReportOutputType getType(String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
     for (ReportOutputType type : ReportOutputType.values()) {
-      if (s.equals(type.toString()) == true || s.equals(type.getKey()) == true) {
+      if (s.equals(type.toString()) || s.equals(type.getKey())) {
         return type;
       }
     }
@@ -59,6 +59,7 @@ public enum ReportOutputType
 
   /**
    * The key will be used e. g. for i18n.
+   *
    * @return
    */
   public String getKey()

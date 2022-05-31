@@ -1,24 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}/}spring.log}"/>
+    <property name="LOG_HOME" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}/}"/>
     <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
-    <appender name="ROLLING-FILE"
+    <appender name="ROLLING-FILE-ALL"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
         </encoder>
-        <file>${LOG_FILE}</file>
+        <file>${LOG_HOME}/ProjectForge.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->
-            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_HOME}/ProjectForge.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
         </rollingPolicy>
     </appender>
 
+    <appender name="ROLLING-ACCESS-LOG"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+        <file>${LOG_HOME}/access.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>${LOG_HOME}/access.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="ROLLING-SECURITY-LOG"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+        <file>${LOG_HOME}/security.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>${LOG_HOME}/security.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="MEMORY" class="org.projectforge.common.logging.LoggerMemoryAppender" />
+
+    <logger name="de.micromata.projectforge.accessLog" level="INFO" additivity="false">
+        <!-- additivity="false": do the access log only here, not in the root logger. -->
+        <appender-ref ref="ROLLING-ACCESS-LOG"/>
+    </logger>
+
+    <logger name="de.micromata.projectforge.securityLog" level="INFO" additivity="false">
+        <!-- additivity="false": do the security log only here, not in the root logger. -->
+        <appender-ref ref="ROLLING-SECURITY-LOG"/>
+    </logger>
+
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="ROLLING-FILE"/>
+        <appender-ref ref="ROLLING-FILE-ALL"/>
+        <appender-ref ref="MEMORY"/>
     </root>
 
+    <!-- custom logging levels -->
+    <logger name="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner" level="WARN" />
+    <!--logger name="org.projectforge.framework.persistence.jpa" level="DEBUG" /-->
+    <logger name="org.apache.wicket.Localizer" level="ERROR" />
+    <!--logger name="org.projectforge.framework.persistence.api.impl" level="DEBUG" /-->
+    <!--logger name="org.hibernate.cache" level="DEBUG" /-->
+    <!--logger name="de.micromata.merlin.excel" level="DEBUG" /-->
 </configuration>

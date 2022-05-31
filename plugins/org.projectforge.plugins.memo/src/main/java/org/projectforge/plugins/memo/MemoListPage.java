@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,7 @@
 
 package org.projectforge.plugins.memo;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -38,12 +35,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
@@ -65,12 +60,14 @@ public class MemoListPage extends AbstractListPage<MemoListForm, MemoDao, MemoDO
     super(parameters, "plugins.memo");
   }
 
+  @Override
   @SuppressWarnings("serial")
   public List<IColumn<MemoDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<MemoDO, String>> columns = new ArrayList<IColumn<MemoDO, String>>();
+    final List<IColumn<MemoDO, String>> columns = new ArrayList<>();
     final CellItemListener<MemoDO> cellItemListener = new CellItemListener<MemoDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<MemoDO>> item, final String componentId,
           final IModel<MemoDO> rowModel)
       {
@@ -99,9 +96,9 @@ public class MemoListPage extends AbstractListPage<MemoListForm, MemoDao, MemoDO
       }
     });
     columns
-        .add(new CellItemListenerPropertyColumn<MemoDO>(MemoDO.class, getSortable("lastUpdate", sortable), "lastUpdate",
+        .add(new CellItemListenerPropertyColumn<>(MemoDO.class, getSortable("lastUpdate", sortable), "lastUpdate",
             cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<MemoDO>(MemoDO.class, getSortable("subject", sortable), "subject",
+    columns.add(new CellItemListenerPropertyColumn<>(MemoDO.class, getSortable("subject", sortable), "subject",
         cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<MemoDO>(MemoDO.class, getSortable("memo", sortable), "memo",
         cellItemListener)
@@ -111,7 +108,7 @@ public class MemoListPage extends AbstractListPage<MemoListForm, MemoDao, MemoDO
           final IModel<MemoDO> rowModel)
       {
         final MemoDO memo = rowModel.getObject();
-        final Label label = new Label(componentId, new Model<String>(StringUtils.abbreviate(memo.getMemo(), 100)));
+        final Label label = new Label(componentId, new Model<>(StringUtils.abbreviate(memo.getMemo(), 100)));
         cellItemListener.populateItem(item, componentId, rowModel);
         item.add(label);
       }

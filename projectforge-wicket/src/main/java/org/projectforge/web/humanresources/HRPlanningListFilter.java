@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,7 @@ import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 
 /**
- * 
+ *
  * @author Mario Groß (m.gross@micromata.de)
  *
  */
@@ -44,9 +44,9 @@ public class HRPlanningListFilter extends HRPlanningFilter
     setUserId(ThreadLocalUserContext.getUserId());
     final DateHolder date = new DateHolder(DatePrecision.DAY);
     date.setBeginOfWeek();
-    setStartTime(date.getTimestamp());
+    setStartDay(date.getLocalDate());
     date.setEndOfWeek();
-    setStopTime(date.getTimestamp());
+    setStopDay(date.getLocalDate());
     return this;
   }
 }

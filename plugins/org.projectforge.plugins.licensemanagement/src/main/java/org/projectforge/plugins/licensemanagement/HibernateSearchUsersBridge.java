@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,47 +23,49 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import java.util.Collection;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.document.Document;
-import org.hibernate.search.bridge.FieldBridge;
-import org.hibernate.search.bridge.LuceneOptions;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.search.bridge.TwoWayStringBridge;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.user.UsersProvider;
 
+import java.util.Collection;
+
 /**
  * User names bridge for hibernate search to search in the user id's (comma separated values of user id's).
- * 
- * 
+ *
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
-public class HibernateSearchUsersBridge implements FieldBridge
+public class HibernateSearchUsersBridge implements TwoWayStringBridge
 {
   /**
    * Get all full names and user names of all users represented by the string of user id's.
-   * 
-   * @see org.hibernate.search.bridge.FieldBridge#set(java.lang.String, java.lang.Object,
-   *      org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)
    */
   @Override
-  public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
-  {
-    final LicenseDO license = (LicenseDO) value;
-    if (StringUtils.isBlank(license.getOwnerIds()) == true) {
-      return;
+  public String objectToString(Object object) {
+    if (object instanceof String)
+      return (String)object;
+    final LicenseDO license = (LicenseDO) object;
+    if (StringUtils.isBlank(license.getOwnerIds())) {
+      return "";
     }
     //TODO: Nicht null übergeben
     final UsersProvider usersProvider = new UsersProvider(null);
     final Collection<PFUserDO> users = usersProvider.getSortedUsers(license.getOwnerIds());
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     boolean first = true;
     for (final PFUserDO user : users) {
-      first = StringHelper.append(buf, first, user.getFullname(), " ");
-      buf.append(" ").append(user.getUsername());
+      first = StringHelper.append(sb, first, user.getFullname(), " ");
+      sb.append(" ").append(user.getUsername());
     }
-    luceneOptions.addFieldToDocument(name, buf.toString(), document);
+    return sb.toString();
+  }
+
+  @Override
+  public Object stringToObject(String stringValue) {
+    // Not supported.
+    return null;
   }
 }

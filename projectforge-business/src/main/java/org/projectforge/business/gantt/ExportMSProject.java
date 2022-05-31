@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,51 +23,40 @@
 
 package org.projectforge.business.gantt;
 
+import net.sf.mpxj.*;
+import net.sf.mpxj.mpx.MPXWriter;
+import net.sf.mpxj.mspdi.MSPDIWriter;
+import net.sf.mpxj.writer.ProjectWriter;
+import org.projectforge.framework.calendar.Holidays;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDayUtils;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.Date;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.projectforge.framework.time.DayHolder;
-
-import net.sf.mpxj.Day;
-import net.sf.mpxj.Duration;
-import net.sf.mpxj.ProjectCalendar;
-import net.sf.mpxj.ProjectFile;
-import net.sf.mpxj.ProjectHeader;
-import net.sf.mpxj.RelationType;
-import net.sf.mpxj.Task;
-import net.sf.mpxj.TimeUnit;
-import net.sf.mpxj.mpx.MPXWriter;
-import net.sf.mpxj.mspdi.MSPDIWriter;
-import net.sf.mpxj.writer.ProjectWriter;
-
 /**
  * Uses the implementation of http://mpxj.sourceforge.net/, which is distributed under the terms of the GNU LGPL.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class ExportMSProject
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportMSProject.class);
+public class ExportMSProject {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportMSProject.class);
 
-  public static byte[] exportXml(final GanttChart ganttChart)
-  {
+  public static byte[] exportXml(final GanttChart ganttChart) {
     return export(new MSPDIWriter(), ganttChart);
   }
 
-  public static byte[] exportMpx(final GanttChart ganttChart)
-  {
+  public static byte[] exportMpx(final GanttChart ganttChart) {
     return export(new MPXWriter(), ganttChart);
   }
 
-  private static byte[] export(final ProjectWriter result, final GanttChart ganttChart)
-  {
+  private static byte[] export(final ProjectWriter result, final GanttChart ganttChart) {
     final ProjectFile file = new ProjectFile();
 
     //
@@ -109,7 +98,7 @@ public class ExportMSProject
     //
     ganttChart.recalculate();
     final ProjectHeader header = file.getProjectHeader();
-    header.setStartDate(ganttChart.getCalculatedStartDate());
+    header.setStartDate(PFDayUtils.convertToUtilDate(ganttChart.getCalculatedStartDate()));
 
     //
     // Add a default calendar called "Standard"
@@ -117,25 +106,27 @@ public class ExportMSProject
     final ProjectCalendar calendar = file.addDefaultBaseCalendar();
     calendar.setWorkingDay(Day.SATURDAY, false);
     calendar.setWorkingDay(Day.SUNDAY, false);
-    final DayHolder dh = new DayHolder(ganttChart.getCalculatedStartDate());
+    PFDateTime dt = PFDateTime.from(ganttChart.getCalculatedStartDate()); // not null
     for (int i = 0; i < 3000; i++) { // Endless loop protection (paranoia)
-      dh.add(Calendar.DAY_OF_MONTH, 1);
-      if (dh.isWorkingDay() == false && dh.isHoliday() == true && dh.isWeekend() == false) {
+      dt = dt.plusDays(1);
+      Holidays holidays = Holidays.getInstance();
+      if (!holidays.isWorkingDay(dt.getDateTime()) && holidays.isHoliday(dt) && !dt.isWeekend()) {
         // Add this holiday to the calendar:
-        final Date date = dh.getSQLDate();
+        final Date date = dt.getSqlDate();
         calendar.addCalendarException(date, date);
-        if (log.isDebugEnabled() == true) {
+        if (log.isDebugEnabled()) {
           log.debug("Add holiday: " + date);
         }
       }
-      if (dh.before(ganttChart.getCalculatedEndDate()) == false) {
+      PFDateTime dtEnd = PFDateTime.from(ganttChart.getCalculatedEndDate()); // not null
+      if (!dt.isBefore(dtEnd)) {
         break;
       }
     }
 
     final List<GanttTask> children = ganttChart.getRootNode().getChildren();
     if (children != null) {
-      final Map<Serializable, Task> taskMap = new HashMap<Serializable, Task>();
+      final Map<Serializable, Task> taskMap = new HashMap<>();
       for (final GanttTask child : children) {
         addTask(file, taskMap, null, child);
       }
@@ -157,8 +148,7 @@ public class ExportMSProject
   }
 
   private static void addTask(final ProjectFile file, final Map<Serializable, Task> taskMap, final Task parentTask,
-      final GanttTask ganttTask)
-  {
+                              final GanttTask ganttTask) {
     final Task task;
     if (parentTask == null) {
       task = file.addTask();
@@ -168,10 +158,10 @@ public class ExportMSProject
     taskMap.put(ganttTask.getId(), task);
     task.setName(ganttTask.getTitle());
     if (ganttTask.getStartDate() != null) {
-      task.setStart(ganttTask.getStartDate());
+      task.setStart(PFDayUtils.convertToUtilDate(ganttTask.getStartDate()));
     }
     if (ganttTask.getEndDate() != null) {
-      task.setFinish(ganttTask.getEndDate());
+      task.setFinish(PFDayUtils.convertToUtilDate(ganttTask.getEndDate()));
     }
     final BigDecimal duration = ganttTask.getDuration();
     final double value;
@@ -196,8 +186,7 @@ public class ExportMSProject
     }
   }
 
-  private static void setPredecessors(final Map<Serializable, Task> taskMap, final GanttTask ganttTask)
-  {
+  private static void setPredecessors(final Map<Serializable, Task> taskMap, final GanttTask ganttTask) {
     if (ganttTask.getPredecessor() != null) {
       final Task task = taskMap.get(ganttTask.getId());
       final Task predecessor = taskMap.get(ganttTask.getPredecessorId());
@@ -211,7 +200,7 @@ public class ExportMSProject
         if (predecessorOffset == null) {
           value = 0;
         } else {
-          value = predecessorOffset.intValue();
+          value = predecessorOffset;
         }
         task.addPredecessor(predecessor, getRelationType(ganttTask.getRelationType()), Duration.getInstance(value, TimeUnit.DAYS));
       }
@@ -225,8 +214,7 @@ public class ExportMSProject
     }
   }
 
-  private static RelationType getRelationType(final GanttRelationType type)
-  {
+  private static RelationType getRelationType(final GanttRelationType type) {
     if (type == null || type == GanttRelationType.FINISH_START) {
       return RelationType.FINISH_START;
     } else if (type == GanttRelationType.FINISH_FINISH) {

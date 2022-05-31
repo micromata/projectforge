@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,8 +30,13 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.joda.time.DateMidnight;
+<<<<<<< HEAD
+=======
+import org.projectforge.business.teamcal.filter.CalendarFilter;
+>>>>>>> develop
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.wicket.AbstractStandardForm;
@@ -40,13 +45,7 @@ import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DateTimePanel;
 import org.projectforge.web.wicket.components.JodaDatePanel;
-import org.projectforge.web.wicket.flowlayout.ButtonGroupPanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.IconButtonPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
+import org.projectforge.web.wicket.flowlayout.*;
 
 public class CalendarForm extends AbstractStandardForm<CalendarFilter, CalendarPage>
 {
@@ -171,7 +170,7 @@ public class CalendarForm extends AbstractStandardForm<CalendarFilter, CalendarP
   public PFUserDO getTimesheetsUser()
   {
     final Integer userId = getFilter().getTimesheetUserId();
-    return userId != null ? getTenantRegistry().getUserGroupCache().getUser(userId) : null;
+    return userId != null ? UserGroupCache.getInstance().getUser(userId) : null;
   }
 
   public void setTimesheetsUser(final PFUserDO user)

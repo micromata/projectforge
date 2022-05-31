@@ -1,0 +1,48 @@
+---
+title: ProjectForge 7.2 released
+date: 2021-08-16
+---
+:page-liquid:
+
+Security issues of pentests, DataTransfer improved.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Word-Templating (Merlin): Word templating for letters, information, contracts etc. with serial execution including variables, if-else-expressions etc. inside docx (like Velocity-Scripting-engine). All users/emloyees may receive letters/contracts etc. (as Word and/or PDF-files) in ther personal boxes via serial execution. +
+  example template files included for a quick start.
+- Log viewer added (for admins as well as for users for tracking own activity for mass updates of time-sheets, usage of Merlin or Datev-imports)
+- Gender for users added: Used by Merlin (word templating) for creation of personalized letters, contracts etc.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- DataTransfer-Plugin: encryption added
+- Exporting SEPA-cash transfers improved: special characters unsupported by banking software will be replaced/removed.
+
+++++
+{% include tag.html tag="privacy" %}
+++++
+- Features for deleting data such as addresses, employee, vacataion data etc. implemented due to privacy restrictions in the EU. The deletion includes also history entries.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Several minor bugfixes
+- Search for deleted entries (addresses etc.) fixed.
+- Search in history entries (keywords, users) fixed.
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- No restart after first installation required anymore.
+- During Shutdown some temporarily created directories (tomcat.* and projectforge-application*) will be deleted automatically.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- using char[] instead of String for passwords.
+
+++++
+{% include download-link.html %}
+++++

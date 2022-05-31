@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.plugins.todo;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
@@ -34,12 +32,14 @@ import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
+import java.util.Objects;
+
 /**
  * Every user has access to own to-do's or to-do's he's assigned to. All other users have access if the to-do is
  * assigned to a task and the user has the task access.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@me.de)
- * 
+ *
  */
 public class ToDoRight extends UserRightAccessCheck<ToDoDO>
 {
@@ -52,7 +52,7 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
 
   /**
    * General select access.
-   * 
+   *
    * @return true
    * @see org.projectforge.business.user.UserRightAccessCheck#hasSelectAccess(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
@@ -75,7 +75,7 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
 
   /**
    * General insert access.
-   * 
+   *
    * @return true
    * @see org.projectforge.business.user.UserRightAccessCheck#hasInsertAccess(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
@@ -88,7 +88,7 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
   /**
    * If user is not reporter or assignee and task is given the access to task is assumed, meaning if the user has the
    * right to insert sub tasks he is allowed to insert to-do's to.
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasInsertAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object)
    */
@@ -101,7 +101,7 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
   /**
    * If user is not reporter or assignee and task is given the access to task is assumed, meaning if the user has the
    * right to delete the tasks he is allowed to delete to-do's to.
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasDeleteAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object)
    */
@@ -115,7 +115,7 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
   public boolean hasAccess(final PFUserDO user, final ToDoDO obj, final ToDoDO oldObj,
       final OperationType operationType)
   {
-    return hasAccess(user, obj, operationType) == true || hasAccess(user, oldObj, operationType) == true;
+    return hasAccess(user, obj, operationType) || hasAccess(user, oldObj, operationType);
   }
 
   private boolean hasAccess(final PFUserDO user, final ToDoDO toDo, final OperationType operationType)
@@ -123,13 +123,13 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
     if (toDo == null) {
       return true;
     }
-    if (ObjectUtils.equals(user.getId(), toDo.getAssigneeId()) == true
-        || ObjectUtils.equals(user.getId(), toDo.getReporterId()) == true) {
+    if (Objects.equals(user.getId(), toDo.getAssigneeId())
+        || Objects.equals(user.getId(), toDo.getReporterId())) {
       return true;
     }
     if (toDo.getGroup() != null) {
-      final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-      if (userGroupCache.isUserMemberOfGroup(user.getId(), toDo.getGroupId()) == true) {
+      final UserGroupCache userGroupCache = UserGroupCache.getInstance();
+      if (userGroupCache.isUserMemberOfGroup(user.getId(), toDo.getGroupId())) {
         return true;
       }
     }

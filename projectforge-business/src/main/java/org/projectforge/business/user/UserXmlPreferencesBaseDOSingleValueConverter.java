@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,11 @@
 
 package org.projectforge.business.user;
 
-import org.apache.commons.lang.StringUtils;
+import com.thoughtworks.xstream.converters.SingleValueConverter;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.springframework.context.ApplicationContext;
-
-import com.thoughtworks.xstream.converters.SingleValueConverter;
 
 /**
  * Converts BaseDO from and to strings (using the id).
@@ -37,7 +36,7 @@ import com.thoughtworks.xstream.converters.SingleValueConverter;
  */
 public class UserXmlPreferencesBaseDOSingleValueConverter implements SingleValueConverter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(UserXmlPreferencesBaseDOSingleValueConverter.class);
 
   private final Class<? extends BaseDao<?>> daoClass;
@@ -86,7 +85,7 @@ public class UserXmlPreferencesBaseDOSingleValueConverter implements SingleValue
   @Override
   public Object fromString(final String str)
   {
-    if (StringUtils.isBlank(str) == true) {
+    if (StringUtils.isBlank(str)) {
       return null;
     }
     final Integer id = Integer.parseInt(str);

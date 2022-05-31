@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,7 +29,6 @@ import org.projectforge.business.user.UserRight;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 
 /**
  * This class contains some helper methods for evaluation of user and group access'.
@@ -41,25 +40,13 @@ public interface AccessChecker
 {
   /**
    * Checks if the user is an admin user (member of admin group). If not, an AccessException will be thrown.
-   *
-   * @see #isUserMemberOfAdminGroup()
    */
   void checkIsLoggedInUserMemberOfAdminGroup();
 
   /**
-   * @param userId
-   * @return
    * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
    */
   boolean isUserMemberOfAdminGroup(PFUserDO user);
-
-  /**
-   * @param tenant
-   * @param userId
-   * @return
-   * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
-   */
-  boolean isUserMemberOfAdminGroup(TenantDO tenant, PFUserDO user);
 
   boolean isUserMemberOfAdminGroup(PFUserDO user, boolean throwException);
 
@@ -90,7 +77,7 @@ public interface AccessChecker
     if (user == null) {
       return false;
     }
-    if ("demo".equals(user.getUsername()) == false) {
+    if (!"demo".equals(user.getUsername())) {
       return false;
     }
     return true;
@@ -102,9 +89,15 @@ public interface AccessChecker
    * Checks if the user of the ThreadLocalUserContext (logged in user) is member at least of one of the given groups.
    *
    * @param groups
-   * @see #isUserMemberOfGroup(boolean, ProjectForgeGroup...)
    */
   boolean isLoggedInUserMemberOfGroup(ProjectForgeGroup... groups);
+
+  /**
+   * Checks if the user of the ThreadLocalUserContext (logged in user) is member at least of one of the given groups.
+   * @param throwException default false.
+   * @param groups
+   */
+  boolean isLoggedInUserMemberOfGroup(boolean throwException, ProjectForgeGroup... groups);
 
   /**
    * Checks if the user of the ThreadLocalUserContext (logged in user) is member at least of one of the given groups.
@@ -118,8 +111,6 @@ public interface AccessChecker
 
   /**
    * Checks if the user is in one of the given groups. If not, an AccessException will be thrown.
-   *
-   * @see #isUserMemberOfGroup(ProjectForgeGroup...)
    */
   void checkIsUserMemberOfGroup(final PFUserDO user, final ProjectForgeGroup... groups);
 
@@ -133,8 +124,6 @@ public interface AccessChecker
 
   /**
    * Checks if the user is in one of the given groups. If not, an AccessException will be thrown.
-   *
-   * @see #isUserMemberOfGroup(ProjectForgeGroup...)
    */
   void checkIsLoggedInUserMemberOfGroup(final ProjectForgeGroup... groups);
 
@@ -153,7 +142,7 @@ public interface AccessChecker
    * Checks the availability and the demanded value of the right for the context user. The right will be checked itself
    * on required constraints, e. g. if assigned groups required.
    *
-   * @param user           Check the access for the given user instead of the logged-in user.
+   * @param origUser           Check the access for the given user instead of the logged-in user.
    * @param rightId
    * @param values         At least one of the values should match.
    * @param throwException
@@ -172,27 +161,15 @@ public interface AccessChecker
 
   /**
    * Throws now exception if the right check fails.
-   *
-   * @see #hasRight(IUserRightId, boolean, UserRightValue...)
    */
   boolean hasRight(final PFUserDO user, final IUserRightId rightId, final UserRightValue... values);
 
   /**
-   * Calls {@link #hasRight(IUserRightId, UserRightValue, boolean)} with throwException = true.
    *
    * @param rightId
-   * @param value
-   * @see #hasRight(IUserRightId, UserRightValue, boolean)
    */
   boolean checkUserRight(final PFUserDO user, final IUserRightId rightId, final UserRightValue... values);
 
-  /**
-   * Calls {@link #hasRight(IUserRightId, UserRightValue, boolean)} with throwException = true.
-   *
-   * @param rightId
-   * @param value
-   * @see #hasRight(IUserRightId, UserRightValue, boolean)
-   */
   boolean checkLoggedInUserRight(final IUserRightId rightId, final UserRightValue... values);
 
   /**
@@ -216,24 +193,8 @@ public interface AccessChecker
   boolean hasAccess(PFUserDO origUser, IUserRightId rightId, Object obj, Object oldObj,
       OperationType operationType, boolean throwException);
 
-  /**
-   * Calls {@link #hasAccess(IUserRightId, Object, Object, OperationType, boolean)} with {@link OperationType#INSERT}.
-   *
-   * @param rightId
-   * @param obj
-   * @param throwException
-   * @see #hasAccess(IUserRightId, Object, Object, OperationType, boolean)
-   */
   boolean hasInsertAccess(PFUserDO user, IUserRightId rightId, boolean throwException);
 
-  /**
-   * Calls {@link #hasAccess(IUserRightId, Object, Object, OperationType, boolean)} with {@link OperationType#INSERT}.
-   *
-   * @param rightId
-   * @param obj
-   * @param throwException
-   * @see #hasAccess(IUserRightId, Object, Object, OperationType, boolean)
-   */
   boolean hasLoggedInUserInsertAccess(final IUserRightId rightId, final Object obj,
       final boolean throwException);
 
@@ -247,30 +208,12 @@ public interface AccessChecker
 
   /**
    * Use context user (logged-in user).
-   *
-   * @param rightId
-   * @param obj
-   * @param throwException
-   * @see #hasSelectAccess(PFUserDO, IUserRightId, boolean)
    */
   boolean hasLoggedInUserSelectAccess(final IUserRightId rightId, final boolean throwException);
 
-  /**
-   * Calls {@link #hasAccess(IUserRightId, Object, Object, OperationType, boolean)} with {@link OperationType#SELECT}.
-   *
-   * @param rightId
-   * @param obj
-   * @param throwException
-   * @see #hasAccess(IUserRightId, Object, Object, OperationType, boolean)
-   */
   boolean hasLoggedInUserSelectAccess(final IUserRightId rightId, final Object obj,
       final boolean throwException);
 
-  /**
-   * @param rightId
-   * @param throwException
-   * @see #hasRight(IUserRightId, boolean, UserRightValue...)
-   */
   boolean hasReadAccess(final PFUserDO user, final IUserRightId rightId, final boolean throwException);
 
   boolean hasWriteAccess(final PFUserDO user, final IUserRightId rightId, final boolean throwException);
@@ -322,15 +265,11 @@ public interface AccessChecker
    *
    * @param user2
    * @return
-   * @deprecated wrong place.
    */
-  @Deprecated
   boolean areUsersInSameGroup(final PFUserDO user1, final PFUserDO user2);
 
   /**
    * @return
-   * @deprecated wrong place.
    */
-  @Deprecated
   boolean hasLoggedInUserAccessToTimesheetsOfOtherUsers();
 }

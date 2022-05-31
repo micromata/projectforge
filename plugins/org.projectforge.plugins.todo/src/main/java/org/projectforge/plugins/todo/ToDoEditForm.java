@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,7 @@
 
 package org.projectforge.plugins.todo;
 
-import java.util.Date;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
@@ -41,10 +38,9 @@ import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.hibernate.Hibernate;
 import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.task.TaskDO;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.common.i18n.Priority;
-import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.web.dialog.ModalDialog;
@@ -54,23 +50,17 @@ import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
-import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.ButtonPanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
+
+import java.time.LocalDate;
 
 public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
 {
   private static final long serialVersionUID = -6208809585214296635L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ToDoEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ToDoEditForm.class);
 
   @SpringBean
   private UserPrefDao userPrefDao;
@@ -100,19 +90,19 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
   {
     super.init();
     gridBuilder.newGridPanel();
-    if (isNew() == true) {
+    if (isNew()) {
       // Favorites
       final String[] templateNames = userPrefDao.getPrefNames(ToDoPlugin.USER_PREF_AREA);
       if (templateNames != null && templateNames.length > 0) {
         // DropDownChoice templates
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("templates"));
-        final LabelValueChoiceRenderer<String> templateNamesChoiceRenderer = new LabelValueChoiceRenderer<String>();
+        final LabelValueChoiceRenderer<String> templateNamesChoiceRenderer = new LabelValueChoiceRenderer<>();
         templateNamesChoiceRenderer.addValue("", getString("userPref.template.select"));
         for (final String name : templateNames) {
           templateNamesChoiceRenderer.addValue(name, name);
         }
         final DropDownChoice<String> templateNamesChoice = new DropDownChoice<String>(fs.getDropDownChoiceId(),
-            new PropertyModel<String>(
+            new PropertyModel<>(
                 this, "templateName"),
             templateNamesChoiceRenderer.getValues(), templateNamesChoiceRenderer)
         {
@@ -129,8 +119,12 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
           @Override
           public void onUpdate()
           {
+<<<<<<< HEAD
             final String newSelection = (String) this.getFormComponent().getModelObject();
             if (StringUtils.isNotEmpty(newSelection) == true) {
+=======
+            if (StringUtils.isNotEmpty(newSelection)) {
+>>>>>>> develop
               // Fill fields with selected template values:
               final UserPrefDO userPref = userPrefDao.getUserPref(ToDoPlugin.USER_PREF_AREA, newSelection);
               if (userPref != null) {
@@ -160,9 +154,9 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       // Subject
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "subject");
       final RequiredMaxLengthTextField subject = new RequiredMaxLengthTextField(fs.getTextFieldId(),
-          new PropertyModel<String>(data,
+          new PropertyModel<>(data,
               "subject"));
-      if (isNew() == true) {
+      if (isNew()) {
         // Only focus for new to-do's:
         subject.add(WicketUtils.setFocus());
       }
@@ -173,9 +167,9 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
     {
       // ToDo type
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "type");
-      final LabelValueChoiceRenderer<ToDoType> typeChoiceRenderer = new LabelValueChoiceRenderer<ToDoType>(this,
+      final LabelValueChoiceRenderer<ToDoType> typeChoiceRenderer = new LabelValueChoiceRenderer<>(this,
           ToDoType.values());
-      fs.addDropDownChoice(new PropertyModel<ToDoType>(data, "type"), typeChoiceRenderer.getValues(),
+      fs.addDropDownChoice(new PropertyModel<>(data, "type"), typeChoiceRenderer.getValues(),
           typeChoiceRenderer)
           .setNullValid(true);
     }
@@ -183,19 +177,18 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
     {
       // Status
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "status");
-      final LabelValueChoiceRenderer<ToDoStatus> statusChoiceRenderer = new LabelValueChoiceRenderer<ToDoStatus>(this,
+      final LabelValueChoiceRenderer<ToDoStatus> statusChoiceRenderer = new LabelValueChoiceRenderer<>(this,
           ToDoStatus.values());
-      fs.addDropDownChoice(new PropertyModel<ToDoStatus>(data, "status"), statusChoiceRenderer.getValues(),
+      fs.addDropDownChoice(new PropertyModel<>(data, "status"), statusChoiceRenderer.getValues(),
           statusChoiceRenderer)
           .setNullValid(true);
     }
 
     {
       // Due date
+      final FieldProperties<LocalDate> props = getDueDateProperties();
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "dueDate");
-      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "dueDate"),
-          DatePanelSettings.get().withTargetType(
-              java.sql.Date.class)));
+      fs.add(new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel())));
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -203,9 +196,9 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
     {
       // Priority
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "priority");
-      final LabelValueChoiceRenderer<Priority> priorityChoiceRenderer = new LabelValueChoiceRenderer<Priority>(this,
+      final LabelValueChoiceRenderer<Priority> priorityChoiceRenderer = new LabelValueChoiceRenderer<>(this,
           Priority.values());
-      fs.addDropDownChoice(new PropertyModel<Priority>(data, "priority"), priorityChoiceRenderer.getValues(),
+      fs.addDropDownChoice(new PropertyModel<>(data, "priority"), priorityChoiceRenderer.getValues(),
           priorityChoiceRenderer)
           .setNullValid(true);
     }
@@ -214,12 +207,12 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       // Assignee
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "assignee");
       PFUserDO assignee = data.getAssignee();
-      if (Hibernate.isInitialized(assignee) == false) {
-        assignee = getTenantRegistry().getUserGroupCache().getUser(assignee.getId());
+      if (!Hibernate.isInitialized(assignee)) {
+        assignee = UserGroupCache.getInstance().getUser(assignee.getId());
         data.setAssignee(assignee);
       }
       final UserSelectPanel assigneeUserSelectPanel = new UserSelectPanel(fs.newChildId(),
-          new PropertyModel<PFUserDO>(data, "assignee"),
+          new PropertyModel<>(data, "assignee"),
           parentPage, "assigneeId");
       fs.add(assigneeUserSelectPanel);
       assigneeUserSelectPanel.setRequired(true);
@@ -230,12 +223,12 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       // Reporter
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "reporter");
       PFUserDO reporter = data.getReporter();
-      if (Hibernate.isInitialized(reporter) == false) {
-        reporter = getTenantRegistry().getUserGroupCache().getUser(reporter.getId());
+      if (!Hibernate.isInitialized(reporter)) {
+        reporter = UserGroupCache.getInstance().getUser(reporter.getId());
         data.setReporter(reporter);
       }
       final UserSelectPanel reporterUserSelectPanel = new UserSelectPanel(fs.newChildId(),
-          new PropertyModel<PFUserDO>(data, "reporter"),
+          new PropertyModel<>(data, "reporter"),
           parentPage, "reporterId");
       fs.add(reporterUserSelectPanel);
       reporterUserSelectPanel.init();
@@ -245,7 +238,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
     {
       // Task
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "task");
-      final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new PropertyModel<TaskDO>(data, "task"),
+      final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new PropertyModel<>(data, "task"),
           parentPage, "taskId");
       fs.add(taskSelectPanel);
       taskSelectPanel.init();
@@ -256,7 +249,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
     {
       // Group
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "group");
-      groupSelectPanel = new NewGroupSelectPanel(fs.newChildId(), new PropertyModel<GroupDO>(data, "group"),
+      groupSelectPanel = new NewGroupSelectPanel(fs.newChildId(), new PropertyModel<>(data, "group"),
           parentPage, "groupId");
       fs.add(groupSelectPanel);
       fs.setLabelFor(groupSelectPanel);
@@ -268,13 +261,13 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
     {
       // Description
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "description");
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "description"))).setAutogrow();
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "description"))).setAutogrow();
     }
 
     {
       // Comment
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "comment");
-      commentTextArea = new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "comment"));
+      commentTextArea = new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "comment"));
       fs.add(commentTextArea).setAutogrow();
     }
 
@@ -282,6 +275,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       // Options
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.options")).suppressLabelForWarning();
       final DivPanel checkBoxButton = fs.addNewCheckBoxButtonDiv();
+<<<<<<< HEAD
       if (configurationService.isSendMailConfigured() == true) {
         checkBoxButton.add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<Boolean>(this, "sendNotification"),
             getString("label.sendEMailNotification")).setTooltip(getString("plugins.todo.notification.tooltip")));
@@ -290,6 +284,24 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
           getString("userPref.saveAsTemplate")));
     }
     if (isNew() == false && getData().getStatus() != ToDoStatus.CLOSED && getData().isDeleted() == false
+=======
+      if (configurationService.isSendMailConfigured()) {
+        checkBoxButton
+            .add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<>(this, "sendNotification"),
+                getString("label.sendEMailNotification")).setTooltip(getString("plugins.todo.notification.tooltip")));
+      }
+      // if (ConfigXml.getInstance().isSmsConfigured() == true) {
+      // checkBoxPanel.add(new CheckBoxPanel(checkBoxPanel.newChildId(), new PropertyModel<Boolean>(this, "sendShortMessage"),
+      // getString("label.sendShortMessage")));
+      // }
+      checkBoxButton
+          .add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<>(this, "saveAsTemplate"),
+              getString("userPref.saveAsTemplate")));
+    }
+    if (!isNew()
+        && getData().getStatus() != ToDoStatus.CLOSED
+        && !getData().isDeleted()
+>>>>>>> develop
         && getBaseDao().hasLoggedInUserUpdateAccess(getData(), getData(), false)) {
       // Close button:
       final AjaxButton closeButton = new AjaxButton(ButtonPanel.BUTTON_ID, this)
@@ -319,6 +331,10 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
 
   }
 
+  private FieldProperties<LocalDate> getDueDateProperties() {
+    return new FieldProperties<>("dueDate", new PropertyModel<>(data, "dueDate"));
+  }
+
   @SuppressWarnings("serial")
   private void addCloseToDoDialog()
   {
@@ -333,7 +349,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
         {
           final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "comment");
           closeToDoDialogCommentTextArea = new MaxLengthTextArea(TextAreaPanel.WICKET_ID,
-              new PropertyModel<String>(data, "comment"),
+              new PropertyModel<>(data, "comment"),
               commentTextArea.getMaxLength());
           closeToDoDialogCommentTextArea.setOutputMarkupId(true).add(AttributeModifier.replace("tabindex", "-1"));
           fs.add(new TextAreaPanel(fs.newChildId(), closeToDoDialogCommentTextArea));

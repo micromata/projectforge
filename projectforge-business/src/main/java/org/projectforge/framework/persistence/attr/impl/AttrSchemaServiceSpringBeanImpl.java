@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,30 +23,33 @@
 
 package org.projectforge.framework.persistence.attr.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
-
 import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchema;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
 import de.micromata.genome.db.jpa.tabattr.impl.AttrSchemaServiceBaseImpl;
+import org.projectforge.ProjectForgeApp;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * AttrService which loads configuration from Spring context.
  *
  * @author Roger Kommer (r.kommer.extern@micromata.de)
- *
  */
-public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
-{
+public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl {
 
-  private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger
-      .getLogger(AttrSchemaServiceSpringBeanImpl.class);
+  public static final String ATTR_SCHEMA_CONFIG_FILE = "attrschema.xml";
+
+  public static final String CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE = "initialAttrschema.xml";
+
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
+          .getLogger(AttrSchemaServiceSpringBeanImpl.class);
 
   private Map<String, AttrSchema> attrSchemata;
 
@@ -54,28 +57,24 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
 
   private static AttrSchemaServiceSpringBeanImpl INSTANCE;
 
-  public static AttrSchemaServiceSpringBeanImpl get()
-  {
+  public static AttrSchemaServiceSpringBeanImpl get() {
     if (INSTANCE == null) {
       INSTANCE = new AttrSchemaServiceSpringBeanImpl();
     }
     return INSTANCE;
   }
 
-  public void setApplicationDir(String applicationDir)
-  {
+  public void setApplicationDir(String applicationDir) {
     this.applicationDir = applicationDir;
   }
 
-  protected void loadAttrSchema()
-  {
+  protected void loadAttrSchema() {
     attrSchemata = new HashMap<>();
     mergeAttrSchemata(loadAttrSchemaFromClassPath());
     mergeAttrSchemata(loadAttrSchemaFromFileSystem());
   }
 
-  private void mergeAttrSchemata(final Map<String, AttrSchema> attrSchemataToMerge)
-  {
+  private void mergeAttrSchemata(final Map<String, AttrSchema> attrSchemataToMerge) {
     if (attrSchemataToMerge == null) {
       return;
     }
@@ -92,8 +91,7 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
     });
   }
 
-  private Map<String, AttrSchema> loadAttrSchemaFromClassPath()
-  {
+  private Map<String, AttrSchema> loadAttrSchemaFromClassPath() {
     try {
       final ApplicationContext context = new ClassPathXmlApplicationContext("internalattrschema.xml");
       return context.getBean("internalAttrSchemataMap", Map.class);
@@ -103,14 +101,16 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
     }
   }
 
-  private Map<String, AttrSchema> loadAttrSchemaFromFileSystem()
-  {
-    final String location = "file:" + applicationDir + "/attrschema.xml";
+  private Map<String, AttrSchema> loadAttrSchemaFromFileSystem() {
+    if (!ProjectForgeApp.ensureInitialConfigFile(CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE, ATTR_SCHEMA_CONFIG_FILE))
+      return null;
+    final File attrSchemaFile = new File(applicationDir, ATTR_SCHEMA_CONFIG_FILE);
     try {
-      final ApplicationContext context = new FileSystemXmlApplicationContext(location);
+      final ApplicationContext context = new FileSystemXmlApplicationContext("file:" + attrSchemaFile.getAbsolutePath());
+      log.info("AttrSchema config file loaded from '" + attrSchemaFile.getAbsolutePath() + "'");
       return context.getBean("attrSchemataMap", Map.class);
     } catch (Exception e) {
-      log.info("Can't load/parse external AttrSchema config file. Message: " + e.getMessage());
+      log.info("Can't load/parse external AttrSchema config file, using default values. Message: " + e.getMessage());
       return null;
     }
   }
@@ -119,8 +119,7 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
    * @see org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService#getAttrSchema(java.lang.String)
    */
   @Override
-  public AttrSchema getAttrSchema(final String name)
-  {
+  public AttrSchema getAttrSchema(final String name) {
     if (attrSchemata == null) {
       loadAttrSchema();
     }
@@ -131,42 +130,38 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
     }
   }
 
-  public void setAttrSchemata(Map<String, AttrSchema> attrSchemata)
-  {
+  public void setAttrSchemata(Map<String, AttrSchema> attrSchemata) {
     this.attrSchemata = attrSchemata;
   }
 
   @Override
-  public AttrGroup getAttrGroup(final EntityWithConfigurableAttr entity, final String groupName)
-  {
+  public AttrGroup getAttrGroup(final EntityWithConfigurableAttr entity, final String groupName) {
     if (attrSchemata == null) {
       loadAttrSchema();
     }
     final AttrSchema entitySchema = attrSchemata.get(entity.getAttrSchemaName());
     return entitySchema
-        .getGroups()
-        .stream()
-        .filter(group -> group.getName().equals(groupName))
-        .findFirst()
-        .orElse(null);
+            .getGroups()
+            .stream()
+            .filter(group -> group.getName().equals(groupName))
+            .findFirst()
+            .orElse(null);
   }
 
   @Override
-  public AttrDescription getAttrDescription(final EntityWithConfigurableAttr entity, final String groupName, final String descriptionName)
-  {
+  public AttrDescription getAttrDescription(final EntityWithConfigurableAttr entity, final String groupName, final String descriptionName) {
     final AttrGroup attrGroup = getAttrGroup(entity, groupName);
     return getAttrDescription(attrGroup, descriptionName);
   }
 
   @Override
-  public AttrDescription getAttrDescription(final AttrGroup attrGroup, final String descriptionName)
-  {
+  public AttrDescription getAttrDescription(final AttrGroup attrGroup, final String descriptionName) {
     return (attrGroup == null) ? null :
-        attrGroup
-            .getDescriptions()
-            .stream()
-            .filter(desc -> desc.getPropertyName().equals(descriptionName))
-            .findFirst()
-            .orElse(null);
+            attrGroup
+                    .getDescriptions()
+                    .stream()
+                    .filter(desc -> desc.getPropertyName().equals(descriptionName))
+                    .findFirst()
+                    .orElse(null);
   }
 }

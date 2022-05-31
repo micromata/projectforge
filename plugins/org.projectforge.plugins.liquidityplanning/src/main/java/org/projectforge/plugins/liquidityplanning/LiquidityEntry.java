@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.sql.Date;
-
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.common.props.PropertyType;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
  * Represents entities of {@link LiquidityEntryDO}, {@link RechnungDO} and {@link EingangsrechnungDO}.
@@ -42,10 +42,10 @@ public class LiquidityEntry implements Serializable
   private static final long serialVersionUID = 8878006067746874578L;
 
   @PropertyInfo(i18nKey = "plugins.liquidityplanning.entry.dateOfPayment")
-  private Date dateOfPayment;
+  private LocalDate dateOfPayment;
 
   @PropertyInfo(i18nKey = "plugins.liquidityplanning.entry.expectedDateOfPayment")
-  private Date expectedDateOfPayment;
+  private LocalDate expectedDateOfPayment;
 
   @PropertyInfo(i18nKey = "fibu.common.betrag", type = PropertyType.CURRENCY)
   private BigDecimal amount;
@@ -62,12 +62,12 @@ public class LiquidityEntry implements Serializable
   @PropertyInfo(i18nKey = "comment")
   private String comment;
 
-  public Date getDateOfPayment()
+  public LocalDate getDateOfPayment()
   {
     return dateOfPayment;
   }
 
-  public LiquidityEntry setDateOfPayment(final Date date)
+  public LiquidityEntry setDateOfPayment(final LocalDate date)
   {
     this.dateOfPayment = date;
     return this;
@@ -78,7 +78,7 @@ public class LiquidityEntry implements Serializable
    * debitor.
    * @return the expectedDateOfPayment
    */
-  public Date getExpectedDateOfPayment()
+  public LocalDate getExpectedDateOfPayment()
   {
     return expectedDateOfPayment;
   }
@@ -87,7 +87,7 @@ public class LiquidityEntry implements Serializable
    * @param expectedDateOfPayment the expectedDateOfPayment to set
    * @return this for chaining.
    */
-  public LiquidityEntry setExpectedDateOfPayment(final Date expectedDateOfPayment)
+  public LiquidityEntry setExpectedDateOfPayment(final LocalDate expectedDateOfPayment)
   {
     this.expectedDateOfPayment = expectedDateOfPayment;
     return this;

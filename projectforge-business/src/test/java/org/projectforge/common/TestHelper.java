@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,21 @@
 
 package org.projectforge.common;
 
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.util.Locale;
-
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
+import java.util.Locale;
+
 public class TestHelper
 {
-  public static void setContextUser(UserGroupCache userGroupCache, final Locale locale)
+  public static void setContextUser(final Locale locale)
   {
     final PFUserDO user = new PFUserDO();
     user.setLocale(locale);
-    ThreadLocalUserContext.setUser(userGroupCache, user);
+    ThreadLocalUserContext.setUser(user);
   }
 
   public static void setDeclaredField(final Object obj, final String fieldName, final Object value)
@@ -45,18 +45,14 @@ public class TestHelper
     Field field;
     try {
       field = obj.getClass().getDeclaredField(fieldName);
-    } catch (SecurityException ex) {
-      throw new RuntimeException(ex);
-    } catch (NoSuchFieldException ex) {
+    } catch (SecurityException | NoSuchFieldException ex) {
       throw new RuntimeException(ex);
     }
     final Field[] fields = new Field[] { field };
     AccessibleObject.setAccessible(fields, true);
     try {
       field.set(obj, value);
-    } catch (IllegalArgumentException ex) {
-      throw new RuntimeException(ex);
-    } catch (IllegalAccessException ex) {
+    } catch (IllegalArgumentException | IllegalAccessException ex) {
       throw new RuntimeException(ex);
     }
   }
@@ -66,18 +62,14 @@ public class TestHelper
     Field field;
     try {
       field = clazz.getDeclaredField(fieldName);
-    } catch (SecurityException ex) {
-      throw new RuntimeException(ex);
-    } catch (NoSuchFieldException ex) {
+    } catch (SecurityException | NoSuchFieldException ex) {
       throw new RuntimeException(ex);
     }
     final Field[] fields = new Field[] { field };
     AccessibleObject.setAccessible(fields, true);
     try {
       field.set(null, value);
-    } catch (IllegalArgumentException ex) {
-      throw new RuntimeException(ex);
-    } catch (IllegalAccessException ex) {
+    } catch (IllegalArgumentException | IllegalAccessException ex) {
       throw new RuntimeException(ex);
     }
   }
@@ -87,18 +79,14 @@ public class TestHelper
     Field field;
     try {
       field = obj.getClass().getDeclaredField(fieldName);
-    } catch (SecurityException ex) {
-      throw new RuntimeException(ex);
-    } catch (NoSuchFieldException ex) {
+    } catch (SecurityException | NoSuchFieldException ex) {
       throw new RuntimeException(ex);
     }
     final Field[] fields = new Field[] { field };
     AccessibleObject.setAccessible(fields, true);
     try {
       return field.get(obj);
-    } catch (IllegalArgumentException ex) {
-      throw new RuntimeException(ex);
-    } catch (IllegalAccessException ex) {
+    } catch (IllegalArgumentException | IllegalAccessException ex) {
       throw new RuntimeException(ex);
     }
   }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.business.orga;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**
@@ -46,16 +46,16 @@ public enum ContractStatus implements I18nEnum
 
   public static ContractStatus get(final String s)
   {
-    if (StringUtils.isEmpty(s) == true) {
+    if (StringUtils.isEmpty(s)) {
       return null;
     }
-    if ("IN_PROGRESS".equals(s) == true || "IN_PROGRES".equals(s) == true) {
+    if ("IN_PROGRESS".equals(s) || "IN_PROGRES".equals(s)) {
       return IN_PROGRESS;
-    } else if ("COMPLETED".equals(s) == true) {
+    } else if ("COMPLETED".equals(s)) {
       return COMPLETED;
-    } else if ("SUSPENDED".equals(s) == true) {
+    } else if ("SUSPENDED".equals(s)) {
       return SUSPENDED;
-    } else if ("ESCALATED".equals(s) == true) {
+    } else if ("ESCALATED".equals(s)) {
       return ESCALATED;
     } else {
       return UNKNOWN;
@@ -71,6 +71,7 @@ public enum ContractStatus implements I18nEnum
     return key;
   }
 
+  @Override
   public String getI18nKey()
   {
     return "legalAffaires.contract.status." + key;

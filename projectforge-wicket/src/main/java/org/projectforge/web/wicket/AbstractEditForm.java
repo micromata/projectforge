@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,18 @@
 
 package org.projectforge.web.wicket;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.Model;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
+import org.slf4j.Logger;
 
 public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P extends AbstractEditPage<?, ?, ?>> extends
     AbstractSecuredForm<O, P>
@@ -73,6 +73,10 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
   protected Button undeleteButton;
 
   protected SingleButtonPanel undeleteButtonPanel;
+
+  protected Button cloneButton;
+
+  protected SingleButtonPanel cloneButtonPanel;
 
   protected FeedbackPanel feedbackPanel;
 
@@ -287,6 +291,9 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
           }
         }
       };
+
+      undeleteButton.setMarkupId("undelete").setOutputMarkupId(true);
+
       undeleteButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), undeleteButton, getString("undelete"));
       actionButtons.add(undeleteButtonPanel);
     }
@@ -356,6 +363,9 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
             deleteButtonPanel.setVisible(baseDao.hasLoggedInUserDeleteAccess(origData, origData, false));
             markAsDeletedButtonPanel.setVisible(false);
           }
+          if (cloneButtonPanel != null) {
+            cloneButtonPanel.setVisible(baseDao.hasLoggedInUserInsertAccess());
+          }
           updateButtonPanel.setVisible(baseDao.hasLoggedInUserUpdateAccess(origData, origData, false));
           if (parentPage.isUpdateAndNextSupported() == true) {
             updateAndNextButtonPanel.setVisible(updateButtonPanel.isVisible());
@@ -391,7 +401,7 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
   {
     if (isNew() == false) {
       // Clone button for existing and not deleted invoices:
-      final Button cloneButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clone"))
+      cloneButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clone"))
       {
         @Override
         public final void onSubmit()
@@ -407,7 +417,7 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
           }
         }
       };
-      final SingleButtonPanel cloneButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), cloneButton,
+      cloneButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), cloneButton,
           getString("clone"))
       {
         /**

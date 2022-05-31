@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,7 @@
 
 package org.projectforge.web.address;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.Button;
@@ -36,29 +33,33 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressFilter;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.RecentQueue;
+import org.projectforge.sms.SmsSenderConfig;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
-import org.projectforge.web.wicket.flowlayout.TextPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
 {
   private static final long serialVersionUID = -2138017238114715368L;
 
-  public static final int MAX_MESSAGE_LENGTH = 160;
-
   private static final String USER_PREF_KEY_RECENTS = "messagingReceivers";
+
+  @SpringBean
+  private ConfigurationService configurationService;
+
+  @SpringBean
+  private SmsSenderConfig smsSenderConfig;
 
   @SpringBean
   private AddressDao addressDao;
@@ -115,7 +116,7 @@ public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
       @Override
       protected List<String> getFavorites()
       {
-        return getRecentSearchTermsQueue().getRecents();
+        return getRecentSearchTermsQueue().getRecentList();
       }
     };
     numberTextField.withMatchContains(true).withMinChars(2).withFocus(true);
@@ -125,14 +126,14 @@ public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
     fs = gridBuilder.newFieldset(getString("address.sendSms.message"));
     final MaxLengthTextArea messageTextArea = new MaxLengthTextArea(TextAreaPanel.WICKET_ID,
         new PropertyModel<String>(data, "message"),
-        MAX_MESSAGE_LENGTH);
+            smsSenderConfig.getSmsMaxMessageLength());
     // messageTextArea.add(AttributeModifier.append("onKeyDown", "limitText(this.form.limitedtextarea,this.form.countdown,"
     // + MAX_MESSAGE_LENGTH
     // + ")"));
     // messageTextArea.add(AttributeModifier.append("onKeyUp", "limitText(this.form.limitedtextarea,this.form.countdown,"
     // + MAX_MESSAGE_LENGTH
     // + ")"));
-    messageTextArea.add(AttributeModifier.append("maxlength", MAX_MESSAGE_LENGTH));
+    messageTextArea.add(AttributeModifier.append("maxlength", smsSenderConfig.getSmsMaxMessageLength()));
     fs.add(messageTextArea);
     fs = gridBuilder.newFieldset("");
     final DivTextPanel charsRemaining = new DivTextPanel(fs.newChildId(), "");

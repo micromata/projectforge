@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,32 +23,10 @@
 
 package org.projectforge.framework.renderer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.util.Map;
-
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.stream.StreamSource;
-
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.fop.apps.FOPException;
-import org.apache.fop.apps.FOUserAgent;
-import org.apache.fop.apps.Fop;
-import org.apache.fop.apps.FopFactory;
-import org.apache.fop.apps.MimeConstants;
-import org.apache.log4j.Logger;
-import org.projectforge.AppVersion;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.fop.apps.*;
+import org.projectforge.ProjectForgeVersion;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.framework.configuration.Configuration;
@@ -56,22 +34,29 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.i18n.InternalErrorException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import javax.xml.transform.*;
+import javax.xml.transform.sax.SAXResult;
+import javax.xml.transform.stream.StreamSource;
+import java.io.*;
+import java.util.Map;
 
 /**
  * This class provides the functionality for rendering pdf files. The underlaying technology is XSL-FO. The dynamic data
  * will be given in xml format and the transformation will be done via xslt-scripts. For a better ease of use a meta
  * language similiar to html will be used instead of plain xsl-fo. The html file with jelly script elements will be
  * rendered via xslt-scripts into xsl-fo and afterwards to pdf.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-public class PdfRenderer
-{
-  private static final Logger log = Logger.getLogger(PdfRenderer.class);
+public class PdfRenderer {
+  private static final Logger log = LoggerFactory.getLogger(PdfRenderer.class);
 
   public final static String DEFAULT_FO_STYLE = "default-style-fo.xsl";
 
@@ -83,11 +68,10 @@ public class PdfRenderer
 
   private String fontResourcePath;
 
-  private String getFontResourcePath()
-  {
+  private String getFontResourcePath() {
     if (fontResourcePath == null) {
       final File dir = new File(configurationService.getFontsDir());
-      if (dir.exists() == false) {
+      if (!dir.exists()) {
         log.error("Application's font dir does not exist: " + dir.getAbsolutePath());
       }
       this.fontResourcePath = dir.getAbsolutePath();
@@ -95,43 +79,42 @@ public class PdfRenderer
     return fontResourcePath;
   }
 
-  public byte[] render(final String stylesheet, final String groovyXml, final Map<String, Object> data)
-  {
+  public byte[] render(final String stylesheet, final String groovyXml, final Map<String, Object> data) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     data.put("createdLabel", ThreadLocalUserContext.getLocalizedString("created"));
     data.put("loggedInUser", user);
-    data.put("baseDir", configurationService.getResourceDir());
-    data.put("logoFile", configurationService.getResourceDir() + "/images/" + logoFileName);
-    data.put("appId", AppVersion.APP_ID);
-    data.put("appVersion", AppVersion.NUMBER);
+    data.put("baseDir", configurationService.getResourceDirName());
+    data.put("logoFile", configurationService.getResourceDirName() + "/images/" + logoFileName);
+    data.put("appId", ProjectForgeVersion.APP_ID);
+    data.put("appVersion", ProjectForgeVersion.VERSION_NUMBER);
     data.put("organization",
-        StringUtils.defaultString(Configuration.getInstance().getStringValue(ConfigurationParam.ORGANIZATION),
-            AppVersion.APP_ID));
+            StringUtils.defaultString(Configuration.getInstance().getStringValue(ConfigurationParam.ORGANIZATION),
+                    ProjectForgeVersion.APP_ID));
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     log.info("stylesheet="
-        + stylesheet
-        + ", jellyXml="
-        + groovyXml
-        + ", baseDir="
-        + configurationService.getResourceDir()
-        + ", fontBaseDir="
-        + getFontResourcePath());
+            + stylesheet
+            + ", jellyXml="
+            + groovyXml
+            + ", baseDir="
+            + configurationService.getResourceDirName()
+            + ", fontBaseDir="
+            + getFontResourcePath());
 
     // configure fopFactory as desired
-    final FopFactory fopFactory = FopFactory.newInstance();
+    final FopFactory fopFactory = FopFactory.newInstance(new File(getFontResourcePath()).toURI());
 
-    try {
+    /*try {
       fopFactory.getFontManager().setFontBaseURL(getFontResourcePath());
     } catch (final MalformedURLException ex) {
       log.error(ex.getMessage(), ex);
-    }
+    }*/
 
     final FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-    try {
+    /*try {
       foUserAgent.getFactory().getFontManager().setFontBaseURL(getFontResourcePath());
     } catch (final MalformedURLException ex) {
       log.error(ex.getMessage(), ex);
-    }
+    }*/
     // configure foUserAgent as desired
 
     InputStream xsltInputStream = null;
@@ -147,7 +130,7 @@ public class PdfRenderer
       final String url = (String) result[1];
       if (url == null) {
         log.error("Url of xsl resource is null.");
-        throw new InternalErrorException();
+        throw new InternalErrorException("exception.internalError");
       }
       xltStreamSource.setSystemId(url);
 
@@ -161,7 +144,7 @@ public class PdfRenderer
       // First run jelly through xmlData:
       result = configurationService.getResourceContentAsString(groovyXml);
       final GroovyEngine groovyEngine = new GroovyEngine(configurationService, data, ThreadLocalUserContext.getLocale(),
-          ThreadLocalUserContext.getTimeZone());
+              ThreadLocalUserContext.getTimeZone());
       final String groovyXmlInput = groovyEngine.preprocessGroovyXml((String) result[0]);
       final String xmlData = groovyEngine.executeTemplate(groovyXmlInput);
 
@@ -175,9 +158,6 @@ public class PdfRenderer
       // Start XSLT transformation and FOP processing
       transformer.transform(src, res);
     } catch (final FOPException ex) {
-      log.error(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    } catch (final TransformerConfigurationException ex) {
       log.error(ex.getMessage(), ex);
       throw new RuntimeException(ex);
     } catch (final TransformerException ex) {

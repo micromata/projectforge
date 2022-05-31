@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,6 @@
 
 package org.projectforge.framework.persistence.attr.entities;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.stream.Stream;
-
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
-
-import org.apache.commons.lang.StringUtils;
-import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.entities.DefaultBaseDO;
-
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
@@ -46,6 +31,19 @@ import de.micromata.genome.jpa.ComplexEntityVisitor;
 import de.micromata.genome.util.strings.converter.StandardStringConverter;
 import de.micromata.genome.util.strings.converter.StringConverter;
 import de.micromata.genome.util.types.Pair;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.framework.persistence.api.BaseDO;
+import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+
+import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Stream;
 
 /**
  * @author Florian Blumenstein (f.blumenstein@micromata.de)
@@ -57,12 +55,12 @@ public abstract class DefaultBaseWithAttrDO<M extends DefaultBaseWithAttrDO<?>>e
 {
   private static final long serialVersionUID = 1L;
 
-  private StringConverter stringConverter = StandardStringConverter.get();
+  private transient StringConverter stringConverter = StandardStringConverter.get();
 
   /**
    * holds the attributes
    */
-  private Map<String, JpaTabAttrBaseDO<M, Integer>> attributes = new TreeMap<String, JpaTabAttrBaseDO<M, Integer>>();
+  private transient Map<String, JpaTabAttrBaseDO<M, Integer>> attributes = new TreeMap<>();
 
   public DefaultBaseWithAttrDO()
   {
@@ -185,7 +183,7 @@ public abstract class DefaultBaseWithAttrDO<M extends DefaultBaseWithAttrDO<?>>e
     if (val == null) {
       return null;
     }
-    if (expectedClass.isAssignableFrom(val.getClass()) == false) {
+    if (!expectedClass.isAssignableFrom(val.getClass())) {
       throw new IllegalArgumentException("Attribute does not match type. key: "
           + key
           + "; expected: "
@@ -279,7 +277,7 @@ public abstract class DefaultBaseWithAttrDO<M extends DefaultBaseWithAttrDO<?>>e
         putAttrInternal(srcEntry.getKey(), srcEntry.getValue().getType(), srcEntry.getValue().getStringData());
         modificationStatus = getModificationStatus(modificationStatus, ModificationStatus.MAJOR);
       } else {
-        if (StringUtils.equals(destEntry.getStringData(), srcEntry.getValue().getStringData()) == false) {
+        if (!StringUtils.equals(destEntry.getStringData(), srcEntry.getValue().getStringData())) {
           removeAttribute(srcEntry.getKey());
           modificationStatus = modificationStatus.combine(ModificationStatus.MAJOR);
           putAttrInternal(srcEntry.getKey(), srcEntry.getValue().getType(), srcEntry.getValue().getStringData());
@@ -287,10 +285,9 @@ public abstract class DefaultBaseWithAttrDO<M extends DefaultBaseWithAttrDO<?>>e
       }
 
     }
-    final ArrayList<String> keys = new ArrayList<>();
-    keys.addAll(attributes.keySet());
+    final ArrayList<String> keys = new ArrayList<>(attributes.keySet());
     for (final String key : keys) {
-      if (src.getAttrs().containsKey(key) == false) {
+      if (!src.getAttrs().containsKey(key)) {
         removeAttribute(key);
         modificationStatus = getModificationStatus(modificationStatus, ModificationStatus.MAJOR);
       }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.business.ldap;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.ConfigXmlSecretField;
-import org.projectforge.framework.xstream.XmlField;
+import org.projectforge.framework.xmlstream.XmlField;
 
 /**
  * Bean used by ConfigXML (config.xml).
@@ -72,12 +72,12 @@ public class LdapConfig
    */
   public String getCompleteServerUrl()
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(this.server);
     if (port != null) {
       buf.append(':').append(port);
     }
-    if (StringUtils.isBlank(this.baseDN) == false) {
+    if (!StringUtils.isBlank(this.baseDN)) {
       buf.append('/').append(this.baseDN);
     }
     return buf.toString();
@@ -221,7 +221,7 @@ public class LdapConfig
   /**
    * For SSL connections (ldaps://....) a SSL certificate file should be given if not accepted by the Java virtual machine. The content of
    * the file should be:
-   * 
+   *
    * <pre>
    * -----BEGIN CERTIFICATE-----
    * MIICDTCCAXagAwIBAgIET6zxaTANBgkqhkiG9w0BAQUFADBLMScwJQYDVQQKEx5P

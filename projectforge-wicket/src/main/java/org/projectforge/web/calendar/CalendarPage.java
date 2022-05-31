@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,21 @@
 
 package org.projectforge.web.calendar;
 
-import java.util.Date;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.joda.time.DateMidnight;
+import org.projectforge.business.teamcal.filter.CalendarFilter;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
+import java.util.Date;
+
 public class CalendarPage extends AbstractStandardFormPage implements ISelectCallerPage
 {
   private static final long serialVersionUID = 8710165041912824126L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CalendarPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CalendarPage.class);
 
   private static final String USERPREF_KEY = "CalendarPage.userPrefs";
 

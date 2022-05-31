@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.business.ldap;
 
-import java.io.Serializable;
-
 import org.projectforge.framework.persistence.utils.ReflectionToString;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.io.Serializable;
 
 /**
  * Bean used by ConfigXML (config.xml).

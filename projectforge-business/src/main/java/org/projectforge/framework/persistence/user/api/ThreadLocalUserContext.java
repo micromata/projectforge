@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,34 +23,38 @@
 
 package org.projectforge.framework.persistence.user.api;
 
-import java.util.Locale;
-import java.util.TimeZone;
-
-import org.apache.commons.lang.ObjectUtils;
 import org.joda.time.DateTimeZone;
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.framework.configuration.ConfigXml;
+import org.projectforge.business.user.UserLocale;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHelper;
+
+import java.text.Collator;
+import java.time.DayOfWeek;
+import java.time.ZoneId;
+import java.util.Comparator;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.TimeZone;
 
 /**
  * ThreadLocal context.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class ThreadLocalUserContext
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ThreadLocalUserContext.class);
+public class ThreadLocalUserContext {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ThreadLocalUserContext.class);
 
-  private static ThreadLocal<UserContext> threadLocalUserContext = new ThreadLocal<UserContext>();
+  private static ThreadLocal<UserContext> threadLocalUserContext = new ThreadLocal<>();
+
+  private static ThreadLocal<Locale> threadLocalLocale = new ThreadLocal<>();
 
   /**
    * @return The user of ThreadLocal if exists.
    */
-  public final static PFUserDO getUser()
-  {
+  public static PFUserDO getUser() {
     final UserContext userContext = getUserContext();
     if (userContext == null) {
       return null;
@@ -58,44 +62,44 @@ public class ThreadLocalUserContext
     return userContext.getUser();
   }
 
-  public final static UserContext getUserContext()
-  {
+  public static UserContext getUserContext() {
     return threadLocalUserContext.get();
   }
 
-  public final static void clear()
-  {
+  public static void clear() {
     threadLocalUserContext.set(null);
+    threadLocalLocale.set(null);
   }
 
   /**
-   * If given user is null, {@link #clear()} is called.
+   * If given user is null, {@link #clear()} is called. Creates a new UserContext object containing the given user.
    *
    * @param user
+   * @return UserContext registered or null, if no user given.
    */
-  public final static void setUser(UserGroupCache userGroupCache, final PFUserDO user)
-  {
+  public static UserContext setUser(final PFUserDO user) {
     if (user == null) {
       clear();
-      return;
+      return null;
     }
-    final UserContext userContext = new UserContext(user, userGroupCache);
+    final UserContext userContext = new UserContext(user);
     setUserContext(userContext);
+    return userContext;
   }
 
-  public final static void setUserContext(final UserContext userContext)
-  {
+  public static void setUserContext(final UserContext userContext) {
     final PFUserDO oldUser = getUser();
     PFUserDO newUser = userContext != null ? userContext.getUser() : null;
-    if (log.isDebugEnabled() == true) {
-      log.debug("setUserInfo: " + newUser != null ? newUser.getDisplayUsername()
+    if (log.isDebugEnabled()) {
+      log.debug("setUserInfo: " + newUser != null ? newUser.getUserDisplayName()
           : "null" + ", was: " + oldUser != null ? oldUser
-          .getDisplayUsername() : "null");
+          .getUserDisplayName() : "null");
     }
     threadLocalUserContext.set(userContext);
-    if (log.isDebugEnabled() == true) {
+    threadLocalLocale.set(null);
+    if (log.isDebugEnabled()) {
       newUser = getUser();
-      log.debug("user is now: " + newUser != null ? newUser.getDisplayUsername() : "null");
+      log.debug("user is now: " + newUser != null ? newUser.getUserDisplayName() : "null");
     }
   }
 
@@ -103,10 +107,17 @@ public class ThreadLocalUserContext
    * @return The user id of the ThreadLocal user if exists.
    * @see #getUser()
    */
-  public final static Integer getUserId()
-  {
+  public static Integer getUserId() {
     final PFUserDO user = getUser();
     return user != null ? user.getId() : null;
+  }
+
+  /**
+   * For non logged-in users and public pages, the locale could be set.
+   * @return The locale of ThreadLocalLocale or null, if not given.
+   */
+  public static Locale internalGetThreadLocalLocale() {
+    return threadLocalLocale.get();
   }
 
   /**
@@ -114,54 +125,47 @@ public class ThreadLocalUserContext
    * @see #getUser()
    * @see PFUserDO#getLocale()
    */
-  public final static Locale getLocale()
-  {
-    final PFUserDO user = getUser();
-    return user != null && user.getLocale() != null ? user.getLocale() : getLocale(null);
+  public static Locale getLocale() {
+    return getLocale(null);
+  }
+
+  /**
+   * Only for anonymous usage (needed by translations). Will throw an exception, if an user is already attached.
+   *
+   * @param locale
+   */
+  public static void setLocale(Locale locale) {
+    if (getUser() != null) {
+      throw new IllegalStateException("Can't register locale if an user is already registered. setLocale(Locale) should only used for public/anonymous services.");
+    }
+    threadLocalLocale.set(locale);
   }
 
   /**
    * If context user's locale is null and the given defaultLocale is not null, then the context user's client locale
    * will be set to given defaultLocale.
    *
-   * @param defaultLocale will be used, if the context user or his user locale does not exist.
+   * @param defaultLocale will be used, if the context user or his user locale does not exist. If given, it's the client's
+   *                      locale (browser locale) in common.
    * @return The locale of the user if exists, otherwise the given default locale or if null the system's default
    * locale.
    * @see #getUser()
    * @see PFUserDO#getLocale()
    */
-  public final static Locale getLocale(final Locale defaultLocale)
-  {
+  public static Locale getLocale(final Locale defaultLocale) {
     final PFUserDO user = getUser();
-    final Locale userLocale = user != null ? user.getLocale() : null;
-    if (userLocale != null) {
-      return userLocale;
-    }
-    Locale clientLocale = user != null ? user.getClientLocale() : null;
-    if (defaultLocale != null && user != null && ObjectUtils.equals(clientLocale, defaultLocale) == false) {
-      user.setClientLocale(defaultLocale);
-      clientLocale = defaultLocale;
-    }
-    if (clientLocale != null) {
-      return clientLocale;
-    }
-    if (defaultLocale != null) {
-      return defaultLocale;
-    }
-    final Locale locale = ConfigXml.getInstance().getDefaultLocale();
-    return locale != null ? locale : Locale.getDefault();
+    return UserLocale.determineUserLocale(user, defaultLocale);
   }
 
   /**
    * @return The timeZone of the user if exists, otherwise default timezone of the Configuration
    * @see #getUser()
-   * @see PFUserDO#getTimeZoneObject()
+   * @see PFUserDO#getTimeZone()
    * @see Configuration#getDefaultTimeZone()
    */
-  public final static TimeZone getTimeZone()
-  {
+  public static TimeZone getTimeZone() {
     if (getUser() != null) {
-      return getUser().getTimeZoneObject();
+      return getUser().getTimeZone();
     }
     if (Configuration.getInstance() != null) {
       return Configuration.getInstance().getDefaultTimeZone();
@@ -169,43 +173,69 @@ public class ThreadLocalUserContext
     return TimeZone.getDefault();
   }
 
-  public final static DateTimeZone getDateTimeZone()
-  {
+  /**
+   * @return The timeZone of the user if exists, otherwise default timezone of the Configuration
+   * @see #getUser()
+   * @see PFUserDO#getTimeZone()
+   * @see Configuration#getDefaultTimeZone()
+   */
+  public static ZoneId getZoneId() {
+    return getTimeZone().toZoneId();
+  }
+
+  @Deprecated
+  public static DateTimeZone getDateTimeZone() {
     final TimeZone timeZone = getTimeZone();
     return DateTimeZone.forTimeZone(timeZone);
   }
 
   /**
-   * The first day of the week, configured at the given user, if not configured {@link ConfigXml#getFirstDayOfWeek()} is
+   * The first day of the week, configured at the given user, if not configured {@link org.projectforge.business.configuration.ConfigurationService#getDefaultFirstDayOfWeek()} is
    * used.
-   *
-   * @return
-   * @see ConfigXml#getFirstDayOfWeek()
    */
-  public final static int getCalendarFirstDayOfWeek()
-  {
+  public static DayOfWeek getFirstDayOfWeek() {
     final PFUserDO user = getUser();
     if (user != null) {
-      final Integer firstDayOfWeek = user.getFirstDayOfWeek();
+      final DayOfWeek firstDayOfWeek = user.getFirstDayOfWeek();
       if (firstDayOfWeek != null) {
         return firstDayOfWeek;
       }
     }
-    return ConfigXml.getInstance().getFirstDayOfWeek();
+    return ConfigurationServiceAccessor.get().getDefaultFirstDayOfWeek();
   }
 
-  public final static int getJodaFirstDayOfWeek()
-  {
-    return DateHelper.convertCalendarDayOfWeekToJoda(getCalendarFirstDayOfWeek());
+  /**
+   * @return 1 - Monday, ..., 7 - Sunday
+   */
+  public static int getFirstDayOfWeekValue() {
+    return getFirstDayOfWeek().getValue();
   }
 
-  public static String getLocalizedMessage(final String messageKey, final Object... params)
-  {
-    return I18nHelper.getLocalizedMessage(getLocale(), messageKey, params);
+  public static String getLocalizedMessage(final String messageKey, final Object... params) {
+    return I18nHelper.getLocalizedMessage(getUser(), messageKey, params);
   }
 
-  public static String getLocalizedString(final String key)
-  {
-    return I18nHelper.getLocalizedMessage(getLocale(), key);
+  public static String getLocalizedString(final String key) {
+    return I18nHelper.getLocalizedMessage(getUser(), key);
+  }
+
+  /**
+   * Use this instead of String{@link String#compareTo(String)}, because it uses the user's locale for comparison.
+   *
+   * @param a
+   * @param b
+   * @return
+   */
+  public static int localeCompare(String a, String b) {
+    return getLocaleComparator().compare(a, b);
+  }
+
+  /**
+   * Use this instead of String{@link String#compareTo(String)}, because it uses the user's locale for comparison.
+   *
+   * @return
+   */
+  public static Comparator getLocaleComparator() {
+    return Collator.getInstance(getLocale());
   }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,29 +23,22 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.sql.Date;
-import java.util.Calendar;
-
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExportColumn;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.Formula;
-import org.projectforge.business.excel.I18nExportColumn;
-import org.projectforge.business.excel.PropertyMapping;
+import org.projectforge.business.excel.*;
 import org.projectforge.business.scripting.I18n;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.export.MyExcelExporter;
 import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class LiquidityForecastCashFlow implements Serializable
-{
+public class LiquidityForecastCashFlow implements Serializable {
   private static final long serialVersionUID = 7567091917817930061L;
 
   private final BigDecimal[] credits;
@@ -56,18 +49,14 @@ public class LiquidityForecastCashFlow implements Serializable
 
   private final BigDecimal[] debitsExpected;
 
-  private final DayHolder today;
+  private final PFDay baseDate;
 
-  public LiquidityForecastCashFlow(final LiquidityForecast forecast)
-  {
+  public LiquidityForecastCashFlow(final LiquidityForecast forecast) {
     this(forecast, 90);
   }
 
-  public LiquidityForecastCashFlow(final LiquidityForecast forecast, final int nextDays)
-  {
-    today = new DayHolder();
-    final DayHolder lastDay = new DayHolder();
-    lastDay.add(Calendar.DAY_OF_YEAR, nextDays);
+  public LiquidityForecastCashFlow(final LiquidityForecast forecast, final int nextDays) {
+    baseDate = PFDay.fromOrNow(forecast.getBaseDate());
     credits = newBigDecimalArray(nextDays);
     debits = newBigDecimalArray(nextDays);
     creditsExpected = newBigDecimalArray(nextDays);
@@ -77,18 +66,19 @@ public class LiquidityForecastCashFlow implements Serializable
       if (amount == null) {
         continue;
       }
-      final Date dateOfPayment = entry.getDateOfPayment();
-      Date expectedDateOfPayment = entry.getExpectedDateOfPayment();
+      final LocalDate dateOfPayment = entry.getDateOfPayment();
+      LocalDate expectedDateOfPayment = entry.getExpectedDateOfPayment();
       if (expectedDateOfPayment == null) {
         expectedDateOfPayment = dateOfPayment;
       }
       int numberOfDay = 0;
       if (dateOfPayment != null) {
-        if (today.before(dateOfPayment) == true && today.isSameDay(dateOfPayment) == false) {
-          numberOfDay = today.daysBetween(dateOfPayment);
+        final PFDay dayOfPayment = PFDay.from(dateOfPayment); // not null
+        if (baseDate.isBefore(dayOfPayment) && !baseDate.isSameDay(dayOfPayment)) {
+          numberOfDay = (int) baseDate.daysBetween(dayOfPayment);
         }
       }
-      if (numberOfDay >= 0 && numberOfDay < nextDays == true) {
+      if (numberOfDay >= 0 && numberOfDay < nextDays) {
         if (amount.compareTo(BigDecimal.ZERO) == 0) {
           // Zero, nothing to do.
         } else if (amount.compareTo(BigDecimal.ZERO) > 0) {
@@ -99,11 +89,12 @@ public class LiquidityForecastCashFlow implements Serializable
       }
       int numberOfDayExpected = 0;
       if (expectedDateOfPayment != null) {
-        if (today.before(expectedDateOfPayment) == true && today.isSameDay(expectedDateOfPayment) == false) {
-          numberOfDayExpected = today.daysBetween(expectedDateOfPayment);
+        final PFDay expectedDayOfPayment = PFDay.from(expectedDateOfPayment); // not null
+        if (baseDate.isBefore(expectedDayOfPayment) && !baseDate.isSameDay(expectedDayOfPayment)) {
+          numberOfDayExpected = (int) baseDate.daysBetween(expectedDayOfPayment);
         }
       }
-      if (numberOfDayExpected >= 0 && numberOfDayExpected < nextDays == true) {
+      if (numberOfDayExpected >= 0 && numberOfDayExpected < nextDays) {
         if (amount.compareTo(BigDecimal.ZERO) == 0) {
           // Zero, nothing to do.
         } else if (amount.compareTo(BigDecimal.ZERO) > 0) {
@@ -115,8 +106,7 @@ public class LiquidityForecastCashFlow implements Serializable
     }
   }
 
-  private BigDecimal[] newBigDecimalArray(final int length)
-  {
+  private BigDecimal[] newBigDecimalArray(final int length) {
     final BigDecimal[] array = new BigDecimal[length];
     for (int i = 0; i < length; i++) {
       array[i] = BigDecimal.ZERO;
@@ -124,8 +114,7 @@ public class LiquidityForecastCashFlow implements Serializable
     return array;
   }
 
-  public void addAsExcelSheet(final MyExcelExporter exporter, final String sheetTitle)
-  {
+  public void addAsExcelSheet(final MyExcelExporter exporter, final String sheetTitle) {
     final ExportSheet sheet = exporter.addSheet(sheetTitle);
     sheet.createFreezePane(0, 1);
     final ContentProvider sheetProvider = sheet.getContentProvider();
@@ -164,7 +153,7 @@ public class LiquidityForecastCashFlow implements Serializable
     sheet.setColumns(cols);
 
     final int firstDataRowNumber = sheet.getRowCounter() + 1;
-    final DayHolder current = today.clone();
+    PFDay current = baseDate;
     PropertyMapping mapping = new PropertyMapping();
     mapping.add("balanceExpected", BigDecimal.ZERO);
     mapping.add("balance", new Formula("D" + firstDataRowNumber));
@@ -173,14 +162,14 @@ public class LiquidityForecastCashFlow implements Serializable
     for (int i = 0; i < credits.length; i++) {
       final int rowNumber = sheet.getRowCounter();
       mapping.add("date", current);
-      mapping.add("creditsExpected", NumberHelper.isZeroOrNull(creditsExpected[i]) == true ? "" : creditsExpected[i]);
-      mapping.add("debitsExpected", NumberHelper.isZeroOrNull(debitsExpected[i]) == true ? "" : debitsExpected[i]);
+      mapping.add("creditsExpected", NumberHelper.isZeroOrNull(creditsExpected[i]) ? "" : creditsExpected[i]);
+      mapping.add("debitsExpected", NumberHelper.isZeroOrNull(debitsExpected[i]) ? "" : debitsExpected[i]);
       mapping.add("balanceExpected", new Formula("D" + rowNumber + "+SUM(B" + rowNumber + ":C" + rowNumber + ")"));
-      mapping.add("credits", NumberHelper.isZeroOrNull(credits[i]) == true ? "" : credits[i]);
-      mapping.add("debits", NumberHelper.isZeroOrNull(debits[i]) == true ? "" : debits[i]);
+      mapping.add("credits", NumberHelper.isZeroOrNull(credits[i]) ? "" : credits[i]);
+      mapping.add("debits", NumberHelper.isZeroOrNull(debits[i]) ? "" : debits[i]);
       mapping.add("balance", new Formula("G" + rowNumber + "+SUM(E" + rowNumber + ":F" + rowNumber + ")"));
       sheet.addRow(mapping.getMapping(), 0);
-      current.add(Calendar.DAY_OF_YEAR, 1);
+      current = current.plusDays(1);
     }
     mapping = new PropertyMapping();
     mapping.add("creditsExpected", new Formula("SUM(B" + firstDataRowNumber + ":B" + sheet.getRowCounter() + ")"));
@@ -195,32 +184,28 @@ public class LiquidityForecastCashFlow implements Serializable
   /**
    * @return the credits based on due dates.
    */
-  public BigDecimal[] getCredits()
-  {
+  public BigDecimal[] getCredits() {
     return credits;
   }
 
   /**
    * @return the creditsExpected based on expected dates of payment.
    */
-  public BigDecimal[] getCreditsExpected()
-  {
+  public BigDecimal[] getCreditsExpected() {
     return creditsExpected;
   }
 
   /**
    * @return the debits based on due dates.
    */
-  public BigDecimal[] getDebits()
-  {
+  public BigDecimal[] getDebits() {
     return debits;
   }
 
   /**
    * @return the debitsExpected based on expected dates of payment.
    */
-  public BigDecimal[] getDebitsExpected()
-  {
+  public BigDecimal[] getDebitsExpected() {
     return debitsExpected;
   }
 }

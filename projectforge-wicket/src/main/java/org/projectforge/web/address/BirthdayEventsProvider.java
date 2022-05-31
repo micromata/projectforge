@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,7 @@
 
 package org.projectforge.web.address;
 
-import java.util.Calendar;
-import java.util.Set;
-
+import net.ftlines.wicket.fullcalendar.Event;
 import org.apache.wicket.Component;
 import org.joda.time.DateTime;
 import org.projectforge.business.address.AddressDO;
@@ -39,16 +37,18 @@ import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
-import net.ftlines.wicket.fullcalendar.Event;
+import java.util.Calendar;
+import java.util.Set;
 
 /**
  * Creates events for FullCalendar.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+// TODO: Skip
 public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(BirthdayEventsProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BirthdayEventsProvider.class);
 
   private static final long serialVersionUID = 2241430630558260146L;
 
@@ -64,7 +64,6 @@ public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
   public static final String EVENT_CLASS_NAME = "birth";
 
   /**
-   * @param parent         For i18n.
    * @param addressDao
    * @param dataProtection If true (default) then no ages will be shown, only the names.
    * @see Component#getString(String)
@@ -90,10 +89,10 @@ public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
     if (start.getMonthOfYear() == Calendar.MARCH && start.getDayOfMonth() == 1) {
       from = start.minusDays(1);
     }
-    final Set<BirthdayAddress> set = addressDao.getBirthdays(from.toDate(), end.toDate(), 1000, true);
+    final Set<BirthdayAddress> set = addressDao.getBirthdays(from.toDate(), end.toDate(), true);
     for (final BirthdayAddress birthdayAddress : set) {
       final AddressDO address = birthdayAddress.getAddress();
-      final int month = birthdayAddress.getMonth() + 1;
+      final int month = birthdayAddress.getMonth().getValue(); // 1 - January, ..., 12 - December
       final int dayOfMonth = birthdayAddress.getDayOfMonth();
       DateTime date = getDate(from, end, month, dayOfMonth);
       // February, 29th fix:
@@ -104,7 +103,7 @@ public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
         log.info("Date "
             + birthdayAddress.getDayOfMonth()
             + "/"
-            + (birthdayAddress.getMonth() + 1)
+            + birthdayAddress.getMonth()
             + " not found between "
             + from
             + " and "
@@ -153,7 +152,7 @@ public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
       }
       day = day.plusDays(1);
       if (++paranoiaCounter > 1000) {
-        log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of getDate.");
+        log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of getUtilDate.");
         break;
       }
     } while (day.isAfter(end) == false);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,6 +34,14 @@ import org.projectforge.model.rest.AbstractBaseObject;
 public class DOConverter
 {
   public static void copyFields(final AbstractBaseObject dest, final DefaultBaseDO src)
+  {
+    dest.setId(src.getId());
+    dest.setDeleted(src.isDeleted());
+    dest.setCreated(src.getCreated());
+    dest.setLastUpdate(src.getLastUpdate());
+  }
+
+  public static void copyFields(final DefaultBaseDO dest, final AbstractBaseObject src)
   {
     dest.setId(src.getId());
     dest.setDeleted(src.isDeleted());

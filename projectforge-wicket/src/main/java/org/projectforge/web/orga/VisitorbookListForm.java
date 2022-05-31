@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.orga;
 
-import java.util.Date;
-
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.SubmitLink;
@@ -39,24 +36,25 @@ import org.projectforge.web.calendar.QuickSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
-import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.LocalDate;
+import java.util.Date;
 
 public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, VisitorbookListPage>
 {
-  private static final Logger log = Logger.getLogger(VisitorbookListForm.class);
+  private static final Logger log = LoggerFactory.getLogger(VisitorbookListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
 
-  protected DatePanel startDate;
+  protected LocalDatePanel startDate;
 
-  protected DatePanel stopDate;
+  protected LocalDatePanel stopDate;
 
   // Components for form validation.
   private final FormComponent<?>[] dependentFormComponents = new FormComponent<?>[2];
@@ -87,12 +85,12 @@ public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, Vis
     {
       gridBuilder.newSplitPanel(GridSize.COL66);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timePeriod"));
-      startDate = new DatePanel(fs.newChildId(), new PropertyModel<Date>(filter, "startTime"), DatePanelSettings.get()
+      startDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(filter, "startDay")), DatePanelSettings.get()
           .withSelectPeriodMode(true), true);
       fs.add(dependentFormComponents[0] = startDate);
       fs.setLabelFor(startDate);
       fs.add(new DivTextPanel(fs.newChildId(), " - "));
-      stopDate = new DatePanel(fs.newChildId(), new PropertyModel<Date>(filter, "stopTime"),
+      stopDate = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(filter, "stopDay")),
           DatePanelSettings.get().withSelectPeriodMode(true), true);
       fs.add(dependentFormComponents[1] = stopDate);
       {
@@ -101,8 +99,8 @@ public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, Vis
           @Override
           public void onSubmit()
           {
-            getSearchFilter().setStartTime(null);
-            getSearchFilter().setStopTime(null);
+            getSearchFilter().setStartDay(null);
+            getSearchFilter().setStopDay(null);
             clearInput();
             parentPage.refresh();
           }
@@ -122,7 +120,7 @@ public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, Vis
         @Override
         public String getObject()
         {
-          return WicketUtils.getCalendarWeeks(VisitorbookListForm.this, filter.getStartTime(), filter.getStopTime());
+          return WicketUtils.getCalendarWeeks(VisitorbookListForm.this, filter.getStartDay(), filter.getStopDay());
         }
       }));
       fs.add(new HtmlCommentPanel(fs.newChildId(), new Model<String>()
@@ -130,7 +128,7 @@ public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, Vis
         @Override
         public String getObject()
         {
-          return WicketUtils.getUTCDates(filter.getStartTime(), filter.getStopTime());
+          return WicketUtils.getUTCDates(filter.getStartDay(), filter.getStopDay());
         }
       }));
     }

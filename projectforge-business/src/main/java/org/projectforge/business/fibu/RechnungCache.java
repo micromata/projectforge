@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,45 +23,44 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
-import org.apache.log4j.Logger;
 import org.projectforge.framework.cache.AbstractCache;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import java.util.*;
 
 /**
  * Caches the order positions assigned to invoice positions.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class RechnungCache extends AbstractCache
-{
-  private static Logger log = Logger.getLogger(RechnungCache.class);
+public class RechnungCache extends AbstractCache {
+  private static Logger log = LoggerFactory.getLogger(RechnungCache.class);
 
   @Autowired
-  private HibernateTemplate hibernateTemplate;
+  protected PfEmgrFactory emgrFactory;
 
-  /** The key is the order id. */
+  /**
+   * The key is the order id.
+   */
   private Map<Integer, Set<RechnungsPositionVO>> invoicePositionMapByAuftragId;
 
-  /** The key is the order position id. */
+  /**
+   * The key is the order position id.
+   */
   private Map<Integer, Set<RechnungsPositionVO>> invoicePositionMapByAuftragsPositionId;
 
-  public Set<RechnungsPositionVO> getRechnungsPositionVOSetByAuftragId(final Integer auftragId)
-  {
+  public Set<RechnungsPositionVO> getRechnungsPositionVOSetByAuftragId(final Integer auftragId) {
     checkRefresh();
     return invoicePositionMapByAuftragId.get(auftragId);
   }
 
-  public Set<RechnungsPositionVO> getRechnungsPositionVOSetByAuftragsPositionId(final Integer auftragsPositionId)
-  {
+  public Set<RechnungsPositionVO> getRechnungsPositionVOSetByAuftragsPositionId(final Integer auftragsPositionId) {
     checkRefresh();
     return invoicePositionMapByAuftragsPositionId.get(auftragsPositionId);
   }
@@ -71,20 +70,25 @@ public class RechnungCache extends AbstractCache
    */
   @Override
   @SuppressWarnings("unchecked")
-  protected void refresh()
-  {
+  protected void refresh() {
     log.info("Initializing RechnungCache ...");
     // This method must not be synchronized because it works with a new copy of maps.
-    final Map<Integer, Set<RechnungsPositionVO>> mapByAuftragId = new HashMap<Integer, Set<RechnungsPositionVO>>();
-    final Map<Integer, Set<RechnungsPositionVO>> mapByAuftragsPositionId = new HashMap<Integer, Set<RechnungsPositionVO>>();
-    final List<RechnungsPositionDO> list = (List<RechnungsPositionDO>) hibernateTemplate.find(
-        "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null");
+    final Map<Integer, Set<RechnungsPositionVO>> mapByAuftragId = new HashMap<>();
+    final Map<Integer, Set<RechnungsPositionVO>> mapByAuftragsPositionId = new HashMap<>();
+    final List<RechnungsPositionDO> list = emgrFactory.runRoTrans(emgr -> {
+      EntityManager em = emgr.getEntityManager();
+      em.clear();
+      return em.createQuery("from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
+              RechnungsPositionDO.class)
+              .getResultList();
+    });
     for (final RechnungsPositionDO pos : list) {
+      RechnungDO rechnung = pos.getRechnung();
       if (pos.getAuftragsPosition() == null || pos.getAuftragsPosition().getAuftrag() == null) {
         log.error("Assigned order position expected: " + pos);
         continue;
-      } else if (pos.isDeleted() == true || pos.getRechnung() == null || pos.getRechnung().isDeleted() == true
-          || pos.getRechnung().getNummer() == null) {
+      } else if (pos.isDeleted() || rechnung == null || rechnung.isDeleted()
+              || rechnung.getNummer() == null) {
         // Invoice position or invoice is deleted.
         continue;
       }
@@ -92,19 +96,19 @@ public class RechnungCache extends AbstractCache
       final AuftragDO auftrag = auftragsPosition.getAuftrag();
       Set<RechnungsPositionVO> setByAuftragId = mapByAuftragId.get(auftrag.getId());
       if (setByAuftragId == null) {
-        setByAuftragId = new TreeSet<RechnungsPositionVO>();
+        setByAuftragId = new TreeSet<>();
         mapByAuftragId.put(auftrag.getId(), setByAuftragId);
       }
       Set<RechnungsPositionVO> setByAuftragsPositionId = mapByAuftragsPositionId.get(auftragsPosition.getId());
       if (setByAuftragsPositionId == null) {
-        setByAuftragsPositionId = new TreeSet<RechnungsPositionVO>();
+        setByAuftragsPositionId = new TreeSet<>();
         mapByAuftragsPositionId.put(auftragsPosition.getId(), setByAuftragsPositionId);
       }
       final RechnungsPositionVO vo = new RechnungsPositionVO(pos);
-      if (setByAuftragId.contains(vo) == false) {
+      if (!setByAuftragId.contains(vo)) {
         setByAuftragId.add(vo);
       }
-      if (setByAuftragsPositionId.contains(vo) == false) {
+      if (!setByAuftragsPositionId.contains(vo)) {
         setByAuftragsPositionId.add(vo);
       }
     }
@@ -112,5 +116,4 @@ public class RechnungCache extends AbstractCache
     this.invoicePositionMapByAuftragsPositionId = mapByAuftragsPositionId;
     log.info("Initializing of RechnungCache done.");
   }
-
 }

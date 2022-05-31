@@ -1,8 +1,31 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.common.props;
 
 import org.projectforge.common.anots.PropertyInfo;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class PropUtilsTest
 {
@@ -13,14 +36,14 @@ public class PropUtilsTest
   public void testGet() throws Exception
   {
     Object o = new Object();
-    Assert.assertNull(PropUtils.get(o.getClass(), "noClass"));
+    Assertions.assertNull(PropUtils.get(o.getClass(), "noClass"));
     Integer integer = new Integer(42);
-    Assert.assertNull(PropUtils.get(integer.getClass().getDeclaredField("value")));
+    Assertions.assertNull(PropUtils.get(integer.getClass().getDeclaredField("value")));
 
     TestProp testProp = new TestProp();
-    Assert.assertNotNull(PropUtils.get(TestProp.class, "property"));
+    Assertions.assertNotNull(PropUtils.get(TestProp.class, "property"));
 
-    Assert.assertNull(PropUtils.get(null));
+    Assertions.assertNull(PropUtils.get(null));
 
   }
 
@@ -29,29 +52,35 @@ public class PropUtilsTest
   {
     Integer integer = new Integer(12);
 
-    Assert.assertNotNull(PropUtils.getField(Integer.class, "value"));
-    Assert.assertNull(PropUtils.getField(Object.class, "value"));
-    Assert.assertNotNull(PropUtils.getField(TestProp.class, "property"));
+    Assertions.assertNotNull(PropUtils.getField(Integer.class, "value"));
+    Assertions.assertNull(PropUtils.getField(Object.class, "value"));
+    Assertions.assertNotNull(PropUtils.getField(TestProp.class, "property"));
+  }
+
+  @Test
+  public void getNestedField()
+  {
+    Assertions.assertNotNull(PropUtils.getField(Timesheet.class, "task.id"));
+    Assertions.assertNull(PropUtils.getField(Timesheet.class, "task.notThere"));
   }
 
   @Test
   public void testGetI18NKey()
   {
-    Assert.assertNull(PropUtils.getI18nKey(Integer.class, "class"));
-    Assert.assertEquals(PropUtils.getI18nKey(TestProp.class, "property"), i18nKey);
+    Assertions.assertNull(PropUtils.getI18nKey(Integer.class, "class"));
+    Assertions.assertEquals(PropUtils.getI18nKey(TestProp.class, "property"), i18nKey);
   }
 
   @Test
   public void testGetPropertyInfoFields()
   {
-    Assert.assertEquals(PropUtils.getPropertyInfoFields(TestProp.class).length, 1);
-    Assert.assertEquals(PropUtils.getPropertyInfoFields(TestProp.class).length, 1);
-    Assert.assertEquals(PropUtils.getPropertyInfoFields(Object.class).length, 0);
+    Assertions.assertEquals(PropUtils.getPropertyInfoFields(TestProp.class).length, 1);
+    Assertions.assertEquals(PropUtils.getPropertyInfoFields(TestProp.class).length, 1);
+    Assertions.assertEquals(PropUtils.getPropertyInfoFields(Object.class).length, 0);
   }
 
   class TestProp
   {
-
     @PropertyInfo(i18nKey = i18nKey)
     private String property;
 
@@ -64,5 +93,11 @@ public class PropUtilsTest
     {
       this.property = property;
     }
+  }
+  class Task {
+    Integer id;
+  }
+  class Timesheet {
+    Task task;
   }
 }

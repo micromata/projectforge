@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,7 +31,7 @@ import org.projectforge.common.i18n.I18nEnum;
  */
 public enum OperationType implements I18nEnum
 {
-  SELECT("select"), INSERT("insert"), UPDATE("update"), DELETE("delete");
+  SELECT("select"), INSERT("insert"), UPDATE("update"), DELETE("delete"), UNDELETE("undelete");
 
   private String key;
 

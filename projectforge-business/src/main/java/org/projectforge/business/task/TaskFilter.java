@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,17 @@
 
 package org.projectforge.business.task;
 
-import java.util.HashMap;
-import java.util.HashSet;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import java.util.HashMap;
+import java.util.HashSet;
 
 @XStreamAlias("TaskFilter")
 public class TaskFilter extends BaseSearchFilter
@@ -52,9 +51,6 @@ public class TaskFilter extends BaseSearchFilter
   @XStreamAsAttribute
   private boolean closed;
 
-  @XStreamAsAttribute
-  private boolean deleted;
-
   /**
    * Used by match filter for avoiding multiple traversing of the tree. Should be empty before building a task node
    * list!
@@ -69,6 +65,7 @@ public class TaskFilter extends BaseSearchFilter
 
   public TaskFilter()
   {
+    searchString = "";
   }
 
   public TaskFilter(final BaseSearchFilter filter)
@@ -84,19 +81,6 @@ public class TaskFilter extends BaseSearchFilter
   public void setClosed(final boolean closed)
   {
     this.closed = closed;
-  }
-
-  @Override
-  public boolean isDeleted()
-  {
-    return deleted;
-  }
-
-  @Override
-  public TaskFilter setDeleted(final boolean deleted)
-  {
-    this.deleted = deleted;
-    return this;
   }
 
   public boolean isNotOpened()
@@ -131,14 +115,14 @@ public class TaskFilter extends BaseSearchFilter
 
   public void resetMatch()
   {
-    taskVisibility = new HashMap<Integer, Boolean>();
-    tasksMatched = new HashSet<Integer>();
+    taskVisibility = new HashMap<>();
+    tasksMatched = new HashSet<>();
   }
 
   /**
    * Needed by TaskTreeTable to show and hide nodes.<br/>
    * Don't forget to call resetMatch before!
-   * 
+   *
    * @param node Node to check.
    * @param taskDao Needed for access checking.
    * @param user Needed for access checking.
@@ -152,14 +136,14 @@ public class TaskFilter extends BaseSearchFilter
       resetMatch();
     }
     final TaskDO task = node.getTask();
-    if (StringUtils.isBlank(this.searchString) == true) {
-      return isVisibleByStatus(node, task) || node.isRootNode() == true;
+    if (StringUtils.isBlank(this.searchString)) {
+      return isVisibleByStatus(node, task) || node.isRootNode();
     } else {
-      if (isVisibleBySearchString(node, task, taskDao, user) == true) {
-        return isVisibleByStatus(node, task) || node.isRootNode() == true;
+      if (isVisibleBySearchString(node, task, taskDao, user)) {
+        return isVisibleByStatus(node, task) || node.isRootNode();
       } else {
-        if (node.getParent() != null && node.getParent().isRootNode() == false
-            && isAncestorVisibleBySearchString(node.getParent()) == true) {
+        if (node.getParent() != null && !node.getParent().isRootNode()
+            && isAncestorVisibleBySearchString(node.getParent())) {
           // Otherwise the node is only visible by his status if the parent node is visible:
           return isVisibleByStatus(node, task);
         } else {
@@ -171,7 +155,7 @@ public class TaskFilter extends BaseSearchFilter
 
   private boolean isAncestorVisibleBySearchString(final TaskNode node)
   {
-    if (tasksMatched.contains(node.getId()) == true) {
+    if (tasksMatched.contains(node.getId())) {
       return true;
     } else if (node.getParent() != null) {
       return isAncestorVisibleBySearchString(node.getParent());
@@ -192,31 +176,30 @@ public class TaskFilter extends BaseSearchFilter
     if (cachedVisibility != null) {
       return cachedVisibility;
     }
-    if (isVisibleByStatus(node, task) == false && node.isRootNode() == false) {
+    if (!isVisibleByStatus(node, task) && !node.isRootNode()) {
       taskVisibility.put(task.getId(), false);
       return false;
     }
-    if (taskDao != null && taskDao.hasSelectAccess(user, node.getTask(), false) == false) {
+    if (taskDao != null && !taskDao.hasUserSelectAccess(user, node.getTask(), false)) {
       return false;
     }
-    final PFUserDO responsibleUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-        .getUser(task.getResponsibleUserId());
+    final PFUserDO responsibleUser = UserGroupCache.getInstance().getUser(task.getResponsibleUserId());
     final String username = responsibleUser != null
         ? responsibleUser.getFullname() + " " + responsibleUser.getUsername() : null;
-    if (StringUtils.containsIgnoreCase(task.getTitle(), this.searchString) == true
-        || StringUtils.containsIgnoreCase(task.getReference(), this.searchString) == true
-        || StringUtils.containsIgnoreCase(task.getShortDescription(), this.searchString) == true
-        || StringUtils.containsIgnoreCase(task.getDescription(), this.searchString) == true
-        || StringUtils.containsIgnoreCase(task.getShortDisplayName(), this.searchString) == true
-        || StringUtils.containsIgnoreCase(username, this.searchString) == true
-        || StringUtils.containsIgnoreCase(task.getWorkpackageCode(), this.searchString) == true) {
+    if (StringUtils.containsIgnoreCase(task.getTitle(), this.searchString)
+        || StringUtils.containsIgnoreCase(task.getReference(), this.searchString)
+        || StringUtils.containsIgnoreCase(task.getShortDescription(), this.searchString)
+        || StringUtils.containsIgnoreCase(task.getDescription(), this.searchString)
+        || StringUtils.containsIgnoreCase(task.getDisplayName(), this.searchString)
+        || StringUtils.containsIgnoreCase(username, this.searchString)
+        || StringUtils.containsIgnoreCase(task.getWorkpackageCode(), this.searchString)) {
       taskVisibility.put(task.getId(), true);
       tasksMatched.add(task.getId());
       return true;
-    } else if (node.hasChilds() == true && node.isRootNode() == false) {
-      for (final TaskNode childNode : node.getChilds()) {
+    } else if (node.hasChildren() && (!node.isRootNode())) {
+      for (final TaskNode childNode : node.getChildren()) {
         final TaskDO childTask = childNode.getTask();
-        if (isVisibleBySearchString(childNode, childTask, taskDao, user) == true) {
+        if (isVisibleBySearchString(childNode, childTask, taskDao, user)) {
           taskVisibility.put(childTask.getId(), true);
           return true;
         }
@@ -228,7 +211,7 @@ public class TaskFilter extends BaseSearchFilter
 
   private boolean isVisibleByStatus(final TaskNode node, final TaskDO task)
   {
-    if (isDeleted() == false && task.isDeleted() == true) {
+    if (!isDeleted() && task.isDeleted()) {
       return false;
     }
     if (task.getStatus() == TaskStatus.N) {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,16 @@
 
 package org.projectforge.business.excel;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.PrintSetup;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.util.CellRangeAddress;
-
 public class ExportSheet
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportWorkbook.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportSheet.class);
 
   /**
    * Sheet names are limited to this length
@@ -62,12 +58,14 @@ public class ExportSheet
 
   private boolean imported;
 
+  private CellStyle cellStyle;
+
   public ExportSheet(final ContentProvider contentProvider, final String name, final Sheet poiSheet)
   {
     this.contentProvider = contentProvider;
     this.name = name;
     this.poiSheet = poiSheet;
-    this.rows = new ArrayList<ExportRow>();
+    this.rows = new ArrayList<>();
     initRowList();
     final PrintSetup printSetup = getPrintSetup();
     printSetup.setPaperSize(ExportConfig.getInstance().getDefaultPaperSizeId());
@@ -243,9 +241,6 @@ public class ExportSheet
     return propertyNames;
   }
 
-  /**
-   * @see ExportRow#updateStyles(StyleProvider)
-   */
   public void updateStyles()
   {
     if (contentProvider != null) {
@@ -284,13 +279,12 @@ public class ExportSheet
   }
 
   /**
-   * @param x
-   * @param y
-   * @see Sheet#setZoom(int, int)
+   * @param scale
+   * @see Sheet#setZoom(int)
    */
-  public void setZoom(final int x, final int y)
+  public void setZoom(final int scale)
   {
-    poiSheet.setZoom(x, y);
+    poiSheet.setZoom(scale);
   }
 
   /**
@@ -345,20 +339,23 @@ public class ExportSheet
     this.imported = imported;
   }
 
-  private static Row copyRow(Sheet worksheet, int rowNum)
+  private Row copyRow(Sheet worksheet, int rowNum)
   {
     Row sourceRow = worksheet.getRow(rowNum);
 
     //Save the text of any formula before they are altered by row shifting
     String[] formulasArray = new String[sourceRow.getLastCellNum()];
     for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
-      if (sourceRow.getCell(i) != null && sourceRow.getCell(i).getCellType() == Cell.CELL_TYPE_FORMULA)
+      if (sourceRow.getCell(i) != null && sourceRow.getCell(i).getCellType() == CellType.FORMULA)
         formulasArray[i] = sourceRow.getCell(i).getCellFormula();
     }
 
     worksheet.shiftRows(rowNum, worksheet.getLastRowNum(), 1);
     Row newRow = sourceRow; //Now sourceRow is the empty line, so let's rename it
     sourceRow = worksheet.getRow(rowNum + 1); //Now the source row is at rowNum+1
+
+    // Copy style from old cell and apply to new cell
+    CellStyle newCellStyle = createOrGetCellStyle(worksheet);
 
     // Loop through source columns to add to new row
     for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
@@ -373,8 +370,6 @@ public class ExportSheet
         newCell = newRow.createCell(i);
       }
 
-      // Copy style from old cell and apply to new cell
-      CellStyle newCellStyle = worksheet.getWorkbook().createCellStyle();
       newCellStyle.cloneStyleFrom(oldCell.getCellStyle());
       newCell.setCellStyle(newCellStyle);
 
@@ -393,21 +388,21 @@ public class ExportSheet
 
       // Set the cell data value
       switch (oldCell.getCellType()) {
-        case Cell.CELL_TYPE_BLANK:
+        case BLANK:
           break;
-        case Cell.CELL_TYPE_BOOLEAN:
+        case BOOLEAN:
           newCell.setCellValue(oldCell.getBooleanCellValue());
           break;
-        case Cell.CELL_TYPE_ERROR:
+        case ERROR:
           newCell.setCellErrorValue(oldCell.getErrorCellValue());
           break;
-        case Cell.CELL_TYPE_FORMULA:
+        case FORMULA:
           newCell.setCellFormula(formulasArray[i]);
           break;
-        case Cell.CELL_TYPE_NUMERIC:
+        case NUMERIC:
           newCell.setCellValue(oldCell.getNumericCellValue());
           break;
-        case Cell.CELL_TYPE_STRING:
+        case STRING:
           newCell.setCellValue(oldCell.getRichStringCellValue());
           break;
         default:
@@ -428,5 +423,12 @@ public class ExportSheet
       }
     }
     return newRow;
+  }
+
+  private CellStyle createOrGetCellStyle(Sheet worksheet) {
+    if(cellStyle == null) {
+      cellStyle = worksheet.getWorkbook().createCellStyle();
+    }
+    return cellStyle;
   }
 }

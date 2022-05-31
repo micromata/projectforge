@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,8 @@
 
 package org.projectforge.web.humanresources;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 import net.ftlines.wicket.fullcalendar.Event;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.projectforge.business.humanresources.HRPlanningDO;
 import org.projectforge.business.humanresources.HRPlanningDao;
@@ -36,19 +32,24 @@ import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.business.humanresources.HRPlanningFilter;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 /**
  * Creates events corresponding to the hr planning entries.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
 {
   private static final long serialVersionUID = -8614136730204759894L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRPlanningEventsProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningEventsProvider.class);
 
   private final HRPlanningDao hrPlanningDao;
 
@@ -80,13 +81,17 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
       return;
     }
     final HRPlanningFilter filter = new HRPlanningFilter();
-    Integer timesheetUserId = calendarFilter.getTimesheetUserId() ;
+    Integer timesheetUserId = calendarFilter.getTimesheetUserId();
     if (timesheetUserId == null) {
       timesheetUserId = ThreadLocalUserContext.getUserId();
     }
     filter.setUserId(timesheetUserId);
-    filter.setStartTime(start.toDate());
-    filter.setStopTime(end.toDate());
+
+    PFDay startDay = PFDay.fromOrNow(start.toDate());
+    PFDay endDay = PFDay.fromOrNow(end.toDate());
+
+    filter.setStartDay(startDay.getLocalDate());
+    filter.setStopDay(endDay.getLocalDate());
     final List<HRPlanningDO> list = hrPlanningDao.getList(filter);
     if (list == null) {
       return;
@@ -95,7 +100,7 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
       if (planning.getEntries() == null) {
         continue;
       }
-      final DateTime week = new DateTime(planning.getWeek(), ThreadLocalUserContext.getDateTimeZone());
+      final DateTime week = new DateTime(PFDateTime.from(planning.getWeek()).getUtilDate(), ThreadLocalUserContext.getDateTimeZone());
       for (final HRPlanningEntryDO entry : planning.getEntries()) {
         if (entry.isDeleted() == true) {
           continue;
@@ -132,7 +137,7 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
     }
     final StringBuffer buf = new StringBuffer();
     buf.append(NumberHelper.formatFraction2(hours)).append(getString("calendar.unit.hour")).append(" ")
-    .append(entry.getProjektNameOrStatus());
+        .append(entry.getProjektNameOrStatus());
     if (StringUtils.isNotBlank(entry.getDescription()) == true) {
       buf.append(": ");
       if (durationDays > 2) {

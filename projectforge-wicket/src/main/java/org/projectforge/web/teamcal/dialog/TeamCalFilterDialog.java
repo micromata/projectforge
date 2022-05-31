@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,7 @@
 
 package org.projectforge.web.teamcal.dialog;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
+import de.micromata.wicket.ajax.AjaxCallback;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -47,14 +41,14 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.Const;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.Constants;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.UserRightService;
@@ -74,7 +68,7 @@ import org.projectforge.web.wicket.flowlayout.Heading3Panel;
 import org.projectforge.web.wicket.flowlayout.SelectPanel;
 import org.wicketstuff.select2.Select2MultiChoice;
 
-import de.micromata.wicket.ajax.AjaxCallback;
+import java.util.*;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -197,7 +191,7 @@ public class TeamCalFilterDialog extends ModalDialog
     init(new Form<String>(getFormId()));
     calendarPageSupport = new CalendarPageSupport((ISelectCallerPage) getPage(), accessChecker);
     timesheetsCalendar.setTitle(getString("plugins.teamcal.timeSheetCalendar"));
-    timesheetsCalendar.setId(Const.TIMESHEET_CALENDAR_ID);
+    timesheetsCalendar.setId(Constants.TIMESHEET_CALENDAR_ID);
     // confirm
     setCloseButtonTooltip(null, new ResourceModel("plugins.teamcal.calendar.filterDialog.closeButton.tooltip"));
     insertNewAjaxActionButton(new AjaxCallback()
@@ -401,7 +395,7 @@ public class TeamCalFilterDialog extends ModalDialog
       @Override
       public String getDisplayValue(final Integer object)
       {
-        if (Const.TIMESHEET_CALENDAR_ID.equals(object)) {
+        if (Constants.isTimesheetCalendarId(object)) {
           return timesheetsCalendar.getTitle();
         }
         return teamCalDao.getById(object).getTitle();
@@ -437,7 +431,7 @@ public class TeamCalFilterDialog extends ModalDialog
           }
         }
         final List<Integer> filteredList = new ArrayList<Integer>();
-        filteredList.add(Const.TIMESHEET_CALENDAR_ID);
+        filteredList.add(Constants.TIMESHEET_CALENDAR_ID);
         if (result != null) {
           final Iterator<TeamCalDO> it = result.iterator();
           while (it.hasNext()) {
@@ -486,8 +480,7 @@ public class TeamCalFilterDialog extends ModalDialog
       return null;
     }
     final Integer userId = activeTemplateEntry.getTimesheetUserId();
-    return userId != null ? TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getUser(userId)
-        : null;
+    return userId != null ? UserGroupCache.getInstance().getUser(userId) : null;
   }
 
   public void setTimesheetsUser(final PFUserDO user)

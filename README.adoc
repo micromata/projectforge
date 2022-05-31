@@ -1,0 +1,141 @@
+= ProjectForge - project management solution
+
+ProjectForge is a web-based solution for project management including time tracking, team calendar, gantt-charting, financial administration, issue management,
+controlling and managing work-break-down-structures (e. g. together with JIRA as issue management system).
+
+== Express installation
+
+For a fast installation via docker or executable jar, please refer https://projectforge.org/docs/installation/[Installation].
+
+== Documentation
+
+=== projectforge.org
+Full documentation on: https://projectforge.org/
+Please visit: https://projectforge.org/docs/development/
+
+== Version 7.0 is out now...
+
+The fastest way of installation of the newest version (7.0). you will find here: https://projectforge.org/docs/installation/[Installation]
+
+This version contains a lot of cool stuff:
+
+* DataTransfer tool for exchanging large files between users and external people (customers etc.)
+* A new React frontend.
+* Full support of Docker technology: installation in minutes.
+* Installation wizard
+* ...
+
+== Quickstart from command line
+
+[NOTE]
+====
+You only need the following steps for developing ProjectForge.
+If you just want to run it, please download it from https://sourceforge.net/projects/pforge/
+and simply start it `java -jar projectforge-application-X.X.X.jar`.
+
+Or simply use the fastest way: https://projectforge.org/docs/installation/[Installation as docker image]
+====
+
+1. Checkout: `git clone git@github.com:micromata/projectforge.git`
+2. For developing try OpenJDK 11 (tested): `java -version`.
+3. Build ProjectForge:
+   `mvn -DskipTests clean install`
+4. Run ProjectForge:
+   `java -jar projectforge-application/target/projectforge-application-X.X.X.jar`
+5. Open your browser:
+   http://localhost:8080
+
+Remark: If you have any trouble regarding `projectforge-webapp`, try to delete the sub directory `node_modules` and repeat `mvn clean install`.
+
+=== Configuration of ProjectForge
+
+No configuration needed. After starting ProjectForge a first time, a console or desktop based wizard is provided for doing
+a quick setup (choose directory and configure optionally some parameters).
+
+To configure a different directory you have several options (*choose Your favorite*):
+
+. Create `ProjectForge` as top level directory of your home directory: `$HOME/ProjectForge`, *or*
+. Create a directory named `ProjectForge` and put the jar file somewhere in it or in the same directory. ProjectForge detects the folder `ProjectForge` relative to the executed jar, *or*
+. Create a directory and define it as command line parameter: `java -Dhome.dir=yourdirectory -jar projectforge-application-X.X.X.jar`, *or*
+. Create a directory and define it as system environment variable `PROJECTFORGE_HOME`.
+
+=== Quickstart with Eclipse and maven
+
+1. Launch eclipse
+2. Import Maven project -> pom.xml in projectforge git root dir
+3. Import Maven project -> pom.xml in projectforge-application dir
+4. Run maven clean install for pom.xml in projectforge-webapp (to build React stuff)
+5. Start by simply running main (in `projectforge-application/src/main/java`): +
+   `org.projectforge.start.ProjectForgeApplication.java`
+
+
+Please note the detailed documentations for administrators, developers as well as for users.
+
+Java version >8 is required since ProjectForge 6.0.
+Please note, that OpenJdk 11 is currently used in production for developing and running ProjectForge.
+
+=== Quickstart with IntelliJ
+
+1. Launch IntelliJ IDEA
+2. Import new project via pom.xml in git root dir
+3. Run maven clean install for pom.xml in projectforge-webapp (to build React stuff)
+4. Start by simply running main (in `projectforge-application/src/main/java`): +
+   `org.projectforge.start.ProjectForgeApplication.java`
+
+== Quickstart with PostgreSQL (optional)
+
+You may use PostgreSQL instead of the built-in data base.
+
+=== Using PostgresSQL (Docker)
+
+* Choose and set a database password: +
+ `export PGPASSWORD=mypassword`
+* Run PostgreSQL: +
+`docker run --name projectforge-postgres -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:11.2`
+* Configure ProjectForge
+
+.$HOME/ProjectForge/projectforge.properties
+----
+projectforge.base.dir=${user.home}/ProjectForge
+spring.datasource.url=jdbc:postgresql://localhost:5432/projectforge
+spring.datasource.username=projectforge
+spring.datasource.password=${PGPASSWORD}
+spring.datasource.driver-class-name=org.postgresql.Driver
+----
+
+* Run ProjectForge and enjoy it.
+
+.Some helpful docker commands
+|===
+|Stop|`docker stop projectforge-postgres`
+|Start|`docker start projectforge-postgres`
+|Import dump (optional)|`docker run -v ~/ProjectForgeBackup/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge -q -f /mnt/pf.sql  2>&1 > log.txt`
+|PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge`
+|Reset passwords (optional)|`update t_pf_user SET password='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null, email='m.developer@acme.com';` +
+password is now `test123`.
+|Clear calendar subscriptions (optional)|`update t_calendar set ext_subscription=false where owner_fk != ###;` +
+This is useful for avoiding a lot of external calendar calls of foreign users if your productive data contains a lot of users with calendar subscriptions.
+|Uninstall|`docker rm projectforge-postgres`
+|===
+
+
+== Further configurations
+
+Please have a lock at all available config parameters: https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties[application.properties]
+
+== Documentation
+
+Refer
+
+* https://github.com/micromata/projectforge/tree/develop/doc[doc (Github)], or
+* https://projectforge.org
+
+== Adding your own plugins
+ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.
+
+Please note: We're working highly on a new release (will be published soon). Wicket will be replaced by ReactJS and Rest technology. The implementation of plugins will be changed as well.
+
+The menu is customizable (you can add or remove menu entries in the config.xml file).
+Deploy your plugins by adding your jar(s) to the plugin directory next to the jar file. In eclipse you have to add the plugin project to the run configuration classpath. The jars contains both, the Java classes and the web pages (Wicket-pages). Nothing more is needed.
+Register your plugins in the administration menu at the web gui. You need to restart the server.
+One advantage is that your own plugins are independent from new releases of the ProjectForge core system. In one of the next releases an example plugin will show you how easy it is to extend ProjectForge!

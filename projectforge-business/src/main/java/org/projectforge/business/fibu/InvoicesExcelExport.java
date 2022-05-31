@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,13 @@
 
 package org.projectforge.business.fibu;
 
-import java.lang.reflect.Field;
-import java.util.Collection;
-
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExcelExporter;
-import org.projectforge.business.excel.ExportColumn;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.I18nExportColumn;
-import org.projectforge.business.excel.PropertyMapping;
+import org.projectforge.business.excel.*;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.common.props.PropUtils;
 import org.projectforge.export.MyExcelExporter;
+
+import java.lang.reflect.Field;
+import java.util.Collection;
 
 public class InvoicesExcelExport
 {
@@ -89,14 +84,16 @@ public class InvoicesExcelExport
     // column property names
     sheet.setColumns(cols);
     final PropertyMapping mapping = new PropertyMapping();
-    for (final EingangsrechnungDO entry : list) {
-      entry.recalculate();
-      mapping.add("datum", entry.getDatum());
-      mapping.add("faelligkeit", entry.getFaelligkeit());
-      mapping.add("gross", entry.getGrossSum());
-      mapping.add("creditor", entry.getKreditor());
-      mapping.add("subject", entry.getBetreff());
-      sheet.addRow(mapping.getMapping(), 0);
+    if (list != null) {
+      for (final EingangsrechnungDO entry : list) {
+        entry.recalculate();
+        mapping.add("datum", entry.getDatum());
+        mapping.add("faelligkeit", entry.getFaelligkeit());
+        mapping.add("gross", entry.getGrossSum());
+        mapping.add("creditor", entry.getKreditor());
+        mapping.add("subject", entry.getBetreff());
+        sheet.addRow(mapping.getMapping(), 0);
+      }
     }
   }
 

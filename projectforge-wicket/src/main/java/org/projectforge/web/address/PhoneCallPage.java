@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.web.address;
 
-import java.io.IOException;
-import java.util.Date;
-
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
@@ -42,22 +42,25 @@ import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
-public class PhoneCallPage extends AbstractStandardFormPage
-{
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+
+public class PhoneCallPage extends AbstractStandardFormPage {
   private static final long serialVersionUID = -5040319693295350276L;
 
   public final static String PARAMETER_KEY_ADDRESS_ID = "addressId";
 
   public final static String PARAMETER_KEY_NUMBER = "number";
 
-  protected static final String[] BOOKMARKABLE_SELECT_PROPERTIES = new String[] { PARAMETER_KEY_ADDRESS_ID + "|address",
-      PARAMETER_KEY_NUMBER + "|no" };
+  protected static final String[] BOOKMARKABLE_SELECT_PROPERTIES = new String[]{PARAMETER_KEY_ADDRESS_ID + "|address",
+      PARAMETER_KEY_NUMBER + "|no"};
 
   private static final String SEPARATOR = " | ";
 
   private static final String USER_PREF_KEY_MY_RECENT_PHONE_ID = "PhoneCall:recentPhoneId";
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PhoneCallPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PhoneCallPage.class);
 
   @SpringBean
   private AddressDao addressDao;
@@ -69,8 +72,7 @@ public class PhoneCallPage extends AbstractStandardFormPage
 
   String result;
 
-  public PhoneCallPage(final PageParameters parameters)
-  {
+  public PhoneCallPage(final PageParameters parameters) {
     super(parameters);
     form = new PhoneCallForm(this);
     body.add(form);
@@ -78,26 +80,22 @@ public class PhoneCallPage extends AbstractStandardFormPage
     form.init();
   }
 
-  public Integer getAddressId()
-  {
+  public Integer getAddressId() {
     return form.address != null ? form.address.getId() : null;
   }
 
-  public void setAddressId(final Integer addressId)
-  {
+  public void setAddressId(final Integer addressId) {
     if (addressId != null) {
       final AddressDO address = addressDao.getById(addressId);
       form.address = address;
     }
   }
 
-  public String getNumber()
-  {
+  public String getNumber() {
     return form.phoneNumber;
   }
 
-  public void setNumber(final String number)
-  {
+  public void setNumber(final String number) {
     if (StringUtils.isNotBlank(number) == true) {
       form.setPhoneNumber(extractPhonenumber(number));
     }
@@ -105,11 +103,10 @@ public class PhoneCallPage extends AbstractStandardFormPage
 
   /**
    * Find a phone number, search order is business, mobile, private mobile and private.
-   * 
+   *
    * @return Number if found, otherwise empty string.
    */
-  protected String getFirstPhoneNumber()
-  {
+  protected String getFirstPhoneNumber() {
     if (form.address == null) {
       return "";
     }
@@ -127,11 +124,10 @@ public class PhoneCallPage extends AbstractStandardFormPage
 
   /**
    * For special phone numbers: id:# or # | name.
-   * 
+   *
    * @return true, if the phone number was successfully processed.
    */
-  private boolean processPhoneNumber()
-  {
+  private boolean processPhoneNumber() {
     final String phoneNumber = form.getPhoneNumber();
     if (StringUtils.isNotEmpty(phoneNumber) == true) {
       if (phoneNumber.startsWith("id:") == true && phoneNumber.length() > 3) {
@@ -172,16 +168,14 @@ public class PhoneCallPage extends AbstractStandardFormPage
     return false;
   }
 
-  public void setPhoneNumber(String phoneNumber, final boolean extract)
-  {
+  public void setPhoneNumber(String phoneNumber, final boolean extract) {
     if (extract == true) {
       phoneNumber = extractPhonenumber(phoneNumber);
     }
     form.setPhoneNumber(phoneNumber);
   }
 
-  String extractPhonenumber(final String number)
-  {
+  String extractPhonenumber(final String number) {
     final String result = NumberHelper.extractPhonenumber(number,
         Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX));
     if (StringUtils.isNotEmpty(result) == true
@@ -193,8 +187,7 @@ public class PhoneCallPage extends AbstractStandardFormPage
   }
 
   @Override
-  protected void onBeforeRender()
-  {
+  protected void onBeforeRender() {
     super.onBeforeRender();
     final String rawInput = form.numberTextField.getRawInput();
     if (StringUtils.isNotEmpty(rawInput) == true) {
@@ -204,13 +197,13 @@ public class PhoneCallPage extends AbstractStandardFormPage
     form.numberTextField.modelChanged();
   }
 
-  void call()
-  {
+  void call() {
     final boolean extracted = processPhoneNumber();
     if (extracted == true) {
       return;
     }
-    if (StringUtils.containsOnly(form.getPhoneNumber(), "0123456789+-/() ") == false) {
+    String number = NumberHelper.extractPhonenumber(form.getPhoneNumber());
+    if (number.length() == 0 || StringUtils.containsOnly(number, "0123456789+-/() ") == false) {
       form.addError("address.phoneCall.number.invalid");
       return;
     }
@@ -218,8 +211,7 @@ public class PhoneCallPage extends AbstractStandardFormPage
     callNow();
   }
 
-  private void callNow()
-  {
+  private void callNow() {
     if (StringUtils.isBlank(configurationService.getTelephoneSystemUrl()) == true) {
       log.error("Telephone system url not configured. Phone calls not supported.");
       return;
@@ -234,8 +226,8 @@ public class PhoneCallPage extends AbstractStandardFormPage
     final AddressDO address = form.getAddress();
     if (address != null
         && StringHelper.isIn(form.getPhoneNumber(), extractPhonenumber(address.getBusinessPhone()),
-            extractPhonenumber(address.getMobilePhone()), extractPhonenumber(address.getPrivatePhone()),
-            extractPhonenumber(address.getPrivateMobilePhone())) == true) {
+        extractPhonenumber(address.getMobilePhone()), extractPhonenumber(address.getPrivatePhone()),
+        extractPhonenumber(address.getPrivateMobilePhone())) == true) {
       buf.append(address.getFirstName()).append(" ").append(address.getName());
       if (form.getPhoneNumber().equals(extractPhonenumber(address.getMobilePhone())) == true) {
         buf.append(", ").append(getString("address.phoneType.mobile"));
@@ -246,34 +238,35 @@ public class PhoneCallPage extends AbstractStandardFormPage
     } else {
       buf.append("???");
     }
-    final HttpClient client = new HttpClient();
     String url = configurationService.getTelephoneSystemUrl();
     url = StringUtils.replaceOnce(url, "#source", form.getMyCurrentPhoneId());
     url = StringUtils.replaceOnce(url, "#target", form.getPhoneNumber());
     final String urlProtected = StringHelper.hideStringEnding(url, 'x', 3);
-    final GetMethod method = new GetMethod(url);
     String errorKey = null;
-    try {
+    try (final CloseableHttpClient client = HttpClients.createDefault()) {
+      final HttpGet method = new HttpGet(url);
       form.lastSuccessfulPhoneCall = new Date();
-      client.executeMethod(method);
-      final String resultStatus = method.getResponseBodyAsString();
-      log.info("Call URL: " + url + " with result code: " + resultStatus);
-      if ("0".equals(resultStatus) == true) {
+      String resultStatus = null;
+      try (final CloseableHttpResponse httpResponse = client.execute(method)) {
+        final int statusCode = httpResponse.getStatusLine().getStatusCode();
+        if (statusCode == HttpStatus.SC_OK) {
+          final InputStream stream = httpResponse.getEntity().getContent();
+          resultStatus = IOUtils.toString(stream, StandardCharsets.UTF_8);
+        }
+      }
+      log.info("Call URL: " + urlProtected + " with result code: " + resultStatus);
+      if ("0".equals(resultStatus)) {
         result = DateTimeFormatter.instance().getFormattedDateTime(new Date()) + ": "
             + getString("address.phoneCall.result.successful");
         form.getRecentSearchTermsQueue().append(buf.toString());
-      } else if ("2".equals(resultStatus) == true) {
+      } else if ("2".equals(resultStatus)) {
         errorKey = "address.phoneCall.result.wrongSourceNumber";
-      } else if ("3".equals(resultStatus) == true) {
+      } else if ("3".equals(resultStatus)) {
         errorKey = "address.phoneCall.result.wrongDestinationNumber";
       } else {
         errorKey = "address.phoneCall.result.callingError";
       }
-    } catch (final HttpException ex) {
-      result = "Call failed. Please contact administrator.";
-      log.error(result + ": " + urlProtected);
-      throw new RuntimeException(ex);
-    } catch (final IOException ex) {
+    } catch (final Exception ex) {
       result = "Call failed. Please contact administrator.";
       log.error(result + ": " + urlProtected);
       throw new RuntimeException(ex);
@@ -283,19 +276,16 @@ public class PhoneCallPage extends AbstractStandardFormPage
     }
   }
 
-  protected String getRecentMyPhoneId()
-  {
+  protected String getRecentMyPhoneId() {
     return (String) getUserPrefEntry(USER_PREF_KEY_MY_RECENT_PHONE_ID);
   }
 
-  protected void setRecentMyPhoneId(final String myPhoneId)
-  {
+  protected void setRecentMyPhoneId(final String myPhoneId) {
     putUserPrefEntry(USER_PREF_KEY_MY_RECENT_PHONE_ID, myPhoneId, true);
   }
 
   @Override
-  protected void onAfterRender()
-  {
+  protected void onAfterRender() {
     super.onAfterRender();
     result = null;
   }
@@ -304,20 +294,17 @@ public class PhoneCallPage extends AbstractStandardFormPage
    * @return This page as link with the page parameters of this page.
    */
   @Override
-  public String getPageAsLink()
-  {
+  public String getPageAsLink() {
     return getPageAsLink(new PageParameters());
   }
 
   @Override
-  protected String[] getBookmarkableInitialProperties()
-  {
+  protected String[] getBookmarkableInitialProperties() {
     return BOOKMARKABLE_SELECT_PROPERTIES;
   }
 
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return getString("address.phoneCall.title");
   }
 }

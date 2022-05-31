@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,7 @@ package org.projectforge;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represents a version number (major-release, minor-release, patch-level and build-number).
@@ -37,7 +37,7 @@ public class Version implements Comparable<Version>, Serializable
 {
   private static final long serialVersionUID = 1446772593211999270L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Version.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Version.class);
 
   private int majorRelease, minorRelease, patchLevel, buildNumber, betaVersion = Integer.MAX_VALUE,
       releaseCandidateVersion = Integer.MAX_VALUE;

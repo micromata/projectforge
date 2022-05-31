@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,22 +23,22 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.collections.SetUtils;
-import org.apache.commons.lang.StringUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.ListHelper;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.XmlObjectReader;
-import org.projectforge.framework.xstream.XmlObjectWriter;
+import org.projectforge.framework.xmlstream.XmlObjectReader;
+import org.projectforge.framework.xmlstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class GroupDOConverter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroupDOConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroupDOConverter.class);
 
   @Autowired
   LdapService ldapService;
@@ -54,12 +54,15 @@ public class GroupDOConverter
   @Autowired
   LdapUserDao ldapUserDao;
 
+  @Autowired
+  private UserGroupCache userGroupCache;
+
   static final String ID_PREFIX = "pf-id-";
 
   public Integer getId(final LdapGroup group)
   {
     final String businessCategory = group.getBusinessCategory();
-    if (businessCategory != null && businessCategory.startsWith(ID_PREFIX) == true
+    if (businessCategory != null && businessCategory.startsWith(ID_PREFIX)
         && businessCategory.length() > ID_PREFIX.length()) {
       final String id = businessCategory.substring(ID_PREFIX.length());
       return NumberHelper.parseInteger(id);
@@ -74,7 +77,7 @@ public class GroupDOConverter
     group.setName(ldapGroup.getCommonName());
     group.setOrganization(ldapGroup.getOrganization());
     group.setDescription(ldapGroup.getDescription());
-    if (isPosixAccountValuesEmpty(ldapGroup) == false) {
+    if (!isPosixAccountValuesEmpty(ldapGroup)) {
       group.setLdapValues(getLdapValuesAsXml(ldapGroup));
     }
     return group;
@@ -91,7 +94,7 @@ public class GroupDOConverter
     ldapGroup.setDescription(pfGroup.getDescription());
     if (pfGroup.getAssignedUsers() != null) {
       for (final PFUserDO user : pfGroup.getAssignedUsers()) {
-        if (user.isDeactivated() == true || user.isDeleted() == true) {
+        if (user.getDeactivated() || user.isDeleted()) {
           // Do not add deleted or deactivated users.
           continue;
         }
@@ -99,9 +102,8 @@ public class GroupDOConverter
         if (ldapUser != null) {
           ldapGroup.addMember(ldapUser, baseDN);
         } else {
-          final PFUserDO cacheUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-              .getUser(user.getId());
-          if (cacheUser == null || cacheUser.isDeleted() == false) {
+          final PFUserDO cacheUser = userGroupCache.getUser(user.getId());
+          if (cacheUser == null || !cacheUser.isDeleted()) {
             log.warn("LDAP user with id '"
                 + user.getId()
                 + "' not found in given ldapUserMap. User will be ignored in group '"
@@ -122,13 +124,13 @@ public class GroupDOConverter
 
   /**
    * Sets the LDAP values such as posix account properties of the given ldapGroup configured in the given xml string.
-   * 
+   *
    * @param ldapGroup
    * @param ldapValuesAsXml Posix account values as xml.
    */
   public void setLdapValues(final LdapGroup ldapGroup, final String ldapValuesAsXml)
   {
-    if (StringUtils.isBlank(ldapValuesAsXml) == true) {
+    if (StringUtils.isBlank(ldapValuesAsXml)) {
       return;
     }
     final LdapConfig ldapConfig = ldapService.getLdapConfig();
@@ -150,7 +152,7 @@ public class GroupDOConverter
 
   public LdapGroupValues readLdapGroupValues(final String ldapValuesAsXml)
   {
-    if (StringUtils.isBlank(ldapValuesAsXml) == true) {
+    if (StringUtils.isBlank(ldapValuesAsXml)) {
       return null;
     }
     final XmlObjectReader reader = new XmlObjectReader();
@@ -161,7 +163,7 @@ public class GroupDOConverter
 
   /**
    * Exports the LDAP values such as posix account properties of the given ldapGroup as xml string.
-   * 
+   *
    * @param ldapGroup
    */
   public String getLdapValuesAsXml(final LdapGroup ldapGroup)
@@ -180,7 +182,7 @@ public class GroupDOConverter
 
   /**
    * Exports the LDAP values such as posix account properties of the given ldapGroup as xml string.
-   * 
+   *
    * @param values
    */
   public String getLdapValuesAsXml(final LdapGroupValues values)
@@ -198,7 +200,7 @@ public class GroupDOConverter
 
   /**
    * Copies the fields shared with ldap.
-   * 
+   *
    * @param src
    * @param dest
    * @return true if any modification is detected, otherwise false.
@@ -211,7 +213,7 @@ public class GroupDOConverter
 
   /**
    * Copies the fields.
-   * 
+   *
    * @param src
    * @param dest
    * @return true if any modification is detected, otherwise false.
@@ -219,15 +221,15 @@ public class GroupDOConverter
   public boolean copyGroupFields(final LdapGroup src, final LdapGroup dest)
   {
     boolean modified;
-    final List<String> properties = new LinkedList<String>();
+    final List<String> properties = new LinkedList<>();
     ListHelper.addAll(properties, "description", "organization");
-    if (ldapUserDao.isPosixAccountsConfigured() == true && isPosixAccountValuesEmpty(src) == false) {
+    if (ldapUserDao.isPosixAccountsConfigured() && !isPosixAccountValuesEmpty(src)) {
       ListHelper.addAll(properties, "gidNumber");
     }
     modified = BeanHelper.copyProperties(src, dest, true, properties.toArray(new String[0]));
     // Checks if the sets aren't equal:
-    if (SetUtils.isEqualSet(src.getMembers(), dest.getMembers()) == false) {
-      if (LdapGroupDao.hasMembers(src) == true || LdapGroupDao.hasMembers(dest) == true) {
+    if (!SetUtils.isEqualSet(src.getMembers(), dest.getMembers())) {
+      if (LdapGroupDao.hasMembers(src) || LdapGroupDao.hasMembers(dest)) {
         // If both, src and dest have no members, then do nothing, otherwise:
         modified = true;
         dest.clearMembers();

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,16 @@
 
 package org.projectforge.web.task;
 
+<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+=======
+>>>>>>> develop
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -41,16 +44,19 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Johannes Unterstein
  */
 public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoCompleteTextField<TaskDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(TaskSelectAutoCompleteFormComponent.class);
 
   private static final long serialVersionUID = 2278347191215880396L;
@@ -233,7 +239,7 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
   private TaskTree getTaskTree()
   {
     if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
+      taskTree = TaskTree.getInstance();
     }
     return taskTree;
   }

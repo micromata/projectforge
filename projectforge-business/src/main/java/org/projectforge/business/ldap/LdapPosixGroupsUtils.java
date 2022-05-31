@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,13 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.Collection;
-
-import org.apache.commons.lang.ObjectUtils;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -38,10 +37,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class LdapPosixGroupsUtils
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapPosixGroupsUtils.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapPosixGroupsUtils.class);
 
   @Autowired
   GroupDOConverter groupDOConverter;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   /**
    * Get all given gid numbers of all ProjectForge groups including any deleted group and get the next highest and free
@@ -49,7 +51,6 @@ public class LdapPosixGroupsUtils
    */
   public int getNextFreeGidNumber()
   {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
     int currentMaxNumber = 999;
     for (final GroupDO group : allGroups) {
@@ -57,7 +58,7 @@ public class LdapPosixGroupsUtils
       if (ldapGroupValues == null) {
         continue;
       }
-      if (ldapGroupValues.getGidNumber() != null && ldapGroupValues.getGidNumber().intValue() > currentMaxNumber) {
+      if (ldapGroupValues.getGidNumber() != null && ldapGroupValues.getGidNumber() > currentMaxNumber) {
         currentMaxNumber = ldapGroupValues.getGidNumber();
       }
     }
@@ -66,7 +67,7 @@ public class LdapPosixGroupsUtils
 
   /**
    * For preventing double gidNumbers.
-   * 
+   *
    * @param currentGroup
    * @param gidNumber
    * @return Returns true if any group (also deleted group) other than the given group has the given gidNumber,
@@ -74,16 +75,15 @@ public class LdapPosixGroupsUtils
    */
   public boolean isGivenNumberFree(final GroupDO currentGroup, final int gidNumber)
   {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
     for (final GroupDO group : allGroups) {
       final LdapGroupValues ldapGroupValues = groupDOConverter.readLdapGroupValues(group.getLdapValues());
-      if (ObjectUtils.equals(group.getId(), currentGroup.getId()) == true) {
+      if (Objects.equals(group.getId(), currentGroup.getId())) {
         // The current group may have the given gidNumber already, so ignore this entry.
         continue;
       }
       if (ldapGroupValues != null && ldapGroupValues.getGidNumber() != null
-          && ldapGroupValues.getGidNumber().intValue() == gidNumber) {
+          && ldapGroupValues.getGidNumber() == gidNumber) {
         // Number isn't free.
         log.info("The gidNumber (posix account) '" + gidNumber + "' is already occupied by group: " + group);
         return false;
@@ -94,9 +94,8 @@ public class LdapPosixGroupsUtils
 
   /**
    * Sets next free gid.
-   * 
+   *
    * @param ldapGroupValues
-   * @param group
    */
   public void setDefaultValues(final LdapGroupValues ldapGroupValues)
   {

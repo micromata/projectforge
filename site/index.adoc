@@ -1,0 +1,49 @@
+---
+layout: page
+width: expand
+hero:
+    title: ProjectForge
+    subtitle: Improve your team work and keep track of budgets, deadlines, human resources and your financial management.
+    image: Illustration_DevOps_omg.svg
+    search: false
+---
+:page-liquid:
+
+++++
+{% include boxes.html columns="3" title="Why ProjectForge?" subtitle="ProjectForge is developed as a professional and secure Software. A lot of features make your project management and daily work much easier! ProjectForge as OpenSource software without any limitations is for free." %}
+++++
+
+== Screenshots
+
+[#img-datatransfer]
+.Data transfer areas for easy data exchange also with external customers. Each user has its own personal inbox.
+[link=/uploads/screenshots/2022-Datatransfer.png]
+image::/uploads/screenshots/2022-Datatransfer.png[Datatransfer,400]
+
+[#img-skillmatrix]
+.Share your expertise. Let your colleagues know, what your passion and interests are for the upcoming projects.
+[link=/uploads/screenshots/2022-Skillmatrix.png]
+image::/uploads/screenshots/2022-Skillmatrix.png[Datatransfer,400]
+
+[#img-calendar]
+.Your calendar is customizable. You may display your or other's time sheets as well as events and off-times of your colleagues. You may subscribe external calendars for displaying. Configure different views for faster switching between work contexts.
+[link=/uploads/screenshots/2022-Calendar.png]
+image::/uploads/screenshots/2022-Calendar.png[Datatransfer,400]
+
+[#img-structuretree]
+.Organize your company e. g. by customers and projects.
+[link=/uploads/screenshots/2022-StructureTree.png]
+image::/uploads/screenshots/2022-StructureTree.png[Datatransfer,400]
+
+
+++++
+{% include videos.html columns="2" title="Video Tutorials" subtitle="Watch screencasts to get you started fast with ProjectForge" %}
+++++
+
+++++
+{% include faqs.html multiple="true" title="Frequently asked questions" category="faq-main" subtitle="Find quick answers to frequent questions asked by users" %}
+++++
+
+++++
+{% include team.html authors="kai, fin, wolfgang, christian, daniel, roger" title="We are here to help" subtitle="Our team is just an e-mail away ready to answer your questions" %}
+++++

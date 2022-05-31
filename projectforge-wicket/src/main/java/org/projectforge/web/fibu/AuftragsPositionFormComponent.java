@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,7 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -43,6 +37,8 @@ import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.fibu.AuftragFilter;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
+
+import java.util.*;
 
 /**
  * For displaying and selecting an order position.
@@ -117,7 +113,11 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
   protected List<AuftragsPositionDO> getChoices(final String input)
   {
     final AuftragFilter filter = new AuftragFilter();
-    filter.setSearchString(input);
+    if (input.indexOf('*') >= 0) {
+      filter.setSearchString(input);
+    } else {
+      filter.setSearchString(input + "*");
+    }
     final List<AuftragDO> list = auftragDao.getList(filter);
     Collections.sort(list, new Comparator<AuftragDO>()
     {
@@ -129,8 +129,8 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
     });
     final List<AuftragsPositionDO> result = new ArrayList<AuftragsPositionDO>();
     for (final AuftragDO auftrag : list) {
-      if (auftrag.getPositionenIncludingDeleted() != null) {
-        for (final AuftragsPositionDO pos : auftrag.getPositionenIncludingDeleted()) {
+      if (auftrag.getPositionenExcludingDeleted() != null) {
+        for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
           result.add(pos);
         }
       }

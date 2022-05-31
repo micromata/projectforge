@@ -1,41 +1,44 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-// $RCSfile: DefaultHistoryFormatter.java,v $
+// Project ProjectForge Community Edition
+//         www.projectforge.org
 //
-// Project   HibernateHistory
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
-// Author    Wolfgang Jung (w.jung@micromata.de)
-// Created   Sep 21, 2005
-// Copyright Micromata Sep 21, 2005
+// ProjectForge is dual-licensed.
 //
-// $Id: DefaultHistoryFormatter.java,v 1.4 2007-06-21 08:09:18 tung Exp $
-// $Revision: 1.4 $
-// $Date: 2007-06-21 08:09:18 $
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
 
 package org.projectforge.framework.persistence.history;
 
-import java.text.SimpleDateFormat;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-import java.util.Set;
-
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.hibernate.Session;
-
 import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.hibernate.history.delta.PropertyDelta;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+import org.hibernate.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class DefaultHistoryFormatter implements HistoryFormatter
 {
   private static final long serialVersionUID = 3232226958091599564L;
 
-  private static final Logger log = Logger.getLogger(DefaultHistoryFormatter.class);
+  private static final Logger log = LoggerFactory.getLogger(DefaultHistoryFormatter.class);
 
   private static SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
@@ -43,7 +46,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    * Hier werden die keys gespeichert, die nicht gefunden werden konnte. Dies soll ein erneutes Suchen und eine damit
    * verbundene MissingResourceException verhindern. Das Keys nicht gefunden werden, ist normal.
    */
-  private Set<String> missingKeys = new HashSet<String>();
+  private Set<String> missingKeys = new HashSet<>();
 
   private String resourceBundleName;
 
@@ -60,12 +63,13 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    */
   public String escapeHtml(Object value)
   {
-    return value == null ? "" : StringEscapeUtils.escapeHtml(String.valueOf(value));
+    return value == null ? "" : StringEscapeUtils.escapeHtml4(String.valueOf(value));
   }
 
   /**
    * @see de.micromata.hibernate.history.web.HistoryFormatter#getResourceBundle(java.util.Locale)
    */
+  @Override
   public ResourceBundle getResourceBundle(final Locale locale)
   {
     return ResourceBundle.getBundle(resourceBundleName, locale, getClass().getClassLoader());
@@ -78,6 +82,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    * @see de.micromata.hibernate.history.web.HistoryFormatter#formatUser(org.hibernate.Session, java.util.Locale,
    *      de.micromata.hibernate.history.HistoryEntry)
    */
+  @Override
   public String formatUser(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
@@ -88,6 +93,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    * @see de.micromata.hibernate.history.web.HistoryFormatter#formatTimestamp(org.hibernate.Session, java.util.Locale,
    *      de.micromata.hibernate.history.HistoryEntry)
    */
+  @Override
   public String formatTimestamp(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
@@ -128,6 +134,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    * @see de.micromata.hibernate.history.web.HistoryFormatter#formatAction(org.hibernate.Session, java.util.Locale,
    *      de.micromata.hibernate.history.HistoryEntry)
    */
+  @Override
   public String formatAction(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
@@ -153,6 +160,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    *      java.lang.Object, de.micromata.hibernate.history.HistoryEntry,
    *      de.micromata.hibernate.history.delta.PropertyDelta)
    */
+  @Override
   public String formatProperty(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
@@ -162,7 +170,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
     ResourceBundle resources = getResourceBundle(locale);
     String s = null;
     String key = changed.getClass().getName() + ".property." + delta.getPropertyName();
-    if (missingKeys.contains(key) == false) {
+    if (!missingKeys.contains(key)) {
       try {
         s = resources.getString(key);
       } catch (MissingResourceException ex) {
@@ -172,7 +180,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
     }
     if (s == null) {
       key = "common.property." + delta.getPropertyName();
-      if (missingKeys.contains(key) == false) {
+      if (!missingKeys.contains(key)) {
         try {
           s = resources.getString(key);
         } catch (MissingResourceException ex) {
@@ -212,6 +220,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    *      java.lang.Object, de.micromata.hibernate.history.HistoryEntry,
    *      de.micromata.hibernate.history.delta.PropertyDelta)
    */
+  @Override
   public String formatOldValue(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
@@ -226,6 +235,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    *      java.lang.Object, de.micromata.hibernate.history.HistoryEntry,
    *      de.micromata.hibernate.history.delta.PropertyDelta)
    */
+  @Override
   public String formatNewValue(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
@@ -238,6 +248,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    *      java.lang.Object, de.micromata.hibernate.history.HistoryEntry,
    *      de.micromata.hibernate.history.delta.PropertyDelta)
    */
+  @Override
   public boolean isVisible(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {

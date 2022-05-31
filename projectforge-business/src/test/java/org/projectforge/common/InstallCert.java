@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,25 +23,12 @@
 
 package org.projectforge.common;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import javax.net.ssl.*;
+import java.io.*;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 /*
  * Copyright 2006 Sun Microsystems, Inc.  All Rights Reserved.
@@ -96,11 +83,11 @@ public class InstallCert
     }
 
     File file = new File("jssecacerts");
-    if (file.isFile() == false) {
+    if (!file.isFile()) {
       char SEP = File.separatorChar;
       File dir = new File(System.getProperty("java.home") + SEP + "lib" + SEP + "security");
       file = new File(dir, "jssecacerts");
-      if (file.isFile() == false) {
+      if (!file.isFile()) {
         file = new File(dir, "cacerts");
       }
     }

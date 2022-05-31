@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,23 +23,25 @@
 
 package org.projectforge.business.scripting.xstream;
 
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.projectforge.business.scripting.ScriptParameter;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.scripting.ScriptParameter;
+
+import java.util.List;
 
 /**
  * For storing the user's last script calls. The parameters will be stored per script.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @XStreamAlias("ScriptCall")
 public class ScriptCallData
 {
+  /**
+   * Since React version of scripting execution page, the id of the script is used as scriptName.
+   */
   @XStreamAsAttribute
   private String scriptName;
 
@@ -48,6 +50,11 @@ public class ScriptCallData
 
   public ScriptCallData()
   {
+  }
+
+  public ScriptCallData(final String name)
+  {
+    this(name, null);
   }
 
   public ScriptCallData(final String name, final List<ScriptParameter> scriptParameters)

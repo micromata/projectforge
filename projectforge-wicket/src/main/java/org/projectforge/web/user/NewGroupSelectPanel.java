@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,7 @@
 
 package org.projectforge.web.user;
 
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.SubmitLink;
@@ -34,6 +31,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.user.GroupDao;
+import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.utils.RecentQueue;
@@ -43,6 +41,9 @@ import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.components.TooltipImage;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+
+import java.util.List;
+import java.util.Locale;
 
 /**
  * This panel shows the actual group.
@@ -60,6 +61,9 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
 
   @SpringBean
   private GroupDao groupDao;
+
+  @SpringBean
+  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentGroups;
 
@@ -107,7 +111,7 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return getRecentCustomers().getRecents();
+        return getRecentCustomers().getRecentList();
       }
 
       @Override
@@ -251,11 +255,11 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
   private RecentQueue<String> getRecentCustomers()
   {
     if (this.recentGroups == null) {
-      this.recentGroups = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_GROUPS);
+      this.recentGroups = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_GROUPS);
     }
     if (this.recentGroups == null) {
       this.recentGroups = new RecentQueue<String>();
-      UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_GROUPS, this.recentGroups, true);
+      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_GROUPS, this.recentGroups, true);
     }
     return this.recentGroups;
   }

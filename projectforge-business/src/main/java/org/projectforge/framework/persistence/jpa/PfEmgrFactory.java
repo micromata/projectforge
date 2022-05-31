@@ -1,12 +1,32 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.framework.persistence.jpa;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
-import javax.sql.DataSource;
-
+import de.micromata.genome.db.jpa.history.api.HistoryService;
+import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
+import de.micromata.genome.jpa.EmgrTx;
+import de.micromata.mgc.jpa.hibernatesearch.api.SearchEmgrFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +34,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
-import de.micromata.genome.db.jpa.history.api.HistoryService;
-import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
-import de.micromata.genome.jpa.EmgrTx;
-import de.micromata.mgc.jpa.hibernatesearch.api.SearchEmgrFactory;
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A factory for creating PfEmgr objects.
@@ -110,12 +131,13 @@ public class PfEmgrFactory extends SearchEmgrFactory<PfEmgr>
   @Override
   protected Map<String, Object> getInitEntityManagerFactoryProperties()
   {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     //properties.put(AvailableSettings.DIALECT, hibernateDialect);
     properties.put(AvailableSettings.SHOW_SQL, hibernateShowSql);
     properties.put(AvailableSettings.FORMAT_SQL, hibernateFormatSql);
     properties.put(AvailableSettings.HBM2DDL_AUTO, hibernateHbm2ddlAuto);
     properties.put(AvailableSettings.ENABLE_LAZY_LOAD_NO_TRANS, true);
+    properties.put(AvailableSettings.AUTOCOMMIT, false);
     properties.put("hibernate.search.default.indexBase", hibernateSearchDefaultIndexBase);
     properties.put(AvailableSettings.DATASOURCE, ds);
     return properties;

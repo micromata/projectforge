@@ -1,9 +1,31 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.framework.persistence.jpa.impl;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
+import de.micromata.genome.logging.GenomeLogCategory;
+import de.micromata.genome.logging.LogLevel;
+import de.micromata.genome.logging.LoggedRuntimeException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.FallbackBaseDaoService;
@@ -11,9 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.logging.GenomeLogCategory;
-import de.micromata.genome.logging.LogLevel;
-import de.micromata.genome.logging.LoggedRuntimeException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Implementation of FallbackBaseDaoService.
@@ -53,7 +75,7 @@ public class FallbackBaseDaoServiceImpl implements FallbackBaseDaoService, Seria
     Map<Class<?>, BaseDao> tentToBaseDao = new HashMap<>();
     for (BaseDao bd : bda.values()) {
       Class entclas = bd.getEntityClass();
-      if (tentToBaseDao.containsKey(entclas) == true) {
+      if (tentToBaseDao.containsKey(entclas)) {
         throw new LoggedRuntimeException(LogLevel.Fatal, GenomeLogCategory.Coding, "Multiple BaseDaos for DO: "
             + entclas.getName() + "; " + tentToBaseDao.get(entclas).getClass() + ", " + bd.getClass());
       }

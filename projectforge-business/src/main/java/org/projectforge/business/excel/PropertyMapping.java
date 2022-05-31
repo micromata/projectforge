@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,13 +28,13 @@ import java.util.Map;
 
 public class PropertyMapping
 {
-  protected Map<String, Object> map = new HashMap<String, Object>();
+  protected Map<String, Object> map = new HashMap<>();
 
   public void add(String propertyName, Object obj)
   {
     // Convert boolean results to a number 1 or blank
     if (obj instanceof Boolean) {
-      if ((Boolean) obj == true) {
+      if ((Boolean) obj) {
         obj = 1;
       } else {
         obj = null;

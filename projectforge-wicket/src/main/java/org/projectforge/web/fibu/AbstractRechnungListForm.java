@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,13 @@
 
 package org.projectforge.web.fibu;
 
+<<<<<<< HEAD
 import java.util.Date;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.model.LambdaModel;
+=======
+>>>>>>> develop
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.AbstractRechnungsStatistik;
@@ -36,30 +39,26 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.WebConstants;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
-import org.projectforge.web.wicket.flowlayout.TextStyle;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
 
 public abstract class AbstractRechnungListForm<F extends RechnungFilter, P extends AbstractListPage<?, ?, ?>> extends
     AbstractListForm<F, P>
 {
   private static final long serialVersionUID = 2678813484329104564L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractRechnungListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractRechnungListForm.class);
 
   protected int[] years;
 
   @Override
-  @SuppressWarnings("serial")
   protected void init()
   {
     super.init(false);
 
     // time period for Rechnungsdatum
     final F filter = getSearchFilter();
+    // TODO: What to do here?
     addTimePeriodPanel("fibu.rechnung.datum",
         LambdaModel.<Date>of(filter::getFromDate, filter::setFromDate),
         LambdaModel.<Date>of(filter::getToDate, filter::setToDate)
