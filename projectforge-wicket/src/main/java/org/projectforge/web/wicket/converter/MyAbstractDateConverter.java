@@ -25,8 +25,8 @@ package org.projectforge.web.wicket.converter;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.datetime.DateConverter;
 import org.apache.wicket.util.convert.ConversionException;
+import org.apache.wicket.util.convert.converter.DateConverter;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateFormats;
@@ -60,7 +60,6 @@ public abstract class MyAbstractDateConverter extends DateConverter
 
   public MyAbstractDateConverter(final Class<? extends Date> targetType)
   {
-    super(true);
     this.targetType = targetType;
   }
 

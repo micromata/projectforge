@@ -24,10 +24,10 @@
 package org.projectforge.web.wicket.converter;
 
 import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
+import org.projectforge.common.DateFormatType;
+import org.projectforge.framework.time.DateFormats;
 
 import java.util.Date;
-import java.util.Locale;
 
 public class MyDateConverter extends MyAbstractDateConverter
 {
@@ -58,7 +58,7 @@ public class MyDateConverter extends MyAbstractDateConverter
    * instance, if I'm in Seattle and the server I'm working on is in Amsterdam, the server is 9 hours ahead. So, if I'm inputting say 12/24
    * at a couple of hours before midnight, at the server it is already 12/25. If this boolean is true, it will be transformed to 12/25,
    * while the client sees 12/24. </p>
-   * 
+   *
    * @param dateStyle Date style to use. The first character is the date style, and the second character is the time style. Specify a
    *          character of 'S' for short style, 'M' for medium, 'L' for long, and 'F' for full. A date or time may be ommitted by specifying
    *          a style character '-'. See {@link DateTimeFormat#forStyle(String)}.
@@ -79,16 +79,9 @@ public class MyDateConverter extends MyAbstractDateConverter
   }
 
   @Override
-  public String getDatePattern(final Locale locale)
+  public String getPattern()
   {
-    return getPattern();
-  }
-
-  @Override
-  protected DateTimeFormatter getFormat(final Locale locale)
-  {
-    final DateTimeFormatter dtf = DateTimeFormat.forPattern(getDatePattern(locale)).withLocale(locale).withPivotYear(2000);
-    return dtf;
+    return DateFormats.getFormatString(DateFormatType.DATE);
   }
 
 }

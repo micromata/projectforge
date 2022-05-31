@@ -23,13 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-<<<<<<< HEAD
-import java.util.Date;
-
-import org.apache.log4j.Logger;
-import org.apache.wicket.model.LambdaModel;
-=======
->>>>>>> develop
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.AbstractRechnungsStatistik;
@@ -38,13 +31,13 @@ import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
+import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
 public abstract class AbstractRechnungListForm<F extends RechnungFilter, P extends AbstractListPage<?, ?, ?>> extends
-    AbstractListForm<F, P>
-{
+    AbstractListForm<F, P> {
   private static final long serialVersionUID = 2678813484329104564L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractRechnungListForm.class);
@@ -52,16 +45,14 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
   protected int[] years;
 
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init(false);
 
     // time period for Rechnungsdatum
     final F filter = getSearchFilter();
-    // TODO: What to do here?
     addTimePeriodPanel("fibu.rechnung.datum",
-        LambdaModel.<Date>of(filter::getFromDate, filter::setFromDate),
-        LambdaModel.<Date>of(filter::getToDate, filter::setToDate)
+        LambdaModel.of(filter::getFromDate, filter::setFromDate),
+        LambdaModel.of(filter::getToDate, filter::setToDate)
     );
 
     onBeforeAddStatistics();
@@ -69,47 +60,36 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
     addStatistics();
   }
 
-  private void addStatistics()
-  {
+  private void addStatistics() {
     gridBuilder.newGridPanel();
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return getString("fibu.common.brutto") + ": " + CurrencyFormatter.format(getStats().getBrutto()) + WebConstants.HTML_TEXT_DIVIDER;
       }
     }));
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return getString("fibu.common.netto") + ": " + CurrencyFormatter.format(getStats().getNetto()) + WebConstants.HTML_TEXT_DIVIDER;
       }
     }));
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return getString("fibu.rechnung.offen") + ": " + CurrencyFormatter.format(getStats().getOffen()) + WebConstants.HTML_TEXT_DIVIDER;
       }
     }, TextStyle.BLUE));
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return getString("fibu.rechnung.filter.ueberfaellig") + ": " + CurrencyFormatter.format(getStats().getUeberfaellig());
       }
     }, TextStyle.RED));
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return WebConstants.HTML_TEXT_DIVIDER
             + getString("fibu.rechnung.skonto")
             + ": "
@@ -118,29 +98,24 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
       }
     }));
     // fieldset.add(new HtmlCodePanel(fieldset.newChildId(), "<br/>"));
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return getString("fibu.rechnung.zahlungsZiel")
             + ": Ø "
             + String.valueOf(getStats().getZahlungszielAverage())
             + WebConstants.HTML_TEXT_DIVIDER;
       }
     }));
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return getString("fibu.rechnung.zahlungsZiel.actual") + ": Ø " + String.valueOf(getStats().getTatsaechlichesZahlungzielAverage());
       }
     }));
   }
 
-  protected void onBeforeAddStatistics()
-  {
+  protected void onBeforeAddStatistics() {
   }
 
   /**
@@ -149,8 +124,7 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
    */
   @SuppressWarnings("serial")
   @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
-  {
+  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
     final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
     final RadioGroupPanel<String> radioGroup = new RadioGroupPanel<>(radioGroupPanel.newChildId(), "listtype",
         new PropertyModel<>(getSearchFilter(), "listType"));
@@ -167,14 +141,12 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
 
   protected abstract AbstractRechnungsStatistik<?> getStats();
 
-  public AbstractRechnungListForm(final P parentPage)
-  {
+  public AbstractRechnungListForm(final P parentPage) {
     super(parentPage);
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

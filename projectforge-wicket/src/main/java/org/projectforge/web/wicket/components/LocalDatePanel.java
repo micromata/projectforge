@@ -24,7 +24,7 @@
 package org.projectforge.web.wicket.components;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.datetime.markup.html.form.DateTextField;
+import org.apache.wicket.extensions.markup.html.form.DateTextField;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.FormComponentPanel;
@@ -32,11 +32,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.Constants;
+import org.projectforge.common.DateFormatType;
+import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
 import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.web.wicket.converter.MyDateConverter;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 import java.time.LocalDate;
@@ -99,10 +100,9 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
     this.settings = settings;
     this.requiredSupplier = requiredSupplier;
     setType(settings.targetType);
-    final MyDateConverter dateConverter = new MyDateConverter(settings.targetType, "M-");
-    dateConverter.setTimeZone(settings.timeZone);
     final IModel<Date> modelForDateField = useModelDirectly ? model : LambdaModel.of(() -> this.date, date -> this.date = date);
-    dateField = new DateTextField("dateField", modelForDateField, dateConverter) {
+    final String pattern = DateFormats.getFormatString(DateFormatType.DATE);
+    dateField = new DateTextField("dateField", modelForDateField, pattern) {
       /**
        * @see org.apache.wicket.Component#renderHead(IHeaderResponse)
        */
@@ -134,7 +134,7 @@ public class LocalDatePanel extends FormComponentPanel<Date> implements Componen
         final int year = day.getYear();
         if (year < minYear || year > maxYear) {
           validatable.error(new ValidationError().addKey("error.date.yearOutOfRange").setVariable("minimumYear", minYear)
-                  .setVariable("maximumYear", maxYear));
+              .setVariable("maximumYear", maxYear));
         }
       }
     });
