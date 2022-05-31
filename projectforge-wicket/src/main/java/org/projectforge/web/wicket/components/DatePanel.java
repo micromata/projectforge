@@ -34,9 +34,10 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.Constants;
+import org.projectforge.common.DateFormatType;
+import org.projectforge.framework.time.DateFormats;
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
 import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.web.wicket.converter.MyDateConverter;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 import java.util.Calendar;
@@ -125,11 +126,9 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
     super(id, model);
     this.requiredSupplier = requiredSupplier;
     setType(settings.targetType);
-    final MyDateConverter dateConverter = new MyDateConverter(settings.targetType, "M-");
-    dateConverter.setTimeZone(settings.timeZone);
     final IModel<Date> modelForDateField = useModelDirectly ? model : LambdaModel.<Date>of(() -> this.date, date -> this.date = date);
-    System.err.println("***************** " + this.getClass().getName() + " TO MIGRATE **************");
-    dateField = new DateTextField("dateField", modelForDateField) { //, dateConverter) {
+    final String pattern = DateFormats.getFormatString(DateFormatType.DATE);
+    dateField = new DateTextField("dateField", modelForDateField, pattern) {
       /**
        * @see org.apache.wicket.Component#renderHead(org.apache.wicket.markup.head.IHeaderResponse)
        */

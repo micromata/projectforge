@@ -56,7 +56,6 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.LocalDateModel;
 import org.projectforge.web.wicket.components.LocalDatePanel;
-import org.projectforge.web.wicket.converter.MyDateConverter;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
@@ -71,8 +70,6 @@ import java.util.function.Predicate;
 public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttrRow<PK>> extends BaseAttributePanel
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimedAttributePanel.class);
-
-  private static final MyDateConverter dateConverter = new MyDateConverter("M-"); // same style as the date panel
 
   @SpringBean
   private TimeableService timeableService;
