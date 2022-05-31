@@ -30,10 +30,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.joda.time.DateMidnight;
-<<<<<<< HEAD
-=======
-import org.projectforge.business.teamcal.filter.CalendarFilter;
->>>>>>> develop
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
@@ -47,7 +43,7 @@ import org.projectforge.web.wicket.components.DateTimePanel;
 import org.projectforge.web.wicket.components.JodaDatePanel;
 import org.projectforge.web.wicket.flowlayout.*;
 
-public class CalendarForm extends AbstractStandardForm<CalendarFilter, CalendarPage>
+public class CalendarForm extends AbstractStandardForm<ICalendarFilter, CalendarPage>
 {
   private static final long serialVersionUID = -145923669780937370L;
 

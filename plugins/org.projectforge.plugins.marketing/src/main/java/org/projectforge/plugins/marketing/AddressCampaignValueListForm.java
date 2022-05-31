@@ -42,8 +42,7 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class AddressCampaignValueListForm
-    extends AbstractListForm<AddressCampaignValueFilter, AddressCampaignValueListPage>
-{
+    extends AbstractListForm<AddressCampaignValueFilter, AddressCampaignValueListPage> {
   private static final long serialVersionUID = 6190615904711764514L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
@@ -64,15 +63,13 @@ public class AddressCampaignValueListForm
 
   private DropDownChoice<String> addressCampaignValueDropDownChoice;
 
-  public AddressCampaignValueListForm(final AddressCampaignValueListPage parentPage)
-  {
+  public AddressCampaignValueListForm(final AddressCampaignValueListPage parentPage) {
     super(parentPage);
   }
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
     this.addressCampaignId = searchFilter.getAddressCampaignId();
     this.addressCampaignValue = searchFilter.getAddressCampaignValue();
@@ -83,22 +80,18 @@ public class AddressCampaignValueListForm
       addressCampaignValueDropDownChoice = new DropDownChoice<String>(fs.getDropDownChoiceId(),
           new PropertyModel<>(this,
               "addressCampaignValue"),
-          choiceRenderer.getValues(), choiceRenderer)
-      {
-        @Override
-        protected void onSelectionChanged(final String newSelection)
-        {
+          choiceRenderer.getValues(), choiceRenderer);
+      addressCampaignValueDropDownChoice.add(new FormComponentUpdatingBehavior() {
+        protected void onUpdate() {
+          final String newSelection = (String) this.getFormComponent().getModelObject();
           searchFilter.setAddressCampaignValue(newSelection);
           parentPage.refresh();
         }
 
-        @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
+        protected void onError(RuntimeException ex) {
+          super.onError(ex);
         }
-
-      };
+      });
       addressCampaignValueDropDownChoice.setNullValid(true);
       fs.add(addressCampaignValueDropDownChoice);
     }
@@ -106,8 +99,7 @@ public class AddressCampaignValueListForm
   }
 
   @Override
-  protected void onBeforeSearchFilter()
-  {
+  protected void onBeforeSearchFilter() {
     final List<AddressCampaignDO> addressCampaignList = addressCampaignDao.getList(new AddressCampaignValueFilter());
     gridBuilder.newSplitPanel(GridSize.COL66);
     {
@@ -117,18 +109,15 @@ public class AddressCampaignValueListForm
         addressCampaignRenderer.addValue(addressCampaign.getId(), addressCampaign.getTitle());
       }
       final DropDownChoice<Integer> addressCampaignChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(),
-<<<<<<< HEAD
           new PropertyModel<Integer>(this, "addressCampaignId"), addressCampaignRenderer.getValues(),
           addressCampaignRenderer);
       addressCampaignChoice.add(new FormComponentUpdatingBehavior()
-=======
+/*=======
           new PropertyModel<>(this, "addressCampaignId"), addressCampaignRenderer.getValues(),
           addressCampaignRenderer)
->>>>>>> develop
-      {
+>>>>>>> develop*/ {
         @Override
-        public void onUpdate()
-        {
+        public void onUpdate() {
           for (final AddressCampaignDO addressCampaign : addressCampaignList) {
             if (addressCampaign.getId().equals(addressCampaignId)) {
               searchFilter.setAddressCampaign(addressCampaign);
@@ -157,29 +146,6 @@ public class AddressCampaignValueListForm
       });
       fs.add(addressCampaignChoice);
     }
-<<<<<<< HEAD
-    {
-      gridBuilder.newSplitPanel(GridSize.COL33);
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("value"));
-      final LabelValueChoiceRenderer<String> choiceRenderer = getValueLabelValueChoiceRenderer();
-      addressCampaignValueDropDownChoice = new DropDownChoice<String>(fs.getDropDownChoiceId(),
-          new PropertyModel<String>(this, "addressCampaignValue"), choiceRenderer.getValues(), choiceRenderer);
-      addressCampaignValueDropDownChoice.add(new FormComponentUpdatingBehavior()
-      {
-        @Override
-        public void onUpdate()
-        {
-          final String newSelection = (String) this.getFormComponent().getModelObject();
-          searchFilter.setAddressCampaignValue(newSelection);
-          parentPage.refresh();
-        }
-      });
-      addressCampaignValueDropDownChoice.setNullValid(true);
-      fs.add(addressCampaignValueDropDownChoice);
-    }
-    AddressListForm.addFilter(parentPage, this, gridBuilder, getSearchFilter());
-=======
->>>>>>> develop
   }
 
   /**
@@ -187,21 +153,19 @@ public class AddressCampaignValueListForm
    * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
-  {
+  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel,
+                                      final DivPanel optionsCheckBoxesPanel) {
     AddressListForm.onOptionsPanelCreate(parentPage, optionsFieldsetPanel, searchFilter);
   }
 
-  protected void refresh()
-  {
+  protected void refresh() {
     final LabelValueChoiceRenderer<String> choiceRenderer = getValueLabelValueChoiceRenderer();
     addressCampaignValueDropDownChoice.setChoiceRenderer(choiceRenderer);
     addressCampaignValueDropDownChoice.setChoices(choiceRenderer.getValues());
     parentPage.refresh();
   }
 
-  private LabelValueChoiceRenderer<String> getValueLabelValueChoiceRenderer()
-  {
+  private LabelValueChoiceRenderer<String> getValueLabelValueChoiceRenderer() {
     final LabelValueChoiceRenderer<String> choiceRenderer = new LabelValueChoiceRenderer<>();
     if (searchFilter.getAddressCampaign() != null) {
       choiceRenderer.addValue(ADDRESS_CAMPAIGN_VALUE_UNDEFINED, "- " + getString("undefined") + " -");
@@ -213,14 +177,12 @@ public class AddressCampaignValueListForm
   }
 
   @Override
-  protected AddressCampaignValueFilter newSearchFilterInstance()
-  {
+  protected AddressCampaignValueFilter newSearchFilterInstance() {
     return new AddressCampaignValueFilter();
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

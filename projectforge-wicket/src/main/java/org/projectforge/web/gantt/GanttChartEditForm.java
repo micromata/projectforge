@@ -179,20 +179,7 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
       checkBoxPanel.addCheckBoxButton(new PropertyModel<Boolean>(data.getStyle(), "showToday"), getString("gantt.style.showToday"));
       checkBoxPanel.addCheckBoxButton(new PropertyModel<Boolean>(data.getStyle(), "showCompletion"), getString("gantt.style.showCompletion"));
       checkBoxPanel.add(new CheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<Boolean>(getSettings(), "showOnlyVisibles"),
-<<<<<<< HEAD
           getString("gantt.settings.showOnlyVisibles"), new FormComponentUpdatingBehavior()));
-=======
-              getString("gantt.settings.showOnlyVisibles")) {
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.CheckBoxButton#wantOnSelectionChangedNotifications()
-         */
-        @Override
-        protected boolean wantOnSelectionChangedNotifications() {
-          // Submit form after toggling the check box.
-          return true;
-        }
-      });
->>>>>>> develop
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
     {

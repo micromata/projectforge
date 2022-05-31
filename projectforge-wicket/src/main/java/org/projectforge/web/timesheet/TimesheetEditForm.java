@@ -27,11 +27,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -61,7 +57,6 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskSelectPanel;
@@ -447,17 +442,8 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       }
       final DropDownChoice<String> templateNamesChoice = new DropDownChoice<String>(templatesRow.getDropDownChoiceId(),
           new PropertyModel<String>(this, "templateName"), templateNamesChoiceRenderer.getValues(),
-<<<<<<< HEAD
           templateNamesChoiceRenderer)
       {
-=======
-          templateNamesChoiceRenderer) {
-        @Override
-        protected boolean wantOnSelectionChangedNotifications() {
-          return true;
-        }
-
->>>>>>> develop
         /**
          * @see org.apache.wicket.markup.html.form.AbstractSingleSelectChoice#getDefaultChoice(java.lang.String)
          */
@@ -469,15 +455,11 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       templateNamesChoice.add(new FormComponentUpdatingBehavior()
       {
         @Override
-<<<<<<< HEAD
+//<<<<<<<HEAD
         public void onUpdate()
         {
           String newSelection = (String) this.getFormComponent().getModelObject();
-          if (StringUtils.isNotEmpty(newSelection) == true) {
-=======
-        protected void onSelectionChanged(final String newSelection) {
           if (StringUtils.isNotEmpty(newSelection)) {
->>>>>>> develop
             // Fill fields with selected template values:
             final UserPrefDO userPref = userPrefDao.getUserPref(UserPrefArea.TIMESHEET_TEMPLATE, newSelection);
             if (userPref != null) {
@@ -517,22 +499,14 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
     // Needed as submit link because the modal dialog reloads the page and otherwise any previous change will be lost.
     final AjaxSubmitLink link = new AjaxSubmitLink(IconLinkPanel.LINK_ID) {
       @Override
-<<<<<<< HEAD
       protected void onSubmit(final AjaxRequestTarget target)
       {
-=======
-      protected void onSubmit(final AjaxRequestTarget target, final Form<?> form) {
->>>>>>> develop
         recentSheetsModalDialog.open(target);
       }
 
       @Override
-<<<<<<< HEAD
       protected void onError(final AjaxRequestTarget target)
       {
-=======
-      protected void onError(final AjaxRequestTarget target, final Form<?> form) {
->>>>>>> develop
       }
     };
     link.setDefaultFormProcessing(false);
@@ -552,82 +526,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
     cost2Choice.setRequired(cost2Visible);
   }
 
-<<<<<<< HEAD
-  @SuppressWarnings("serial")
-  protected static DropDownChoice<Integer> createCost2ChoiceRenderer(final String id, final TimesheetDao timesheetDao,
-      final TaskTree taskTree, final LabelValueChoiceRenderer<Integer> kost2ChoiceRenderer, final TimesheetDO data,
-      final List<Kost2DO> kost2List)
-  {
-    final DropDownChoice<Integer> choice = new DropDownChoice<Integer>(id, new Model<Integer>()
-    {
-      @Override
-      public Integer getObject()
-      {
-        return data.getKost2Id();
-      }
-
-      @Override
-      public void setObject(final Integer kost2Id)
-      {
-        if (kost2Id != null) {
-          timesheetDao.setKost2(data, kost2Id);
-        } else {
-          data.setKost2(null);
-        }
-      }
-    }, kost2ChoiceRenderer.getValues(), kost2ChoiceRenderer);
-    choice.setNullValid(true);
-    choice.add(new IValidator<Integer>()
-    {
-      @Override
-      public void validate(final IValidatable<Integer> validatable)
-      {
-        final Integer value = validatable.getValue();
-        if (value != null && value >= 0) {
-          return;
-        }
-        if (CollectionUtils.isNotEmpty(kost2List) == true) {
-          // Kost2 available but not selected.
-          choice.error(ThreadLocalUserContext.getLocalizedString("timesheet.error.kost2Required"));
-        }
-      }
-    });
-    return choice;
-  }
-
-  /**
-   * Used also by TimesheetMassUpdateForm.
-   *
-   * @param timesheetDao
-   * @param kost2List
-   * @param data
-   * @param kost2Choice
-   * @return
-   */
-  protected static LabelValueChoiceRenderer<Integer> getCost2LabelValueChoiceRenderer(final TimesheetDao timesheetDao,
-      final List<Kost2DO> kost2List, final TimesheetDO data, final DropDownChoice<Integer> kost2Choice)
-  {
-    final LabelValueChoiceRenderer<Integer> kost2ChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
-    if (kost2List != null && kost2List.size() == 1) {
-      // Es ist genau ein Eintrag. Deshalb selektieren wir diesen auch:
-      final Integer kost2Id = kost2List.get(0).getId();
-      timesheetDao.setKost2(data, kost2Id);
-      if (kost2Choice != null) {
-        kost2Choice.modelChanged();
-      }
-    }
-    if (CollectionUtils.isEmpty(kost2List) == true) {
-      data.setKost2(null); // No kost2 list given, therefore set also kost2 to null.
-    } else {
-      for (final Kost2DO kost2 : kost2List) {
-        kost2ChoiceRenderer.addValue(kost2.getId(), KostFormatter.formatForSelection(kost2));
-      }
-    }
-    return kost2ChoiceRenderer;
-  }
-
-=======
->>>>>>> develop
   @Override
   public void onBeforeRender() {
     super.onBeforeRender();

@@ -33,11 +33,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.WicketUtils;
-<<<<<<< HEAD
-=======
-
 import java.io.Serializable;
->>>>>>> develop
 
 /**
  * The panel which includes the drop behavior for several files. If the dropped file (string) was sucessfully importet, the hook method

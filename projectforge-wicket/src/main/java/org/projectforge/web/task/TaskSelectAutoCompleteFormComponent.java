@@ -23,14 +23,6 @@
 
 package org.projectforge.web.task;
 
-<<<<<<< HEAD
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-
-=======
->>>>>>> develop
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -50,6 +42,7 @@ import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * @author Johannes Unterstein

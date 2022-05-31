@@ -23,19 +23,11 @@
 
 package org.projectforge.web.fibu;
 
-<<<<<<< HEAD
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.LambdaModel;
 import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.fibu.RechnungListFilter;
 import org.projectforge.business.fibu.RechnungsStatistik;
-=======
-import org.projectforge.business.fibu.RechnungDao;
-import org.projectforge.business.fibu.RechnungListFilter;
-import org.projectforge.business.fibu.RechnungsStatistik;
-import org.projectforge.web.wicket.LambdaModel;
 import org.slf4j.Logger;
->>>>>>> develop
 
 public class RechnungListForm extends AbstractRechnungListForm<RechnungListFilter, RechnungListPage>
 {

@@ -119,12 +119,8 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
           @Override
           public void onUpdate()
           {
-<<<<<<< HEAD
             final String newSelection = (String) this.getFormComponent().getModelObject();
-            if (StringUtils.isNotEmpty(newSelection) == true) {
-=======
             if (StringUtils.isNotEmpty(newSelection)) {
->>>>>>> develop
               // Fill fields with selected template values:
               final UserPrefDO userPref = userPrefDao.getUserPref(ToDoPlugin.USER_PREF_AREA, newSelection);
               if (userPref != null) {
@@ -275,16 +271,15 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       // Options
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.options")).suppressLabelForWarning();
       final DivPanel checkBoxButton = fs.addNewCheckBoxButtonDiv();
-<<<<<<< HEAD
-      if (configurationService.isSendMailConfigured() == true) {
+      if (configurationService.isSendMailConfigured()) {
         checkBoxButton.add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<Boolean>(this, "sendNotification"),
             getString("label.sendEMailNotification")).setTooltip(getString("plugins.todo.notification.tooltip")));
       }
       checkBoxButton.add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<Boolean>(this, "saveAsTemplate"),
           getString("userPref.saveAsTemplate")));
     }
-    if (isNew() == false && getData().getStatus() != ToDoStatus.CLOSED && getData().isDeleted() == false
-=======
+    if (!isNew() && getData().getStatus() != ToDoStatus.CLOSED && !getData().isDeleted()
+/*=======
       if (configurationService.isSendMailConfigured()) {
         checkBoxButton
             .add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<>(this, "sendNotification"),
@@ -301,7 +296,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
     if (!isNew()
         && getData().getStatus() != ToDoStatus.CLOSED
         && !getData().isDeleted()
->>>>>>> develop
+>>>>>>> develop*/
         && getBaseDao().hasLoggedInUserUpdateAccess(getData(), getData(), false)) {
       // Close button:
       final AjaxButton closeButton = new AjaxButton(ButtonPanel.BUTTON_ID, this)

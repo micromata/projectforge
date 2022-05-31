@@ -23,11 +23,7 @@
 
 package org.projectforge.web.teamcal.admin;
 
-<<<<<<< HEAD
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
-=======
->>>>>>> develop
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -42,10 +38,6 @@ import org.slf4j.Logger;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
-<<<<<<< HEAD
-=======
- *
->>>>>>> develop
  */
 public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalListPage>
 {

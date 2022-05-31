@@ -44,10 +44,6 @@ import java.io.Serializable;
  * Compiler utility class for less resource files
  *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
-<<<<<<< HEAD
-=======
- *
->>>>>>> develop
  */
 public class LessWicketApplicationInstantiator implements Serializable
 {
@@ -81,10 +77,6 @@ public class LessWicketApplicationInstantiator implements Serializable
   private boolean compileCss = true;
 
   /**
-<<<<<<< HEAD
-=======
-   *
->>>>>>> develop
    * @param application
    * @param folder
    * @param lessPath

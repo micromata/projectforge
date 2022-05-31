@@ -164,29 +164,9 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
         view.add(new IconLinkPanel(view.newChildId(), IconType.PRINT, new ResourceModel("printView"),
                 new Link<Void>(IconLinkPanel.LINK_ID) {
 
-<<<<<<< HEAD
-        final NonCachingImage img = new NonCachingImage("image", new IModel<Object>()
-        {
-          @Override
-          public DynamicImageResource getObject()
-          {
-            final DynamicImageResource dir = new DynamicImageResource()
-            {
-              @Override
-              protected byte[] getImageData(final Attributes attributes)
-              {
-                byte[] result = address.getImageData();
-                if (result == null || result.length < 1) {
-                  try {
-                    result = IOUtils
-                        .toByteArray(getClass().getClassLoader().getResource("images/noImage.png").openStream());
-                  } catch (final IOException ex) {
-                    log.error("Exception encountered " + ex, ex);
-=======
                   @Override
                   public void onClick() {
                     throw new RedirectToUrlException(AddressViewPageRest.getPageUrl(address.getId()));
->>>>>>> develop
                   }
                 }));
         addRowClick(item);
