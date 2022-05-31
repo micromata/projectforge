@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,24 +23,27 @@
 
 package org.projectforge.core;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.utils.NumberFormatter;
+import org.projectforge.test.TestSetup;
 
 import java.math.BigDecimal;
 import java.util.Locale;
 
-import org.projectforge.common.TestHelper;
-import org.projectforge.framework.utils.NumberFormatter;
-import org.projectforge.test.AbstractTestBase;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class NumberFormatterTest extends AbstractTestBase
-{
+public class NumberFormatterTest {
   @Test
-  public void formatPercentage()
-  {
-    TestHelper.setContextUser(getUserGroupCache(), Locale.ENGLISH);
+  public void formatPercentage() {
     assertEquals("", NumberFormatter.formatPercent(null));
     assertEquals("19%", NumberFormatter.formatPercent(new BigDecimal("0.19000")));
     assertEquals("19.2%", NumberFormatter.formatPercent(new BigDecimal("0.19200")));
+  }
+
+
+  @BeforeAll
+  static void setup() {
+    TestSetup.init().setLocale(Locale.ENGLISH);
   }
 }

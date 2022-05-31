@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,22 +23,22 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.http.WebResponse.CacheScope;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.DynamicImageResource;
 import org.apache.wicket.util.time.Duration;
-import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.projectforge.export.JFreeChartImageType;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 public class JFreeChartImage extends Image
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(JFreeChartImage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JFreeChartImage.class);
 
   private static final long serialVersionUID = 7083627817914127250L;
 
@@ -75,9 +75,9 @@ public class JFreeChartImage extends Image
           final JFreeChart chart = (JFreeChart) getDefaultModelObject();
           final ByteArrayOutputStream baos = new ByteArrayOutputStream();
           if (imageType == JFreeChartImageType.JPEG) {
-            ChartUtilities.writeChartAsJPEG(baos, chart, width, height);
+            ChartUtils.writeChartAsJPEG(baos, chart, width, height);
           } else {
-            ChartUtilities.writeChartAsPNG(baos, chart, width, height);
+            ChartUtils.writeChartAsPNG(baos, chart, width, height);
           }
           final byte[] ba = baos.toByteArray();
           return ba;

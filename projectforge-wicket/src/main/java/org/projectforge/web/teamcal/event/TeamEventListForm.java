@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,6 @@
 
 package org.projectforge.web.teamcal.event;
 
-import java.util.Collection;
-import java.util.Date;
-
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -46,39 +42,38 @@ import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
-import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Date;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEventListPage>
-{
+public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEventListPage> {
   private static final long serialVersionUID = 3659495003810851072L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventListForm.class);
 
   @SpringBean
   TeamCalCache teamCalCache;
 
   MultiChoiceListHelper<TeamCalDO> calendarsListHelper;
 
-  protected DatePanel startDate;
+  protected LocalDatePanel startDate;
 
-  protected DatePanel endDate;
+  protected LocalDatePanel endDate;
 
   private final FormComponent<?>[] dependentFormComponents = new FormComponent<?>[2];
 
-  public TeamEventListForm(final TeamEventListPage parentPage)
-  {
+  public TeamEventListForm(final TeamEventListPage parentPage) {
     super(parentPage);
   }
 
@@ -86,8 +81,7 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
    * @see org.projectforge.web.wicket.AbstractListForm#newSearchFilterInstance()
    */
   @Override
-  protected TeamEventFilter newSearchFilterInstance()
-  {
+  protected TeamEventFilter newSearchFilterInstance() {
     return new TeamEventFilter();
   }
 
@@ -96,46 +90,36 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
    */
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
     getParentPage().onFormInit();
-    add(new IFormValidator()
-    {
+    add(new IFormValidator() {
       @Override
-      public FormComponent<?>[] getDependentFormComponents()
-      {
+      public FormComponent<?>[] getDependentFormComponents() {
         return dependentFormComponents;
       }
 
       @Override
-      public void validate(final Form<?> form)
-      {
-        if (parentPage.isMassUpdateMode() == false) {
-          final Date from = startDate.getConvertedInput();
-          final Date to = endDate.getConvertedInput();
-          if (from != null && to != null && from.after(to) == true) {
-            error(getString("timePeriodPanel.startTimeAfterStopTime"));
-          }
+      public void validate(final Form<?> form) {
+        final Date from = startDate.getConvertedInput();
+        final Date to = endDate.getConvertedInput();
+        if (from != null && to != null && from.after(to) == true) {
+          error(getString("timePeriodPanel.startTimeAfterStopTime"));
         }
       }
     });
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("templates")).suppressLabelForWarning();
-      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("all"))
-      {
+      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("all")) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           final Collection<TeamCalDO> assignedItems = teamCalCache.getAllAccessibleCalendars();
           calendarsListHelper.setAssignedItems(assignedItems);
         }
       }, getString("selectAll"), SingleButtonPanel.NORMAL));
-      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("own"))
-      {
+      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("own")) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           final Collection<TeamCalDO> assignedItems = teamCalCache.getAllOwnCalendars();
           calendarsListHelper.setAssignedItems(assignedItems);
         }
@@ -149,26 +133,22 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
    */
   @SuppressWarnings("serial")
   @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
-  {
+  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
     {
       optionsFieldsetPanel.setOutputMarkupId(true);
-      startDate = new DatePanel(optionsFieldsetPanel.newChildId(),
-          new PropertyModel<Date>(getSearchFilter(), "startDate"),
-          DatePanelSettings.get().withSelectPeriodMode(true));
+      startDate = new LocalDatePanel(optionsFieldsetPanel.newChildId(),
+          new LocalDateModel(new PropertyModel<LocalDate>(getSearchFilter(), "startDate")),
+          DatePanelSettings.get().withSelectPeriodMode(true), true);
       optionsFieldsetPanel.add(dependentFormComponents[0] = startDate);
       optionsFieldsetPanel.setLabelFor(startDate);
       optionsFieldsetPanel.add(new DivTextPanel(optionsFieldsetPanel.newChildId(), " - "));
-      endDate = new DatePanel(optionsFieldsetPanel.newChildId(), new PropertyModel<Date>(getSearchFilter(), "endDate"),
-          DatePanelSettings
-              .get().withSelectPeriodMode(true));
+      endDate = new LocalDatePanel(optionsFieldsetPanel.newChildId(), new LocalDateModel(new PropertyModel<LocalDate>(getSearchFilter(), "endDate")),
+          DatePanelSettings.get().withSelectPeriodMode(true), true);
       optionsFieldsetPanel.add(dependentFormComponents[1] = endDate);
       {
-        final SubmitLink unselectPeriod = new SubmitLink(IconLinkPanel.LINK_ID)
-        {
+        final SubmitLink unselectPeriod = new SubmitLink(IconLinkPanel.LINK_ID) {
           @Override
-          public void onSubmit()
-          {
+          public void onSubmit() {
             getSearchFilter().setStartDate(null);
             getSearchFilter().setEndDate(null);
             clearInput();
@@ -186,11 +166,9 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
           startDate);
       optionsFieldsetPanel.add(quickSelectPanel);
       quickSelectPanel.init();
-      optionsFieldsetPanel.add(new HtmlCommentPanel(optionsFieldsetPanel.newChildId(), new Model<String>()
-      {
+      optionsFieldsetPanel.add(new HtmlCommentPanel(optionsFieldsetPanel.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return WicketUtils.getUTCDates(getSearchFilter().getStartDate(), getSearchFilter().getEndDate());
         }
       }));
@@ -218,16 +196,14 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
    * @see org.projectforge.web.wicket.AbstractListForm#getLogger()
    */
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 
   /**
    * @return the filter
    */
-  public TeamEventFilter getFilter()
-  {
+  public TeamEventFilter getFilter() {
     return getSearchFilter();
   }
 }

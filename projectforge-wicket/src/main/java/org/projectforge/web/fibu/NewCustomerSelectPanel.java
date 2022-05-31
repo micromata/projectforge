@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,8 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.SubmitLink;
@@ -39,11 +37,12 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.business.fibu.KundeFavorite;
 import org.projectforge.business.fibu.KundeFormatter;
+import org.projectforge.business.user.service.UserXmlPreferencesService;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.RecentQueue;
-import org.projectforge.web.user.UserPreferencesHelper;
 import org.projectforge.web.wicket.AbstractForm;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
@@ -52,6 +51,9 @@ import org.projectforge.web.wicket.components.FavoritesChoicePanel;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.TooltipImage;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+
+import java.util.List;
+import java.util.Locale;
 
 /**
  * This panel shows the actual customer.
@@ -72,6 +74,9 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
 
   @SpringBean
   private KundeDao kundeDao;
+
+  @SpringBean
+  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentCustomers;
 
@@ -113,7 +118,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return getRecentCustomers().getRecents();
+        return getRecentCustomers().getRecentList();
       }
 
       @Override
@@ -217,10 +222,12 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
               .getModelObject().getId()) == false);
         }
       };
+      kundeTextField.add(AttributeModifier.append("placeholder", I18nHelper.getLocalizedMessage("fibu.kunde.text")));
       add(kundeTextField);
     } else {
       add(AbstractForm.createInvisibleDummyComponent("kundeText"));
     }
+    customerTextField.add(AttributeModifier.append("placeholder", I18nHelper.getLocalizedMessage("fibu.kunde.select")));
     add(customerTextField);
     final SubmitLink selectButton = new SubmitLink("select")
     {
@@ -308,11 +315,11 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
   private RecentQueue<String> getRecentCustomers()
   {
     if (this.recentCustomers == null) {
-      this.recentCustomers = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_CUSTOMERS);
+      this.recentCustomers = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_CUSTOMERS);
     }
     if (this.recentCustomers == null) {
       this.recentCustomers = new RecentQueue<String>();
-      UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_CUSTOMERS, this.recentCustomers, true);
+      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_CUSTOMERS, this.recentCustomers, true);
     }
     return this.recentCustomers;
   }

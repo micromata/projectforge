@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,27 +24,21 @@
 package org.projectforge.business.gantt;
 
 import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserRightAccessCheck;
-import org.projectforge.business.user.UserRightCategory;
-import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@me.de)
- * 
+ *
  */
 public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttChartRight.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttChartRight.class);
 
   private static final long serialVersionUID = -1711148447929915434L;
 
@@ -69,7 +63,7 @@ public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
    * For project managers the user must be additional of the group of the project manager group (assigned to this task)
    * or if no project manager group is available for this task the user should be a member of
    * {@link ProjectForgeGroup#PROJECT_MANAGER}.
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasSelectAccess(java.lang.Object)
    */
   @Override
@@ -86,7 +80,7 @@ public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
    * For project managers the user must be additional of the group of the project manager group (assigned to this task)
    * or if no project manager group is available for this task the user should be a member of
    * {@link ProjectForgeGroup#PROJECT_MANAGER}.
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasSelectAccess(java.lang.Object)
    */
   @Override
@@ -108,7 +102,7 @@ public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
 
   private boolean hasAccess(final PFUserDO user, final GanttChartDO obj, final GanttAccess access)
   {
-    if (accessChecker.userEqualsToContextUser(obj.getOwner()) == true) {
+    if (accessChecker.userEqualsToContextUser(obj.getOwner())) {
       // Owner has always access:
       return true;
     }
@@ -116,13 +110,13 @@ public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
       // No access defined, so only owner has access:
       return false;
     }
-    if (access.isIn(GanttAccess.ALL, GanttAccess.PROJECT_MANAGER) == true) {
+    if (access.isIn(GanttAccess.ALL, GanttAccess.PROJECT_MANAGER)) {
       if (obj.getTask() == null) {
         // Task needed for these GanttAccess types, so no access:
         return false;
       }
-      if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, OperationType.SELECT,
-          false) == false) {
+      if (!accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, OperationType.SELECT,
+          false)) {
         // User has no task access:
         return false;
       }
@@ -130,15 +124,14 @@ public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
         // User has task access:
         return true;
       }
-      final TaskTree taskTree = TaskTreeHelper.getTaskTree();
+      final TaskTree taskTree = TaskTree.getInstance();
       final ProjektDO project = taskTree.getProjekt(obj.getTaskId());
       if (project == null) {
         // Project manager group not found:
         return accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER);
       }
       // Users of the project manager group have access:
-      final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-      return userGroupCache.isUserMemberOfGroup(user, project.getProjektManagerGroupId());
+      return UserGroupCache.getInstance().isUserMemberOfGroup(user, project.getProjektManagerGroupId());
     } else {
       log.error("Unsupported GanttAccess type: " + access);
     }

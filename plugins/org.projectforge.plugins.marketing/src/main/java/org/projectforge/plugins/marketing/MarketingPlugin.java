@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,25 +23,22 @@
 
 package org.projectforge.plugins.marketing;
 
-import java.util.List;
-
 import org.projectforge.business.address.AddressDao;
-import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.menu.builder.MenuItemDef;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.web.MenuItemDef;
-import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Component
-public class MarketingPlugin extends AbstractPlugin
-{
+public class MarketingPlugin extends AbstractPlugin {
   public static final String ADDRESS_CAMPAIGN_ID = "addressCampaign";
 
   public static final String ADDRESS_CAMPAIGN_VALUE_ID = "addressCampaignValues";
@@ -51,8 +48,8 @@ public class MarketingPlugin extends AbstractPlugin
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
   // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[] { AddressCampaignDO.class,
-      AddressCampaignValueDO.class };
+  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{AddressCampaignDO.class,
+          AddressCampaignValueDO.class};
 
   @Autowired
   AddressDao addressDao;
@@ -66,31 +63,30 @@ public class MarketingPlugin extends AbstractPlugin
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  @Autowired
+  private PfEmgrFactory emgrFactory;
+
+  public MarketingPlugin() {
+    super("marketing", "Marketing", "Marketing plugin for address campaigns.");
+  }
+
   @Override
-  protected void initialize()
-  {
-    // DatabaseUpdateDao is needed by the updater:
-    MarketingPluginUpdates.dao = myDatabaseUpdater;
+  protected void initialize() {
     // Register it:
     register(ADDRESS_CAMPAIGN_ID, AddressCampaignDao.class, addressCampaignDao, "plugins.marketing.addressCampaign");
     register(ADDRESS_CAMPAIGN_VALUE_ID, AddressCampaignValueDao.class, addressCampaignValueDao,
-        "plugins.marketing.addressCampaignValue")
+            "plugins.marketing.addressCampaignValue")
             .setSearchable(false);
 
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ADDRESS_CAMPAIGN_ID, AddressCampaignListPage.class,
-        AddressCampaignEditPage.class);
+            AddressCampaignEditPage.class);
     pluginWicketRegistrationService.registerWeb(ADDRESS_CAMPAIGN_VALUE_ID, AddressCampaignValueListPage.class,
-        AddressCampaignValueEditPage.class);
+            AddressCampaignValueEditPage.class);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.MISC);
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ADDRESS_CAMPAIGN_ID, 30, "plugins.marketing.addressCampaign.menu",
-            AddressCampaignListPage.class));
-    pluginWicketRegistrationService.registerMenuItem(
-        new MenuItemDef(parentMenu, ADDRESS_CAMPAIGN_VALUE_ID, 30, "plugins.marketing.addressCampaignValue.menu",
-            AddressCampaignValueListPage.class));
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(ADDRESS_CAMPAIGN_ID, "plugins.marketing.addressCampaign.menu"), AddressCampaignListPage.class);
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(ADDRESS_CAMPAIGN_VALUE_ID, "plugins.marketing.addressCampaignValue.menu"), AddressCampaignValueListPage.class);
 
     // Define the access management:
     registerRight(new AddressCampaignRight(accessChecker));
@@ -98,20 +94,7 @@ public class MarketingPlugin extends AbstractPlugin
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);
-  }
 
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
-   */
-  @Override
-  public List<UpdateEntry> getUpdateEntries()
-  {
-    return MarketingPluginUpdates.getUpdateEntries();
-  }
-
-  @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
-    return MarketingPluginUpdates.getInitializationUpdateEntry();
+    addressDao.register(new MarketingPluginAddressDeletionListener(addressCampaignDao));
   }
 }

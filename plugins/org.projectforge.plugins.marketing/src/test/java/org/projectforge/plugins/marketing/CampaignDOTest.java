@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.plugins.marketing;
 
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.internal.junit.ArrayAsserts.assertArrayEquals;
+import org.junit.jupiter.api.Test;
 
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class CampaignDOTest
 {
@@ -47,7 +47,7 @@ public class CampaignDOTest
     final AddressCampaignDO campaign = new AddressCampaignDO();
     campaign.setValues(values);
     final String[] result = campaign.getValuesArray();
-    assertArrayEquals(result, AddressCampaignDO.getValuesArray(campaign.getValues()));
+    assertArrayEquals(result, AddressCampaignDO.Companion.getValuesArray(campaign.getValues()));
     return result;
   }
 }

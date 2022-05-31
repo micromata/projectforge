@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,7 @@
 
 package org.projectforge.fibu;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
-import java.io.Serializable;
-import java.sql.Date;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
@@ -36,40 +31,42 @@ import org.projectforge.business.fibu.RechnungFilter;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class EingangsrechnungDaoTest extends AbstractTestBase
-{
+import java.io.Serializable;
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class EingangsrechnungDaoTest extends AbstractTestBase {
   @Autowired
   private EingangsrechnungDao eingangsrechnungDao;
 
   @Test
-  public void checkAccess()
-  {
-    logon(TEST_FINANCE_USER);
+  public void checkAccess() {
+    logon(AbstractTestBase.TEST_FINANCE_USER);
     EingangsrechnungDO eingangsrechnung = new EingangsrechnungDO();
-    eingangsrechnung.setDatum(new Date(System.currentTimeMillis()));
+    eingangsrechnung.setDatum(LocalDate.now());
     eingangsrechnung.addPosition(new EingangsrechnungsPositionDO());
-    eingangsrechnung.setFaelligkeit(new Date(System.currentTimeMillis()));
+    eingangsrechnung.setFaelligkeit(LocalDate.now());
     Serializable id = eingangsrechnungDao.save(eingangsrechnung);
     eingangsrechnung = eingangsrechnungDao.getById(id);
 
-    logon(TEST_CONTROLLING_USER);
+    logon(AbstractTestBase.TEST_CONTROLLING_USER);
     eingangsrechnungDao.getById(id);
     checkNoWriteAccess(id, eingangsrechnung, "Controlling");
 
-    logon(TEST_USER);
+    logon(AbstractTestBase.TEST_USER);
     checkNoAccess(id, eingangsrechnung, "Other");
 
-    logon(TEST_PROJECT_MANAGER_USER);
+    logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
     checkNoAccess(id, eingangsrechnung, "Project manager");
 
-    logon(TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     checkNoAccess(id, eingangsrechnung, "Admin ");
   }
 
-  private void checkNoAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who)
-  {
+  private void checkNoAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who) {
     try {
       RechnungFilter filter = new RechnungFilter();
       eingangsrechnungDao.getList(filter);
@@ -87,20 +84,17 @@ public class EingangsrechnungDaoTest extends AbstractTestBase
     checkNoWriteAccess(id, eingangsrechnung, who);
   }
 
-  private void checkNoHistoryAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who)
-  {
-    assertEquals(who + " users should not have select access to history of invoices.",
-        eingangsrechnungDao.hasLoggedInUserHistoryAccess(false), false);
+  private void checkNoHistoryAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who) {
+    assertEquals(eingangsrechnungDao.hasLoggedInUserHistoryAccess(false), false,
+            who + " users should not have select access to history of invoices.");
     try {
       eingangsrechnungDao.hasLoggedInUserHistoryAccess(true);
       fail("AccessException expected: " + who + " users should not have select access to history of invoices.");
     } catch (AccessException ex) {
       // OK
     }
-    assertEquals(who + " users should not have select access to history of invoices.",
-        eingangsrechnungDao.hasLoggedInUserHistoryAccess(
-            eingangsrechnung, false),
-        false);
+    assertEquals(eingangsrechnungDao.hasLoggedInUserHistoryAccess(eingangsrechnung, false), false,
+            who + " users should not have select access to history of invoices.");
     try {
       eingangsrechnungDao.hasLoggedInUserHistoryAccess(eingangsrechnung, true);
       fail("AccessException expected: " + who + " users should not have select access to history of invoices.");
@@ -109,11 +103,10 @@ public class EingangsrechnungDaoTest extends AbstractTestBase
     }
   }
 
-  private void checkNoWriteAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who)
-  {
+  private void checkNoWriteAccess(Serializable id, EingangsrechnungDO eingangsrechnung, String who) {
     try {
       EingangsrechnungDO re = new EingangsrechnungDO();
-      re.setDatum(new Date(System.currentTimeMillis()));
+      re.setDatum(LocalDate.now());
       eingangsrechnungDao.save(re);
       fail("AccessException expected: " + who + " users should not have save access to invoices.");
     } catch (AccessException ex) {
@@ -128,8 +121,7 @@ public class EingangsrechnungDaoTest extends AbstractTestBase
     }
   }
 
-  public void setEingangsrechnungDao(EingangsrechnungDao eingangsrechnungDao)
-  {
+  public void setEingangsrechnungDao(EingangsrechnungDao eingangsrechnungDao) {
     this.eingangsrechnungDao = eingangsrechnungDao;
   }
 }

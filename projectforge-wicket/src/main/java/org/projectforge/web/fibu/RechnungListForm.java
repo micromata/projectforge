@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,25 @@
 
 package org.projectforge.web.fibu;
 
+<<<<<<< HEAD
 import org.apache.log4j.Logger;
 import org.apache.wicket.model.LambdaModel;
 import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.fibu.RechnungListFilter;
 import org.projectforge.business.fibu.RechnungsStatistik;
+=======
+import org.projectforge.business.fibu.RechnungDao;
+import org.projectforge.business.fibu.RechnungListFilter;
+import org.projectforge.business.fibu.RechnungsStatistik;
+import org.projectforge.web.wicket.LambdaModel;
+import org.slf4j.Logger;
+>>>>>>> develop
 
 public class RechnungListForm extends AbstractRechnungListForm<RechnungListFilter, RechnungListPage>
 {
   private static final long serialVersionUID = 1657084619520768905L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RechnungListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungListForm.class);
 
   @Override
   protected void init()

@@ -1,0 +1,27 @@
+version: "3.7"
+services:
+  projectforge-app:
+    image: kreinhard/projectforge
+    container_name: projectforge-app
+    restart: always
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ${HOME}/ProjectForge:/ProjectForge
+    environment:
+      # DOCKER_OPTS: so don't offer embedded data-base in setup wizard:
+      - DOCKER_OPTS="-Ddocker=stack"
+  depends_on:
+      - projectforge-db
+  projectforge-db:
+    image: postgres:12.6
+    container_name: projectforge-db
+    restart: always
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ${HOME}/ProjectForgeDB:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=***password***
+      - POSTGRES_USER=projectforge
+      - PGDATA=/var/lib/postgresql/data/pgdata

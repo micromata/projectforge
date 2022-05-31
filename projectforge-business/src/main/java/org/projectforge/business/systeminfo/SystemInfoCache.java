@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,22 +32,20 @@ import org.springframework.stereotype.Component;
 
 /**
  * Provides some system information in a cache.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  *
  */
 @Component()
 public class SystemInfoCache extends AbstractCache
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemInfoCache.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemInfoCache.class);
 
   private boolean cost2EntriesExists, projectEntriesExists, customerEntriesExists;
 
-  protected long expireTimeHours = 1;
-
   /**
    * SystemInfoCache can be used either over Spring context or with this static method.
-   * 
+   *
    * @return
    */
   public static SystemInfoCache instance()
@@ -59,7 +57,7 @@ public class SystemInfoCache extends AbstractCache
 
   /**
    * Only for internal usage on start-up of ProjectForge.
-   * 
+   *
    * @param theInstance
    */
   public static void internalInitialize(final SystemInfoCache theInstance)
@@ -98,15 +96,8 @@ public class SystemInfoCache extends AbstractCache
 
   private boolean hasTableEntries(final Class<?> entity)
   {
-    return PfEmgrFactory.get().runWoTrans((emgr) -> {
+    return PfEmgrFactory.get().runInTrans((emgr) -> {
       return emgr.createQuery(Long.class, "select count(e) from " + entity.getName() + " e").getSingleResult() != 0;
     });
   }
-
-  @Override
-  public void setExpireTimeInHours(final long expireTime)
-  {
-    this.expireTime = expireTimeHours * TICKS_PER_HOUR;
-  }
-
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.business.user;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.hibernate.search.annotations.ClassBridge;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.RightRightIdProviderService;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -43,9 +43,6 @@ public enum UserRightId implements IUserRightId
 
   //For test fix. Has to be removed.
   TEST("", "", ""),
-
-  ADMIN_TENANT("ADMIN_TENANT", "admin",
-      "access.right.admin.multitenancy"),
 
   ADMIN_CORE("ADMIN_CORE", "admin",
       "access.right.admin.core"),
@@ -65,7 +62,7 @@ public enum UserRightId implements IUserRightId
   FIBU_ACCOUNTS("FIBU_ACCOUNTS", "fibu7",
       "access.right.fibu.accounts"),
 
-  MISC_MEB("MISC_MEB", "misc1", "access.right.misc.meb"),
+  MISC_ADDRESSBOOK("MISC_ADDRESSBOOK", "misc2", "access.right.misc.addressbook"),
 
   PM_GANTT("PM_GANTT", "pm1", "access.right.pm.gantt"),
 
@@ -101,7 +98,10 @@ public enum UserRightId implements IUserRightId
       "plugins.teamcal.calendar"),
 
   PLUGIN_CALENDAR_EVENT("PLUGIN_CALENDAR_EVENT", "plugin15",
-      "plugins.teamcalendar.event");
+      "plugins.teamcalendar.event"),
+
+  CALENDAR_EVENT("CALENDAR_EVENT", "plugin15",
+    "plugins.teamcalendar.event");
 
   public static class ProviderService implements RightRightIdProviderService
   {

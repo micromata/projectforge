@@ -1,0 +1,175 @@
+# Welcome to Jekyll!
+#
+# This config file is meant for settings that affect your whole blog.
+# For technical reasons, this file is *NOT* reloaded automatically when you use
+# 'bundle exec jekyll serve'. If you change this file, please restart the server process.
+
+# Site title and description
+title:              ProjectForge
+description:        ProjectForge Documentation.
+lang:               en
+
+# Site subpath, e.g. /blog
+# baseurl:            "/projectforge"
+
+# Permalink URLs structure, for permalink style options see: https://jekyllrb.com/docs/permalinks/
+permalink:          /:title/
+
+# Site base hostname & protocol, e.g. http://example.com
+url:                https://projectforge.org
+
+# Site logo # e.g. logo.png, upload logo image file to /uploads/ folder
+logo:               logo_projectforge.gif
+
+navbar:
+  sticky:         true
+
+tipue_search:
+  include:
+    pages: true
+    collections: [docs,faqs,changelogs]
+
+asciidoc: {}
+asciidoctor:
+  base_dir: :docdir
+  safe: unsafe
+  attributes:
+    - idseparator=_
+    - source-highlighter=rouge
+    - icons=font
+
+# Default author settings
+author:
+  name:           Kai Reinhard
+  title:          Architect, Lead Developer
+  avatar:         avataaars.png
+
+# Author settings, displayed on post and doc pages if front matter references author name e.g. author: peter
+authors:
+  kai:
+    name:         Kai Reinhard
+    title:        Architect, Developer
+    avatar:       kai.png
+  fin:
+    name:         Fin Reinhard
+    title:        Developer
+    avatar:       fin.jpeg
+  wolfgang:
+    name:         Wolfgang Jung
+    title:        Architect, Developer
+    avatar:       avataaars-wolfgang.png
+  christian:
+    name:         Christian Claus
+    title:        Developer
+    avatar:       christian.jpg
+  daniel:
+    name:         Daniel Ludwig
+    title:        Developer
+    avatar:       daniel.jpg
+  roger:
+    name:         Roger Kommer
+    title:        Developer
+    avatar:       avataaars-roger.png
+  christiant:
+    name:         Christian Tausenfreund
+    title:        Developer
+    avatar:       avataaars.png
+  stefan:
+    name:         Stefan Niemczyk
+    title:        Developer
+    avatar:       avataaars.png
+  jan:
+    name:         Jan Brümmer
+    title:        Developer
+    avatar:       avataaars.png
+  johann:
+    name:         Johann Feeser
+    title:        Developer
+    avatar:       avataaars.png
+
+# Social icons displayed in footer
+social:
+  email:
+  website:        https://projectforge.org
+  facebook:
+  flickr:
+  dribbble:
+  github:         https://github.com/micromata/projectforge
+  googleplus:
+  instagram:      https://www.instagram.com/micromata/
+  linkedin:
+  pinterest:
+  twitter:        https://twitter.com/micromata
+  vimeo:          https://vimeo.com/user44553474
+  youtube:
+
+# Share button
+share:
+  post:           false # Display share buttons on a post page
+  doc:            false # Display share buttons on a doc page
+  twitter:        username # Enable by adding Twitter handle
+  facebook:       false # Enable by setting true (Facebook handle not required)
+
+# Default footer image settings
+footer:
+  copyright:      <a href="https://projectforge.org/">ProjectForge&copy</a> is a registered trade mark.
+
+  # Disqus comments shortname, requires Disqus account https://disqus.com/
+  # disqus:
+  # shortname:      # 1234
+
+# Google analytics code, get your code here https://www.google.com/analytics/
+# google_analytics:
+
+# Number of posts displayed on blog page
+paginate:           10
+
+# Blog path
+paginate_path:      "/blog/:num/"
+
+# Path to post content assets directory i.e post images, pdfs etc
+uploads:            /uploads/
+
+# Build settings
+markdown:           kramdown
+highlighter:        rouge
+
+plugins:
+  - jekyll-asciidoc
+
+gems:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-gist
+  - jekyll-avatar
+  - jekyll-asciidoc
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+
+sass:
+  style:            compressed
+
+collections:
+  docs:
+    output:         true
+  faqs:
+    output:         false
+  changelogs:
+    output:         false
+
+# Defaults
+defaults:
+  # _posts
+  - scope:
+      path:         ""
+      type:         posts
+    values:
+      layout:       post
+  # _docs
+  - scope:
+      path:         ""
+      type:         docs
+    values:
+      layout:       doc

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,7 @@
 
 package org.projectforge.web.fibu;
 
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -41,44 +35,31 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExcelExporter;
-import org.projectforge.business.excel.ExportColumn;
-import org.projectforge.business.excel.I18nExportColumn;
-import org.projectforge.business.excel.PropertyMapping;
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.EingangsrechnungDao;
-import org.projectforge.business.fibu.EingangsrechnungsStatistik;
-import org.projectforge.business.fibu.KontoCache;
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.RechnungFilter;
+import org.projectforge.business.excel.*;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.KostZuweisungExport;
-import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
-import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.CurrencyPropertyColumn;
-import org.projectforge.web.wicket.DownloadUtils;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.RowCssClass;
+import org.projectforge.rest.fibu.EingangsrechnungPagesRest;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @ListPage(editPage = EingangsrechnungEditPage.class)
 public class EingangsrechnungListPage
     extends AbstractListPage<EingangsrechnungListForm, EingangsrechnungDao, EingangsrechnungDO> implements
     IListPageColumnsCreator<EingangsrechnungDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EingangsrechnungListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungListPage.class);
 
   private static final long serialVersionUID = 4417254962066648504L;
 
@@ -86,15 +67,14 @@ public class EingangsrechnungListPage
   private EingangsrechnungDao eingangsrechnungDao;
 
   @SpringBean
-  KostZuweisungExport kostZuweisungExport;
+  private KostZuweisungExport kostZuweisungExport;
 
   @SpringBean
-  KontoCache kontoCache;
-
-  @SpringBean
-  private SEPATransferGenerator SEPATransferGenerator;
+  private KontoCache kontoCache;
 
   private EingangsrechnungsStatistik eingangsrechnungsStatistik;
+
+  private ContentMenuEntryPanel exportKostzuweisungButton;
 
   EingangsrechnungsStatistik getEingangsrechnungsStatistik()
   {
@@ -126,9 +106,13 @@ public class EingangsrechnungListPage
     this.eingangsrechnungsStatistik = null;
   }
 
-  @SuppressWarnings("serial")
   @Override
   public List<IColumn<EingangsrechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
+  {
+    return createColumns(returnToPage, sortable, false);
+  }
+
+  public List<IColumn<EingangsrechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable, final boolean isMassUpdateMode)
   {
     final List<IColumn<EingangsrechnungDO, String>> columns = new ArrayList<>();
     final CellItemListener<EingangsrechnungDO> cellItemListener = new CellItemListener<EingangsrechnungDO>()
@@ -158,7 +142,7 @@ public class EingangsrechnungListPage
       public void populateItem(final Item item, final String componentId, final IModel rowModel)
       {
         final EingangsrechnungDO eingangsrechnung = (EingangsrechnungDO) rowModel.getObject();
-        String kreditor = StringEscapeUtils.escapeHtml(eingangsrechnung.getKreditor());
+        String kreditor = StringEscapeUtils.escapeHtml4(eingangsrechnung.getKreditor());
         if (form.getSearchFilter().isShowKostZuweisungStatus() == true) {
           final BigDecimal fehlBetrag = eingangsrechnung.getKostZuweisungFehlbetrag();
           if (NumberHelper.isNotZero(fehlBetrag) == true) {
@@ -174,7 +158,7 @@ public class EingangsrechnungListPage
         addRowClick(item);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(getString("fibu.konto")), getSortable("konto", sortable),
+    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(getString("fibu.konto")), getSortable("konto.nummer", sortable),
         "konto",
         cellItemListener)
     {
@@ -198,8 +182,8 @@ public class EingangsrechnungListPage
         "datum", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(getString("fibu.rechnung.faelligkeit.short"),
         getSortable(
-            "faelligkeit", sortable),
-        "faelligkeit", cellItemListener));
+            "faelligkeitOrDiscountMaturity", sortable),
+        "faelligkeitOrDiscountMaturity", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(getString("fibu.rechnung.bezahlDatum.short"),
         getSortable(
             "bezahlDatum", sortable),
@@ -223,21 +207,9 @@ public class EingangsrechnungListPage
   {
     dataTable = createDataTable(createColumns(this, true), "datum", SortOrder.DESCENDING);
     form.add(dataTable);
-
-    final ContentMenuEntryPanel exportInvoiceButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-        new Link<Object>("link")
-        {
-          @Override
-          public void onClick()
-          {
-            EingangsrechnungListPage.this.exportInvoicesAsXML();
-          }
-        }, getString("fibu.rechnung.transferExport")).setTooltip(getString("fibu.rechnung.transferExport.tootlip"));
-    addContentMenuEntry(exportInvoiceButton);
-
     addExcelExport(getString("fibu.common.creditor"), getString("fibu.eingangsrechnungen"));
     if (Configuration.getInstance().isCostConfigured() == true) {
-      final ContentMenuEntryPanel exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+      exportKostzuweisungButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
           new Link<Object>("link")
           {
             @Override
@@ -247,8 +219,9 @@ public class EingangsrechnungListPage
             }
 
           }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
-      addContentMenuEntry(exportExcelButton);
+      addContentMenuEntry(exportKostzuweisungButton);
     }
+    addNewMassSelect(EingangsrechnungPagesRest.class);
   }
 
   /**
@@ -268,7 +241,7 @@ public class EingangsrechnungListPage
       {
         final List<ExportColumn> sortedColumns = reorderColumns(columns, "kreditor", "konto", "kontoBezeichnung",
             "betreff", "datum",
-            "faelligkeit", "bezahlDatum", "zahlBetrag");
+            "faelligkeitOrDiscountMaturity", "bezahlDatum", "zahlBetrag");
         I18nExportColumn col = new I18nExportColumn("kontoBezeichnung", "fibu.konto.bezeichnung",
             MyXlsContentProvider.LENGTH_STD);
         sortedColumns.add(2, col);
@@ -323,55 +296,6 @@ public class EingangsrechnungListPage
         mapping.add("netSum", invoice.getNetSum());
       }
     };
-  }
-
-  private void exportInvoicesAsXML()
-  {
-    refresh();
-    final RechnungFilter filter = new RechnungFilter();
-    final RechnungFilter src = form.getSearchFilter();
-    filter.setFromDate(src.getFromDate());
-    filter.setToDate(src.getToDate());
-    final List<EingangsrechnungDO> invoices = eingangsrechnungDao.getList(filter);
-
-    if (invoices == null || invoices.size() == 0) {
-      // Nothing to export.
-      form.addError("validation.error.nothingToExport");
-      return;
-    }
-
-    this.form.getFeedbackMessages().clear();
-
-    final String filename = String.format("transfer-%s.xml", DateHelper.getTimestampAsFilenameSuffix(new Date()));
-    SEPATransferResult result = this.SEPATransferGenerator.format(invoices);
-
-    if (result.isSuccessful() == false) {
-      if (result.getErrors().isEmpty()) {
-        // unknown error
-        this.log.error("Oups, xml has zero size. Filename: " + filename);
-        this.form.addError("fibu.rechnung.transferExport.error");
-        return;
-      }
-
-      List<String> brokenInvoices = new ArrayList<>();
-      DateTimeFormatter formatter = DateTimeFormatter.instance();
-
-      // check invoice
-      for (EingangsrechnungDO invoice : result.getErrors().keySet()) {
-        if (invoice.getReferenz() != null) {
-          brokenInvoices.add(invoice.getKreditor() + ", " + invoice.getReferenz() + ", " + formatter.getFormattedDate(invoice.getDatum()));
-        } else {
-          brokenInvoices.add(invoice.getKreditor() + ", " + formatter.getFormattedDate(invoice.getDatum()));
-        }
-      }
-
-      String brokenInvoicesStr = String.join("; ", brokenInvoices);
-      this.form.addError("fibu.rechnung.transferExport.error.entries", brokenInvoicesStr);
-
-      return;
-    }
-
-    DownloadUtils.setDownloadTarget(result.getXml(), filename);
   }
 
   protected void exportExcelWithCostAssignments()

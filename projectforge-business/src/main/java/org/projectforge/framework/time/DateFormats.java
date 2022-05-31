@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,14 @@
 
 package org.projectforge.framework.time;
 
-import java.util.Locale;
-
+import org.projectforge.business.configuration.ConfigurationServiceAccessor;
 import org.projectforge.common.DateFormatType;
-import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 /**
  * Date formats. All the formats base on the given defaultDateFormat. Default date formats are e. g. "dd.MM.yyyy", "dd.MM.yy", "dd/MM/yyyy",
@@ -37,8 +38,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class DateFormats
-{
+public class DateFormats {
   public static final String COMPACT_DATE = "yyyyMMdd";
 
   public static final String ISO_DATE = "yyyy-MM-dd";
@@ -61,8 +61,7 @@ public class DateFormats
    * @param dateString
    * @return true if month is used before day of month.
    */
-  public static boolean isFormatMonthFirst(final String dateString)
-  {
+  public static boolean isFormatMonthFirst(final String dateString) {
     if (dateString == null) {
       return true;
     }
@@ -79,8 +78,7 @@ public class DateFormats
    * @param dateString
    * @return the separator char.
    */
-  public static char getDateSeparatorChar(final String dateString)
-  {
+  public static char getDateSeparatorChar(final String dateString) {
     if (dateString == null) {
       return '/';
     }
@@ -98,8 +96,7 @@ public class DateFormats
    * @param dateString
    * @return true if the dateString starts with "yyyy-MM-dd", otherwise false.
    */
-  public static boolean isIsoFormat(final String dateString)
-  {
+  public static boolean isIsoFormat(final String dateString) {
     if (dateString == null) {
       return false;
     }
@@ -109,8 +106,7 @@ public class DateFormats
   /**
    * Uses default format of the logged-in user.
    */
-  public static String[] getDateParseFormats()
-  {
+  public static String[] getDateParseFormats() {
     return getDateParseFormats(ensureAndGetDefaultDateFormat());
   }
 
@@ -119,11 +115,10 @@ public class DateFormats
    *
    * @param defaultDateFormat
    */
-  public static String[] getDateParseFormats(final String defaultDateFormat)
-  {
+  public static String[] getDateParseFormats(final String defaultDateFormat) {
     // # Date/time formats (important: don't use spaces after separator char, e. g. correct is dd.MMM yyyy instead of dd. MMM yyyy):
     final String[] sa = new String[4];
-    if (defaultDateFormat.contains("yyyy") == true) {
+    if (defaultDateFormat.contains("yyyy")) {
       sa[0] = defaultDateFormat.replace("yyyy", "yy"); // First, try "yy"
       sa[1] = defaultDateFormat;
     } else {
@@ -142,9 +137,20 @@ public class DateFormats
    * @see Configuration#getDateFormats()
    * @see PFUserDO#getExcelDateFormat()
    */
-  public static String getFormatString(final DateFormatType format)
-  {
+  public static String getFormatString(final DateFormatType format) {
     return getFormatString(ensureAndGetDefaultDateFormat(), ensureAndGetDefaultTimeNotation(), format);
+  }
+
+  /**
+   * Gets the format string for the logged-in user. Uses the date format of the logged in user and if not given, it'll be set.
+   *
+   * @param format
+   * @see Configuration#getDateFormats()
+   * @see PFUserDO#getExcelDateFormat()
+   */
+  public static DateTimeFormatter getDateTimeFormatter(final DateFormatType format) {
+    final String formatString = getFormatString(ensureAndGetDefaultDateFormat(), ensureAndGetDefaultTimeNotation(), format);
+    return DateTimeFormatter.ofPattern(formatString, ThreadLocalUserContext.getLocale()).withZone(ThreadLocalUserContext.getZoneId());
   }
 
   /**
@@ -152,8 +158,7 @@ public class DateFormats
    *
    * @return
    */
-  private static String ensureAndGetDefaultDateFormat()
-  {
+  private static String ensureAndGetDefaultDateFormat() {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     String defaultDateFormat = user != null ? user.getDateFormat() : null;
     if (defaultDateFormat == null) {
@@ -170,16 +175,15 @@ public class DateFormats
    *
    * @return
    */
-  public static TimeNotation ensureAndGetDefaultTimeNotation()
-  {
+  public static TimeNotation ensureAndGetDefaultTimeNotation() {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     TimeNotation defaultTimeNotation = user != null ? user.getTimeNotation() : null;
     if (defaultTimeNotation == null) {
-      if (ConfigXml.getInstance().getDefaultTimeNotation() != null) {
-        defaultTimeNotation = ConfigXml.getInstance().getDefaultTimeNotation();
+      if (ConfigurationServiceAccessor.get().getDefaultTimeNotation() != null) {
+        defaultTimeNotation = ConfigurationServiceAccessor.get().getDefaultTimeNotation();
       } else {
         final Locale locale = ThreadLocalUserContext.getLocale();
-        if (locale != null && locale.toString().toLowerCase().startsWith("de") == true) {
+        if (locale != null && locale.toString().toLowerCase().startsWith("de")) {
           defaultTimeNotation = TimeNotation.H24;
         } else {
           defaultTimeNotation = TimeNotation.H12;
@@ -197,8 +201,7 @@ public class DateFormats
    *
    * @return
    */
-  private static String ensureAndGetDefaultExcelDateFormat()
-  {
+  private static String ensureAndGetDefaultExcelDateFormat() {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     String defaultExcelDateFormat = user != null ? user.getExcelDateFormat() : null;
     if (defaultExcelDateFormat == null) {
@@ -218,13 +221,11 @@ public class DateFormats
    * @see Configuration#getExcelDateFormats()
    * @see PFUserDO#getExcelDateFormat()
    */
-  public static String getExcelFormatString(final DateFormatType format)
-  {
+  public static String getExcelFormatString(final DateFormatType format) {
     return getExcelFormatString(ensureAndGetDefaultExcelDateFormat(), format);
   }
 
-  public static String getExcelFormatString(final String defaultExcelDateFormat, final DateFormatType format)
-  {
+  public static String getExcelFormatString(final String defaultExcelDateFormat, final DateFormatType format) {
     switch (format) {
       case DATE:
         return defaultExcelDateFormat;
@@ -239,8 +240,7 @@ public class DateFormats
     }
   }
 
-  public static String getFormatString(final String defaultDateFormat, final TimeNotation timeNotation, final DateFormatType format)
-  {
+  public static String getFormatString(final String defaultDateFormat, final TimeNotation timeNotation, final DateFormatType format) {
     switch (format) {
       case DATE:
         return defaultDateFormat;
@@ -248,20 +248,20 @@ public class DateFormats
         return "E, " + getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE);
       case DATE_WITHOUT_YEAR:
         String pattern;
-        if (defaultDateFormat.contains("yyyy") == true) {
+        if (defaultDateFormat.contains("yyyy")) {
           pattern = defaultDateFormat.replace("yyyy", "");
         } else {
           pattern = defaultDateFormat.replace("yy", "");
         }
-        if (pattern.endsWith("/") == true) {
+        if (pattern.endsWith("/")) {
           return pattern.substring(0, pattern.length() - 1);
-        } else if (pattern.startsWith("-") == true) {
+        } else if (pattern.startsWith("-")) {
           return pattern.substring(1);
         } else {
           return pattern;
         }
       case DATE_SHORT:
-        if (defaultDateFormat.contains("yyyy") == false) {
+        if (!defaultDateFormat.contains("yyyy")) {
           return defaultDateFormat;
         }
         return defaultDateFormat.replace("yyyy", "yy");
@@ -277,20 +277,23 @@ public class DateFormats
         return "EE";
       case DATE_TIME_MINUTES:
         return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE)
-            + (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm aa");
+                + (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm a");
       case DATE_TIME_SECONDS:
         return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE)
-            + (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss aa");
+                + (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss a");
+      case DATE_TIME_MILLIS:
+        return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE)
+                + (timeNotation == TimeNotation.H24 ? " HH:mm:ss.SSS" : " hh:mm:ss.SSS a");
       case DATE_TIME_SHORT_MINUTES:
         return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE_SHORT)
-            + (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm aa");
+                + (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm a");
       case DATE_TIME_SHORT_SECONDS:
         return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE_SHORT)
-            + (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss aa");
+                + (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss a");
       case TIME_OF_DAY_MINUTES:
-        return (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm aa");
+        return (timeNotation == TimeNotation.H24 ? "HH:mm" : "hh:mm a");
       case TIME_OF_DAY_SECONDS:
-        return (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss aa");
+        return (timeNotation == TimeNotation.H24 ? "HH:mm:ss" : "hh:mm:ss a");
       default:
         return defaultDateFormat;
     }

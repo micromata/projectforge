@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,38 +23,164 @@
 
 package org.projectforge.business.user;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.io.Serializable;
-import java.util.Iterator;
-import java.util.List;
-
+import org.apache.commons.collections.CollectionUtils;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.timesheet.TimesheetDO;
-import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
+import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDateTimeUtils;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class UserPrefTest extends AbstractTestBase
-{
+import java.io.Serializable;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@SuppressWarnings("deprecation")
+public class UserPrefTest extends AbstractTestBase {
   @Autowired
   private UserPrefDao userPrefDao;
 
+  static class User {
+    String firstname;
+    Locale locale;
+    TimeZone timeZone;
+    Date lastPasswordChange;
+    Date lastLogin;
+
+    static User createTestUser() {
+      User user = new User();
+      user.firstname = "Kai";
+      user.locale = Locale.GERMAN;
+      user.timeZone = DateHelper.EUROPE_BERLIN;
+      PFDateTime date = PFDateTimeUtils.parseAndCreateDateTime("2019-06-26 08:33");
+      user.lastPasswordChange = date.getUtilDate();
+      user.lastLogin = date.getSqlTimestamp();
+      return user;
+    }
+  }
+
   @Test
-  public void convertPrefParameters()
-  {
-    final PFUserDO user = getUser(TEST_USER);
+  void jsonTest() {
+    final PFUserDO loggedInUser = getUser(AbstractTestBase.TEST_USER);
+    logon(loggedInUser);
+    User user = User.createTestUser();
+    UserPrefDO userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setValueObject(user);
+    userPref.setArea("TEST_AREA");
+    userPref.setName("");
+    Integer id = userPrefDao.save(userPref);
+    userPref = userPrefDao.internalGetById(id);
+    User user2 = (User) userPrefDao.deserizalizeValueObject(userPref);
+    assertEquals(User.class.getName(), userPref.getValueTypeString());
+    assertEquals(User.class, userPref.getValueType());
+    assertEquals(user.firstname, user2.firstname);
+    assertEquals(user.locale, user2.locale);
+    assertEquals(user.timeZone, user2.timeZone);
+    assertEquals(user.lastPasswordChange.getTime(), user2.lastPasswordChange.getTime());
+    assertEquals(user.lastLogin.getTime(), user2.lastLogin.getTime());
+  }
+
+  @Test
+  void saveAndUpdateTest() {
+    final PFUserDO loggedInUser = getUser(AbstractTestBase.TEST_USER);
+    logon(loggedInUser);
+    saveAndUpdateTest("", loggedInUser);
+    saveAndUpdateTest("test", loggedInUser);
+
+    UserPrefDO userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setArea("TEST_AREA3");
+    userPref.setName("");
+    addEntry(userPref, "param1", "value1");
+    addEntry(userPref, "param2", "value2");
+    userPrefDao.internalSaveOrUpdate(userPref);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA3", "");
+    assertEquals(2, userPref.getUserPrefEntries().size());
+    assertEquals("value1", userPref.getUserPrefEntryAsString("param1"));
+    assertEquals("value2", userPref.getUserPrefEntryAsString("param2"));
+
+    userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setArea("TEST_AREA3");
+    userPref.setName("");
+    addEntry(userPref, "param1", "value1b");
+    addEntry(userPref, "param3", "value3");
+    userPrefDao.internalSaveOrUpdate(userPref);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA3", "");
+    assertEquals(2, userPref.getUserPrefEntries().size());
+    assertEquals("value1b", userPref.getUserPrefEntryAsString("param1"));
+    assertEquals("value3", userPref.getUserPrefEntryAsString("param3"));
+
+    userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setArea("TEST_AREA3");
+    userPref.setName("");
+    userPrefDao.internalSaveOrUpdate(userPref);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA3", "");
+    assertTrue(CollectionUtils.isEmpty(userPref.getUserPrefEntries()));
+
+    userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setArea("TEST_AREA4");
+    userPref.setName("");
+    userPrefDao.internalSaveOrUpdate(userPref);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA4", "");
+    assertTrue(CollectionUtils.isEmpty(userPref.getUserPrefEntries()));
+
+    userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setArea("TEST_AREA4");
+    userPref.setName("");
+    addEntry(userPref, "param1", "value1");
+    addEntry(userPref, "param2", "value2");
+    userPrefDao.internalSaveOrUpdate(userPref);
+    userPref = userPrefDao.internalQuery(loggedInUser.getId(), "TEST_AREA4", "");
+    assertEquals(2, userPref.getUserPrefEntries().size());
+    assertEquals("value1", userPref.getUserPrefEntryAsString("param1"));
+    assertEquals("value2", userPref.getUserPrefEntryAsString("param2"));
+
+  }
+
+  private void addEntry(UserPrefDO userPref, String parameter, String value) {
+    UserPrefEntryDO entry = new UserPrefEntryDO();
+    entry.setParameter(parameter);
+    entry.setValue(value);
+    userPref.addUserPrefEntry(entry);
+  }
+
+
+  private void saveAndUpdateTest(String name, PFUserDO loggedInUser) {
+    User user = User.createTestUser();
+    UserPrefDO userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setValueObject(user);
+    userPref.setArea("TEST_AREA2");
+    userPref.setName(name);
+    userPrefDao.internalSaveOrUpdate(userPref);
+    Integer id = userPref.getId();
+    userPref = new UserPrefDO();
+    userPref.setUser(loggedInUser);
+    userPref.setValueObject(user);
+    userPref.setArea("TEST_AREA2");
+    userPref.setName(name);
+    userPrefDao.internalSaveOrUpdate(userPref);
+    assertEquals(id, userPref.getId(), "Object should be updated not inserted.");
+  }
+
+  @Test
+  public void convertPrefParameters() {
+    final PFUserDO user = getUser(AbstractTestBase.TEST_USER);
     logon(user);
-    final PFUserDO user2 = getUser(TEST_USER2);
+    final PFUserDO user2 = getUser(AbstractTestBase.TEST_USER2);
     final TaskDO task = initTestDB.addTask("UserPrefTest", "root");
     UserPrefDO userPref = createUserPref(user, UserPrefArea.TIMESHEET_TEMPLATE, "test");
     TimesheetDO timesheet = createTimesheet(user2, task, "Micromata", "Wrote a test case...");
@@ -95,7 +221,7 @@ public class UserPrefTest extends AbstractTestBase
     assertEquals(1, names.length);
     assertEquals("test", names[0]);
     List<UserPrefEntryDO> dependents = userPref
-        .getDependentUserPrefEntries(userPref.getUserPrefEntry("user").getParameter());
+            .getDependentUserPrefEntries(userPref.getUserPrefEntry("user").getParameter());
     assertNull(dependents);
     dependents = userPref.getDependentUserPrefEntries(userPref.getUserPrefEntry("task").getParameter());
     assertEquals(1, dependents.size());
@@ -103,8 +229,7 @@ public class UserPrefTest extends AbstractTestBase
   }
 
   private void assertUserPrefEntry(final UserPrefEntryDO userPrefEntry, final String parameter, final Class<?> type,
-      final String valueAsString, final String i18nKey, final Integer maxLength, final String orderString)
-  {
+                                   final String valueAsString, final String i18nKey, final Integer maxLength, final String orderString) {
     assertEquals(parameter, userPrefEntry.getParameter());
     assertEquals(type, userPrefEntry.getType());
     assertEquals(i18nKey, userPrefEntry.getI18nKey());
@@ -114,8 +239,7 @@ public class UserPrefTest extends AbstractTestBase
   }
 
   private TimesheetDO createTimesheet(final PFUserDO user, final TaskDO task, final String location,
-      final String description)
-  {
+                                      final String description) {
     TimesheetDO timesheet = new TimesheetDO();
     timesheet.setUser(user);
     timesheet.setTask(task);
@@ -124,11 +248,10 @@ public class UserPrefTest extends AbstractTestBase
     return timesheet;
   }
 
-  private UserPrefDO createUserPref(final PFUserDO user, final UserPrefArea area, final String name)
-  {
+  private UserPrefDO createUserPref(final PFUserDO user, final UserPrefArea area, final String name) {
     UserPrefDO userPref = new UserPrefDO();
     userPref.setUser(user);
-    userPref.setArea(area);
+    userPref.setAreaObject(area);
     userPref.setName(name);
     return userPref;
   }

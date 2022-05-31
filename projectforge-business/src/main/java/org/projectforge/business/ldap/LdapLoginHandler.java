@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,19 @@
 
 package org.projectforge.business.ldap;
 
-import java.util.List;
-
-import javax.naming.NamingException;
-import javax.naming.directory.DirContext;
-
 import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginHandler;
+import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class LdapLoginHandler implements LoginHandler
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapSlaveLoginHandler.class);
+import javax.naming.NamingException;
+import javax.naming.directory.DirContext;
+import java.util.List;
+
+public abstract class LdapLoginHandler implements LoginHandler {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapLoginHandler.class);
 
   @Autowired
   protected LdapConnector ldapConnector;
@@ -52,6 +51,9 @@ public abstract class LdapLoginHandler implements LoginHandler
 
   @Autowired
   protected UserService userService;
+
+  @Autowired
+  protected UserDao userDao;
 
   LdapConfig ldapConfig;
 
@@ -69,8 +71,7 @@ public abstract class LdapLoginHandler implements LoginHandler
    * @see org.projectforge.business.login.LoginHandler#initialize()
    */
   @Override
-  public void initialize()
-  {
+  public void initialize() {
     if (ldapConfig == null) {
       // May-be already set by test class.
       this.ldapConfig = ldapService.getLdapConfig();
@@ -99,8 +100,7 @@ public abstract class LdapLoginHandler implements LoginHandler
    * @see org.projectforge.business.login.LoginHandler#checkStayLoggedIn(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
-  public boolean checkStayLoggedIn(final PFUserDO user)
-  {
+  public boolean checkStayLoggedIn(final PFUserDO user) {
     return loginDefaultHandler.checkStayLoggedIn(user);
   }
 
@@ -108,47 +108,41 @@ public abstract class LdapLoginHandler implements LoginHandler
    * Does nothing at default.
    *
    * @see org.projectforge.business.login.LoginHandler#passwordChanged(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   * java.lang.String)
+   * char[])
    */
   @Override
-  public void passwordChanged(final PFUserDO user, final String newPassword)
-  {
+  public void passwordChanged(final PFUserDO user, final char[] newPassword) {
   }
 
   @Override
-  public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
-  {
+  public void wlanPasswordChanged(final PFUserDO user, final char[] newPassword) {
     // Do nothing. The wlan password input field is not visible if this handler is used.
   }
 
-  public boolean isAdminUser(final PFUserDO user)
-  {
+  @Override
+  public boolean isAdminUser(final PFUserDO user) {
     return loginDefaultHandler.isAdminUser(user);
   }
 
-  protected List<LdapUser> getAllLdapUsers()
-  {
+  protected List<LdapUser> getAllLdapUsers() {
     final String organizationalUnits = ldapConfig.getUserBase();
     final List<LdapUser> ldapUsers = ldapUserDao.findAll(organizationalUnits);
     return ldapUsers;
   }
 
-  protected List<LdapUser> getAllLdapUsers(final DirContext ctx) throws NamingException
-  {
+  protected List<LdapUser> getAllLdapUsers(final DirContext ctx) throws NamingException {
     final String organizationalUnits = ldapConfig.getUserBase();
     final List<LdapUser> ldapUsers = ldapUserDao.findAll(ctx, organizationalUnits);
     return ldapUsers;
   }
 
-  protected List<LdapGroup> getAllLdapGroups()
-  {
+  protected List<LdapGroup> getAllLdapGroups() {
     final String organizationalUnits = ldapConfig.getGroupBase();
     final List<LdapGroup> ldapGroups = ldapGroupDao.findAll(organizationalUnits);
     return ldapGroups;
   }
 
-  protected List<LdapGroup> getAllLdapGroups(final DirContext ctx) throws NamingException
-  {
+  protected List<LdapGroup> getAllLdapGroups(final DirContext ctx) throws NamingException {
     final String organizationalUnits = ldapConfig.getGroupBase();
     final List<LdapGroup> ldapGroups = ldapGroupDao.findAll(ctx, organizationalUnits);
     return ldapGroups;
@@ -159,8 +153,7 @@ public abstract class LdapLoginHandler implements LoginHandler
    * @see org.projectforge.business.login.LoginHandler#hasExternalUsermanagementSystem()
    */
   @Override
-  public boolean hasExternalUsermanagementSystem()
-  {
+  public boolean hasExternalUsermanagementSystem() {
     return true;
   }
 }

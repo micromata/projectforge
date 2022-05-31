@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,15 @@
 
 package org.projectforge.framework.persistence.xstream;
 
-import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.ConverterLookup;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.hibernate.history.delta.PropertyDelta;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.projectforge.business.user.UserXmlPreferencesDO;
@@ -43,16 +40,10 @@ import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.api.IManualIndex;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.converters.Converter;
-import com.thoughtworks.xstream.converters.ConverterLookup;
-import com.thoughtworks.xstream.converters.MarshallingContext;
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.hibernate.history.delta.PropertyDelta;
+import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * Registers all read objects and saves them in the configurable order to the data base.
@@ -63,30 +54,30 @@ import de.micromata.hibernate.history.delta.PropertyDelta;
 public class XStreamSavingConverter implements Converter
 {
   /** The logger */
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(XStreamSavingConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XStreamSavingConverter.class);
 
   private final ConverterLookup defaultConv;
 
-  private final Map<Class<?>, List<Object>> allObjects = new HashMap<Class<?>, List<Object>>();
+  private final Map<Class<?>, List<Object>> allObjects = new HashMap<>();
 
-  private final Set<Class<?>> writtenObjectTypes = new HashSet<Class<?>>();
+  private final Set<Class<?>> writtenObjectTypes = new HashSet<>();
 
   // Objekte dürfen nur einmal geschrieben werden, daher merken, was bereits gespeichert wurde
-  private final Set<Object> writtenObjects = new HashSet<Object>();
+  private final Set<Object> writtenObjects = new HashSet<>();
 
   // Store the objects in the given order and all the other object types which are not listed here afterwards.
-  private final List<Class<?>> orderOfSaving = new ArrayList<Class<?>>();
+  private final List<Class<?>> orderOfSaving = new ArrayList<>();
 
   // Ignore these objects from saving because the are saved implicit by their parent objects.
-  private final Set<Class<?>> ignoreFromSaving = new HashSet<Class<?>>();
+  private final Set<Class<?>> ignoreFromSaving = new HashSet<>();
 
   // This map contains the mapping between the id's of the given xml stream and the new id's given by Hibernate. This is needed for writing
   // the history entries with the new id's.
-  private final Map<String, Serializable> entityMapping = new HashMap<String, Serializable>();
+  private final Map<String, Serializable> entityMapping = new HashMap<>();
 
-  private final List<HistoryEntry> historyEntries = new ArrayList<HistoryEntry>();
+  private final List<HistoryEntry> historyEntries = new ArrayList<>();
 
-  private final Map<String, Class<?>> historyClassMapping = new HashMap<String, Class<?>>();
+  private final Map<String, Class<?>> historyClassMapping = new HashMap<>();
 
   private Session session;
 
@@ -126,9 +117,7 @@ public class XStreamSavingConverter implements Converter
   public XStreamSavingConverter appendOrderedType(final Class<?>... types)
   {
     if (types != null) {
-      for (final Class<?> type : types) {
-        this.orderOfSaving.add(type);
-      }
+      this.orderOfSaving.addAll(Arrays.asList(types));
     }
     return this;
   }
@@ -136,9 +125,7 @@ public class XStreamSavingConverter implements Converter
   public XStreamSavingConverter appendIgnoredObjects(final Class<?>... types)
   {
     if (types != null) {
-      for (final Class<?> type : types) {
-        this.ignoreFromSaving.add(type);
-      }
+      this.ignoreFromSaving.addAll(Arrays.asList(types));
     }
     return this;
   }
@@ -150,7 +137,7 @@ public class XStreamSavingConverter implements Converter
       save(type);
     }
     for (final Map.Entry<Class<?>, List<Object>> entry : allObjects.entrySet()) {
-      if (entry.getKey().equals(PfHistoryMasterDO.class) == true) {
+      if (entry.getKey().equals(PfHistoryMasterDO.class)) {
         continue;
       }
       final Class<?> type = entry.getKey();
@@ -188,7 +175,7 @@ public class XStreamSavingConverter implements Converter
       }
       invokeHistorySetter(entry, "setDelta", List.class, null);
       id = save(entry);
-      final List<PropertyDelta> list = new ArrayList<PropertyDelta>();
+      final List<PropertyDelta> list = new ArrayList<>();
       invokeHistorySetter(entry, "setDelta", List.class, list);
       // TODO HISTORY
       //      for (final PropertyDelta deltaEntry : delta) {
@@ -231,7 +218,7 @@ public class XStreamSavingConverter implements Converter
     if (children == null || children.size() == 0) {
       return null;
     }
-    final List<Serializable> idList = new ArrayList<Serializable>(children.size());
+    final List<Serializable> idList = new ArrayList<>(children.size());
     for (final BaseDO<?> child : children) {
       idList.add(child.getId());
       child.setId(null);
@@ -253,7 +240,7 @@ public class XStreamSavingConverter implements Converter
     }
     final Iterator<Serializable> oldIdListIterator = oldIdList.iterator();
     final Iterator<? extends BaseDO<?>> childIterator = children.iterator();
-    while (oldIdListIterator.hasNext() == true) {
+    while (oldIdListIterator.hasNext()) {
       final BaseDO<?> child = childIterator.next();
       registerEntityMapping(child.getClass(), oldIdListIterator.next(), child.getId());
     }
@@ -272,36 +259,24 @@ public class XStreamSavingConverter implements Converter
       final Method method = HistoryEntry.class.getDeclaredMethod(name, parameterType);
       method.setAccessible(true);
       method.invoke(entry, value);
-    } catch (final IllegalArgumentException ex) {
+    } catch (final IllegalArgumentException | NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException ex) {
       log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.fatal("Exception encountered " + ex, ex);
-    } catch (final IllegalAccessException ex) {
-      log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.fatal("Exception encountered " + ex, ex);
-    } catch (final InvocationTargetException ex) {
-      log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.fatal("Exception encountered " + ex, ex);
-    } catch (final SecurityException ex) {
-      log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.fatal("Exception encountered " + ex, ex);
-    } catch (final NoSuchMethodException ex) {
-      log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
     }
   }
 
   private void save(final Class<?> type)
   {
-    if (ignoreFromSaving.contains(type) == true || writtenObjectTypes.contains(type) == true) {
+    if (ignoreFromSaving.contains(type) || writtenObjectTypes.contains(type)) {
       // Already written.
       return;
     }
     writtenObjectTypes.add(type);
     // Persistente Klasse?
-    if (HibernateUtils.isEntity(type) == false) {
+    if (!HibernateUtils.isEntity(type)) {
       return;
     }
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("Writing objects from type: " + type);
     }
     final List<Object> list = allObjects.get(type);
@@ -309,11 +284,11 @@ public class XStreamSavingConverter implements Converter
       return;
     }
     for (final Object obj : list) {
-      if (obj == null || writtenObjects.contains(obj) == true) {
+      if (obj == null || writtenObjects.contains(obj)) {
         // Object null or already written. Skip this item.
         continue;
       }
-      if (session.contains(obj) == true) {
+      if (session.contains(obj)) {
         continue;
       }
       try {
@@ -325,13 +300,11 @@ public class XStreamSavingConverter implements Converter
           id = save(obj);
         }
         onAfterSave(obj, id);
-        if (log.isDebugEnabled() == true) {
+        if (log.isDebugEnabled()) {
           log.debug("wrote object " + obj + " under id " + id);
         }
-      } catch (final HibernateException ex) {
-        log.fatal("Failed to write " + obj + " ex=" + ex, ex);
-      } catch (final NullPointerException ex) {
-        log.fatal("Failed to write " + obj + " ex=" + ex, ex);
+      } catch (final HibernateException | NullPointerException ex) {
+        log.error("Failed to write " + obj + " ex=" + ex, ex);
       }
     }
   }
@@ -351,9 +324,9 @@ public class XStreamSavingConverter implements Converter
   {
     final Serializable oldId = getOriginalIdentifierValue(obj);
     final Serializable id;
-    if (session.contains(obj) == false) {
+    if (!session.contains(obj)) {
       if (obj instanceof BaseDO) {
-        if (obj instanceof IManualIndex == false) {
+        if (!(obj instanceof IManualIndex)) {
           ((BaseDO<?>) obj).setId(null);
         }
         id = session.save(obj);
@@ -397,7 +370,7 @@ public class XStreamSavingConverter implements Converter
   protected void registerEntityMapping(final Class<?> entityClass, final Serializable oldId, final Serializable newId)
   {
     final Serializable registeredNewId = getNewId(entityClass, oldId);
-    if (registeredNewId != null && registeredNewId.equals(newId) == false) {
+    if (registeredNewId != null && !registeredNewId.equals(newId)) {
       log.error("Oups, double entity mapping found for entity '"
           + entityClass
           + "' with old id="
@@ -418,7 +391,7 @@ public class XStreamSavingConverter implements Converter
     if (newId == null) {
       log.error("Oups, can't find '" + entityClass + "' id '" + oldId + "'.");
       return null;
-    } else if (newId instanceof Integer == false) {
+    } else if (!(newId instanceof Integer)) {
       log.error("Oups, can't get '" + entityClass + "' id '" + oldId + "' as integer: " + newId);
       return null;
     }
@@ -458,10 +431,8 @@ public class XStreamSavingConverter implements Converter
       if (result != null) {
         registerObject(result);
       }
-    } catch (final HibernateException ex) {
-      log.fatal("Failed to write " + result + " ex=" + ex, ex);
-    } catch (final NullPointerException ex) {
-      log.fatal("Failed to write " + result + " ex=" + ex, ex);
+    } catch (final HibernateException | NullPointerException ex) {
+      log.error("Failed to write " + result + " ex=" + ex, ex);
     }
     return result;
   }
@@ -471,16 +442,16 @@ public class XStreamSavingConverter implements Converter
     if (obj == null) {
       return;
     }
-    if (HibernateUtils.isEntity(obj.getClass()) == false) {
+    if (!HibernateUtils.isEntity(obj.getClass())) {
       return;
     }
-    if (this.ignoreFromSaving.contains(obj.getClass()) == true) {
+    if (this.ignoreFromSaving.contains(obj.getClass())) {
       // Don't need this objects as "top level" objects in list. They're usually encapsulated.
       return;
     }
     List<Object> list = this.allObjects.get(obj.getClass());
     if (list == null) {
-      list = new ArrayList<Object>();
+      list = new ArrayList<>();
       this.allObjects.put(obj.getClass(), list);
     }
     list.add(obj);

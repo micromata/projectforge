@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,25 +23,22 @@
 
 package org.projectforge.web.timesheet;
 
-import java.io.Serializable;
-import java.util.List;
-
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
-import org.projectforge.business.timesheet.TimesheetPrefData;
+import org.projectforge.business.timesheet.TimesheetRecentEntry;
+import org.projectforge.business.timesheet.TimesheetRecentService;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
-import org.projectforge.web.wicket.flowlayout.AbstractFieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.AbstractGridBuilder;
-import org.projectforge.web.wicket.flowlayout.FieldProperties;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * For sharing functionality between mobile and normal edit pages.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 class TimesheetPageSupport implements Serializable
 {
@@ -57,11 +54,6 @@ class TimesheetPageSupport implements Serializable
 
   /**
    * Constructor for edit pages.
-   * @param form
-   * @param gridBuilder
-   * @param addressDao
-   * @param personalAddressDao
-   * @param address
    */
   public TimesheetPageSupport(final AbstractSecuredBasePage page, final AbstractGridBuilder< ? > gridBuilder,
       final TimesheetDao timesheetDao, final TimesheetDO timesheet)
@@ -72,22 +64,22 @@ class TimesheetPageSupport implements Serializable
     this.timesheet = timesheet;
   }
 
-  public TimesheetPrefData getTimesheetPrefData()
+  public TimesheetRecentEntry getTimesheetRecentEntry()
   {
-    TimesheetPrefData pref = (TimesheetPrefData) page.getUserPrefEntry(TimesheetEditPage.class.getName());
+    TimesheetRecentEntry pref = (TimesheetRecentEntry) page.getUserPrefEntry(TimesheetEditPage.class.getName());
     if (pref == null) {
-      pref = new TimesheetPrefData();
+      pref = new TimesheetRecentEntry();
       page.putUserPrefEntry(TimesheetEditPage.class.getName(), pref, true);
     }
     return pref;
   }
 
-  public AbstractFieldsetPanel< ? > addLocation() {
-    return addLocation(null);
+  public AbstractFieldsetPanel< ? > addLocation(final TimesheetRecentService timesheetRecentService) {
+    return addLocation(timesheetRecentService , null);
   }
 
   @SuppressWarnings("serial")
-  public AbstractFieldsetPanel< ? > addLocation(final TimesheetEditFilter filter)
+  public AbstractFieldsetPanel< ? > addLocation(final TimesheetRecentService timesheetRecentService, final TimesheetEditFilter filter)
   {
     final FieldProperties<String> props = getLocationProperties();
     final AbstractFieldsetPanel< ? > fs = gridBuilder.newFieldset(props);
@@ -110,7 +102,7 @@ class TimesheetPageSupport implements Serializable
       @Override
       protected List<String> getFavorites()
       {
-        return trimResults(getTimesheetPrefData().getRecentLocations());
+        return trimResults(timesheetRecentService.getRecentLocations());
       }
     };
     locationTextField.withMatchContains(true).withMinChars(2).withFocus(true);
@@ -126,6 +118,11 @@ class TimesheetPageSupport implements Serializable
   public FieldProperties<String> getLocationProperties()
   {
     return new FieldProperties<String>("timesheet.location", new PropertyModel<String>(timesheet, "location"));
+  }
+
+  public FieldProperties<String> getReferenceProperties()
+  {
+    return new FieldProperties<String>("timesheet.reference", new PropertyModel<String>(timesheet, "reference"));
   }
 
   private String getString(final String i18nKey)

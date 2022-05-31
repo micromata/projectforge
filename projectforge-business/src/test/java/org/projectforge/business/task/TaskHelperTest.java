@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,53 +23,67 @@
 
 package org.projectforge.business.task;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class TaskHelperTest extends AbstractTestBase
 {
   @Autowired
   private ProjektDao projektDao;
 
-  
+  @Autowired
+  private TaskTree taskTree;
 
   @Test
   public void normalizeKost2BlackWhiteList()
   {
-    final TaskDO task = new TaskDO().setKost2BlackWhiteList(null);
+    final TaskDO task = new TaskDO();
+    task.setKost2BlackWhiteList(null);
     assertNull(TaskHelper.normalizeKost2BlackWhiteList(task));
-    assertEquals("", TaskHelper.normalizeKost2BlackWhiteList(task.setKost2BlackWhiteList("")));
-    assertEquals("1", TaskHelper.normalizeKost2BlackWhiteList(task.setKost2BlackWhiteList("1")));
+    task.setKost2BlackWhiteList("");
+    assertEquals("", TaskHelper.normalizeKost2BlackWhiteList(task));
+    task.setKost2BlackWhiteList("1");
+    assertEquals("1", TaskHelper.normalizeKost2BlackWhiteList(task));
+    task.setKost2BlackWhiteList("5.212.01.12, 45;  .89");
     assertEquals(".89,45,5.212.01.12",
-        TaskHelper.normalizeKost2BlackWhiteList(task.setKost2BlackWhiteList("5.212.01.12, 45;  .89")));
+        TaskHelper.normalizeKost2BlackWhiteList(task));
+    task.setKost2BlackWhiteList("5.212.01.12,, 45;  .89");
     assertEquals(".89,45,5.212.01.12",
-        TaskHelper.normalizeKost2BlackWhiteList(task.setKost2BlackWhiteList("5.212.01.12,, 45;  .89")));
+        TaskHelper.normalizeKost2BlackWhiteList(task));
+    task.setKost2BlackWhiteList("5.212.01.12, , 45;  .89,45");
     assertEquals(".89,45,5.212.01.12",
-        TaskHelper.normalizeKost2BlackWhiteList(task.setKost2BlackWhiteList("5.212.01.12, , 45;  .89,45")));
+        TaskHelper.normalizeKost2BlackWhiteList(task));
   }
 
   @Test
   public void addKost2()
   {
-    logon(TEST_FINANCE_USER);
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree();
+    logon(AbstractTestBase.TEST_FINANCE_USER);
     final TaskDO task1 = initTestDB.addTask("addKost2", "root");
-    final ProjektDO projekt = new ProjektDO().setName("addKost2").setInternKost2_4(128).setNummer(5).setTask(task1);
+    final ProjektDO projekt = new ProjektDO();
+    projekt.setName("addKost2");
+    projekt.setInternKost2_4(128);
+    projekt.setNummer(5);
+    projekt.setTask(task1);
     projektDao.save(projekt);
     final Kost2ArtDO kost2Art = new Kost2ArtDO().withId(42);
-    final Kost2DO kost = new Kost2DO().setNummernkreis(4).setBereich(128).setTeilbereich(5).setKost2Art(kost2Art);
+    final Kost2DO kost = new Kost2DO();
+    kost.setNummernkreis(4);
+    kost.setBereich(128);
+    kost.setTeilbereich(5);
+    kost.setKost2Art(kost2Art);
     assertEquals("42", TaskHelper.addKost2(taskTree, task1, kost));
+    task1.setKost2BlackWhiteList("12,6.001.02.89,12");
     assertEquals("12,42,6.001.02.89",
-        TaskHelper.addKost2(taskTree, task1.setKost2BlackWhiteList("12,6.001.02.89,12"), kost));
+        TaskHelper.addKost2(taskTree, task1, kost));
     final TaskDO task2 = new TaskDO();
     assertEquals("4.128.05.42", TaskHelper.addKost2(taskTree, task2, kost));
     task2.setKost2BlackWhiteList("12,6.001.02.89");

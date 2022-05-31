@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,11 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.fibu.AuftragFakturiertFilterStatus;
-import org.projectforge.business.fibu.AuftragFilter;
-import org.projectforge.business.fibu.AuftragsPositionsArt;
-import org.projectforge.business.fibu.AuftragsPositionsPaymentType;
-import org.projectforge.business.fibu.AuftragsStatistik;
-import org.projectforge.business.fibu.AuftragsStatus;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.common.I18nEnumChoiceProvider;
@@ -44,17 +35,14 @@ import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
-import org.projectforge.web.wicket.flowlayout.TextStyle;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
-public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragListPage>
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AuftragListForm.class);
+import java.math.BigDecimal;
+
+public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragListPage> {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuftragListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
 
@@ -63,26 +51,26 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
 
   private AuftragsStatistik auftragsStatistik;
 
-  public AuftragListForm(final AuftragListPage parentPage)
-  {
+  public AuftragListForm(final AuftragListPage parentPage) {
     super(parentPage);
   }
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init(false);
 
     final AuftragFilter filter = getSearchFilter();
 
     // time period for erfassungsdatum
+    // TODO: What to do here?
     addTimePeriodPanel("fibu.auftrag.erfassung.datum",
         LambdaModel.of(filter::getStartDate, filter::setStartDate),
         LambdaModel.of(filter::getEndDate, filter::setEndDate)
     );
 
     // time period for period of performance
+    // TODO: What to do here?
     addTimePeriodPanel("fibu.periodOfPerformance",
         LambdaModel.of(filter::getPeriodOfPerformanceStartDate, filter::setPeriodOfPerformanceStartDate),
         LambdaModel.of(filter::getPeriodOfPerformanceEndDate, filter::setPeriodOfPerformanceEndDate)
@@ -92,88 +80,83 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     addStatistics();
   }
 
-  private void addStatistics()
-  {
+  private void addStatistics() {
     gridBuilder.newGridPanel();
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return getStatisticsValue("fibu.common.netto", getAuftragsStatistik().getNettoSum(),
             getAuftragsStatistik().getCounter());
       }
     }));
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return WebConstants.HTML_TEXT_DIVIDER
             + getStatisticsValue("akquise", getAuftragsStatistik().getAkquiseSum(),
             getAuftragsStatistik().getCounterAkquise());
       }
 
-    })
-    {
+    }) {
       @Override
-      public boolean isVisible()
-      {
+      public boolean isVisible() {
         return (getAuftragsStatistik().getCounterAkquise() > 0);
       }
     });
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return WebConstants.HTML_TEXT_DIVIDER
             + getStatisticsValue("fibu.auftrag.status.beauftragt", getAuftragsStatistik().getBeauftragtSum(),
             getAuftragsStatistik()
                 .getCounterBeauftragt());
       }
-    }, TextStyle.BLUE)
-    {
+    }, TextStyle.BLUE) {
       @Override
-      public boolean isVisible()
-      {
+      public boolean isVisible() {
         return (getAuftragsStatistik().getCounterBeauftragt() > 0);
       }
     });
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return WebConstants.HTML_TEXT_DIVIDER
-            + getStatisticsValue("fibu.fakturiert", getAuftragsStatistik().getFakturiertSum(),
-            getAuftragsStatistik().getCounterFakturiert());
+            + getStatisticsValue("fibu.fakturiert", getAuftragsStatistik().getInvoicedSum(),
+            getAuftragsStatistik().getCounterInvoiced());
       }
-    })
-    {
+    }) {
       @Override
-      public boolean isVisible()
-      {
-        return (getAuftragsStatistik().getCounterFakturiert() > 0);
+      public boolean isVisible() {
+        return (getAuftragsStatistik().getCounterInvoiced() > 0);
       }
     });
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return WebConstants.HTML_TEXT_DIVIDER
-            + getStatisticsValue("fibu.auftrag.filter.type.abgeschlossenNichtFakturiert",
-            getAuftragsStatistik().getZuFakturierenSum(),
-            getAuftragsStatistik().getCounterZuFakturieren());
+            + getStatisticsValue("fibu.notYetInvoiced",
+            getAuftragsStatistik().getNotYetInvoicedSum(),
+            getAuftragsStatistik().getCounterNotYetInvoiced());
       }
-    }, TextStyle.RED)
-    {
+    }) {
       @Override
-      public boolean isVisible()
-      {
-        return (getAuftragsStatistik().getCounterZuFakturieren() > 0);
+      public boolean isVisible() {
+        return (getAuftragsStatistik().getCounterNotYetInvoiced() > 0);
+      }
+    });
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+      @Override
+      public String getObject() {
+        return WebConstants.HTML_TEXT_DIVIDER
+            + getStatisticsValue("fibu.toBeInvoiced",
+            getAuftragsStatistik().getToBeInvoiced(),
+            getAuftragsStatistik().getCounterToBeInvoiced());
+      }
+    }, TextStyle.RED) {
+      @Override
+      public boolean isVisible() {
+        return (getAuftragsStatistik().getCounterToBeInvoiced() > 0);
       }
     });
   }
@@ -184,8 +167,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
    */
   @SuppressWarnings("serial")
   @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
-  {
+  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
     optionsFieldsetPanel.add(createAuftragsStatusMultiChoice());
     optionsFieldsetPanel.add(createAuftragsPositionsArtMultiChoice());
     optionsFieldsetPanel.add(createAuftragFakturiertDropDown());
@@ -193,8 +175,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     optionsFieldsetPanel.add(createUserSelect(optionsFieldsetPanel.newChildId()));
   }
 
-  private Select2MultiChoice<AuftragsStatus> createAuftragsStatusMultiChoice()
-  {
+  private Select2MultiChoice<AuftragsStatus> createAuftragsStatusMultiChoice() {
     return new Select2MultiChoice<>(
         Select2MultiChoicePanel.WICKET_ID,
         LambdaModel.of(getSearchFilter()::getAuftragsStatuses),
@@ -202,8 +183,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     );
   }
 
-  private Select2MultiChoice<AuftragsPositionsArt> createAuftragsPositionsArtMultiChoice()
-  {
+  private Select2MultiChoice<AuftragsPositionsArt> createAuftragsPositionsArtMultiChoice() {
     return new Select2MultiChoice<>(
         Select2MultiChoicePanel.WICKET_ID,
         LambdaModel.of(getSearchFilter()::getAuftragsPositionsArten),
@@ -211,8 +191,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     );
   }
 
-  private DropDownChoice<AuftragFakturiertFilterStatus> createAuftragFakturiertDropDown()
-  {
+  private DropDownChoice<AuftragFakturiertFilterStatus> createAuftragFakturiertDropDown() {
     final LabelValueChoiceRenderer<AuftragFakturiertFilterStatus> fakturiertChoiceRenderer = new LabelValueChoiceRenderer<>(this,
         AuftragFakturiertFilterStatus.values());
 
@@ -227,8 +206,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     return fakturiertChoice;
   }
 
-  private DropDownChoice<Integer> createAuftragsPositionsPaymentTypeDropDown()
-  {
+  private DropDownChoice<Integer> createAuftragsPositionsPaymentTypeDropDown() {
     final LabelValueChoiceRenderer<Integer> auftragsPositionsPaymentTypeChoiceRenderer = new LabelValueChoiceRenderer<>();
     auftragsPositionsPaymentTypeChoiceRenderer.addValue(-1, getString("filter.all"));
     for (final AuftragsPositionsPaymentType paymentType : AuftragsPositionsPaymentType.values()) {
@@ -246,8 +224,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     return auftragsPositionsPaymentTypeChoice;
   }
 
-  private UserSelectPanel createUserSelect(final String id)
-  {
+  private UserSelectPanel createUserSelect(final String id) {
     final UserSelectPanel userSelectPanel = new UserSelectPanel(
         id,
         LambdaModel.of(this::getUser, this::setUser),
@@ -258,24 +235,20 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     return userSelectPanel;
   }
 
-  protected void refresh()
-  {
+  protected void refresh() {
     this.auftragsStatistik = null;
   }
 
   @Override
-  public PFUserDO getUser()
-  {
+  public PFUserDO getUser() {
     return getSearchFilter().getUser();
   }
 
-  public void setUser(final PFUserDO user)
-  {
+  public void setUser(final PFUserDO user) {
     getSearchFilter().setUser(user);
   }
 
-  private Integer getAuftragsPositionsPaymentType()
-  {
+  private Integer getAuftragsPositionsPaymentType() {
     if (getSearchFilter().getAuftragsPositionsPaymentType() != null) {
       return getSearchFilter().getAuftragsPositionsPaymentType().ordinal();
     } else {
@@ -283,8 +256,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     }
   }
 
-  private void setAuftragsPositionsPaymentType(final Integer auftragsPositionsPaymentType)
-  {
+  private void setAuftragsPositionsPaymentType(final Integer auftragsPositionsPaymentType) {
     if (auftragsPositionsPaymentType == null || auftragsPositionsPaymentType == -1) {
       getSearchFilter().setAuftragsPositionsPaymentType(null);
     } else {
@@ -292,28 +264,24 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     }
   }
 
-  private AuftragsStatistik getAuftragsStatistik()
-  {
+  private AuftragsStatistik getAuftragsStatistik() {
     if (auftragsStatistik == null) {
       auftragsStatistik = auftragDao.buildStatistik(getParentPage().getList());
     }
     return auftragsStatistik;
   }
 
-  private String getStatisticsValue(final String label, final BigDecimal amount, final int count)
-  {
+  private String getStatisticsValue(final String label, final BigDecimal amount, final int count) {
     return getString(label) + ": " + CurrencyFormatter.format(amount) + " (" + count + ")";
   }
 
   @Override
-  protected AuftragFilter newSearchFilterInstance()
-  {
+  protected AuftragFilter newSearchFilterInstance() {
     return new AuftragFilter();
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

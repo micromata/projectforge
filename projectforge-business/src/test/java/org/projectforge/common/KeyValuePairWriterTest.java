@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,26 +23,25 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
-
-import java.io.StringWriter;
-import java.util.Calendar;
-import java.util.Date;
-
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.KeyValuePairWriter;
 import org.projectforge.test.AbstractTestBase;
-import org.testng.annotations.Test;
 
-public class KeyValuePairWriterTest extends AbstractTestBase
-{
+import java.io.StringWriter;
+import java.time.Month;
+import java.util.Date;
 
-  private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger
-      .getLogger(KeyValuePairWriterTest.class);
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class KeyValuePairWriterTest extends AbstractTestBase {
+
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
+          .getLogger(KeyValuePairWriterTest.class);
 
   @Test
-  public void testWritekeyValuePairs() throws Exception
-  {
-    final Date date = createDate(1970, Calendar.NOVEMBER, 21, 13, 17, 57, 742);
+  public void testWritekeyValuePairs() throws Exception {
+    final Date date = createDate(1970, Month.NOVEMBER, 21, 13, 17, 57, 742);
     log.info("Created date: " + date.toString());
     final StringWriter stringWriter = new StringWriter();
     final KeyValuePairWriter writer = new KeyValuePairWriter(stringWriter);
@@ -53,19 +52,10 @@ public class KeyValuePairWriterTest extends AbstractTestBase
     writer.write("a5", date);
     writer.write("a6", 42);
     writer.flush();
-    assertEquals("a1=\"Hallo\",a2=\"Hal\"\"lo\",a3=,a4=,a5=\"1970-11-21 13:17:57.742\",a6=42", stringWriter.toString());
+    assertEquals("a1=\"Hallo\",a2=\"Hal\"\"lo\",a3=,a4=,a5=\"1970-11-21 12:17:57.742\",a6=42", stringWriter.toString(), "Time zone Europe/Berlin expected. UTC-Date is 12:17.");
   }
 
-  private Date createDate(int year, int month, int day, int hour, int minute, int second, int millisecond)
-  {
-    Calendar c = Calendar.getInstance();
-    c.set(Calendar.YEAR, year);
-    c.set(Calendar.MONTH, month);
-    c.set(Calendar.DAY_OF_MONTH, day);
-    c.set(Calendar.HOUR_OF_DAY, hour);
-    c.set(Calendar.MINUTE, minute);
-    c.set(Calendar.SECOND, second);
-    c.set(Calendar.MILLISECOND, millisecond);
-    return c.getTime();
+  private Date createDate(int year, Month month, int day, int hour, int minute, int second, int millisecond) {
+    return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond).getUtilDate();
   }
 }

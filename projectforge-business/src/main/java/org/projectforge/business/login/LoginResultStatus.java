@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,13 +27,13 @@ import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public enum LoginResultStatus implements I18nEnum
-{
-  ADMIN_LOGIN_REQUIRED("adminLoginRequired"), /** This account is locked for x seconds due to failed login attempts. */
+public enum LoginResultStatus implements I18nEnum {
+  ADMIN_LOGIN_REQUIRED("adminLoginRequired"),
+  /**
+   * This account is locked for x seconds due to failed login attempts.
+   */
   LOGIN_TIME_OFFSET("timeOffset"), FAILED("error.loginFailed"), LOGIN_EXPIRED("error.loginExpired"), SUCCESS("success");
 
   private String key;
@@ -42,20 +42,18 @@ public enum LoginResultStatus implements I18nEnum
 
   /**
    * The key will be used e. g. for i18n.
+   *
    * @return
    */
-  public String getKey()
-  {
+  public String getKey() {
     return key;
   }
 
-  LoginResultStatus(final String key)
-  {
+  LoginResultStatus(final String key) {
     this.key = key;
   }
 
-  public boolean isIn(final LoginResultStatus... loginResult)
-  {
+  public boolean isIn(final LoginResultStatus... loginResult) {
     for (final LoginResultStatus status : loginResult) {
       if (this == status) {
         return true;
@@ -64,13 +62,11 @@ public enum LoginResultStatus implements I18nEnum
     return false;
   }
 
-  public String getI18nKey()
-  {
+  public String getI18nKey() {
     return "login." + key;
   }
 
-  public String getLocalizedMessage()
-  {
+  public String getLocalizedMessage() {
     if (this == LOGIN_TIME_OFFSET) {
       // msgParam is seconds.
       return ThreadLocalUserContext.getLocalizedMessage(getI18nKey(), msgParams);
@@ -80,11 +76,11 @@ public enum LoginResultStatus implements I18nEnum
 
   /**
    * Used for {@link #LOGIN_TIME_OFFSET} as parameter for seconds.
+   *
    * @param msgParams the msgParam to set
    * @return this for chaining.
    */
-  public LoginResultStatus setMsgParams(final Object... msgParams)
-  {
+  public LoginResultStatus setMsgParams(final Object... msgParams) {
     this.msgParams = msgParams;
     return this;
   }
@@ -92,8 +88,7 @@ public enum LoginResultStatus implements I18nEnum
   /**
    * @return the msgParam
    */
-  public Object[] getMsgParams()
-  {
+  public Object[] getMsgParams() {
     return msgParams;
   }
 }

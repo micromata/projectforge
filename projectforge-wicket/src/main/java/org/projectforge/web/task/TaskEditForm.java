@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,6 @@
 
 package org.projectforge.web.task;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -38,7 +33,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.convert.IConverter;
 import org.hibernate.Hibernate;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.gantt.GanttObjectType;
@@ -46,7 +40,7 @@ import org.projectforge.business.gantt.GanttRelationType;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.StringHelper;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.common.task.TaskStatus;
@@ -58,27 +52,23 @@ import org.projectforge.web.fibu.Kost2ListPage;
 import org.projectforge.web.fibu.Kost2SelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.IntegerPercentConverter;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
-import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 
 public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
 {
   private static final long serialVersionUID = -3784956996856970327L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TaskEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskEditForm.class);
 
   public static final BigDecimal MAX_DURATION_DAYS = new BigDecimal(10000);
 
@@ -123,7 +113,7 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       public void validate(final Form<?> form)
       {
         final MinMaxNumberField<BigDecimal> durationField = (MinMaxNumberField<BigDecimal>) dependentFormComponents[0];
-        final DatePanel endDate = (DatePanel) dependentFormComponents[1];
+        final LocalDatePanel endDate = (LocalDatePanel) dependentFormComponents[1];
         if (durationField.getConvertedInput() != null && endDate.getDateField().getConvertedInput() != null) {
           error(getString("gantt.error.durationAndEndDateAreMutuallyExclusive"));
         }
@@ -134,12 +124,12 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       // Parent task
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("task.parentTask"));
       final TaskSelectPanel parentTaskSelectPanel = new TaskSelectPanel(fs,
-          new PropertyModel<TaskDO>(data, "parentTask"), parentPage,
+          new PropertyModel<>(data, "parentTask"), parentPage,
           "parentTaskId");
       fs.add(parentTaskSelectPanel);
       fs.getFieldset().setOutputMarkupId(true);
       parentTaskSelectPanel.init();
-      if (getTaskTree().isRootNode(data) == false) {
+      if (!TaskTree.getInstance().isRootNode(data)) {
         parentTaskSelectPanel.setRequired(true);
       } else {
         fs.setVisible(false);
@@ -150,10 +140,10 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       // Title
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("task.title"));
       final MaxLengthTextField title = new RequiredMaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(data, "title"));
+          new PropertyModel<>(data, "title"));
       WicketUtils.setStrong(title);
       fs.add(title);
-      if (isNew() == true) {
+      if (isNew()) {
         WicketUtils.setFocus(title);
       }
     }
@@ -161,10 +151,10 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
     {
       // Status drop down box:
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("status"));
-      final LabelValueChoiceRenderer<TaskStatus> statusChoiceRenderer = new LabelValueChoiceRenderer<TaskStatus>(fs,
+      final LabelValueChoiceRenderer<TaskStatus> statusChoiceRenderer = new LabelValueChoiceRenderer<>(fs,
           TaskStatus.values());
-      final DropDownChoice<TaskStatus> statusChoice = new DropDownChoice<TaskStatus>(fs.getDropDownChoiceId(),
-          new PropertyModel<TaskStatus>(data, "status"), statusChoiceRenderer.getValues(), statusChoiceRenderer);
+      final DropDownChoice<TaskStatus> statusChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+          new PropertyModel<>(data, "status"), statusChoiceRenderer.getValues(), statusChoiceRenderer);
       statusChoice.setNullValid(false).setRequired(true);
       fs.add(statusChoice);
     }
@@ -172,12 +162,12 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       // Assigned user:
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("task.assignedUser"));
       PFUserDO responsibleUser = data.getResponsibleUser();
-      if (Hibernate.isInitialized(responsibleUser) == false) {
-        responsibleUser = getTenantRegistry().getUserGroupCache().getUser(responsibleUser.getId());
+      if (!Hibernate.isInitialized(responsibleUser)) {
+        responsibleUser = UserGroupCache.getInstance().getUser(responsibleUser.getId());
         data.setResponsibleUser(responsibleUser);
       }
       final UserSelectPanel responsibleUserSelectPanel = new UserSelectPanel(fs.newChildId(),
-          new PropertyModel<PFUserDO>(data,
+          new PropertyModel<>(data,
               "responsibleUser"),
           parentPage, "responsibleUserId");
       fs.add(responsibleUserSelectPanel);
@@ -187,10 +177,10 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
     {
       // Priority drop down box:
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("priority"));
-      final LabelValueChoiceRenderer<Priority> priorityChoiceRenderer = new LabelValueChoiceRenderer<Priority>(fs,
+      final LabelValueChoiceRenderer<Priority> priorityChoiceRenderer = new LabelValueChoiceRenderer<>(fs,
           Priority.values());
-      final DropDownChoice<Priority> priorityChoice = new DropDownChoice<Priority>(fs.getDropDownChoiceId(),
-          new PropertyModel<Priority>(
+      final DropDownChoice<Priority> priorityChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+          new PropertyModel<>(
               data, "priority"),
           priorityChoiceRenderer.getValues(), priorityChoiceRenderer);
       priorityChoice.setNullValid(true);
@@ -199,13 +189,13 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
     {
       // Max hours:
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("task.maxHours"));
-      final MinMaxNumberField<Integer> maxNumberField = new MinMaxNumberField<Integer>(InputPanel.WICKET_ID,
-          new PropertyModel<Integer>(
+      final MinMaxNumberField<Integer> maxNumberField = new MinMaxNumberField<>(InputPanel.WICKET_ID,
+          new PropertyModel<>(
               data, "maxHours"),
           0, 9999);
       WicketUtils.setSize(maxNumberField, 6);
       fs.add(maxNumberField);
-      if (isNew() == false && getTaskTree().hasOrderPositions(data.getId(), true) == true) {
+      if (!isNew() && TaskTree.getInstance().hasOrderPositions(data.getId(), true)) {
         WicketUtils.setWarningTooltip(maxNumberField);
         WicketUtils.addTooltip(maxNumberField, getString("task.edit.maxHoursIngoredDueToAssignedOrders"));
       }
@@ -214,14 +204,14 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
     {
       // Short description:
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("shortDescription"));
-      final IModel<String> model = new PropertyModel<String>(data, "shortDescription");
+      final IModel<String> model = new PropertyModel<>(data, "shortDescription");
       fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, model));
       fs.addJIRAField(model);
     }
     {
       // Reference
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("task.reference"));
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "reference")));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "reference")));
     }
 
     // ///////////////////////////////
@@ -248,32 +238,30 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       {
         // Gantt object type:
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("gantt.objectType"));
-        final LabelValueChoiceRenderer<GanttObjectType> objectTypeChoiceRenderer = new LabelValueChoiceRenderer<GanttObjectType>(
+        final LabelValueChoiceRenderer<GanttObjectType> objectTypeChoiceRenderer = new LabelValueChoiceRenderer<>(
             fs,
             GanttObjectType.values());
-        final DropDownChoice<GanttObjectType> objectTypeChoice = new DropDownChoice<GanttObjectType>(
+        final DropDownChoice<GanttObjectType> objectTypeChoice = new DropDownChoice<>(
             fs.getDropDownChoiceId(),
-            new PropertyModel<GanttObjectType>(data, "ganttObjectType"), objectTypeChoiceRenderer.getValues(),
+            new PropertyModel<>(data, "ganttObjectType"), objectTypeChoiceRenderer.getValues(),
             objectTypeChoiceRenderer);
         objectTypeChoice.setNullValid(true);
         fs.add(objectTypeChoice);
       }
       {
         // Gantt: start date
+        final FieldProperties<LocalDate> props = getStartDateProperties();
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("gantt.startDate"));
-        final DatePanel startDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "startDate"),
-            DatePanelSettings.get()
-                .withTargetType(java.sql.Date.class).withSelectProperty("startDate"));
-        fs.add(startDatePanel);
+        LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+        fs.add(components);
       }
       {
         // Gantt: end date
+        final FieldProperties<LocalDate> props = getEndDateProperties();
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("gantt.endDate"));
-        final DatePanel endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "endDate"),
-            DatePanelSettings.get()
-                .withTargetType(java.sql.Date.class).withSelectProperty("endDate"));
-        fs.add(endDatePanel);
-        dependentFormComponents[1] = endDatePanel;
+        LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+        fs.add(components);
+        dependentFormComponents[1] = components;
       }
 
       innerGridBuilder.newSplitPanel(GridSize.COL50);
@@ -281,14 +269,12 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
         // Progress
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("task.progress")).setUnit("%");
         final MinMaxNumberField<Integer> progressField = new MinMaxNumberField<Integer>(InputPanel.WICKET_ID,
-            new PropertyModel<Integer>(
+            new PropertyModel<>(
                 data, "progress"),
-            0, 100)
-        {
-          @SuppressWarnings({ "unchecked", "rawtypes" })
+            0, 100) {
+          @SuppressWarnings({"unchecked", "rawtypes"})
           @Override
-          public IConverter getConverter(final Class type)
-          {
+          public IConverter getConverter(final Class type) {
             return new IntegerPercentConverter(0);
           }
         };
@@ -298,8 +284,8 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       {
         // Gantt: duration
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("gantt.duration")).suppressLabelForWarning();
-        final MinMaxNumberField<BigDecimal> durationField = new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
-            new PropertyModel<BigDecimal>(data, "duration"), BigDecimal.ZERO, TaskEditForm.MAX_DURATION_DAYS);
+        final MinMaxNumberField<BigDecimal> durationField = new MinMaxNumberField<>(InputPanel.WICKET_ID,
+            new PropertyModel<>(data, "duration"), BigDecimal.ZERO, TaskEditForm.MAX_DURATION_DAYS);
         WicketUtils.setSize(durationField, 6);
         fs.add(durationField);
         dependentFormComponents[0] = durationField;
@@ -308,8 +294,8 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
         // Gantt: predecessor offset
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("gantt.predecessorOffset"))
             .setUnit(getString("days"));
-        final MinMaxNumberField<Integer> ganttPredecessorField = new MinMaxNumberField<Integer>(InputPanel.WICKET_ID,
-            new PropertyModel<Integer>(data, "ganttPredecessorOffset"), Integer.MIN_VALUE, Integer.MAX_VALUE);
+        final MinMaxNumberField<Integer> ganttPredecessorField = new MinMaxNumberField<>(InputPanel.WICKET_ID,
+            new PropertyModel<>(data, "ganttPredecessorOffset"), Integer.MIN_VALUE, Integer.MAX_VALUE);
         WicketUtils.setSize(ganttPredecessorField, 6);
         fs.add(ganttPredecessorField);
       }
@@ -317,12 +303,12 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       {
         // Gantt relation type:
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("gantt.relationType"));
-        final LabelValueChoiceRenderer<GanttRelationType> relationTypeChoiceRenderer = new LabelValueChoiceRenderer<GanttRelationType>(
+        final LabelValueChoiceRenderer<GanttRelationType> relationTypeChoiceRenderer = new LabelValueChoiceRenderer<>(
             fs,
             GanttRelationType.values());
-        final DropDownChoice<GanttRelationType> relationTypeChoice = new DropDownChoice<GanttRelationType>(
+        final DropDownChoice<GanttRelationType> relationTypeChoice = new DropDownChoice<>(
             fs.getDropDownChoiceId(),
-            new PropertyModel<GanttRelationType>(data, "ganttRelationType"), relationTypeChoiceRenderer.getValues(),
+            new PropertyModel<>(data, "ganttRelationType"), relationTypeChoiceRenderer.getValues(),
             relationTypeChoiceRenderer);
         relationTypeChoice.setNullValid(true);
         fs.add(relationTypeChoice);
@@ -331,7 +317,7 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
         // Gantt: predecessor
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("gantt.predecessor"));
         final TaskSelectPanel ganttPredecessorSelectPanel = new TaskSelectPanel(fs,
-            new PropertyModel<TaskDO>(data, "ganttPredecessor"),
+            new PropertyModel<>(data, "ganttPredecessor"),
             parentPage, "ganttPredecessorId");
         fs.add(ganttPredecessorSelectPanel);
         ganttPredecessorSelectPanel.setShowFavorites(true);
@@ -361,39 +347,37 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       final GridBuilder innerGridBuilder = extendedSettingsPanel.createGridBuilder();
       innerGridBuilder.newSplitPanel(GridSize.COL50);
 
-      if (Configuration.getInstance().isCostConfigured() == true) {
+      if (Configuration.getInstance().isCostConfigured()) {
         // Cost 2 settings
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("fibu.kost2"));
         this.projektKostLabel = new DivTextPanel(fs.newChildId(), "");
-        WicketUtils.addTooltip(projektKostLabel.getLabel(), new Model<String>()
-        {
+        WicketUtils.addTooltip(projektKostLabel.getLabel(), new Model<String>() {
           @Override
-          public String getObject()
-          {
-            final List<Kost2DO> kost2DOs = getTaskTree().getKost2List(projekt, data, data.getKost2BlackWhiteItems(),
-                data.isKost2IsBlackList());
+          public String getObject() {
+            final List<Kost2DO> kost2DOs = TaskTree.getInstance().getKost2List(projekt, data, data.getKost2BlackWhiteItems(),
+                data.getKost2IsBlackList());
             final String[] kost2s = TaskListPage.getKost2s(kost2DOs);
             if (kost2s == null || kost2s.length == 0) {
               return " - (-)";
             }
             return StringHelper.listToString("\n", kost2s);
-          };
+          }
         });
         fs.add(projektKostLabel);
-        final PropertyModel<String> model = new PropertyModel<String>(data, "kost2BlackWhiteList");
+        final PropertyModel<String> model = new PropertyModel<>(data, "kost2BlackWhiteList");
         kost2BlackWhiteTextField = new MaxLengthTextField(InputPanel.WICKET_ID, model);
         WicketUtils.setSize(kost2BlackWhiteTextField, 10);
         fs.add(kost2BlackWhiteTextField);
         final LabelValueChoiceRenderer<Boolean> kost2listTypeChoiceRenderer = new LabelValueChoiceRenderer<Boolean>() //
             .addValue(Boolean.FALSE, getString("task.kost2list.whiteList")) //
             .addValue(Boolean.TRUE, getString("task.kost2list.blackList"));
-        kost2listTypeChoice = new DropDownChoice<Boolean>(fs.getDropDownChoiceId(),
-            new PropertyModel<Boolean>(data, "kost2IsBlackList"),
+        kost2listTypeChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+            new PropertyModel<>(data, "kost2IsBlackList"),
             kost2listTypeChoiceRenderer.getValues(), kost2listTypeChoiceRenderer);
         kost2listTypeChoice.setNullValid(false);
         fs.add(kost2listTypeChoice);
         final Kost2SelectPanel kost2SelectPanel = new Kost2SelectPanel(fs.newChildId(),
-            new PropertyModel<Kost2DO>(this, "kost2Id"),
+            new PropertyModel<>(this, "kost2Id"),
             parentPage, "kost2Id")
         {
           @Override
@@ -412,10 +396,10 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       {
         // Time sheet booking status drop down box:
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("task.timesheetBooking"));
-        final LabelValueChoiceRenderer<TimesheetBookingStatus> timesheetBookingStatusChoiceRenderer = new LabelValueChoiceRenderer<TimesheetBookingStatus>(
+        final LabelValueChoiceRenderer<TimesheetBookingStatus> timesheetBookingStatusChoiceRenderer = new LabelValueChoiceRenderer<>(
             fs, TimesheetBookingStatus.values());
-        timesheetBookingStatusChoice = new DropDownChoice<TimesheetBookingStatus>(fs.getDropDownChoiceId(),
-            new PropertyModel<TimesheetBookingStatus>(data, "timesheetBookingStatus"),
+        timesheetBookingStatusChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+            new PropertyModel<>(data, "timesheetBookingStatus"),
             timesheetBookingStatusChoiceRenderer.getValues(),
             timesheetBookingStatusChoiceRenderer);
         timesheetBookingStatusChoice.setNullValid(false);
@@ -425,19 +409,17 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       {
         // Protection of privacy:
         innerGridBuilder.newFieldset(getString("task.protectionOfPrivacy"))
-            .addCheckBox(new PropertyModel<Boolean>(data, "protectionOfPrivacy"), null)
+            .addCheckBox(new PropertyModel<>(data, "protectionOfPrivacy"), null)
             .setTooltip(getString("task.protectionOfPrivacy.tooltip"));
       }
       {
         // Protection until
         final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("task.protectTimesheetsUntil"));
-        final DatePanel protectTimesheetsUntilPanel = new DatePanel(fs.newChildId(),
-            new PropertyModel<Date>(data, "protectTimesheetsUntil"),
-            DatePanelSettings.get().withTargetType(java.sql.Date.class)
-                .withSelectProperty("protectTimesheetsUntil"));
-        fs.add(protectTimesheetsUntilPanel);
-        if (getTenantRegistry().getUserGroupCache().isUserMemberOfFinanceGroup() == false) {
-          protectTimesheetsUntilPanel.setEnabled(false);
+        final FieldProperties<LocalDate> props = getProtectionProperties();
+        LocalDatePanel components = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+        fs.add(components);
+        if (!UserGroupCache.getInstance().isUserMemberOfFinanceGroup()) {
+          components.setEnabled(false);
         }
       }
     }
@@ -446,10 +428,22 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
     {
       // Description:
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("description"));
-      final IModel<String> model = new PropertyModel<String>(data, "description");
+      final IModel<String> model = new PropertyModel<>(data, "description");
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, model), true);
       fs.addJIRAField(model);
     }
+  }
+
+  private FieldProperties<LocalDate> getStartDateProperties() {
+    return new FieldProperties<>("gantt.startDate", new PropertyModel<>(data, "startDate"));
+  }
+
+  private FieldProperties<LocalDate> getEndDateProperties() {
+    return new FieldProperties<>("gantt.endDate", new PropertyModel<>(data, "endDate"));
+  }
+
+  private FieldProperties<LocalDate> getProtectionProperties() {
+    return new FieldProperties<>("task.protectTimesheetsUntil", new PropertyModel<>(data, "protectTimesheetsUntil"));
   }
 
   /**
@@ -459,13 +453,13 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
   public void onBeforeRender()
   {
     super.onBeforeRender();
-    final TaskDO task = isNew() == true ? data.getParentTask() : data;
+    final TaskDO task = isNew() ? data.getParentTask() : data;
     final boolean hasKost2AndTimesheetBookingAccess = ((TaskDao) getBaseDao())
         .hasAccessForKost2AndTimesheetBookingStatus(
             ThreadLocalUserContext.getUser(), task);
-    if (Configuration.getInstance().isCostConfigured() == true && task != null) {
+    if (Configuration.getInstance().isCostConfigured() && task != null) {
       // Cost 2 settings
-      final ProjektDO projekt = getTaskTree().getProjekt(task.getId());
+      final ProjektDO projekt = TaskTree.getInstance().getProjekt(task.getId());
       if (this.projekt == projekt) {
         return;
       }
@@ -479,14 +473,6 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
       kost2BlackWhiteTextField.setEnabled(hasKost2AndTimesheetBookingAccess);
     }
     timesheetBookingStatusChoice.setEnabled(hasKost2AndTimesheetBookingAccess);
-  }
-
-  private TaskTree getTaskTree()
-  {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
   }
 
   @Override

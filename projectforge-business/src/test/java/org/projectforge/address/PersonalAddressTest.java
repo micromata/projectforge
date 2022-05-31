@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,80 +23,58 @@
 
 package org.projectforge.address;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.PersonalAddressDO;
 import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.testng.annotations.Test;
 
-public class PersonalAddressTest extends AbstractTestBase
-{
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class PersonalAddressTest extends AbstractTestBase {
   @Autowired
   private PersonalAddressDao personalAddressDao;
 
   @Autowired
   private AddressDao addressDao;
 
-  @Autowired
-  private TransactionTemplate txTemplate;
-
   @Test
-  public void testSaveAndUpdate()
-  {
-    logon(ADMIN);
+  public void testSaveAndUpdate() {
+    logon(AbstractTestBase.ADMIN);
     final Integer[] addressIds = new Integer[1];
-    txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback()
-    {
-      public Object doInTransaction(TransactionStatus status)
-      {
-        AddressDO address = new AddressDO();
-        address.setFirstName("Kai");
-        address.setName("Reinhard");
-        address.setMobilePhone("+49 170 123 456");
-        address.setFax("+49 561 316793-11");
-        address.setBusinessPhone("+49 561 316793-0");
-        address.setPrivatePhone("+49 561 12345678");
-        addressDao.setTask(address, getTask("1.1").getId());
-        addressIds[0] = (Integer) addressDao.save(address);
+    AddressDO address = new AddressDO();
+    address.setFirstName("Kai");
+    address.setName("Reinhard");
+    address.setMobilePhone("+49 170 123 456");
+    address.setFax("+49 561 316793-11");
+    address.setBusinessPhone("+49 561 316793-0");
+    address.setPrivatePhone("+49 561 12345678");
+    addressIds[0] = (Integer) addressDao.save(address);
 
-        PersonalAddressDO personalAddress = new PersonalAddressDO();
-        AddressDO a = addressDao.getOrLoad(addressIds[0]);
-        personalAddress.setAddress(a);
-        personalAddress.setOwner(getUser(ADMIN));
-        personalAddress.setFavoriteCard(true);
-        personalAddress.setFavoriteBusinessPhone(true);
-        personalAddress.setFavoriteMobilePhone(true);
-        personalAddressDao.saveOrUpdate(personalAddress);
-        return null;
-      }
-    });
+    PersonalAddressDO personalAddress = new PersonalAddressDO();
+    AddressDO a = addressDao.getOrLoad(addressIds[0]);
+    personalAddress.setAddress(a);
+    personalAddress.setOwner(getUser(AbstractTestBase.ADMIN));
+    personalAddress.setFavoriteCard(true);
+    personalAddressDao.saveOrUpdate(personalAddress);
 
-    txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback()
-    {
-      public Object doInTransaction(TransactionStatus status)
-      {
-        PersonalAddressDO personalAddress = personalAddressDao.getByAddressId(addressIds[0]);
-        assertEquals(personalAddress.getAddressId(), addressIds[0]);
-        assertEquals(personalAddress.getOwnerId(), getUser(ADMIN).getId());
-        assertTrue(personalAddress.isFavoriteCard());
-        assertTrue(personalAddress.isFavoriteBusinessPhone());
-        assertTrue(personalAddress.isFavoriteMobilePhone());
-        assertFalse(personalAddress.isFavoritePrivatePhone());
-        assertFalse(personalAddress.isFavoriteFax());
-        return null;
-      }
-    });
+    CriteriaBuilder cb = em.getCriteriaBuilder();
+    CriteriaQuery<PersonalAddressDO> cq = cb.createQuery(PersonalAddressDO.class);
+    CriteriaQuery<PersonalAddressDO> query = cq.select(cq.from(PersonalAddressDO.class));
+
+    personalAddress = personalAddressDao.getByAddressId(addressIds[0]);
+    assertEquals(personalAddress.getAddressId(), addressIds[0]);
+    assertEquals(personalAddress.getOwnerId(), getUser(AbstractTestBase.ADMIN).getId());
+    assertTrue(personalAddress.isFavoriteCard());
+
+    PersonalAddressDO obj = personalAddressDao.getByAddressUid(personalAddress.getAddress().getUid());
+    assertEquals(personalAddress.getId(), obj.getId());
 
     /*
      * txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW); txTemplate.execute(new

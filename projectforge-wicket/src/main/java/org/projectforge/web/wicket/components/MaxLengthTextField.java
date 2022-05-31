@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,7 @@
 
 package org.projectforge.web.wicket.components;
 
-import java.lang.reflect.Field;
-
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.ChainingModel;
@@ -36,9 +34,11 @@ import org.apache.wicket.validation.validator.StringValidator;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 
+import java.lang.reflect.Field;
+
 public class MaxLengthTextField extends TextField<String>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MaxLengthTextField.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MaxLengthTextField.class);
 
   private static final long serialVersionUID = -6577192527741433068L;
 

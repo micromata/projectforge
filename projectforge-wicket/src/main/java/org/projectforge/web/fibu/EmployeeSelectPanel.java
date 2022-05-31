@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,7 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -37,16 +32,19 @@ import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.RecentQueue;
-import org.projectforge.web.user.UserPreferencesHelper;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * This panel shows the actual employee and buttons for select/unselect employee.
@@ -61,6 +59,9 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
 
   @SpringBean
   private EmployeeDao employeeDao;
+
+  @SpringBean
+  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentEmployees;
 
@@ -107,7 +108,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return getRecentEmployees().getRecents();
+        return getRecentEmployees().getRecentList();
       }
 
       @Override
@@ -164,7 +165,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
             }
             final int ind = value.indexOf(": ");
             final String username = ind >= 0 ? value.substring(0, ind) : value;
-            final PFUserDO user = getUserGroupCache().getUser(username);
+            final PFUserDO user = UserGroupCache.getInstance().getUser(username);
             if (user == null) {
               error(getString("fibu.employee.panel.error.employeeNotFound"));
               return null;
@@ -208,16 +209,6 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
     add(employeeTextField);
   }
 
-  private TenantRegistry getTenantRegistry()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  private UserGroupCache getUserGroupCache()
-  {
-    return getTenantRegistry().getUserGroupCache();
-  }
-
   private List<EmployeeDO> getFilteredEmployeeDOs(String input)
   {
     final BaseSearchFilter filter = new BaseSearchFilter();
@@ -226,7 +217,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
     final List<EmployeeDO> list = employeeDao.getList(filter);
     List<EmployeeDO> resultList = new ArrayList<>(list);
     for (EmployeeDO employeeDO : list) {
-      if (employeeDO.getAustrittsDatum() != null && new Date().after(employeeDO.getAustrittsDatum())) {
+      if (employeeDO.getAustrittsDatum() != null && LocalDate.now().isAfter(employeeDO.getAustrittsDatum())) {
         resultList.remove(resultList.indexOf(employeeDO));
       }
     }
@@ -275,11 +266,11 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
   private RecentQueue<String> getRecentEmployees()
   {
     if (this.recentEmployees == null) {
-      this.recentEmployees = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_EMPLOYEES);
+      this.recentEmployees = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_EMPLOYEES);
     }
     if (this.recentEmployees == null) {
       this.recentEmployees = new RecentQueue<String>();
-      UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_EMPLOYEES, this.recentEmployees, true);
+      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_EMPLOYEES, this.recentEmployees, true);
     }
     return this.recentEmployees;
   }

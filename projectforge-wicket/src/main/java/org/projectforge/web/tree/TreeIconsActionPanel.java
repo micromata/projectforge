@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,12 @@
 
 package org.projectforge.web.tree;
 
+<<<<<<< HEAD
 import java.io.Serializable;
 import java.util.Optional;
 
+=======
+>>>>>>> develop
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
@@ -45,6 +48,11 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.PresizedImage;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketUtils;
+<<<<<<< HEAD
+=======
+
+import java.io.Serializable;
+>>>>>>> develop
 
 /**
  * Panel showing the icons of a tree list table.
@@ -164,7 +172,7 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
   {
     this.treeNode = treeNode;
     final ContextImage spacerImage = new PresizedImage("spacer", WebConstants.IMAGE_SPACER);
-    final boolean showExploreIcon = treeNode.hasChilds();
+    final boolean showExploreIcon = treeNode.hasChildren();
     int spacerWidth;
     if (showExploreIcon == true)
       spacerWidth = treeNode.getIndent() * WebConstants.IMAGE_TREE_ICON_WIDTH + 1;
@@ -285,7 +293,7 @@ public class TreeIconsActionPanel<T extends Serializable> extends Panel
           }
         };
       }
-      folderLink.setVisible(treeNode.hasChilds() == true);
+      folderLink.setVisible(treeNode.hasChildren() == true);
       iconSpan.add(folderLink);
       folderImage = new PresizedImage("folderImage", WebConstants.IMAGE_TREE_ICON_FOLDER);
       folderImage.setOutputMarkupId(true);

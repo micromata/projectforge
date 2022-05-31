@@ -1,0 +1,20 @@
+.clickableTableHead {
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+    color: #555;
+  }
+}
+
+tbody tr.clickable {
+  cursor: pointer;
+
+  &.highlighted {
+    background-color: #f4d5cb;
+  }
+
+  &.deleted {
+    text-decoration: line-through;
+  }
+}

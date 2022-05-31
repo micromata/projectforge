@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,24 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class MonthlyEmployeeReportDao
-{
+public class MonthlyEmployeeReportDao {
   @Autowired
   private TimesheetDao timesheetDao;
 
@@ -53,10 +50,14 @@ public class MonthlyEmployeeReportDao
   @Autowired
   private VacationService vacationService;
 
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public MonthlyEmployeeReport getReport(int year, int month, PFUserDO user)
-  {
-    if (user == null || year <= 0) {
+  /**
+   * @param year
+   * @param month 1-based: 1 - January, ..., 12 - December
+   * @param user
+   * @return
+   */
+  public MonthlyEmployeeReport getReport(Integer year, Integer month, PFUserDO user) {
+    if (user == null || year == null || month == null) {
       return null;
     }
     MonthlyEmployeeReport report = new MonthlyEmployeeReport(employeeService, vacationService, user, year, month);
@@ -66,10 +67,11 @@ public class MonthlyEmployeeReportDao
     filter.setStartTime(report.getFromDate());
     filter.setStopTime(report.getToDate());
     filter.setUserId(user.getId());
-    List<TimesheetDO> list = timesheetDao.getList(filter);
-    if (CollectionUtils.isNotEmpty(list) == true) {
+    List<TimesheetDO> list = timesheetDao.internalGetList(filter, false); // Attention: No access checking!!!!
+    PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+    if (CollectionUtils.isNotEmpty(list)) {
       for (TimesheetDO sheet : list) {
-        report.addTimesheet(sheet);
+        report.addTimesheet(sheet, timesheetDao.hasUserSelectAccess(loggedInUser, sheet, false));
       }
     }
     report.calculate();

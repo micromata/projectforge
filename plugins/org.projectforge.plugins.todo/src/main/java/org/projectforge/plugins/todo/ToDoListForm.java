@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.plugins.todo;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.business.task.TaskTreeHelper;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
@@ -36,12 +36,13 @@ import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class ToDoListForm extends AbstractListForm<ToDoFilter, ToDoListPage>
 {
   private static final long serialVersionUID = -8310609149068611648L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ToDoListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ToDoListForm.class);
 
   private transient TaskTree taskTree;
 
@@ -59,7 +60,7 @@ public class ToDoListForm extends AbstractListForm<ToDoFilter, ToDoListPage>
         @Override
         public PFUserDO getObject()
         {
-          return getTenantRegistry().getUserGroupCache().getUser(getSearchFilter().getAssigneeId());
+          return UserGroupCache.getInstance().getUser(getSearchFilter().getAssigneeId());
         }
 
         @Override
@@ -86,7 +87,7 @@ public class ToDoListForm extends AbstractListForm<ToDoFilter, ToDoListPage>
         @Override
         public PFUserDO getObject()
         {
-          return getTenantRegistry().getUserGroupCache().getUser(getSearchFilter().getReporterId());
+          return UserGroupCache.getInstance().getUser(getSearchFilter().getReporterId());
         }
 
         @Override
@@ -143,19 +144,19 @@ public class ToDoListForm extends AbstractListForm<ToDoFilter, ToDoListPage>
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
   {
     optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
+        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(
             getSearchFilter(), "opened"), getString(ToDoStatus.OPENED.getI18nKey())));
     optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
+        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(
             getSearchFilter(), "reopened"), getString(ToDoStatus.RE_OPENED.getI18nKey())));
     optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
+        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(
             getSearchFilter(), "inprogress"), getString(ToDoStatus.IN_PROGRESS.getI18nKey())));
     optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
+        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(
             getSearchFilter(), "closed"), getString(ToDoStatus.CLOSED.getI18nKey())));
     optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
+        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(
             getSearchFilter(), "postponed"), getString(ToDoStatus.POSTPONED.getI18nKey())));
 
     optionsCheckBoxesPanel.add(createCheckBoxButton(

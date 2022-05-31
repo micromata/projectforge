@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,10 @@
 
 package org.projectforge.business.utils;
 
+import org.projectforge.framework.utils.KeyValueBean;
+
 import java.util.ArrayList;
 import java.util.Collection;
-
-import org.projectforge.framework.utils.KeyValueBean;
 
 /**
  * Helper for building and writing html tags.
@@ -47,7 +47,7 @@ public class HtmlTagBuilder
   public HtmlTagBuilder(String name)
   {
     this.name = name;
-    attrs = new ArrayList<KeyValueBean<String, String>>();
+    attrs = new ArrayList<>();
   }
 
   /**
@@ -92,7 +92,7 @@ public class HtmlTagBuilder
       stringBuffer.append(value);
       stringBuffer.append("\"");
     } else {
-      attrs.add(new KeyValueBean<String, String>(name, value));
+      attrs.add(new KeyValueBean<>(name, value));
     }
   }
 
@@ -117,7 +117,7 @@ public class HtmlTagBuilder
   /** Gets the start tag. The attributes added before will be ignored in quick and dirty mode. */
   public String getStartTag()
   {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     buf.append("<");
     buf.append(name);
     buf.append(">");

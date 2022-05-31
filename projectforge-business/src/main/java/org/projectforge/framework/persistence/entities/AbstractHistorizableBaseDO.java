@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,14 @@
 
 package org.projectforge.framework.persistence.entities;
 
-import java.io.Serializable;
+import de.micromata.genome.db.jpa.history.api.WithHistory;
 
 import javax.persistence.MappedSuperclass;
-
-import de.micromata.genome.db.jpa.history.api.WithHistory;
+import java.io.Serializable;
 
 /**
  * Declares lastUpdate and created as invalidHistorizableProperties.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @MappedSuperclass
@@ -39,5 +38,4 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
 public abstract class AbstractHistorizableBaseDO<I extends Serializable>extends AbstractBaseDO<I>
 {
   private static final long serialVersionUID = -5980671510045450615L;
-
 }

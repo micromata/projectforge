@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,14 @@
 
 package org.projectforge.model.rest;
 
-import java.lang.reflect.Field;
-import java.util.Date;
-
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
+import javax.xml.bind.annotation.XmlRootElement;
+import java.lang.reflect.Field;
+import java.util.Date;
 
 /**
  * For documentation please refer the ProjectForge-API: TeamEventDO object.
@@ -66,7 +64,7 @@ public class CalendarEventObject extends AbstractBaseObject
 
   private String reminderType, reminderUnit;
 
-  private Integer reminderDuration;
+  private Long reminderDuration;
 
   private String recurrenceRule, recurrenceExDate;
 
@@ -184,12 +182,12 @@ public class CalendarEventObject extends AbstractBaseObject
    * @return the reminderDuration
    * @see #getReminder()
    */
-  public Integer getReminderDuration()
+  public Long getReminderDuration()
   {
     return reminderDuration;
   }
 
-  public CalendarEventObject setReminderDuration(final Integer reminderDuration)
+  public CalendarEventObject setReminderDuration(final Long reminderDuration)
   {
     this.reminderDuration = reminderDuration;
     return this;

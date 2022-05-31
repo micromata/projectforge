@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.utils;
 
-import java.io.Serializable;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
+import java.io.Serializable;
 
 /**
  * Simply an holder for a key value property.
@@ -54,6 +54,7 @@ public class LabelValueBean<L extends Comparable<L>, V> implements Comparable<La
     this.value = value;
   }
 
+  @Override
   public V getValue()
   {
     return this.value;
@@ -63,7 +64,8 @@ public class LabelValueBean<L extends Comparable<L>, V> implements Comparable<La
   {
     this.value = value;
   }
-  
+
+  @Override
   public L getLabel()
   {
     return this.label;
@@ -79,6 +81,7 @@ public class LabelValueBean<L extends Comparable<L>, V> implements Comparable<La
   /*
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
+  @Override
   public int compareTo(LabelValueBean<L, V> o)
   {
     return this.label.compareTo(o.label);

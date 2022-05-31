@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -71,16 +71,16 @@ public class SpanPanel extends Panel
    * @see org.apache.wicket.MarkupContainer#add(org.apache.wicket.Component[])
    */
   @Override
-  public MarkupContainer add(final Component... childs)
+  public MarkupContainer add(final Component... children)
   {
     if (repeater == null) {
       if (childAdded == true) {
         throw new IllegalArgumentException("You can't add multiple children, please call newChildId instead for using a RepeatingView.");
       }
       childAdded = true;
-      return span.add(childs);
+      return span.add(children);
     } else {
-      return repeater.add(childs);
+      return repeater.add(children);
     }
   }
 

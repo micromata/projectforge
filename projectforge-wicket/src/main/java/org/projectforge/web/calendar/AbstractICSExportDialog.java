@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,18 @@
 
 package org.projectforge.web.calendar;
 
+import de.micromata.wicket.ajax.AjaxCallback;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.DomainService;
+import org.projectforge.business.teamcal.service.CalendarFeedService;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-
-import de.micromata.wicket.ajax.AjaxCallback;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -46,10 +46,13 @@ public abstract class AbstractICSExportDialog extends ModalDialog
 
   protected TextArea<String> urlTextArea;
 
-  protected QRCodeDivAppenderBehavior qrCodeDivAppenderBehavior = new QRCodeDivAppenderBehavior();;
+  protected QRCodeDivAppenderBehavior qrCodeDivAppenderBehavior = new QRCodeDivAppenderBehavior();
 
   @SpringBean
-  private ConfigurationService configurationService;
+  private DomainService domainService;
+
+  @SpringBean
+  protected CalendarFeedService calendarFeedService;
 
   /**
    * @param id
@@ -89,7 +92,7 @@ public abstract class AbstractICSExportDialog extends ModalDialog
 
   private String getFullUrl()
   {
-    final String pfBaseUrl = configurationService.getPfBaseUrl();
+    final String pfBaseUrl = domainService.getDomainWithContextPath();
     final String url = getUrl();
     return pfBaseUrl + url;
   }

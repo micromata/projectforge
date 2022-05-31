@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -28,21 +28,33 @@ import java.io.Serializable;
 /**
  * This class is usefull, if the stored object of derived classes has to be cached. After reaching expireTime during a
  * request, the method refresh will be called.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public abstract class AbstractCache implements Serializable
 {
   private static final long serialVersionUID = 7148463321579100086L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractCache.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractCache.class);
 
+  /**
+   * Milliseconds.
+   */
   public static final long TICKS_PER_SECOND = 1000;
 
+  /**
+   * Milliseconds.
+   */
   public static final long TICKS_PER_MINUTE = TICKS_PER_SECOND * 60;
 
+  /**
+   * Milliseconds.
+   */
   public static final long TICKS_PER_HOUR = TICKS_PER_MINUTE * 60;
 
+  /**
+   * Milliseconds.
+   */
   public static final long TICKS_PER_DAY = 24 * TICKS_PER_HOUR;
 
   protected long expireTime = 60 * TICKS_PER_MINUTE;
@@ -75,7 +87,7 @@ public abstract class AbstractCache implements Serializable
     this.expireTime = expireTime * TICKS_PER_SECOND;
   }
 
-  public void setExpireTimeInHours(final long expireTime)
+  public final void setExpireTimeInHours(final long expireTime)
   {
     this.expireTime = expireTime * TICKS_PER_HOUR;
   }
@@ -102,11 +114,11 @@ public abstract class AbstractCache implements Serializable
    */
   protected synchronized void checkRefresh()
   {
-    if (refreshInProgress == true) {
+    if (refreshInProgress) {
       // Do nothing because refreshing is already in progress.
       return;
     }
-    if (this.isExpired == true || System.currentTimeMillis() - this.timeOfLastRefresh > this.expireTime) {
+    if (this.isExpired || System.currentTimeMillis() - this.timeOfLastRefresh > this.expireTime) {
       try {
         refreshInProgress = true;
         this.timeOfLastRefresh = System.currentTimeMillis();
@@ -133,7 +145,7 @@ public abstract class AbstractCache implements Serializable
   /**
    * Please implement this method refreshing the stored object _data. Do not forget to call checkRefresh in your cache
    * methods.
-   * 
+   *
    * @see #checkRefresh()
    */
   protected abstract void refresh();

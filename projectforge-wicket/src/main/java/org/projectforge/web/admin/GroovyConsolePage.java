@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,32 +23,31 @@
 
 package org.projectforge.web.admin;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
-
+import groovy.lang.GroovyShell;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.configuration.SecurityConfig;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
-import groovy.lang.GroovyShell;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GroovyConsolePage extends AbstractStandardFormPage
 {
   private static final long serialVersionUID = -8866862318651809124L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroovyConsolePage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroovyConsolePage.class);
 
   @SpringBean
-  private DatabaseUpdateService myDatabaseUpdater;
+  private DatabaseService databaseService;
 
   @SpringBean
   private ConfigurationService configurationService;

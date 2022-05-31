@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,22 +23,21 @@
 
 package org.projectforge.business.gantt;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.utils.NumberHelper;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.utils.NumberHelper;
 
 public class GanttTaskImpl implements GanttTask, Serializable
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttTaskImpl.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttTaskImpl.class);
 
   private static final long serialVersionUID = -2948691380516113581L;
 
@@ -59,9 +58,9 @@ public class GanttTaskImpl implements GanttTask, Serializable
 
   private BigDecimal duration;
 
-  private Date endDate;
+  private LocalDate endDate;
 
-  private Date startDate;
+  private LocalDate startDate;
 
   private Integer progress;
 
@@ -75,11 +74,11 @@ public class GanttTaskImpl implements GanttTask, Serializable
 
   private boolean visible = false;
 
-  private transient Date calculatedStartDate;
+  private transient LocalDate calculatedStartDate;
 
   private transient boolean startDateCalculated;
 
-  private transient Date calculatedEndDate;
+  private transient LocalDate calculatedEndDate;
 
   private transient boolean endDateCalculated;
 
@@ -95,11 +94,13 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getId()
    */
+  @Override
   public Serializable getId()
   {
     return this.id;
   }
 
+  @Override
   public GanttTaskImpl setId(final Serializable id)
   {
     this.id = (Integer) id;
@@ -109,11 +110,13 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getPredecessorOffset()
    */
+  @Override
   public Integer getPredecessorOffset()
   {
     return predecessorOffset;
   }
 
+  @Override
   public GanttTaskImpl setPredecessorOffset(final Integer predecessorOffset)
   {
     this.predecessorOffset = predecessorOffset;
@@ -123,11 +126,13 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getRelationType()
    */
+  @Override
   public GanttRelationType getRelationType()
   {
     return relationType;
   }
 
+  @Override
   public GanttTaskImpl setRelationType(GanttRelationType relationType)
   {
     this.relationType = relationType;
@@ -137,17 +142,20 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getPredecessor()
    */
+  @Override
   public GanttTask getPredecessor()
   {
     return predecessor;
   }
 
+  @Override
   public GanttTaskImpl setPredecessor(GanttTask predecessor)
   {
     this.predecessor = predecessor;
     return this;
   }
 
+  @Override
   public Serializable getPredecessorId()
   {
     if (this.predecessor == null) {
@@ -159,6 +167,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getDescription()
    */
+  @Override
   public String getDescription()
   {
     return description;
@@ -173,11 +182,13 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getDuration()
    */
+  @Override
   public BigDecimal getDuration()
   {
     return duration;
   }
 
+  @Override
   public GanttTaskImpl setDuration(final BigDecimal duration)
   {
     this.duration = duration;
@@ -188,12 +199,14 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getEndDate()
    */
-  public Date getEndDate()
+  @Override
+  public LocalDate getEndDate()
   {
     return endDate;
   }
 
-  public GanttTaskImpl setEndDate(Date endDate)
+  @Override
+  public GanttTaskImpl setEndDate(LocalDate endDate)
   {
     this.endDate = endDate;
     this.startDateCalculated = this.endDateCalculated = false; // Force recalculation (also taking the children into account)
@@ -203,12 +216,14 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getStartDate()
    */
-  public Date getStartDate()
+  @Override
+  public LocalDate getStartDate()
   {
     return startDate;
   }
 
-  public GanttTaskImpl setStartDate(Date startDate)
+  @Override
+  public GanttTaskImpl setStartDate(LocalDate startDate)
   {
     this.startDate = startDate;
     this.startDateCalculated = this.endDateCalculated = false; // Force recalculation (also taking the children into account)
@@ -218,11 +233,13 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getTitle()
    */
+  @Override
   public String getTitle()
   {
     return title;
   }
 
+  @Override
   public GanttTaskImpl setTitle(String title)
   {
     this.title = title;
@@ -232,11 +249,13 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getType()
    */
+  @Override
   public GanttObjectType getType()
   {
     return type;
   }
 
+  @Override
   public GanttTaskImpl setType(GanttObjectType type)
   {
     this.type = type;
@@ -246,6 +265,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getWorkpackageCode()
    */
+  @Override
   public String getWorkpackageCode()
   {
     return workpackageCode;
@@ -260,6 +280,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getChildren()
    */
+  @Override
   public List<GanttTask> getChildren()
   {
     return this.children;
@@ -269,25 +290,27 @@ public class GanttTaskImpl implements GanttTask, Serializable
    * Sort all children by calculated start date.
    * @see org.projectforge.business.gantt.GanttTask#sortChildren()
    */
+  @Override
   public void sortChildren()
   {
     if (this.children == null) {
       return;
     }
-    Collections.sort(this.children, GanttUtils.GANTT_OBJECT_COMPARATOR);
+    this.children.sort(GanttUtils.GANTT_OBJECT_COMPARATOR);
     for (final GanttTask child : this.children) {
       child.sortChildren();
     }
   }
 
   /**
-   * 
+   *
    * @see org.projectforge.business.gantt.GanttTask#addChild(org.projectforge.business.gantt.GanttTask)
    */
+  @Override
   public GanttTaskImpl addChild(final GanttTask child)
   {
     if (this.children == null) {
-      this.children = new ArrayList<GanttTask>();
+      this.children = new ArrayList<>();
     }
     this.children.add(child);
     return this;
@@ -301,7 +324,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   {
     if (this.children == null) {
       log.error("Can't remove child object because current Gantt activity has no children: " + this);
-    } else if (this.children.remove(ganttObject) == false) {
+    } else if (!this.children.remove(ganttObject)) {
       log.error("Can't remove child object: " + ganttObject + " because it's not a child of the given activity: " + this);
     }
   }
@@ -309,11 +332,12 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#hasDuration()
    */
+  @Override
   public boolean hasDuration()
   {
     if (getCalculatedStartDate() != null && getCalculatedEndDate() != null) {
-      final DateHolder dh = new DateHolder(this.calculatedStartDate);
-      return dh.isSameDay(getCalculatedEndDate()) == false;
+      final PFDateTime dt = PFDateTime.from(this.calculatedStartDate); // not null
+      return !dt.isSameDay(PFDateTime.from(getCalculatedEndDate())); // not null
     }
     return !NumberHelper.isZeroOrNull(this.duration);
   }
@@ -321,9 +345,10 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getCalculatedStartDate()
    */
-  public Date getCalculatedStartDate()
+  @Override
+  public LocalDate getCalculatedStartDate()
   {
-    if (startDateCalculated == false) {
+    if (!startDateCalculated) {
       calculatedStartDate = GanttUtils.getCalculatedStartDate(this);
       startDateCalculated = true;
     }
@@ -331,22 +356,23 @@ public class GanttTaskImpl implements GanttTask, Serializable
   }
 
   /**
-   * @see org.projectforge.business.gantt.GanttTask#setCalculatedStartDate(java.util.Date)
+   * @see org.projectforge.business.gantt.GanttTask#setCalculatedStartDate(java.time.LocalDate)
    */
   @Override
-  public GanttTaskImpl setCalculatedStartDate(Date calculatedStartDate)
+  public GanttTaskImpl setCalculatedStartDate(LocalDate calculatedStartDate)
   {
     this.calculatedStartDate = calculatedStartDate;
     return this;
   }
 
   /**
-   * 
+   *
    * @see org.projectforge.business.gantt.GanttTask#getCalculatedEndDate()
    */
-  public Date getCalculatedEndDate()
+  @Override
+  public LocalDate getCalculatedEndDate()
   {
-    if (endDateCalculated == false) {
+    if (!endDateCalculated) {
       calculatedEndDate = GanttUtils.getCalculatedEndDate(this);
       endDateCalculated = true;
     }
@@ -354,10 +380,10 @@ public class GanttTaskImpl implements GanttTask, Serializable
   }
 
   /**
-   * @see org.projectforge.business.gantt.GanttTask#setCalculatedEndDate(java.util.Date)
+   * @see org.projectforge.business.gantt.GanttTask#setCalculatedEndDate(java.time.LocalDate)
    */
   @Override
-  public GanttTaskImpl setCalculatedEndDate(Date calculatedEndDate)
+  public GanttTaskImpl setCalculatedEndDate(LocalDate calculatedEndDate)
   {
     this.calculatedEndDate = calculatedEndDate;
     return this;
@@ -369,7 +395,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   @Override
   public boolean isStartDateCalculated()
   {
-    return this.startDateCalculated == true;
+    return this.startDateCalculated;
   }
 
   /**
@@ -405,6 +431,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
    * Default: true.
    * @see org.projectforge.business.gantt.GanttTask#isVisible()
    */
+  @Override
   public boolean isVisible()
   {
     return this.visible;
@@ -413,6 +440,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#setVisible(boolean)
    */
+  @Override
   public GanttTask setVisible(boolean visible)
   {
     this.visible = visible;
@@ -436,11 +464,13 @@ public class GanttTaskImpl implements GanttTask, Serializable
   /**
    * @see org.projectforge.business.gantt.GanttTask#getProgress()
    */
+  @Override
   public Integer getProgress()
   {
     return progress;
   }
 
+  @Override
   public GanttTaskImpl setProgress(Integer progress)
   {
     this.progress = progress;
@@ -451,6 +481,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
    * Sets the calculated start and end dates (including the children) to null (recalculation is forced when calculated time will be needed). <br/>
    * Please note: The calculation is only done at the first usage.
    */
+  @Override
   public GanttTaskImpl recalculate()
   {
     this.calculatedStartDate = this.calculatedEndDate = null;
@@ -482,7 +513,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
       return true;
     }
     for (final GanttTask child : this.children) {
-      if (((GanttTaskImpl) child).checkCyclicReferences(depth + 1) == false) {
+      if (!((GanttTaskImpl) child).checkCyclicReferences(depth + 1)) {
         return false;
       }
     }
@@ -501,9 +532,10 @@ public class GanttTaskImpl implements GanttTask, Serializable
     return tos.toString();
   }
 
+  @Override
   public GanttTask findBy(final Matcher<GanttTask> matcher, final Object expression)
   {
-    if (matcher.match(this, expression) == true) {
+    if (matcher.match(this, expression)) {
       return this;
     }
     if (this.children != null) {
@@ -517,46 +549,54 @@ public class GanttTaskImpl implements GanttTask, Serializable
     return null;
   }
 
+  @Override
   public GanttTask findById(final Serializable id)
   {
     return findBy(new Matcher<GanttTask>() {
+      @Override
       public boolean match(GanttTask object, Object expression)
       {
-        return (object.getId() != null && object.getId().equals(expression) == true);
+        return (object.getId() != null && object.getId().equals(expression));
       }
     }, id);
   }
 
+  @Override
   public GanttTask findByTitle(final String title)
   {
     return findBy(new Matcher<GanttTask>() {
+      @Override
       public boolean match(GanttTask object, Object expression)
       {
-        return (StringUtils.equals(object.getTitle(), (String) expression) == true);
+        return (StringUtils.equals(object.getTitle(), (String) expression));
       }
     }, title);
   }
 
+  @Override
   public GanttTask findByWorkpackageCode(String workpackageCode)
   {
     return findBy(new Matcher<GanttTask>() {
+      @Override
       public boolean match(GanttTask object, Object expression)
       {
-        return (StringUtils.equals(object.getWorkpackageCode(), (String) expression) == true);
+        return (StringUtils.equals(object.getWorkpackageCode(), (String) expression));
       }
     }, workpackageCode);
   }
 
+  @Override
   public GanttTask findParent(final Serializable id)
   {
     return findBy(new Matcher<GanttTask>() {
+      @Override
       public boolean match(GanttTask object, Object expression)
       {
-        if (CollectionUtils.isEmpty(object.getChildren()) == true) {
+        if (CollectionUtils.isEmpty(object.getChildren())) {
           return false;
         }
         for (final GanttTask child : object.getChildren()) {
-          if (child.getId() != null && child.getId().equals(expression) == true) {
+          if (child.getId() != null && child.getId().equals(expression)) {
             return true;
           }
         }

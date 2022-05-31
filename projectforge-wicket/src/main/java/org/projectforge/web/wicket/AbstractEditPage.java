@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,7 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
+import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -44,7 +40,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -59,8 +54,11 @@ import org.projectforge.web.admin.WizardPage;
 import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.user.UserPropertyColumn;
 import org.projectforge.web.wicket.flowlayout.DiffTextPanel;
+import org.slf4j.Logger;
 
-import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F extends AbstractEditForm<O, ?>, D extends IPersistenceService<O>>
     extends
@@ -91,9 +89,6 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
 
   @SpringBean
   protected DateTimeFormatter dateTimeFormatter;
-
-  @SpringBean
-  private TenantChecker tenantChecker;
 
   protected EditPageSupport<O, D, AbstractEditPage<O, F, D>> editPageSupport;
 
@@ -135,7 +130,6 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
         if (data == null) {
           data = getBaseDao().newInstance();
         }
-        tenantChecker.setCurrentTenant(data);
       }
     }
     form = newEditForm(this, data);
@@ -447,6 +441,8 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
   {
     if (this.returnToPage != null) {
       setResponsePageAndHighlightedRow(this.returnToPage);
+    } else if (this.returnToPageClass != null) {
+      setResponsePage(this.returnToPageClass, returnToPageParameters);
     } else {
       final EditPage ann = getClass().getAnnotation(EditPage.class);
       final Class<? extends WebPage> redirectPage;

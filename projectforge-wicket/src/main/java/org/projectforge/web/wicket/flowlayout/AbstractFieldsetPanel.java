@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.wicket.flowlayout;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -33,13 +30,7 @@ import org.apache.wicket.extensions.ajax.markup.html.AjaxEditableLabel;
 import org.apache.wicket.extensions.markup.html.form.select.Select;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.LabeledWebMarkupContainer;
-import org.apache.wicket.markup.html.form.PasswordTextField;
-import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -50,6 +41,9 @@ import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketUtils;
 import org.wicketstuff.select2.Select2MultiChoice;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents a entry of a group panel. This can be a label, text field or other form components.
  *
@@ -59,7 +53,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
 {
   private static final long serialVersionUID = -4215154959282166107L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractFieldsetPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractFieldsetPanel.class);
 
   protected WebMarkupContainer fieldset;
 
@@ -134,23 +128,23 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
     return getThis();
   }
 
-  public Component superAdd(final Component... childs)
+  public Component superAdd(final Component... children)
   {
-    return super.add(childs);
+    return super.add(children);
   }
 
   /**
    * @see org.apache.wicket.MarkupContainer#add(org.apache.wicket.Component[])
    */
   @Override
-  public MarkupContainer add(final Component... childs)
+  public MarkupContainer add(final Component... children)
   {
-    checkLabelFor(childs);
-    for (final Component component : childs) {
+    checkLabelFor(children);
+    for (final Component component : children) {
       modifyAddedChild(component);
       addFormComponent(component);
     }
-    return fieldsRepeater.add(childs);
+    return fieldsRepeater.add(children);
   }
 
   private void addFormComponent(final Component component)
@@ -168,7 +162,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
   /**
    * Checks all child form components and calls {@link FormComponent#isValid()}.
    *
-   * @return true if all childs are valid, otherwise false (if any child is invalid);
+   * @return true if all children are valid, otherwise false (if any child is invalid);
    */
   public boolean isValid()
   {
@@ -184,7 +178,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
    * @return true if any form child has a feedback message.
    * @see org.apache.wicket.Component#hasFeedbackMessage()
    */
-  public boolean hasFormChildsFeedbackMessage()
+  public boolean hasFormChildrenFeedbackMessage()
   {
     for (final FormComponent<?> formComponent : allFormComponents) {
       if (formComponent.hasFeedbackMessage() == true) {
@@ -194,9 +188,9 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
     return false;
   }
 
-  public String getFormChildsFeedbackMessages(final boolean markAsRendered)
+  public String getFormChildrenFeedbackMessages(final boolean markAsRendered)
   {
-    if (hasFormChildsFeedbackMessage() == false) {
+    if (hasFormChildrenFeedbackMessage() == false) {
       return null;
     }
     final StringBuffer buf = new StringBuffer();
@@ -429,7 +423,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
 
   }
 
-  protected abstract MarkupContainer addChild(Component... childs);
+  protected abstract MarkupContainer addChild(Component... children);
 
   private void checkLabelFor(final Component... components)
   {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,19 +23,12 @@
 
 package org.projectforge.export;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.projectforge.business.excel.CellFormat;
 import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExportCell;
 import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.excel.XlsContentProvider;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.KundeFormatter;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.ProjektFormatter;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.common.DateFormatType;
@@ -43,9 +36,9 @@ import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.PFDateTime;
 
 public class MyXlsContentProvider extends XlsContentProvider
 {
@@ -67,7 +60,7 @@ public class MyXlsContentProvider extends XlsContentProvider
   public MyXlsContentProvider(final ExportWorkbook workbook)
   {
     super(new MyXlsExportContext(), workbook);
-    defaultFormatMap.put(DateHolder.class, new CellFormat("YYYY-MM-DD").setAutoDatePrecision(true)); // format unused.
+    defaultFormatMap.put(PFDateTime.class, new CellFormat("YYYY-MM-DD").setAutoDatePrecision(true)); // format unused.
     defaultFormatMap.put(DayHolder.class, new CellFormat(DateFormats.getExcelFormatString(DateFormatType.DATE)));
   }
 
@@ -77,9 +70,7 @@ public class MyXlsContentProvider extends XlsContentProvider
   @Override
   public Object getCustomizedValue(final Object value)
   {
-    if (value instanceof DateHolder) {
-      return ((DateHolder) value).getCalendar();
-    } else if (value instanceof PFUserDO) {
+    if (value instanceof PFUserDO) {
       return ((PFUserDO) value).getFullname();
     } else if (value instanceof I18nEnum) {
       return ThreadLocalUserContext.getLocalizedString(((I18nEnum) value).getI18nKey());
@@ -101,21 +92,17 @@ public class MyXlsContentProvider extends XlsContentProvider
     return null;
   }
 
-  /**
-   * @see XlsContentProvider#getCellFormat(ExportCell, java.lang.Object, java.lang.String,
-   * java.util.Map)
-   */
   @Override
   protected CellFormat getCustomizedCellFormat(final CellFormat format, final Object value)
   {
-    if (value == null || DateHolder.class.isAssignableFrom(value.getClass()) == false) {
+    if (value == null || !PFDateTime.class.isAssignableFrom(value.getClass())) {
       return null;
     }
-    if (format != null && BooleanUtils.isTrue(format.getAutoDatePrecision()) == false) {
+    if (format != null && !BooleanUtils.isTrue(format.getAutoDatePrecision())) {
       return null;
     }
     // Find a format dependent on the precision:
-    final DatePrecision precision = ((DateHolder) value).getPrecision();
+    final DatePrecision precision = ((PFDateTime) value).getPrecision();
     if (precision == DatePrecision.DAY) {
       return new CellFormat(DateFormats.getExcelFormatString(DateFormatType.DATE));
     } else if (precision == DatePrecision.SECOND) {

@@ -1,7 +1,30 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.common.task;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import static org.projectforge.common.task.TaskStatus.*;
 
@@ -11,42 +34,37 @@ public class TaskStatusTest
   public void testGetTaskStatus()
   {
 
-    Assert.assertEquals(getTaskStatus("N"), N);
-    Assert.assertEquals(getTaskStatus("O"), O);
-    Assert.assertEquals(getTaskStatus("C"), C);
+    Assertions.assertEquals(getTaskStatus("N"), N);
+    Assertions.assertEquals(getTaskStatus("O"), O);
+    Assertions.assertEquals(getTaskStatus("C"), C);
     try {
       getTaskStatus("");
     } catch (UnsupportedOperationException e) {
-      Assert.assertNotNull(e);
+      Assertions.assertNotNull(e);
     }
   }
 
   @Test
   public void testIsIn()
   {
-    Assert.assertTrue(N.isIn(O, C, N));
-    Assert.assertFalse(O.isIn(C, N));
-    Assert.assertFalse(C.isIn(new TaskStatus[] {}));
-    try {
-      Assert.assertFalse(C.isIn(null));
-    } catch (NullPointerException e) {
-      Assert.assertNotNull(e);
-    }
+    Assertions.assertTrue(N.isIn(O, C, N));
+    Assertions.assertFalse(O.isIn(C, N));
+    Assertions.assertFalse(C.isIn(new TaskStatus[] {}));
   }
 
   @Test
   public void testGetKeyAndI18nKey()
   {
     String notOpened = "notOpened";
-    Assert.assertEquals(N.getKey(), notOpened);
+    Assertions.assertEquals(N.getKey(), notOpened);
     String opened = "opened";
-    Assert.assertEquals(O.getKey(), opened);
+    Assertions.assertEquals(O.getKey(), opened);
     String closed = "closed";
-    Assert.assertEquals(C.getKey(), closed);
+    Assertions.assertEquals(C.getKey(), closed);
 
     String pre = "task.status.";
-    Assert.assertEquals(N.getI18nKey(), pre + notOpened);
-    Assert.assertEquals(O.getI18nKey(), pre + opened);
-    Assert.assertEquals(C.getI18nKey(), pre + closed);
+    Assertions.assertEquals(N.getI18nKey(), pre + notOpened);
+    Assertions.assertEquals(O.getI18nKey(), pre + opened);
+    Assertions.assertEquals(C.getI18nKey(), pre + closed);
   }
 }

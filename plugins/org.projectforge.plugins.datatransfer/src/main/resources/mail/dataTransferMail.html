@@ -1,0 +1,66 @@
+<html>
+#INCLUDE{mail/mailHead.html}
+<body>
+<div id="mail">
+    <div class="container">
+        <div class="content">
+            #INCLUDE{mail/mailOpening.html}
+            <p>
+                <%= message %>
+            </p>
+            <table>
+                <tr>
+                    <th><%= pf.getI18nString("date") %></th>
+                    <th><%= pf.getI18nString("attachment.fileName") %></th>
+                    <th><%= pf.getI18nString("description") %></th>
+                    <th><%= pf.getI18nString("plugins.datatransfer.audit.action") %></th>
+                    <th><%= pf.getI18nString("modifiedBy") %></th>
+                </tr>
+                <% for (audit in auditEntries) { %>
+                <tr>
+                    <td class="no-wrap"><%= pf.getString(audit.timestamp) %></td>
+                    <td><%= audit.filenameAsString %></td>
+                    <td><%= audit.descriptionAsString %></td>
+                    <td><%= pf.getString(audit.eventType) %></td>
+                    <td><%= audit.byUserAsString %></td>
+                </tr>
+                <% } %>
+            </table>
+            <a
+                    href="${link}"
+                    class="button"
+                    target="_blank"
+                    rel="noreferrer"
+            >
+                <%= pf.getI18nString("plugins.datatransfer.mail.link") %>
+            </a>
+
+            <% if (externalAccessEnabled) { %>
+            <h3>
+                <%= pf.getI18nString("plugins.datatransfer.audit.downloadEvents") %>
+            </h3>
+            <table>
+                <tr>
+                    <th><%= pf.getI18nString("date") %></th>
+                    <th><%= pf.getI18nString("attachment.fileName") %></th>
+                    <th><%= pf.getI18nString("plugins.datatransfer.audit.action") %></th>
+                    <th><%= pf.getI18nString("plugins.datatransfer.audit.downloadedBy") %></th>
+                </tr>
+                <% for (audit in downloadAuditEntries) { %>
+                <tr>
+                    <td class="no-wrap"><%= pf.getString(audit.timestamp) %></td>
+                    <td><%= audit.filenameAsString %></td>
+                    <td><%= pf.getString(audit.eventType) %></td>
+                    <td><%= audit.byUserAsString %></td>
+                </tr>
+                <% } %>
+            </table>
+            <% } %>
+
+            #INCLUDE{mail/mailClosing.html}
+            #INCLUDE{mail/mailFooter.html}
+        </div>
+    </div>
+</div>
+</body>
+</html>

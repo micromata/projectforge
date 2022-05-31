@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,30 +23,25 @@
 
 package org.projectforge.business.fibu;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.collections.CollectionUtils;
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExportColumn;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.ExportWorkbook;
-import org.projectforge.business.excel.I18nExportColumn;
-import org.projectforge.business.excel.PropertyMapping;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.excel.*;
 import org.projectforge.business.task.TaskNode;
+import org.projectforge.business.task.TaskTree;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
 
 /**
  * For excel export.
@@ -56,7 +51,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderExport
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(OrderExport.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(OrderExport.class);
 
   @Autowired
   protected AccessChecker accessChecker;
@@ -67,7 +62,8 @@ public class OrderExport
   @Autowired
   private AuftragDao auftragDao;
 
-  private transient TenantRegistry tenantRegistry;
+  @Autowired
+  private TaskTree taskTree;
 
   private ExportColumn[] createOrderColumns()
   {
@@ -124,12 +120,12 @@ public class OrderExport
     mapping.add(OrderCol.HEADOFBUSINESSMANAGER, order.getHeadOfBusinessManager() != null ? order.getHeadOfBusinessManager().getFullname() : "");
     mapping.add(OrderCol.SALESMANAGER, order.getSalesManager() != null ? order.getSalesManager().getFullname() : "");
     final BigDecimal netSum = order.getNettoSumme() != null ? order.getNettoSumme() : BigDecimal.ZERO;
-    final BigDecimal invoicedSum = order.getFakturiertSum() != null ? order.getFakturiertSum() : BigDecimal.ZERO;
-    final BigDecimal toBeInvoicedSum = order.getZuFakturierenSum();
+    final BigDecimal invoicedSum = order.getInvoicedSum() != null ? order.getInvoicedSum() : BigDecimal.ZERO;
+    final BigDecimal toBeInvoicedSum = order.getNotYetInvoicedSum();
     mapping.add(OrderCol.NETSUM, netSum);
     addCurrency(mapping, OrderCol.INVOICED, invoicedSum);
     addCurrency(mapping, OrderCol.TO_BE_INVOICED, toBeInvoicedSum);
-    mapping.add(OrderCol.COMPLETELY_INVOICED, order.isVollstaendigFakturiert() == true ? "x" : "");
+    mapping.add(OrderCol.COMPLETELY_INVOICED, order.isVollstaendigFakturiert() ? "x" : "");
     final Set<RechnungsPositionVO> invoicePositions = rechnungCache
         .getRechnungsPositionVOSetByAuftragId(order.getId());
     mapping.add(OrderCol.INVOICES, getInvoices(invoicePositions));
@@ -137,7 +133,7 @@ public class OrderExport
     mapping.add(OrderCol.PERIOD_OF_PERFORMANCE_END, order.getPeriodOfPerformanceEnd());
     mapping.add(OrderCol.PROBABILITY_OF_OCCURRENCE, order.getProbabilityOfOccurrence());
 
-    final PFUserDO contactPerson = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getUser(order.getContactPersonId());
+    final PFUserDO contactPerson = UserGroupCache.getInstance().getUser(order.getContactPersonId());
     mapping.add(OrderCol.CONTACT_PERSON, contactPerson != null ? contactPerson.getFullname() : "");
     mapping.add(OrderCol.REFERENCE, order.getReferenz());
     mapping.add(OrderCol.COMMENT, order.getBemerkung());
@@ -191,7 +187,7 @@ public class OrderExport
             (order.getAuftragsStatus() != null ? ThreadLocalUserContext.getLocalizedString(order.getAuftragsStatus().getI18nKey()) : ""));
     mapping.add(PosCol.PERSON_DAYS, pos.getPersonDays());
     final BigDecimal netSum = pos.getNettoSumme() != null ? pos.getNettoSumme() : BigDecimal.ZERO;
-    final BigDecimal invoicedSum = pos.getFakturiertSum() != null ? pos.getFakturiertSum() : BigDecimal.ZERO;
+    final BigDecimal invoicedSum = pos.getInvoicedSum() != null ? pos.getInvoicedSum() : BigDecimal.ZERO;
     BigDecimal toBeInvoicedSum = netSum.subtract(invoicedSum);
     if (pos.getStatus() != null) {
       if (pos.getStatus().equals(AuftragsPositionsStatus.ABGELEHNT) || pos.getStatus().equals(AuftragsPositionsStatus.ERSETZT) || pos.getStatus()
@@ -202,7 +198,7 @@ public class OrderExport
     mapping.add(PosCol.NETSUM, netSum);
     addCurrency(mapping, PosCol.INVOICED, invoicedSum);
     addCurrency(mapping, PosCol.TO_BE_INVOICED, toBeInvoicedSum);
-    mapping.add(PosCol.COMPLETELY_INVOICED, pos.isVollstaendigFakturiert() == true ? "x" : "");
+    mapping.add(PosCol.COMPLETELY_INVOICED, pos.getVollstaendigFakturiert() ? "x" : "");
     final Set<RechnungsPositionVO> invoicePositions = rechnungCache
         .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
     mapping.add(PosCol.INVOICES, getInvoices(invoicePositions));
@@ -217,7 +213,7 @@ public class OrderExport
     }
     mapping.add(OrderCol.PROBABILITY_OF_OCCURRENCE, order.getProbabilityOfOccurrence());
     mapping.add(OrderCol.CONTACT_PERSON, order.getContactPerson() != null ? order.getContactPerson().getFullname() : "");
-    final TaskNode node = getTenantRegistry().getTaskTree().getTaskNodeById(pos.getTaskId());
+    final TaskNode node = taskTree.getTaskNodeById(pos.getTaskId());
     mapping.add(PosCol.TASK, node != null ? node.getTask().getTitle() : "");
     mapping.add(PosCol.COMMENT, pos.getBemerkung());
   }
@@ -227,12 +223,12 @@ public class OrderExport
     if (order.getErfassungsDatum() == null) {
       if (order.getCreated() == null) {
         if (order.getAngebotsDatum() == null) {
-          order.setErfassungsDatum(new java.sql.Date(new Date().getTime()));
+          order.setErfassungsDatum(PFDay.now().getLocalDate());
         } else {
-          order.setErfassungsDatum(new java.sql.Date(order.getAngebotsDatum().getTime()));
+          order.setErfassungsDatum(order.getAngebotsDatum());
         }
       } else {
-        order.setErfassungsDatum(new java.sql.Date(order.getCreated().getTime()));
+        order.setErfassungsDatum(PFDay.from(order.getCreated()).getLocalDate());
       }
     }
     return order.getErfassungsDatum();
@@ -247,8 +243,8 @@ public class OrderExport
     mapping.add(PaymentsCol.PAY_NUMBER, "#" + scheduleDO.getNumber());
     mapping.add(PaymentsCol.AMOUNT, scheduleDO.getAmount());
     mapping.add(PaymentsCol.COMMENT, scheduleDO.getComment());
-    mapping.add(PaymentsCol.REACHED, scheduleDO.isReached() == true ? "x" : "");
-    mapping.add(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, scheduleDO.isVollstaendigFakturiert() == true ? "x" : "");
+    mapping.add(PaymentsCol.REACHED, scheduleDO.getReached() ? "x" : "");
+    mapping.add(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, scheduleDO.getVollstaendigFakturiert() ? "x" : "");
     mapping.add(PaymentsCol.SCHEDULE_DATE, scheduleDO.getScheduleDate());
   }
 
@@ -267,7 +263,7 @@ public class OrderExport
 
   private void addCurrency(final PropertyMapping mapping, final Enum<?> col, final BigDecimal value)
   {
-    if (NumberHelper.isNotZero(value) == true) {
+    if (NumberHelper.isNotZero(value)) {
       mapping.add(col, value);
     } else {
       mapping.add(col, "");
@@ -281,7 +277,7 @@ public class OrderExport
    */
   public byte[] export(final List<AuftragDO> list)
   {
-    if (CollectionUtils.isEmpty(list) == true) {
+    if (CollectionUtils.isEmpty(list)) {
       return null;
     }
     log.info("Exporting order list.");
@@ -361,17 +357,6 @@ public class OrderExport
         new I18nExportColumn(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, "fibu.auftrag.vollstaendigFakturiert", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PaymentsCol.SCHEDULE_DATE, "date", MyXlsContentProvider.LENGTH_DATE)
     };
-  }
-
-  /**
-   * @return the tenantRegistry
-   */
-  public TenantRegistry getTenantRegistry()
-  {
-    if (tenantRegistry == null) {
-      tenantRegistry = TenantRegistryMap.getInstance().getTenantRegistry();
-    }
-    return tenantRegistry;
   }
 
   private enum OrderCol

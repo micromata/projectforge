@@ -1,17 +1,40 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.business.teamcal.event.diff;
 
-import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by sniemczyk on 20.06.17.
@@ -35,14 +58,14 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.ATTENDEES, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.ATTENDEES, diff.getDiffType());
+    Assertions.assertTrue(diff.isDiff());
 
-    Assert.assertEquals(0, diff.getFieldDiffs().size());
+    Assertions.assertEquals(0, diff.getFieldDiffs().size());
 
-    Assert.assertEquals(2, diff.getAttendeesAdded().size());
-    Assert.assertEquals(0, diff.getAttendeesRemoved().size());
+    Assertions.assertEquals(2, diff.getAttendeesAdded().size());
+    Assertions.assertEquals(0, diff.getAttendeesRemoved().size());
   }
 
   @Test
@@ -55,14 +78,14 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.ATTENDEES, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.ATTENDEES, diff.getDiffType());
+    Assertions.assertTrue(diff.isDiff());
 
-    Assert.assertEquals(0, diff.getFieldDiffs().size());
+    Assertions.assertEquals(0, diff.getFieldDiffs().size());
 
-    Assert.assertEquals(0, diff.getAttendeesAdded().size());
-    Assert.assertEquals(2, diff.getAttendeesRemoved().size());
+    Assertions.assertEquals(0, diff.getAttendeesAdded().size());
+    Assertions.assertEquals(2, diff.getAttendeesRemoved().size());
   }
 
   @Test
@@ -83,21 +106,21 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.ATTENDEES, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.ATTENDEES, diff.getDiffType());
+    Assertions.assertTrue(diff.isDiff());
 
-    Assert.assertEquals(0, diff.getFieldDiffs().size());
+    Assertions.assertEquals(0, diff.getFieldDiffs().size());
 
-    Assert.assertEquals(2, diff.getAttendeesAdded().size());
-    Assert.assertEquals(1, diff.getAttendeesRemoved().size());
-    Assert.assertEquals(1, diff.getAttendeesNotChanged().size());
+    Assertions.assertEquals(2, diff.getAttendeesAdded().size());
+    Assertions.assertEquals(1, diff.getAttendeesRemoved().size());
+    Assertions.assertEquals(1, diff.getAttendeesNotChanged().size());
 
-    Assert.assertTrue(diff.getAttendeesAdded().contains(attendee3));
-    Assert.assertTrue(diff.getAttendeesAdded().contains(attendee4));
+    Assertions.assertTrue(diff.getAttendeesAdded().contains(attendee3));
+    Assertions.assertTrue(diff.getAttendeesAdded().contains(attendee4));
 
-    Assert.assertTrue(diff.getAttendeesRemoved().contains(attendeeRemoved));
-    Assert.assertTrue(diff.getAttendeesNotChanged().contains(attendeeNotChanged));
+    Assertions.assertTrue(diff.getAttendeesRemoved().contains(attendeeRemoved));
+    Assertions.assertTrue(diff.getAttendeesNotChanged().contains(attendeeNotChanged));
   }
 
   @Test
@@ -111,24 +134,24 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, filter);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
+    Assertions.assertTrue(diff.isDiff());
 
-    Assert.assertEquals(2, diff.getFieldDiffs().size());
+    Assertions.assertEquals(2, diff.getFieldDiffs().size());
 
     TeamEventFieldDiff<String> subject = diff.getFieldDiff(TeamEventField.SUBJECT);
-    Assert.assertNotNull(subject);
-    Assert.assertEquals(TeamEventFieldDiffType.UPDATED, subject.getType());
-    Assert.assertTrue(subject.isDiff());
+    Assertions.assertNotNull(subject);
+    Assertions.assertEquals(TeamEventFieldDiffType.UPDATED, subject.getType());
+    Assertions.assertTrue(subject.isDiff());
 
     TeamEventFieldDiff<TeamCalDO> calendar = diff.getFieldDiff(TeamEventField.CALENDAR);
-    Assert.assertNotNull(calendar);
-    Assert.assertEquals(TeamEventFieldDiffType.UPDATED, calendar.getType());
-    Assert.assertTrue(calendar.isDiff());
+    Assertions.assertNotNull(calendar);
+    Assertions.assertEquals(TeamEventFieldDiffType.UPDATED, calendar.getType());
+    Assertions.assertTrue(calendar.isDiff());
 
     TeamEventFieldDiff<PFUserDO> creator = diff.getFieldDiff(TeamEventField.CREATOR);
-    Assert.assertNull(creator);
+    Assertions.assertNull(creator);
   }
 
   @Test
@@ -141,20 +164,20 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, filter);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.NONE, diff.getDiffType());
-    Assert.assertFalse(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.NONE, diff.getDiffType());
+    Assertions.assertFalse(diff.isDiff());
 
-    Assert.assertEquals(0, diff.getFieldDiffs().size());
+    Assertions.assertEquals(0, diff.getFieldDiffs().size());
 
     TeamEventFieldDiff<String> subject = diff.getFieldDiff(TeamEventField.SUBJECT);
-    Assert.assertNull(subject);
+    Assertions.assertNull(subject);
 
     TeamEventFieldDiff<TeamCalDO> calendar = diff.getFieldDiff(TeamEventField.CALENDAR);
-    Assert.assertNull(calendar);
+    Assertions.assertNull(calendar);
 
     TeamEventFieldDiff<PFUserDO> creator = diff.getFieldDiff(TeamEventField.CREATOR);
-    Assert.assertNull(creator);
+    Assertions.assertNull(creator);
   }
 
   @Test
@@ -165,16 +188,16 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
+    Assertions.assertTrue(diff.isDiff());
 
-    Assert.assertEquals(1, diff.getFieldDiffs().size());
+    Assertions.assertEquals(1, diff.getFieldDiffs().size());
 
     TeamEventFieldDiff<String> fieldDiff = diff.getFieldDiff(TeamEventField.SUBJECT);
-    Assert.assertNotNull(fieldDiff);
-    Assert.assertEquals(TeamEventFieldDiffType.UPDATED, fieldDiff.getType());
-    Assert.assertTrue(fieldDiff.isDiff());
+    Assertions.assertNotNull(fieldDiff);
+    Assertions.assertEquals(TeamEventFieldDiffType.UPDATED, fieldDiff.getType());
+    Assertions.assertTrue(fieldDiff.isDiff());
   }
 
   @Test
@@ -185,26 +208,26 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
+    Assertions.assertTrue(diff.isDiff());
 
-    Assert.assertEquals(3, diff.getFieldDiffs().size());
+    Assertions.assertEquals(3, diff.getFieldDiffs().size());
 
     TeamEventFieldDiff<String> subject = diff.getFieldDiff(TeamEventField.SUBJECT);
-    Assert.assertNotNull(subject);
-    Assert.assertEquals(TeamEventFieldDiffType.UPDATED, subject.getType());
-    Assert.assertTrue(subject.isDiff());
+    Assertions.assertNotNull(subject);
+    Assertions.assertEquals(TeamEventFieldDiffType.UPDATED, subject.getType());
+    Assertions.assertTrue(subject.isDiff());
 
     TeamEventFieldDiff<TeamCalDO> calendar = diff.getFieldDiff(TeamEventField.CALENDAR);
-    Assert.assertNotNull(calendar);
-    Assert.assertEquals(TeamEventFieldDiffType.UPDATED, calendar.getType());
-    Assert.assertTrue(calendar.isDiff());
+    Assertions.assertNotNull(calendar);
+    Assertions.assertEquals(TeamEventFieldDiffType.UPDATED, calendar.getType());
+    Assertions.assertTrue(calendar.isDiff());
 
     TeamEventFieldDiff<PFUserDO> creator = diff.getFieldDiff(TeamEventField.CREATOR);
-    Assert.assertNotNull(creator);
-    Assert.assertEquals(TeamEventFieldDiffType.UPDATED, creator.getType());
-    Assert.assertTrue(creator.isDiff());
+    Assertions.assertNotNull(creator);
+    Assertions.assertEquals(TeamEventFieldDiffType.UPDATED, creator.getType());
+    Assertions.assertTrue(creator.isDiff());
   }
 
   @Test
@@ -215,21 +238,21 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
+    Assertions.assertTrue(diff.isDiff());
 
-    Assert.assertEquals(2, diff.getFieldDiffs().size());
+    Assertions.assertEquals(2, diff.getFieldDiffs().size());
 
     TeamEventFieldDiff<String> note = diff.getFieldDiff(TeamEventField.NOTE);
-    Assert.assertNotNull(note);
-    Assert.assertEquals(TeamEventFieldDiffType.REMOVED, note.getType());
-    Assert.assertTrue(note.isDiff());
+    Assertions.assertNotNull(note);
+    Assertions.assertEquals(TeamEventFieldDiffType.REMOVED, note.getType());
+    Assertions.assertTrue(note.isDiff());
 
     TeamEventFieldDiff<String> organizer = diff.getFieldDiff(TeamEventField.ORGANIZER);
-    Assert.assertNotNull(organizer);
-    Assert.assertEquals(TeamEventFieldDiffType.REMOVED, organizer.getType());
-    Assert.assertTrue(organizer.isDiff());
+    Assertions.assertNotNull(organizer);
+    Assertions.assertEquals(TeamEventFieldDiffType.REMOVED, organizer.getType());
+    Assertions.assertTrue(organizer.isDiff());
   }
 
   @Test
@@ -240,21 +263,21 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
+    Assertions.assertTrue(diff.isDiff());
 
-    Assert.assertEquals(2, diff.getFieldDiffs().size());
+    Assertions.assertEquals(2, diff.getFieldDiffs().size());
 
     TeamEventFieldDiff<String> subject = diff.getFieldDiff(TeamEventField.SUBJECT);
-    Assert.assertNotNull(subject);
-    Assert.assertEquals(TeamEventFieldDiffType.SET, subject.getType());
-    Assert.assertTrue(subject.isDiff());
+    Assertions.assertNotNull(subject);
+    Assertions.assertEquals(TeamEventFieldDiffType.SET, subject.getType());
+    Assertions.assertTrue(subject.isDiff());
 
     TeamEventFieldDiff<String> location = diff.getFieldDiff(TeamEventField.LOCATION);
-    Assert.assertNotNull(location);
-    Assert.assertEquals(TeamEventFieldDiffType.SET, location.getType());
-    Assert.assertTrue(location.isDiff());
+    Assertions.assertNotNull(location);
+    Assertions.assertEquals(TeamEventFieldDiffType.SET, location.getType());
+    Assertions.assertTrue(location.isDiff());
   }
 
   @Test
@@ -265,9 +288,9 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.NONE, diff.getDiffType());
-    Assert.assertFalse(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.NONE, diff.getDiffType());
+    Assertions.assertFalse(diff.isDiff());
   }
 
   @Test
@@ -278,9 +301,9 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.NONE, diff.getDiffType());
-    Assert.assertFalse(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.NONE, diff.getDiffType());
+    Assertions.assertFalse(diff.isDiff());
   }
 
   @Test
@@ -290,9 +313,9 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, null, Collections.EMPTY_SET);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.NEW, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.NEW, diff.getDiffType());
+    Assertions.assertTrue(diff.isDiff());
   }
 
   @Test
@@ -306,9 +329,9 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.DELETED, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.DELETED, diff.getDiffType());
+    Assertions.assertTrue(diff.isDiff());
   }
 
   @Test
@@ -322,12 +345,12 @@ public class TeamEventDiffTest
 
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
-    Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.RESTORED, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assertions.assertNotNull(diff);
+    Assertions.assertEquals(TeamEventDiffType.RESTORED, diff.getDiffType());
+    Assertions.assertTrue(diff.isDiff());
   }
 
-  @BeforeClass
+  @BeforeAll
   public static void init()
   {
     PFUserDO user1 = new PFUserDO();
@@ -346,13 +369,13 @@ public class TeamEventDiffTest
 
     EVENT_1.setCreator(user1);
     EVENT_1.setCalendar(calendar1);
-    EVENT_1.setStartDate(new Timestamp(System.currentTimeMillis()));
-    EVENT_1.setEndDate(new Timestamp(System.currentTimeMillis()));
+    EVENT_1.setStartDate(new Date(System.currentTimeMillis()));
+    EVENT_1.setEndDate(new Date(System.currentTimeMillis()));
     EVENT_1.setAllDay(false);
     EVENT_1.setSubject("Subject 1");
     EVENT_1.setLocation("Location 1");
     EVENT_1.setRecurrenceExDate(null);
-    EVENT_1.setRecurrenceDate("");
+    EVENT_1.setRecurrenceReferenceDate("");
     EVENT_1.setRecurrenceReferenceId("");
     EVENT_1.setLastEmail(null);
     EVENT_1.setSequence(null);
@@ -376,7 +399,7 @@ public class TeamEventDiffTest
     EVENT_3.setSubject("Subject 2");
 
     EVENT_4 = EVENT_1.clone();
-    EVENT_4.setReminderDuration(2);
+    EVENT_4.setReminderDuration(2L);
 
     EVENT_5 = EVENT_1.clone();
     EVENT_5.setNote("Note");

@@ -1,0 +1,43 @@
+---
+title: ProjectForge 7.3 released
+date: 2022-03-09
+---
+:page-liquid:
+
+Security issues of pentests, DataTransfer improved.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Combination of DataTransfer and Merlin: Serial PDFs/Words may be automatically generated and sent to the personal boxes of the users/employees.
+- Scripting: example-scripts, include supported, new source editor supporting Groovy and Kotlin.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Combination of DataTransfer and Merlin: Serial PDFs/Words may be automatically generated and sent to the personal boxes of the users/employees.
+- Scripting functionalities improved.
+
+++++
+{% include tag.html tag="privacy" %}
+++++
+- Data protections improvements.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Several minor bugfixes
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- Ssh public key is also visible for non-admins.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- 2FA introduced (will be improved soon).
+
+++++
+{% include download-link.html %}
+++++

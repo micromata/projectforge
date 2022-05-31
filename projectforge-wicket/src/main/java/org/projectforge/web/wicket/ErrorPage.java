@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,41 +23,41 @@
 
 package org.projectforge.web.wicket;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-
-import javax.servlet.ServletException;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.core.request.handler.ComponentNotFoundException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.protocol.http.PageExpiredException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.DomainService;
+import org.projectforge.common.ProjectForgeException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.api.ProjectForgeException;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.i18n.InternalErrorException;
-import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.web.SendFeedback;
 import org.projectforge.web.SendFeedbackData;
 
+import javax.servlet.ServletException;
+import java.net.ConnectException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
 /**
  * Standard error page should be shown in production mode.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class ErrorPage extends AbstractSecuredPage
-{
+public class ErrorPage extends AbstractSecuredPage {
   private static final long serialVersionUID = -637809894879133209L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ErrorPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ErrorPage.class);
 
   public static final String ONLY4NAMESPACE = "org.projectforge";
 
@@ -71,22 +71,24 @@ public class ErrorPage extends AbstractSecuredPage
   @SpringBean
   private ConfigurationService configService;
 
+  @SpringBean
+  private DomainService domainService;
+
   private final ErrorForm form;
 
   private boolean showFeedback;
 
   /**
    * Get internationalized message inclusive the message params if exists.
-   * 
+   *
    * @param securedPage Needed for localization.
    * @param exception
-   * @param doLog If true, then a log entry with level INFO will be produced.
+   * @param doLog       If true, then a log entry with level INFO will be produced.
    * @return
    */
   public static String getExceptionMessage(final AbstractSecuredBasePage securedPage,
-      final ProjectForgeException exception,
-      final boolean doLog)
-  {
+                                           final ProjectForgeException exception,
+                                           final boolean doLog) {
     // Feedbackpanel!
     if (exception instanceof UserException) {
       final UserException ex = (UserException) exception;
@@ -114,13 +116,11 @@ public class ErrorPage extends AbstractSecuredPage
     throw new UnsupportedOperationException("For developer: Please add unknown ProjectForgeException here!", exception);
   }
 
-  public ErrorPage()
-  {
+  public ErrorPage() {
     this(null);
   }
 
-  public ErrorPage(final Throwable throwable)
-  {
+  public ErrorPage(final Throwable throwable) {
     super(null);
     errorMessage = getString("errorpage.unknownError");
     messageNumber = null;
@@ -178,11 +178,28 @@ public class ErrorPage extends AbstractSecuredPage
     feedbackPanel.setOutputMarkupId(true);
     body.add(feedbackPanel);
 
-    sendProactiveMessageToSupportTeam();
+    if (throwable == null ||
+        throwable instanceof ComponentNotFoundException ||
+        throwable instanceof ConnectException) {
+      // Do nothing, ComponentNotFoundException can't be avoided. It occurs if the user clicks and navigates throw the
+      // AddressListPage, then image components will be removed.
+      // ConnectException occurs if the user's browser isn't available for the response anymore (e. g. long running
+      // requests and the user clicks another action inbetween etc.).
+      if (throwable == null) {
+        // On CallAllPagesTest:
+        log.error("ErrorPage shown for user, but no message sent to support team.");
+      } else {
+        log.error("ErrorPage shown for user, but no message sent to support team: " + throwable.getMessage());
+      }
+    } else if (rootCause instanceof UserException) {
+      // Do nothing. The UserException is already presented to the user.
+      log.error("ErrorPage shown for user, but no message sent to support team: " + throwable.getMessage());
+    } else {
+      sendProactiveMessageToSupportTeam();
+    }
   }
 
-  private void sendProactiveMessageToSupportTeam()
-  {
+  private void sendProactiveMessageToSupportTeam() {
     if (StringUtils.isBlank(configService.getPfSupportMailAddress()) == Boolean.FALSE
         && configService.getSendMailConfiguration() != null) {
       log.info("Sending proactive mail to support.");
@@ -193,7 +210,7 @@ public class ErrorPage extends AbstractSecuredPage
       SendFeedbackData errorData = new SendFeedbackData();
       errorData.setSender(configService.getSendMailConfiguration().getDefaultSendMailAddress());
       errorData.setReceiver(configService.getPfSupportMailAddress());
-      errorData.setSubject("Error occured: #" + form.data.getMessageNumber() + " on " + configService.getDomain());
+      errorData.setSubject("Error occured: #" + form.data.getMessageNumber() + " on " + domainService.getDomain());
       errorData.setDescription("Error occured at: " + dateString + "(" + cal.getTimeZone().getID()
           + ") with number: #" + form.data.getMessageNumber()
           + " from user: " + form.data.getSender() + " \n "
@@ -205,13 +222,11 @@ public class ErrorPage extends AbstractSecuredPage
     }
   }
 
-  void cancel()
-  {
+  void cancel() {
     setResponsePage(WicketUtils.getDefaultPage());
   }
 
-  void sendFeedback()
-  {
+  void sendFeedback() {
     log.info("Send feedback.");
     boolean result = false;
     try {
@@ -231,8 +246,7 @@ public class ErrorPage extends AbstractSecuredPage
   }
 
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return title != null ? title : getString("errorpage.title");
   }
 
@@ -240,8 +254,7 @@ public class ErrorPage extends AbstractSecuredPage
    * @see org.apache.wicket.Component#isVersioned()
    */
   @Override
-  public boolean isVersioned()
-  {
+  public boolean isVersioned() {
     return false;
   }
 
@@ -249,8 +262,7 @@ public class ErrorPage extends AbstractSecuredPage
    * @see org.apache.wicket.Page#isErrorPage()
    */
   @Override
-  public boolean isErrorPage()
-  {
+  public boolean isErrorPage() {
     return true;
   }
 }

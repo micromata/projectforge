@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -33,9 +33,9 @@ import java.util.List;
  */
 public abstract class AbstractAggregatedValues<T>
 {
-  protected final List<T> values = new LinkedList<T>();
+  protected final List<T> values = new LinkedList<>();
 
-  protected final List<T> weights = new LinkedList<T>();
+  protected final List<T> weights = new LinkedList<>();
 
   protected boolean averageDirty, weightedAverageDirty;
 
@@ -78,7 +78,7 @@ public abstract class AbstractAggregatedValues<T>
    */
   public T getAverage()
   {
-    if (average == null || averageDirty == true) {
+    if (average == null || averageDirty) {
       T sum = getZero();
       if (values.size() == 0) {
         average = sum;
@@ -98,7 +98,7 @@ public abstract class AbstractAggregatedValues<T>
    */
   public T getWeightedAverage()
   {
-    if (weightedAverage == null || weightedAverageDirty == true) {
+    if (weightedAverage == null || weightedAverageDirty) {
       if (weights.size() != values.size()) {
         throw new IllegalArgumentException(
             "Size of weights not equals size of values, may-be add(value, weight) wasn't called at least once!");
@@ -110,13 +110,13 @@ public abstract class AbstractAggregatedValues<T>
       } else {
         final Iterator<T> valuesIt = values.iterator();
         final Iterator<T> weightsIt = weights.iterator();
-        while (valuesIt.hasNext() == true) {
+        while (valuesIt.hasNext()) {
           final T value = valuesIt.next();
           final T weight = weightsIt.next();
           sum = sum(sum, multiply(value, weight));
           weightSum = sum(weightSum, weight);
         }
-        if (isZero(weightSum) == true) {
+        if (isZero(weightSum)) {
           weightedAverage = getZero();
         } else {
           weightedAverage = divide(sum, weightSum);

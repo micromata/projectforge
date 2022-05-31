@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -38,33 +34,25 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExportColumn;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.ExportWorkbook;
-import org.projectforge.business.excel.I18nExportColumn;
-import org.projectforge.business.excel.PropertyMapping;
+import org.projectforge.business.excel.*;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.DownloadUtils;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @ListPage(editPage = Kost2EditPage.class)
 public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kost2DO>
     implements IListPageColumnsCreator<Kost2DO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost2ListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2ListPage.class);
 
   private static final long serialVersionUID = -8406452960003792763L;
 
@@ -93,6 +81,7 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
     final List<IColumn<Kost2DO, String>> columns = new ArrayList<IColumn<Kost2DO, String>>();
     final CellItemListener<Kost2DO> cellItemListener = new CellItemListener<Kost2DO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<Kost2DO>> item, final String componentId,
           final IModel<Kost2DO> rowModel)
       {
@@ -143,7 +132,7 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
             final Kost2DO kost2 = rowModel.getObject();
             final Component label = WicketUtils.createBooleanLabel(getRequestCycle(), componentId,
                 kost2.getKost2Art() != null
-                    && kost2.getKost2Art().isFakturiert() == true);
+                    && kost2.getKost2Art().getFakturiert() == true);
             item.add(label);
             cellItemListener.populateItem(item, componentId, rowModel);
           }
@@ -199,7 +188,7 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
 
   private enum Col
   {
-    STATUS, KOST, ART, FAKTURIERT, PROJEKT, DESCRIPTION, COMMENT;
+    STATUS, KOST, ART, FAKTURIERT, PROJEKT, DESCRIPTION, COMMENT
   }
 
   protected void exportExcel()
@@ -230,14 +219,14 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
     for (final Kost2DO kost : kost2List) {
       mapping.add(Col.KOST, kost.getFormattedNumber());
       mapping.add(Col.ART, kost.getKost2Art().getName());
-      mapping.add(Col.FAKTURIERT, kost.getKost2Art().isFakturiert() ? "X" : "");
+      mapping.add(Col.FAKTURIERT, kost.getKost2Art().getFakturiert() ? "X" : "");
       mapping.add(Col.PROJEKT, KostFormatter.formatProjekt(kost.getProjekt()));
       mapping.add(Col.STATUS, kost.getKostentraegerStatus());
       mapping.add(Col.DESCRIPTION, kost.getDescription());
       mapping.add(Col.COMMENT, kost.getComment());
       sheet.addRow(mapping.getMapping(), 0);
     }
-    sheet.setZoom(3, 4); // 75%
+    sheet.setZoom(75); // 75%
     DownloadUtils.setDownloadTarget(xls.getAsByteArray(), filename);
   }
 

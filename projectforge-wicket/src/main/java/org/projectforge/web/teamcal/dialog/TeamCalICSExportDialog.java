@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,29 +23,24 @@
 
 package org.projectforge.web.teamcal.dialog;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.calendar.AbstractICSExportDialog;
 import org.projectforge.web.wicket.I18nParamMap;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivType;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -56,10 +51,9 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
 
   private TeamCalDO teamCal;
 
-  @SpringBean
-  private TeamCalServiceImpl teamCalService;
-
   private boolean exportReminders;
+
+  private static final String PARAM_EXPORT_REMINDER = "exportReminders";
 
   private String calendarTitle = "-";
 
@@ -134,18 +128,26 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
       return true;
     }
     // Export reminders for full access users.
-    List<String> fullAccessUserIds = Arrays.asList(teamCal.getFullAccessUserIds().split(","));
-    if (fullAccessUserIds.contains(String.valueOf(user.getId()))) {
-      return true;
+    if (StringUtils.isBlank(teamCal.getFullAccessUserIds()) == false) {
+      List<String> fullAccessUserIds = Arrays.asList(teamCal.getFullAccessUserIds().split(","));
+      if (fullAccessUserIds.contains(String.valueOf(user.getId()))) {
+        return true;
+      }
     }
     // Export reminders for read only users.
-    List<String> readonlyAccessUserIds = Arrays.asList(teamCal.getReadonlyAccessUserIds().split(","));
-    if (readonlyAccessUserIds.contains(String.valueOf(user.getId()))) {
-      return true;
+    if (StringUtils.isBlank(teamCal.getReadonlyAccessUserIds()) == false) {
+      List<String> readonlyAccessUserIds = Arrays.asList(teamCal.getReadonlyAccessUserIds().split(","));
+      if (readonlyAccessUserIds.contains(String.valueOf(user.getId()))) {
+        return true;
+      }
     }
-    Collection<Integer> userGroupsIds = getUserGroupCache().getUserGroups(user);
-    List<String> fullAccessGroupIds = Arrays.asList(teamCal.getFullAccessGroupIds().split(","));
-    List<String> readonlyAccessGroupIds = Arrays.asList(teamCal.getReadonlyAccessGroupIds().split(","));
+    Collection<Integer> userGroupsIds = UserGroupCache.getInstance().getUserGroups(user);
+    List<String> fullAccessGroupIds =
+        StringUtils.isBlank(teamCal.getFullAccessGroupIds()) == false ? Arrays.asList(teamCal.getFullAccessGroupIds().split(",")) :
+            Collections.emptyList();
+    List<String> readonlyAccessGroupIds = StringUtils.isBlank(teamCal.getReadonlyAccessGroupIds()) == false ?
+        Arrays.asList(teamCal.getReadonlyAccessGroupIds().split(",")) :
+        Collections.emptyList();
     for (Integer groupId : userGroupsIds) {
       // Export reminders for full access group.
       if (fullAccessGroupIds.contains(String.valueOf(groupId))) {
@@ -159,19 +161,13 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
     return false;
   }
 
-  private UserGroupCache getUserGroupCache()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-  }
-
   /**
    * @see org.projectforge.web.calendar.AbstractICSExportDialog#getUrl()
    */
   @Override
   protected String getUrl()
   {
-    return teamCalService.getUrl(teamCal.getId(),
-        "&" + teamCalService.PARAM_EXPORT_REMINDER + "=" + exportReminders);
+    return calendarFeedService.getUrl("&teamCals=" + teamCal.getId() + "&" + PARAM_EXPORT_REMINDER + "=" + exportReminders);
   }
 
 }

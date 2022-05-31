@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,30 +23,28 @@
 
 package org.projectforge.business.ldap;
 
-import java.io.File;
-import java.util.Hashtable;
-
-import javax.naming.Context;
-import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
-import javax.naming.ldap.LdapContext;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.ConfigurationListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
+import javax.naming.ldap.LdapContext;
+import java.io.File;
+import java.util.Hashtable;
+
 /**
  * Should be initialized on start-up and will be called every time if config.xml is reread. This class is needed for
  * initialization of the spring beans with properties configured in config.xml.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class LdapConnector implements ConfigurationListener
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapConnector.class);
+public class LdapConnector implements ConfigurationListener {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapConnector.class);
 
   @Autowired
   LdapService ldapService;
@@ -59,17 +57,15 @@ public class LdapConnector implements ConfigurationListener
    * Don't call this constructor unless you really know what you're doing. This LdapHelper is a singleton and is
    * available via IOC.
    */
-  public LdapConnector()
-  {
+  public LdapConnector() {
   }
 
-  private void init()
-  {
-    if (initialized == true) {
+  private void init() {
+    if (initialized) {
       return;
     }
     synchronized (this) {
-      if (initialized == true) {
+      if (initialized) {
         return;
       }
       ConfigXml.getInstance().register(this);
@@ -78,21 +74,23 @@ public class LdapConnector implements ConfigurationListener
     }
   }
 
-  private Hashtable<String, String> createEnv(final String user, final String password)
-  {
+  private Hashtable<String, Object> createEnv(final String user, final char[] password) {
     // Set up the environment for creating the initial context
-    final Hashtable<String, String> env = new Hashtable<String, String>();
+    final Hashtable<String, Object> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
     env.put(Context.PROVIDER_URL, ldapConfig.getCompleteServerUrl());
     final String authentication = ldapConfig.getAuthentication();
-    if (StringUtils.isNotBlank(authentication) == true) {
+    if (StringUtils.isNotBlank(authentication)) {
       env.put(Context.SECURITY_AUTHENTICATION, ldapConfig.getAuthentication());
-      if ("none".equals(authentication) == false && user != null && password != null) {
-        env.put(Context.SECURITY_PRINCIPAL, user);
-        env.put(Context.SECURITY_CREDENTIALS, password);
+      if (!"none".equals(authentication)) {
+        // Avoid null-value-attack (thanx to Sergej Michel, Micromata):
+        final String userNotEmpty = StringUtils.isNotBlank(user) ? user : "<no-user>";
+        final char[] passwordNotEmpty = password != null && password.length > 0 ? password : "<no-password>".toCharArray();
+        env.put(Context.SECURITY_PRINCIPAL, userNotEmpty);
+        env.put(Context.SECURITY_CREDENTIALS, passwordNotEmpty);
       }
     }
-    if (ldapConfig != null && StringUtils.isNotBlank(ldapConfig.getSslCertificateFile()) == true) {
+    if (ldapConfig != null && StringUtils.isNotBlank(ldapConfig.getSslCertificateFile())) {
       env.put("java.naming.ldap.factory.socket", "org.projectforge.business.ldap.MySSLSocketFactory");
     }
     log.info("Trying to connect the LDAP server: url=["
@@ -105,19 +103,17 @@ public class LdapConnector implements ConfigurationListener
     return env;
   }
 
-  public String getBase()
-  {
+  public String getBase() {
     init();
     return ldapConfig.getBaseDN();
   }
 
-  public LdapContext createContext()
-  {
+  public LdapContext createContext() {
     init();
-    final Hashtable<String, String> env;
+    final Hashtable<String, Object> env;
     final String authentication = ldapConfig.getAuthentication();
-    if ("none".equals(authentication) == false) {
-      env = createEnv(ldapConfig.getManagerUser(), ldapConfig.getManagerPassword());
+    if (!"none".equals(authentication)) {
+      env = createEnv(ldapConfig.getManagerUser(), ldapConfig.getManagerPassword().toCharArray());
     } else {
       env = createEnv(null, null);
     }
@@ -130,23 +126,21 @@ public class LdapConnector implements ConfigurationListener
     }
   }
 
-  public LdapContext createContext(final String username, final String password) throws NamingException
-  {
+  public LdapContext createContext(final String username, final char[] password) throws NamingException {
     init();
-    final Hashtable<String, String> env = createEnv(username, password);
+    final Hashtable<String, Object> env = createEnv(username, password);
     final LdapContext ctx = new InitialLdapContext(env, null);
     return ctx;
   }
 
   /**
    * Used by test class.
-   * 
+   *
    * @param ldapConfig
    */
-  LdapConnector(final LdapConfig ldapConfig)
-  {
+  LdapConnector(final LdapConfig ldapConfig) {
     this.ldapConfig = ldapConfig;
-    if (this.ldapConfig != null && StringUtils.isNotBlank(this.ldapConfig.getSslCertificateFile()) == true) {
+    if (this.ldapConfig != null && StringUtils.isNotBlank(this.ldapConfig.getSslCertificateFile())) {
       // Try to load SSL certificate.
       MyTrustManager.getInstance().addCertificate("ldap", new File(this.ldapConfig.getSslCertificateFile()));
     }
@@ -157,10 +151,9 @@ public class LdapConnector implements ConfigurationListener
    * @see org.projectforge.framework.configuration.ConfigurationListener#afterRead()
    */
   @Override
-  public void afterRead()
-  {
+  public void afterRead() {
     this.ldapConfig = ldapService.getLdapConfig();
-    if (this.ldapConfig != null && StringUtils.isNotBlank(this.ldapConfig.getSslCertificateFile()) == true) {
+    if (this.ldapConfig != null && StringUtils.isNotBlank(this.ldapConfig.getSslCertificateFile())) {
       // Try to load SSL certificate.
       MyTrustManager.getInstance().addCertificate("ldap", new File(this.ldapConfig.getSslCertificateFile()));
     }
@@ -169,8 +162,7 @@ public class LdapConnector implements ConfigurationListener
   /**
    * @return the ldapConfig
    */
-  LdapConfig getLdapConfig()
-  {
+  LdapConfig getLdapConfig() {
     return ldapConfig;
   }
 }

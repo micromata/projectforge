@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,16 @@
 
 package org.projectforge.web.task;
 
-import java.util.Date;
-import java.util.List;
-
-import org.apache.log4j.Logger;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.web.tree.TreeTable;
 import org.projectforge.web.tree.TreeTableFilter;
 import org.projectforge.web.tree.TreeTableNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * The implementation of TreeTable for tasks. Used for browsing the tasks (tree view).
@@ -40,7 +41,7 @@ public class TaskTreeTable extends TreeTable<TaskTreeTableNode>
 {
   private static final long serialVersionUID = -4776489786818696163L;
 
-  private static final Logger log = Logger.getLogger(TaskTreeTable.class);
+  private static final Logger log = LoggerFactory.getLogger(TaskTreeTable.class);
 
   private TaskTree taskTree;
 
@@ -78,8 +79,8 @@ public class TaskTreeTable extends TreeTable<TaskTreeTableNode>
   protected void addDescendantNodes(TaskTreeTableNode parent)
   {
     TaskNode task = parent.getTaskNode();
-    if (task.getChilds() != null) {
-      for (TaskNode node : task.getChilds()) {
+    if (task.getChildren() != null) {
+      for (TaskNode node : task.getChildren()) {
         if (taskTree.hasSelectAccess(node) == true) {
           // The logged in user has select access, so add this task node
           // to this tree table:

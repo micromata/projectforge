@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.business.user;
 
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * Right depending on the member-ship of at least one group.
@@ -66,7 +66,7 @@ public class UserGroupsRight extends UserRight implements Serializable
   @Override
   public boolean isAvailable(final UserGroupCache userGroupCache, final PFUserDO user)
   {
-    if (userGroupCache.isUserMemberOfGroup(user, dependsOnGroups) == true) {
+    if (userGroupCache.isUserMemberOfGroup(user, dependsOnGroups)) {
       return super.isAvailable(userGroupCache, user);
     }
     return false;
@@ -85,7 +85,7 @@ public class UserGroupsRight extends UserRight implements Serializable
     if (availableGroupRightValues == null) {
       return isAvailable(userGroupCache, user);
     }
-    if (isAvailable(userGroupCache, user) == false) {
+    if (!isAvailable(userGroupCache, user)) {
       return false;
     }
     for (final ProjectForgeGroup group : dependsOnGroups) {
@@ -93,14 +93,14 @@ public class UserGroupsRight extends UserRight implements Serializable
       if (vals != null) {
         for (final UserRightValue val : vals) {
           if (val == value) {
-            if (userGroupCache.isUserMemberOfGroup(user, group) == true) {
+            if (userGroupCache.isUserMemberOfGroup(user, group)) {
               return true;
             }
           }
         }
       } else {
         // All right values are available for this group:
-        if (userGroupCache.isUserMemberOfGroup(user, group) == true) {
+        if (userGroupCache.isUserMemberOfGroup(user, group)) {
           return true;
         }
       }
@@ -123,7 +123,7 @@ public class UserGroupsRight extends UserRight implements Serializable
       return false;
     }
     for (final ProjectForgeGroup group : dependsOnGroups) {
-      if (userGroupCache.isUserMemberOfGroup(user, group) == false) {
+      if (!userGroupCache.isUserMemberOfGroup(user, group)) {
         continue;
       }
       final UserRightValue[] vals = availableGroupRightValues.get(group);
@@ -134,7 +134,7 @@ public class UserGroupsRight extends UserRight implements Serializable
     for (Entry<ProjectForgeGroup, UserRightValue[]> entry : this.availableGroupRightValues.entrySet()) {
       // Check all group right values.
       final ProjectForgeGroup group = entry.getKey();
-      if (userGroupCache.isUserMemberOfGroup(user, group) == false) {
+      if (!userGroupCache.isUserMemberOfGroup(user, group)) {
         // User is not member of this group, skip this group.
         continue;
       }
@@ -170,7 +170,7 @@ public class UserGroupsRight extends UserRight implements Serializable
   {
     synchronized (this) {
       if (availableGroupRightValues == null) {
-        availableGroupRightValues = new HashMap<ProjectForgeGroup, UserRightValue[]>();
+        availableGroupRightValues = new HashMap<>();
       }
     }
     availableGroupRightValues.put(group, values);

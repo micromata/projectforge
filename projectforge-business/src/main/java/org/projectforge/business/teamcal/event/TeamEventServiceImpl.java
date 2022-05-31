@@ -1,4 +1,58 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.business.teamcal.event;
+
+import net.fortuna.ical4j.model.property.Method;
+import net.fortuna.ical4j.model.property.RRule;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.address.AddressDO;
+import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
+import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.configuration.DomainService;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.diff.TeamEventDiff;
+import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
+import org.projectforge.business.teamcal.event.diff.TeamEventField;
+import org.projectforge.business.teamcal.event.ical.ICalGenerator;
+import org.projectforge.business.teamcal.event.ical.ICalHandler;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.teamcal.service.CryptService;
+import org.projectforge.business.teamcal.servlet.TeamCalResponseServlet;
+import org.projectforge.business.user.service.UserService;
+import org.projectforge.framework.calendar.ICal4JUtils;
+import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.mail.Mail;
+import org.projectforge.mail.SendMail;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
@@ -6,58 +60,15 @@ import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.address.AddressDao;
-import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.diff.TeamEventDiff;
-import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
-import org.projectforge.business.teamcal.event.diff.TeamEventField;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.business.teamcal.service.CryptService;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
-import org.projectforge.business.teamcal.servlet.TeamCalResponseServlet;
-import org.projectforge.business.user.service.UserService;
-import org.projectforge.framework.calendar.ICal4JUtils;
-import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.mail.Mail;
-import org.projectforge.mail.SendMail;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import jersey.repackaged.com.google.common.collect.Sets;
-import net.fortuna.ical4j.model.property.Method;
-import net.fortuna.ical4j.model.property.RRule;
+import java.util.stream.Stream;
 
 @Service
-public class TeamEventServiceImpl implements TeamEventService
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventServiceImpl.class);
+public class TeamEventServiceImpl implements TeamEventService {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventServiceImpl.class);
 
-  private enum EventMailType
-  {
+  private enum EventMailType {
     NEW, DELETED, UPDATED
   }
 
@@ -74,9 +85,6 @@ public class TeamEventServiceImpl implements TeamEventService
   private SendMail sendMail;
 
   @Autowired
-  private TeamCalServiceImpl teamEventConverter;
-
-  @Autowired
   private UserService userService;
 
   @Autowired
@@ -85,22 +93,24 @@ public class TeamEventServiceImpl implements TeamEventService
   @Autowired
   private ConfigurationService configService;
 
+  @Autowired
+  private DomainService domainService;
+
   // Set TeamCalEvent fields used for computing a diff in order to send notification mails
-  private static final Set<TeamEventField> TEAM_EVENT_FIELD_FILTER = Sets.newHashSet(
-      TeamEventField.START_DATE,
-      TeamEventField.END_DATE,
-      TeamEventField.ALL_DAY,
-      TeamEventField.LOCATION,
-      TeamEventField.NOTE,
-      TeamEventField.SUBJECT,
-      TeamEventField.RECURRENCE_EX_DATES,
-      TeamEventField.RECURRENCE_RULE,
-      TeamEventField.RECURRENCE_REFERENCE_DATE
-  );
+  private static final Set<TeamEventField> TEAM_EVENT_FIELD_FILTER = Stream.of(
+          TeamEventField.START_DATE,
+          TeamEventField.END_DATE,
+          TeamEventField.ALL_DAY,
+          TeamEventField.LOCATION,
+          TeamEventField.NOTE,
+          TeamEventField.SUBJECT,
+          TeamEventField.RECURRENCE_EX_DATES,
+          TeamEventField.RECURRENCE_RULE,
+          TeamEventField.RECURRENCE_REFERENCE_DATE
+  ).collect(Collectors.toCollection(HashSet::new));
 
   @Override
-  public List<Integer> getAssignedAttendeeIds(TeamEventDO data)
-  {
+  public List<Integer> getAssignedAttendeeIds(TeamEventDO data) {
     List<Integer> assignedAttendees = new ArrayList<>();
     if (data != null && data.getAttendees() != null) {
       for (TeamEventAttendeeDO attendee : data.getAttendees()) {
@@ -111,24 +121,30 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee()
-  {
+  public List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee() {
     List<TeamEventAttendeeDO> resultList = new ArrayList<>();
+    List<AddressDO> allAddressList = addressDao.internalLoadAllNotDeleted();
+    List<PFUserDO> allUserList = userService.getAllActiveUsers();
     Set<Integer> addedUserIds = new HashSet<>();
-    List<AddressDO> allAddressList = addressDao.internalLoadAllNotDeleted().stream()
-        .sorted((address1, address2) -> address2.getFullName().compareTo(address1.getFullName()))
-        .collect(Collectors.toList());
     for (AddressDO singleAddress : allAddressList) {
-      if (StringUtils.isBlank(singleAddress.getEmail()) == false) {
+      if (!StringUtils.isBlank(singleAddress.getEmail())) {
         TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
         attendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
         attendee.setAddress(singleAddress);
-        List<PFUserDO> userWithSameMail = userService.findUserByMail(singleAddress.getEmail());
-        if (userWithSameMail.size() > 0 && addedUserIds.contains(userWithSameMail.get(0).getId()) == false) {
-          PFUserDO user = userWithSameMail.get(0);
-          attendee.setUser(user);
-          addedUserIds.add(user.getId());
+        PFUserDO userWithSameMail = allUserList.stream()
+                .filter(u -> u.getEmail() != null && u.getEmail().toLowerCase().equals(singleAddress.getEmail().toLowerCase())).findFirst().orElse(null);
+        if (userWithSameMail != null && !addedUserIds.contains(userWithSameMail.getId())) {
+          attendee.setUser(userWithSameMail);
+          addedUserIds.add(userWithSameMail.getId());
         }
+        resultList.add(attendee);
+      }
+    }
+    for (PFUserDO u : allUserList) {
+      if (!addedUserIds.contains(u.getId())) {
+        TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
+        attendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
+        attendee.setUser(u);
         resultList.add(attendee);
       }
     }
@@ -136,18 +152,18 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public TeamEventAttendeeDO getAttendee(Integer attendeeId)
-  {
+  public TeamEventAttendeeDO getAttendee(Integer attendeeId) {
     return teamEventAttendeeDao.internalGetById(attendeeId);
   }
 
   @Override
-  public void assignAttendees(TeamEventDO data, Set<TeamEventAttendeeDO> itemsToAssign, Set<TeamEventAttendeeDO> itemsToUnassign)
-  {
+  public void assignAttendees(TeamEventDO data, Set<TeamEventAttendeeDO> itemsToAssign, Set<TeamEventAttendeeDO> itemsToUnassign) {
     for (TeamEventAttendeeDO assignAttendee : itemsToAssign) {
       if (assignAttendee.getId() == null || assignAttendee.getId() < 0) {
         assignAttendee.setId(null);
-        assignAttendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
+        if (assignAttendee.getStatus() == null) {
+          assignAttendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
+        }
         data.addAttendee(assignAttendee);
         teamEventAttendeeDao.internalSave(assignAttendee);
       }
@@ -164,13 +180,12 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public void updateAttendees(TeamEventDO event, Set<TeamEventAttendeeDO> attendeesOldState)
-  {
+  public void updateAttendees(TeamEventDO event, Set<TeamEventAttendeeDO> attendeesOldState) {
     final Set<TeamEventAttendeeDO> attendeesNewState = event.getAttendees();
 
     // new list is empty -> delete all
     if (attendeesNewState == null || attendeesNewState.isEmpty()) {
-      if (attendeesOldState != null && attendeesOldState.isEmpty() == false) {
+      if (attendeesOldState != null && !attendeesOldState.isEmpty()) {
         for (TeamEventAttendeeDO attendee : attendeesOldState) {
           teamEventAttendeeDao.internalMarkAsDeleted(attendee);
         }
@@ -225,7 +240,7 @@ public class TeamEventServiceImpl implements TeamEventService
         }
       }
 
-      if (found == false) {
+      if (!found) {
         // save new attendee
         attendee.setId(null);
         if (attendee.getStatus() == null) {
@@ -248,7 +263,7 @@ public class TeamEventServiceImpl implements TeamEventService
         }
       }
 
-      if (found == false) {
+      if (!found) {
         // delete attendee
         teamEventAttendeeDao.internalMarkAsDeleted(attendee);
       }
@@ -256,9 +271,8 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public boolean checkAndSendMail(final TeamEventDO event, final TeamEventDiffType diffType)
-  {
-    if (this.preCheckSendMail(event) == false) {
+  public boolean checkAndSendMail(final TeamEventDO event, final TeamEventDiffType diffType) {
+    if (!this.preCheckSendMail(event)) {
       return false;
     }
 
@@ -267,9 +281,8 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public boolean checkAndSendMail(final TeamEventDO eventNew, final TeamEventDO eventOld)
-  {
-    if (this.preCheckSendMail(eventNew) == false) {
+  public boolean checkAndSendMail(final TeamEventDO eventNew, final TeamEventDO eventOld) {
+    if (!this.preCheckSendMail(eventNew)) {
       return false;
     }
 
@@ -277,8 +290,7 @@ public class TeamEventServiceImpl implements TeamEventService
     return this.checkAndSendMail(diff);
   }
 
-  private boolean checkAndSendMail(final TeamEventDiff diff)
-  {
+  private boolean checkAndSendMail(final TeamEventDiff diff) {
     boolean result = true;
 
     switch (diff.getDiffType()) {
@@ -303,10 +315,9 @@ public class TeamEventServiceImpl implements TeamEventService
     return result;
   }
 
-  private boolean preCheckSendMail(final TeamEventDO event)
-  {
+  private boolean preCheckSendMail(final TeamEventDO event) {
     // check event ownership
-    if (event.isOwnership() != null && event.isOwnership() == false) {
+    if (event.getOwnership() != null && !event.getOwnership()) {
       return false;
     }
 
@@ -330,14 +341,13 @@ public class TeamEventServiceImpl implements TeamEventService
       }
 
       final Date untilDate = new Date(until.getTime());
-      return untilDate.before(now) == false;
+      return !untilDate.before(now);
     } catch (ParseException e) {
       return false;
     }
   }
 
-  private boolean sendMail(final TeamEventDO event, final TeamEventDiff diff, final Set<TeamEventAttendeeDO> attendees, final EventMailType mailType)
-  {
+  private boolean sendMail(final TeamEventDO event, final TeamEventDiff diff, final Set<TeamEventAttendeeDO> attendees, final EventMailType mailType) {
     boolean result = true;
 
     for (TeamEventAttendeeDO attendee : attendees) {
@@ -347,8 +357,7 @@ public class TeamEventServiceImpl implements TeamEventService
     return result;
   }
 
-  private boolean sendMail(final TeamEventDO event, final TeamEventDiff diff, TeamEventAttendeeDO attendee, final EventMailType mailType)
-  {
+  private boolean sendMail(final TeamEventDO event, final TeamEventDiff diff, TeamEventAttendeeDO attendee, final EventMailType mailType) {
     final PFUserDO sender = ThreadLocalUserContext.getUser();
 
     if (sender == null) {
@@ -359,8 +368,8 @@ public class TeamEventServiceImpl implements TeamEventService
     final Map<String, Object> dataMap = createData(event, diff, sender, attendee, mailType);
 
     // add attendee as receiver
-    if (attendee.getAddress() != null) {
-      msg.addTo(attendee.getAddress().getEmail());
+    if (StringUtils.isNotBlank(attendee.getEMailAddress())) {
+      msg.addTo(attendee.getEMailAddress());
     } else if (StringUtils.isNotBlank(attendee.getUrl())) {
       msg.addTo(attendee.getUrl());
     }
@@ -370,7 +379,11 @@ public class TeamEventServiceImpl implements TeamEventService
     }
 
     // set mail content
-    final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", dataMap, ThreadLocalUserContext.getUser());
+    final String content = sendMail.renderGroovyTemplate(msg,
+            "mail/teamEventEmail.html",
+            dataMap,
+            I18nHelper.getLocalizedMessage("plugins.teamcal.event.title.heading"),
+            ThreadLocalUserContext.getUser());
     msg.setContent(content);
 
     // create iCal
@@ -385,7 +398,10 @@ public class TeamEventServiceImpl implements TeamEventService
         break;
     }
 
-    ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(event, true, false, method);
+    final ICalGenerator generator = ICalGenerator.forMethod(method);
+    generator.addEvent(event);
+    ByteArrayOutputStream icsFile = generator.getCalendarAsByteStream();
+
     try {
       String ics = icsFile.toString(StandardCharsets.UTF_8.name());
 
@@ -397,32 +413,30 @@ public class TeamEventServiceImpl implements TeamEventService
     }
   }
 
-  private Mail createMail(final TeamEventDO event, final EventMailType mailType, final PFUserDO sender)
-  {
+  private Mail createMail(final TeamEventDO event, final EventMailType mailType, final PFUserDO sender) {
     final Mail msg = new Mail();
     msg.setFrom(sender.getEmail());
     msg.setFromRealname(sender.getFullname());
 
     msg.setContentType(Mail.CONTENTTYPE_HTML);
     final String subject = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject." + mailType.name().toLowerCase(),
-        sender.getFullname(), event.getSubject());
+            sender.getFullname(), event.getSubject());
     msg.setProjectForgeSubject(subject);
     return msg;
   }
 
   private Map<String, Object> createData(final TeamEventDO event, final TeamEventDiff diff, final PFUserDO sender,
-      TeamEventAttendeeDO attendee, final EventMailType mailType)
-  {
+                                         TeamEventAttendeeDO attendee, final EventMailType mailType) {
     // get local and timezone
     final Locale locale;
     final TimeZone timezone;
 
     if (attendee.getUser() != null) {
-      locale = attendee.getUser().getLocale() != null ? attendee.getUser().getLocale() : ThreadLocalUserContext.getLocale(null);
-      timezone = attendee.getUser().getTimeZoneObject();
+      locale = attendee.getUser().getLocale() != null ? attendee.getUser().getLocale() : ThreadLocalUserContext.getLocale();
+      timezone = attendee.getUser().getTimeZone();
     } else {
-      locale = sender.getLocale() != null ? sender.getLocale() : ThreadLocalUserContext.getLocale(null);
-      timezone = sender.getTimeZoneObject();
+      locale = sender.getLocale() != null ? sender.getLocale() : ThreadLocalUserContext.getLocale();
+      timezone = sender.getTimeZone();
     }
 
     // TODO rework!
@@ -431,49 +445,47 @@ public class TeamEventServiceImpl implements TeamEventService
     formatter.setTimeZone(timezone);
 
     final Map<String, Object> dataMap = new HashMap<>();
-    Calendar startDate = Calendar.getInstance(timezone);
-    startDate.setTime(event.getStartDate());
-    Calendar endDate = Calendar.getInstance(timezone);
-    endDate.setTime(event.getEndDate());
+    PFDateTime startDate = PFDateTime.fromOrNow(event.getStartDate(), timezone);
+    PFDateTime endDate = PFDateTime.fromOrNow(event.getEndDate(), timezone);
 
     String location = event.getLocation() != null ? event.getLocation() : "";
     String note = event.getNote() != null ? event.getNote() : "";
     formatter = new SimpleDateFormat("EEEE", locale);
     formatter.setTimeZone(timezone);
-    String startDay = formatter.format(startDate.getTime());
-    String endDay = formatter.format(endDate.getTime());
+    String startDay = formatter.format(startDate.getUtilDate());
+    String endDay = formatter.format(endDate.getUtilDate());
 
     formatter = new SimpleDateFormat("dd. MMMMM YYYY HH:mm", locale);
     formatter.setTimeZone(timezone);
-    String beginDateTime = formatter.format(startDate.getTime());
-    String endDateTime = formatter.format(endDate.getTime());
+    String beginDateTime = formatter.format(startDate.getUtilDate());
+    String endDateTime = formatter.format(endDate.getUtilDate());
     String invitationText = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content." + mailType.name().toLowerCase(),
-        sender.getFullname(), event.getSubject());
+            sender.getFullname(), event.getSubject());
     String beginText = startDay + ", " + beginDateTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
     String endText = endDay + ", " + endDateTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
     String dayOfWeek = startDay;
 
     String fromToHeader;
-    if (startDate.get(Calendar.DATE) == endDate.get(Calendar.DATE)) //Einen Tag
+    if (startDate.getDayOfMonth() == endDate.getDayOfMonth()) //Einen Tag
     {
       formatter = new SimpleDateFormat("HH:mm", locale);
       formatter.setTimeZone(timezone);
-      String endTime = formatter.format(endDate.getTime());
+      String endTime = formatter.format(endDate.getUtilDate());
       fromToHeader =
-          beginDateTime + " - " + endTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
+              beginDateTime + " - " + endTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
     } else    //Mehrere Tage
     {
       fromToHeader = beginDateTime;
     }
-    if (event.isAllDay()) {
+    if (event.getAllDay()) {
       formatter = new SimpleDateFormat("dd. MMMMM YYYY", locale);
       formatter.setTimeZone(timezone);
-      fromToHeader = formatter.format(startDate.getTime());
+      fromToHeader = formatter.format(startDate.getUtilDate());
       formatter = new SimpleDateFormat("EEEE, dd. MMMMM YYYY", locale);
       formatter.setTimeZone(timezone);
       beginText =
-          I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(startDate.getTime());
-      endText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(endDate.getTime());
+              I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(startDate.getUtilDate());
+      endText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(endDate.getUtilDate());
     }
     List<String> attendeeList = new ArrayList<>();
     for (TeamEventAttendeeDO attendees : event.getAttendees()) {
@@ -519,19 +531,17 @@ public class TeamEventServiceImpl implements TeamEventService
     return dataMap;
   }
 
-  private String getResponseLink(TeamEventDO event, TeamEventAttendeeDO attendee, TeamEventAttendeeStatus status)
-  {
+  private String getResponseLink(TeamEventDO event, TeamEventAttendeeDO attendee, TeamEventAttendeeStatus status) {
     final String messageParamBegin = "calendar=" + event.getCalendarId() + "&uid=" + event.getUid() + "&attendee=" + attendee.getId();
     final String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=" + status.name());
-    return configService.getDomain() + TeamCalResponseServlet.PFCALENDAR + "?" + acceptParams;
+    return domainService.getDomain(TeamCalResponseServlet.PFCALENDAR + "?" + acceptParams);
   }
 
-  private String getRepeatText(RRule rRule)
-  {
+  private String getRepeatText(RRule rRule) {
     String msg = "";
     StringBuilder stringBuilder = new StringBuilder();
     switch (rRule.getRecur().getFrequency()) {
-      case "DAILY": {
+      case DAILY: {
         //JEDEN
         if (rRule.getRecur().getInterval() == -1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyDay");
@@ -541,7 +551,7 @@ public class TeamEventServiceImpl implements TeamEventService
         }
       }
       break;
-      case "WEEKLY": {
+      case WEEKLY: {
         //JEDEN
         if (rRule.getRecur().getInterval() == -1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyWeek");
@@ -551,7 +561,7 @@ public class TeamEventServiceImpl implements TeamEventService
         }
       }
       break;
-      case "MONTHLY": {
+      case MONTHLY: {
         //JEDEN
         if (rRule.getRecur().getInterval() == -1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyMonth");
@@ -561,7 +571,7 @@ public class TeamEventServiceImpl implements TeamEventService
         }
       }
       break;
-      case "YEARLY": {
+      case YEARLY: {
         //JEDEN
         if (rRule.getRecur().getInterval() == -1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyYear");
@@ -590,14 +600,12 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public TeamEventDO findByUid(Integer calendarId, String reqEventUid, boolean excludeDeleted)
-  {
+  public TeamEventDO findByUid(Integer calendarId, String reqEventUid, boolean excludeDeleted) {
     return teamEventDao.getByUid(calendarId, reqEventUid, excludeDeleted);
   }
 
   @Override
-  public TeamEventAttendeeDO findByAttendeeId(Integer attendeeId, boolean checkAccess)
-  {
+  public TeamEventAttendeeDO findByAttendeeId(Integer attendeeId, boolean checkAccess) {
     TeamEventAttendeeDO result = null;
     if (checkAccess) {
       result = teamEventAttendeeDao.getById(attendeeId);
@@ -608,74 +616,62 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public TeamEventAttendeeDO findByAttendeeId(Integer attendeeId)
-  {
+  public TeamEventAttendeeDO findByAttendeeId(Integer attendeeId) {
     return findByAttendeeId(attendeeId, true);
   }
 
   @Override
-  public void update(TeamEventDO event)
-  {
+  public void update(TeamEventDO event) {
     update(event, true);
   }
 
   @Override
-  public void update(TeamEventDO event, boolean checkAccess)
-  {
+  public void update(TeamEventDO event, boolean checkAccess) {
     teamEventDao.internalUpdate(event, checkAccess);
   }
 
   @Override
-  public List<TeamEvent> getEventList(TeamEventFilter filter, boolean calculateRecurrenceEvents)
-  {
+  public List<ICalendarEvent> getEventList(TeamEventFilter filter, boolean calculateRecurrenceEvents) {
     return teamEventDao.getEventList(filter, calculateRecurrenceEvents);
   }
 
   @Override
-  public List<TeamEventDO> getTeamEventDOList(TeamEventFilter filter)
-  {
+  public List<TeamEventDO> getTeamEventDOList(TeamEventFilter filter) {
     return teamEventDao.getList(filter);
   }
 
   @Override
-  public TeamEventDO getById(Integer teamEventId)
-  {
+  public TeamEventDO getById(Integer teamEventId) {
     return teamEventDao.getById(teamEventId);
   }
 
   @Override
-  public void saveOrUpdate(TeamEventDO teamEvent)
-  {
+  public void saveOrUpdate(TeamEventDO teamEvent) {
     teamEventDao.saveOrUpdate(teamEvent);
   }
 
   @Override
-  public void markAsDeleted(TeamEventDO teamEvent)
-  {
+  public void markAsDeleted(TeamEventDO teamEvent) {
     teamEventDao.markAsDeleted(teamEvent);
   }
 
   @Override
-  public void undelete(TeamEventDO teamEvent)
-  {
+  public void undelete(TeamEventDO teamEvent) {
     teamEventDao.undelete(teamEvent);
   }
 
   @Override
-  public void save(TeamEventDO newEvent)
-  {
+  public void save(TeamEventDO newEvent) {
     teamEventDao.save(newEvent);
   }
 
   @Override
-  public TeamEventDao getTeamEventDao()
-  {
+  public TeamEventDao getTeamEventDao() {
     return teamEventDao;
   }
 
   @Override
-  public void updateAttendee(TeamEventAttendeeDO attendee, boolean accesscheck)
-  {
+  public void updateAttendee(TeamEventAttendeeDO attendee, boolean accesscheck) {
     if (accesscheck) {
       teamEventAttendeeDao.update(attendee);
     } else {
@@ -684,9 +680,38 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public List<Integer> getCalIdList(Collection<TeamCalDO> teamCals)
-  {
+  public List<Integer> getCalIdList(Collection<TeamCalDO> teamCals) {
     return teamEventDao.getCalIdList(teamCals);
   }
 
+  @Override
+  public ICalHandler getEventHandler(final TeamCalDO defaultCalendar) {
+    return new ICalHandler(this, defaultCalendar);
+  }
+
+  @Override
+  public void fixAttendees(final TeamEventDO event) {
+    List<TeamEventAttendeeDO> attendeesFromDbList = this.getAddressesAndUserAsAttendee();
+
+    Integer internalNewAttendeeSequence = -10000;
+    boolean found;
+
+    for (TeamEventAttendeeDO attendeeDO : event.getAttendees()) {
+      found = false;
+
+      // search for eMail in DB as possible attendee
+      for (TeamEventAttendeeDO dBAttendee : attendeesFromDbList) {
+        if (dBAttendee.getEMailAddress() != null && dBAttendee.getEMailAddress().equals(attendeeDO.getUrl())) {
+          attendeeDO = dBAttendee;
+          attendeeDO.setId(internalNewAttendeeSequence--);
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        attendeeDO.setId(internalNewAttendeeSequence--);
+      }
+    }
+  }
 }

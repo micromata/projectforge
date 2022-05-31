@@ -1,0 +1,13 @@
+= ProjectForge development documentation
+Micromata GmbH, Version {version}
+:toc:
+:toclevels: 4
+
+:last-update-label: Copyright (C) 2021, Last updated
+
+ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+:hide-uri-scheme:
+
+== Moved to https://projectforge.org/docs/migration/
+
+Local folder: `site/_docs`

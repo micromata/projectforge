@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,27 +30,20 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.projectforge.Constants;
 import org.projectforge.business.task.TaskFilter;
 import org.projectforge.web.wicket.AbstractSecuredForm;
-import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.FieldSetIconPosition;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.IconPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
+import org.projectforge.web.wicket.flowlayout.*;
 
 public class TaskTreeForm extends AbstractSecuredForm<TaskFilter, TaskTreePage>
 {
   private static final long serialVersionUID = -203572415793301622L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TaskTreeForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskTreeForm.class);
 
   private TaskFilter searchFilter;
 
@@ -83,7 +76,7 @@ public class TaskTreeForm extends AbstractSecuredForm<TaskFilter, TaskTreePage>
       fs.add(new InputPanel(fs.newChildId(), searchField));
       fs.add(new IconPanel(fs.newIconChildId(), IconType.HELP, getString("tooltip.lucene.link")).setOnClickLocation(
           getRequestCycle(),
-          WebConstants.DOC_LINK_HANDBUCH_LUCENE, true), FieldSetIconPosition.TOP_RIGHT);
+          Constants.WEB_DOCS_LINK_HANDBUCH_LUCENE, true), FieldSetIconPosition.TOP_RIGHT);
     }
     {
       gridBuilder.newSplitPanel(GridSize.COL50);

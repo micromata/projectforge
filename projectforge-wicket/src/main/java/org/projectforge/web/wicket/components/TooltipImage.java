@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,9 +25,9 @@ package org.projectforge.web.wicket.components;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.model.IModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.ImageDef;
 import org.projectforge.web.wicket.PresizedImage;
+import org.projectforge.web.wicket.WicketUtils;
 
 public class TooltipImage extends PresizedImage
 {

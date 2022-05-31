@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.database.XmlDumpHook;
 import org.projectforge.framework.persistence.xstream.XStreamSavingConverter;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * @deprecated see ConfigurationXmlBeforePersistListener
  */
@@ -45,15 +45,5 @@ public class ConfigurationDOXmlDumpHook implements XmlDumpHook
   public void onBeforeRestore(UserXmlPreferencesDao userXmlPreferencesDao,
       final XStreamSavingConverter xstreamSavingConverter, final Object obj)
   {
-    if (obj instanceof ConfigurationDO) {
-      final ConfigurationDO configurationDO = (ConfigurationDO) obj;
-      if (configurationDO.getConfigurationType() != ConfigurationType.TASK) {
-        return;
-      }
-      final Integer oldTaskId = configurationDO.getTaskId();
-      final Integer newTaskId = xstreamSavingConverter.getNewIdAsInteger(TaskDO.class, oldTaskId);
-      configurationDO.setTaskId(newTaskId);
-      return;
-    }
   }
 }

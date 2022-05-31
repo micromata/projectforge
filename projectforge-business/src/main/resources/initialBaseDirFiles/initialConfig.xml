@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config>
+    <!--jiraBrowseBaseUrl>https://jira.acme.com/jira/browse/</jiraBrowseBaseUrl-->
+    <!--jiraConfig>
+        <createIssueUrl>https://jira.acme.com/jira/secure/CreateIssueDetails!init.jspa
+        </createIssueUrl>
+        <issueTypes>
+            <issueType label="Bug" value="1"/>
+            <issueType label="Neue Funktion" value="2"/>
+            <issueType label="Aufgabe" value="3"/>
+            <issueType label="Verbesserung" value="4"/>
+            <issueType label="Claim" value="5"/>
+            <issueType label="Open Requirement" value="6"/>
+        </issueTypes>
+    </jiraConfig-->
+    <holidays>
+        <!--holiday label="Erster Mai" month="4" dayOfMonth="1" workingDay="false"/-->
+        <!--holiday label="Dritter Oktober" month="9" dayOfMonth="3" workingDay="false"/-->
+        <holiday id="XMAS_EVE" workingDay="true" workFraction="0.5"/>
+        <holiday id="SYLVESTER" workingDay="true" workFraction="0.5"/>
+    </holidays>
+    <!--contractTypes>
+        <contractType value="AV" label="Arbeitsvertrag"/>
+        <contractType value="EV" label="Einzelvereinbarung"/>
+        <contractType value="RV" label="Rahmenvertrag"/>
+        <contractType value="PV" label="Projektvertrag"/>
+        <contractType value="NDA" label="NDA - Geheimhaltungsvereinbarung"/>
+        <contractType value="NA" label="Nebenabrede"/>
+        <contractType value="S" label="Sonstiges"/>
+    </contractTypes-->
+    <!--accountingConfig debitorsAccountNumberRanges="10000-12999"
+                      creditorsAccountNumberRanges="70000-79999">
+        <businessAssessment heading="BWA"
+                            overallPerformance="gesamtleistung" merchandisePurchase="matWareneinkauf"
+                            preliminaryResult="vorlaeufigesErgebnis"-->
+            <!-- Please note: The calculations (if value is given) are done row by
+                    row, therefore you can't refer row amounts of successive rows. -->
+            <!--rows-->
+                <!-- Empty row: -->
+                <!--row no="1010"/>
+                <row no="1020" id="umsatzErloese" accountRange="4000-4185,4200-4509,4560-4569,4690-4799"
+                     priority="middle" title="Umsatzerlöse" indent="1"/>
+                <row no="1040" id="bestVerdg" accountRange="4800-4819" priority="low"
+                     title="Best.Verdg. FE/UE" indent="1"/>
+                <row no="1045" id="aktEigenleistungen" accountRange="4820-4829"
+                     priority="low" title="Akt.Eigenleistungen" indent="1"/>
+                <row no="1050"/>
+                <row no="1051" id="gesamtleistung" value="=umsatzErloese+bestVerdg+aktEigenleistungen"
+                     priority="high" title="Gesamtleistung"/>
+                <row no="1052"/>
+                <row no="1060" id="matWareneinkauf"
+                     accountRange="4600-4629,4670-4685,4941-4945,5100-5859,5880-5999"
+                     priority="high" title="Mat./Wareneinkauf" indent="1"/>
+                <row no="1070"/>
+                <row no="1080" id="rohertrag" value="=gesamtleistung+matWareneinkauf"
+                     priority="high" title="Rohertrag"/>
+                <row no="1081"/>
+                <row no="1090" id="soBetrErloese"
+                     accountRange="4186-4199,4510-4559,4570-4599,4630-4669,4686-4689,4830-4836,4840-4843,4940,4946-4959"
+                     priority="low" title="So. betr. Erlöse" indent="1"/>
+                <row no="1091"/>
+                <row no="1092" id="betrieblRohertrag" value="=rohertrag+soBetrErloese"
+                     priority="middle" title="Betriebl. Rohertrag"/>
+                <row no="1093"/>
+                <row no="1094" id="kostenarten" priority="low" title="Kostenarten"/>
+                <row no="1100" id="personalkosten" accountRange="6000-6199,6970-6971,6979"
+                     priority="high" title="Personalkosten" indent="1"/>
+                <row no="1120" id="raumkosten" accountRange="6305-6351,6972-6973"
+                     priority="low" title="Raumkosten" indent="1"/>
+                <row no="1140" id="betrieblSteuern" accountRange="7650-7699"
+                     priority="low" title="Betriebl. Steuern" indent="1"/>
+                <row no="1150" id="versichBeitraege" accountRange="6400-6439"
+                     priority="low" title="Versich./Beiträge" indent="1"/>
+                <row no="1160" id="fremdleistungen" accountRange="7800-7899"
+                     priority="low" title="Fremdleistungen" indent="1"/>
+                <row no="1180" id="kfzKosten" accountRange="6500-6599" priority="low"
+                     title="Kfz-Kosten (o. St.)" indent="1"/>
+                <row no="1200" id="werbeReisekosten" accountRange="6600-6699"
+                     priority="low" title="Werbe-/Reisekosten" indent="1"/>
+                <row no="1220" id="kostenWarenabgabe" accountRange="6700-6799"
+                     priority="low" title="Kosten Warenabgabe" indent="1"/>
+                <row no="1240" id="abschreibungen"
+                     accountRange="6200-6299,6910-6915,6930-6959,6976-6977,7200-7299"
+                     priority="low" title="Abschreibungen" indent="1"/>
+                <row no="1250" id="reparaturInstandh" accountRange="6450-6497"
+                     priority="low" title="Reparatur/Instandh." indent="1"/>
+                <row no="1260" id="sonstigeKosten"
+                     accountRange="6300-6304,6440-6449,6498-6499,6800-6874,6880-6883,6974-6975,6978,6990-6999"
+                     priority="low" title="sonstige Kosten"/>
+                <row no="1280" id="gesamtKosten"
+                     value="=personalkosten+raumkosten+betrieblSteuern+versichBeitraege+fremdleistungen+kfzKosten+werbeReisekosten+kostenWarenabgabe+abschreibungen+reparaturInstandh+sonstigeKosten"
+                     priority="high" title="Gesamtkosten"/>
+                <row no="1290"/>
+                <row no="1300" id="betriebsErgebnis" value="=betrieblRohertrag+gesamtKosten"
+                     priority="high" title="Betriebsergebnis"/>
+                <row no="1301"/>
+                <row no="1310" id="zinsaufwand" accountRange="7144-7189,7300-7363,7364-7389"
+                     priority="low" indent="2" title="Zinsaufwand"/>
+                <row no="1312" id="sonstNeutrAufw"
+                     accountRange="6352-6399,6875-6879,6884-6909,6916-6929,6960-6969,7390-7399,7500-7599,7900-7999"
+                     priority="low" indent="2" title="Sonst. neutr. Aufw."/>
+                <row no="1320" id="neutralerAufwand" value="=zinsaufwand+sonstNeutrAufw"
+                     priority="low" indent="1" title="Neutraler Aufwand"/>
+                <row no="1321"/>
+                <row no="1322" id="zinsertraege" accountRange="7000-7143,7144-7189,7364-7389"
+                     priority="low" indent="2" title="Zinserträge"/>
+                <row no="1323" id="sonstNeutrErtr"
+                     accountRange="4837-4839,4844-4939,4960-4999,7190-7199,7400-7499"
+                     priority="low" indent="2" title="Sonst. neutr. Ertr"/>
+                <row no="1324" id="verrKalkKosten" accountRange="6980-6989"
+                     priority="low" indent="2" title="Verr. kalk. Kosten"/>
+                <row no="1330" id="neutralerErtrag" value="=zinsertraege+sonstNeutrErtr+verrKalkKosten"
+                     priority="low" indent="1" title="Neutraler Ertrag"/>
+                <row no="1331"/>
+                <row no="1340" id="kontenklUnbesetzt" accountRange="8000-8999"
+                     priority="low" indent="1" title="Kontenkl. unbesetzt"/>
+                <row no="1342"/>
+                <row no="1345" id="ergebnisVorSteuern"
+                     value="=betriebsErgebnis+neutralerAufwand+neutralerErtrag"
+                     priority="high" title="Ergebnis vor Steuern"/>
+                <row no="1350"/>
+                <row no="1355" id="steuernEinkUErtr" accountRange="7600-7649"
+                     priority="low" indent="1" title="Steuern Eink.u.Ertr"/>
+                <row no="1360"/>
+                <row no="1380" id="vorlaeufigesErgebnis" value="=ergebnisVorSteuern+steuernEinkUErtr"
+                     priority="high" title="Vorläufiges Ergebnis"/>
+                <row no="1390"/>
+                <row no="" id="erfolgsquote" priority="middle" title="Erfolgsquote"
+                     scale="0" unit="%">
+                    <value>
+                        if (gesamtleistung != 0.0)
+                        { return betriebsErgebnis * 100 / gesamtleistung; }
+                        else
+                        { return 0.0; }
+                    </value>
+                </row>
+                <row no="" id="relativePerformance" priority="middle"
+                     title="relative Performance" scale="3" unit="-">
+                    <value>
+                        if (gesamtleistung != 0.0) { return vorlaeufigesErgebnis /
+                        gesamtleistung; } else { return 0.0; }
+                    </value>
+                </row>
+            </rows>
+        </businessAssessment>
+    </accountingConfig-->
+</config>
+

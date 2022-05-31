@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,28 +23,21 @@
 
 package org.projectforge.web.teamcal.event;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-
+import net.ftlines.wicket.fullcalendar.Event;
+import net.ftlines.wicket.fullcalendar.callback.EventDroppedCallbackScriptGenerator;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.Period;
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamCalEventId;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -60,8 +53,7 @@ import org.projectforge.framework.time.RecurrenceFrequency;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
-import net.ftlines.wicket.fullcalendar.Event;
-import net.ftlines.wicket.fullcalendar.callback.EventDroppedCallbackScriptGenerator;
+import java.util.*;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
@@ -78,7 +70,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 
   private final TeamCalCalendarFilter filter;
 
-  private final Map<String, TeamEvent> teamEventMap = new HashMap<String, TeamEvent>();
+  private final Map<String, ICalendarEvent> teamEventMap = new HashMap<String, ICalendarEvent>();
 
   /**
    * the name of the event class.
@@ -131,7 +123,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
     eventFilter.setStartDate(start.toDate());
     eventFilter.setEndDate(end.toDate());
     eventFilter.setUser(ThreadLocalUserContext.getUser());
-    final List<TeamEvent> teamEvents = teamEventDao.getEventList(eventFilter, true);
+    final List<ICalendarEvent> teamEvents = teamEventDao.getEventList(eventFilter, true);
 
     days = Days.daysBetween(start, end).getDays();
     // Week or day view:
@@ -141,7 +133,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
     final PFUserDO user = ThreadLocalUserContext.getUser();
     final TimeZone timeZone = ThreadLocalUserContext.getTimeZone();
     if (CollectionUtils.isNotEmpty(teamEvents) == true) {
-      for (final TeamEvent teamEvent : teamEvents) {
+      for (final ICalendarEvent teamEvent : teamEvents) {
         final TeamEventDO eventDO;
         if (teamEvent instanceof TeamEventDO) {
           eventDO = (TeamEventDO) teamEvent;
@@ -150,7 +142,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
         }
 
         // Use UTC for all day events to prevent date shift for timezones with negative offset
-        final DateTimeZone dateTimeZone = eventDO.isAllDay() ? DateTimeZone.forTimeZone(DateHelper.UTC) : ThreadLocalUserContext.getDateTimeZone();
+        final DateTimeZone dateTimeZone = eventDO.getAllDay() ? DateTimeZone.forTimeZone(DateHelper.UTC) : ThreadLocalUserContext.getDateTimeZone();
         final DateTime startDate = new DateTime(teamEvent.getStartDate(), dateTimeZone);
         final DateTime endDate = new DateTime(teamEvent.getEndDate(), dateTimeZone);
 
@@ -173,7 +165,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
           event.setEditable(false);
         }
 
-        if (teamEvent.isAllDay() == true) {
+        if (teamEvent.getAllDay() == true) {
           event.setAllDay(true);
         }
 
@@ -289,7 +281,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
     return tooltipContent.toArray(new String[tooltipContent.size()][]);
   }
 
-  public TeamEvent getTeamEvent(final String id)
+  public ICalendarEvent getTeamEvent(final String id)
   {
     return teamEventMap.get(id);
   }

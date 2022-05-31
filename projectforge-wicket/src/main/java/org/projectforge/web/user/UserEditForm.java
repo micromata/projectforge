@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,26 +23,12 @@
 
 package org.projectforge.web.user;
 
-import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.html.form.Button;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.PasswordTextField;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -51,29 +37,13 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.projectforge.Const;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.group.service.GroupService;
-import org.projectforge.business.ldap.LdapPosixAccountsUtils;
-import org.projectforge.business.ldap.LdapSambaAccountsConfig;
-import org.projectforge.business.ldap.LdapSambaAccountsUtils;
-import org.projectforge.business.ldap.LdapService;
-import org.projectforge.business.ldap.LdapUserDao;
-import org.projectforge.business.ldap.LdapUserValues;
-import org.projectforge.business.ldap.PFUserDOConverter;
+import org.projectforge.business.ldap.*;
 import org.projectforge.business.login.Login;
-import org.projectforge.business.multitenancy.TenantDao;
-import org.projectforge.business.multitenancy.TenantService;
-import org.projectforge.business.multitenancy.TenantsComparator;
+import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.password.PasswordQualityService;
-import org.projectforge.business.user.GroupDao;
-import org.projectforge.business.user.GroupsComparator;
-import org.projectforge.business.user.UserDao;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserRight;
-import org.projectforge.business.user.UserRightDao;
-import org.projectforge.business.user.UserRightVO;
-import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.user.*;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
@@ -81,47 +51,44 @@ import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
+import org.projectforge.framework.i18n.TimeAgo;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.Gender;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.web.common.MultiChoiceListHelper;
-import org.projectforge.web.multitenancy.TenantsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
-import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.components.TimeZoneField;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
-public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
-{
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
   private static final long serialVersionUID = 7872294377838461659L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserEditForm.class);
 
   @SpringBean
   private AccessChecker accessChecker;
+
+  @SpringBean
+  private ConfigurationService configurationService;
 
   @SpringBean
   private UserRightDao userRightDao;
 
   @SpringBean
   private GroupDao groupDao;
-
-  @SpringBean
-  private TenantDao tenantDao;
 
   @SpringBean
   private LdapPosixAccountsUtils ldapPosixAccountsUtils;
@@ -139,13 +106,13 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   private GroupService groupService;
 
   @SpringBean
-  private TenantService tenantService;
-
-  @SpringBean
   private PasswordQualityService passwordQualityService;
 
   @SpringBean
   private UserService userService;
+
+  @SpringBean
+  private UserAuthenticationsService userAuthenticationsService;
 
   protected UserRightsEditData rightsData;
 
@@ -166,8 +133,6 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   protected MultiChoiceListHelper<GroupDO> assignGroupsListHelper;
 
-  protected MultiChoiceListHelper<TenantDO> assignTenantsListHelper;
-
   protected LdapUserValues ldapUserValues;
 
   private TextField<String> usernameTextField;
@@ -184,46 +149,66 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   private MinMaxNumberField<Integer> sambaPrimaryGroupSIDNumberField;
 
-  public UserEditForm(final UserEditPage parentPage, final PFUserDO data)
-  {
+  public UserEditForm(final UserEditPage parentPage, final PFUserDO data) {
     super(parentPage, data);
   }
 
-  public static void createFirstName(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createFirstName(final GridBuilder gridBuilder, final PFUserDO user) {
     // First name
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("firstName"));
     final RequiredMaxLengthTextField firstName = new RequiredMaxLengthTextField(fs.getTextFieldId(),
-        new PropertyModel<String>(user,
-            "firstname"));
+            new PropertyModel<String>(user,
+                    "firstname"));
     firstName.setMarkupId("firstName").setOutputMarkupId(true);
     WicketUtils.setStrong(firstName);
     fs.add(firstName);
   }
 
-  public static void createLastName(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createNickname(final GridBuilder gridBuilder, final PFUserDO user) {
+    // First name
+    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("nickname"));
+    final MaxLengthTextField nickname = new MaxLengthTextField(fs.getTextFieldId(),
+        new PropertyModel(user, "nickname"));
+    nickname.setMarkupId("nickname").setOutputMarkupId(true);
+    fs.add(nickname);
+  }
+
+  public static void createLastName(final GridBuilder gridBuilder, final PFUserDO user) {
     // Last name
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("name"));
     final RequiredMaxLengthTextField name = new RequiredMaxLengthTextField(fs.getTextFieldId(),
-        new PropertyModel<String>(user, "lastname"));
+            new PropertyModel<String>(user, "lastname"));
     name.setMarkupId("lastName").setOutputMarkupId(true);
     WicketUtils.setStrong(name);
     fs.add(name);
   }
 
-  public static void createOrganization(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createGender(final GridBuilder gridBuilder, final PFUserDO user) {
+    // Gender
+    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("gender"));
+    final LabelValueChoiceRenderer<Gender> genderChoiceRenderer = new LabelValueChoiceRenderer<Gender>();
+    genderChoiceRenderer.addValue(Gender.FEMALE, gridBuilder.getString("gender.female"));
+    genderChoiceRenderer.addValue(Gender.MALE, gridBuilder.getString("gender.male"));
+    genderChoiceRenderer.addValue(Gender.DIVERSE, gridBuilder.getString("gender.diverse"));
+    genderChoiceRenderer.addValue(Gender.UNKNOWN, gridBuilder.getString("gender.unknown"));
+    final DropDownChoice<Gender> genderChoice = new DropDownChoice<Gender>(fs.getDropDownChoiceId(),
+        new PropertyModel<Gender>(user, "gender"), genderChoiceRenderer.getValues(),
+        genderChoiceRenderer);
+    genderChoice.setNullValid(false);
+    fs.add(genderChoice);
+  }
+
+
+  public static void createOrganization(final GridBuilder gridBuilder, final PFUserDO user) {
     // Organization
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("organization"));
     MaxLengthTextField organization = new MaxLengthTextField(fs.getTextFieldId(),
-        new PropertyModel<String>(user, "organization"));
+            new PropertyModel<String>(user, "organization"));
     organization.setMarkupId("organization").setOutputMarkupId(true);
     fs.add(organization);
   }
 
-  public static void createEMail(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createEMail(final GridBuilder gridBuilder, final PFUserDO user) {
     // E-Mail
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("email"));
     MaxLengthTextField email = new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(user, "email"));
@@ -232,111 +217,112 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     fs.add(email);
   }
 
+  public static void createMobilePhone(final GridBuilder gridBuilder, final PFUserDO user) {
+    // E-Mail
+    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.mobilePhone"));
+    MaxLengthTextField mobilePhone = new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(user, "mobilePhone"));
+    mobilePhone.setMarkupId("mobilePhone").setOutputMarkupId(true);
+    mobilePhone.setRequired(false);
+    fs.addHelpIcon(gridBuilder.getString("user.mobilePhone.info"));
+    fs.add(mobilePhone);
+  }
+
   @SuppressWarnings("serial")
-  public static void createAuthenticationToken(final GridBuilder gridBuilder, final PFUserDO user,
-      final UserDao userDao,
-      final Form<?> form)
-  {
+  public static FieldsetPanel createAuthenticationToken(final GridBuilder gridBuilder, final PFUserDO user,
+                                                        final UserAuthenticationsService userAuthenticationsService,
+                                                        final Form<?> form,
+                                                        final UserTokenType tokenType) {
     // Authentication token
-    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.authenticationToken"))
-        .suppressLabelForWarning();
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
+    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.authenticationToken." + tokenType.name().toLowerCase()))
+            .suppressLabelForWarning();
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         if (ThreadLocalUserContext.getUserId().equals(user.getId()) == true) {
-          return userDao.getAuthenticationToken(user.getId());
+          return userAuthenticationsService.getToken(user.getId(), tokenType);
         } else {
           // Administrators shouldn't see the token.
           return "*****";
         }
       }
     }));
-    fs.addHelpIcon(gridBuilder.getString("user.authenticationToken.tooltip"));
-    final Button button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("renewAuthenticationKey"))
-    {
+    fs.addHelpIcon(gridBuilder.getString("user.authenticationToken." + tokenType.name().toLowerCase() + ".tooltip"));
+    final Button button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("renewAuthenticationKey")) {
       @Override
-      public final void onSubmit()
-      {
-        userDao.renewAuthenticationToken(user.getId());
+      public final void onSubmit() {
+        userAuthenticationsService.renewToken(user.getId(), tokenType);
         form.error(getString("user.authenticationToken.renew.successful"));
       }
     };
     button.add(
-        WicketUtils.javaScriptConfirmDialogOnClick(form.getString("user.authenticationToken.renew.securityQuestion")));
+            WicketUtils.javaScriptConfirmDialogOnClick(form.getString("user.authenticationToken.renew.securityQuestion")));
     fs.add(new SingleButtonPanel(fs.newChildId(), button, gridBuilder.getString("user.authenticationToken.renew"),
-        SingleButtonPanel.DANGER));
+            SingleButtonPanel.DANGER));
     WicketUtils.addTooltip(button, gridBuilder.getString("user.authenticationToken.renew.tooltip"));
+    return fs;
   }
 
-  public static void createJIRAUsername(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createJIRAUsername(final GridBuilder gridBuilder, final PFUserDO user) {
     // JIRA user name
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.jiraUsername"));
     final MaxLengthTextField jiraUsername = new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(user, "jiraUsername"));
     jiraUsername
-        .setMarkupId("jiraUser")
-        .setOutputMarkupId(true)
-        .add(AttributeModifier.append("autocomplete", "off"));
+            .setMarkupId("jiraUser")
+            .setOutputMarkupId(true)
+            .add(AttributeModifier.append("autocomplete", "off"));
     fs.add(jiraUsername);
     fs.addHelpIcon(gridBuilder.getString("user.jiraUsername.tooltip"));
   }
 
-  public static void createLastLoginAndDeleteAllStayLogins(final GridBuilder gridBuilder, final PFUserDO user,
-      final UserService userService,
-      final Form<?> form)
-  {
+  public static FieldsetPanel createLastLoginAndDeleteAllStayLogins(final GridBuilder gridBuilder, final PFUserDO user,
+                                                           final UserAuthenticationsService userAuthenticationsService,
+                                                           final Form<?> form) {
     // Last login and deleteAllStayLoggedInSessions
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("login.lastLogin"))
-        .suppressLabelForWarning();
+            .suppressLabelForWarning();
     fs.add(new DivTextPanel(fs.newChildId(), DateTimeFormatter.instance().getFormattedDateTime(user.getLastLogin())));
-    @SuppressWarnings("serial")
-    final Button button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("invalidateStayLoggedInSessions"))
-    {
+    if (user.getLastLogin() != null) {
+      fs.add(new DivTextPanel(fs.newChildId(), "(" + TimeAgo.getMessage(user.getLastLogin()) + ")"));
+    }
+    @SuppressWarnings("serial") final Button button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("invalidateStayLoggedInSessions")) {
       @Override
-      public final void onSubmit()
-      {
-        userService.renewStayLoggedInKey(user.getId());
+      public final void onSubmit() {
+        userAuthenticationsService.renewToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY);
         form.error(getString("login.stayLoggedIn.invalidateAllStayLoggedInSessions.successfullDeleted"));
       }
     };
     button.setMarkupId("invalidateStayLoggedInSessions").setOutputMarkupId(true);
     fs.add(new SingleButtonPanel(fs.newChildId(), button,
-        gridBuilder.getString("login.stayLoggedIn.invalidateAllStayLoggedInSessions"),
-        SingleButtonPanel.DANGER));
+            gridBuilder.getString("login.stayLoggedIn.invalidateAllStayLoggedInSessions"),
+            SingleButtonPanel.DANGER));
     WicketUtils.addTooltip(button,
-        gridBuilder.getString("login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"));
+            gridBuilder.getString("login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"));
+    return fs;
   }
 
-  public static void createLocale(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createLocale(final GridBuilder gridBuilder, final PFUserDO user) {
     // Locale
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.locale"));
     final LabelValueChoiceRenderer<Locale> localeChoiceRenderer = new LabelValueChoiceRenderer<Locale>();
     localeChoiceRenderer.addValue(null, gridBuilder.getString("user.defaultLocale"));
-    for (final String str : Const.LOCALIZATIONS) {
+    for (final String str : UserLocale.LOCALIZATIONS) {
       localeChoiceRenderer.addValue(new Locale(str), gridBuilder.getString("locale." + str));
     }
-    @SuppressWarnings("serial")
-    final DropDownChoice<Locale> localeChoice = new DropDownChoice<Locale>(fs.getDropDownChoiceId(),
-        new PropertyModel<Locale>(user,
-            "locale"),
-        localeChoiceRenderer.getValues(), localeChoiceRenderer)
-    {
+    @SuppressWarnings("serial") final DropDownChoice<Locale> localeChoice = new DropDownChoice<Locale>(fs.getDropDownChoiceId(),
+            new PropertyModel<Locale>(user,
+                    "locale"),
+            localeChoiceRenderer.getValues(), localeChoiceRenderer) {
       /**
        * @see org.apache.wicket.markup.html.form.AbstractSingleSelectChoice#getDefaultChoice(java.lang.String)
        */
       @Override
-      protected CharSequence getDefaultChoice(final String selectedValue)
-      {
+      protected CharSequence getDefaultChoice(final String selectedValue) {
         return "";
       }
 
       @Override
-      protected Locale convertChoiceIdToChoice(final String id)
-      {
-        if (StringHelper.isIn(id, Const.LOCALIZATIONS) == true) {
+      protected Locale convertChoiceIdToChoice(final String id) {
+        if (StringHelper.isIn(id, UserLocale.LOCALIZATIONS) == true) {
           return new Locale(id);
         } else {
           return null;
@@ -346,42 +332,34 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     fs.add(localeChoice);
   }
 
-  public static void createLanguage(final GridBuilder gridBuilder, final PFUserDO user)
-  {
-  }
-
-  public static void createDateFormat(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createDateFormat(final GridBuilder gridBuilder, final PFUserDO user) {
     addDateFormatCombobox(gridBuilder, user, "dateFormat", "dateFormat", Configuration.getInstance().getDateFormats(),
-        false);
+            false);
   }
 
-  public static void createExcelDateFormat(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createExcelDateFormat(final GridBuilder gridBuilder, final PFUserDO user) {
     addDateFormatCombobox(gridBuilder, user, "dateFormat.xls", "excelDateFormat",
-        Configuration.getInstance().getExcelDateFormats(), true);
+            Configuration.getInstance().getExcelDateFormats(), true);
   }
 
-  public static void createTimeNotation(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createTimeNotation(final GridBuilder gridBuilder, final PFUserDO user) {
     // Time notation
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("timeNotation"));
     final LabelValueChoiceRenderer<TimeNotation> timeNotationChoiceRenderer = new LabelValueChoiceRenderer<TimeNotation>();
     timeNotationChoiceRenderer.addValue(TimeNotation.H12, gridBuilder.getString("timeNotation.12"));
     timeNotationChoiceRenderer.addValue(TimeNotation.H24, gridBuilder.getString("timeNotation.24"));
     final DropDownChoice<TimeNotation> timeNotationChoice = new DropDownChoice<TimeNotation>(fs.getDropDownChoiceId(),
-        new PropertyModel<TimeNotation>(user, "timeNotation"), timeNotationChoiceRenderer.getValues(),
-        timeNotationChoiceRenderer);
+            new PropertyModel<TimeNotation>(user, "timeNotation"), timeNotationChoiceRenderer.getValues(),
+            timeNotationChoiceRenderer);
     timeNotationChoice.setNullValid(true);
     fs.add(timeNotationChoice);
   }
 
-  public static void createTimeZone(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createTimeZone(final GridBuilder gridBuilder, final PFUserDO user) {
     // Time zone
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("timezone"));
     final TimeZoneField timeZone = new TimeZoneField(fs.getTextFieldId(),
-        new PropertyModel<TimeZone>(user, "timeZoneObject"));
+            new PropertyModel<TimeZone>(user, "timeZone"));
     fs.addKeyboardHelpIcon(gridBuilder.getString("tooltip.autocomplete.timeZone"));
     fs.add(timeZone);
   }
@@ -392,56 +370,39 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
    * @param gridBuilder
    * @param user
    */
-  public static void createPhoneIds(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createPhoneIds(final GridBuilder gridBuilder, final PFUserDO user) {
     if (StringUtils.isNotEmpty(ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService.class)
-        .getTelephoneSystemUrl()) == true) {
+            .getTelephoneSystemUrl()) == true) {
       // Personal phone identifiers
       final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.personalPhoneIdentifiers"));
       MaxLengthTextField personalPhoneIdentifiers = new MaxLengthTextField(fs.getTextFieldId(),
-          new PropertyModel<String>(user, "personalPhoneIdentifiers"));
+              new PropertyModel<String>(user, "personalPhoneIdentifiers"));
       personalPhoneIdentifiers.setMarkupId("personalPhoneIdentifiers").setOutputMarkupId(true);
       fs.add(personalPhoneIdentifiers);
       fs.addHelpIcon(new ResourceModel("user.personalPhoneIdentifiers.tooltip.title"), new ResourceModel(
-          "user.personalPhoneIdentifiers.tooltip.content"));
+              "user.personalPhoneIdentifiers.tooltip.content"));
     }
   }
 
-  /**
-   * If no MEB is configured in config.xml nothing will be done.
-   *
-   * @param gridBuilder
-   * @param user
-   */
-  public static void createMEBPhoneNumbers(final GridBuilder gridBuilder, final PFUserDO user)
-  {
-    if (Configuration.getInstance().isMebConfigured() == true) {
-      // MEB mobile phone numbers
-      final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.personalMebMobileNumbers"));
-      MaxLengthTextField personalMebMobileNumbers = new MaxLengthTextField(fs.getTextFieldId(),
-          new PropertyModel<String>(user, "personalMebMobileNumbers"));
-      personalMebMobileNumbers.setMarkupId("personalMebMobileNumbers").setOutputMarkupId(true);
-      fs.add(personalMebMobileNumbers);
-      fs.addHelpIcon(
-          new ResourceModel("user.personalMebMobileNumbers.tooltip.title"),
-          Model.of(gridBuilder.getString("user.personalMebMobileNumbers.tooltip.content")
-              + " "
-              + gridBuilder.getString("user.personalMebMobileNumbers.format")));
-    }
-  }
-
-  public static void createDescription(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createDescription(final GridBuilder gridBuilder, final PFUserDO user) {
     // Description
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("description"));
     MaxLengthTextArea description = new MaxLengthTextArea(fs.getTextAreaId(),
-        new PropertyModel<String>(user, "description"));
+            new PropertyModel<String>(user, "description"));
     description.setMarkupId("description").setOutputMarkupId(true);
     fs.add(description);
   }
 
-  public static void createSshPublicKey(final GridBuilder gridBuilder, final PFUserDO user)
-  {
+  public static void createGPGPublicKey(final GridBuilder gridBuilder, final PFUserDO user) {
+    // GPG public key
+    final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.gpgPublicKey"));
+    MaxLengthTextArea gpgPublicKey = new MaxLengthTextArea(fs.getTextAreaId(),
+            new PropertyModel(user, "gpgPublicKey"));
+    gpgPublicKey.setMarkupId("gpgPublicKey").setOutputMarkupId(true);
+    fs.add(gpgPublicKey);
+  }
+
+  public static void createSshPublicKey(final GridBuilder gridBuilder, final PFUserDO user) {
     // SSH public key
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.sshPublicKey"));
     MaxLengthTextArea sshPublicKey = new MaxLengthTextArea(fs.getTextAreaId(),
@@ -452,8 +413,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
     if (isNew() == true && Login.getInstance().hasExternalUsermanagementSystem() == false) {
       getData().setLocalUser(true);
@@ -469,7 +429,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("user"));
       if (adminAccess == true) {
         usernameTextField = new RequiredMaxLengthTextField(fs.getTextFieldId(),
-            new PropertyModel<>(data, "username"));
+                new PropertyModel<>(data, "username"));
         usernameTextField.setMarkupId("userName").setOutputMarkupId(true);
         WicketUtils.setStrong(usernameTextField);
         fs.add(usernameTextField);
@@ -485,25 +445,29 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     }
     createFirstName(gridBuilder, data);
     createLastName(gridBuilder, data);
+    createNickname(gridBuilder, data);
+    createGender(gridBuilder, data);
     createOrganization(gridBuilder, data);
     createEMail(gridBuilder, data);
-    createAuthenticationToken(gridBuilder, data, (UserDao) getBaseDao(), this);
+    createMobilePhone(gridBuilder, data);
+    createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.CALENDAR_REST);
+    if (configurationService.isDAVServicesAvailable()) {
+      createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.DAV_TOKEN);
+    }
+    createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.REST_CLIENT);
     createJIRAUsername(gridBuilder, data);
     if (adminAccess == true) {
       gridBuilder.newFieldset(getString("user.hrPlanningEnabled"))
-          .addCheckBox(new PropertyModel<Boolean>(data, "hrPlanning"), null)
-          .setTooltip(getString("user.hrPlanningEnabled.tooltip"));
-      gridBuilder.newFieldset(getString("user.activated")).addCheckBox(new Model<Boolean>()
-      {
+              .addCheckBox(new PropertyModel<Boolean>(data, "hrPlanning"), null)
+              .setTooltip(getString("user.hrPlanningEnabled.tooltip"));
+      gridBuilder.newFieldset(getString("user.activated")).addCheckBox(new Model<Boolean>() {
         @Override
-        public Boolean getObject()
-        {
-          return data.isDeactivated() == false;
+        public Boolean getObject() {
+          return data.getDeactivated() == false;
         }
 
         @Override
-        public void setObject(final Boolean activated)
-        {
+        public void setObject(final Boolean activated) {
           data.setDeactivated(!activated);
         }
       }, null).setTooltip(getString("user.activated.tooltip"));
@@ -514,19 +478,18 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
-    createLastLoginAndDeleteAllStayLogins(gridBuilder, data, userService, this);
+    createLastLoginAndDeleteAllStayLogins(gridBuilder, data, userAuthenticationsService, this);
     createLocale(gridBuilder, data);
     createDateFormat(gridBuilder, data);
     createExcelDateFormat(gridBuilder, data);
     createTimeNotation(gridBuilder, data);
     createTimeZone(gridBuilder, data);
     createPhoneIds(gridBuilder, data);
-    createMEBPhoneNumbers(gridBuilder, data);
+    createGPGPublicKey(gridBuilder, data);
     createSshPublicKey(gridBuilder, data);
 
     gridBuilder.newGridPanel();
     addAssignedGroups(adminAccess);
-    addAssignedTenants();
     if (adminAccess == true && Login.getInstance().hasExternalUsermanagementSystem() == true) {
       addLdapStuff();
     }
@@ -539,14 +502,13 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   }
 
   @SuppressWarnings("serial")
-  private void addLdapStuff()
-  {
+  private void addLdapStuff() {
     gridBuilder.newGridPanel();
     gridBuilder.newFormHeading(getString("ldap"));
     gridBuilder.newSplitPanel(GridSize.COL50);
     gridBuilder.newFieldset(getString("user.localUser"))
-        .addCheckBox(new PropertyModel<Boolean>(data, "localUser"), null)
-        .setTooltip(getString("user.localUser.tooltip"));
+            .addCheckBox(new PropertyModel<Boolean>(data, "localUser"), null)
+            .setTooltip(getString("user.localUser.tooltip"));
     final boolean posixConfigured = ldapUserDao.isPosixAccountsConfigured();
     final boolean sambaConfigured = ldapUserDao.isSambaAccountsConfigured();
     if (posixConfigured == false && sambaConfigured == false) {
@@ -558,8 +520,8 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       {
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("ldap.uidNumber"), getString("ldap.posixAccount"));
         uidNumberField = new MinMaxNumberField<Integer>(fs.getTextFieldId(),
-            new PropertyModel<Integer>(ldapUserValues, "uidNumber"), 1,
-            65535);
+                new PropertyModel<Integer>(ldapUserValues, "uidNumber"), 1,
+                65535);
         uidNumberField.setMarkupId("uidNumberField").setOutputMarkupId(true);
         WicketUtils.setSize(uidNumberField, 6);
         fs.add(uidNumberField);
@@ -567,18 +529,18 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         dependentLdapPosixFormComponentsList.add(uidNumberField);
         if (ldapUserValues.isPosixValuesEmpty() == true) {
           final Button createButton = newCreateButton(dependentLdapPosixFormComponentsList,
-              dependentLdapSambaFormComponentsList, true,
-              sambaConfigured);
+                  dependentLdapSambaFormComponentsList, true,
+                  sambaConfigured);
           fs.add(new SingleButtonPanel(fs.newChildId(), createButton, gridBuilder.getString("create"),
-              SingleButtonPanel.NORMAL));
+                  SingleButtonPanel.NORMAL));
           WicketUtils.addTooltip(createButton, gridBuilder.getString("ldap.uidNumber.createDefault.tooltip"));
         }
       }
       {
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("ldap.gidNumber"), getString("ldap.posixAccount"));
         gidNumberField = new MinMaxNumberField<Integer>(fs.getTextFieldId(),
-            new PropertyModel<Integer>(ldapUserValues, "gidNumber"), 1,
-            65535);
+                new PropertyModel<Integer>(ldapUserValues, "gidNumber"), 1,
+                65535);
         gidNumberField.setMarkupId("gidNumberField").setOutputMarkupId(true);
         WicketUtils.setSize(gidNumberField, 6);
         fs.add(gidNumberField);
@@ -586,17 +548,17 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       }
     }
     final LdapSambaAccountsConfig ldapSambaAccountsConfig = ldapService.getLdapConfig()
-        .getSambaAccountsConfig();
+            .getSambaAccountsConfig();
     if (sambaConfigured == true) {
       {
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("ldap.sambaSID"));
         final DivTextPanel textPanel = new DivTextPanel(fs.newChildId(),
-            ldapSambaAccountsConfig.getSambaSIDPrefix() + "-");
+                ldapSambaAccountsConfig.getSambaSIDPrefix() + "-");
         fs.add(textPanel);
         sambaSIDNumberField = new MinMaxNumberField<Integer>(fs.getTextFieldId(),
-            new PropertyModel<Integer>(ldapUserValues,
-                "sambaSIDNumber"),
-            1, 65535);
+                new PropertyModel<Integer>(ldapUserValues,
+                        "sambaSIDNumber"),
+                1, 65535);
         sambaSIDNumberField.setMarkupId("sambaSIDNumberField").setOutputMarkupId(true);
         fs.add(sambaSIDNumberField);
         sambaSIDNumberField.setOutputMarkupId(true);
@@ -605,23 +567,23 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         dependentLdapSambaFormComponentsList.add(sambaSIDNumberField);
         if (ldapUserValues.getSambaSIDNumber() == null) {
           final Button createButton = newCreateButton(dependentLdapPosixFormComponentsList,
-              dependentLdapSambaFormComponentsList, false,
-              true);
+                  dependentLdapSambaFormComponentsList, false,
+                  true);
           fs.add(new SingleButtonPanel(fs.newChildId(), createButton, gridBuilder.getString("create"),
-              SingleButtonPanel.NORMAL));
+                  SingleButtonPanel.NORMAL));
           WicketUtils.addTooltip(createButton, gridBuilder.getString("ldap.sambaSID.createDefault.tooltip"));
         }
       }
       {
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("ldap.sambaPrimaryGroupSID"),
-            getString("ldap.sambaAccount"));
+                getString("ldap.sambaAccount"));
         final DivTextPanel textPanel = new DivTextPanel(fs.newChildId(),
-            ldapSambaAccountsConfig.getSambaSIDPrefix() + "-");
+                ldapSambaAccountsConfig.getSambaSIDPrefix() + "-");
         fs.add(textPanel);
         sambaPrimaryGroupSIDNumberField = new MinMaxNumberField<Integer>(fs.getTextFieldId(),
-            new PropertyModel<Integer>(ldapUserValues,
-                "sambaPrimaryGroupSIDNumber"),
-            1, 65535);
+                new PropertyModel<Integer>(ldapUserValues,
+                        "sambaPrimaryGroupSIDNumber"),
+                1, 65535);
         sambaPrimaryGroupSIDNumberField.setMarkupId("sambaPrimaryGroupSIDNumberField").setOutputMarkupId(true);
         fs.add(sambaPrimaryGroupSIDNumberField);
         sambaPrimaryGroupSIDNumberField.setOutputMarkupId(true);
@@ -632,14 +594,14 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
     gridBuilder.newFieldset(getString("user.restrictedUser"))
-        .addCheckBox(new PropertyModel<Boolean>(data, "restrictedUser"), null)
-        .setTooltip(getString("user.restrictedUser.tooltip"));
+            .addCheckBox(new PropertyModel<Boolean>(data, "restrictedUser"), null)
+            .setTooltip(getString("user.restrictedUser.tooltip"));
     if (posixConfigured == true) {
       {
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("ldap.homeDirectory"),
-            getString("ldap.posixAccount"));
+                getString("ldap.posixAccount"));
         homeDirectoryField = new MaxLengthTextField(fs.getTextFieldId(),
-            new PropertyModel<String>(ldapUserValues, "homeDirectory"), 255);
+                new PropertyModel<String>(ldapUserValues, "homeDirectory"), 255);
         homeDirectoryField.setMarkupId("homeDirectoryField").setOutputMarkupId(true);
         fs.add(homeDirectoryField);
         dependentLdapPosixFormComponentsList.add(homeDirectoryField);
@@ -647,7 +609,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       {
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("ldap.loginShell"), getString("ldap.posixAccount"));
         loginShellField = new MaxLengthTextField(fs.getTextFieldId(),
-            new PropertyModel<String>(ldapUserValues, "loginShell"), 100);
+                new PropertyModel<String>(ldapUserValues, "loginShell"), 100);
         loginShellField.setMarkupId("loginShellField").setOutputMarkupId(true);
         fs.add(loginShellField);
         dependentLdapPosixFormComponentsList.add(loginShellField);
@@ -660,8 +622,8 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     }
     if (sambaConfigured == true) {
       final FieldsetPanel fs = gridBuilder
-          .newFieldset(getString("ldap.sambaNTPassword"), getString("ldap.sambaNTPassword.subtitle"))
-          .suppressLabelForWarning();
+              .newFieldset(getString("ldap.sambaNTPassword"), getString("ldap.sambaNTPassword.subtitle"))
+              .suppressLabelForWarning();
       final DivTextPanel sambaNTPassword = new DivTextPanel(fs.newChildId(), "*****");
       fs.add(sambaNTPassword);
       fs.addHelpIcon(getString("ldap.sambaNTPassword.tooltip"));
@@ -672,17 +634,14 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       }
     }
     if (posixConfigured == true) {
-      add(new IFormValidator()
-      {
+      add(new IFormValidator() {
         @Override
-        public FormComponent<?>[] getDependentFormComponents()
-        {
+        public FormComponent<?>[] getDependentFormComponents() {
           return dependentLdapPosixFormComponentsList.toArray(new FormComponent[0]);
         }
 
         @Override
-        public void validate(final Form<?> form)
-        {
+        public void validate(final Form<?> form) {
           final LdapUserValues values = new LdapUserValues();
           values.setUidNumber(uidNumberField.getConvertedInput());
           values.setGidNumber(gidNumberField.getConvertedInput());
@@ -694,40 +653,37 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
           }
           if (values.getUidNumber() == null) {
             uidNumberField
-                .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.uidNumber")));
+                    .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.uidNumber")));
           } else {
             if (ldapPosixAccountsUtils.isGivenNumberFree(data, values.getUidNumber()) == false) {
               uidNumberField.error(
-                  getLocalizedMessage("ldap.uidNumber.alreadyInUse", ldapPosixAccountsUtils.getNextFreeUidNumber()));
+                      getLocalizedMessage("ldap.uidNumber.alreadyInUse", ldapPosixAccountsUtils.getNextFreeUidNumber()));
             }
           }
           if (values.getGidNumber() == null) {
             gidNumberField
-                .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.gidNumber")));
+                    .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.gidNumber")));
           }
           if (StringUtils.isBlank(values.getHomeDirectory()) == true) {
             homeDirectoryField
-                .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.homeDirectory")));
+                    .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.homeDirectory")));
           }
           if (StringUtils.isBlank(values.getLoginShell()) == true) {
             loginShellField
-                .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.loginShell")));
+                    .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.loginShell")));
           }
         }
       });
     }
     if (sambaConfigured == true) {
-      add(new IFormValidator()
-      {
+      add(new IFormValidator() {
         @Override
-        public FormComponent<?>[] getDependentFormComponents()
-        {
+        public FormComponent<?>[] getDependentFormComponents() {
           return dependentLdapSambaFormComponentsList.toArray(new FormComponent[0]);
         }
 
         @Override
-        public void validate(final Form<?> form)
-        {
+        public void validate(final Form<?> form) {
           final LdapUserValues values = new LdapUserValues();
           values.setSambaSIDNumber(sambaSIDNumberField.getConvertedInput());
           values.setSambaPrimaryGroupSIDNumber(sambaPrimaryGroupSIDNumberField.getConvertedInput());
@@ -737,16 +693,16 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
           }
           if (values.getSambaSIDNumber() == null) {
             sambaSIDNumberField
-                .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.sambaSID")));
+                    .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.sambaSID")));
           } else {
             if (ldapSambaAccountsUtils.isGivenNumberFree(data, values.getSambaSIDNumber()) == false) {
               sambaSIDNumberField.error(getLocalizedMessage("ldap.sambaSID.alreadyInUse",
-                  ldapSambaAccountsUtils.getNextFreeSambaSIDNumber()));
+                      ldapSambaAccountsUtils.getNextFreeSambaSIDNumber()));
             }
           }
           if (values.getSambaPrimaryGroupSIDNumber() != null && values.getSambaSIDNumber() == null) {
             sambaSIDNumberField
-                .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.sambaSID")));
+                    .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.sambaSID")));
           }
         }
       });
@@ -755,14 +711,16 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   @SuppressWarnings("serial")
   private Button newCreateButton(final List<FormComponent<?>> dependentPosixLdapFormComponentsList,
-      final List<FormComponent<?>> dependentSambaLdapFormComponentsList, final boolean updatePosixAccount,
-      final boolean updateSambaAccount)
-  {
-    final AjaxButton createButton = new AjaxButton(SingleButtonPanel.WICKET_ID, this)
-    {
+                                 final List<FormComponent<?>> dependentSambaLdapFormComponentsList, final boolean updatePosixAccount,
+                                 final boolean updateSambaAccount) {
+    final AjaxButton createButton = new AjaxButton(SingleButtonPanel.WICKET_ID, this) {
       @Override
+<<<<<<< HEAD
       protected void onSubmit(final AjaxRequestTarget target)
       {
+=======
+      protected void onSubmit(final AjaxRequestTarget target, final Form<?> form) {
+>>>>>>> develop
         data.setUsername(usernameTextField.getRawInput());
         if (updatePosixAccount == true) {
           ldapPosixAccountsUtils.setDefaultValues(ldapUserValues, data);
@@ -802,8 +760,12 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       }
 
       @Override
+<<<<<<< HEAD
       protected void onError(final AjaxRequestTarget target)
       {
+=======
+      protected void onError(final AjaxRequestTarget target, final Form<?> form) {
+>>>>>>> develop
         target.add(UserEditForm.this.feedbackPanel);
       }
     };
@@ -812,15 +774,12 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   }
 
   @SuppressWarnings("serial")
-  private void addPasswordFields()
-  {
+  private void addPasswordFields() {
     // Password
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("password"), getString("passwordRepeat"));
-    final PasswordTextField passwordField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "password"))
-    {
+    final PasswordTextField passwordField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "password")) {
       @Override
-      protected void onComponentTag(final ComponentTag tag)
-      {
+      protected void onComponentTag(final ComponentTag tag) {
         super.onComponentTag(tag);
         if (passwordUser == null) {
           tag.put("value", "");
@@ -831,11 +790,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     passwordField.setResetPassword(false).setRequired(isNew());
 
     // Password repeat
-    final PasswordTextField passwordRepeatField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "passwordRepeat"))
-    {
+    final PasswordTextField passwordRepeatField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "passwordRepeat")) {
       @Override
-      protected void onComponentTag(final ComponentTag tag)
-      {
+      protected void onComponentTag(final ComponentTag tag) {
         super.onComponentTag(tag);
         if (passwordUser == null) {
           tag.put("value", "");
@@ -860,7 +817,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         return;
       }
       if (passwordUser == null) {
-        final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+        final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
         if (errorMsgKeys.isEmpty() == false) {
           for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
             final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
@@ -868,7 +825,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
           }
         } else {
           passwordUser = new PFUserDO();
-          userService.createEncryptedPassword(passwordUser, passwordInput);
+          char[] pw = passwordInput.toCharArray();
+          userService.createEncryptedPassword(passwordUser, pw);
+          LoginHandler.clearPassword(pw);
         }
       }
     });
@@ -881,15 +840,12 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18nKeyAndParams));
   }
 
-  private void addWlanPasswordFields()
-  {
+  private void addWlanPasswordFields() {
     // wlan password
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("ldap.wlanSambaPassword"), getString("passwordRepeat"));
-    final PasswordTextField passwordField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "wlanPassword"))
-    {
+    final PasswordTextField passwordField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "wlanPassword")) {
       @Override
-      protected void onComponentTag(final ComponentTag tag)
-      {
+      protected void onComponentTag(final ComponentTag tag) {
         super.onComponentTag(tag);
         if (wlanPasswordValid == false) {
           tag.put("value", "");
@@ -900,11 +856,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     passwordField.setResetPassword(false).setRequired(isNew());
 
     // wlan password repeat
-    final PasswordTextField passwordRepeatField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "wlanPasswordRepeat"))
-    {
+    final PasswordTextField passwordRepeatField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "wlanPasswordRepeat")) {
       @Override
-      protected void onComponentTag(final ComponentTag tag)
-      {
+      protected void onComponentTag(final ComponentTag tag) {
         super.onComponentTag(tag);
         if (wlanPasswordValid == false) {
           tag.put("value", "");
@@ -930,7 +884,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         return;
       }
 
-      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
       if (errorMsgKeys.isEmpty() == false) {
         for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
           final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
@@ -950,8 +904,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   }
 
   private static void addDateFormatCombobox(final GridBuilder gridBuilder, final PFUserDO user, final String labelKey,
-      final String property, final String[] dateFormats, final boolean convertExcelFormat)
-  {
+                                            final String property, final String[] dateFormats, final boolean convertExcelFormat) {
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString(labelKey));
     final LabelValueChoiceRenderer<String> dateFormatChoiceRenderer = new LabelValueChoiceRenderer<String>();
     for (final String str : dateFormats) {
@@ -966,21 +919,20 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       dateFormatChoiceRenderer.addValue(str, str + ": " + dateString);
     }
     final DropDownChoice<String> dateFormatChoice = new DropDownChoice<String>(fs.getDropDownChoiceId(),
-        new PropertyModel<String>(user,
-            property),
-        dateFormatChoiceRenderer.getValues(), dateFormatChoiceRenderer);
+            new PropertyModel<String>(user,
+                    property),
+            dateFormatChoiceRenderer.getValues(), dateFormatChoiceRenderer);
     dateFormatChoice.setNullValid(true);
     fs.add(dateFormatChoice);
   }
 
-  private void addRights()
-  {
+  private void addRights() {
     final List<UserRightVO> userRights = userRightDao.getUserRights(data);
     boolean first = true;
     boolean odd = true;
     for (final UserRightVO rightVO : userRights) {
       final UserRight right = rightVO.getRight();
-      final UserGroupCache userGroupCache = getTenantRegistry().getUserGroupCache();
+      final UserGroupCache userGroupCache = UserGroupCache.getInstance();
       final UserRightValue[] availableValues = right.getAvailableValues(userGroupCache, data);
       if (right.isConfigurable(userGroupCache, data) == false) {
         continue;
@@ -1003,22 +955,21 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         fs.addCheckBox(new PropertyModel<Boolean>(rightVO, "booleanValue"), null);
       } else {
         final LabelValueChoiceRenderer<UserRightValue> valueChoiceRenderer = new LabelValueChoiceRenderer<UserRightValue>(
-            fs,
-            availableValues);
+                fs,
+                availableValues);
         final DropDownChoice<UserRightValue> valueChoice = new DropDownChoice<UserRightValue>(fs.getDropDownChoiceId(),
-            new PropertyModel<UserRightValue>(rightVO, "value"), valueChoiceRenderer.getValues(), valueChoiceRenderer);
+                new PropertyModel<UserRightValue>(rightVO, "value"), valueChoiceRenderer.getValues(), valueChoiceRenderer);
         valueChoice.setNullValid(true);
         fs.add(valueChoice);
       }
     }
   }
 
-  private void addAssignedGroups(final boolean adminAccess)
-  {
+  private void addAssignedGroups(final boolean adminAccess) {
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("user.assignedGroups")).setLabelSide(false);
     final Collection<Integer> set = ((UserDao) getBaseDao()).getAssignedGroups(data);
     assignGroupsListHelper = new MultiChoiceListHelper<GroupDO>().setComparator(new GroupsComparator()).setFullList(
-        groupService.getSortedGroups());
+            groupService.getSortedGroups());
     if (set != null) {
       for (final Integer groupId : set) {
         final GroupDO group = groupService.getGroup(groupId);
@@ -1029,59 +980,35 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     }
 
     final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<GroupDO>(fs.getSelect2MultiChoiceId(),
-        new PropertyModel<Collection<GroupDO>>(this.assignGroupsListHelper, "assignedItems"),
-        new GroupsWicketProvider(groupService));
+            new PropertyModel<Collection<GroupDO>>(this.assignGroupsListHelper, "assignedItems"),
+            new GroupsWicketProvider(groupService));
     groups.setMarkupId("groups").setOutputMarkupId(true);
     fs.add(groups);
-  }
-
-  private void addAssignedTenants()
-  {
-    final FieldsetPanel fs = gridBuilder.newFieldset(getString("multitenancy.assignedTenants")).setLabelSide(false);
-    final Collection<Integer> set = userService.getAssignedTenants(data);
-    final TenantsProvider tenantsProvider = new TenantsProvider(tenantService);
-    assignTenantsListHelper = new MultiChoiceListHelper<TenantDO>().setComparator(new TenantsComparator()).setFullList(
-        tenantsProvider.getSortedTenants());
-    if (set != null) {
-      for (final Integer tenantId : set) {
-        final TenantDO tenant = tenantService.getTenant(tenantId);
-        if (tenant != null) {
-          assignTenantsListHelper.addOriginalAssignedItem(tenant).assignItem(tenant);
-        }
-      }
-    }
-    final Select2MultiChoice<TenantDO> tenants = new Select2MultiChoice<TenantDO>(fs.getSelect2MultiChoiceId(),
-        new PropertyModel<Collection<TenantDO>>(this.assignTenantsListHelper, "assignedItems"), tenantsProvider);
-    fs.add(tenants);
   }
 
   /**
    * @return the passwordUser
    */
-  PFUserDO getPasswordUser()
-  {
+  PFUserDO getPasswordUser() {
     return passwordUser;
   }
 
   /**
    * @return The clear text password (if given). Please check {@link #getPasswordUser()} first.
    */
-  String getPassword()
-  {
+  String getPassword() {
     return password;
   }
 
   /**
    * @return The clear text wlan password if given and valid.
    */
-  String getWlanPassword()
-  {
+  String getWlanPassword() {
     return wlanPassword;
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

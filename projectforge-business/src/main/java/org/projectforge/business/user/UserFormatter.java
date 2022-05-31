@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.business.user;
 
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.stereotype.Service;
@@ -35,8 +33,8 @@ public class UserFormatter
 
   /**
    * Does not escape characters.
-   * 
-   * @param user (must not be initialized, the user will be get from the {@link UserCache})
+   *
+   * @param user (must not be initialized, the user will be get from the {@link UserGroupCache})
    * @return User's full name.
    * @see PFUserDO#getFullname()
    */
@@ -50,14 +48,14 @@ public class UserFormatter
 
   /**
    * Does not escape characters.
-   * 
+   *
    * @param userId
    * @return User's full name.
    * @see PFUserDO#getFullname()
    */
   public String formatUser(final Integer userId)
   {
-    final PFUserDO u = getUserGroupCache().getUser(userId);
+    final PFUserDO u = UserGroupCache.getInstance().getUser(userId);
     return u != null ? u.getFullname() : "";
   }
 
@@ -77,31 +75,18 @@ public class UserFormatter
     if (userId == null) {
       return "";
     }
-    final PFUserDO user = getUserGroupCache().getUser(userId);
+    final PFUserDO user = UserGroupCache.getInstance().getUser(userId);
     return getFormattedUser(user);
   }
 
   public void appendFormattedUser(final StringBuffer buf, final Integer userId)
   {
-    final PFUserDO user = getUserGroupCache().getUser(userId);
+    final PFUserDO user = UserGroupCache.getInstance().getUser(userId);
     appendFormattedUser(buf, user);
   }
 
   public void appendFormattedUser(final StringBuffer buf, final PFUserDO user)
   {
     buf.append(getFormattedUser(user));
-  }
-
-  public TenantRegistry getTenantRegistry()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  /**
-   * @return the UserGroupCache with groups and rights (tenant specific).
-   */
-  public UserGroupCache getUserGroupCache()
-  {
-    return getTenantRegistry().getUserGroupCache();
   }
 }

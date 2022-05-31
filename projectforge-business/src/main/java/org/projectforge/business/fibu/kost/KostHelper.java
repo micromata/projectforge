@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,36 +37,22 @@ public class KostHelper
       return null;
     }
     final String str = kostString.trim();
-    if (str.length() == 8) {
-      for (int i = 0; i < 8; i++) {
-        if (Character.isDigit(str.charAt(i)) == false) {
-          return null;
-        }
-      }
-    } else if (str.length() == 11) {
-      for (int i = 0; i < 11; i++) {
-        if (i == 1 || i == 5 || i == 8) {
-          if (str.charAt(i) != '.') {
-            return null;
-          }
-        } else if (Character.isDigit(str.charAt(i)) == false) {
-          return null;
-        }
-      }
-    } else {
-      return null;
-    }
-    final int[] result = new int[4];
-    result[0] = NumberHelper.parseInteger(kostString.substring(0, 1));
-    if (kostString.indexOf('.') > 0) {
-      result[1] = NumberHelper.parseInteger(kostString.substring(2, 5));
-      result[2] = NumberHelper.parseInteger(kostString.substring(6, 8));
-      result[3] = NumberHelper.parseInteger(kostString.substring(9, 11));
-    } else {
+    if (str.matches("\\d{8}")) {
+      // 12345678
+      final int[] result = new int[4];
+      result[0] = NumberHelper.parseInteger(kostString.substring(0, 1));
       result[1] = NumberHelper.parseInteger(kostString.substring(1, 4));
       result[2] = NumberHelper.parseInteger(kostString.substring(4, 6));
       result[3] = NumberHelper.parseInteger(kostString.substring(6, 8));
+      return result;
+    } else if (str.matches("\\d{1}\\.\\d{3}\\.\\d{2}\\.\\d{2}")) {
+      final int[] result = new int[4];
+      result[0] = NumberHelper.parseInteger(kostString.substring(0, 1));
+      result[1] = NumberHelper.parseInteger(kostString.substring(2, 5));
+      result[2] = NumberHelper.parseInteger(kostString.substring(6, 8));
+      result[3] = NumberHelper.parseInteger(kostString.substring(9, 11));
+      return result;
     }
-    return result;
+    return null;
   }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,6 @@
 
 package org.projectforge.business.user;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.PreDestroy;
-
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -37,6 +31,11 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PreDestroy;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database.
@@ -49,9 +48,9 @@ public class UserXmlPreferencesCache extends AbstractCache
 {
   private static final long serialVersionUID = 248972660689793455L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserXmlPreferencesCache.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserXmlPreferencesCache.class);
 
-  private final Map<Integer, UserXmlPreferencesMap> allPreferences = new HashMap<Integer, UserXmlPreferencesMap>();
+  private final Map<Integer, UserXmlPreferencesMap> allPreferences = new HashMap<>();
 
   @Autowired
   private UserXmlPreferencesDao userXmlPreferencesDao;
@@ -90,18 +89,36 @@ public class UserXmlPreferencesCache extends AbstractCache
    */
   public Object removeEntry(final Integer userId, final String key)
   {
+    return removeEntry(userId,key, true);
+  }
+
+  private Object removeEntry(final Integer userId, final String key, final boolean warnIfNotExists)
+  {
     final UserXmlPreferencesMap data = getUserPreferencesData(userId);
     if (data == null) {
       // Should only occur for the pseudo-first-login-user setting up the system.
       return null;
     }
-    if (data.getPersistentData().containsKey(key) == true) {
+    if (data.getPersistentData().containsKey(key)) {
       userXmlPreferencesDao.remove(userId, key);
-    } else if (data.getVolatileData().containsKey(key) == false) {
-      log.warn("Oups, user preferences object with key '" + key + "' is wether persistent nor volatile!");
+    } else if (!data.getVolatileData().containsKey(key)) {
+      if (warnIfNotExists) {
+        log.warn("Oups, user preferences object with key '" + key + "' is wether persistent nor volatile!");
+      }
+      return null;
     }
     checkRefresh();
     return data.removeEntry(key);
+  }
+
+  /**
+   * Please use UserPreferenceHelper instead for correct handling of demo user's preferences!
+   *
+   * @see org.projectforge.business.user.UserXmlPreferencesMap#removeEntry(String)
+   */
+  public Object removeEntryIfExists(final Integer userId, final String key)
+  {
+    return removeEntry(userId, key, false);
   }
 
   /**
@@ -147,23 +164,23 @@ public class UserXmlPreferencesCache extends AbstractCache
 
   private synchronized void flushToDB(final Integer userId, final boolean checkAccess)
   {
-    if (checkAccess == true) {
-      if (userId.equals(ThreadLocalUserContext.getUserId()) == false) {
+    if (checkAccess) {
+      if (!userId.equals(ThreadLocalUserContext.getUserId())) {
         log.error("User '" + ThreadLocalUserContext.getUserId()
             + "' has no access to write user preferences of other user '" + userId + "'.");
         // No access.
         return;
       }
-    }
-    PFUserDO user = emgrFactory.runInTrans(emgr -> {
-      return emgr.selectByPk(PFUserDO.class, userId);
-    });
-    if (AccessChecker.isDemoUser(user) == true) {
-      // Do nothing for demo user.
-      return;
+      PFUserDO user = emgrFactory.runInTrans(emgr -> {
+        return emgr.selectByPk(PFUserDO.class, userId);
+      });
+      if (AccessChecker.isDemoUser(user)) {
+        // Do nothing for demo user.
+        return;
+      }
     }
     final UserXmlPreferencesMap data = allPreferences.get(userId);
-    if (data == null || data.isModified() == false) {
+    if (data == null || !data.isModified()) {
       return;
     }
     userXmlPreferencesDao.saveOrUpdateUserEntries(userId, data, checkAccess);

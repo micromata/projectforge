@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,7 @@
 
 package org.projectforge.web.wicket;
 
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
@@ -47,25 +42,27 @@ import org.apache.wicket.request.http.handler.RedirectRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.template.PackageTextTemplate;
-import org.projectforge.AppVersion;
-import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.Constants;
+import org.projectforge.ProjectForgeVersion;
+import org.projectforge.business.configuration.DomainService;
+import org.projectforge.business.systeminfo.SystemService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.rest.pub.LogoServiceRest;
 import org.projectforge.web.WebConfiguration;
-import org.projectforge.web.doc.DocumentationPage;
-import org.projectforge.web.servlet.LogoServlet;
 import org.projectforge.web.session.MySession;
+
+import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Do only derive from this page, if no login is required!
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public abstract class AbstractUnsecureBasePage extends WebPage
-{
+public abstract class AbstractUnsecureBasePage extends WebPage {
   private static final long serialVersionUID = 7396310612549535899L;
 
   private static PackageTextTemplate jsTemplate;
@@ -75,47 +72,32 @@ public abstract class AbstractUnsecureBasePage extends WebPage
   protected boolean alreadySubmitted = false;
 
   @SpringBean
-  private ConfigurationService configService;
+  private DomainService domainService;
 
-  /**
-   * Convenience method for creating a component which is in the mark-up file but should not be visible.
-   * 
-   * @param wicketId
-   * @return
-   */
-  public static Label createInvisibleDummyComponent(final String wicketId)
-  {
-    final Label dummyLabel = new Label(wicketId);
-    dummyLabel.setVisible(false);
-    return dummyLabel;
-  }
+  @SpringBean
+  private SystemService systemService;
 
   /**
    * Constructor that is invoked when page is invoked without a session.
-   * 
+   *
    * @param parameters Page parameters
    */
   @SuppressWarnings("serial")
-  public AbstractUnsecureBasePage(final PageParameters parameters)
-  {
+  public AbstractUnsecureBasePage(final PageParameters parameters) {
     super(parameters);
 
     html = new TransparentWebMarkupContainer("html");
     add(html);
-    add(new Label("windowTitle", new Model<String>()
-    {
+    add(new Label("windowTitle", new Model<String>() {
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         return getWindowTitle();
       }
     }));
 
-    body = new WebMarkupContainer("body")
-    {
+    body = new WebMarkupContainer("body") {
       @Override
-      protected void onComponentTag(final ComponentTag tag)
-      {
+      protected void onComponentTag(final ComponentTag tag) {
         onBodyTag(tag);
       }
     };
@@ -125,9 +107,9 @@ public abstract class AbstractUnsecureBasePage extends WebPage
     }
 
     add(body);
-    final String logoServlet = LogoServlet.getBaseUrl();
-    if (logoServlet != null) {
-      body.add(new ContextImage("logoLeftImage", logoServlet));
+    final String logoFile = LogoServiceRest.getLogoUrl();
+    if (logoFile != null) {
+      body.add(new ContextImage("logoLeftImage", "/rsPublic/" + logoFile));
     } else {
       body.add(new Label("logoLeftImage", "[invisible]").setVisible(false));
     }
@@ -142,20 +124,41 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
     final PFUserDO user = ThreadLocalUserContext.getUser();
     AbstractLink link;
-    link = new ExternalLink("footerNewsLink", "http://www.projectforge.org/pf-en/News");
+    link = new ExternalLink("footerNewsLink", Constants.WEB_DOCS_NEWS_LINK);
     body.add(link);
-    link.add(new Label("version", "Version " + AppVersion.VERSION.toString() + ", " + AppVersion.RELEASE_DATE)
-        .setRenderBodyOnly(true));
+    link.add(new Label("version", "Version " + ProjectForgeVersion.VERSION_NUMBER + ", " + ProjectForgeVersion.BUILD_DATE)
+            .setRenderBodyOnly(true));
     link.setOutputMarkupId(true);
     link.setMarkupId("pf_footerNewsLink");
   }
 
+  /**
+   * Convenience method for creating a component which is in the mark-up file but should not be visible.
+   *
+   * @param wicketId
+   * @return
+   */
+  public static Label createInvisibleDummyComponent(final String wicketId) {
+    final Label dummyLabel = new Label(wicketId);
+    dummyLabel.setVisible(false);
+    return dummyLabel;
+  }
+
+  /**
+   * @return the jstemplate
+   */
+  private static PackageTextTemplate getJstemplate() {
+    if (jsTemplate == null) {
+      jsTemplate = new PackageTextTemplate(AbstractUnsecureBasePage.class, "ContextMenu.js.template");
+    }
+    return jsTemplate;
+  }
+
   @Override
-  public void renderHead(final IHeaderResponse response)
-  {
+  public void renderHead(final IHeaderResponse response) {
     super.renderHead(response);
     response.render(StringHeaderItem
-        .forString(WicketUtils.getCssForFavicon(getUrl(configService.getServletContextPath() + "/favicon.ico"))));
+            .forString(WicketUtils.getCssForFavicon(getUrl(domainService.getContextPath() + "/favicon.ico"))));
     WicketRenderHeadUtils.renderMainCSSIncludes(response);
     //response.renderCSSReference();
     WicketRenderHeadUtils.renderMainJavaScriptIncludes(response);
@@ -163,65 +166,58 @@ public abstract class AbstractUnsecureBasePage extends WebPage
   }
 
   @Override
-  protected void onBeforeRender()
-  {
+  protected void onBeforeRender() {
     super.onBeforeRender();
     alreadySubmitted = false;
   }
 
   /**
    * Gets the version of this Application.
-   * 
-   * @see AppVersion#NUMBER
+   *
+   * @see ProjectForgeVersion#VERSION_NUMBER
    */
-  public final String getAppVersion()
-  {
-    return AppVersion.NUMBER;
+  public final String getAppVersion() {
+    return ProjectForgeVersion.VERSION_NUMBER;
   }
 
   /**
    * Gets the release date of this Application.
-   * 
-   * @see AppVersion#RELEASE_DATE
+   *
+   * @see ProjectForgeVersion#BUILD_DATE
    */
-  public final String getAppReleaseDate()
-  {
-    return AppVersion.RELEASE_DATE;
+  public final String getAppReleaseDate() {
+    return ProjectForgeVersion.BUILD_DATE;
   }
 
   /**
    * Gets the release date of this Application.
-   * 
-   * @see AppVersion#RELEASE_DATE
+   *
+   * @see ProjectForgeVersion#BUILD_DATE
    */
-  public final String getAppReleaseTimestamp()
-  {
-    return AppVersion.RELEASE_TIMESTAMP;
+  public final String getAppReleaseTimestamp() {
+    return ProjectForgeVersion.BUILD_TIMESTAMP;
   }
 
   /**
    * Includes session id (encode URL) at default.
-   * 
+   *
    * @see #getUrl(String, boolean)
    */
-  public String getUrl(final String path)
-  {
+  public String getUrl(final String path) {
     return getUrl(path, true);
   }
 
   /**
    * @see WicketUtils#getImageUrl(org.apache.wicket.Response, String)
    */
-  public String getImageUrl(final String subpath)
-  {
+  public String getImageUrl(final String subpath) {
     return WicketUtils.getImageUrl(getRequestCycle(), subpath);
   }
 
   /**
    * @see WicketUtils#getUrl(org.apache.wicket.Response, String, boolean)
    */
-  public String getUrl(final String path, final boolean encodeUrl)
-  {
+  public String getUrl(final String path, final boolean encodeUrl) {
     return WicketUtils.getUrl(getRequestCycle(), path, encodeUrl);
   }
 
@@ -229,8 +225,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
    * @param url
    * @see #getUrl(String)
    */
-  protected void redirectToUrl(final String url)
-  {
+  protected void redirectToUrl(final String url) {
     getRequestCycle().scheduleRequestHandlerAfterCurrent(new RedirectRequestHandler(getUrl(url)));
   }
 
@@ -242,71 +237,62 @@ public abstract class AbstractUnsecureBasePage extends WebPage
    */
   protected abstract void thisIsAnUnsecuredPage();
 
-  protected String getWindowTitle()
-  {
-    return AppVersion.APP_ID + " - " + getTitle();
+  protected String getWindowTitle() {
+    return ProjectForgeVersion.APP_ID + " - " + getTitle();
   }
 
   /**
    * If your page need to manipulate the body tag overwrite this method, e. g.: tag.put("onload", "...");
-   * 
+   *
    * @return
    */
-  protected void onBodyTag(final ComponentTag bodyTag)
-  {
+  protected void onBodyTag(final ComponentTag bodyTag) {
   }
 
-  protected WicketApplicationInterface getWicketApplication()
-  {
+  protected WicketApplicationInterface getWicketApplication() {
     return (WicketApplicationInterface) getApplication();
   }
 
   /**
    * @see StringEscapeUtils#escapeHtml(String)
    */
-  protected String escapeHtml(final String str)
-  {
-    return StringEscapeUtils.escapeHtml(str);
+  protected String escapeHtml(final String str) {
+    return StringEscapeUtils.escapeHtml4(str);
   }
 
-  public MySession getMySession()
-  {
+  public MySession getMySession() {
     Session session = getSession();
     return (MySession) session;
   }
 
   /**
    * Always returns null for unsecured page, otherwise the logged-in user.
-   * 
+   *
    * @return null
    * @see AbstractSecuredPage#getUser()
    */
-  protected PFUserDO getUser()
-  {
+  protected PFUserDO getUser() {
     return null;
   }
 
   /**
    * Always returns null for unsecured page, otherwise the id of the logged-in user.
-   * 
+   *
    * @return null
    * @see AbstractSecuredPage#getUser()
    */
-  protected Integer getUserId()
-  {
+  protected Integer getUserId() {
     return null;
   }
 
-  public String getLocalizedMessage(final String key, final Object... params)
-  {
+  public String getLocalizedMessage(final String key, final Object... params) {
     if (params == null || params.length == 0) {
       return getString(key);
     }
     return MessageFormat.format(getString(key), params);
   }
 
-  private void initializeContextMenu(final IHeaderResponse response)
-  {
+  private void initializeContextMenu(final IHeaderResponse response) {
 
     // context menu
     final Map<String, String> i18nKeyMap = new HashMap<String, String>();
@@ -315,24 +301,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
     response.render(OnDomReadyHeaderItem.forScript(getJstemplate().asString(i18nKeyMap)));
   }
 
-  /**
-   * @return the jstemplate
-   */
-  private static PackageTextTemplate getJstemplate()
-  {
-    if (jsTemplate == null) {
-      jsTemplate = new PackageTextTemplate(AbstractUnsecureBasePage.class, "ContextMenu.js.template");
-    }
-    return jsTemplate;
-  }
-
-  protected TenantRegistry getTenantRegistry()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  protected UserGroupCache getUserGroupCache()
-  {
-    return getTenantRegistry().getUserGroupCache();
+  protected UserGroupCache getUserGroupCache() {
+    return UserGroupCache.getInstance();
   }
 }

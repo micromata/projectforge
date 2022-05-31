@@ -1,15 +1,34 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.framework.persistence.jpa.impl;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
+import de.micromata.genome.jpa.metainf.ColumnMetadata;
+import de.micromata.genome.util.runtime.RuntimeIOException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
@@ -30,8 +49,11 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.jpa.metainf.ColumnMetadata;
-import de.micromata.genome.util.runtime.RuntimeIOException;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Debug utilities for Hibernate Search.
@@ -49,7 +71,7 @@ public class LuceneServiceImpl
 
   public Set<Class<?>> getSearchClasses()
   {
-    return emf.runWoTrans((emgr) -> {
+    return emf.runInTrans((emgr) -> {
       FullTextEntityManager femg = emgr.getFullTextEntityManager();
       SearchFactory sf = femg.getSearchFactory();
       Set<Class<?>> itypes = sf.getIndexedTypes();
@@ -71,7 +93,7 @@ public class LuceneServiceImpl
   public String searchViaHibernateSearch(Class<?> entityClass, String search, String fieldList)
   {
 
-    List<?> list = emf.runWoTrans((emgr) -> {
+    List<?> list = emf.runInTrans((emgr) -> {
       String[] fl = StringUtils.split(fieldList, ", ");
       if (fl == null) {
         fl = new String[] {};
@@ -99,12 +121,12 @@ public class LuceneServiceImpl
     StringBuilder sb = new StringBuilder();
     String rsearch = StringUtils.isBlank(search) ? "*" : search;
 
-    return emf.runWoTrans((emgr) -> {
+    return emf.runInTrans((emgr) -> {
 
       FullTextEntityManager femg = emgr.getFullTextEntityManager();
       SearchFactory sf = femg.getSearchFactory();
       String[] searchFields;
-      if (StringUtils.isNotBlank(fieldList) == true) {
+      if (StringUtils.isNotBlank(fieldList)) {
         searchFields = splitFieldList(fieldList);
       } else {
         searchFields = getSearchFieldsForEntity(entityClass);
@@ -123,7 +145,7 @@ public class LuceneServiceImpl
 
           for (ScoreDoc sdoc : ret.scoreDocs) {
             sb.append("===================================================================").append("<br/>\n");
-            sb.append(StringEscapeUtils.escapeHtml(sdoc.toString())).append("  ");
+            sb.append(StringEscapeUtils.escapeHtml4(sdoc.toString())).append("  ");
             Document document = is.doc(sdoc.doc);
             sb.append("LuceneDocument: ");
             renderDocument(document, sb);
@@ -142,7 +164,7 @@ public class LuceneServiceImpl
             }
             Object entity = emgr.findByPkDetached(entityClass, entityPk);
             String osdesc = ToStringBuilder.reflectionToString(entity, ToStringStyle.MULTI_LINE_STYLE, false);
-            osdesc = StringEscapeUtils.escapeHtml(osdesc);
+            osdesc = StringEscapeUtils.escapeHtml4(osdesc);
             osdesc = StringUtils.replace(osdesc, "\n", "<br/>\n<nbsp/><nbsp/>");
             sb.append(osdesc).append("<br/>\n");
             sb.append("<br/>\n");
@@ -161,7 +183,7 @@ public class LuceneServiceImpl
   private void renderDocument(Document document, StringBuilder sb)
   {
     sb.append("<br/>\n").append("----------------------------------------------------------").append("<br/>\n");
-    sb.append(StringEscapeUtils.escapeHtml(document.toString())).append("<br/>\n");
+    sb.append(StringEscapeUtils.escapeHtml4(document.toString())).append("<br/>\n");
     for (IndexableField field : document.getFields()) {
       sb.append("  ").append(field.name()).append(": ").append(field.stringValue()).append("<br/>\n");
     }
@@ -172,7 +194,7 @@ public class LuceneServiceImpl
   {
     String[] ret = emf.getSearchFieldsForEntity(entityClass).keySet().toArray(new String[] {});
 
-    List<String> list = emf.runWoTrans((emgr) -> {
+    List<String> list = emf.runInTrans((emgr) -> {
       FullTextEntityManager femg = emgr.getFullTextEntityManager();
       SearchFactory sf = femg.getSearchFactory();
       IndexedTypeDescriptor itd = sf.getIndexedTypeDescriptor(entityClass);
@@ -187,7 +209,7 @@ public class LuceneServiceImpl
   public String getIndexDescription(Class<?> entityClass)
   {
     StringBuilder sb = new StringBuilder();
-    emf.runWoTrans((emgr) -> {
+    emf.runInTrans((emgr) -> {
       sb.append("class: ").append(entityClass.getName()).append("\n");
 
       FullTextEntityManager femg = emgr.getFullTextEntityManager();

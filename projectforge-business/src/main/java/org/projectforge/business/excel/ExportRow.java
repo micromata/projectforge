@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,18 @@
 
 package org.projectforge.business.excel;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.projectforge.common.BeanHelper;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ExportRow
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportRow.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportRow.class);
 
   private final ExportSheet sheet;
 
@@ -56,7 +56,7 @@ public class ExportRow
     this.sheet = sheet;
     this.poiRow = poiRow;
     this.rowNum = rowNum;
-    cellMap = new HashMap<Integer, ExportCell>();
+    cellMap = new HashMap<>();
     if (poiRow.getLastCellNum() > 0) {
       // poiRow does already exists.
       for (int i = poiRow.getFirstCellNum(); i < poiRow.getLastCellNum(); i++) {

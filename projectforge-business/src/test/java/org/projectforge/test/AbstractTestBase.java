@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,59 +23,79 @@
 
 package org.projectforge.test;
 
-import static org.testng.AssertJUnit.*;
-
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
-
-import javax.sql.DataSource;
-
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.genome.db.jpa.history.entities.EntityOpType;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.projectforge.Constants;
+import org.projectforge.ProjectForgeApp;
+import org.projectforge.SystemStatus;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginDefaultHandler;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserService;
+import org.projectforge.database.DatabaseExecutor;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.ConfigXmlTest;
-import org.projectforge.framework.configuration.GlobalConfiguration;
-import org.projectforge.framework.persistence.database.InitDatabaseDao;
+import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.persistence.database.DatabaseService;
+import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.jcr.RepoService;
+import org.projectforge.mail.SendMail;
+import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.core.PluginAdminService;
+import org.projectforge.plugins.core.PluginsRegistry;
 import org.projectforge.registry.Registry;
+import org.projectforge.web.WicketSupport;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.orm.hibernate5.HibernateTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.annotations.BeforeClass;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.genome.db.jpa.history.entities.EntityOpType;
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.sql.DataSource;
+import java.io.File;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 
 /**
+ * Every test should finish with a valid database with test cases. If not, the test should call recreateDatabase() on afterAll!
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@ContextConfiguration(
-    classes = { TestConfiguration.class },
-    loader = AnnotationConfigContextLoader.class)
-public class AbstractTestBase extends AbstractTestNGSpringContextTests
-{
-  protected static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {TestConfiguration.class})
+//@Transactional
+@Component
+public abstract class AbstractTestBase {
+  protected static final org.slf4j.Logger baseLog = org.slf4j.LoggerFactory
       .getLogger(AbstractTestBase.class);
 
   public static final String ADMIN = "PFAdmin";
@@ -84,9 +104,9 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
 
   public static final String TEST_EMPLOYEE_USER = "testEmployee";
 
-  public static final String TEST_EMPLOYEE_USER_PASSWORD = "testEmployee42";
+  public static final char[] TEST_EMPLOYEE_USER_PASSWORD = "testEmployee42".toCharArray();
 
-  public static final String TEST_ADMIN_USER_PASSWORD = "testSysAdmin42";
+  public static final char[] TEST_ADMIN_USER_PASSWORD = "testSysAdmin42".toCharArray();
 
   public static final String TEST_FINANCE_USER = "testFinanceUser";
 
@@ -94,19 +114,19 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
 
   public static final String TEST_FULL_ACCESS_USER = "testFullAccessUser";
 
-  public static final String TEST_FULL_ACCESS_USER_PASSWORD = "testFullAccessUser42";
+  public static final char[] TEST_FULL_ACCESS_USER_PASSWORD = "testFullAccessUser42".toCharArray();
 
   public static final String TEST_GROUP = "testGroup";
 
   public static final String TEST_USER = "testUser";
 
-  public static final String TEST_USER_PASSWORD = "testUser42";
+  public static final char[] TEST_USER_PASSWORD = "testUser42".toCharArray();
 
   public static final String TEST_USER2 = "testUser2";
 
   public static final String TEST_DELETED_USER = "deletedTestUser";
 
-  public static final String TEST_DELETED_USER_PASSWORD = "deletedTestUser42";
+  public static final char[] TEST_DELETED_USER_PASSWORD = "deletedTestUser42".toCharArray();
 
   public static final String TEST_PROJECT_MANAGER_USER = "testProjectManager";
 
@@ -137,8 +157,8 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
 
   public static PFUserDO ADMIN_USER;
 
-  @Autowired
-  protected HibernateTemplate hibernateTemplate;
+  @PersistenceContext
+  protected EntityManager em;
 
   @Autowired
   protected UserService userService;
@@ -147,28 +167,139 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
   protected AccessChecker accessChecker;
 
   @Autowired
-  protected InitTestDB initTestDB;
+  public InitTestDB initTestDB;
 
   @Autowired
-  private PfEmgrFactory emf;
+  protected PfEmgrFactory emf;
 
   @Autowired
   private DataSource dataSource;
+
+  private DatabaseExecutor databaseExecutor;
 
   @Autowired
   private ConfigurationService configurationService;
 
   @Autowired
-  private InitDatabaseDao initDatabaseDao;
+  private DatabaseService databaseService;
+
+  @Autowired
+  private PluginAdminService pluginAdminService;
+
+  @Autowired
+  private RepoService repoService;
+
+  @Autowired
+  private SystemStatus systemStatus;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
+
+  private static boolean pluginsInitialized = false;
+
+  @PostConstruct
+  private void postConstruct() {
+    if (!pluginsInitialized) {
+      pluginsInitialized = true;
+      WicketSupport.register(applicationContext);
+      Class<?> webRegistryClazz = null;
+      try {
+        // Wicket package not available for compilation.
+        webRegistryClazz = Class.forName("org.projectforge.web.registry.WebRegistry");
+        Object webRegistry = webRegistryClazz.getMethod("getInstance").invoke(null );
+        webRegistryClazz.getMethod("init").invoke(webRegistry);
+      } catch (ReflectiveOperationException ex) {
+        if (webRegistryClazz == null) {
+          // Wicket not present in current plugin to test (OK)
+        } else {
+          baseLog.error(ex.getMessage(), ex);
+        }
+      }
+      pluginAdminService.initializeAllPluginsForUnitTest();
+      I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME);
+      // Register all resource bundles of the plugins
+      for (AbstractPlugin plugin : PluginsRegistry.instance().getPlugins()) {
+        for (String bundleName : plugin.getResourceBundleNames()) {
+          I18nHelper.addBundleName(bundleName);
+        }
+      }
+    }
+  }
 
   protected int mCount = 0;
 
-  @BeforeClass
-  public void setUp()
-  {
+  private static boolean initialized = false;
+
+  private static AbstractTestBase instance = null;
+
+  private File testRepoDir = null;
+
+  protected AbstractTestBase() {
+    System.setProperty(ProjectForgeApp.CONFIG_PARAM_BASE_DIR, new File("target", "ProjectForgeTest").getAbsolutePath());
+  }
+
+  @BeforeAll
+  public static void _beforeAll() {
+    MyJpaWithExtLibrariesScanner.setInternalSetUnitTestMode();
+    ProjectForgeApp.internalSetJunitTestMode();
+    AbstractPlugin.setInternalJunitTestMode(true);
+    SendMail.internalSetTestMode();
+    initialized = false;
+  }
+
+  @AfterAll
+  public static void _afterAll() {
+    instance.afterAll();
+    instance = null;
+    initialized = false;
+  }
+
+  /**
+   * Override this as beforeAll, but non static.
+   */
+  protected void beforeAll() {
+
+  }
+
+  /**
+   * Override this as afterAll, but non static.
+   * Every test should finish with a valid database with test cases. If not, the test should call recreateDatabase() on afterAll!
+   */
+  protected void afterAll() {
+
+  }
+
+  @BeforeEach
+  void beforeEach() {
+    if (instance == null) {
+      instance = this; // Store instance for afterAll method.
+      //System.out.println("******** " + instance.getClass());
+    }
+    if (testRepoDir != null) {
+      repoService.internalResetForJunitTestCases();
+      repoService.init(testRepoDir);
+      testRepoDir = null; // Don't initialize twice.
+    }
+    if (!initialized) {
+      initialized = true;
+      if (getUser(ADMIN) == null) {
+        recreateDataBase();
+      }
+      beforeAll();
+      systemStatus.setUpAndRunning(true);
+    }
+  }
+
+
+  /**
+   * Will be called once (BeforeClass). You may it call in your test to get a fresh database in your test class for your
+   * method.
+   */
+  public void recreateDataBase() {
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
-    log.info("user.timezone is: " + System.getProperty("user.timezone"));
+    Locale.setDefault(Locale.ENGLISH);
+    baseLog.info("user.timezone is: " + System.getProperty("user.timezone"));
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     try {
       jdbc.execute("CHECKPOINT DEFRAG");
@@ -177,11 +308,8 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
     }
 
     clearDatabase();
-    initDatabaseDao.insertDefaultTenant();
 
-    GlobalConfiguration.createConfiguration(configurationService);
-    TenantRegistryMap tenantRegistryMap = TenantRegistryMap.getInstance();
-    tenantRegistryMap.setApplicationContext(applicationContext);
+    new Configuration(configurationService);
     ConfigXmlTest.createTestConfiguration();
 
     Registry.getInstance().init(applicationContext);
@@ -189,145 +317,125 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
     try {
       initDb();
     } catch (BeansException e) {
-      log.error("Something in setUp go wrong: " + e.getMessage(), e);
+      baseLog.error("Something in setUp go wrong: " + e.getMessage(), e);
     }
+    return;
   }
 
-  protected void initDb()
-  {
+  protected void initDb() {
     init(true);
   }
 
   /**
    * Init and reinitialise context before each run
    */
-  public void init(final boolean createTestData)
-  {
+  public void init(final boolean createTestData) {
     final LoginDefaultHandler loginHandler = applicationContext.getBean(LoginDefaultHandler.class);
     loginHandler.initialize();
     Login.getInstance().setLoginHandler(loginHandler);
-    if (createTestData == true) {
+    if (createTestData) {
       initTestDB.initDatabase();
     }
   }
 
-  protected TenantRegistry getTenantRegistry()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
+  /**
+   * Test cases using the jcr repo should init it. See DataTransferJCRCleanUpJobTest of plugin datatransfer as an example.
+   *
+   * @param modulName    Maven module name (dir) of your current tested module.
+   * @param testRepoName Unique test repoName like "datatransferTestRepo"
+   */
+  protected File initJCRTestRepo(String modulName, String testRepoName) {
+    final TestUtils testUtils = new TestUtils(modulName);
+    testRepoDir = testUtils.deleteAndCreateTestFile("cleanUpTestRepo");
+    return testRepoDir;
   }
 
-  protected UserGroupCache getUserGroupCache()
-  {
-    return getTenantRegistry().getUserGroupCache();
-  }
-
-  protected void clearDatabase()
-  {
-    log.info("clearDatabase...");
+  protected void clearDatabase() {
     emf.getJpaSchemaService().clearDatabase();
-    TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
-    getUserGroupCache().setExpired();
-    TenantRegistryMap.getInstance().clear();
+    userGroupCache.setExpired();
+    initTestDB.clearUsers();
   }
 
-  public PFUserDO logon(final String username)
-  {
-    final PFUserDO user = userService.getByUsername(username);
+  public PFUserDO logon(final String username) {
+    final PFUserDO user = userService.getInternalByUsername(username);
     if (user == null) {
       fail("User not found: " + username);
     }
-    ThreadLocalUserContext.setUser(getUserGroupCache(), PFUserDO.createCopyWithoutSecretFields(user));
+    ThreadLocalUserContext.setUser(PFUserDO.Companion.createCopyWithoutSecretFields(user));
     return user;
   }
 
-  public void logon(final PFUserDO user)
-  {
-    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+  public void logon(final PFUserDO user) {
+    ThreadLocalUserContext.setUser(user);
   }
 
-  protected void logoff()
-  {
-    ThreadLocalUserContext.setUser(getUserGroupCache(), null);
+  protected void logoff() {
+    ThreadLocalUserContext.setUser(null);
   }
 
-  public GroupDO getGroup(final String groupName)
-  {
+  public GroupDO getGroup(final String groupName) {
     return initTestDB.getGroup(groupName);
   }
 
-  public Integer getGroupId(final String groupName)
-  {
+  public Integer getGroupId(final String groupName) {
     return initTestDB.getGroup(groupName).getId();
   }
 
-  public TaskDO getTask(final String taskName)
-  {
+  public TaskDO getTask(final String taskName) {
     return initTestDB.getTask(taskName);
   }
 
-  public PFUserDO getUser(final String userName)
-  {
+  public PFUserDO getUser(final String userName) {
     return initTestDB.getUser(userName);
   }
 
-  public Integer getUserId(final String userName)
-  {
+  public Integer getUserId(final String userName) {
     return initTestDB.getUser(userName).getId();
   }
 
-  protected void logStart(final String name)
-  {
+  protected void logStart(final String name) {
     logStartPublic(name);
     mCount = 0;
   }
 
-  protected void logEnd()
-  {
+  protected void logEnd() {
     logEndPublic();
     mCount = 0;
   }
 
-  protected void logDot()
-  {
+  protected void logDot() {
     log(".");
   }
 
-  protected void log(final String string)
-  {
+  protected void log(final String string) {
     logPublic(string);
     if (++mCount % 40 == 0) {
       System.out.println("");
     }
   }
 
-  public static void logStartPublic(final String name)
-  {
+  public static void logStartPublic(final String name) {
     System.out.print(name + ": ");
   }
 
-  public static void logEndPublic()
-  {
+  public static void logEndPublic() {
     System.out.println(" (OK)");
   }
 
-  public static void logDotPublic()
-  {
+  public static void logDotPublic() {
     logPublic(".");
   }
 
-  public static void logPublic(final String string)
-  {
+  public static void logPublic(final String string) {
     System.out.print(string);
   }
 
-  public static void logSingleEntryPublic(final String string)
-  {
+  public static void logSingleEntryPublic(final String string) {
     System.out.println(string);
   }
 
   protected void assertAccessException(final AccessException ex, final Integer taskId, final AccessType accessType,
-      final OperationType operationType)
-  {
+                                       final OperationType operationType) {
     assertEquals(accessType, ex.getAccessType());
     assertEquals(operationType, ex.getOperationType());
     assertEquals(taskId, ex.getTaskId());
@@ -335,16 +443,14 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
 
   @SuppressWarnings("rawtypes")
   protected void assertHistoryEntry(final HistoryEntry entry, final Integer entityId, final PFUserDO user,
-      final EntityOpType type)
-  {
+                                    final EntityOpType type) {
     assertHistoryEntry(entry, entityId, user, type, null, null, null, null);
   }
 
   @SuppressWarnings("rawtypes")
   protected void assertHistoryEntry(final HistoryEntry entry, final Integer entityId, final PFUserDO user,
-      final EntityOpType type,
-      final String propertyName, final Class<?> classType, final Object oldValue, final Object newValue)
-  {
+                                    final EntityOpType type,
+                                    final String propertyName, final Class<?> classType, final Object oldValue, final Object newValue) {
     assertEquals(user.getId().toString(), entry.getUserName());
     // assertEquals(AddressDO.class.getSimpleName(), entry.getClassName());
     assertEquals(null, entry.getUserComment());
@@ -355,38 +461,28 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
     }
   }
 
-  protected void assertBigDecimal(final int v1, final BigDecimal v2)
-  {
+  public static void assertBigDecimal(final int v1, final BigDecimal v2) {
     assertBigDecimal(new BigDecimal(v1), v2);
   }
 
-  protected void assertBigDecimal(final BigDecimal v1, final BigDecimal v2)
-  {
-    assertTrue("BigDecimal values are not equal.", v1.compareTo(v2) == 0);
+  public static void assertBigDecimal(final BigDecimal v1, final BigDecimal v2) {
+    assertTrue(v1.compareTo(v2) == 0, "BigDecimal values are not equal: " + v1 + " != " + v2);
   }
 
-  protected Calendar assertUTCDate(final Date date, final int year, final int month, final int day, final int hour,
-      final int minute,
-      final int second)
-  {
-    final Calendar cal = Calendar.getInstance(DateHelper.UTC);
-    cal.setTime(date);
-    assertEquals(year, cal.get(Calendar.YEAR));
-    assertEquals(month, cal.get(Calendar.MONTH));
-    assertEquals(day, cal.get(Calendar.DAY_OF_MONTH));
-    assertEquals(hour, cal.get(Calendar.HOUR_OF_DAY));
-    assertEquals(minute, cal.get(Calendar.MINUTE));
-    assertEquals(second, cal.get(Calendar.SECOND));
-    return cal;
+  protected void assertUTCDate(final Date date, final int year, final Month month, final int day, final int hour,
+                               final int minute, final int second) {
+    PFDateTime dateTime = PFDateTime.from(date, DateHelper.UTC);
+    assertEquals(year, dateTime.getYear());
+    assertEquals(month, dateTime.getMonth());
+    assertEquals(day, dateTime.getDayOfMonth());
+    assertEquals(hour, dateTime.getHour());
+    assertEquals(minute, dateTime.getMinute());
+    assertEquals(second, dateTime.getSecond());
   }
 
-  protected Calendar assertUTCDate(final Date date, final int year, final int month, final int day, final int hour,
-      final int minute,
-      final int second, final int millis)
-  {
-    final Calendar cal = assertUTCDate(date, year, month, day, hour, minute, second);
-    assertEquals(millis, cal.get(Calendar.MILLISECOND));
-    return cal;
+  protected void assertLocalDate(final LocalDate date, final int year, final Month month, final int day) {
+    assertEquals(year, date.getYear());
+    assertEquals(month, date.getMonth());
+    assertEquals(day, date.getDayOfMonth());
   }
-
 }

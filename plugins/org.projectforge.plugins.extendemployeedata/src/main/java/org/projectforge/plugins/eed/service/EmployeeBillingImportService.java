@@ -1,26 +1,48 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.plugins.eed.service;
+
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.merlin.excel.importer.ImportStatus;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
+import org.apache.commons.lang3.Validate;
+import org.projectforge.business.excel.ExcelImportException;
+import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.export.AttrColumnDescription;
+import org.projectforge.common.i18n.UserException;
+import org.projectforge.plugins.eed.excelimport.EmployeeBillingExcelImporter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang.Validate;
-import org.projectforge.business.excel.ExcelImportException;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.export.AttrColumnDescription;
-import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.utils.ImportStatus;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
-import org.projectforge.plugins.eed.excelimport.EmployeeBillingExcelImporter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 @Service
 public class EmployeeBillingImportService
@@ -33,7 +55,7 @@ public class EmployeeBillingImportService
 
   private List<AttrColumnDescription> attrColumnsInSheet;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeBillingImportService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeBillingImportService.class);
 
   public ImportStorage<EmployeeDO> importData(final InputStream is, final String filename, final Date dateToSelectAttrRow) throws IOException
   {
@@ -95,7 +117,7 @@ public class EmployeeBillingImportService
     final List<EmployeeDO> employeesToUpdate = sheet
         .getElements()
         .stream()
-        .filter(ImportedElement::isSelected)
+        .filter(ImportedElement::getSelected)
         .map(ImportedElement::getValue)
         .collect(Collectors.toList());
 

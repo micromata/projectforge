@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-  <include resource="org/springframework/boot/logging/logback/base.xml"/>
-  <logger name="org.projectforge" level="error"/>
-  <logger name="de.micromata" level="error"/>
-  <logger name="org.springframework" level="error"/>
-  <logger name="org.hibernate" level="error"/>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <appender name="MEMORY" class="org.projectforge.common.logging.LoggerMemoryAppender" />
+
+    <logger name="org.mockserver" level="error"/>
+    <logger name="com.zaxxer" level="error"/>
+    <logger name="de.micromata" level="error"/>
+    <logger name="org.apache" level="error"/>
+    <logger name="org.ehcache" level="error"/>
+    <logger name="org.hibernate" level="error"/>
+    <logger name="org.projectforge" level="error"/>
+    <logger name="org.projectforge.business.gantt.GanttUtils" level="off"/>
+    <logger name="org.projectforge.business.task.TaskNode" level="off"/>
+    <logger name="org.projectforge.framework.access.AccessCheckerImpl" level="off"/>
+    <logger name="org.projectforge.framework.configuration.ConfigurationDao" level="off"/>
+    <logger name="org.projectforge.framework.utils.Crypt" level="off"/>
+    <logger name="org.projectforge.framework.persistence.api" level="off"/>
+    <logger name="org.projectforge.mail.SendMail" level="off"/>
+    <logger name="org.projectforge.messaging.SmsSender" level="off"/>
+    <logger name="org.projectforge.rest.pub.AuthenticationPublicServicesRest" level="off"/>
+    <logger name="org.springframework" level="error"/>
 </configuration>

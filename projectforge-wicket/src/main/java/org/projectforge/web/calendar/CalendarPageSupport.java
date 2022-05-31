@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,6 @@
 
 package org.projectforge.web.calendar;
 
-import java.io.Serializable;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
@@ -33,7 +31,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -41,6 +38,8 @@ import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+
+import java.io.Serializable;
 
 public class CalendarPageSupport implements Serializable
 {
@@ -82,15 +81,13 @@ public class CalendarPageSupport implements Serializable
       return;
     }
     if (isOtherTimesheetsUsersAllowed() == false) {
-      addCheckBox(checkBoxDivPanel, filter, "showTimesheets", "calendar.option.timesheeets", null, autoSubmit);
+      addCheckBox(checkBoxDivPanel, filter, "showTimesheets", "calendar.option.timesheets", null, autoSubmit);
     }
     addCheckBox(checkBoxDivPanel, filter, "showBreaks", "calendar.option.showBreaks",
         "calendar.option.showBreaks.tooltip", autoSubmit);
     addCheckBox(checkBoxDivPanel, filter, "showPlanning", "calendar.option.planning",
         "calendar.option.planning.tooltip", autoSubmit);
-    if (Configuration.getInstance().isAddressManagementConfigured() == true) {
-      addCheckBox(checkBoxDivPanel, filter, "showBirthdays", "calendar.option.birthdays", null, autoSubmit);
-    }
+    addCheckBox(checkBoxDivPanel, filter, "showBirthdays", "calendar.option.birthdays", null, autoSubmit);
     addCheckBox(checkBoxDivPanel, filter, "showStatistics", "calendar.option.statistics",
         "calendar.option.statistics.tooltip", autoSubmit);
   }

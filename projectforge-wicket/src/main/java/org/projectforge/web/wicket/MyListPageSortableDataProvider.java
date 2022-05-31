@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,7 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -42,6 +34,9 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.utils.MyBeanComparator;
 import org.projectforge.web.common.timeattr.AttrComperator;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Stores list of result sets (id's) for pagination and provides iterator of data-base objects on demand.
@@ -106,7 +101,7 @@ public class MyListPageSortableDataProvider<T extends IdObject<?>> extends Sorta
       this.completeList = null; // Force to load all elements from data-base (avoid lazy initialization exceptions).
     }
     final SortParam<String> sp = getSort();
-    if (ObjectUtils.equals(sortParam, sp) == false) {
+    if (Objects.equals(sortParam, sp) == false) {
       // The sort parameters were changed, force reload from data-base:
       reloadList();
     }

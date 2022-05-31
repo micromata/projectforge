@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,6 @@
 
 package org.projectforge.web.teamcal.admin;
 
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.basic.Label;
@@ -59,12 +54,13 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.JodaDatePanel;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
-import org.projectforge.web.wicket.flowlayout.AjaxIconLinkPanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
-import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Creates a top form-panel to add filter functions or other options.
@@ -73,7 +69,7 @@ import org.wicketstuff.select2.Select2MultiChoice;
  */
 public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalEditForm.class);
 
   private static final long serialVersionUID = 1379614008604844519L;
 
@@ -174,7 +170,7 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
       }
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.teamcal.owner")).suppressLabelForWarning();
       if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true
-          || ObjectUtils.equals(data.getOwnerId(), getUserId()) == true) {
+          || Objects.equals(data.getOwnerId(), getUserId()) == true) {
         final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(),
             new PropertyModel<PFUserDO>(data, "owner"), parentPage,
             "ownerId");
@@ -222,8 +218,8 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
         protected void onUpdate(final AjaxRequestTarget target)
         {
           // update visibility
-          fsExternalSubscriptionUrl.getFieldset().setVisible(data.isExternalSubscription() == true);
-          fsExternalSubscriptionInterval.getFieldset().setVisible(data.isExternalSubscription() == true);
+          fsExternalSubscriptionUrl.getFieldset().setVisible(data.getExternalSubscription() == true);
+          fsExternalSubscriptionInterval.getFieldset().setVisible(data.getExternalSubscription() == true);
           // update components through ajax
           target.add(fsExternalSubscriptionUrl.getFieldset());
           target.add(fsExternalSubscriptionInterval.getFieldset());
@@ -235,7 +231,7 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
       fsExternalSubscriptionUrl = gridBuilder.newFieldset(getString("plugins.teamcal.externalsubscription.url"));
       fsExternalSubscriptionUrl.getFieldset().setOutputMarkupId(true);
       fsExternalSubscriptionUrl.getFieldset().setOutputMarkupPlaceholderTag(true);
-      fsExternalSubscriptionUrl.getFieldset().setVisible(data.isExternalSubscription() == true);
+      fsExternalSubscriptionUrl.getFieldset().setVisible(data.getExternalSubscription() == true);
       fsExternalSubscriptionUrl.addHelpIcon(new ResourceModel("plugins.teamcal.externalsubscription.label.tooltip"),
           new ResourceModel(
               "plugins.teamcal.externalsubscription.url.tooltip"));
@@ -250,7 +246,7 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
           .newFieldset(getString("plugins.teamcal.externalsubscription.updateInterval"));
       fsExternalSubscriptionInterval.getFieldset().setOutputMarkupId(true);
       fsExternalSubscriptionInterval.getFieldset().setOutputMarkupPlaceholderTag(true);
-      fsExternalSubscriptionInterval.getFieldset().setVisible(data.isExternalSubscription() == true);
+      fsExternalSubscriptionInterval.getFieldset().setVisible(data.getExternalSubscription() == true);
 
       final IChoiceRenderer<Integer> intervalRenderer = new IChoiceRenderer<Integer>()
       {

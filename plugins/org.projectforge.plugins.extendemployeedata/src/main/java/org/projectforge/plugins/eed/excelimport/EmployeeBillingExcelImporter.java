@@ -1,4 +1,44 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.plugins.eed.excelimport;
+
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.genome.util.bean.PrivateBeanUtils;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedSheet;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.excel.ExcelImport;
+import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeTimedDO;
+import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.export.AttrColumnDescription;
+import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.persistence.utils.MyImportedElement;
+import org.projectforge.framework.persistence.utils.MyImportedElementWithAttrs;
+import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,26 +48,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.projectforge.business.excel.ExcelImport;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeTimedDO;
-import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.export.AttrColumnDescription;
-import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedElementWithAttrs;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
-import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
-
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import de.micromata.genome.util.bean.PrivateBeanUtils;
-
 public class EmployeeBillingExcelImporter
 {
-  private static final Logger log = Logger.getLogger(EmployeeBillingExcelRow.class);
+  private static final Logger log = LoggerFactory.getLogger(EmployeeBillingExcelImporter.class);
 
   private static final String NAME_OF_EXCEL_SHEET = "employees";
 
@@ -73,7 +96,7 @@ public class EmployeeBillingExcelImporter
 
   private List<AttrColumnDescription> importEmployeeBillings(final ExcelImport<EmployeeBillingExcelRow> importer)
   {
-    final ImportedSheet<EmployeeDO> importedSheet = new ImportedSheet<>();
+    final ImportedSheet<EmployeeDO> importedSheet = new ImportedSheet<>(new ImportStorage<>());
     storage.addSheet(importedSheet);
     importedSheet.setName(NAME_OF_EXCEL_SHEET);
     importer.setNameRowIndex(ROW_INDEX_OF_COLUMN_NAMES);
@@ -91,8 +114,9 @@ public class EmployeeBillingExcelImporter
     final List<AttrColumnDescription> attrColumnsInSheet = getAttrColumnsUsedInSheet(importer);
 
     final EmployeeBillingExcelRow[] rows = importer.convertToRows(EmployeeBillingExcelRow.class);
+    int rowNum = 0;
     for (final EmployeeBillingExcelRow row : rows) {
-      final ImportedElement<EmployeeDO> element = convertRowToDo(attrColumnsInSheet, row);
+      final MyImportedElement<EmployeeDO> element = convertRowToDo(importedSheet, attrColumnsInSheet, row, rowNum);
       importedSheet.addElement(element);
     }
 
@@ -109,10 +133,13 @@ public class EmployeeBillingExcelImporter
         .collect(Collectors.toList());
   }
 
-  private ImportedElement<EmployeeDO> convertRowToDo(final List<AttrColumnDescription> attrColumnsInSheet, final EmployeeBillingExcelRow row)
+  private MyImportedElement<EmployeeDO> convertRowToDo(final ImportedSheet<EmployeeDO> importedSheet,
+                                                       final List<AttrColumnDescription> attrColumnsInSheet,
+                                                       final EmployeeBillingExcelRow row,
+                                                       final int rowNum)
   {
-    final ImportedElement<EmployeeDO> element = new ImportedElementWithAttrs<>(storage.nextVal(), EmployeeDO.class, DIFF_PROPERTIES, attrColumnsInSheet,
-        dateToSelectAttrRow, timeableService);
+    final MyImportedElement<EmployeeDO> element = new MyImportedElementWithAttrs(importedSheet, rowNum, EmployeeDO.class, attrColumnsInSheet,
+        dateToSelectAttrRow, timeableService, DIFF_PROPERTIES);
     EmployeeDO employee;
     if (row.getId() != null) {
       employee = employeeService.selectByPkDetached(row.getId());

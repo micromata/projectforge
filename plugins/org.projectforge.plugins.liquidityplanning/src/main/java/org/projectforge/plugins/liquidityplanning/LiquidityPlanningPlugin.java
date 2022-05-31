@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,24 +23,25 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import org.projectforge.business.user.UserRightValue;
-import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
+import org.projectforge.menu.builder.MenuItemDef;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.core.PluginAdminService;
+import org.projectforge.plugins.liquidityplanning.rest.LiquidityEntryPagesRest;
 import org.projectforge.registry.RegistryEntry;
-import org.projectforge.web.MenuItemDef;
-import org.projectforge.web.MenuItemDefId;
+import org.projectforge.security.My2FAShortCut;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class LiquidityPlanningPlugin extends AbstractPlugin
-{
+public class LiquidityPlanningPlugin extends AbstractPlugin {
   public static final String ACCOUNTING_RECORD = "accountingRecord";
 
-  public static final String ID = "liquididityplanning";
+  public static final String ID = PluginAdminService.PLUGIN_LIQUIDITY_PLANNING_ID;
 
   public static final String RESOURCE_BUNDLE_NAME = "LiquidityPlanningI18nResources";
 
@@ -49,7 +50,7 @@ public class LiquidityPlanningPlugin extends AbstractPlugin
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
   // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[] { LiquidityEntryDO.class };
+  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{LiquidityEntryDO.class};
 
   /**
    * This dao should be defined in pluginContext.xml (as resources) for proper initialization.
@@ -60,31 +61,34 @@ public class LiquidityPlanningPlugin extends AbstractPlugin
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
+  public LiquidityPlanningPlugin() {
+    super("liquidplanning", "Liquidity planning", "Liquidity planning based on expected payments and invoices with probabilities.");
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
-  protected void initialize()
-  {
-    // DatabaseUpdateDao is needed by the updater:
-    LiquidityPlanningPluginUpdates.dao = myDatabaseUpdater;
+  protected void initialize() {
+    registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:liquidityEntry;/wa/liquidityplanningEdit");
+    registerShortCutValues(My2FAShortCut.FINANCE, "/wa/liquidityplanning;/wa/liquidityForecast");
+    registerShortCutClasses(My2FAShortCut.FINANCE, LiquidityEntryPagesRest.class);
     final RegistryEntry entry = new RegistryEntry(ID, LiquidityEntryDao.class, liquidityEntryDao,
-        "plugins.liquidityplanning");
+            "plugins.liquidityplanning");
     register(entry);
 
     // Register the web part:
     // Insert at first position before accounting-record entry (for SearchPage).
     pluginWicketRegistrationService.registerWeb(ID, LiquidityEntryListPage.class, LiquidityEntryEditPage.class,
-        ACCOUNTING_RECORD, true);
+            ACCOUNTING_RECORD, true);
 
     pluginWicketRegistrationService.addMountPage("liquidityForecast", LiquidityForecastPage.class);
 
     // Register the menu entry as sub menu entry of the reporting menu:
-    final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.REPORTING);
-    pluginWicketRegistrationService.registerMenuItem(
-        new MenuItemDef(parentMenu, ID, 10, "plugins.liquidityplanning.menu", LiquidityEntryListPage.class,
-            LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING, UserRightValue.READONLY,
-            UserRightValue.READWRITE));
+    MenuItemDef menuEntry = MenuItemDef.create(ID, "plugins.liquidityplanning.menu");
+    menuEntry.setRequiredUserRightId(LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING);
+    menuEntry.setRequiredUserRightValues(UserRightService.READONLY_READWRITE);
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.REPORTING, menuEntry, LiquidityEntryListPage.class);
 
     // Define the access management:
     registerRight(new LiquidityPlanningRight(accessChecker));
@@ -93,17 +97,7 @@ public class LiquidityPlanningPlugin extends AbstractPlugin
     addResourceBundle(RESOURCE_BUNDLE_NAME);
   }
 
-  public void setLiquidityEntryDao(final LiquidityEntryDao liquidityEntryDao)
-  {
+  public void setLiquidityEntryDao(final LiquidityEntryDao liquidityEntryDao) {
     this.liquidityEntryDao = liquidityEntryDao;
-  }
-
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
-   */
-  @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
-    return LiquidityPlanningPluginUpdates.getInitializationUpdateEntry();
   }
 }

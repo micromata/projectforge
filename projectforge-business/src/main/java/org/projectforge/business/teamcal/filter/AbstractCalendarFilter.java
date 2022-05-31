@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,16 +23,19 @@
 
 package org.projectforge.business.teamcal.filter;
 
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.joda.time.DateMidnight;
 
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-
+/**
+ * Will be removed when Wicket filter is replaced by React filter in ProjectForge version 7.
+ */
+@Deprecated
 public abstract class AbstractCalendarFilter implements ICalendarFilter
 {
   private static final long serialVersionUID = -2054541010143924205L;
 
   @XStreamAsAttribute
-  private DateMidnight startDate;
+  private DateMidnight startDate; // Don't migrate to PFDateTime. Must be DateMidnight for deserialization of deprecated filters. The whole class will be removed after removing Wicket.
 
   @XStreamAsAttribute
   private Integer firstHour = 8;
@@ -72,7 +75,7 @@ public abstract class AbstractCalendarFilter implements ICalendarFilter
 
   /**
    * If true then the slot is 30 minutes otherwise 15 minutes.
-   * 
+   *
    * @return the slot30
    */
   public boolean isSlot30()

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,14 +24,7 @@
 package org.projectforge.web.tree;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 
 /**
  * A TreeTable is a really nice tree view which entries will be shown as HTML table rows. The functionality of this tree is like a file
@@ -63,7 +56,7 @@ public abstract class TreeTable<T extends TreeTableNode> implements Serializable
   }
 
   /**
-   * Gets nodes as list. For the first time, only the top level childs will be shown. After the user is able to open and close some entries
+   * Gets nodes as list. For the first time, only the top level children will be shown. After the user is able to open and close some entries
    * like in an file manager tree view.
    */
   @SuppressWarnings("unchecked")
@@ -73,9 +66,9 @@ public abstract class TreeTable<T extends TreeTableNode> implements Serializable
     if (root == null) {
       return null;
     }
-    SortedSet<T> childs = (SortedSet<T>) root.getChilds();
-    if (childs != null) {
-      for (T node : childs) {
+    SortedSet<T> children = (SortedSet<T>) root.getChildren();
+    if (children != null) {
+      for (T node : children) {
         node.buildNodeList((List<TreeTableNode>) nodes, 0, filter);
       }
     }
@@ -128,7 +121,7 @@ public abstract class TreeTable<T extends TreeTableNode> implements Serializable
         openFoldersRecursive(node);
       }
     } else if (event == TreeTableEvent.IMPLORE) {
-      if (node.hasChilds() == true)
+      if (node.hasChildren() == true)
         closeFoldersRecursive(node);
     } else if (event == TreeTableEvent.OPEN) {
       node.setOpened(true);
@@ -199,9 +192,9 @@ public abstract class TreeTable<T extends TreeTableNode> implements Serializable
   {
     node.setOpened(true);
     openedNodes.add(node.hashId);
-    if (node.hasChilds() == true) {
-      node.getChilds();
-      for (TreeTableNode n : node.getChilds()) {
+    if (node.hasChildren() == true) {
+      node.getChildren();
+      for (TreeTableNode n : node.getChildren()) {
         openFoldersRecursive(n);
       }
     }
@@ -211,8 +204,8 @@ public abstract class TreeTable<T extends TreeTableNode> implements Serializable
   {
     node.setOpened(false);
     openedNodes.remove(node.hashId);
-    if (node.hasChilds() == true) {
-      for (TreeTableNode n : node.getChilds()) {
+    if (node.hasChildren() == true) {
+      for (TreeTableNode n : node.getChildren()) {
         closeFoldersRecursive(n);
       }
     }

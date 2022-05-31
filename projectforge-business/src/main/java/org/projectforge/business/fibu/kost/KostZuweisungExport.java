@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,36 +23,22 @@
 
 package org.projectforge.business.fibu.kost;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
-import org.hibernate.criterion.Order;
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExportColumn;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.ExportWorkbook;
-import org.projectforge.business.excel.I18nExportColumn;
-import org.projectforge.business.excel.PropertyMapping;
-import org.projectforge.business.fibu.AbstractRechnungDO;
-import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
-import org.projectforge.business.fibu.EingangsrechnungDO;
-import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
-import org.projectforge.business.fibu.KontoCache;
-import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.KontoDao;
-import org.projectforge.business.fibu.ProjektFormatter;
-import org.projectforge.business.fibu.RechnungDO;
-import org.projectforge.business.fibu.RechnungsPositionDO;
+import org.projectforge.business.excel.*;
+import org.projectforge.business.fibu.*;
 import org.projectforge.common.StringHelper;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.CurrencyHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * For excel export.
@@ -60,34 +46,27 @@ import org.springframework.stereotype.Component;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class KostZuweisungExport
-{
+public class KostZuweisungExport {
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(KostZuweisungExport.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KostZuweisungExport.class);
 
   @Autowired
   KontoDao kontoDao;
 
-  private class MyContentProvider extends MyXlsContentProvider
-  {
-    public MyContentProvider(final ExportWorkbook workbook)
-    {
+  private class MyContentProvider extends MyXlsContentProvider {
+    public MyContentProvider(final ExportWorkbook workbook) {
       super(workbook);
     }
 
     @Override
-    public ContentProvider newInstance()
-    {
+    public ContentProvider newInstance() {
       return new MyContentProvider(this.workbook);
     }
   }
 
-  ;
-
-  private enum InvoicesCol
-  {
+  private enum InvoicesCol {
     BRUTTO("fibu.common.brutto", MyXlsContentProvider.LENGTH_CURRENCY), //
-    VAT("fibu.common.vat", MyXlsContentProvider.LENGTH_BOOLEAN), //
+    VAT("fibu.common.vat", MyXlsContentProvider.LENGTH_PERCENT), //
     KONTO("fibu.buchungssatz.konto", 14), //
     REFERENZ("fibu.common.reference", MyXlsContentProvider.LENGTH_STD), //
     DATE("date", MyXlsContentProvider.LENGTH_DATE), //
@@ -95,14 +74,14 @@ public class KostZuweisungExport
     KOST1("fibu.kost1", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), //
     KOST2("fibu.kost2", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), //
     TEXT("description", MyXlsContentProvider.LENGTH_EXTRA_LONG), //
+    BETREFF("fibu.rechnung.betreff", MyXlsContentProvider.LENGTH_EXTRA_LONG), //
     KORREKTUR("fibu.common.fehlBetrag", MyXlsContentProvider.LENGTH_CURRENCY);
 
     final String theTitle;
 
     final int width;
 
-    InvoicesCol(final String theTitle, final int width)
-    {
+    InvoicesCol(final String theTitle, final int width) {
       this.theTitle = theTitle;
       this.width = (short) width;
     }
@@ -114,16 +93,15 @@ public class KostZuweisungExport
    * @param list
    * @return
    */
-  public byte[] exportRechnungen(final List<? extends AbstractRechnungDO<? extends AbstractRechnungsPositionDO>> list,
-      final String sheetTitle, final KontoCache kontoCache)
-  {
-    final List<KostZuweisungDO> zuweisungen = new ArrayList<KostZuweisungDO>();
-    for (final AbstractRechnungDO<?> rechnung : list) {
-      if (rechnung.getPositionen() != null) {
-        for (final AbstractRechnungsPositionDO position : rechnung.getPositionen()) {
-          if (CollectionUtils.isNotEmpty(position.getKostZuweisungen()) == true) {
+  public byte[] exportRechnungen(final List<? extends AbstractRechnungDO> list,
+                                 final String sheetTitle, final KontoCache kontoCache) {
+    final List<KostZuweisungDO> zuweisungen = new ArrayList<>();
+    for (final AbstractRechnungDO rechnung : list) {
+      if (rechnung.getAbstractPositionen() != null) {
+        for (final AbstractRechnungsPositionDO position : rechnung.getAbstractPositionen()) {
+          if (CollectionUtils.isNotEmpty(position.getKostZuweisungen())) {
             for (final KostZuweisungDO zuweisung : position.getKostZuweisungen()) {
-              if (NumberHelper.isZeroOrNull(zuweisung.getBrutto()) == true) {
+              if (NumberHelper.isZeroOrNull(zuweisung.getBrutto())) {
                 // Skip entries with zero amounts.
                 continue;
               }
@@ -147,8 +125,7 @@ public class KostZuweisungExport
   /**
    * Exports the filtered list as table.
    */
-  public byte[] export(final List<KostZuweisungDO> list, final String sheetTitle, final KontoCache kontoCache)
-  {
+  public byte[] export(final List<KostZuweisungDO> list, final String sheetTitle, final KontoCache kontoCache) {
     log.info("Exporting kost zuweisung list.");
     final ExportWorkbook xls = new ExportWorkbook();
     final ContentProvider contentProvider = new MyContentProvider(xls);
@@ -169,6 +146,7 @@ public class KostZuweisungExport
 
     final ContentProvider sheetProvider = sheet.getContentProvider();
     sheetProvider.putFormat(InvoicesCol.BRUTTO, "#,##0.00;[Red]-#,##0.00");
+    sheetProvider.putFormat(InvoicesCol.VAT, "#%");
     sheetProvider.putFormat(InvoicesCol.KORREKTUR, "#,##0.00;[Red]-#,##0.00");
     sheetProvider.putFormat(InvoicesCol.KOST1, "#");
     sheetProvider.putFormat(InvoicesCol.KOST2, "#");
@@ -177,7 +155,7 @@ public class KostZuweisungExport
     final PropertyMapping mapping = new PropertyMapping();
     for (final KostZuweisungDO zuweisung : list) {
       final AbstractRechnungsPositionDO position;
-      final AbstractRechnungDO<?> rechnung;
+      final AbstractRechnungDO rechnung;
       final String referenz;
       final String text;
       if (zuweisung.getRechnungsPosition() != null) {
@@ -198,12 +176,14 @@ public class KostZuweisungExport
       BigDecimal korrektur = null;
       if (grossSum.compareTo(position.getKostZuweisungGrossSum()) != 0) {
         korrektur = CurrencyHelper.getGrossAmount(position.getKostZuweisungNetFehlbetrag(), position.getVat());
-        if (NumberHelper.isZeroOrNull(korrektur) == true) {
+        if (NumberHelper.isZeroOrNull(korrektur)) {
           korrektur = null;
         }
       }
       mapping.add(InvoicesCol.BRUTTO, zuweisung.getBrutto());
-      mapping.add(InvoicesCol.VAT, NumberHelper.isNotZero(position.getVat()));
+      if (NumberHelper.isNotZero(position.getVat())) {
+        mapping.add(InvoicesCol.VAT, position.getVat());
+      }
       Integer kontoNummer = null;
       if (rechnung instanceof RechnungDO) {
         final KontoDO konto = kontoCache.getKonto(((RechnungDO) rechnung));
@@ -226,6 +206,7 @@ public class KostZuweisungExport
       mapping.add(InvoicesCol.KOST1, zuweisung.getKost1() != null ? zuweisung.getKost1().getNummer() : "");
       mapping.add(InvoicesCol.KOST2, zuweisung.getKost2() != null ? zuweisung.getKost2().getNummer() : "");
       mapping.add(InvoicesCol.TEXT, text);
+      mapping.add(InvoicesCol.BETREFF, rechnung.getBetreff());
       mapping.add(InvoicesCol.KORREKTUR, korrektur);
       sheet.addRow(mapping.getMapping(), 0);
     }
@@ -233,8 +214,7 @@ public class KostZuweisungExport
     return xls.getAsByteArray();
   }
 
-  private enum AccountsCol
-  {
+  private enum AccountsCol {
     NUMBER("fibu.konto.nummer", 16), //
     NAME("fibu.konto.bezeichnung", MyXlsContentProvider.LENGTH_STD), //
     STATUS("status", 14), //
@@ -246,15 +226,13 @@ public class KostZuweisungExport
 
     final int width;
 
-    AccountsCol(final String theTitle, final int width)
-    {
+    AccountsCol(final String theTitle, final int width) {
       this.theTitle = theTitle;
       this.width = (short) width;
     }
   }
 
-  private void addAccounts(final ExportWorkbook xls, final ContentProvider contentProvider)
-  {
+  private void addAccounts(final ExportWorkbook xls, final ContentProvider contentProvider) {
     final ExportSheet sheet = xls.addSheet(ThreadLocalUserContext.getLocalizedString("fibu.konto.konten"));
     sheet.createFreezePane(0, 1);
 
@@ -273,7 +251,7 @@ public class KostZuweisungExport
     sheetProvider.putFormat(AccountsCol.NUMBER, "#");
 
     final QueryFilter filter = new QueryFilter();
-    filter.addOrder(Order.desc("lastUpdate"));
+    filter.addOrder(SortProperty.desc("lastUpdate"));
     final List<KontoDO> list = kontoDao.getList(filter);
 
     final PropertyMapping mapping = new PropertyMapping();
@@ -283,7 +261,7 @@ public class KostZuweisungExport
       mapping.add(AccountsCol.DATE_OF_LAST_MODIFICATION, konto.getLastUpdate());
       mapping.add(AccountsCol.DATE_OF_CREATION, konto.getCreated());
       String status = "";
-      if (konto.isDeleted() == true) {
+      if (konto.isDeleted()) {
         status = ThreadLocalUserContext.getLocalizedString("deleted");
       } else if (konto.getStatus() != null) {
         status = ThreadLocalUserContext.getLocalizedString(konto.getStatus().getI18nKey());

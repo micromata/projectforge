@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,8 @@
 
 package org.projectforge.web.user;
 
-import java.util.List;
-
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.business.user.UserPrefDao;
@@ -40,13 +36,17 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.fibu.Kost2DropDownChoice;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.projectforge.web.wicket.WicketUtils;
+import org.slf4j.Logger;
+
+import java.util.List;
 
 @EditPage(defaultReturnPage = UserPrefListPage.class)
 public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditForm, UserPrefDao> implements ISelectCallerPage
 {
   private static final long serialVersionUID = 3405518532401481456L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserPrefEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefEditPage.class);
 
   public static final String PARAMETER_AREA = "area";
 
@@ -85,7 +85,7 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
 
   private UserPrefDO initUserPref(final UserPrefDO userPref, final UserPrefArea area, final Object object)
   {
-    userPref.setArea(area);
+    userPref.setAreaObject(area);
     userPref.setUser(ThreadLocalUserContext.getUser());
     if (object != null) {
       userPrefDao.addUserPrefParameters(userPref, object);

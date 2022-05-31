@@ -1,7 +1,27 @@
-package org.projectforge.framework.persistence.attr.impl;
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
 
-import java.util.HashMap;
-import java.util.Map;
+package org.projectforge.framework.persistence.attr.impl;
 
 import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
@@ -14,6 +34,9 @@ import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchFieldInfoProvider
 import de.micromata.mgc.jpa.hibernatesearch.api.SearchColumnMetadata;
 import de.micromata.mgc.jpa.hibernatesearch.impl.SearchColumnMetadataBean;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Add the configured attr schema to search fields.
  * 
@@ -23,7 +46,7 @@ import de.micromata.mgc.jpa.hibernatesearch.impl.SearchColumnMetadataBean;
 public class HibernateSearchAttrSchemaFieldInfoProvider implements HibernateSearchFieldInfoProvider
 {
 
-  private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(HibernateSearchAttrSchemaFieldInfoProvider.class);
 
   private ColumnMetadata getColumnMetadataFromColumnDesc(EntityMetadata entm, AttrDescription ad)

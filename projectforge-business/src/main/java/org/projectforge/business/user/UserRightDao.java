@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,54 +23,48 @@
 
 package org.projectforge.business.user;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.IUserRightId;
-import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class UserRightDao extends BaseDao<UserRightDO>
-{
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "user.username", "user.firstname",
-      "user.lastname" };
+
+public class UserRightDao extends BaseDao<UserRightDO> {
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"user.username", "user.firstname",
+          "user.lastname"};
 
   @Autowired
   private UserRightService userRightService;
 
-  protected UserRightDao()
-  {
+  @Autowired
+  private UserGroupCache userGroupCache;
+
+  protected UserRightDao() {
     super(UserRightDO.class);
   }
 
-  public List<UserRightDO> getList(final PFUserDO user)
-  {
+  public List<UserRightDO> getList(final PFUserDO user) {
     final UserRightFilter filter = new UserRightFilter();
     filter.setUser(user);
     return getList(filter);
   }
 
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
-  public void updateUserRights(final PFUserDO user, final List<UserRightVO> list, final boolean updateUserGroupCache)
-  {
+  public List<UserRightDO> internalGetAllOrdered() {
+    return em.createNamedQuery(UserRightDO.FIND_ALL_ORDERED, UserRightDO.class)
+            .getResultList();
+  }
+
+  public void updateUserRights(final PFUserDO user, final List<UserRightVO> list, final boolean updateUserGroupCache) {
     final List<UserRightDO> dbList = getList(user);
     // evict all entities from the session cache to avoid that the update is already done in the copy method
-    dbList.forEach(getHibernateTemplate()::evict);
+    dbList.forEach(em::detach);
     final UserGroupCache userGroupCache = getUserGroupCache();
     for (final UserRightVO rightVO : list) {
       UserRightDO rightDO = null;
@@ -81,8 +75,8 @@ public class UserRightDao extends BaseDao<UserRightDO>
         }
       }
       if (rightDO == null) {
-        if ((rightVO.isBooleanValue() == true && rightVO.getValue() == UserRightValue.FALSE)
-            || rightVO.getValue() == null) {
+        if ((rightVO.isBooleanValue() && rightVO.getValue() == UserRightValue.FALSE)
+                || rightVO.getValue() == null) {
           continue;
           // Right has no value and is not yet in data base.
           // Do nothing.
@@ -95,8 +89,8 @@ public class UserRightDao extends BaseDao<UserRightDO>
         copy(rightDO, rightVO);
         IUserRightId rightId = userRightService.getRightId(rightDO.getRightIdString());
         final UserRight right = userRightService.getRight(rightId);
-        if (right.isAvailable(userGroupCache, user) == false
-            || right.isAvailable(userGroupCache, user, rightDO.getValue()) == false) {
+        if (!right.isAvailable(userGroupCache, user)
+                || !right.isAvailable(userGroupCache, user, rightDO.getValue())) {
           rightDO.setValue(null);
         }
         update(rightDO);
@@ -106,8 +100,8 @@ public class UserRightDao extends BaseDao<UserRightDO>
     for (final UserRightDO rightDO : dbList) {
       String rightId = rightDO.getRightIdString();
       UserRight right = userRightService.getRight(rightId);
-      if (right.isAvailable(userGroupCache, user) == false
-          || right.isAvailable(userGroupCache, user, rightDO.getValue()) == false) {
+      if (right != null && (!right.isAvailable(userGroupCache, user)
+              || !right.isAvailable(userGroupCache, user, rightDO.getValue()))) {
         rightDO.setValue(null);
         update(rightDO);
       }
@@ -117,26 +111,27 @@ public class UserRightDao extends BaseDao<UserRightDO>
     }
   }
 
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
-  public void updateUserRights(final PFUserDO user, final List<UserRightVO> list)
-  {
+  public void updateUserRights(final PFUserDO user, final List<UserRightVO> list) {
     updateUserRights(user, list, true);
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(org.projectforge.core.ExtendedBaseDO)
-   */
   @Override
-  protected void afterSaveOrModify(final UserRightDO obj)
-  {
-    super.afterSaveOrModify(obj);
-    TenantRegistryMap.getInstance().getTenantRegistry(obj).getUserGroupCache().setExpired();
+  protected void afterUpdate(UserRightDO obj, UserRightDO dbObj, boolean isModified) {
+    super.afterUpdate(obj, dbObj, isModified);
+    if (isModified) {
+      userGroupCache.setExpired();
+    }
   }
 
-  private void copy(final UserRightDO dest, final UserRightVO src)
-  {
-    if (src.getRight().isBooleanType() == true) {
-      if (src.isBooleanValue() == true) {
+  @Override
+  protected void afterSave(UserRightDO obj) {
+    super.afterSave(obj);
+    userGroupCache.setExpired();
+  }
+
+  private void copy(final UserRightDO dest, final UserRightVO src) {
+    if (src.getRight().isBooleanType()) {
+      if (src.isBooleanValue()) {
         dest.setValue(UserRightValue.TRUE);
       } else {
         dest.setValue(UserRightValue.FALSE);
@@ -146,21 +141,20 @@ public class UserRightDao extends BaseDao<UserRightDO>
     }
   }
 
-  public List<UserRightVO> getUserRights(final PFUserDO user)
-  {
-    final List<UserRightVO> list = new ArrayList<UserRightVO>();
+  public List<UserRightVO> getUserRights(final PFUserDO user) {
+    final List<UserRightVO> list = new ArrayList<>();
     if (user == null || user.getId() == null) {
       return list;
     }
     final List<UserRightDO> dbList = getList(user);
     final UserGroupCache userGroupCache = getUserGroupCache();
     for (final UserRight right : userRightService.getOrderedRights()) {
-      if (right.isAvailable(userGroupCache, user) == false) {
+      if (!right.isAvailable(userGroupCache, user)) {
         continue;
       }
       final UserRightVO rightVO = new UserRightVO(right);
       for (final UserRightDO rightDO : dbList) {
-        if (StringUtils.equals(rightDO.getRightIdString(), right.getId().getId()) == true) {
+        if (StringUtils.equals(rightDO.getRightIdString(), right.getId().getId())) {
           rightVO.setValue(rightDO.getValue());
         }
       }
@@ -170,63 +164,51 @@ public class UserRightDao extends BaseDao<UserRightDO>
   }
 
   @Override
-  public List<UserRightDO> getList(final BaseSearchFilter filter)
-  {
+  public List<UserRightDO> getList(final BaseSearchFilter filter) {
     final QueryFilter queryFilter = new QueryFilter(filter);
     final UserRightFilter myFilter = (UserRightFilter) filter;
     if (myFilter.getUser() != null) {
-      queryFilter.add(Restrictions.eq("user", myFilter.getUser()));
+      queryFilter.add(QueryFilter.eq("user", myFilter.getUser()));
     }
-    queryFilter.createAlias("user", "u");
-    queryFilter.addOrder(Order.asc("u.username")).addOrder(Order.asc("rightIdString"));
+    queryFilter.createJoin("user");
+    queryFilter.addOrder(SortProperty.asc("user.username")).addOrder(SortProperty.asc("rightIdString"));
     final List<UserRightDO> list = getList(queryFilter);
     return list;
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
   /**
    * User must member of group finance or controlling.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
-  {
+  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.ADMIN_GROUP);
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(PFUserDO,
-   * org.projectforge.core.ExtendedBaseDO, boolean)
-   * @see #hasSelectAccess(PFUserDO, boolean)
+   * @see #hasUserSelectAccess(PFUserDO, boolean)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final UserRightDO obj, final boolean throwException)
-  {
-    return hasSelectAccess(user, throwException);
+  public boolean hasUserSelectAccess(final PFUserDO user, final UserRightDO obj, final boolean throwException) {
+    return hasUserSelectAccess(user, throwException);
   }
 
   /**
    * User must member of group admin.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final UserRightDO obj, final UserRightDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
-  {
+                           final OperationType operationType,
+                           final boolean throwException) {
     return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.ADMIN_GROUP);
   }
 
   @Override
-  public UserRightDO newInstance()
-  {
+  public UserRightDO newInstance() {
     return new UserRightDO();
   }
 }

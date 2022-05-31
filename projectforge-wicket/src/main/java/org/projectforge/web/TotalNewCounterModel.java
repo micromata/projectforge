@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.web;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * For displaying the total number of new items as sum of all counters from the sub menu entries.
@@ -37,7 +37,7 @@ import org.projectforge.framework.utils.NumberHelper;
  */
 public class TotalNewCounterModel extends Model<Integer>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TotalNewCounterModel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TotalNewCounterModel.class);
 
   private static final long serialVersionUID = -900845361698793144L;
 

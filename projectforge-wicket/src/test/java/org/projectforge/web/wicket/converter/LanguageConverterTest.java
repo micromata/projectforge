@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,19 +23,17 @@
 
 package org.projectforge.web.wicket.converter;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
+import org.junit.jupiter.api.Test;
+import org.projectforge.web.language.converter.WicketLanguageConverter;
 
 import java.util.Locale;
 
-import org.projectforge.web.language.converter.WicketLanguageConverter;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class LanguageConverterTest
-{
+public class LanguageConverterTest {
   @Test
-  public void convertToObject()
-  {
+  public void convertToObject() {
     final WicketLanguageConverter con = new WicketLanguageConverter();
     final Locale locale = Locale.ENGLISH;
     assertNull(con.convertToObject(null, locale));
@@ -44,8 +42,7 @@ public class LanguageConverterTest
   }
 
   @Test
-  public void convertToString()
-  {
+  public void convertToString() {
     final WicketLanguageConverter con = new WicketLanguageConverter();
     final Locale locale = Locale.ENGLISH;
     assertNull(con.convertToString(null, locale));

@@ -1,0 +1,22 @@
+ProjectForge's Github Page site is created by Github actions.
+
+== Use and test ProjectForge's web site on your local machine
+
+=== Prepare your local gem installation
+----
+sudo gem install bundler jekyll
+sudo gem update
+sudo gem install jekyll-feed
+sudo gem install jekyll-paginate
+sudo gem install jekyll-seo-tag
+sudo gem install jekyll-gist
+sudo gem install jekyll-avatar
+sudo gem install jekyll-asciidoc
+sudo gem install jekyll-numbered-headings
+----
+
+=== Run ProjectForge's site on your local machine
+----
+cd site
+bundle exec jekyll serve
+----

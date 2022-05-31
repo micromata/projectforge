@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,7 @@
 
 package org.projectforge.web.admin;
 
-import java.util.List;
-import java.util.TimeZone;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.PasswordTextField;
@@ -43,7 +40,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
-import org.projectforge.framework.persistence.database.InitDatabaseDao;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.wicket.AbstractForm;
 import org.projectforge.web.wicket.CsrfTokenHandler;
@@ -53,12 +50,10 @@ import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.components.TimeZonePanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.ParTextPanel;
-import org.projectforge.web.wicket.flowlayout.PasswordPanel;
-import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.util.List;
+import java.util.TimeZone;
 
 public class SetupForm extends AbstractForm<SetupForm, SetupPage>
 {
@@ -99,7 +94,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
   public SetupForm(final SetupPage parentPage)
   {
     super(parentPage, "setupform");
-    adminUser.setUsername(InitDatabaseDao.DEFAULT_ADMIN_USER);
+    adminUser.setUsername(DatabaseService.DEFAULT_ADMIN_USER);
   }
 
   @Override
@@ -160,14 +155,14 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
           return;
         }
         if (MAGIC_PASSWORD.equals(passwordInput) == false || adminUser.getPassword() == null) {
-          final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+          final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
           if (errorMsgKeys.isEmpty() == false) {
             adminUser.setPassword(null);
             for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
               passwordField.error(I18nHelper.getLocalizedMessage(errorMsgKey));
             }
           } else {
-            userService.createEncryptedPassword(adminUser, passwordInput);
+            userService.createEncryptedPassword(adminUser, passwordInput.toCharArray());
           }
         }
       });
@@ -183,8 +178,9 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
     }
     {
       // Calendar domain
+      calendarDomainModel.setObject("local");
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("administration.configuration.param.calendarDomain"));
-      final RequiredMaxLengthTextField textField = new RequiredMaxLengthTextField(InputPanel.WICKET_ID, calendarDomainModel, ConfigurationDO.PARAM_LENGTH);
+      final RequiredMaxLengthTextField textField = new RequiredMaxLengthTextField(InputPanel.WICKET_ID, calendarDomainModel, ConfigurationDO.Companion.getParamLength());
       fs.add(textField);
       textField.setMarkupId("calendarDomain").setOutputMarkupId(true);
       textField.add(new IValidator<String>()
@@ -204,7 +200,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(
           getString("administration.configuration.param.systemAdministratorEMail.label"),
           getString("email"));
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, sysopEMailModel, ConfigurationDO.PARAM_LENGTH));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, sysopEMailModel, ConfigurationDO.Companion.getParamLength()));
       fs.addHelpIcon(getString("administration.configuration.param.systemAdministratorEMail.description"));
     }
     {
@@ -212,7 +208,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(
           getString("administration.configuration.param.feedbackEMail.label"),
           getString("email"));
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, feedbackEMailModel, ConfigurationDO.PARAM_LENGTH));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, feedbackEMailModel, ConfigurationDO.Companion.getParamLength()));
       fs.addHelpIcon(getString("administration.configuration.param.feedbackEMail.description"));
     }
     final RepeatingView actionButtons = new RepeatingView("buttons");

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,72 +23,78 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.math.BigDecimal;
-
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.framework.utils.Constants;
+import org.projectforge.Constants;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
 import org.projectforge.web.wicket.components.RequiredMinMaxNumberField;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
+import org.projectforge.web.wicket.flowlayout.FieldProperties;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
-public class LiquidityForecastForm extends AbstractStandardForm<Object, LiquidityForecastPage>
-{
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+public class LiquidityForecastForm extends AbstractStandardForm<Object, LiquidityForecastPage> {
   private static final long serialVersionUID = -4518924991100703065L;
 
   private static final String USER_PREF_KEY_SETTINGS = LiquidityForecastSettings.class.getName();
 
   LiquidityForecastSettings settings;
 
-  public LiquidityForecastForm(final LiquidityForecastPage parentPage)
-  {
+  public LiquidityForecastForm(final LiquidityForecastPage parentPage) {
     super(parentPage);
   }
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
-    gridBuilder.newSplitPanel(GridSize.COL50);
+    gridBuilder.newSplitPanel(GridSize.COL33);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.liquidityplanning.forecast.startAmount"));
       final RequiredMinMaxNumberField<BigDecimal> amount = new RequiredMinMaxNumberField<BigDecimal>(
           fs.getTextFieldId(),
-          new PropertyModel<BigDecimal>(getSettings(), "startAmount"), Constants.TEN_BILLION_NEGATIVE,
-          Constants.TEN_BILLION)
-      {
-        @SuppressWarnings({ "rawtypes", "unchecked" })
+          new PropertyModel<>(getSettings(), "startAmount"), Constants.TEN_BILLION_NEGATIVE,
+          Constants.TEN_BILLION) {
+        @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
-        public IConverter getConverter(final Class type)
-        {
+        public IConverter getConverter(final Class type) {
           return new CurrencyConverter();
         }
       };
       WicketUtils.setSize(amount, 8);
       fs.add(amount);
     }
-    gridBuilder.newSplitPanel(GridSize.COL50);
+    gridBuilder.newSplitPanel(GridSize.COL33);
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.liquidityplanning.forecast.baseDate"));
+      final FieldProperties<LocalDate> props = getBaseDateProperties();
+      LocalDatePanel baseDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      baseDatePanel.setRequired(false);
+      fs.add(baseDatePanel);
+      fs.addHelpIcon(getString("plugins.liquidityplanning.forecast.baseDate.tooltip"));
+    }
+    gridBuilder.newSplitPanel(GridSize.COL33);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.liquidityplanning.forecast"))
           .setUnit(getString("days"));
-      final RequiredMinMaxNumberField<Integer> nextDays = new RequiredMinMaxNumberField<Integer>(fs.getTextFieldId(),
-          new PropertyModel<Integer>(getSettings(), "nextDays"), 3, 365);
+      final RequiredMinMaxNumberField<Integer> nextDays = new RequiredMinMaxNumberField<>(fs.getTextFieldId(),
+          new PropertyModel<>(getSettings(), "nextDays"), 3, LiquidityForecastSettings.MAX_FORECAST_DAYS);
       WicketUtils.setSize(nextDays, 4);
       fs.add(nextDays);
     }
     {
-      final Button callButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("execute"))
-      {
+      final Button callButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("execute")) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           // parentPage.call();
         }
       };
@@ -100,8 +106,7 @@ public class LiquidityForecastForm extends AbstractStandardForm<Object, Liquidit
     }
   }
 
-  protected LiquidityForecastSettings getSettings()
-  {
+  protected LiquidityForecastSettings getSettings() {
     if (settings == null) {
       settings = (LiquidityForecastSettings) parentPage.getUserPrefEntry(USER_PREF_KEY_SETTINGS);
     }
@@ -110,5 +115,9 @@ public class LiquidityForecastForm extends AbstractStandardForm<Object, Liquidit
       parentPage.putUserPrefEntry(USER_PREF_KEY_SETTINGS, settings, true);
     }
     return settings;
+  }
+
+  private FieldProperties<LocalDate> getBaseDateProperties() {
+    return new FieldProperties<>("plugins.liquidityplanning.forecast.baseDate", new PropertyModel<>(settings, "baseDate"));
   }
 }

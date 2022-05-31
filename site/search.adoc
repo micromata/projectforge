@@ -1,0 +1,33 @@
+---
+layout: page
+width: small
+tipue_search_active: true
+hero:
+    title: Search
+    subtitle:
+    image: search.png
+permalink: /search/
+---
+
+:page-liquid:
+
+++++
+<div class="section-hero">
+	<div class="hero-search">
+		<!-- Html Elements for Search -->
+		<div class="uk-position-relative">
+			<form action="{{ page.url | relative_url }}" class="uk-search uk-search-default uk-width-1-1" name="tipue_search_input">
+				<span class="uk-search-icon-flip" data-uk-search-icon></span>
+				<input class="uk-search-input uk-box-shadow-large" type="text" name="q" id="tipue_search_input" pattern=".{3,}" title="At least 3 characters" required>
+				<div id="tipue_search_content"></div>
+		</div>
+
+		<script>
+			$(document).ready(function() {
+			$('#tipue_search_input').tipuesearch();
+			});
+		</script>
+	</div>
+</div>
+++++
+

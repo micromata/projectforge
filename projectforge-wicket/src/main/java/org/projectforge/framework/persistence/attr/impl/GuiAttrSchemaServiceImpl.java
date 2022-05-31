@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,7 @@
 
 package org.projectforge.framework.persistence.attr.impl;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Optional;
-import java.util.function.Function;
-
+import de.micromata.genome.db.jpa.tabattr.api.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -43,14 +39,10 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
-import de.micromata.genome.db.jpa.tabattr.api.AttrSchema;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Interface to handle with Attrs.
@@ -59,7 +51,7 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
  */
 public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl implements GuiAttrSchemaService
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimedAttributePanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GuiAttrSchemaServiceImpl.class);
 
   @Autowired
   private TimeableService timeableService;
@@ -82,6 +74,7 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
     return factory.createComponents(id, group, desc, entity);
   }
 
+  @Override
   public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithTimeableAttr<PK, T> & EntityWithConfigurableAttr>
   Optional<IModel<String>> getStringAttribute(final U entity, final Date date, final String groupName, final String descName)
   {
@@ -121,6 +114,7 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
     }
   }
 
+  @Override
   public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T>> void createTimedAttrPanels(
       final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage,
       final Function<AttrGroup, T> addNewEntryFunction)
@@ -153,7 +147,7 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
       final GridBuilder tabContainer = tabPanel.getOrCreateTab(group.getI18nKeySubmenu());
       final DivPanel divPanel = tabContainer.getPanel();
 
-      if (!divPanel.hasChilds()) {
+      if (!divPanel.hasChildren()) {
         // this panel is fresh, we have to add our css class
         addHtmlClass(divPanel);
       }

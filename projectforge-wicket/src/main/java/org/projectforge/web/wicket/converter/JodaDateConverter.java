@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,7 @@
 
 package org.projectforge.web.wicket.converter;
 
-import java.util.Locale;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
 import org.joda.time.DateMidnight;
@@ -36,6 +34,8 @@ import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateFormats;
 
+import java.util.Locale;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -45,7 +45,7 @@ public class JodaDateConverter implements IConverter<DateMidnight>
 
   private static final long serialVersionUID = 8665928904693938793L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(JodaDateConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JodaDateConverter.class);
 
   private String userDateFormat;
 

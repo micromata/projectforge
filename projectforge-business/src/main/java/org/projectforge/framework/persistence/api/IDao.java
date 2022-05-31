@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,13 @@
 
 package org.projectforge.framework.persistence.api;
 
-import java.util.List;
-
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.List;
 
 public interface IDao<O>
 {
   public List<O> getList(final BaseSearchFilter filter);
-
-  public String[] getSearchFields();
 
   public boolean isHistorizable();
 

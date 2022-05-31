@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,21 +23,21 @@
 
 package org.projectforge.business.task;
 
-import java.util.List;
-
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.InternalErrorException;
 
+import java.util.List;
+
 /**
  * Proxy of TaskNode for scripting.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class ScriptingTaskNode
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ScriptingTaskNode.class);
-  
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptingTaskNode.class);
+
   TaskNode __baseObject;
 
   private TaskDO task;
@@ -45,12 +45,12 @@ public class ScriptingTaskNode
   ScriptingTaskNode(final TaskNode node)
   {
     __baseObject = node;
-    
+
     try {
-      task = (TaskDO)node.getTask().clone();
+      task = (TaskDO) node.getTask().clone();
     } catch (CloneNotSupportedException ex) {
-      log.fatal("Exception encountered " + ex, ex);
-      throw new InternalErrorException();
+      log.error("Exception encountered " + ex, ex);
+      throw new InternalErrorException("exception.internalError");
     }
   }
 
@@ -104,14 +104,30 @@ public class ScriptingTaskNode
     return __baseObject.getDescendantIds();
   }
 
+  /**
+   * @deprecated
+   */
   public List<ScriptingTaskNode> getChilds()
   {
-    return ScriptingTaskTree.convert(__baseObject.getChilds());
+    return getChildren();
   }
 
+  public List<ScriptingTaskNode> getChildren()
+  {
+    return ScriptingTaskTree.convert(__baseObject.getChildren());
+  }
+
+  /**
+   * @deprecated
+   */
   public boolean hasChilds()
   {
-    return __baseObject.hasChilds();
+    return hasChildren();
+  }
+
+  public boolean hasChildren()
+  {
+    return __baseObject.hasChildren();
   }
 
   public boolean isParentOf(final ScriptingTaskNode node)

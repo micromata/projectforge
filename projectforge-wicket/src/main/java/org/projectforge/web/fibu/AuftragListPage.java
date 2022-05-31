@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,7 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -38,53 +32,44 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.common.OutputType;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.AuftragsStatus;
-import org.projectforge.business.fibu.ForecastExport;
-import org.projectforge.business.fibu.OrderExport;
-import org.projectforge.business.fibu.RechnungCache;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
-import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberFormatter;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.CurrencyPropertyColumn;
-import org.projectforge.web.wicket.DownloadUtils;
-import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
-import org.projectforge.web.wicket.RowCssClass;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @ListPage(editPage = AuftragEditPage.class)
 public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDao, AuftragDO>
-    implements IListPageColumnsCreator<AuftragDO>
-{
+    implements IListPageColumnsCreator<AuftragDO> {
   private static final long serialVersionUID = -8406452960003792763L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AuftragListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuftragListPage.class);
 
   private static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
-      BOOKMARKABLE_INITIAL_PROPERTIES, new String[] { "f.year|y", "f.listType|lt", "f.auftragsPositionsArt|art" }
+      BOOKMARKABLE_INITIAL_PROPERTIES, new String[]{"f.year|y", "f.listType|lt", "f.auftragsPositionsArt|art"}
   );
 
   @SpringBean
   private AuftragDao auftragDao;
+
+  @SpringBean
+  private AuftragsCache auftragsCache;
 
   @SpringBean
   private OrderExport orderExport;
@@ -98,50 +83,44 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
   @SpringBean
   private RechnungCache rechnungCache;
 
-  public AuftragListPage(final PageParameters parameters)
-  {
+  public AuftragListPage(final PageParameters parameters) {
     super(parameters, "fibu.auftrag");
   }
 
   @SuppressWarnings("serial")
   @Override
-  public List<IColumn<AuftragDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
-  {
+  public List<IColumn<AuftragDO, String>> createColumns(final WebPage returnToPage, final boolean sortable) {
     final List<IColumn<AuftragDO, String>> columns = new ArrayList<IColumn<AuftragDO, String>>();
-    final CellItemListener<AuftragDO> cellItemListener = new CellItemListener<AuftragDO>()
-    {
+    final CellItemListener<AuftragDO> cellItemListener = new CellItemListener<AuftragDO>() {
       @Override
       public void populateItem(final Item<ICellPopulator<AuftragDO>> item, final String componentId,
-          final IModel<AuftragDO> rowModel)
-      {
+                               final IModel<AuftragDO> rowModel) {
         final AuftragDO auftrag = rowModel.getObject();
+        auftragsCache.setValues(auftrag);
         if (auftrag.getAuftragsStatus() == null) {
           // Should not occur:
           return;
         }
-        final boolean isDeleted = auftrag.isDeleted() == true
-            || auftrag.getAuftragsStatus().isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true;
+        final boolean isDeleted = auftrag.isDeleted()
+            || auftrag.getAuftragsStatus().isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT);
         appendCssClasses(item, auftrag.getId(), auftrag.isDeleted());
         if (isDeleted) {
           // Do nothing further.
-        } else if (auftrag.isAbgeschlossenUndNichtVollstaendigFakturiert() == true
-            || auftrag.isZahlplanAbgeschlossenUndNichtVollstaendigFakturiert() == true) {
+        } else if (auftrag.getToBeInvoiced()) {
           appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
-        } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI) == true) {
+        } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI)) {
           appendCssClasses(item, RowCssClass.SUCCESS_ROW);
-        } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.ESKALATION) == true) {
+        } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.ESKALATION)) {
           appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
         }
       }
     };
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(new Model<String>(getString("fibu.auftrag.nummer.short")),
         "nummer",
-        "nummer", cellItemListener)
-    {
+        "nummer", cellItemListener) {
       @Override
       public void populateItem(final Item<ICellPopulator<AuftragDO>> item, final String componentId,
-          final IModel<AuftragDO> rowModel)
-      {
+                               final IModel<AuftragDO> rowModel) {
         final AuftragDO auftrag = rowModel.getObject();
         item.add(new ListSelectActionPanel(componentId, rowModel, AuftragEditPage.class, auftrag.getId(), returnToPage,
             String
@@ -156,64 +135,60 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.titel"), "titel", "titel",
         cellItemListener));
-    columns.add(new AbstractColumn<AuftragDO, String>(new Model<String>(getString("label.position.short")))
-    {
+    columns.add(new AbstractColumn<AuftragDO, String>(new Model<String>(getString("label.position.short"))) {
       @Override
       public void populateItem(final Item<ICellPopulator<AuftragDO>> cellItem, final String componentId,
-          final IModel<AuftragDO> rowModel)
-      {
+                               final IModel<AuftragDO> rowModel) {
         final AuftragDO auftrag = rowModel.getObject();
-        auftragDao.calculateInvoicedSum(auftrag);
         final List<AuftragsPositionDO> list = auftrag.getPositionenExcludingDeleted();
         final Label label = new Label(componentId, new Model<String>("#" + list.size()));
 
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         list.forEach(pos -> {
-          buf.append("#").append(pos.getNumber()).append(": ");
+          sb.append("#").append(pos.getNumber()).append(": ");
           if (pos.getPersonDays() != null && pos.getPersonDays().compareTo(BigDecimal.ZERO) != 0) {
-            buf.append("(").append(NumberFormatter.format(pos.getPersonDays())).append(" ")
+            sb.append("(").append(NumberFormatter.format(pos.getPersonDays())).append(" ")
                 .append(getString("projectmanagement.personDays.short")).append(") ");
           }
           if (pos.getNettoSumme() != null) {
-            buf.append(CurrencyFormatter.format(pos.getNettoSumme()));
+            sb.append(CurrencyFormatter.format(pos.getNettoSumme()));
             if (StringUtils.isNotBlank(pos.getTitel()) == true) {
-              buf.append(": ").append(pos.getTitel());
+              sb.append(": ").append(pos.getTitel());
             }
-            buf.append(": ");
+            sb.append(": ");
           }
           if (pos.getTaskId() != null) {
-            buf.append(WicketTaskFormatter.getTaskPath(pos.getTaskId(), false, OutputType.HTML));
+            sb.append(WicketTaskFormatter.getTaskPath(pos.getTaskId(), false, OutputType.HTML));
           } else {
-            buf.append(getString("fibu.auftrag.position.noTaskGiven"));
+            sb.append(getString("fibu.auftrag.position.noTaskGiven"));
           }
           if (pos.getStatus() != null) {
-            buf.append(", ").append(getString(pos.getStatus().getI18nKey()));
+            sb.append(", ").append(getString(pos.getStatus().getI18nKey()));
           }
-          buf.append("\n");
+          sb.append("\n");
         });
 
-        if (buf.length() > 1 && (buf.lastIndexOf("\n") == buf.length() - 1)) {
-          buf.delete(buf.length() - 1, buf.length());
+        if (sb.length() > 1 && (sb.lastIndexOf("\n") == sb.length() - 1)) {
+          sb.delete(sb.length() - 1, sb.length());
         }
         WicketUtils.addTooltip(label, NumberFormatter.format(auftrag.getPersonDays())
             + " "
-            + getString("projectmanagement.personDays.short"), buf.toString());
+            + getString("projectmanagement.personDays.short"), sb.toString());
 
         cellItem.add(label);
         cellItemListener.populateItem(cellItem, componentId, rowModel);
       }
     });
+    columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("attachments.short"), null, "attachmentsSizeFormatted",
+        cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(
 
         getString("projectmanagement.personDays.short"),
         "personDays", "personDays",
-        cellItemListener)
-
-    {
+        cellItemListener) {
       @Override
       public void populateItem(final Item<ICellPopulator<AuftragDO>> item, final String componentId,
-          final IModel<AuftragDO> rowModel)
-      {
+                               final IModel<AuftragDO> rowModel) {
         item.add(new Label(componentId, NumberFormatter.format(rowModel.getObject().getPersonDays())));
         item.add(AttributeModifier.append("style", new Model<String>("text-align: right;")));
         cellItemListener.populateItem(item, componentId, rowModel);
@@ -237,9 +212,9 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         "beauftragtNettoSumme", cellItemListener));
     columns.add(new CurrencyPropertyColumn<AuftragDO>(
 
-        getString("fibu.fakturiert"), "fakturiertSum", "fakturiertSum",
+        getString("fibu.fakturiert"), "invoicedSum", "invoicedSum",
         cellItemListener));
-    columns.add(new CurrencyPropertyColumn<AuftragDO>(getString("fibu.tobeinvoiced"), "zuFakturierenSum", "zuFakturierenSum",
+    columns.add(new CurrencyPropertyColumn<AuftragDO>(getString("fibu.notYetInvoiced"), "notYetInvoicedSum", "notYetInvoicedSum",
         cellItemListener));
     columns
         .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.periodOfPerformance.from"), "periodOfPerformanceBegin", "periodOfPerformanceBegin",
@@ -258,17 +233,15 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     dataTable = createDataTable(createColumns(this, true), "nummer", SortOrder.DESCENDING);
     form.add(dataTable);
 
     final ContentMenuEntryPanel exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-        new Link<Object>("link")
-        {
+        new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
           @Override
-          public void onClick()
-          {
+          public void onSubmit() {
+            refresh();
             final List<AuftragDO> list = getList();
             final byte[] xls = orderExport.export(list);
             if (xls == null || xls.length == 0) {
@@ -283,21 +256,12 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
     addContentMenuEntry(exportExcelButton);
 
     final ContentMenuEntryPanel forecastExportButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-        new Link<Object>("link")
-        {
+        new SubmitLink(ContentMenuEntryPanel.LINK_ID, form) {
           @Override
-          public void onClick()
-          {
-            final List<AuftragDO> list = getList();
-            Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-            if (form != null && form.getSearchFilter() != null && form.getSearchFilter().getPeriodOfPerformanceStartDate() != null) {
-              startDate.setTime(form.getSearchFilter().getPeriodOfPerformanceStartDate());
-            } else {
-              startDate.set(Calendar.MONTH, 0);
-            }
+          public void onSubmit() {
             byte[] xls = null;
             try {
-              xls = forecastExport.export(list, startDate);
+              xls = forecastExport.export(form.getSearchFilter());
             } catch (Exception e) {
               log.error("Exception while creating forecast report: " + e.getMessage(), e);
               throw new UserException("error", e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
@@ -307,7 +271,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
               return;
             }
             final String filename = "ProjectForge-Forecast_" + DateHelper.getDateAsFilenameSuffix(new Date())
-                + ".xls";
+                + ".xlsx";
             DownloadUtils.setDownloadTarget(xls, filename);
           }
         }, getString("fibu.auftrag.forecastExportAsXls")).setTooltip(getString("fibu.auftrag.forecastExportAsXls.tooltip"));
@@ -315,21 +279,18 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
   }
 
   @Override
-  public void refresh()
-  {
+  public void refresh() {
     super.refresh();
     form.refresh();
   }
 
   @Override
-  protected AuftragListForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
-  {
+  protected AuftragListForm newListForm(final AbstractListPage<?, ?, ?> parentPage) {
     return new AuftragListForm(this);
   }
 
   @Override
-  public AuftragDao getBaseDao()
-  {
+  public AuftragDao getBaseDao() {
     return auftragDao;
   }
 
@@ -337,8 +298,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
    * @see org.projectforge.web.wicket.AbstractListPage#getBookmarkableInitialProperties()
    */
   @Override
-  protected String[] getBookmarkableInitialProperties()
-  {
+  protected String[] getBookmarkableInitialProperties() {
     return MY_BOOKMARKABLE_INITIAL_PROPERTIES;
   }
 }

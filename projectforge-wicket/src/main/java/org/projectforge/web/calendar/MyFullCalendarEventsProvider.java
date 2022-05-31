@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,16 @@
 
 package org.projectforge.web.calendar;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
+import net.ftlines.wicket.fullcalendar.Event;
+import net.ftlines.wicket.fullcalendar.EventNotFoundException;
+import net.ftlines.wicket.fullcalendar.EventProvider;
 import org.joda.time.DateTime;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 
-import net.ftlines.wicket.fullcalendar.Event;
-import net.ftlines.wicket.fullcalendar.EventNotFoundException;
-import net.ftlines.wicket.fullcalendar.EventProvider;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Creates events for FullCalendar.
@@ -45,7 +44,7 @@ public abstract class MyFullCalendarEventsProvider implements EventProvider
 {
   private static final long serialVersionUID = 4530847672654878127L;
 
-  protected final Map<String, Event> events = new HashMap<String, Event>();
+  protected final Map<String, Event> events = new HashMap<>();
 
   protected DateTime lastStart, lastEnd;
 

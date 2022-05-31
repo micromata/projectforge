@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,20 @@
 
 package org.projectforge.web.task;
 
+<<<<<<< HEAD
 import java.util.Set;
 
+=======
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+>>>>>>> develop
 import org.apache.wicket.model.IModel;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.web.user.UserPreferencesHelper;
+import org.projectforge.business.user.service.UserPreferencesHelper;
 import org.projectforge.web.wicket.tree.TableTreeExpansion;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.util.Set;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -39,7 +44,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("TaskTreeExpansion")
 public class TaskTreeExpansion extends TableTreeExpansion<Integer, TaskNode>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TaskTreeExpansion.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskTreeExpansion.class);
 
   private static final long serialVersionUID = 5151537746424532422L;
 

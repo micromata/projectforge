@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,8 +29,6 @@ public class WebConstants
 {
   public static final String FILE_IMAGE_DIMENSIONS = "imageDimensions.xml";
 
-  public static final String FILE_I18N_KEYS = "i18nKeys.properties";
-
   public static final String HTML_TEXT_DIVIDER = " | ";
 
   /**
@@ -52,8 +50,6 @@ public class WebConstants
   public static final String PARAMETER_DATE = "date";
 
   private static final String DIR = "images/";
-
-  public static final String DOC_LINK_HANDBUCH_LUCENE = "https://www.projectforge.org/documentation/user-guide.html#Full-indexed%20search";
 
   public static final String I18N_KEY_FIELD_REQUIRED = "validation.error.fieldRequired";
 

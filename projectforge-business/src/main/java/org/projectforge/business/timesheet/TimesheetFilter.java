@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,13 +23,13 @@
 
 package org.projectforge.business.timesheet;
 
-import java.io.Serializable;
-import java.sql.Time;
-import java.util.Date;
-
 import org.projectforge.business.task.TaskDependentFilter;
+import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.time.TimePeriod;
+
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -46,9 +46,13 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
 
   private boolean marked;
 
+  @PropertyInfo(i18nKey = "longFormat")
   private boolean longFormat = false;
 
+  @PropertyInfo(i18nKey = "recursive")
   private boolean recursive = true;
+
+  private boolean onlyBillable = false;
 
   private OrderDirection orderType = OrderDirection.DESC;
 
@@ -68,6 +72,7 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
       this.marked = tf.marked;
       this.longFormat = tf.longFormat;
       this.recursive = tf.recursive;
+      this.onlyBillable = tf.onlyBillable;
       this.orderType = tf.orderType;
     }
   }
@@ -185,6 +190,21 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
   }
 
   /**
+   * If only billable flag is true then only the time sheets with billable kost2 elements are selected.
+   *
+   * @return
+   */
+  public boolean isOnlyBillable()
+  {
+    return onlyBillable;
+  }
+
+  public void setOnlyBillable(final boolean onlyBillable)
+  {
+    this.onlyBillable = onlyBillable;
+  }
+
+  /**
    * Should the result set ordered descendant (default)?
    *
    * @return
@@ -199,7 +219,7 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
     this.orderType = orderType;
   }
 
-  private TimePeriod getTimePeriod()
+  public TimePeriod getTimePeriod()
   {
     if (timePeriod == null) {
       timePeriod = new TimePeriod();

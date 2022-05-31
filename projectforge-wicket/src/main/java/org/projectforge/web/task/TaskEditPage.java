@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,19 +23,16 @@
 
 package org.projectforge.web.task;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskHelper;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -44,7 +41,9 @@ import org.projectforge.web.timesheet.TimesheetEditPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = TaskTreePage.class)
 public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao> implements ISelectCallerPage
@@ -53,27 +52,16 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
 
   private static final long serialVersionUID = 5176663429783524587L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TaskEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskEditPage.class);
 
   @SpringBean
   private TaskDao taskDao;
 
-  private transient TaskTree taskTree;
+  @SpringBean
+  private TaskTree taskTree;
 
   @SpringBean
   private Kost2Dao kost2Dao;
-
-  /**
-   * Used by the TutorialPage.
-   * 
-   * @param task
-   */
-  public TaskEditPage(final TaskDO task)
-  {
-    super(new PageParameters(), "task");
-    super.init(task);
-    addTopMenuPanel();
-  }
 
   public TaskEditPage(final PageParameters parameters)
   {
@@ -114,7 +102,7 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
       if (kost2Id != null) {
         final Kost2DO kost2 = kost2Dao.getById(kost2Id);
         if (kost2 != null) {
-          final String newKost2String = TaskHelper.addKost2(getTaskTree(), getData(), kost2);
+          final String newKost2String = TaskHelper.addKost2(taskTree, getData(), kost2);
           getData().setKost2BlackWhiteList(newKost2String);
           form.kost2BlackWhiteTextField.modelChanged();
         }
@@ -213,14 +201,6 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
           getString("task.menu.showAccessRights"));
       extendedMenu.addSubMenuEntry(menu);
     }
-  }
-
-  private TaskTree getTaskTree()
-  {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
   }
 
   @Override

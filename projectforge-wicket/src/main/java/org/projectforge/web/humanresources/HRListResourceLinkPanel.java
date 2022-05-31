@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,27 @@
 
 package org.projectforge.web.humanresources;
 
-import java.util.Date;
-import java.util.List;
-
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.projectforge.business.humanresources.HRDao;
+import org.projectforge.business.humanresources.HRViewDao;
 import org.projectforge.business.humanresources.HRViewData;
 import org.projectforge.business.user.UserFormatter;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.business.utils.HtmlHelper;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.wicket.WebConstants;
 
+import java.time.LocalDate;
+import java.util.List;
+
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class HRListResourceLinkPanel extends Panel
 {
@@ -54,26 +54,26 @@ public class HRListResourceLinkPanel extends Panel
 
   private final HRListPage hrListPage;
 
-  private final HRDao hrDao;
+  private final HRViewDao hrViewDao;
 
   private final UserFormatter userFormatter;
 
-  public HRListResourceLinkPanel(final String id, final HRListPage hrListPage, final HRDao hrDao, final UserFormatter userFormatter)
+  public HRListResourceLinkPanel(final String id, final HRListPage hrListPage, final HRViewDao hrViewDao, final UserFormatter userFormatter)
   {
     super(id);
     this.hrListPage = hrListPage;
-    this.hrDao = hrDao;
+    this.hrViewDao = hrViewDao;
     this.userFormatter = userFormatter;
     userRepeater = new RepeatingView("userRepeater");
     add(userRepeater);
   }
 
-  public void refresh(final HRViewData hrViewData, final Date startTime)
+  public void refresh(final HRViewData hrViewData, final LocalDate startDay)
   {
     userRepeater.removeAll();
-    final List<PFUserDO> unplannedUsers = hrDao.getUnplannedResources(hrViewData);
+    final List<PFUserDO> unplannedUsers = hrViewDao.getUnplannedResources(hrViewData);
     for (final PFUserDO user : unplannedUsers) {
-      if (user.isHrPlanning() == false || user.hasSystemAccess() == false) {
+      if (!user.getHrPlanning() || !user.hasSystemAccess()) {
         continue;
       }
       final WebMarkupContainer container = new WebMarkupContainer(userRepeater.newChildId());
@@ -83,11 +83,10 @@ public class HRListResourceLinkPanel extends Panel
         @Override
         public void onClick()
         {
-          final DateHolder date = new DateHolder(startTime);
-          final Long millis = date.getSQLDate().getTime();
+          final long millis = PFDateTime.from(startDay).getBeginOfDay().getEpochMilli();
           final PageParameters pageParams = new PageParameters();
           pageParams.add(WebConstants.PARAMETER_USER_ID, String.valueOf(user.getId()));
-          pageParams.add(WebConstants.PARAMETER_DATE, millis.toString());
+          pageParams.add(WebConstants.PARAMETER_DATE, Long.toString(millis));
           final HRPlanningEditPage page = new HRPlanningEditPage(pageParams);
           page.setReturnToPage(hrListPage);
           setResponsePage(page);

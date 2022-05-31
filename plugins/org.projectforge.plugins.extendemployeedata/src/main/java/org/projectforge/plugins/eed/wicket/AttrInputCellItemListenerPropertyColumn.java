@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,9 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -35,17 +35,14 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.wicket.CellItemListener;
-
-import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 /**
  * Supports CellItemListener.
- * 
+ *
  * @author Florian Blumenstein
- * 
+ *
  */
 public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T, String>
 {
@@ -61,15 +58,18 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
 
   private String groupAttribute;
 
+  /**
+   * 1-based: 1 - January, ..., 12 - December
+   */
   private Integer selectedMonth;
 
   private Integer selectedYear;
 
   /**
-   * @param displayModelString For creation of new Model<String>.
    * @param sortProperty
    * @param propertyExpression
    * @param cellItemListener
+   * @param selectedMonth 1-based: 1 - January, ..., 12 - December
    */
   public AttrInputCellItemListenerPropertyColumn(final IModel<String> displayModel, final String sortProperty,
       final String propertyExpression, final String groupAttribute,
@@ -89,7 +89,7 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
 
   /**
    * Override this method if you want to have tool-tips.
-   * 
+   *
    * @return
    */
   public String getTooltip(final T object)
@@ -99,7 +99,7 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
 
   /**
    * Call CellItemListener. If a property model object is of type I18nEnum then the translation is automatically used.
-   * 
+   *
    * @see org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
    *      java.lang.String, org.apache.wicket.model.IModel)
    * @see CellItemListener#populateItem(Item, String, IModel)
@@ -108,11 +108,11 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
   public void populateItem(final Item<ICellPopulator<T>> item, final String componentId, final IModel<T> rowModel)
   {
     final EmployeeDO employee = (EmployeeDO) rowModel.getObject();
-    final Calendar cal = new GregorianCalendar(selectedYear, selectedMonth - 1, 1, 0, 0);
-    EmployeeTimedDO row = timeableService.getAttrRowForSameMonth(employee, getPropertyExpression(), cal.getTime());
+    PFDateTime dt = PFDateTime.withDate(selectedYear, selectedMonth, 1);
+    EmployeeTimedDO row = timeableService.getAttrRowForSameMonth(employee, getPropertyExpression(), dt.getUtilDate());
     if (row == null) {
       row = employeeService.addNewTimeAttributeRow(employee, getPropertyExpression());
-      row.setStartTime(cal.getTime());
+      row.setStartTime(dt.getUtilDate());
     }
     final AttrGroup attrGroup = guiAttrSchemaService.getAttrGroup(employee, getPropertyExpression());
     final AttrDescription attrDescription = guiAttrSchemaService.getAttrDescription(attrGroup, groupAttribute);

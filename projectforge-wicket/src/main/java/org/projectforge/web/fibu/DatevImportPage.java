@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,11 @@
 
 package org.projectforge.web.fibu;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.Validate;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.datev.DatevImportDao;
@@ -37,60 +36,67 @@ import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
+import org.projectforge.common.logging.LogEventLoggerNameMatcher;
+import org.projectforge.common.logging.LogSubscription;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.rest.admin.LogViewerPageRest;
+import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
+import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
-public class DatevImportPage extends AbstractImportPage<DatevImportForm>
-{
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
   private static final long serialVersionUID = 3158445617725488919L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DatevImportPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatevImportPage.class);
 
   @SpringBean
   private DatevImportDao datevImportDao;
 
-  public DatevImportPage(final PageParameters parameters)
-  {
+  public DatevImportPage(final PageParameters parameters) {
     super(parameters);
+    final String username = ThreadLocalUserContext.getUser().getUsername();
+    final LogSubscription logSubscription = LogSubscription.ensureSubscription("Datev-Import", username,
+        (title, user) -> new LogSubscription(title, user, new LogEventLoggerNameMatcher("org.projectforge.business.fibu.datev", "de.micromata.merlin")));
+
     form = new DatevImportForm(this);
     body.add(form);
     form.init();
+    final ExternalLink logViewerLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(LogViewerPageRest.class, null, logSubscription.getId(), true));
+    addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), logViewerLink, getString("system.admin.logViewer.title")));
   }
 
-  protected void importAccountList()
-  {
+  protected void importAccountList() {
     checkAccess();
     final FileUpload fileUpload = form.fileUploadField.getFileUpload();
     if (fileUpload != null) {
       doImportWithExcelExceptionHandling(() -> {
         final InputStream is = fileUpload.getInputStream();
-        actionLog.reset();
         final String clientFileName = fileUpload.getClientFileName();
-        setStorage(datevImportDao.importKontenplan(is, clientFileName, actionLog));
+        setStorage(datevImportDao.importKontenplan(is, clientFileName));
         return null;
       });
     }
   }
 
-  protected void importAccountRecords()
-  {
+  protected void importAccountRecords() {
     checkAccess();
     final FileUpload fileUpload = form.fileUploadField.getFileUpload();
     if (fileUpload != null) {
       doImportWithExcelExceptionHandling(() -> {
         final InputStream is = fileUpload.getInputStream();
-        actionLog.reset();
         final String clientFileName = fileUpload.getClientFileName();
-        setStorage(datevImportDao.importBuchungsdaten(is, clientFileName, actionLog));
+        setStorage(datevImportDao.importBuchungsdaten(is, clientFileName));
         return null;
       });
     }
   }
 
   @Override
-  protected ImportedSheet<?> reconcile(final String sheetName)
-  {
+  protected ImportedSheet<?> reconcile(final String sheetName) {
     checkAccess();
     final ImportedSheet<?> sheet = super.reconcile(sheetName);
     datevImportDao.reconcile(getStorage(), sheetName);
@@ -98,8 +104,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm>
   }
 
   @Override
-  protected ImportedSheet<?> commit(final String sheetName)
-  {
+  protected ImportedSheet<?> commit(final String sheetName) {
     checkAccess();
     final ImportedSheet<?> sheet = super.commit(sheetName);
     datevImportDao.commit(getStorage(), sheetName);
@@ -107,28 +112,24 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm>
   }
 
   @Override
-  protected void selectAll(final String sheetName)
-  {
+  protected void selectAll(final String sheetName) {
     checkAccess();
     super.selectAll(sheetName);
   }
 
   @Override
-  protected void select(final String sheetName, final int number)
-  {
+  protected void select(final String sheetName, final int number) {
     checkAccess();
     super.select(sheetName, number);
   }
 
   @Override
-  protected void deselectAll(final String sheetName)
-  {
+  protected void deselectAll(final String sheetName) {
     checkAccess();
     super.deselectAll(sheetName);
   }
 
-  protected void showBusinessAssessment(final String sheetName)
-  {
+  protected void showBusinessAssessment(final String sheetName) {
     final ImportedSheet<?> sheet = getStorage().getNamedSheet(sheetName);
     Validate.notNull(sheet);
     final List<BuchungssatzDO> list = new ArrayList<BuchungssatzDO>();
@@ -143,15 +144,13 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm>
     businessAssessment.setAccountRecords(list);
   }
 
-  private void checkAccess()
-  {
+  private void checkAccess() {
     accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
     accessChecker.checkRestrictedOrDemoUser();
   }
 
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return getString("fibu.datev.import");
   }
 }

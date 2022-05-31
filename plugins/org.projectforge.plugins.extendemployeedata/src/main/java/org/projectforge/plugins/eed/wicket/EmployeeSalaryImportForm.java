@@ -1,8 +1,27 @@
-package org.projectforge.plugins.eed.wicket;
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+package org.projectforge.plugins.eed.wicket;
 
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -10,7 +29,7 @@ import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.core.importstorage.AbstractImportForm;
 import org.projectforge.web.core.importstorage.ImportFilter;
@@ -19,6 +38,9 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
+
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, EmployeeSalaryImportPage, EmployeeSalaryImportStoragePanel>
 {
@@ -29,7 +51,7 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
 
   private Integer selectedMonth;
 
-  private Integer selectedYear = Calendar.getInstance(ThreadLocalUserContext.getTimeZone()).get(Calendar.YEAR);
+  private Integer selectedYear = PFDateTime.now().getYear();
 
   private DropDownChoicePanel<Integer> dropDownMonth;
 
@@ -90,7 +112,7 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
     final DivPanel panel = gridBuilder.getPanel();
     storagePanel = new EmployeeSalaryImportStoragePanel(panel.newChildId(), parentPage, importFilter);
     final Date dateToSelectAttrRow = new GregorianCalendar(selectedYear,
-        (selectedMonth != null ? selectedMonth : Calendar.getInstance(ThreadLocalUserContext.getTimeZone()).get(Calendar.MONTH)) - 1, 1, 0, 0).getTime();
+        (selectedMonth != null ? selectedMonth : PFDateTime.now().getMonthValue()) - 1, 1, 0, 0).getTime();
     storagePanel.setDateToSelectAttrRow(dateToSelectAttrRow);
     panel.add(storagePanel);
   }

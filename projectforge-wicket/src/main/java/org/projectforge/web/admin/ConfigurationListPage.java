@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -35,19 +32,15 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationType;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.ListPage;
-import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ListPage(editPage = ConfigurationEditPage.class)
 public class ConfigurationListPage extends AbstractListPage<ConfigurationListForm, ConfigurationDao, ConfigurationDO>
@@ -59,8 +52,6 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
 
   @SpringBean
   private TeamCalCache teamCalCache;
-
-  private transient TaskTree taskTree;
 
   public ConfigurationListPage(final PageParameters parameters)
   {
@@ -110,13 +101,6 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
         final String value;
         if (configuration.getValue() == null) {
           value = "";
-        } else if (configuration.getConfigurationType() == ConfigurationType.TASK) {
-          final TaskDO task = getTaskTree().getTaskById(configuration.getTaskId());
-          if (task != null) {
-            value = task.getId() + ": " + task.getTitle();
-          } else {
-            value = "???";
-          }
         } else if (configuration.getConfigurationType() == ConfigurationType.CALENDAR) {
           final TeamCalDO calendar = teamCalCache.getCalendar(configuration.getCalendarId());
           if (calendar != null) {
@@ -145,14 +129,6 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
     });
     dataTable = createDataTable(columns, null, SortOrder.ASCENDING);
     form.add(dataTable);
-  }
-
-  private TaskTree getTaskTree()
-  {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
   }
 
   @Override

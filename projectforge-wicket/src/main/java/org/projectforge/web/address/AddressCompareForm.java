@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,8 +23,7 @@
 
 package org.projectforge.web.address;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
@@ -33,6 +32,7 @@ import org.projectforge.business.address.AddressDO;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -40,6 +40,12 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 public class AddressCompareForm extends AbstractEditForm<AddressDO, AddressComparePage>
 {
 
+<<<<<<< HEAD
+=======
+  /**
+   *
+   */
+>>>>>>> develop
   private static final long serialVersionUID = 4990179617114170795L;
   private final AddressDO dataOld;
 
@@ -137,6 +143,7 @@ public class AddressCompareForm extends AbstractEditForm<AddressDO, AddressCompa
    */
   private void setMark(final FieldsetPanel panel, final boolean paint)
   {
+<<<<<<< HEAD
     // TODO sn migration wicket 8 use corret ids here!!
     if (paint == true) {
       panel.getFieldset().get("this will throw an exeption!").add(new AttributeModifier("style",
@@ -144,6 +151,14 @@ public class AddressCompareForm extends AbstractEditForm<AddressDO, AddressCompa
               "background: #FCF8E3; border: 1px solid #FBEED5; border-radius: 4px; padding-left: 5px; padding-right: 10px; padding-bottom: 4px;")));
     } else {
       panel.getFieldset().get("this will throw an exeption!").add(new AttributeModifier("style",
+=======
+    if (paint == true) {
+      panel.getFieldset().get(0).add(new AttributeModifier("style",
+          new Model<String>(
+              "background: #FCF8E3; border: 1px solid #FBEED5; border-radius: 4px; padding-left: 5px; padding-right: 10px; padding-bottom: 4px;")));
+    } else {
+      panel.getFieldset().get(0).add(new AttributeModifier("style",
+>>>>>>> develop
           new Model<String>("border: 1px solid whiteSmoke; border-radius: 4px; padding-left: 5px; padding-right: 10px; padding-bottom: 4px;")));
     }
   }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,7 @@
 
 package org.projectforge.web.user;
 
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -36,8 +33,9 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -50,6 +48,10 @@ import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * This panel shows the actual user and buttons for select/unselect user.
@@ -66,6 +68,9 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
 
   @SpringBean
   private UserDao userDao;
+
+  @SpringBean
+  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentUsers;
 
@@ -102,7 +107,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return getRecentUsers().getRecents();
+        return getRecentUsers().getRecentList();
       }
 
       @Override
@@ -163,8 +168,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
             // ### FORMAT ###
             final int ind = value.indexOf(" (");
             final String username = ind >= 0 ? value.substring(0, ind) : value;
-            final PFUserDO user = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-                .getUser(username);
+            final PFUserDO user = UserGroupCache.getInstance().getUser(username);
             if (user == null) {
               userTextField.error(getString("user.panel.error.usernameNotFound"));
             }
@@ -270,8 +274,8 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
         {
           // Is visible if no user is given or the given user is not the current logged in user.
           final PFUserDO user = UserSelectPanel.this.getModelObject();
-          return showSelectMeButton == true
-              && (user == null || user.getId().equals(ThreadLocalUserContext.getUser().getId()) == false);
+          return showSelectMeButton
+              && (user == null || !Objects.equals(user.getId(), ThreadLocalUserContext.getUserId()));
         }
       };
       selectMeLink.setOutputMarkupId(true);
@@ -313,11 +317,11 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
   private RecentQueue<String> getRecentUsers()
   {
     if (this.recentUsers == null) {
-      this.recentUsers = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_USERS);
+      this.recentUsers = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_USERS);
     }
     if (this.recentUsers == null) {
       this.recentUsers = new RecentQueue<String>();
-      UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_USERS, this.recentUsers, true);
+      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_USERS, this.recentUsers, true);
     }
     return this.recentUsers;
   }

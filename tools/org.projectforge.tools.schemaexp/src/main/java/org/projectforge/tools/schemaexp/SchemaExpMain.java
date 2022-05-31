@@ -1,17 +1,16 @@
 package org.projectforge.tools.schemaexp;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.continuousdb.DatabaseSupport;
+import org.projectforge.database.DatabaseSupport;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService.RestoreMode;
-import de.micromata.genome.util.runtime.LocalSettingsEnv;
 
 /**
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
@@ -72,7 +71,6 @@ public class SchemaExpMain
       help();
       return;
     }
-    LocalSettingsEnv.get();
     ApplicationContext context = initApplicatinContext();
     SchemaExpService ms = context.getBean(SchemaExpService.class);
 

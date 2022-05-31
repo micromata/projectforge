@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,17 +23,16 @@
 
 package org.projectforge.mail;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.framework.ToStringUtil;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import javax.mail.Message;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Represents a mail. Mails can be received from a MailAccount or can be sent via SendMail.
@@ -42,7 +41,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
  */
 public class Mail implements Comparable<Mail>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Mail.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Mail.class);
 
   public static final String CONTENTTYPE_HTML = "html";
 
@@ -67,6 +66,8 @@ public class Mail implements Comparable<Mail>
   private List<InternetAddress> to = new ArrayList<>();
 
   private String toRealname;
+
+  private List<InternetAddress> cc = new ArrayList<>();
 
   private String subject;
 
@@ -198,10 +199,19 @@ public class Mail implements Comparable<Mail>
 
   public void setTo(PFUserDO user)
   {
+    if (user == null || user.getEmail() == null) {
+      log.warn("Could not set e-mail receiver for PFUserDO. User or e-mail is null.");
+      return;
+    }
     addTo(user.getEmail());
     if (StringUtils.isBlank(getToRealname())) {
       setToRealname(user.getFullname());
     }
+  }
+
+  public void setTo(String mailAdress)
+  {
+    setTo(mailAdress, null);
   }
 
   public void setTo(String mailAdress, String realName)
@@ -220,6 +230,38 @@ public class Mail implements Comparable<Mail>
   public void setToRealname(String toRealname)
   {
     this.toRealname = toRealname;
+  }
+
+  public void addCC(String cc)
+  {
+    if(cc == null) {
+      log.warn("Could not create InternetAddress from mail. Mail address is null");
+      return;
+    }
+    try {
+      this.cc.add(new InternetAddress(cc));
+    } catch (AddressException e) {
+      log.warn("Could not create InternetAddress from mail: " + cc);
+    }
+  }
+
+  public List<InternetAddress> getCC()
+  {
+    return cc;
+  }
+
+  public void setCC(PFUserDO user)
+  {
+    if (user == null || user.getEmail() == null) {
+      log.warn("Could not set e-mail receiver for PFUserDO. User or e-mail is null.");
+      return;
+    }
+    addCC(user.getEmail());
+  }
+
+  public void setCC(String mailAdress)
+  {
+    addCC(mailAdress);
   }
 
   public String getSubject()
@@ -283,43 +325,12 @@ public class Mail implements Comparable<Mail>
   @Override
   public String toString()
   {
-    ToStringBuilder sb = new ToStringBuilder(this);
-    sb.append("from", getFrom());
-    sb.append("fromRealname", getFromRealname());
-    sb.append("to", getTo());
-    sb.append("toRealname", getToRealname());
-    sb.append("subject", getSubject());
-    sb.append("contentType", getContentType());
-    sb.append("charset", getCharset());
-    if (content != null) {
-      sb.append("content", getContent());
-    }
-    if (messageNumber != -1) {
-      sb.append("no", getMessageNumber());
-    }
-    if (date != null) {
-      sb.append("date", getDate());
-    }
-    if (deleted == true) {
-      sb.append("deleted", isDeleted());
-    }
-    if (recent == true) {
-      sb.append("recent", isRecent());
-    }
-    if (seen == true) {
-      sb.append("seen", isSeen());
-    }
-    return sb.toString();
+    return ToStringUtil.toJsonString(this);
   }
 
+  @Override
   public int compareTo(Mail o)
   {
-    if (this.messageNumber < o.messageNumber) {
-      return -1;
-    } else if (this.messageNumber == o.messageNumber) {
-      return 0;
-    } else {
-      return 1;
-    }
+    return Integer.compare(this.messageNumber, o.messageNumber);
   }
 }

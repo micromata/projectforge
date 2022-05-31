@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,11 +31,11 @@ import java.util.List;
  */
 public class PluginsRegistry
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PluginsRegistry.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PluginsRegistry.class);
 
   private static PluginsRegistry instance;
 
-  private final List<AbstractPlugin> plugins = new ArrayList<AbstractPlugin>();
+  private final List<AbstractPlugin> plugins = new ArrayList<>();
 
   public synchronized static PluginsRegistry instance()
   {
@@ -52,7 +52,7 @@ public class PluginsRegistry
   public void register(final AbstractPlugin plugin)
   {
     for (final AbstractPlugin pl : plugins) {
-      if (pl.getClass().equals(plugin.getClass()) == true) {
+      if (pl.getClass().equals(plugin.getClass())) {
         log.warn("Can't add plugin twice. Plugin '" + plugin.getClass() + "' already added.");
         return;
       }

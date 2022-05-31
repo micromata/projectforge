@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,23 +23,23 @@
 
 package org.projectforge.plugins.marketing;
 
-import java.io.Serializable;
-import java.util.Iterator;
-
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
-import org.projectforge.framework.i18n.UserException;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
+
+import java.io.Serializable;
+import java.util.Iterator;
 
 /**
  * The controler of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
  * class.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @EditPage(defaultReturnPage = AddressCampaignValueListPage.class)
@@ -52,8 +52,7 @@ public class AddressCampaignValueEditPage extends
 
   private static final long serialVersionUID = -5058143025817192156L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
-      .getLogger(AddressCampaignValueEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressCampaignValueEditPage.class);
 
   @SpringBean
   private AddressCampaignValueDao addressCampaignValueDao;
@@ -68,7 +67,7 @@ public class AddressCampaignValueEditPage extends
   {
     super(parameters, "plugins.marketing.addressCampaign");
     StringValue sval = parameters.get(AbstractEditPage.PARAMETER_KEY_ID);
-    final Integer id = sval.isEmpty() == true ? null : sval.toInteger();
+    final Integer id = sval.isEmpty() ? null : sval.toInteger();
     if (id == null) {
       // Create new entry.
       sval = parameters.get(PARAMETER_ADDRESS_ID);
@@ -105,7 +104,7 @@ public class AddressCampaignValueEditPage extends
   protected void updateAndNext()
   {
     if (getData().getId() == null) {
-      if (log.isDebugEnabled() == true) {
+      if (log.isDebugEnabled()) {
         log.debug("update in " + this.editPageSupport.getClass() + ": " + getData());
       }
       create();
@@ -119,12 +118,12 @@ public class AddressCampaignValueEditPage extends
   @Override
   public void setResponsePage()
   {
-    if (this.editPageSupport.isUpdateAndNext() == true) {
+    if (this.editPageSupport.isUpdateAndNext()) {
       this.editPageSupport.setUpdateAndNext(false);
       final AddressCampaignValueListPage listPage = (AddressCampaignValueListPage) this.returnToPage;
       final Iterator<AddressDO> it = listPage.getList().iterator();
-      while (it.hasNext() == true) {
-        if (it.next().getId().equals(getHighlightedRowId()) == true && it.hasNext() == true) {
+      while (it.hasNext()) {
+        if (it.next().getId().equals(getHighlightedRowId()) && it.hasNext()) {
           // Found current entry and next entry available.
           final AddressDO address = it.next();
           final PageParameters parameters = new PageParameters();

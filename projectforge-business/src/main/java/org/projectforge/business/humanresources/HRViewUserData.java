@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,18 +23,18 @@
 
 package org.projectforge.business.humanresources;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HRViewUserData implements Comparable<HRViewUserData>, Serializable, IdObject<Serializable>
 {
@@ -59,7 +59,7 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
   HRViewUserData(final PFUserDO user)
   {
     this.user = user;
-    this.entries = new ArrayList<HRViewUserEntryData>();
+    this.entries = new ArrayList<>();
   }
 
   void addTimesheet(final TimesheetDO timesheet)
@@ -176,7 +176,7 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
         if (entry.projekt == null && entry.kunde == null) {
           return entry;
         }
-      } else if (entry.projekt != null && entry.projekt.getId().equals(projekt.getId()) == true) {
+      } else if (entry.projekt != null && entry.projekt.getId().equals(projekt.getId())) {
         return entry;
       }
     }
@@ -190,7 +190,7 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
         if (entry.kunde == null) {
           return entry;
         }
-      } else if (entry.kunde != null && entry.kunde.getId().equals(kunde.getId()) == true) {
+      } else if (entry.kunde != null && entry.kunde.getId().equals(kunde.getId())) {
         return entry;
       }
     }

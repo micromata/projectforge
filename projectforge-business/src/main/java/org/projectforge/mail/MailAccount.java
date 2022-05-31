@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,8 @@
 
 package org.projectforge.mail;
 
+import javax.mail.*;
+import javax.mail.search.FlagTerm;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -31,17 +33,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import javax.mail.Address;
-import javax.mail.FetchProfile;
-import javax.mail.Flags;
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.Part;
-import javax.mail.Store;
-import javax.mail.search.FlagTerm;
-
 /**
  * Connects to a mail server and receives mails.
  * 
@@ -49,7 +40,7 @@ import javax.mail.search.FlagTerm;
  */
 public class MailAccount
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MailAccount.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MailAccount.class);
 
   public static final String INBOX = "INBOX";
 
@@ -98,7 +89,7 @@ public class MailAccount
     //          + this.mailAcccountConfig.getProtocol());
     //      return null;
     //    }
-    final List<Mail> table = new ArrayList<Mail>();
+    final List<Mail> table = new ArrayList<>();
     try {
       int totalMessages = folder.getMessageCount();
       log.debug("New messages: " + folder.getNewMessageCount());
@@ -108,7 +99,7 @@ public class MailAccount
       }
       // Attributes & Flags for all messages ..
       final Message[] msgs;
-      if (filter.isOnlyRecent() == true) {
+      if (filter.isOnlyRecent()) {
         msgs = folder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
       } else {
         msgs = folder.getMessages();
@@ -120,9 +111,9 @@ public class MailAccount
       fp.add("X-Mailer");
       folder.fetch(msgs, fp);
 
-      for (int i = 0; i < msgs.length; i++) {
+      for (Message msg : msgs) {
         final Mail mail = new Mail();
-        setEnvelope(mail, msgs[i]);
+        setEnvelope(mail, msg);
         mail.setContent(getContent(mail.getMessage()));
         // if (filter == null || (mail.isRecent() == true && filter.isRecent() == true)
         // || (mail.isSeen() == true && filter.isSeen() == true)
@@ -135,10 +126,7 @@ public class MailAccount
       table.toArray(mailArray);
       Arrays.sort(mailArray);
       return mailArray;
-    } catch (javax.mail.MessagingException ex) {
-      log.info(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    } catch (IOException ex) {
+    } catch (MessagingException | IOException ex) {
       log.info(ex.getMessage(), ex);
       throw new RuntimeException(ex);
     }
@@ -291,8 +279,7 @@ public class MailAccount
     final Flags flags = message.getFlags();
     final Flags.Flag[] systemFlags = flags.getSystemFlags(); // get the system flags
 
-    for (int i = 0; i < systemFlags.length; i++) {
-      final Flags.Flag flag = systemFlags[i];
+    for (final Flags.Flag flag : systemFlags) {
       if (flag == Flags.Flag.ANSWERED) {
         // Ignore this flag
       } else if (flag == Flags.Flag.DELETED) {
@@ -320,7 +307,7 @@ public class MailAccount
 
   private void getContent(final Part msg, final StringBuffer buf) throws MessagingException, IOException
   {
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug("CONTENT-TYPE: " + msg.getContentType());
     }
     String filename = msg.getFileName();

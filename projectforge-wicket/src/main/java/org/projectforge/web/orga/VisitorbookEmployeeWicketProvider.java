@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,20 +23,20 @@
 
 package org.projectforge.web.orga;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.web.AbstractEmployeeWicketProvider;
 import org.wicketstuff.select2.Response;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
 public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketProvider
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(VisitorbookEmployeeWicketProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VisitorbookEmployeeWicketProvider.class);
 
   private static final long serialVersionUID = 6228672635966093257L;
 
@@ -51,7 +51,7 @@ public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketPro
   public void initSortedEmployees()
   {
     if (sortedEmployees == null) {
-      sortedEmployees = employeeService.getAll(false);
+      sortedEmployees = employeeService.findAllActive(false);
       Set<EmployeeDO> assignedEmployees = visitorbook.getContactPersons();
       List<EmployeeDO> removeEmployeeList = new ArrayList<>();
       if (assignedEmployees != null) {

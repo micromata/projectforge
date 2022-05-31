@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,42 +23,47 @@
 
 package org.projectforge.timesheet;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetStats;
 import org.projectforge.business.timesheet.TimesheetUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.utils.RoundUnit;
 import org.projectforge.test.AbstractTestBase;
-import org.testng.annotations.Test;
 
-public class TimesheetUtilsTest extends AbstractTestBase
-{
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class TimesheetUtilsTest extends AbstractTestBase {
   private TimeZone timeZone;
 
   private Locale locale;
 
   @Test
-  public void testBeginOfTimesheets()
-  {
-    timeZone = DateHelper.EUROPE_BERLIN;
-    locale = new Locale("DE_de");
-    ThreadLocalUserContext.setUser(getUserGroupCache(), new PFUserDO().setTimeZone(timeZone).setLocale(locale));
+  void testRounding() {
+    final PFUserDO user = new PFUserDO();
+    user.setId(42);
+    TimesheetStats stats = new TimesheetStats(null, null);
+    stats.add(createTimesheet(user, "2013-07-20 12:10", "2013-07-20 13:00"));
+    assertEquals(new BigDecimal("0.75"), stats.getTotal(RoundUnit.QUARTER));
+    stats.add(createTimesheet(user, "2013-07-20 14:05", "2013-07-20 15:00"));
+    assertEquals(new BigDecimal("1.75"), stats.getTotal(RoundUnit.QUARTER));
+    assertEquals(new BigDecimal("2.00"), stats.getTotal(RoundUnit.QUARTER, RoundingMode.UP));
+  }
+
+  @Test
+  void testBeginOfTimesheets() {
     final PFUserDO user1 = new PFUserDO();
     user1.setId(1);
     final PFUserDO user2 = new PFUserDO();
-    user1.setId(2);
-    final List<TimesheetDO> list = new LinkedList<TimesheetDO>();
+    user2.setId(2);
+    final List<TimesheetDO> list = new LinkedList<>();
     add(list, user1, "2013-07-20 12:15", "2013-07-20 13:00");
     add(list, user2, "2013-07-20 10:00", "2013-07-20 16:00");
     add(list, user2, "2013-07-20 08:00", "2013-07-20 09:00");
@@ -72,53 +77,65 @@ public class TimesheetUtilsTest extends AbstractTestBase
     add(list, user1, "2013-07-25 23:00", "2013-07-26 06:00");
 
     assertStats("2013-07-20 12:15", "2013-07-20 13:00", 45, 0,
-        TimesheetUtils.getStats(list, parseDate("2013-07-20"), user1.getId()));
+            TimesheetUtils.getStats(list, parseDate("2013-07-20"), user1.getId()));
     assertStats("2013-07-20 08:00", "2013-07-20 19:00", 9 * 60, 120,
-        TimesheetUtils.getStats(list, parseDate("2013-07-20"), user2.getId()));
+            TimesheetUtils.getStats(list, parseDate("2013-07-20"), user2.getId()));
 
     assertStats("2013-07-22 00:00", "2013-07-22 13:00", 7 * 60, 6 * 60,
-        TimesheetUtils.getStats(list, parseDate("2013-07-22"), user1.getId()));
+            TimesheetUtils.getStats(list, parseDate("2013-07-22"), user1.getId()));
 
     assertStats("2013-07-25 00:00", "2013-07-26 00:00", 8 * 60, 16 * 60,
-        TimesheetUtils.getStats(list, parseDate("2013-07-25"), user1.getId()));
+            TimesheetUtils.getStats(list, parseDate("2013-07-25"), user1.getId()));
 
     assertNull(TimesheetUtils.getStats(list, parseDate("2013-07-19"), user1.getId()).getEarliestStartDate());
   }
 
-  private void add(final List<TimesheetDO> list, final PFUserDO user, final String start, final String stop)
-  {
+  @BeforeEach
+  private void initContextUser() {
+    timeZone = DateHelper.EUROPE_BERLIN;
+    locale = new Locale("DE_de");
+    PFUserDO user = new PFUserDO();
+    user.setTimeZone(timeZone);
+    user.setLocale(locale);
+    ThreadLocalUserContext.setUser(user);
+  }
+
+  private void add(final List<TimesheetDO> list, final PFUserDO user, final String start, final String stop) {
+    list.add(createTimesheet(user, start, stop));
+  }
+
+  private TimesheetDO createTimesheet(final PFUserDO user, final String start, final String stop) {
     final Date startDate = parseTimestamp(start);
     final Date stopDate = parseTimestamp(stop);
-    final TimesheetDO ts = new TimesheetDO().setStartDate(startDate).setStopDate(stopDate).setUser(user);
-    list.add(ts);
+    final TimesheetDO ts = new TimesheetDO();
+    ts.setStartDate(startDate);
+    ts.setStopDate(stopDate);
+    ts.setUser(user);
+    return ts;
   }
 
-  private void assertStats(final String expectedEarliestStartDate, final String expectedEarliestStopDate,
-      final long expectedTotalMinutes,
-      final long expectedBreakMinutes, final TimesheetStats stats)
-  {
+  private void assertStats(final String expectedEarliestStartDate, final String expectedLatestStopDate,
+                           final long expectedTotalMinutes,
+                           final long expectedBreakMinutes, final TimesheetStats stats) {
     assertTimestamp("earliest start date", expectedEarliestStartDate, stats.getEarliestStartDate());
-    assertTimestamp("latest stop date", expectedEarliestStopDate, stats.getLatestStopDate());
-    assertEquals("total millis", expectedTotalMinutes, stats.getTotalMillis() / 60000);
-    assertEquals("total break millis", expectedBreakMinutes, stats.getTotalBreakMillis() / 60000);
+    assertTimestamp("latest stop date", expectedLatestStopDate, stats.getLatestStopDate());
+    assertEquals(expectedTotalMinutes, stats.getTotalMillis() / 60000, "total millis");
+    assertEquals(expectedBreakMinutes, stats.getTotalBreakMillis() / 60000, "total break millis");
   }
 
-  private void assertTimestamp(final String title, final String expected, final Date date)
-  {
+  private void assertTimestamp(final String title, final String expected, final Date date) {
     assertNotNull(date);
     final String suffix = ":00.000"; //expected.endsWith(":59") == true ? ":59.999" : ":00.000";
-    assertEquals(title, expected + suffix, DateHelper.formatIsoTimestamp(date, timeZone));
+    assertEquals(expected + suffix, DateHelper.formatIsoTimestamp(date, timeZone), title);
   }
 
-  private Date parseTimestamp(final String dateString)
-  {
+  private Date parseTimestamp(final String dateString) {
     final Date result = DateHelper.parseIsoTimestamp(dateString + ":00.000", timeZone);
     assertNotNull(result);
     return result;
   }
 
-  private Date parseDate(final String dateString)
-  {
+  private Date parseDate(final String dateString) {
     final Date result = DateHelper.parseIsoTimestamp(dateString + " 08:00:00.000", timeZone);
     assertNotNull(result);
     return result;

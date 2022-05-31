@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,24 +23,21 @@
 
 package org.projectforge.business.fibu;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 
-public class KostFormatter
-{
+public class KostFormatter {
   public static final int MAX_VALUE = 99999999;
 
   /**
    * @return Id im dreistelligen Format: "001" - "999" oder "???" wenn id null ist.
-   * @see #getId()
    * @see #format3Digits(Integer)
    */
-  public static String format(final KundeDO kunde)
-  {
+  public static String format(final KundeDO kunde) {
     if (kunde == null) {
       return "???";
     }
@@ -49,12 +46,11 @@ public class KostFormatter
 
   /**
    * Ruft format(projekt, false) auf.
-   * 
+   *
    * @return "5." + format(kunde) + "." + 3 stellige Projekt-Id;
    * @see #format(ProjektDO, boolean)
    */
-  public static String format(final ProjektDO projekt)
-  {
+  public static String format(final ProjektDO projekt) {
     return format(projekt, false);
   }
 
@@ -64,13 +60,12 @@ public class KostFormatter
    * @see StringUtils#leftPad(String, int, char)
    * @see #format(KundeDO)
    */
-  public static String format(final ProjektDO projekt, final boolean numberFormat)
-  {
+  public static String format(final ProjektDO projekt, final boolean numberFormat) {
     if (projekt == null) {
       return "?.???.???";
     }
-    final String delimiter = (numberFormat == true) ? "" : ".";
-    final StringBuffer buf = new StringBuffer();
+    final String delimiter = (numberFormat) ? "" : ".";
+    final StringBuilder buf = new StringBuilder();
     buf.append(String.valueOf(projekt.getNummernkreis())).append(delimiter);
     if (projekt.getKunde() != null) {
       buf.append(format(projekt.getKunde()));
@@ -84,15 +79,14 @@ public class KostFormatter
   /**
    * Gibt vollständige Projektnummer inkl. Kundennummer aus ("5.xxx.xxx") und hängt den Kundennamen (max. 30 Zeichen)
    * und die Projektbezeichnung (max. 30 Zeichen) an, z. B. "5.123.566 - ABC : ABC e-datagate"
-   * 
+   *
    * @param projekt
    */
-  public static String formatProjekt(final ProjektDO projekt)
-  {
+  public static String formatProjekt(final ProjektDO projekt) {
     if (projekt == null) {
       return "";
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(format(projekt));
     if (projekt.getKunde() != null) {
       buf.append(" - ").append(StringUtils.abbreviate(projekt.getKunde().getName(), 30)).append(": ");
@@ -106,11 +100,10 @@ public class KostFormatter
   /**
    * Gibt vollständige Kundennummer aus ("5.xxx") und hängt den Kundennamen (max. 30 stellig) an, z. B.
    * "5.120 - ABC Verwaltungs GmbH"
-   * 
+   *
    * @param kunde
    */
-  public static String formatKunde(final KundeDO kunde)
-  {
+  public static String formatKunde(final KundeDO kunde) {
     if (kunde == null) {
       return "";
     }
@@ -119,18 +112,17 @@ public class KostFormatter
 
   /**
    * Displays kunde and kundeText (kunde or kundeText may be null).
-   * 
+   *
    * @param kunde
    * @param kundeText
    * @return formatKunde(kunde), kundeText
    */
-  public static String formatKunde(final KundeDO kunde, final String kundeText)
-  {
-    final StringBuffer buf = new StringBuffer();
+  public static String formatKunde(final KundeDO kunde, final String kundeText) {
+    final StringBuilder buf = new StringBuilder();
     if (kunde != null) {
       buf.append(formatKunde(kunde));
     }
-    if (StringUtils.isNotBlank(kundeText) == true) {
+    if (StringUtils.isNotBlank(kundeText)) {
       if (kunde != null) {
         buf.append(", ");
       }
@@ -141,30 +133,57 @@ public class KostFormatter
 
   /**
    * Calls format(kost2, false)
-   * 
+   *
    * @param kost2
    * @see #format(Kost2DO, boolean)
    */
-  public static String format(final Kost2DO kost2)
-  {
+  public static String format(final Kost2DO kost2) {
     return format(kost2, false);
   }
 
   /**
    * @param kost2
-   * @param numberFormat If false, then delimiter '.' will be used: "#.###.##.##", otherwise unformmatted number will be
-   *          returned: ########.
-   * @return
+   * @param abbreviate The complete result is abbreviated.
+   * @return "5.120.23.02 - travel - project" or "6.100.27.03 - {cost 2 description}
    */
-  public static String format(final Kost2DO kost2, final boolean numberFormat)
-  {
+  public static String format(final Kost2DO kost2, final int abbreviate) {
     if (kost2 == null) {
       return "";
     }
-    final String delimiter = (numberFormat == true) ? "" : ".";
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
+    sb.append(kost2.getNummernkreis()).append(".").append(format3Digits(kost2.getBereich())).append(".")
+            .append(format2Digits(kost2.getTeilbereich())).append(".");
+    if (kost2.getKost2Art() != null) {
+      sb.append(format2Digits(kost2.getKost2Art().getId()));
+    } else {
+      sb.append("--");
+    }
+    sb.append(": ");
+    if (kost2.getProjekt() != null) {
+      if (kost2.getKost2Art() != null) {
+        sb.append(kost2.getKost2Art().getName());
+      }
+      sb.append(" - ").append(kost2.getProjekt().getName());
+    } else {
+      sb.append(kost2.getDescription());
+    }
+    return StringUtils.abbreviate(sb.toString(), abbreviate);
+  }
+
+  /**
+   * @param kost2
+   * @param numberFormat If false, then delimiter '.' will be used: "#.###.##.##", otherwise unformmatted number will be
+   *                     returned: ########.
+   * @return
+   */
+  public static String format(final Kost2DO kost2, final boolean numberFormat) {
+    if (kost2 == null) {
+      return "";
+    }
+    final String delimiter = (numberFormat) ? "" : ".";
+    final StringBuilder buf = new StringBuilder();
     buf.append(kost2.getNummernkreis()).append(delimiter).append(format3Digits(kost2.getBereich())).append(delimiter)
-        .append(format2Digits(kost2.getTeilbereich())).append(delimiter);
+            .append(format2Digits(kost2.getTeilbereich())).append(delimiter);
     if (kost2.getKost2Art() != null) {
       buf.append(format2Digits(kost2.getKost2Art().getId()));
     } else {
@@ -180,17 +199,16 @@ public class KostFormatter
    * <li>Project is not given: [description]</li>
    * </ul>
    * DONT'T forget to escape html if displayed directly!
-   * 
+   *
    * @param kost2
    * @return formatted string or "" if kost2 is null.
    */
-  public static String formatToolTip(final Kost2DO kost2)
-  {
+  public static String formatToolTip(final Kost2DO kost2) {
     if (kost2 == null) {
       return "";
     }
-    final StringBuffer buf = new StringBuffer();
-    if (StringUtils.isNotBlank(kost2.getDescription()) == true) {
+    final StringBuilder buf = new StringBuilder();
+    if (StringUtils.isNotBlank(kost2.getDescription())) {
       buf.append(kost2.getDescription()).append("; ");
     }
     if (kost2.getProjekt() != null) {
@@ -201,14 +219,13 @@ public class KostFormatter
       if (kost2.getKost2Art() != null) {
         // Nur, wenn Projekt gegeben ist!
         buf.append(StringHelper.format2DigitNumber(kost2.getKost2Art().getId())).append(" - ")
-            .append(kost2.getKost2Art().getName());
+                .append(kost2.getKost2Art().getName());
       }
     }
     return buf.toString();
   }
 
-  public static String formatLong(final Kost2DO kost2)
-  {
+  public static String formatLong(final Kost2DO kost2) {
     if (kost2 == null) {
       return "";
     }
@@ -221,19 +238,18 @@ public class KostFormatter
    * <li>Project is given: #.###.##.## - [kost2Art.name];</li>
    * <li>Project is not given: #.###.##.## - [description]</li>
    * </ul>
-   * 
+   *
    * @return
    */
-  public static String formatForSelection(final Kost2DO kost2)
-  {
+  public static String formatForSelection(final Kost2DO kost2) {
     if (kost2 == null) {
       return "";
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(format(kost2));
     if (kost2.getProjekt() != null) {
       buf.append(" - ").append(kost2.getKost2Art().getName());
-      if (kost2.getKost2Art().isFakturiert() == false) {
+      if (!kost2.getKost2Art().getFakturiert()) {
         buf.append(" (nf)");
       }
     } else {
@@ -244,24 +260,22 @@ public class KostFormatter
 
   /**
    * Calls format(kost1, false)
-   * 
+   *
    * @param kost1
    * @see #format(Kost1DO, boolean)
    */
-  public static String format(final Kost1DO kost1)
-  {
+  public static String format(final Kost1DO kost1) {
     return format(kost1, false);
   }
 
-  public static String format(final Kost1DO kost1, final boolean numberFormat)
-  {
+  public static String format(final Kost1DO kost1, final boolean numberFormat) {
     if (kost1 == null) {
       return "";
     }
-    final String delimiter = (numberFormat == true) ? "" : ".";
-    final StringBuffer buf = new StringBuffer();
+    final String delimiter = (numberFormat) ? "" : ".";
+    final StringBuilder buf = new StringBuilder();
     buf.append(kost1.getNummernkreis()).append(delimiter).append(format3Digits(kost1.getBereich())).append(delimiter)
-        .append(format2Digits(kost1.getTeilbereich())).append(delimiter).append(format2Digits(kost1.getEndziffer()));
+            .append(format2Digits(kost1.getTeilbereich())).append(delimiter).append(format2Digits(kost1.getEndziffer()));
     return buf.toString();
   }
 
@@ -270,8 +284,7 @@ public class KostFormatter
    * @return Description
    * @see Kost1DO#getDescription()
    */
-  public static String formatToolTip(final Kost1DO kost1)
-  {
+  public static String formatToolTip(final Kost1DO kost1) {
     if (kost1 == null) {
       return "";
     }
@@ -281,15 +294,14 @@ public class KostFormatter
   /**
    * Gibt den Kostenträger als Ganzzahl zurück. Wenn die Wertebereiche der einzelnen Parameter außerhalb des definierten
    * Bereichs liegt, wird eine UnsupportedOperationException geworfen.
-   * 
+   *
    * @param nummernkreis Muss zwischen 1 und 9 inklusive liegen.
-   * @param bereich Muss ziwschen 0 und 999 inklusive liegen.
-   * @param teilbereich Muss zwischen 0 und 99 inklusive liegen.
-   * @param endziffer Muss zwischen 0 und 99 inklusive liegen.
+   * @param bereich      Muss ziwschen 0 und 999 inklusive liegen.
+   * @param teilbereich  Muss zwischen 0 und 99 inklusive liegen.
+   * @param endziffer    Muss zwischen 0 und 99 inklusive liegen.
    * @return
    */
-  public static int getKostAsInt(final int nummernkreis, final int bereich, final int teilbereich, final int endziffer)
-  {
+  public static int getKostAsInt(final int nummernkreis, final int bereich, final int teilbereich, final int endziffer) {
     if (nummernkreis < 1 || nummernkreis > 9) {
       throw new UnsupportedOperationException("Nummernkreis muss zwischen 1 und 9 liegen: '" + nummernkreis + "'.");
     }
@@ -308,13 +320,12 @@ public class KostFormatter
 
   /**
    * If not given, then ?? will be returned.
-   * 
+   *
    * @param number
    * @return
    * @see StringUtils#leftPad(String, int, char)
    */
-  public static String format2Digits(final Integer number)
-  {
+  public static String format2Digits(final Integer number) {
     if (number == null) {
       return "??";
     }
@@ -323,13 +334,12 @@ public class KostFormatter
 
   /**
    * If not given, then ??? will be returned.
-   * 
+   *
    * @param number
    * @return
    * @see StringUtils#leftPad(String, int, char)
    */
-  public static String format3Digits(final Integer number)
-  {
+  public static String format3Digits(final Integer number) {
     if (number == null) {
       return "???";
     }
@@ -338,23 +348,21 @@ public class KostFormatter
 
   /**
    * @param year
-   * @param month 0 (January) - 11 (December)
+   * @param month 1 (January) - 12 (December)
    * @return
    */
-  public static String formatBuchungsmonat(final int year, final int month)
-  {
+  public static String formatBuchungsmonat(final int year, Integer month) {
     return DateHelper.formatMonth(year, month);
   }
 
   /**
    * Return the values for nummernkreis, bereich, teilbereich and endziffer / kost2Art.
-   * 
+   *
    * @param kost in format #.###.##.## (e. g.: 1.623.23.12).
    * @return int[4] containing nummernkreis, bereich, teilbereich and endziffer / kost2Art if exists.
    * @see StringHelper#splitToInts(String, String)
    */
-  public static int[] splitKost(final String kost)
-  {
+  public static int[] splitKost(final String kost) {
     final int[] result = StringHelper.splitToInts(kost, ".");
     if (result.length != 4) {
       throw new UnsupportedOperationException("Unsupported format of Kost: " + kost);
@@ -364,12 +372,11 @@ public class KostFormatter
 
   /**
    * Uses NumberHelper.splitToInts(value, 1, 3, 2, 2)
-   * 
+   *
    * @param value
    * @see NumberHelper#splitToInts(Number, int...)
    */
-  public static int[] splitKost(final Number value)
-  {
+  public static int[] splitKost(final Number value) {
     final int[] result = NumberHelper.splitToInts(value, 1, 3, 2, 2);
     if (value.intValue() > MAX_VALUE) {
       throw new UnsupportedOperationException("Unsupported format of Kost (max value = " + MAX_VALUE + ": " + value);
@@ -380,20 +387,24 @@ public class KostFormatter
     return result;
   }
 
-  public static String formatKost(final Number value)
-  {
+  public static String formatKost(final Number value) {
     final int[] a = splitKost(value);
     return a[0] + "." + format3Digits(a[1]) + "." + format2Digits(a[2]) + "." + format2Digits(a[3]);
   }
 
-  public static String formatNummer(final KontoDO konto)
-  {
+  public static String formatNummer(final KontoDO konto) {
     return StringUtils.leftPad(String.valueOf(konto.getNummer()), 5);
   }
 
-  public static String formatZeitraum(final int fromYear, final int fromMonth, final int toYear, final int toMonth)
-  {
-    final StringBuffer buf = new StringBuffer();
+  /**
+   * @param fromYear
+   * @param fromMonth 1-January, ..., 12-December
+   * @param toYear
+   * @param toMonth   1-January, ..., 12-December
+   * @return
+   */
+  public static String formatZeitraum(final int fromYear, final Integer fromMonth, final int toYear, final Integer toMonth) {
+    final StringBuilder buf = new StringBuilder();
     if (fromYear > 0) {
       buf.append(formatBuchungsmonat(fromYear, fromMonth));
       if (toYear > 0) {

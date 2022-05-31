@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,20 @@
 
 package org.projectforge.business.ldap;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.InvalidKeyException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SignatureException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
+import org.apache.commons.io.IOUtils;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-
-import org.apache.commons.io.IOUtils;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.*;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 /**
  * http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html
@@ -52,7 +45,7 @@ import org.apache.commons.io.IOUtils;
  */
 public class MyTrustManager implements X509TrustManager
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MyTrustManager.class);;
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MyTrustManager.class);
 
   private X509TrustManager trustManager;
 
@@ -87,13 +80,7 @@ public class MyTrustManager implements X509TrustManager
       final TrustManagerFactory factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
       factory.init(keyStore);
       this.trustManager = getX509TrustManager(factory.getTrustManagers());
-    } catch (final KeyStoreException ex) {
-      log.error("Exception encountered " + ex, ex);
-    } catch (final NoSuchAlgorithmException ex) {
-      log.error("Exception encountered " + ex, ex);
-    } catch (final CertificateException ex) {
-      log.error("Exception encountered " + ex, ex);
-    } catch (final IOException ex) {
+    } catch (final KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException ex) {
       log.error("Exception encountered " + ex, ex);
     }
   }
@@ -106,8 +93,6 @@ public class MyTrustManager implements X509TrustManager
       fis = new java.io.FileInputStream(file);
       addCertificate(alias, fis);
       fis.close();
-    } catch (final FileNotFoundException ex) {
-      log.error("Exception encountered " + ex, ex);
     } catch (final IOException ex) {
       log.error("Exception encountered " + ex, ex);
     } finally {
@@ -129,11 +114,13 @@ public class MyTrustManager implements X509TrustManager
     }
   }
 
+  @Override
   public void checkClientTrusted(final X509Certificate[] chain, final String authType) throws CertificateException
   {
     trustManager.checkClientTrusted(chain, authType);
   }
 
+  @Override
   public void checkServerTrusted(final X509Certificate[] chain, final String authType) throws CertificateException
   {
     if (certificate != null) {
@@ -143,13 +130,7 @@ public class MyTrustManager implements X509TrustManager
           // Verifing by public key
           cert.checkValidity();
         }
-      } catch (final InvalidKeyException ex) {
-        throw new CertificateException(ex);
-      } catch (final NoSuchAlgorithmException ex) {
-        throw new CertificateException(ex);
-      } catch (final NoSuchProviderException ex) {
-        throw new CertificateException(ex);
-      } catch (final SignatureException ex) {
+      } catch (final InvalidKeyException | SignatureException | NoSuchAlgorithmException | NoSuchProviderException ex) {
         throw new CertificateException(ex);
       }
     } else {
@@ -157,6 +138,7 @@ public class MyTrustManager implements X509TrustManager
     }
   }
 
+  @Override
   public X509Certificate[] getAcceptedIssuers()
   {
     return trustManager.getAcceptedIssuers();

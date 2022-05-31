@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,23 +23,11 @@
 
 package org.projectforge.business.teamcal.servlet;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
@@ -50,6 +38,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Response servlet for team calendar events.
@@ -64,7 +62,7 @@ public class TeamCalResponseServlet extends HttpServlet
 
   private static final long serialVersionUID = 8042634572943344080L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalResponseServlet.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalResponseServlet.class);
 
   @Autowired
   private TeamEventService teamEventService;
@@ -101,7 +99,7 @@ public class TeamCalResponseServlet extends HttpServlet
     Map<String, String> decryptedParameters = cryptService.decryptParameterMessage(req.getQueryString());
     //Getting request status
     final String reqStatus = decryptedParameters.get("status");
-    if (StringUtils.isBlank(reqStatus) == true) {
+    if (StringUtils.isBlank(reqStatus)) {
       log.warn("Bad request, request parameter 'status' not given.");
       resp.sendError(HttpStatus.SC_BAD_REQUEST);
       return;
@@ -119,7 +117,7 @@ public class TeamCalResponseServlet extends HttpServlet
     // Getting calendar
     final String calendarStr = decryptedParameters.get("calendar");
     final Integer calendarId;
-    if (StringUtils.isBlank(calendarStr) == true) {
+    if (StringUtils.isBlank(calendarStr)) {
       calendarId = null;
       // compatibility, disable later
       //      log.warn("Bad request, request parameter 'calendar' not given.");
@@ -136,7 +134,7 @@ public class TeamCalResponseServlet extends HttpServlet
 
     //Getting request event
     final String reqEventUid = decryptedParameters.get("uid");
-    if (StringUtils.isBlank(reqEventUid) == true) {
+    if (StringUtils.isBlank(reqEventUid)) {
       log.warn("Bad request, request parameter 'uid' not given.");
       resp.sendError(HttpStatus.SC_BAD_REQUEST);
       return;
@@ -150,7 +148,7 @@ public class TeamCalResponseServlet extends HttpServlet
 
     //Getting request attendee
     final String reqEventAttendee = decryptedParameters.get("attendee");
-    if (StringUtils.isBlank(reqEventAttendee) == true) {
+    if (StringUtils.isBlank(reqEventAttendee)) {
       log.warn("Bad request, request parameter 'attendee' not given.");
       resp.sendError(HttpStatus.SC_BAD_REQUEST);
       return;

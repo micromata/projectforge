@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,29 +23,29 @@
 
 package org.projectforge.web.admin;
 
-import java.util.List;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.utils.HtmlHelper;
-import org.projectforge.continuousdb.DatabaseResultRow;
-import org.projectforge.continuousdb.DatabaseResultRowEntry;
+import org.projectforge.database.DatabaseResultRow;
+import org.projectforge.database.DatabaseResultRowEntry;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.configuration.SecurityConfig;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
+
+import java.util.List;
 
 public class SqlConsolePage extends AbstractStandardFormPage
 {
   private static final long serialVersionUID = -8866862318651809124L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SqlConsolePage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SqlConsolePage.class);
 
   @SpringBean
-  private DatabaseUpdateService myDatabaseUpdater;
+  private DatabaseService databaseService;
 
   @SpringBean
   private ConfigurationService configurationService;
@@ -77,7 +77,7 @@ public class SqlConsolePage extends AbstractStandardFormPage
     try {
       final StringBuilder sb = new StringBuilder();
       if (sql.trim().toLowerCase().startsWith("select") == true) {
-        final List<DatabaseResultRow> result = myDatabaseUpdater.query(sql);
+        final List<DatabaseResultRow> result = databaseService.query(sql);
         if (result != null && result.size() > 0) {
           final DatabaseResultRow firstRow = result.get(0);
           final List<DatabaseResultRowEntry> entries = firstRow.getEntries();
@@ -100,7 +100,7 @@ public class SqlConsolePage extends AbstractStandardFormPage
         }
         form.setResultString(sb.toString());
       } else {
-        myDatabaseUpdater.execute(sql);
+        databaseService.execute(sql);
         form.setResultString("Statement executed. See log files for further information.");
       }
     } catch (final Exception ex) {

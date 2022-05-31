@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,25 +29,32 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.component.IRequestablePage;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.Const;
+import org.projectforge.Constants;
+import org.projectforge.SystemAlertMessage;
 import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.user.filter.UserFilter;
+import org.projectforge.business.configuration.DomainService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.core.MenuBarPanel;
 import org.projectforge.web.core.NavTopPanel;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
 
 /**
  * All pages with required login should be derived from this page.
  */
-public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
-{
+public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractSecuredPage.class);
+
   @SpringBean
   private ConfigurationService configurationService;
+
+  @SpringBean
+  private DomainService domainService;
 
   private static final long serialVersionUID = -8721451198050398835L;
 
@@ -58,40 +65,42 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
    */
   protected WebPage returnToPage;
 
+  /**
+   * If set then return after save, update or cancel to this page. If not given then return to given list page.
+   */
+  protected Class<? extends IRequestablePage> returnToPageClass;
+
+  protected PageParameters returnToPageParameters;
+
   private final RepeatingView modalDialogs;
 
   @SuppressWarnings("serial")
-  public AbstractSecuredPage(final PageParameters parameters)
-  {
+  public AbstractSecuredPage(final PageParameters parameters) {
     super(parameters);
+    if (ThreadLocalUserContext.getUser() == null) {
+      log.warn("AbstractSecuredPage called without logged-in user: " + this.getPageAsLink(parameters));
+      // Shouldn't occur, but safe is safe:
+      throw new RedirectToUrlException("/");
+    }
     modalDialogs = new RepeatingView("modalDialogs");
     body.add(modalDialogs);
-    if (UserFilter.isUpdateRequiredFirst() == false) {
-      final NavTopPanel topMenuPanel = new NavTopPanel("topMenu");
-      body.add(topMenuPanel);
-      topMenuPanel.init(this);
-    } else {
-      final DivPanel emptyDivPanel = new DivPanel("topMenu");
-      body.add(emptyDivPanel);
-    }
+    final NavTopPanel topMenuPanel = new NavTopPanel("topMenu");
+    body.add(topMenuPanel);
+    topMenuPanel.init(this);
     contentMenuBarPanel = new MenuBarPanel("menuBar");
-    final Model<String> alertMessageModel = new Model<String>()
-    {
+    final Model<String> alertMessageModel = new Model<String>() {
       @Override
-      public String getObject()
-      {
-        if (WicketApplication.getAlertMessage() == null) {
+      public String getObject() {
+        if (SystemAlertMessage.INSTANCE.getAlertMessage() == null) {
           return "neverDisplayed";
         }
-        return WicketApplication.getAlertMessage();
+        return SystemAlertMessage.INSTANCE.getAlertMessage();
       }
     };
-    final WebMarkupContainer alertMessageContainer = new WebMarkupContainer("alertMessageContainer")
-    {
+    final WebMarkupContainer alertMessageContainer = new WebMarkupContainer("alertMessageContainer") {
       @Override
-      public boolean isVisible()
-      {
-        return (WicketApplication.getAlertMessage() != null);
+      public boolean isVisible() {
+        return (SystemAlertMessage.INSTANCE.getAlertMessage() != null);
       }
     };
     body.add(alertMessageContainer);
@@ -103,8 +112,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
    * @see org.apache.wicket.Component#onInitialize()
    */
   @Override
-  protected void onInitialize()
-  {
+  protected void onInitialize() {
     super.onInitialize();
     final WebMarkupContainer breadcrumbContainer = new WebMarkupContainer("breadcrumb");
     body.add(breadcrumbContainer);
@@ -125,20 +133,17 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
   }
 
   @SuppressWarnings("serial")
-  private void addBreadCrumbs(final RepeatingView breadcrumbItems, final AbstractSecuredPage page)
-  {
+  private void addBreadCrumbs(final RepeatingView breadcrumbItems, final AbstractSecuredPage page) {
     final WebPage returnTo = page.getReturnToPage();
     if (returnTo != null && returnTo instanceof AbstractSecuredPage) {
       addBreadCrumbs(breadcrumbItems, (AbstractSecuredPage) returnTo);
     }
     final WebMarkupContainer li = new WebMarkupContainer(breadcrumbItems.newChildId());
     breadcrumbItems.add(li);
-    final Link<Void> pageLink = new Link<Void>("link")
-    {
+    final Link<Void> pageLink = new Link<Void>("link") {
 
       @Override
-      public void onClick()
-      {
+      public void onClick() {
         setResponsePage(page);
       }
     };
@@ -152,8 +157,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
    *
    * @param returnToPage
    */
-  public AbstractSecuredPage setReturnToPage(final WebPage returnToPage)
-  {
+  public AbstractSecuredPage setReturnToPage(final WebPage returnToPage) {
     this.returnToPage = returnToPage;
     return this;
   }
@@ -161,26 +165,33 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
   /**
    * @return the returnToPage
    */
-  public WebPage getReturnToPage()
-  {
+  public WebPage getReturnToPage() {
     return returnToPage;
   }
 
-  public void addContentMenuEntry(final ContentMenuEntryPanel panel)
-  {
+  /**
+   * If set then return after save, update or cancel to this page. If not given then return to given list page. As an
+   * alternative you can set the returnToPage as a page parameter (if supported by the derived page).
+   */
+  public AbstractSecuredPage setReturnToPage(final Class returnToPageClass, PageParameters returnToPageParameters) {
+    this.returnToPageClass = returnToPageClass;
+    this.returnToPageParameters = returnToPageParameters;
+    return this;
+  }
+
+
+  public void addContentMenuEntry(final ContentMenuEntryPanel panel) {
     this.contentMenuBarPanel.addMenuEntry(panel);
   }
 
-  public String getNewContentMenuChildId()
-  {
+  public String getNewContentMenuChildId() {
     return this.contentMenuBarPanel.newChildId();
   }
 
   /**
    * @return This page as link with the page parameters of this page.
    */
-  public String getPageAsLink()
-  {
+  public String getPageAsLink() {
     return getPageAsLink(getPageParameters());
   }
 
@@ -188,15 +199,14 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
    * @param parameters
    * @return This page as link with the given page parameters.
    */
-  public String getPageAsLink(final PageParameters parameters)
-  {
+  public String getPageAsLink(final PageParameters parameters) {
     String relativeUrl = (String) urlFor(this.getClass(), parameters);
     if (relativeUrl.contains("../")) {
       // Therefore ignore relative pathes ../:
       relativeUrl = relativeUrl.replace("../", "");
     }
 
-    String baseUrl = configurationService.getPfBaseUrl() + "/" + Const.WICKET_APPLICATION_PATH;
+    String baseUrl = domainService.getDomainWithContextPath() + "/" + Constants.WICKET_APPLICATION_PATH;
 
     return WicketUtils.toAbsolutePath(baseUrl, relativeUrl);
   }
@@ -207,8 +217,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
    * @param parameters
    * @see WicketUtils#evaluatePageParameters(Object, PageParameters, String, String[])
    */
-  protected void evaluateInitialPageParameters(final PageParameters parameters)
-  {
+  protected void evaluateInitialPageParameters(final PageParameters parameters) {
     if (getBookmarkableInitialProperties() != null) {
       WicketUtils.evaluatePageParameters(getICallerPageForInitialParameters(), getDataObjectForInitialParameters(),
           getFilterObjectForInitialParameters(), parameters, getBookmarkableInitialProperties());
@@ -221,8 +230,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
    *
    * @see org.projectforge.web.wicket.AbstractUnsecurePage#getBookmarkableInitialParameters()
    */
-  public PageParameters getBookmarkableInitialParameters()
-  {
+  public PageParameters getBookmarkableInitialParameters() {
     final PageParameters pageParameters = new PageParameters();
     WicketUtils.putPageParameters(getICallerPageForInitialParameters(), getDataObjectForInitialParameters(),
         getFilterObjectForInitialParameters(), pageParameters, getBookmarkableInitialProperties());
@@ -234,8 +242,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
    *
    * @return
    */
-  public String getTitleKey4BookmarkableInitialParameters()
-  {
+  public String getTitleKey4BookmarkableInitialParameters() {
     return "bookmark.directPageExtendedLink";
   }
 
@@ -243,8 +250,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
    * Properties which should be evaluated for new entries. These properties, if given in PageParameters, will be set as
    * initial values. All this properties will be set via {@link ISelectCallerPage#select(String, Object)}.
    */
-  protected String[] getBookmarkableInitialProperties()
-  {
+  protected String[] getBookmarkableInitialProperties() {
     return null;
   }
 
@@ -253,8 +259,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
    *
    * @return this at default (works if the page holds the data directly).
    */
-  protected Object getDataObjectForInitialParameters()
-  {
+  protected Object getDataObjectForInitialParameters() {
     return this;
   }
 
@@ -263,16 +268,14 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
    *
    * @return this at default (works if the page holds the data directly).
    */
-  protected Object getFilterObjectForInitialParameters()
-  {
+  protected Object getFilterObjectForInitialParameters() {
     return null;
   }
 
   /**
    * @return this at default (works if the page is an instance of {@link ISelectCallerPage}.
    */
-  protected ISelectCallerPage getICallerPageForInitialParameters()
-  {
+  protected ISelectCallerPage getICallerPageForInitialParameters() {
     if (this instanceof ISelectCallerPage) {
       return (ISelectCallerPage) this;
     } else {
@@ -280,18 +283,15 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
     }
   }
 
-  public String newModalDialogId()
-  {
+  public String newModalDialogId() {
     return modalDialogs.newChildId();
   }
 
-  public void add(final ModalDialog modalDialog)
-  {
+  public void add(final ModalDialog modalDialog) {
     modalDialogs.add(modalDialog);
   }
 
-  protected boolean isBreadCrumbVisible()
-  {
+  protected boolean isBreadCrumbVisible() {
     return true;
   }
 }

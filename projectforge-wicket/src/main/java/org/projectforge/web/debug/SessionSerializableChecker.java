@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -22,38 +22,39 @@
 /////////////////////////////////////////////////////////////////////////////
 
 /**
- * 
+ *
  */
 package org.projectforge.web.debug;
 
+import org.apache.commons.lang3.ClassUtils;
+import org.projectforge.web.WebConfiguration;
+import org.projectforge.web.wicket.WicketApplication;
+
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpSessionAttributeListener;
+import javax.servlet.http.HttpSessionBindingEvent;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionAttributeListener;
-import javax.servlet.http.HttpSessionBindingEvent;
-
-import org.apache.commons.lang.ClassUtils;
-import org.projectforge.web.WebConfiguration;
-import org.projectforge.web.wicket.WicketApplication;
-
-
 /**
  * In production environment this checker does nothing.
+ *
  * @author wolle
  * @see WicketApplication#isDevelopmentMode()
- * 
  */
 public class SessionSerializableChecker implements HttpSessionAttributeListener
 {
-  /** The logger */
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SessionSerializableChecker.class);
+  /**
+   * The logger
+   */
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SessionSerializableChecker.class);
 
   /**
    * @see javax.servlet.http.HttpSessionAttributeListener#attributeAdded(javax.servlet.http.HttpSessionBindingEvent)
    */
+  @Override
   public void attributeAdded(final HttpSessionBindingEvent evt)
   {
     if (WebConfiguration.isDevelopmentMode() == true) {
@@ -64,6 +65,7 @@ public class SessionSerializableChecker implements HttpSessionAttributeListener
   /**
    * @see javax.servlet.http.HttpSessionAttributeListener#attributeRemoved(javax.servlet.http.HttpSessionBindingEvent)
    */
+  @Override
   public void attributeRemoved(final HttpSessionBindingEvent evt)
   {
   }
@@ -71,6 +73,7 @@ public class SessionSerializableChecker implements HttpSessionAttributeListener
   /**
    * @see javax.servlet.http.HttpSessionAttributeListener#attributeReplaced(javax.servlet.http.HttpSessionBindingEvent)
    */
+  @Override
   public void attributeReplaced(final HttpSessionBindingEvent evt)
   {
     if (WebConfiguration.isDevelopmentMode() == true) {
@@ -85,12 +88,12 @@ public class SessionSerializableChecker implements HttpSessionAttributeListener
       try {
         if (log.isDebugEnabled()) {
           log
-          .debug("Storing "
-              + ClassUtils.getShortClassName(value, "null")
-              + " under the name "
-              + name
-              + " in session "
-              + session.getId());
+              .debug("Storing "
+                  + ClassUtils.getShortClassName(value, "null")
+                  + " under the name "
+                  + name
+                  + " in session "
+                  + session.getId());
         }
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final ObjectOutputStream oos = new ObjectOutputStream(baos);

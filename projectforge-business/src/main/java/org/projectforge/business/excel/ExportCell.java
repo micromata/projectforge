@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,12 @@
 
 package org.projectforge.business.excel;
 
-import java.util.Date;
-
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
+
+import java.util.Date;
 
 public class ExportCell
 {
@@ -102,16 +103,16 @@ public class ExportCell
       return null;
     }
     switch (poiCell.getCellType()) {
-      case Cell.CELL_TYPE_STRING:
+      case STRING:
         return poiCell.getRichStringCellValue().getString();
-      case Cell.CELL_TYPE_NUMERIC:
+      case NUMERIC:
         if (DateUtil.isCellDateFormatted(poiCell)) {
           return poiCell.getDateCellValue();
         }
         return poiCell.getNumericCellValue();
-      case Cell.CELL_TYPE_BOOLEAN:
+      case BOOLEAN:
         return poiCell.getBooleanCellValue();
-      case Cell.CELL_TYPE_FORMULA:
+      case FORMULA:
         return poiCell.getCellFormula();
       default:
         return null;
@@ -123,7 +124,7 @@ public class ExportCell
     if (poiCell == null) {
       return false;
     }
-    return poiCell.getCellType() == Cell.CELL_TYPE_NUMERIC;
+    return poiCell.getCellType() == CellType.NUMERIC;
   }
 
   public Date getDateCellValue()

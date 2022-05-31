@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,7 @@
 
 package org.projectforge.web.wicket;
 
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
-import java.net.URLEncoder;
-import java.util.Calendar;
-import java.util.Date;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -52,27 +44,22 @@ import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.UrlUtils;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.flow.RedirectToUrlException;
+import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
-import org.projectforge.Const;
+import org.projectforge.Constants;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.framework.time.TimePeriod;
+import org.projectforge.framework.time.*;
 import org.projectforge.framework.utils.ClassHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.URLHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.mobile.AbstractSecuredMobilePage;
-import org.projectforge.web.mobile.MenuMobilePage;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
@@ -80,34 +67,67 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
-public class WicketUtils
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(WicketUtils.class);
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
+import java.net.URLEncoder;
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.Date;
+
+public class WicketUtils {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketUtils.class);
 
   private static String APPLICATION_CONTEXT = "/ProjectForge";
 
-  public static String getContextPath()
-  {
+  public static String getContextPath() {
     return APPLICATION_CONTEXT;
   }
 
-  static void setContextPath(final String contextPath)
-  {
+  static void setContextPath(final String contextPath) {
     APPLICATION_CONTEXT = contextPath;
   }
 
-  public static HttpServletRequest getHttpServletRequest(final Request request)
-  {
+  public static void redirectToLogin(Component component) {
+    redirectToLogin(component.getPage());
+  }
+
+  public static void redirectToLogin(Page page) {
+    String relativeUrl = page.urlFor(page.getPageClass(), page.getPageParameters()).toString();
+
+    if (relativeUrl.contains("../")) {
+      // Therefore ignore relative pathes ../:
+      relativeUrl = relativeUrl.replace("../", "");
+    }
+
+    final HttpServletRequest req = (HttpServletRequest)((WebRequest)RequestCycle.get().getRequest()).getContainerRequest();
+    final String query = req.getQueryString();
+    if (StringUtils.isNotBlank(query) && !Character.isDigit(query.charAt(0))) {
+      // Wickets query string like ?3-2.ILinkListener-body-topMenu-logoutLink should be ignored.
+      relativeUrl = relativeUrl + "?" + query;
+    }
+
+    final String url= WicketUtils.toAbsolutePath("/" + Constants.WICKET_APPLICATION_PATH, relativeUrl);
+
+    String encodedUrl = "";
+    try {
+      encodedUrl = URLEncoder.encode(url, "UTF-8");
+    } catch (UnsupportedEncodingException ex){
+      log.warn("Error while trying to encode url string: " + ex.getMessage(), ex);
+    }
+    throw new RedirectToUrlException("/react/public/login?url=" + encodedUrl);
+  }
+
+  public static HttpServletRequest getHttpServletRequest(final Request request) {
     return (HttpServletRequest) request.getContainerRequest();
   }
 
-  public static HttpServletResponse getHttpServletResponse(final Response response)
-  {
+  public static HttpServletResponse getHttpServletResponse(final Response response) {
     return (HttpServletResponse) response.getContainerResponse();
   }
 
-  public static boolean contains(final PageParameters parameters, final String name)
-  {
+  public static boolean contains(final PageParameters parameters, final String name) {
     final StringValue sval = parameters.get(name);
     if (sval == null) {
       return false;
@@ -116,8 +136,7 @@ public class WicketUtils
     }
   }
 
-  public static String getAsString(final PageParameters parameters, final String name)
-  {
+  public static String getAsString(final PageParameters parameters, final String name) {
     final StringValue sval = parameters.get(name);
     if (sval == null || sval.isNull() == true) {
       return null;
@@ -126,8 +145,7 @@ public class WicketUtils
     }
   }
 
-  public static Integer getAsInteger(final PageParameters parameters, final String name)
-  {
+  public static Integer getAsInteger(final PageParameters parameters, final String name) {
     final StringValue sval = parameters.get(name);
     if (sval == null || sval.isNull() == true) {
       return null;
@@ -136,8 +154,7 @@ public class WicketUtils
     }
   }
 
-  public static int getAsInt(final PageParameters parameters, final String name, final int defaultValue)
-  {
+  public static int getAsInt(final PageParameters parameters, final String name, final int defaultValue) {
     final StringValue sval = parameters.get(name);
     if (sval == null || sval.isNull() == true) {
       return defaultValue;
@@ -146,8 +163,7 @@ public class WicketUtils
     }
   }
 
-  public static Long getAsLong(final PageParameters parameters, final String name)
-  {
+  public static Long getAsLong(final PageParameters parameters, final String name) {
     final StringValue sval = parameters.get(name);
     if (sval == null || sval.isNull() == true) {
       return null;
@@ -156,8 +172,7 @@ public class WicketUtils
     }
   }
 
-  public static Boolean getAsBooleanObject(final PageParameters parameters, final String name)
-  {
+  public static Boolean getAsBooleanObject(final PageParameters parameters, final String name) {
     final StringValue sval = parameters.get(name);
     if (sval == null || sval.isNull() == true) {
       return null;
@@ -166,8 +181,7 @@ public class WicketUtils
     }
   }
 
-  public static boolean getAsBoolean(final PageParameters parameters, final String name)
-  {
+  public static boolean getAsBoolean(final PageParameters parameters, final String name) {
     final StringValue sval = parameters.get(name);
     if (sval == null || sval.isNull() == true) {
       return false;
@@ -176,8 +190,7 @@ public class WicketUtils
     }
   }
 
-  public static Object getAsObject(final PageParameters parameters, final String name, final Class<?> type)
-  {
+  public static Object getAsObject(final PageParameters parameters, final String name, final Class<?> type) {
     final StringValue sval = parameters.get(name);
     if (sval == null || sval.isNull() == true) {
       return null;
@@ -191,8 +204,7 @@ public class WicketUtils
    *
    * @param favicon The favicon file, e. g. "/ProjectForge/favicon.ico".
    */
-  public static String getCssForFavicon(final String favicon)
-  {
+  public static String getCssForFavicon(final String favicon) {
     return "<link type=\"image/x-icon\" rel=\"shortcut icon\" href=\"" + favicon + "\" />";
   }
 
@@ -201,8 +213,7 @@ public class WicketUtils
    *
    * @param url
    */
-  public static final String getAbsoluteUrl(final String url)
-  {
+  public static final String getAbsoluteUrl(final String url) {
     if (url.startsWith("/") == true) {
       return APPLICATION_CONTEXT + url;
     }
@@ -216,8 +227,7 @@ public class WicketUtils
    * @param subpath
    * @return
    */
-  public static String getImageUrl(final RequestCycle requestCycle, final String path)
-  {
+  public static String getImageUrl(final RequestCycle requestCycle, final String path) {
     return getUrl(requestCycle, path, true);
   }
 
@@ -229,8 +239,7 @@ public class WicketUtils
    * @param encodeUrl
    * @return path itself if not starts with '/' otherwise "/ProjectForge" + path with session id and params.
    */
-  public static String getUrl(final RequestCycle requestCycle, final String path, final boolean encodeUrl)
-  {
+  public static String getUrl(final RequestCycle requestCycle, final String path, final boolean encodeUrl) {
     String url = UrlUtils.rewriteToContextRelative(path, requestCycle);
     if (encodeUrl == true) {
       url = requestCycle.getResponse().encodeURL(url);
@@ -245,8 +254,7 @@ public class WicketUtils
    * @param pageClass
    * @param Optional  list of params in tupel form: key, value, key, value...
    */
-  public static String getBookmarkablePageUrl(final Class<? extends Page> pageClass, final String... params)
-  {
+  public static String getBookmarkablePageUrl(final Class<? extends Page> pageClass, final String... params) {
     final RequestCycle requestCylce = RequestCycle.get();
     if (requestCylce != null) {
       final PageParameters pageParameter = getPageParameters(params);
@@ -259,10 +267,10 @@ public class WicketUtils
         return getDefaultPageUrl();
       }
       if (params == null) {
-        return Const.WICKET_APPLICATION_PATH + alias;
+        return Constants.WICKET_APPLICATION_PATH + alias;
       }
       final StringBuffer buf = new StringBuffer();
-      buf.append(Const.WICKET_APPLICATION_PATH).append(alias);
+      buf.append(Constants.WICKET_APPLICATION_PATH).append(alias);
       try {
         for (int i = 0; i < params.length; i += 2) {
           if (i == 0) {
@@ -288,8 +296,7 @@ public class WicketUtils
    * @param params
    * @return
    */
-  public static PageParameters getPageParameters(final String[] params)
-  {
+  public static PageParameters getPageParameters(final String[] params) {
     final PageParameters pageParameters = new PageParameters();
     if (params != null) {
       for (int i = 0; i < params.length; i += 2) {
@@ -309,8 +316,7 @@ public class WicketUtils
    * @see RequestUtils#toAbsolutePath(String, String)
    * @see URLHelper#removeJSessionId(String)
    */
-  public final static String toAbsolutePath(final String requestUrl, final String relativePagePath)
-  {
+  public final static String toAbsolutePath(final String requestUrl, final String relativePagePath) {
     final String absoluteUrl = RequestUtils.toAbsolutePath(requestUrl, relativePagePath);
     return URLHelper.removeJSessionId(absoluteUrl);
   }
@@ -319,8 +325,7 @@ public class WicketUtils
    * @param id
    * @return new PageParameters containing the given id as page parameter.
    */
-  public final static PageParameters getEditPageParameters(final Integer id)
-  {
+  public final static PageParameters getEditPageParameters(final Integer id) {
     return new PageParameters().set(AbstractEditPage.PARAMETER_KEY_ID, id);
   }
 
@@ -328,8 +333,7 @@ public class WicketUtils
    * @return Default page of ProjectForge. Currently {@link WicketApplication#DEFAULT_PAGE} is the default page (e. g.
    * to redirect after login if no forward url is specified).
    */
-  public static String getDefaultPageUrl()
-  {
+  public static String getDefaultPageUrl() {
     return getBookmarkablePageUrl(getDefaultPage());
   }
 
@@ -337,17 +341,8 @@ public class WicketUtils
    * @return Default page of ProjectForge. Currently {@link WicketApplication#DEFAULT_PAGE} is the default page (e. g.
    * to redirect after cancel if no other return page is specified).
    */
-  public static Class<? extends WebPage> getDefaultPage()
-  {
+  public static Class<? extends WebPage> getDefaultPage() {
     return WicketApplication.DEFAULT_PAGE;
-  }
-
-  /**
-   * @return MenuMobilePage.class.
-   */
-  public static Class<? extends AbstractSecuredMobilePage> getDefaultMobilePage()
-  {
-    return MenuMobilePage.class;
   }
 
   /**
@@ -360,8 +355,7 @@ public class WicketUtils
    * @param value
    * @see ClassHelper#isDefaultType(Class, Object)
    */
-  public static void putPageParameter(final PageParameters pageParameters, final String key, final Object value)
-  {
+  public static void putPageParameter(final PageParameters pageParameters, final String key, final Object value) {
     if (value == null) {
       // Do not put null values to page parameters.
     } else if (ClassHelper.isDefaultType(value.getClass(), value)) {
@@ -370,15 +364,14 @@ public class WicketUtils
       addOrReplaceParameter(pageParameters, key, ((Date) value).getTime());
     } else if (value instanceof TimePeriod) {
       addOrReplaceParameter(pageParameters, key, ((TimePeriod) value).getFromDate().getTime()
-          + "-"
-          + ((TimePeriod) value).getToDate().getTime());
+              + "-"
+              + ((TimePeriod) value).getToDate().getTime());
     } else {
       addOrReplaceParameter(pageParameters, key, value);
     }
   }
 
-  public static void addOrReplaceParameter(final PageParameters pageParameters, final String key, final Object value)
-  {
+  public static void addOrReplaceParameter(final PageParameters pageParameters, final String key, final Object value) {
     if (pageParameters.get(key).isNull() == true) {
       pageParameters.add(key, value);
     } else {
@@ -387,9 +380,8 @@ public class WicketUtils
   }
 
   public static void putPageParameters(final ISelectCallerPage callerPage, final Object dataObject,
-      final Object filterObject,
-      final PageParameters pageParameters, final String[] bookmarkableProperties)
-  {
+                                       final Object filterObject,
+                                       final PageParameters pageParameters, final String[] bookmarkableProperties) {
     if (bookmarkableProperties == null) {
       return;
     }
@@ -407,7 +399,7 @@ public class WicketUtils
         WicketUtils.putPageParameter(pageParameters, paramHolder.prefix + paramHolder.alias, value);
       } catch (final Exception ex) {
         log.warn("Couldn't put page parameter '" + paramHolder.property + "' of bean '" + bean
-            + "'. Ignoring this parameter.");
+                + "'. Ignoring this parameter.");
       }
     }
   }
@@ -419,8 +411,7 @@ public class WicketUtils
    * @see #putPageParameter(PageParameters, String, Object)
    */
   public static Object getPageParameter(final PageParameters pageParameters, final String key,
-      final Class<?> objectType)
-  {
+                                        final Class<?> objectType) {
     if (objectType.isAssignableFrom(Date.class) == true) {
       final StringValue sval = pageParameters.get(key);
       if (sval.isNull() == true) {
@@ -437,14 +428,14 @@ public class WicketUtils
       } else if (Long.TYPE.equals(objectType) == true) {
         return pageParameters.get(key).toLong();
       } else if (Float.TYPE.equals(objectType) == true) {
-        return new Float(pageParameters.get(key).toDouble());
+        return Float.valueOf((float)pageParameters.get(key).toDouble());
       } else if (Double.TYPE.equals(objectType) == true) {
         return pageParameters.get(key).toDouble();
       } else if (Character.TYPE.equals(objectType) == true) {
         return pageParameters.get(key).toChar();
       } else {
         log.warn(
-            "Primitive objectType '" + objectType + "' not yet implemented. Parameter type '" + key + "' is ignored.");
+                "Primitive objectType '" + objectType + "' not yet implemented. Parameter type '" + key + "' is ignored.");
       }
     } else if (Enum.class.isAssignableFrom(objectType) == true) {
       final StringValue sval = pageParameters.get(key);
@@ -452,8 +443,7 @@ public class WicketUtils
         return null;
       }
       final String sValue = sval.toString();
-      @SuppressWarnings({ "unchecked", "rawtypes" })
-      final Enum<?> en = Enum.valueOf((Class<Enum>) objectType, sValue);
+      @SuppressWarnings({"unchecked", "rawtypes"}) final Enum<?> en = Enum.valueOf((Class<Enum>) objectType, sValue);
       return en;
     } else if (objectType.isAssignableFrom(Integer.class) == true) {
       final StringValue sval = pageParameters.get(key);
@@ -482,8 +472,7 @@ public class WicketUtils
     return null;
   }
 
-  public static boolean hasParameter(final PageParameters parameters, final String name)
-  {
+  public static boolean hasParameter(final PageParameters parameters, final String name) {
     final StringValue sval = parameters.get(name);
     return sval != null && sval.isNull() == false;
   }
@@ -499,9 +488,8 @@ public class WicketUtils
    * @param bookmarkableProperties
    */
   public static void evaluatePageParameters(final ISelectCallerPage callerPage, final Object dataObject,
-      final Object filter,
-      final PageParameters parameters, final String[] bookmarkableProperties)
-  {
+                                            final Object filter,
+                                            final PageParameters parameters, final String[] bookmarkableProperties) {
     if (bookmarkableProperties == null) {
       return;
     }
@@ -510,7 +498,7 @@ public class WicketUtils
     for (final String str : bookmarkableProperties) {
       final InitialPageParameterHolder paramHolder = new InitialPageParameterHolder(str);
       if (hasParameter(parameters, paramHolder.prefix + paramHolder.property) == true
-          || hasParameter(parameters, paramHolder.prefix + paramHolder.alias) == true) {
+              || hasParameter(parameters, paramHolder.prefix + paramHolder.alias) == true) {
         useParameters = true;
         break;
       }
@@ -557,7 +545,7 @@ public class WicketUtils
             BeanHelper.setProperty(bean, paramHolder.property, ClassHelper.getDefaultType(method.getReturnType()));
           } else {
             final Object value = WicketUtils.getPageParameter(parameters, paramHolder.prefix + key,
-                method.getReturnType());
+                    method.getReturnType());
             BeanHelper.setProperty(bean, paramHolder.property, value);
           }
         } catch (final Exception ex) {
@@ -572,8 +560,7 @@ public class WicketUtils
    *
    * @param row Html tr element.
    */
-  public static void addRowClick(final Component row)
-  {
+  public static void addRowClick(final Component row) {
     row.add(AttributeModifier.replace("onclick", "javascript:rowClick(this);"));
     // add marker css class for contextMenu javaScript
     row.add(new AttributeAppender("class", Model.of("withContextMenu"), " "));
@@ -582,15 +569,13 @@ public class WicketUtils
   /**
    * @return
    */
-  public static ContextImage getInvisibleDummyImage(final String id, final RequestCycle requestCylce)
-  {
+  public static ContextImage getInvisibleDummyImage(final String id, final RequestCycle requestCylce) {
     final ContextImage image = new ContextImage(id, WicketUtils.getImageUrl(requestCylce, WebConstants.IMAGE_SPACER));
     image.setVisible(false);
     return image;
   }
 
-  public static Component getInvisibleComponent(final String id)
-  {
+  public static Component getInvisibleComponent(final String id) {
     return new Label(id).setVisible(false);
   }
 
@@ -599,8 +584,7 @@ public class WicketUtils
    * @param unit
    * @return label [<unit>] (label with appended unit in brackets).
    */
-  public static String getLabelWithUnit(final String label, final String unit)
-  {
+  public static String getLabelWithUnit(final String label, final String unit) {
     return label + " [" + unit + "]";
   }
 
@@ -611,11 +595,10 @@ public class WicketUtils
    * @param id
    * @return IconPanel which is invisible if JIRA isn't configured.
    */
-  public static IconPanel getJIRASupportTooltipIcon(final Component parent, final String id)
-  {
+  public static IconPanel getJIRASupportTooltipIcon(final Component parent, final String id) {
     final IconPanel icon = new IconPanel(id, IconType.JIRA_SUPPORT,
-        Model.of(parent.getString("tooltip.jiraSupport.field.title")),
-        Model.of(parent.getString("tooltip.jiraSupport.field.content")));
+            Model.of(parent.getString("tooltip.jiraSupport.field.title")),
+            Model.of(parent.getString("tooltip.jiraSupport.field.content")));
     if (isJIRAConfigured() == false) {
       icon.setVisible(false);
     }
@@ -629,29 +612,27 @@ public class WicketUtils
    * @param fieldset needed for localization and for getting new child id.
    * @return IconPanel which is invisible if JIRA isn't configured.
    */
-  public static IconPanel getJIRASupportTooltipIcon(final FieldsetPanel fieldset)
-  {
+  public static IconPanel getJIRASupportTooltipIcon(final FieldsetPanel fieldset) {
     return getJIRASupportTooltipIcon(fieldset, fieldset.newIconChildId());
   }
 
   /**
+   *
    */
-  public static IconPanel getAlertTooltipIcon(final FieldsetPanel fieldset, final String tooltip)
-  {
+  public static IconPanel getAlertTooltipIcon(final FieldsetPanel fieldset, final String tooltip) {
     return getAlertTooltipIcon(fieldset, null, Model.of(tooltip));
   }
 
   /**
+   *
    */
   public static IconPanel getAlertTooltipIcon(final FieldsetPanel fieldset, final IModel<String> title,
-      final IModel<String> tooltip)
-  {
+                                              final IModel<String> tooltip) {
     final IconPanel icon = new IconPanel(fieldset.newIconChildId(), IconType.ALERT, title, tooltip);
     return icon;
   }
 
-  public static final boolean isJIRAConfigured()
-  {
+  public static final boolean isJIRAConfigured() {
     return ConfigXml.getInstance().isJIRAConfigured();
   }
 
@@ -663,8 +644,7 @@ public class WicketUtils
    * @param parent
    * @param dao
    */
-  public static void addShowDeleteRowQuestionDialog(final MarkupContainer parent, final BaseDao<?> dao)
-  {
+  public static void addShowDeleteRowQuestionDialog(final MarkupContainer parent, final BaseDao<?> dao) {
     final StringBuffer buf = new StringBuffer();
     buf.append("function showDeleteEntryQuestionDialog() {\n").append("  return window.confirm('");
     if (dao.isHistorizable() == true) {
@@ -674,7 +654,7 @@ public class WicketUtils
     }
     buf.append("');\n}\n");
     parent.add(new Label("showDeleteEntryQuestionDialog", buf.toString()).setEscapeModelStrings(false).add(
-        AttributeModifier.replace("type", "text/javascript")));
+            AttributeModifier.replace("type", "text/javascript")));
   }
 
   /**
@@ -683,8 +663,7 @@ public class WicketUtils
    * @param component
    * @param value
    */
-  public static void setPlaceHolderAttribute(Component component, final String value)
-  {
+  public static void setPlaceHolderAttribute(Component component, final String value) {
     if (component instanceof ComponentWrapperPanel) {
       component = ((ComponentWrapperPanel) component).getFormComponent();
     }
@@ -697,8 +676,7 @@ public class WicketUtils
    * @param stopTime  Stop time or null.
    * @return The weeks of year range for the given start an stop time.
    */
-  public static String getCalendarWeeks(final MarkupContainer parent, final Date startTime, final Date stopTime)
-  {
+  public static String getCalendarWeeks(final MarkupContainer parent, final Date startTime, final Date stopTime) {
     int fromWeek = -1;
     int toWeek = -1;
     if (startTime != null) {
@@ -707,6 +685,34 @@ public class WicketUtils
     if (stopTime != null) {
       toWeek = DateHelper.getWeekOfYear(stopTime);
     }
+    return getCalendarWeeks(parent, fromWeek, toWeek);
+  }
+
+  /**
+   * @param parent    Only for i18n needed.
+   * @param startTime Start time or null.
+   * @param stopTime  Stop time or null.
+   * @return The weeks of year range for the given start an stop time.
+   */
+  public static String getCalendarWeeks(final MarkupContainer parent, final LocalDate startTime, final LocalDate stopTime) {
+    int fromWeek = -1;
+    int toWeek = -1;
+    if (startTime != null) {
+      fromWeek = DateHelper.getWeekOfYear(startTime);
+    }
+    if (stopTime != null) {
+      toWeek = DateHelper.getWeekOfYear(stopTime);
+    }
+    return getCalendarWeeks(parent, fromWeek, toWeek);
+  }
+
+  /**
+   * @param parent    Only for i18n needed.
+   * @param startTime Start time or null.
+   * @param stopTime  Stop time or null.
+   * @return The weeks of year range for the given start an stop time.
+   */
+  private static String getCalendarWeeks(final MarkupContainer parent, final int fromWeek, final int toWeek) {
     if (fromWeek < 0 && toWeek < 0) {
       return "";
     }
@@ -728,13 +734,12 @@ public class WicketUtils
   /**
    * @param date
    */
-  public static String getUTCDate(final Date date)
-  {
+  public static String getUTCDate(final Date date) {
     if (date == null) {
       return "";
     }
     final DateHolder dh = new DateHolder(date);
-    return DateHelper.TECHNICAL_ISO_UTC.get().format(dh.getDate());
+    return DateHelper.TECHNICAL_ISO_UTC.get().format(dh.getUtilDate());
   }
 
   /**
@@ -742,51 +747,79 @@ public class WicketUtils
    * @param date
    * @return <label>: <date>
    */
-  public static String getUTCDate(final String label, final Date date)
-  {
+  public static String getUTCDate(final String label, final Date date) {
     if (date == null) {
       return label + ":";
     }
     final DateHolder dh = new DateHolder(date);
-    return label + ": " + DateHelper.TECHNICAL_ISO_UTC.get().format(dh.getDate());
+    return label + ": " + DateHelper.TECHNICAL_ISO_UTC.get().format(dh.getUtilDate());
+  }
+
+  /**
+   * For compability reasons.
+   *
+   * @param label Label as prefix
+   * @param date
+   * @return <label>: <date>
+   */
+  public static String getUTCDate(final String label, final LocalDate date) {
+    if (date == null) {
+      return label + ":";
+    }
+    return label + ": " + date;
   }
 
   /**
    * @param startTime Start time or null.
    * @param stopTime  Stop time or null.
    */
-  public static String getUTCDates(final Date startTime, final Date stopTime)
-  {
+  public static String getUTCDates(final Date startTime, final Date stopTime) {
     final StringBuffer buf = new StringBuffer();
     final DateHolder start = startTime != null ? new DateHolder(startTime) : null;
     final DateHolder stop = stopTime != null ? new DateHolder(stopTime) : null;
     if (start != null) {
-      buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(start.getDate()));
+      buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(start.getUtilDate()));
       if (stop != null) {
         buf.append(" - ");
       }
     }
     if (stop != null) {
-      buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(stop.getDate()));
+      buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(stop.getUtilDate()));
     }
     return buf.toString();
   }
 
-  public static LabelValueChoiceRenderer<Long> getDatumChoiceRenderer(final int lastNDays)
-  {
+  /**
+   * @param startTime Start time or null.
+   * @param stopTime  Stop time or null.
+   */
+  public static String getUTCDates(final LocalDate startTime, final LocalDate stopTime) {
+    final StringBuffer buf = new StringBuffer();
+    if (startTime != null) {
+      buf.append(startTime.toString());
+      if (stopTime != null) {
+        buf.append(" - ");
+      }
+    }
+    if (stopTime != null) {
+      buf.append(stopTime.toString());
+    }
+    return buf.toString();
+  }
+
+  public static LabelValueChoiceRenderer<Long> getDatumChoiceRenderer(final int lastNDays) {
     final LabelValueChoiceRenderer<Long> datumChoiceRenderer = new LabelValueChoiceRenderer<Long>();
     for (int i = 0; i > -lastNDays; i--) {
       final DayHolder day = new DayHolder();
       day.add(Calendar.DAY_OF_YEAR, i);
-      datumChoiceRenderer.addValue(day.getSQLDate().getTime(),
-          DateTimeFormatter.instance().getFormattedDate(day.getSQLDate(),
-              DateFormats.getFormatString(DateFormatType.DATE)));
+      datumChoiceRenderer.addValue(day.getUtilDate().getTime(),
+              DateTimeFormatter.instance().getFormattedDate(day.getLocalDate(),
+                      DateFormats.getFormatString(DateFormatType.DATE)));
     }
     return datumChoiceRenderer;
   }
 
-  public static void append(final Component component, final RowCssClass... rowCssClasses)
-  {
+  public static void append(final Component component, final RowCssClass... rowCssClasses) {
     for (final RowCssClass rowCssClass : rowCssClasses) {
       component.add(AttributeModifier.append("class", rowCssClass.getCssClass()));
     }
@@ -801,8 +834,7 @@ public class WicketUtils
    * @see #createTooltip(String, String)
    * @see #setStyleHasTooltip(Component)
    */
-  public static Component addTooltip(final Component component, final String title, final String text)
-  {
+  public static Component addTooltip(final Component component, final String title, final String text) {
     return addTooltip(component, title, text, true);
   }
 
@@ -816,8 +848,7 @@ public class WicketUtils
    * @see #setStyleHasTooltip(Component)
    */
   public static Component addTooltip(final Component component, final String title, final String text,
-      final boolean rightAlignment)
-  {
+                                     final boolean rightAlignment) {
     return addTooltip(component, Model.of(title), Model.of(text), rightAlignment);
   }
 
@@ -829,8 +860,7 @@ public class WicketUtils
    * @see #createTooltip(String, String)
    * @see #setStyleHasTooltip(Component)
    */
-  public static Component addTooltip(final Component component, final String text)
-  {
+  public static Component addTooltip(final Component component, final String text) {
     return addTooltip(component, text, true);
   }
 
@@ -843,8 +873,7 @@ public class WicketUtils
    * @see #createTooltip(String, String)
    * @see #setStyleHasTooltip(Component)
    */
-  public static Component addTooltip(final Component component, final String text, final boolean rightAlignment)
-  {
+  public static Component addTooltip(final Component component, final String text, final boolean rightAlignment) {
     return addTooltip(component, null, Model.of(text), rightAlignment);
   }
 
@@ -854,8 +883,7 @@ public class WicketUtils
    * @param component
    * @param text
    */
-  public static Component addTooltip(final Component component, final IModel<String> text)
-  {
+  public static Component addTooltip(final Component component, final IModel<String> text) {
     return addTooltip(component, text, true);
   }
 
@@ -865,8 +893,7 @@ public class WicketUtils
    * @param component
    * @param text
    */
-  public static Component addTooltip(final Component component, final IModel<String> text, final boolean rightAlignment)
-  {
+  public static Component addTooltip(final Component component, final IModel<String> text, final boolean rightAlignment) {
     return addTooltip(component, null, text, rightAlignment);
   }
 
@@ -877,8 +904,7 @@ public class WicketUtils
    * @param title
    * @param text      If the string contains "\n" characters then html=true and &lt;br/&gt; are used.
    */
-  public static Component addTooltip(final Component component, final IModel<String> title, final IModel<String> text)
-  {
+  public static Component addTooltip(final Component component, final IModel<String> title, final IModel<String> text) {
     return addTooltip(component, title, text, true);
   }
 
@@ -891,17 +917,13 @@ public class WicketUtils
    * @param rightAlignment If false (default is true) the tooltip will be aligned at the bottom.
    */
   public static Component addTooltip(final Component component, final IModel<String> title, final IModel<String> text,
-      final boolean rightAlignment)
-  {
-    @SuppressWarnings("serial")
-    final IModel<String> myModel = new Model<String>()
-    {
+                                     final boolean rightAlignment) {
+    @SuppressWarnings("serial") final IModel<String> myModel = new Model<String>() {
       /**
        * @see org.apache.wicket.model.Model#getObject()
        */
       @Override
-      public String getObject()
-      {
+      public String getObject() {
         if (text != null && text.getObject() != null) {
           return HtmlHelper.escapeHtml(text.getObject(), true);
         }
@@ -926,13 +948,11 @@ public class WicketUtils
    * @param label
    * @return
    */
-  public static Component addEditableLabelDefaultTooltip(final Component label)
-  {
+  public static Component addEditableLabelDefaultTooltip(final Component label) {
     return addTooltip(label, label.getString("form.ajaxEditableLabel.tooltip"));
   }
 
-  public static Component setWarningTooltip(final Component component)
-  {
+  public static Component setWarningTooltip(final Component component) {
     component.add(AttributeModifier.append("class", "warning"));
     return component;
   }
@@ -943,8 +963,7 @@ public class WicketUtils
    * @param component
    * @return This for chaining.
    */
-  public static FormComponent<?> setReadonly(final FormComponent<?> component)
-  {
+  public static FormComponent<?> setReadonly(final FormComponent<?> component) {
     component.add(AttributeModifier.append("class", "readonly"));
     component.add(AttributeModifier.replace("readonly", "readonly"));
     return component;
@@ -958,8 +977,7 @@ public class WicketUtils
    * @param size
    * @return This for chaining.
    */
-  public static FormComponent<?> setSize(final FormComponent<?> component, final int size)
-  {
+  public static FormComponent<?> setSize(final FormComponent<?> component, final int size) {
     return setSize(component, size, true);
   }
 
@@ -972,8 +990,7 @@ public class WicketUtils
    * @param important If true then "!important" is appended to the width style (true is default).
    * @return This for chaining.
    */
-  public static FormComponent<?> setSize(final FormComponent<?> component, final int size, final boolean important)
-  {
+  public static FormComponent<?> setSize(final FormComponent<?> component, final int size, final boolean important) {
     if (component instanceof TextField) {
       component.add(AttributeModifier.replace("size", String.valueOf(size)));
     }
@@ -999,8 +1016,7 @@ public class WicketUtils
    * @param size
    * @return This for chaining.
    */
-  public static FormComponent<?> setPercentSize(final FormComponent<?> component, final int size)
-  {
+  public static FormComponent<?> setPercentSize(final FormComponent<?> component, final int size) {
     component.add(AttributeModifier.append("style", "width: " + size + "%;"));
     return component;
   }
@@ -1012,14 +1028,12 @@ public class WicketUtils
    * @param size
    * @return This for chaining.
    */
-  public static Component setFontSizeLarge(final Component component)
-  {
+  public static Component setFontSizeLarge(final Component component) {
     component.add(AttributeModifier.append("style", "font-size: 1.5em;"));
     return component;
   }
 
-  public static Component setStrong(final Component component)
-  {
+  public static Component setStrong(final Component component) {
     component.add(AttributeModifier.append("style", "font-weight: bold;"));
     return component;
   }
@@ -1031,8 +1045,7 @@ public class WicketUtils
    * @param size
    * @return This for chaining.
    */
-  public static FormComponent<?> setHeight(final FormComponent<?> component, final int height)
-  {
+  public static FormComponent<?> setHeight(final FormComponent<?> component, final int height) {
     component.add(AttributeModifier.append("style", "height: " + height + "ex;"));
     return component;
   }
@@ -1044,8 +1057,7 @@ public class WicketUtils
    * @param component
    * @return This for chaining.
    */
-  public static FormComponent<?> setFocus(final FormComponent<?> component)
-  {
+  public static FormComponent<?> setFocus(final FormComponent<?> component) {
     component.add(setFocus());
     return component;
   }
@@ -1055,8 +1067,7 @@ public class WicketUtils
    *
    * @return AttributeAppender
    */
-  public static Behavior setFocus()
-  {
+  public static Behavior setFocus() {
     return new FocusOnLoadBehavior();
   }
 
@@ -1067,8 +1078,7 @@ public class WicketUtils
    * @param label
    * @return
    */
-  public static String createMultipleFieldsetLabel(final String... labels)
-  {
+  public static String createMultipleFieldsetLabel(final String... labels) {
     return StringHelper.listToString("/", labels);
   }
 
@@ -1081,8 +1091,7 @@ public class WicketUtils
    * @return
    */
   public static Component createBooleanLabel(final RequestCycle requestCycle, final String componentId,
-      final boolean value)
-  {
+                                             final boolean value) {
     if (value == true) {
       return new IconPanel(componentId, IconType.ACCEPT);
     }
@@ -1096,13 +1105,12 @@ public class WicketUtils
    * @param comp
    * @param name Name of attribute.
    */
-  public static AttributeModifier getAttributeModifier(final Component comp, final String name)
-  {
+  public static AttributeModifier getAttributeModifier(final Component comp, final String name) {
     for (final Behavior behavior : comp.getBehaviors()) {
       if (behavior instanceof AttributeAppender && name.equals(((AttributeAppender) behavior).getAttribute()) == true) {
         return (AttributeAppender) behavior;
       } else if (behavior instanceof AttributeModifier
-          && name.equals(((AttributeModifier) behavior).getAttribute()) == true) {
+              && name.equals(((AttributeModifier) behavior).getAttribute()) == true) {
         return (AttributeModifier) behavior;
       }
     }
@@ -1116,8 +1124,7 @@ public class WicketUtils
    * @param component
    * @param responseItem Page or Component.
    */
-  public static void setResponsePage(final Component component, final Component responseItem)
-  {
+  public static void setResponsePage(final Component component, final Component responseItem) {
     if (responseItem instanceof Page) {
       component.setResponsePage((Page) responseItem);
     } else {
@@ -1131,20 +1138,17 @@ public class WicketUtils
    * @param component
    * @param callerPage Must be an instance of Component (otherwise a ClassCastException is thrown).
    */
-  public static void setResponsePage(final Component component, final ISelectCallerPage callerPage)
-  {
+  public static void setResponsePage(final Component component, final ISelectCallerPage callerPage) {
     setResponsePage(component, (Component) callerPage);
   }
 
-  public static AttributeModifier javaScriptConfirmDialogOnClick(final String message)
-  {
+  public static AttributeModifier javaScriptConfirmDialogOnClick(final String message) {
     final String escapedText = message.replace("'", "\'");
     return AttributeModifier.replace("onclick", "javascript:return showConfirmDialog('" + escapedText + "');");
   }
 
   @SuppressWarnings("unchecked")
-  public static void setLabel(final FormComponent<?> component, final Label label)
-  {
+  public static void setLabel(final FormComponent<?> component, final Label label) {
     final IModel<String> labelModel = (IModel<String>) label.getDefaultModel();
     if (component instanceof DatePanel) {
       ((DatePanel) component).getDateField().setLabel(labelModel);
@@ -1153,8 +1157,7 @@ public class WicketUtils
     }
   }
 
-  public static boolean isParent(final Component parent, final Component descendant)
-  {
+  public static boolean isParent(final Component parent, final Component descendant) {
     final MarkupContainer p = descendant.getParent();
     if (p == null) {
       return false;

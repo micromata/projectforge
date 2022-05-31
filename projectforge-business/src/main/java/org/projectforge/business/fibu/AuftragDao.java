@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,71 +23,56 @@
 
 package org.projectforge.business.fibu;
 
-import java.math.BigDecimal;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.Validate;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
-import org.projectforge.common.DatabaseDialect;
+import org.projectforge.common.i18n.MessageParam;
+import org.projectforge.common.i18n.MessageParamType;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.i18n.MessageParam;
-import org.projectforge.framework.i18n.MessageParamType;
-import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.persistence.api.*;
+import org.projectforge.framework.persistence.api.impl.DBPredicate;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.XmlObjectWriter;
+import org.projectforge.framework.xmlstream.XmlObjectWriter;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.Tuple;
+import javax.persistence.criteria.JoinType;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
-public class AuftragDao extends BaseDao<AuftragDO>
-{
+public class AuftragDao extends BaseDao<AuftragDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.PM_ORDER_BOOK;
 
   public final static int START_NUMBER = 1;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AuftragDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuftragDao.class);
 
-  private static final Class<?>[] ADDITIONAL_HISTORY_SEARCH_DOS = new Class[] { AuftragsPositionDO.class };
+  private static final Class<?>[] ADDITIONAL_HISTORY_SEARCH_DOS = new Class[]{AuftragsPositionDO.class};
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "contactPerson.username",
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"contactPerson.username",
       "contactPerson.firstname",
       "contactPerson.lastname", "kunde.name", "projekt.name", "projekt.kunde.name", "positionen.position",
       "positionen.art",
-      "positionen.status", "positionen.titel", "positionen.bemerkung", "positionen.nettoSumme" };
+      "positionen.status", "positionen.titel", "positionen.bemerkung", "positionen.nettoSumme"};
+
+  @Autowired
+  private AuftragsCache auftragsCache;
 
   @Autowired
   private UserDao userDao;
@@ -101,7 +86,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
   @Autowired
   private SendMail sendMail;
 
-  private Integer abgeschlossenNichtFakturiert;
+  private Integer toBeInvoicedCounter;
 
   @Autowired
   private TaskDao taskDao;
@@ -114,25 +99,22 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
   private TaskTree taskTree;
 
+  public AuftragDao() {
+    super(AuftragDO.class);
+    userRightId = USER_RIGHT_ID;
+  }
+
   /**
    * Could not use injection by spring, because TaskTree is already injected in AuftragDao.
    *
    * @param taskTree
    */
-  public void registerTaskTree(final TaskTree taskTree)
-  {
+  public void registerTaskTree(final TaskTree taskTree) {
     this.taskTree = taskTree;
   }
 
-  public AuftragDao()
-  {
-    super(AuftragDO.class);
-    userRightId = USER_RIGHT_ID;
-  }
-
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  public String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
@@ -141,23 +123,19 @@ public class AuftragDao extends BaseDao<AuftragDO>
    *
    * @return
    */
-  @SuppressWarnings("unchecked")
-  public int[] getYears()
-  {
-    final List<Object[]> list = getSession()
-        .createQuery("select min(angebotsDatum), max(angebotsDatum) from AuftragDO t").list();
-    return SQLHelper.getYears(list);
+  public int[] getYears() {
+    final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(AuftragDO.SELECT_MIN_MAX_DATE, Tuple.class));
+    return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
   }
 
   /**
    * @return Map with all order positions referencing a task. The key of the map is the task id.
    */
-  public Map<Integer, Set<AuftragsPositionVO>> getTaskReferences()
-  {
-    final Map<Integer, Set<AuftragsPositionVO>> result = new HashMap<Integer, Set<AuftragsPositionVO>>();
-    @SuppressWarnings("unchecked")
-    final List<AuftragsPositionDO> list = (List<AuftragsPositionDO>) getHibernateTemplate()
-        .find("from AuftragsPositionDO a where a.task.id is not null and a.deleted = false");
+  public Map<Integer, Set<AuftragsPositionVO>> getTaskReferences() {
+    final Map<Integer, Set<AuftragsPositionVO>> result = new HashMap<>();
+    final List<AuftragsPositionDO> list = em.createQuery(
+        "from AuftragsPositionDO a where a.task.id is not null and a.deleted = false",
+        AuftragsPositionDO.class).getResultList();
     if (list == null) {
       return result;
     }
@@ -170,7 +148,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
       final AuftragsPositionVO vo = new AuftragsPositionVO(pos);
       Set<AuftragsPositionVO> set = result.get(pos.getTaskId());
       if (set == null) {
-        set = new TreeSet<AuftragsPositionVO>();
+        set = new TreeSet<>();
         result.put(pos.getTaskId(), set);
       }
       set.add(vo);
@@ -178,33 +156,15 @@ public class AuftragDao extends BaseDao<AuftragDO>
     return result;
   }
 
-  public AuftragsStatistik buildStatistik(final List<AuftragDO> list)
-  {
-    final AuftragsStatistik stats = new AuftragsStatistik();
+  public AuftragsStatistik buildStatistik(final List<AuftragDO> list) {
+    final AuftragsStatistik stats = new AuftragsStatistik(auftragsCache);
     if (list == null) {
       return stats;
     }
     for (final AuftragDO auftrag : list) {
-      calculateInvoicedSum(auftrag);
       stats.add(auftrag);
     }
     return stats;
-  }
-
-  /**
-   * Get all invoices and set the field fakturiertSum for every order of the given col.
-   *
-   * @param col
-   * @see RechnungCache#getRechnungsPositionVOSetByAuftragsPositionId(Integer)
-   */
-  public void calculateInvoicedSum(final Collection<AuftragDO> col)
-  {
-    if (col == null) {
-      return;
-    }
-    for (final AuftragDO auftrag : col) {
-      calculateInvoicedSum(auftrag);
-    }
   }
 
   /**
@@ -213,18 +173,17 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param order
    * @see RechnungCache#getRechnungsPositionVOSetByAuftragsPositionId(Integer)
    */
-  public void calculateInvoicedSum(final AuftragDO order)
-  {
+  public void calculateInvoicedSum(final AuftragDO order) {
     if (order == null) {
       return;
     }
-    if (order.getPositionenExcludingDeleted() != null) {
-      for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
-        final Set<RechnungsPositionVO> set = rechnungCache
-            .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
-        if (set != null) {
-          pos.setFakturiertSum(RechnungDao.getNettoSumme(set));
-        }
+    auftragsCache.setExpired(order);   // Refresh cache
+    auftragsCache.setValues(order);    // Get and set new values.
+    for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
+      final Set<RechnungsPositionVO> set = rechnungCache
+          .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
+      if (set != null) {
+        pos.setInvoicedSum(RechnungDao.getNettoSumme(set));
       }
     }
   }
@@ -234,8 +193,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param contactPersonId If null, then contact person will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setContactPerson(final AuftragDO auftrag, final Integer contactPersonId)
-  {
+  public void setContactPerson(final AuftragDO auftrag, final Integer contactPersonId) {
     if (contactPersonId == null) {
       auftrag.setContactPerson(null);
     } else {
@@ -249,8 +207,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param taskId
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setTask(final AuftragsPositionDO position, final Integer taskId)
-  {
+  public void setTask(final AuftragsPositionDO position, final Integer taskId) {
     final TaskDO task = taskDao.getOrLoad(taskId);
     position.setTask(task);
   }
@@ -260,8 +217,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param kundeId If null, then kunde will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setKunde(final AuftragDO auftrag, final Integer kundeId)
-  {
+  public void setKunde(final AuftragDO auftrag, final Integer kundeId) {
     final KundeDO kunde = kundeDao.getOrLoad(kundeId);
     auftrag.setKunde(kunde);
   }
@@ -271,8 +227,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param projektId If null, then projekt will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setProjekt(final AuftragDO auftrag, final Integer projektId)
-  {
+  public void setProjekt(final AuftragDO auftrag, final Integer projektId) {
     final ProjektDO projekt = projektDao.getOrLoad(projektId);
     auftrag.setProjekt(projekt);
   }
@@ -280,11 +235,9 @@ public class AuftragDao extends BaseDao<AuftragDO>
   /**
    * @param posString Format ###.## (&lt;order number&gt;.&lt;position number&gt;).
    */
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public AuftragsPositionDO getAuftragsPosition(final String posString)
-  {
-    Integer auftragsNummer = null;
-    Short positionNummer = null;
+  public AuftragsPositionDO getAuftragsPosition(final String posString) {
+    Integer auftragsNummer;
+    Short positionNummer;
     if (posString == null) {
       return null;
     }
@@ -298,42 +251,46 @@ public class AuftragDao extends BaseDao<AuftragDO>
       log.info("Cannot parse order number (format ###.## expected: " + posString);
       return null;
     }
-    @SuppressWarnings("unchecked")
-    final List<AuftragDO> list = (List<AuftragDO>) getHibernateTemplate().find("from AuftragDO k where k.nummer=?",
-        auftragsNummer);
-    if (CollectionUtils.isEmpty(list) == true) {
-      return null;
-    }
-    return list.get(0).getPosition(positionNummer);
+    final AuftragDO auftrag = SQLHelper.ensureUniqueResult(
+        em
+            .createNamedQuery(AuftragDO.FIND_BY_NUMMER, AuftragDO.class)
+            .setParameter("nummer", auftragsNummer));
+    return auftrag != null ? auftrag.getPosition(positionNummer) : null;
   }
 
-  public synchronized int getAbgeschlossenNichtFakturiertAnzahl()
-  {
-    if (abgeschlossenNichtFakturiert != null) {
-      return abgeschlossenNichtFakturiert;
+  public AuftragsPositionDO getAuftragsPosition(final Integer id) {
+    return SQLHelper.ensureUniqueResult(
+        em
+            .createNamedQuery(AuftragsPositionDO.FIND_BY_ID, AuftragsPositionDO.class)
+            .setParameter("id", id));
+  }
+
+  /**
+   * Number of all orders (finished, signed or escalated) which has to be invoiced.
+   */
+  public synchronized int getToBeInvoicedCounter() {
+    if (toBeInvoicedCounter != null) {
+      return toBeInvoicedCounter;
     }
     final AuftragFilter filter = new AuftragFilter();
-    filter.getAuftragsStatuses().add(AuftragsStatus.ABGESCHLOSSEN);
-    filter.setAuftragFakturiertFilterStatus(AuftragFakturiertFilterStatus.NICHT_FAKTURIERT);
+    filter.setAuftragFakturiertFilterStatus(AuftragFakturiertFilterStatus.ZU_FAKTURIEREN);
     try {
       final List<AuftragDO> list = getList(filter, false);
-      abgeschlossenNichtFakturiert = list != null ? list.size() : 0;
-      return abgeschlossenNichtFakturiert;
+      toBeInvoicedCounter = list != null ? list.size() : 0;
+      return toBeInvoicedCounter;
     } catch (final Exception ex) {
-      log.error("Exception ocurred while getting number of closed and not invoiced orders: " + ex.getMessage(), ex);
+      log.error("Exception occured while getting number of closed and not invoiced orders: " + ex.getMessage(), ex);
       // Exception e. g. if data-base update is needed.
       return 0;
     }
   }
 
   @Override
-  public List<AuftragDO> getList(final BaseSearchFilter filter)
-  {
+  public List<AuftragDO> getList(final BaseSearchFilter filter) {
     return getList(filter, true);
   }
 
-  private List<AuftragDO> getList(final BaseSearchFilter filter, final boolean checkAccess)
-  {
+  private List<AuftragDO> getList(final BaseSearchFilter filter, final boolean checkAccess) {
     final AuftragFilter myFilter;
     if (filter instanceof AuftragFilter) {
       myFilter = (AuftragFilter) filter;
@@ -343,15 +300,29 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
     final QueryFilter queryFilter = new QueryFilter(myFilter);
 
-    addCriterionForAuftragsStatuses(myFilter, queryFilter);
+    boolean positionStatusAlreadyFilterd = false;
+    queryFilter.createJoin("positionen");
+    if (myFilter.getAuftragFakturiertFilterStatus() == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
+      // Show all orders to be invoiced (ignore status values on orders and their positions).
+      queryFilter.createJoin("paymentSchedules", JoinType.LEFT);
+      queryFilter.add(
+          QueryFilter.or(
+              QueryFilter.eq("auftragsStatus", AuftragsStatus.ABGESCHLOSSEN),
+              QueryFilter.eq("positionen.status", AuftragsPositionsStatus.ABGESCHLOSSEN),
+              QueryFilter.eq("paymentSchedules.reached", true)
+          ));
+    } else {
+      addCriterionForAuftragsStatuses(myFilter, queryFilter);
+      positionStatusAlreadyFilterd = true;
+    }
 
     if (myFilter.getUser() != null) {
       queryFilter.add(
-          Restrictions.or(
-              Restrictions.eq("contactPerson", myFilter.getUser()),
-              Restrictions.eq("projectManager", myFilter.getUser()),
-              Restrictions.eq("headOfBusinessManager", myFilter.getUser()),
-              Restrictions.eq("salesManager", myFilter.getUser())
+          QueryFilter.or(
+              QueryFilter.eq("contactPerson", myFilter.getUser()),
+              QueryFilter.eq("projectManager", myFilter.getUser()),
+              QueryFilter.eq("headOfBusinessManager", myFilter.getUser()),
+              QueryFilter.eq("salesManager", myFilter.getUser())
           )
       );
     }
@@ -360,161 +331,101 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
     AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
 
-    queryFilter.addOrder(Order.desc("nummer"));
+    queryFilter.addOrder(SortProperty.desc("nummer"));
 
-    final List<AuftragDO> list;
-    if (checkAccess == true) {
+    List<AuftragDO> list;
+    if (checkAccess) {
       list = getList(queryFilter);
     } else {
       list = internalGetList(queryFilter);
     }
 
-    filterFakturiert(myFilter, list);
+    list = myFilter.filterFakturiert(list);
 
-    filterPositionsArten(myFilter, list);
-
-    if (myFilter.getAuftragsPositionsPaymentType() != null) {
-      CollectionUtils.filter(list, object -> {
-        final AuftragDO auftrag = (AuftragDO) object;
-        boolean match = false;
-        if (myFilter.getAuftragsPositionsPaymentType() != null) {
-          if (CollectionUtils.isNotEmpty(auftrag.getPositionenExcludingDeleted()) == true) {
-            for (final AuftragsPositionDO position : auftrag.getPositionenExcludingDeleted()) {
-              if (myFilter.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
-                match = true;
-                break;
-              }
-            }
-          }
-        }
-        return match;
-      });
+    if (myFilter.getAuftragFakturiertFilterStatus() != AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
+      // Don't use filter for orders to be invoiced.
+      list = new ArrayList(list); // Make mutable list of Kotlin's immutable list.
+      filterPositionsArten(myFilter, list);
+      if (!positionStatusAlreadyFilterd) { // Don't filter position status' again.
+        filterPositionsStatus(myFilter, list);
+      }
+      filterPositionsPaymentTypes(myFilter, list);
     }
 
     return list;
   }
 
-  private void addCriterionForAuftragsStatuses(final AuftragFilter myFilter, final QueryFilter queryFilter)
-  {
+  private void addCriterionForAuftragsStatuses(final AuftragFilter myFilter, final QueryFilter queryFilter) {
     final Collection<AuftragsStatus> auftragsStatuses = myFilter.getAuftragsStatuses();
     if (CollectionUtils.isEmpty(auftragsStatuses)) {
       // nothing to do
       return;
     }
+    final List<DBPredicate> orCriterions = new ArrayList<>();
 
-    final List<Criterion> orCriterions = new ArrayList<>();
-    orCriterions.add(Restrictions.in("auftragsStatus", auftragsStatuses));
-    orCriterions.add(Restrictions.in("position.status", auftragsStatuses));
+    orCriterions.add(QueryFilter.isIn("auftragsStatus", auftragsStatuses));
 
-    // special case
-    if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
-      orCriterions.add(Restrictions.eq("paymentSchedule.reached", true));
-      queryFilter.createAlias("paymentSchedules", "paymentSchedule", Criteria.FULL_JOIN);
-    }
+    orCriterions.add(QueryFilter.isIn("positionen.status", myFilter.getAuftragsPositionStatuses()));
 
-    queryFilter
-        .createAlias("positionen", "position", Criteria.FULL_JOIN)
-        .add(Restrictions.or(orCriterions.toArray(new Criterion[orCriterions.size()])));
+    queryFilter.add(QueryFilter.or(orCriterions.toArray(new DBPredicate[orCriterions.size()])));
 
     // check deleted
-    if (myFilter.isIgnoreDeleted() == false) {
-      queryFilter.add(Restrictions.eq("position.deleted", myFilter.isDeleted()));
+    if (!myFilter.isIgnoreDeleted()) {
+      queryFilter.add(QueryFilter.eq("positionen.deleted", myFilter.isDeleted()));
     }
   }
 
-  private Optional<Criterion> createCriterionForErfassungsDatum(final AuftragFilter myFilter)
-  {
-    final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
-    final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
+  private Optional<DBPredicate> createCriterionForErfassungsDatum(final AuftragFilter myFilter) {
+    final LocalDate startDate = myFilter.getStartDate();
+    final LocalDate endDate = myFilter.getEndDate();
 
     if (startDate != null && endDate != null) {
       return Optional.of(
-          Restrictions.between("erfassungsDatum", startDate, endDate)
+          QueryFilter.between("erfassungsDatum", startDate, endDate)
       );
     }
 
     if (startDate != null) {
       return Optional.of(
-          Restrictions.ge("erfassungsDatum", startDate)
+          QueryFilter.ge("erfassungsDatum", startDate)
       );
     }
 
     if (endDate != null) {
       return Optional.of(
-          Restrictions.le("erfassungsDatum", endDate)
+          QueryFilter.le("erfassungsDatum", endDate)
       );
     }
 
     return Optional.empty();
   }
 
-  private void filterFakturiert(final AuftragFilter myFilter, final List<AuftragDO> list)
-  {
-    final AuftragFakturiertFilterStatus auftragFakturiertFilterStatus = myFilter.getAuftragFakturiertFilterStatus();
-    if (auftragFakturiertFilterStatus == null || auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ALL) {
-      // do not filter
+  private void filterPositionsArten(final AuftragFilter myFilter, final List<AuftragDO> list) {
+    if (CollectionUtils.isEmpty(myFilter.getAuftragsPositionsArten())) {
       return;
     }
-
-    boolean vollstaendigFakturiert = (AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus);
-
-    CollectionUtils.filter(list, object -> {
-      final AuftragDO auftrag = (AuftragDO) object;
-      final boolean orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert();
-
-      // special case
-      if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
-          vollstaendigFakturiert == false && myFilter.getAuftragsStatuses().contains(AuftragsStatus.ABGESCHLOSSEN)) {
-
-        // if order is completed and not all positions are completely invoiced
-        if (auftrag.getAuftragsStatus() == AuftragsStatus.ABGESCHLOSSEN && orderIsCompletelyInvoiced == false) {
-          return true;
-        }
-
-        // if order is completed and not completely invoiced
-        if (auftrag.getPositionenExcludingDeleted() != null) {
-          for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
-            if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert()) {
-              return true;
-            }
-          }
-        }
-
-        if (auftrag.getPaymentSchedules() != null) {
-          for (final PaymentScheduleDO schedule : auftrag.getPaymentSchedules()) {
-            if (schedule.isReached() && schedule.isVollstaendigFakturiert() == false) {
-              return true;
-            }
-          }
-        }
-
-        return false;
-      }
-
-      return orderIsCompletelyInvoiced == vollstaendigFakturiert;
-    });
+    final AuftragsPositionsArtFilter artFilter = new AuftragsPositionsArtFilter(myFilter.getAuftragsPositionsArten());
+    CollectionUtils.filter(list, object -> artFilter.match(list, (AuftragDO) object));
   }
 
-  private void filterPositionsArten(final AuftragFilter myFilter, final List<AuftragDO> list)
-  {
-    final Collection<AuftragsPositionsArt> auftragsPositionsArten = myFilter.getAuftragsPositionsArten();
-
-    if (CollectionUtils.isNotEmpty(auftragsPositionsArten)) {
-      CollectionUtils.filter(list, object -> {
-        final List<AuftragsPositionDO> positionen = ((AuftragDO) object).getPositionenExcludingDeleted();
-
-        // check if any of the current positions contains at least one AuftragsPositionsArt of the auftragsPositionsArten of the filter
-        return CollectionUtils.isNotEmpty(positionen) && positionen.stream()
-            .map(AuftragsPositionDO::getArt)
-            .anyMatch(positionsArt -> auftragsPositionsArten.stream().anyMatch(art -> art == positionsArt));
-      });
+  private void filterPositionsStatus(final AuftragFilter myFilter, final List<AuftragDO> list) {
+    if (CollectionUtils.isEmpty(myFilter.getAuftragsPositionStatuses())) {
+      return;
     }
+    final AuftragsPositionsStatusFilter statusFilter = new AuftragsPositionsStatusFilter(myFilter.getAuftragsPositionStatuses());
+    CollectionUtils.filter(list, object -> statusFilter.match(list, (AuftragDO) object));
   }
 
-  @SuppressWarnings("unchecked")
+  private void filterPositionsPaymentTypes(final AuftragFilter myFilter, final List<AuftragDO> list) {
+    if (myFilter.getAuftragsPositionsPaymentType() == null) {
+      return;
+    }
+    final AuftragsPositionsPaymentTypeFilter paymentTypeFilter = AuftragsPositionsPaymentTypeFilter.create(myFilter.getAuftragsPositionsPaymentType());
+    CollectionUtils.filter(list, object -> paymentTypeFilter.match(list, (AuftragDO) object));
+  }
+
   @Override
-  protected void onSaveOrModify(final AuftragDO obj)
-  {
+  protected void onSaveOrModify(final AuftragDO obj) {
     if (obj.getNummer() == null) {
       throw new UserException("validation.required.valueNotPresent",
           new MessageParam("fibu.auftrag.nummer", MessageParamType.I18N_KEY));
@@ -526,32 +437,32 @@ public class AuftragDao extends BaseDao<AuftragDO>
         throw new UserException("fibu.auftrag.error.nummerIstNichtFortlaufend");
       }
     } else {
-      final List<RechnungDO> list = (List<RechnungDO>) getHibernateTemplate().find(
-          "from AuftragDO r where r.nummer = ? and r.id <> ?",
-          new Object[] { obj.getNummer(), obj.getId() });
-      if (list != null && list.size() > 0) {
+      final AuftragDO other = SQLHelper.ensureUniqueResult(em.createNamedQuery(AuftragDO.FIND_OTHER_BY_NUMMER, AuftragDO.class)
+          .setParameter("nummer", obj.getNummer())
+          .setParameter("id", obj.getId()));
+      if (other != null) {
         throw new UserException("fibu.auftrag.error.nummerBereitsVergeben");
       }
     }
-    if (CollectionUtils.isEmpty(obj.getPositionenIncludingDeleted()) == true) {
+    if (CollectionUtils.isEmpty(obj.getPositionenIncludingDeleted())) {
       throw new UserException("fibu.auftrag.error.auftragHatKeinePositionen");
     }
     final int size = obj.getPositionenIncludingDeleted().size();
     for (int i = size - 1; i > 0; i--) {
       // Don't remove first position, remove only the last empty positions.
       final AuftragsPositionDO position = obj.getPositionenIncludingDeleted().get(i);
-      if (position.getId() == null && position.isEmpty() == true) {
+      if (position.getId() == null && position.isEmpty()) {
         obj.getPositionenIncludingDeleted().remove(i);
       } else {
         break;
       }
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted()) == true) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted())) {
       for (final AuftragsPositionDO position : obj.getPositionenIncludingDeleted()) {
         position.checkVollstaendigFakturiert();
       }
     }
-    abgeschlossenNichtFakturiert = null;
+    toBeInvoicedCounter = null;
     final String uiStatusAsXml = XmlObjectWriter.writeAsXml(obj.getUiStatus());
     obj.setUiStatusAsXml(uiStatusAsXml);
     final List<PaymentScheduleDO> paymentSchedules = obj.getPaymentSchedules();
@@ -560,7 +471,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
       for (int i = pmSize - 1; i > 0; i--) {
         // Don't remove first payment schedule, remove only the last empty payment schedules.
         final PaymentScheduleDO schedule = obj.getPaymentSchedules().get(i);
-        if (schedule.getId() == null && schedule.isEmpty() == true) {
+        if (schedule.getId() == null && schedule.isEmpty()) {
           obj.getPaymentSchedules().remove(i);
         } else {
           break;
@@ -571,8 +482,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(obj);
   }
 
-  void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(final AuftragDO auftrag)
-  {
+  void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(final AuftragDO auftrag) {
     final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedules();
     if (paymentSchedules == null) {
       // if there are no payment schedules, there are no dates which are not within the period of performance
@@ -581,21 +491,27 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
     final List<Short> positionsWithDatesNotWithinPop = new ArrayList<>();
     for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
-      final Date periodOfPerformanceBegin = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceBegin() : auftrag.getPeriodOfPerformanceBegin();
-      final Date periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
+      final LocalDate periodOfPerformanceBegin = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceBegin() : auftrag.getPeriodOfPerformanceBegin();
+      LocalDate periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
+      if (periodOfPerformanceEnd != null) {
+        // Payments milestones are allowed inside period of performance plus 3 months:
+        periodOfPerformanceEnd = periodOfPerformanceEnd.plusMonths(3);
+      }
+      final LocalDate lastInvoiceDate = periodOfPerformanceEnd;
 
       final boolean hasDateNotInRange = paymentSchedules.stream()
           .filter(payment -> payment.getPositionNumber() == pos.getNumber())
           .map(PaymentScheduleDO::getScheduleDate)
           .filter(Objects::nonNull)
-          .anyMatch(date -> date.before(periodOfPerformanceBegin) || date.after(periodOfPerformanceEnd));
+          .anyMatch(date -> (periodOfPerformanceBegin != null && date.isBefore(periodOfPerformanceBegin))
+              || (lastInvoiceDate != null && date.isAfter(lastInvoiceDate)));
 
       if (hasDateNotInRange) {
         positionsWithDatesNotWithinPop.add(pos.getNumber());
       }
     }
 
-    if (positionsWithDatesNotWithinPop.isEmpty() == false) {
+    if (!positionsWithDatesNotWithinPop.isEmpty()) {
       final String positions = positionsWithDatesNotWithinPop.stream()
           .map(Object::toString)
           .collect(Collectors.joining(", "));
@@ -604,8 +520,13 @@ public class AuftragDao extends BaseDao<AuftragDO>
     }
   }
 
-  void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(final AuftragDO auftrag)
-  {
+  @Override
+  protected void afterUpdate(AuftragDO obj, AuftragDO dbObj) {
+    super.afterUpdate(obj, dbObj);
+    auftragsCache.setExpired(obj);
+  }
+
+  void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(final AuftragDO auftrag) {
     final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedules();
     if (paymentSchedules == null) {
       // if there are no payment schedules, there are no amounts which can be greater -> validation OK
@@ -620,15 +541,15 @@ public class AuftragDao extends BaseDao<AuftragDO>
           .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
 
       final BigDecimal netSum = pos.getNettoSumme();
-      if (netSum != null && sumOfAmountsForCurrentPosition.compareTo(netSum) > 0) {
+      if (netSum != null && netSum.compareTo(BigDecimal.ZERO) > 0 && sumOfAmountsForCurrentPosition.compareTo(netSum) > 0) {
+        // Only for positive netSum's:
         throw new UserException("fibu.auftrag.error.amountsInPaymentScheduleAreGreaterThanNetSumOfPosition", pos.getNumber());
       }
     }
   }
 
   @Override
-  protected void afterSaveOrModify(final AuftragDO obj)
-  {
+  protected void afterSaveOrModify(final AuftragDO obj) {
     super.afterSaveOrModify(obj);
     if (taskTree != null) {
       taskTree.refreshOrderPositionReferences();
@@ -636,12 +557,10 @@ public class AuftragDao extends BaseDao<AuftragDO>
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#prepareHibernateSearch(org.projectforge.core.ExtendedBaseDO,
-   * org.projectforge.framework.access.OperationType)
+   * @see org.projectforge.framework.persistence.api.BaseDao#prepareHibernateSearch(ExtendedBaseDO, OperationType)
    */
   @Override
-  protected void prepareHibernateSearch(final AuftragDO obj, final OperationType operationType)
-  {
+  protected void prepareHibernateSearch(final AuftragDO obj, final OperationType operationType) {
     projektDao.initializeProjektManagerGroup(obj.getProjekt());
   }
 
@@ -654,24 +573,23 @@ public class AuftragDao extends BaseDao<AuftragDO>
    */
 
   public boolean sendNotificationIfRequired(final AuftragDO auftrag, final OperationType operationType,
-      final String requestUrl)
-  {
-    if (configurationService.isSendMailConfigured() == false) {
+                                            final String requestUrl) {
+    if (!configurationService.isSendMailConfigured()) {
       return false;
     }
     final PFUserDO contactPerson = auftrag.getContactPerson();
     if (contactPerson == null) {
       return false;
     }
-    if (hasAccess(contactPerson, auftrag, null, OperationType.SELECT, false) == false) {
+    if (!hasAccess(contactPerson, auftrag, null, OperationType.SELECT, false)) {
       return false;
     }
-    final Map<String, Object> data = new HashMap<String, Object>();
+    final Map<String, Object> data = new HashMap<>();
     data.put("contactPerson", contactPerson);
     data.put("auftrag", auftrag);
     data.put("requestUrl", requestUrl);
     final List<DisplayHistoryEntry> history = getDisplayHistoryEntries(auftrag);
-    final List<DisplayHistoryEntry> list = new ArrayList<DisplayHistoryEntry>();
+    final List<DisplayHistoryEntry> list = new ArrayList<>();
     int i = 0;
     for (final DisplayHistoryEntry entry : history) {
       list.add(entry);
@@ -692,10 +610,18 @@ public class AuftragDao extends BaseDao<AuftragDO>
     }
     msg.setProjectForgeSubject(subject);
     data.put("subject", subject);
-    final String content = sendMail.renderGroovyTemplate(msg, "mail/orderChangeNotification.html", data, contactPerson);
+    final String content = sendMail.renderGroovyTemplate(msg, "mail/orderChangeNotification.html", data, I18nHelper.getLocalizedMessage("fibu.auftrag"), contactPerson);
     msg.setContent(content);
     msg.setContentType(Mail.CONTENTTYPE_HTML);
     return sendMail.send(msg, null, null);
+  }
+
+  /**
+   * Gets the highest Auftragsnummer.
+   */
+  @SuppressWarnings("unchecked")
+  public Integer getNextNumber() {
+    return getNextNumber(null);
   }
 
   /**
@@ -706,17 +632,15 @@ public class AuftragDao extends BaseDao<AuftragDO>
    *                Auftrag bekommt die alte Nummer wieder zugeordnet.
    */
   @SuppressWarnings("unchecked")
-  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-  public Integer getNextNumber(final AuftragDO auftrag)
-  {
-    if (auftrag.getId() != null) {
+  public Integer getNextNumber(final AuftragDO auftrag) {
+    if (auftrag != null && auftrag.getId() != null) {
       final AuftragDO orig = internalGetById(auftrag.getId());
       if (orig.getNummer() != null) {
         auftrag.setNummer(orig.getNummer());
         return orig.getNummer();
       }
     }
-    final List<Integer> list = getSession().createQuery("select max(t.nummer) from AuftragDO t").list();
+    final List<Integer> list = em.createQuery("select max(t.nummer) from AuftragDO t").getResultList();
     Validate.notNull(list);
     if (list.size() == 0 || list.get(0) == null) {
       log.info("First entry of AuftragDO");
@@ -727,18 +651,17 @@ public class AuftragDao extends BaseDao<AuftragDO>
   }
 
   /**
-   * Gets history entries of super and adds all history entries of the AuftragsPositionDO childs.
+   * Gets history entries of super and adds all history entries of the AuftragsPositionDO children.
    *
-   * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(ExtendedBaseDO)
    */
   @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final AuftragDO obj)
-  {
+  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final AuftragDO obj) {
     final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
-    if (hasLoggedInUserHistoryAccess(obj, false) == false) {
+    if (!hasLoggedInUserHistoryAccess(obj, false)) {
       return list;
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted()) == true) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted())) {
       for (final AuftragsPositionDO position : obj.getPositionenIncludingDeleted()) {
         final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
         for (final DisplayHistoryEntry entry : entries) {
@@ -752,7 +675,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
         list.addAll(entries);
       }
     }
-    if (CollectionUtils.isNotEmpty(obj.getPaymentSchedules()) == true) {
+    if (CollectionUtils.isNotEmpty(obj.getPaymentSchedules())) {
       for (final PaymentScheduleDO schedule : obj.getPaymentSchedules()) {
         final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(schedule);
         for (final DisplayHistoryEntry entry : entries) {
@@ -766,37 +689,27 @@ public class AuftragDao extends BaseDao<AuftragDO>
         list.addAll(entries);
       }
     }
-    Collections.sort(list, new Comparator<DisplayHistoryEntry>()
-    {
-      @Override
-      public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2)
-      {
-        return (o2.getTimestamp().compareTo(o1.getTimestamp()));
-      }
-    });
+    list.sort((o1, o2) -> (o2.getTimestamp().compareTo(o1.getTimestamp())));
     return list;
   }
 
   @Override
-  protected Class<?>[] getAdditionalHistorySearchDOs()
-  {
+  protected Class<?>[] getAdditionalHistorySearchDOs() {
     return ADDITIONAL_HISTORY_SEARCH_DOS;
   }
 
   /**
    * Returns also true, if idSet contains the id of any order position.
    *
-   * @see org.projectforge.framework.persistence.api.BaseDao#contains(java.util.Set,
-   * org.projectforge.core.ExtendedBaseDO)
+   * @see org.projectforge.framework.persistence.api.BaseDao#contains(Set, ExtendedBaseDO)
    */
   @Override
-  protected boolean contains(final Set<Integer> idSet, final AuftragDO entry)
-  {
-    if (super.contains(idSet, entry) == true) {
+  public boolean contains(final Set<Integer> idSet, final AuftragDO entry) {
+    if (super.contains(idSet, entry)) {
       return true;
     }
     for (final AuftragsPositionDO pos : entry.getPositionenIncludingDeleted()) {
-      if (idSet.contains(pos.getId()) == true) {
+      if (idSet.contains(pos.getId())) {
         return true;
       }
     }
@@ -804,17 +717,12 @@ public class AuftragDao extends BaseDao<AuftragDO>
   }
 
   @Override
-  public AuftragDO newInstance()
-  {
-    return new AuftragDO();
+  protected ModificationStatus copyValues(AuftragDO src, AuftragDO dest, String... ignoreFields) {
+    return super.copyValues(src, dest, "uiStatus", "fakturiertSum");
   }
 
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
-   */
   @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
-    return true;
+  public AuftragDO newInstance() {
+    return new AuftragDO();
   }
 }

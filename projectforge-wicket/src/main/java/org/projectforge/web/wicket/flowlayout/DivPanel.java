@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -42,7 +42,7 @@ import org.projectforge.web.wicket.bootstrap.GridType;
  */
 public class DivPanel extends Panel
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DivPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DivPanel.class);
 
   private static final long serialVersionUID = 6130552547273354134L;
 
@@ -160,10 +160,10 @@ public class DivPanel extends Panel
    * @see org.apache.wicket.MarkupContainer#add(org.apache.wicket.Component[])
    */
   @Override
-  public DivPanel add(final Component... childs)
+  public DivPanel add(final Component... children)
   {
     if (WebConfiguration.isDevelopmentMode() == true) {
-      for (final Component child : childs) {
+      for (final Component child : children) {
         if (child instanceof CheckBoxButton) {
           if (buttonGroup == false) {
             log.warn("*** Dear developer: this DivPanel should be use css class "
@@ -180,7 +180,7 @@ public class DivPanel extends Panel
         }
       }
     }
-    repeater.add(childs);
+    repeater.add(children);
     return this;
 
   }
@@ -261,7 +261,7 @@ public class DivPanel extends Panel
     }
   }
 
-  public boolean hasChilds()
+  public boolean hasChildren()
   {
     return childCounter > 0;
   }

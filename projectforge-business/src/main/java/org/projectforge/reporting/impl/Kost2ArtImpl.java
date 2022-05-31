@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,11 @@
 
 package org.projectforge.reporting.impl;
 
-import java.io.Serializable;
-
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.common.StringHelper;
 import org.projectforge.reporting.Kost2Art;
+
+import java.io.Serializable;
 
 
 /**
@@ -87,7 +87,7 @@ public class Kost2ArtImpl implements Kost2Art, Comparable<Kost2ArtImpl>, Seriali
 
   public boolean isProjektStandard()
   {
-    return kost2ArtDO.isProjektStandard();
+    return kost2ArtDO.getProjektStandard();
   }
 
   public String getDescription()
@@ -97,7 +97,7 @@ public class Kost2ArtImpl implements Kost2Art, Comparable<Kost2ArtImpl>, Seriali
 
   public boolean isFakturiert()
   {
-    return kost2ArtDO.isFakturiert();
+    return kost2ArtDO.getFakturiert();
   }
 
   public Integer getId()

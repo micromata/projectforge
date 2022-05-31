@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.Model;
@@ -31,14 +30,16 @@ import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.AmountType;
 import org.projectforge.business.fibu.PaymentStatus;
 import org.projectforge.business.utils.CurrencyFormatter;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
-import org.projectforge.web.wicket.flowlayout.TextStyle;
+import org.projectforge.web.wicket.components.LocalDateModel;
+import org.projectforge.web.wicket.components.LocalDatePanel;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
+
+import java.time.LocalDate;
 
 /**
  * The list formular for the list view (this example has no filter settings). See ToDoListPage for seeing how to use
@@ -46,70 +47,77 @@ import org.projectforge.web.wicket.flowlayout.TextStyle;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, LiquidityEntryListPage>
-{
+public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, LiquidityEntryListPage> {
   private static final long serialVersionUID = 2040255193023406307L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LiquidityEntryListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LiquidityEntryListForm.class);
 
-  public LiquidityEntryListForm(final LiquidityEntryListPage parentPage)
-  {
+  public LiquidityEntryListForm(final LiquidityEntryListPage parentPage) {
     super(parentPage);
   }
 
-  private LiquidityEntriesStatistics getStats()
-  {
+  private LiquidityEntriesStatistics getStats() {
     return parentPage.getStatistics();
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractListForm#init()
-   */
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
+    gridBuilder.newGridPanel();
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.liquidityplanning.forecast.baseDate"));
+      final FieldProperties<LocalDate> props = getBaseDateProperties();
+      LocalDatePanel baseDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
+      baseDatePanel.setRequired(false);
+      fs.add(baseDatePanel);
+      fs.addHelpIcon(getString("plugins.liquidityplanning.forecast.baseDate.tooltip"));
+    }
     gridBuilder.newGridPanel();
     {
       // Statistics
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
+          return "*** " + getString("plugins.liquidityplanning.forecast.baseDate") + ": " + PFDay.fromOrNow(getSearchFilter().getBaseDate()).format() + " ***"
+                  + WebConstants.HTML_TEXT_DIVIDER;
+        }
+      }, TextStyle.RED) {
+        @Override
+        public boolean isVisible() {
+          final LocalDate baseDate = getSearchFilter().getBaseDate();
+          return baseDate != null && baseDate.isBefore(LocalDate.now());
+        }
+      });
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+        @Override
+        public String getObject() {
           return getString("fibu.rechnung.status.bezahlt")
-              + ": "
-              + CurrencyFormatter.format(getStats().getPaid())
-              + WebConstants.HTML_TEXT_DIVIDER;
+                  + ": "
+                  + CurrencyFormatter.format(getStats().getPaid())
+                  + WebConstants.HTML_TEXT_DIVIDER;
         }
       }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return getString("totalSum") + ": " + CurrencyFormatter.format(getStats().getTotal())
-              + WebConstants.HTML_TEXT_DIVIDER;
+                  + WebConstants.HTML_TEXT_DIVIDER;
         }
       }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return getString("fibu.rechnung.offen") + ": " + CurrencyFormatter.format(getStats().getOpen())
-              + WebConstants.HTML_TEXT_DIVIDER;
+                  + WebConstants.HTML_TEXT_DIVIDER;
         }
       }, TextStyle.BLUE));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
-        public String getObject()
-        {
+        public String getObject() {
           return getString("fibu.rechnung.filter.ueberfaellig") + ": "
-              + CurrencyFormatter.format(getStats().getOverdue());
+                  + CurrencyFormatter.format(getStats().getOverdue());
         }
       }, TextStyle.RED));
     }
@@ -121,10 +129,9 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
    */
   @SuppressWarnings("serial")
   @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
-  {
+  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
     // DropDownChoice next days
-    final LabelValueChoiceRenderer<Integer> nextDaysRenderer = new LabelValueChoiceRenderer<Integer>();
+    final LabelValueChoiceRenderer<Integer> nextDaysRenderer = new LabelValueChoiceRenderer<>();
     nextDaysRenderer.addValue(0, getString("filter.all"));
     nextDaysRenderer.addValue(7, getLocalizedMessage("search.nextDays", 7));
     nextDaysRenderer.addValue(10, getLocalizedMessage("search.nextDays", 10));
@@ -132,54 +139,92 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
     nextDaysRenderer.addValue(30, getLocalizedMessage("search.nextDays", 30));
     nextDaysRenderer.addValue(60, getLocalizedMessage("search.nextDays", 60));
     nextDaysRenderer.addValue(90, getLocalizedMessage("search.nextDays", 90));
-    final DropDownChoice<Integer> nextDaysChoice = new DropDownChoice<Integer>(
-        optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(getSearchFilter(), "nextDays"), nextDaysRenderer.getValues(), nextDaysRenderer);
+    final DropDownChoice<Integer> nextDaysChoice = new DropDownChoice<>(
+            optionsFieldsetPanel.getDropDownChoiceId(),
+            new PropertyModel<>(getSearchFilter(), "nextDays"), nextDaysRenderer.getValues(), nextDaysRenderer);
     nextDaysChoice.setNullValid(false);
     optionsFieldsetPanel.add(nextDaysChoice, true);
     {
       final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
       final RadioGroupPanel<PaymentStatus> radioGroup = new RadioGroupPanel<PaymentStatus>(radioGroupPanel.newChildId(),
+<<<<<<< HEAD
           "paymentStatus", new PropertyModel<>(getSearchFilter(), "paymentStatus"), new FormComponentUpdatingBehavior()
       {
         @Override
         public void onUpdate()
         {
+=======
+              "paymentStatus",
+              new PropertyModel<>(getSearchFilter(), "paymentStatus")) {
+        /**
+         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#wantOnSelectionChangedNotifications()
+         */
+        @Override
+        protected boolean wantOnSelectionChangedNotifications() {
+          return true;
+        }
+
+        /**
+         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#onSelectionChanged(java.lang.Object)
+         */
+        @Override
+        protected void onSelectionChanged(final Object newSelection) {
+>>>>>>> develop
           parentPage.refresh();
         }
       });
       radioGroupPanel.add(radioGroup);
-      radioGroup.add(new Model<PaymentStatus>(PaymentStatus.ALL), getString(PaymentStatus.ALL.getI18nKey()));
-      radioGroup.add(new Model<PaymentStatus>(PaymentStatus.UNPAID), getString(PaymentStatus.UNPAID.getI18nKey()));
-      radioGroup.add(new Model<PaymentStatus>(PaymentStatus.PAID), getString(PaymentStatus.PAID.getI18nKey()));
+      radioGroup.add(new Model<>(PaymentStatus.ALL), getString(PaymentStatus.ALL.getI18nKey()));
+      radioGroup.add(new Model<>(PaymentStatus.UNPAID), getString(PaymentStatus.UNPAID.getI18nKey()));
+      radioGroup.add(new Model<>(PaymentStatus.PAID), getString(PaymentStatus.PAID.getI18nKey()));
     }
     {
       final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
       final RadioGroupPanel<AmountType> radioGroup = new RadioGroupPanel<AmountType>(radioGroupPanel.newChildId(),
+<<<<<<< HEAD
           "amountType", new PropertyModel<>(getSearchFilter(), "amountType"), new FormComponentUpdatingBehavior()
       {
         @Override
         public void onUpdate()
         {
+=======
+              "amountType",
+              new PropertyModel<>(getSearchFilter(), "amountType")) {
+        /**
+         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#wantOnSelectionChangedNotifications()
+         */
+        @Override
+        protected boolean wantOnSelectionChangedNotifications() {
+          return true;
+        }
+
+        /**
+         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#onSelectionChanged(java.lang.Object)
+         */
+        @Override
+        protected void onSelectionChanged(final Object newSelection) {
+>>>>>>> develop
           parentPage.refresh();
         }
       });
       radioGroupPanel.add(radioGroup);
-      radioGroup.add(new Model<AmountType>(AmountType.ALL), getString(AmountType.ALL.getI18nKey()));
-      radioGroup.add(new Model<AmountType>(AmountType.CREDIT), getString(AmountType.CREDIT.getI18nKey()));
-      radioGroup.add(new Model<AmountType>(AmountType.DEBIT), getString(AmountType.DEBIT.getI18nKey()));
+      radioGroup.add(new Model<>(AmountType.ALL), getString(AmountType.ALL.getI18nKey()));
+      radioGroup.add(new Model<>(AmountType.CREDIT), getString(AmountType.CREDIT.getI18nKey()));
+      radioGroup.add(new Model<>(AmountType.DEBIT), getString(AmountType.DEBIT.getI18nKey()));
     }
   }
 
   @Override
-  protected LiquidityFilter newSearchFilterInstance()
-  {
+  protected LiquidityFilter newSearchFilterInstance() {
     return new LiquidityFilter();
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
+  }
+
+  private FieldProperties<LocalDate> getBaseDateProperties() {
+    return new FieldProperties<>("plugins.liquidityplanning.forecast.baseDate", new PropertyModel<>(getSearchFilter(), "baseDate"));
   }
 }

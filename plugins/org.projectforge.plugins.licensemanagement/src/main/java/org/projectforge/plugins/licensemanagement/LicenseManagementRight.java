@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
 import org.projectforge.business.user.UserRightValue;
@@ -63,11 +63,11 @@ public class LicenseManagementRight extends UserRightAccessCheck<LicenseDO>
       // Visible for new objects (created by current user):
       return true;
     }
-    if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true) {
+    if (accessChecker.isLoggedInUserMemberOfAdminGroup()) {
       // Administrators have always access:
       return true;
     }
-    if (StringUtils.isBlank(license.getOwnerIds()) == true) {
+    if (StringUtils.isBlank(license.getOwnerIds())) {
       // No owners defined.
       return false;
     }

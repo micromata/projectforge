@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,40 +23,48 @@
 
 package org.projectforge.web.address;
 
+<<<<<<< HEAD
 import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
+=======
+>>>>>>> develop
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.address.AddressDao;
-import org.projectforge.business.address.AddressFilter;
+import org.projectforge.business.address.*;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanelVisibility;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+import org.slf4j.Logger;
+import org.wicketstuff.select2.Select2MultiChoice;
 
-public class AddressListForm extends AbstractListForm<AddressListFilter, AddressListPage>
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+
+public class AddressListForm extends AbstractListForm<AddressFilter, AddressListPage>
 {
   private static final long serialVersionUID = 8124796579658957116L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressListForm.class);
 
   @SpringBean
   private AddressDao addressDao;
+
+  @SpringBean
+  private AddressbookDao addressbookDao;
 
   /**
    * Used by AddressCampaignValueListForm.
@@ -90,9 +98,8 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
   /**
    * Used by AddressCampaignValueListForm.
    */
-  @SuppressWarnings("serial")
   public static void addFilter(final AbstractListPage<?, ?, ?> parentPage, final AbstractListForm<?, ?> form,
-      final GridBuilder gridBuilder, final AddressFilter searchFilter)
+      final GridBuilder gridBuilder, final AddressFilter searchFilter, final AddressbookDao addressbookDao)
   {
     {
       gridBuilder.newSplitPanel(GridSize.COL50);
@@ -134,6 +141,14 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
           new PropertyModel<Boolean>(searchFilter, "leaved"),
           parentPage.getString("address.addressStatus.leaved")));
     }
+    {
+      // Addressbook
+      gridBuilder.newSplitPanel(GridSize.COL100);
+      final FieldsetPanel fs = gridBuilder.newFieldset(parentPage.getString("address.addressbooks"));
+      final Select2MultiChoice<AddressbookDO> addressbooks = new Select2MultiChoice<AddressbookDO>(fs.getSelect2MultiChoiceId(),
+          new PropertyModel<Collection<AddressbookDO>>(searchFilter, "addressbooks"), new AddressbookWicketProvider(getAddressbookDao()));
+      fs.add(addressbooks);
+    }
 
   }
 
@@ -141,7 +156,7 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
   protected void init()
   {
     super.init();
-    addFilter(parentPage, this, gridBuilder, getSearchFilter());
+    addFilter(parentPage, this, gridBuilder, getSearchFilter(), this.addressbookDao);
   }
 
   /**
@@ -171,7 +186,9 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
           public Serializable getObject()
           {
             // Pseudo object for storing search string (title field is used for this foreign purpose).
-            return new AddressDO().setComment(searchFilter.getSearchString());
+            AddressDO address = new AddressDO();
+            address.setComment(searchFilter.getSearchString());
+            return address;
           }
 
           @Override
@@ -200,7 +217,7 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return parentPage.getRecentSearchTermsQueue().getRecents();
+        return parentPage.getRecentSearchTermsQueue().getRecentList();
       }
 
       @Override
@@ -244,14 +261,27 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
   }
 
   @Override
-  protected AddressListFilter newSearchFilterInstance()
+  protected AddressFilter newSearchFilterInstance()
   {
-    return new AddressListFilter();
+    return new AddressFilter();
   }
 
   @Override
   protected Logger getLogger()
   {
     return log;
+  }
+
+  /**
+   * @return the filter
+   */
+  public AddressFilter getFilter()
+  {
+    return getSearchFilter();
+  }
+
+  private static AddressbookDao getAddressbookDao()
+  {
+    return ApplicationContextProvider.getApplicationContext().getBean(AddressbookDao.class);
   }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,12 +29,9 @@ import java.io.Serializable;
  * Marker for object with method getId. This is needed e. g. by
  * {@link org.apache.wicket.extensions.markup.html.repeater.tree.TableTree} /
  * {@link org.projectforge.web.wicket.tree.TableTreeExpansion}.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public interface IdObject<I extends Serializable>extends Serializable
-{
-  public I getId();
-
+public interface IdObject<I extends Serializable> extends Serializable {
+  I getId();
 }

@@ -1,0 +1,119 @@
+@import "../../../assets/style/mixins";
+
+.globalNavigation {
+  font-size: 1.1em;
+  padding: 10px 5px;
+  margin-bottom: 15px;
+}
+
+.categoryContainer {
+  padding: 10px 0;
+}
+
+.categoryTitle {
+  border: none;
+  background: transparent;
+  position: relative;
+  display: block;
+  text-transform: uppercase;
+  font-weight: 900;
+  letter-spacing: .15em;
+  color: #031b4e;
+  font-size: 11px;
+
+  span.badge {
+    background-color: #031b4e;
+  }
+}
+
+ul.categoryLinks {
+  list-style: none;
+  padding-inline-start: 0;
+  padding-left: 8px;
+  margin: 8px 0;
+  font-size: 16px;
+
+  li.categoryLink a {
+    line-height: 30px;
+    font-size: 14px;
+    color: #5b6987;
+    text-decoration: none;
+    cursor: pointer;
+
+    span.badge {
+      background-color: #5b6987;
+      font-size: 12px;
+    }
+
+    &:hover {
+      color: #1a293b;
+
+      span.badge {
+        background-color: #1a293b;
+      }
+    }
+  }
+}
+
+.categories {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  @media #{$mediumMediaQuery} {
+    flex-direction: row;
+  }
+
+  .categoryColumn {
+    flex: 1;
+  }
+}
+
+.categoryListDropdownMenu {
+  margin-top: 5rem;
+  margin-left: .5rem;
+  background: #fff;
+  z-index: 9999;
+  border: 1px solid #dfdfdf;
+  border-radius: .25em;
+
+  visibility: hidden;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+
+  &.open {
+    width: unset;
+    height: unset;
+    visibility: visible;
+    opacity: 1;
+
+    @media #{$mediumMediaQuery} {
+      width: 730px;
+    }
+
+    @media #{$largeMediaQuery} {
+      width: 980px;
+    }
+  }
+
+}
+
+span.badge {
+  margin-left: .8em;
+  padding: .2em .5em;
+  background-color: #000;
+  border-radius: 1em;
+  color: #fff;
+
+  &.isFlying {
+    @include transform(scale(0.75));
+    position: absolute;
+    top: -.75em;
+  }
+
+  &.danger {
+    background-color: #dc3545;
+  }
+}

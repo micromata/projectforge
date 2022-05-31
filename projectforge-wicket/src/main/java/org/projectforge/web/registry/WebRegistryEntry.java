@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.web.registry;
 
-import java.io.Serializable;
-
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.registry.Registry;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
+
+import java.io.Serializable;
 
 /**
  * Contains more information than a RegistryEntry. This is e. g. needed by general search page.
@@ -42,7 +42,7 @@ public class WebRegistryEntry implements Serializable
 {
   private static final long serialVersionUID = 8289071922222570636L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(WebRegistryEntry.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WebRegistryEntry.class);
 
   private final RegistryEntry registryEntry;
 

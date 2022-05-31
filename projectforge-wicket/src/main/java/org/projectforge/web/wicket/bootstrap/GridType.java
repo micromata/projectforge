@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -31,7 +31,7 @@ import org.projectforge.common.StringHelper;
  */
 public enum GridType
 {
-  CONTAINER("container"),CONTAINER_FLUID("container-fluid"), FIRST("first"), HAS_CHILDS("has-childs"), HAS_SIBLINGS("has-siblings"), NOT_FIRST("not-first"), //
+  CONTAINER("container"),CONTAINER_FLUID("container-fluid"), FIRST("first"), HAS_CHILDS("has-children"), HAS_SIBLINGS("has-siblings"), NOT_FIRST("not-first"), //
   OFFSET1("col-md-offset-1"), OFFSET2("col-md-offset-2"), OFFSET3("col-md-offset-3"), //
   ROW("row"), ROW_HAS_CHILDS("has-sub-rows");
 

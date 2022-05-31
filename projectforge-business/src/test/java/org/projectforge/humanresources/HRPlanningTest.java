@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,44 +23,34 @@
 
 package org.projectforge.humanresources;
 
-import static org.testng.AssertJUnit.*;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.TimeZone;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.humanresources.HRPlanningDO;
-import org.projectforge.business.humanresources.HRPlanningDao;
-import org.projectforge.business.humanresources.HRPlanningEntryDO;
-import org.projectforge.business.humanresources.HRPlanningEntryStatus;
-import org.projectforge.business.humanresources.HRPlanningRight;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.user.GroupDao;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserRightDao;
-import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.humanresources.*;
+import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.time.PFDay;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
-public class HRPlanningTest extends AbstractTestBase
-{
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Locale;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class HRPlanningTest extends AbstractTestBase {
   private static ProjektDO projekt1, projekt2;
 
   @Autowired
@@ -73,15 +63,16 @@ public class HRPlanningTest extends AbstractTestBase
   private KundeDao kundeDao;
 
   @Autowired
+  private UserGroupCache userGroupCache;
+
+  @Autowired
   private UserRightDao userRightDao;
 
   @Autowired
   UserRightService userRights;
 
-  @BeforeClass
-  public void createProjects()
-  {
-    super.setUp();
+  @Override
+  protected void beforeAll() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME ltd.");
@@ -92,13 +83,12 @@ public class HRPlanningTest extends AbstractTestBase
   }
 
   @Test
-  public void testUserRights()
-  {
-    final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
+  public void testUserRights() {
     PFUserDO user1 = initTestDB.addUser("HRPlanningTestUser1");
     final HRPlanningRight right = (HRPlanningRight) userRights.getRight(UserRightId.PM_HR_PLANNING);
     assertFalse(right.isAvailable(userGroupCache, user1));
-    final HRPlanningDO planning = new HRPlanningDO().setUser(getUser(AbstractTestBase.TEST_USER));
+    final HRPlanningDO planning = new HRPlanningDO();
+    planning.setUser(getUser(AbstractTestBase.TEST_USER));
     logon(user1);
     assertFalse(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
     try {
@@ -108,7 +98,7 @@ public class HRPlanningTest extends AbstractTestBase
       // OK
     }
     logon(AbstractTestBase.TEST_ADMIN_USER);
-    final GroupDO group = initTestDB.getGroup(ORGA_GROUP);
+    final GroupDO group = initTestDB.getGroup(AbstractTestBase.ORGA_GROUP);
     group.getAssignedUsers().add(user1);
     groupDao.update(group);
     assertTrue(right.isAvailable(userGroupCache, user1));
@@ -140,41 +130,34 @@ public class HRPlanningTest extends AbstractTestBase
   }
 
   @Test
-  public void getFirstDayOfWeek()
-  {
-    final java.sql.Date date = createDate(2010, Calendar.JANUARY, 9, 1, 10, 57, 456);
-    assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(HRPlanningDO.getFirstDayOfWeek(date)));
+  public void getFirstDayOfWeek() {
+    final LocalDate date = LocalDate.of(2010, Month.JANUARY, 9);
+    assertEquals("2010-01-04", HRPlanningDO.Companion.getFirstDayOfWeek(date).toString());
   }
 
   @Test
-  public void testBeginOfWeek()
-  {
+  public void testBeginOfWeek() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     HRPlanningDO planning = new HRPlanningDO();
-    final java.sql.Date date = createDate(2010, Calendar.JANUARY, 9, 1, 10, 57, 456);
-    final DateHolder firstDayOfWeek = new DateHolder(DateHelper.UTC);
-    firstDayOfWeek.setDate(2010, Calendar.JANUARY, 4, 0, 0, 0, 0);
-    final long millis = firstDayOfWeek.getTimeInMillis();
+    final LocalDate date = LocalDate.of(2010, Month.JANUARY, 9);
     planning.setFirstDayOfWeek(date);
-    assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(planning.getWeek()));
-    assertEquals(millis, planning.getWeek().getTime());
-    // planning.setWeek(date);
+    assertEquals("2010-01-04", planning.getWeek().toString());
+    planning.setWeek(date);
     planning.setUser(getUser(AbstractTestBase.TEST_USER));
-    assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(planning.getWeek()));
+    assertEquals("2010-01-09", planning.getWeek().toString());
     final Serializable id = hrPlanningDao.save(planning);
     planning = hrPlanningDao.getById(id);
-    assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(planning.getWeek()));
+    assertEquals("2010-01-04", planning.getWeek().toString());
   }
 
   @Test
-  public void overwriteDeletedEntries()
-  {
+  public void overwriteDeletedEntries() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     // Create planning:
     HRPlanningDO planning = new HRPlanningDO();
-    planning.setUser(getUser(TEST_USER));
-    planning.setWeek(createDate(2010, Calendar.JANUARY, 11, 0, 0, 0, 0));
-    assertUTCDate(planning.getWeek(), 2010, Calendar.JANUARY, 11, 0, 0, 0);
+    planning.setUser(getUser(AbstractTestBase.TEST_USER));
+    planning.setWeek(LocalDate.of(2010, Month.JANUARY, 11));
+    assertLocalDate(planning.getWeek(), 2010, Month.JANUARY, 11);
     HRPlanningEntryDO entry = new HRPlanningEntryDO();
     setHours(entry, 1, 2, 3, 4, 5, 6);
     entry.setProjekt(projekt1);
@@ -190,7 +173,8 @@ public class HRPlanningTest extends AbstractTestBase
     final Serializable id = hrPlanningDao.save(planning);
     // Check saved planning
     planning = hrPlanningDao.getById(id);
-    assertUTCDate(planning.getWeek(), 2010, Calendar.JANUARY, 11, 0, 0, 0);
+    PFDay day = new PFDay(planning.getWeek());
+    assertLocalDate(day.getLocalDate(), 2010, Month.JANUARY, 11);
     assertEquals(3, planning.getEntries().size());
     assertHours(planning.getProjectEntry(projekt1), 1, 2, 3, 4, 5, 6);
     assertHours(planning.getProjectEntry(projekt2), 6, 5, 4, 3, 2, 1);
@@ -209,9 +193,8 @@ public class HRPlanningTest extends AbstractTestBase
   }
 
   private void setHours(final HRPlanningEntryDO entry, final int monday, final int tuesday, final int wednesday,
-      final int thursday,
-      final int friday, final int weekend)
-  {
+                        final int thursday,
+                        final int friday, final int weekend) {
     entry.setMondayHours(new BigDecimal(monday));
     entry.setTuesdayHours(new BigDecimal(tuesday));
     entry.setWednesdayHours(new BigDecimal(wednesday));
@@ -221,9 +204,8 @@ public class HRPlanningTest extends AbstractTestBase
   }
 
   private void assertHours(final HRPlanningEntryDO entry, final int monday, final int tuesday, final int wednesday,
-      final int thursday,
-      final int friday, final int weekend)
-  {
+                           final int thursday,
+                           final int friday, final int weekend) {
     assertBigDecimal(monday, entry.getMondayHours());
     assertBigDecimal(tuesday, entry.getTuesdayHours());
     assertBigDecimal(wednesday, entry.getWednesdayHours());
@@ -232,17 +214,8 @@ public class HRPlanningTest extends AbstractTestBase
     assertBigDecimal(weekend, entry.getWeekendHours());
   }
 
-  private java.sql.Date createDate(final int year, final int month, final int day, final int hour, final int minute,
-      final int second, final int millisecond)
-  {
-    final Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.GERMAN);
-    cal.set(Calendar.YEAR, year);
-    cal.set(Calendar.MONTH, month);
-    cal.set(Calendar.DAY_OF_MONTH, day);
-    cal.set(Calendar.HOUR_OF_DAY, hour);
-    cal.set(Calendar.MINUTE, minute);
-    cal.set(Calendar.SECOND, second);
-    cal.set(Calendar.MILLISECOND, millisecond);
-    return new java.sql.Date(cal.getTimeInMillis());
+  private LocalDate createDate(final int year, final Month month, final int day, final int hour, final int minute,
+                                   final int second, final int millisecond) {
+    return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond, ZoneId.of("UTC"), Locale.GERMAN).getLocalDate();
   }
 }

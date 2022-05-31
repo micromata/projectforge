@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,30 +23,25 @@
 
 package org.projectforge.business.fibu.kost.reporting;
 
-import java.io.InputStream;
-import java.util.List;
-
+import com.thoughtworks.xstream.XStream;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BuchungssatzDao;
 import org.projectforge.business.fibu.kost.BuchungssatzFilter;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.xmlstream.XStreamHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.annotations.Annotations;
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class ReportDao
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ReportDao.class);
+public class ReportDao {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReportDao.class);
 
   private XStream xstream;
 
@@ -56,10 +51,8 @@ public class ReportDao
   @Autowired
   private BuchungssatzDao buchungssatzDao;
 
-  public ReportDao()
-  {
-    xstream = new XStream();
-    Annotations.configureAliases(xstream, ReportObjective.class);
+  public ReportDao() {
+    xstream = XStreamHelper.createXStream(ReportObjective.class);
   }
 
   /**
@@ -69,8 +62,7 @@ public class ReportDao
    * @param reportObjectiveAsXml ReportObjective als XML.
    * @see #deserializeFromXML(InputStream)
    */
-  public Report createReport(InputStream reportObjectiveAsXml)
-  {
+  public Report createReport(InputStream reportObjectiveAsXml) {
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP);
     ReportObjective reportObjective = deserializeFromXML(reportObjectiveAsXml);
@@ -89,8 +81,7 @@ public class ReportDao
    * @param reportObjectiveAsXml
    * @return
    */
-  public Report createReport(String reportObjectiveAsXml)
-  {
+  public Report createReport(String reportObjectiveAsXml) {
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP);
     ReportObjective reportObjective = deserializeFromXML(reportObjectiveAsXml);
@@ -103,11 +94,9 @@ public class ReportDao
    * des ReportObjectives die zu verwendenden Buchungssätze.
    *
    * @param report
-   * @see BuchungssatzDao#getList(org.projectforge.core.BaseSearchFilter)
    * @see Report#select(List)
    */
-  public void loadReport(Report report)
-  {
+  public void loadReport(Report report) {
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP);
     final BuchungssatzFilter filter = new BuchungssatzFilter();
@@ -119,8 +108,7 @@ public class ReportDao
     report.select(list);
   }
 
-  public ReportObjective deserializeFromXML(String xml)
-  {
+  public ReportObjective deserializeFromXML(String xml) {
     try {
       ReportObjective reportObjective = (ReportObjective) xstream.fromXML(xml);
       return reportObjective;
@@ -130,8 +118,7 @@ public class ReportDao
     }
   }
 
-  public ReportObjective deserializeFromXML(InputStream is)
-  {
+  public ReportObjective deserializeFromXML(InputStream is) {
     try {
       ReportObjective reportObjective = (ReportObjective) xstream.fromXML(is);
       return reportObjective;
@@ -141,8 +128,7 @@ public class ReportDao
     }
   }
 
-  public String serializeToXML(ReportObjective report)
-  {
+  public String serializeToXML(ReportObjective report) {
     String xml = xstream.toXML(report);
     return xml;
   }

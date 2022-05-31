@@ -1,0 +1,9 @@
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+
+$theme-colors: map_merge(
+                (
+                        "success": #32912E,
+                ),
+                $theme-colors
+);

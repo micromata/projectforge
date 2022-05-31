@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,14 +23,14 @@
 
 package org.projectforge.business.scripting;
 
-import java.io.Serializable;
-import java.util.List;
-
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.QueryFilter;
+
+import java.io.Serializable;
+import java.util.List;
 
 public class ScriptingDao<O extends ExtendedBaseDO<Integer>>
 {
@@ -52,7 +52,7 @@ public class ScriptingDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * Show whole list of objects with select access (without deleted entries).
-   * 
+   *
    * @return
    */
   public List<O> getList()
@@ -75,5 +75,9 @@ public class ScriptingDao<O extends ExtendedBaseDO<Integer>>
   public O getById(Serializable id) throws AccessException
   {
     return __baseDao.getById(id);
+  }
+
+  public Class<?> getDOClass() {
+    return __baseDao.getEntityClass();
   }
 }

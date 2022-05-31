@@ -11,7 +11,7 @@ import java.util.zip.GZIPInputStream;
 import javax.sql.DataSource;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.persistence.database.XmlDump;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;

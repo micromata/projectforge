@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,38 +23,28 @@
 
 package org.projectforge.plugins.marketing;
 
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.projectforge.business.address.AddressDO;
-import org.projectforge.web.address.AddressEditPage;
-import org.projectforge.web.wicket.AbstractEditPage;
+import org.projectforge.rest.AddressPagesRest;
+import org.projectforge.rest.core.PagesResolver;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class AddressEditLinkPanel extends Panel
-{
+public class AddressEditLinkPanel extends Panel {
   private static final long serialVersionUID = -5300335230191404832L;
 
   @SuppressWarnings("serial")
-  public AddressEditLinkPanel(final String id, final WebPage returnToPage, final AddressDO address,
-      final String addressText)
-  {
+  public AddressEditLinkPanel(final String id, final String returnToCaller, final AddressDO address,
+                              final String addressText) {
     super(id);
-    add(new Link<Object>("link")
-    {
+    add(new Link<Object>("link") {
       @Override
-      public void onClick()
-      {
-        final PageParameters parameters = new PageParameters();
-        parameters.add(AbstractEditPage.PARAMETER_KEY_ID, address.getId());
-        final AddressEditPage editPage = new AddressEditPage(parameters);
-        editPage.setReturnToPage(returnToPage);
-        setResponsePage(editPage);
+      public void onClick() {
+        throw new RedirectToUrlException(PagesResolver.getEditPageUrl(AddressPagesRest.class, address.getId(), null, true, returnToCaller));
       }
     }.add(new Label("label", addressText).setRenderBodyOnly(true)));
   }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,25 +23,17 @@
 
 package org.projectforge.business.humanresources;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.poi.hssf.util.HSSFColor;
-import org.projectforge.business.excel.CellFormat;
-import org.projectforge.business.excel.ContentProvider;
-import org.projectforge.business.excel.ExportCell;
-import org.projectforge.business.excel.ExportColumn;
-import org.projectforge.business.excel.ExportRow;
-import org.projectforge.business.excel.ExportSheet;
-import org.projectforge.business.excel.ExportWorkbook;
-import org.projectforge.business.excel.I18nExportColumn;
-import org.projectforge.business.excel.PropertyMapping;
+import org.projectforge.business.excel.*;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.springframework.stereotype.Service;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * For excel exports.
@@ -63,7 +55,7 @@ public class HRPlanningExport
     {
       for (final ExportCell cell : row.getCells()) {
         final CellFormat format = cell.ensureAndGetCellFormat();
-        format.setFillForegroundColor(HSSFColor.WHITE.index);
+        format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.WHITE.getIndex());
         switch (row.getRowNum()) {
           case 0:
             format.setFont(FONT_HEADER);
@@ -75,7 +67,7 @@ public class HRPlanningExport
           default:
             format.setFont(FONT_NORMAL);
             if (row.getRowNum() % 2 == 0) {
-              format.setFillForegroundColor(HSSFColor.GREY_25_PERCENT.index);
+              format.setFillForegroundColor(HSSFColor.HSSFColorPredefined.GREY_25_PERCENT.getIndex());
             }
             break;
         }
@@ -90,15 +82,13 @@ public class HRPlanningExport
     }
   }
 
-  ;
-
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRPlanningExport.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningExport.class);
 
   final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.instance();
 
   private enum Col
   {
-    USER, PROJEKT, WEEK_OF_YEAR, PRIORITY, PROBABILITY, UNASSIGNEDHOURS, MONDAYHOURS, TUESDAYHOURS, WEDNESDAYHOURS, THURSDAYHOURS, FRIDAYHOURS, WEEKENDHOURS, DESCRIPTION, TOTAL_DURATION, WORKDAYS;
+    USER, PROJEKT, WEEK_OF_YEAR, PRIORITY, PROBABILITY, UNASSIGNEDHOURS, MONDAYHOURS, TUESDAYHOURS, WEDNESDAYHOURS, THURSDAYHOURS, FRIDAYHOURS, WEEKENDHOURS, DESCRIPTION, TOTAL_DURATION, WORKDAYS
   }
 
   /**
@@ -178,7 +168,7 @@ public class HRPlanningExport
 
       sheet.addRow(mapping.getMapping(), 0);
     }
-    sheet.setZoom(3, 4); // 75%
+    sheet.setZoom(75); // 75%
 
     return xls;
   }
@@ -217,7 +207,7 @@ public class HRPlanningExport
     final PropertyMapping mapping = new PropertyMapping();
 
     // Ermittele Anzahl unterschiedlicher Projekte
-    final List<String> projectNames = new ArrayList<String>();
+    final List<String> projectNames = new ArrayList<>();
     for (final HRPlanningDO planningSheet : list) {
       // final String projectName = planningSheet.getProjekt().getName();
       // boolean exists = false;
@@ -307,7 +297,7 @@ public class HRPlanningExport
     // }
     // }
     // }
-    sheet.setZoom(3, 4); // 75%
+    sheet.setZoom(75); // 75%
 
     return xls;
   }
@@ -341,16 +331,16 @@ public class HRPlanningExport
     final PropertyMapping mapping = new PropertyMapping();
 
     // Ermittele Anzahl unterschiedlicher User
-    final List<String> userNames = new ArrayList<String>();
+    final List<String> userNames = new ArrayList<>();
     for (final HRPlanningDO planningSheet : list) {
       final String userName = planningSheet.getUser().getFullname();
       boolean exists = false;
-      for (int i = 0; i < userNames.size(); i++) {
-        if (userName.equals(userNames.get(i))) {
+      for (String otherName : userNames) {
+        if (userName.equals(otherName)) {
           exists = true;
         }
       }
-      if (exists == false) {
+      if (!exists) {
         userNames.add(userName);
       }
     }
@@ -457,7 +447,7 @@ public class HRPlanningExport
     sheet.createFreezePane(8, 1);
 
     // Ermittele Anzahl unterschiedlicher Projekte
-    final List<String> projectNames = new ArrayList<String>();
+    final List<String> projectNames = new ArrayList<>();
     // for (HRPlanningDO planningSheet : list) {
     // String projectName = planningSheet.getProjekt().getName();
     // boolean exists = false;
@@ -539,7 +529,7 @@ public class HRPlanningExport
     // sheet.addRow(mapping.getMapping(), 0);
     // }
 
-    sheet.setZoom(3, 4); // 75%
+    sheet.setZoom(75); // 75%
 
     return xls;
   }

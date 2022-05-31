@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,6 @@
 
 package org.projectforge.reporting.impl;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.SHType;
 import org.projectforge.common.StringHelper;
@@ -33,6 +30,9 @@ import org.projectforge.reporting.Buchungssatz;
 import org.projectforge.reporting.Konto;
 import org.projectforge.reporting.Kost1;
 import org.projectforge.reporting.Kost2;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 
 /**
@@ -60,7 +60,7 @@ public class BuchungssatzImpl implements Buchungssatz
     this.kost1 = new Kost1Impl(this.buchungssatz.getKost1());
     this.kost2 = new Kost2Impl(this.buchungssatz.getKost2());
   }
-  
+
   public Integer getId()
   {
     return buchungssatz.getId();
@@ -81,7 +81,7 @@ public class BuchungssatzImpl implements Buchungssatz
     return buchungssatz.getComment();
   }
 
-  public Date getDatum()
+  public LocalDate getDatum()
   {
     return buchungssatz.getDatum();
   }
@@ -115,10 +115,10 @@ public class BuchungssatzImpl implements Buchungssatz
   {
     return buchungssatz.getMonth();
   }
-  
+
   public String getFormattedMonth()
   {
-    return StringHelper.format2DigitNumber(buchungssatz.getMonth() + 1);
+    return StringHelper.format2DigitNumber(buchungssatz.getMonth());
   }
 
   public Integer getSatznr()

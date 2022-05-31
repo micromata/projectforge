@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,11 +23,12 @@
 
 package org.projectforge.plugins.todo;
 
+import org.projectforge.framework.cache.AbstractCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.log4j.Logger;
-import org.projectforge.framework.cache.AbstractCache;
 
 /**
  * The number of open to-do entries is cached. Accessible via ToDoDao.
@@ -35,7 +36,7 @@ import org.projectforge.framework.cache.AbstractCache;
  */
 public class ToDoCache extends AbstractCache
 {
-  private static Logger log = Logger.getLogger(ToDoCache.class);
+  private static Logger log = LoggerFactory.getLogger(ToDoCache.class);
 
   /** The key is the user id and the value is the number of open to-do entries. */
   private Map<Integer, Integer> openEntriesMap;
@@ -68,9 +69,10 @@ public class ToDoCache extends AbstractCache
   /**
    * This method will be called by CacheHelper and is synchronized via getData();
    */
+  @Override
   protected void refresh()
   {
     log.info("Clearing cache with open to-do entries.");
-    openEntriesMap = new HashMap<Integer, Integer>();
+    openEntriesMap = new HashMap<>();
   }
 }

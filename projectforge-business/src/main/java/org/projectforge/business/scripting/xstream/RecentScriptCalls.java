@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,9 +23,8 @@
 
 package org.projectforge.business.scripting.xstream;
 
-import org.projectforge.framework.utils.RecentQueue;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.projectforge.framework.utils.RecentQueue;
 
 
 @XStreamAlias("RecentScriptCalls")
@@ -35,7 +34,7 @@ public class RecentScriptCalls
 
   public RecentScriptCalls()
   {
-    recentQueue = new RecentQueue<ScriptCallData>();
+    recentQueue = new RecentQueue<>();
   }
 
   public void append(final ScriptCallData data)
@@ -45,11 +44,11 @@ public class RecentScriptCalls
 
   public ScriptCallData getScriptCallData(final String scriptName)
   {
-    if (recentQueue.getRecents() == null) {
+    if (recentQueue.getRecent() == null) {
       return null;
     }
-    for (final ScriptCallData data : recentQueue.getRecents()) {
-      if (scriptName.equals(data.getScriptName()) == true) {
+    for (final ScriptCallData data : recentQueue.getRecentList()) {
+      if (scriptName.equals(data.getScriptName())) {
         return data;
       }
     }

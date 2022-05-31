@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,7 @@
 
 package org.projectforge.web.core;
 
-import java.util.Calendar;
-import java.util.Date;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
@@ -50,11 +47,10 @@ import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
+import org.projectforge.web.wicket.flowlayout.*;
+
+import java.util.Calendar;
+import java.util.Date;
 
 public class SearchForm extends AbstractStandardForm<SearchPageFilter, SearchPage>
 {
@@ -161,7 +157,7 @@ public class SearchForm extends AbstractStandardForm<SearchPageFilter, SearchPag
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.pageSize"));
       final DropDownChoice<Integer> pageSizeChoice = AbstractListForm.getPageSizeDropDownChoice(
           fs.getDropDownChoiceId(), getLocale(),
-          new PropertyModel<Integer>(filter, "maxRows"), MIN_PAGE_SIZE, MAX_PAGE_SIZE);
+          new PropertyModel<Integer>(filter, "pageSize"), MIN_PAGE_SIZE, MAX_PAGE_SIZE);
       fs.add(pageSizeChoice);
     }
 
@@ -216,10 +212,10 @@ public class SearchForm extends AbstractStandardForm<SearchPageFilter, SearchPag
           }
           final DateHolder dh = new DateHolder(new Date(), DatePrecision.MILLISECOND);
           dh.setEndOfDay();
-          filter.setStopTimeOfModification(dh.getDate());
+          filter.setStopTimeOfModification(dh.getUtilDate());
           dh.setBeginOfDay();
           dh.add(Calendar.DAY_OF_YEAR, -newSelection);
-          filter.setStartTimeOfModification(dh.getDate());
+          filter.setStartTimeOfModification(dh.getUtilDate());
           filter.setLastDays(null);
           modifiedStartDatePanel.markModelAsChanged();
           modifiedStopDatePanel.markModelAsChanged();

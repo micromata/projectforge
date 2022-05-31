@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,57 +23,56 @@
 
 package org.projectforge.business.task;
 
-import java.util.List;
+import org.hibernate.search.bridge.TwoWayStringBridge;
+import org.projectforge.framework.utils.NumberHelper;
 
-import org.apache.lucene.document.Document;
-import org.hibernate.search.bridge.FieldBridge;
-import org.hibernate.search.bridge.LuceneOptions;
-import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.framework.persistence.database.PfJpaXmlDumpServiceImpl;
+import java.util.List;
 
 /**
  * TaskPathBridge for hibernate search to search in the parent task titles.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class HibernateSearchTaskPathBridge implements FieldBridge
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
-      .getLogger(HibernateSearchTaskPathBridge.class);
+public class HibernateSearchTaskPathBridge implements TwoWayStringBridge {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
+          .getLogger(HibernateSearchTaskPathBridge.class);
+
+  @Override
+  public Object stringToObject(String stringValue) {
+    if (!stringValue.matches("[0-9]+:.*")) {
+      return null;
+    }
+    final Integer number = NumberHelper.parseInteger(stringValue.substring(0, stringValue.indexOf(':')));
+    if (number == null) {
+      return null;
+    }
+    return TaskTree.getInstance().getTaskById(number);
+  }
 
   /**
    * Get all names of ancestor tasks and task itself and creates an index containing all task titles separated by '|'.
    * <br/>
    * Please note: does not work in JUnit test mode.
-   *
-   * @see org.hibernate.search.bridge.FieldBridge#set(java.lang.String, java.lang.Object,
-   * org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)
    */
   @Override
-  public void set(final String name, final Object value, final Document document,
-      final LuceneOptions luceneOptions)
-  {
-    // DESIGN bug, low level index should not rely on other.
-    // did a workoround.
-    if (PfJpaXmlDumpServiceImpl.isTransaction == true) {
-      log.warn("PfJpaXmlDumpServiceImpl.isTransaction = true");
-      return;
+  public String objectToString(Object object) {
+    if (object instanceof String) {
+      return (String) object;
     }
-
-    final TaskDO task = (TaskDO) value;
-    final TaskTree taskTree = TaskTreeHelper.getTaskTree(task.getTenant());
-    final TaskNode taskNode = taskTree.getTaskNodeById(task.getId());
+    final TaskDO task = (TaskDO) object;
+    final TaskNode taskNode = TaskTree.getInstance().getTaskNodeById(task.getId());
     if (taskNode == null) {
-      return;
+      return "";
     }
     final List<TaskNode> list = taskNode.getPathToRoot();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
+    buf.append(task.getId()).append(": "); // Adding the id for deserialization
     list.forEach(node -> {
       buf.append(node.getTask().getTitle()).append("|");
     });
-    if (log.isDebugEnabled() == true) {
+    if (log.isDebugEnabled()) {
       log.debug(buf.toString());
     }
-    luceneOptions.addFieldToDocument(name, buf.toString(), document);
+    return buf.toString();
   }
 }

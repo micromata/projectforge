@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -30,8 +30,8 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.ResourceModel;
-import org.projectforge.web.Menu;
-import org.projectforge.web.MenuEntry;
+import org.projectforge.web.WicketMenu;
+import org.projectforge.web.WicketMenuEntry;
 import org.projectforge.web.core.NavAbstractPanel;
 
 /**
@@ -43,9 +43,9 @@ public class MenuConfigContent extends Panel
 {
   private static final long serialVersionUID = 7330216552642637129L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MenuConfigContent.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MenuConfigContent.class);
 
-  public MenuConfigContent(final String id, final Menu menu)
+  public MenuConfigContent(final String id, final WicketMenu menu)
   {
     super(id);
     final RepeatingView mainMenuRepeater = new RepeatingView("mainMenuItem");
@@ -60,7 +60,7 @@ public class MenuConfigContent extends Panel
       // Should only occur in maintenance mode!
       return;
     }
-    for (final MenuEntry mainMenuEntry : menu.getMenuEntries()) {
+    for (final WicketMenuEntry mainMenuEntry : menu.getMenuEntries()) {
       if (mainMenuEntry.hasSubMenuEntries() == false) {
         continue;
       }
@@ -72,7 +72,7 @@ public class MenuConfigContent extends Panel
       mainMenuContainer.add(new Label("label", new ResourceModel(mainMenuEntry.getI18nKey())));
       final RepeatingView subMenuRepeater = new RepeatingView("menuItem");
       mainMenuContainer.add(subMenuRepeater);
-      for (final MenuEntry subMenuEntry : mainMenuEntry.getSubMenuEntries()) {
+      for (final WicketMenuEntry subMenuEntry : mainMenuEntry.getSubMenuEntries()) {
         final WebMarkupContainer subMenuContainer = new WebMarkupContainer(subMenuRepeater.newChildId());
         subMenuRepeater.add(subMenuContainer);
         final AbstractLink link = NavAbstractPanel.getMenuEntryLink(subMenuEntry, false);

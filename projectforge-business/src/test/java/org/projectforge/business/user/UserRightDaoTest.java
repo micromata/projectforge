@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,19 @@
 
 package org.projectforge.business.user;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.persistence.user.entities.GroupDO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.test.AbstractTestBase;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.projectforge.business.user.GroupDao;
-import org.projectforge.business.user.UserRightDao;
-import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.user.UserRightVO;
-import org.projectforge.business.user.UserRightValue;
-import org.projectforge.framework.persistence.user.entities.GroupDO;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class UserRightDaoTest extends AbstractTestBase
-{
+public class UserRightDaoTest extends AbstractTestBase {
   @Autowired
   private GroupDao groupDao;
 
@@ -51,12 +43,11 @@ public class UserRightDaoTest extends AbstractTestBase
   private UserRightDao userRightDao;
 
   @Test
-  public void testUpdateUserRights()
-  {
-    logon(ADMIN);
+  public void testUpdateUserRights() {
+    logon(AbstractTestBase.ADMIN);
     final PFUserDO user = initTestDB.addUser("testUserRightDaoTest");
-    final Set<GroupDO> groupsToAssign = new HashSet<GroupDO>();
-    groupsToAssign.add(getGroup(FINANCE_GROUP));
+    final Set<GroupDO> groupsToAssign = new HashSet<>();
+    groupsToAssign.add(getGroup(AbstractTestBase.FINANCE_GROUP));
     groupDao.assignGroups(user, groupsToAssign, null);
     List<UserRightVO> list = userRightDao.getUserRights(user);
     UserRightVO right1 = null;
@@ -68,8 +59,8 @@ public class UserRightDaoTest extends AbstractTestBase
         right2 = item;
       }
     }
-    assertNotNull("right not found!", right1);
-    assertNotNull("right not found!", right2);
+    assertNotNull(right1, "right not found!");
+    assertNotNull(right2, "right not found!");
     assertNull(right1.getValue());
     assertNull(right2.getValue());
     right1.setValue(UserRightValue.READWRITE);
@@ -84,8 +75,8 @@ public class UserRightDaoTest extends AbstractTestBase
         right2 = item;
       }
     }
-    assertNotNull("right not found!", right1);
-    assertNotNull("right not found!", right2);
+    assertNotNull(right1, "right not found!");
+    assertNotNull(right2, "right not found!");
     assertEquals(UserRightValue.READWRITE, right1.getValue());
     assertEquals(UserRightValue.READONLY, right2.getValue());
     right1.setValue(UserRightValue.READONLY);
@@ -100,8 +91,8 @@ public class UserRightDaoTest extends AbstractTestBase
         right2 = item;
       }
     }
-    assertNotNull("right not found!", right1);
-    assertNotNull("right not found!", right2);
+    assertNotNull(right1, "right not found!");
+    assertNotNull(right2, "right not found!");
     assertEquals(UserRightValue.READONLY, right1.getValue());
     assertNull(right2.getValue());
   }

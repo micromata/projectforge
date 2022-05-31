@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,19 +23,14 @@
 
 package org.projectforge.business.teamcal.event.diff;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.model.ReminderActionType;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.*;
 
 /**
  * @author Stefan Niemczyk (s.niemczyk@micromata.de)
@@ -80,13 +75,13 @@ public class TeamEventDiff
     }
 
     // event is deleted, no further diff
-    if (eventNewState.isDeleted() && eventOldState.isDeleted() == false) {
+    if (eventNewState.isDeleted() && !eventOldState.isDeleted()) {
       diff.type = TeamEventDiffType.DELETED;
       return diff;
     }
 
     // event is restored, no further diff
-    if (eventNewState.isDeleted() == false && eventOldState.isDeleted()) {
+    if (!eventNewState.isDeleted() && eventOldState.isDeleted()) {
       diff.type = TeamEventDiffType.RESTORED;
       return diff;
     }
@@ -100,7 +95,7 @@ public class TeamEventDiff
     diff.creator = computeFieldDiff(diff, TeamEventField.CREATOR, fieldFilter, eventNewState.getCreator(), eventOldState.getCreator());
     diff.startDate = computeFieldDiff(diff, TeamEventField.START_DATE, fieldFilter, eventNewState.getStartDate(), eventOldState.getStartDate());
     diff.endDate = computeFieldDiff(diff, TeamEventField.END_DATE, fieldFilter, eventNewState.getEndDate(), eventOldState.getEndDate());
-    diff.allDay = computeFieldDiff(diff, TeamEventField.ALL_DAY, fieldFilter, eventNewState.isAllDay(), eventOldState.isAllDay());
+    diff.allDay = computeFieldDiff(diff, TeamEventField.ALL_DAY, fieldFilter, eventNewState.getAllDay(), eventOldState.getAllDay());
     diff.subject = computeFieldDiff(diff, TeamEventField.SUBJECT, fieldFilter, eventNewState.getSubject(), eventOldState.getSubject());
     diff.location = computeFieldDiff(diff, TeamEventField.LOCATION, fieldFilter, eventNewState.getLocation(), eventOldState.getLocation());
 
@@ -115,8 +110,8 @@ public class TeamEventDiff
         eventOldState.getRecurrenceExDate());
     diff.recurrenceRule = computeFieldDiff(diff, TeamEventField.RECURRENCE_RULE, fieldFilter, eventNewState.getRecurrenceRule(),
         eventOldState.getRecurrenceRule());
-    diff.recurrenceReferenceDate = computeFieldDiff(diff, TeamEventField.RECURRENCE_REFERENCE_DATE, fieldFilter, eventNewState.getRecurrenceDate(),
-        eventOldState.getRecurrenceDate());
+    diff.recurrenceReferenceDate = computeFieldDiff(diff, TeamEventField.RECURRENCE_REFERENCE_DATE, fieldFilter, eventNewState.getRecurrenceReferenceDate(),
+        eventOldState.getRecurrenceReferenceDate());
     diff.recurrenceReferenceId = computeFieldDiff(diff, TeamEventField.RECURRENCE_REFERENCE_ID, fieldFilter, eventNewState.getRecurrenceReferenceId(),
         eventOldState.getRecurrenceReferenceId());
     diff.recurrenceUntil = computeFieldDiff(diff, TeamEventField.RECURRENCE_UNTIL, fieldFilter, eventNewState.getRecurrenceUntil(),
@@ -126,7 +121,7 @@ public class TeamEventDiff
 
     diff.reminderDuration = computeFieldDiff(diff, TeamEventField.REMINDER_DURATION, fieldFilter, eventNewState.getReminderDuration(),
         eventOldState.getReminderDuration());
-    diff.reminderDurationType = computeFieldDiff(diff, TeamEventField.REMINDER_DURATION_TYPE, fieldFilter, eventNewState.getReminderDurationUnit(),
+    diff.reminderDurationUnit = computeFieldDiff(diff, TeamEventField.REMINDER_DURATION_UNIT, fieldFilter, eventNewState.getReminderDurationUnit(),
         eventOldState.getReminderDurationUnit());
     diff.reminderActionType = computeFieldDiff(diff, TeamEventField.REMINDER_ACTION_TYPE, fieldFilter, eventNewState.getReminderActionType(),
         eventOldState.getReminderActionType());
@@ -135,7 +130,7 @@ public class TeamEventDiff
     final Set<TeamEventAttendeeDO> attendeesNewState = eventNewState.getAttendees();
     final Set<TeamEventAttendeeDO> attendeesOldState = eventOldState.getAttendees();
 
-    if (attendeesNewState != null && attendeesNewState.isEmpty() == false) {
+    if (attendeesNewState != null && !attendeesNewState.isEmpty()) {
       if (attendeesOldState == null || attendeesOldState.isEmpty()) {
         diff.attendeesAdded.addAll(attendeesNewState);
       } else {
@@ -149,12 +144,12 @@ public class TeamEventDiff
       }
     }
 
-    if (attendeesOldState != null && attendeesOldState.isEmpty() == false) {
+    if (attendeesOldState != null && !attendeesOldState.isEmpty()) {
       if (attendeesNewState == null || attendeesNewState.isEmpty()) {
         diff.attendeesRemoved.addAll(attendeesOldState);
       } else {
         for (TeamEventAttendeeDO attendee : attendeesOldState) {
-          if (attendeesNewState.contains(attendee) == false) {
+          if (!attendeesNewState.contains(attendee)) {
             diff.attendeesRemoved.add(attendee);
           }
         }
@@ -172,9 +167,9 @@ public class TeamEventDiff
     //      }
     //    }
 
-    if (diff.fieldDiffs.isEmpty() == false) {
+    if (!diff.fieldDiffs.isEmpty()) {
       diff.type = TeamEventDiffType.UPDATED;
-    } else if (diff.attendeesAdded.isEmpty() == false || diff.attendeesRemoved.isEmpty() == false) {
+    } else if (!diff.attendeesAdded.isEmpty() || !diff.attendeesRemoved.isEmpty()) {
       diff.type = TeamEventDiffType.ATTENDEES;
     } else {
       diff.type = TeamEventDiffType.NONE;
@@ -186,7 +181,7 @@ public class TeamEventDiff
   private static <F> TeamEventFieldDiff<F> computeFieldDiff(final TeamEventDiff diff, final TeamEventField field, final Set<TeamEventField> fieldFilter,
       final F newFieldValue, final F oldFieldValue)
   {
-    if (fieldFilter.isEmpty() == false && fieldFilter.contains(field) == false) {
+    if (!fieldFilter.isEmpty() && !fieldFilter.contains(field)) {
       return null;
     }
 
@@ -210,9 +205,9 @@ public class TeamEventDiff
   // fields
   private TeamEventFieldDiff<TeamCalDO> calendar;
   private TeamEventFieldDiff<PFUserDO> creator;
-  private TeamEventFieldDiff<Timestamp> startDate;
-  private TeamEventFieldDiff<Timestamp> endDate;
-  private TeamEventFieldDiff<Timestamp> dtStamp;
+  private TeamEventFieldDiff<Date> startDate;
+  private TeamEventFieldDiff<Date> endDate;
+  private TeamEventFieldDiff<Date> dtStamp;
   private TeamEventFieldDiff<Boolean> allDay;
   private TeamEventFieldDiff<String> subject;
   private TeamEventFieldDiff<String> location;
@@ -224,10 +219,10 @@ public class TeamEventDiff
   private TeamEventFieldDiff<String> organizer;
   private TeamEventFieldDiff<String> organizerAdditionalParams;
   private TeamEventFieldDiff<String> note;
-  private TeamEventFieldDiff<Timestamp> lastEmail;
+  private TeamEventFieldDiff<Date> lastEmail;
   private TeamEventFieldDiff<Integer> sequence;
-  private TeamEventFieldDiff<Integer> reminderDuration;
-  private TeamEventFieldDiff<ReminderDurationUnit> reminderDurationType;
+  private TeamEventFieldDiff<Long> reminderDuration;
+  private TeamEventFieldDiff<ReminderDurationUnit> reminderDurationUnit;
   private TeamEventFieldDiff<ReminderActionType> reminderActionType;
 
   // attendees

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,19 @@
 
 package org.projectforge.business.teamcal.externalsubscription;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.projectforge.business.teamcal.admin.TeamCalDao;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.ical.ICalParser;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.framework.time.DateHelper;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -31,39 +44,21 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.projectforge.business.teamcal.TeamCalConfig;
-import org.projectforge.business.teamcal.admin.TeamCalDao;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
-import org.projectforge.framework.time.DateHelper;
-
-import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.Component;
-import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.TimeZone;
-import net.fortuna.ical4j.model.component.CalendarComponent;
-import net.fortuna.ical4j.model.component.VEvent;
+import java.util.Objects;
 
 /**
  * Holds and updates events of a subscribed calendar.
  *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  */
-public class TeamEventSubscription implements Serializable
-{
+public class TeamEventSubscription implements Serializable {
   private static final long serialVersionUID = -9200146874015146227L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventSubscription.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventSubscription.class);
 
   private Integer teamCalId;
+
+  private boolean initialized = false;
 
   private SubscriptionHolder subscription;
 
@@ -79,31 +74,27 @@ public class TeamEventSubscription implements Serializable
 
   private static final Long TIME_IN_THE_PAST = 60L * 24 * 60 * 60 * 1000; // 60 days in millis in the past to subscribe
 
-  public TeamEventSubscription()
-  {
+  public TeamEventSubscription() {
   }
 
   /**
    * @return the lastErrorMessage
    */
-  public String getLastErrorMessage()
-  {
+  public String getLastErrorMessage() {
     return lastErrorMessage;
   }
 
   /**
    * @return the numberOfFailedUpdates
    */
-  public int getNumberOfFailedUpdates()
-  {
+  public int getNumberOfFailedUpdates() {
     return numberOfFailedUpdates;
   }
 
   /**
    * @return the lastFailedUpdate
    */
-  public Long getLastFailedUpdate()
-  {
+  public Long getLastFailedUpdate() {
     return lastFailedUpdate;
   }
 
@@ -111,13 +102,13 @@ public class TeamEventSubscription implements Serializable
    * We update the cache softly, therefore we create a new instance and replace the old instance in the cached map then
    * creation and update is therefore the same two lines of code, but semantically different things.
    */
-  public void update(final TeamCalDao teamCalDao, final TeamCalDO teamCalDO, final TeamCalServiceImpl teamEventConverter)
-  {
+  public void update(final TeamCalDao teamCalDao, final TeamCalDO teamCalDO) {
     this.teamCalId = teamCalDO.getId();
     currentInitializedHash = null;
     lastUpdated = null;
+    this.initialized = true;
     String url = teamCalDO.getExternalSubscriptionUrl();
-    if (teamCalDO.isExternalSubscription() == false || StringUtils.isEmpty(url) == true) {
+    if (!teamCalDO.getExternalSubscription() || StringUtils.isEmpty(url)) {
       // No external subscription.
       clear();
       return;
@@ -125,37 +116,39 @@ public class TeamEventSubscription implements Serializable
     url = StringUtils.replace(url, "webcal", "http");
     final String displayUrl = teamCalDO.getExternalSubscriptionUrlAnonymized();
     log.info("Getting subscribed calendar #" + teamCalDO.getId() + " from: " + displayUrl);
-    final CalendarBuilder builder = new CalendarBuilder();
     byte[] bytes = null;
     try {
 
       // Create a method instance.
-      final GetMethod method = new GetMethod(url);
-      final HttpClient client = new HttpClient();
-      final int statusCode = client.executeMethod(method);
+      try (final CloseableHttpClient client = HttpClients.createDefault()) {
+        final HttpGet method = new HttpGet(url);
+        final HttpResponse httpResponse = client.execute(method);
+        final int statusCode = httpResponse.getStatusLine().getStatusCode();
+        if (statusCode != HttpStatus.SC_OK) {
+          error("Unable to gather subscription calendar #"
+              + teamCalDO.getId()
+              + " information, using database from url '"
+              + displayUrl
+              + "'. Received statusCode: "
+              + statusCode, null);
+          return;
+        }
 
-      if (statusCode != HttpStatus.SC_OK) {
-        error("Unable to gather subscription calendar #"
-            + teamCalDO.getId()
-            + " information, using database from url '"
-            + displayUrl
-            + "'. Received statusCode: "
-            + statusCode, null);
-        return;
-      }
+        final MessageDigest md = MessageDigest.getInstance("MD5");
 
-      final MessageDigest md = MessageDigest.getInstance("MD5");
+        // Read the response body.
+        try (final InputStream stream = httpResponse.getEntity().getContent()) {
+          bytes = IOUtils.toByteArray(stream);
+        }
 
-      // Read the response body.
-      final InputStream stream = method.getResponseBodyAsStream();
-      bytes = IOUtils.toByteArray(stream);
-
-      final String md5 = calcHexHash(md.digest(bytes));
-      if (StringUtils.equals(md5, teamCalDO.getExternalSubscriptionHash()) == false) {
-        teamCalDO.setExternalSubscriptionHash(md5);
-        teamCalDO.setExternalSubscriptionCalendarBinary(bytes);
-        // internalUpdate is valid at this point, because we are calling this method in an async thread
-        teamCalDao.internalUpdate(teamCalDO);
+        final String md5 = calcHexHash(md.digest(bytes));
+        if (!StringUtils.equals(md5, teamCalDO.getExternalSubscriptionHash())) {
+          teamCalDO.setExternalSubscriptionHash(md5);
+          teamCalDO.setExternalSubscriptionCalendarBinary(bytes);
+          teamCalDO.setMinorChange(true); // Don't need to re-index (failed).
+          // internalUpdate is valid at this point, because we are calling this method in an async thread
+          teamCalDao.internalUpdate(teamCalDO);
+        }
       }
     } catch (final Exception e) {
       bytes = teamCalDO.getExternalSubscriptionCalendarBinary();
@@ -164,7 +157,7 @@ public class TeamEventSubscription implements Serializable
           + " information, using database from url '"
           + displayUrl
           + "': "
-          + e.getMessage(), e);
+          + e.getMessage());
     }
     if (bytes == null) {
       error("Unable to use database subscription calendar #" + teamCalDO.getId() + " information, quit from url '"
@@ -173,7 +166,7 @@ public class TeamEventSubscription implements Serializable
       return;
     }
     if (currentInitializedHash != null
-        && StringUtils.equals(currentInitializedHash, teamCalDO.getExternalSubscriptionHash()) == true) {
+        && StringUtils.equals(currentInitializedHash, teamCalDO.getExternalSubscriptionHash())) {
       // nothing to do here if the hashes are equal
       log.info("No modification of subscribed calendar #" + teamCalDO.getId() + " found from: " + displayUrl
           + " (OK, nothing to be done).");
@@ -182,44 +175,31 @@ public class TeamEventSubscription implements Serializable
     }
 
     final SubscriptionHolder newSubscription = new SubscriptionHolder();
-    final ArrayList<TeamEventDO> newRecurrenceEvents = new ArrayList<TeamEventDO>();
+    final ArrayList<TeamEventDO> newRecurrenceEvents = new ArrayList<>();
     try {
       final Date timeInPast = new Date(System.currentTimeMillis() - TIME_IN_THE_PAST);
-      final Calendar calendar = builder.build(new ByteArrayInputStream(bytes));
-      @SuppressWarnings("unchecked")
-      final List<CalendarComponent> list = calendar.getComponents(Component.VEVENT);
-      final List<VEvent> vEvents = new ArrayList<VEvent>();
-      for (final CalendarComponent c : list) {
-        final VEvent event = (VEvent) c;
-        if (event.getSummary() != null
-            && StringUtils.equals(event.getSummary().getValue(), TeamCalConfig.SETUP_EVENT) == true) {
-          // skip setup event!
-          continue;
-        }
-        // skip only far gone events, if they have no recurrence
-        if (event.getStartDate().getDate().before(timeInPast) && event.getProperty(Property.RRULE) == null) {
-          continue;
-        }
-        vEvents.add(event);
-      }
+      Integer startId = -1;
+      ICalParser parser = ICalParser.parseAllFields();
+      parser.parse(new ByteArrayInputStream(bytes));
 
       // the event id must (!) be negative and decrementing (different on each event)
-      Integer startId = -1;
-      for (final VEvent event : vEvents) {
-        final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event,
-            TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
-        teamEvent.setId(startId);
-        teamEvent.setCalendar(teamCalDO);
+      for (TeamEventDO event : parser.getExtractedEvents()) {
+        if (event.getStartDate().getTime() < timeInPast.getTime() && event.getRecurrenceRule() == null) {
+          continue;
+        }
+        event.setId(startId);
+        event.setCalendar(teamCalDO);
 
-        if (teamEvent.hasRecurrence() == true) {
+        if (event.hasRecurrence()) {
           // special treatment for recurrence events ..
-          newRecurrenceEvents.add(teamEvent);
+          newRecurrenceEvents.add(event);
         } else {
-          newSubscription.add(teamEvent);
+          newSubscription.add(event);
         }
 
         startId--;
       }
+
       // OK, update the subscription:
       recurrenceEvents = newRecurrenceEvents;
       subscription = newSubscription;
@@ -237,15 +217,18 @@ public class TeamEventSubscription implements Serializable
     }
   }
 
-  private void clear()
-  {
+  private void clear() {
     this.lastErrorMessage = null;
     this.lastFailedUpdate = null;
     this.numberOfFailedUpdates = 0;
+    this.initialized = true;
   }
 
-  private void error(final String errorMessage, final Exception ex)
-  {
+  private void error(final String errorMessage) {
+    error(errorMessage, null);
+  }
+
+  private void error(final String errorMessage, final Exception ex) {
     this.numberOfFailedUpdates++;
     final StringBuilder sb = new StringBuilder();
     sb.append(errorMessage).append(" (").append(this.numberOfFailedUpdates).append(". failed attempts");
@@ -268,8 +251,7 @@ public class TeamEventSubscription implements Serializable
    * @param md5
    * @return
    */
-  private String calcHexHash(final byte[] md5)
-  {
+  private String calcHexHash(final byte[] md5) {
     String result = null;
     if (md5 != null) {
       result = new BigInteger(1, md5).toString(16);
@@ -277,10 +259,28 @@ public class TeamEventSubscription implements Serializable
     return result;
   }
 
-  public List<TeamEventDO> getEvents(final Long startTime, final Long endTime, final boolean minimalAccess)
-  {
+
+  public TeamEventDO getEvent(final String uid) {
+    if (StringUtils.isEmpty(uid)) {
+      return null;
+    }
+    if (subscription == null && recurrenceEvents == null) {
+      return null;
+    }
+    TeamEventDO teamEvent = subscription.getEvent(uid);
+    if (teamEvent != null) {
+      return teamEvent;
+    }
+    for (final TeamEventDO teamEventDO : recurrenceEvents) {
+      if (teamEventDO.getUid() != null && Objects.equals(uid, teamEventDO.getUid()))
+        return teamEventDO;
+    }
+    return null;
+  }
+
+  public List<TeamEventDO> getEvents(final Long startTime, final Long endTime, final boolean minimalAccess) {
     if (subscription == null) {
-      return new ArrayList<TeamEventDO>();
+      return new ArrayList<>();
     }
     // final Long perfStart = System.currentTimeMillis();
     final List<TeamEventDO> result = subscription.getResultList(startTime, endTime, minimalAccess);
@@ -297,21 +297,26 @@ public class TeamEventSubscription implements Serializable
     return result;
   }
 
-  public Integer getTeamCalId()
-  {
+  public Integer getTeamCalId() {
     return teamCalId;
   }
 
   /**
    * @return Time of last update (successfully).
    */
-  public Long getLastUpdated()
-  {
+  public Long getLastUpdated() {
     return lastUpdated;
   }
 
-  public List<TeamEventDO> getRecurrenceEvents()
-  {
+  public List<TeamEventDO> getRecurrenceEvents() {
     return recurrenceEvents;
+  }
+
+  public boolean isInitialized() {
+    return initialized;
+  }
+
+  public void setInitialized(boolean initialized) {
+    this.initialized = initialized;
   }
 }

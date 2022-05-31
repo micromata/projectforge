@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,7 @@
 
 package org.projectforge.web.gantt;
 
-import java.util.Date;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
@@ -43,20 +40,15 @@ import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
-import org.projectforge.web.wicket.components.SingleButtonPanel;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
-public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChartEditPage>
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttChartEditForm.class);
+public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChartEditPage> {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttChartEditForm.class);
 
   private static final long serialVersionUID = 3199820655287750358L;
 
@@ -82,8 +74,7 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
 
   DivPanel imagePanel;
 
-  public GanttChartEditForm(final GanttChartEditPage parentPage, final GanttChartDO data)
-  {
+  public GanttChartEditForm(final GanttChartEditPage parentPage, final GanttChartDO data) {
     super(parentPage, data);
     if (isNew() == true) {
       if (data.getOwner() == null) {
@@ -103,8 +94,7 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
 
   @SuppressWarnings("serial")
   @Override
-  protected void init()
-  {
+  protected void init() {
     super.init();
     gridBuilder.newGridPanel();
     {
@@ -112,8 +102,7 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
       final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new PropertyModel<TaskDO>(data, "task"), parentPage, "taskId")
       {
         @Override
-        protected void selectTask(final TaskDO task)
-        {
+        protected void selectTask(final TaskDO task) {
           super.selectTask(task);
           parentPage.refresh(); // Task was changed. Therefore update the kost2 list.
         }
@@ -133,7 +122,7 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("gantt.owner"));
       final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(), new PropertyModel<PFUserDO>(data, "owner"), parentPage,
-          "ownerId");
+              "ownerId");
       fs.add(userSelectPanel);
       userSelectPanel.init();
     }
@@ -141,7 +130,7 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("title"));
       final RequiredMaxLengthTextField title = new RequiredMaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(getSettings(),
-          "title"), 100);
+              "title"), 100);
       WicketUtils.setStrong(title);
       fs.add(title);
     }
@@ -150,9 +139,9 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
       // read-access:
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("access.read"));
       final LabelValueChoiceRenderer<GanttAccess> readAccessChoiceRenderer = new LabelValueChoiceRenderer<GanttAccess>(this,
-          GanttAccess.values());
+              GanttAccess.values());
       final DropDownChoice<GanttAccess> readAccessChoice = new DropDownChoice<GanttAccess>(fs.getDropDownChoiceId(),
-          new PropertyModel<GanttAccess>(getData(), "readAccess"), readAccessChoiceRenderer.getValues(), readAccessChoiceRenderer);
+              new PropertyModel<GanttAccess>(getData(), "readAccess"), readAccessChoiceRenderer.getValues(), readAccessChoiceRenderer);
       readAccessChoice.setNullValid(false);
       fs.add(readAccessChoice);
     }
@@ -167,9 +156,9 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
       // write-access:
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("access.write"));
       final LabelValueChoiceRenderer<GanttAccess> writeAccessChoiceRenderer = new LabelValueChoiceRenderer<GanttAccess>(this,
-          GanttAccess.values());
+              GanttAccess.values());
       final DropDownChoice<GanttAccess> writeAccessChoice = new DropDownChoice<GanttAccess>(fs.getDropDownChoiceId(),
-          new PropertyModel<GanttAccess>(getData(), "writeAccess"), writeAccessChoiceRenderer.getValues(), writeAccessChoiceRenderer);
+              new PropertyModel<GanttAccess>(getData(), "writeAccess"), writeAccessChoiceRenderer.getValues(), writeAccessChoiceRenderer);
       writeAccessChoice.setNullValid(false);
       fs.add(writeAccessChoice);
     }
@@ -178,7 +167,7 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
       // Total label width:
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("gantt.settings.totalLabelWidth"));
       fs.add(new MinMaxNumberField<Double>(fs.getTextFieldId(), new PropertyModel<Double>(data.getStyle(), "totalLabelWidth"), 10.0,
-          10000.0));
+              10000.0));
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
@@ -186,22 +175,35 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.options")).suppressLabelForWarning();
       final DivPanel checkBoxPanel = fs.addNewCheckBoxButtonDiv();
       checkBoxPanel.addCheckBoxButton(new PropertyModel<Boolean>(data.getStyle(), "relativeTimeValues"),
-          getString("gantt.style.relativeTimeValues"));
+              getString("gantt.style.relativeTimeValues"));
       checkBoxPanel.addCheckBoxButton(new PropertyModel<Boolean>(data.getStyle(), "showToday"), getString("gantt.style.showToday"));
       checkBoxPanel.addCheckBoxButton(new PropertyModel<Boolean>(data.getStyle(), "showCompletion"), getString("gantt.style.showCompletion"));
       checkBoxPanel.add(new CheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<Boolean>(getSettings(), "showOnlyVisibles"),
+<<<<<<< HEAD
           getString("gantt.settings.showOnlyVisibles"), new FormComponentUpdatingBehavior()));
+=======
+              getString("gantt.settings.showOnlyVisibles")) {
+        /**
+         * @see org.projectforge.web.wicket.flowlayout.CheckBoxButton#wantOnSelectionChangedNotifications()
+         */
+        @Override
+        protected boolean wantOnSelectionChangedNotifications() {
+          // Submit form after toggling the check box.
+          return true;
+        }
+      });
+>>>>>>> develop
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Time period
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timePeriod")).suppressLabelForWarning();
-      final DatePanel fromDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(getSettings(), "fromDate"), DatePanelSettings
-          .get().withSelectProperty("fromDate"));
+      final LocalDatePanel fromDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<>(getSettings(), "fromDate")), DatePanelSettings
+              .get().withSelectProperty("fromDate"), true);
       fs.add(fromDatePanel);
       fs.add(new DivTextPanel(fs.newChildId(), "-"));
-      final DatePanel toDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(getSettings(), "toDate"), DatePanelSettings
-          .get().withSelectProperty("toDate"));
+      final LocalDatePanel toDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(new PropertyModel<>(getSettings(), "toDate")), DatePanelSettings
+              .get().withSelectProperty("toDate"), true);
       fs.add(toDatePanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -216,14 +218,13 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
       exportFormatChoiceRenderer.addValue(EXPORT_PROJECTFORGE, getString("gantt.export.projectforge"));
       exportFormatChoiceRenderer.addValue(EXPORT_SVG, getString("gantt.export.svg"));
       final DropDownChoice<String> exportFormatChoice = new DropDownChoice<String>(fs.getDropDownChoiceId(), new PropertyModel<String>(
-          this, "exportFormat"), exportFormatChoiceRenderer.getValues(), exportFormatChoiceRenderer);
+              this, "exportFormat"), exportFormatChoiceRenderer.getValues(), exportFormatChoiceRenderer);
       exportFormatChoice.setNullValid(false);
       fs.add(exportFormatChoice);
       fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("export"))
       {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           parentPage.export(exportFormat);
         }
       }, getString("export"), SingleButtonPanel.NORMAL));
@@ -242,15 +243,14 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
       redrawButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("redraw"))
       {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           parentPage.refresh();
         }
       };
       redrawButton.setDefaultFormProcessing(false);
       WicketUtils.addTooltip(redrawButton, getString("gantt.tooltip.returnKeyCallsRedraw"));
       final SingleButtonPanel redrawButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), redrawButton, getString("redraw"),
-          SingleButtonPanel.DEFAULT_SUBMIT);
+              SingleButtonPanel.DEFAULT_SUBMIT);
       actionButtons.add(3, redrawButtonPanel);
     }
     if (isNew() == false && data.isDeleted() == false) {
@@ -258,8 +258,7 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
       final Button cloneButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clone"))
       {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           getData().setId(null);
           this.setVisible(false);
           updateButtonVisibility();
@@ -267,7 +266,7 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
       };
       cloneButton.setDefaultFormProcessing(false);
       final SingleButtonPanel cloneButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), cloneButton, getString("clone"),
-          SingleButtonPanel.NORMAL);
+              SingleButtonPanel.NORMAL);
       actionButtons.add(3, cloneButtonPanel);
     }
 
@@ -292,23 +291,20 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
   }
 
   @Override
-  public void updateButtonVisibility()
-  {
+  public void updateButtonVisibility() {
     super.updateButtonVisibility();
     setDefaultButton(redrawButton);
   }
 
   @Override
-  protected void markDefaultButtons()
-  {
+  protected void markDefaultButtons() {
     // Avoid re-marking.
   }
 
   /**
    * @return the exportFormat
    */
-  public String getExportFormat()
-  {
+  public String getExportFormat() {
 
     if (exportFormat == null) {
       exportFormat = (String) parentPage.getUserPrefEntry(this.getClass().getName() + ":exportFormat");
@@ -323,20 +319,17 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
   /**
    * @param exportFormat the exportFormat to set
    */
-  public void setExportFormat(final String exportFormat)
-  {
+  public void setExportFormat(final String exportFormat) {
     this.exportFormat = exportFormat;
     parentPage.putUserPrefEntry(this.getClass().getName() + ":exportFormat", this.exportFormat, true);
   }
 
-  GanttChartSettings getSettings()
-  {
+  GanttChartSettings getSettings() {
     return getData().getSettings();
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,29 +23,33 @@
 
 package org.projectforge.web.fibu;
 
-import java.io.Serializable;
-
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDay;
+import org.projectforge.framework.time.PFDayUtils;
+
+import java.io.Serializable;
 
 public class MonthlyEmployeeReportFilter implements Serializable
 {
   private static final long serialVersionUID = -3700442530651487472L;
 
-  private int year;
+  private Integer year;
 
-  private int month;
+  /**
+   * 1-January, ..., 12-December.
+   */
+  private Integer month;
 
   private PFUserDO user;
 
   public void reset()
   {
-    if (year <= 0 || month < 0) {
-      DateHolder date = new DateHolder();
-      year = date.getYear();
-      month = date.getMonth();
+    if (year <= 0 || month == null) {
+      PFDay day = PFDay.now();
+      year = day.getYear();
+      month = day.getMonthValue();
     }
     if (user == null) {
       user = ThreadLocalUserContext.getUser();
@@ -67,28 +71,38 @@ public class MonthlyEmployeeReportFilter implements Serializable
     return user != null ? user.getId() : null;
   }
 
-  public int getYear()
+  public Integer getYear()
   {
     return year;
   }
 
-  public void setYear(int year)
+  public void setYear(Integer year)
   {
-    this.year = year;
+    this.year = year != null && year > 0 ? year : null;
   }
 
-  public int getMonth()
+  /**
+   * 1-January, ..., 12-December.
+   */
+  public Integer getMonth()
   {
+    if (month == null || month < 1) {
+      // May occur, if deserialized from old 0-based format.
+      month = 1;
+    }
     return month;
   }
 
-  public void setMonth(int month)
+  /**
+   * 1-January, ..., 12-December.
+   */
+  public void setMonth(Integer month)
   {
-    this.month = month;
+    this.month = PFDayUtils.validateMonthValue(month);
   }
 
   public String getFormattedMonth()
   {
-    return month >= 0 ? StringHelper.format2DigitNumber(month + 1) : "";
+    return month != null ? StringHelper.format2DigitNumber(month) : "";
   }
 }

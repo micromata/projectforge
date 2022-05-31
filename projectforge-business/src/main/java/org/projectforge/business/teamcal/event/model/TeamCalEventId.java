@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,28 @@
 
 package org.projectforge.business.teamcal.event.model;
 
+import org.projectforge.business.calendar.event.model.ICalendarEvent;
+import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
+import org.projectforge.framework.time.DateFormats;
+import org.projectforge.framework.utils.NumberHelper;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
-import org.projectforge.framework.time.DateFormats;
-import org.projectforge.framework.utils.NumberHelper;
-
 /**
  * Used by {@link TeamCalEventProvider} for handling event id's. The id of {@link TeamEventDO} objects is the data-base
  * id (pk). The id of recurrence events is the data-base id of the master {@link TeamEventDO} followed by the date, e.
  * g. "42-20121222".
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TeamCalEventId
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalEventId.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalEventId.class);
 
   private final Integer databaseId;
 
@@ -81,7 +82,7 @@ public class TeamCalEventId
     }
   }
 
-  public TeamCalEventId(final TeamEvent event, final TimeZone timeZone)
+  public TeamCalEventId(final ICalendarEvent event, final TimeZone timeZone)
   {
     this.timeZone = timeZone;
     if (event instanceof TeamEventDO) {

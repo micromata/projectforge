@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,75 +23,61 @@
 
 package org.projectforge.plugins.todo;
 
-import static org.testng.AssertJUnit.*;
+import org.junit.jupiter.api.Test;
+import org.projectforge.ProjectForgeVersion;
+import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.scripting.GroovyEngine;
+import org.projectforge.common.i18n.Priority;
+import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.test.AbstractTestBase;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.projectforge.AppVersion;
-import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.scripting.GroovyEngine;
-import org.projectforge.common.i18n.Priority;
-import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.test.AbstractTestBase;
-import org.projectforge.web.registry.WebRegistry;
-import org.projectforge.web.wicket.WicketApplication;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class GroovyEngineTest extends AbstractTestBase
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroovyEngineTest.class);
-
+public class GroovyEngineTest extends AbstractTestBase {
   @Autowired
   private ConfigurationService configurationService;
 
-  @Autowired
-  private PluginAdminService pluginAdminService;
-
-  @Override
-  @BeforeClass
-  public void setUp()
-  {
-    super.setUp();
-    I18nHelper.addBundleName(WicketApplication.RESOURCE_BUNDLE_NAME);
-    WebRegistry.getInstance().init();
-    pluginAdminService.initializeAllPluginsForUnittest();
-  }
-
   @Test
-  public void renderTest()
-  {
+  public void renderTest() {
     final GroovyEngine engine = new GroovyEngine(configurationService, Locale.GERMAN, TimeZone.getTimeZone("UTC"));
     engine.putVariable("name", "Kai");
 
     final String res = engine.executeTemplate("Hallo $name, your locale is '<%= pf.getI18nString(\"locale.de\") %>'.");
     assertEquals("Hallo Kai, your locale is 'Deutsch'.", res);
-    assertEquals("Hallo Kai, your locale is 'Deutsch'. " + AppVersion.APP_ID + " Finished: Englisch", engine
-        .executeTemplateFile("scripting/template.txt"));
+    assertEquals("Hallo Kai, your locale is 'Deutsch'. " + ProjectForgeVersion.APP_ID + "\n Finished: Englisch", engine
+            .executeTemplateFile("scripting/template.txt"));
   }
 
   @Test
-  public void mailTemplateTest()
-  {
+  public void mailTemplateTest() {
     final GroovyEngine engine = new GroovyEngine(configurationService, Locale.GERMAN, TimeZone.getTimeZone("UTC"));
-    engine.putVariable("recipient", new PFUserDO().setFirstname("Kai").setLastname("Reinhard"));
-    engine.putVariable("todo", new ToDoDO().setType(ToDoType.IMPROVEMENT).setPriority(Priority.HIGH));
+    PFUserDO user = new PFUserDO();
+    user.setFirstname("Kai");
+    user.setLastname("Reinhard");
+    user.setLocale(Locale.GERMAN);
+    engine.putVariable("recipient", user);
+    ToDoDO todo = new ToDoDO();
+    todo.setType(ToDoType.IMPROVEMENT);
+    todo.setPriority(Priority.HIGH);
+    todo.setReporter(user);
+    todo.setAssignee(user);
+    engine.putVariable("todo", todo);
+    engine.putVariable("title", "ToDo");
     engine.putVariable("history", new ArrayList<DisplayHistoryEntry>());
     engine.putVariable("requestUrl", "https://localhost:8443/wa/toDoEditPage/id/42");
     final String result = engine.executeTemplateFile("mail/todoChangeNotification.html");
-    assertTrue("I18n priorty expected.", result.contains("hoch"));
-    assertTrue("I18n key for type improvement expected.", result.contains("???plugins.todo.type.improvement???"));
+    assertTrue(result.contains("hoch"), "I18n priority expected.");
+    assertTrue(result.contains("Verbesserung"), "I18n key for type improvement expected.");
   }
 
   @Test
-  public void preprocesTest()
-  {
+  public void preprocesTest() {
     final GroovyEngine engine = new GroovyEngine(configurationService, Locale.GERMAN, TimeZone.getTimeZone("UTC"));
     assertNull(engine.preprocessGroovyXml(null));
     assertEquals("", engine.preprocessGroovyXml(""));

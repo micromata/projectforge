@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,10 +23,6 @@
 
 package org.projectforge.web.user;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
@@ -34,9 +30,13 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public class GroupsWicketProvider extends ChoiceProvider<GroupDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroupsWicketProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroupsWicketProvider.class);
 
   private static final long serialVersionUID = 6228672635966093252L;
 

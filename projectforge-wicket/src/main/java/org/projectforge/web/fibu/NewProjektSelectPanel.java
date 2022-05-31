@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,32 +23,27 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.KundeDao;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.ProjektDao;
-import org.projectforge.business.fibu.ProjektFavorite;
-import org.projectforge.business.fibu.ProjektFormatter;
+import org.projectforge.business.fibu.*;
+import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.utils.RecentQueue;
-import org.projectforge.web.user.UserPreferencesHelper;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.components.FavoritesChoicePanel;
 import org.projectforge.web.wicket.components.TooltipImage;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
+
+import java.util.List;
+import java.util.Locale;
 
 /**
  * This panel shows the actual customer.
@@ -57,8 +52,9 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
  */
 public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implements ComponentWrapperPanel
 {
-
   private static final long serialVersionUID = -7461448790487855518L;
+
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NewProjektSelectPanel.class);
 
   private static final String USER_PREF_KEY_RECENT_PROJECTS = "ProjectSelectPanel:recentProjects";
 
@@ -73,6 +69,9 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
 
   @SpringBean
   private KundeDao kundeDao;
+
+  @SpringBean
+  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentProjects;
 
@@ -119,7 +118,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
       @Override
       protected List<String> getRecentUserInputs()
       {
-        return getRecentProjects().getRecents();
+        return getRecentProjects().getRecentList();
       }
 
       @Override
@@ -314,11 +313,11 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
   private RecentQueue<String> getRecentProjects()
   {
     if (this.recentProjects == null) {
-      this.recentProjects = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_PROJECTS);
+      this.recentProjects = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_PROJECTS);
     }
     if (this.recentProjects == null) {
       this.recentProjects = new RecentQueue<String>();
-      UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_PROJECTS, this.recentProjects, true);
+      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_PROJECTS, this.recentProjects, true);
     }
     return this.recentProjects;
   }
@@ -353,38 +352,42 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
 
   private ProjektDO getProjekt(final String input)
   {
-    int kundeId, kost2;
-    String nummernkreis, kId, nummer;
-    kundeId = kost2 = -1;
-    nummernkreis = kId = nummer = "";
-    final int ind1 = input.indexOf(".");
-    if (ind1 < 0) {
-      return null;
-    }
-    nummernkreis = input.substring(0, ind1);
-    final int ind2 = input.indexOf(".", ind1 + 1);
-    if (ind2 < 0) {
-      return null;
-    }
-    kId = input.substring(ind1 + 1, ind2);
-    final int ind3 = input.indexOf(" -", ind2 + 1);
-    if (ind3 < 0) {
-      return null;
-    }
-    nummer = input.substring(ind2 + 1, ind3);
-    kundeId = Integer.parseInt(kId);
-    kost2 = Integer.parseInt(nummer);
-    if (kundeId < 0 || kost2 < 0) {
-      return null;
-    }
-    if (nummernkreis.equals("4") == true) {
-      return projektDao.getProjekt(kundeId, kost2);
-    } else if (nummernkreis.equals("5") == true) {
-      final KundeDO kunde = kundeDao.getById(kundeId);
-      if (kunde == null) {
+    try {
+      int kundeId, kost2;
+      String nummernkreis, kId, nummer;
+      kundeId = kost2 = -1;
+      nummernkreis = kId = nummer = "";
+      final int ind1 = input.indexOf(".");
+      if (ind1 < 0) {
         return null;
       }
-      return projektDao.getProjekt(kunde, kost2);
+      nummernkreis = input.substring(0, ind1);
+      final int ind2 = input.indexOf(".", ind1 + 1);
+      if (ind2 < 0) {
+        return null;
+      }
+      kId = input.substring(ind1 + 1, ind2);
+      final int ind3 = input.indexOf(" -", ind2 + 1);
+      if (ind3 < 0) {
+        return null;
+      }
+      nummer = input.substring(ind2 + 1, ind3);
+      kundeId = Integer.parseInt(kId);
+      kost2 = Integer.parseInt(nummer);
+      if (kundeId < 0 || kost2 < 0) {
+        return null;
+      }
+      if (nummernkreis.equals("4") == true) {
+        return projektDao.getProjekt(kundeId, kost2);
+      } else if (nummernkreis.equals("5") == true) {
+        final KundeDO kunde = kundeDao.getById(kundeId);
+        if (kunde == null) {
+          return null;
+        }
+        return projektDao.getProjekt(kunde, kost2);
+      }
+    } catch (Exception e) {
+      log.error("An exception accured while parsing customer id and kost2.", e);
     }
     return null;
   }

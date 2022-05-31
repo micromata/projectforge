@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.memo;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -31,6 +30,7 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 /**
  * This is the edit formular page.
@@ -42,7 +42,7 @@ public class MemoEditForm extends AbstractEditForm<MemoDO, MemoEditPage>
 {
   private static final long serialVersionUID = -6208809585214296635L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MemoEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MemoEditForm.class);
 
   public MemoEditForm(final MemoEditPage parentPage, final MemoDO data)
   {
@@ -58,14 +58,14 @@ public class MemoEditForm extends AbstractEditForm<MemoDO, MemoEditPage>
       // Subject
       final FieldsetPanel fs = gridBuilder.newFieldset(MemoDO.class, "subject");
       final RequiredMaxLengthTextField subject = new RequiredMaxLengthTextField(fs.getTextFieldId(),
-          new PropertyModel<String>(data, "subject"));
+          new PropertyModel<>(data, "subject"));
       subject.add(WicketUtils.setFocus());
       fs.add(subject);
     }
     {
       // Text description
       final FieldsetPanel fs = gridBuilder.newFieldset(MemoDO.class, "memo");
-      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "memo"))).setAutogrow();
+      fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<>(data, "memo"))).setAutogrow();
     }
   }
 

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,12 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
-
-import org.projectforge.framework.time.DateHolder;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.test.AbstractTestBase;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FileHelperTest extends AbstractTestBase
 {
@@ -46,13 +46,13 @@ public class FileHelperTest extends AbstractTestBase
     assertEquals("AeOe", FileHelper.createSafeFilename("ÄÖÜäöüß", 4));
     assertEquals("Ha", FileHelper.createSafeFilename("Hä", 2));
 
-    final DateHolder dh = new DateHolder();
+    final PFDateTime dateTime = PFDateTime.now();
     assertEquals("basename_"
-        + dh.getYear()
+        + dateTime.getYear()
         + "-"
-        + StringHelper.format2DigitNumber(dh.getMonth() + 1)
+        + StringHelper.format2DigitNumber(dateTime.getMonthValue())
         + "-"
-        + StringHelper.format2DigitNumber(dh.getDayOfMonth())
+        + StringHelper.format2DigitNumber(dateTime.getDayOfMonth())
         + ".pdf", FileHelper.createSafeFilename("basename", ".pdf", 8, true));
   }
 }

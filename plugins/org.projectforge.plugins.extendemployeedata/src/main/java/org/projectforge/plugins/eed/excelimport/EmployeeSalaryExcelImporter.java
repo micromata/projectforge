@@ -1,16 +1,33 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.plugins.eed.excelimport;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
+import de.micromata.merlin.excel.importer.ImportStorage;
+import de.micromata.merlin.excel.importer.ImportedElement;
+import de.micromata.merlin.excel.importer.ImportedSheet;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.projectforge.business.excel.ExcelImport;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
@@ -18,19 +35,21 @@ import org.projectforge.business.fibu.EmployeeSalaryType;
 import org.projectforge.business.fibu.api.EmployeeSalaryService;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.utils.ImportStorage;
-import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.framework.persistence.utils.ImportedSheet;
+import org.projectforge.common.i18n.UserException;
+import org.projectforge.framework.persistence.utils.MyImportedElement;
+import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.service.EmployeeConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 public class EmployeeSalaryExcelImporter
 {
-  private static final Logger log = Logger.getLogger(EmployeeBillingExcelRow.class);
+  private static final Logger log = LoggerFactory.getLogger(EmployeeSalaryExcelImporter.class);
 
   private static final String NAME_OF_EXCEL_SHEET = "employeeSalaries";
 
@@ -69,7 +88,7 @@ public class EmployeeSalaryExcelImporter
 
   private void importEmployeeSalary(final ExcelImport<EmployeeSalaryExcelRow> importer)
   {
-    final ImportedSheet<EmployeeSalaryDO> importedSheet = new ImportedSheet<>();
+    final ImportedSheet<EmployeeSalaryDO> importedSheet = new ImportedSheet<>(storage);
     storage.addSheet(importedSheet);
     importedSheet.setName(NAME_OF_EXCEL_SHEET);
     importer.setNameRowIndex(ROW_INDEX_OF_COLUMN_NAMES);
@@ -96,12 +115,12 @@ public class EmployeeSalaryExcelImporter
       columnNames.add(salaryColumnName);
       map.put(staffNrColumnName, "staffnumber");
       map.put(salaryColumnName, "salary");
-      if (StringUtils.isEmpty(remarkColumnName) == false) {
+      if (!StringUtils.isEmpty(remarkColumnName)) {
         columnNames.add(remarkColumnName);
         map.put(remarkColumnName, "remark");
       }
     }
-    if (importer.getColumnNames().containsAll(columnNames) == false) {
+    if (!importer.getColumnNames().containsAll(columnNames)) {
       throw new UserException("plugins.eed.salaryimport.validation.columndefinitionnotfound", columnNames.get(0), columnNames.get(1));
     }
     importer.setColumnMapping(map);
@@ -109,18 +128,17 @@ public class EmployeeSalaryExcelImporter
     final EmployeeSalaryExcelRow[] rows = importer.convertToRows(EmployeeSalaryExcelRow.class);
     for (final EmployeeSalaryExcelRow row : rows) {
       if (row.getStaffnumber() != null) {
-        final ImportedElement<EmployeeSalaryDO> element = convertRowToDo(row);
+        final ImportedElement<EmployeeSalaryDO> element = convertRowToDo(importedSheet, row);
         importedSheet.addElement(element);
       }
     }
   }
 
-  private ImportedElement<EmployeeSalaryDO> convertRowToDo(final EmployeeSalaryExcelRow row)
+  private ImportedElement<EmployeeSalaryDO> convertRowToDo(final ImportedSheet<EmployeeSalaryDO> importedSheet, final EmployeeSalaryExcelRow row)
   {
-    final ImportedElement<EmployeeSalaryDO> element = new ImportedElement<>(storage.nextVal(), EmployeeSalaryDO.class, DIFF_PROPERTIES);
-    Calendar selectedDateCalendar = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-    selectedDateCalendar.setTime(this.dateToSelectAttrRow);
-    EmployeeDO employee = null;
+    final MyImportedElement<EmployeeSalaryDO> element = new MyImportedElement<>(importedSheet, -1, EmployeeSalaryDO.class, DIFF_PROPERTIES);
+    PFDateTime selectedDateTime = PFDateTime.fromOrNull(this.dateToSelectAttrRow);
+    EmployeeDO employee;
     EmployeeSalaryDO employeeSalary = null;
     if (row.getStaffnumber() != null) {
       employee = employeeService.getEmployeeByStaffnumber(row.getStaffnumber());
@@ -128,20 +146,20 @@ public class EmployeeSalaryExcelImporter
       if (employee == null) {
         element.putErrorProperty(I18nHelper.getLocalizedMessage("fibu.employee.staffNumber"), row.getStaffnumber());
       } else {
-        employeeSalary = employeeSalaryService.getEmployeeSalaryByDate(employee, selectedDateCalendar);
+        employeeSalary = employeeSalaryService.getEmployeeSalaryByDate(employee, selectedDateTime);
         if (employeeSalary == null) {
           employeeSalary = new EmployeeSalaryDO();
           employeeSalary.setEmployee(employee);
-          employeeSalary.setYear(selectedDateCalendar.get(Calendar.YEAR));
+          employeeSalary.setYear(selectedDateTime.getYear());
           //For view we have to add one to the month. Before save it will be subed.
-          employeeSalary.setMonth(selectedDateCalendar.get(Calendar.MONTH) + 1);
+          employeeSalary.setMonth(selectedDateTime.getMonthValue());
           employeeSalary.setType(EmployeeSalaryType.GEHALT);
         } else {
           //For view we have to add one to the month. Before save it will be subed.
-          employeeSalary.setMonth(selectedDateCalendar.get(Calendar.MONTH) + 1);
+          employeeSalary.setMonth(selectedDateTime.getMonthValue());
         }
         employeeSalary.setBruttoMitAgAnteil(row.getSalary());
-        if (StringUtils.isBlank(row.getRemark()) == false) {
+        if (!StringUtils.isBlank(row.getRemark())) {
           employeeSalary.setComment(row.getRemark());
         }
       }

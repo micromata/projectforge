@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,12 +23,13 @@
 
 package org.projectforge.business.address;
 
-import java.io.Serializable;
-import java.util.Date;
-
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.PFDateTime;
+
+import java.io.Serializable;
+import java.time.Month;
+import java.util.Date;
 
 
 public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializable
@@ -39,7 +40,7 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
 
   private final String compareString;
 
-  private final int month;
+  private final Month month;
 
   private final int dayOfMonth;
 
@@ -55,7 +56,7 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
     if (address.getBirthday() == null) {
       throw new UnsupportedOperationException("Birthday not given!");
     }
-    final DateHolder day = new DateHolder(address.getBirthday());
+    final PFDateTime day = PFDateTime.from(address.getBirthday()); // not null
     month = day.getMonth();
     dayOfMonth = day.getDayOfMonth();
     dateOfYear = getDateOfYear(month, dayOfMonth);
@@ -76,6 +77,7 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
     return hcb.toHashCode();
   }
 
+  @Override
   public int compareTo(final BirthdayAddress o)
   {
     return this.compareString.compareTo(o.compareString);
@@ -93,9 +95,9 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
   /** Sets and gets the age of the person at the given date. */
   public int setAge(final Date date)
   {
-    final DateHolder dh = new DateHolder(date);
-    final DateHolder birthday = new DateHolder(address.getBirthday());
-    age = dh.getYear() - birthday.getYear();
+    final PFDateTime dt = PFDateTime.from(date); // not null
+    final PFDateTime birthday = PFDateTime.from(address.getBirthday());  // not null
+    age = dt.getYear() - birthday.getYear();
     return age;
   }
 
@@ -136,10 +138,7 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
     this.isFavorite = isFavorite;
   }
 
-  /**
-   * 0 - January, 1 - February...
-   */
-  public int getMonth()
+  public Month getMonth()
   {
     return month;
   }
@@ -167,12 +166,12 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
     if (date == null) {
       throw new UnsupportedOperationException("Date not given!");
     }
-    final DateHolder dh = new DateHolder(date);
-    return getDateOfYear(dh.getMonth(), dh.getDayOfMonth());
+    final PFDateTime dt = PFDateTime.from(date); // not null
+    return getDateOfYear(dt.getMonth(), dt.getDayOfMonth());
   }
 
-  public static String getDateOfYear(final int month, final int dayOfMonth)
+  public static String getDateOfYear(final Month month, final int dayOfMonth)
   {
-    return StringHelper.format2DigitNumber(month) + StringHelper.format2DigitNumber(dayOfMonth);
+    return StringHelper.format2DigitNumber(month.getValue()) + StringHelper.format2DigitNumber(dayOfMonth);
   }
 }

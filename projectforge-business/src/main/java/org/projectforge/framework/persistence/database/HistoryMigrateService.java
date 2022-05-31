@@ -1,20 +1,27 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.framework.persistence.database;
-
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-
-import javax.sql.DataSource;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import de.micromata.genome.db.jpa.history.api.DiffEntry;
 import de.micromata.genome.db.jpa.history.api.HistProp;
@@ -27,14 +34,24 @@ import de.micromata.genome.jpa.IEmgr;
 import de.micromata.genome.jpa.StdRecord;
 import de.micromata.genome.jpa.metainf.JpaMetadataEntityNotFoundException;
 import de.micromata.genome.util.types.Holder;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import javax.sql.DataSource;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
 
 @Service
 public class HistoryMigrateService
 {
-  private static final Logger LOG = Logger.getLogger(HistoryMigrateService.class);
-
-  @Autowired
-  private TransactionTemplate txTemplate;
+  private static final Logger LOG = LoggerFactory.getLogger(HistoryMigrateService.class);
 
   @Autowired
   private DataSource dataSource;
@@ -80,8 +97,7 @@ public class HistoryMigrateService
   {
     final long printcountEach = 100;
     final Holder<Long> counter = new Holder<>(0L);
-    txTemplate.execute((status) -> {
-
+    emfac.runInTrans(emgr1 -> {
       final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
       jdbc.query("select * from t_history_entry", (rs) -> {
         emfac.runInTrans(emgr -> {
@@ -90,19 +106,19 @@ public class HistoryMigrateService
             Integer pk = rs.getInt("id");
             String className = rs.getString("classname");
             Integer entPk = rs.getInt("modified_id");
-            Timestamp date = rs.getTimestamp("timestamp");
+            Date date = rs.getTimestamp("timestamp");
             String comment = rs.getString("user_comment");
             //        Integer modifiedId = rs.getInt("modified_id");
             String userName = rs.getString("username");
-            if (StringUtils.isBlank(userName) == true) {
+            if (StringUtils.isBlank(userName)) {
               userName = "anon";
             }
             int optyp = rs.getInt("type");
             EntityOpType opType = opTypeFrom(optyp);
             hm.setModifiedBy(userName);
             hm.setCreatedBy(userName);
-            hm.setCreatedAt(new Date(date.getTime()));
-            hm.setModifiedAt(new Date(date.getTime()));
+            hm.setCreatedAt(date);
+            hm.setModifiedAt(date);
             hm.setEntityOpType(opType);
             String entityName = emfac.getMetadataRepository().getEntityMetaDataBySimpleClassName(className).getJavaType().getName();
             hm.setEntityName(entityName);
@@ -128,7 +144,7 @@ public class HistoryMigrateService
               de.setPropertyOpType(getPropOpTypeFrom(hm.getEntityOpType()));
               HistoryServiceImpl.putHistProp(hm, de);
             });
-            if (hm.getAttributes().isEmpty() == true) {
+            if (hm.getAttributes().isEmpty()) {
               if (opType == EntityOpType.Insert) {
                 attachInsertProperties(emgr, hm);
               } else {
@@ -212,7 +228,7 @@ public class HistoryMigrateService
   private void insertHistory(IEmgr<?> emgr, PfHistoryMasterDO hm)
   {
     boolean exists = checkNonExistant(emgr, hm);
-    if (exists == true) {
+    if (exists) {
       LOG.info("Do not import because already exists: " + hmToString(hm));
       ++notMigratedCount;
       return;
@@ -248,7 +264,7 @@ public class HistoryMigrateService
   {
     List<PfHistoryMasterDO> res;
 
-    if (StringUtils.isNotBlank(hm.getTransactionId()) == true) {
+    if (StringUtils.isNotBlank(hm.getTransactionId())) {
       res = emgr.selectAttached(PfHistoryMasterDO.class,
           "select e from " + PfHistoryMasterDO.class.getName()
               + " e where e.entityId = :entityId and e.entityName = :entityName and e.transactionId = :transactionId",
@@ -260,8 +276,8 @@ public class HistoryMigrateService
               + " e where e.entityId = :entityId and e.entityName = :entityName and e.modifiedAt = :modifiedAt",
           "entityId", hm.getEntityId(), "entityName", hm.getEntityName(), "modifiedAt", hm.getModifiedAt());
     }
-    if (overwrite == false || res.isEmpty() == true) {
-      return res.isEmpty() == false;
+    if (!overwrite || res.isEmpty()) {
+      return !res.isEmpty();
     }
     ++foundExistantCount;
     res.forEach((rec) -> emgr.deleteAttached(rec));

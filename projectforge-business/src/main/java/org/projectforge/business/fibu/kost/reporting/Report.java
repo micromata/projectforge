@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,24 @@
 
 package org.projectforge.business.fibu.kost.reporting;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
-import org.apache.commons.lang.ObjectUtils;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.business.fibu.kost.BusinessAssessmentTable;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.PFDayUtils;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Ein Report enthält unterliegende Buchungssätze, die gemäß Zeitraum und zugehörigem ReportObjective selektiert werden.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class Report implements Serializable
 {
@@ -61,19 +58,19 @@ public class Report implements Serializable
 
   private transient List<BuchungssatzDO> duplicates;
 
-  private boolean showChilds;
+  private boolean showChildren;
 
   private transient BusinessAssessment businessAssessment;
 
   private transient BusinessAssessmentTable businessAssessmentTable;
 
-  private int fromYear;
+  private Integer fromYear;
 
-  private int fromMonth;
+  private Integer fromMonth;
 
-  private int toYear;
+  private Integer toYear;
 
-  private int toMonth;
+  private Integer toMonth;
 
   private transient Report parent;
 
@@ -88,25 +85,33 @@ public class Report implements Serializable
     this.parent = parent;
   }
 
-  public Report(final ReportObjective reportObjective, final int fromYear, final int fromMonth, final int toYear, final int toMonth)
+  /**
+   *
+   * @param reportObjective
+   * @param fromYear
+   * @param fromMonth 1-January, ..., 12-December
+   * @param toYear
+   * @param toMonth 1-January, ..., 12-December
+   */
+  public Report(final ReportObjective reportObjective, final Integer fromYear, final Integer fromMonth, final Integer toYear, final Integer toMonth)
   {
     this(reportObjective);
     this.fromYear = fromYear;
-    this.fromMonth = fromMonth;
+    this.fromMonth = PFDayUtils.validateMonthValue(fromMonth);
     this.toYear = toYear;
-    this.toMonth = toMonth;
+    this.toMonth = PFDayUtils.validateMonthValue(toMonth);
   }
 
-  public void setFrom(final int year, final int month)
+  public void setFrom(final Integer year, final Integer month)
   {
     this.fromYear = year;
-    this.fromMonth = month;
+    this.fromMonth = PFDayUtils.validateMonthValue(month);
   }
 
-  public void setTo(final int year, final int month)
+  public void setTo(final Integer year, final Integer month)
   {
     this.toYear = year;
-    this.toMonth = month;
+    this.toMonth = PFDayUtils.validateMonthValue(month);
   }
 
   public int getFromYear()
@@ -114,17 +119,17 @@ public class Report implements Serializable
     return fromYear;
   }
 
-  public int getFromMonth()
+  public Integer getFromMonth()
   {
     return fromMonth;
   }
 
-  public int getToYear()
+  public Integer getToYear()
   {
     return toYear;
   }
 
-  public int getToMonth()
+  public Integer getToMonth()
   {
     return toMonth;
   }
@@ -143,7 +148,7 @@ public class Report implements Serializable
     if (this.parent == null) {
       return null;
     }
-    final List<Report> path = new ArrayList<Report>();
+    final List<Report> path = new ArrayList<>();
     this.parent.getPath(path);
     return path;
   }
@@ -179,15 +184,15 @@ public class Report implements Serializable
   public BusinessAssessmentTable getChildBusinessAssessmentTable(final boolean prependThisReport)
   {
     if (businessAssessmentTable == null) {
-      if (prependThisReport == false && hasChilds() == false) {
+      if (!prependThisReport && !hasChildren()) {
         return null;
       }
       businessAssessmentTable = new BusinessAssessmentTable();
-      if (prependThisReport == true) {
+      if (prependThisReport) {
         businessAssessmentTable.addBusinessAssessment(this.getId(), this.getBusinessAssessment());
       }
-      if (hasChilds() == true) {
-        for (final Report child : getChilds()) {
+      if (hasChildren()) {
+        for (final Report child : getChildren()) {
           businessAssessmentTable.addBusinessAssessment(child.getId(), child.getBusinessAssessment());
         }
       }
@@ -204,22 +209,38 @@ public class Report implements Serializable
     return this.buchungssaetze != null;
   }
 
+  /**
+   * @deprecated
+   */
   public boolean isShowChilds()
   {
-    return showChilds;
+    return isShowChildren();
   }
 
-  public void setShowChilds(final boolean showChilds)
+  public boolean isShowChildren()
   {
-    this.showChilds = showChilds;
+    return showChildren;
+  }
+
+  public void setShowChildren(final boolean showChildren)
+  {
+    this.showChildren = showChildren;
   }
 
   /**
-   * @see ReportObjective#hasChilds()
+   * @see ReportObjective#getHasChildren()
+   */
+  public boolean hasChildren()
+  {
+    return reportObjective.getHasChildren();
+  }
+
+  /**
+   * @deprecated
    */
   public boolean hasChilds()
   {
-    return reportObjective.getHasChilds();
+    return hasChildren();
   }
 
   /**
@@ -240,18 +261,18 @@ public class Report implements Serializable
 
   public Report findById(final String id)
   {
-    if (ObjectUtils.equals(this.reportObjective.getId(), id) == true) {
+    if (Objects.equals(this.reportObjective.getId(), id)) {
       return this;
     }
-    if (hasChilds() == false) {
+    if (!hasChildren()) {
       return null;
     }
-    for (final Report report : getChilds()) {
-      if (ObjectUtils.equals(report.reportObjective.getId(), id) == true) {
+    for (final Report report : getChildren()) {
+      if (Objects.equals(report.reportObjective.getId(), id)) {
         return report;
       }
     }
-    for (final Report report : getChilds()) {
+    for (final Report report : getChildren()) {
       final Report result = report.findById(id);
       if (result != null) {
         return result;
@@ -261,44 +282,44 @@ public class Report implements Serializable
   }
 
   /**
-   * Creates and get the childs if the ReportObjective has childs. Iteriert über alle ChildReportObjectives und legt jeweils einen Report an
-   * und selektiert gemäß Filter des ReportObjectives die Buchungssätze. Wenn Childs nicht implizit erzeugt werden sollen, so sollte die
-   * Funktion hasChilds zur Abfrage genutzt werden.
+   * Creates and get the children if the ReportObjective has children. Iteriert über alle ChildReportObjectives und legt jeweils einen Report an
+   * und selektiert gemäß Filter des ReportObjectives die Buchungssätze. Wenn Children nicht implizit erzeugt werden sollen, so sollte die
+   * Funktion hasChildren zur Abfrage genutzt werden.
    * @see #select(List)
    */
-  public List<Report> getChilds()
+  public List<Report> getChildren()
   {
-    if (childReports == null && hasChilds() == true) {
-      childReports = new ArrayList<Report>();
+    if (childReports == null && hasChildren()) {
+      childReports = new ArrayList<>();
       for (final ReportObjective child : reportObjective.getChildReportObjectives()) {
         final Report report = new Report(child, this);
         report.select(this.buchungssaetze);
         childReports.add(report);
       }
-      if (this.buchungssaetze != null && (reportObjective.isSuppressOther() == false || reportObjective.isSuppressDuplicates() == false)) {
+      if (this.buchungssaetze != null && (!reportObjective.isSuppressOther() || !reportObjective.isSuppressDuplicates())) {
         for (final BuchungssatzDO satz : this.buchungssaetze) {
           int n = 0;
-          for (final Report child : getChilds()) {
-            if (child.contains(satz) == true) {
+          for (final Report child : getChildren()) {
+            if (child.contains(satz)) {
               n++;
             }
           }
-          if (reportObjective.isSuppressOther() == false && n == 0) {
+          if (!reportObjective.isSuppressOther() && n == 0) {
             // Kommt bei keinem Childreport vor:
             if (other == null) {
-              other = new ArrayList<BuchungssatzDO>();
+              other = new ArrayList<>();
             }
             other.add(satz);
-          } else if (reportObjective.isSuppressDuplicates() == false && n > 1) {
-            // Kommt bei mehreren Childs vor:
+          } else if (!reportObjective.isSuppressDuplicates() && n > 1) {
+            // Kommt bei mehreren Children vor:
             if (duplicates == null) {
-              duplicates = new ArrayList<BuchungssatzDO>();
+              duplicates = new ArrayList<>();
             }
             duplicates.add(satz);
           }
         }
       }
-      if (reportObjective.isSuppressOther() == false && this.other != null) {
+      if (!reportObjective.isSuppressOther() && this.other != null) {
         final ReportObjective objective = new ReportObjective();
         final String other = ThreadLocalUserContext.getLocalizedString("fibu.reporting.other");
         objective.setId(this.getId() + " - " + other);
@@ -307,7 +328,7 @@ public class Report implements Serializable
         report.setBuchungssaetze(this.other);
         childReports.add(report);
       }
-      if (reportObjective.isSuppressDuplicates() == false && this.duplicates != null) {
+      if (!reportObjective.isSuppressDuplicates() && this.duplicates != null) {
         final ReportObjective objective = new ReportObjective();
         final String duplicates = ThreadLocalUserContext.getLocalizedString("fibu.reporting.duplicates");
         objective.setId(this.getId() + " - " + duplicates);
@@ -365,6 +386,7 @@ public class Report implements Serializable
   public void select(final List<BuchungssatzDO> list)
   {
     final Predicate regExpPredicate = new Predicate() {
+      @Override
       public boolean evaluate(final Object obj)
       {
         final BuchungssatzDO satz = (BuchungssatzDO) obj;
@@ -372,20 +394,20 @@ public class Report implements Serializable
         final String kost2 = KostFormatter.format(satz.getKost2());
 
         // 1st of all the Blacklists
-        if (match(reportObjective.getKost1ExcludeRegExpList(), kost1, false) == true) {
+        if (match(reportObjective.getKost1ExcludeRegExpList(), kost1, false)) {
           return false;
         }
-        if (match(reportObjective.getKost2ExcludeRegExpList(), kost2, false) == true) {
+        if (match(reportObjective.getKost2ExcludeRegExpList(), kost2, false)) {
           return false;
         }
         // 2nd the whitelists
         final boolean kost1Match = match(reportObjective.getKost1IncludeRegExpList(), kost1, true);
         final boolean kost2Match = match(reportObjective.getKost2IncludeRegExpList(), kost2, true);
-        return kost1Match == true && kost2Match == true;
+        return kost1Match && kost2Match;
       }
     };
-    this.buchungssaetze = new ArrayList<BuchungssatzDO>();
-    this.buchungssatzSet = new HashSet<BuchungssatzDO>();
+    this.buchungssaetze = new ArrayList<>();
+    this.buchungssatzSet = new HashSet<>();
     this.businessAssessment = null;
     this.businessAssessmentTable = null;
     this.childReports = null;
@@ -422,10 +444,10 @@ public class Report implements Serializable
    */
   public static boolean match(final List<String> regExpList, final String kost, final boolean emptyListMatches)
   {
-    if (CollectionUtils.isNotEmpty(regExpList) == true) {
+    if (CollectionUtils.isNotEmpty(regExpList)) {
       for (final String str : regExpList) {
         final String regExp = modifyRegExp(str);
-        if (kost.matches(regExp) == true) {
+        if (kost.matches(regExp)) {
           return true;
         }
       }
@@ -446,7 +468,7 @@ public class Report implements Serializable
     if (regExp == null) {
       return null;
     }
-    if (regExp.startsWith("'") == true) {
+    if (regExp.startsWith("'")) {
       return regExp.substring(1);
     }
     final String str = regExp.replace(".", "\\.").replace("*", ".*");

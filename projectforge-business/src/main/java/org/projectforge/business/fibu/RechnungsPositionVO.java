@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,15 +23,15 @@
 
 package org.projectforge.business.fibu;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.Date;
-
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import java.time.LocalDate;
+import java.util.Objects;
 
 /**
- * Repräsentiert einee Position innerhalb einer Rechnung als Übersichtsobject (value object) zur Verwendung z. B. in Listen.
+ * Repräsentiert eine Position innerhalb einer Rechnung als Übersichtsobjekt (value object) zur Verwendung z. B. in Listen.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Serializable
@@ -42,7 +42,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
 
   private final Integer rechnungId;
 
-  private final Date date;
+  private final LocalDate date;
 
   private final Integer rechnungNummer;
 
@@ -84,7 +84,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
   /**
    * @return the date
    */
-  public Date getDate()
+  public LocalDate getDate()
   {
     return date;
   }
@@ -110,7 +110,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
   }
 
   /**
-   * @see RechnungDO#getTitel()
+   * @see RechnungDO#getBetreff() ()
    */
   public String getRechnungTitle()
   {
@@ -132,9 +132,9 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
   {
     if (o instanceof RechnungsPositionVO) {
       final RechnungsPositionVO other = (RechnungsPositionVO) o;
-      if (ObjectUtils.equals(this.getNumber(), other.getNumber()) == false)
+      if (!Objects.equals(this.getNumber(), other.getNumber()))
         return false;
-      if (ObjectUtils.equals(this.getRechnungId(), other.getRechnungId()) == false)
+      if (!Objects.equals(this.getRechnungId(), other.getRechnungId()))
         return false;
       return true;
     }
@@ -150,17 +150,12 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
     return hcb.toHashCode();
   }
 
+  @Override
   public int compareTo(final RechnungsPositionVO o)
   {
-    if (this.rechnungNummer.equals(o.rechnungNummer) == false) {
+    if (!this.rechnungNummer.equals(o.rechnungNummer)) {
       return this.rechnungNummer.compareTo(o.rechnungNummer);
     }
-    if (this.number < o.number) {
-      return -1;
-    } else if (this.number == o.number) {
-      return 0;
-    } else {
-      return +1;
-    }
+    return Short.compare(this.number, o.number);
   }
 }

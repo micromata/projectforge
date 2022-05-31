@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,29 +23,24 @@
 
 package org.projectforge.framework.configuration.entities;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.fail;
-
-import java.util.List;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.ConfigurationType;
-import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class ConfigurationDOTest extends AbstractTestBase
-{
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class ConfigurationDOTest extends AbstractTestBase {
 
   @Autowired
   private ConfigurationDao configurationDao;
 
   @Test
-  public void testSingleEntry()
-  {
+  public void testSingleEntry() {
     final ConfigurationDO conf = new ConfigurationDO().setType(ConfigurationType.STRING);
     conf.setStringValue("Hurzel");
     assertEquals("Hurzel", conf.getStringValue());
@@ -55,8 +50,7 @@ public class ConfigurationDOTest extends AbstractTestBase
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testConfiguration()
-  {
+  public void testConfiguration() {
     ConfigurationDO config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
     config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
     assertNotNull(config);
@@ -65,25 +59,27 @@ public class ConfigurationDOTest extends AbstractTestBase
     config.setValue("Hurzel");
     assertNotNull(config);
     configurationDao.internalSave(config);
-    List<ConfigurationDO> list = (List<ConfigurationDO>) hibernateTemplate
-        .find("from ConfigurationDO c where c.parameter = 'unknown'");
+    List<ConfigurationDO> list = em.createQuery(
+            "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class)
+            .getResultList();
     config = list.get(0);
     assertEquals("Hurzel", config.getStringValue());
     configurationDao.checkAndUpdateDatabaseEntries();
-    list = (List<ConfigurationDO>) hibernateTemplate.find("from ConfigurationDO c where c.parameter = 'unknown'");
+    list = em.createQuery(
+            "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class)
+            .getResultList();
     config = list.get(0);
-    assertEquals("Entry should be deleted.", true, config.isDeleted());
+    assertEquals(true, config.isDeleted(), "Entry should be deleted.");
 
     config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
     configurationDao.internalMarkAsDeleted(config);
     configurationDao.checkAndUpdateDatabaseEntries();
     config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
-    assertEquals("Object should be restored.", false, config.isDeleted());
+    assertEquals(false, config.isDeleted(), "Object should be restored.");
   }
 
   @Test
-  public void checkTypes()
-  {
+  public void checkTypes() {
     final ConfigurationDO config = new ConfigurationDO().setType(ConfigurationType.STRING);
     config.setStringValue("Hurzel");
     config.setType(ConfigurationType.STRING);

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,36 +23,31 @@
 
 package org.projectforge.framework.persistence.api;
 
+import org.springframework.stereotype.Repository;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de) TODO RK check if needed and may replace
  */
 @Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class SearchDao
-{
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SearchDao.class);
+public class SearchDao {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SearchDao.class);
 
-  public List<SearchResultData> getEntries(final BaseSearchFilter filter, final Class clazz, final BaseDao baseDao)
-  {
+  public List<SearchResultData> getEntries(final BaseSearchFilter filter, final Class clazz, final BaseDao baseDao) {
     if (filter == null) {
       log.info("Filter or rows in filter is null (may be Search as redirect after login): " + filter);
       return null;
     }
     log.debug("Searching in " + clazz);
-    if (baseDao.hasLoggedInUserSelectAccess(false) == false || baseDao.hasLoggedInUserHistoryAccess(false) == false) {
+    if (!baseDao.hasLoggedInUserSelectAccess(false) || !baseDao.hasLoggedInUserHistoryAccess(false)) {
       // User has in general no access to history entries of the given object type (clazz).
       return null;
     }
     if (filter.getModifiedByUserId() != null
-        || filter.getStartTimeOfModification() != null
-        || filter.getStopTimeOfModification() != null) {
+            || filter.getStartTimeOfModification() != null
+            || filter.getStopTimeOfModification() != null) {
       filter.setUseModificationFilter(true);
     } else {
       filter.setUseModificationFilter(false);
@@ -62,7 +57,7 @@ public class SearchDao
       // An error occured.
       return null;
     }
-    final List<SearchResultData> result = new ArrayList<SearchResultData>();
+    final List<SearchResultData> result = new ArrayList<>();
     if (list.size() == 0) {
       return result;
     }

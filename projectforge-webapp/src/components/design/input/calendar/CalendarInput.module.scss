@@ -1,0 +1,169 @@
+.label {
+  font-size: 1.2em;
+  display: flex;
+}
+
+.quickSelectors {
+  list-style: none;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  padding-inline-start: 0;
+  border-right: 1px solid #ddd;
+
+  .quickSelector {
+    padding: 5px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #d1deff;
+    }
+
+    &.selected {
+      background-color: #d1deff;
+      color: #003a71;
+
+      &:hover {
+        background-color: #b8c4e1;
+      }
+    }
+  }
+}
+
+.timeInput {
+  flex: 1;
+
+  .container {
+    display: flex;
+
+    .hourInput, .minuteInput {
+      font-family: monospace;
+      border: none;
+      padding: 0 .5em;
+      background: none;
+      -moz-appearance:textfield;
+
+      &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
+        appearance: none;
+        margin: 0;
+      }
+
+      &:focus {
+        outline: none;
+      }
+    }
+
+    .hourInput {
+      text-align: right;
+      width: 3.125em;
+    }
+
+    .minuteInput {
+      width: 2.5em;
+    }
+  }
+
+
+  .hours, .minutes {
+    font-size: .8em;
+    display: inline-block;
+    list-style: none;
+    margin-block-start: 0;
+    margin-block-end: 0;
+    padding-inline-start: 0;
+    vertical-align: top;
+
+    .hour, .minute {
+      width: 2em;
+      height: 2em;
+      text-align: center;
+      padding-top: .25em;
+      border-radius: 50%;
+
+      &:hover {
+        background-color: #3a76d8;
+        color: #fff;
+      }
+    }
+  }
+
+  .hours {
+    width: 2em;
+  }
+
+  .minutes {
+    padding-left: 5px;
+    border-left: 1px solid #eee;
+
+    &.precision-1, &.precision-2, &.precision-3, &.precision-4 {
+      width: 11em;
+
+      .minute {
+        display: inline-block;
+
+        &:nth-child(5n + 1) {
+          font-weight: 600;
+        }
+      }
+    }
+  }
+}
+
+.editMode {
+  display: inline-block;
+}
+
+.dateInput {
+  display: inline-block;
+  position: relative;
+  font-size: 14px;
+  flex: 1;
+
+  input {
+    position: relative;
+    border: none;
+    padding: 0;
+    background: none;
+    outline: none;
+    width: 100%;
+  }
+
+  .placeholder {
+    position: absolute;
+    top: 0;
+    color: #999;
+    padding-left: 1px;
+  }
+
+  input, .placeholder {
+    font-family: monospace;
+  }
+}
+
+.timeRange {
+  display: flex;
+  justify-content: flex-start;
+
+  .from, .to {
+    flex: 0;
+    display: flex;
+  }
+
+  .from {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .to {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .deleteButton {
+    margin: 0 .5em;
+    cursor: pointer;
+
+    &:hover {
+      color: #333;
+    }
+  }
+}
