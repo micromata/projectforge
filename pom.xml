@@ -237,7 +237,7 @@
         <jakarta.ws.rs.version>2.1.6</jakarta.ws.rs.version> <!-- 3.x uses jakarta.servlet instead of javax.servlet! -->
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
         <javax.jsp-api.version>2.3.3</javax.jsp-api.version>
-        <javax.mail.version>1.4.7</javax.mail.version>
+        <jakarta.mail-api>2.1.0</jakarta.mail-api>
         <jersey.version>2.35</jersey.version> <!-- 3.x uses jakarta.servlet instead of javax.servlet! -->
         <jfreechart.version>1.5.3</jfreechart.version>
         <jlf4j.version>1.7.36</jlf4j.version> <!-- should be the same as used in spring boot started. -->
