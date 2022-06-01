@@ -57,7 +57,7 @@ class AutoCompletion<T>(
   /**
    * Pre-defined types of autocompletion objects as information for the clients.
    */
-  enum class Type { USER, GROUP, CUSTOMER, PROJECT }
+  enum class Type { USER, EMPLOYEE, GROUP, CUSTOMER, PROJECT }
   class Entry<T>(
     val value: T,
     /**
@@ -104,6 +104,15 @@ class AutoCompletion<T>(
       val additionalParamString = if (showOnlyActiveUsers) "" else "$SHOW_ALL_PARAM=true&"
       return AutoCompletion(url = getAutoCompletionUrl("user", additionalParamString), type = Type.USER.name)
     }
+
+    /**
+     * @return category/autosearch?search=:search
+     */
+    fun getAutoCompletion4Employees(showOnlyActiveEmployees: Boolean = true): AutoCompletion<Int> {
+      val additionalParamString = if (showOnlyActiveEmployees) "" else "$SHOW_ALL_PARAM=true&"
+      return AutoCompletion(url = getAutoCompletionUrl("employee", additionalParamString), type = Type.EMPLOYEE.name)
+    }
+
 
     /**
      * @return category/autosearch?search=:search
