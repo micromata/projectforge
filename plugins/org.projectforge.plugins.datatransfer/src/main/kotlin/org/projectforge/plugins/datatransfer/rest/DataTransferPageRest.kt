@@ -266,6 +266,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
         )
       }
     }
+    fieldSet.add(UIReadOnlyField("description", label = "description"))
 
     layout.add(fieldSet)
 
