@@ -34,8 +34,6 @@ public class EingangsrechnungListFilter extends RechnungFilter
 {
   private static final long serialVersionUID = -9163400923075871920L;
 
-  private boolean showKostZuweisungStatus;
-
   private Collection<PaymentType> paymentTypes = new ArrayList<>();
 
   public EingangsrechnungListFilter()
@@ -47,24 +45,9 @@ public class EingangsrechnungListFilter extends RechnungFilter
     super(filter);
 
     if (filter instanceof EingangsrechnungListFilter) {
-      this.showKostZuweisungStatus = ((EingangsrechnungListFilter) filter).isShowKostZuweisungStatus();
+      setShowKostZuweisungStatus(((EingangsrechnungListFilter) filter).isShowKostZuweisungStatus());
       this.paymentTypes = ((EingangsrechnungListFilter) filter).getPaymentTypes();
     }
-  }
-
-  /**
-   * Zeige Fehlbeträge in der Liste.
-   */
-  @Override
-  public boolean isShowKostZuweisungStatus()
-  {
-    return showKostZuweisungStatus;
-  }
-
-  @Override
-  public void setShowKostZuweisungStatus(final boolean showKostZuweisungStatus)
-  {
-    this.showKostZuweisungStatus = showKostZuweisungStatus;
   }
 
   public Collection<PaymentType> getPaymentTypes()
@@ -80,7 +63,6 @@ public class EingangsrechnungListFilter extends RechnungFilter
   @Override
   public RechnungFilter reset()
   {
-    showKostZuweisungStatus = false;
     paymentTypes = new ArrayList<>();
     return super.reset();
   }

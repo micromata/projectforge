@@ -48,6 +48,7 @@ public class RechnungListFilter extends RechnungFilter implements SearchFilterWi
     if (filter instanceof RechnungListFilter) {
       this.periodOfPerformanceStartDate = ((RechnungListFilter) filter).getPeriodOfPerformanceStartDate();
       this.periodOfPerformanceEndDate = ((RechnungListFilter) filter).getPeriodOfPerformanceEndDate();
+      setShowKostZuweisungStatus(((RechnungListFilter) filter).isShowKostZuweisungStatus());
     }
   }
 
