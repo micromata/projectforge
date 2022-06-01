@@ -54,7 +54,7 @@ class DatatransferJCRNotificationBeforeDeletionJob {
   private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
 
   @Autowired
-  private lateinit var notificationMailService: NotificationMailService
+  private lateinit var dataTransferNotificationMailService: DataTransferNotificationMailService
 
   @Autowired
   private lateinit var pluginAdminService: PluginAdminService
@@ -75,7 +75,7 @@ class DatatransferJCRNotificationBeforeDeletionJob {
     }
     // key is the user id of the observer and the value is the list of observed attachments (including data transfer
     // area which will being deleted by the system.
-    val notificationInfoByObserver = mutableMapOf<Int, MutableList<NotificationMailService.AttachmentNotificationInfo>>()
+    val notificationInfoByObserver = mutableMapOf<Int, MutableList<DataTransferNotificationMailService.AttachmentNotificationInfo>>()
     log.info("Data transfer notification job started.")
     val startTimeInMillis = System.currentTimeMillis()
 
@@ -103,14 +103,14 @@ class DatatransferJCRNotificationBeforeDeletionJob {
                 observerAttachments = mutableListOf()
                 notificationInfoByObserver[userId] = observerAttachments
               }
-              observerAttachments.add(NotificationMailService.AttachmentNotificationInfo(attachment, dbo, date, expiresInMillis, locale))
+              observerAttachments.add(DataTransferNotificationMailService.AttachmentNotificationInfo(attachment, dbo, date, expiresInMillis, locale))
             }
           }
         }
       }
     }
     notificationInfoByObserver.forEach { (userId, attachments) ->
-      notificationMailService.sendNotificationMail(userId, attachments)
+      dataTransferNotificationMailService.sendNotificationMail(userId, attachments)
     }
     log.info(
       "JCR notification job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of notification mails: ${notificationInfoByObserver.size}"

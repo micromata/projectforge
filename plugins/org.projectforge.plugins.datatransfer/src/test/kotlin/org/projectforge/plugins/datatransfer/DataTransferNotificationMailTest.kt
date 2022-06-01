@@ -39,7 +39,7 @@ import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 
-class NotificationMailTest : AbstractTestBase() {
+class DataTransferNotificationMailTest : AbstractTestBase() {
   @Autowired
   private lateinit var dataTransferAuditDao: DataTransferAuditDao
 
@@ -47,7 +47,7 @@ class NotificationMailTest : AbstractTestBase() {
   private lateinit var domainService: DomainService
 
   @Autowired
-  private lateinit var notificationMailService: NotificationMailService
+  private lateinit var dataTransferNotificationMailService: DataTransferNotificationMailService
 
   init {
     MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(
@@ -110,7 +110,7 @@ class NotificationMailTest : AbstractTestBase() {
       FileInfo("externalFile.txt"),
       timestamp4TestCase = timestamp,
     )
-    val mail = notificationMailService.prepareMail(
+    val mail = dataTransferNotificationMailService.prepareMail(
       recipient,
       area,
       link,
@@ -124,18 +124,18 @@ class NotificationMailTest : AbstractTestBase() {
   fun notificationMailTest() {
     val recipient = createUser()
     recipient.locale = Locale.GERMAN
-    val notificationInfoList = mutableListOf<NotificationMailService.AttachmentNotificationInfo>()
+    val notificationInfoList = mutableListOf<DataTransferNotificationMailService.AttachmentNotificationInfo>()
     val area1 = createDataTransferArea(42, "Area", 10)
     notificationInfoList.add(createNotificationInfo("File 1.pdf", 1_200, area1, 5))
     notificationInfoList.add(createNotificationInfo("File 2.pdf", 1_200_000, area1, 1))
     val area2 = createDataTransferArea(2, "Area 2", 30)
     notificationInfoList.add(createNotificationInfo("File 1.pdf", 1_200, area2, 5))
     notificationInfoList.add(createNotificationInfo("File 2.pdf", 1_200_000, area2, 1))
-    var mail = notificationMailService.prepareMail(recipient, notificationInfoList)
+    var mail = dataTransferNotificationMailService.prepareMail(recipient, notificationInfoList)
     Assertions.assertNull(mail, "Recipient has no access, so don't send an e-mail.")
     area1.adminIds = "${recipient.id}"
     area2.accessUserIds = "${recipient.id}"
-    mail = notificationMailService.prepareMail(recipient, notificationInfoList)
+    mail = dataTransferNotificationMailService.prepareMail(recipient, notificationInfoList)
     Assertions.assertNotNull(mail)
     Assertions.assertEquals(
       4,
@@ -174,14 +174,14 @@ class NotificationMailTest : AbstractTestBase() {
     size: Long,
     area: DataTransferAreaDO,
     expiresInDays: Int,
-  ): NotificationMailService.AttachmentNotificationInfo {
+  ): DataTransferNotificationMailService.AttachmentNotificationInfo {
     val attachment = Attachment()
     attachment.name = name
     attachment.created =
       PFDateTime.now().plusDays(expiresInDays.toLong()).minusDays(area.expiryDays!!.toLong()).utilDate
     attachment.lastUpdate = attachment.created
     attachment.size = size
-    val info = NotificationMailService.AttachmentNotificationInfo(
+    val info = DataTransferNotificationMailService.AttachmentNotificationInfo(
       attachment,
       area,
       PFDateTime.now().plusDays(expiresInDays.toLong()).utilDate,

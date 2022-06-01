@@ -35,7 +35,6 @@
                 <%= pf.getI18nString("plugins.datatransfer.mail.link") %>
             </a>
 
-            <% if (externalAccessEnabled) { %>
             <h3>
                 <%= pf.getI18nString("plugins.datatransfer.audit.downloadEvents") %>
             </h3>
@@ -55,7 +54,6 @@
                 </tr>
                 <% } %>
             </table>
-            <% } %>
 
             #INCLUDE{mail/mailClosing.html}
             #INCLUDE{mail/mailFooter.html}

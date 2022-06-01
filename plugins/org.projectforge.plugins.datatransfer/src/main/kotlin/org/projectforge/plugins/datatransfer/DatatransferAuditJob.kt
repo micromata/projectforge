@@ -47,7 +47,7 @@ class DatatransferAuditJob {
   private lateinit var dataTransferAuditDao: DataTransferAuditDao
 
   @Autowired
-  private lateinit var notificationMailService: NotificationMailService
+  private lateinit var dataTransferNotificationMailService: DataTransferNotificationMailService
 
   @Autowired
   private lateinit var pluginAdminService: PluginAdminService
@@ -68,7 +68,7 @@ class DatatransferAuditJob {
       val auditEntries = dataTransferAuditDao.internalGetQueuedEntriesByAreaId(area.id)
       val downloadAuditEntries = dataTransferAuditDao.internalGetDownloadEntriesByAreaId(area.id)
       if (!auditEntries.isNullOrEmpty()) {
-        notificationMailService.sendMails(area, auditEntries, downloadAuditEntries)
+        dataTransferNotificationMailService.sendMails(area, auditEntries, downloadAuditEntries)
         dataTransferAuditDao.removeFromQueue(auditEntries)
       }
     }
