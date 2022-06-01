@@ -57,7 +57,7 @@ open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @get:JoinColumn(name = "eingangsrechnungs_pos_fk")
     @get:OrderColumn(name = "index")
-    @JsonBackReference
+    @JsonManagedReference
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
     override fun checkKostZuweisungId(zuweisung: KostZuweisungDO): Boolean {
