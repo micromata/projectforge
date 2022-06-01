@@ -182,8 +182,9 @@ open class AttachmentsService {
     /**
      * Only for external users. Otherwise logged in user will be assumed.
      */
-    userString: String? = null
-  )
+    userString: String? = null,
+    baseDao: BaseDao<out ExtendedBaseDO<Int>>? = null,
+    )
       : Pair<FileObject, InputStream>? {
     val fileObject = repoService.getFileInfo(
       getPath(path, id),
@@ -208,6 +209,15 @@ open class AttachmentsService {
         } #$fileId, because user has no access to this object or it doesn't exist."
       }
       return null
+    }
+    baseDao?.let {
+      var dbObj = data
+      if (dbObj == null && id is java.io.Serializable) {
+        dbObj = baseDao.internalGetById(id)
+      }
+      if (baseDao is AttachmentsEventListener) {
+        baseDao.onAttachmentEvent(AttachmentsEventType.DOWNLOAD, fileObject, dbObj, ThreadLocalUserContext.getUser(), userString)
+      }
     }
     attachmentsEventListener?.onAttachmentEvent(
       AttachmentsEventType.DOWNLOAD,

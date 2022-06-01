@@ -368,6 +368,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         id,
         fileId,
         pagesRest.attachmentsAccessChecker,
+        baseDao = pagesRest.baseDao,
       )
         ?: throw TechnicalException(
           "File to download not accessible for user or not found: ${

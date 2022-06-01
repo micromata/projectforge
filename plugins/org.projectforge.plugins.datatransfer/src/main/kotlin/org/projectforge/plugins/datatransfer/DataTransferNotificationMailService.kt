@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard
  */
 @Service
-open class NotificationMailService {
+open class DataTransferNotificationMailService {
   @Autowired
   private lateinit var domainService: DomainService
 
@@ -77,17 +77,9 @@ open class NotificationMailService {
   ): Int {
     // First detect all recipients by checking all audit entries:
     val recipients = mutableSetOf<Int>()
+    val observerIds = StringHelper.splitToInts(area.observerIds, ",", false)
     auditEntries.forEach { audit ->
-      if (audit.eventType == AttachmentsEventType.DELETE) {
-        val uploadByUserId = audit.uploadByUser?.id
-        if (uploadByUserId != null && uploadByUserId != audit.byUser?.id) {
-          // File object created by another user was deleted, so notify uploadBy user:
-          recipients.add(uploadByUserId)
-        }
-      }
-      StringHelper.splitToInts(area.observerIds, ",", false).forEach {
-        recipients.add(it)
-      }
+      registerRecipients(audit, observerIds, recipients)
     }
     /*
     Don't notify admins anymore.
@@ -124,7 +116,10 @@ open class NotificationMailService {
   /**
    * Sends an email with files being deleted to an observer.
    */
-  fun sendNotificationMail(userId: Int, notificationInfoList: List<AttachmentNotificationInfo>?) {
+  fun sendNotificationMail(
+    userId: Int,
+    notificationInfoList: List<DataTransferNotificationMailService.AttachmentNotificationInfo>?
+  ) {
     if (notificationInfoList.isNullOrEmpty()) {
       return
     }
@@ -161,8 +156,10 @@ open class NotificationMailService {
     }
     foreignAuditEntries.forEach { it.createdByUserAsString(locale) }
     downloadAuditEntries.forEach { it.createdByUserAsString(locale) }
-    val title = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.observe.subject", dataTransfer.displayName)
-    val message = I18nHelper.getLocalizedMessage(recipient,"plugins.datatransfer.mail.observe.message", dataTransfer.displayName)
+    val title =
+      I18nHelper.getLocalizedMessage(recipient, "plugins.datatransfer.mail.observe.subject", dataTransfer.displayName)
+    val message =
+      I18nHelper.getLocalizedMessage(recipient, "plugins.datatransfer.mail.observe.message", dataTransfer.displayName)
     val mail = Mail()
     mail.subject = title // Subject equals to message
     mail.contentType = Mail.CONTENTTYPE_HTML
@@ -183,7 +180,10 @@ open class NotificationMailService {
     return mail
   }
 
-  internal fun prepareMail(recipient: PFUserDO, notificationInfoList: List<AttachmentNotificationInfo>): Mail? {
+  internal fun prepareMail(
+    recipient: PFUserDO,
+    notificationInfoList: List<DataTransferNotificationMailService.AttachmentNotificationInfo>
+  ): Mail? {
     val locale = UserLocale.determineUserLocale(recipient)
     notificationInfoList.forEach { info ->
       if (info.link == null) {
@@ -227,5 +227,28 @@ open class NotificationMailService {
     mail.content =
       sendMail.renderGroovyTemplate(mail, "mail/dataTransferFilesBeingDeletedMail.html", data, mail.subject, recipient)
     return mail
+  }
+
+  companion object {
+    internal fun registerRecipients(audit: DataTransferAuditDO, observerIds: IntArray, recipients: MutableSet<Int>) {
+      audit.eventType?.let { eventType ->
+        if (eventType == AttachmentsEventType.DELETE || eventType == AttachmentsEventType.MODIFICATION) {
+          val uploadByUserId = audit.uploadByUser?.id
+          if (uploadByUserId != null && uploadByUserId != audit.byUser?.id) {
+            // File object created by another user was deleted or modified, so notify uploadBy user:
+            recipients.add(uploadByUserId)
+          }
+        }
+        if (eventType.isIn(AttachmentsEventType.MODIFICATION, AttachmentsEventType.UPLOAD, AttachmentsEventType.DELETE)) {
+          val byUserId = audit.byUser?.id
+          // Not a download event, so inform the oberservers about (UPLOAD and MODIFICATION), if not done by themselves.
+          observerIds.forEach { observerId ->
+            if (observerId != byUserId) {
+              recipients.add(observerId)
+            }
+          }
+        }
+      }
+    }
   }
 }
