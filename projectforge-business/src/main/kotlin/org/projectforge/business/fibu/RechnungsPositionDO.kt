@@ -43,6 +43,7 @@ import javax.persistence.*
 @Table(name = "t_fibu_rechnung_position", uniqueConstraints = [UniqueConstraint(columnNames = ["rechnung_fk", "number"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_auftrags_position_fk", columnList = "auftrags_position_fk"), javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_rechnung_fk", columnList = "rechnung_fk")])
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
+    @JsonBackReference
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "rechnung_fk", nullable = false)
     open var rechnung: RechnungDO? = null

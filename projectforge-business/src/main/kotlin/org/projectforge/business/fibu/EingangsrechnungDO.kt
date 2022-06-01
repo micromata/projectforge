@@ -121,7 +121,7 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
   )
   @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
   @get:ListIndexBase(1)
-  override open var positionen: MutableList<EingangsrechnungsPositionDO>? = null
+  override var positionen: MutableList<EingangsrechnungsPositionDO>? = null
 
   override val abstractPositionen: List<AbstractRechnungsPositionDO>?
     @Transient

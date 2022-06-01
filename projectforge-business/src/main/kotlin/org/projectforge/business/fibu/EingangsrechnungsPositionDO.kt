@@ -44,6 +44,7 @@ import javax.persistence.*
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
 
+    @JsonBackReference
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "eingangsrechnung_fk", nullable = false)
     open var eingangsrechnung: EingangsrechnungDO? = null
@@ -56,7 +57,6 @@ open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @get:JoinColumn(name = "eingangsrechnungs_pos_fk")
     @get:OrderColumn(name = "index")
-    @JsonManagedReference
     @JsonBackReference
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
