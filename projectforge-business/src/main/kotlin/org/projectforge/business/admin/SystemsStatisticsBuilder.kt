@@ -24,6 +24,7 @@
 package org.projectforge.business.admin
 
 import mu.KotlinLogging
+import org.projectforge.ProjectForgeVersion
 import org.projectforge.framework.calendar.DurationUtils
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.time.PFDateTime
@@ -34,7 +35,7 @@ import java.util.*
 
 private val log = KotlinLogging.logger {}
 
-class SystemsStatisticsBuilder: SystemsStatisticsBuilderInterface {
+class SystemsStatisticsBuilder : SystemsStatisticsBuilderInterface {
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
     // First: Get the system load average (don't measure gc run ;-)
     val osBean = ManagementFactory.getOperatingSystemMXBean()
@@ -49,6 +50,14 @@ class SystemsStatisticsBuilder: SystemsStatisticsBuilderInterface {
         )
       } [h:mm], ${TimeAgo.getMessage(processStartTime.utilDate, Locale.ENGLISH)}"
     )
+    stats.add(
+      "version", "system", "'ProjectForge® version",
+      "${ProjectForgeVersion.APP_ID} ${ProjectForgeVersion.VERSION_NUMBER}: build date=${ProjectForgeVersion.BUILD_TIMESTAMP}",
+    )
+    stats.add(
+      "scm", "system", "'SCM",
+      "${ProjectForgeVersion.SCM}=${ProjectForgeVersion.SCM_ID}"
+    )
     stats.add("systemLoadAverage", "system", "'System load average", format(systemLoadAverage))
     stats.add("activeThreads", "system", "'Number of active threads", format(numberOfActiveThreads))
     stats.add(
@@ -59,6 +68,10 @@ class SystemsStatisticsBuilder: SystemsStatisticsBuilderInterface {
     stats.add(
       "processUptime", "system", "'Process uptime",
       "${DurationUtils.getFormattedDaysHoursAndMinutes(processUptime)} [h:mm]"
+    )
+    stats.add(
+      "java", "system", "'Java version",
+      "${System.getProperty("java.vendor")} ${System.getProperty("java.version")}"
     )
   }
 }
