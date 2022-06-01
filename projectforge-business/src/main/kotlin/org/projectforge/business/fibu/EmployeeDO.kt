@@ -86,7 +86,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
      * The ProjectForge user assigned to this employee.
      */
     @PropertyInfo(i18nKey = "fibu.employee.user")
-    @IndexedEmbedded(depth = 1, includePaths = ["firstname", "lastname", "description", "organization"])
+    @IndexedEmbedded(depth = 1, includePaths = ["username", "firstname", "lastname", "description", "organization"])
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "user_id", nullable = false)
     open var user: PFUserDO? = null
