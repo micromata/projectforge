@@ -228,7 +228,6 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     )
     layout.watchFields.addAll(arrayOf("isFavoriteCard"))
     LayoutUtils.process(layout)
-    layout.postProcessPageMenu()
     val formLayoutData = FormLayoutData(address, layout, createServerData(request))
     returnToCaller?.let {
       // Fix doubled encoding:

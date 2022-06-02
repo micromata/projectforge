@@ -135,8 +135,6 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
 
     LayoutUtils.process(layout)
 
-    layout.postProcessPageMenu()
-
     return FormLayoutData(data, layout, createServerData(request))
   }
 }

@@ -114,7 +114,6 @@ class DataTransferPersonalBoxPageRest : AbstractDynamicPageRest() {
     layout.watchFields.addAll(arrayOf("user"))
 
     LayoutUtils.process(layout)
-    layout.postProcessPageMenu()
     layout.addTranslations("tooltip.selectMe", "user")
     return layout
   }

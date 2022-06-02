@@ -134,7 +134,6 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
 
     onAfterLayout(layout, scriptDO)
     LayoutUtils.process(layout)
-    layout.postProcessPageMenu()
     return layout
   }
 

@@ -146,7 +146,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     layout.getTableColumnById("executeAsUser").formatter = UITableColumn.Formatter.USER
     layout.add(
       MenuItem(
-        "exeute",
+        "execute",
         i18nKey = "scripting.script.execute",
         url = PagesResolver.getDynamicPageUrl(
           ScriptExecutePageRest::class.java,

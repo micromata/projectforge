@@ -94,7 +94,6 @@ class DataTransferAuditPageRest : AbstractDynamicPageRest() {
       }
     }
     LayoutUtils.process(layout)
-    layout.postProcessPageMenu()
     return FormLayoutData(formData, layout, createServerData(request))
   }
 
