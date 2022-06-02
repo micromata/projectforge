@@ -215,7 +215,7 @@ constructor(
 
   open fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val ui = UILayout("$i18nKeyPrefix.list")
-    val gearMenu = MenuItem(GEAR_MENU, title = "*")
+    val gearMenu = ui.ensureGearMenu()
     gearMenu.add(
       MenuItem(
         "reindexNewestDatabaseEntries",
@@ -248,7 +248,6 @@ constructor(
       )
     )
 
-    ui.add(gearMenu)
     ui.addTranslations(
       "reset", "datatable.no-records-found", "date.begin", "date.end", "exportAsXls",
       "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday"
@@ -391,7 +390,6 @@ constructor(
     }
     removeUnknownFilterEntries(filter, filterEntries)
     ui.add(searchFilterContainer)
-    ui.postProcessPageMenu()
     if (classicsLinkListUrl != null) {
       ui.add(
         MenuItem(
@@ -744,7 +742,6 @@ constructor(
   ): FormLayoutData {
     val ui = createEditLayout(dto, userAccess)
     ui.addTranslations("changes", "tooltip.selectMe")
-    ui.postProcessPageMenu()
     val serverData = sessionCsrfService.createServerData(request)
     val result = FormLayoutData(dto, ui, serverData)
     onGetItemAndLayout(request, dto, result)

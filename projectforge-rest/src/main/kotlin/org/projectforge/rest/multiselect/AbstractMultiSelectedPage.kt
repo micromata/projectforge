@@ -381,7 +381,6 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
       )
     }
     LayoutUtils.process(layout)
-    layout.postProcessPageMenu()
     return layout
   }
 

@@ -277,7 +277,6 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
       )
     }
     LayoutUtils.process(layout)
-    layout.postProcessPageMenu()
 
     val executionData = MerlinExecutionData(dto.id!!, dto.name ?: "???")
     val userPref = getUserPref(id)

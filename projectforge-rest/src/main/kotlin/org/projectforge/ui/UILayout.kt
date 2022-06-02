@@ -26,12 +26,13 @@ package org.projectforge.ui
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
+import org.projectforge.rest.core.AbstractPagesRest
 
 class UILayout(
   title: String,
   /** restBaseUrl is needed, if [UIAttachmentList] is used. */
   var restBaseUrl: String? = null,
-  ): IUIContainer {
+) : IUIContainer {
   class UserAccess(
     /**
      * The user has access to the object's history, if given.
@@ -74,6 +75,7 @@ class UILayout(
    * Show history is only true, if userAccess.history is also true.
    */
   var showHistory: Boolean? = null
+
   /**
    * Used for list pages, if true, the search filter of the list page will be hidden.
    */
@@ -225,6 +227,13 @@ class UILayout(
   }
 
   fun getMenuById(id: String): MenuItem? {
+    if (id == AbstractPagesRest.GEAR_MENU) {
+      return ensureGearMenu()
+    }
+    return internalGetMenuById(id)
+  }
+
+  private fun internalGetMenuById(id: String): MenuItem? {
     pageMenu.forEach {
       val found = it.get(id)
       if (found != null) {
@@ -232,6 +241,15 @@ class UILayout(
       }
     }
     return null
+  }
+
+  fun ensureGearMenu(): MenuItem {
+    return internalGetMenuById(AbstractPagesRest.GEAR_MENU)
+      ?: MenuItem(AbstractPagesRest.GEAR_MENU, title = "*").let {
+        add(it)
+        return it
+      }
+
   }
 
   private fun getElementById(id: String, elements: List<UIElement>): UIElement? {

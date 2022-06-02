@@ -291,7 +291,6 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     layout.watchFields.addAll(arrayOf("userWantsToObserve"))
 
     LayoutUtils.process(layout)
-    layout.postProcessPageMenu()
     return FormLayoutData(dto, layout, createServerData(request))
   }
 

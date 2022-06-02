@@ -138,7 +138,6 @@ open class LogViewerPageRest : AbstractDynamicPageRest() {
       .add(logEntriesTable)
     layout.watchFields.addAll(arrayOf("threshold", "search", "refreshInterval"))
     LayoutUtils.process(layout)
-    layout.postProcessPageMenu()
 
     val logEntries = queryList(logViewFilter)
     return FormLayoutData(

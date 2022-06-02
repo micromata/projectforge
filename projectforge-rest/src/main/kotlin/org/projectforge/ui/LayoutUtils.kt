@@ -56,6 +56,7 @@ object LayoutUtils {
    */
   @JvmStatic
   fun process(layout: UILayout): List<Any?> {
+    layout.postProcessPageMenu()
     val elements = processAllElements(layout, layout.getAllElements())
     var counter = 0
     layout.namedContainers.forEach {

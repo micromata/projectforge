@@ -56,7 +56,6 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
       layout.add(fieldset)
     }
     LayoutUtils.process(layout)
-    layout.postProcessPageMenu()
     return FormLayoutData(statsData, layout, createServerData(request))
   }
 
