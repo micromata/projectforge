@@ -177,6 +177,7 @@ public class MyListPageSortableDataProvider<T extends IdObject<?>> extends Sorta
 
   private void reloadList()
   {
+    listPage.refresh(); // Force list to refresh.
     final List<T> list = listPage.getList();
     setCompleteList(list);
   }
