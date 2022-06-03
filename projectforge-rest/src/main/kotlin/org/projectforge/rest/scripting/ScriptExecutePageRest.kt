@@ -24,8 +24,10 @@
 package org.projectforge.rest.scripting
 
 import mu.KotlinLogging
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptDao
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
@@ -39,11 +41,13 @@ import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.Script
 import org.projectforge.ui.UILayout
+import org.projectforge.ui.UIReadOnlyField
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -55,6 +59,9 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
   private lateinit var baseDao: ScriptDao
 
   @Autowired
+  private lateinit var groupService: GroupService
+
+  @PostConstruct
   private fun postConstruct() {
     this.scriptDao = baseDao
   }
@@ -94,7 +101,7 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
     return FormLayoutData(script, layout, createServerData(request), variables)
   }
 
-  override fun onAfterLayout(layout: UILayout, scriptDO: ScriptDO?) {
+  override fun onAfterLayout(layout: UILayout, script: Script, scriptDO: ScriptDO?) {
     if (scriptDO != null) {
       layout.add(
         MenuItem(
@@ -107,6 +114,32 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
           type = MenuItemTargetType.REDIRECT
         )
       )
+    }
+    val executableByMails = mutableSetOf<String>()
+    script.executableByUsers?.forEach { it ->
+      val user = UserGroupCache.getInstance().getUser(it.id)
+      user?.email?.let { email ->
+        if (email.isNotBlank()) {
+          executableByMails.add(email)
+        }
+      }
+    }
+    script.executableByGroups?.let { groups ->
+      groups.mapNotNull { it.id }.let {
+        if (it.isNotEmpty()) {
+          groupService.getGroupUsers(it.toIntArray())?.forEach { user ->
+            user.email?.let { email ->
+              if (email.isNotBlank()) {
+                executableByMails.add(email)
+              }
+            }
+          }
+        }
+      }
+    }
+    script.executableByEmails = executableByMails.joinToString()
+    if (executableByMails.isNotEmpty()) {
+      layout.add(UIReadOnlyField("executableByEmails", label = "scripting.script.executableByUsers"))
     }
     val examplesMenu = MenuItem("examples", translate("scripting.script.examples"))
     layout.add(examplesMenu)

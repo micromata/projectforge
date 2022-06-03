@@ -82,12 +82,15 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
       script.parameter6?.name = scriptDO.parameter6Name
       layout.add(UIReadOnlyField("name", label = "scripting.script.name"))
       layout.add(UIReadOnlyField("description", label = "description"))
-      addParameterInput(layout, script.parameter1, 1)
-      addParameterInput(layout, script.parameter2, 2)
-      addParameterInput(layout, script.parameter3, 3)
-      addParameterInput(layout, script.parameter4, 4)
-      addParameterInput(layout, script.parameter5, 5)
-      addParameterInput(layout, script.parameter6, 6)
+      UIFieldset(title = "scripting.script.parameter").let { fieldset ->
+        layout.add(fieldset)
+        addParameterInput(fieldset, script.parameter1, 1)
+        addParameterInput(fieldset, script.parameter2, 2)
+        addParameterInput(fieldset, script.parameter3, 3)
+        addParameterInput(fieldset, script.parameter4, 4)
+        addParameterInput(fieldset, script.parameter5, 5)
+        addParameterInput(fieldset, script.parameter6, 6)
+      }
     } else {
       // Editing and executing ad-hoc script
       layout.add(UIEditor("script", type = ScriptExecutor.getScriptType(script.script, script.type)))
@@ -132,12 +135,12 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
       )
     }
 
-    onAfterLayout(layout, scriptDO)
+    onAfterLayout(layout, script, scriptDO)
     LayoutUtils.process(layout)
     return layout
   }
 
-  open protected fun onAfterLayout(layout: UILayout, scriptDO: ScriptDO?) {
+  protected open fun onAfterLayout(layout: UILayout, script: Script, scriptDO: ScriptDO?) {
   }
 
   @PostMapping("execute")
@@ -210,10 +213,10 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
     return RestUtils.downloadFile(downloadFile.filename, downloadFile.bytes)
   }
 
-  private fun addParameterInput(layout: UILayout, parameter: Script.Param?, index: Int) {
+  private fun addParameterInput(col: UICol, parameter: Script.Param?, index: Int) {
     parameter?.type ?: return
     val label = "'${parameter.name}"
-    layout.add(
+    col.add(
       when (parameter.type!!) {
         ScriptParameterType.STRING -> UIInput("parameter$index.stringValue", label = label)
         ScriptParameterType.INTEGER -> UIInput(

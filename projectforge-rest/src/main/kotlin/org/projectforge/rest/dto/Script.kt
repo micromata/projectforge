@@ -58,6 +58,10 @@ class Script(
   var executableByGroupsAsString: String? = null,
   var executableByUsers: List<User>? = null,
   var executableByUsersAsString: String? = null,
+  /**
+   * E-Mails of all users with access rights (given by group and/or as user).
+   */
+  var executableByEmails: String? = null,
   var executeAsUser: User? = null,
   override var attachmentsCounter: Int? = null,
   override var attachmentsSize: Long? = null,
