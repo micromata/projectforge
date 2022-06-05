@@ -19,11 +19,10 @@
     </licenses>
 
     <properties>
-        <!-- Thanx to https://medium.com/@itzgeoff/including-react-in-your-spring-boot-maven-build-ae3b8f8826e -->
+        <!-- https://dimitr.im/bundling-react-spring-boot -->
         <!-- https://nodejs.org/dist -->
         <node.version>v16.15.0</node.version>
-        <!-- https://github.com/yarnpkg/yarn/releases -->
-        <yarn.version>v1.22.10</yarn.version>
+        <npm.version>8.5.4</npm.version>
         <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
     </properties>
 
@@ -48,51 +47,32 @@
                         <goals>
                             <goal>npm</goal>
                         </goals>
+
+                        <!-- optional: default phase is "generate-resources" -->
+                        <phase>generate-resources</phase>
+
+                        <configuration>
+                            <!-- optional: The default argument is actually
+                            "install", so unless you need to run some other npm command,
+                            you can remove this whole <configuration> section.
+                            -->
+                            <arguments>install</arguments>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>npm run build</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
                     </execution>
                 </executions>
-                <!-- YARN: -->
-                <!--executions>
-                    <execution>
-                        <!- - optional: you don't really need execution ids, but it looks nice in your build log. - ->
-                        <id>install node and yarn</id>
-                        <goals>
-                            <goal>install-node-and-yarn</goal>
-                        </goals>
-                        <!- - optional: default phase is "generate-resources" - ->
-                        <phase>generate-resources</phase>
-                    </execution>
-                    <execution>
-                        <id>yarn install</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <configuration>
-                            <!- - optional: The default argument is actually
-                            "install", so unless you need to run some other yarn command,
-                            you can remove this whole <configuration> section.
-                            - ->
-                            <arguments>install</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>yarn build</id>
-                        <goals>
-                            <goal>yarn</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>build</arguments>
-                        </configuration>
-                    </execution>
-                </executions-->
                 <configuration>
                     <nodeVersion>${node.version}</nodeVersion>
-                    <yarnVersion>${yarn.version}</yarnVersion>
+                    <npmVersion>${npm.version}</npmVersion>
                     <installDirectory>${project.build.directory}</installDirectory>
                     <workingDirectory>${project.basedir}</workingDirectory>
                     <!--workingDirectory>${pom.parent.basedir}</workingDirectory-->
@@ -100,7 +80,7 @@
             </plugin>
             <plugin>
               <artifactId>maven-resources-plugin</artifactId>
-              <version>3.0.1</version>
+              <version>3.2.0</version>
               <executions>
                 <execution>
                   <id>position-react-build</id>
