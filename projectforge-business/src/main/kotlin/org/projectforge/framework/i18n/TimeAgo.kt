@@ -23,9 +23,9 @@
 
 package org.projectforge.framework.i18n
 
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.TimeUnit
 import java.util.*
-import kotlin.math.max
 import kotlin.math.round
 
 /**
@@ -49,6 +49,19 @@ import kotlin.math.round
  * * timeago.years.one=a year ago
  */
 object TimeAgo {
+  /**
+   * @param date Date in the past to compare with now. For future dates, a message will be returned: 'in the future!'
+   * @param locale Locale to use for translation.
+   * @param maxUnit If given (e. g. DAY then the highest unit used is days: "5 hours ago", "5 days ago", "720 day ago")
+   * @return Time ago message or an empty string, if no date was given.
+   */
+  @JvmOverloads
+  @JvmStatic
+  fun getMessage(date: PFDateTime?, locale: Locale? = null, allowFutureTimes: Boolean = false, maxUnit: TimeUnit? = null): String {
+    date ?: return ""
+    return translate(getI18nKey(date.utilDate, allowFutureTimes, maxUnit), "timeago", locale)
+  }
+
   /**
    * @param date Date in the past to compare with now. For future dates, a message will be returned: 'in the future!'
    * @param locale Locale to use for translation.

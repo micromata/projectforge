@@ -33,6 +33,7 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
@@ -237,7 +238,11 @@ open class LoginService {
     val userId = userContext.user?.id
     val lastSuccessfulFA = if (userId != null) cookieService.getLast2FA(request, userId) else null
     userContext.lastSuccessful2FA = lastSuccessfulFA
-    val last2FAText = if (lastSuccessfulFA != null) ", last successful 2FA: ${PFDateTime.from(lastSuccessfulFA).isoString} UTC" else ""
+    val timeOfLastSuccessful2FA = PFDateTime.fromOrNull(lastSuccessfulFA)
+    val last2FAText =
+      if (timeOfLastSuccessful2FA != null) ", last successful 2FA: ${timeOfLastSuccessful2FA.isoString} UTC (${
+        TimeAgo.getMessage(timeOfLastSuccessful2FA)
+      })" else ""
     log.info("User's stay logged-in cookie found: ${request.requestURI}$last2FAText")
     if (log.isDebugEnabled) {
       request.cookies?.forEach { cookie ->
