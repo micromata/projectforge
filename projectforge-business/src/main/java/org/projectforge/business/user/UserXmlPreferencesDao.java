@@ -179,11 +179,12 @@ public class UserXmlPreferencesDao {
       if (log.isDebugEnabled()) {
         log.debug("UserId: " + userId + " Object to deserialize: " + xml);
       }
-      if (sourceClassName != null && oldPackageName != null && newPackageName != null) {
-        value = XStreamHelper.fromXml(xstream, xml, oldPackageName, newPackageName);
-      } else {
-        value = XStreamHelper.fromXml(xstream, xml);
+      if (sourceClassName != null && oldPackageName != null && newPackageName != null && xml.contains(oldPackageName)) {
+        // Need to replace occurrences instead of telling xstream how to deserialize old package name, otherwise
+        // xstreams remembers the old package name while serializing later.
+        xml = xml.replaceAll(oldPackageName, newPackageName);
       }
+      value = XStreamHelper.fromXml(xstream, xml);
       return value;
     } catch (final Throwable ex) {
       if (logError) {
