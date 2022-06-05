@@ -438,7 +438,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       if (obj instanceof Long) {
         durationOfLastGetList = (Long) obj;
       }
-      if (durationOfLastGetList != null && durationOfLastGetList < Constants.MILLIS_PER_SECOND * 10L) {
+      if (durationOfLastGetList == null || durationOfLastGetList < Constants.MILLIS_PER_SECOND * 30L) {
         this.refreshResultList = true;
       }
     }
@@ -457,6 +457,10 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     }
     this.refreshResultList = false;
     return this.resultList;
+  }
+
+  public void setRefreshResultList() {
+    this.refreshResultList = true;
   }
 
   private void internalBuildList() {

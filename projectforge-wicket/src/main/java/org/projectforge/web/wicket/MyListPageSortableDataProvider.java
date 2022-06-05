@@ -139,6 +139,7 @@ public class MyListPageSortableDataProvider<T extends IdObject<?>> extends Sorta
         return list.iterator();
       } else {
         // Can't load objects from BaseDao, have to load complete list from scratch:
+        listPage.setRefreshResultList();
         reloadList();
         result = completeList;
         if (toIndex > idList.size()) {
@@ -177,7 +178,6 @@ public class MyListPageSortableDataProvider<T extends IdObject<?>> extends Sorta
 
   private void reloadList()
   {
-    listPage.refresh(); // Force list to refresh.
     final List<T> list = listPage.getList();
     setCompleteList(list);
   }
