@@ -38,6 +38,8 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
@@ -211,7 +213,14 @@ class VacationAccountPageRest {
             )
         )
     )
-
+    layout.add(
+      MenuItem(
+        "leaveForApplication",
+        i18nKey = "menu.vacation",
+        url = PagesResolver.getListPageUrl(VacationPagesRest::class.java),
+        type = MenuItemTargetType.REDIRECT,
+      )
+    )
     layout.add(UIAlert("vacation.subscription.info", title = "vacation.subscription"))
 
     layout.watchFields.add("employee")
