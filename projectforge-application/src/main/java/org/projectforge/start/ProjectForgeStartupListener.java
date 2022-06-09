@@ -23,14 +23,19 @@
 
 package org.projectforge.start;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.projectforge.ProjectForgeApp;
 import org.projectforge.ProjectForgeVersion;
 import org.projectforge.common.CanonicalFileUtils;
 import org.projectforge.common.EmphasizedLogSupport;
+import org.projectforge.common.FormatterUtils;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ApplicationListener;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.List;
@@ -50,18 +55,36 @@ public class ProjectForgeStartupListener implements ApplicationListener<Applicat
   @Override
   public void onApplicationEvent(ApplicationPreparedEvent applicationPreparedEvent) {
     log.info("Starting " + ProjectForgeVersion.APP_ID + " " + ProjectForgeVersion.VERSION_NUMBER + ": build date="
-            + ProjectForgeVersion.BUILD_TIMESTAMP + ", " + ProjectForgeVersion.SCM + "=" + ProjectForgeVersion.SCM_ID
-            + " (" + ProjectForgeVersion.SCM_ID_FULL + ")");
+        + ProjectForgeVersion.BUILD_TIMESTAMP + ", " + ProjectForgeVersion.SCM + "=" + ProjectForgeVersion.SCM_ID
+        + " (" + ProjectForgeVersion.SCM_ID_FULL + ")");
 
     new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL)
-            .log("Using ProjectForge directory: " + CanonicalFileUtils.absolutePath(baseDir))
-            .logEnd();
+        .log("Using ProjectForge directory: " + CanonicalFileUtils.absolutePath(baseDir))
+        .logEnd();
 
     log.info("Using Java version: " + System.getProperty("java.vendor") + " " + System.getProperty("java.version"));
     log.info("Using Java home   : " + System.getProperty("java.home"));
     RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
     List<String> arguments = runtimeMxBean.getInputArguments();
     log.info("Using JVM opts    : " + StringUtils.join(arguments, " "));
+    log.info("Using classpath   : " + runtimeMxBean.getClassPath());
+
+    checkResource("index.html");
+    checkResource("react-app.html");
+    checkResource("favicon.ico");
+  }
+
+  private void checkResource(final String resourcePath) {
+    try (InputStream resourceStream = ProjectForgeApp.class.getClassLoader().getResourceAsStream(resourcePath)) {
+      if (resourceStream == null) {
+        log.error("Oups, can't find " + resourcePath + " in class path. React-Frontend not available?");
+      } else {
+        byte[] ba = IOUtils.toByteArray(resourceStream);
+        log.info(resourcePath + ": " + FormatterUtils.formatBytes(ba.length));
+      }
+    } catch (IOException ex) {
+      log.error("Oups, can't find " + resourcePath + " in class path. React-Frontend not available?");
+    }
   }
 
 }

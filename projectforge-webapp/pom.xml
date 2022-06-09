@@ -74,31 +74,35 @@
                     <nodeVersion>${node.version}</nodeVersion>
                     <npmVersion>${npm.version}</npmVersion>
                     <installDirectory>${project.build.directory}</installDirectory>
-                    <workingDirectory>${project.basedir}</workingDirectory>
-                    <!--workingDirectory>${pom.parent.basedir}</workingDirectory-->
                 </configuration>
             </plugin>
             <plugin>
-              <artifactId>maven-resources-plugin</artifactId>
-              <version>3.2.0</version>
-              <executions>
-                <execution>
-                  <id>position-react-build</id>
-                  <goals>
-                    <goal>copy-resources</goal>
-                  </goals>
-                  <phase>prepare-package</phase>
-                  <configuration>
-                    <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
-                    <resources>
-                      <resource>
-                        <directory>${project.basedir}/build</directory>
-                        <filtering>false</filtering>
-                      </resource>
-                    </resources>
-                  </configuration>
-                </execution>
-              </executions>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>position-react-build</id>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/build</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}/src</directory>
+                                    <includes>
+                                        <include>index.html</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
