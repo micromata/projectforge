@@ -218,6 +218,11 @@ class TaskServicesRest {
       if (deleted != null) filter.isDeleted = deleted
       filter.setSearchString(searchString)
     }
+    if (!filter.isStatusSet) {
+      // Nothing will be found, so avoid no result by user's mistake:
+      filter.isOpened = true
+      filter.isNotOpened = true
+    }
     val rootNode = taskTree.rootTaskNode
     val root = Task(rootNode)
     addKost2List(root)
@@ -228,8 +233,9 @@ class TaskServicesRest {
     }
     openTask(ctx, open)
     closeTask(ctx, close)
-    if (initial == true)
+    if (initial == true) {
       openTask(ctx, highlightedTaskId) // Only open on initial call.
+    }
     //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
     filter.resetMatch() // taskFilter caches visibility, reset needed first.
     val indent = if (table == true) 0 else null

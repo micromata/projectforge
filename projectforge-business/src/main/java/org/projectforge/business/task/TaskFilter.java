@@ -36,8 +36,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 @XStreamAlias("TaskFilter")
-public class TaskFilter extends BaseSearchFilter
-{
+public class TaskFilter extends BaseSearchFilter {
   // private static final Logger log = Logger.getLogger(TimesheetFilter.class);
 
   private static final long serialVersionUID = 5783675334284869722L;
@@ -63,49 +62,44 @@ public class TaskFilter extends BaseSearchFilter
    */
   private transient HashSet<Integer> tasksMatched;
 
-  public TaskFilter()
-  {
+  public TaskFilter() {
     searchString = "";
   }
 
-  public TaskFilter(final BaseSearchFilter filter)
-  {
+  public TaskFilter(final BaseSearchFilter filter) {
     super(filter);
   }
 
-  public boolean isClosed()
-  {
+  public boolean isClosed() {
     return closed;
   }
 
-  public void setClosed(final boolean closed)
-  {
+  public void setClosed(final boolean closed) {
     this.closed = closed;
   }
 
-  public boolean isNotOpened()
-  {
+  public boolean isNotOpened() {
     return notOpened;
   }
 
-  public void setNotOpened(final boolean notOpened)
-  {
+  public void setNotOpened(final boolean notOpened) {
     this.notOpened = notOpened;
   }
 
-  public boolean isOpened()
-  {
+  public boolean isOpened() {
     return opened;
   }
 
-  public void setOpened(final boolean opened)
-  {
+  public void setOpened(final boolean opened) {
     this.opened = opened;
   }
 
+  public boolean isStatusSet() {
+    return opened || notOpened || closed || deleted;
+  }
+
   @Override
-  public TaskFilter reset()
-  {
+  public TaskFilter reset() {
     super.reset();
     notOpened = opened = true;
     closed = deleted = false;
@@ -113,8 +107,7 @@ public class TaskFilter extends BaseSearchFilter
     return this;
   }
 
-  public void resetMatch()
-  {
+  public void resetMatch() {
     taskVisibility = new HashMap<>();
     tasksMatched = new HashSet<>();
   }
@@ -123,13 +116,12 @@ public class TaskFilter extends BaseSearchFilter
    * Needed by TaskTreeTable to show and hide nodes.<br/>
    * Don't forget to call resetMatch before!
    *
-   * @param node Node to check.
+   * @param node    Node to check.
    * @param taskDao Needed for access checking.
-   * @param user Needed for access checking.
+   * @param user    Needed for access checking.
    * @see org.projectforge.web.tree.TreeTableFilter#match(org.projectforge.web.tree.TreeTableNode)
    */
-  public boolean match(final TaskNode node, final TaskDao taskDao, final PFUserDO user)
-  {
+  public boolean match(final TaskNode node, final TaskDao taskDao, final PFUserDO user) {
     Validate.notNull(node);
     Validate.notNull(node.getTask());
     if (taskVisibility == null) {
@@ -153,8 +145,7 @@ public class TaskFilter extends BaseSearchFilter
     }
   }
 
-  private boolean isAncestorVisibleBySearchString(final TaskNode node)
-  {
+  private boolean isAncestorVisibleBySearchString(final TaskNode node) {
     if (tasksMatched.contains(node.getId())) {
       return true;
     } else if (node.getParent() != null) {
@@ -167,11 +158,10 @@ public class TaskFilter extends BaseSearchFilter
    * @param node
    * @param task
    * @return true if the search string matches at least one field of the task of if this methods returns true for any
-   *         descendant.
+   * descendant.
    */
   private boolean isVisibleBySearchString(final TaskNode node, final TaskDO task, final TaskDao taskDao,
-      final PFUserDO user)
-  {
+                                          final PFUserDO user) {
     final Boolean cachedVisibility = taskVisibility.get(task.getId());
     if (cachedVisibility != null) {
       return cachedVisibility;
@@ -209,8 +199,7 @@ public class TaskFilter extends BaseSearchFilter
     return false;
   }
 
-  private boolean isVisibleByStatus(final TaskNode node, final TaskDO task)
-  {
+  private boolean isVisibleByStatus(final TaskNode node, final TaskDO task) {
     if (!isDeleted() && task.isDeleted()) {
       return false;
     }
