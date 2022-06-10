@@ -10,10 +10,6 @@ function ModalRoutes(props) {
     const history = useHistory();
     const { background } = realLocation.state || {};
 
-    console.log({
-        location, realLocation, history, background,
-    });
-
     return (
         <>
             {getRoutesWithLocation(background || realLocation)}

@@ -108,7 +108,7 @@ function FormPage(
         );
     }, [validationErrors]);
 
-    if (ui === undefined) {
+    if (ui === undefined || ui.title === undefined) {
         return <LoadingContainer loading />;
     }
 
@@ -127,6 +127,7 @@ function FormPage(
             link: `${match.url}/history`,
         });
     }
+    console.log(ui, data);
 
     return (
         <Container fluid>
