@@ -26,10 +26,7 @@ package org.projectforge.framework.persistence.user.entities
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.Hibernate
 import org.hibernate.annotations.ManyToAny
-import org.hibernate.search.annotations.ContainedIn
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.annotations.*
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
@@ -55,7 +52,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
         get() = "$name"
 
     @PropertyInfo(i18nKey = "name")
-    @Field
+    @Field(analyze = Analyze.NO)
     @get:Column(length = 100)
     open var name: String? = null
 
