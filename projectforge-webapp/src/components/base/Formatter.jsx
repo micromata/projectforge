@@ -21,6 +21,8 @@ const TASK_FORMATTER = 'TASK_PATH';
 const TIMESTAMP_FORMATTER = 'TIMESTAMP';
 const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
 const GROUP_FORMATTER = 'GROUP';
+const SHOW_DISPLAYNAME = 'SHOW_DISPLAYNAME';
+const SHOW_LIST_OF_DISPLAYNAMES = 'SHOW_LIST_OF_DISPLAYNAMES';
 
 function Formatter(
     {
@@ -60,11 +62,19 @@ function Formatter(
                     currency,
                 }).format(useValue);
                 break;
+            case SHOW_DISPLAYNAME:
             case CUSTOMER_FORMATTER:
             case KONTO_FORMATTER:
             case PROJECT_FORMATTER:
             case EMPLOYEE_FORMATTER:
                 result = useValue.displayName;
+                break;
+            case SHOW_LIST_OF_DISPLAYNAMES:
+                if (useValue && Array.isArray(useValue)) {
+                    result = useValue.map((obj) => obj.displayName).join(', ');
+                } else {
+                    result = '???';
+                }
                 break;
             case DATE_FORMATTER:
                 result = moment(useValue)
@@ -119,6 +129,11 @@ function Formatter(
         if (valueIcon) {
             result = <FontAwesomeIcon icon={valueIcon} />;
         }
+    }
+
+    if (result === undefined) {
+        console.log(useFormatter);
+        result = '???';
     }
 
     return result;

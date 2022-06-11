@@ -95,6 +95,15 @@ open class UIAgGridColumnDef(
     TIMESTAMP_SECONDS,
     RATING,
 
+    /**
+     * The object has a field displayName, which should be displayed.
+     */
+    SHOW_DISPLAYNAME,
+    /**
+     * Each object of the list has a field displayName, which should be displayed comma separated.
+     */
+    SHOW_LIST_OF_DISPLAYNAMES,
+
     ADDRESS_BOOK,
     AUFTRAG_POSITION,
     EMPLOYEE,

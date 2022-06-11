@@ -93,7 +93,7 @@ class Address(
     val srcAddressbookList = if (src.id != null) {
       AddressCache.instance.getAddressbooks(src)
     } else {
-      // For new addresses now caches exist.
+      // For new addresses no cache entry exist.
       src.addressbookList
     }
     if (!srcAddressbookList.isNullOrEmpty()) {
