@@ -108,6 +108,26 @@ class UISelect<T>(
       )
     }
 
+    fun createEmployeeSelect(
+      lc: LayoutContext? = null,
+      id: String,
+      multi: Boolean = false,
+      label: String? = null,
+      additionalLabel: String? = null,
+      tooltip: String? = null,
+      showOnlyActiveEmployees: Boolean = true
+    ): UISelect<Int> {
+      return UISelect(
+        id,
+        lc,
+        multi = multi,
+        label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
+        additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
+        autoCompletion = AutoCompletion.getAutoCompletion4Employees(showOnlyActiveEmployees),
+        tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey
+      )
+    }
+
     fun createGroupSelect(
       lc: LayoutContext,
       id: String,

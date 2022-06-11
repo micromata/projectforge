@@ -120,7 +120,8 @@ class VacationDaoTest : AbstractTestBase() {
     val employee = createEmployee("normal")
     val manager = createEmployee("manager")
     val replacement = createEmployee("replacement")
-    val otherReplacement = getUser(TEST_USER)
+    val otherReplacement = createEmployee("otherReplacement")
+    val uninvolvedEmployee = createEmployee("uninvolvedEmployee")
     val vacation =
       createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS, otherReplacement = otherReplacement)
     val foreignVacation = createVacation(replacement, manager, manager, VacationStatus.IN_PROGRESS, otherReplacement = otherReplacement)
@@ -186,8 +187,8 @@ class VacationDaoTest : AbstractTestBase() {
 
     // Check replacement users (substitutes)
     checkAccess(replacement.user, vacation, "access by substitute (replacement)", true, false, false, false, false, vacation)
-    checkAccess(getUser(TEST_USER), vacation, "access by other substitute (other replacements)", true, false, false, false, false, vacation)
-    checkAccess(getUser(TEST_USER2), vacation, "no access", false, false, false, false, false, vacation)
+    checkAccess(otherReplacement.user, vacation, "access by other substitute (other replacements)", true, false, false, false, false, vacation)
+    checkAccess(uninvolvedEmployee.user, vacation, "no access", false, false, false, false, false, vacation)
   }
 
   private fun checkAccess(
@@ -273,7 +274,7 @@ class VacationDaoTest : AbstractTestBase() {
 
   private fun createVacation(
     employee: EmployeeDO, manager: EmployeeDO, replacement: EmployeeDO, status: VacationStatus, future: Boolean = true,
-    otherReplacement: PFUserDO? = null,
+    otherReplacement: EmployeeDO? = null,
   ): VacationDO {
     val startDate = if (future) LocalDate.now().plusDays(2) else LocalDate.now().minusDays(10)
     val endDate = if (future) LocalDate.now().plusDays(10) else LocalDate.now().minusDays(2)
@@ -316,7 +317,7 @@ class VacationDaoTest : AbstractTestBase() {
       startDate: LocalDate,
       endDate: LocalDate,
       status: VacationStatus,
-      otherReplacement: PFUserDO? = null,
+      otherReplacement: EmployeeDO? = null,
     ): VacationDO {
       val vacation = VacationDO()
       vacation.employee = vacationer

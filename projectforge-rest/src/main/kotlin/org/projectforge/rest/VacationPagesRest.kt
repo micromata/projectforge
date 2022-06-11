@@ -27,7 +27,6 @@ import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.business.user.service.UserService
 import org.projectforge.business.vacation.model.*
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.VacationService
@@ -44,7 +43,6 @@ import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.User
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterBooleanElement
@@ -73,9 +71,6 @@ class VacationPagesRest :
   private lateinit var userPrefService: UserPrefService
 
   @Autowired
-  private lateinit var userService: UserService
-
-  @Autowired
   private lateinit var vacationDao: VacationDao
 
   @Autowired
@@ -90,7 +85,7 @@ class VacationPagesRest :
   override fun transformFromDB(obj: VacationDO, editMode: Boolean): Vacation {
     val vacation = Vacation()
     vacation.copyFrom(obj)
-    User.restoreDisplayNames(vacation.otherReplacements, userService)
+    Employee.restoreDisplayNames(vacation.otherReplacements)
     return vacation
   }
 
@@ -323,7 +318,7 @@ class VacationPagesRest :
               )
           )
       )
-      .add(UISelect.createUserSelect(lc, "otherReplacements", true))
+      .add(UISelect.createEmployeeSelect(lc, "otherReplacements", true))
       .add(lc, "comment")
 
     layout.watchFields.addAll(arrayOf("startDate", "endDate", "halfDayBegin", "halfDayEnd"))

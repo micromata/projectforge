@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationMode
 import org.projectforge.business.vacation.model.VacationStatus
@@ -30,7 +31,6 @@ import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -48,7 +48,7 @@ class Vacation(
   var vacationMode: VacationMode? = null,
   var vacationModeString: String? = null,
   var replacement: Employee? = null,
-  var otherReplacements: List<User>? = null,
+  var otherReplacements: List<Employee>? = null,
   var manager: Employee? = null,
   var special: Boolean? = null,
   var specialFormatted: String? = null,
@@ -56,7 +56,8 @@ class Vacation(
   var halfDayEnd: Boolean? = null,
   var comment: String? = null,
   var vacationDaysLeftInYear: BigDecimal? = null,
-  var vacationDaysLeftInYearString: String? = null
+  var vacationDaysLeftInYearString: String? = null,
+  var conflictingVacations: List<Vacation>? = null,
 ) : BaseDTO<VacationDO>() {
   constructor(src: VacationDO) : this() {
     this.copyFrom(src)
@@ -80,27 +81,24 @@ class Vacation(
     endDateFormatted = endDate?.let {
       PFDayUtils.format(it, DateFormatType.DATE)
     }
-    val newOtherReplacements = mutableListOf<User>()
+    val newOtherReplacements = mutableListOf<Employee>()
     src.otherReplacements?.forEach {
-      val user = User()
-      user.copyFromMinimal(it)
-      newOtherReplacements.add(user)
+      val employee = Employee()
+      employee.copyFromMinimal(it)
+      newOtherReplacements.add(employee)
     }
     if (newOtherReplacements.isNotEmpty()) {
-      otherReplacements = newOtherReplacements.sortedBy { it.username }
+      otherReplacements = newOtherReplacements.sortedBy { it.user?.username }
     }
   }
 
   override fun copyTo(dest: VacationDO) {
     super.copyTo(dest)
-    val newOtherReplacements = mutableSetOf<PFUserDO>()
-    otherReplacements?.forEach {
-      User.getUser(it.id, minimal = true)?.let { user ->
-        val userDO = PFUserDO()
-        user.copyTo(userDO)
-        userDO.username = user.username
-        newOtherReplacements.add(userDO)
-      }
+    val newOtherReplacements = mutableSetOf<EmployeeDO>()
+    otherReplacements?.forEach { e ->
+      val employeeDO = EmployeeDO()
+      employeeDO.id = e.id
+      newOtherReplacements.add(employeeDO)
     }
     if (newOtherReplacements.isNotEmpty()) {
       dest.otherReplacements = newOtherReplacements

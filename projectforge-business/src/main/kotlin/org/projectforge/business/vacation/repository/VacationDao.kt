@@ -277,8 +277,8 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     if (replacement.userId == loggedInUser.id) {
       return true
     }
-    obj.otherReplacements?.forEach { user ->
-      if (user.id == loggedInUser.id) {
+    obj.otherReplacements?.forEach { employee ->
+      if (employee.userId == loggedInUser.id) {
         return true
       }
     }
