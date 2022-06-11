@@ -31,6 +31,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
 import javax.persistence.*
 
@@ -42,96 +43,117 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "t_employee_vacation",
-        indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_employee_id", columnList = "employee_id"),
-            javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id")])
+@Table(
+  name = "t_employee_vacation",
+  indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_employee_id", columnList = "employee_id"),
+    javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id")]
+)
 @AUserRightId(value = "EMPLOYEE_VACATION", checkAccess = false)
 open class VacationDO : DefaultBaseDO() {
 
-    /**
-     * The employee.
-     */
-    @PropertyInfo(i18nKey = "vacation.employee")
-    @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
-    @get:ManyToOne(fetch = FetchType.EAGER)
-    @get:JoinColumn(name = "employee_id", nullable = false)
-    open var employee: EmployeeDO? = null
+  /**
+   * The employee.
+   */
+  @PropertyInfo(i18nKey = "vacation.employee")
+  @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
+  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:JoinColumn(name = "employee_id", nullable = false)
+  open var employee: EmployeeDO? = null
 
-    val employeeId: Int?
-        @Transient
-        get() = employee?.id
-
-    @PropertyInfo(i18nKey = "vacation.startdate")
-    @get:Column(name = "start_date", nullable = false)
-    open var startDate: LocalDate? = null
-
-    @PropertyInfo(i18nKey = "vacation.enddate")
-    @get:Column(name = "end_date", nullable = false)
-    open var endDate: LocalDate? = null
-
-    /**
-     * Coverage (during leave).
-     */
-    @PropertyInfo(i18nKey = "vacation.replacement")
-    @get:ManyToOne(fetch = FetchType.EAGER)
-    @get:JoinColumn(name = "replacement_id", nullable = false)
-    open var replacement: EmployeeDO? = null
-
-    /**
-     * The manager.
-     */
-    @PropertyInfo(i18nKey = "vacation.manager")
-    @get:ManyToOne(fetch = FetchType.EAGER)
-    @get:JoinColumn(name = "manager_id", nullable = false)
-    open var manager: EmployeeDO? = null
-
-    @PropertyInfo(i18nKey = "vacation.status")
-    open var status: VacationStatus? = null
-        @Enumerated(EnumType.STRING)
-        @Column(name = "vacation_status", length = 30, nullable = false)
-        get() = if (field == null) {
-            VacationStatus.IN_PROGRESS
-        } else field
-
-    // Neede by Wicket in VacationListPage (could be removed after migration to ReactJS).
-    @PropertyInfo(i18nKey = "vacation.vacationmode")
-    private val vacationmode: VacationMode? = null
-
-    @PropertyInfo(i18nKey = "vacation.special", tooltip = "vacation.special.tooltip")
-    @get:Column(name = "is_special", nullable = false)
-    open var special: Boolean? = null
-
-    @PropertyInfo(i18nKey = "vacation.halfDayBegin", tooltip = "vacation.halfDayBegin.tooltip")
-    @get:Column(name = "is_half_day_begin")
-    open var halfDayBegin: Boolean? = null
-
-    @PropertyInfo(i18nKey = "vacation.halfDayEnd", tooltip = "vacation.halfDayEnd.tooltip")
-    @get:Column(name = "is_half_day_end")
-    open var halfDayEnd: Boolean? = null
-
-    @PropertyInfo(i18nKey = "comment")
-    @Field
-    @get:Column(length = 4000)
-    open var comment: String? = null
-
+  val employeeId: Int?
     @Transient
-    fun getVacationmode(): VacationMode {
-        val currentUserId = ThreadLocalUserContext.getUserId()
-        val employeeUserId = if (employee != null && employee!!.user != null) employee!!.user!!.pk else null
-        val managerUserId = if (manager != null && manager!!.user != null) manager!!.user!!.pk else null
-        if (currentUserId == employeeUserId) {
-            return VacationMode.OWN
-        }
-        if (currentUserId == managerUserId) {
-            return VacationMode.MANAGER
-        }
-        return if (isReplacement(currentUserId)) {
-            VacationMode.REPLACEMENT
-        } else VacationMode.OTHER
-    }
+    get() = employee?.id
 
-    @Transient
-    fun isReplacement(userId: Int?): Boolean {
-        return userId != null && replacement?.userId == userId
+  @PropertyInfo(i18nKey = "vacation.startdate")
+  @get:Column(name = "start_date", nullable = false)
+  open var startDate: LocalDate? = null
+
+  @PropertyInfo(i18nKey = "vacation.enddate")
+  @get:Column(name = "end_date", nullable = false)
+  open var endDate: LocalDate? = null
+
+  /**
+   * Coverage (during leave). This is the main responsible colleague for replacement.
+   */
+  @PropertyInfo(i18nKey = "vacation.replacement")
+  @IndexedEmbedded(depth = 1)
+  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:JoinColumn(name = "replacement_id", nullable = false)
+  open var replacement: EmployeeDO? = null
+
+  /**
+   * All users are allowed to be others substitutes.
+   */
+  @PropertyInfo(i18nKey = "vacation.replacement.others")
+  @IndexedEmbedded(depth = 1)
+  @get:Column(nullable = true) // Needed for telling MGC that this field is nullable.
+  @get:ManyToMany
+  @get:JoinTable(
+    name = "t_employee_vacation_other_replacements",
+    joinColumns = [JoinColumn(name = "vacation_id", referencedColumnName = "PK")],
+    inverseJoinColumns = [JoinColumn(name = "user_id", referencedColumnName = "PK")],
+    indexes = [javax.persistence.Index(
+      name = "idx_fk_t_employee_vacation_other_replacements_vacation_id", columnList = "vacation_id"
+    ), javax.persistence.Index(name = "idx_fk_t_employee_vacation_other_replacements_user_id", columnList = "user_id")]
+  )
+  open var otherReplacements: MutableSet<PFUserDO>? = null
+
+  /**
+   * The manager.
+   */
+  @PropertyInfo(i18nKey = "vacation.manager")
+  @IndexedEmbedded(depth = 1)
+  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:JoinColumn(name = "manager_id", nullable = false)
+  open var manager: EmployeeDO? = null
+
+  @PropertyInfo(i18nKey = "vacation.status")
+  open var status: VacationStatus? = null
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vacation_status", length = 30, nullable = false)
+    get() = if (field == null) {
+      VacationStatus.IN_PROGRESS
+    } else field
+
+  // Neede by Wicket in VacationListPage (could be removed after migration to ReactJS).
+  @PropertyInfo(i18nKey = "vacation.vacationmode")
+  private val vacationmode: VacationMode? = null
+
+  @PropertyInfo(i18nKey = "vacation.special", tooltip = "vacation.special.tooltip")
+  @get:Column(name = "is_special", nullable = false)
+  open var special: Boolean? = null
+
+  @PropertyInfo(i18nKey = "vacation.halfDayBegin", tooltip = "vacation.halfDayBegin.tooltip")
+  @get:Column(name = "is_half_day_begin")
+  open var halfDayBegin: Boolean? = null
+
+  @PropertyInfo(i18nKey = "vacation.halfDayEnd", tooltip = "vacation.halfDayEnd.tooltip")
+  @get:Column(name = "is_half_day_end")
+  open var halfDayEnd: Boolean? = null
+
+  @PropertyInfo(i18nKey = "comment")
+  @Field
+  @get:Column(length = 4000)
+  open var comment: String? = null
+
+  @Transient
+  fun getVacationmode(): VacationMode {
+    val currentUserId = ThreadLocalUserContext.getUserId()
+    val employeeUserId = if (employee != null && employee!!.user != null) employee!!.user!!.pk else null
+    val managerUserId = if (manager != null && manager!!.user != null) manager!!.user!!.pk else null
+    if (currentUserId == employeeUserId) {
+      return VacationMode.OWN
     }
+    if (currentUserId == managerUserId) {
+      return VacationMode.MANAGER
+    }
+    return if (isReplacement(currentUserId)) {
+      VacationMode.REPLACEMENT
+    } else VacationMode.OTHER
+  }
+
+  @Transient
+  fun isReplacement(userId: Int?): Boolean {
+    return userId != null && replacement?.userId == userId
+  }
 }

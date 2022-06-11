@@ -56,7 +56,7 @@ import java.time.Year
  * the remaining vacation days will be carried to the next year and may be used until the defined end of vacation year (e. g. 31.03.
  * of the following year). After this date, the carried vacation days are lost.
  *
- * In this class, the period from 1.1. until the end of the vacation year is name OverlapPeriod.
+ * In this class, the period from 1.1. until the end of the vacation year is named OverlapPeriod.
  *
  * @author Florian Blumenstein, Kai Reinhard
  */

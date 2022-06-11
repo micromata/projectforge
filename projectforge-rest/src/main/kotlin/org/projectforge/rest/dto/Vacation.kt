@@ -30,56 +30,80 @@ import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class Vacation(var employee: Employee? = null,
-               var startDate: LocalDate? = null,
-               var startDateFormatted: String? = null,
-               var endDate: LocalDate? = null,
-               var endDateFormatted: String? = null,
-               var workingDays: BigDecimal? = null,
-               var workingDaysFormatted: String? = null,
-               var status: VacationStatus? = null,
-               var statusString: String? = null,
-               var vacationMode: VacationMode? = null,
-               var vacationModeString: String? = null,
-               var replacement: Employee? = null,
-               var manager: Employee? = null,
-               var special: Boolean? = null,
-               var specialFormatted: String? = null,
-               var halfDayBegin: Boolean? = null,
-               var halfDayEnd: Boolean? = null,
-               var comment: String? = null,
-               var vacationDaysLeftInYear: BigDecimal? = null,
-               var vacationDaysLeftInYearString: String? = null
+class Vacation(
+  var employee: Employee? = null,
+  var startDate: LocalDate? = null,
+  var startDateFormatted: String? = null,
+  var endDate: LocalDate? = null,
+  var endDateFormatted: String? = null,
+  var workingDays: BigDecimal? = null,
+  var workingDaysFormatted: String? = null,
+  var status: VacationStatus? = null,
+  var statusString: String? = null,
+  var vacationMode: VacationMode? = null,
+  var vacationModeString: String? = null,
+  var replacement: Employee? = null,
+  var otherReplacements: List<User>? = null,
+  var manager: Employee? = null,
+  var special: Boolean? = null,
+  var specialFormatted: String? = null,
+  var halfDayBegin: Boolean? = null,
+  var halfDayEnd: Boolean? = null,
+  var comment: String? = null,
+  var vacationDaysLeftInYear: BigDecimal? = null,
+  var vacationDaysLeftInYearString: String? = null
 ) : BaseDTO<VacationDO>() {
-    constructor(src: VacationDO) : this() {
-        this.copyFrom(src)
-    }
+  constructor(src: VacationDO) : this() {
+    this.copyFrom(src)
+  }
 
-    override fun copyFrom(src: VacationDO) {
-        super.copyFrom(src)
-        workingDays = VacationService.getVacationDays(src)
-        workingDaysFormatted = VacationStats.format(workingDays)
-        status?.let { statusString = translate(it.i18nKey) }
-        vacationMode = src.getVacationmode()
-        vacationMode?.let { vacationModeString = translate(it.i18nKey) }
-        specialFormatted = if (special == true) {
-            translate("yes")
-        } else {
-            translate("no")
-        }
-        startDateFormatted = startDate?.let {
-            PFDayUtils.format(it, DateFormatType.DATE)
-        }
-        endDateFormatted = endDate?.let {
-            PFDayUtils.format(it, DateFormatType.DATE)
-        }
+  override fun copyFrom(src: VacationDO) {
+    super.copyFrom(src)
+    workingDays = VacationService.getVacationDays(src)
+    workingDaysFormatted = VacationStats.format(workingDays)
+    status?.let { statusString = translate(it.i18nKey) }
+    vacationMode = src.getVacationmode()
+    vacationMode?.let { vacationModeString = translate(it.i18nKey) }
+    specialFormatted = if (special == true) {
+      translate("yes")
+    } else {
+      translate("no")
     }
+    startDateFormatted = startDate?.let {
+      PFDayUtils.format(it, DateFormatType.DATE)
+    }
+    endDateFormatted = endDate?.let {
+      PFDayUtils.format(it, DateFormatType.DATE)
+    }
+    val newOtherReplacements = mutableListOf<User>()
+    src.otherReplacements?.forEach {
+      val user = User()
+      user.copyFromMinimal(it)
+      newOtherReplacements.add(user)
+    }
+    if (newOtherReplacements.isNotEmpty()) {
+      otherReplacements = newOtherReplacements.sortedBy { it.username }
+    }
+  }
 
-    override fun copyTo(dest: VacationDO) {
-        super.copyTo(dest)
+  override fun copyTo(dest: VacationDO) {
+    super.copyTo(dest)
+    val newOtherReplacements = mutableSetOf<PFUserDO>()
+    otherReplacements?.forEach {
+      User.getUser(it.id, minimal = true)?.let { user ->
+        val userDO = PFUserDO()
+        user.copyTo(userDO)
+        userDO.username = user.username
+        newOtherReplacements.add(userDO)
+      }
     }
+    if (newOtherReplacements.isNotEmpty()) {
+      dest.otherReplacements = newOtherReplacements
+    }
+  }
 }
