@@ -127,7 +127,6 @@ function FormPage(
             link: `${match.url}/history`,
         });
     }
-    console.log(ui, data);
 
     return (
         <Container fluid>
