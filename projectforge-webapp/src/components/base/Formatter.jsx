@@ -132,7 +132,6 @@ function Formatter(
     }
 
     if (result === undefined) {
-        console.log(useFormatter);
         result = '???';
     }
 
