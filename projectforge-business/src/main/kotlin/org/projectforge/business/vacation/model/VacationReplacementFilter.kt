@@ -23,8 +23,6 @@
 
 package org.projectforge.business.vacation.model
 
-import org.projectforge.business.fibu.api.EmployeeService
-import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
 /**
@@ -36,18 +34,11 @@ class VacationReplacementFilter(val employeeId: Int) : CustomResultFilter<Vacati
     if (element.replacement?.id == employeeId) {
       return true
     }
-    employeeService.getById(employeeId)?.userId?.let { userId ->
-      element.otherReplacements?.forEach { replacementUser ->
-        if (replacementUser.id == userId) {
-          return true
-        }
+    element.otherReplacements?.forEach { replacementUser ->
+      if (replacementUser.id == employeeId) {
+        return true
       }
     }
     return false
-  }
-
-  companion object {
-    private val employeeService =
-      ApplicationContextProvider.getApplicationContext().getBean(EmployeeService::class.java)
   }
 }

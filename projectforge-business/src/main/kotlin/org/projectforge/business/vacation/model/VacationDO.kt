@@ -31,7 +31,6 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
 import javax.persistence.*
 
@@ -45,8 +44,10 @@ import javax.persistence.*
 @Indexed
 @Table(
   name = "t_employee_vacation",
-  indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_employee_id", columnList = "employee_id"),
-    javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id")]
+  indexes = [javax.persistence.Index(
+    name = "idx_fk_t_vacation_employee_id",
+    columnList = "employee_id"
+  ), javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id")]
 )
 @AUserRightId(value = "EMPLOYEE_VACATION", checkAccess = false)
 open class VacationDO : DefaultBaseDO() {
@@ -61,8 +62,7 @@ open class VacationDO : DefaultBaseDO() {
   open var employee: EmployeeDO? = null
 
   val employeeId: Int?
-    @Transient
-    get() = employee?.id
+    @Transient get() = employee?.id
 
   @PropertyInfo(i18nKey = "vacation.startdate")
   @get:Column(name = "start_date", nullable = false)
@@ -82,7 +82,7 @@ open class VacationDO : DefaultBaseDO() {
   open var replacement: EmployeeDO? = null
 
   /**
-   * All users are allowed to be others substitutes.
+   * Other employees as substitutes.
    */
   @PropertyInfo(i18nKey = "vacation.replacement.others")
   @IndexedEmbedded(depth = 1)
@@ -91,12 +91,15 @@ open class VacationDO : DefaultBaseDO() {
   @get:JoinTable(
     name = "t_employee_vacation_other_replacements",
     joinColumns = [JoinColumn(name = "vacation_id", referencedColumnName = "PK")],
-    inverseJoinColumns = [JoinColumn(name = "user_id", referencedColumnName = "PK")],
+    inverseJoinColumns = [JoinColumn(name = "employee_id", referencedColumnName = "PK")],
     indexes = [javax.persistence.Index(
-      name = "idx_fk_t_employee_vacation_other_replacements_vacation_id", columnList = "vacation_id"
-    ), javax.persistence.Index(name = "idx_fk_t_employee_vacation_other_replacements_user_id", columnList = "user_id")]
+      name = "idx_fk_t_employee_vacation_other_replacements_vacation_id", columnList = "vacation_id",
+    ), javax.persistence.Index(
+      name = "idx_fk_t_employee_vacation_other_replacements_employee_id",
+      columnList = "employee_id",
+    )]
   )
-  open var otherReplacements: MutableSet<PFUserDO>? = null
+  open var otherReplacements: MutableSet<EmployeeDO>? = null
 
   /**
    * The manager.
@@ -109,9 +112,11 @@ open class VacationDO : DefaultBaseDO() {
 
   @PropertyInfo(i18nKey = "vacation.status")
   open var status: VacationStatus? = null
-    @Enumerated(EnumType.STRING)
-    @Column(name = "vacation_status", length = 30, nullable = false)
-    get() = if (field == null) {
+    @Enumerated(EnumType.STRING) @Column(
+      name = "vacation_status",
+      length = 30,
+      nullable = false
+    ) get() = if (field == null) {
       VacationStatus.IN_PROGRESS
     } else field
 
