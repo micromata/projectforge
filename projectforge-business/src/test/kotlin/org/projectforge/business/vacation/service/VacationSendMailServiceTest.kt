@@ -70,17 +70,20 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         val vacationer = createEmployee("vacationer")
         val manager = createEmployee("manager")
         val replacement = createEmployee("replacement")
-        val vacation = createVacation(vacationer, manager, replacement, VacationStatus.APPROVED)
+        val otherReplacement = createEmployee("otherReplacement")
+        val otherReplacement2 = createEmployee("otherReplacement2")
+        val vacation = createVacation(vacationer, manager, replacement, VacationStatus.APPROVED, otherReplacement)
+        vacation.otherReplacements!!.add(otherReplacement2)
         vacation.id = 47114711
         vacation.comment = "This is a really important comment ;-)"
         logon(vacationer.user)
 
-        // Check all combinations (4*4*3=48):
+        // Check all combinations (4*4*5=80):
         arrayOf(OperationType.INSERT, OperationType.UPDATE, OperationType.DELETE, OperationType.UNDELETE)
                 .forEach { operationType ->
                     arrayOf(VacationMode.MANAGER, VacationMode.REPLACEMENT, VacationMode.OWN, VacationMode.OTHER, VacationMode.HR)
                             .forEach { mode ->
-                                arrayOf(vacationer, manager, replacement).forEach { employee ->
+                                arrayOf(vacationer, manager, replacement, otherReplacement, otherReplacement2).forEach { employee ->
                                     assertMail(vacation, operationType, mode, employee.user!!)
                                 }
                             }
@@ -130,11 +133,11 @@ class VacationSendMailServiceTest : AbstractTestBase() {
 
     }
 
-    private fun createVacation(vacationer: EmployeeDO, manager: EmployeeDO, replacement: EmployeeDO, status: VacationStatus): VacationDO {
+    private fun createVacation(vacationer: EmployeeDO, manager: EmployeeDO, replacement: EmployeeDO, status: VacationStatus, otherReplacement: EmployeeDO? = null): VacationDO {
         val nextPeriod = getNextPeriod()
         val startDate = nextPeriod.first
         val endDate = nextPeriod.second
-        return VacationDaoTest.createVacation(vacationer, manager, replacement, startDate, endDate, status)
+        return VacationDaoTest.createVacation(vacationer, manager, replacement, startDate, endDate, status, otherReplacement)
     }
 
     private fun createEmployee(name: String): EmployeeDO {

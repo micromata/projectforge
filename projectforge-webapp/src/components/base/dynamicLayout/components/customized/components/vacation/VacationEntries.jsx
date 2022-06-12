@@ -18,6 +18,7 @@ function VacationEntries({ entries }) {
             <td className={styles.number}>{entry.workingDaysFormatted}</td>
             <td>{entry.specialFormatted}</td>
             <td>{entry.replacement.displayName}</td>
+            <td>{entry.otherReplacementsAsString}</td>
             <td>{entry.manager.displayName}</td>
             <td>{entry.vacationModeString}</td>
             <td>{entry.comment}</td>

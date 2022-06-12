@@ -106,6 +106,7 @@ class VacationAccountPageRest {
       "vacation.enddate",
       "vacation.Days",
       "vacation.replacement",
+      "vacation.replacement.others",
       "vacation.manager",
       "vacation.status",
       "vacation.vacationmode",

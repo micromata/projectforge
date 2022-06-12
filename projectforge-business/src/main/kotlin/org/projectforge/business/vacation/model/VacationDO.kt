@@ -49,6 +49,12 @@ import javax.persistence.*
     columnList = "employee_id"
   ), javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id")]
 )
+@NamedQueries(
+  NamedQuery(
+    name = VacationDO.FIND_CURRENT_AND_FUTURE,
+    query = "from VacationDO where endDate>=:endDate and status in :statusList and deleted=false",
+  ),
+)
 @AUserRightId(value = "EMPLOYEE_VACATION", checkAccess = false)
 open class VacationDO : DefaultBaseDO() {
 
@@ -100,6 +106,19 @@ open class VacationDO : DefaultBaseDO() {
     )]
   )
   open var otherReplacements: MutableSet<EmployeeDO>? = null
+
+  open val allReplacements: MutableSet<EmployeeDO>
+    @Transient
+    get() {
+      val result = mutableSetOf<EmployeeDO>()
+      replacement?.let {
+        result.add(it)
+      }
+      otherReplacements?.forEach {
+        result.add(it)
+      }
+      return result
+    }
 
   /**
    * The manager.
@@ -160,5 +179,26 @@ open class VacationDO : DefaultBaseDO() {
   @Transient
   fun isReplacement(userId: Int?): Boolean {
     return userId != null && replacement?.userId == userId
+  }
+
+  fun hasOverlap(other: VacationDO): Boolean {
+    return Companion.hasOverlap(startDate, endDate, other.startDate, other.endDate)
+  }
+
+  fun isInBetween(date: LocalDate): Boolean {
+    val start = startDate ?: return false
+    val end = endDate ?: return false
+    return date in start..end
+  }
+
+  companion object {
+    internal const val FIND_CURRENT_AND_FUTURE = "VacationDO_FindCurrentAndFuture"
+
+    private fun hasOverlap(begin1: LocalDate?, end1: LocalDate?, begin2: LocalDate?, end2: LocalDate?): Boolean {
+      if (begin1 == null || end1 == null || begin2 == null || end2 == null) {
+        return false
+      }
+      return begin1 <= end2 && end1 >= begin1
+    }
   }
 }

@@ -109,6 +109,20 @@ open class VacationService {
         }
   }
 
+  class VacationsByEmployee(val employee: EmployeeDO, val vacations: List<VacationDO>)
+
+  class VacationOverlaps(
+    /**
+     * Vacations of all substitutes (replacement and otherReplacement) overlapping requested vacation.
+     */
+    val otherVacations: List<VacationDO> = emptyList(),
+    /**
+     * If at least one day of the vacation isn't covered by any substitute (all substitutes are left on at least one
+     * day).
+     */
+    val conflict: Boolean = false,
+  )
+
   /**
    * Gets the remaining leave from the previous year. If not exist, it will be calculated and persisted.
    * @param employee
@@ -196,7 +210,9 @@ open class VacationService {
   }
 
   /**
-   * @param trimVacations If true, than vacation entries will be reduced for not extending given period.
+   * @param trimVacations If true then vacation entries will be reduced for not extending given period.
+   * @param status If given, only vacations matching the given status values will be returned. If not given, DEFAULT_VACATION_STATUS_LIST
+   * is used.
    */
   @JvmOverloads
   open fun getVacationsListForPeriod(
@@ -356,6 +372,89 @@ open class VacationService {
    */
   open fun hasLoggedInUserHRVacationAccess(): Boolean {
     return vacationDao.hasLoggedInUserHRVacationAccess()
+  }
+
+  /**
+   * Method for detecting vacation overlaps between employees and their substitutes (replacement) or to get
+   * an vacation list for selected employees or group of employees.
+   */
+  open fun getVacationOfEmployees(
+    employees: Set<EmployeeDO>,
+    periodBegin: LocalDate, periodEnd: LocalDate, withSpecial: Boolean = false,
+    trimVacations: Boolean = false,
+    vararg status: VacationStatus,
+  )
+      : List<VacationsByEmployee> {
+    val result = mutableListOf<VacationsByEmployee>()
+    employees.forEach { employee ->
+      val vacations =
+        getVacationsListForPeriod(employee.id, periodBegin, periodEnd, withSpecial, trimVacations, *status)
+      result.add(VacationsByEmployee(employee, vacations))
+    }
+    return result
+  }
+
+  open fun getVacationOverlaps(vacation: VacationDO): VacationOverlaps {
+    val periodBegin = vacation.startDate ?: return VacationOverlaps() // Should not occur on db entries.
+    val periodEnd = vacation.endDate ?: return VacationOverlaps() // Should not occur on db entries.
+    val employees = vacation.allReplacements
+    if (employees.isEmpty()) {
+      return VacationOverlaps()
+    }
+    val result = mutableListOf<VacationDO>()
+    getVacationOfEmployees(
+      employees,
+      periodBegin,
+      periodEnd,
+      withSpecial = true,
+      trimVacations = true,
+    ).forEach { employeeVacations ->
+      employeeVacations.vacations.forEach { otherVacation ->
+        if (vacation.hasOverlap(otherVacation)) {
+          result.add(otherVacation)
+        }
+      }
+    }
+    return VacationOverlaps(result.sortedBy { it.startDate }, checkConflict(vacation, result))
+  }
+
+  internal fun checkConflict(vacation: VacationDO, otherVacations: List<VacationDO>): Boolean {
+    if (otherVacations.isEmpty()) {
+      return false
+    }
+    val startDate = vacation.startDate ?: return false // return should not occur on db entries.
+    val endDate = vacation.endDate ?: return false // return should not occur on db entries.
+    if (startDate > endDate) {
+      return false // startDate after endDate shouldn't occur fore db entries.
+    }
+    var date = startDate
+    var paranoiaCounter = 10000
+    val replacements = vacation.allReplacements
+    if (replacements.isEmpty()) {
+      return false // return should not occur
+    }
+    while (date <= endDate) {
+      if (--paranoiaCounter <= 0) {
+        // Paranoia counter for avoiding endless loops
+        break
+      }
+      var substituteAvailable = false
+      // No check either at least one substitute is on duty or not:
+      replacements.forEach replacements@{ replacement ->
+        otherVacations.filter { it.employeeId == replacement.id }.forEach { other ->
+          if (!other.isInBetween(date)) {
+            substituteAvailable = true
+            return@replacements
+          }
+        }
+      }
+      if (!substituteAvailable) {
+        // No substitute found for at least one day.
+        return true
+      }
+      date = date.plusDays(1)
+    }
+    return false
   }
 
   /**
