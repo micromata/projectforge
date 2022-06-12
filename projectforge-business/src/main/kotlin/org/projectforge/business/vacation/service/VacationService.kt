@@ -69,6 +69,9 @@ open class VacationService {
   private lateinit var configService: ConfigurationService
 
   @Autowired
+  private lateinit var conflictingVacationsCache: ConflictingVacationsCache
+
+  @Autowired
   private lateinit var employeeDao: EmployeeDao
 
   @Autowired
@@ -415,7 +418,9 @@ open class VacationService {
         }
       }
     }
-    return VacationOverlaps(result.sortedBy { it.startDate }, checkConflict(vacation, result))
+    val conflict = checkConflict(vacation, result)
+    conflictingVacationsCache.updateVacation(vacation, conflict)
+    return VacationOverlaps(result.sortedBy { it.startDate }, conflict)
   }
 
   internal fun checkConflict(vacation: VacationDO, otherVacations: List<VacationDO>): Boolean {
