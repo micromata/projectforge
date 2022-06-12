@@ -94,9 +94,12 @@ open class VacationSendMailService {
         if (manager.id != ThreadLocalUserContext.getUserId()) {
             sendMail(vacationInfo, operationType, VacationMode.MANAGER, manager)
         }
-        val replacement = vacationInfo.replacementUser
-        if (replacement != null) {
-            sendMail(vacationInfo, operationType, VacationMode.REPLACEMENT, replacement)
+        val replacements = mutableSetOf<PFUserDO>()
+        vacationInfo.replacementUser?.let {
+            replacements.add(it)
+        }
+        replacements.forEach { user ->
+            sendMail(vacationInfo, operationType, VacationMode.REPLACEMENT, user)
         }
     }
 
@@ -181,6 +184,7 @@ open class VacationSendMailService {
         val managerMail = managerUser?.email
         val replacementUser = employeeDao.internalGetById(vacation.replacement?.id)?.user
         var replacementFullname = replacementUser?.getFullname() ?: "unknown"
+        var otherReplacementsFullnames: String = ""
         val replacementMail = replacementUser?.email
         val startDate = dateFormatter.getFormattedDate(vacation.startDate)
         val endDate = dateFormatter.getFormattedDate(vacation.endDate)
@@ -212,6 +216,11 @@ open class VacationSendMailService {
             if (managerUser == null) {
                 log.warn { "Oups, manager not given. Will not send an e-mail for vacation changes: $vacation" }
                 valid = false
+            }
+            vacation.otherReplacements?.let { list ->
+                otherReplacementsFullnames = list.joinToString { employee ->
+                    employeeDao.internalGetById(employee?.id)?.user?.getFullname() ?: "???"
+                }
             }
         }
 

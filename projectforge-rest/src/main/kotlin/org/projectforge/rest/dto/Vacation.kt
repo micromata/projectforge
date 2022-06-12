@@ -49,6 +49,7 @@ class Vacation(
   var vacationModeString: String? = null,
   var replacement: Employee? = null,
   var otherReplacements: List<Employee>? = null,
+  var otherReplacementsAsString: String? = null,
   var manager: Employee? = null,
   var special: Boolean? = null,
   var specialFormatted: String? = null,
@@ -57,7 +58,15 @@ class Vacation(
   var comment: String? = null,
   var vacationDaysLeftInYear: BigDecimal? = null,
   var vacationDaysLeftInYearString: String? = null,
+  /**
+   * Vacations of substitutes overlapping this vacation. Only set in detail
+   * view.
+   */
   var conflictingVacations: List<Vacation>? = null,
+  /**
+   * If at least one day of the vacation period isn't covered by any substitute (replacement).
+   */
+  var conflict: Boolean? = null,
 ) : BaseDTO<VacationDO>() {
   constructor(src: VacationDO) : this() {
     this.copyFrom(src)
@@ -88,7 +97,10 @@ class Vacation(
       newOtherReplacements.add(employee)
     }
     if (newOtherReplacements.isNotEmpty()) {
-      otherReplacements = newOtherReplacements.sortedBy { it.user?.username }
+      newOtherReplacements.sortedBy { it.displayName }.let {
+        otherReplacements = it
+        otherReplacementsAsString = it.joinToString { it.displayName ?: "???" }
+      }
     }
   }
 

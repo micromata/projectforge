@@ -146,7 +146,7 @@ class VacationPagesRest :
       .add(lc, "statusString", lcField = "status")
       .add(lc, "replacement")
       .add(lc, "otherReplacements", formatter = UIAgGridColumnDef.Formatter.SHOW_LIST_OF_DISPLAYNAMES)
-      .add(lc,  "manager")
+      .add(lc, "manager")
       .add(lc, "workingDaysFormatted", headerName = "vacation.Days")
     return LayoutUtils.processListPage(layout, this)
   }
@@ -320,8 +320,31 @@ class VacationPagesRest :
       )
       .add(UISelect.createEmployeeSelect(lc, "otherReplacements", true))
       .add(lc, "comment")
+      .add(
+        UIFieldset(title = "vacation.vacationsOfReplacements").add(
+          UIAgGrid("conflictingVacations")
+            .add(UIAgGridColumnDef.createCol(lc, "employee"))
+            .add(UIAgGridColumnDef.createCol(lc, "startDate"))
+            .add(UIAgGridColumnDef.createCol(lc, "endDate"))
+            .add(UIAgGridColumnDef.createCol(lc, "vacationModeString", lcField = "vacationmode"))
+            .add(UIAgGridColumnDef.createCol(lc, "statusString", lcField = "status"))
+            .add(UIAgGridColumnDef.createCol(lc, "replacement"))
+            .add(UIAgGridColumnDef.createCol(lc, "otherReplacements", formatter = UIAgGridColumnDef.Formatter.SHOW_LIST_OF_DISPLAYNAMES))
+            .add(UIAgGridColumnDef.createCol(lc, "manager"))
+            .add(UIAgGridColumnDef.createCol("workingDaysFormatted", headerName = "vacation.workingdays"))
+        )
+      )
 
-    layout.watchFields.addAll(arrayOf("startDate", "endDate", "halfDayBegin", "halfDayEnd"))
+    layout.watchFields.addAll(
+      arrayOf(
+        "startDate",
+        "endDate",
+        "halfDayBegin",
+        "halfDayEnd",
+        "replacement",
+        "otherReplacements"
+      )
+    )
     updateStats(dto)
     return LayoutUtils.processEditPage(layout, dto, this)
   }
@@ -367,6 +390,17 @@ class VacationPagesRest :
       dto.workingDays = VacationService.getVacationDays(startDate, endDate, dto.halfDayBegin, dto.halfDayEnd)
       dto.workingDaysFormatted = VacationStats.format(dto.workingDays)
     }
+    val vacationDO = VacationDO()
+    dto.copyTo(vacationDO)
+    val conflicts = mutableListOf<Vacation>()
+    val vacationOverlaps = vacationService.getVacationOverlaps(vacationDO)
+    vacationOverlaps.otherVacations.forEach {
+      val conflict = Vacation()
+      conflict.copyFrom(it)
+      conflicts.add(conflict)
+    }
+    dto.conflictingVacations = conflicts
+    dto.conflict = vacationOverlaps.conflict
   }
 
   private fun getUserPref(): VacationDO {

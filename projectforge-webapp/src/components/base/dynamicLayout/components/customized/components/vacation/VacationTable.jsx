@@ -31,6 +31,7 @@ function VacationTable() {
                         <th className={styles.number}>{ui.translations['vacation.Days']}</th>
                         <th>{ui.translations['vacation.special']}</th>
                         <th>{ui.translations['vacation.replacement']}</th>
+                        <th>{ui.translations['vacation.replacement.others']}</th>
                         <th>{ui.translations['vacation.manager']}</th>
                         <th>{ui.translations['vacation.vacationmode']}</th>
                         <th>{ui.translations.comment}</th>

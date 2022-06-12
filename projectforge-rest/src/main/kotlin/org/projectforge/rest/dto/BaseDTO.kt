@@ -63,7 +63,6 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(
    * Full and deep copy of the object. Should be extended by inherited classes.
    */
   open fun copyTo(dest: T) {
-
     copy(this, dest)
   }
 
