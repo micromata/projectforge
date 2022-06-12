@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.*
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.framework.i18n.translate
@@ -62,6 +63,9 @@ class VacationPagesRest :
   AbstractDTOPagesRest<VacationDO, Vacation, VacationDao>(VacationDao::class.java, "vacation.title") {
 
   @Autowired
+  private lateinit var conflictingVacationsCache: ConflictingVacationsCache
+
+  @Autowired
   private lateinit var employeeService: EmployeeService
 
   @Autowired
@@ -85,6 +89,9 @@ class VacationPagesRest :
   override fun transformFromDB(obj: VacationDO, editMode: Boolean): Vacation {
     val vacation = Vacation()
     vacation.copyFrom(obj)
+    if (conflictingVacationsCache.hasConflict(obj.id)) {
+      vacation.conflict = true
+    }
     Employee.restoreDisplayNames(vacation.otherReplacements)
     return vacation
   }
@@ -148,6 +155,11 @@ class VacationPagesRest :
       .add(lc, "otherReplacements", formatter = UIAgGridColumnDef.Formatter.SHOW_LIST_OF_DISPLAYNAMES)
       .add(lc, "manager")
       .add(lc, "workingDaysFormatted", headerName = "vacation.Days")
+      .withGetRowClass(
+        """if (params.node.data.conflict) {
+            return 'ag-row-red';
+        }"""
+      )
     return LayoutUtils.processListPage(layout, this)
   }
 
@@ -160,6 +172,7 @@ class VacationPagesRest :
       UIFilterListElement("assignment", label = translate("vacation.vacationmode"), defaultFilter = true)
         .buildValues(VacationMode.OWN, VacationMode.REPLACEMENT, VacationMode.MANAGER, VacationMode.OTHER)
     )
+    elements.add(UIFilterBooleanElement("conflicts", label = translate("vacation.conflicts"), defaultFilter = true))
     elements.add(UIFilterElement("year", label = translate("calendar.year"), defaultFilter = true))
     elements.add(UIFilterBooleanElement("special", label = translate("vacation.special")))
     elements.add(
@@ -201,6 +214,13 @@ class VacationPagesRest :
       if (!values.isNullOrEmpty()) {
         val enums = values.map { VacationMode.valueOf(it) }
         filters.add(VacationModeFilter(enums))
+      }
+    }
+    source.entries.find { it.field == "conflicts" }?.let { entry ->
+      entry.synthetic = true
+      val conflictsOnly = entry.value.value
+      if (conflictsOnly == "true") {
+        filters.add(VacationConflictsFilter())
       }
     }
     val yearFilterEntry = source.entries.find { it.field == "year" }
@@ -249,6 +269,11 @@ class VacationPagesRest :
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: Vacation, userAccess: UILayout.UserAccess): UILayout {
+    updateStats(dto)
+    return createLayout(dto, userAccess)
+  }
+
+  private fun createLayout(dto: Vacation, userAccess: UILayout.UserAccess): UILayout {
     val employeeCol = UICol(6)
     if (vacationDao.hasHrRights(ThreadLocalUserContext.getUser())) {
       employeeCol.add(lc, "employee")
@@ -320,20 +345,29 @@ class VacationPagesRest :
       )
       .add(UISelect.createEmployeeSelect(lc, "otherReplacements", true))
       .add(lc, "comment")
-      .add(
-        UIFieldset(title = "vacation.vacationsOfReplacements").add(
-          UIAgGrid("conflictingVacations")
-            .add(UIAgGridColumnDef.createCol(lc, "employee"))
-            .add(UIAgGridColumnDef.createCol(lc, "startDate"))
-            .add(UIAgGridColumnDef.createCol(lc, "endDate"))
-            .add(UIAgGridColumnDef.createCol(lc, "vacationModeString", lcField = "vacationmode"))
-            .add(UIAgGridColumnDef.createCol(lc, "statusString", lcField = "status"))
-            .add(UIAgGridColumnDef.createCol(lc, "replacement"))
-            .add(UIAgGridColumnDef.createCol(lc, "otherReplacements", formatter = UIAgGridColumnDef.Formatter.SHOW_LIST_OF_DISPLAYNAMES))
-            .add(UIAgGridColumnDef.createCol(lc, "manager"))
-            .add(UIAgGridColumnDef.createCol("workingDaysFormatted", headerName = "vacation.workingdays"))
-        )
+    if (dto.conflict == true) {
+      layout.add(UIAlert("vacation.conflict.info", color = UIColor.DANGER))
+    }
+    layout.add(
+      UIFieldset(title = "vacation.vacationsOfReplacements").add(
+        UIAgGrid("conflictingVacations")
+          .add(UIAgGridColumnDef.createCol(lc, "employee"))
+          .add(UIAgGridColumnDef.createCol(lc, "startDate"))
+          .add(UIAgGridColumnDef.createCol(lc, "endDate"))
+          .add(UIAgGridColumnDef.createCol(lc, "vacationModeString", lcField = "vacationmode"))
+          .add(UIAgGridColumnDef.createCol(lc, "statusString", lcField = "status"))
+          .add(UIAgGridColumnDef.createCol(lc, "replacement"))
+          .add(
+            UIAgGridColumnDef.createCol(
+              lc,
+              "otherReplacements",
+              formatter = UIAgGridColumnDef.Formatter.SHOW_LIST_OF_DISPLAYNAMES
+            )
+          )
+          .add(UIAgGridColumnDef.createCol(lc, "manager"))
+          .add(UIAgGridColumnDef.createCol("workingDaysFormatted", headerName = "vacation.workingdays"))
       )
+    )
 
     layout.watchFields.addAll(
       arrayOf(
@@ -354,8 +388,8 @@ class VacationPagesRest :
     dto: Vacation,
     watchFieldsTriggered: Array<String>?
   ): ResponseEntity<ResponseAction> {
-    var startDate = dto.startDate
-    var endDate = dto.endDate
+    val startDate = dto.startDate
+    val endDate = dto.endDate
     if (watchFieldsTriggered?.contains("startDate") == true && startDate != null) {
       if (endDate == null || endDate.isBefore(startDate)) {
         dto.endDate = startDate
@@ -366,7 +400,9 @@ class VacationPagesRest :
       }
     }
     updateStats(dto)
-    return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto))
+    return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE)
+      .addVariable("data", dto)
+      .addVariable("ui", createLayout(dto, UILayout.UserAccess())))
   }
 
   override fun createReturnToCallerResponseAction(returnToCaller: String): ResponseAction {

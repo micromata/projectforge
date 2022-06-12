@@ -30,6 +30,7 @@ import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 import org.projectforge.business.vacation.repository.RemainingLeaveDao
+import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStatsFormatted
 import org.projectforge.common.DateFormatType
@@ -68,6 +69,9 @@ class VacationAccountPageRest {
      */
     var workingHoursStatistics: String? = null,
   )
+
+  @Autowired
+  private lateinit var conflictingVacationsCache: ConflictingVacationsCache
 
   @Autowired
   private lateinit var employeeDao: EmployeeDao
@@ -283,6 +287,11 @@ class VacationAccountPageRest {
       true
     )
     val list = dbList.map { Vacation(it) }
+    list.forEach {
+      if (conflictingVacationsCache.hasConflict(it.id)) {
+        it.conflict = true
+        }
+    }
     variables["vacations${id}Year"] = list
     variables["year$id"] = year
   }

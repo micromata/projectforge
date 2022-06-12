@@ -9,7 +9,7 @@ function VacationEntries({ entries }) {
     return entries && entries.length > 0 && entries.map((entry, index) => (
         <tr
             key={entry.id}
-            className={classNames({ [styles.highlighted]: index === 0 })}
+            className={classNames({ [styles.highlighted]: index === 0 }, { 'ag-row-red': entry.conflict === true })}
             onClick={() => history.push(`${prefix}vacation/edit/${entry.id}?returnToCaller=account`)}
         >
             <td>{entry.startDateFormatted}</td>

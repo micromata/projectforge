@@ -37,6 +37,7 @@ import org.projectforge.business.orga.PosteingangDao
 import org.projectforge.business.orga.VisitorbookDao
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightValue
+import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationMenuCounterCache
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.access.AccessChecker
@@ -88,6 +89,9 @@ open class MenuCreator {
 
   @Autowired
   private lateinit var vacationMenuCounterCache: VacationMenuCounterCache
+
+  @Autowired
+  private lateinit var conflictingVacationsCache: ConflictingVacationsCache
 
   @Autowired
   private lateinit var auftragDao: AuftragDao
@@ -452,8 +456,10 @@ open class MenuCreator {
       .add(MenuItemDef(MenuItemDefId.MY_PREFERENCES))
       .add(
         MenuItemDef(MenuItemDefId.VACATION_ACCOUNT,
-          checkAccess =
-          {
+          badgeCounter = {
+            conflictingVacationsCache.numberOfConflicts(ThreadLocalUserContext.getUserId())
+          },
+          checkAccess = {
             vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false)
           })
       )
