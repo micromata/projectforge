@@ -23,71 +23,143 @@
 
 package org.projectforge.rest
 
+import mu.KotlinLogging
+import org.projectforge.business.ldap.LdapPosixGroupsUtils
+import org.projectforge.business.ldap.LdapUserDao
+import org.projectforge.business.login.Login
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Group
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
+
 @RestController
 @RequestMapping("${Rest.URL}/group")
-class GroupPagesRest: AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::class.java, "group.title") {
+class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::class.java, "group.title") {
 
-    @Autowired
-    private lateinit var userService: UserService
+  @Autowired
+  private lateinit var accessChecker: AccessChecker
 
-    override fun transformFromDB(obj: GroupDO, editMode : Boolean): Group {
-        val group = Group()
-        group.copyFrom(obj)
-        group.assignedUsers?.forEach {
-            val user = userService.getUser(it.id)
-            if (user != null) {
-                it.username = user.username
-                it.firstname = user.firstname
-                it.lastname = user.lastname
-            }
+  @Autowired
+  private lateinit var ldapPosixGroupsUtils: LdapPosixGroupsUtils
+
+  @Autowired
+  private lateinit var ldapUserDao: LdapUserDao
+
+  @Autowired
+  private lateinit var userService: UserService
+
+  override fun transformFromDB(obj: GroupDO, editMode: Boolean): Group {
+    val group = Group()
+    group.copyFrom(obj)
+    group.assignedUsers?.forEach {
+      val user = userService.getUser(it.id)
+      if (user != null) {
+        it.username = user.username
+        it.firstname = user.firstname
+        it.lastname = user.lastname
+      }
+    }
+    return group
+  }
+
+  override fun transformForDB(dto: Group): GroupDO {
+    val groupDO = GroupDO()
+    dto.copyTo(groupDO)
+    return groupDO
+  }
+
+  override val classicsLinkListUrl: String?
+    get() = "wa/groupList"
+
+  /**
+   * LAYOUT List page
+   */
+  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+    val adminAccess = accessChecker.isLoggedInUserMemberOfAdminGroup
+    val layout = super.createListLayout(request, magicFilter)
+    val agGrid = agGridSupport.prepareUIGrid4ListPage(
+      request,
+      layout,
+      magicFilter,
+      this,
+    )
+      .add(lc, "name", "organization")
+      .add(lc, "description", wrapText = true)
+      .add(lc, "assignedUsers", formatter = UIAgGridColumnDef.Formatter.SHOW_LIST_OF_DISPLAYNAMES, wrapText = true)
+    if (adminAccess && Login.getInstance().hasExternalUsermanagementSystem()) {
+      agGrid.add(lc, "ldapValues")
+    }
+    return LayoutUtils.processListPage(layout, this)
+  }
+
+  override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+    elements.add(
+      UIFilterListElement("type", label = translate("status"), defaultFilter = true, multi = false)
+        .buildValues(GroupTypeFilter.TYPE::class.java)
+    )
+  }
+
+  override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<GroupDO>> {
+    val filters = mutableListOf<CustomResultFilter<GroupDO>>()
+    val localGroupFilterEntry = source.entries.find { it.field == "type" }
+    if (localGroupFilterEntry != null) {
+      localGroupFilterEntry.synthetic = true
+      val values = localGroupFilterEntry.value.values
+      if (!values.isNullOrEmpty() && values.size == 1) {
+        val value = values[0]
+        try {
+          GroupTypeFilter.TYPE.valueOf(value).let {
+            filters.add(GroupTypeFilter(it))
+          }
+        } catch (ex: IllegalArgumentException) {
+          log.warn { "Oups, can't convert '$value': ${ex.message}" }
         }
-        return group
+      }
     }
+    return filters
+  }
 
-    override fun transformForDB(dto: Group): GroupDO {
-        val groupDO = GroupDO()
-        dto.copyTo(groupDO)
-        return groupDO
+  /**
+   * LAYOUT Edit page
+   */
+  override fun createEditLayout(dto: Group, userAccess: UILayout.UserAccess): UILayout {
+    val layout = super.createEditLayout(dto, userAccess)
+      .add(
+        UIRow()
+          .add(
+            UICol(lg = 6)
+              .add(lc, "name", "organization", "description", "localGroup", "groupOwner")
+          )
+          .add(
+            UICol(lg = 6)
+              .add(UISelect.createUserSelect(lc, "assignedUsers", true, "group.assignedUsers"))
+          )
+      )
+    val adminAccess = accessChecker.isLoggedInUserMemberOfAdminGroup
+    if (adminAccess && Login.getInstance().hasExternalUsermanagementSystem() && ldapUserDao.isPosixAccountsConfigured) {
+      // Ldap values
+      layout.add(UIFieldset(title = "ldap")
+        .)
     }
+    dto.emails = "dsfkajsdlfads"
+    layout.add(UIReadOnlyField("emails", label = "address.emails"))
+    return LayoutUtils.processEditPage(layout, dto, this)
+  }
 
-    override val classicsLinkListUrl: String?
-        get() = "wa/groupList"
-
-    /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
-                        .add(lc, "name", "organization", "description", "assignedUsers", "ldapValues"))
-        return LayoutUtils.processListPage(layout, this)
-    }
-
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: Group, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-                .add(UIRow()
-                        .add(UICol()
-                                .add(lc, "name", "organization", "description"))
-                        .add(UICol()
-                                .add(UISelect.createUserSelect(lc, "assignedUsers", true, "group.assignedUsers"))))
-        return LayoutUtils.processEditPage(layout, dto, this)
-    }
-
-    override val autoCompleteSearchFields = arrayOf("name", "organization")
+  override val autoCompleteSearchFields = arrayOf("name", "organization")
 }

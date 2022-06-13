@@ -205,7 +205,7 @@ class VacationPagesRest :
     )
   }
 
-  override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<VacationDO>>? {
+  override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<VacationDO>> {
     val filters = mutableListOf<CustomResultFilter<VacationDO>>()
     val assignmentFilterEntry = source.entries.find { it.field == "assignment" }
     if (assignmentFilterEntry != null) {

@@ -56,6 +56,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(length = 100)
     open var name: String? = null
 
+    @PropertyInfo(i18nKey = "group.localGroup")
     @get:Column(name = "local_group", nullable = false)
     open var localGroup: Boolean = false
 
@@ -128,6 +129,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
     @get:JoinTable(name = "T_GROUP_USER", joinColumns = [JoinColumn(name = "GROUP_ID")], inverseJoinColumns = [JoinColumn(name = "USER_ID")], indexes = [javax.persistence.Index(name = "idx_fk_t_group_user_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_group_user_user_id", columnList = "user_id")])
     open var assignedUsers: MutableSet<PFUserDO>? = null
 
+    @PropertyInfo(i18nKey = "group.owner")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "group_owner_fk")
