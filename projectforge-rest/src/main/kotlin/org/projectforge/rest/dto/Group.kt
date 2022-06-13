@@ -31,11 +31,41 @@ class Group(
   id: Int? = null,
   displayName: String? = null,
   var name: String? = null,
-  var assignedUsers: MutableSet<PFUserDO>? = null
+  var assignedUsers: MutableSet<User>? = null,
+  var localGroup: Boolean = false,
+  var organization: String? = null,
+  var description: String? = null,
+  var ldapValues: String? = null,
+  var groupOwner: User? = null,
+  var emails: String? = null,
 ) : BaseDTODisplayObject<GroupDO>(id = id, displayName = displayName) {
   override fun copyFromMinimal(src: GroupDO) {
     super.copyFromMinimal(src)
     name = src.name
+  }
+
+  override fun copyFrom(src: GroupDO) {
+    super.copyFrom(src)
+    val newAssignedUsers = mutableSetOf<User>()
+    src.assignedUsers?.forEach { userDO ->
+      val user = User()
+      user.copyFromMinimal(userDO)
+      newAssignedUsers.add(user)
+    }
+    assignedUsers = newAssignedUsers
+  }
+
+  override fun copyTo(dest: GroupDO) {
+    super.copyTo(dest)
+    val newAssignedUsers = mutableSetOf<PFUserDO>()
+    assignedUsers?.forEach { u ->
+      val userDO = PFUserDO()
+      userDO.id = u.id
+      newAssignedUsers.add(userDO)
+    }
+    if (newAssignedUsers.isNotEmpty()) {
+      dest.assignedUsers = newAssignedUsers
+    }
   }
 
   companion object {
