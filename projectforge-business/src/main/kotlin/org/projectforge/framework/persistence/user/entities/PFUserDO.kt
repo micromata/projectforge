@@ -74,7 +74,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      * The unique username.
      */
     @PropertyInfo(i18nKey = "user.username")
-    @Field(analyze = Analyze.NO)
+    @Field
     @get:Column(length = 255, nullable = false)
     open var username: String? = null
 

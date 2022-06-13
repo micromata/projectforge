@@ -52,7 +52,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
         get() = "$name"
 
     @PropertyInfo(i18nKey = "name")
-    @Field(analyze = Analyze.NO)
+    @Field
     @get:Column(length = 100)
     open var name: String? = null
 
