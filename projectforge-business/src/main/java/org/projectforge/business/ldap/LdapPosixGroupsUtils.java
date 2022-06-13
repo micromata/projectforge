@@ -75,10 +75,23 @@ public class LdapPosixGroupsUtils
    */
   public boolean isGivenNumberFree(final GroupDO currentGroup, final int gidNumber)
   {
+    return isGivenNumberFree(currentGroup.getId(), gidNumber);
+  }
+
+  /**
+   * For preventing double gidNumbers.
+   *
+   * @param currentGroupId
+   * @param gidNumber
+   * @return Returns true if any group (also deleted group) other than the given group has the given gidNumber,
+   *         otherwise false.
+   */
+  public boolean isGivenNumberFree(final int currentGroupId, final int gidNumber)
+  {
     final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
     for (final GroupDO group : allGroups) {
       final LdapGroupValues ldapGroupValues = groupDOConverter.readLdapGroupValues(group.getLdapValues());
-      if (Objects.equals(group.getId(), currentGroup.getId())) {
+      if (Objects.equals(group.getId(), currentGroupId)) {
         // The current group may have the given gidNumber already, so ignore this entry.
         continue;
       }

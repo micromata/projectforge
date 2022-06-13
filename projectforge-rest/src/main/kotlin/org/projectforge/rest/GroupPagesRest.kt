@@ -24,6 +24,9 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
+import org.projectforge.SystemStatus
+import org.projectforge.business.ldap.GroupDOConverter
+import org.projectforge.business.ldap.LdapGroupValues
 import org.projectforge.business.ldap.LdapPosixGroupsUtils
 import org.projectforge.business.ldap.LdapUserDao
 import org.projectforge.business.login.Login
@@ -31,19 +34,25 @@ import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.Group
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
+import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
 
@@ -53,6 +62,9 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::
 
   @Autowired
   private lateinit var accessChecker: AccessChecker
+
+  @Autowired
+  private lateinit var groupDOConverter: GroupDOConverter
 
   @Autowired
   private lateinit var ldapPosixGroupsUtils: LdapPosixGroupsUtils
@@ -74,23 +86,38 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::
         it.lastname = user.lastname
       }
     }
+    if (useLdapStuff) {
+      groupDOConverter.readLdapGroupValues(obj.ldapValues)?.let { ldapGroupValues ->
+        group.gidNumber = ldapGroupValues.gidNumber
+      }
+    }
     return group
   }
 
   override fun transformForDB(dto: Group): GroupDO {
     val groupDO = GroupDO()
     dto.copyTo(groupDO)
+    //groupDao.setNestedGroups(getData(), form.nestedGroupsListHelper.getAssignedItems());
+    dto.gidNumber.let { gidNumber ->
+      if (gidNumber != null) {
+        val values = LdapGroupValues()
+        values.gidNumber = gidNumber
+        val xml: String = groupDOConverter.getLdapValuesAsXml(values)
+        groupDO.ldapValues = xml
+      } else {
+        groupDO.ldapValues = null
+      }
+    }
     return groupDO
   }
 
-  override val classicsLinkListUrl: String?
+  override val classicsLinkListUrl: String
     get() = "wa/groupList"
 
   /**
    * LAYOUT List page
    */
   override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val adminAccess = accessChecker.isLoggedInUserMemberOfAdminGroup
     val layout = super.createListLayout(request, magicFilter)
     val agGrid = agGridSupport.prepareUIGrid4ListPage(
       request,
@@ -101,7 +128,7 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::
       .add(lc, "name", "organization")
       .add(lc, "description", wrapText = true)
       .add(lc, "assignedUsers", formatter = UIAgGridColumnDef.Formatter.SHOW_LIST_OF_DISPLAYNAMES, wrapText = true)
-    if (adminAccess && Login.getInstance().hasExternalUsermanagementSystem()) {
+    if (useLdapStuff) {
       agGrid.add(lc, "ldapValues")
     }
     return LayoutUtils.processListPage(layout, this)
@@ -134,6 +161,29 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::
     return filters
   }
 
+  @PostMapping("createGid")
+  fun createGid(@Valid @RequestBody postData: PostData<Group>):
+      ResponseAction {
+    val data = postData.data
+    data.gidNumber = ldapPosixGroupsUtils.nextFreeGidNumber
+    return ResponseAction(targetType = TargetType.UPDATE)
+      .addVariable("data", data)
+  }
+
+  override fun validate(validationErrors: MutableList<ValidationError>, dto: Group) {
+    super.validate(validationErrors, dto)
+    dto.gidNumber?.let { gidNumber ->
+      if (dto.gidNumber != null && !ldapPosixGroupsUtils.isGivenNumberFree(dto.id ?: -1, gidNumber)) {
+        validationErrors.add(
+          ValidationError(
+            translateMsg("ldap.gidNumber.alreadyInUse", ldapPosixGroupsUtils.nextFreeGidNumber),
+            fieldId = "gidNumber",
+          )
+        )
+      }
+    }
+  }
+
   /**
    * LAYOUT Edit page
    */
@@ -143,23 +193,55 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::
         UIRow()
           .add(
             UICol(lg = 6)
-              .add(lc, "name", "organization", "description", "localGroup", "groupOwner")
+              .add(lc, "name", "localGroup")
           )
           .add(
             UICol(lg = 6)
-              .add(UISelect.createUserSelect(lc, "assignedUsers", true, "group.assignedUsers"))
+              .add(lc, "organization", "groupOwner")
           )
       )
-    val adminAccess = accessChecker.isLoggedInUserMemberOfAdminGroup
-    if (adminAccess && Login.getInstance().hasExternalUsermanagementSystem() && ldapUserDao.isPosixAccountsConfigured) {
-      // Ldap values
-      layout.add(UIFieldset(title = "ldap")
-        .)
+      .add(UISelect.createUserSelect(lc, "assignedUsers", true, "group.assignedUsers"))
+      .add(lc, "description")
+    if (useLdapStuff) {
+      val gidInput = UIInput(
+        "gidNumber",
+        label = "ldap.gidNumber",
+        additionalLabel = "ldap.posixAccount",
+        tooltip = "ldap.gidNumber.tooltip"
+      )
+      val fieldset = UIFieldset(title = "ldap")
+      layout.add(fieldset)
+      if (dto.gidNumber != null) {
+        fieldset.add(gidInput)
+      } else {
+        val button = UIButton.createLinkButton(
+          id = "createGidNumber",
+          title = "create",
+          tooltip = "ldap.gidNumber.createDefault.tooltip",
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(
+              GroupPagesRest::class.java,
+              "createGid"
+            ), targetType = TargetType.POST
+          )
+        )
+        fieldset.add(UIRow().add(UICol().add(gidInput)).add(UICol().add(button)))
+      }
     }
-    dto.emails = "dsfkajsdlfads"
+    val mails = mutableSetOf<String>()
+    dto.assignedUsers?.forEach { user ->
+      userService.getById(user.id)?.email?.let { email ->
+        mails.add(email)
+      }
+    }
+    dto.emails = mails.sorted().joinToString()
     layout.add(UIReadOnlyField("emails", label = "address.emails"))
     return LayoutUtils.processEditPage(layout, dto, this)
   }
+
+  private val useLdapStuff: Boolean
+    get() = SystemStatus.isDevelopmentMode() || (accessChecker.isLoggedInUserMemberOfAdminGroup && Login.getInstance()
+      .hasExternalUsermanagementSystem() && ldapUserDao.isPosixAccountsConfigured)
 
   override val autoCompleteSearchFields = arrayOf("name", "organization")
 }
