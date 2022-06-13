@@ -269,11 +269,6 @@ class VacationPagesRest :
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: Vacation, userAccess: UILayout.UserAccess): UILayout {
-    updateStats(dto)
-    return createLayout(dto, userAccess)
-  }
-
-  private fun createLayout(dto: Vacation, userAccess: UILayout.UserAccess): UILayout {
     val employeeCol = UICol(6)
     if (vacationDao.hasHrRights(ThreadLocalUserContext.getUser())) {
       employeeCol.add(lc, "employee")
@@ -400,9 +395,15 @@ class VacationPagesRest :
       }
     }
     updateStats(dto)
-    return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE)
-      .addVariable("data", dto)
-      .addVariable("ui", createLayout(dto, UILayout.UserAccess())))
+    val userAccess = UILayout.UserAccess()
+    val vacation = VacationDO()
+    dto.copyTo(vacation)
+    checkUserAccess(vacation, userAccess)
+    return ResponseEntity.ok(
+      ResponseAction(targetType = TargetType.UPDATE)
+        .addVariable("data", dto)
+        .addVariable("ui", createEditLayout(dto, userAccess))
+    )
   }
 
   override fun createReturnToCallerResponseAction(returnToCaller: String): ResponseAction {
