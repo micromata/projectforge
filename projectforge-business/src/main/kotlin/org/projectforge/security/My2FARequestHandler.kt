@@ -356,10 +356,10 @@ open class My2FARequestHandler {
       }*/
       var pos = uri.indexOf('/', 1)
       while (pos >= 0 && pos < uri.length) {
-        result.add(uri.substring(0, pos))
+        result.add(0, uri.substring(0, pos))
         pos = uri.indexOf('/', pos + 1)
       }
-      result.add(uri)
+      result.add(0, uri)
       // println("$uri: ${result.joinToString { it }}")
       return result
     }

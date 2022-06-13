@@ -60,22 +60,22 @@ class My2FARequestHandlerTest {
   fun getReducedPathsTest() {
     Assertions.assertArrayEquals(arrayOf(""), My2FARequestHandler.getParentPaths("").toTypedArray())
     Assertions.assertArrayEquals(arrayOf("/"), My2FARequestHandler.getParentPaths("/").toTypedArray())
-    Assertions.assertArrayEquals(arrayOf("/", "//"), My2FARequestHandler.getParentPaths("//").toTypedArray())
+    Assertions.assertArrayEquals(arrayOf("//", "/"), My2FARequestHandler.getParentPaths("//").toTypedArray())
     Assertions.assertArrayEquals(arrayOf("/rs"), My2FARequestHandler.getParentPaths("/rs").toTypedArray())
     Assertions.assertArrayEquals(
-      arrayOf("/rs", "/rs/"),
+      arrayOf("/rs/", "/rs"),
       My2FARequestHandler.getParentPaths("/rs/").toTypedArray()
     )
     Assertions.assertArrayEquals(
-      arrayOf("/rs", "/rs/user"),
+      arrayOf("/rs/user", "/rs"),
       My2FARequestHandler.getParentPaths("/rs/user").toTypedArray()
     )
     Assertions.assertArrayEquals(
-      arrayOf("/rs", "/rs/user", "/rs/user/save"),
+      arrayOf("/rs/user/save", "/rs/user", "/rs"),
       My2FARequestHandler.getParentPaths("/rs/user/save").toTypedArray()
     )
     Assertions.assertArrayEquals(
-      arrayOf("/rs", "/rs/", "/rs//user", "/rs//user/save"),
+      arrayOf("/rs//user/save", "/rs//user", "/rs/", "/rs"),
       My2FARequestHandler.getParentPaths("/rs//user/save").toTypedArray()
     )
   }
