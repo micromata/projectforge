@@ -133,7 +133,7 @@ object BaseDaoSupport {
         //   log.info("No modifications detected (no update needed): " + dbObj.toString());
         baseDao.prepareHibernateSearch(obj, OperationType.UPDATE)
         em.merge(dbObj)
-        em.flush()
+          em.flush()
         if (baseDao.logDatabaseActions) {
           log.info("${baseDao.clazz.simpleName} updated: $dbObj")
         }
