@@ -69,7 +69,9 @@ open class UIAgGridColumnDef(
    * https://www.ag-grid.com/react-data-grid/components/
    * If formatter is used, it's set to "formatter".
    */
-  var cellRenderer: String? = null
+  var cellRenderer: String? = null,
+  var wrapText: Boolean? = null,
+  var autoHeight: Boolean? = wrapText,
 ) {
 
   var pinned: String? = null
@@ -144,6 +146,8 @@ open class UIAgGridColumnDef(
       headerTooltip: String? = null,
       valueGetter: String? = null,
       valueFormatter: Formatter? = null,
+      wrapText: Boolean? = null,
+      autoHeight: Boolean? = wrapText,
     ): UIAgGridColumnDef {
       return createCol(
         null,
@@ -154,6 +158,8 @@ open class UIAgGridColumnDef(
         headerTooltip = headerTooltip,
         valueGetter = valueGetter,
         formatter = valueFormatter,
+        wrapText = wrapText,
+        autoHeight = autoHeight,
       )
     }
 
@@ -171,8 +177,10 @@ open class UIAgGridColumnDef(
       valueGetter: String? = null,
       formatter: Formatter? = null,
       lcField: String = field,
+      wrapText: Boolean? = null,
+      autoHeight: Boolean? = wrapText,
     ): UIAgGridColumnDef {
-      val col = UIAgGridColumnDef(field, sortable = sortable)
+      val col = UIAgGridColumnDef(field, sortable = sortable, wrapText = wrapText, autoHeight = autoHeight)
       lc?.idPrefix?.let {
         col.field = "${it}${col.field}"
       }

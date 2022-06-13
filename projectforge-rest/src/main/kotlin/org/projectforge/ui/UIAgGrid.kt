@@ -119,6 +119,8 @@ open class UIAgGrid(
     headerName: String? = null,
     formatter: UIAgGridColumnDef.Formatter? = null,
     valueGetter: String? = null,
+    wrapText: Boolean? = null,
+    autoHeight: Boolean? = wrapText,
   ): UIAgGrid {
     add(
       UIAgGridColumnDef.createCol(
@@ -129,6 +131,8 @@ open class UIAgGrid(
         headerName = headerName,
         valueGetter = valueGetter,
         formatter = formatter,
+        wrapText = wrapText,
+        autoHeight = autoHeight,
       )
     )
     return this
@@ -149,6 +153,8 @@ open class UIAgGrid(
     formatter: UIAgGridColumnDef.Formatter? = null,
     valueGetter: String? = null,
     lcField: String? = null,
+    wrapText: Boolean? = null,
+    autoHeight: Boolean? = wrapText,
   ): UIAgGrid {
     columnIds.forEach {
       add(
@@ -161,6 +167,8 @@ open class UIAgGrid(
           valueGetter = valueGetter,
           formatter = formatter,
           lcField = lcField ?: it,
+          wrapText = wrapText,
+          autoHeight = autoHeight,
         )
       )
     }
