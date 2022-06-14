@@ -216,6 +216,7 @@ constructor(
   internal fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
     val userAccess = UILayout.UserAccess()
     checkUserAccess(null, userAccess)
+    userAccess.update = true // Assume that the user has general update access (change this, see GroupPagesRest)
     val layout = UILayout("$i18nKeyPrefix.list")
     val gearMenu = layout.ensureGearMenu()
     gearMenu.add(
