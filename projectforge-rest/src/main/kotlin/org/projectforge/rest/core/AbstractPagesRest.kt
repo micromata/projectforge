@@ -844,7 +844,7 @@ constructor(
    * @param id Id of the item to get the history entries for.
    */
   @GetMapping("history/{id}")
-  fun getHistory(@PathVariable("id") id: Int?): ResponseEntity<List<HistoryService.DisplayHistoryEntry>> {
+  fun getHistory(@PathVariable("id") id: Int?): ResponseEntity<List<HistoryService.DisplayHistoryEntryDTO>> {
     if (id == null) {
       return ResponseEntity(HttpStatus.BAD_REQUEST)
     }
