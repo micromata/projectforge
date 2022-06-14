@@ -29,8 +29,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.IsoGender
 import org.projectforge.business.fibu.GenderConverter
+import org.projectforge.business.fibu.IsoGender
 import org.projectforge.business.fibu.api.EmployeeService
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.ProjectForgeGroup
@@ -161,8 +161,8 @@ class EmployeeTest : AbstractTestBase() {
         val historyEntriesAfter = employeeDao.getDisplayHistoryEntries(e)
         Assertions.assertEquals(historyEntriesBefore.size + 1, historyEntriesAfter.size)
         val genderHistoryEntry = historyEntriesAfter[0]
-        Assertions.assertEquals(genderHistoryEntry.propertyName, "gender")
-        Assertions.assertEquals(genderHistoryEntry.newValue, "[" + IsoGender.NOT_APPLICABLE.toString() + "]")
+        Assertions.assertEquals("Gender", genderHistoryEntry.propertyName)
+        Assertions.assertEquals("not applicable", genderHistoryEntry.newValue)
     }
 
     @Test
@@ -205,9 +205,9 @@ class EmployeeTest : AbstractTestBase() {
         // test history
         val historyEntriesAfter = employeeDao.getDisplayHistoryEntries(e)
         Assertions.assertEquals(historyEntriesBefore.size + 3, historyEntriesAfter.size)
-        assertHistoryEntry(historyEntriesAfter[0], "accountHolder", accountHolder)
-        assertHistoryEntry(historyEntriesAfter[1], "bic", bic)
-        assertHistoryEntry(historyEntriesAfter[2], "iban", iban)
+        assertHistoryEntry(historyEntriesAfter[0], "Account holder", accountHolder)
+        assertHistoryEntry(historyEntriesAfter[1], "BIC", bic)
+        assertHistoryEntry(historyEntriesAfter[2], "IBAN", iban)
     }
 
     @Test
@@ -239,11 +239,11 @@ class EmployeeTest : AbstractTestBase() {
         // test history
         val historyEntriesAfter = employeeDao.getDisplayHistoryEntries(e)
         Assertions.assertEquals(historyEntriesBefore.size + 5, historyEntriesAfter.size)
-        assertHistoryEntry(historyEntriesAfter[0], "state", state)
-        assertHistoryEntry(historyEntriesAfter[1], "country", country)
-        assertHistoryEntry(historyEntriesAfter[2], "city", city)
-        assertHistoryEntry(historyEntriesAfter[3], "zipCode", zipCode)
-        assertHistoryEntry(historyEntriesAfter[4], "street", street)
+        assertHistoryEntry(historyEntriesAfter[0], "State", state)
+        assertHistoryEntry(historyEntriesAfter[1], "Country", country)
+        assertHistoryEntry(historyEntriesAfter[2], "City", city)
+        assertHistoryEntry(historyEntriesAfter[3], "Zip code", zipCode)
+        assertHistoryEntry(historyEntriesAfter[4], "Street", street)
     }
 
     @Test
@@ -259,7 +259,7 @@ class EmployeeTest : AbstractTestBase() {
         // test history
         val historyEntriesAfter = employeeDao.getDisplayHistoryEntries(e)
         Assertions.assertEquals(historyEntriesBefore.size + 1, historyEntriesAfter.size)
-        assertHistoryEntry(historyEntriesAfter[0], "staffNumber", staffNumber)
+        assertHistoryEntry(historyEntriesAfter[0], "Staff number", staffNumber)
     }
 
     private fun assertHistoryEntry(historyEntry: DisplayHistoryEntry, propertyName: String, newValue: String) {
