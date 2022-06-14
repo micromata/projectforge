@@ -23,22 +23,20 @@
 
 package org.projectforge.rest.core
 
-import de.micromata.genome.db.jpa.history.api.DiffEntry
 import de.micromata.genome.db.jpa.history.api.HistoryEntry
 import de.micromata.genome.db.jpa.history.entities.EntityOpType
 import de.micromata.genome.db.jpa.history.entities.PropertyOpType
 import mu.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
-import org.projectforge.common.BeanHelper
-import org.projectforge.common.i18n.I18nEnum
-import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.lang.reflect.Field
 import java.util.*
+import javax.persistence.EntityManager
+import javax.persistence.PersistenceContext
 
 private val log = KotlinLogging.logger {}
 
@@ -47,17 +45,20 @@ private val log = KotlinLogging.logger {}
  */
 @Component
 class HistoryService {
-  data class DisplayHistoryEntry(
+  @PersistenceContext
+  private lateinit var em: EntityManager
+
+  data class DisplayHistoryEntryDTO(
     var modifiedAt: Date? = null,
     var timeAgo: String? = null,
     var modifiedByUserId: String? = null,
     var modifiedByUser: String? = null,
     var operationType: EntityOpType? = null,
     var operation: String? = null,
-    var diffEntries: MutableList<DisplayHistoryDiffEntry> = mutableListOf()
+    var diffEntries: MutableList<DisplayHistoryDiffEntryDTO> = mutableListOf()
   )
 
-  data class DisplayHistoryDiffEntry(
+  data class DisplayHistoryDiffEntryDTO(
     var operationType: PropertyOpType? = null,
     var operation: String? = null,
     var property: String? = null,
@@ -71,81 +72,38 @@ class HistoryService {
   /**
    * Creates a list of formatted history entries (get the user names etc.)
    */
-  fun format(orig: Array<HistoryEntry<*>>): List<DisplayHistoryEntry> {
-    val entries = mutableListOf<DisplayHistoryEntry>()
-    orig.forEach {
+  fun format(orig: Array<HistoryEntry<*>>): List<DisplayHistoryEntryDTO> {
+    val entries = mutableListOf<DisplayHistoryEntryDTO>()
+    orig.forEach { historyEntry ->
       var user: PFUserDO? = null
       try {
-        user = userGroupCache.getUser(it.modifiedBy.toInt())
+        user = userGroupCache.getUser(historyEntry.modifiedBy.toInt())
       } catch (e: NumberFormatException) {
         // Ignore error.
       }
-      val entry = DisplayHistoryEntry(
-        modifiedAt = it.modifiedAt,
-        timeAgo = TimeAgo.getMessage(it.modifiedAt),
-        modifiedByUserId = it.modifiedBy,
+      val entryDTO = DisplayHistoryEntryDTO(
+        modifiedAt = historyEntry.modifiedAt,
+        timeAgo = TimeAgo.getMessage(historyEntry.modifiedAt),
+        modifiedByUserId = historyEntry.modifiedBy,
         modifiedByUser = user?.getFullname(),
-        operationType = it.entityOpType,
-        operation = translate(it.entityOpType)
+        operationType = historyEntry.entityOpType,
+        operation = translate(historyEntry.entityOpType)
       )
-      var clazz: Class<*>? = null
-      try {
-        clazz = Class.forName(it.entityName)
-      } catch (ex: ClassNotFoundException) {
-        log.warn("Class '${it.entityName}' not found.")
-      }
-      it.diffEntries?.forEach { de ->
-        val diffEntry = DisplayHistoryDiffEntry(
-          operationType = de.propertyOpType,
-          operation = translate(de.propertyOpType),
-          property = de.propertyName,
-          oldValue = de.oldValue,
-          newValue = de.newValue
+      historyEntry.diffEntries?.forEach { diffEntry ->
+        val se = DisplayHistoryEntry(userGroupCache, historyEntry, diffEntry, em)
+
+        val diffEntryDTO = DisplayHistoryDiffEntryDTO(
+          operationType = diffEntry.propertyOpType,
+          operation = translate(diffEntry.propertyOpType),
+          property = se.propertyName,
+          oldValue = se.oldValue,
+          newValue = se.newValue
         )
-        if (clazz != null && !de.propertyName.isNullOrBlank()) {
-          val field = BeanHelper.getDeclaredField(clazz, de.propertyName)
-          if (field == null) {
-            if (log.isDebugEnabled) {
-              log.debug("No such field '${it.entityName}.${de.propertyName}'.")
-            }
-          } else {
-            field.isAccessible = true
-            if (field.type.isEnum) {
-              diffEntry.oldValue = getI18nEnumTranslation(field, diffEntry.oldValue)
-              diffEntry.newValue = getI18nEnumTranslation(field, diffEntry.newValue)
-            }
-          }
-          diffEntry.property = translateProperty(de, clazz)
-        }
-        entry.diffEntries.add(diffEntry)
+        entryDTO.diffEntries.add(diffEntryDTO)
       }
-      entries.add(entry)
+      entries.add(entryDTO)
     }
     return entries
-  }
-
-  fun getI18nEnumTranslation(field: Field, value: String?): String? {
-    if (value == null) {
-      return ""
-    }
-    val i18nEnum = I18nEnum.create(field.type, value) as? I18nEnum ?: return value
-    return translate(i18nEnum.i18nKey)
-  }
-
-  /**
-   * Tries to find a PropertyInfo annotation for the property field referred in the given diffEntry.
-   * If found, the property name will be returned translated, if not, the property will be returned unmodified.
-   */
-  private fun translateProperty(diffEntry: DiffEntry, clazz: Class<*>): String? {
-    // Try to get the PropertyInfo containing the i18n key of the property for translation.
-    var propertyName = PropUtils.get(clazz, diffEntry.propertyName)?.i18nKey
-    if (propertyName != null) {
-      // translate the i18n key:
-      propertyName = translate(propertyName)
-    } else {
-      propertyName = diffEntry.propertyName
-    }
-    return propertyName
   }
 
   private fun translate(opType: EntityOpType?): String {

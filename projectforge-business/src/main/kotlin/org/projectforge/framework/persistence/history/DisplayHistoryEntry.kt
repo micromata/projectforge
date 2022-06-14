@@ -27,19 +27,23 @@ import de.micromata.genome.db.jpa.history.api.DiffEntry
 import de.micromata.genome.db.jpa.history.api.HistProp
 import de.micromata.genome.db.jpa.history.api.HistoryEntry
 import de.micromata.genome.db.jpa.history.entities.EntityOpType
-import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.common.BeanHelper
+import org.projectforge.common.i18n.I18nEnum
+import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper.parseInteger
 import org.slf4j.LoggerFactory
 import java.io.Serializable
+import java.lang.reflect.Field
 import java.sql.Date
 import java.sql.Timestamp
 import java.util.*
@@ -100,58 +104,86 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
   }
 
   constructor(
-    userGroupCache: UserGroupCache, entry: HistoryEntry<*>, prop: DiffEntry,
+    userGroupCache: UserGroupCache, entry: HistoryEntry<*>, diffEntry: DiffEntry,
     em: EntityManager
   ) : this(userGroupCache, entry) {
-    if (prop.newProp != null) {
-      propertyType = prop.newProp.type
+    if (diffEntry.newProp != null) {
+      propertyType = diffEntry.newProp.type
     }
-    if (prop.oldProp != null) {
-      propertyType = prop.oldProp.type
+    if (diffEntry.oldProp != null) {
+      propertyType = diffEntry.oldProp.type
     }
-    newValue = prop.newValue
-    oldValue = prop.oldValue
-    var oldObjectValue: Any? = null
-    var newObjectValue: Any? = null
+    newValue = diffEntry.newValue
+    oldValue = diffEntry.oldValue
+    var processed = false
+
+    val type = entry.entityName
+    var clazz: Class<*>? = null
     try {
-      oldObjectValue = getObjectValue(userGroupCache, em, prop.oldProp)
-    } catch (ex: Exception) {
-      oldObjectValue = "???"
-      log.warn(
-        "Error while try to parse old object value '"
-            + prop.oldValue
-            + "' of prop-type '"
-            + prop.javaClass.name
-            + "': "
-            + ex.message, ex
-      )
+      clazz = Class.forName(type)
+    } catch (ex: ClassNotFoundException) {
+      log.warn("Class '$type' not found.")
     }
-    try {
-      newObjectValue = getObjectValue(userGroupCache, em, prop.newProp)
-    } catch (ex: Exception) {
-      newObjectValue = "???"
-      log.warn(
-        "Error while try to parse new object value '"
-            + prop.newValue
-            + "' of prop-type '"
-            + prop.javaClass.name
-            + "': "
-            + ex.message, ex
-      )
+    if (clazz != null && !diffEntry.propertyName.isNullOrBlank()) {
+      val field = BeanHelper.getDeclaredField(clazz, diffEntry.propertyName)
+      if (field == null) {
+        if (log.isDebugEnabled) {
+          log.debug("No such field '${diffEntry.propertyName}.${diffEntry.propertyName}'.")
+        }
+      } else {
+        field.isAccessible = true
+        if (field.type.isEnum) {
+          oldValue = getI18nEnumTranslation(field, diffEntry.oldValue)
+          newValue = getI18nEnumTranslation(field, diffEntry.newValue)
+          processed = true // Nothing to convert.
+        }
+      }
+      propertyName = translateProperty(diffEntry, clazz)
+    } else {
+      propertyName = diffEntry.propertyName
     }
-    if (oldObjectValue != null) {
-      oldValue = objectValueToDisplay(oldObjectValue)
+    if (!processed) {
+      var oldObjectValue: Any?
+      var newObjectValue: Any?
+      try {
+        oldObjectValue = getObjectValue(userGroupCache, em, diffEntry.oldProp)
+      } catch (ex: Exception) {
+        oldObjectValue = "???"
+        log.warn(
+          "Error while try to parse old object value '"
+              + diffEntry.oldValue
+              + "' of prop-type '"
+              + diffEntry.javaClass.name
+              + "': "
+              + ex.message, ex
+        )
+      }
+      try {
+        newObjectValue = getObjectValue(userGroupCache, em, diffEntry.newProp)
+      } catch (ex: Exception) {
+        newObjectValue = "???"
+        log.warn(
+          "Error while try to parse new object value '"
+              + diffEntry.newValue
+              + "' of prop-type '"
+              + diffEntry.javaClass.name
+              + "': "
+              + ex.message, ex
+        )
+      }
+      if (oldObjectValue != null) {
+        oldValue = objectValueToDisplay(oldObjectValue)
+      }
+      if (newObjectValue != null) {
+        newValue = objectValueToDisplay(newObjectValue)
+      }
     }
-    if (newObjectValue != null) {
-      newValue = objectValueToDisplay(newObjectValue)
-    }
-    propertyName = prop.propertyName
   }
 
   private fun objectValueToDisplay(value: Any): String {
     return if (value is java.util.Date || value is Date || value is Timestamp) {
       formatDate(value)
-    } else toShortNameOfList(value).toString()
+    } else toShortNames(value)
   }
 
   protected open fun getObjectValue(userGroupCache: UserGroupCache, em: EntityManager, prop: HistProp?): Any? {
@@ -228,14 +260,15 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
     return objectValue.toString()
   }
 
-  private fun toShortNameOfList(value: Any): Any {
+  private fun toShortNames(value: Any): String {
     return if (value is Collection<*>) {
-      CollectionUtils.collect(value) { input -> toShortName(input) }
+      value.map { input -> toShortName(input) }.sorted().joinToString()
     } else toShortName(value)
   }
 
-  fun toShortName(`object`: Any): String {
-    return if (`object` is DisplayNameCapable) `object`.displayName ?: "---" else `object`.toString()
+  fun toShortName(obj: Any?): String {
+    obj ?: return ""
+    return if (obj is DisplayNameCapable) obj.displayName ?: "---" else obj.toString()
   }
 
   /**
@@ -266,4 +299,29 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
     entryType = entry.entityOpType
     // entry.getEntityId();
   }
+
+  private fun getI18nEnumTranslation(field: Field, value: String?): String? {
+    if (value == null) {
+      return ""
+    }
+    val i18nEnum = I18nEnum.create(field.type, value) as? I18nEnum ?: return value
+    return translate(i18nEnum.i18nKey)
+  }
+
+  /**
+   * Tries to find a PropertyInfo annotation for the property field referred in the given diffEntry.
+   * If found, the property name will be returned translated, if not, the property will be returned unmodified.
+   */
+  private fun translateProperty(diffEntry: DiffEntry, clazz: Class<*>): String? {
+    // Try to get the PropertyInfo containing the i18n key of the property for translation.
+    var propertyName = PropUtils.get(clazz, diffEntry.propertyName)?.i18nKey
+    if (propertyName != null) {
+      // translate the i18n key:
+      propertyName = translate(propertyName)
+    } else {
+      propertyName = diffEntry.propertyName
+    }
+    return propertyName
+  }
+
 }
