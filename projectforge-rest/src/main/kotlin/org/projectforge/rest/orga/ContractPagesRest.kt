@@ -101,13 +101,13 @@ class ContractPagesRest
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val layout = super.createListLayout(request, magicFilter)
+  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
     val table = agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,
       this,
+      userAccess = userAccess,
     )
     val typeWidth = configurationService.contractTypes.maxByOrNull { it.value.length }?.value?.length ?: 1
     table.add(lc, "number", width = 50)
@@ -116,7 +116,6 @@ class ContractPagesRest
       .add(lc, "statusAsString", headerName = "status")
       .add(lc, "attachmentsSizeFormatted") //, titleIcon = UIIconType.PAPER_CLIP)
       .add(lc, "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate")
-    return LayoutUtils.processListPage(layout, this)
   }
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {

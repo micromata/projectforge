@@ -51,11 +51,9 @@ class MemoPagesRest() : AbstractDOPagesRest<MemoDO, MemoDao>(MemoDao::class.java
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+        layout.add(UITable.createUIResultSetTable()
                         .add(lc, "created", "lastUpdate", "subject", "memo"))
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

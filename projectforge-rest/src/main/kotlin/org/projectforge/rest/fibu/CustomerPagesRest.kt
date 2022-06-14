@@ -68,13 +68,11 @@ class CustomerPagesRest
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+        layout.add(UITable.createUIResultSetTable()
                         .add(UITableColumn("kost", title = "fibu.kunde.nummer"))
                         .add(lc, "identifier", "name", "division", "konto", "statusAsString", "description"))
         layout.getTableColumnById("konto").formatter = UITableColumn.Formatter.KONTO
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

@@ -117,13 +117,14 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val layout = super.createListLayout(request, magicFilter)
+  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+    layout.add(UITable.createUIResultSetTable())
     val agGrid = agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,
       this,
+      userAccess = userAccess,
     )
       .add(lc, "name", "organization")
       .add(lc, "description", wrapText = true)
@@ -131,7 +132,6 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::
     if (useLdapStuff) {
       agGrid.add(lc, "ldapValues")
     }
-    return LayoutUtils.processListPage(layout, this)
   }
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {

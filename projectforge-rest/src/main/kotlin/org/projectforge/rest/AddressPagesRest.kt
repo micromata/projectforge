@@ -228,12 +228,10 @@ class AddressPagesRest
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
     val addressLC = LayoutContext(lc)
     addressLC.idPrefix = "address."
-    val layout = super.createListLayout(request, magicFilter)
-      .add(
-        UITable.createUIResultSetTable()
+    layout.add(UITable.createUIResultSetTable()
           .add(addressLC, "isFavoriteCard", "lastUpdate")
           .add(UITableColumn("address.imagePreview", "address.image", dataType = UIDataType.CUSTOMIZED))
           .add(addressLC, "name", "firstName", "organization", "email")
@@ -310,7 +308,6 @@ class AddressPagesRest
         type = MenuItemTargetType.DOWNLOAD
       )
     )
-    return LayoutUtils.processListPage(layout, this)
   }
 
   override val autoCompleteSearchFields = arrayOf("name", "firstName", "organization", "city", "privateCity")

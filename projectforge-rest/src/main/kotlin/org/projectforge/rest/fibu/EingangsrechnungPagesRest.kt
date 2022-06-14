@@ -33,7 +33,6 @@ import org.projectforge.rest.dto.Eingangsrechnung
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -61,14 +60,14 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val layout = super.createListLayout(request, magicFilter)
+  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
     agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,
       this,
       EingangsrechnungMultiSelectedPageRest::class.java,
+      userAccess,
     )
       .add(lc, "kreditor", "referenz", "betreff", "konto", "datum", "faelligkeitOrDiscountMaturity", "bezahlDatum")
       .add(lc, "ibanFormatted", lcField = "iban")
@@ -85,7 +84,6 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
             return 'ag-row-blue';
         }"""
       )
-    return LayoutUtils.processListPage(layout, this)
   }
 
   /**

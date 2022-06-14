@@ -41,6 +41,7 @@ import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UILabel
 import org.projectforge.ui.UILayout
+import org.projectforge.ui.UITable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -75,14 +76,14 @@ class AddressCampaignValuePagesRest :
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val layout = super.createListLayout(request, magicFilter)
+  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
     agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,
       this,
       AddressCampaignValueMultiSelectedPageRest::class.java,
+      userAccess = userAccess,
     )
       .add(lc, "address.name", "address.firstName", "address.organization")
       .add(lc, "address.contactStatus", "address.email", "address.addressText", "address.addressStatus")
@@ -91,7 +92,6 @@ class AddressCampaignValuePagesRest :
       .withPinnedLeft(2)
       .withGetRowClass("""if (params.node.data.favoriteAddress) { return 'ag-row-red'; }"""
       )
-    return LayoutUtils.processListPage(layout, this)
   }
 
   /**

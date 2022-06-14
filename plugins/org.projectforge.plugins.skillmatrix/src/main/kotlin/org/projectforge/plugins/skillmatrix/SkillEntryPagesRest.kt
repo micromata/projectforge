@@ -57,14 +57,13 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val layout = super.createListLayout(request, magicFilter)
-
+  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
     agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,
       this,
+      userAccess = userAccess,
     )
       .add(lc, "lastUpdate", "skill", "owner")
       .add(lc, "rating", formatter = UIAgGridColumnDef.Formatter.RATING)
@@ -80,7 +79,6 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(
         type = MenuItemTargetType.DOWNLOAD
       )
     )
-    return LayoutUtils.processListPage(layout, this)
   }
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {

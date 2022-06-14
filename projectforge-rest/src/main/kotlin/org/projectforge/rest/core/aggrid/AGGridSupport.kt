@@ -87,6 +87,7 @@ class AGGridSupport {
     magicFilter: MagicFilter,
     pagesRest: AbstractPagesRest<*, *, *>,
     pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
+    userAccess: UILayout.UserAccess,
   ): UIAgGrid {
     val agGrid = UIAgGrid.createUIResultSetTable()
     magicFilter.maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS // Fix it from previous.

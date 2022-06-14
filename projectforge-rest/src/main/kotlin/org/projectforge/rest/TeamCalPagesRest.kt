@@ -120,9 +120,8 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+      layout.add(UITable.createUIResultSetTable()
                         .add(lc, "title", "externalSubscriptionUrlAnonymized", "description", "owner",
                                 "accessStatusString", "lastUpdate"))//, "externalSubscription"))
         layout.getTableColumnById("owner").formatter = UITableColumn.Formatter.USER
@@ -145,8 +144,6 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
                 type = MenuItemTargetType.MODAL,
                 url = CalendarSubscriptionInfoPageRest.getHolidaysUrl()))
         layout.add(exportMenu, 0)
-
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

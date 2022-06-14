@@ -53,12 +53,10 @@ class LeaveAccountEntryPagesRest() : AbstractDOPagesRest<LeaveAccountEntryDO, Le
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+        layout.add(UITable.createUIResultSetTable()
                         .add(lc, "created", "employee", "date", "amount", "description"))
         layout.getTableColumnById("employee").formatter = UITableColumn.Formatter.EMPLOYEE
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

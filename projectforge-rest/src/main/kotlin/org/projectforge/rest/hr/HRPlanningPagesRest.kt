@@ -40,13 +40,11 @@ class HRPlanningPagesRest : AbstractDOPagesRest<HRPlanningDO, HRPlanningDao>(HRP
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+      layout.add(UITable.createUIResultSetTable()
                         .add(lc, "user")
                         .add(UITableColumn("totalHours", title = "hr.planning.sum"))
                         .add(UITableColumn("totalUnassignedHours", title = "rest")))
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

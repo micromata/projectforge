@@ -55,9 +55,8 @@ class AccountingRecordPagesRest: AbstractDTOPagesRest<BuchungssatzDO, Buchungssa
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+      layout.add(UITable.createUIResultSetTable()
                         .add(UITableColumn("satzNr", title = "fibu.buchungssatz.satznr"))
                         .add(lc, "betrag", "beleg", "kost1", "kost2", "konto", "gegenKonto",
                                 "sh", "text", "comment"))
@@ -65,7 +64,6 @@ class AccountingRecordPagesRest: AbstractDTOPagesRest<BuchungssatzDO, Buchungssa
         layout.getTableColumnById("kost2").formatter = UITableColumn.Formatter.COST2
         layout.getTableColumnById("konto").formatter = UITableColumn.Formatter.KONTO
         layout.getTableColumnById("gegenKonto").formatter = UITableColumn.Formatter.KONTO
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

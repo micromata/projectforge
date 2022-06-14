@@ -54,9 +54,8 @@ class EmployeePagesRest : AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+      layout.add(UITable.createUIResultSetTable()
                         .add(UITableColumn("fibu.employee.user.name", "name"))
                         .add(UITableColumn("fibu.employee.user.firstname", "firstName"))
                         .add(lc, "status", "staffNumber")
@@ -64,7 +63,6 @@ class EmployeePagesRest : AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao
                         .add(lc, "position", "abteilung", "eintrittsDatum", "austrittsDatum", "comment"))
         layout.getTableColumnById("eintrittsDatum").formatter = UITableColumn.Formatter.DATE
         layout.getTableColumnById("austrittsDatum").formatter = UITableColumn.Formatter.DATE
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**
