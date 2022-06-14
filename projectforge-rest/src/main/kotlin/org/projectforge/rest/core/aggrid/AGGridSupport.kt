@@ -114,7 +114,7 @@ class AGGridSupport {
             markdown = true,
           )
         )
-    } else {
+    } else if (userAccess.update == true) {
       agGrid.withSingleRowClick()
       agGrid.withRowClickRedirectUrl("${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id")
       layout.add(UIAlert(message = "agGrid.sortInfo", color = UIColor.INFO, markdown = true))
