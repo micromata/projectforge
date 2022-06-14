@@ -69,7 +69,6 @@ class BookPagesRest : AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, 
    * LAYOUT List page
    */
   override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-    layout.add(UITable.createUIResultSetTable())
     val table = agGridSupport.prepareUIGrid4ListPage(request, layout, magicFilter, this, userAccess = userAccess)
     table.add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy")
   }
