@@ -147,7 +147,7 @@ class UserPagesRest
         .buildValues(UserPagesFilter.UserTypeFilter.TYPE::class.java)
     )
     elements.add(
-      UIFilterListElement("hrPlanning", label = translate("user.filter.hrPlanning"), defaultFilter = true, multi = false)
+      UIFilterListElement("hrPlanning", label = translate("user.filter.hrPlanning"), multi = false)
         .buildValues(UserPagesFilter.UserHRPlanningFilter.PLANNING_TYPE::class.java)
     )
   }
