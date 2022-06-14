@@ -23,13 +23,14 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.entities.GroupDO
 
 class GroupTypeFilter(val type: TYPE) : CustomResultFilter<GroupDO> {
   enum class TYPE(val key: String) : I18nEnum {
-    ALL("filter.all"), LOCAL_GROUP("group.localGroup"), NORMAL_GROUP("group.localGroup.not");
+    ALL("filter.all"), LOCAL_GROUP("group.localGroup"), SYSTEM_GROUP("group.systemGroups"), NORMAL_GROUP("group.localGroup.not");
 
     /**
      * @return The full i18n key including the i18n prefix "book.type.".
@@ -39,6 +40,9 @@ class GroupTypeFilter(val type: TYPE) : CustomResultFilter<GroupDO> {
   }
 
   override fun match(list: MutableList<GroupDO>, element: GroupDO): Boolean {
-    return type == TYPE.ALL || element.localGroup == (type == TYPE.LOCAL_GROUP)
+    return type == TYPE.ALL ||
+        type == TYPE.LOCAL_GROUP && element.localGroup ||
+        type == TYPE.NORMAL_GROUP && !element.localGroup ||
+        type == TYPE.SYSTEM_GROUP && ProjectForgeGroup.isSystemGroup(element)
   }
 }

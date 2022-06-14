@@ -23,6 +23,8 @@
 
 package org.projectforge.business.user;
 
+import org.projectforge.framework.persistence.user.entities.GroupDO;
+
 /**
  * Special ProjectForge user groups, such as Administrators and Finance. Some system functionality is only available for
  * user's which are member of the required group.
@@ -81,4 +83,12 @@ public enum ProjectForgeGroup
     this.key = key;
   }
 
+  public static boolean isSystemGroup(GroupDO group) {
+    for (ProjectForgeGroup g : ProjectForgeGroup.values()) {
+      if (g.key.equals(group.getName())) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
