@@ -109,7 +109,7 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.VISITORBOOK, VisitorbookListPage.class);
     register(MenuItemDefId.MY_PREFERENCES, UserPrefListPage.class);
     register(MenuItemDefId.USER_LIST, UserListPage.class);
-    register(MenuItemDefId.GROUP_LIST, GroupListPage.class);
+    //register(MenuItemDefId.GROUP_LIST, GroupListPage.class);
     register(MenuItemDefId.ACCESS_LIST, AccessListPage.class);
     register(MenuItemDefId.SYSTEM, AdminPage.class);
     register(MenuItemDefId.SQL_CONSOLE, SqlConsolePage.class);
