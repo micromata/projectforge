@@ -890,7 +890,7 @@ constructor(
    * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
    * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
    */
-  @PostMapping(RestPaths.UPDATE_COLUMN_STATES)
+  @PostMapping(RestPaths.SET_COLUMN_STATES)
   fun updateColumnStates(request: HttpServletRequest, @Valid @RequestBody columnStates: List<AGColumnState>): String {
     agGridSupport.storeColumnState(category, columnStates)
     return "OK"
