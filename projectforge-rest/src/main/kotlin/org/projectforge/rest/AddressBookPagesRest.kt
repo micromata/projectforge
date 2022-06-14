@@ -74,13 +74,11 @@ class AddressBookPagesRest : AbstractDTOPagesRest<AddressbookDO, Addressbook, Ad
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
-                        .add(lc, "title", "description", "owner", "accessright", "last_update"))
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+        layout.add(UITable.createUIResultSetTable()
+          .add(lc, "title", "description", "owner", "accessright", "last_update"))
         layout.getTableColumnById("owner").formatter = UITableColumn.Formatter.USER
         layout.getTableColumnById("last_update").formatter = UITableColumn.Formatter.TIMESTAMP_MINUTES
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

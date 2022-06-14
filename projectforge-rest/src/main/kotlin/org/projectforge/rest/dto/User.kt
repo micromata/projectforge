@@ -45,8 +45,9 @@ class User(
   var dateFormat: String? = null,
   var excelDateFormat: String? = null,
   var timeNotation: TimeNotation? = null,
-  var personalPhoneIdentifiers: String? = null
-) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
+  var personalPhoneIdentifiers: String? = null,
+  var assignedGroups: MutableList<Group>? = null,
+  ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
 
   /**
    * @see copyFromMinimal
@@ -60,8 +61,30 @@ class User(
     this.username = src.username
   }
 
-  fun initialize(obj: PFUserDO) {
-    copyFrom(obj)
+  override fun copyFrom(src: PFUserDO) {
+    super.copyFrom(src)
+    /*val newAssignedUsers = mutableSetOf<User>()
+    UserGroupCache.getInstance().getUserGroups(src)?.forEach { userDO ->
+      val user = User()
+      user.copyFromMinimal(userDO)
+      if (!newAssignedUsers.any { it.id == userDO.id }) {
+        newAssignedUsers.add(user)
+      }
+    }
+    //assignedUsers = newAssignedUsers.sortedBy { it.displayName }.toMutableList()*/
+  }
+
+  override fun copyTo(dest: PFUserDO) {
+    super.copyTo(dest)
+    val newAssignedUsers = mutableSetOf<PFUserDO>()
+    /*assignedUsers?.forEach { u ->
+      UserGroupCache.getInstance().getUser(u.id)?.let { userDO ->
+        newAssignedUsers.add(userDO)
+      }
+    }
+    if (newAssignedUsers.isNotEmpty()) {
+      dest.assignedUsers = newAssignedUsers
+    }*/
   }
 
   companion object {

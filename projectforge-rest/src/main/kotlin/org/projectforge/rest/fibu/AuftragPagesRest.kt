@@ -66,10 +66,8 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val layout = super.createListLayout(request, magicFilter)
-      .add(
-        UITable.createUIResultSetTable()
+  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+    layout.add(UITable.createUIResultSetTable()
           .add(lc, "nummer")
           .add(UITableColumn("kunde.displayName", title = "fibu.kunde"))
           .add(UITableColumn("projekt.displayName", title = "fibu.projekt"))
@@ -110,7 +108,6 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     layout.getTableColumnById("entscheidungsDatum").formatter = UITableColumn.Formatter.DATE
     layout.getTableColumnById("periodOfPerformanceBegin").formatter = UITableColumn.Formatter.DATE
     layout.getTableColumnById("periodOfPerformanceEnd").formatter = UITableColumn.Formatter.DATE
-    return LayoutUtils.processListPage(layout, this)
   }
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {

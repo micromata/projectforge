@@ -58,11 +58,9 @@ class PosteingangPagesRest() :
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val layout = super.createListLayout(request, magicFilter)
-    val table = agGridSupport.prepareUIGrid4ListPage(request, layout, magicFilter, this)
+  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+    val table = agGridSupport.prepareUIGrid4ListPage(request, layout, magicFilter, this, userAccess = userAccess)
     table.add(lc, "datum", "absender", "person", "inhalt", "bemerkung", "type")
-    return LayoutUtils.processListPage(layout, this)
   }
 
   /**

@@ -93,11 +93,9 @@ class KontoPagesRest
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+        layout.add(UITable.createUIResultSetTable()
                         .add(lc, "nummer", "status", "bezeichnung", "description"))
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

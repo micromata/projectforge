@@ -40,12 +40,10 @@ class LiquidityEntryPagesRest: AbstractDOPagesRest<LiquidityEntryDO, LiquidityEn
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+      layout.add(UITable.createUIResultSetTable()
                         .add(lc, "dateOfPayment", "amount", "paid", "subject", "comment"))
         layout.getTableColumnById("dateOfPayment").formatter = UITableColumn.Formatter.DATE
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

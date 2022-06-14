@@ -259,15 +259,15 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
     lc.idPrefix = "timesheet."
-    val layout = super.createListLayout(request, magicFilter)
     val table = agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,
       this,
       TimesheetMultiSelectedPageRest::class.java,
+      userAccess,
     )
       .add(lc, "user")
     //.add(lc, "kost2.project.customer", lcField = "kost2.projekt.kunde")
@@ -287,7 +287,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
     table.add(lc, "description", width = 1000)
     layout.add(UILabel("'${translate("timesheet.totalDuration")}: tbd.")) // See TimesheetListForm
-    return LayoutUtils.processListPage(layout, this)
   }
 
   /**

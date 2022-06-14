@@ -68,14 +68,12 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+      layout.add(UITable.createUIResultSetTable()
                         .add(lc, "id", "lastname", "firstname", "company", "visitortype")
                         .add(UITableColumn("arrive", title = "orga.visitorbook.arrive"))
                         .add(UITableColumn("depart", title = "orga.visitorbook.depart"))
                         .add(lc, "contactPersons"))
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

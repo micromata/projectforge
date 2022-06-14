@@ -52,9 +52,8 @@ class HRPlanningListPagesRest : AbstractDTOPagesRest<HRPlanningEntryDO, HRPlanni
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+      layout.add(UITable.createUIResultSetTable()
                         .add(lc, "planning.user", "planning.week")
                         .add(UITableColumn("planning.formattedWeekOfYear", "calendar.weekOfYearShortLabel"))
                         .add(lc, "projekt.kunde.name")
@@ -63,7 +62,6 @@ class HRPlanningListPagesRest : AbstractDTOPagesRest<HRPlanningEntryDO, HRPlanni
                         .add(UITableColumn("planning.totalHours", "hr.planning.total"))
                         .add(UITableColumn("totalHours", "hr.planning.sum"))
                         .add(lc, "unassignedHours", "mondayHours", "tuesdayHours", "wednesdayHours", "thursdayHours", "fridayHours", "weekendHours", "description"))
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

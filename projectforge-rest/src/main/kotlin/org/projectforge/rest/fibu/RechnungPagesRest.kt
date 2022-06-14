@@ -54,14 +54,14 @@ class RechnungPagesRest :
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val layout = super.createListLayout(request, magicFilter)
+  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
     val grid = agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,
       this,
       RechnungMultiSelectedPageRest::class.java,
+      userAccess = userAccess,
     )
       .add(lc, "nummer", width = 120)
       .add(lc, "customer", lcField = "kunde")
@@ -84,7 +84,6 @@ class RechnungPagesRest :
             return 'ag-row-blue';
         }"""
       )
-    return LayoutUtils.processListPage(layout, this)
   }
 
   /**

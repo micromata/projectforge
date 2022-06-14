@@ -54,12 +54,10 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+      layout.add(UITable.createUIResultSetTable()
                         .add(UITableColumn("formattedNumber", title = "fibu.kost1"))
                         .add(lc, "description", "kostentraegerStatus"))
-        return LayoutUtils.processListPage(layout, this)
     }
 
     override val classicsLinkListUrl: String?

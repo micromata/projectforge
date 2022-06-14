@@ -140,13 +140,13 @@ class VacationPagesRest :
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val layout = super.createListLayout(request, magicFilter)
+  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
     agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
       magicFilter,
       this,
+      userAccess = userAccess,
     )
       .add(lc, "employee", "startDate", "endDate")
       .add(lc, "vacationModeString", lcField = "vacationmode")
@@ -160,7 +160,6 @@ class VacationPagesRest :
             return 'ag-row-red';
         }"""
       )
-    return LayoutUtils.processListPage(layout, this)
   }
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {

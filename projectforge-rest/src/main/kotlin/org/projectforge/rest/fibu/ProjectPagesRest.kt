@@ -64,9 +64,8 @@ class ProjectPagesRest
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-        val layout = super.createListLayout(request, magicFilter)
-                .add(UITable.createUIResultSetTable()
+    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+      layout.add(UITable.createUIResultSetTable()
                         .add(UITableColumn("kost", title = "fibu.projekt.nummer"))
                         .add(lc, "identifier", "kunde.name", "name", "kunde.division", "task", "konto", "status", "projektManagerGroup")
                         .add(UITableColumn("kost2Arten", title = "fibu.kost2art.kost2arten"))
@@ -74,7 +73,6 @@ class ProjectPagesRest
         layout.getTableColumnById("konto").formatter = UITableColumn.Formatter.KONTO
         layout.getTableColumnById("task").formatter = UITableColumn.Formatter.TASK_PATH
         layout.getTableColumnById("projektManagerGroup").formatter = UITableColumn.Formatter.GROUP
-        return LayoutUtils.processListPage(layout, this)
     }
 
     /**

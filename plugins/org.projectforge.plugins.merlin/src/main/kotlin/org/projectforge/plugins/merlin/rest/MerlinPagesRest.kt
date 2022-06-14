@@ -121,10 +121,8 @@ class MerlinPagesRest :
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val layout = super.createListLayout(request, magicFilter)
-      .add(
-        UITable.createUIResultSetTable()
+  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+    layout.add(UITable.createUIResultSetTable()
           .add(lc, "created", "modified", "name", "description")
           .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
           .add(UITableColumn("adminsAsString", "plugins.merlin.admins"))
@@ -166,9 +164,6 @@ class MerlinPagesRest :
       )
     )
     layout.add(examplesMenu)
-
-    LayoutUtils.process(layout)
-    return layout
   }
 
   /**

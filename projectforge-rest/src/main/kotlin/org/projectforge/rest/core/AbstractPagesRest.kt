@@ -213,9 +213,11 @@ constructor(
     return transformFromDB(newBaseDO(request))
   }
 
-  open fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
-    val ui = UILayout("$i18nKeyPrefix.list")
-    val gearMenu = ui.ensureGearMenu()
+  internal fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
+    val userAccess = UILayout.UserAccess()
+    checkUserAccess(null, userAccess)
+    val layout = UILayout("$i18nKeyPrefix.list")
+    val gearMenu = layout.ensureGearMenu()
     gearMenu.add(
       MenuItem(
         "reindexNewestDatabaseEntries",
@@ -248,19 +250,22 @@ constructor(
       )
     )
 
-    ui.addTranslations(
+    layout.addTranslations(
       "reset", "datatable.no-records-found", "date.begin", "date.end", "exportAsXls",
       "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday"
     )
-    ui.addTranslation("search.lastMinutes.10", translateMsg("search.lastMinutes", 10))
-    ui.addTranslation("search.lastMinutes.30", translateMsg("search.lastMinutes", 30))
-    ui.addTranslation("search.lastHours.4", translateMsg("search.lastHours", 4))
-    ui.addTranslation("search.lastDays.3", translateMsg("search.lastDays", 3))
-    ui.addTranslation("search.lastDays.7", translateMsg("search.lastDays", 7))
-    ui.addTranslation("search.lastDays.30", translateMsg("search.lastDays", 30))
-    ui.addTranslation("search.lastDays.90", translateMsg("search.lastDays", 90))
-    return ui
+    layout.addTranslation("search.lastMinutes.10", translateMsg("search.lastMinutes", 10))
+    layout.addTranslation("search.lastMinutes.30", translateMsg("search.lastMinutes", 30))
+    layout.addTranslation("search.lastHours.4", translateMsg("search.lastHours", 4))
+    layout.addTranslation("search.lastDays.3", translateMsg("search.lastDays", 3))
+    layout.addTranslation("search.lastDays.7", translateMsg("search.lastDays", 7))
+    layout.addTranslation("search.lastDays.30", translateMsg("search.lastDays", 30))
+    layout.addTranslation("search.lastDays.90", translateMsg("search.lastDays", 90))
+    createListLayout(request, layout, magicFilter, userAccess)
+    return LayoutUtils.processListPage(layout, this)
   }
+
+  abstract fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess)
 
   /**
    * If given, a link to this url is shown on the list page. This is used for accessing the classical Wicket-version
