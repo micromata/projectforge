@@ -244,6 +244,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
         @Override
         public void onSubmit() {
           log.info("Exporting address list.");
+          setRefreshResultList();
           final List<AddressDO> list = getList();
           final byte[] xls = addressCampaignValueExport.export(list, personalAddressMap, addressCampaignValueMap,
               form.getSearchFilter()
