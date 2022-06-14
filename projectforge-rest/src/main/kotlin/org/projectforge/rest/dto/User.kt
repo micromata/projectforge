@@ -24,9 +24,15 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.StringHelper
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.ApplicationContextProvider
+import org.projectforge.framework.i18n.TimeAgo.getMessage
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.TimeNotation
 import java.util.*
@@ -47,7 +53,12 @@ class User(
   var timeNotation: TimeNotation? = null,
   var personalPhoneIdentifiers: String? = null,
   var assignedGroups: MutableList<Group>? = null,
-  ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
+  var lastLogin: Date? = null,
+  var lastLoginTimeAgo: String? = null,
+  var sshPublicKey: String? = null,
+  var rightsAsString: String? = null,
+  var ldapValues: String? = null,
+) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
 
   /**
    * @see copyFromMinimal
@@ -63,15 +74,37 @@ class User(
 
   override fun copyFrom(src: PFUserDO) {
     super.copyFrom(src)
-    /*val newAssignedUsers = mutableSetOf<User>()
-    UserGroupCache.getInstance().getUserGroups(src)?.forEach { userDO ->
-      val user = User()
-      user.copyFromMinimal(userDO)
-      if (!newAssignedUsers.any { it.id == userDO.id }) {
-        newAssignedUsers.add(user)
+    lastLoginTimeAgo = getMessage(src.lastLogin)
+    if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
+      // Rights
+      val sb = StringBuilder()
+      userDao.getUserRights(src.id)?.forEachIndexed { index, rightDO ->
+        if (index > 0) {
+          sb.append(", ")
+        }
+        sb.append(translate(userRightService.getRightId(rightDO.rightIdString).i18nKey))
+        sb.append(
+          when (rightDO.value) {
+            UserRightValue.READONLY -> " (ro)"
+            UserRightValue.PARTLYREADWRITE -> " (prw)"
+            UserRightValue.READWRITE -> " (rw)"
+            else -> ""
+          }
+        )
       }
+      rightsAsString = sb.toString()
+      val newAssignedGroups = mutableSetOf<Group>()
+      userGroupCache.getUserGroups(src)?.forEach { groupId ->
+        userGroupCache.getGroup(groupId)?.let { groupDO ->
+          val group = Group()
+          group.copyFromMinimal(groupDO)
+          if (!newAssignedGroups.any { it.id == groupDO.id }) {
+            newAssignedGroups.add(group)
+          }
+        }
+      }
+      assignedGroups = newAssignedGroups.sortedBy { it.displayName }.toMutableList()
     }
-    //assignedUsers = newAssignedUsers.sortedBy { it.displayName }.toMutableList()*/
   }
 
   override fun copyTo(dest: PFUserDO) {
@@ -88,7 +121,11 @@ class User(
   }
 
   companion object {
+    private val accessChecker = ApplicationContextProvider.getApplicationContext().getBean(AccessChecker::class.java)
     private val userDao = ApplicationContextProvider.getApplicationContext().getBean(UserDao::class.java)
+    private val userGroupCache = UserGroupCache.getInstance()
+    private val userRightService =
+      ApplicationContextProvider.getApplicationContext().getBean(UserRightService::class.java)
 
     fun getUser(userId: Int?, minimal: Boolean = true): User? {
       userId ?: return null

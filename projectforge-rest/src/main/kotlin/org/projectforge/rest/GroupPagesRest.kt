@@ -118,7 +118,6 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::
    * LAYOUT List page
    */
   override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-    layout.add(UITable.createUIResultSetTable())
     userAccess.update = accessChecker.isLoggedInUserMemberOfAdminGroup
     val agGrid = agGridSupport.prepareUIGrid4ListPage(
       request,

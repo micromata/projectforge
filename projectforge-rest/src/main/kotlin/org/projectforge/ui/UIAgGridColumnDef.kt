@@ -148,6 +148,7 @@ open class UIAgGridColumnDef(
       valueFormatter: Formatter? = null,
       wrapText: Boolean? = null,
       autoHeight: Boolean? = wrapText,
+      valueIconMap: Map<Any, UIIconType?>? = null,
     ): UIAgGridColumnDef {
       return createCol(
         null,
@@ -160,6 +161,7 @@ open class UIAgGridColumnDef(
         formatter = valueFormatter,
         wrapText = wrapText,
         autoHeight = autoHeight,
+        valueIconMap = valueIconMap,
       )
     }
 
@@ -179,6 +181,7 @@ open class UIAgGridColumnDef(
       lcField: String = field,
       wrapText: Boolean? = null,
       autoHeight: Boolean? = wrapText,
+      valueIconMap: Map<Any, UIIconType?>? = null,
     ): UIAgGridColumnDef {
       val col = UIAgGridColumnDef(field, sortable = sortable, wrapText = wrapText, autoHeight = autoHeight)
       lc?.idPrefix?.let {
@@ -275,14 +278,26 @@ open class UIAgGridColumnDef(
         }
       }
       valueGetter?.let { col.valueGetter = it }
+      var myParams: MutableMap<String, Any>? = null
       useFormatter?.let {
         col.cellRenderer = "formatter"
-        col.cellRendererParams = createCellRendererParams(it)
+        myParams = createCellRendererParams(it)
+        col.cellRendererParams = myParams
+      }
+      if (!valueIconMap.isNullOrEmpty()) {
+        if (col.cellRenderer.isNullOrEmpty()) {
+          col.cellRenderer = "formatter"
+        }
+        if (myParams == null) {
+          myParams = mutableMapOf()
+          col.cellRendererParams = myParams
+        }
+        myParams!!["valueIconMap"] = valueIconMap
       }
       return col
     }
 
-    private fun createCellRendererParams(formatter: Formatter): Map<String, Any> {
+    private fun createCellRendererParams(formatter: Formatter): MutableMap<String, Any> {
       val result = mutableMapOf<String, Any>("dataType" to formatter.name)
       when (formatter) {
         Formatter.DATE -> result["dateFormat"] = DateFormats.getFormatString(DateFormatType.DATE)

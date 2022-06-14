@@ -119,7 +119,7 @@ class AGGridSupport {
       agGrid.withRowClickRedirectUrl("${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id")
       layout.add(UIAlert(message = "agGrid.sortInfo", color = UIColor.INFO, markdown = true))
     }
-    agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.UPDATE_COLUMN_STATES)
+    agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.SET_COLUMN_STATES)
     return agGrid
   }
 

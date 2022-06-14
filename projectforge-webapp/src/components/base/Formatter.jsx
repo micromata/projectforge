@@ -1,4 +1,4 @@
-import { faStar } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faStar } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import moment from 'moment';
 import PropTypes from 'prop-types';
@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 
 const AUFTRAGPOSITION_FORMATTER = 'AUFTRAG_POSITION';
 const ADDRESSBOOK_FORMATTER = 'ADDRESS_BOOK';
+const BOOLEAN_FORMATTER = 'BOOLEAN';
 const COST1_FORMATTER = 'COST1';
 const COST2_FORMATTER = 'COST2';
 const CUSTOMER_FORMATTER = 'CUSTOMER';
@@ -43,7 +44,6 @@ function Formatter(
     if (useValue === undefined) {
         return null;
     }
-
     let result = useValue;
     const valueIconsPresent = valueIconMap && valueIconMap.length !== 0;
     const useFormatter = !valueIconsPresent && (formatter || dataType);
@@ -74,6 +74,11 @@ function Formatter(
                     result = useValue.map((obj) => obj.displayName).join(', ');
                 } else {
                     result = '???';
+                }
+                break;
+            case BOOLEAN_FORMATTER:
+                if (useValue) {
+                    result = <FontAwesomeIcon icon={faCheck} />;
                 }
                 break;
             case DATE_FORMATTER:
