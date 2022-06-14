@@ -1,24 +1,22 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { UncontrolledTooltip } from './index';
+import DiffViewer from 'react-diff-viewer';
+import { DiffMethod } from 'react-diff-viewer/lib/compute-lines';
 
-function DiffText({ id, children, oldValue }) {
+function DiffText({ oldValue, newValue }) {
     return (
-        <>
-            <span id={id}>{children}</span>
-            <UncontrolledTooltip
-                placement="top"
-                target={id}
-            >
-                {oldValue}
-            </UncontrolledTooltip>
-        </>
+        <DiffViewer
+            oldValue={oldValue}
+            newValue={newValue}
+            splitView={false}
+            compareMethod={DiffMethod.WORDS}
+            hideLineNumbers
+        />
     );
 }
 
 DiffText.propTypes = {
-    children: PropTypes.node.isRequired,
-    id: PropTypes.string.isRequired,
+    newValue: PropTypes.string.isRequired,
     oldValue: PropTypes.string.isRequired,
 };
 

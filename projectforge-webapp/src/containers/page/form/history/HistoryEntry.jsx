@@ -125,11 +125,9 @@ function HistoryEntry(
                             case 'Update':
                                 diff = (
                                     <DiffText
-                                        oldValue={`WAS ${oldValue}`}
-                                        id={`history-tooltip-${idifiedDate}-${String.idify(property)}`}
-                                    >
-                                        {` ${property}: ${newValue}`}
-                                    </DiffText>
+                                        oldValue={oldValue}
+                                        newValue={newValue}
+                                    />
                                 );
                                 break;
                             case 'Delete':
