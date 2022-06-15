@@ -2,13 +2,17 @@ import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React, { useRef, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/dist/styles/ag-grid.css';
+import { LicenseManager } from 'ag-grid-enterprise';
+import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import { DynamicLayoutContext } from '../../context';
 import Formatter from '../../../Formatter';
-import 'ag-grid-community/dist/styles/ag-grid.css';
-import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import history from '../../../../../utilities/history';
 import { getServiceURL } from '../../../../../utilities/rest';
-import { AG_GRID_LOCALE_DE } from './agGridLocalization';
+import { AG_GRID_LOCALE_EN } from './agGridLocalization';
+import { AG_GRID_LOCALE_DE } from './agGridLocalization_de';
+
+LicenseManager.setLicenseKey('For_Trialing_ag-Grid_Only-Not_For_Real_Development_Or_Production_Projects-Valid_Until-6_August_2022_[v2]_MTY1OTc0MDQwMDAwMA==a9620703be8026031bd181b948f56476');
 
 function DynamicAgGrid(props) {
     const {
@@ -29,7 +33,6 @@ function DynamicAgGrid(props) {
         // can't use locale from authentication, because AG-Grid is also used in public pages:
         locale,
     } = props;
-
     // eslint-disable-next-line no-new-func
     const getRowClassFunction = Function('params', getRowClass);
     const rowClass = 'ag-row-standard';
@@ -69,10 +72,10 @@ function DynamicAgGrid(props) {
         }
     }, [gridApi, data.highlightRowId]);
 
-    const localeTextFunc = (key, defaultValue) => {
-        if (locale === 'de') return AG_GRID_LOCALE_DE[key] || defaultValue;
-        return defaultValue;
-    };
+    const localeText = React.useMemo(() => {
+        if (locale === 'de') return AG_GRID_LOCALE_DE || AG_GRID_LOCALE_EN;
+        return AG_GRID_LOCALE_EN;
+    }, []);
 
     const modifyRedirectUrl = (redirectUrl, clickedId) => {
         if (redirectUrl.includes('{id}')) {
@@ -182,7 +185,7 @@ function DynamicAgGrid(props) {
                     getRowClass={usedGetRowClass}
                     accentedSort
                     suppressRowClickSelection={suppressRowClickSelection}
-                    localeTextFunc={localeTextFunc}
+                    localeText={localeText}
                 />
             </div>
         ),

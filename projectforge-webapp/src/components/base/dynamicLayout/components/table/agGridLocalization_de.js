@@ -1,91 +1,91 @@
 /* eslint-disable no-template-curly-in-string */
 
-export const AG_GRID_LOCALE_EN = {
+export const AG_GRID_LOCALE_DE = {
     // Set Filter
-    selectAll: '(Select All)',
-    selectAllSearchResults: '(Select All Search Results)',
-    searchOoo: 'Search...',
-    blanks: '(Blanks)',
-    noMatches: 'No matches',
+    selectAll: '(Alles auswählen)',
+    selectAllSearchResults: '(Alle Suchergebnisse auswählen)',
+    searchOoo: 'Suchen...',
+    blanks: '(Leerzeichen)',
+    noMatches: 'Keine Übereinstimmung',
 
     // Number Filter & Text Filter
     filterOoo: 'Filter...',
-    equals: 'Equals',
-    notEqual: 'Not equal',
-    blank: 'Blank',
-    notBlank: 'Not blank',
-    empty: 'Choose One',
+    equals: 'Gleich',
+    notEqual: 'Ungleich',
+    blank: 'Leer',
+    notBlank: 'Nicht leer',
+    empty: 'Eins auswählen',
 
     // Number Filter
-    lessThan: 'Less than',
-    greaterThan: 'Greater than',
-    lessThanOrEqual: 'Less than or equal',
-    greaterThanOrEqual: 'Greater than or equal',
-    inRange: 'In range',
-    inRangeStart: 'from',
-    inRangeEnd: 'to',
+    lessThan: 'Kleiner als',
+    greaterThan: 'Größer als',
+    lessThanOrEqual: 'Kleiner oder gleich',
+    greaterThanOrEqual: 'Größer oder gleich',
+    inRange: 'Im Bereich',
+    inRangeStart: 'von',
+    inRangeEnd: 'bis',
 
     // Text Filter
-    contains: 'Contains',
-    notContains: 'Not contains',
-    startsWith: 'Starts with',
-    endsWith: 'Ends with',
+    contains: 'Enthält',
+    notContains: 'Enthält nicht',
+    startsWith: 'Beginnt mit',
+    endsWith: 'Endet mit',
 
     // Date Filter
     dateFormatOoo: 'yyyy-mm-dd',
 
     // Filter Conditions
-    andCondition: 'AND',
-    orCondition: 'OR',
+    andCondition: 'UND',
+    orCondition: 'ODER',
 
     // Filter Buttons
-    applyFilter: 'Apply',
-    resetFilter: 'Reset',
-    clearFilter: 'Clear',
-    cancelFilter: 'Cancel',
+    applyFilter: 'Übernehmen',
+    resetFilter: 'Rücksetzen',
+    clearFilter: 'Leeren',
+    cancelFilter: 'Abbrechen',
 
     // Filter Titles
-    textFilter: 'Text Filter',
-    numberFilter: 'Number Filter',
-    dateFilter: 'Date Filter',
-    setFilter: 'Set Filter',
+    textFilter: 'Textfilter',
+    numberFilter: 'Zahlenfilter',
+    dateFilter: 'Datumsfilter',
+    setFilter: 'Filter setzen',
 
     // Side Bar
-    columns: 'Columns',
-    filters: 'Filters',
+    columns: 'Spalten',
+    filters: 'Filter',
 
     // columns tool panel
-    pivotMode: 'Pivot Mode',
-    groups: 'Row Groups',
-    rowGroupColumnsEmptyMessage: 'Drag here to set row groups',
-    values: 'Values',
-    valueColumnsEmptyMessage: 'Drag here to aggregate',
-    pivots: 'Column Labels',
-    pivotColumnsEmptyMessage: 'Drag here to set column labels',
+    pivotMode: 'Pivot-Modus',
+    groups: 'Zeilengruppen',
+    rowGroupColumnsEmptyMessage: 'Hierhin ziehen, um Zeilengruppen zu setzen',
+    values: 'Werte',
+    valueColumnsEmptyMessage: 'Hierhin ziehen um zu Aggregieren',
+    pivots: 'Spaltennamen',
+    pivotColumnsEmptyMessage: 'Hierhin ziehen um Spaltennahmen zu setzen',
 
     // Header of the Default Group Column
-    group: 'Group',
+    group: 'Gruppe',
 
     // Row Drag
-    rowDragRows: 'rows',
+    rowDragRows: 'Zeilen',
 
     // Other
-    loadingOoo: 'Loading...',
-    noRowsToShow: 'No Rows To Show',
-    enabled: 'Enabled',
+    loadingOoo: 'Laden...',
+    noRowsToShow: 'leer',
+    enabled: 'Eingeschaltet',
 
     // Menu
-    pinColumn: 'Pin Column',
-    pinLeft: 'Pin Left',
-    pinRight: 'Pin Right',
-    noPin: 'No Pin',
-    valueAggregation: 'Value Aggregation',
-    autosizeThiscolumn: 'Autosize This Column',
-    autosizeAllColumns: 'Autosize All Columns',
-    groupBy: 'Group by',
-    ungroupBy: 'Un-Group by',
-    addToValues: 'Add ${variable} to values',
-    removeFromValues: 'Remove ${variable} from values',
+    pinColumn: 'Spalte anheften',
+    pinLeft: 'Links anheften',
+    pinRight: 'Rechts anheften',
+    noPin: 'Nicht anheften',
+    valueAggregation: 'Werteaggregation',
+    autosizeThiscolumn: 'Größe für Spalte automatisch',
+    autosizeAllColumns: 'Größe für alle Spalten automatisch',
+    groupBy: 'Gruppieren nach',
+    ungroupBy: 'Degruppieren nach',
+    addToValues: 'Füge ${variable} zu den Werten hinzu',
+    removeFromValues: 'Entferne ${variable} aus den Werten',
     addToLabels: 'Add ${variable} to labels',
     removeFromLabels: 'Remove ${variable} from labels',
     resetColumns: 'Reset Columns',
@@ -102,24 +102,24 @@ export const AG_GRID_LOCALE_EN = {
     excelExport: 'Excel Export',
 
     // Enterprise Menu Aggregation and Status Bar
-    sum: 'Sum',
+    sum: 'Summe',
     min: 'Min',
     max: 'Max',
-    none: 'None',
-    count: 'Count',
-    avg: 'Average',
-    filteredRows: 'Filtered',
-    selectedRows: 'Selected',
-    totalRows: 'Total Rows',
-    totalAndFilteredRows: 'Rows',
-    more: 'More',
-    to: 'to',
-    of: 'of',
-    page: 'Page',
-    nextPage: 'Next Page',
-    lastPage: 'Last Page',
-    firstPage: 'First Page',
-    previousPage: 'Previous Page',
+    none: 'Nichts',
+    count: 'Anzahl',
+    avg: 'Durchschnitt',
+    filteredRows: 'Gefiltert',
+    selectedRows: 'Ausgewählt',
+    totalRows: 'Gesamtzeilen',
+    totalAndFilteredRows: 'Zeilen',
+    more: 'Mehr',
+    to: 'bis',
+    of: 'von',
+    page: 'Seite',
+    nextPage: 'Nächste Seite',
+    lastPage: 'Letzte Seite',
+    firstPage: 'Erste Seite',
+    previousPage: 'Vorherige Seite',
 
     // Pivoting
     pivotColumnGroupTotals: 'Total',
@@ -317,6 +317,7 @@ export const AG_GRID_LOCALE_EN = {
     // Number Format (Status Bar, Pagination Panel)
     thousandSeparator: ',',
     decimalSeparator: '.',
+
 };
 
-export default AG_GRID_LOCALE_EN;
+export default AG_GRID_LOCALE_DE;
