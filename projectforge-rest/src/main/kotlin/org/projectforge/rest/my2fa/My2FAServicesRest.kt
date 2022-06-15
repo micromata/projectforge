@@ -31,6 +31,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
@@ -46,6 +47,7 @@ import org.projectforge.security.dto.WebAuthnFinishRequest
 import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.ui.*
 import org.projectforge.web.My2FAHttpService
+import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -228,7 +230,7 @@ class My2FAServicesRest {
       val redirectUrl = String(Base64.decodeBase64(data.target), StandardCharsets.UTF_8)
       if (redirectUrl.isNotBlank()) {
         return ResponseEntity(
-          ResponseAction(targetType = TargetType.REDIRECT, url = redirectUrl),
+          ResponseAction(targetType = TargetType.REDIRECT, url = replaceRestByReactUrl(redirectUrl)),
           HttpStatus.OK
         )
       }
@@ -418,6 +420,19 @@ class My2FAServicesRest {
      */
     fun getLastSuccessful2FAFromSession(request: HttpServletRequest): Long? {
       return request.getSession(false)?.getAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA) as? Long
+    }
+
+    /**
+     * Fix the redirect url, if the user was redirected from an rest url, e. g. from /rs/user/initialList the
+     * user should be redirected to /react/user instead.
+     */
+    internal fun replaceRestByReactUrl(url: String?): String? {
+      val normalized = WebUtils.normalizeUri(url) ?: return null
+      if (!normalized.startsWith("/${RestPaths.REST}/")) {
+        return url // Do nothing
+      }
+      val reduced = normalized.removePrefix("/${RestPaths.REST}/")
+      return "/react/${reduced.substringBefore('/')}"
     }
 
     internal fun createResponseEntity(result: My2FAHttpService.Result): ResponseEntity<ResponseAction> {
