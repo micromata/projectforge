@@ -21,6 +21,10 @@ function DynamicAttachmentList(props) {
         uploadDisabled,
         maxSizeInKB,
         agGrid,
+        locale,
+        dateFormat,
+        thousandSeparator,
+        decimalSeparator,
     } = props;
 
     const {
@@ -167,6 +171,10 @@ function DynamicAttachmentList(props) {
                     action: Action,
                     filename: Filename,
                 }}
+                locale={locale}
+                dateFormat={dateFormat}
+                thousandSeparator={thousandSeparator}
+                decimalSeparator={decimalSeparator}
             />
             <DynamicAlert
                 markdown
@@ -225,6 +233,10 @@ DynamicAttachmentList.propTypes = {
     downloadOnRowClick: PropTypes.bool,
     uploadDisabled: PropTypes.bool,
     maxSizeInKB: PropTypes.number,
+    locale: PropTypes.string,
+    dateFormat: PropTypes.string,
+    thousandSeparator: PropTypes.string,
+    decimalSeparator: PropTypes.string,
 };
 
 DynamicAttachmentList.defaultProps = {
@@ -235,6 +247,10 @@ DynamicAttachmentList.defaultProps = {
     downloadOnRowClick: false,
     uploadDisabled: false,
     maxSizeInKB: 1000000, // 1 MB at default
+    locale: undefined,
+    dateFormat: undefined,
+    thousandSeparator: undefined,
+    decimalSeparator: undefined,
 };
 
 export default DynamicAttachmentList;
