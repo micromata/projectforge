@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.ge
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -576,7 +577,7 @@ class AddressPagesRest
   /**
    * Exports favorites addresses.
    */
-  @PostMapping("exportAsExcel")
+  @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
   fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
     log.info("Exporting addresses as Excel file.")
     @Suppress("UNCHECKED_CAST")

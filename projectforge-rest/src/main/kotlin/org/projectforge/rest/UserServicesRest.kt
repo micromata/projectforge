@@ -24,10 +24,8 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.business.user.UserAccessLogEntries
-import org.projectforge.business.user.UserAuthenticationsService
-import org.projectforge.business.user.UserTokenData
-import org.projectforge.business.user.UserTokenType
+import org.projectforge.business.user.*
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
@@ -49,7 +47,13 @@ private val log = KotlinLogging.logger {}
 @RequestMapping("${Rest.URL}/user")
 open class UserServicesRest {
   @Autowired
+  private lateinit var accessChecker: AccessChecker
+
+  @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+  @Autowired
+  private lateinit var userDao: UserDao
 
   @Autowired
   private lateinit var sessionCsrfService: SessionCsrfService
@@ -89,7 +93,6 @@ open class UserServicesRest {
   }
 
   companion object {
-
     fun setToken(data: MyAccountPageRest.MyAccountData, tokenType: UserTokenType, tokenData: UserTokenData?) {
       when (tokenType) {
         UserTokenType.CALENDAR_REST -> {

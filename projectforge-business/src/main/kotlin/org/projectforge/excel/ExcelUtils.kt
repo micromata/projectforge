@@ -24,6 +24,8 @@
 package org.projectforge.excel
 
 import de.micromata.merlin.excel.*
+import mu.KotlinLogging
+import org.apache.poi.ss.usermodel.CellStyle
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.i18n.I18nEnum
@@ -34,6 +36,11 @@ import org.projectforge.framework.time.DateFormats
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.jvm.internal.MutablePropertyReference
+import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
+
+private val log = KotlinLogging.logger {}
 
 /**
  * For excel export.
@@ -60,6 +67,18 @@ object ExcelUtils {
     }
   }
 
+  fun addHeadRow(sheet: ExcelSheet, style: CellStyle? = null) {
+    val headRow = sheet.createRow() // second row as head row.
+    sheet.columnDefinitions.forEachIndexed { index, it ->
+      val cell = headRow.getCell(index).setCellValue(it.columnHeadname)
+      style?.let { cell.setCellStyle(it) }
+    }
+  }
+
+  fun getCell(row: ExcelRow, property: KProperty<*>): ExcelCell? {
+    return row.getCell(property.name)
+  }
+
   /**
    * Registers an excel column by using the translated i18n-key of the given property as column head and the
    * property name as alias (for refering and [de.micromata.merlin.excel.ExcelRow.autoFillFromObject].
@@ -80,8 +99,11 @@ object ExcelUtils {
           null -> {
             colDef.withSize(Size.STANDARD)
           }
-          LocalDate::class.java, Date::class.java, LocalDateTime::class.java -> {
+          LocalDate::class.java -> {
             colDef.withSize(Size.DATE)
+          }
+          Date::class.java, LocalDateTime::class.java -> {
+            colDef.withSize(Size.DATE_TIME)
           }
           else -> {
             colDef.withSize(Size.STANDARD)
@@ -90,6 +112,18 @@ object ExcelUtils {
       }
     }
     return colDef
+  }
+
+  @JvmOverloads
+  fun registerColumn(sheet: ExcelSheet, property: KProperty<*>, size: Int? = null): ExcelColumnDef {
+    if (property is MutablePropertyReference) {
+      val kClass = property.owner as? KClass<*>
+      if (kClass != null) {
+        return registerColumn(sheet, kClass.java, property.name, size)
+      }
+    }
+    log.error { "Can't get declaringClass of property '${property.name}'. Can't register column." }
+    return ExcelColumnDef(sheet, property.name)
   }
 
   @JvmStatic

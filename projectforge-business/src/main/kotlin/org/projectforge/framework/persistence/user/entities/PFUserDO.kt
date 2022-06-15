@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.NoHistory
-import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
@@ -122,7 +121,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     /**
      * A deactivated user has no more system access.
      */
-    @PropertyInfo(i18nKey = "user.activated")
+    @PropertyInfo(i18nKey = "user.deactivated")
     @get:Column(nullable = false)
     open var deactivated: Boolean = false
 
