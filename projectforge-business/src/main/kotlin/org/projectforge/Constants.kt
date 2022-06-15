@@ -59,6 +59,7 @@ object Constants {
    */
   const val LENGTH_TITLE = 1000
   const val RESOURCE_BUNDLE_NAME = "I18nResources"
+  const val REACT = "react"
   const val REACT_APP_PATH = "react/"
   const val WICKET_APPLICATION_PATH = "wa/"
   const val WICKET_REQUEST_TIMEOUT_MINUTES = 5
