@@ -175,7 +175,7 @@ public class ExportWorkbook
     if (name.length() >= ExportSheet.MAX_XLS_SHEETNAME_LENGTH) {
       title = StringUtils.abbreviate(name, ExportSheet.MAX_XLS_SHEETNAME_LENGTH);
     }
-    final Sheet poiSheet = poiWorkbook.createSheet(title);
+    final Sheet poiSheet = poiWorkbook.createSheet(title.replace(':', '_')); // ':' -> '_' as Hotfix for Benutzer:in.
     ContentProvider cp = getContentProvider();
     if (contentProvider != null) {
       cp = contentProvider;
