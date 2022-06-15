@@ -70,8 +70,8 @@ internal class I18nKeysSourceAnalyzer {
 
   private var htmlTemplatesCounter = 0
 
-  fun run(): Map<String, I18nKeyUsageEntry> {
-    log.info("Create file with all detected i18n keys.")
+  fun run(createTmpFile: Boolean = false): Map<String, I18nKeyUsageEntry> {
+    log.info("Create file with all detected i18n keys: ${getJsonFile(createTmpFile).absolutePath}")
     reflections = Reflections("org.projectforge", Scanners.values())
     val srcMainDirs = Files.walk(basePath, 4) // plugins has depth 4
       .filter { Files.isDirectory(it) && it.name == "main" && it.parent?.name == "src" }.toList()
@@ -116,15 +116,16 @@ internal class I18nKeysSourceAnalyzer {
         entry.addUsage(file)
       }
     }
-    writeJson()
+    writeJson(createTmpFile)
     println("Matching html mail templates: $htmlTemplatesCounter")
     return i18nKeyMap
   }
 
-  private fun writeJson() {
-    log.info { "Writing (pretty) json formatted file: ${jsonFile.absolutePath}..." }
+  private fun writeJson(createTmpFile: Boolean) {
+    val file = getJsonFile(createTmpFile)
+    log.info { "Writing (pretty) json formatted file: ${file.absolutePath}..." }
     // jsonFile.writeText(JsonUtils.toJson(orderedEntries))
-    jsonFile.printWriter().use { out ->
+    file.printWriter().use { out ->
       out.println("[")
       orderedEntries.forEachIndexed { index, entry ->
         if (index > 0) {
@@ -364,9 +365,11 @@ internal class I18nKeysSourceAnalyzer {
   }
 
   companion object {
-    fun readJson(useFileSystem: Boolean): MutableMap<String, I18nKeyUsageEntry> {
+    internal fun readJson(useFileSystem: Boolean, createTmpFile: Boolean): MutableMap<String, I18nKeyUsageEntry> {
       val map = mutableMapOf<String, I18nKeyUsageEntry>()
       val json: String
+      val jsonFile = getJsonFile(createTmpFile)
+      log.info { "Reading i18nKeys from '${jsonFile.absolutePath}'" }
       if (useFileSystem && jsonFile.exists() && jsonFile.canRead()) {
         json = jsonFile.readText()
       } else {
@@ -400,12 +403,19 @@ internal class I18nKeysSourceAnalyzer {
       }
 
     private const val JSON_FILENAME = "i18nKeys.json"
-    private val jsonFile = File(
+    internal val jsonResourceFile = File(
       Path(basePath!!.toString(), "projectforge-application", "src", "main", "resources").toFile(),
       JSON_FILENAME
     )
 
-    private const val I18N_FILE = "i18nKeys.json"
+    internal val jsonTmpFile = File(
+      Path(basePath!!.toString(), "projectforge-application", "target").toFile(),
+      JSON_FILENAME
+    )
+
+    private fun getJsonFile(userTmpFile: Boolean = false): File {
+      return if (userTmpFile) jsonTmpFile else jsonResourceFile
+    }
 
     private val PATH_DAYHOLDER = getPathForClass(DayHolder::class.java)
     private val PATH_MONTHHOLDER = getPathForClass(MonthHolder::class.java)

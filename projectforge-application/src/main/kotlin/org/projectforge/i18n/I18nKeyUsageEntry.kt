@@ -24,8 +24,11 @@
 package org.projectforge.i18n
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import mu.KotlinLogging
 import org.projectforge.framework.json.JsonUtils
 import java.io.File
+
+private val log = KotlinLogging.logger {}
 
 internal class I18nKeyUsageEntry(val i18nKey: String) {
   var bundleName: String? = null
@@ -101,7 +104,9 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
         clazz
       } catch (ex: Throwable) {
         if (showError) {
-          println("*** Class '$className' not found (file=${file.absolutePath}): ${ex.message}")
+          val msg = "*** Class '$className' not found (file=${file.absolutePath}): ${ex.message}"
+          log.warn { msg }
+          println(msg)
         }
         null
       }

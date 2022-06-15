@@ -31,7 +31,7 @@ import java.io.File
 
 
 fun main() {
-  I18nKeysUsage(I18nKeysUsage.RUN_MODE.CREATE).writeExcelFile()
+  I18nKeysUsage(I18nKeysUsage.RUN_MODE.CREATE)
 }
 
 /**
@@ -45,7 +45,7 @@ fun main() {
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-class I18nKeysUsage(runmode: RUN_MODE? = null) : I18nKeysUsageInterface {
+class I18nKeysUsage(runmode: RUN_MODE? = null, useTmpFile: Boolean = false) : I18nKeysUsageInterface {
   internal val i18nKeyMap: Map<String, I18nKeyUsageEntry>
   enum class RUN_MODE { CREATE, FILESYSTEM }
 
@@ -54,9 +54,9 @@ class I18nKeysUsage(runmode: RUN_MODE? = null) : I18nKeysUsageInterface {
 
   init {
     if (runmode == RUN_MODE.CREATE) {
-      i18nKeyMap = I18nKeysSourceAnalyzer().run()
+      i18nKeyMap = I18nKeysSourceAnalyzer().run(useTmpFile)
     } else {
-      i18nKeyMap = I18nKeysSourceAnalyzer.readJson(runmode == RUN_MODE.FILESYSTEM)
+      i18nKeyMap = I18nKeysSourceAnalyzer.readJson(runmode == RUN_MODE.FILESYSTEM, useTmpFile)
     }
   }
 
