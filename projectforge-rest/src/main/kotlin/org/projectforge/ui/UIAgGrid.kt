@@ -30,6 +30,7 @@ import org.projectforge.rest.core.aggrid.SortModelEntry
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
+import kotlin.reflect.KProperty
 
 /**
  * Table using AgGrid
@@ -174,6 +175,44 @@ open class UIAgGrid(
     }
     return this
   }
+
+  /**
+   * For adding columns with the given ids
+   * @param valueGetter Make only sense, if no multiple fields are given.
+   * @param lcField Make only sense, if no multiple fields are given.
+   * @return this for chaining.
+   */
+  fun add(
+    lc: LayoutContext,
+    vararg columns: KProperty<*>,
+    sortable: Boolean = true,
+    width: Int? = null,
+    headerName: String? = null,
+    formatter: UIAgGridColumnDef.Formatter? = null,
+    valueGetter: String? = null,
+    lcField: String? = null,
+    wrapText: Boolean? = null,
+    autoHeight: Boolean? = wrapText,
+  ): UIAgGrid {
+    columns.forEach {
+      add(
+        UIAgGridColumnDef.createCol(
+          lc,
+          field = it.name,
+          sortable = sortable,
+          width = width,
+          headerName = headerName,
+          valueGetter = valueGetter,
+          formatter = formatter,
+          lcField = lcField ?: it.name,
+          wrapText = wrapText,
+          autoHeight = autoHeight,
+        )
+      )
+    }
+    return this
+  }
+
 
   fun getColumnDefById(field: String): UIAgGridColumnDef {
     return columnDefs.find { it.field == field }!!

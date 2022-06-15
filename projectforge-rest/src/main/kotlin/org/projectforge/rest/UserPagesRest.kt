@@ -28,8 +28,10 @@ import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.ldap.LdapUserDao
 import org.projectforge.business.login.Login
+import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserLocale
+import org.projectforge.business.user.UserTokenType
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
@@ -45,6 +47,7 @@ import org.projectforge.framework.time.TimeNotation
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
@@ -54,10 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.util.*
 import javax.servlet.http.HttpServletRequest
@@ -75,6 +75,9 @@ class UserPagesRest
 
   @Autowired
   private lateinit var ldapUserDao: LdapUserDao
+
+  @Autowired
+  private lateinit var userAuthenticationsService: UserAuthenticationsService
 
   override fun transformFromDB(obj: PFUserDO, editMode: Boolean): User {
     val user = User()
@@ -103,7 +106,8 @@ class UserPagesRest
     magicFilter: MagicFilter,
     userAccess: UILayout.UserAccess
   ) {
-    userAccess.update = accessChecker.isLoggedInUserMemberOfAdminGroup
+    val adminAccess = accessChecker.isLoggedInUserMemberOfAdminGroup
+    userAccess.update = adminAccess
     val agGrid = agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
@@ -111,20 +115,20 @@ class UserPagesRest
       this,
       userAccess = userAccess,
     )
-      .add(
-        lc, "username"
-      )
-      .add(
+      .add(lc, PFUserDO::username)
+    if (adminAccess) {
+      agGrid.add(
         UIAgGridColumnDef.createCol(
-          "deactivated",
+          PFUserDO::deactivated,
           headerName = "user.deactivated",
           width = 80,
           valueIconMap = mapOf(true to UIIconType.USER_LOCK, false to null)
         )
       )
-      .add("lastLoginTimeAgo", headerName = "login.lastLogin")
-      .add(lc, "lastname", "firstname", "personalPhoneIdentifiers", "description")
-    if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
+    }
+    agGrid.add("lastLoginTimeAgo", headerName = "login.lastLogin")
+      .add(lc, PFUserDO::lastname, PFUserDO::firstname, PFUserDO::personalPhoneIdentifiers, PFUserDO::description)
+    if (adminAccess) {
       agGrid.add(
         UIAgGridColumnDef.createCol(
           lc,
@@ -135,11 +139,11 @@ class UserPagesRest
       )
       agGrid.add(UIAgGridColumnDef.createCol(lc, "rightsAsString", lcField = "rights", wrapText = true))
       if (useLdapStuff) {
-        agGrid.add(UIAgGridColumnDef.createCol(lc, "ldapValues", wrapText = true))
+        agGrid.add(UIAgGridColumnDef.createCol(lc, PFUserDO::ldapValues, wrapText = true))
       }
     }
 
-    if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
+    if (adminAccess) {
       layout.excelExportSupported = true
     }
   }
@@ -245,19 +249,31 @@ class UserPagesRest
    */
   override fun createEditLayout(dto: User, userAccess: UILayout.UserAccess): UILayout {
     val layout = super.createEditLayout(dto, userAccess)
-      .add(
-        UIRow()
-          .add(
-            UICol()
-              .add(
-                lc, "username", "firstname", "lastname", "organization", "email",
-                /*"authenticationToken",*/
-                "jiraUsername", "hrPlanning", "deactivated"/*, "password"*/
-              )
-          )
-          .add(createUserSettingsCol(UILength(1)))
-          .add(UICol().add(lc, "sshPublicKey"))
-      )
+    val userSettings = createUserSettingsCol(UILength(md = 6))
+    layout.add(
+      UIRow()
+        .add(
+          UICol(md = 6)
+            .add(
+              lc,
+              PFUserDO::username,
+              PFUserDO::firstname,
+              PFUserDO::lastname,
+              PFUserDO::nickname,
+              PFUserDO::gender,
+              PFUserDO::organization,
+              PFUserDO::email,
+              /*"authenticationToken",*/
+              PFUserDO::mobilePhone,
+              PFUserDO::jiraUsername,
+              PFUserDO::hrPlanning,
+              PFUserDO::deactivated,
+              //PFUserDO::password
+            )
+        )
+        .add(userSettings)
+    )
+      .add(UICol().add(lc, PFUserDO::sshPublicKey))
       /*.add(UISelect<Int>("readonlyAccessUsers", lc,
               multi = true,
               label = "user.assignedGroups",
@@ -274,6 +290,24 @@ class UserPagesRest
               valueProperty = "id"))*/
       .add(lc, "description")
 
+    if (dto.id != null) {
+      userSettings.add(
+        1, UIButton.createDangerButton(
+          layout,
+          id = "stayLoggedIn-renew",
+          title = "login.stayLoggedIn.invalidateAllStayLoggedInSessions",
+          tooltip = "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip",
+          confirmMessage = "user.authenticationToken.renew.securityQuestion",
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(
+              UserServicesRest::class.java,
+              "resetStayLoggedInSessions?userId=${dto.id}"
+            ), targetType = TargetType.GET
+          )
+        )
+      )
+    }
+
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 
@@ -286,6 +320,16 @@ class UserPagesRest
       return list.filter { !it.deactivated } // Remove deactivated users when returning all.
     }
     return list
+  }
+
+  @GetMapping("resetStayLoggedInSessions")
+  fun resetStayLoggedInSessions(
+    @RequestParam("userId", required = true) userId: Int,
+  ): ResponseEntity<*> {
+    log.info("Trying to reset all stay-logged-in sessions of user #$userId.")
+    accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+    userAuthenticationsService.renewToken(userId, UserTokenType.STAY_LOGGED_IN_KEY)
+    return UIToast.createToastResponseEntity(translate("login.stayLoggedIn.invalidateAllStayLoggedInSessions.successfullDeleted"))
   }
 
   /**
@@ -369,7 +413,7 @@ class UserPagesRest
         UISelectValue(TimeNotation.H24, translate("timeNotation.24"))
       )
 
-      return UICol(uiLength).add(UIReadOnlyField("lastLogin", userLC))
+      return UICol(uiLength).add(UIReadOnlyField("lastLoginFormatted", label = "login.lastLogin"))
         .add(userLC, "timeZone", "personalPhoneIdentifiers")
         .add(UISelect("locale", userLC, required = true, values = locales))
         .add(UISelect("dateFormat", userLC, required = false, values = dateFormats))

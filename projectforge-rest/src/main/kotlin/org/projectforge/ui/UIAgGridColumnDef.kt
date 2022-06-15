@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.reporting.Kunde
 import java.time.LocalDate
+import kotlin.reflect.KProperty
 
 /**
  * Column def AgGrid
@@ -101,6 +102,7 @@ open class UIAgGridColumnDef(
      * The object has a field displayName, which should be displayed.
      */
     SHOW_DISPLAYNAME,
+
     /**
      * Each object of the list has a field displayName, which should be displayed comma separated.
      */
@@ -135,6 +137,33 @@ open class UIAgGridColumnDef(
   }
 
   companion object {
+    fun createCol(
+      property: KProperty<*>,
+      sortable: Boolean = true,
+      width: Int? = null,
+      headerName: String? = null,
+      headerTooltip: String? = null,
+      valueGetter: String? = null,
+      valueFormatter: Formatter? = null,
+      wrapText: Boolean? = null,
+      autoHeight: Boolean? = wrapText,
+      valueIconMap: Map<Any, UIIconType?>? = null,
+    ): UIAgGridColumnDef {
+      return createCol(
+        null,
+        field = property.name,
+        sortable = sortable,
+        width = width,
+        headerName = headerName,
+        headerTooltip = headerTooltip,
+        valueGetter = valueGetter,
+        formatter = valueFormatter,
+        wrapText = wrapText,
+        autoHeight = autoHeight,
+        valueIconMap = valueIconMap,
+      )
+    }
+
     /**
      * @param width Column width in pixel.
      */
@@ -159,6 +188,40 @@ open class UIAgGridColumnDef(
         headerTooltip = headerTooltip,
         valueGetter = valueGetter,
         formatter = valueFormatter,
+        wrapText = wrapText,
+        autoHeight = autoHeight,
+        valueIconMap = valueIconMap,
+      )
+    }
+
+    /**
+     * @param lcField If field name of dto differs from do (e. g. kost2.project vs. kost2.projekt)
+     * @param width Column width in pixel.
+     */
+    fun createCol(
+      lc: LayoutContext?,
+      property: KProperty<*>,
+      sortable: Boolean = true,
+      width: Int? = null,
+      headerName: String? = null,
+      headerTooltip: String? = null,
+      valueGetter: String? = null,
+      formatter: Formatter? = null,
+      lcField: String = property.name,
+      wrapText: Boolean? = null,
+      autoHeight: Boolean? = wrapText,
+      valueIconMap: Map<Any, UIIconType?>? = null,
+    ): UIAgGridColumnDef {
+      return createCol(
+        lc,
+        field = property.name,
+        sortable = sortable,
+        width = width,
+        headerName = headerName,
+        headerTooltip = headerTooltip,
+        valueGetter = valueGetter,
+        formatter = formatter,
+        lcField = lcField,
         wrapText = wrapText,
         autoHeight = autoHeight,
         valueIconMap = valueIconMap,
