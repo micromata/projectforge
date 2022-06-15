@@ -129,7 +129,7 @@ class AGGridSupport {
       val reorderedColumns = mutableListOf<UIAgGridColumnDef>()
       val processedColumns = mutableSetOf<String>()
       columnStates.forEach { columnState ->
-        agGrid.columnDefs.find { it.field == columnState.colId && columnState.hide != true }?.let { colDef ->
+        agGrid.columnDefs.find { it.field == columnState.colId }?.let { colDef ->
           // ColumnDef found:
           reorderedColumns.add(colDef)
           processedColumns.add(colDef.field)
@@ -145,6 +145,7 @@ class AGGridSupport {
       agGrid.columnDefs.forEach { colDef ->
         columnStates.find { it.colId == colDef.field }?.let { columnState ->
           colDef.width = columnState.width
+          colDef.hide = columnState.hide
         }
       }
     }
