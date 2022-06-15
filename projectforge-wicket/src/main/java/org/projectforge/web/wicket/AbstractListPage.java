@@ -743,6 +743,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       form.addError("validation.error.nothingToExport");
       return;
     }
+    setRefreshResultList();
     final List<?> list = getList();
     if (list != null && list.size() > 0) {
       final ExportSheet sheet = exporter.addSheet(sheetTitle != null ? sheetTitle : "data");
