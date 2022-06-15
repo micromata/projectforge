@@ -9,7 +9,6 @@ import { DynamicLayoutContext } from '../../context';
 import Formatter from '../../../Formatter';
 import history from '../../../../../utilities/history';
 import { getServiceURL } from '../../../../../utilities/rest';
-import { AG_GRID_LOCALE_EN } from './agGridLocalization';
 import { AG_GRID_LOCALE_DE } from './agGridLocalization_de';
 
 LicenseManager.setLicenseKey('For_Trialing_ag-Grid_Only-Not_For_Real_Development_Or_Production_Projects-Valid_Until-6_August_2022_[v2]_MTY1OTc0MDQwMDAwMA==a9620703be8026031bd181b948f56476');
@@ -32,6 +31,9 @@ function DynamicAgGrid(props) {
         components,
         // can't use locale from authentication, because AG-Grid is also used in public pages:
         locale,
+        dateFormat,
+        thousandSeparator,
+        decimalSeparator,
     } = props;
     // eslint-disable-next-line no-new-func
     const getRowClassFunction = Function('params', getRowClass);
@@ -72,10 +74,20 @@ function DynamicAgGrid(props) {
         }
     }, [gridApi, data.highlightRowId]);
 
-    const localeText = React.useMemo(() => {
-        if (locale === 'de') return AG_GRID_LOCALE_DE || AG_GRID_LOCALE_EN;
-        return AG_GRID_LOCALE_EN;
-    }, []);
+    const getLocaleText = (params) => {
+        const { defaultValue, key } = params;
+        if (key === 'dateFormat') {
+            return dateFormat || AG_GRID_LOCALE_DE[key] || defaultValue;
+        }
+        if (key === 'thousandSeparator') {
+            return thousandSeparator || AG_GRID_LOCALE_DE[key] || defaultValue;
+        }
+        if (key === 'decimalSeparator') {
+            return decimalSeparator || AG_GRID_LOCALE_DE[key] || defaultValue;
+        }
+        if (locale === 'de') return AG_GRID_LOCALE_DE[key] || defaultValue;
+        return params.defaultValue;
+    };
 
     const modifyRedirectUrl = (redirectUrl, clickedId) => {
         if (redirectUrl.includes('{id}')) {
@@ -185,7 +197,7 @@ function DynamicAgGrid(props) {
                     getRowClass={usedGetRowClass}
                     accentedSort
                     suppressRowClickSelection={suppressRowClickSelection}
-                    localeText={localeText}
+                    getLocaleText={getLocaleText}
                 />
             </div>
         ),
@@ -231,6 +243,9 @@ DynamicAgGrid.propTypes = {
         PropTypes.any,
     ]),
     locale: PropTypes.string,
+    dateFormat: PropTypes.string,
+    thousandSeparator: PropTypes.string,
+    decimalSeparator: PropTypes.string,
 };
 
 DynamicAgGrid.defaultProps = {
@@ -243,6 +258,9 @@ DynamicAgGrid.defaultProps = {
     suppressRowClickSelection: undefined,
     components: undefined,
     locale: undefined,
+    dateFormat: undefined,
+    thousandSeparator: undefined,
+    decimalSeparator: undefined,
 };
 
 export default DynamicAgGrid;

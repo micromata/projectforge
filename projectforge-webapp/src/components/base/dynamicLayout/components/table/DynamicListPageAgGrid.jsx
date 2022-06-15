@@ -21,6 +21,9 @@ function DynamicListPageAgGrid({
     paginationPageSize,
     getRowClass,
     locale,
+    dateFormat,
+    thousandSeparator,
+    decimalSeparator,
 }) {
     const [gridApi, setGridApi] = useState();
     const [columnApi, setColumnApi] = useState();
@@ -71,7 +74,7 @@ function DynamicListPageAgGrid({
         () => (
             <div>
                 {multiSelectButtonTitle && (
-                // Show these buttons only for multi selection with e. g. mass update:
+                    // Show these buttons only for multi selection with e. g. mass update:
                     <>
                         <Button
                             id="cancel"
@@ -104,6 +107,9 @@ function DynamicListPageAgGrid({
                     paginationPageSize={paginationPageSize}
                     getRowClass={getRowClass}
                     locale={locale}
+                    dateFormat={dateFormat}
+                    thousandSeparator={thousandSeparator}
+                    decimalSeparator={decimalSeparator}
                 />
             </div>
         ),
@@ -142,11 +148,18 @@ DynamicListPageAgGrid.propTypes = {
     paginationPageSize: PropTypes.number,
     getRowClass: PropTypes.string,
     locale: PropTypes.string,
+    dateFormat: PropTypes.string,
+    thousandSeparator: PropTypes.string,
+    decimalSeparator: PropTypes.string,
 };
 
 DynamicListPageAgGrid.defaultProps = {
     id: undefined,
     getRowClass: undefined,
+    locale: undefined,
+    dateFormat: undefined,
+    thousandSeparator: undefined,
+    decimalSeparator: undefined,
 };
 
 export default DynamicListPageAgGrid;
