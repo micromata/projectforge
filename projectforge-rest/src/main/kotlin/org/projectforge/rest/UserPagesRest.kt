@@ -82,12 +82,8 @@ class UserPagesRest
     return userDO
   }
 
-  @Autowired
-  private lateinit var userDao: UserDao
-
   override val classicsLinkListUrl: String
     get() = "wa/userList"
-
 
   /**
    * LAYOUT List page
@@ -133,22 +129,26 @@ class UserPagesRest
         agGrid.add(UIAgGridColumnDef.createCol(lc, "ldapValues", wrapText = true))
       }
     }
+
+
+    // TODO: ************** Excel-Export
+
   }
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
     if (useLdapStuff) {
       elements.add(
         UIFilterListElement("sync", label = translate("user.filter.syncStatus"), defaultFilter = true, multi = false)
-          .buildValues(UserPagesFilter.UserSyncFilter.SYNC::class.java)
+          .buildValues(UserPagesSyncFilter.SYNC::class.java)
       )
     }
     elements.add(
       UIFilterListElement("type", label = translate("user.filter.type"), defaultFilter = true, multi = false)
-        .buildValues(UserPagesFilter.UserTypeFilter.TYPE::class.java)
+        .buildValues(UserPagesTypeFilter.TYPE::class.java)
     )
     elements.add(
       UIFilterListElement("hrPlanning", label = translate("user.filter.hrPlanning"), multi = false)
-        .buildValues(UserPagesFilter.UserHRPlanningFilter.PLANNING_TYPE::class.java)
+        .buildValues(UserPagesHRPlanningFilter.PLANNING_TYPE::class.java)
     )
   }
 
@@ -160,8 +160,8 @@ class UserPagesRest
       if (!values.isNullOrEmpty() && values.size == 1) {
         val value = values[0]
         try {
-          UserPagesFilter.UserSyncFilter.SYNC.valueOf(value).let {
-            filters.add(UserPagesFilter.UserSyncFilter(it))
+          UserPagesSyncFilter.SYNC.valueOf(value).let {
+            filters.add(UserPagesSyncFilter(it))
           }
         } catch (ex: IllegalArgumentException) {
           log.warn { "Oups, can't convert '$value': ${ex.message}" }
@@ -174,8 +174,8 @@ class UserPagesRest
       if (!values.isNullOrEmpty() && values.size == 1) {
         val value = values[0]
         try {
-          UserPagesFilter.UserTypeFilter.TYPE.valueOf(value).let {
-            filters.add(UserPagesFilter.UserTypeFilter(it))
+          UserPagesTypeFilter.TYPE.valueOf(value).let {
+            filters.add(UserPagesTypeFilter(it))
           }
         } catch (ex: IllegalArgumentException) {
           log.warn { "Oups, can't convert '$value': ${ex.message}" }
@@ -188,8 +188,8 @@ class UserPagesRest
       if (!values.isNullOrEmpty() && values.size == 1) {
         val value = values[0]
         try {
-          UserPagesFilter.UserHRPlanningFilter.PLANNING_TYPE.valueOf(value).let {
-            filters.add(UserPagesFilter.UserHRPlanningFilter(it))
+          UserPagesHRPlanningFilter.PLANNING_TYPE.valueOf(value).let {
+            filters.add(UserPagesHRPlanningFilter(it))
           }
         } catch (ex: IllegalArgumentException) {
           log.warn { "Oups, can't convert '$value': ${ex.message}" }
