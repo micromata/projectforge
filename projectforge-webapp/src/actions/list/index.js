@@ -1,3 +1,4 @@
+import fileDownload from 'js-file-download';
 import history from '../../utilities/history';
 import { getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../utilities/rest';
 
@@ -65,7 +66,14 @@ const initialCall = (category, dispatch) => {
     )
         .then(handleHTTPErrors)
         .then((response) => response.json())
-        .then((response) => dispatch(callSuccess(category, response)))
+        .then((json) => {
+            const { targetType, url: redirectUrl } = json;
+            if (targetType === 'REDIRECT' && redirectUrl) {
+                history.push(redirectUrl);
+                return;
+            }
+            dispatch(callSuccess(category, json));
+        })
         .catch((error) => dispatch(fetchFailure(category, error.message)));
 };
 
