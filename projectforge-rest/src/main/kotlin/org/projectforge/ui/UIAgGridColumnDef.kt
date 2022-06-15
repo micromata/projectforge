@@ -61,6 +61,7 @@ open class UIAgGridColumnDef(
    * width in Pixel.
    */
   var width: Int? = null,
+  var hide: Boolean? = null,
   var resizable: Boolean? = true,
   /**
    * https://www.ag-grid.com/react-data-grid/value-formatters/
