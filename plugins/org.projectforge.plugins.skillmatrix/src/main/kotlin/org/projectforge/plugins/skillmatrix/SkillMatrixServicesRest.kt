@@ -29,6 +29,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
+import org.projectforge.model.rest.RestPaths.REST_EXCEL_SUB_PATH
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
@@ -116,7 +117,6 @@ class SkillMatrixServicesRest {
 
   companion object {
     const val REST_PATH = "${Rest.URL}/skillmatrix"
-    private const val REST_EXCEL_SUB_PATH = "exportExcel"
     const val REST_EXCEL_EXPORT_PATH = "$REST_PATH/$REST_EXCEL_SUB_PATH"
   }
 }
