@@ -20,6 +20,7 @@ function DynamicListPageAgGrid({
     pagination,
     paginationPageSize,
     getRowClass,
+    locale,
 }) {
     const [gridApi, setGridApi] = useState();
     const [columnApi, setColumnApi] = useState();
@@ -102,6 +103,7 @@ function DynamicListPageAgGrid({
                     pagination={pagination}
                     paginationPageSize={paginationPageSize}
                     getRowClass={getRowClass}
+                    locale={locale}
                 />
             </div>
         ),
@@ -139,6 +141,7 @@ DynamicListPageAgGrid.propTypes = {
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
     getRowClass: PropTypes.string,
+    locale: PropTypes.string,
 };
 
 DynamicListPageAgGrid.defaultProps = {
