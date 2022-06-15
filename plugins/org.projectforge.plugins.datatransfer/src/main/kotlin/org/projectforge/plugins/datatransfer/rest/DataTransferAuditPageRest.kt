@@ -85,13 +85,11 @@ class DataTransferAuditPageRest : AbstractDynamicPageRest() {
       initAGGrid(grid)
       fieldset.add(grid)
     }
-    if (area.externalDownloadEnabled == true) {
-      UIFieldset(12, "plugins.datatransfer.audit.downloadEvents").let { fieldset ->
-        layout.add(fieldset)
-        val grid = UIAgGrid("downloadAuditEntries")
-        initAGGrid(grid, false)
-        fieldset.add(grid)
-      }
+    UIFieldset(12, "plugins.datatransfer.audit.downloadEvents").let { fieldset ->
+      layout.add(fieldset)
+      val grid = UIAgGrid("downloadAuditEntries")
+      initAGGrid(grid, false)
+      fieldset.add(grid)
     }
     LayoutUtils.process(layout)
     return FormLayoutData(formData, layout, createServerData(request))

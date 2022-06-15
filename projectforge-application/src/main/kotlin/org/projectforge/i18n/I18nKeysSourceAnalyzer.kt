@@ -369,13 +369,15 @@ internal class I18nKeysSourceAnalyzer {
       val map = mutableMapOf<String, I18nKeyUsageEntry>()
       val json: String
       val jsonFile = getJsonFile(createTmpFile)
-      log.info { "Reading i18nKeys from '${jsonFile.absolutePath}'" }
       if (useFileSystem && jsonFile.exists() && jsonFile.canRead()) {
+        log.info { "Reading i18nKeys from '${jsonFile.absolutePath}'" }
         json = jsonFile.readText()
       } else {
+        log.info { "Reading i18nKeys from classpath: '$JSON_FILENAME'" }
         json = this::class.java.classLoader.getResource(JSON_FILENAME)?.readText() ?: ""
       }
       val array = JsonUtils.fromJson(json, Array<I18nKeyUsageEntry>::class.java)
+      log.info { "${map.size} i18nKeys read." }
       array?.forEach {
         map[it.i18nKey] = it
       }
