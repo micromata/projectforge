@@ -23,6 +23,8 @@
 
 package org.projectforge.ui
 
+import kotlin.reflect.KProperty
+
 /**
  * Twelve column grid system.
  */
@@ -60,6 +62,11 @@ open class UICol(
     return this
   }
 
+  fun add(index: Int, element: UIElement): UICol {
+    content.add(index, element)
+    return this
+  }
+
   /**
    * Convenient method for adding a bunch of UIInput fields with the given ids.
    * @param createRowCol If true (default), the elements will be surrounded with [UIRow] and [UICol] each, otherwise not.
@@ -67,6 +74,16 @@ open class UICol(
   fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UICol {
     ids.forEach {
       val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
+      if (element != null) {
+        add(LayoutUtils.prepareElementToAdd(element, createRowCol))
+      }
+    }
+    return this
+  }
+
+  fun add(layoutSettings: LayoutContext, vararg properties: KProperty<*>, createRowCol: Boolean = false): UICol {
+    properties.forEach {
+      val element = LayoutUtils.buildLabelInputElement(layoutSettings, it.name)
       if (element != null) {
         add(LayoutUtils.prepareElementToAdd(element, createRowCol))
       }

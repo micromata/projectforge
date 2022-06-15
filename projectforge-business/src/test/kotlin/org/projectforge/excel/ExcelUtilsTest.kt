@@ -36,7 +36,7 @@ class ExcelUtilsTest {
     val workbook = ExcelWorkbook()
     val sheet = workbook.createOrGetSheet("test")
     val column = ExcelUtils.registerColumn(sheet, PFUserDO::lastLogin)
-    Assertions.assertEquals(ExcelUtils.Size.DATE * 256, column.width)
+    Assertions.assertEquals(ExcelUtils.Size.DATE_TIME * 256, column.width)
     Assertions.assertEquals(translate("login.lastLogin"), column.columnHeadname)
   }
 }

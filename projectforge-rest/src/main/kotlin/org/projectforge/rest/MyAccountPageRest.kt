@@ -37,7 +37,6 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
-import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -48,6 +47,7 @@ import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -91,7 +91,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     var stayLoggedInKey: String? = null,
     var stayLoggedInKeyCreationDate: String? = null,
     var groups: String? = null,
-    var lastLogin: String? = null,
+    var lastLoginFormatted: String? = null,
     var locale: Locale? = null,
     var dateFormat: String? = null,
     var excelDateFormat: String? = null,
@@ -162,7 +162,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     data.gpgPublicKey = user.gpgPublicKey
     data.sshPublicKey = user.sshPublicKey
 
-    data.lastLogin = DateTimeFormatter.instance().getFormattedDateTime(user.lastLogin)
+    data.lastLoginFormatted = User.formatLastLogin(user.lastLogin)
 
     val employee = employeeService.getEmployeeByUserId(userId)
     if (employee != null) {

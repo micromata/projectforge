@@ -27,13 +27,16 @@ import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.user.service.UserService
+import org.projectforge.common.DateFormatType
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.ApplicationContextProvider
-import org.projectforge.framework.i18n.TimeAgo.getMessage
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.UserRightService
+import org.projectforge.framework.persistence.user.entities.Gender
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.TimeNotation
 import java.util.*
 
@@ -45,6 +48,8 @@ class User(
   var nickname: String? = null,
   var jiraUsername: String? = null,
   var lastname: String? = null,
+  var gender: Gender? = null,
+  var mobilePhone: String? = null,
   var description: String? = null,
   var organization: String? = null,
   var email: String? = null,
@@ -58,6 +63,10 @@ class User(
   var assignedGroups: MutableList<Group>? = null,
   var lastLogin: Date? = null,
   var lastLoginTimeAgo: String? = null,
+  /**
+   * Timestamp and time ago: 2022-16-15 18:49 (5 minutes ago)
+   */
+  var lastLoginFormatted: String? = null,
   var sshPublicKey: String? = null,
   var rightsAsString: String? = null,
   var ldapValues: String? = null,
@@ -80,7 +89,10 @@ class User(
 
   override fun copyFrom(src: PFUserDO) {
     super.copyFrom(src)
-    lastLoginTimeAgo = getMessage(src.lastLogin)
+    lastLogin?.let { date ->
+      lastLoginTimeAgo = TimeAgo.getMessage(date)
+      lastLoginFormatted = formatLastLogin(date)
+    }
     timeZone = src.timeZone
     if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
       // Rights
@@ -184,6 +196,12 @@ class User(
       val users = toUserList(userIds)
       restoreDisplayNames(users, userService)
       return users?.joinToString { it.displayName ?: "???" } ?: ""
+    }
+
+    fun formatLastLogin(date: Date?): String {
+      date ?: return ""
+      val text = PFDateTime.from(date).format(DateFormatType.DATE_TIME_MINUTES)
+      return "$text (${TimeAgo.getMessage(date)})"
     }
   }
 }
