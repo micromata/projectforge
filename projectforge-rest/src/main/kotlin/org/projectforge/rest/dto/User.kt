@@ -42,8 +42,11 @@ class User(
   displayName: String? = null,
   var username: String? = null,
   var firstname: String? = null,
+  var nickname: String? = null,
+  var jiraUsername: String? = null,
   var lastname: String? = null,
   var description: String? = null,
+  var organization: String? = null,
   var email: String? = null,
   var deactivated: Boolean = false,
   var timeZone: TimeZone? = null,
@@ -58,6 +61,9 @@ class User(
   var sshPublicKey: String? = null,
   var rightsAsString: String? = null,
   var ldapValues: String? = null,
+  var localUser: Boolean? = false,
+  var lastPasswordChange: Date? = null,
+  var lastWlanPasswordChange: Date? = null,
 ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
 
   /**
@@ -75,6 +81,7 @@ class User(
   override fun copyFrom(src: PFUserDO) {
     super.copyFrom(src)
     lastLoginTimeAgo = getMessage(src.lastLogin)
+    timeZone = src.timeZone
     if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
       // Rights
       val sb = StringBuilder()

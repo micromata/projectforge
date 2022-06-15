@@ -91,12 +91,13 @@ function SearchFilter(props) {
                             id="excelExport"
                             color="link"
                             className="selectPanelIconLinks"
+                            onClick={onExportButtonClick}
                         >
+                            {ui.translations.exportAsXls}
+                            {' '}
                             <FontAwesomeIcon
                                 icon={faFileExcel}
                                 size="lg"
-                                title={ui.translations.exportAsXls}
-                                onClick={onExportButtonClick}
                             />
                         </Button>
                     )}

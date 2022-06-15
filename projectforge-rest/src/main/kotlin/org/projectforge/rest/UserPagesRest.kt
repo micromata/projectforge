@@ -23,12 +23,14 @@
 
 package org.projectforge.rest
 
+import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.ldap.LdapUserDao
 import org.projectforge.business.login.Login
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserLocale
+import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
@@ -36,15 +38,22 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.TimeNotation
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -130,9 +139,9 @@ class UserPagesRest
       }
     }
 
-
-    // TODO: ************** Excel-Export
-
+    if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
+      layout.excelExportSupported = true
+    }
   }
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -277,6 +286,70 @@ class UserPagesRest
       return list.filter { !it.deactivated } // Remove deactivated users when returning all.
     }
     return list
+  }
+
+  /**
+   * Exports favorites addresses.
+   */
+  @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
+  fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+    log.info("Exporting users as Excel file.")
+    accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+
+    @Suppress("UNCHECKED_CAST")
+    val list = getObjectList(this, baseDao, filter)
+    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.getLocale()).use { workbook ->
+      val sheet = workbook.createOrGetSheet(translate("plugins.skillmatrix.title.list"))
+      val boldFont = workbook.createOrGetFont("bold", bold = true)
+      val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
+      val wrapTextStyle = workbook.createOrGetCellStyle("wrap")
+      wrapTextStyle.wrapText = true
+      ExcelUtils.registerColumn(sheet, PFUserDO::username, 10)
+      ExcelUtils.registerColumn(sheet, PFUserDO::jiraUsername, 10)
+      ExcelUtils.registerColumn(sheet, PFUserDO::localUser)
+      ExcelUtils.registerColumn(sheet, PFUserDO::deactivated)
+      ExcelUtils.registerColumn(sheet, PFUserDO::firstname)
+      ExcelUtils.registerColumn(sheet, PFUserDO::nickname)
+      ExcelUtils.registerColumn(sheet, PFUserDO::lastname)
+      ExcelUtils.registerColumn(sheet, PFUserDO::email)
+      sheet.registerColumn(translate("user.assignedGroups"), "assignedGroups").withSize(100)
+      ExcelUtils.registerColumn(sheet, PFUserDO::rights)
+      ExcelUtils.registerColumn(sheet, PFUserDO::organization)
+      ExcelUtils.registerColumn(sheet, PFUserDO::lastLogin)
+      ExcelUtils.registerColumn(sheet, PFUserDO::locale)
+      ExcelUtils.registerColumn(sheet, PFUserDO::timeZone)
+      ExcelUtils.registerColumn(sheet, PFUserDO::lastPasswordChange)
+      ExcelUtils.registerColumn(sheet, PFUserDO::lastWlanPasswordChange)
+      ExcelUtils.registerColumn(sheet, PFUserDO::description, 50)
+      if (useLdapStuff) {
+        ExcelUtils.registerColumn(sheet, PFUserDO::ldapValues, 50)
+      }
+      ExcelUtils.addHeadRow(sheet, boldStyle)
+      list.forEach { userDO ->
+        val user = User()
+        user.copyFrom(userDO)
+        val row = sheet.createRow()
+        row.autoFillFromObject(user, "assignedGroups", "rights", "timeZone")
+        row.getCell("assignedGroups")?.let {
+          it.setCellValue(user.assignedGroups?.joinToString { it.displayName ?: "???" })
+          it.setCellStyle(wrapTextStyle)
+        }
+        ExcelUtils.getCell(row, PFUserDO::rights)?.let {
+          it.setCellValue(user.rightsAsString)
+          it.setCellStyle(wrapTextStyle)
+        }
+        ExcelUtils.getCell(row, PFUserDO::timeZone)?.setCellValue(user.timeZone?.id)
+        ExcelUtils.getCell(row, PFUserDO::description)?.setCellStyle(wrapTextStyle)
+        ExcelUtils.getCell(row, PFUserDO::ldapValues)?.setCellStyle(wrapTextStyle)
+      }
+      sheet.setAutoFilter()
+      val filename = ("UserList_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx")
+      val resource = ByteArrayResource(workbook.asByteArrayOutputStream.toByteArray())
+      return ResponseEntity.ok()
+        .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+        .body(resource)
+    }
   }
 
   companion object {
