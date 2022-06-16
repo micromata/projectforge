@@ -35,6 +35,7 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -62,6 +63,7 @@ import java.time.LocalDate
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
+import kotlin.reflect.KProperty
 
 private val log = KotlinLogging.logger {}
 
@@ -85,7 +87,33 @@ class UserPagesRest
     if (copy != null) {
       user.copyFrom(copy)
     }
+    if (editMode) {
+      updateTokenCreationDates(user)
+    }
     return user
+  }
+
+  private fun updateTokenCreationDates(user: User) {
+    val userId = user.id ?: return
+    if (!accessChecker.isLoggedInUserMemberOfAdminGroup) {
+      return
+    }
+    userAuthenticationsService.getTokenData(userId, UserTokenType.STAY_LOGGED_IN_KEY)?.creationDate?.let {
+      user.stayLoggedInTokenCreationDate = it
+      user.stayLoggedInTokenCreationTimeAgo = TimeAgo.getMessage(it)
+    }
+    userAuthenticationsService.getTokenData(userId, UserTokenType.CALENDAR_REST)?.creationDate?.let {
+      user.calendarExportTokenCreationDate = it
+      user.calendarExportTokenCreationTimeAgo = TimeAgo.getMessage(it)
+    }
+    userAuthenticationsService.getTokenData(userId, UserTokenType.DAV_TOKEN)?.creationDate?.let {
+      user.davTokenCreationDate = it
+      user.davTokenCreationTimeAgo = TimeAgo.getMessage(it)
+    }
+    userAuthenticationsService.getTokenData(userId, UserTokenType.REST_CLIENT)?.creationDate?.let {
+      user.restClientTokenCreationDate = it
+      user.restClientTokenCreationTimeAgo = TimeAgo.getMessage(it)
+    }
   }
 
   override fun transformForDB(dto: User): PFUserDO {
@@ -278,42 +306,112 @@ class UserPagesRest
         )
         .add(userSettings)
     )
-      .add(UICol().add(lc, PFUserDO::sshPublicKey))
-      /*.add(UISelect<Int>("readonlyAccessUsers", lc,
-              multi = true,
-              label = "user.assignedGroups",
-              additionalLabel = "access.groups",
-              autoCompletion = AutoCompletion<Int>(url = "group/aco"),
-              labelProperty = "name",
-              valueProperty = "id"))
-      .add(UISelect<Int>("readonlyAccessUsers", lc,
-              multi = true,
-              label = "multitenancy.assignedTenants",
-              additionalLabel = "access.groups",
-              autoCompletion = AutoCompletion<Int>(url = "group/aco"),
-              labelProperty = "name",
-              valueProperty = "id"))*/
-      .add(lc, "description")
+      .add(lc, PFUserDO::sshPublicKey, PFUserDO::gpgPublicKey)
 
-    if (dto.id != null) {
-      userSettings.add(
-        1, UIButton.createDangerButton(
-          layout,
-          id = "stayLoggedIn-renew",
-          title = "login.stayLoggedIn.invalidateAllStayLoggedInSessions",
-          tooltip = "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip",
-          confirmMessage = "user.authenticationToken.renew.securityQuestion",
-          responseAction = ResponseAction(
-            RestResolver.getRestUrl(
-              UserServicesRest::class.java,
-              "resetStayLoggedInSessions?userId=${dto.id}"
-            ), targetType = TargetType.GET
-          )
-        )
+    dto.id?.let { userId ->
+      addToken(
+        layout,
+        userSettings,
+        User::calendarExportTokenCreationTimeAgo,
+        "calendar_rest",
+        userId,
+        UserTokenType.CALENDAR_REST,
+      )
+      addToken(layout, userSettings, User::davTokenCreationTimeAgo, "dav_token", userId, UserTokenType.DAV_TOKEN)
+      addToken(
+        layout,
+        userSettings,
+        User::restClientTokenCreationTimeAgo,
+        "rest_client",
+        userId,
+        UserTokenType.REST_CLIENT,
+      )
+    }
+
+    /*.add(UISelect<Int>("readonlyAccessUsers", lc,
+            multi = true,
+            label = "user.assignedGroups",
+            additionalLabel = "access.groups",
+            autoCompletion = AutoCompletion<Int>(url = "group/aco"),
+            labelProperty = "name",
+            valueProperty = "id"))
+    .add(UISelect<Int>("readonlyAccessUsers", lc,
+            multi = true,
+            label = "multitenancy.assignedTenants",
+            additionalLabel = "access.groups",
+            autoCompletion = AutoCompletion<Int>(url = "group/aco"),
+            labelProperty = "name",
+            valueProperty = "id"))*/
+    layout.add(lc, "description")
+
+    val userId = dto.id
+    if (userId != null) {
+      addToken(
+        layout,
+        userSettings,
+        User::stayLoggedInTokenCreationTimeAgo,
+        "stay_logged_in_key",
+        userId,
+        UserTokenType.STAY_LOGGED_IN_KEY,
+        1,
       )
     }
 
     return LayoutUtils.processEditPage(layout, dto, this)
+  }
+
+  private fun addToken(
+    layout: UILayout,
+    col: UICol,
+    property: KProperty<*>,
+    i18nKey: String,
+    userId: Int,
+    tokenType: UserTokenType,
+    position: Int? = null,
+  ) {
+    val key = "user.authenticationToken.$i18nKey"
+    val title: String
+    val tooltip: String
+    if (tokenType == UserTokenType.STAY_LOGGED_IN_KEY) {
+      title = "login.stayLoggedIn.invalidateAllStayLoggedInSessions"
+      tooltip = "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"
+    } else {
+      title = "user.authenticationToken.renew"
+      tooltip = "user.authenticationToken.renew.tooltip"
+    }
+    val row = UIRow()
+      .add(
+        UICol().add(
+          UIReadOnlyField(
+            property = property,
+            label = key,
+            additionalLabel = "timeOfCreation",
+            tooltip = "$key.tooltip"
+          )
+        )
+      )
+      .add(
+        UICol().add(
+          UIButton.createDangerButton(
+            layout,
+            id = "$i18nKey-renew",
+            title = title,
+            tooltip = tooltip,
+            confirmMessage = "user.authenticationToken.renew.securityQuestion",
+            responseAction = ResponseAction(
+              RestResolver.getRestUrl(
+                UserServicesRest::class.java,
+                "resetToken?userId=${userId}&type=${tokenType}"
+              ), targetType = TargetType.POST
+            )
+          )
+        )
+      )
+    if (position != null) {
+      col.add(position, row)
+    } else {
+      col.add(row)
+    }
   }
 
   override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")
@@ -327,14 +425,33 @@ class UserPagesRest
     return list
   }
 
-  @GetMapping("resetStayLoggedInSessions")
-  fun resetStayLoggedInSessions(
+  @PostMapping("resetToken")
+  fun resetToken(
     @RequestParam("userId", required = true) userId: Int,
+    @RequestParam("type", required = true) type: UserTokenType,
+    @RequestBody postData: PostData<User>
   ): ResponseEntity<*> {
-    log.info("Trying to reset all stay-logged-in sessions of user #$userId.")
+    if (type == UserTokenType.STAY_LOGGED_IN_KEY) {
+      log.info("Trying to reset all stay-logged-in sessions of user #$userId.")
+    } else {
+      log.info("Trying to renew token $type of user #$userId.")
+    }
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
-    userAuthenticationsService.renewToken(userId, UserTokenType.STAY_LOGGED_IN_KEY)
-    return UIToast.createToastResponseEntity(translate("login.stayLoggedIn.invalidateAllStayLoggedInSessions.successfullDeleted"))
+    userAuthenticationsService.renewToken(userId, type)
+    val toast = if (type == UserTokenType.STAY_LOGGED_IN_KEY) {
+      "login.stayLoggedIn.invalidateAllStayLoggedInSessions.successfullDeleted"
+    } else {
+      "user.authenticationToken.renew.successful"
+    }
+    val user = postData.data
+    updateTokenCreationDates(user)
+    return UIToast.createToastResponseEntity(
+      translate(toast),
+      color = UIColor.SUCCESS,
+      mutableMapOf("data" to user),
+      merge = true,
+      targetType = TargetType.UPDATE,
+    )
   }
 
   /**

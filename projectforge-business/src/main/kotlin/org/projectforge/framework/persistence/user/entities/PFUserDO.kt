@@ -80,7 +80,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     /**
      * JIRA user name (if differ from the ProjectForge's user name).
      */
-    @PropertyInfo(i18nKey = "user.jiraUsername")
+    @PropertyInfo(i18nKey = "user.jiraUsername", tooltip = "user.jiraUsername.tooltip")
     @Field
     @get:Column(name = "jira_username", length = 100)
     open var jiraUsername: String? = null
