@@ -140,12 +140,14 @@ open class UserStatusRest {
     return ResponseEntity<Result>(Result(userData, systemData, SystemAlertMessage.alertMessage), HttpStatus.OK)
   }
 
-  /**
-   * 'dd.MM.yyyy HH:mm:ss' -> 'DD.MM.YYYY HH:mm:ss'.
-   */
-  private fun convertToJavascriptFormat(dateFormat: String?): String? {
-    if (dateFormat == null) return null
-    return dateFormat.replace('d', 'D', false)
-      .replace('y', 'Y', false)
+  companion object {
+    /**
+     * 'dd.MM.yyyy HH:mm:ss' -> 'DD.MM.YYYY HH:mm:ss'.
+     */
+    fun convertToJavascriptFormat(dateFormat: String?): String? {
+      if (dateFormat == null) return null
+      return dateFormat.replace('d', 'D', false)
+        .replace('y', 'Y', false)
+    }
   }
 }

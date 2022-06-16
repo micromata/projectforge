@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.utils
 
-import org.projectforge.business.configuration.ConfigurationServiceAccessor
+import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -103,10 +103,10 @@ object NumberFormatter {
   @JvmOverloads
   fun formatCurrency(value: Number?, withCurrencySymbol: Boolean = false): String {
     val amount = internalFormat(value, 2) ?: return ""
-    return if (!withCurrencySymbol || CURRENCY_SYMBOL.isNullOrBlank()) {
+    return if (!withCurrencySymbol || Constants.CURRENCY_SYMBOL.isNullOrBlank()) {
       amount
     } else {
-      "$amount $CURRENCY_SYMBOL"
+      "$amount ${Constants.CURRENCY_SYMBOL}"
     }
   }
 
@@ -162,7 +162,4 @@ object NumberFormatter {
       "${format(bigDecimal.multiply(NumberHelper.HUNDRED))}%"
     }
   }
-
-  // ConfigurationServiceAccessor.get() may only null in test cases.
-  private val CURRENCY_SYMBOL = ConfigurationServiceAccessor.get()?.currencySymbol ?: "€"
 }

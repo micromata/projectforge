@@ -23,11 +23,13 @@
 
 package org.projectforge.ui
 
+import org.projectforge.Constants
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.time.DateFormats
+import org.projectforge.rest.UserStatusRest
 import org.projectforge.rest.core.aggrid.SortModelEntry
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import java.io.Serializable
@@ -92,11 +94,17 @@ open class UIAgGrid(
 
   var locale = UserLocale.determineUserLocaleAsIdentifier()
 
-  var dateFormat = DateFormats.getFormatString(DateFormatType.DATE)
+  var dateFormat = UserStatusRest.convertToJavascriptFormat(DateFormats.getFormatString(DateFormatType.DATE))
+
+  var timestampFormatSeconds = UserStatusRest.convertToJavascriptFormat(DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS))
+
+  var timestampFormatMinutes = UserStatusRest.convertToJavascriptFormat(DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES))
 
   var thousandSeparator = DecimalFormatSymbols(UserLocale.determineUserLocale()).groupingSeparator
 
   var decimalSeparator = DecimalFormatSymbols(UserLocale.determineUserLocale()).decimalSeparator
+
+  var currency = Constants.CURRENCY_SYMBOL
 
   companion object {
     @JvmStatic

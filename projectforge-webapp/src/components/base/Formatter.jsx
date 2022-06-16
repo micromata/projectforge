@@ -4,26 +4,7 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-
-const AUFTRAGPOSITION_FORMATTER = 'AUFTRAG_POSITION';
-const ADDRESSBOOK_FORMATTER = 'ADDRESS_BOOK';
-const BOOLEAN_FORMATTER = 'BOOLEAN';
-const COST1_FORMATTER = 'COST1';
-const COST2_FORMATTER = 'COST2';
-const CUSTOMER_FORMATTER = 'CUSTOMER';
-const CURRENCY_FORMATTER = 'CURRENCY';
-const DATE_FORMATTER = 'DATE';
-const EMPLOYEE_FORMATTER = 'EMPLOYEE';
-const KONTO_FORMATTER = 'KONTO';
-const PROJECT_FORMATTER = 'PROJECT';
-const USER_FORMATTER = 'USER';
-const RATING = 'RATING';
-const TASK_FORMATTER = 'TASK_PATH';
-const TIMESTAMP_FORMATTER = 'TIMESTAMP';
-const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
-const GROUP_FORMATTER = 'GROUP';
-const SHOW_DISPLAYNAME = 'SHOW_DISPLAYNAME';
-const SHOW_LIST_OF_DISPLAYNAMES = 'SHOW_LIST_OF_DISPLAYNAMES';
+import formatterFormat from './FormatterFormat';
 
 function Formatter(
     {
@@ -50,67 +31,12 @@ function Formatter(
 
     if (useFormatter) {
         switch (useFormatter) {
-            case COST1_FORMATTER:
-                result = useValue.formattedNumber;
-                break;
-            case COST2_FORMATTER:
-                result = useValue.longDisplayName || useValue.formattedNumber;
-                break;
-            case CURRENCY_FORMATTER:
-                result = Intl.NumberFormat(locale, {
-                    style: 'currency',
-                    currency,
-                }).format(useValue);
-                break;
-            case SHOW_DISPLAYNAME:
-            case CUSTOMER_FORMATTER:
-            case KONTO_FORMATTER:
-            case PROJECT_FORMATTER:
-            case EMPLOYEE_FORMATTER:
-                result = useValue.displayName;
-                break;
-            case SHOW_LIST_OF_DISPLAYNAMES:
-                if (useValue && Array.isArray(useValue)) {
-                    result = useValue.map((obj) => obj.displayName).join(', ');
-                } else {
-                    result = '???';
-                }
-                break;
-            case BOOLEAN_FORMATTER:
+            case 'BOOLEAN':
                 if (useValue) {
                     result = <FontAwesomeIcon icon={faCheck} />;
                 }
                 break;
-            case DATE_FORMATTER:
-                result = moment(useValue)
-                    .format(dateFormat);
-                break;
-            case TASK_FORMATTER:
-                result = useValue.title;
-                break;
-            case TIMESTAMP_FORMATTER:
-                result = moment(useValue)
-                    .format(timestampFormatSeconds);
-                break;
-            case TIMESTAMP_MINUTES_FORMATTER:
-                result = moment(useValue)
-                    .format(timestampFormatMinutes);
-                break;
-            case USER_FORMATTER:
-                result = useValue.displayName || useValue.fullname || useValue.username;
-                break;
-            case AUFTRAGPOSITION_FORMATTER:
-                result = useValue.number;
-                break;
-            case GROUP_FORMATTER:
-                result = useValue.name;
-                break;
-            case ADDRESSBOOK_FORMATTER:
-                result = useValue
-                    .map(({ displayName }) => displayName)
-                    .join(', ');
-                break;
-            case RATING:
+            case 'RATING':
                 if (useValue > 0) {
                     result = [...Array(useValue).keys()].map((v) => (
                         <FontAwesomeIcon
@@ -124,6 +50,15 @@ function Formatter(
                 }
                 break;
             default:
+                result = formatterFormat(
+                    useValue,
+                    dataType,
+                    dateFormat,
+                    timestampFormatSeconds,
+                    timestampFormatMinutes,
+                    locale,
+                    currency,
+                );
         }
     } else if (dataType === 'DATE') {
         result = moment(useValue)

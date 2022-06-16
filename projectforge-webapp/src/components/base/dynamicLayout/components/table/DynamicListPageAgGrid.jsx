@@ -24,6 +24,9 @@ function DynamicListPageAgGrid({
     dateFormat,
     thousandSeparator,
     decimalSeparator,
+    timestampFormatSeconds,
+    timestampFormatMinutes,
+    currency,
 }) {
     const [gridApi, setGridApi] = useState();
     const [columnApi, setColumnApi] = useState();
@@ -110,6 +113,9 @@ function DynamicListPageAgGrid({
                     dateFormat={dateFormat}
                     thousandSeparator={thousandSeparator}
                     decimalSeparator={decimalSeparator}
+                    timestampFormatSeconds={timestampFormatSeconds}
+                    timestampFormatMinutes={timestampFormatMinutes}
+                    currency={currency}
                 />
             </div>
         ),
@@ -151,6 +157,9 @@ DynamicListPageAgGrid.propTypes = {
     dateFormat: PropTypes.string,
     thousandSeparator: PropTypes.string,
     decimalSeparator: PropTypes.string,
+    timestampFormatSeconds: PropTypes.string,
+    timestampFormatMinutes: PropTypes.string,
+    currency: PropTypes.string,
 };
 
 DynamicListPageAgGrid.defaultProps = {
@@ -160,6 +169,9 @@ DynamicListPageAgGrid.defaultProps = {
     dateFormat: undefined,
     thousandSeparator: undefined,
     decimalSeparator: undefined,
+    timestampFormatSeconds: 'YYYY-MM-dd HH:mm:ss',
+    timestampFormatMinutes: 'YYYY-MM-dd HH:mm',
+    currency: '€',
 };
 
 export default DynamicListPageAgGrid;

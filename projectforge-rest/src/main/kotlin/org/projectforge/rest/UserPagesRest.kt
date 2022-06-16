@@ -145,24 +145,29 @@ class UserPagesRest
 
     if (adminAccess) {
       layout.excelExportSupported = true
+    } else {
+      // Non-admins can't see details of users, so show the ssh public key in the list:
+      agGrid.add(UIAgGridColumnDef.createCol(lc, PFUserDO::sshPublicKey, wrapText = true))
     }
   }
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
-    if (useLdapStuff) {
+    if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
+      if (useLdapStuff) {
+        elements.add(
+          UIFilterListElement("sync", label = translate("user.filter.syncStatus"), defaultFilter = true, multi = false)
+            .buildValues(UserPagesSyncFilter.SYNC::class.java)
+        )
+      }
       elements.add(
-        UIFilterListElement("sync", label = translate("user.filter.syncStatus"), defaultFilter = true, multi = false)
-          .buildValues(UserPagesSyncFilter.SYNC::class.java)
+        UIFilterListElement("type", label = translate("user.filter.type"), defaultFilter = true, multi = false)
+          .buildValues(UserPagesTypeFilter.TYPE::class.java)
+      )
+      elements.add(
+        UIFilterListElement("hrPlanning", label = translate("user.filter.hrPlanning"), multi = false)
+          .buildValues(UserPagesHRPlanningFilter.PLANNING_TYPE::class.java)
       )
     }
-    elements.add(
-      UIFilterListElement("type", label = translate("user.filter.type"), defaultFilter = true, multi = false)
-        .buildValues(UserPagesTypeFilter.TYPE::class.java)
-    )
-    elements.add(
-      UIFilterListElement("hrPlanning", label = translate("user.filter.hrPlanning"), multi = false)
-        .buildValues(UserPagesHRPlanningFilter.PLANNING_TYPE::class.java)
-    )
   }
 
   override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<PFUserDO>> {

@@ -23,6 +23,7 @@
 
 package org.projectforge
 
+import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import java.math.BigDecimal
 
 /**
@@ -104,6 +105,8 @@ object Constants {
   const val MILLIS_PER_DAY = MILLIS_PER_HOUR * 24
 
   const val MILLIS_PER_WEEK = MILLIS_PER_DAY * 7
+
+  val CURRENCY_SYMBOL = ConfigurationServiceAccessor.get()?.currencySymbol ?: "€"
 
   @JvmStatic
   fun isTimesheetCalendarId(id: Int?): Boolean {
