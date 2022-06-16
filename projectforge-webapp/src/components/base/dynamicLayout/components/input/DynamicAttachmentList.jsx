@@ -25,6 +25,9 @@ function DynamicAttachmentList(props) {
         dateFormat,
         thousandSeparator,
         decimalSeparator,
+        timestampFormatSeconds,
+        timestampFormatMinutes,
+        currency,
     } = props;
 
     const {
@@ -175,6 +178,9 @@ function DynamicAttachmentList(props) {
                 dateFormat={dateFormat}
                 thousandSeparator={thousandSeparator}
                 decimalSeparator={decimalSeparator}
+                timestampFormatSeconds={timestampFormatSeconds}
+                timestampFormatMinutes={timestampFormatMinutes}
+                currency={currency}
             />
             <DynamicAlert
                 markdown
@@ -237,6 +243,9 @@ DynamicAttachmentList.propTypes = {
     dateFormat: PropTypes.string,
     thousandSeparator: PropTypes.string,
     decimalSeparator: PropTypes.string,
+    timestampFormatSeconds: PropTypes.string,
+    timestampFormatMinutes: PropTypes.string,
+    currency: PropTypes.string,
 };
 
 DynamicAttachmentList.defaultProps = {
@@ -251,6 +260,9 @@ DynamicAttachmentList.defaultProps = {
     dateFormat: undefined,
     thousandSeparator: undefined,
     decimalSeparator: undefined,
+    timestampFormatSeconds: 'YYYY-MM-dd HH:mm:ss',
+    timestampFormatMinutes: 'YYYY-MM-dd HH:mm',
+    currency: '€',
 };
 
 export default DynamicAttachmentList;

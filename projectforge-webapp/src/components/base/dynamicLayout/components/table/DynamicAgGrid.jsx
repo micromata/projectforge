@@ -10,6 +10,7 @@ import Formatter from '../../../Formatter';
 import history from '../../../../../utilities/history';
 import { getServiceURL } from '../../../../../utilities/rest';
 import { AG_GRID_LOCALE_DE } from './agGridLocalization_de';
+import formatterFormat from '../../../FormatterFormat';
 
 LicenseManager.setLicenseKey('For_Trialing_ag-Grid_Only-Not_For_Real_Development_Or_Production_Projects-Valid_Until-6_August_2022_[v2]_MTY1OTc0MDQwMDAwMA==a9620703be8026031bd181b948f56476');
 
@@ -34,6 +35,9 @@ function DynamicAgGrid(props) {
         dateFormat,
         thousandSeparator,
         decimalSeparator,
+        timestampFormatSeconds,
+        timestampFormatMinutes,
+        currency,
     } = props;
     // eslint-disable-next-line no-new-func
     const getRowClassFunction = Function('params', getRowClass);
@@ -158,6 +162,32 @@ function DynamicAgGrid(props) {
         await postColumnStatesDebounced(event);
     };
 
+    const processCellForClipboard = (params) => {
+        const colDef = params.column.getColDef();
+        if (colDef.valueFormatter) {
+            return colDef.valueFormatter({
+                ...params,
+                data: params.node?.data,
+                colDef,
+            });
+        }
+        const { value } = params;
+        const { cellRenderer, cellRendererParams } = colDef;
+        if (cellRenderer === 'formatter') {
+            const result = formatterFormat(
+                value,
+                cellRendererParams.dataType,
+                dateFormat,
+                timestampFormatSeconds,
+                timestampFormatMinutes,
+                locale,
+                currency,
+            );
+            return result;
+        }
+        return value;
+    };
+
     const [allComponents] = useState({
         formatter: Formatter,
         ...components,
@@ -201,8 +231,10 @@ function DynamicAgGrid(props) {
                     rowClass={rowClass}
                     getRowClass={usedGetRowClass}
                     accentedSort
+                    enableRangeSelection
                     suppressRowClickSelection={suppressRowClickSelection}
                     getLocaleText={getLocaleText}
+                    processCellForClipboard={processCellForClipboard}
                 />
             </div>
         ),
@@ -251,6 +283,9 @@ DynamicAgGrid.propTypes = {
     dateFormat: PropTypes.string,
     thousandSeparator: PropTypes.string,
     decimalSeparator: PropTypes.string,
+    timestampFormatSeconds: PropTypes.string,
+    timestampFormatMinutes: PropTypes.string,
+    currency: PropTypes.string,
 };
 
 DynamicAgGrid.defaultProps = {
@@ -266,6 +301,9 @@ DynamicAgGrid.defaultProps = {
     dateFormat: undefined,
     thousandSeparator: undefined,
     decimalSeparator: undefined,
+    timestampFormatSeconds: 'YYYY-MM-dd HH:mm:ss',
+    timestampFormatMinutes: 'YYYY-MM-dd HH:mm',
+    currency: '€',
 };
 
 export default DynamicAgGrid;

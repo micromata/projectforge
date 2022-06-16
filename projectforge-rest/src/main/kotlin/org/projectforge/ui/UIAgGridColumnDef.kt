@@ -50,7 +50,7 @@ open class UIAgGridColumnDef(
   var headerName: String? = null,
   var headerTooltip: String? = null,
   var sortable: Boolean = false,
-  var filter: Boolean = false,
+  var filter: Boolean = true,
   var valueGetter: String? = null,
   var type: String? = null,
   var checkboxSelection: Boolean? = null,
@@ -265,9 +265,7 @@ open class UIAgGridColumnDef(
         }
         if (useFormatter == null) {
           // Try to determine formatter by type and propertyInfo (defined on DO-field):
-          if (LocalDate::class.java == elementInfo.propertyClass) {
-            useFormatter = Formatter.DATE
-          } else if (Number::class.java.isAssignableFrom(elementInfo.propertyClass)) {
+          if (Number::class.java.isAssignableFrom(elementInfo.propertyClass)) {
             if (elementInfo.propertyType == PropertyType.CURRENCY) {
               useFormatter = Formatter.CURRENCY
             } else {
