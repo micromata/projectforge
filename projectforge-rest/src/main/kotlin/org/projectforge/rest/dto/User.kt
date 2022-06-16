@@ -68,12 +68,23 @@ class User(
    */
   var lastLoginFormatted: String? = null,
   var sshPublicKey: String? = null,
+  var gpgPublicKey: String? = null,
   var rightsAsString: String? = null,
   var ldapValues: String? = null,
   var localUser: Boolean? = false,
   var lastPasswordChange: Date? = null,
   var lastWlanPasswordChange: Date? = null,
 ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
+
+  var stayLoggedInTokenCreationDate: Date? = null
+  var calendarExportTokenCreationDate: Date? = null
+  var davTokenCreationDate: Date? = null
+  var restClientTokenCreationDate: Date? = null
+
+  var stayLoggedInTokenCreationTimeAgo: String? = null
+  var calendarExportTokenCreationTimeAgo: String? = null
+  var davTokenCreationTimeAgo: String? = null
+  var restClientTokenCreationTimeAgo: String? = null
 
   /**
    * @see copyFromMinimal

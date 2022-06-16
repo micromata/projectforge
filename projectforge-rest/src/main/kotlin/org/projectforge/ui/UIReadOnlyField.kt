@@ -23,8 +23,10 @@
 
 package org.projectforge.ui
 
-data class UIReadOnlyField(
-  val id: String? = null,
+import kotlin.reflect.KProperty
+
+class UIReadOnlyField(
+  var id: String? = null,
   @Transient
   override val layoutContext: LayoutContext? = null,
   var dataType: UIDataType = UIDataType.STRING,
@@ -45,4 +47,11 @@ data class UIReadOnlyField(
   val coverUp: Boolean? = null,
   /** For a fixed value. Id is ignored then. */
   val value: String? = null,
-) : UIElement(UIElementType.READONLY_FIELD), UILabelledElement
+  property: KProperty<*>? = null,
+) : UIElement(UIElementType.READONLY_FIELD), UILabelledElement {
+  init {
+    if (property != null && id == null) {
+      id = property.name
+    }
+  }
+}

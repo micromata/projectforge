@@ -27,6 +27,7 @@ import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
 import org.projectforge.rest.core.AbstractPagesRest
+import kotlin.reflect.KProperty
 
 class UILayout(
   title: String,
@@ -179,9 +180,20 @@ class UILayout(
   fun add(layoutSettings: LayoutContext, vararg ids: String, createRowCol: Boolean = false): UILayout {
     ids.forEach {
       val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
-      if (element != null) {
-        add(LayoutUtils.prepareElementToAdd(element, createRowCol))
-      }
+      add(LayoutUtils.prepareElementToAdd(element, createRowCol))
+    }
+    return this
+  }
+
+  /**
+   * Convenient method for adding a bunch of UIInput fields with the given ids.
+   * @param createRowCol If true (default), the elements will be surrounded with [UIRow] and [UICol] each, otherwise not.
+   */
+  @JvmOverloads
+  fun add(layoutSettings: LayoutContext, vararg properties: KProperty<*>, createRowCol: Boolean = false): UILayout {
+    properties.forEach { prop ->
+      val element = LayoutUtils.buildLabelInputElement(layoutSettings, prop.name)
+      add(LayoutUtils.prepareElementToAdd(element, createRowCol))
     }
     return this
   }
