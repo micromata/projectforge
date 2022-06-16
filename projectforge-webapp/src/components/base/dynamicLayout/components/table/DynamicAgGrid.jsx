@@ -162,6 +162,8 @@ function DynamicAgGrid(props) {
         await postColumnStatesDebounced(event);
     };
 
+    // Needed, otherwise the cellRenderer output isn't used and
+    // [object] is copied to clipboard.
     const processCellForClipboard = (params) => {
         const colDef = params.column.getColDef();
         if (colDef.valueFormatter) {
@@ -174,19 +176,23 @@ function DynamicAgGrid(props) {
         const { value } = params;
         const { cellRenderer, cellRendererParams } = colDef;
         if (cellRenderer === 'formatter') {
-            const result = formatterFormat(
+            return formatterFormat(
                 value,
-                cellRendererParams.dataType,
+                cellRendererParams?.dataType,
                 dateFormat,
                 timestampFormatSeconds,
                 timestampFormatMinutes,
                 locale,
                 currency,
             );
-            return result;
         }
         return value;
     };
+
+    // Isn't used by Excel-Export
+    // const processCellCallback = ({ column, value }) => {
+    //     console.log(column, value);
+    // };
 
     const [allComponents] = useState({
         formatter: Formatter,
@@ -235,6 +241,7 @@ function DynamicAgGrid(props) {
                     suppressRowClickSelection={suppressRowClickSelection}
                     getLocaleText={getLocaleText}
                     processCellForClipboard={processCellForClipboard}
+                    // processCellCallback={processCellCallback}
                 />
             </div>
         ),
