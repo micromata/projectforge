@@ -33,7 +33,6 @@ import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO.Companion.createCopyWithoutSecretFields
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -114,7 +113,6 @@ open class UserGroupCache() : AbstractCache() {
     }
     // checkRefresh(); Done by getUserMap().
     val user = getUserMap()?.let { it[userId] }
-    user?.clearSecretFields()
     return user
   }
 
@@ -124,7 +122,6 @@ open class UserGroupCache() : AbstractCache() {
     }
     // checkRefresh(); Done by getUserMap().
     val user = getUserMap()?.values?.find { username == it?.username }
-    user?.clearSecretFields()
     return user
   }
 
@@ -134,7 +131,6 @@ open class UserGroupCache() : AbstractCache() {
     }
     // checkRefresh(); Done by getUserMap().
     val user = getUserMap()?.values?.find { fullname == it?.getFullname() }
-    user?.clearSecretFields()
     return user
   }
 
@@ -360,7 +356,6 @@ open class UserGroupCache() : AbstractCache() {
    * Should be called after user modifications.
    */
   fun updateUser(user: PFUserDO) {
-    user.clearSecretFields()
     getUserMap()!![user.id] = user
   }
 
@@ -382,8 +377,7 @@ open class UserGroupCache() : AbstractCache() {
     val users = Login.getInstance().allUsers
     for (user in users) {
       user.id ?: continue // Should only occur in test cases.
-      val copiedUser = createCopyWithoutSecretFields(user)
-      uMap[user.id] = copiedUser
+      uMap[user.id] = user
     }
     if (users.size != uMap.size) {
       log.warn("********** Load ${users.size} from the backend, but added only ${uMap.size} users to cache!")

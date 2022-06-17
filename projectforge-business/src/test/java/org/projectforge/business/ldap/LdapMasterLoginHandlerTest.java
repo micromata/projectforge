@@ -210,7 +210,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase {
     user.setUsername("kai");
     user.setFirstname("Kai");
     user.setLastname("Reinhard");
-    userService.createEncryptedPassword(user, "successful".toCharArray());
+    userService.encryptAndSavePassword(user, "successful".toCharArray());
     userService.save(user);
     Assertions.assertEquals(LoginResultStatus.SUCCESS, loginHandler.checkLogin("kai", "successful".toCharArray()).getLoginResultStatus());
 
@@ -323,7 +323,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase {
     user.setUsername(username);
     user.setFirstname(firstname);
     user.setLastname(lastname);
-    userService.createEncryptedPassword(user, password);
+    userService.encryptAndSavePassword(user, password);
     return (Integer) userService.save(user);
   }
 

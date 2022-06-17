@@ -148,16 +148,16 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
       log.info("LDAP user '" + username + "' doesn't yet exist in ProjectForge's data base. Creating new user...");
       user = pfUserDOConverter.convert(ldapUser);
       user.setId(null); // Force new id.
-      if (mode == Mode.SIMPLE || !ldapConfig.isStorePasswords()) {
-        user.setNoPassword();
-      } else {
-        userService.createEncryptedPassword(user, password);
-      }
       userDao.internalSave(user);
+      if (mode == Mode.SIMPLE || !ldapConfig.isStorePasswords()) {
+        // Don't store password.
+      } else {
+        userService.encryptAndSavePassword(user, password);
+      }
     } else if (mode != Mode.SIMPLE) {
       PFUserDOConverter.copyUserFields(pfUserDOConverter.convert(ldapUser), user);
       if (ldapConfig.isStorePasswords()) {
-        userService.createEncryptedPassword(user, password);
+        userService.encryptAndSavePassword(user, password);
       }
       userDao.internalUpdate(user);
       if (!user.hasSystemAccess()) {

@@ -33,14 +33,10 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.security.SecurityLogging;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -91,77 +87,6 @@ public class LoginDefaultHandler implements LoginHandler {
       SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
       return loginResult.setLoginResultStatus(LoginResultStatus.FAILED);
     }
-  }
-
-  /**
-   * Only administrator login is allowed. The login is checked without Hibernate because the data-base schema may be
-   * out-dated thus Hibernate isn't functioning.
-   *
-   * @param username
-   * @param password
-   * @return
-   * @throws SQLException
-   */
-  private PFUserDO getUserWithJdbc(final String username, final char[] password) throws SQLException {
-    final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
-    String sql = "select pk, firstname, lastname, password, password_salt from t_pf_user where username=? and deleted=false and deactivated=false and restricted_user=false";
-    PFUserDO user = null;
-    try {
-      user = loadUser(jdbc, sql, username, true);
-    } catch (final Exception ex) {
-      log.warn("This SQLException is only OK if you've a ProjectForge installation 5.2 or minor!");
-      sql = "select pk, firstname, lastname, password from t_pf_user where username=? and deleted=false";
-      user = loadUser(jdbc, sql, username, false);
-    }
-    if (user == null) {
-      return null;
-    }
-    final PasswordCheckResult passwordCheckResult = userService.checkPassword(user, password);
-    if (!passwordCheckResult.isOK()) {
-      final String msg = "Login for admin user '" + username + "' in maintenance mode failed, wrong password.";
-      log.warn(msg);
-      SecurityLogging.logSecurityWarn(this.getClass(), "LOGIN FAILED", msg);
-      return null;
-    }
-    return user;
-  }
-
-  /**
-   * @param jdbc
-   * @param sql
-   * @param username
-   * @param withSaltString false before ProjectForge version 5.3.
-   * @throws SQLException
-   */
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  private PFUserDO loadUser(final JdbcTemplate jdbc, final String sql, final String username,
-                            final boolean withSaltString)
-      throws SQLException {
-    final PFUserDO user = (PFUserDO) jdbc.query(sql, new Object[]{username}, new ResultSetExtractor() {
-      @Override
-      public Object extractData(final ResultSet rs) throws SQLException, DataAccessException {
-        if (rs.next()) {
-          final PFUserDO user = new PFUserDO();
-          user.setUsername(username);
-          final String password = rs.getString("password");
-          final int pk = rs.getInt("pk");
-          final String firstname = rs.getString("firstname");
-          final String lastname = rs.getString("lastname");
-          if (withSaltString) {
-            final String saltString = rs.getString("password_salt");
-            user.setPasswordSalt(saltString);
-          }
-          user.setId(pk);
-          user.setUsername(username);
-          user.setFirstname(firstname);
-          user.setLastname(lastname);
-          user.setPassword(password);
-          return user;
-        }
-        return null;
-      }
-    });
-    return user;
   }
 
   @Override

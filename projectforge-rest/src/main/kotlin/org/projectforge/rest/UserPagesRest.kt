@@ -87,7 +87,7 @@ class UserPagesRest
 
   override fun transformFromDB(obj: PFUserDO, editMode: Boolean): User {
     val user = User()
-    val copy = PFUserDO.createCopyWithoutSecretFields(obj)
+    val copy = PFUserDO.createCopy(obj)
     if (copy != null) {
       user.copyFrom(copy)
     }
@@ -279,13 +279,6 @@ class UserPagesRest
         )
       }
     }*/
-    val newPassword = dto.newPassword
-    val passwordRepeat = dto.passwordRepeat
-    if (newPassword != null && newPassword.isNotEmpty() || passwordRepeat != null && passwordRepeat.isNotEmpty()) {
-      if (!Arrays.equals(newPassword, passwordRepeat)) {
-        validationErrors.add(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch", "passwordRepeat"))
-      }
-    }
   }
 
   /**
@@ -309,25 +302,6 @@ class UserPagesRest
         PFUserDO::hrPlanning,
         PFUserDO::deactivated,
       )
-    if (dto.id != null && dto.id != ThreadLocalUserContext.getUserId()) {
-      // Don't allow password change for currently logged-in-user.
-      leftCol
-        .add(
-          UIInput(
-            User::newPassword.name,
-            label = "user.changePassword.newPassword",
-            tooltip = "user.changePassword.error.passwordQualityCheck",
-            dataType = UIDataType.PASSWORD,
-          )
-        )
-        .add(
-          UIInput(
-            User::passwordRepeat.name,
-            label = "passwordRepeat",
-            dataType = UIDataType.PASSWORD,
-          )
-        )
-    }
     layout.add(
       UIRow()
         .add(leftCol)
@@ -442,18 +416,7 @@ class UserPagesRest
   }
 
   override fun onBeforeUpdate(request: HttpServletRequest, obj: PFUserDO, postData: PostData<User>) {
-    log.info { "The user wants to change password of '${obj.displayName}'." }
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
-    if (obj.id == ThreadLocalUserContext.getUserId()) {
-      throw IllegalArgumentException("User not allowed to change his own password here.")
-    }
-    val user = postData.data
-    val errorMsgKeys = userService.changePassword(obj.id, user.newPassword)
-    data.clear() // Clear all passwords, if not already done, due to security reasons.
-    processErrorKeys(errorMsgKeys)?.let {
-      return it // Error messages occured:
-    }
-    */
   }
 
   override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")
@@ -526,8 +489,6 @@ class UserPagesRest
       ExcelUtils.registerColumn(sheet, PFUserDO::lastLogin)
       ExcelUtils.registerColumn(sheet, PFUserDO::locale)
       ExcelUtils.registerColumn(sheet, PFUserDO::timeZone)
-      ExcelUtils.registerColumn(sheet, PFUserDO::lastPasswordChange)
-      ExcelUtils.registerColumn(sheet, PFUserDO::lastWlanPasswordChange)
       ExcelUtils.registerColumn(sheet, PFUserDO::description, 50)
       if (useLdapStuff) {
         ExcelUtils.registerColumn(sheet, PFUserDO::ldapValues, 50)

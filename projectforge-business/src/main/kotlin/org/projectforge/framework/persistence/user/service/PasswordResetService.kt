@@ -58,10 +58,7 @@ class PasswordResetService {
    */
   fun checkToken(token: String): PFUserDO? {
     val userId = PasswordResetTokenStore.checkToken(token) ?: return null
-    userService.internalGetById(userId)?.let { user ->
-      return PFUserDO.createCopyWithoutSecretFields(user)
-    }
-    return null
+    return userService.internalGetById(userId)
   }
 
   /**

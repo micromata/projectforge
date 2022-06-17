@@ -86,9 +86,6 @@ class User(
   var davTokenCreationTimeAgo: String? = null
   var restClientTokenCreationTimeAgo: String? = null
 
-  var newPassword: CharArray? = null
-  var passwordRepeat: CharArray? = null
-
   /**
    * @see copyFromMinimal
    */

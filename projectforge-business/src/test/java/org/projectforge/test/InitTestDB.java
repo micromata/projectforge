@@ -116,15 +116,16 @@ public class InitTestDB {
   }
 
   public PFUserDO addUser(final String username, final char[] password) {
-    final PFUserDO user = new PFUserDO();
+    PFUserDO user = new PFUserDO();
     user.setUsername(username);
     user.setLocale(Locale.ENGLISH);
     user.setDateFormat("dd/MM/yyyy");
     user.setEmail("devnull@localhost");
+    user = addUser(user);
     if (password != null) {
-      userService.createEncryptedPassword(user, password);
+      userService.encryptAndSavePassword(user, password, false);
     }
-    return addUser(user);
+    return user;
   }
 
   public PFUserDO addUser(final PFUserDO user) {
@@ -307,8 +308,8 @@ public class InitTestDB {
         .addRight(new UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE)); //
-    userService.createEncryptedPassword(user, AbstractTestBase.TEST_FULL_ACCESS_USER_PASSWORD);
-    addUser(user);
+    user = addUser(user);
+    userService.encryptAndSavePassword(user, AbstractTestBase.TEST_FULL_ACCESS_USER_PASSWORD, false);
     addUser(AbstractTestBase.TEST_USER, AbstractTestBase.TEST_USER_PASSWORD);
     addUser(AbstractTestBase.TEST_USER2);
     user = addUser(AbstractTestBase.TEST_DELETED_USER, AbstractTestBase.TEST_DELETED_USER_PASSWORD);

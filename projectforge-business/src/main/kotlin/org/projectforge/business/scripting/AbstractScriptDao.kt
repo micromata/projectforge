@@ -26,7 +26,6 @@ package org.projectforge.business.scripting
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
-import java.io.Serializable
 
 private val log = KotlinLogging.logger {}
 
@@ -38,22 +37,12 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     return ScriptDO()
   }
 
-  override fun getById(id: Serializable?): ScriptDO? {
-    val script = super.getById(id)
-    script?.executeAsUser?.clearSecretFields()
-    return script
-  }
-
   /**
    * @param name of script (case insensitive)
    */
   open fun loadByNameOrId(name: String): ScriptDO? {
     name.toIntOrNull()?.let { id ->
-      internalGetById(id)?.let { script ->
-        script.executeAsUser?.clearSecretFields()
-        return script
-      }
-      return null
+      return internalGetById(id)
     }
     val script = ensureUniqueResult(
       em.createNamedQuery(
@@ -62,7 +51,6 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
       )
         .setParameter("name", "%${name.trim().lowercase()}%")
     )
-    script?.executeAsUser?.clearSecretFields()
     return script
   }
 

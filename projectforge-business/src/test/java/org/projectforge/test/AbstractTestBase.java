@@ -361,7 +361,7 @@ public abstract class AbstractTestBase {
     if (user == null) {
       fail("User not found: " + username);
     }
-    ThreadLocalUserContext.setUser(PFUserDO.Companion.createCopyWithoutSecretFields(user));
+    ThreadLocalUserContext.setUser(PFUserDO.Companion.createCopy(user));
     return user;
   }
 

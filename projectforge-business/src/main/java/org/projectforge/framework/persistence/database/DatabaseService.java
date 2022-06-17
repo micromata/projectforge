@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.user.entities.UserPasswordDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -81,6 +82,9 @@ public class DatabaseService {
 
   @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private UserPasswordDao userPasswordDao;
 
   @Autowired
   private UserGroupCache userGroupCache;
@@ -226,14 +230,19 @@ public class DatabaseService {
     //Update test data user with data from setup page
     PFUserDO adminUser = userDao.getInternalByName(DEFAULT_ADMIN_USER);
     adminUser.setUsername(user.getUsername());
-    adminUser.setPassword(user.getPassword());
-    adminUser.setPasswordSalt(user.getPasswordSalt());
     adminUser.setLocalUser(true);
     adminUser.setTimeZone(adminUserTimezone);
     userDao.internalUpdate(adminUser);
     ThreadLocalUserContext.setUser(adminUser);
     userGroupCache.forceReload();
     return adminUser;
+  }
+
+  public void updatePasswords(PFUserDO user, String password, String passwordSalt) {
+    UserPasswordDO passwordObj = new UserPasswordDO();
+    passwordObj.setPasswordHash(password);
+    passwordObj.setPasswordSalt(passwordSalt);
+    userPasswordDao.saveOrUpdate(user.getId(), passwordObj);
   }
 
   public void afterCreatedTestDb(boolean blocking) {

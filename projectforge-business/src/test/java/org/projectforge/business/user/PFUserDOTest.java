@@ -32,53 +32,6 @@ import static org.junit.jupiter.api.Assertions.*;
  class PFUserDOTest extends AbstractTestBase
 {
   @Test
-   void testCreateUserWithoutSecretFields()
-  {
-    PFUserDO user = new PFUserDO();
-    assertFalse(user.hasSecretFieldValues());
-    user.setPassword("test");
-    assertTrue(user.hasSecretFieldValues());
-    user.setPassword(null);
-    assertFalse(user.hasSecretFieldValues());
-    user.setPasswordSalt("test");
-    assertTrue(user.hasSecretFieldValues());
-    user.setPasswordSalt(null);
-    assertFalse(user.hasSecretFieldValues());
-    user.setPassword("pw");
-    user.setPasswordSalt("ps");
-    assertEquals("pw", user.getPassword());
-    assertEquals("ps", user.getPasswordSalt());
-    user = PFUserDO.Companion.createCopyWithoutSecretFields(user);
-    assertNull(user.getPassword());
-    assertNull(user.getPasswordSalt());
-  }
-
-  @Test
-   void testToString() {
-    PFUserDO user = new PFUserDO();
-    user.setUsername("test");
-    user.setPassword("123");
-    user.setPasswordSalt("123");
-    String str = user.toString();
-    assertFalse(str.contains("123"), "Secret fields must be ommitted!");
-  }
-
-  @Test
-   void testCopyValues() {
-    PFUserDO user = new PFUserDO();
-    user.setUsername("test");
-    user.setPassword("123");
-    user.setPasswordSalt("123");
-    PFUserDO user2 = PFUserDO.createCopyWithoutSecretFields(user);
-    assertFalse(user2.hasSecretFieldValues());
-    assertEquals("test", user2.getUsername());
-    user2 = new PFUserDO();
-    user2.copyValuesFrom(user);
-    assertTrue(user2.hasSecretFieldValues());
-    assertEquals("test", user2.getUsername());
-  }
-
-  @Test
   void testDisplayName() {
     PFUserDO user = new PFUserDO();
     user.setUsername("kai");

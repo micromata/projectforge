@@ -26,7 +26,6 @@ package org.projectforge.framework.persistence.user.api
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO.Companion.createCopyWithoutSecretFields
 import org.slf4j.LoggerFactory
 import java.io.Serializable
 
@@ -73,20 +72,13 @@ class UserContext() : Serializable {
   var loggedInByAuthenticationToken = false
 
   /**
-   * Stores the given user in the context. If the user contains secret fields (such as password etc.) a copy without
-   * such fields is stored.
+   * Stores the given user in the context.
    *
    * @param user
    */
   constructor(user: PFUserDO) : this() {
     Validate.notNull(user)
     this.user = user
-    if (user.hasSecretFieldValues()) {
-      log.warn("Shouldn't instantiate UserContext containing secret values (makes now a copy of the given user).")
-      this.user = createCopyWithoutSecretFields(user)
-    } else {
-      this.user = user
-    }
   }
 
   /**
@@ -111,14 +103,7 @@ class UserContext() : Serializable {
       log.warn("Couldn't update user from UserCache, should only occur in maintenance mode!")
       return this
     }
-    user = if (user!!.hasSecretFieldValues()) {
-      log.warn(
-        "Oups, userCache contains user (id=" + user!!.id + ") with secret values, please contact developers."
-      )
-      createCopyWithoutSecretFields(updatedUser)
-    } else {
-      updatedUser
-    }
+    user = updatedUser
     return this
   }
 
