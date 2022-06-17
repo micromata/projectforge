@@ -32,6 +32,7 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserLocale
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.business.user.service.UserService
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
@@ -80,6 +81,9 @@ class UserPagesRest
 
   @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+  @Autowired
+  private lateinit var userService: UserService
 
   override fun transformFromDB(obj: PFUserDO, editMode: Boolean): User {
     val user = User()
@@ -275,6 +279,13 @@ class UserPagesRest
         )
       }
     }*/
+    val newPassword = dto.newPassword
+    val passwordRepeat = dto.passwordRepeat
+    if (newPassword != null && newPassword.isNotEmpty() || passwordRepeat != null && passwordRepeat.isNotEmpty()) {
+      if (!Arrays.equals(newPassword, passwordRepeat)) {
+        validationErrors.add(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch", "passwordRepeat"))
+      }
+    }
   }
 
   /**
@@ -283,27 +294,43 @@ class UserPagesRest
   override fun createEditLayout(dto: User, userAccess: UILayout.UserAccess): UILayout {
     val layout = super.createEditLayout(dto, userAccess)
     val userSettings = createUserSettingsCol(UILength(md = 6))
+    val leftCol = UICol(md = 6)
+      .add(
+        lc,
+        PFUserDO::username,
+        PFUserDO::firstname,
+        PFUserDO::lastname,
+        PFUserDO::nickname,
+        PFUserDO::gender,
+        PFUserDO::organization,
+        PFUserDO::email,
+        PFUserDO::mobilePhone,
+        PFUserDO::jiraUsername,
+        PFUserDO::hrPlanning,
+        PFUserDO::deactivated,
+      )
+    if (dto.id != null && dto.id != ThreadLocalUserContext.getUserId()) {
+      // Don't allow password change for currently logged-in-user.
+      leftCol
+        .add(
+          UIInput(
+            User::newPassword.name,
+            label = "user.changePassword.newPassword",
+            tooltip = "user.changePassword.error.passwordQualityCheck",
+            dataType = UIDataType.PASSWORD,
+          )
+        )
+        .add(
+          UIInput(
+            User::passwordRepeat.name,
+            label = "passwordRepeat",
+            dataType = UIDataType.PASSWORD,
+          )
+        )
+    }
     layout.add(
       UIRow()
-        .add(
-          UICol(md = 6)
-            .add(
-              lc,
-              PFUserDO::username,
-              PFUserDO::firstname,
-              PFUserDO::lastname,
-              PFUserDO::nickname,
-              PFUserDO::gender,
-              PFUserDO::organization,
-              PFUserDO::email,
-              /*"authenticationToken",*/
-              PFUserDO::mobilePhone,
-              PFUserDO::jiraUsername,
-              PFUserDO::hrPlanning,
-              PFUserDO::deactivated,
-              //PFUserDO::password
-            )
-        )
+        .add(leftCol)
         .add(userSettings)
     )
       .add(lc, PFUserDO::sshPublicKey, PFUserDO::gpgPublicKey)
@@ -356,7 +383,7 @@ class UserPagesRest
         1,
       )
     }
-
+    layout.add(UIAlert(message = "ToDo: rights, assignedUsers, password change, ldap values", color = UIColor.DANGER))
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 
@@ -383,7 +410,7 @@ class UserPagesRest
       .add(
         UICol().add(
           UIReadOnlyField(
-            property = property,
+            property.name,
             label = key,
             additionalLabel = "timeOfCreation",
             tooltip = "$key.tooltip"
@@ -412,6 +439,21 @@ class UserPagesRest
     } else {
       col.add(row)
     }
+  }
+
+  override fun onBeforeUpdate(request: HttpServletRequest, obj: PFUserDO, postData: PostData<User>) {
+    log.info { "The user wants to change password of '${obj.displayName}'." }
+    accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+    if (obj.id == ThreadLocalUserContext.getUserId()) {
+      throw IllegalArgumentException("User not allowed to change his own password here.")
+    }
+    val user = postData.data
+    val errorMsgKeys = userService.changePassword(obj.id, user.newPassword)
+    data.clear() // Clear all passwords, if not already done, due to security reasons.
+    processErrorKeys(errorMsgKeys)?.let {
+      return it // Error messages occured:
+    }
+    */
   }
 
   override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")
@@ -522,7 +564,8 @@ class UserPagesRest
     internal fun createUserSettingsCol(uiLength: UILength): UICol {
       val userLC = LayoutContext(PFUserDO::class.java)
 
-      val locales = UserLocale.LOCALIZATIONS.map { UISelectValue(Locale(it), translate("locale.$it")) }.toMutableList()
+      val locales =
+        UserLocale.LOCALIZATIONS.map { UISelectValue(Locale(it), translate("locale.$it")) }.toMutableList()
       locales.add(0, UISelectValue(Locale("DEFAULT"), translate("user.defaultLocale")))
 
       val today = LocalDate.now()

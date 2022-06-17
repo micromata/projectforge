@@ -27,7 +27,6 @@ import mu.KotlinLogging
 import org.projectforge.business.login.LoginHandler
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.service.UserService
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -111,6 +110,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     val newPassword = UIInput(
       "newPassword",
       label = "user.changePassword.newPassword",
+      tooltip = "user.changePassword.error.passwordQualityCheck",
       dataType = UIDataType.PASSWORD,
       required = true
     )
