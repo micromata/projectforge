@@ -447,6 +447,7 @@ class UserPagesRest
     if (obj.id == ThreadLocalUserContext.getUserId()) {
       throw IllegalArgumentException("User not allowed to change his own password here.")
     }
+    /*
     val user = postData.data
     val errorMsgKeys = userService.changePassword(obj.id, user.newPassword)
     data.clear() // Clear all passwords, if not already done, due to security reasons.
