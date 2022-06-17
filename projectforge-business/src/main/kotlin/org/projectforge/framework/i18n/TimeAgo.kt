@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.i18n
 
+import org.projectforge.common.DateFormatType
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.TimeUnit
 import java.util.*
@@ -73,6 +74,14 @@ object TimeAgo {
   fun getMessage(date: Date?, locale: Locale? = null, allowFutureTimes: Boolean = false, maxUnit: TimeUnit? = null): String {
     date ?: return ""
     return translate(getI18nKey(date, allowFutureTimes, maxUnit), "timeago", locale)
+  }
+
+  @JvmOverloads
+  @JvmStatic
+  fun getDateAndMessage(date: Date?, locale: Locale? = null, allowFutureTimes: Boolean = false, maxUnit: TimeUnit? = null): String {
+    date ?: return ""
+    val text = PFDateTime.from(date).format(DateFormatType.DATE_TIME_MINUTES)
+    return "$text (${getMessage(date)})"
   }
 
   internal fun getI18nKey(date: Date, allowFutureTimes: Boolean, maxUnit: TimeUnit? = null): Pair<String, Int> {

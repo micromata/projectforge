@@ -34,6 +34,7 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
@@ -47,7 +48,6 @@ import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -102,6 +102,10 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     var sshPublicKey: String? = null,
   ) {
     var employee: Employee? = null
+    var lastPasswordChange: Date? = null
+    var lastPasswordChangeFormatted: String? = null
+    var lastWlanPasswordChange: Date? = null
+    var lastWlanPasswordChangeFormatted: String? = null
   }
 
   @PostMapping
@@ -162,7 +166,15 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     data.gpgPublicKey = user.gpgPublicKey
     data.sshPublicKey = user.sshPublicKey
 
-    data.lastLoginFormatted = User.formatLastLogin(user.lastLogin)
+    data.lastLoginFormatted = TimeAgo.getDateAndMessage(user.lastLogin)
+    user.lastPasswordChange?.let {
+      data.lastPasswordChange = it
+      data.lastPasswordChangeFormatted = TimeAgo.getDateAndMessage(it)
+    }
+    user.lastWlanPasswordChange?.let {
+      data.lastWlanPasswordChange = it
+      data.lastWlanPasswordChangeFormatted = TimeAgo.getDateAndMessage(it)
+    }
 
     val employee = employeeService.getEmployeeByUserId(userId)
     if (employee != null) {
@@ -191,7 +203,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
           UIRow()
             .add(firstCol)
             .add(
-              UserPagesRest.createUserSettingsCol(UILength(lg = 6))
+              UserPagesRest.createUserSettingsCol(UILength(lg = 6), user)
             )
         )
     )

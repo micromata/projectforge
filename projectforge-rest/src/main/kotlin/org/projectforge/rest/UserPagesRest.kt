@@ -286,7 +286,9 @@ class UserPagesRest
    */
   override fun createEditLayout(dto: User, userAccess: UILayout.UserAccess): UILayout {
     val layout = super.createEditLayout(dto, userAccess)
-    val userSettings = createUserSettingsCol(UILength(md = 6))
+    val userDO = PFUserDO()
+    dto.copyTo(userDO)
+    val userSettings = createUserSettingsCol(UILength(md = 6), userDO)
     val leftCol = UICol(md = 6)
       .add(
         lc,
@@ -522,7 +524,7 @@ class UserPagesRest
   }
 
   companion object {
-    internal fun createUserSettingsCol(uiLength: UILength): UICol {
+    internal fun createUserSettingsCol(uiLength: UILength, user: PFUserDO): UICol {
       val userLC = LayoutContext(PFUserDO::class.java)
 
       val locales =
@@ -539,12 +541,18 @@ class UserPagesRest
         UISelectValue(TimeNotation.H24, translate("timeNotation.24"))
       )
 
-      return UICol(uiLength).add(UIReadOnlyField("lastLoginFormatted", label = "login.lastLogin"))
-        .add(userLC, "timeZone", "personalPhoneIdentifiers")
+      val col = UICol(uiLength)
+        .add(UIReadOnlyField("lastLoginFormatted", label = "login.lastLogin"))
+        .add(UIReadOnlyField(User::lastPasswordChangeFormatted.name, label = "user.changePassword.password.lastChange"))
+      if (Login.getInstance().isWlanPasswordChangeSupported(user)) {
+        col.add(UIReadOnlyField(User::lastWlanPasswordChangeFormatted.name, label = "user.changeWlanPassword.lastChange"))
+      }
+      col.add(userLC, "timeZone", "personalPhoneIdentifiers")
         .add(UISelect("locale", userLC, required = true, values = locales))
         .add(UISelect("dateFormat", userLC, required = false, values = dateFormats))
         .add(UISelect("excelDateFormat", userLC, required = false, values = excelDateFormats))
         .add(UISelect("timeNotation", userLC, required = false, values = timeNotations))
+      return col
     }
 
     private fun createUISelectValue(

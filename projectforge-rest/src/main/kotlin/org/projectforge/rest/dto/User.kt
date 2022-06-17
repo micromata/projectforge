@@ -27,7 +27,6 @@ import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.user.service.UserService
-import org.projectforge.common.DateFormatType
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.ApplicationContextProvider
@@ -36,7 +35,6 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.user.entities.Gender
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.TimeNotation
 import java.util.*
 
@@ -72,8 +70,6 @@ class User(
   var rightsAsString: String? = null,
   var ldapValues: String? = null,
   var localUser: Boolean? = false,
-  var lastPasswordChange: Date? = null,
-  var lastWlanPasswordChange: Date? = null,
 ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
 
   var stayLoggedInTokenCreationDate: Date? = null
@@ -85,6 +81,11 @@ class User(
   var calendarExportTokenCreationTimeAgo: String? = null
   var davTokenCreationTimeAgo: String? = null
   var restClientTokenCreationTimeAgo: String? = null
+
+  var lastPasswordChange: Date? = null
+  var lastPasswordChangeFormatted: String? = null
+  var lastWlanPasswordChange: Date? = null
+  var lastWlanPasswordChangeFormatted: String? = null
 
   /**
    * @see copyFromMinimal
@@ -102,7 +103,13 @@ class User(
     super.copyFrom(src)
     lastLogin?.let { date ->
       lastLoginTimeAgo = TimeAgo.getMessage(date)
-      lastLoginFormatted = formatLastLogin(date)
+      lastLoginFormatted = TimeAgo.getDateAndMessage(date)
+    }
+    lastPasswordChange?.let { date ->
+      lastPasswordChangeFormatted = TimeAgo.getDateAndMessage(date)
+    }
+    lastWlanPasswordChange?.let { date ->
+      lastWlanPasswordChangeFormatted = TimeAgo.getDateAndMessage(date)
     }
     timeZone = src.timeZone
     if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
@@ -207,12 +214,6 @@ class User(
       val users = toUserList(userIds)
       restoreDisplayNames(users, userService)
       return users?.joinToString { it.displayName ?: "???" } ?: ""
-    }
-
-    fun formatLastLogin(date: Date?): String {
-      date ?: return ""
-      val text = PFDateTime.from(date).format(DateFormatType.DATE_TIME_MINUTES)
-      return "$text (${TimeAgo.getMessage(date)})"
     }
   }
 }

@@ -366,7 +366,7 @@ public class UserService {
     }
     if (updateSaltAndPepperIfNeeded && passwordCheckResult.isPasswordUpdateNeeded()) {
       log.info("Giving salt and/or pepper to the password of the user " + user.getId() + ".");
-      encryptAndSavePassword(user, password);
+      encryptAndSavePassword(user, password, false);
       userDao.internalUpdate(user);
     }
     return user;
