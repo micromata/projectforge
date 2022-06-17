@@ -93,7 +93,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     assertFalse(databaseService.databaseTablesWithEntriesExist());
     PFUserDO admin = new PFUserDO();
     admin.setUsername("myadmin");
-    userService.createEncryptedPassword(admin, testPassword);
+    userService.encryptAndSavePassword(admin, testPassword);
     pfJpaXmlDumpService.createTestDatabase();
     admin = databaseService.updateAdminUser(admin, null);
     databaseService.afterCreatedTestDb(true);

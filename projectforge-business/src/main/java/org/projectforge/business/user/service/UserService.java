@@ -24,7 +24,6 @@
 package org.projectforge.business.user.service;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -38,11 +37,8 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.utils.Crypt;
-import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -61,6 +57,7 @@ public class UserService {
   private UserGroupCache userGroupCache;
   private ConfigurationService configurationService;
   private UserDao userDao;
+  private UserPasswordDao userPasswordDao;
   private AccessChecker accessChecker;
   private UserAuthenticationsService userAuthenticationsService;
   private PasswordQualityService passwordQualityService;
@@ -76,12 +73,14 @@ public class UserService {
                      ConfigurationService configurationService,
                      PasswordQualityService passwordQualityService,
                      UserDao userDao,
+                     UserPasswordDao userPasswordDao,
                      UserGroupCache userGroupCache,
                      UserAuthenticationsService userAuthenticationsService) {
     this.accessChecker = accessChecker;
     this.configurationService = configurationService;
     this.passwordQualityService = passwordQualityService;
     this.userDao = userDao;
+    this.userPasswordDao = userPasswordDao;
     this.userGroupCache = userGroupCache;
     this.userAuthenticationsService = userAuthenticationsService;
   }
@@ -113,7 +112,7 @@ public class UserService {
     }
     StringBuilder sb = new StringBuilder();
     boolean first = true;
-    for (PFUserDO user: users) {
+    for (PFUserDO user : users) {
       String mail = user.getEmail();
       if (StringUtils.isNotBlank(mail)) {
         if (first) {
@@ -192,6 +191,18 @@ public class UserService {
   }
 
   /**
+   * Checks the given password by comparing it with the stored user password. For backward compatibility the password is
+   * encrypted with and without pepper (if configured). The salt string of the given user is used.
+   *
+   * @param user
+   * @param clearTextPassword as clear text.
+   * @return true if the password matches the user's password.
+   */
+  public PasswordCheckResult checkPassword(final PFUserDO user, final char[] clearTextPassword) {
+    return userPasswordDao.checkPassword(user, clearTextPassword);
+  }
+
+  /**
    * @param userId
    * @return The user from UserGroupCache.
    */
@@ -202,19 +213,23 @@ public class UserService {
   /**
    * Encrypts the password with a new generated salt string and the pepper string if configured any.
    *
-   * @param user     The user to user.
-   * @param password as clear text.
-   * @see Crypt#digest(char[])
+   * @param user              The user to user.
+   * @param clearTextPassword as clear text.x
+   * @see UserPasswordDao#encryptAndSavePassword(int, char[])
    */
-  public void createEncryptedPassword(final PFUserDO user, final char[] password) {
-    final String saltString = createSaltString();
-    user.setPasswordSalt(saltString);
-    final String encryptedPassword = encryptAndClear(getPepperString(), saltString, password);
-    user.setPassword(encryptedPassword);
+  public void encryptAndSavePassword(final PFUserDO user, final char[] clearTextPassword) {
+    encryptAndSavePassword(user, clearTextPassword, true);
   }
 
-  private String createSaltString() {
-    return NumberHelper.getSecureRandomAlphanumeric(10);
+  /**
+   * Encrypts the password with a new generated salt string and the pepper string if configured any.
+   *
+   * @param user              The user to user.
+   * @param clearTextPassword as clear text.x
+   * @see UserPasswordDao#encryptAndSavePassword(int, char[])
+   */
+  public void encryptAndSavePassword(final PFUserDO user, final char[] clearTextPassword, final boolean checkAccess) {
+    userPasswordDao.encryptAndSavePassword(user.getId(), clearTextPassword, checkAccess);
   }
 
   /**
@@ -244,7 +259,7 @@ public class UserService {
         return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG));
       }
 
-      createEncryptedPassword(user, newPassword);
+      encryptAndSavePassword(user, newPassword);
       onPasswordChange(user, true);
       userDao.internalUpdate(user);
       Login.getInstance().passwordChanged(user, newPassword);
@@ -277,7 +292,7 @@ public class UserService {
       }
       final PFUserDO user = userDao.internalGetById(userId);
       ThreadLocalUserContext.setUser(user);
-      createEncryptedPassword(user, newPassword);
+      encryptAndSavePassword(user, newPassword);
       onPasswordChange(user, true);
       userDao.internalUpdate(user);
       Login.getInstance().passwordChanged(user, newPassword);
@@ -325,36 +340,11 @@ public class UserService {
   }
 
   public void onPasswordChange(final PFUserDO user, final boolean createHistoryEntry) {
-    user.checkAndFixPassword();
-    if (user.getPassword() != null) {
-      if (createHistoryEntry) {
-        HistoryBaseDaoAdapter.wrapHistoryUpdate(user, () -> {
-          user.setLastPasswordChange(new Date());
-          return ModificationStatus.MAJOR;
-        });
-      } else {
-        user.setLastPasswordChange(new Date());
-      }
-      if (user.getId() != null) {
-        // Renew token only for existing users.
-        userAuthenticationsService.renewToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY);
-        userAuthenticationsService.renewToken(user.getId(), UserTokenType.REST_CLIENT);
-      }
-    } else {
-      throw new IllegalArgumentException(
-          "Given password seems to be not encrypted! Aborting due to security reasons (for avoiding storage of clear password in the database).");
-    }
+    userPasswordDao.onPasswordChange(user, createHistoryEntry);
   }
 
   public void onWlanPasswordChange(final PFUserDO user, final boolean createHistoryEntry) {
-    if (createHistoryEntry) {
-      HistoryBaseDaoAdapter.wrapHistoryUpdate(user, () -> {
-        user.setLastWlanPasswordChange(new Date());
-        return ModificationStatus.MAJOR;
-      });
-    } else {
-      user.setLastWlanPasswordChange(new Date());
-    }
+    userPasswordDao.onWlanPasswordChange(user, createHistoryEntry);
   }
 
   /**
@@ -370,70 +360,16 @@ public class UserService {
       return null;
     }
     final PFUserDO user = list.get(0);
-    final PasswordCheckResult passwordCheckResult = checkPassword(user, password);
+    final PasswordCheckResult passwordCheckResult = userPasswordDao.checkPassword(user, password);
     if (!passwordCheckResult.isOK()) {
       return null;
     }
     if (updateSaltAndPepperIfNeeded && passwordCheckResult.isPasswordUpdateNeeded()) {
       log.info("Giving salt and/or pepper to the password of the user " + user.getId() + ".");
-      createEncryptedPassword(user, password);
+      encryptAndSavePassword(user, password);
       userDao.internalUpdate(user);
     }
     return user;
-  }
-
-  /**
-   * Checks the given password by comparing it with the stored user password. For backward compatibility the password is
-   * encrypted with and without pepper (if configured). The salt string of the given user is used.
-   *
-   * @param user
-   * @param password as clear text.
-   * @return true if the password matches the user's password.
-   */
-  public PasswordCheckResult checkPassword(final PFUserDO user, final char[] password) {
-    if (user == null) {
-      log.warn("User not given in checkPassword(PFUserDO, String) method.");
-      return PasswordCheckResult.FAILED;
-    }
-    final PFUserDO internalUser = userDao.internalGetById(user.getId());
-    if (internalUser == null) {
-      log.warn("Can't load user; " + user.getId());
-      return PasswordCheckResult.FAILED;
-    }
-    final String userPassword = internalUser.getPassword();
-    if (StringUtils.isBlank(userPassword)) {
-      log.warn("User's password is blank, can't checkPassword(PFUserDO, String) for user with id " + user.getId());
-      return PasswordCheckResult.FAILED;
-    }
-    String saltString = internalUser.getPasswordSalt();
-    if (saltString == null) {
-      saltString = "";
-    }
-    final String pepperString = getPepperString();
-    String encryptedPassword = encryptAndClear(pepperString, saltString, password);
-    if (userPassword.equals(encryptedPassword)) {
-      // Passwords match!
-      if (StringUtils.isEmpty(saltString)) {
-        log.info("Password of user " + user.getId() + " with username '" + user.getUsername() + "' is not yet salted!");
-        return PasswordCheckResult.OK_WITHOUT_SALT;
-      }
-      return PasswordCheckResult.OK;
-    }
-    if (StringUtils.isNotBlank(pepperString)) {
-      // Check password without pepper (if pepper was introduced after the user has set his/her password):
-      encryptedPassword = encryptAndClear(null, saltString, password);
-      if (userPassword.equals(encryptedPassword)) {
-        // Passwords match!
-        if (StringUtils.isEmpty(saltString)) {
-          log.info("Password of user " + user.getId() + " with username '" + user.getUsername()
-              + "' is not yet salted and has no pepper!");
-          return PasswordCheckResult.OK_WITHOUT_SALT_AND_PEPPER;
-        }
-        log.info("Password of user " + user.getId() + " with username '" + user.getUsername() + "' has no pepper!");
-        return PasswordCheckResult.OK_WITHOUT_PEPPER;
-      }
-    }
-    return PasswordCheckResult.FAILED;
   }
 
   /**
@@ -456,10 +392,9 @@ public class UserService {
         log.warn("Deleted/deactivated user tried to login: " + user);
         return null;
       }
-      final PFUserDO contextUser = PFUserDO.createCopyWithoutSecretFields(user);
-      contextUser.setLoginFailures(loginFailures); // Restore loginFailures for current user session.
-      contextUser.setLastLogin(lastLogin); // Restore lastLogin for current user session.
-      return contextUser;
+      user.setLoginFailures(loginFailures); // Restore loginFailures for current user session.
+      user.setLastLogin(lastLogin); // Restore lastLogin for current user session.
+      return user;
     }
     userDao.updateIncrementLoginFailure(username);
     return null;
@@ -587,22 +522,6 @@ public class UserService {
       }
     }
     return userList;
-  }
-
-  /**
-   * Creates salted and peppered password as char array, encrypts it and clears the char array afterwards due to security reasons.
-   *
-   * @param pepper
-   * @param salt
-   * @param password
-   * @return
-   */
-  private String encryptAndClear(final String pepper, final String salt, final char[] password) {
-    final String saltPepper = StringUtils.defaultString(pepper) + StringUtils.defaultString(salt);
-    final char[] saltedAndPepperedPassword = ArrayUtils.addAll(saltPepper.toCharArray(), password);
-    String encryptedPassword = Crypt.digest(saltedAndPepperedPassword);
-    LoginHandler.clearPassword(saltedAndPepperedPassword); // Clear array to to security reasons.
-    return encryptedPassword;
   }
 
   /**

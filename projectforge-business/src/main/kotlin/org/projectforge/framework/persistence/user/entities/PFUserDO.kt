@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.user.entities
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.Field
@@ -32,18 +31,13 @@ import org.hibernate.search.annotations.FieldBridge
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
-import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.configuration.Configuration
-import org.projectforge.framework.i18n.InternalErrorException
-import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IUserRightId
-import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.time.TimeNotation
-import java.io.Serializable
 import java.time.DayOfWeek
 import java.util.*
 import javax.persistence.*
@@ -78,23 +72,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     open var username: String? = null
 
     /**
-     * JIRA user name (if differ from the ProjectForge's user name).
-     */
-    @PropertyInfo(i18nKey = "user.jiraUsername", tooltip = "user.jiraUsername.tooltip")
-    @Field
-    @get:Column(name = "jira_username", length = 100)
-    open var jiraUsername: String? = null
-
-    /**
-     * Encoded password of the user (SHA-1).
-     */
-    @PropertyInfo(i18nKey = "password")
-    @JsonIgnore
-    @field:NoHistory
-    @get:Column(length = 50)
-    open var password: String? = null
-
-    /**
      * Timesamp of the lastPasswordChange.
      */
     @get:Column(name = "last_password_change")
@@ -102,6 +79,14 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
     @get:Column(name = "last_wlan_password_change")
     open var lastWlanPasswordChange: Date? = null
+
+    /**
+     * JIRA user name (if differ from the ProjectForge's user name).
+     */
+    @PropertyInfo(i18nKey = "user.jiraUsername", tooltip = "user.jiraUsername.tooltip")
+    @Field
+    @get:Column(name = "jira_username", length = 100)
+    open var jiraUsername: String? = null
 
     /**
      * A local user will not be synchronized with any external user management system.
@@ -166,14 +151,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @Field
     @get:Column(name = "mobile_phone", length = 255)
     open var mobilePhone: String? = null
-
-    /**
-     * The saltString for giving salt to hashed password.
-     */
-    @JsonIgnore
-    @field:NoHistory
-    @get:Column(name = "password_salt", length = 40)
-    open var passwordSalt: String? = null
 
     /**
      * Zeitstempel des letzten erfolgreichen Logins.
@@ -366,18 +343,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
                 "$str (${this.username})"
         }
 
-    /**
-     * PLEASE NOTE: Be very careful of modifying this method and don't remove this method! Otherwise
-     * data as password hashes may be displayed in log files etc.
-     * Returns string containing all fields (except the password) of given user object (via ReflectionToStringBuilder).
-     */
-    override fun toString(): String {
-        val user = createCopyWithoutSecretFields(this)!!
-        if (user.hasSecretFieldValues())
-            throw InternalErrorException("Security alert in PFUserDO.toString(): secret fields is given but not allowed here!")
-        return ToStringUtil.toJsonString(user)
-    }
-
     override fun equals(other: Any?): Boolean {
         if (other is PFUserDO) {
             return Objects.equals(this.username, other.username)
@@ -387,29 +352,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
     override fun hashCode(): Int {
         return this.username?.hashCode() ?: 0
-    }
-
-    /**
-     * Security advice: Please use [PFUserDO.createCopyWithoutSecretFields] instead. This method calls simply
-     * super and [checkAndFixPassword]. It's also there for checking security issues of callers.
-     */
-    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
-        val modificationStatus = super.copyValuesFrom(src, *ignoreFields)
-        checkAndFixPassword()
-        return modificationStatus
-    }
-
-    /**
-     * If password is not given as "SHA{..." then it will be set to null due to security reasons.
-     */
-    fun checkAndFixPassword() {
-        val pw = this.password
-        if (!pw.isNullOrEmpty() &&
-                !pw.startsWith("SHA{") &&
-                (pw != NOPASSWORD)) {
-            this.password = null
-            log.error("Password for user '" + this.username + "' is not given SHA encrypted. Ignoring it.")
-        }
     }
 
     /**
@@ -445,13 +387,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     /**
      * @return this for chaining.
      */
-    fun setNoPassword() {
-        this.password = NOPASSWORD
-    }
-
-    /**
-     * @return this for chaining.
-     */
     fun addRight(right: UserRightDO): PFUserDO {
         if (this.rights == null) {
             this.rights = HashSet()
@@ -482,27 +417,8 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         return !isDeleted && !this.deactivated
     }
 
-    /**
-     * @return If any of the secret fields is given (password, passwordSalt).
-     */
-    fun hasSecretFieldValues(): Boolean {
-        return (!this.password.isNullOrEmpty()
-                || !this.passwordSalt.isNullOrEmpty())
-    }
-
-    /**
-     * Clears any given secret field (password, passwordSalt) by setting them to null.
-     */
-    fun clearSecretFields() {
-        this.password = null
-        this.passwordSalt = null
-    }
-
-
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(PFUserDO::class.java)
-
-        private const val NOPASSWORD = "--- none ---"
 
         const val FIND_BY_USERNAME = "PFUserDO_FindByUsername"
 
@@ -512,25 +428,25 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         internal const val FIND_OTHER_USER_BY_USERNAME = "PFUserDO_FindOtherUserByUsername"
 
         /**
-         * @return A copy of the given user without copying the secret fields (password, passwordSalt).
-         */
-        @JvmStatic
-        fun createCopyWithoutSecretFields(srcUser: PFUserDO?): PFUserDO? {
-            if (srcUser == null)
-                return null
-            val user = PFUserDO()
-            user.copyValuesFrom(srcUser, "password", "passwordSalt")
-            // Paranoia setting (fields shouldn't be copied):
-            user.clearSecretFields()
-            return user
-        }
-
-        /**
          * Converts user list to comma separated int values.
          * @return String with csv or null, if list of user's is null.
          */
         fun toIntList(users: List<PFUserDO>?): String? {
             return users?.filter { it.id != null }?.joinToString { "${it.id}" }
         }
+
+        /**
+         * @return A copy of the given user without copying the secret fields (password, passwordSalt).
+         */
+        @JvmStatic
+        fun createCopy(srcUser: PFUserDO?): PFUserDO? {
+            if (srcUser == null)
+                return null
+            val user = PFUserDO()
+            user.copyValuesFrom(srcUser)
+            // Paranoia setting (fields shouldn't be copied):
+            return user
+        }
+
     }
 }

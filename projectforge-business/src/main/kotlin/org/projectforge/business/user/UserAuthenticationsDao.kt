@@ -103,7 +103,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
    * @see BaseDao.getOrLoad
    */
   open fun setUser(authentications: UserAuthenticationsDO, userId: Int) {
-    val user = userDao.internalGetOrLoad(userId)
+    val user = userDao.internalGetById(userId)
     authentications.user = user
   }
 

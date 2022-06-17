@@ -23,26 +23,24 @@
 
 package org.projectforge.business.login;
 
-import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * Holder for LoginResultStatus and user (if login was successful).
- * @author Kai Reinhard (k.reinhard@micromata.de)
  *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class LoginResult
-{
+public class LoginResult {
   private PFUserDO user;
 
   private LoginResultStatus loginResultStatus;
 
   /**
    * The returned user doesn't contain secret fields (password etc.). This is ensured by the setter.
+   *
    * @return the user
    */
-  public PFUserDO getUser()
-  {
+  public PFUserDO getUser() {
     return user;
   }
 
@@ -50,21 +48,15 @@ public class LoginResult
    * @param user the user to set
    * @return this for chaining.
    */
-  public LoginResult setUser(final PFUserDO user)
-  {
-    if (StringUtils.isNotEmpty(user.getPassword())) {
-      this.user = PFUserDO.createCopyWithoutSecretFields(user);
-    } else {
-      this.user = user;
-    }
+  public LoginResult setUser(final PFUserDO user) {
+    this.user = user;
     return this;
   }
 
   /**
    * @return the loginResultStatus
    */
-  public LoginResultStatus getLoginResultStatus()
-  {
+  public LoginResultStatus getLoginResultStatus() {
     return loginResultStatus;
   }
 
@@ -72,8 +64,7 @@ public class LoginResult
    * @param loginResultStatus the loginResultStatus to set
    * @return this for chaining.
    */
-  public LoginResult setLoginResultStatus(final LoginResultStatus loginResultStatus)
-  {
+  public LoginResult setLoginResultStatus(final LoginResultStatus loginResultStatus) {
     this.loginResultStatus = loginResultStatus;
     return this;
   }
@@ -83,8 +74,7 @@ public class LoginResult
    * @return this for chaining.
    * @see LoginResultStatus#setMsgParams(Object...)
    */
-  public LoginResult setMsgParams(final Object... msgParams)
-  {
+  public LoginResult setMsgParams(final Object... msgParams) {
     this.loginResultStatus.setMsgParams(msgParams);
     return this;
   }

@@ -30,6 +30,7 @@ import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskTree;
+import org.projectforge.business.user.service.UserService;
 import org.projectforge.common.DatabaseDialect;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationDao;
@@ -54,8 +55,7 @@ import org.springframework.jdbc.datasource.init.ScriptUtils;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
-public class SetupPage extends AbstractUnsecureBasePage
-{
+public class SetupPage extends AbstractUnsecureBasePage {
   private static final long serialVersionUID = 9174903871130640690L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SetupPage.class);
@@ -81,12 +81,14 @@ public class SetupPage extends AbstractUnsecureBasePage
   @SpringBean
   private TaskTree taskTree;
 
+  @SpringBean
+  private UserService userService;
+
   private final SetupForm setupForm;
 
   private final SetupImportForm importForm;
 
-  public SetupPage(final PageParameters parameters)
-  {
+  public SetupPage(final PageParameters parameters) {
     super(parameters);
     checkAccess();
     WicketSupport.getMenuCreator().refresh();
@@ -98,8 +100,7 @@ public class SetupPage extends AbstractUnsecureBasePage
     importForm.init();
   }
 
-  protected void finishSetup()
-  {
+  protected void finishSetup() {
     log.info("Finishing the set-up...");
     checkAccess();
     PFUserDO adminUser = setupForm.getAdminUser();
@@ -118,13 +119,17 @@ public class SetupPage extends AbstractUnsecureBasePage
             configurationDao.getApplicationContext().getResource("classpath:data/pfTestdata.sql"));
         if (databaseService.getDialect() == DatabaseDialect.PostgreSQL) {
           ScriptUtils.executeSqlScript(databaseService.getDataSource().getConnection(),
-                  configurationDao.getApplicationContext().getResource("classpath:data/pfTestdataPostgres.sql"));
+              configurationDao.getApplicationContext().getResource("classpath:data/pfTestdataPostgres.sql"));
         }
       } catch (Exception e) {
         log.error("Exception occured while running test data insert script. Message: " + e.getMessage());
       }
       Configuration.getInstance().forceReload();
       adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
+      if (StringUtils.isNotBlank(setupForm.getPassword())) {
+        char[] clearTextPassword = setupForm.getPassword().toCharArray();
+        userService.encryptAndSavePassword(adminUser, clearTextPassword);
+      }
       databaseInitTestDataService.initAdditionalTestData();
       databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";
@@ -152,16 +157,14 @@ public class SetupPage extends AbstractUnsecureBasePage
     log.info("Set-up finished.");
   }
 
-  private void loginAdminUser(PFUserDO adminUser)
-  {
+  private void loginAdminUser(PFUserDO adminUser) {
     //Login admin user
     final UserContext userContext = new UserContext(adminUser);
     ((MySession) getSession()).internalLogin(userContext, getRequest());
     LoginService.internalLogin(WicketUtils.getHttpServletRequest(getRequest()), userContext);
   }
 
-  private ConfigurationDO getConfigurationDO(final ConfigurationParam param)
-  {
+  private ConfigurationDO getConfigurationDO(final ConfigurationParam param) {
     final ConfigurationDO configurationDO = configurationDao.getEntry(param);
     if (configurationDO == null) {
       log.error("Oups, can't find configuration parameter '" + param + "'. You can re-configure it anytime later.");
@@ -169,8 +172,7 @@ public class SetupPage extends AbstractUnsecureBasePage
     return configurationDO;
   }
 
-  private void configure(final ConfigurationParam param, final String value)
-  {
+  private void configure(final ConfigurationParam param, final String value) {
     if (StringUtils.isBlank(value) == true) {
       return;
     }
@@ -181,8 +183,7 @@ public class SetupPage extends AbstractUnsecureBasePage
     }
   }
 
-  protected void upload()
-  {
+  protected void upload() {
     checkAccess();
     log.info("Uploading data-base dump file...");
     final FileUpload fileUpload = importForm.fileUploadField.getFileUpload();
@@ -212,11 +213,9 @@ public class SetupPage extends AbstractUnsecureBasePage
       Configuration.getInstance().setExpired();
       taskTree.setExpired();
       getUserGroupCache().setExpired();
-      new Thread()
-      {
+      new Thread() {
         @Override
-        public void run()
-        {
+        public void run() {
           hibernateSearchReindexer.rebuildDatabaseSearchIndices();
         }
       }.start();
@@ -233,13 +232,11 @@ public class SetupPage extends AbstractUnsecureBasePage
   }
 
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return getString("administration.setup.title");
   }
 
-  private void checkAccess()
-  {
+  private void checkAccess() {
     if (databaseService.databaseTablesWithEntriesExist()) {
       log.error("Couldn't call set-up page, because the data-base isn't empty!");
       ((MySession) getSession()).internalLogout();
@@ -251,7 +248,6 @@ public class SetupPage extends AbstractUnsecureBasePage
    * @see org.projectforge.web.wicket.AbstractUnsecureBasePage#thisIsAnUnsecuredPage()
    */
   @Override
-  protected void thisIsAnUnsecuredPage()
-  {
+  protected void thisIsAnUnsecuredPage() {
   }
 }

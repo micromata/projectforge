@@ -56,7 +56,7 @@ public class ICalGeneratorParserTest extends AbstractTestBase
     user.setFirstname("FirstName");
     user.setLastname("LastName");
     user.setTimeZone(DateHelper.EUROPE_BERLIN);
-    ThreadLocalUserContext.setUser(PFUserDO.Companion.createCopyWithoutSecretFields(user));
+    ThreadLocalUserContext.setUser(PFUserDO.Companion.createCopy(user));
   }
 
   @Test

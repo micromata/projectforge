@@ -35,7 +35,6 @@ class RestAuthenticationInfo(var request: HttpServletRequest,
 
     var user: PFUserDO? = null
         set(value) {
-            value?.clearSecretFields()
             if (value != null) {
                 userString = value.username
             }

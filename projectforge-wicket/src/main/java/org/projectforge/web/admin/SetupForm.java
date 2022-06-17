@@ -72,6 +72,8 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
   // this value is changed by a PropertyModel
   private TimeZone timeZone = TimeZone.getDefault();
 
+  private String password;
+
   private final IModel<String> sysopEMailModel = new Model<>();
 
   private final IModel<String> feedbackEMailModel = new Model<>();
@@ -151,18 +153,18 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
         final String passwordInput = passwordField.getConvertedInput();
         if (StringUtils.equals(input, passwordInput) == false) {
           passwordRepeatField.error(getString("user.error.passwordAndRepeatDoesNotMatch"));
-          adminUser.setPassword(null);
+          password = null;
           return;
         }
-        if (MAGIC_PASSWORD.equals(passwordInput) == false || adminUser.getPassword() == null) {
+        if (MAGIC_PASSWORD.equals(passwordInput) == false || password == null) {
           final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
           if (errorMsgKeys.isEmpty() == false) {
-            adminUser.setPassword(null);
+            password = null;
             for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
               passwordField.error(I18nHelper.getLocalizedMessage(errorMsgKey));
             }
           } else {
-            userService.createEncryptedPassword(adminUser, passwordInput.toCharArray());
+            userService.encryptAndSavePassword(adminUser, passwordInput.toCharArray());
           }
         }
       });
@@ -239,7 +241,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
       protected void onComponentTag(final ComponentTag tag)
       {
         super.onComponentTag(tag);
-        if (adminUser.getPassword() == null) {
+        if (password == null) {
           tag.put("value", "");
         } else if (StringUtils.isEmpty(getConvertedInput()) == false) {
           tag.put("value", MAGIC_PASSWORD);
@@ -263,6 +265,10 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
   public TimeZone getTimeZone()
   {
     return timeZone;
+  }
+
+  public String getPassword() {
+    return password;
   }
 
   /**

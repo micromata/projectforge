@@ -23,11 +23,9 @@
 
 package org.projectforge.web.user;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.ldap.PFUserDOConverter;
-import org.projectforge.business.login.Login;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightDao;
@@ -40,9 +38,7 @@ import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @EditPage(defaultReturnPage = UserListPage.class)
 public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserDao>
@@ -77,20 +73,10 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
   @Override
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
-    final PFUserDO passwordUser = form.getPasswordUser();
-    if (passwordUser != null) {
-      getData().setPassword(passwordUser.getPassword());
-      getData().setPasswordSalt(passwordUser.getPasswordSalt());
-      userService.onPasswordChange(getData(), false);
-    }
     getData().setPersonalPhoneIdentifiers(userService.getNormalizedPersonalPhoneIdentifiers(getData()));
     if (form.ldapUserValues.isValuesEmpty() == false) {
       final String xml = PFUserDOConverter.getLdapValuesAsXml(form.ldapUserValues);
       getData().setLdapValues(xml);
-    }
-
-    if (StringUtils.isNotEmpty(form.getWlanPassword())) {
-      userService.onWlanPasswordChange(getData(), false); // persist new time, history is created by caller
     }
 
     return super.onSaveOrUpdate();
@@ -114,21 +100,6 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
       userRightDao.updateUserRights(getData(), list, false);
       end = System.currentTimeMillis();
       log.info("Finish updating user rights. Took: " + (end - start) / 1000 + " sec.");
-    }
-    if (form.getPasswordUser() != null) {
-      log.info("Start password change");
-      start = System.currentTimeMillis();
-      Login.getInstance().passwordChanged(getData(), form.getPassword().toCharArray());
-      end = System.currentTimeMillis();
-      log.info("Finish password change. Took: " + (end - start) / 1000 + " sec.");
-    }
-
-    if (StringUtils.isNotEmpty(form.getWlanPassword())) {
-      log.info("Start WLAN password change");
-      start = System.currentTimeMillis();
-      Login.getInstance().wlanPasswordChanged(getData(), form.getWlanPassword().toCharArray());
-      end = System.currentTimeMillis();
-      log.info("Finish WLAN password change. Took: " + (end - start) / 1000 + " sec.");
     }
 
     //Only one time reload user group cache

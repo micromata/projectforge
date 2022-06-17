@@ -26,16 +26,15 @@ package org.projectforge.business.user;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
-import org.projectforge.framework.configuration.IConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.user.entities.UserPasswordDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -70,11 +69,14 @@ public class UserTest extends AbstractTestBase {
   @Autowired
   private UserGroupCache userGroupCache;
 
+  @Autowired
+  private UserPasswordDao userPasswordDao;
+
   @Override
   protected void afterAll() {
     recreateDataBase();
   }
-  
+
   @Test
   public void testUserDO() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
@@ -110,38 +112,29 @@ public class UserTest extends AbstractTestBase {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     PFUserDO user = new PFUserDO();
     user.setUsername("UserTest");
-    user.setPassword("Hurzel");
     user.setDescription("Description");
     final Serializable id = userService.save(user);
     user = userService.internalGetById(id);
     assertEquals("UserTest", user.getUsername());
-    assertNull(user.getPassword()); // Not SHA, should be ignored.
     assertEquals("Description", user.getDescription());
     user.setDescription("Description\ntest");
-    user.setPassword("secret");
     userService.update(user);
     user = userService.internalGetById(id);
     assertEquals("Description\ntest", user.getDescription());
-    assertNull(user.getPassword()); // Not SHA, should be ignored.
-    user.setPassword("SHA{...}");
     userService.update(user);
     user = userService.internalGetById(id);
-    assertEquals("SHA{...}", user.getPassword());
   }
 
   @Test
-  public void testCopyValues() {
-    final PFUserDO src = new PFUserDO();
-    src.setPassword("test");
-    src.setUsername("usertest");
-    final PFUserDO dest = new PFUserDO();
-    dest.copyValuesFrom(src);
-    assertNull(dest.getPassword());
-    assertEquals("usertest", dest.getUsername());
-    log.error("Last error message about not encrypted password is OK for this test!");
-    src.setPassword("SHA{9B4DDF20612345C5FC7A9355022E07368CDDF23A}");
-    dest.copyValuesFrom(src);
-    assertEquals("SHA{9B4DDF20612345C5FC7A9355022E07368CDDF23A}", dest.getPassword());
+  public void testPasswordHandling() {
+    PFUserDO user = new PFUserDO();
+    user.setUsername("UserTest-Passwords");
+    user.setDescription("Description");
+    final Integer id = userService.save(user);
+    userPasswordDao.encryptAndSavePassword(id, "secret".toCharArray(), false);
+    UserPasswordDO passwordObj = userPasswordDao.internalGetByUserId(id);
+    assertNotNull(passwordObj.getPasswordHash()); // Not SHA, should be ignored.
+    assertTrue(passwordObj.getPasswordHash().startsWith("SHA{"));
   }
 
   /**

@@ -32,7 +32,6 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO.Companion.createCopyWithoutSecretFields
 import org.projectforge.security.SecurityLogging.logSecurityWarn
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.web.ServerProperties
@@ -97,7 +96,7 @@ class CookieService {
       addCookie(request, response, stayLoggedInCookie, COOKIE_STAY_LOGGED_IN_MAX_AGE)
       userDao.updateUserAfterLoginSuccess(user)
       log.info("User successfully logged in using stay-logged-in method: " + user.userDisplayName + " (request=" + request.requestURI + ").")
-      val userContext = UserContext(createCopyWithoutSecretFields(user)!!)
+      val userContext = UserContext(user)
       // Restore any last successful 2FA from cookie:
       // *** 2FA userContext.lastSuccessful2FA = getLast2FA(request, user.id)
       return userContext

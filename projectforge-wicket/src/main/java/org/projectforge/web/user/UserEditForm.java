@@ -818,7 +818,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
         } else {
           passwordUser = new PFUserDO();
           char[] pw = passwordInput.toCharArray();
-          userService.createEncryptedPassword(passwordUser, pw);
+          userService.encryptAndSavePassword(passwordUser, pw);
           LoginHandler.clearPassword(pw);
         }
       }

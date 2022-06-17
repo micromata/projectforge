@@ -38,6 +38,7 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.user.entities.UserPasswordDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.utils.Crypt;
@@ -45,7 +46,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
 
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -60,18 +60,10 @@ public class UserDao extends BaseDao<PFUserDO> {
   @Autowired
   private ApplicationContext applicationContext;
 
+  private UserPasswordDao userPasswordDao;
+
   public UserDao() {
     super(PFUserDO.class);
-  }
-
-  public static List<PFUserDO> copyUsersWithoutSecrectFields(List<PFUserDO> list) {
-    if (list == null)
-      return null;
-    List<PFUserDO> result = new ArrayList<>(list.size());
-    for (PFUserDO user : list) {
-      result.add(PFUserDO.createCopyWithoutSecretFields(user));
-    }
-    return result;
   }
 
   public QueryFilter getDefaultFilter() {
@@ -131,70 +123,6 @@ public class UserDao extends BaseDao<PFUserDO> {
     return list;
   }
 
-  /**
-   * Removes secret fields for security reasons by copying all users without secret fields.
-   * Result elements are evicted.
-   *
-   * @throws AccessException
-   * @see BaseDao#internalGetList(QueryFilter)
-   */
-  @Override
-  public List<PFUserDO> internalGetList(QueryFilter filter) throws AccessException {
-    return copyUsersWithoutSecrectFields(super.internalGetList(filter));
-  }
-
-  /**
-   * Removes secret fields for security reasons by copying all users without secret fields.
-   * Result elements are evicted.
-   *
-   * @see BaseDao#internalLoadAll()
-   */
-  @Override
-  public List<PFUserDO> internalLoadAll() {
-    return copyUsersWithoutSecrectFields(super.internalLoadAll());
-  }
-
-  /**
-   * Removes secret fields for security reasons by copying all users without secret fields.
-   * Result elements are evicted.
-   *
-   * @see BaseDao#internalLoad(Collection)
-   */
-  @Override
-  public List<PFUserDO> internalLoad(Collection<? extends Serializable> idList) {
-    return copyUsersWithoutSecrectFields(super.internalLoad(idList));
-  }
-
-  /**
-   * Removes secret fields for security reasons by copying all users without secret fields.
-   * Result elements are evicted.
-   *
-   * @see BaseDao#getListByIds(Collection)
-   */
-  @Override
-  public List<PFUserDO> getListByIds(Collection<? extends Serializable> idList) {
-    return copyUsersWithoutSecrectFields(super.getListByIds(idList));
-  }
-
-  /**
-   * Removes secret fields for security reasons.
-   *
-   * @see BaseDao#getOrLoad(Integer)
-   */
-  @Override
-  public PFUserDO getOrLoad(Integer id) {
-    return PFUserDO.createCopyWithoutSecretFields(super.getOrLoad(id));
-  }
-
-  /**
-   * Removes secret fields for security reasons. Without access checks.
-   *
-   * @see BaseDao#getOrLoad(Integer)
-   */
-  public PFUserDO internalGetOrLoad(Integer id) {
-    return PFUserDO.createCopyWithoutSecretFields(super.internalGetById(id));
-  }
-
   public Collection<Integer> getAssignedGroups(final PFUserDO user) {
     return getUserGroupCache().getUserGroups(user);
   }
@@ -240,13 +168,13 @@ public class UserDao extends BaseDao<PFUserDO> {
   @Override
   public boolean hasUserSelectAccess(final PFUserDO user, final PFUserDO obj, final boolean throwException) {
     boolean result = accessChecker.isUserMemberOfAdminGroup(user)
-            || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP);
+        || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP,
+        ProjectForgeGroup.CONTROLLING_GROUP);
     log.debug("UserDao hasSelectAccess. Check user member of admin, finance or controlling group: " + result);
     if (!result && obj.hasSystemAccess()) {
       result = accessChecker.areUsersInSameGroup(user, obj);
       log.debug("UserDao hasSelectAccess. Caller user: " + user.getUsername() + " Check user: " + obj.getUsername()
-              + " Check user in same group: " + result);
+          + " Check user in same group: " + result);
     }
     if (throwException && !result) {
       throw new AccessException(user, AccessType.GROUP, OperationType.SELECT);
@@ -267,11 +195,6 @@ public class UserDao extends BaseDao<PFUserDO> {
     return accessChecker.isUserMemberOfAdminGroup(user, false);
   }
 
-  @Override
-  protected void onSaveOrModify(final PFUserDO obj) {
-    obj.checkAndFixPassword();
-  }
-
   /**
    * Update user after login success.
    *
@@ -281,9 +204,9 @@ public class UserDao extends BaseDao<PFUserDO> {
     PfEmgrFactory.get().runInTrans((emgr) -> {
       CriteriaUpdate<PFUserDO> cu = CriteriaUpdate.createUpdate(PFUserDO.class);
       cu
-              .set("lastLogin", new Date())
-              .set("loginFailures", 0)
-              .addWhere(Clauses.equal("id", user.getId()));
+          .set("lastLogin", new Date())
+          .set("loginFailures", 0)
+          .addWhere(Clauses.equal("id", user.getId()));
       return emgr.update(cu);
     });
   }
@@ -292,8 +215,8 @@ public class UserDao extends BaseDao<PFUserDO> {
     PfEmgrFactory.get().runInTrans((emgr) -> {
       CriteriaUpdate<PFUserDO> cu = CriteriaUpdate.createUpdate(PFUserDO.class);
       cu
-              .setExpression("loginFailures", "loginFailures + 1")
-              .addWhere(Clauses.equal("username", userName));
+          .setExpression("loginFailures", "loginFailures + 1")
+          .addWhere(Clauses.equal("username", userName));
       return emgr.update(cu);
     });
   }
@@ -310,15 +233,15 @@ public class UserDao extends BaseDao<PFUserDO> {
     } else {
       // user already exists. Check maybe changed username:
       dbUser = SQLHelper.ensureUniqueResult(em.createNamedQuery(PFUserDO.FIND_OTHER_USER_BY_USERNAME, PFUserDO.class)
-              .setParameter("username", user.getUsername())
-              .setParameter("id", user.getId()));
+          .setParameter("username", user.getUsername())
+          .setParameter("id", user.getId()));
     }
     return dbUser != null;
   }
 
   public PFUserDO getInternalByName(final String username) {
     return SQLHelper.ensureUniqueResult(em.createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO.class)
-            .setParameter("username", username));
+        .setParameter("username", username));
   }
 
   /**
@@ -348,7 +271,6 @@ public class UserDao extends BaseDao<PFUserDO> {
     if (result != ModificationStatus.NONE) {
       log.info("Object updated: " + dbUser.toString());
       copyValues(user, contextUser);
-      contextUser.clearSecretFields();
     } else {
       log.info("No modifications detected (no update needed): " + dbUser.toString());
     }
@@ -405,8 +327,8 @@ public class UserDao extends BaseDao<PFUserDO> {
       return false;
     }
     return !StringUtils.equals(obj.getUsername(), dbObj.getUsername())
-            || !StringUtils.equals(obj.getFirstname(), dbObj.getFirstname())
-            || !StringUtils.equals(obj.getLastname(), dbObj.getLastname());
+        || !StringUtils.equals(obj.getFirstname(), dbObj.getFirstname())
+        || !StringUtils.equals(obj.getLastname(), dbObj.getLastname());
   }
 
   @Override
@@ -416,8 +338,8 @@ public class UserDao extends BaseDao<PFUserDO> {
 
   public List<PFUserDO> findByUsername(String username) {
     return em.createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO.class)
-            .setParameter("username", username)
-            .getResultList();
+        .setParameter("username", username)
+        .getResultList();
   }
 
   /**
@@ -451,7 +373,7 @@ public class UserDao extends BaseDao<PFUserDO> {
    * anymore.
    *
    * @param encrypted The data to encrypt.
-   * @param userId Use the password of the given user (used by CookieService, because user isn't yet logged-in).
+   * @param userId    Use the password of the given user (used by CookieService, because user isn't yet logged-in).
    * @return The decrypted data.
    * @see UserDao#decrypt(String)
    */
@@ -464,15 +386,18 @@ public class UserDao extends BaseDao<PFUserDO> {
   }
 
   private String getPasswordOfUser(Integer userId) {
-    final PFUserDO user = super.internalGetById(userId);
-    if (user == null) {
-      log.warn("Can't encrypt data. logged-in user not found.");
+    if (userPasswordDao == null) {
+      userPasswordDao = applicationContext.getBean(UserPasswordDao.class);
+    }
+    final UserPasswordDO passwordObj = userPasswordDao.internalGetByUserId(userId);
+    if (passwordObj == null) {
+      log.warn("Can't encrypt data. Password for user " + userId + " not found.");
       return null;
     }
-    if (StringUtils.isBlank(user.getPassword())) {
-      log.warn("Can't encrypt data. Password of logged-in user '" + user.getUsername() + "' not found.");
+    if (StringUtils.isBlank(passwordObj.getPasswordHash())) {
+      log.warn("Can't encrypt data. Password of user '" + userId + " not found.");
       return null;
     }
-    return user.getPassword();
+    return passwordObj.getPasswordHash();
   }
 }
