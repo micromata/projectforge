@@ -52,7 +52,7 @@ function Formatter(
             default:
                 result = formatterFormat(
                     useValue,
-                    dataType,
+                    useFormatter,
                     dateFormat,
                     timestampFormatSeconds,
                     timestampFormatMinutes,

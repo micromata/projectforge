@@ -26,10 +26,10 @@ const formatterFormat = (
                 currency,
             }).format(value);
         case 'SHOW_DISPLAYNAME':
-        case 'CUSTOMER_FORMATTER':
-        case 'KONTO_FORMATTER':
-        case 'PROJECT_FORMATTER':
-        case 'EMPLOYEE_FORMATTER':
+        case 'CUSTOMER':
+        case 'KONTO':
+        case 'PROJECT':
+        case 'EMPLOYEE':
             return value.displayName;
         case 'SHOW_LIST_OF_DISPLAYNAMES':
             if (value && Array.isArray(value)) {
@@ -55,7 +55,7 @@ const formatterFormat = (
             return value.number;
         case 'GROUP':
             return value.name;
-        case 'ADDRESSBOOK':
+        case 'ADDRESS_BOOK':
             return value
                 .map(({ displayName }) => displayName)
                 .join(', ');
