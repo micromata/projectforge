@@ -30,7 +30,7 @@ class ChangePasswordData(
   var userDisplayName: String? = null,
   var loginPassword: CharArray? = null,
   var newPassword: CharArray? = null,
-  var passwordRepeat: CharArray? = null
+  var passwordRepeat: CharArray? = null,
 ) {
   fun clear() {
     loginPassword?.let {

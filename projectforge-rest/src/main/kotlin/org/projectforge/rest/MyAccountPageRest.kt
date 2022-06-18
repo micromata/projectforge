@@ -257,7 +257,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
         "changePassword",
         i18nKey = "menu.changePassword",
         url = PagesResolver.getDynamicPageUrl(ChangePasswordPageRest::class.java),
-        type = MenuItemTargetType.MODAL
+        type = MenuItemTargetType.REDIRECT
       )
     )
     if (Login.getInstance().isWlanPasswordChangeSupported(user)) {
@@ -266,7 +266,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
           "changeWlanPassword",
           i18nKey = "menu.changeWlanPassword",
           url = PagesResolver.getDynamicPageUrl(ChangeWlanPasswordPageRest::class.java),
-          type = MenuItemTargetType.MODAL
+          type = MenuItemTargetType.REDIRECT
         )
       )
     }
