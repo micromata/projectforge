@@ -24,13 +24,14 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.business.login.LoginHandler
-import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.I18nKeyAndParams
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -49,81 +50,115 @@ private val log = KotlinLogging.logger {}
 class ChangePasswordPageRest : AbstractDynamicPageRest() {
 
   @Autowired
-  private lateinit var userDao: UserDao
+  private lateinit var accessChecker: AccessChecker
 
   @Autowired
   private lateinit var userService: UserService
 
-  class PasswordData(
-    var userId: Int? = null,
-    var oldPassword: CharArray? = null,
-    var newPassword: CharArray? = null,
-    var passwordRepeat: CharArray? = null
-  ) {
-    fun clear() {
-      LoginHandler.clearPassword(oldPassword)
-      LoginHandler.clearPassword(newPassword)
-      LoginHandler.clearPassword(passwordRepeat)
+  @PostMapping
+  fun save(request: HttpServletRequest, @RequestBody postData: PostData<ChangePasswordData>)
+      : ResponseEntity<ResponseAction> {
+    return internalSave(request, postData) { data, changeOwn ->
+      if (changeOwn) {
+        log.info { "The user wants to change his password." }
+        userService.changePassword(data.userId, data.loginPassword, data.newPassword)
+      } else {
+        log.info { "Admin user wants to change password of user '${data.userDisplayName}' with id ${data.userId}." }
+        userService.changePasswordByAdmin(data.userId, data.newPassword)
+      }
     }
   }
 
-  @PostMapping
-  fun save(request: HttpServletRequest, @RequestBody postData: PostData<PasswordData>)
+  /**
+   * @param userId is optional, so admins (only) are able to change passwords of other users.
+   */
+  @GetMapping("dynamic")
+  fun getForm(
+    request: HttpServletRequest,
+    @RequestParam("userId") userIdString: String?,
+  ): FormLayoutData {
+    return internalGetForm(
+      request, userIdString, "user.changePassword",
+      "user.changePassword.oldPassword",
+    )
+  }
+
+  internal fun internalSave(
+    request: HttpServletRequest,
+    @RequestBody postData: PostData<ChangePasswordData>,
+    changePassword: (data: ChangePasswordData, changeOwnPassword: Boolean) -> List<I18nKeyAndParams>?,
+  )
       : ResponseEntity<ResponseAction> {
     validateCsrfToken(request, postData)?.let { return it }
     val data = postData.data
-    check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, ChangePasswordPage is called with another than the logged in user!" }
-
+    val userId = data.userId ?: ThreadLocalUserContext.getUserId()
+    val changeOwnPassword = checkChangeOwn(userId)
     if (!Arrays.equals(data.newPassword, data.passwordRepeat)) {
       val validationErrors = listOf(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch"))
       return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
     }
-    log.info { "The user wants to change his password." }
-    val errorMsgKeys = userService.changePassword(data.userId, data.oldPassword, data.newPassword)
-    data.clear() // Clear all passwords, if not already done, due to security reasons.
+    val errorMsgKeys = changePassword(data, changeOwnPassword)
     processErrorKeys(errorMsgKeys)?.let {
       return it // Error messages occured:
     }
-    return ResponseEntity(
-      ResponseAction(
-        PagesResolver.getDefaultUrl(),
-        message = ResponseAction.Message("user.changePassword.msg.passwordSuccessfullyChanged"),
-        targetType = TargetType.REDIRECT
-      ), HttpStatus.OK
+    data.clear()
+    return UIToast.createToastResponseEntity(
+      translate("user.changePassword.msg.passwordSuccessfullyChanged"),
+      color = UIColor.SUCCESS,
+      merge = true,
+      variables = mutableMapOf("data" to data),
+      targetType = TargetType.CLOSE_MODAL,
     )
   }
 
-  @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest): FormLayoutData {
-    val userId = ThreadLocalUserContext.getUserId()
-    val data = PasswordData(userId)
+  /**
+   * @param userId is optional, so admins (only) are able to change passwords of other users.
+   */
+  internal fun internalGetForm(
+    request: HttpServletRequest,
+    userIdString: String?,
+    i18nPrefix: String,
+    loginPasswordI18nKey: String,
+  ): FormLayoutData {
+    val userId = userIdString?.toIntOrNull() ?: ThreadLocalUserContext.getUserId()
+    val changeOwnPassword = checkChangeOwn(userId)
+    val data = ChangePasswordData(userId)
+    UserGroupCache.getInstance().getUser(userId)?.let { user ->
+      data.userDisplayName = user.userDisplayName
+    }
 
-    val layout = UILayout("user.changePassword.title")
-    val oldPassword = UIInput(
-      "oldPassword",
-      label = "user.changePassword.oldPassword",
-      required = true,
-      focus = true,
-      dataType = UIDataType.PASSWORD,
-      autoComplete = UIInput.AutoCompleteType.CURRENT_PASSWORD
-    )
-    val newPassword = UIInput(
-      "newPassword",
-      label = "user.changePassword.newPassword",
-      tooltip = "user.changePassword.error.passwordQualityCheck",
-      dataType = UIDataType.PASSWORD,
-      required = true
-    )
-    val passwordRepeat = UIInput(
-      "passwordRepeat",
-      label = "passwordRepeat",
-      dataType = UIDataType.PASSWORD,
-      required = true
-    )
+    val layout = UILayout("$i18nPrefix.title")
 
-    layout.add(oldPassword)
-      .add(newPassword)
-      .add(passwordRepeat)
+    layout.add(UIReadOnlyField(ChangePasswordData::userDisplayName.name, label = "user.username"))
+    if (changeOwnPassword) {
+      layout.add(
+        UIInput(
+          ChangePasswordData::loginPassword.name,
+          label = loginPasswordI18nKey,
+          required = true,
+          focus = true,
+          dataType = UIDataType.PASSWORD,
+          autoComplete = UIInput.AutoCompleteType.CURRENT_PASSWORD
+        )
+      )
+    }
+    layout.add(
+      UIInput(
+        ChangePasswordData::newPassword.name,
+        label = "$i18nPrefix.newPassword",
+        tooltip = "user.changePassword.error.passwordQualityCheck",
+        dataType = UIDataType.PASSWORD,
+        required = true
+      )
+    )
+      .add(
+        UIInput(
+          ChangePasswordData::passwordRepeat.name,
+          label = "passwordRepeat",
+          dataType = UIDataType.PASSWORD,
+          required = true
+        )
+      )
       .addAction(UIButton.createCancelButton())
       .addAction(
         UIButton.createUpdateButton(
@@ -132,5 +167,14 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
       )
     LayoutUtils.process(layout)
     return FormLayoutData(data, layout, createServerData(request))
+  }
+
+  private fun checkChangeOwn(userId: Int): Boolean {
+    return if (userId != ThreadLocalUserContext.getUserId()) {
+      accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+      false
+    } else {
+      true
+    }
   }
 }

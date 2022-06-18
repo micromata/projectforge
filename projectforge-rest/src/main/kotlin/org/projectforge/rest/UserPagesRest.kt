@@ -46,9 +46,12 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.TimeNotation
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.PostData
@@ -87,10 +90,7 @@ class UserPagesRest
 
   override fun transformFromDB(obj: PFUserDO, editMode: Boolean): User {
     val user = User()
-    val copy = PFUserDO.createCopy(obj)
-    if (copy != null) {
-      user.copyFrom(copy)
-    }
+    user.copyFrom(obj)
     if (editMode) {
       updateTokenCreationDates(user)
     }
@@ -314,37 +314,23 @@ class UserPagesRest
     dto.id?.let { userId ->
       addToken(
         layout,
-        userSettings,
+        leftCol,
         User::calendarExportTokenCreationTimeAgo,
         "calendar_rest",
         userId,
         UserTokenType.CALENDAR_REST,
       )
-      addToken(layout, userSettings, User::davTokenCreationTimeAgo, "dav_token", userId, UserTokenType.DAV_TOKEN)
+      addToken(layout, leftCol, User::davTokenCreationTimeAgo, "dav_token", userId, UserTokenType.DAV_TOKEN)
       addToken(
         layout,
-        userSettings,
+        leftCol,
         User::restClientTokenCreationTimeAgo,
         "rest_client",
         userId,
         UserTokenType.REST_CLIENT,
       )
     }
-
-    /*.add(UISelect<Int>("readonlyAccessUsers", lc,
-            multi = true,
-            label = "user.assignedGroups",
-            additionalLabel = "access.groups",
-            autoCompletion = AutoCompletion<Int>(url = "group/aco"),
-            labelProperty = "name",
-            valueProperty = "id"))
-    .add(UISelect<Int>("readonlyAccessUsers", lc,
-            multi = true,
-            label = "multitenancy.assignedTenants",
-            additionalLabel = "access.groups",
-            autoCompletion = AutoCompletion<Int>(url = "group/aco"),
-            labelProperty = "name",
-            valueProperty = "id"))*/
+    layout.add(UISelect.createGroupSelect(lc, "assignedGroups", true, "group.assignedGroups"))
     layout.add(lc, "description")
 
     val userId = dto.id
@@ -360,6 +346,26 @@ class UserPagesRest
       )
     }
     layout.add(UIAlert(message = "ToDo: rights, assignedUsers, password change, ldap values", color = UIColor.DANGER))
+
+    layout.add(
+      MenuItem(
+        "changePassword",
+        i18nKey = "menu.changePassword",
+        url = PagesResolver.getDynamicPageUrl(ChangePasswordPageRest::class.java, mapOf("userId" to dto.id)),
+        type = MenuItemTargetType.MODAL
+      )
+    )
+    if (Login.getInstance().isWlanPasswordChangeSupported(userDO)) {
+      layout.add(
+        MenuItem(
+          "changeWlanPassword",
+          i18nKey = "menu.changeWlanPassword",
+          url = PagesResolver.getDynamicPageUrl(ChangeWlanPasswordPageRest::class.java, mapOf("userId" to dto.id)),
+          type = MenuItemTargetType.MODAL
+        )
+      )
+    }
+
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 
@@ -545,7 +551,12 @@ class UserPagesRest
         .add(UIReadOnlyField("lastLoginFormatted", label = "login.lastLogin"))
         .add(UIReadOnlyField(User::lastPasswordChangeFormatted.name, label = "user.changePassword.password.lastChange"))
       if (Login.getInstance().isWlanPasswordChangeSupported(user)) {
-        col.add(UIReadOnlyField(User::lastWlanPasswordChangeFormatted.name, label = "user.changeWlanPassword.lastChange"))
+        col.add(
+          UIReadOnlyField(
+            User::lastWlanPasswordChangeFormatted.name,
+            label = "user.changeWlanPassword.lastChange"
+          )
+        )
       }
       col.add(userLC, "timeZone", "personalPhoneIdentifiers")
         .add(UISelect("locale", userLC, required = true, values = locales))

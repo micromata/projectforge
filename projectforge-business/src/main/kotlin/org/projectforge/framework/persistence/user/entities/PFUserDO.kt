@@ -444,9 +444,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
                 return null
             val user = PFUserDO()
             user.copyValuesFrom(srcUser)
-            // Paranoia setting (fields shouldn't be copied):
             return user
         }
-
     }
 }
