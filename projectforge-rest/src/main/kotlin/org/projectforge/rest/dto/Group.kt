@@ -57,7 +57,7 @@ class Group(
         newAssignedUsers.add(user)
       }
     }
-    assignedUsers = newAssignedUsers.sortedBy { it.displayName }.toMutableList()
+    assignedUsers = newAssignedUsers.sortedBy { it.displayName?.lowercase() }.toMutableList()
   }
 
   override fun copyTo(dest: GroupDO) {

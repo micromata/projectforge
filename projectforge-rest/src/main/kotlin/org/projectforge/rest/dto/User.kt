@@ -140,7 +140,7 @@ class User(
           }
         }
       }
-      assignedGroups = newAssignedGroups.sortedBy { it.displayName }.toMutableList()
+      assignedGroups = newAssignedGroups.sortedBy { it.displayName?.lowercase() }.toMutableList()
     }
   }
 
