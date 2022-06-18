@@ -64,11 +64,18 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
     }
   }
 
+  /**
+   * @param userId is optional, so admins (only) are able to change passwords of other users.
+   * is done. (ModalDialog doesn't yet work.)
+   */
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, @RequestParam("userId") userIdString: String?): FormLayoutData {
+  fun getForm(
+    request: HttpServletRequest,
+    @RequestParam("userId") userIdString: String?,
+  ): FormLayoutData {
     return changePasswordPageRest.internalGetForm(
-      request, userIdString, "user.changeWlanPassword",
-      "user.changeWlanPassword.loginPassword",
+      request, userIdString = userIdString, i18nPrefix = "user.changeWlanPassword",
+      loginPasswordI18nKey = "user.changeWlanPassword.loginPassword",
     )
   }
 }

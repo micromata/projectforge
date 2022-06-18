@@ -78,8 +78,8 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     @RequestParam("userId") userIdString: String?,
   ): FormLayoutData {
     return internalGetForm(
-      request, userIdString, "user.changePassword",
-      "user.changePassword.oldPassword",
+      request, userIdString = userIdString, i18nPrefix = "user.changePassword",
+      loginPasswordI18nKey = "user.changePassword.oldPassword",
     )
   }
 
@@ -102,13 +102,13 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
       return it // Error messages occured:
     }
     data.clear()
-    return UIToast.createToastResponseEntity(
+    val responseAction = UIToast.createToastResponseAction(
       translate("user.changePassword.msg.passwordSuccessfullyChanged"),
       color = UIColor.SUCCESS,
-      merge = true,
       variables = mutableMapOf("data" to data),
-      targetType = TargetType.CLOSE_MODAL,
+      merge = true,
     )
+    return ResponseEntity(responseAction, HttpStatus.OK)
   }
 
   /**
@@ -122,6 +122,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
   ): FormLayoutData {
     val userId = userIdString?.toIntOrNull() ?: ThreadLocalUserContext.getUserId()
     val changeOwnPassword = checkChangeOwn(userId)
+
     val data = ChangePasswordData(userId)
     UserGroupCache.getInstance().getUser(userId)?.let { user ->
       data.userDisplayName = user.userDisplayName
@@ -159,10 +160,14 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
           required = true
         )
       )
-      .addAction(UIButton.createCancelButton())
       .addAction(
         UIButton.createUpdateButton(
-          responseAction = ResponseAction(RestResolver.getRestUrl(this::class.java), targetType = TargetType.POST),
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(
+              this::
+              class.java
+            ), targetType = TargetType.POST
+          ),
         )
       )
     LayoutUtils.process(layout)
