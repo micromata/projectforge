@@ -28,11 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.ldap.LdapUserDao
 import org.projectforge.business.login.Login
-import org.projectforge.business.user.UserAuthenticationsService
-import org.projectforge.business.user.UserDao
-import org.projectforge.business.user.UserLocale
-import org.projectforge.business.user.UserTokenType
-import org.projectforge.business.user.service.UserService
+import org.projectforge.business.user.*
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
@@ -56,6 +52,7 @@ import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
+import org.projectforge.rest.dto.UserRightDto
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
@@ -86,7 +83,10 @@ class UserPagesRest
   private lateinit var userAuthenticationsService: UserAuthenticationsService
 
   @Autowired
-  private lateinit var userService: UserService
+  private lateinit var userGroupCache: UserGroupCache
+
+  @Autowired
+  private lateinit var userRightsHandler: UserRightsHandler
 
   override fun transformFromDB(obj: PFUserDO, editMode: Boolean): User {
     val user = User()
@@ -330,7 +330,9 @@ class UserPagesRest
         UserTokenType.REST_CLIENT,
       )
     }
-    layout.add(UISelect.createGroupSelect(lc, "assignedGroups", true, "group.assignedGroups"))
+    layout.add(
+      UISelect.createGroupSelect(lc, "assignedGroups", multi = true, label = "user.assignedGroups")
+    )
     layout.add(lc, "description")
 
     val userId = dto.id
@@ -345,7 +347,7 @@ class UserPagesRest
         1,
       )
     }
-    layout.add(UIAlert(message = "ToDo: rights, assignedUsers, password change, ldap values", color = UIColor.DANGER))
+    layout.add(UIAlert(message = "ToDo: rights, ldap values", color = UIColor.DANGER))
 
     layout.add(
       MenuItem(
@@ -365,8 +367,67 @@ class UserPagesRest
         )
       )
     }
-
+    layout.watchFields.addAll(
+      arrayOf(
+        "assignedGroups",
+      )
+    )
+    addRights(layout, dto)
     return LayoutUtils.processEditPage(layout, dto, this)
+  }
+
+  override fun onWatchFieldsUpdate(
+    request: HttpServletRequest,
+    dto: User,
+    watchFieldsTriggered: Array<String>?
+  ): ResponseEntity<ResponseAction> {
+    val userAccess = UILayout.UserAccess()
+    val userDO = PFUserDO()
+    dto.copyTo(userDO)
+    checkUserAccess(userDO, userAccess)
+    return ResponseEntity.ok(
+      ResponseAction(targetType = TargetType.UPDATE)
+        .addVariable("ui", createEditLayout(dto, userAccess))
+        .addVariable(
+          "data",
+          dto
+        ) // must be added after createEditLayout is called, because createEditLaoyout may modify available user's rights.
+    )
+  }
+
+  private fun addRights(layout: UILayout, dto: User) {
+    val userDO = PFUserDO()
+    dto.copyTo(userDO)
+    val userRights: List<UserRightDto> = userRightsHandler.getUserRights(userDO)
+    var counter = 0
+    val uiElements = mutableListOf<UIElement>()
+    // TODO: preserver old user rights.
+    for (rightDto in userRights) {
+      val right = userRightsHandler.getUserRight(rightDto, userDO) ?: continue
+      dto.add(rightDto)
+      if (right.isBooleanType) {
+        uiElements.add(UICheckbox("userRights[$counter].booleanValue", label = right.id.i18nKey))
+      } else {
+        val availableValues = right.getAvailableValues(userGroupCache, userDO).map {
+          UISelectValue(it, translate(it.i18nKey))
+        }
+        uiElements.add(UISelect("userRights[$counter].value", label = right.id.i18nKey, values = availableValues))
+      }
+      counter += 1
+    }
+    val size = uiElements.size
+    if (size > 0) {
+      val leftCol = UICol(md = 6)
+      val rightCol = UICol(md = 6)
+      layout.add(UIFieldset(title = "access.rights")).add(UIRow().add(leftCol).add(rightCol))
+      uiElements.forEachIndexed { index, uiElement ->
+        if (index * 2 < size) {
+          leftCol.add(uiElement)
+        } else {
+          rightCol.add(uiElement)
+        }
+      }
+    }
   }
 
   private fun addToken(
