@@ -87,11 +87,20 @@ class User(
   var lastWlanPasswordChange: Date? = null
   var lastWlanPasswordChangeFormatted: String? = null
 
+  var userRights: MutableList<UserRightDto>? = null
+
   /**
    * @see copyFromMinimal
    */
   constructor(src: PFUserDO) : this() {
     copyFromMinimal(src)
+  }
+
+  fun add(userRightDto: UserRightDto) {
+    if (userRights == null) {
+      userRights = mutableListOf()
+    }
+    userRights!!.add(userRightDto)
   }
 
   override fun copyFromMinimal(src: PFUserDO) {
