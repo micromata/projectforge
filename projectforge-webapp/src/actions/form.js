@@ -105,6 +105,7 @@ export const loadFormPage = (category, id, url, params = {}) => (dispatch, getSt
         .then((json) => {
             const { targetType, url: redirectUrl } = json;
             if (targetType === 'REDIRECT' && redirectUrl) {
+                dispatch(callSuccess(category, {}));
                 history.push(redirectUrl);
                 return;
             }
