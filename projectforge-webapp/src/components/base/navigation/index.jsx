@@ -5,7 +5,7 @@ import { Nav } from '../../design';
 import NavigationDropdown from './Dropdown';
 import NavigationEntry from './Entry';
 
-function Navigation({ entries, className }) {
+function Navigation({ entries, className, right }) {
     return (
         <Nav className={className}>
             {entries.map((entry) => {
@@ -16,7 +16,8 @@ function Navigation({ entries, className }) {
                 } else {
                     Tag = NavigationEntry;
                 }
-                return <Tag key={entry.key || entry.id} {...entry} entryKey={entry.key} />;
+                // eslint-disable-next-line max-len
+                return <Tag key={entry.key || entry.id} {...entry} entryKey={entry.key} right={right} />;
             })}
         </Nav>
     );
@@ -25,10 +26,12 @@ function Navigation({ entries, className }) {
 Navigation.propTypes = {
     entries: PropTypes.arrayOf(menuItemPropType).isRequired,
     className: PropTypes.string,
+    right: PropTypes.bool,
 };
 
 Navigation.defaultProps = {
     className: 'ml-auto',
+    right: false,
 };
 
 export default Navigation;
