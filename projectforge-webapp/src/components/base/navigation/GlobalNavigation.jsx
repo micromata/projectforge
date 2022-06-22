@@ -52,7 +52,13 @@ class GlobalNavigation extends React.Component {
                         ? <Navigation entries={favoritesMenu} className="mr-auto" />
                         : undefined}
                     {myAccountMenu && myAccountMenu.length > 0
-                        ? <Navigation entries={myAccountMenu} className="ml-auto" />
+                        ? (
+                            <Navigation
+                                entries={myAccountMenu}
+                                className="ml-auto text-nowrap"
+                                right
+                            />
+                        )
                         : undefined}
                 </Collapse>
             </Navbar>
