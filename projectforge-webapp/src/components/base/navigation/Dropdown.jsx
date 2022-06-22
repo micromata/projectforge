@@ -14,6 +14,7 @@ function NavigationDropdown(
         title,
         subMenu,
         id,
+        right,
     },
 ) {
     let displayTitle = title;
@@ -33,7 +34,7 @@ function NavigationDropdown(
                 )}
                 <FontAwesomeIcon icon={faChevronDown} />
             </DropdownToggle>
-            <DropdownMenu>
+            <DropdownMenu right={right}>
                 {subMenu.map((item) => (
                     <DropdownItem
                         key={`entry-item-${entryKey || id}-${item.key || item.id}`}
@@ -59,12 +60,14 @@ NavigationDropdown.propTypes = {
     }),
     entryKey: PropTypes.string,
     id: PropTypes.string,
+    right: PropTypes.bool,
 };
 
 NavigationDropdown.defaultProps = {
     badge: undefined,
     id: undefined,
     entryKey: undefined,
+    right: false,
 };
 
 export default NavigationDropdown;
