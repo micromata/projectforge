@@ -1,3 +1,5 @@
+import { forIn, merge, set } from 'lodash/object';
+
 // https://stackoverflow.com/a/6491621
 Object.getByString = (object, multiKey) => {
     if (!multiKey) {
@@ -12,7 +14,7 @@ Object.getByString = (object, multiKey) => {
     let obj = object;
 
     multiKey
-    // convert indexes to properties
+        // convert indexes to properties
         .replace(/\[(\w+)\]/g, '.$1')
         // remove leading dots
         .replace(/^\./, '')
@@ -21,7 +23,6 @@ Object.getByString = (object, multiKey) => {
         .forEach((key) => {
             if (obj) obj = obj[key];
         });
-
     return obj;
 };
 
@@ -74,24 +75,25 @@ Object.isObject = (object) => typeof object === 'object'
     && !(object instanceof Date);
 
 // Combines two objects one level down.
-Object.combine = (o1, o2) => ({
-    ...o1,
-    ...o2,
-    ...Object.keys(o1 || {})
-        .map((key) => ({
-            key,
-            v1: o1[key],
-            v2: o2[key],
-        }))
-        .filter(({ v1, v2 }) => Object.isObject(v1) && Object.isObject(v2))
-        .reduce((previousValue, currentValue) => ({
-            ...previousValue,
-            [currentValue.key]: {
-                ...currentValue.v1,
-                ...currentValue.v2,
-            },
-        }), {}),
-});
+Object.combine = (o1, o2) => {
+    const newValues = {};
+    const indexedValues = {};
+    forIn(o2, (value, key) => {
+        if (key.match(/\[(\d)\]/)) {
+            // keys like user.rights[2].value
+            // need special treatment after merge.
+            indexedValues[key] = value;
+        } else {
+            newValues[key] = value;
+        }
+    });
+    const newState = merge(o1, newValues);
+    forIn(indexedValues, (value, key) => {
+        // Sets value of new state by path (like user.rights[2].value)
+        set(newState, key, value);
+    });
+    return newState;
+};
 
 Array.findByField = (array, field, value) => array.reduce((accumulator, currentValue) => {
     if (currentValue[field] === value) {
