@@ -1,4 +1,4 @@
-import { forIn, merge, set } from 'lodash/object';
+import { forIn, get, merge, set } from 'lodash/object';
 
 // https://stackoverflow.com/a/6491621
 Object.getByString = (object, multiKey) => {
@@ -10,69 +10,19 @@ Object.getByString = (object, multiKey) => {
         console.log("Warning: multiKey isn't of type String.", multiKey, typeof multiKey);
         return undefined;
     }
-
-    let obj = object;
-
-    multiKey
-        // convert indexes to properties
-        .replace(/\[(\w+)\]/g, '.$1')
-        // remove leading dots
-        .replace(/^\./, '')
-        // split at dots
-        .split('.')
-        .forEach((key) => {
-            if (obj) obj = obj[key];
-        });
-    return obj;
+    return get(object, multiKey);
 };
 
 Object.convertPathKeys = (object) => {
     const newObject = {};
 
-    Object.keys(object)
-        .forEach((key) => {
-            if (key.includes('.')) {
-                const path = key.split('.');
-
-                const subObject = newObject[path[0]];
-                if (subObject !== undefined) {
-                    subObject[path[1]] = object[key];
-                } else {
-                    newObject[path[0]] = { [path[1]]: object[key] };
-                }
-            } else {
-                newObject[key] = object[key];
-            }
-        });
-
+    forIn(object, (value, key) => {
+        set(newObject, key, value);
+    });
     return newObject;
 };
 
-Object.convertToSubObjects = (object) => Object.keys(object)
-    .reduce((previousValue, key) => {
-        if (key.includes('.')) {
-            const path = key.split('.');
-
-            return {
-                ...previousValue,
-                [path[0]]: {
-                    ...previousValue[path[0]],
-                    [path[1]]: object[key],
-                },
-            };
-        }
-
-        return {
-            ...previousValue,
-            [key]: object[key],
-        };
-    }, {});
-
 Object.isEmpty = (object) => Object.keys(object).length === 0;
-
-Object.isObject = (object) => typeof object === 'object'
-    && !Array.isArray(object)
-    && !(object instanceof Date);
 
 // Combines two objects. Paths like user.rights[2].value are also supported in o2 fields.
 Object.combine = (o1, o2) => {
