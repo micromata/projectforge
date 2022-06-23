@@ -74,22 +74,23 @@ Object.isObject = (object) => typeof object === 'object'
     && !Array.isArray(object)
     && !(object instanceof Date);
 
-// Combines two objects one level down.
+// Combines two objects. Paths like user.rights[2].value are also supported in o2 fields.
 Object.combine = (o1, o2) => {
     const newValues = {};
-    const indexedValues = {};
+    const specialProperties = {};
     forIn(o2, (value, key) => {
-        if (key.match(/\[(\d)\]/)) {
-            // keys like user.rights[2].value
+        if (key.includes('.') || key.match(/\[(\d)\]/) || value === undefined) {
+            // keys like user.name or user.rights[2].value or undefined values
             // need special treatment after merge.
-            indexedValues[key] = value;
+            specialProperties[key] = value;
         } else {
             newValues[key] = value;
         }
     });
     const newState = merge(o1, newValues);
-    forIn(indexedValues, (value, key) => {
-        // Sets value of new state by path (like user.rights[2].value)
+    forIn(specialProperties, (value, key) => {
+        // Sets value of new state by deep property path (like user.name or user.rights[2].value)
+        // undefined values will also be set.
         set(newState, key, value);
     });
     return newState;
