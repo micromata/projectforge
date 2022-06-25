@@ -347,7 +347,7 @@ class UserPagesRest
         1,
       )
     }
-    layout.add(UIAlert(message = "ToDo: rights, ldap values", color = UIColor.DANGER))
+    layout.add(UIAlert(message = "ToDo: rights (watchfield update), ldap values", color = UIColor.DANGER))
 
     layout.add(
       MenuItem(
