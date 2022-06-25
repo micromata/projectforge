@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
 class WebUtilsTest {
-
   @Test
   fun urlNormalizingTest() {
     assertNull(WebUtils.normalizeUri(null))
@@ -41,5 +40,23 @@ class WebUtilsTest {
     assertEquals("<invalid>", WebUtils.normalizeUri("/react/../rs/../.."))
     assertEquals("<invalid>", WebUtils.normalizeUri("/react/../rs/../../"))
     assertEquals("<invalid>", WebUtils.normalizeUri("/react/../rs/../../react"))
+  }
+
+  @Test
+  fun paramsAsStringTest() {
+    assertEquals("", WebUtils.queryParamsToString(emptyList()))
+    assertEquals("?a=1", WebUtils.queryParamsToString(listOf(Pair("a", "1"))))
+    assertEquals("?a=1&b=2", WebUtils.queryParamsToString(listOf(Pair("a", "1"), Pair("b", "2"))))
+  }
+
+  @Test
+  fun parseQueryParamsTest() {
+    assertEquals("", WebUtils.queryParamsToString(WebUtils.parseQueryParams("url")))
+    assertEquals("?id=5", WebUtils.queryParamsToString(WebUtils.parseQueryParams("url?id=5")))
+    assertEquals(
+      "?id=5&name=Kai+Reinhard",
+      WebUtils.queryParamsToString(WebUtils.parseQueryParams("url?id=5&name=Kai%20Reinhard"))
+    )
+    assertEquals("?a=1%2B2", WebUtils.queryParamsToString(WebUtils.parseQueryParams("url?a=1%2B2")))
   }
 }
