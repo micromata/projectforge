@@ -1,5 +1,4 @@
-import { forIn, get, mergeWith, set } from 'lodash/object';
-import { isArray } from 'lodash/lang';
+import { forIn, get, set } from 'lodash/object';
 
 // https://stackoverflow.com/a/6491621
 Object.getByString = (object, multiKey) => {
@@ -16,34 +15,13 @@ Object.getByString = (object, multiKey) => {
 
 Object.isEmpty = (object) => Object.keys(object).length === 0;
 
-const customizer = (objValue, srcValue) => {
-    if (isArray(objValue)) {
-        // Don't merge arrays: replace existing array by src array.
-        return srcValue;
-    }
-    return undefined;
-};
-
 // Combines two objects. Paths like user.rights[2].value are also supported in o2 fields.
 Object.combine = (o1, o2) => {
-    const newValues = {};
-    const specialProperties = {};
+    const combined = { ...o1 };
     forIn(o2, (value, key) => {
-        if (key.includes('.') || key.match(/\[(\d)\]/) || value === undefined) {
-            // keys like user.name or user.rights[2].value or undefined values
-            // need special treatment after merge.
-            specialProperties[key] = value;
-        } else {
-            newValues[key] = value;
-        }
+        set(combined, key, value);
     });
-    const newState = mergeWith(o1, newValues, customizer);
-    forIn(specialProperties, (value, key) => {
-        // Sets value of new state by deep property path (like user.name or user.rights[2].value)
-        // undefined values will also be set.
-        set(newState, key, value);
-    });
-    return newState;
+    return combined;
 };
 
 Array.findByField = (array, field, value) => array.reduce((accumulator, currentValue) => {
