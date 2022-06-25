@@ -372,7 +372,12 @@ class My2FAServicesRest {
     )
     if (webAuthnSupport.isAvailableForUser(userContext?.user?.id)) {
       val variables =
-        mutableMapOf<String, Any>("authenticateFinishUrl" to RestResolver.getRestUrl(restServiceClass, "webAuthnFinish"))
+        mutableMapOf<String, Any>(
+          "authenticateFinishUrl" to RestResolver.getRestUrl(
+            restServiceClass,
+            "webAuthnFinish"
+          )
+        )
       if (restServiceClass == My2FAPublicServicesRest::class.java || restServiceClass == PasswordResetPageRest::class.java) {
         variables["authenticateUrl"] = RestResolver.getRestUrl(restServiceClass, "webAuthn")
       }
@@ -427,12 +432,20 @@ class My2FAServicesRest {
      * user should be redirected to /react/user instead.
      */
     internal fun replaceRestByReactUrl(url: String?): String? {
+      url ?: return null
       val normalized = WebUtils.normalizeUri(url) ?: return null
       if (!normalized.startsWith("/${RestPaths.REST}/")) {
         return url // Do nothing
       }
-      val reduced = normalized.removePrefix("/${RestPaths.REST}/")
-      return "/react/${reduced.substringBefore('/')}"
+      val queryParams = WebUtils.parseQueryParams(url)
+      val reduced = normalized.removePrefix("/${RestPaths.REST}/").substringBefore('/')
+      if (url.substringAfterLast("/").startsWith("edit?id=")) {
+        // /rs/user/edit?id=1 -> /react/user/edit/1
+        val id = queryParams.find { it.first == "id" }?.second ?: ""
+        queryParams.removeIf { it.first == "id" }
+        return "/react/$reduced/edit/$id${WebUtils.queryParamsToString(queryParams)}"
+      }
+      return "/react/$reduced${WebUtils.queryParamsToString(queryParams)}"
     }
 
     internal fun createResponseEntity(result: My2FAHttpService.Result): ResponseEntity<ResponseAction> {

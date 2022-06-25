@@ -23,9 +23,12 @@
 
 package org.projectforge.web
 
+import org.apache.http.client.utils.URLEncodedUtils
 import java.net.InetAddress
 import java.net.URI
+import java.net.URLEncoder
 import java.net.UnknownHostException
+import java.nio.charset.StandardCharsets
 import javax.servlet.ServletRequest
 import javax.servlet.http.HttpServletRequest
 
@@ -78,5 +81,22 @@ object WebUtils {
     } else {
       "/$path"
     }
+  }
+
+  fun parseQueryParams(uriString: String?): MutableList<Pair<String, String>> {
+    val result = mutableListOf<Pair<String, String>>()
+    uriString ?: return result
+    URLEncodedUtils.parse(URI(uriString), StandardCharsets.UTF_8).forEach {
+      result.add(Pair(it.name, URLEncoder.encode(it.value, StandardCharsets.UTF_8)))
+    }
+    return result
+  }
+
+  fun queryParamsToString(params: List<Pair<String, String>>, withQuestionMarkPrefix: Boolean = true): String {
+    if (params.isEmpty()) {
+      return ""
+    }
+    val prefix = if (withQuestionMarkPrefix) "?" else ""
+    return params.joinToString(separator = "&", prefix = prefix) { "${it.first}=${it.second}" }
   }
 }
