@@ -1,4 +1,5 @@
-import { forIn, get, merge, set } from 'lodash/object';
+import { forIn, get, mergeWith, set } from 'lodash/object';
+import { isArray } from 'lodash/lang';
 
 // https://stackoverflow.com/a/6491621
 Object.getByString = (object, multiKey) => {
@@ -13,16 +14,15 @@ Object.getByString = (object, multiKey) => {
     return get(object, multiKey);
 };
 
-Object.convertPathKeys = (object) => {
-    const newObject = {};
-
-    forIn(object, (value, key) => {
-        set(newObject, key, value);
-    });
-    return newObject;
-};
-
 Object.isEmpty = (object) => Object.keys(object).length === 0;
+
+const customizer = (objValue, srcValue) => {
+    if (isArray(objValue)) {
+        // Don't merge arrays: replace existing array by src array.
+        return srcValue;
+    }
+    return undefined;
+};
 
 // Combines two objects. Paths like user.rights[2].value are also supported in o2 fields.
 Object.combine = (o1, o2) => {
@@ -37,7 +37,7 @@ Object.combine = (o1, o2) => {
             newValues[key] = value;
         }
     });
-    const newState = merge(o1, newValues);
+    const newState = mergeWith(o1, newValues, customizer);
     forIn(specialProperties, (value, key) => {
         // Sets value of new state by deep property path (like user.name or user.rights[2].value)
         // undefined values will also be set.
