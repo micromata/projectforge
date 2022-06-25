@@ -34,6 +34,10 @@ class My2FAServicesRestTest {
     Assertions.assertEquals("", My2FAServicesRest.replaceRestByReactUrl(""))
     Assertions.assertEquals("/", My2FAServicesRest.replaceRestByReactUrl("/"))
     Assertions.assertEquals("/react/calendar", My2FAServicesRest.replaceRestByReactUrl("/react/calendar"))
+    Assertions.assertEquals("/react/calendar?test=hurz", My2FAServicesRest.replaceRestByReactUrl("/react/calendar?test=hurz"))
     Assertions.assertEquals("/react/user", My2FAServicesRest.replaceRestByReactUrl("/rs/user/initialList"))
+    Assertions.assertEquals("/react/user?test=hurz", My2FAServicesRest.replaceRestByReactUrl("/rs/user/initialList?test=hurz"))
+    Assertions.assertEquals("/react/user/edit/1", My2FAServicesRest.replaceRestByReactUrl("/rs/user/edit?id=1"))
+    Assertions.assertEquals("/react/user/edit/1?test=hurz", My2FAServicesRest.replaceRestByReactUrl("/rs/user/edit?id=1&test=hurz"))
   }
 }
