@@ -23,8 +23,11 @@
 
 package org.projectforge.framework.time;
 
+import org.projectforge.business.user.UserLocale;
+import org.projectforge.business.user.UserTimeZone;
 import org.projectforge.framework.i18n.AbstractFormatter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -81,23 +84,29 @@ public class DateTimeFormatter extends AbstractFormatter {
   /**
    * Uses patternKey SHORT_DATE_FORMAT
    *
-   * @param dateTime
+   * @param date
    * @see #getFormattedDateTime(Object, String, Locale, TimeZone)
    */
   public String getFormattedDate(final Object date) {
     return getFormattedDate(date, ThreadLocalUserContext.getLocale(), ThreadLocalUserContext.getTimeZone());
   }
 
+  public String getFormattedDate(final PFUserDO user, final Object date) {
+    return getFormattedDate(date, DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE, user),
+        UserLocale.determineUserLocale(user),
+        UserTimeZone.determineUserTimeZone(user));
+  }
+
   /**
    * Uses patternKey SHORT_DATE_FORMAT
    *
-   * @param dateTime
+   * @param date
    * @see #getFormattedDateTime(Object, String)
    */
   public String getFormattedDate(final Object date, final Locale locale, final TimeZone timeZone) {
     return getFormattedDate(date, DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE),
-            locale,
-            timeZone);
+        locale,
+        timeZone);
   }
 
   /**
@@ -139,7 +148,7 @@ public class DateTimeFormatter extends AbstractFormatter {
    */
   public String getFormattedDateTime(final Date dateTime) {
     return getFormattedDateTime(dateTime,
-            DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE_TIME_SHORT_MINUTES));
+        DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE_TIME_SHORT_MINUTES));
   }
 
   /**
@@ -150,8 +159,8 @@ public class DateTimeFormatter extends AbstractFormatter {
    */
   public String getFormattedDateTime(final Date dateTime, final Locale locale, final TimeZone timeZone) {
     return getFormattedDateTime(dateTime,
-            DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE_TIME_SHORT_MINUTES),
-            ThreadLocalUserContext.getLocale(), ThreadLocalUserContext.getTimeZone());
+        DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE_TIME_SHORT_MINUTES),
+        ThreadLocalUserContext.getLocale(), ThreadLocalUserContext.getTimeZone());
   }
 
   /**
@@ -162,7 +171,7 @@ public class DateTimeFormatter extends AbstractFormatter {
    */
   public String getFormattedDateTime(final Date dateTime, final String pattern) {
     return getFormattedDateTime(dateTime, pattern, ThreadLocalUserContext.getLocale(),
-            ThreadLocalUserContext.getTimeZone());
+        ThreadLocalUserContext.getTimeZone());
   }
 
   /**
@@ -191,7 +200,7 @@ public class DateTimeFormatter extends AbstractFormatter {
    */
   public String getFormattedTime(final Date time) {
     return getFormattedTime(time,
-            DateFormats.getFormatString(org.projectforge.common.DateFormatType.TIME_OF_DAY_MINUTES));
+        DateFormats.getFormatString(org.projectforge.common.DateFormatType.TIME_OF_DAY_MINUTES));
   }
 
   /**
@@ -303,10 +312,10 @@ public class DateTimeFormatter extends AbstractFormatter {
   public String getFormattedTimePeriodOfDay(final TimePeriod timePeriod) {
     StringBuilder sb = new StringBuilder();
     sb.append(getFormattedDate(timePeriod.getFromDate()))
-            .append(" ")
-            .append(getFormattedTime(timePeriod.getFromDate()))
-            .append("-")
-            .append(getFormattedTime(timePeriod.getToDate()));
+        .append(" ")
+        .append(getFormattedTime(timePeriod.getFromDate()))
+        .append("-")
+        .append(getFormattedTime(timePeriod.getToDate()));
     return sb.toString();
   }
 }

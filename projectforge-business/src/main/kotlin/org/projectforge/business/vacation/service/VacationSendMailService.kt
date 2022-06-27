@@ -199,14 +199,14 @@ open class VacationSendMailService {
     var replacementFullname = replacementUser?.getFullname() ?: "unknown"
     var otherReplacementsFullnames: String = ""
     val replacementMail = replacementUser?.email
-    val startDate = dateFormatter.getFormattedDate(vacation.startDate)
-    val endDate = dateFormatter.getFormattedDate(vacation.endDate)
+    var startDate = dateFormatter.getFormattedDate(vacation.startDate)
+    var endDate = dateFormatter.getFormattedDate(vacation.endDate)
     lateinit var halfDayBeginFormatted: String
     lateinit var halfDayEndFormatted: String
     lateinit var vacationSpecialFormatted: String
     val workingDays = VacationService.getVacationDays(vacation)
     val workingDaysFormatted = VacationStats.format(workingDays)
-    val periodText = I18nHelper.getLocalizedMessage("vacation.mail.period", startDate, endDate, workingDaysFormatted)
+    var periodText = I18nHelper.getLocalizedMessage("vacation.mail.period", startDate, endDate, workingDaysFormatted)
     var valid: Boolean = true
 
     /**
@@ -219,6 +219,10 @@ open class VacationSendMailService {
       halfDayBeginFormatted = translate(recipient, vacation.halfDayBegin)
       halfDayEndFormatted = translate(recipient, vacation.halfDayEnd)
       vacationSpecialFormatted = translate(recipient, vacation.special)
+      startDate = dateFormatter.getFormattedDate(recipient, vacation.startDate)
+      endDate = dateFormatter.getFormattedDate(recipient, vacation.endDate)
+      periodText =
+        I18nHelper.getLocalizedMessage(recipient, "vacation.mail.period", startDate, endDate, workingDaysFormatted)
     }
 
     init {
