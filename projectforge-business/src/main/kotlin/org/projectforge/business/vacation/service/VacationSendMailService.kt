@@ -52,235 +52,256 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class VacationSendMailService {
-    @Autowired
-    private lateinit var configurationService: ConfigurationService
+  @Autowired
+  private lateinit var configurationService: ConfigurationService
 
-    @Autowired
-    private lateinit var employeeDao: EmployeeDao
+  @Autowired
+  private lateinit var employeeDao: EmployeeDao
 
-    @Autowired
-    private lateinit var sendMail: SendMail
+  @Autowired
+  private lateinit var sendMail: SendMail
+
+  /**
+   * Analyzes the changes of the given vacation. If necessary, e-mails will be send to the involved
+   * employees (replacement and management).
+   * @param obj The object to save.
+   * @param dbObj The already existing object in the data base (if updated). For new objects dbObj is null.
+   */
+  @JvmOverloads
+  open fun checkAndSendMail(obj: VacationDO, operationType: OperationType, dbObj: VacationDO? = null) {
+    if (!configurationService.isSendMailConfigured) {
+      log.info { "Mail server is not configured. No e-mail notification is sent." }
+      return
+    }
+    val vacationInfo = VacationInfo(employeeDao, obj)
+    if (!vacationInfo.valid) {
+      return
+    }
+    if (obj.special == true && arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.APPROVED).contains(obj.status)) {
+      val hrEmailAddress = configurationService.hREmailadress
+      if (hrEmailAddress.isNullOrBlank() || !hrEmailAddress.contains("@")) {
+        log.warn { "E-Mail configuration of HR staff isn't configured. Can't notificate HR team for special vacation entries. You may configure the e-mail address under ProjectForge's menu Administration->Configuration." }
+      } else {
+        // Send to HR
+        sendMail(vacationInfo, operationType, VacationMode.HR, null, hrEmailAddress)
+      }
+    }
+    val vacationer = vacationInfo.employeeUser!!
+    if (vacationer.id != ThreadLocalUserContext.getUserId()) {
+      sendMail(vacationInfo, operationType, VacationMode.OWN, vacationer)
+    }
+    val manager = vacationInfo.managerUser!!
+    if (manager.id != ThreadLocalUserContext.getUserId()) {
+      sendMail(vacationInfo, operationType, VacationMode.MANAGER, manager)
+    }
+    val replacements = mutableSetOf<PFUserDO>()
+    vacationInfo.replacementUser?.let { user ->
+      replacements.add(user)
+    }
+    vacationInfo.otherReplacementUsers.forEach { user ->
+      replacements.add(user)
+    }
+    replacements.forEach { user ->
+      sendMail(vacationInfo, operationType, VacationMode.REPLACEMENT, user)
+    }
+  }
+
+  private fun sendMail(
+    vacationInfo: VacationInfo, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?,
+    mailTo: String? = null
+  ) {
+    val mail = prepareMail(vacationInfo, operationType, vacationMode, recipient, mailTo) ?: return
+    sendMail.send(mail)
+  }
+
+  /**
+   * Especially for testing.
+   *
+   * Analyzes the changes of the given vacation. If necessary, e-mails will be send to the involved
+   * employees (replacement and management).
+   */
+  internal fun prepareMail(
+    obj: VacationDO, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?,
+    mailTo: String? = null
+  ): Mail? {
+    val vacationInfo = VacationInfo(employeeDao, obj)
+    return prepareMail(vacationInfo, operationType, vacationMode, recipient, mailTo)
+  }
+
+  /**
+   * Especially for testing.
+   *
+   * Analyzes the changes of the given vacation. If necessary, e-mails will be send to the involved
+   * employees (replacement and management).
+   */
+  private fun prepareMail(
+    vacationInfo: VacationInfo, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?,
+    mailTo: String? = null
+  ): Mail? {
+    if (!vacationInfo.valid) {
+      return null
+    }
+    vacationInfo.updateI18n(recipient)
+    val vacationer = vacationInfo.employeeUser!!
+    val obj = vacationInfo.vacation
+
+    val i18nArgs = arrayOf(
+      vacationInfo.employeeFullname,
+      vacationInfo.periodText,
+      translate(recipient, "vacation.mail.modType.${operationType.name.lowercase()}")
+    )
+    val subject = translate(recipient, "vacation.mail.action.short", *i18nArgs)
+    val operation = translate(recipient, "vacation.mail.modType.${operationType.name.lowercase()}")
+    val mode = vacationMode.name.lowercase()
+    val mailInfo = MailInfo(subject, operation, mode)
+    val mail = Mail()
+    mail.subject = subject
+    mail.contentType = Mail.CONTENTTYPE_HTML
+    var vacationerAsCC = false
+    if (recipient != null) {
+      mail.setTo(recipient)
+      if (vacationer.id != recipient.id) {
+        vacationerAsCC = true
+      }
+    }
+    if (!mailTo.isNullOrBlank()) {
+      mail.setTo(mailTo)
+      vacationerAsCC = true
+    }
+    if (vacationerAsCC) {
+      mail.addCC(vacationer.email)
+    }
+    if (mail.to.isEmpty()) {
+      log.error { "Oups, neither recipient nor VacationMode.HR is given to prepare mail. No notification is done." }
+      return null
+    }
+    val data = mutableMapOf<String, Any?>("vacationInfo" to vacationInfo, "vacation" to obj, "mailInfo" to mailInfo)
+    mail.content =
+      sendMail.renderGroovyTemplate(mail, "mail/vacationMail.html", data, translate(recipient, "vacation"), recipient)
+    return mail
+  }
+
+  // Used by template.
+  @Suppress("HasPlatformType", "MemberVisibilityCanBePrivate", "unused")
+  internal class VacationInfo(employeeDao: EmployeeDao, val vacation: VacationDO) {
+    val link = getLinkToVacationEntry(vacation.id)
+    val modifiedByUser = ThreadLocalUserContext.getUser()
+    val modifiedByUserFullname = modifiedByUser.getFullname()
+    val modifiedByUserMail = modifiedByUser.email
+    val employeeUser = employeeDao.internalGetById(vacation.employee?.id)?.user
+    var employeeFullname = employeeUser?.getFullname() ?: "unknown"
+    val employeeMail = employeeUser?.email
+    val managerUser = employeeDao.internalGetById(vacation.manager?.id)?.user
+    var managerFullname = managerUser?.getFullname() ?: "unknown"
+    val managerMail = managerUser?.email
+    val replacementUser = employeeDao.internalGetById(vacation.replacement?.id)?.user
+    val otherReplacementUsers = mutableListOf<PFUserDO>()
+    var replacementFullname = replacementUser?.getFullname() ?: "unknown"
+    var otherReplacementsFullnames: String = ""
+    val replacementMail = replacementUser?.email
+    val startDate = dateFormatter.getFormattedDate(vacation.startDate)
+    val endDate = dateFormatter.getFormattedDate(vacation.endDate)
+    lateinit var halfDayBeginFormatted: String
+    lateinit var halfDayEndFormatted: String
+    lateinit var vacationSpecialFormatted: String
+    val workingDays = VacationService.getVacationDays(vacation)
+    val workingDaysFormatted = VacationStats.format(workingDays)
+    val periodText = I18nHelper.getLocalizedMessage("vacation.mail.period", startDate, endDate, workingDaysFormatted)
+    var valid: Boolean = true
 
     /**
-     * Analyzes the changes of the given vacation. If necessary, e-mails will be send to the involved
-     * employees (replacement and management).
-     * @param obj The object to save.
-     * @param dbObj The already existing object in the data base (if updated). For new objects dbObj is null.
+     * E-Mail be be sent to recipients with different locales.
      */
-    @JvmOverloads
-    open fun checkAndSendMail(obj: VacationDO, operationType: OperationType, dbObj: VacationDO? = null) {
-        if (!configurationService.isSendMailConfigured) {
-            log.info { "Mail server is not configured. No e-mail notification is sent." }
-            return
-        }
-        val vacationInfo = VacationInfo(employeeDao, obj)
-        if (!vacationInfo.valid) {
-            return
-        }
-        if (obj.special == true && arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.APPROVED).contains(obj.status)) {
-            val hrEmailAddress = configurationService.hREmailadress
-            if (hrEmailAddress.isNullOrBlank() || !hrEmailAddress.contains("@")) {
-                log.warn { "E-Mail configuration of HR staff isn't configured. Can't notificate HR team for special vacation entries. You may configure the e-mail address under ProjectForge's menu Administration->Configuration." }
-            } else {
-                // Send to HR
-                sendMail(vacationInfo, operationType, VacationMode.HR, null, hrEmailAddress)
-            }
-        }
-        val vacationer = vacationInfo.employeeUser!!
-        if (vacationer.id != ThreadLocalUserContext.getUserId()) {
-            sendMail(vacationInfo, operationType, VacationMode.OWN, vacationer)
-        }
-        val manager = vacationInfo.managerUser!!
-        if (manager.id != ThreadLocalUserContext.getUserId()) {
-            sendMail(vacationInfo, operationType, VacationMode.MANAGER, manager)
-        }
-        val replacements = mutableSetOf<PFUserDO>()
-        vacationInfo.replacementUser?.let {
-            replacements.add(it)
-        }
-        replacements.forEach { user ->
-            sendMail(vacationInfo, operationType, VacationMode.REPLACEMENT, user)
-        }
+    fun updateI18n(recipient: PFUserDO?) {
+      employeeFullname = employeeUser?.getFullname() ?: translate(recipient, "unknown")
+      managerFullname = managerUser?.getFullname() ?: translate(recipient, "unknown")
+      replacementFullname = replacementUser?.getFullname() ?: translate(recipient, "unknown")
+      halfDayBeginFormatted = translate(recipient, vacation.halfDayBegin)
+      halfDayEndFormatted = translate(recipient, vacation.halfDayEnd)
+      vacationSpecialFormatted = translate(recipient, vacation.special)
     }
 
-    private fun sendMail(vacationInfo: VacationInfo, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?,
-                         mailTo: String? = null) {
-        val mail = prepareMail(vacationInfo, operationType, vacationMode, recipient, mailTo) ?: return
-        sendMail.send(mail)
+    init {
+      if (employeeUser == null) {
+        log.warn { "Oups, employee not given. Will not send an e-mail for vacation changes: $vacation" }
+        valid = false
+      }
+      if (managerUser == null) {
+        log.warn { "Oups, manager not given. Will not send an e-mail for vacation changes: $vacation" }
+        valid = false
+      }
+      vacation.otherReplacements?.forEach { employeeDO ->
+        employeeDao.internalGetById(employeeDO.id)?.user?.let { user ->
+          otherReplacementUsers.add(user)
+        }
+      }
+      otherReplacementUsers.let { list ->
+        otherReplacementsFullnames = list.joinToString { user ->
+          user.getFullname()
+        }
+      }
     }
 
-    /**
-     * Especially for testing.
-     *
-     * Analyzes the changes of the given vacation. If necessary, e-mails will be send to the involved
-     * employees (replacement and management).
-     */
-    internal fun prepareMail(obj: VacationDO, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?,
-                             mailTo: String? = null): Mail? {
-        val vacationInfo = VacationInfo(employeeDao, obj)
-        return prepareMail(vacationInfo, operationType, vacationMode, recipient, mailTo)
+    fun formatModifiedByUser(): String {
+      return formatUserWithMail(this.modifiedByUserFullname, this.modifiedByUserMail)
     }
 
-    /**
-     * Especially for testing.
-     *
-     * Analyzes the changes of the given vacation. If necessary, e-mails will be send to the involved
-     * employees (replacement and management).
-     */
-    private fun prepareMail(vacationInfo: VacationInfo, operationType: OperationType, vacationMode: VacationMode, recipient: PFUserDO?,
-                            mailTo: String? = null): Mail? {
-        if (!vacationInfo.valid) {
-            return null
-        }
-        vacationInfo.updateI18n(recipient)
-        val vacationer = vacationInfo.employeeUser!!
-        val obj = vacationInfo.vacation
-
-        val i18nArgs = arrayOf(vacationInfo.employeeFullname,
-                vacationInfo.periodText,
-                translate(recipient, "vacation.mail.modType.${operationType.name.lowercase()}"))
-        val subject = translate(recipient, "vacation.mail.action.short", *i18nArgs)
-        val operation = translate(recipient, "vacation.mail.modType.${operationType.name.lowercase()}")
-        val mode = vacationMode.name.lowercase()
-        val mailInfo = MailInfo(subject, operation, mode)
-        val mail = Mail()
-        mail.subject = subject
-        mail.contentType = Mail.CONTENTTYPE_HTML
-        var vacationerAsCC = false
-        if (recipient != null) {
-            mail.setTo(recipient)
-            if (vacationer.id != recipient.id) {
-                vacationerAsCC = true
-            }
-        }
-        if (!mailTo.isNullOrBlank()) {
-            mail.setTo(mailTo)
-            vacationerAsCC = true
-        }
-        if (vacationerAsCC) {
-            mail.addCC(vacationer.email)
-        }
-        if (mail.to.isEmpty()) {
-            log.error { "Oups, neither recipient nor VacationMode.HR is given to prepare mail. No notification is done." }
-            return null
-        }
-        val data = mutableMapOf<String, Any?>("vacationInfo" to vacationInfo, "vacation" to obj, "mailInfo" to mailInfo)
-        mail.content = sendMail.renderGroovyTemplate(mail, "mail/vacationMail.html", data, translate(recipient, "vacation"), recipient)
-        return mail
+    fun formatEmployee(): String {
+      return formatUserWithMail(this.employeeFullname, this.employeeMail)
     }
 
-    // Used by template.
-    @Suppress("HasPlatformType", "MemberVisibilityCanBePrivate", "unused")
-    internal class VacationInfo(employeeDao: EmployeeDao, val vacation: VacationDO) {
-        val link = getLinkToVacationEntry(vacation.id)
-        val modifiedByUser = ThreadLocalUserContext.getUser()
-        val modifiedByUserFullname = modifiedByUser.getFullname()
-        val modifiedByUserMail = modifiedByUser.email
-        val employeeUser = employeeDao.internalGetById(vacation.employee?.id)?.user
-        var employeeFullname = employeeUser?.getFullname() ?: "unknown"
-        val employeeMail = employeeUser?.email
-        val managerUser = employeeDao.internalGetById(vacation.manager?.id)?.user
-        var managerFullname = managerUser?.getFullname() ?: "unknown"
-        val managerMail = managerUser?.email
-        val replacementUser = employeeDao.internalGetById(vacation.replacement?.id)?.user
-        var replacementFullname = replacementUser?.getFullname() ?: "unknown"
-        var otherReplacementsFullnames: String = ""
-        val replacementMail = replacementUser?.email
-        val startDate = dateFormatter.getFormattedDate(vacation.startDate)
-        val endDate = dateFormatter.getFormattedDate(vacation.endDate)
-        lateinit var halfDayBeginFormatted: String
-        lateinit var halfDayEndFormatted: String
-        lateinit var vacationSpecialFormatted: String
-        val workingDays = VacationService.getVacationDays(vacation)
-        val workingDaysFormatted = VacationStats.format(workingDays)
-        val periodText = I18nHelper.getLocalizedMessage("vacation.mail.period", startDate, endDate, workingDaysFormatted)
-        var valid: Boolean = true
-
-        /**
-         * E-Mail be be sent to recipients with different locales.
-         */
-        fun updateI18n(recipient: PFUserDO?) {
-            employeeFullname = employeeUser?.getFullname() ?: translate(recipient, "unknown")
-            managerFullname = managerUser?.getFullname() ?: translate(recipient, "unknown")
-            replacementFullname = replacementUser?.getFullname() ?: translate(recipient, "unknown")
-            halfDayBeginFormatted = translate(recipient, vacation.halfDayBegin)
-            halfDayEndFormatted = translate(recipient, vacation.halfDayEnd)
-            vacationSpecialFormatted = translate(recipient, vacation.special)
-        }
-
-        init {
-            if (employeeUser == null) {
-                log.warn { "Oups, employee not given. Will not send an e-mail for vacation changes: $vacation" }
-                valid = false
-            }
-            if (managerUser == null) {
-                log.warn { "Oups, manager not given. Will not send an e-mail for vacation changes: $vacation" }
-                valid = false
-            }
-            vacation.otherReplacements?.let { list ->
-                otherReplacementsFullnames = list.joinToString { employee ->
-                    employeeDao.internalGetById(employee?.id)?.user?.getFullname() ?: "???"
-                }
-            }
-        }
-
-        fun formatModifiedByUser(): String {
-            return formatUserWithMail(this.modifiedByUserFullname, this.modifiedByUserMail)
-        }
-
-        fun formatEmployee(): String {
-            return formatUserWithMail(this.employeeFullname, this.employeeMail)
-        }
-
-        fun formatManager(): String {
-            return formatUserWithMail(this.managerFullname, this.managerMail)
-        }
-
-        fun formatReplacement(): String {
-            return formatUserWithMail(this.replacementFullname, this.replacementMail)
-        }
-
-        fun formatUserWithMail(name: String, mail: String? = null): String {
-            return SendMail.formatUserWithMail(name, mail)
-        }
+    fun formatManager(): String {
+      return formatUserWithMail(this.managerFullname, this.managerMail)
     }
 
-    @Suppress("unused")
-    private class MailInfo(val subject: String, val operation: String, val mode: String)
-
-    companion object {
-        private var _linkToVacationEntry: String? = null
-        private val linkToVacationEntry: String
-            get() {
-                if (_linkToVacationEntry == null) {
-                    val sendMail = ApplicationContextProvider.getApplicationContext().getBean(SendMail::class.java)
-                    _linkToVacationEntry = sendMail.buildUrl("$vacationEditPagePath/")
-                }
-                return _linkToVacationEntry!!
-            }
-        fun getLinkToVacationEntry(id: String) : String {
-            return "$linkToVacationEntry$id?returnToCaller=account"
-        }
-        fun getLinkToVacationEntry(id: Int) : String {
-            return getLinkToVacationEntry(id.toString())
-        }
-        private val vacationEditPagePath = "${MenuItemDefId.VACATION.url}/edit"
-        private val dateFormatter = DateTimeFormatter.instance()
-        private var _defaultLocale: Locale? = null
-        private val defaultLocale: Locale
-            get() {
-                if (_defaultLocale == null) {
-                    _defaultLocale = ConfigurationServiceAccessor.get().defaultLocale ?: Locale.getDefault()
-                }
-                return _defaultLocale!!
-            }
-
-        private fun translate(recipient: PFUserDO?, i18nKey: String, vararg params: Any): String {
-            return I18nHelper.getLocalizedMessage(recipient, i18nKey, *params)
-        }
-
-        private fun translate(recipient: PFUserDO?, value: Boolean?): String {
-            return translate(recipient, if (value == true) "yes" else "no")
-        }
+    fun formatReplacement(): String {
+      return formatUserWithMail(this.replacementFullname, this.replacementMail)
     }
+
+    fun formatUserWithMail(name: String, mail: String? = null): String {
+      return SendMail.formatUserWithMail(name, mail)
+    }
+  }
+
+  @Suppress("unused")
+  private class MailInfo(val subject: String, val operation: String, val mode: String)
+
+  companion object {
+    private var _linkToVacationEntry: String? = null
+    private val linkToVacationEntry: String
+      get() {
+        if (_linkToVacationEntry == null) {
+          val sendMail = ApplicationContextProvider.getApplicationContext().getBean(SendMail::class.java)
+          _linkToVacationEntry = sendMail.buildUrl("$vacationEditPagePath/")
+        }
+        return _linkToVacationEntry!!
+      }
+
+    fun getLinkToVacationEntry(id: String): String {
+      return "$linkToVacationEntry$id?returnToCaller=account"
+    }
+
+    fun getLinkToVacationEntry(id: Int): String {
+      return getLinkToVacationEntry(id.toString())
+    }
+
+    private val vacationEditPagePath = "${MenuItemDefId.VACATION.url}/edit"
+    private val dateFormatter = DateTimeFormatter.instance()
+    private var _defaultLocale: Locale? = null
+    private val defaultLocale: Locale
+      get() {
+        if (_defaultLocale == null) {
+          _defaultLocale = ConfigurationServiceAccessor.get().defaultLocale ?: Locale.getDefault()
+        }
+        return _defaultLocale!!
+      }
+
+    private fun translate(recipient: PFUserDO?, i18nKey: String, vararg params: Any): String {
+      return I18nHelper.getLocalizedMessage(recipient, i18nKey, *params)
+    }
+
+    private fun translate(recipient: PFUserDO?, value: Boolean?): String {
+      return translate(recipient, if (value == true) "yes" else "no")
+    }
+  }
 }
