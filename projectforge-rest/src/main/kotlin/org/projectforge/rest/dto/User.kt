@@ -155,15 +155,6 @@ class User(
 
   override fun copyTo(dest: PFUserDO) {
     super.copyTo(dest)
-    val newAssignedUsers = mutableSetOf<PFUserDO>()
-    /*assignedUsers?.forEach { u ->
-      UserGroupCache.getInstance().getUser(u.id)?.let { userDO ->
-        newAssignedUsers.add(userDO)
-      }
-    }
-    if (newAssignedUsers.isNotEmpty()) {
-      dest.assignedUsers = newAssignedUsers
-    }*/
   }
 
   companion object {
