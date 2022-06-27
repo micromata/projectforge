@@ -4,6 +4,7 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
+import { isObject } from 'lodash/lang';
 
 const formatterFormat = (
     value,
@@ -44,6 +45,7 @@ const formatterFormat = (
         case 'DATE':
             return moment(value).format(dateFormat);
         case 'TASK':
+        case 'TASK_PATH':
             return value.title;
         case 'TIMESTAMP':
             return moment(value).format(timestampFormatSeconds);
@@ -61,7 +63,7 @@ const formatterFormat = (
                 .join(', ');
         default:
     }
-    if (result === undefined) {
+    if (result === undefined || isObject(result)) {
         result = '???';
     }
     return result;
