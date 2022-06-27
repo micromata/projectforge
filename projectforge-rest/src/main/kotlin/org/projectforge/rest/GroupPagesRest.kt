@@ -173,7 +173,7 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::
   override fun validate(validationErrors: MutableList<ValidationError>, dto: Group) {
     super.validate(validationErrors, dto)
     dto.gidNumber?.let { gidNumber ->
-      if (dto.gidNumber != null && !ldapPosixGroupsUtils.isGivenNumberFree(dto.id ?: -1, gidNumber)) {
+      if (!ldapPosixGroupsUtils.isGivenNumberFree(dto.id ?: -1, gidNumber)) {
         validationErrors.add(
           ValidationError(
             translateMsg("ldap.gidNumber.alreadyInUse", ldapPosixGroupsUtils.nextFreeGidNumber),

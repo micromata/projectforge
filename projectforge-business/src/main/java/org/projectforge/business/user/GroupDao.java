@@ -194,13 +194,36 @@ public class GroupDao extends BaseDao<GroupDO> {
    * @throws AccessException
    */
   public void assignGroups(final PFUserDO user, final Set<GroupDO> groupsToAssign, final Set<GroupDO> groupsToUnassign, final boolean updateUserGroupCache) {
+    final Set<Integer> groupIdsToAssign = new HashSet<>();
+    final Set<Integer> groupIdsToUnassign = new HashSet<>();
+    if (groupIdsToAssign != null) {
+      for (final GroupDO group : groupsToAssign) {
+        groupIdsToAssign.add(group.getId());
+      }
+    }
+    if (groupsToUnassign != null) {
+      for (final GroupDO group : groupsToUnassign) {
+        groupIdsToUnassign.add(group.getId());
+      }
+    }
+    assignGroupByIds(user, groupIdsToAssign, groupIdsToUnassign, updateUserGroupCache);
+  }
+
+  /**
+   * Assigns groups to and unassigns groups from given user.
+   *
+   * @param groupIdsToAssign   Groups to assign (nullable).
+   * @param groupIdsToUnassign Groups to unassign (nullable).
+   * @throws AccessException
+   */
+  public void assignGroupByIds(final PFUserDO user, final Set<Integer> groupIdsToAssign, final Set<Integer> groupIdsToUnassign, final boolean updateUserGroupCache) {
     final List<GroupDO> assignedGroups = new ArrayList<>();
     final List<GroupDO> unassignedGroups = new ArrayList<>();
     emgrFactory.runInTrans(emgr -> {
       PFUserDO dbUser = emgr.selectByPkAttached(PFUserDO.class, user.getPk());
-      if (groupsToAssign != null) {
-        for (final GroupDO group : groupsToAssign) {
-          final GroupDO dbGroup = emgr.selectByPkAttached(GroupDO.class, group.getId());
+      if (groupIdsToAssign != null) {
+        for (final Integer groupId : groupIdsToAssign) {
+          final GroupDO dbGroup = emgr.selectByPkAttached(GroupDO.class, groupId);
           HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup, () -> {
             Set<PFUserDO> assignedUsers = dbGroup.getAssignedUsers();
             if (assignedUsers == null) {
@@ -220,9 +243,9 @@ public class GroupDao extends BaseDao<GroupDO> {
           });
         }
       }
-      if (groupsToUnassign != null) {
-        for (final GroupDO group : groupsToUnassign) {
-          final GroupDO dbGroup = emgr.selectByPkAttached(GroupDO.class, group.getId());
+      if (groupIdsToUnassign != null) {
+        for (final Integer groupId : groupIdsToUnassign) {
+          final GroupDO dbGroup = emgr.selectByPkAttached(GroupDO.class, groupId);
           HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup, () -> {
             final Set<PFUserDO> assignedUsers = dbGroup.getAssignedUsers();
             if (assignedUsers != null && assignedUsers.contains(dbUser)) {

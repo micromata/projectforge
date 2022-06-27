@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.ldap.PFUserDOConverter
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRightValue
@@ -68,7 +69,7 @@ class User(
   var sshPublicKey: String? = null,
   var gpgPublicKey: String? = null,
   var rightsAsString: String? = null,
-  var ldapValues: String? = null,
+  var ldapValues: UserLdapValues? = null,
   var localUser: Boolean? = false,
 ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
 
@@ -150,12 +151,28 @@ class User(
         }
       }
       assignedGroups = newAssignedGroups.sortedBy { it.displayName?.lowercase() }.toMutableList()
+      PFUserDOConverter.readLdapUserValues(src.ldapValues)?.let { src ->
+        ldapValues = UserLdapValues.create(src)
+      }
     }
   }
 
   override fun copyTo(dest: PFUserDO) {
     super.copyTo(dest)
+    ldapValues?.let {
+      val ldapUserValues = it.convert()
+      dest.ldapValues = PFUserDOConverter.getLdapValuesAsXml(ldapUserValues)
+    }
   }
+
+  fun ensureLdapValues(): UserLdapValues {
+    ldapValues?.let { return it }
+    UserLdapValues().let {
+      ldapValues = it
+      return it
+    }
+  }
+
 
   companion object {
     private val accessChecker = ApplicationContextProvider.getApplicationContext().getBean(AccessChecker::class.java)

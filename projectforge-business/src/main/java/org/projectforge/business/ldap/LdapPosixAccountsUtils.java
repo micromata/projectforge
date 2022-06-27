@@ -75,10 +75,23 @@ public class LdapPosixAccountsUtils
    */
   public boolean isGivenNumberFree(final PFUserDO currentUser, final int uidNumber)
   {
+    return isGivenNumberFree(currentUser.getId(), uidNumber);
+  }
+
+  /**
+   * For preventing double uidNumbers.
+   *
+   * @param currentUserId
+   * @param uidNumber
+   * @return Returns true if any user (also deleted user) other than the given user has the given uidNumber, otherwise
+   *         false.
+   */
+  public boolean isGivenNumberFree(final Integer currentUserId, final int uidNumber)
+  {
     final Collection<PFUserDO> allUsers = userGroupCache.getAllUsers();
     for (final PFUserDO user : allUsers) {
       final LdapUserValues ldapUserValues = PFUserDOConverter.readLdapUserValues(user.getLdapValues());
-      if (Objects.equals(user.getId(), currentUser.getId())) {
+      if (Objects.equals(user.getId(), currentUserId)) {
         // The current user may have the given uidNumber already, so ignore this entry.
         continue;
       }

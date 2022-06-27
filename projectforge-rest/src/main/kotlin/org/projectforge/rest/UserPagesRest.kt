@@ -26,6 +26,7 @@ package org.projectforge.rest
 import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
+import org.projectforge.business.ldap.LdapPosixAccountsUtils
 import org.projectforge.business.ldap.LdapUserDao
 import org.projectforge.business.login.Login
 import org.projectforge.business.user.*
@@ -34,6 +35,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -81,6 +83,9 @@ class UserPagesRest
 
   @Autowired
   private lateinit var ldapUserDao: LdapUserDao
+
+  @Autowired
+  private lateinit var ldapPosixAccountsUtils: LdapPosixAccountsUtils
 
   @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
@@ -177,7 +182,14 @@ class UserPagesRest
       )
       agGrid.add(UIAgGridColumnDef.createCol(lc, "rightsAsString", lcField = "rights", wrapText = true))
       if (useLdapStuff) {
-        agGrid.add(UIAgGridColumnDef.createCol(lc, PFUserDO::ldapValues, wrapText = true))
+        agGrid.add(
+          UIAgGridColumnDef.createCol(
+            lc,
+            "ldapValues.asString",
+            lcField = PFUserDO::ldapValues.name,
+            wrapText = true
+          )
+        )
       }
     }
 
@@ -256,10 +268,10 @@ class UserPagesRest
   }
 
   @PostMapping("createUid")
-  fun createGid(@Valid @RequestBody postData: PostData<User>):
+  fun createUid(@Valid @RequestBody postData: PostData<User>):
       ResponseAction {
     val data = postData.data
-    //data.gidNumber = ldapPosixGroupsUtils.nextFreeGidNumber
+    data.ensureLdapValues().uidNumber = ldapPosixAccountsUtils.nextFreeUidNumber
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("data", data)
   }
@@ -268,23 +280,23 @@ class UserPagesRest
   fun createSambaSID(@Valid @RequestBody postData: PostData<User>):
       ResponseAction {
     val data = postData.data
-    //data.gidNumber = ldapPosixGroupsUtils.nextFreeGidNumber
+    data.ensureLdapValues().gidNumber = ldapPosixAccountsUtils.nextFreeUidNumber
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("data", data)
   }
 
   override fun validate(validationErrors: MutableList<ValidationError>, dto: User) {
     super.validate(validationErrors, dto)
-    /*dto.gidNumber?.let { gidNumber ->
-      if (dto.gidNumber != null && !ldapPosixGroupsUtils.isGivenNumberFree(dto.id ?: -1, gidNumber)) {
+    dto.ldapValues?.uidNumber?.let { uidNumber ->
+      if (!ldapPosixAccountsUtils.isGivenNumberFree(dto.id ?: -1, uidNumber)) {
         validationErrors.add(
           ValidationError(
-            translateMsg("ldap.gidNumber.alreadyInUse", ldapPosixGroupsUtils.nextFreeGidNumber),
-            fieldId = "gidNumber",
+            translateMsg("ldap.uidNumber.alreadyInUse", ldapPosixAccountsUtils.nextFreeUidNumber),
+            fieldId = "uidNumber",
           )
         )
       }
-    }*/
+    }
   }
 
   /**
@@ -378,6 +390,9 @@ class UserPagesRest
         "assignedGroups",
       )
     )
+    if (useLdapStuff) {
+      addLdap(layout, dto, lc)
+    }
     addRights(layout, dto)
     return LayoutUtils.processEditPage(layout, dto, this)
   }
@@ -402,37 +417,81 @@ class UserPagesRest
   }
 
   override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PFUserDO, postData: PostData<User>) {
-    val startAll = System.currentTimeMillis()
-    log.info("Assigning groups...")
+    val start = System.currentTimeMillis()
     val newAssignedGroups = postData.data.assignedGroups?.map { it.id } ?: emptyList()
     val dbAssignedGroups = userGroupCache.getUserGroups(obj) ?: emptyList()
     val groupsToAssign = newAssignedGroups.subtract(dbAssignedGroups)
     val groupsToUnassign = dbAssignedGroups.subtract(newAssignedGroups)
     groupDao.assignGroupByIds(obj, groupsToAssign, groupsToUnassign, false)
-    log.info("Finish assign groups")
-    /*if (form.rightsData != null) {
-      UserEditPage.log.info("Start updating user rights")
-      start = System.currentTimeMillis()
-      val list: List<UserRightVO> = form.rightsData.getRights()
-      userRightDao.updateUserRights(getData(), list, false)
-      end = System.currentTimeMillis()
-      UserEditPage.log.info("Finish updating user rights. Took: " + (end - start) / 1000 + " sec.")
+    log.info("Assigning groups took: ${(System.currentTimeMillis() - start) / 1000}s.")
+    val startRights = System.currentTimeMillis()
+
+    val user = postData.data
+    val userRightVOS = userRightsHandler.getUserRightVOs(user)
+    userRightDao.updateUserRights(obj, userRightVOS, false)
+    log.info("Updating rights took: ${(System.currentTimeMillis() - startRights) / 1000}s.")
+    //Only one time reload user group cache
+    userGroupCache.forceReload()
+    log.info("onAfterSaveOrUpdate: ${(System.currentTimeMillis() - start) / 1000}s.")
+  }
+
+  private fun addLdap(layout: UILayout, dto: User, lc: LayoutContext) {
+    val ldapValues = dto.ensureLdapValues()
+    val leftCol = UICol(md = 6)
+    val rightCol = UICol(md = 6)
+    layout.add(UIFieldset(title = "ldap"))
+      .add(
+        UIRow()
+          .add(leftCol)
+          .add(rightCol)
+      )
+    leftCol.add(UICheckbox(PFUserDO::localUser.name, lc))
+    val uidInput = UIInput(
+      "ldapValues.uidNumber",
+      label = "ldap.uidNumber",
+      additionalLabel = "ldap.posixAccount",
+      tooltip = "ldap.uidNumber.tooltip",
+    )
+
+    if (ldapValues.uidNumber != null) {
+      leftCol.add(uidInput)
+    } else {
+      val button = UIButton.createLinkButton(
+        id = "createGidNumber",
+        title = "create",
+        tooltip = "ldap.gidNumber.createDefault.tooltip",
+        responseAction = ResponseAction(
+          RestResolver.getRestUrl(
+            GroupPagesRest::class.java,
+            "createGid"
+          ), targetType = TargetType.POST
+        )
+      )
+      leftCol.add(UIRow().add(UICol().add(uidInput)).add(UICol().add(button)))
     }
+    leftCol.add(
+      UIInput(
+        "ldapValues.gidNumber",
+        label = "ldap.gidNumber",
+        additionalLabel = "ldap.posixAccount",
+      )
+    )
 
-    //Only one time reload user group cache
+    /*
 
-    //Only one time reload user group cache
-    UserEditPage.log.info("Start force reload user group cache.")
-    start = System.currentTimeMillis()
-    end = System.currentTimeMillis()
-    UserEditPage.log.info("Finish force reload user group cache. Took: " + (end - start) / 1000 + " sec.")
-    // Force to reload Menu directly (if the admin user modified himself), otherwise menu is
-    // reloaded after next page call.
-    // Force to reload Menu directly (if the admin user modified himself), otherwise menu is
-    // reloaded after next page call.
-    end = System.currentTimeMillis()
-    UserEditPage.log.info("Finish afterSaveOrUpdate() in UserEditPage. Took: " + (end - startAll) / 1000 + " sec.")
-    return UserListPage(PageParameters()) */
+Samba SID S-1-5-21-870896465-624712373-3470194202-
+
+Primary group SID. - Samba account
+S-1-5-21-870896465-624712373-3470194202-
+
+Eingeschränkte:r Nutzer:in
+
+Home directory- Posix account
+
+Login shell -Posix account
+
+Samba-Passwort - NT hashed Passwort
+      */
   }
 
   private fun addRights(layout: UILayout, dto: User) {
