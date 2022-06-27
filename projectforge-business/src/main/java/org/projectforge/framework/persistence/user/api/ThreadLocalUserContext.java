@@ -25,8 +25,8 @@ package org.projectforge.framework.persistence.user.api;
 
 import org.joda.time.DateTimeZone;
 import org.projectforge.business.configuration.ConfigurationServiceAccessor;
-import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserLocale;
+import org.projectforge.business.user.UserTimeZone;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -36,7 +36,6 @@ import java.time.DayOfWeek;
 import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.TimeZone;
 
 /**
@@ -164,13 +163,7 @@ public class ThreadLocalUserContext {
    * @see Configuration#getDefaultTimeZone()
    */
   public static TimeZone getTimeZone() {
-    if (getUser() != null) {
-      return getUser().getTimeZone();
-    }
-    if (Configuration.getInstance() != null) {
-      return Configuration.getInstance().getDefaultTimeZone();
-    }
-    return TimeZone.getDefault();
+    return UserTimeZone.determineUserTimeZone();
   }
 
   /**

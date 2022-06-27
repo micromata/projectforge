@@ -404,7 +404,7 @@ open class VacationService {
     if (employees.isEmpty()) {
       return VacationOverlaps()
     }
-    val result = mutableListOf<VacationDO>()
+    val vacationOverlaps = mutableListOf<VacationDO>()
     getVacationOfEmployees(
       employees,
       periodBegin,
@@ -414,19 +414,26 @@ open class VacationService {
     ).forEach { employeeVacations ->
       employeeVacations.vacations.forEach { otherVacation ->
         if (vacation.hasOverlap(otherVacation)) {
-          result.add(otherVacation)
+          vacationOverlaps.add(otherVacation)
         }
       }
     }
-    val conflict = checkConflict(vacation, result)
+    val conflict = checkConflict(vacation, vacationOverlaps)
     conflictingVacationsCache.updateVacation(vacation, conflict)
-    return VacationOverlaps(result.sortedBy { it.startDate }, conflict)
+    return VacationOverlaps(vacationOverlaps.sortedBy { it.startDate }, conflict)
   }
 
   internal fun checkConflict(vacation: VacationDO, otherVacations: List<VacationDO>): Boolean {
     if (otherVacations.isEmpty()) {
       return false
     }
+    val employees = vacation.allReplacements
+    employees.forEach { employeeDO ->
+      if (otherVacations.none { it.employeeId == employeeDO.id }) {
+        return false // one replacement employee found without any vacation in the vacation period -> no conflict.
+      }
+    }
+
     val startDate = vacation.startDate ?: return false // return should not occur on db entries.
     val endDate = vacation.endDate ?: return false // return should not occur on db entries.
     if (startDate > endDate) {

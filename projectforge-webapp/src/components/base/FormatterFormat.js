@@ -1,9 +1,5 @@
-import { faCheck, faStar } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import moment from 'moment';
-import PropTypes from 'prop-types';
 import React from 'react';
-import { connect } from 'react-redux';
 import { isObject } from 'lodash/lang';
 
 const formatterFormat = (
