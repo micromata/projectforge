@@ -120,7 +120,7 @@ function HistoryEntry(
 
                         switch (operationType) {
                             case 'Insert':
-                                diff = ` ${property}: ${newValue}`;
+                                diff = `${newValue}`;
                                 break;
                             case 'Update':
                                 diff = (
@@ -131,10 +131,10 @@ function HistoryEntry(
                                 );
                                 break;
                             case 'Delete':
-                                diff = ` ${property}: ${oldValue}`;
+                                diff = `${oldValue}`;
                                 break;
                             default:
-                                diff = ' No change';
+                                diff = 'No change';
                         }
 
                         return (
@@ -144,6 +144,9 @@ function HistoryEntry(
                             >
                                 <span className={style[operationType]}>
                                     {getTypeSymbol(operationType)}
+                                    {' '}
+                                    {property}
+                                    {': '}
                                 </span>
                                 {diff}
                             </span>
