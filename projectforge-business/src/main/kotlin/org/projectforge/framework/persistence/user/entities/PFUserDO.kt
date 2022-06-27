@@ -74,9 +74,11 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     /**
      * Timesamp of the lastPasswordChange.
      */
+    @PropertyInfo(i18nKey = "user.changePassword.password.lastChange")
     @get:Column(name = "last_password_change")
     open var lastPasswordChange: Date? = null
 
+    @PropertyInfo(i18nKey = "user.changeWlanPassword.lastChange")
     @get:Column(name = "last_wlan_password_change")
     open var lastWlanPasswordChange: Date? = null
 
@@ -188,6 +190,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     /**
      * For example "Europe/Berlin" if time zone is given otherwise empty string.
      */
+    @get:PropertyInfo(i18nKey = "timezone")
     @get:Column(name = "time_zone")
     open var timeZoneString: String?
         get() = _timeZone?.id
