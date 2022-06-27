@@ -77,6 +77,9 @@ class UserPagesRest
   private lateinit var accessChecker: AccessChecker
 
   @Autowired
+  private lateinit var groupDao: GroupDao
+
+  @Autowired
   private lateinit var ldapUserDao: LdapUserDao
 
   @Autowired
@@ -84,6 +87,9 @@ class UserPagesRest
 
   @Autowired
   private lateinit var userGroupCache: UserGroupCache
+
+  @Autowired
+  private lateinit var userRightDao: UserRightDao
 
   @Autowired
   private lateinit var userRightsHandler: UserRightsHandler
@@ -393,6 +399,40 @@ class UserPagesRest
           dto
         ) // must be added after createEditLayout is called, because createEditLaoyout may modify available user's rights.
     )
+  }
+
+  override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PFUserDO, postData: PostData<User>) {
+    val startAll = System.currentTimeMillis()
+    log.info("Assigning groups...")
+    val newAssignedGroups = postData.data.assignedGroups?.map { it.id } ?: emptyList()
+    val dbAssignedGroups = userGroupCache.getUserGroups(obj) ?: emptyList()
+    val groupsToAssign = newAssignedGroups.subtract(dbAssignedGroups)
+    val groupsToUnassign = dbAssignedGroups.subtract(newAssignedGroups)
+    groupDao.assignGroupByIds(obj, groupsToAssign, groupsToUnassign, false)
+    log.info("Finish assign groups")
+    /*if (form.rightsData != null) {
+      UserEditPage.log.info("Start updating user rights")
+      start = System.currentTimeMillis()
+      val list: List<UserRightVO> = form.rightsData.getRights()
+      userRightDao.updateUserRights(getData(), list, false)
+      end = System.currentTimeMillis()
+      UserEditPage.log.info("Finish updating user rights. Took: " + (end - start) / 1000 + " sec.")
+    }
+
+    //Only one time reload user group cache
+
+    //Only one time reload user group cache
+    UserEditPage.log.info("Start force reload user group cache.")
+    start = System.currentTimeMillis()
+    end = System.currentTimeMillis()
+    UserEditPage.log.info("Finish force reload user group cache. Took: " + (end - start) / 1000 + " sec.")
+    // Force to reload Menu directly (if the admin user modified himself), otherwise menu is
+    // reloaded after next page call.
+    // Force to reload Menu directly (if the admin user modified himself), otherwise menu is
+    // reloaded after next page call.
+    end = System.currentTimeMillis()
+    UserEditPage.log.info("Finish afterSaveOrUpdate() in UserEditPage. Took: " + (end - startAll) / 1000 + " sec.")
+    return UserListPage(PageParameters()) */
   }
 
   private fun addRights(layout: UILayout, dto: User) {
