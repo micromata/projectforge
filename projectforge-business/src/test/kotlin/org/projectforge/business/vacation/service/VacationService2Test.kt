@@ -38,14 +38,17 @@ class VacationService2Test {
     val substitute2 = createEmployee(3)
     val vacation = createJuneVacation(employee, 1, 30) // Whole month
     vacation.replacement = substitute1
-    vacation.otherReplacements = mutableSetOf(substitute2)
     val substitute1Vacation1 = createJuneVacation(substitute1, 1, 10)
     val substitute2Vacation1 = createJuneVacation(substitute2, 1, 10)
     val substitute2Vacation2 = createJuneVacation(substitute2, 11, 20)
     Assertions.assertFalse(VacationService().checkConflict(vacation, emptyList()), "No other vacations.")
     Assertions.assertTrue(VacationService().checkConflict(vacation, listOf(substitute1Vacation1)), "No substitute on duty found")
+
+    vacation.otherReplacements = mutableSetOf(substitute2)
     Assertions.assertFalse(VacationService().checkConflict(vacation, listOf(substitute1Vacation1, substitute2Vacation2)), "Substitute 1 and 2 with different leave times.")
     Assertions.assertTrue(VacationService().checkConflict(vacation, listOf(substitute1Vacation1, substitute2Vacation1)), "Substitute 1 and 2 with overlapping leave times.")
+
+    Assertions.assertFalse(VacationService().checkConflict(vacation, listOf(substitute1Vacation1)), "Substitute 2 has no vacations, so no conflict.")
   }
 
   private fun createJuneVacation(employee: EmployeeDO, fromDay: Int, toDay: Int): VacationDO {
