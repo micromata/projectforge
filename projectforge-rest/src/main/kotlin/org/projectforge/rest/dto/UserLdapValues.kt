@@ -33,6 +33,7 @@ class UserLdapValues(
   var loginShell: String? = null,
   var sambaPrimaryGroupSIDNumber: Int? = null,
   var sambaSIDNumber: Int? = null,
+  var sambaNTPassword: String? = "******",
 ) {
   fun convert(): LdapUserValues {
     val obj = LdapUserValues()

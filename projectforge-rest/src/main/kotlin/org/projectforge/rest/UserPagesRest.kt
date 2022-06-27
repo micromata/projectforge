@@ -27,6 +27,7 @@ import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.ldap.LdapPosixAccountsUtils
+import org.projectforge.business.ldap.LdapService
 import org.projectforge.business.ldap.LdapUserDao
 import org.projectforge.business.login.Login
 import org.projectforge.business.user.*
@@ -82,10 +83,13 @@ class UserPagesRest
   private lateinit var groupDao: GroupDao
 
   @Autowired
-  private lateinit var ldapUserDao: LdapUserDao
+  private lateinit var ldapPosixAccountsUtils: LdapPosixAccountsUtils
 
   @Autowired
-  private lateinit var ldapPosixAccountsUtils: LdapPosixAccountsUtils
+  private lateinit var ldapService: LdapService
+
+  @Autowired
+  private lateinit var ldapUserDao: LdapUserDao
 
   @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
@@ -321,6 +325,7 @@ class UserPagesRest
         PFUserDO::jiraUsername,
         PFUserDO::hrPlanning,
         PFUserDO::deactivated,
+        PFUserDO::restrictedUser,
       )
     layout.add(
       UIRow()
@@ -436,16 +441,19 @@ class UserPagesRest
   }
 
   private fun addLdap(layout: UILayout, dto: User, lc: LayoutContext) {
+    val ldapSambaAccountsConfig = ldapService.ldapConfig.sambaAccountsConfig
     val ldapValues = dto.ensureLdapValues()
     val leftCol = UICol(md = 6)
     val rightCol = UICol(md = 6)
-    layout.add(UIFieldset(title = "ldap"))
-      .add(
-        UIRow()
-          .add(leftCol)
-          .add(rightCol)
-      )
-    leftCol.add(UICheckbox(PFUserDO::localUser.name, lc))
+    layout.add(
+      UIFieldset(title = "ldap")
+        .add(UICheckbox(PFUserDO::localUser.name, lc))
+        .add(
+          UIRow()
+            .add(leftCol)
+            .add(rightCol)
+        )
+    )
     val uidInput = UIInput(
       "ldapValues.uidNumber",
       label = "ldap.uidNumber",
@@ -476,22 +484,32 @@ class UserPagesRest
         additionalLabel = "ldap.posixAccount",
       )
     )
-
-    /*
-
-Samba SID S-1-5-21-870896465-624712373-3470194202-
-
-Primary group SID. - Samba account
-S-1-5-21-870896465-624712373-3470194202-
-
-Eingeschränkte:r Nutzer:in
-
-Home directory- Posix account
-
-Login shell -Posix account
-
-Samba-Passwort - NT hashed Passwort
-      */
+    leftCol.add(
+      UIInput(
+        "ldapValues.sambaSIDNumber",
+        label = "ldap.sambaSID",
+        additionalLabel = "'${translate("ldap.sambaAccount")}: ${ldapSambaAccountsConfig.sambaSIDPrefix}-",
+        tooltip = "ldap.sambaSID.tooltip",
+      )
+    )
+    leftCol.add(
+      UIInput(
+        "ldapValues.sambaPrimaryGroupSIDNumber",
+        label = "ldap.sambaPrimaryGroupSID",
+        additionalLabel = "'${translate("ldap.sambaAccount")}: ${ldapSambaAccountsConfig.sambaSIDPrefix}-",
+        tooltip = "ldap.sambaPrimaryGroupSID.tooltip",
+      )
+    )
+    rightCol.add(UIInput("ldapValues.homeDirectory", label = "ldap.homeDirectory"))
+    rightCol.add(UIInput("ldapValues.loginShell", label = "ldap.loginShell"))
+    rightCol.add(
+      UIInput(
+        "ldapValues.sambaNTPassword",
+        label = "ldap.sambaNTPassword",
+        tooltip = "ldap.sambaNTPassword.tooltip",
+        additionalLabel = "ldap.sambaNTPassword.subtitle",
+      )
+    )
   }
 
   private fun addRights(layout: UILayout, dto: User) {
@@ -518,7 +536,7 @@ Samba-Passwort - NT hashed Passwort
     if (size > 0) {
       val leftCol = UICol(md = 6)
       val rightCol = UICol(md = 6)
-      layout.add(UIFieldset(title = "access.rights")).add(UIRow().add(leftCol).add(rightCol))
+      layout.add(UIFieldset(title = "access.rights").add(UIRow().add(leftCol).add(rightCol)))
       uiElements.forEachIndexed { index, uiElement ->
         if (index * 2 < size) {
           leftCol.add(uiElement)
