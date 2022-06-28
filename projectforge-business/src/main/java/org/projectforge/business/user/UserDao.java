@@ -41,8 +41,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.utils.Crypt;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
@@ -56,9 +54,6 @@ public class UserDao extends BaseDao<PFUserDO> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserDao.class);
 
   private static final SortProperty[] DEFAULT_SORT_PROPERTIES = new SortProperty[]{new SortProperty("firstname"), new SortProperty("lastname")};
-
-  @Autowired
-  private ApplicationContext applicationContext;
 
   public UserDao() {
     super(PFUserDO.class);
@@ -240,13 +235,13 @@ public class UserDao extends BaseDao<PFUserDO> {
   @Override
   public boolean hasUserSelectAccess(final PFUserDO user, final PFUserDO obj, final boolean throwException) {
     boolean result = accessChecker.isUserMemberOfAdminGroup(user)
-            || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP);
+        || accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP,
+        ProjectForgeGroup.CONTROLLING_GROUP);
     log.debug("UserDao hasSelectAccess. Check user member of admin, finance or controlling group: " + result);
     if (!result && obj.hasSystemAccess()) {
       result = accessChecker.areUsersInSameGroup(user, obj);
       log.debug("UserDao hasSelectAccess. Caller user: " + user.getUsername() + " Check user: " + obj.getUsername()
-              + " Check user in same group: " + result);
+          + " Check user in same group: " + result);
     }
     if (throwException && !result) {
       throw new AccessException(user, AccessType.GROUP, OperationType.SELECT);
@@ -281,9 +276,9 @@ public class UserDao extends BaseDao<PFUserDO> {
     PfEmgrFactory.get().runInTrans((emgr) -> {
       CriteriaUpdate<PFUserDO> cu = CriteriaUpdate.createUpdate(PFUserDO.class);
       cu
-              .set("lastLogin", new Date())
-              .set("loginFailures", 0)
-              .addWhere(Clauses.equal("id", user.getId()));
+          .set("lastLogin", new Date())
+          .set("loginFailures", 0)
+          .addWhere(Clauses.equal("id", user.getId()));
       return emgr.update(cu);
     });
   }
@@ -292,8 +287,8 @@ public class UserDao extends BaseDao<PFUserDO> {
     PfEmgrFactory.get().runInTrans((emgr) -> {
       CriteriaUpdate<PFUserDO> cu = CriteriaUpdate.createUpdate(PFUserDO.class);
       cu
-              .setExpression("loginFailures", "loginFailures + 1")
-              .addWhere(Clauses.equal("username", userName));
+          .setExpression("loginFailures", "loginFailures + 1")
+          .addWhere(Clauses.equal("username", userName));
       return emgr.update(cu);
     });
   }
@@ -310,15 +305,15 @@ public class UserDao extends BaseDao<PFUserDO> {
     } else {
       // user already exists. Check maybe changed username:
       dbUser = SQLHelper.ensureUniqueResult(em.createNamedQuery(PFUserDO.FIND_OTHER_USER_BY_USERNAME, PFUserDO.class)
-              .setParameter("username", user.getUsername())
-              .setParameter("id", user.getId()));
+          .setParameter("username", user.getUsername())
+          .setParameter("id", user.getId()));
     }
     return dbUser != null;
   }
 
   public PFUserDO getInternalByName(final String username) {
     return SQLHelper.ensureUniqueResult(em.createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO.class)
-            .setParameter("username", username));
+        .setParameter("username", username));
   }
 
   /**
@@ -405,8 +400,8 @@ public class UserDao extends BaseDao<PFUserDO> {
       return false;
     }
     return !StringUtils.equals(obj.getUsername(), dbObj.getUsername())
-            || !StringUtils.equals(obj.getFirstname(), dbObj.getFirstname())
-            || !StringUtils.equals(obj.getLastname(), dbObj.getLastname());
+        || !StringUtils.equals(obj.getFirstname(), dbObj.getFirstname())
+        || !StringUtils.equals(obj.getLastname(), dbObj.getLastname());
   }
 
   @Override
@@ -416,8 +411,8 @@ public class UserDao extends BaseDao<PFUserDO> {
 
   public List<PFUserDO> findByUsername(String username) {
     return em.createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO.class)
-            .setParameter("username", username)
-            .getResultList();
+        .setParameter("username", username)
+        .getResultList();
   }
 
   /**
@@ -451,7 +446,7 @@ public class UserDao extends BaseDao<PFUserDO> {
    * anymore.
    *
    * @param encrypted The data to encrypt.
-   * @param userId Use the password of the given user (used by CookieService, because user isn't yet logged-in).
+   * @param userId    Use the password of the given user (used by CookieService, because user isn't yet logged-in).
    * @return The decrypted data.
    * @see UserDao#decrypt(String)
    */
