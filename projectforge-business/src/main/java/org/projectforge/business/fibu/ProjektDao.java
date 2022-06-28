@@ -46,7 +46,11 @@ import java.util.List;
 public class ProjektDao extends BaseDao<ProjektDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.PM_PROJECT;
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjektDao.class);
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"kunde.name", "kunde.division", "projektManagerGroup.name"};
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{
+      "kunde.name", "kunde.division", "projektManagerGroup.name",
+      "headOfBusinessManager.username", "headOfBusinessManager.firstname", "headOfBusinessManager.lastname",
+      "salesManager.username", "salesManager.firstname", "salesManager.lastname",
+  };
 
   @Autowired
   private KundeDao kundeDao;
@@ -135,7 +139,7 @@ public class ProjektDao extends BaseDao<ProjektDO> {
     return emgrFactory.runRoTrans(emgr -> {
       try {
         return emgr
-                .selectSingleAttached(ProjektDO.class, "SELECT p FROM ProjektDO p WHERE p.kunde = :kunde and p.nummer = :nummer", "kunde", kunde, "nummer", nummer);
+            .selectSingleAttached(ProjektDO.class, "SELECT p FROM ProjektDO p WHERE p.kunde = :kunde and p.nummer = :nummer", "kunde", kunde, "nummer", nummer);
       } catch (NoResultException e) {
         return null;
       }
@@ -145,9 +149,9 @@ public class ProjektDao extends BaseDao<ProjektDO> {
   @SuppressWarnings("unchecked")
   public ProjektDO getProjekt(final int intern_kost2_4, final int nummer) {
     return SQLHelper.ensureUniqueResult(em
-            .createNamedQuery(ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER, ProjektDO.class)
-            .setParameter("internKost24", intern_kost2_4)
-            .setParameter("nummer", nummer));
+        .createNamedQuery(ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER, ProjektDO.class)
+        .setParameter("internKost24", intern_kost2_4)
+        .setParameter("nummer", nummer));
   }
 
   @Override

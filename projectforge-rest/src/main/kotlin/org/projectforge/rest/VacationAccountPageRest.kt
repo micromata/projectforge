@@ -290,7 +290,7 @@ class VacationAccountPageRest {
     list.forEach {
       if (conflictingVacationsCache.hasConflict(it.id)) {
         it.conflict = true
-        }
+      }
     }
     variables["vacations${id}Year"] = list
     variables["year$id"] = year
