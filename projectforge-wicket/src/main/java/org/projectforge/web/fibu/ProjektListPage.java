@@ -144,29 +144,15 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
     columns.add(
         new TaskPropertyColumn<ProjektDO>(getString("task"), getSortable("task.title", sortable), "task",
             cellItemListener));
-    if (kontoCache.isEmpty() == false) {
-      columns
-          .add(new CellItemListenerPropertyColumn<ProjektDO>(new Model<String>(getString("fibu.konto")), null, "konto",
-              cellItemListener)
-          {
-            /**
-             * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
-             *      java.lang.String, org.apache.wicket.model.IModel)
-             */
-            @Override
-            public void populateItem(final Item<ICellPopulator<ProjektDO>> item, final String componentId,
-                final IModel<ProjektDO> rowModel)
-            {
-              final ProjektDO projekt = rowModel.getObject();
-              final KontoDO konto = kontoCache.getKonto(projekt);
-              item.add(new Label(componentId, konto != null ? konto.formatKonto() : ""));
-              cellItemListener.populateItem(item, componentId, rowModel);
-            }
-          });
-    }
     columns.add(new CellItemListenerPropertyColumn<ProjektDO>(new Model<String>(getString("status")),
         getSortable("status", sortable),
         "status", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<ProjektDO>(new Model<String>(getString("fibu.headOfBusinessManager")),
+        getSortable("headOfBusinessManager.username", sortable),
+        "headOfBusinessManager.username", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<ProjektDO>(new Model<String>(getString("fibu.salesManager")),
+        getSortable("salesManager.username", sortable),
+        "salesManager.username", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<ProjektDO>(
         new Model<String>(getString("fibu.projekt.projektManagerGroup")), null,
         "projektManagerGroup", cellItemListener)
@@ -218,6 +204,26 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
         getSortable("description",
             sortable),
         "description", cellItemListener));
+    if (kontoCache.isEmpty() == false) {
+      columns
+          .add(new CellItemListenerPropertyColumn<ProjektDO>(new Model<String>(getString("fibu.konto")), null, "konto",
+              cellItemListener)
+          {
+            /**
+             * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
+             *      java.lang.String, org.apache.wicket.model.IModel)
+             */
+            @Override
+            public void populateItem(final Item<ICellPopulator<ProjektDO>> item, final String componentId,
+                                     final IModel<ProjektDO> rowModel)
+            {
+              final ProjektDO projekt = rowModel.getObject();
+              final KontoDO konto = kontoCache.getKonto(projekt);
+              item.add(new Label(componentId, konto != null ? konto.formatKonto() : ""));
+              cellItemListener.populateItem(item, componentId, rowModel);
+            }
+          });
+    }
     return columns;
   }
 
