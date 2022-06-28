@@ -423,13 +423,16 @@ open class VacationService {
     return VacationOverlaps(vacationOverlaps.sortedBy { it.startDate }, conflict)
   }
 
-  internal fun checkConflict(vacation: VacationDO, otherVacations: List<VacationDO>): Boolean {
-    if (otherVacations.isEmpty()) {
+  internal fun checkConflict(vacation: VacationDO, vacationsOfReplacements: List<VacationDO>): Boolean {
+    if (vacationsOfReplacements.isEmpty()) {
       return false
     }
-    val employees = vacation.allReplacements
-    employees.forEach { employeeDO ->
-      if (otherVacations.none { it.employeeId == employeeDO.id }) {
+    val allReplacements = vacation.allReplacements
+    if (allReplacements.isEmpty()) {
+      return false // return should not occur
+    }
+    allReplacements.forEach { employeeDO ->
+      if (vacationsOfReplacements.none { it.employeeId == employeeDO.id }) {
         return false // one replacement employee found without any vacation in the vacation period -> no conflict.
       }
     }
@@ -441,10 +444,6 @@ open class VacationService {
     }
     var date = startDate
     var paranoiaCounter = 10000
-    val replacements = vacation.allReplacements
-    if (replacements.isEmpty()) {
-      return false // return should not occur
-    }
     while (date <= endDate) {
       if (--paranoiaCounter <= 0) {
         // Paranoia counter for avoiding endless loops
@@ -452,8 +451,8 @@ open class VacationService {
       }
       var substituteAvailable = false
       // No check either at least one substitute is on duty or not:
-      replacements.forEach replacements@{ replacement ->
-        otherVacations.filter { it.employeeId == replacement.id }.forEach { other ->
+      allReplacements.forEach replacements@{ replacement ->
+        vacationsOfReplacements.filter { it.employeeId == replacement.id }.forEach { other ->
           if (!other.isInBetween(date)) {
             substituteAvailable = true
             return@replacements
