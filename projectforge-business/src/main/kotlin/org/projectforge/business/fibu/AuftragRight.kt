@@ -125,10 +125,13 @@ class AuftragRight(accessChecker: AccessChecker?) : UserRightAccessCheck<Auftrag
       if (accessChecker.userEquals(user, obj.contactPerson)) {
         hasAccess = true
       }
-      if (obj.projekt != null
-        && userGroupCache.isUserMemberOfGroup(user.id, obj.projekt!!.projektManagerGroupId)
-      ) {
-        hasAccess = true
+      obj.projekt?.let { projekt ->
+        if (userGroupCache.isUserMemberOfGroup(user.id, projekt.projektManagerGroupId)
+          || projekt.headOfBusinessManagerId == user.id
+          || projekt.salesManagerId == user.id
+        ) {
+          hasAccess = true
+        }
       }
       if (hasAccess) {
         if (!obj.isVollstaendigFakturiert) {
