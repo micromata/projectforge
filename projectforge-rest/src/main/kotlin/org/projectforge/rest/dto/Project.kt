@@ -41,6 +41,7 @@ class Project(
   var konto: Konto? = null,
   var task: Task? = null,
   var projektManagerGroup: Group? = null,
+  var projectManager: User? = null,
   var headOfBusinessManager: User? = null,
   var salesManager: User? = null,
   var nummernkreis: Int? = null,

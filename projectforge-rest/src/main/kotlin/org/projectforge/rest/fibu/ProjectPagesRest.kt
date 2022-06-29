@@ -99,6 +99,11 @@ class ProjectPagesRest
       formatter = UIAgGridColumnDef.Formatter.USER
     )
     agGrid.add(
+      Project::projectManager.name,
+      headerName = "fibu.projectManager",
+      formatter = UIAgGridColumnDef.Formatter.USER
+    )
+    agGrid.add(
       Project::projektManagerGroup.name,
       headerName = "fibu.projekt.projektManagerGroup",
       formatter = UIAgGridColumnDef.Formatter.GROUP,
