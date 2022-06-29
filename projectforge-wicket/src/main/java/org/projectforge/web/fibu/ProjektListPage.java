@@ -115,7 +115,7 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
         final ProjektDO projekt = rowModel.getObject();
         if (isSelectMode() == false) {
           item.add(new ListSelectActionPanel(componentId, rowModel, ProjektEditPage.class, projekt.getId(),
-              returnToPage, String
+              ProjektListPage.class, String
                   .valueOf(projekt.getKost())));
         } else {
           item.add(new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, projekt.getId(),

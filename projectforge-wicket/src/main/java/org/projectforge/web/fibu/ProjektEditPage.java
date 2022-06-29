@@ -37,10 +37,8 @@ import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.rest.fibu.ProjectPagesRest;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
-import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
 
-@EditPage(defaultReturnPage = ProjektListPage.class)
 public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm, ProjektDao> implements ISelectCallerPage
 {
   private static final long serialVersionUID = 8763884579951937296L;
@@ -98,6 +96,10 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
 
   @Override
   public void setResponsePage() {
+    if (returnToPageClass != null) {
+      super.setResponsePage();
+      return;
+    }
     userPrefService.putEntry("project", AbstractPagesRest.USER_PREF_PARAM_HIGHLIGHT_ROW, getData().getId(), false);
     throw new RedirectToUrlException(PagesResolver.getListPageUrl(ProjectPagesRest.class, null, true));
   }
