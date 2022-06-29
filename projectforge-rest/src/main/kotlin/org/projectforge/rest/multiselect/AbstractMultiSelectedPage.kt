@@ -26,11 +26,14 @@ package org.projectforge.rest.multiselect
 import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.utils.ReplaceUtils
 import mu.KotlinLogging
+import org.apache.poi.ss.formula.functions.T
+import org.projectforge.business.user.service.UserService
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.MenuItem
@@ -42,12 +45,14 @@ import org.projectforge.rest.core.*
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import java.io.Serializable
 import javax.servlet.http.HttpServletRequest
+import kotlin.reflect.KMutableProperty
 
 private val log = KotlinLogging.logger {}
 
@@ -55,6 +60,9 @@ private val log = KotlinLogging.logger {}
  * Base class of mass updates after multi selection.
  */
 abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
+  @Autowired
+  protected lateinit var userService: UserService
+
   class MultiSelection {
     var selectedIds: Collection<Serializable>? = null
   }
@@ -265,6 +273,37 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     massUpdateContext: MassUpdateContext<T>,
   ): ResponseEntity<*>?
 
+  /**
+   * Calls #proceedMassUpdateUserField
+   * @param params The param is get by property name of this given map.
+   */
+  protected fun proceedMassUpdateUserField(
+    params: Map<String, MassUpdateParameter>,
+    property: KMutableProperty<PFUserDO?>,
+    obj: Any,
+  ) {
+    proceedMassUpdateUserField(params[property.name], property, obj)
+  }
+
+  protected fun proceedMassUpdateUserField(
+    param: MassUpdateParameter?,
+    property: KMutableProperty<PFUserDO?>,
+    obj: Any,
+  ) {
+    param ?: return
+    if (param.delete == true) {
+      param.id.let { userId ->
+        if (userId == null || property.getter.call(obj)?.id == userId) {
+          property.setter.call(obj, null)
+        }
+      }
+    } else {
+      param.id?.let { userId ->
+        property.setter.call(obj, userService.internalGetById(userId))
+      }
+    }
+  }
+
   abstract fun fillForm(
     request: HttpServletRequest,
     layout: UILayout,
@@ -387,7 +426,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
   @PostMapping(URL_PATH_SELECTED)
   fun selected(
     request: HttpServletRequest,
-    @RequestBody selectedIds: MultiSelection?
+    @RequestBody selectedIds: AbstractMultiSelectedPage.MultiSelection?
   ): ResponseEntity<*> {
     MultiSelectionSupport.registerSelectedEntityIds(request, pagesRest::class.java, selectedIds?.selectedIds)
     return ResponseEntity.ok(
