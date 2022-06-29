@@ -58,7 +58,7 @@ function DynamicListPageAgGrid({
             .then((url) => {
                 history.push(url);
             });
-    }, [gridApi]);
+    }, [gridApi, handleCancelUrl]);
 
     const handleClick = React.useCallback(() => {
         const selectedIds = gridApi.getSelectedRows().map((item) => item.id);
@@ -70,7 +70,7 @@ function DynamicListPageAgGrid({
                 history.push(url);
             },
         );
-    }, [gridApi]);
+    }, [gridApi, urlAfterMultiSelect]);
 
     // getSelectedNodes
     return React.useMemo(

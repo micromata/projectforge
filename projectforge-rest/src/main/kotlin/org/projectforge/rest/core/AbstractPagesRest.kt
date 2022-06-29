@@ -253,7 +253,8 @@ constructor(
 
     layout.addTranslations(
       "reset", "datatable.no-records-found", "date.begin", "date.end", "exportAsXls",
-      "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday"
+      "search.lastMinute", "search.lastHour", "calendar.today", "search.sinceYesterday",
+      "multiselection.button",
     )
     layout.addTranslation("search.lastMinutes.10", translateMsg("search.lastMinutes", 10))
     layout.addTranslation("search.lastMinutes.30", translateMsg("search.lastMinutes", 30))
@@ -266,7 +267,24 @@ constructor(
     return LayoutUtils.processListPage(layout, this)
   }
 
-  abstract fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess)
+  /**
+   * Starts multi selection by registering current result list.
+   */
+  @PostMapping(RestPaths.REST_START_MULTI_SELECTION)
+  fun startMultiSelections(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResponseAction {
+    log.info("User wants to start multiselection")
+    @Suppress("UNCHECKED_CAST")
+    val list = (getList(request, filter).resultSet as List<Project>).map { it.id }
+    MultiSelectionSupport.registerEntityIdsForSelection(request, this::class.java, list)
+    return ResponseAction(url = PagesResolver.getMultiSelectionPageUrl(this::class.java, absolute = true))
+  }
+
+  abstract fun createListLayout(
+    request: HttpServletRequest,
+    layout: UILayout,
+    magicFilter: MagicFilter,
+    userAccess: UILayout.UserAccess
+  )
 
   /**
    * If given, a link to this url is shown on the list page. This is used for accessing the classical Wicket-version
