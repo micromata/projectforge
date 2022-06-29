@@ -48,7 +48,7 @@ internal class UserPrefCacheData {
     /**
      * @param persistent If true, the object will be persisted in the database.
      */
-    internal fun putEntry(area: String, name: String, value: Any, persistent: Boolean = true) {
+    internal fun putEntry(area: String, name: String, value: Any?, persistent: Boolean = true) {
         synchronized(entries) {
             var cacheEntry = findEntry(area, name)
             if (cacheEntry != null) {
