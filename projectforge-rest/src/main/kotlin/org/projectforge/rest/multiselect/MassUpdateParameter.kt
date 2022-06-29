@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.multiselect
 
+import org.projectforge.framework.DisplayNameCapable
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalTime
@@ -32,7 +33,7 @@ import java.util.*
  * Contains a field for mass update (string, int, number, date, task, user etc.) and the checkbox
  * either the field should be changed or not.
  */
-class MassUpdateParameter {
+class MassUpdateParameter: DisplayNameCapable {
   /**
    * If true, the value should be deleted (if delete option is used).
    */
@@ -104,6 +105,7 @@ class MassUpdateParameter {
   var timestampValue: Date? = null
   var timeValue: LocalTime? = null
   var booleanValue: Boolean? = null
+  override var displayName: String? = null
 
   fun isEmpty(): Boolean {
     return textValue.isNullOrBlank() &&

@@ -12,6 +12,7 @@ import {
     dismissCurrentError,
     fetchCurrentList,
     exportCurrentList,
+    startMultiSelection,
     openEditPage,
     renameListFavorite,
     selectListFavorite,
@@ -42,6 +43,7 @@ function SearchFilter(props) {
         onSelectQuickSelection,
         onSyncButtonClick,
         onExportButtonClick,
+        onMultiSelectionButtonClick,
     } = props;
 
     const {
@@ -99,6 +101,17 @@ function SearchFilter(props) {
                                 icon={faFileExcel}
                                 size="lg"
                             />
+                        </Button>
+                    )}
+                    {ui && ui.multiSelectionSupported && (
+                        <Button
+                            id="multiSelection"
+                            color="primary"
+                            onClick={onMultiSelectionButtonClick}
+                            outline
+                        >
+                            {/* eslint-disable-next-line react/prop-types */}
+                            {ui.translations['multiselection.button']}
                         </Button>
                     )}
                     {isFetching && <Spinner className={styles.loadingSpinner} />}
@@ -163,6 +176,7 @@ SearchFilter.propTypes = {
             title: PropTypes.string,
             pageMenu: PropTypes.shape({}),
             excelExportSupported: PropTypes.bool,
+            multiSelectionSupported: PropTypes.bool,
         }),
         filter: PropTypes.shape({
             id: PropTypes.string,
@@ -186,6 +200,7 @@ SearchFilter.propTypes = {
     onSelectQuickSelection: PropTypes.func.isRequired,
     onSyncButtonClick: PropTypes.func.isRequired,
     onExportButtonClick: PropTypes.func.isRequired,
+    onMultiSelectionButtonClick: PropTypes.func.isRequired,
 };
 
 SearchFilter.defaultProps = {};
@@ -214,6 +229,7 @@ const actions = (dispatch) => ({
     onSelectQuickSelection: ({ id }) => dispatch(openEditPage(id)),
     onSyncButtonClick: () => dispatch(fetchCurrentList(true)),
     onExportButtonClick: () => dispatch(exportCurrentList()),
+    onMultiSelectionButtonClick: () => dispatch(startMultiSelection()),
 });
 
 export default connect(mapStateToProps, actions)(SearchFilter);

@@ -102,8 +102,6 @@ open class UserStatusRest {
     val alertMessage: String? = null
   )
 
-  private val log = org.slf4j.LoggerFactory.getLogger(UserStatusRest::class.java)
-
   @GetMapping
   fun loginTest(request: HttpServletRequest): ResponseEntity<Result> {
     val user = LoginService.getUser(request) ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)

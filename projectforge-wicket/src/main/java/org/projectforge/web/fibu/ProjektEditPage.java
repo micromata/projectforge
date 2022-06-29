@@ -23,13 +23,18 @@
 
 package org.projectforge.web.fibu;
 
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
+import org.projectforge.business.user.service.UserPrefService;
 import org.projectforge.reporting.Kost2Art;
+import org.projectforge.rest.core.AbstractPagesRest;
+import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.rest.fibu.ProjectPagesRest;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
@@ -47,6 +52,9 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
 
   @SpringBean
   private ProjektDao projektDao;
+
+  @SpringBean
+  private UserPrefService userPrefService;
 
   public ProjektEditPage(final PageParameters parameters)
   {
@@ -86,6 +94,12 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
   protected Logger getLogger()
   {
     return log;
+  }
+
+  @Override
+  public void setResponsePage() {
+    userPrefService.putEntry("project", AbstractPagesRest.USER_PREF_PARAM_HIGHLIGHT_ROW, getData().getId(), false);
+    throw new RedirectToUrlException(PagesResolver.getListPageUrl(ProjectPagesRest.class, null, true));
   }
 
   @Override
