@@ -88,6 +88,7 @@ class AGGridSupport {
     pagesRest: AbstractPagesRest<*, *, *>,
     pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
     userAccess: UILayout.UserAccess,
+    rowClickUrl: String? = null,
   ): UIAgGrid {
     val agGrid = UIAgGrid.createUIResultSetTable()
     magicFilter.maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS // Fix it from previous.
@@ -96,7 +97,10 @@ class AGGridSupport {
     layout.add(agGrid)
     if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
       layout.hideSearchFilter = true
-      MultiSelectionSupport.getSessionContext(request, pagesRest::class.java)?.paginationPageSize?.let { paginationPageSize ->
+      MultiSelectionSupport.getSessionContext(
+        request,
+        pagesRest::class.java
+      )?.paginationPageSize?.let { paginationPageSize ->
         // pageSize was initially set by Wicket's list page. So use the same pagination size.
         agGrid.paginationPageSize = paginationPageSize
       }
@@ -116,8 +120,12 @@ class AGGridSupport {
         )
     } else if (userAccess.update == true) {
       agGrid.withSingleRowClick()
-      agGrid.withRowClickRedirectUrl("${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id")
+      val redirectUrl = rowClickUrl ?: "${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id"
+      agGrid.withRowClickRedirectUrl(redirectUrl)
       layout.add(UIAlert(message = "agGrid.sortInfo", color = UIColor.INFO, markdown = true))
+      if (pageAfterMultiSelect != null) {
+        layout.multiSelectionSupported = true
+      }
     }
     agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.SET_COLUMN_STATES)
     return agGrid

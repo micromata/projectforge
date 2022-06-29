@@ -41,7 +41,14 @@ public class KostFormatter {
     if (kunde == null) {
       return "???";
     }
-    return format3Digits(kunde.getId());
+    return formatKunde(kunde.getId());
+  }
+
+  public static String formatKunde(final Integer kundeId) {
+    if (kundeId == null) {
+      return "???";
+    }
+    return format3Digits(kundeId);
   }
 
   /**
