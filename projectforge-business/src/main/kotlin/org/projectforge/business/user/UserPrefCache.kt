@@ -34,7 +34,6 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
-import java.util.*
 import javax.annotation.PreDestroy
 
 private val log = KotlinLogging.logger {}
@@ -65,7 +64,7 @@ class UserPrefCache : AbstractCache() {
      * @param persistent If true (default) this user preference will be stored to the data base, otherwise it will
      * be volatile stored in memory and will expire.
      */
-    fun putEntry(area: String, name: String, value: Any, persistent: Boolean = true, userId: Int?) {
+    fun putEntry(area: String, name: String, value: Any?, persistent: Boolean = true, userId: Int?) {
         val uid = userId ?: ThreadLocalUserContext.getUserId()
         if (accessChecker.isDemoUser(uid)) {
             // Store user pref for demo user only in user's session.
@@ -73,7 +72,7 @@ class UserPrefCache : AbstractCache() {
         }
         val data = ensureAndGetUserPreferencesData(uid)
         if (log.isDebugEnabled) {
-            log.debug { "Put value for area '$area' and name '$name' (persistent=$persistent): ${ToStringUtil.toJsonString(value)}" }
+            log.debug { "Put value for area '$area' and name '$name' (persistent=$persistent): ${ToStringUtil.toJsonString(value ?: "null")}" }
         }
         data.putEntry(area, name, value, persistent)
         checkRefresh() // Should be called at the end of this method for considering changes inside this method.
