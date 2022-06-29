@@ -25,6 +25,7 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
+import org.projectforge.business.user.service.UserService
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
@@ -36,6 +37,7 @@ import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.rest.multiselect.TextFieldModification
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UILayout
+import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
@@ -56,6 +58,9 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
 
   @Autowired
   private lateinit var projectPagesRest: ProjectPagesRest
+
+  @Autowired
+  private lateinit var userService: UserService
 
   override val layoutContext: LayoutContext = LayoutContext(ProjektDO::class.java)
 
@@ -87,6 +92,18 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
     )
   }
 
+  override fun checkParamHasAction(
+    params: Map<String, MassUpdateParameter>,
+    param: MassUpdateParameter,
+    field: String,
+    validationErrors: MutableList<ValidationError>
+  ): Boolean {
+    if (field == "headOfBusinessManager" || field == "projectManager" || field == "salesManager") {
+      return param.id != null
+    }
+    return super.checkParamHasAction(params, param, field, validationErrors)
+  }
+
   override fun proceedMassUpdate(
     request: HttpServletRequest,
     selectedIds: Collection<Serializable>,
@@ -100,11 +117,20 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
     projects.forEach { project ->
       massUpdateContext.startUpdate(project)
       TextFieldModification.processTextParameter(project, "description", params)
-      /* massUpdateContext.commitUpdate(
+      params["headOfBusinessManager"]?.id?.let { userId ->
+        project.headOfBusinessManager = userService.internalGetById(userId)
+      }
+      params["projectManager"]?.id?.let { userId ->
+        project.projectManager = userService.internalGetById(userId)
+      }
+      params["salesManager"]?.id?.let { userId ->
+        project.salesManager = userService.internalGetById(userId)
+      }
+      massUpdateContext.commitUpdate(
         identifier4Message = project.displayName,
         project,
         update = { projektDao.update(project) },
-      )*/
+      )
     }
     return null
   }

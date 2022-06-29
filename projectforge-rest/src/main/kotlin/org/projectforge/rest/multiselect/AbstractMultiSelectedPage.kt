@@ -413,7 +413,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         UIDataType.DATE -> "$field.localDateValue"
         UIDataType.AMOUNT, UIDataType.DECIMAL -> "$field.decimalValue"
         UIDataType.INT -> "$field.intValue"
-        UIDataType.KONTO, UIDataType.USER, UIDataType.TASK, UIDataType.GROUP, UIDataType.EMPLOYEE -> "$field.intValue"
+        UIDataType.KONTO, UIDataType.USER, UIDataType.TASK, UIDataType.GROUP, UIDataType.EMPLOYEE -> field
         UIDataType.BOOLEAN -> "$field.booleanValue"
         UIDataType.TIMESTAMP -> "$field.timestampValue"
         UIDataType.TIME -> "$field.timeValue"
