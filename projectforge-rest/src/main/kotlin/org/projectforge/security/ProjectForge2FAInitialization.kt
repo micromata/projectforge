@@ -100,7 +100,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
 
     registerShortCutValues(
       My2FAShortCut.FINANCE_WRITE,
-      "WRITE:incomingInvoice;WRITE:outgoingInvoice;",
+      "WRITE:incomingInvoice;WRITE:outgoingInvoice;WRITE:project;",
       "/wa/reportEdit;/wa/accountingEdit;/wa/datev;/wa/incomingInvoiceEdit;/wa/outgoingInvoiceEdit;/wa/cost.*Edit;/wa/customerEdit;/wa/accountEdit;",
       "/wa/projectEdit;/wa/orderBookEdit"
     )

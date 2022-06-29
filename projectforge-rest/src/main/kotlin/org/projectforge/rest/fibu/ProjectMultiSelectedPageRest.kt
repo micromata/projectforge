@@ -25,7 +25,6 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
-import org.projectforge.business.user.service.UserService
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
@@ -58,9 +57,6 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
 
   @Autowired
   private lateinit var projectPagesRest: ProjectPagesRest
-
-  @Autowired
-  private lateinit var userService: UserService
 
   override val layoutContext: LayoutContext = LayoutContext(ProjektDO::class.java)
 
@@ -117,15 +113,9 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
     projects.forEach { project ->
       massUpdateContext.startUpdate(project)
       TextFieldModification.processTextParameter(project, "description", params)
-      params["headOfBusinessManager"]?.id?.let { userId ->
-        project.headOfBusinessManager = userService.internalGetById(userId)
-      }
-      params["projectManager"]?.id?.let { userId ->
-        project.projectManager = userService.internalGetById(userId)
-      }
-      params["salesManager"]?.id?.let { userId ->
-        project.salesManager = userService.internalGetById(userId)
-      }
+      proceedMassUpdateUserField(params, ProjektDO::headOfBusinessManager, project)
+      proceedMassUpdateUserField(params, ProjektDO::projectManager, project)
+      proceedMassUpdateUserField(params, ProjektDO::salesManager, project)
       massUpdateContext.commitUpdate(
         identifier4Message = project.displayName,
         project,
