@@ -94,6 +94,8 @@ class UILayout(
 
   var excelExportSupported = false
 
+  var multiSelectionSupported = false
+
   val watchFields = mutableListOf<String>()
 
   /**

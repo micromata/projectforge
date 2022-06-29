@@ -79,16 +79,45 @@ object MultiSelectionSupport {
   @JvmOverloads
   fun registerEntityIdsForSelection(
     request: HttpServletRequest,
+    identifierClazz: Class<out Any>,
+    idList: Collection<*>,
+    callerUrl: String? = null,
+    data: Any? = null,
+    paginationPageSize: Int? = null,
+  ) {
+    registerEntityIdsForSelection(
+      request,
+      identifier = identifierClazz.name,
+      idList = idList,
+      callerUrl = callerUrl,
+      data = data,
+      paginationPageSize = paginationPageSize,
+    )
+  }
+
+  /**
+   * @param callerUrl The caller url is used for redirect back to the caller after multi selection. This is used, if
+   * different sources exist (classical Wicket list page and React list page). It will be stored in the user's session.
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun registerEntityIdsForSelection(
+    request: HttpServletRequest,
     identifier: String,
     idList: Collection<*>,
     callerUrl: String? = null,
     data: Any? = null,
-    paginationPageSize: Int?,
+    paginationPageSize: Int? = null,
   ) {
     setSessionContext(
       request,
       identifier,
-      SessionContext(idList, callerUrl = callerUrl, data = data, paginationPageSize = paginationPageSize) // Clear session
+      SessionContext(
+        idList,
+        callerUrl = callerUrl,
+        data = data,
+        paginationPageSize = paginationPageSize
+      ) // Clear session
     )
   }
 
@@ -206,7 +235,7 @@ object MultiSelectionSupport {
 
   /**
    * Call this method on [AbstractPagesRest.getInitialList], if you want to force multi selection usage only.
-   * This is usefull, if the page isn't yet migrated from Wicket, but already used for multi selection.
+   * This is useful, if the page isn't yet migrated from Wicket, but already used for multi selection.
    */
   fun ensureMultiSelectionOnly(
     request: HttpServletRequest,

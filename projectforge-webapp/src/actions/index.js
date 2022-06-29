@@ -24,6 +24,7 @@ export {
     loadList,
     fetchCurrentList,
     exportCurrentList,
+    startMultiSelection,
     openEditPage,
 } from './list';
 
