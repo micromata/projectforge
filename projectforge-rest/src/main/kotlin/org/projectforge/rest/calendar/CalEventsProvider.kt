@@ -41,10 +41,13 @@ class CalEventsProvider() {
     @Autowired
     private lateinit var calEventDao: CalEventDao
 
-    fun addEvents(start: PFDateTime,
+  /**
+   * @param calendarIds Null items should only occur on (de)serialization issues.
+   */
+  fun addEvents(start: PFDateTime,
                   end: PFDateTime,
                   events: MutableList<BigCalendarEvent>,
-                  calendarIds: List<Int>?,
+                  calendarIds: List<Int?>?,
                   styleMap: CalendarStyleMap) {
         if (calendarIds.isNullOrEmpty())
             return

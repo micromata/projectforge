@@ -51,10 +51,13 @@ open class TeamCalEventsProvider() {
     @Autowired
     private lateinit var vacationProvider: VacationProvider
 
-    open fun addEvents(start: PFDateTime,
+  /**
+   * @param teamCalendarIds Null items should only occur on (de)serialization issues.
+   */
+  open fun addEvents(start: PFDateTime,
                   end: PFDateTime,
                   events: MutableList<BigCalendarEvent>,
-                  teamCalendarIds: List<Int>?,
+                  teamCalendarIds: List<Int?>?,
                   styleMap: CalendarStyleMap) {
         if (teamCalendarIds.isNullOrEmpty())
             return
@@ -74,7 +77,7 @@ open class TeamCalEventsProvider() {
                 eventDO = (it as TeamRecurrenceEvent).master
                 recurrentEvent = true
             }
-            val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate!!.time / 1000}" else ""
+            //val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate!!.time / 1000}" else ""
             //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
             val allDay = eventDO.allDay
             val style = styleMap.get(eventDO.calendarId)
