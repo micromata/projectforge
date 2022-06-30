@@ -27,11 +27,16 @@ import org.projectforge.business.user.UserRightValue
 
 class UserRightDto(
   var rightId: String,
-  var value: UserRightValue? = null,
 ) {
-  var booleanValue: Boolean
-    get() = value == UserRightValue.TRUE
+  var value: UserRightValue? = null
     set(value) {
-      this.value = if (value) UserRightValue.TRUE else UserRightValue.FALSE
+      field = value
+      if (value == UserRightValue.TRUE) {
+        this.booleanValue = true
+      } else if (value == UserRightValue.FALSE) {
+        this.booleanValue = false
+      }
     }
+
+  var booleanValue: Boolean? = null
 }
