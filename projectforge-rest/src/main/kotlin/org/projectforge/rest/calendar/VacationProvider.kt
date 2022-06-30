@@ -42,6 +42,10 @@ open class VacationProvider {
   @Autowired
   private lateinit var vacationCache: VacationCache
 
+  /**
+   * @param groupIds Null items should only occur on (de)serialization issues.
+   * @param userIds Null items should only occur on (de)serialization issues.
+   */
   open fun addEvents(
     start: PFDateTime,
     end: PFDateTime,
@@ -49,8 +53,8 @@ open class VacationProvider {
     /**
      * Vacation days will only be displayed for employees (users) who are member of at least one of the following groups:
      */
-    groupIds: Set<Int>?,
-    userIds: Set<Int>?,
+    groupIds: Set<Int?>?,
+    userIds: Set<Int?>?,
     bgColor: String? = null,
     fgColor: String? = null
   ) {

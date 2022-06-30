@@ -52,9 +52,11 @@ open class VacationCache : AbstractCache() {
 
     /**
      * Checks also the select access of the logged in user.
+     * @param groupIds Null items should only occur on (de)serialization issues.
+     * @param userIds Null items should only occur on (de)serialization issues.
      */
     open fun getVacationForPeriodAndUsers(startVacationDate: LocalDate, endVacationDate: LocalDate,
-                                          groupIds: Set<Int>?, userIds: Set<Int>?): List<VacationDO> {
+                                          groupIds: Set<Int?>?, userIds: Set<Int?>?): List<VacationDO> {
         checkRefresh()
         val result = mutableListOf<VacationDO>()
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
