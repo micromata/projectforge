@@ -186,16 +186,16 @@ class CalendarServicesRest {
         if (filter.useVisibilityState == true && !visibleCalendarIds.isNullOrEmpty()) {
             val currentFilter = CalendarFilterServicesRest.getCurrentFilter(userPrefService)
             if (currentFilter != null) {
-                val set = mutableSetOf<Int>()
+                val set = mutableSetOf<Int?>()
                 visibleCalendarIds.forEach {
-                    if (currentFilter.isVisible(it))
+                    if (it != null && currentFilter.isVisible(it))
                         set.add(it) // Add only visible calendars.
                 }
                 visibleCalendarIds = set
             }
 
         }
-        val visibleTeamCalendarIds = visibleCalendarIds?.filter { it >= 0 } // calendars with id < 0 are pseudo calendars (such as birthdays etc.)
+        val visibleTeamCalendarIds = visibleCalendarIds?.filter { it != null && it >= 0 } // calendars with id < 0 are pseudo calendars (such as birthdays etc.)
         if (useNewCalendarEvents) {
             calendarEventsProvider.addEvents(range.start, range.end!!, events, visibleTeamCalendarIds, calendarFilterServicesRest.getStyleMap())
         } else {

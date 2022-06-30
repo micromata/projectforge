@@ -61,13 +61,15 @@ class CalendarFilter(name: String? = null,
                      /**
                       * All vacations of any employee assigned to at least one of this
                       * vacationGroups (group ids) will be displayed.
+                      * Null items should only occur on (de)serialization issues.
                       */
-                     var vacationGroupIds: Set<Int>? = null,
+                     var vacationGroupIds: Set<Int?>? = null,
 
                      /**
                       * All vacations of the given employees (by id) will be displayed.
+                      * Null items should only occur on (de)serialization issues.
                       */
-                     var vacationUserIds: Set<Int>? = null,
+                     var vacationUserIds: Set<Int?>? = null,
 
                      /**
                       * Not yet supported.
@@ -80,9 +82,9 @@ class CalendarFilter(name: String? = null,
                      var showPlanning: Boolean? = null)
     : AbstractFavorite(name, id) {
 
-    var calendarIds = mutableSetOf<Int>()
+    var calendarIds = mutableSetOf<Int?>()
 
-    var invisibleCalendars = mutableSetOf<Int>()
+    var invisibleCalendars = mutableSetOf<Int?>()
 
     /**
      * Makes a deep copy of all values.
@@ -116,7 +118,11 @@ class CalendarFilter(name: String? = null,
         invisibleCalendars.remove(calendarId)
     }
 
-    fun setVisibility(calendarId: Int, visible: Boolean) {
+    /**
+     * @param calendarId Null should only occur on (de)serialization issues.
+     */
+    fun setVisibility(calendarId: Int?, visible: Boolean) {
+        calendarId ?: return // May occur during (de-)serialization
         if (visible) {
             invisibleCalendars.remove(calendarId)
         } else {
@@ -125,8 +131,11 @@ class CalendarFilter(name: String? = null,
         tidyUp()
     }
 
-    fun isVisible(calendarId: Int): Boolean {
-        return calendarIds.contains(calendarId) && !invisibleCalendars.contains(calendarId)
+    /**
+     * @param calendarId Null should only occur on (de)serialization issues.
+     */
+    fun isVisible(calendarId: Int?): Boolean {
+        return calendarId != null && calendarIds.contains(calendarId) && !invisibleCalendars.contains(calendarId)
     }
 
     /**
@@ -173,26 +182,26 @@ class CalendarFilter(name: String? = null,
                 isModified(this.invisibleCalendars, other.invisibleCalendars)
     }
 
-    private fun copySet(srcSet: Set<Int>?): Set<Int>? {
+    private fun copySet(srcSet: Set<Int?>?): Set<Int>? {
         if (srcSet == null) {
             return null
         }
         val list = mutableSetOf<Int>()
-        list.addAll(srcSet)
+        list.addAll(srcSet.filterNotNull())
         return list
     }
 
-    private fun isModified(col1: Collection<Int>?, col2: Collection<Int>?): Boolean {
+    private fun isModified(col1: Collection<Int?>?, col2: Collection<Int?>?): Boolean {
         if (col1 == null || col2 == null) {
             return col1 != col2
         }
         col1.forEach {
-            if (!col2.contains(it)) {
+            if (it != null && !col2.contains(it)) {
                 return true
             }
         }
         col2.forEach {
-            if (!col1.contains(it)) {
+            if (it != null && !col1.contains(it)) {
                 return true
             }
         }
