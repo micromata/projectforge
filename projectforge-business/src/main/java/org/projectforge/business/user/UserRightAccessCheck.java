@@ -27,13 +27,16 @@ import org.projectforge.business.humanresources.HRPlanningRight;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.IUserRightId;
+import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import java.util.Collection;
 
 /**
  * These rights implement the checking of the different access types (select, insert, update, delete) itself.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class UserRightAccessCheck<O> extends UserRight
 {
@@ -58,7 +61,7 @@ public class UserRightAccessCheck<O> extends UserRight
 
   /**
    * Optional for enabling user specific values stored in the data base. See {@link HRPlanningRight} as an example.
-   * 
+   *
    * @param values
    * @param dependsOnGroups
    */
@@ -73,7 +76,7 @@ public class UserRightAccessCheck<O> extends UserRight
    * The default implementation calls for {@link OperationType#SELECT}
    * {@link AccessChecker#hasReadAccess(UserRightId, boolean)} and otherwise
    * {@link AccessChecker#hasWriteAccess(UserRightId, boolean)}.
-   * 
+   *
    * @param accessDao
    * @param user Check the access for the given user instead of the logged-in user.
    * @param obj null is possible for checking general insert access or general select access.
@@ -124,7 +127,7 @@ public class UserRightAccessCheck<O> extends UserRight
 
   /**
    * Calls {@link #hasSelectAccess(Object)} at default.
-   * 
+   *
    * @param accessChecker
    * @param user
    * @param obj
@@ -151,32 +154,30 @@ public class UserRightAccessCheck<O> extends UserRight
   /**
    * If userGroupsRight is initialized then {@link UserGroupsRight#isAvailable(UserGroupCache, PFUserDO)} is called,
    * otherwise super.
-   * 
+   *
    * @see org.projectforge.business.user.UserRight#isAvailable(org.projectforge.business.user.UserGroupCache,
    *      org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
-  public boolean isAvailable(final UserGroupCache userGroupCache, final PFUserDO user)
+  public boolean isAvailable(final PFUserDO user, final Collection<GroupDO> assignedGroups)
   {
     if (userGroupsRight != null) {
-      return userGroupsRight.isAvailable(userGroupCache, user);
+      return userGroupsRight.isAvailable(user, assignedGroups);
     }
-    return super.isAvailable(userGroupCache, user);
+    return super.isAvailable(user, assignedGroups);
   }
 
   /**
    * If userGroupsRight is initialized then
    * {@link UserGroupsRight#isAvailable(UserGroupCache, PFUserDO, UserRightValue)} is called, otherwise super.
-   * 
-   * @see org.projectforge.business.user.UserRight#isAvailable(org.projectforge.business.user.UserGroupCache,
-   *      org.projectforge.framework.persistence.user.entities.PFUserDO, org.projectforge.business.user.UserRightValue)
+   *
    */
   @Override
-  public boolean isAvailable(final UserGroupCache userGroupCache, final PFUserDO user, final UserRightValue value)
+  public boolean isAvailable(final PFUserDO user, final Collection<GroupDO> assignedGroups, final UserRightValue value)
   {
     if (userGroupsRight != null) {
-      return userGroupsRight.isAvailable(userGroupCache, user, value);
+      return userGroupsRight.isAvailable(user, assignedGroups, value);
     }
-    return super.isAvailable(userGroupCache, user, value);
+    return super.isAvailable(user, assignedGroups, value);
   }
 }

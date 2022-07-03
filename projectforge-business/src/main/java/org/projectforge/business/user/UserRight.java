@@ -25,14 +25,15 @@ package org.projectforge.business.user;
 
 import org.projectforge.framework.DisplayNameCapable;
 import org.projectforge.framework.persistence.api.IUserRightId;
+import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-public abstract class UserRight implements Serializable, DisplayNameCapable
-{
+public abstract class UserRight implements Serializable, DisplayNameCapable {
   private static final long serialVersionUID = -4356329396089081134L;
 
   private final IUserRightId id;
@@ -43,63 +44,55 @@ public abstract class UserRight implements Serializable, DisplayNameCapable
 
   protected UserRight dependsOn;
 
-  public UserRight(final IUserRightId id, final UserRightCategory category)
-  {
+  public UserRight(final IUserRightId id, final UserRightCategory category) {
     this.id = id;
     this.category = category;
   }
 
-  public UserRight(final IUserRightId id, final UserRightCategory category, final UserRightValue... values)
-  {
+  public UserRight(final IUserRightId id, final UserRightCategory category, final UserRightValue... values) {
     this(id, category);
     this.values = values;
   }
 
-  public UserRight(final IUserRightId id, final UserRightCategory category, final UserRight dependsOn)
-  {
-    this(id, category, dependsOn, new UserRightValue[] { UserRightValue.FALSE, UserRightValue.TRUE });
+  public UserRight(final IUserRightId id, final UserRightCategory category, final UserRight dependsOn) {
+    this(id, category, dependsOn, new UserRightValue[]{UserRightValue.FALSE, UserRightValue.TRUE});
   }
 
   /**
-   * 
    * @param id
    * @param dependsOn
-   * @param values FALSE, TRUE at default.
+   * @param values    FALSE, TRUE at default.
    */
   public UserRight(final IUserRightId id, final UserRightCategory category, final UserRight dependsOn,
-      final UserRightValue... values)
-  {
+                   final UserRightValue... values) {
     this(id, category);
     this.dependsOn = dependsOn;
     this.values = values;
   }
 
-  public IUserRightId getId()
-  {
+  public IUserRightId getId() {
     return id;
   }
 
   /**
    * Available values {TRUE, FALSE} at default.
-   * 
+   *
    * @return
    */
-  public UserRightValue[] getValues()
-  {
+  public UserRightValue[] getValues() {
     return values;
   }
 
   /**
    * For some users and right combinations it's possible, that the user has an access value at default because he's
    * member of a group with a single right. <br/>
-   * 
+   *
    * @param userGroupCache
    * @param user
    * @return true if all available values for the user matches automatically, otherwise false (this right seems to be
-   *         configurable for the given user in the UserEditForm).
+   * configurable for the given user in the UserEditForm).
    */
-  public boolean isConfigurable(final UserGroupCache userGroupCache, final PFUserDO user)
-  {
+  public boolean isConfigurable(final UserGroupCache userGroupCache, final PFUserDO user) {
     if (values == null) {
       return false;
     }
@@ -132,19 +125,19 @@ public abstract class UserRight implements Serializable, DisplayNameCapable
   /**
    * Get all right values which are potentially available for the user. If the user value stored in the user data is not
    * part of available values then the AccessChecker returns that the user has no right.
-   * 
+   *
    * @param userGroupCache
    * @param user
    * @return
    */
-  public UserRightValue[] getAvailableValues(final UserGroupCache userGroupCache, final PFUserDO user)
-  {
+  public UserRightValue[] getAvailableValues(final UserGroupCache userGroupCache, final PFUserDO user) {
     if (values == null) {
       return null;
     }
     final List<UserRightValue> list = new ArrayList<>();
+    final Collection<GroupDO> userGroups = userGroupCache.getUserGroupDOs(user);
     for (final UserRightValue value : values) {
-      if (isAvailable(userGroupCache, user, value)) {
+      if (isAvailable(user, userGroups, value)) {
         list.add(value);
       }
     }
@@ -155,71 +148,63 @@ public abstract class UserRight implements Serializable, DisplayNameCapable
 
   /**
    * Is this right for the given user potentially available (independent from the configured value)?
-   * 
-   * @param userGroupCache
+   *
+   * @param assignedGroups
    * @return true at default or if dependsOn is given dependsOn.available(AccessChecker)
    */
-  public boolean isAvailable(final UserGroupCache userGroupCache, final PFUserDO user)
-  {
+  public boolean isAvailable(final PFUserDO user, final Collection<GroupDO> assignedGroups) {
     if (this.dependsOn == null) {
       return true;
     } else {
-      return this.dependsOn.isAvailable(userGroupCache, user);
+      return this.dependsOn.isAvailable(user, assignedGroups);
     }
   }
 
   /**
-   * @param userGroupCache
+   * @param assignedGroups
    * @return isAvailable(userGroupCache, user) at default or if dependsOn is given dependsOn.available(userGroupCache,
-   *         user, value);
+   * user, value);
    */
-  public boolean isAvailable(final UserGroupCache userGroupCache, final PFUserDO user, final UserRightValue value)
-  {
+  public boolean isAvailable(final PFUserDO user, final Collection<GroupDO> assignedGroups, final UserRightValue value) {
     if (this.dependsOn == null) {
-      return isAvailable(userGroupCache, user);
+      return isAvailable(user, assignedGroups);
     } else {
-      return this.dependsOn.isAvailable(userGroupCache, user, value);
+      return this.dependsOn.isAvailable(user, assignedGroups, value);
     }
   }
 
   /**
    * If a right should match independent on the value set for the given user. Should only be called, if the UserRightDO
    * or its value is set to null.
-   * 
+   *
    * @param userGroupCache
    * @param user
    * @param value
    * @return false.
    * @see UserGroupsRight#matches(UserGroupCache, PFUserDO, UserRightValue)
    */
-  public boolean matches(final UserGroupCache userGroupCache, final PFUserDO user, final UserRightValue value)
-  {
+  public boolean matches(final UserGroupCache userGroupCache, final PFUserDO user, final UserRightValue value) {
     return false;
   }
 
-  public boolean isBooleanType()
-  {
+  public boolean isBooleanType() {
     return values != null && values.length == 2 && values[0] == UserRightValue.FALSE
         && values[1] == UserRightValue.TRUE;
   }
 
-  public UserRight getDependsOn()
-  {
+  public UserRight getDependsOn() {
     return dependsOn;
   }
 
-  public boolean isDependsOn()
-  {
+  public boolean isDependsOn() {
     return dependsOn != null;
   }
 
-  public UserRightCategory getCategory()
-  {
+  public UserRightCategory getCategory() {
     return category;
   }
 
-  public UserRight setCategory(final UserRightCategory category)
-  {
+  public UserRight setCategory(final UserRightCategory category) {
     this.category = category;
     return this;
   }
@@ -228,14 +213,12 @@ public abstract class UserRight implements Serializable, DisplayNameCapable
    * @see org.projectforge.framework.DisplayNameCapable#getDisplayName()
    */
   @Override
-  public String getDisplayName()
-  {
+  public String getDisplayName() {
     return this.id.toString();
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return this.id.toString();
   }
 }

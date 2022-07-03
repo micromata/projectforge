@@ -59,8 +59,7 @@ open class UserGroupCache() : AbstractCache() {
   private lateinit var employeeDao: EmployeeDao
 
   @PostConstruct
-  private fun postConstruct()
-  {
+  private fun postConstruct() {
     if (INSTANCE != null) {
       log.warn { "Oups, shouldn't instantiate UserGroupCache twice!" }
       return
@@ -325,6 +324,17 @@ open class UserGroupCache() : AbstractCache() {
     return getUserGroupIdMap()!![user.id]
   }
 
+  /**
+   * Returns a collection of group id's to which the user is assigned to.
+   *
+   * @return collection if found, otherwise null.
+   */
+  fun getUserGroupDOs(user: PFUserDO): Collection<GroupDO>? {
+    return getUserGroups(user)?.map { groupId ->
+      getGroup(groupId)
+    }?.filterNotNull()
+  }
+
   private fun getGroupMap(): Map<Int, GroupDO>? {
     checkRefresh()
     return groupMap
@@ -476,7 +486,7 @@ open class UserGroupCache() : AbstractCache() {
         }
       }
       if (userRights.getRight(right.rightIdString) != null
-        && userRights.getRight(right.rightIdString).isAvailable(this, right.user)
+        && userRights.getRight(right.rightIdString).isAvailable(right.user, getUserGroupDOs(right.user))
       ) {
         list!!.add(right)
       }
@@ -510,6 +520,19 @@ open class UserGroupCache() : AbstractCache() {
         ugIdMap[userId] = set
       }
       return set
+    }
+
+    @JvmStatic
+    fun isUserMemberOfGroup(userGroups: Collection<GroupDO?>?, vararg groups: ProjectForgeGroup): Boolean {
+      if (userGroups.isNullOrEmpty()) {
+        return false
+      }
+      for (group in groups) {
+        if (userGroups.any { it?.name == group.key }) {
+          return true
+        }
+      }
+      return false
     }
   }
 
