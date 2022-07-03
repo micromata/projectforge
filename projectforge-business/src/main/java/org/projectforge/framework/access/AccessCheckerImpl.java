@@ -31,6 +31,7 @@ import org.projectforge.business.user.*;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -291,7 +292,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     final Collection<Integer> userGroups = userGroupCache.getUserGroups(user2);
     // No groups found.
     if (userGroups == null) {
-        return false;
+      return false;
     }
     final Collection<Integer> currentUserGroups = userGroupCache.getUserGroups(user1);
     if (currentUserGroups == null) {
@@ -367,8 +368,8 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
       return isUserMemberOfGroup(ThreadLocalUserContext.getUser(), ProjectForgeGroup.ADMIN_GROUP);
     }
     if (obj instanceof EmployeeDO && oldObj instanceof EmployeeDO && ((EmployeeDO) obj).getUser().equals(origUser)
-            && ((EmployeeDO) oldObj).getUser()
-            .equals(origUser)) {
+        && ((EmployeeDO) oldObj).getUser()
+        .equals(origUser)) {
       return true;
     }
     if (operationType == OperationType.SELECT) {
@@ -545,19 +546,20 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     }
     final UserRightDO rightDO = user.getRight(rightId);
     final UserRight right = userRights.getRight(rightId);
+    final Collection<GroupDO> userGroups = userGroupCache.getUserGroupDOs(user);
     for (final UserRightValue value : values) {
       if ((rightDO == null || rightDO.getValue() == null) && right.matches(userGroupCache, user, value)) {
         return true;
       }
       if (rightDO != null && rightDO.getValue() == value) {
-        if (right != null && right.isAvailable(userGroupCache, user, value)) {
+        if (right != null && right.isAvailable(user, userGroups, value)) {
           return true;
         }
       }
     }
     if (throwException) {
       throw new AccessException("access.exception.userHasNotRight", rightId,
-              StringHelper.listToString(", ", (Object[]) values));
+          StringHelper.listToString(", ", (Object[]) values));
     }
     return false;
   }
@@ -687,7 +689,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
   @Override
   public boolean isAvailable(final PFUserDO user, final IUserRightId rightId) {
     final UserRight right = userRights.getRight(rightId);
-    return right != null && right.isAvailable(userGroupCache, user);
+    return right != null && right.isAvailable(user, userGroupCache.getUserGroupDOs(user));
   }
 
   @Override
@@ -785,11 +787,11 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     Validate.notNull(loggedInUser);
     if (isUserMemberOfGroup(loggedInUser, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP,
-            ProjectForgeGroup.PROJECT_MANAGER)) {
+        ProjectForgeGroup.PROJECT_MANAGER)) {
       return true;
     }
     if (isUserMemberOfGroup(loggedInUser, ProjectForgeGroup.ORGA_TEAM)
-            && hasRight(loggedInUser, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY, UserRightValue.READWRITE)) {
+        && hasRight(loggedInUser, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY, UserRightValue.READWRITE)) {
       return true;
     }
     return false;
@@ -840,7 +842,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     UserRight userRight = dao.getUserRight();
     if (userRight == null) {
       throw new IllegalArgumentException(
-              "No UserRight for entity: " + entClass.getName() + " via dao: " + dao.getClass().getName());
+          "No UserRight for entity: " + entClass.getName() + " via dao: " + dao.getClass().getName());
     }
     return userRight.getId();
 

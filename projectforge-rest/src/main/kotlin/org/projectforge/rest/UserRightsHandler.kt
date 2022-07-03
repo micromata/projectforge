@@ -1,3 +1,26 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.rest
 
 import mu.KotlinLogging
@@ -25,11 +48,20 @@ class UserRightsHandler {
   @Autowired
   private lateinit var userRightService: UserRightService
 
+  fun getAvailableRights(user: User): List<UserRightDto> {
+    val list = mutableListOf<UserRightDto>()
+    val userGroups = user.assignedGroups
+    for (right in userRightService.orderedRights) {
+      //  right.isAvailable()
+    }
+    return list
+  }
+
   fun getUserRights(userDO: PFUserDO): List<UserRightDto> {
     val list = mutableListOf<UserRightDto>()
     val dbList = userRightDao.getList(userDO)
-    for (right in userRightService.getOrderedRights()) {
-      if (!right.isAvailable(userGroupCache, userDO)) {
+    for (right in userRightService.orderedRights) {
+      if (!right.isAvailable(userDO, userGroupCache.getUserGroupDOs(userDO))) {
         continue
       }
       val rightDto = UserRightDto(rightId = right.id.toString())

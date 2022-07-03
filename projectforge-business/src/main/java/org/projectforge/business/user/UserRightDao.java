@@ -26,19 +26,21 @@ package org.projectforge.business.user;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.*;
+import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
 
 public class UserRightDao extends BaseDao<UserRightDO> {
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"user.username", "user.firstname",
-          "user.lastname"};
+      "user.lastname"};
 
   @Autowired
   private UserRightService userRightService;
@@ -58,7 +60,7 @@ public class UserRightDao extends BaseDao<UserRightDO> {
 
   public List<UserRightDO> internalGetAllOrdered() {
     return em.createNamedQuery(UserRightDO.FIND_ALL_ORDERED, UserRightDO.class)
-            .getResultList();
+        .getResultList();
   }
 
   public void updateUserRights(final PFUserDO user, final List<UserRightVO> list, final boolean updateUserGroupCache) {
@@ -66,6 +68,7 @@ public class UserRightDao extends BaseDao<UserRightDO> {
     // evict all entities from the session cache to avoid that the update is already done in the copy method
     dbList.forEach(em::detach);
     final UserGroupCache userGroupCache = getUserGroupCache();
+    final Collection<GroupDO> userGroups = userGroupCache.getUserGroupDOs(user);
     for (final UserRightVO rightVO : list) {
       UserRightDO rightDO = null;
       for (final UserRightDO dbItem : dbList) {
@@ -76,7 +79,7 @@ public class UserRightDao extends BaseDao<UserRightDO> {
       }
       if (rightDO == null) {
         if ((rightVO.isBooleanValue() && rightVO.getValue() == UserRightValue.FALSE)
-                || rightVO.getValue() == null) {
+            || rightVO.getValue() == null) {
           continue;
           // Right has no value and is not yet in data base.
           // Do nothing.
@@ -89,8 +92,8 @@ public class UserRightDao extends BaseDao<UserRightDO> {
         copy(rightDO, rightVO);
         IUserRightId rightId = userRightService.getRightId(rightDO.getRightIdString());
         final UserRight right = userRightService.getRight(rightId);
-        if (!right.isAvailable(userGroupCache, user)
-                || !right.isAvailable(userGroupCache, user, rightDO.getValue())) {
+        if (!right.isAvailable(user, userGroups)
+            || !right.isAvailable(user, userGroups, rightDO.getValue())) {
           rightDO.setValue(null);
         }
         update(rightDO);
@@ -100,8 +103,8 @@ public class UserRightDao extends BaseDao<UserRightDO> {
     for (final UserRightDO rightDO : dbList) {
       String rightId = rightDO.getRightIdString();
       UserRight right = userRightService.getRight(rightId);
-      if (right != null && (!right.isAvailable(userGroupCache, user)
-              || !right.isAvailable(userGroupCache, user, rightDO.getValue()))) {
+      if (right != null && (!right.isAvailable(user, userGroups)
+          || !right.isAvailable(user, userGroups, rightDO.getValue()))) {
         rightDO.setValue(null);
         update(rightDO);
       }
@@ -148,8 +151,9 @@ public class UserRightDao extends BaseDao<UserRightDO> {
     }
     final List<UserRightDO> dbList = getList(user);
     final UserGroupCache userGroupCache = getUserGroupCache();
+    final Collection<GroupDO> userGroups= userGroupCache.getUserGroupDOs(user);
     for (final UserRight right : userRightService.getOrderedRights()) {
-      if (!right.isAvailable(userGroupCache, user)) {
+      if (!right.isAvailable(user, userGroups)) {
         continue;
       }
       final UserRightVO rightVO = new UserRightVO(right);

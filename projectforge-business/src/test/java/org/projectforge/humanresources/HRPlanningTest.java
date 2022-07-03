@@ -86,7 +86,7 @@ public class HRPlanningTest extends AbstractTestBase {
   public void testUserRights() {
     PFUserDO user1 = initTestDB.addUser("HRPlanningTestUser1");
     final HRPlanningRight right = (HRPlanningRight) userRights.getRight(UserRightId.PM_HR_PLANNING);
-    assertFalse(right.isAvailable(userGroupCache, user1));
+    assertFalse(right.isAvailable(user1, userGroupCache.getUserGroupDOs(user1)));
     final HRPlanningDO planning = new HRPlanningDO();
     planning.setUser(getUser(AbstractTestBase.TEST_USER));
     logon(user1);
@@ -101,7 +101,7 @@ public class HRPlanningTest extends AbstractTestBase {
     final GroupDO group = initTestDB.getGroup(AbstractTestBase.ORGA_GROUP);
     group.getAssignedUsers().add(user1);
     groupDao.update(group);
-    assertTrue(right.isAvailable(userGroupCache, user1));
+    assertTrue(right.isAvailable(user1, userGroupCache.getUserGroupDOs(user1)));
     logon(user1);
     assertFalse(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
     assertTrue(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, false));
