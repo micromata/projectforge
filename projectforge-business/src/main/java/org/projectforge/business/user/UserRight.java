@@ -87,16 +87,15 @@ public abstract class UserRight implements Serializable, DisplayNameCapable {
    * For some users and right combinations it's possible, that the user has an access value at default because he's
    * member of a group with a single right. <br/>
    *
-   * @param userGroupCache
    * @param user
    * @return true if all available values for the user matches automatically, otherwise false (this right seems to be
    * configurable for the given user in the UserEditForm).
    */
-  public boolean isConfigurable(final UserGroupCache userGroupCache, final PFUserDO user) {
+  public boolean isConfigurable(final PFUserDO user, final Collection<GroupDO> userGroups) {
     if (values == null) {
       return false;
     }
-    final UserRightValue[] availableValues = getAvailableValues(userGroupCache, user);
+    final UserRightValue[] availableValues = getAvailableValues(user, userGroups);
     if (availableValues == null || availableValues.length <= 1) {
       return false;
     }
@@ -104,11 +103,11 @@ public abstract class UserRight implements Serializable, DisplayNameCapable {
       if (value == UserRightValue.FALSE) {
         continue; // Should not be configurable.
       }
-      if (!matches(userGroupCache, user, value)) {
+      if (!matches(user, userGroups, value)) {
         final UserRightValue[] includedByValues = value.includedBy();
         if (includedByValues != null) {
           for (final UserRightValue includedByValue : includedByValues) {
-            if (matches(userGroupCache, user, includedByValue)) {
+            if (matches(user, userGroups, includedByValue)) {
               // This available value is automatically set for the user, so the right seems to be not configurable:
               break;
             }
@@ -126,16 +125,14 @@ public abstract class UserRight implements Serializable, DisplayNameCapable {
    * Get all right values which are potentially available for the user. If the user value stored in the user data is not
    * part of available values then the AccessChecker returns that the user has no right.
    *
-   * @param userGroupCache
    * @param user
    * @return
    */
-  public UserRightValue[] getAvailableValues(final UserGroupCache userGroupCache, final PFUserDO user) {
+  public UserRightValue[] getAvailableValues(final PFUserDO user, final Collection<GroupDO> userGroups) {
     if (values == null) {
       return null;
     }
     final List<UserRightValue> list = new ArrayList<>();
-    final Collection<GroupDO> userGroups = userGroupCache.getUserGroupDOs(user);
     for (final UserRightValue value : values) {
       if (isAvailable(user, userGroups, value)) {
         list.add(value);
@@ -162,7 +159,7 @@ public abstract class UserRight implements Serializable, DisplayNameCapable {
 
   /**
    * @param assignedGroups
-   * @return isAvailable(userGroupCache, user) at default or if dependsOn is given dependsOn.available(userGroupCache,
+   * @return isAvailable(user, userGroups) at default or if dependsOn is given dependsOn.available(userGroupCache,
    * user, value);
    */
   public boolean isAvailable(final PFUserDO user, final Collection<GroupDO> assignedGroups, final UserRightValue value) {
@@ -177,13 +174,11 @@ public abstract class UserRight implements Serializable, DisplayNameCapable {
    * If a right should match independent on the value set for the given user. Should only be called, if the UserRightDO
    * or its value is set to null.
    *
-   * @param userGroupCache
    * @param user
    * @param value
    * @return false.
-   * @see UserGroupsRight#matches(UserGroupCache, PFUserDO, UserRightValue)
    */
-  public boolean matches(final UserGroupCache userGroupCache, final PFUserDO user, final UserRightValue value) {
+  public boolean matches(final PFUserDO user, final Collection<GroupDO> userGroups, final UserRightValue value) {
     return false;
   }
 

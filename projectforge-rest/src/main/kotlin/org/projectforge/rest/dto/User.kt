@@ -35,6 +35,7 @@ import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.user.entities.Gender
+import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.TimeNotation
 import java.util.*
@@ -231,6 +232,14 @@ class User(
       val users = toUserList(userIds)
       restoreDisplayNames(users, userService)
       return users?.joinToString { it.displayName ?: "???" } ?: ""
+    }
+
+    fun getAssignedGroupDOs(user: User): List<GroupDO>? {
+      return user.assignedGroups?.map {
+        val groupDO = GroupDO()
+        it.copyTo(groupDO)
+        groupDO
+      }
     }
   }
 }

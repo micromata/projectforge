@@ -29,6 +29,7 @@ import org.projectforge.business.user.UserRight
 import org.projectforge.business.user.UserRightDao
 import org.projectforge.business.user.UserRightVO
 import org.projectforge.framework.persistence.api.UserRightService
+import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.User
 import org.projectforge.rest.dto.UserRightDto
@@ -48,20 +49,12 @@ class UserRightsHandler {
   @Autowired
   private lateinit var userRightService: UserRightService
 
-  fun getAvailableRights(user: User): List<UserRightDto> {
-    val list = mutableListOf<UserRightDto>()
-    val userGroups = user.assignedGroups
-    for (right in userRightService.orderedRights) {
-      //  right.isAvailable()
-    }
-    return list
-  }
-
-  fun getUserRights(userDO: PFUserDO): List<UserRightDto> {
+  fun getUserRights(user: User, userDO: PFUserDO): List<UserRightDto> {
     val list = mutableListOf<UserRightDto>()
     val dbList = userRightDao.getList(userDO)
+    val userGroups = User.getAssignedGroupDOs(user)
     for (right in userRightService.orderedRights) {
-      if (!right.isAvailable(userDO, userGroupCache.getUserGroupDOs(userDO))) {
+      if (!right.isAvailable(userDO, userGroups)) {
         continue
       }
       val rightDto = UserRightDto(rightId = right.id.toString())
@@ -73,9 +66,9 @@ class UserRightsHandler {
     return list
   }
 
-  fun getUserRight(rightDto: UserRightDto, userDO: PFUserDO): UserRight? {
+  fun getUserRight(rightDto: UserRightDto, userDO: PFUserDO, userGroups: Collection<GroupDO>?): UserRight? {
     val right = userRightService.getRight(rightDto.rightId) ?: return null
-    if (right.isConfigurable(userGroupCache, userDO)) {
+    if (right.isConfigurable(userDO, userGroups)) {
       return right
     }
     return null

@@ -925,8 +925,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     for (final UserRightVO rightVO : userRights) {
       final UserRight right = rightVO.getRight();
       final UserGroupCache userGroupCache = UserGroupCache.getInstance();
-      final UserRightValue[] availableValues = right.getAvailableValues(userGroupCache, data);
-      if (right.isConfigurable(userGroupCache, data) == false) {
+      final Collection<GroupDO> userGroups = userGroupCache.getUserGroupDOs(data);
+      final UserRightValue[] availableValues = right.getAvailableValues(data, userGroups);
+      if (right.isConfigurable(data, userGroups) == false) {
         continue;
       }
       if (first == true) {
