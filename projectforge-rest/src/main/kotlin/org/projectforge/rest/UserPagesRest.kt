@@ -411,9 +411,11 @@ class UserPagesRest
     val userDO = PFUserDO()
     dto.copyTo(userDO)
     checkUserAccess(userDO, userAccess)
+    val layout = createEditLayout(dto, userAccess)
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE)
         .addVariable("ui", createEditLayout(dto, userAccess))
+        .addVariable("layout", layout)
         .addVariable(
           "data",
           dto
@@ -515,17 +517,18 @@ class UserPagesRest
   private fun addRights(layout: UILayout, dto: User) {
     val userDO = PFUserDO()
     dto.copyTo(userDO)
-    val userRights: List<UserRightDto> = userRightsHandler.getUserRights(userDO)
+    val userRights: List<UserRightDto> = userRightsHandler.getUserRights(dto, userDO)
     var counter = 0
     val uiElements = mutableListOf<UIElement>()
     // TODO: preserver old user rights.
+    val userGroups = User.getAssignedGroupDOs(dto)
     for (rightDto in userRights) {
-      val right = userRightsHandler.getUserRight(rightDto, userDO) ?: continue
+      val right = userRightsHandler.getUserRight(rightDto, userDO, userGroups) ?: continue
       dto.add(rightDto)
       if (right.isBooleanType) {
         uiElements.add(UICheckbox("userRights[$counter].booleanValue", label = right.id.i18nKey))
       } else {
-        val availableValues = right.getAvailableValues(userGroupCache, userDO).map {
+        val availableValues = right.getAvailableValues(userDO, userGroups).map {
           UISelectValue(it, translate(it.i18nKey))
         }
         uiElements.add(UISelect("userRights[$counter].value", label = right.id.i18nKey, values = availableValues))

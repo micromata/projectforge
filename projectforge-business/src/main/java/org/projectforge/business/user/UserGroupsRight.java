@@ -113,18 +113,15 @@ public class UserGroupsRight extends UserRight implements Serializable
    * If the user is a member of one group for which only one value is available and this single value matches the given
    * value then true is returned. This is use-full if the user is member of a group for which all members should have
    * access automatically independent on the user's setting.
-   *
-   * @see org.projectforge.business.user.UserRight#matches(org.projectforge.business.user.UserGroupCache,
-   *      org.projectforge.framework.persistence.user.entities.PFUserDO, org.projectforge.business.user.UserRightValue)
    */
   @Override
-  public boolean matches(final UserGroupCache userGroupCache, final PFUserDO user, final UserRightValue value)
+  public boolean matches(final PFUserDO user, final Collection<GroupDO> userGroups, final UserRightValue value)
   {
     if (availableGroupRightValues == null) {
       return false;
     }
     for (final ProjectForgeGroup group : dependsOnGroups) {
-      if (!userGroupCache.isUserMemberOfGroup(user, group)) {
+      if (!UserGroupCache.isUserMemberOfGroup(userGroups, group)) {
         continue;
       }
       final UserRightValue[] vals = availableGroupRightValues.get(group);
@@ -135,7 +132,7 @@ public class UserGroupsRight extends UserRight implements Serializable
     for (Entry<ProjectForgeGroup, UserRightValue[]> entry : this.availableGroupRightValues.entrySet()) {
       // Check all group right values.
       final ProjectForgeGroup group = entry.getKey();
-      if (!userGroupCache.isUserMemberOfGroup(user, group)) {
+      if (!UserGroupCache.isUserMemberOfGroup(userGroups, group)) {
         // User is not member of this group, skip this group.
         continue;
       }

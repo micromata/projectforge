@@ -36,10 +36,8 @@ import java.util.Collection;
  * These rights implement the checking of the different access types (select, insert, update, delete) itself.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
-public class UserRightAccessCheck<O> extends UserRight
-{
+public class UserRightAccessCheck<O> extends UserRight {
   private static final long serialVersionUID = 3075619933808717141L;
 
   protected UserGroupsRight userGroupsRight;
@@ -47,15 +45,13 @@ public class UserRightAccessCheck<O> extends UserRight
   protected AccessChecker accessChecker;
 
   public UserRightAccessCheck(AccessChecker accessChecker, final IUserRightId id,
-      final UserRightCategory category,
-      final UserRightValue... rightValues)
-  {
+                              final UserRightCategory category,
+                              final UserRightValue... rightValues) {
     super(id, category, rightValues);
     this.accessChecker = accessChecker;
   }
 
-  protected void setUserGroupsRight(final UserGroupsRight right)
-  {
+  protected void setUserGroupsRight(final UserGroupsRight right) {
     this.userGroupsRight = right;
   }
 
@@ -66,8 +62,7 @@ public class UserRightAccessCheck<O> extends UserRight
    * @param dependsOnGroups
    */
   protected UserGroupsRight initializeUserGroupsRight(final UserRightValue[] values,
-      final ProjectForgeGroup... dependsOnGroups)
-  {
+                                                      final ProjectForgeGroup... dependsOnGroups) {
     userGroupsRight = new UserGroupsRight(null, null, values, dependsOnGroups);
     return userGroupsRight;
   }
@@ -78,15 +73,14 @@ public class UserRightAccessCheck<O> extends UserRight
    * {@link AccessChecker#hasWriteAccess(UserRightId, boolean)}.
    *
    * @param accessDao
-   * @param user Check the access for the given user instead of the logged-in user.
-   * @param obj null is possible for checking general insert access or general select access.
+   * @param user          Check the access for the given user instead of the logged-in user.
+   * @param obj           null is possible for checking general insert access or general select access.
    * @param oldObj
    * @param operationType
    * @return
    */
   public boolean hasAccess(final PFUserDO user, final O obj, final O oldObj,
-      final OperationType operationType)
-  {
+                           final OperationType operationType) {
     if (operationType == OperationType.SELECT) {
       return accessChecker.hasRight(user, this.getId(), false, UserRightValue.READONLY,
           UserRightValue.READWRITE);
@@ -95,33 +89,27 @@ public class UserRightAccessCheck<O> extends UserRight
     }
   }
 
-  public boolean hasSelectAccess(final PFUserDO user)
-  {
+  public boolean hasSelectAccess(final PFUserDO user) {
     return hasAccess(user, null, null, OperationType.SELECT);
   }
 
-  public boolean hasSelectAccess(final PFUserDO user, final O obj)
-  {
+  public boolean hasSelectAccess(final PFUserDO user, final O obj) {
     return hasAccess(user, obj, null, OperationType.SELECT);
   }
 
-  public boolean hasInsertAccess(final PFUserDO user)
-  {
+  public boolean hasInsertAccess(final PFUserDO user) {
     return hasAccess(user, null, null, OperationType.INSERT);
   }
 
-  public boolean hasInsertAccess(final PFUserDO user, final O obj)
-  {
+  public boolean hasInsertAccess(final PFUserDO user, final O obj) {
     return hasAccess(user, obj, null, OperationType.INSERT);
   }
 
-  public boolean hasUpdateAccess(final PFUserDO user, final O obj, final O oldObj)
-  {
+  public boolean hasUpdateAccess(final PFUserDO user, final O obj, final O oldObj) {
     return hasAccess(user, obj, oldObj, OperationType.UPDATE);
   }
 
-  public boolean hasDeleteAccess(final PFUserDO user, final O obj, final O oldObj)
-  {
+  public boolean hasDeleteAccess(final PFUserDO user, final O obj, final O oldObj) {
     return hasAccess(user, obj, oldObj, OperationType.DELETE);
   }
 
@@ -133,8 +121,7 @@ public class UserRightAccessCheck<O> extends UserRight
    * @param obj
    * @return
    */
-  public boolean hasHistoryAccess(final PFUserDO user, final O obj)
-  {
+  public boolean hasHistoryAccess(final PFUserDO user, final O obj) {
     return hasSelectAccess(user, obj);
   }
 
@@ -143,24 +130,19 @@ public class UserRightAccessCheck<O> extends UserRight
    * @see UserGroupsRight#matches(UserGroupCache, PFUserDO, UserRightValue)
    */
   @Override
-  public boolean matches(final UserGroupCache userGroupCache, final PFUserDO user, final UserRightValue value)
-  {
+  public boolean matches(final PFUserDO user, final Collection<GroupDO> userGroups, final UserRightValue value) {
     if (userGroupsRight != null) {
-      return userGroupsRight.matches(userGroupCache, user, value);
+      return userGroupsRight.matches(user, userGroups, value);
     }
     return false;
   }
 
   /**
-   * If userGroupsRight is initialized then {@link UserGroupsRight#isAvailable(UserGroupCache, PFUserDO)} is called,
+   * If userGroupsRight is initialized then {@link UserGroupsRight#isAvailable(PFUserDO, Collection)} is called,
    * otherwise super.
-   *
-   * @see org.projectforge.business.user.UserRight#isAvailable(org.projectforge.business.user.UserGroupCache,
-   *      org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
-  public boolean isAvailable(final PFUserDO user, final Collection<GroupDO> assignedGroups)
-  {
+  public boolean isAvailable(final PFUserDO user, final Collection<GroupDO> assignedGroups) {
     if (userGroupsRight != null) {
       return userGroupsRight.isAvailable(user, assignedGroups);
     }
@@ -169,12 +151,10 @@ public class UserRightAccessCheck<O> extends UserRight
 
   /**
    * If userGroupsRight is initialized then
-   * {@link UserGroupsRight#isAvailable(UserGroupCache, PFUserDO, UserRightValue)} is called, otherwise super.
-   *
+   * {@link UserGroupsRight#isAvailable(PFUserDO, Collection, UserRightValue)} is called, otherwise super.
    */
   @Override
-  public boolean isAvailable(final PFUserDO user, final Collection<GroupDO> assignedGroups, final UserRightValue value)
-  {
+  public boolean isAvailable(final PFUserDO user, final Collection<GroupDO> assignedGroups, final UserRightValue value) {
     if (userGroupsRight != null) {
       return userGroupsRight.isAvailable(user, assignedGroups, value);
     }
