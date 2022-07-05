@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.i18n.UserException;
@@ -46,6 +47,8 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO> {
   private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[]{EingangsrechnungsPositionDO.class};
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"positionen.text"};
+
+  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"kreditor"};
 
   @Autowired
   private KontoDao kontoDao;
@@ -257,5 +260,10 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO> {
       final List<EingangsrechnungDO> resultList = query.setMaxResults(1).getResultList();
       return (resultList != null && resultList.size() > 0) ? resultList.get(0) : null;
     });
+  }
+
+  @Override
+  public boolean isAutocompletionPropertyEnabled(String property) {
+    return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property);
   }
 }
