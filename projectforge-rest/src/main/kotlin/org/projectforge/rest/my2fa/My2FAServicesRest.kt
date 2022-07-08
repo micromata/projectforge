@@ -226,7 +226,15 @@ class My2FAServicesRest {
       )
     }
     val data = postData.data
+    if (data.modal == true) {
+      // 2FA request was handled by modal dialog, so close the modal only:
+      return ResponseEntity(
+        ResponseAction(targetType = TargetType.CLOSE_MODAL),
+        HttpStatus.OK
+      )
+    }
     if (data.target != null) {
+      // 2FA request was handled by an extra page, so redirect to origin:
       val redirectUrl = String(Base64.decodeBase64(data.target), StandardCharsets.UTF_8)
       if (redirectUrl.isNotBlank()) {
         return ResponseEntity(
