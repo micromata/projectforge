@@ -84,41 +84,6 @@ const mergeVariables = (categoryState, newVariables, merge) => {
     return variables;
 };
 
-export const loadFormPage = (category, id, url, params = {}) => (dispatch, getState) => {
-    const currentCategory = getState().form.categories[category];
-
-    if (currentCategory && currentCategory.isFetching) {
-        return Promise.resolve();
-    }
-
-    dispatch(callInitialBegin(category, id));
-
-    return fetch(
-        url,
-        {
-            method: 'GET',
-            credentials: 'include',
-        },
-    )
-        .then(handleHTTPErrors)
-        .then((response) => response.json())
-        .then((json) => {
-            const { targetType } = json;
-            if (targetType) {
-                // eslint-disable-next-line no-use-before-define
-                callAction({
-                    responseAction: json,
-                    watchFieldsTriggered: [],
-                }, [])(dispatch, getState);
-                dispatch(callSuccess(category, {}));
-                return;
-            }
-
-            dispatch(callSuccess(category, Object.combine(params, json)));
-        })
-        .catch((error) => callFailure(category, error));
-};
-
 export const switchFromCurrentCategory = (
     to,
     newVariables,
@@ -292,6 +257,40 @@ export const callAction = (
             return Promise.reject(Error(`TargetType ${action.targetType} not implemented.`));
     }
     return Promise.resolve();
+};
+
+export const loadFormPage = (category, id, url, params = {}) => (dispatch, getState) => {
+    const currentCategory = getState().form.categories[category];
+
+    if (currentCategory && currentCategory.isFetching) {
+        return Promise.resolve();
+    }
+
+    dispatch(callInitialBegin(category, id));
+
+    return fetch(
+        url,
+        {
+            method: 'GET',
+            credentials: 'include',
+        },
+    )
+        .then(handleHTTPErrors)
+        .then((response) => response.json())
+        .then((json) => {
+            const { targetType } = json;
+            if (targetType) {
+                callAction({
+                    responseAction: json,
+                    watchFieldsTriggered: [],
+                }, [])(dispatch, getState);
+                dispatch(callSuccess(category, {}));
+                return;
+            }
+
+            dispatch(callSuccess(category, Object.combine(params, json)));
+        })
+        .catch((error) => callFailure(category, error));
 };
 
 export const setCurrentData = (newData) => (dispatch, getState) => {
