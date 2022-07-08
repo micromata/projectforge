@@ -70,9 +70,11 @@ class My2FAPageRest : AbstractDynamicPageRest(), My2FAPage {
     request: HttpServletRequest,
     @RequestParam target: String? = null,
     @RequestParam expiryMillis: Long? = null,
+    @RequestParam modal: Boolean? = false,
   ): FormLayoutData {
     val data = My2FAData()
     data.target = target
+    data.modal = modal
     data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
     val layout = UILayout("user.My2FACode.title")
     if (expiryMillis != null && expiryMillis > 0) {
@@ -90,13 +92,13 @@ class My2FAPageRest : AbstractDynamicPageRest(), My2FAPage {
   }
 
   override fun redirect(request: HttpServletRequest, response: HttpServletResponse, expiryMillis: Long) {
-    response.sendRedirect(getUrl(request, expiryMillis))
+    response.sendRedirect(getUrl(request, expiryMillis, false))
   }
 
   companion object {
-    fun getUrl(request: HttpServletRequest, expiryMillis: Long): String {
+    fun getUrl(request: HttpServletRequest, expiryMillis: Long, useModal: Boolean): String {
       val queryString = request.queryString
-      val uri = request.getRequestURI()
+      val uri = request.requestURI
       var uriWithQueryString = if (queryString.isNullOrEmpty()) {
         uri
       } else {
@@ -105,13 +107,17 @@ class My2FAPageRest : AbstractDynamicPageRest(), My2FAPage {
       val referer = request.getHeader("Referer")
       if (uriWithQueryString.startsWith("/rs/") && referer.contains("/react/")) {
         // uriWithQueryString = uriWithQueryString.replace("/rs/", "/react/").replace("?id=", "/")
-        uriWithQueryString = referer.substring(referer.indexOf("/react/")) // Use referer url (without protocol and domain)
+        uriWithQueryString =
+          referer.substring(referer.indexOf("/react/")) // Use referer url (without protocol and domain)
       }
       val target = Base64.encodeBase64URLSafeString(uriWithQueryString.toByteArray(StandardCharsets.UTF_8))
       return PagesResolver.getDynamicPageUrl(
         My2FAPageRest::class.java,
         absolute = true,
-        params = mapOf("target" to target, "expiryMillis" to expiryMillis),
+        params = mapOf(
+          "target" to target, "expiryMillis" to expiryMillis,
+          "modal" to useModal,
+        ),
       )
     }
   }

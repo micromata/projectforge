@@ -45,4 +45,9 @@ open class My2FAData {
    * Optional target url to redirect after successful 2FA.
    */
   var target: String? = null
+
+  /**
+   * Optional switch: show My2FA in modal or as separate page.
+   */
+  var modal: Boolean? = null
 }
