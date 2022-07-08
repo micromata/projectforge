@@ -119,6 +119,20 @@ export const loadFormPage = (category, id, url, params = {}) => (dispatch, getSt
         .catch((error) => callFailure(category, error));
 };
 
+export const switchFromCurrentCategory = (
+    to,
+    newVariables,
+    merge = false,
+) => (dispatch, getState) => {
+    const { form: state } = getState();
+
+    dispatch(switchCategoryWithData(
+        state.currentCategory,
+        to,
+        mergeVariables(state.categories[to], newVariables, merge),
+    ));
+};
+
 export const callAction = (
     {
         responseAction: action,
@@ -150,6 +164,8 @@ export const callAction = (
         }
         case 'CLOSE_MODAL':
             if (history.location.state && history.location.state.background) {
+                const backgroundCategory = history.location.state.background.pathname.split('/')[2];
+
                 history.push({
                     ...history.location.state.background,
                     state: {
@@ -159,6 +175,13 @@ export const callAction = (
                         merge: action.merge,
                     },
                 });
+
+                // switch to category to make category reactive again
+                switchFromCurrentCategory(
+                    backgroundCategory,
+                    {},
+                    true,
+                )(dispatch, getState);
             }
             break;
         case 'UPDATE':
@@ -299,17 +322,3 @@ export const setCurrentData = (newData) => (dispatch, getState) => {
 export const setCurrentVariables = (newVariables) => (dispatch, getState) => dispatch(
     changeVariables(getState().form.currentCategory, newVariables),
 );
-
-export const switchFromCurrentCategory = (
-    to,
-    newVariables,
-    merge = false,
-) => (dispatch, getState) => {
-    const { form: state } = getState();
-
-    dispatch(switchCategoryWithData(
-        state.currentCategory,
-        to,
-        mergeVariables(state.categories[to], newVariables, merge),
-    ));
-};
