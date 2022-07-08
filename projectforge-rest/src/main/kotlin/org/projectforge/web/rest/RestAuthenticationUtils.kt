@@ -36,8 +36,8 @@ import org.projectforge.login.LoginService
 import org.projectforge.rest.Authentication
 import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
-import org.projectforge.rest.my2fa.My2FAPageRest
 import org.projectforge.rest.converter.DateTimeFormat
+import org.projectforge.rest.my2fa.My2FAPageRest
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.My2FARequestHandler
 import org.projectforge.security.RegisterUser4Thread
@@ -296,10 +296,23 @@ open class RestAuthenticationUtils {
       val expiryMillis = my2FARequestHandler.handleRequest(authInfo.request, authInfo.response, false)
       if (expiryMillis != null) {
         log.info { "2FA is required for this request: ${authInfo.request.requestURI}" }
-        response.setStatus(HttpStatus.OK.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.status = HttpStatus.OK.value()
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE)
+        val url = request.requestURI
+        // /rs/changePassword/dynamic
+        // /rs/group/edit
+        val targetType = if (
+          url.matches("""^/rs/.*/dynamic.*""".toRegex()) ||
+          url.matches("""^/rs/.*/edit.*""".toRegex()) ||
+          url.matches("""^/rs/.*/list.*""".toRegex())
+        ) {
+          TargetType.REDIRECT
+        } else {
+          TargetType.MODAL
+        }
+        val my2FAUrl = My2FAPageRest.getUrl(request, expiryMillis, targetType == TargetType.MODAL)
         val json = JsonUtils.toJson(
-          ResponseAction(My2FAPageRest.getUrl(request,expiryMillis), targetType = TargetType.REDIRECT),
+          ResponseAction(my2FAUrl, targetType = targetType),
           ignoreNullableProps = true,
         )
         response.writer.write(json)
