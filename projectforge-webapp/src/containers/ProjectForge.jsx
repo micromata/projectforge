@@ -26,8 +26,10 @@ function ProjectForge(
 
     React.useEffect(() => {
         checkAuthentication();
+    }, []);
 
-        fetch(getServiceURL('/rsPublic/systemStatus'))
+    React.useEffect(() => {
+        fetch(getServiceURL('/rsPublic/systemStatus'), { credentials: 'include' })
             .then(handleHTTPErrors)
             .then((response) => response.json())
             .then((json) => {
@@ -37,7 +39,7 @@ function ProjectForge(
                     history.push(setupRedirectUrl);
                 }
             });
-    }, []);
+    }, [user]);
 
     let content;
 
