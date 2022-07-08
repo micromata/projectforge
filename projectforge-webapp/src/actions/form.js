@@ -144,7 +144,7 @@ export const callAction = (
                 // switch to category to make category reactive again
                 switchFromCurrentCategory(
                     backgroundCategory,
-                    {},
+                    action.variables || {},
                     true,
                 )(dispatch, getState);
             }
