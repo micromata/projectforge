@@ -103,10 +103,14 @@ export const loadFormPage = (category, id, url, params = {}) => (dispatch, getSt
         .then(handleHTTPErrors)
         .then((response) => response.json())
         .then((json) => {
-            const { targetType, url: redirectUrl } = json;
-            if (targetType === 'REDIRECT' && redirectUrl) {
+            const { targetType } = json;
+            if (targetType) {
+                // eslint-disable-next-line no-use-before-define
+                callAction({
+                    responseAction: json,
+                    watchFieldsTriggered: [],
+                }, [])(dispatch, getState);
                 dispatch(callSuccess(category, {}));
-                history.push(redirectUrl);
                 return;
             }
 
