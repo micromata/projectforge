@@ -84,35 +84,18 @@ const mergeVariables = (categoryState, newVariables, merge) => {
     return variables;
 };
 
-export const loadFormPage = (category, id, url, params = {}) => (dispatch, getState) => {
-    const currentCategory = getState().form.categories[category];
+export const switchFromCurrentCategory = (
+    to,
+    newVariables,
+    merge = false,
+) => (dispatch, getState) => {
+    const { form: state } = getState();
 
-    if (currentCategory && currentCategory.isFetching) {
-        return Promise.resolve();
-    }
-
-    dispatch(callInitialBegin(category, id));
-
-    return fetch(
-        url,
-        {
-            method: 'GET',
-            credentials: 'include',
-        },
-    )
-        .then(handleHTTPErrors)
-        .then((response) => response.json())
-        .then((json) => {
-            const { targetType, url: redirectUrl } = json;
-            if (targetType === 'REDIRECT' && redirectUrl) {
-                dispatch(callSuccess(category, {}));
-                history.push(redirectUrl);
-                return;
-            }
-
-            dispatch(callSuccess(category, Object.combine(params, json)));
-        })
-        .catch((error) => callFailure(category, error));
+    dispatch(switchCategoryWithData(
+        state.currentCategory,
+        to,
+        mergeVariables(state.categories[to], newVariables, merge),
+    ));
 };
 
 export const callAction = (
@@ -146,6 +129,8 @@ export const callAction = (
         }
         case 'CLOSE_MODAL':
             if (history.location.state && history.location.state.background) {
+                const backgroundCategory = history.location.state.background.pathname.split('/')[2];
+
                 history.push({
                     ...history.location.state.background,
                     state: {
@@ -155,6 +140,13 @@ export const callAction = (
                         merge: action.merge,
                     },
                 });
+
+                // switch to category to make category reactive again
+                switchFromCurrentCategory(
+                    backgroundCategory,
+                    action.variables || {},
+                    true,
+                )(dispatch, getState);
             }
             break;
         case 'UPDATE':
@@ -267,6 +259,40 @@ export const callAction = (
     return Promise.resolve();
 };
 
+export const loadFormPage = (category, id, url, params = {}) => (dispatch, getState) => {
+    const currentCategory = getState().form.categories[category];
+
+    if (currentCategory && currentCategory.isFetching) {
+        return Promise.resolve();
+    }
+
+    dispatch(callInitialBegin(category, id));
+
+    return fetch(
+        url,
+        {
+            method: 'GET',
+            credentials: 'include',
+        },
+    )
+        .then(handleHTTPErrors)
+        .then((response) => response.json())
+        .then((json) => {
+            const { targetType } = json;
+            if (targetType) {
+                callAction({
+                    responseAction: json,
+                    watchFieldsTriggered: [],
+                }, [])(dispatch, getState);
+                dispatch(callSuccess(category, {}));
+                return;
+            }
+
+            dispatch(callSuccess(category, Object.combine(params, json)));
+        })
+        .catch((error) => callFailure(category, error));
+};
+
 export const setCurrentData = (newData) => (dispatch, getState) => {
     const { form } = getState();
     const { categories, currentCategory } = form;
@@ -295,17 +321,3 @@ export const setCurrentData = (newData) => (dispatch, getState) => {
 export const setCurrentVariables = (newVariables) => (dispatch, getState) => dispatch(
     changeVariables(getState().form.currentCategory, newVariables),
 );
-
-export const switchFromCurrentCategory = (
-    to,
-    newVariables,
-    merge = false,
-) => (dispatch, getState) => {
-    const { form: state } = getState();
-
-    dispatch(switchCategoryWithData(
-        state.currentCategory,
-        to,
-        mergeVariables(state.categories[to], newVariables, merge),
-    ));
-};

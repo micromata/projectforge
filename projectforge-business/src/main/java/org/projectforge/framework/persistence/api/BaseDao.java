@@ -1187,7 +1187,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * SECURITY ADVICE:
    * For security reasons every property must be enabled for autocompletion. Otherwise the user may select
-   * to much information, because only generic select access of an entity is checked. Example: The user has
+   * too much information, because only generic select access of an entity is checked. Example: The user has
    * select access to users, therefore he may select all password fields!!!
    * <br/>
    * Refer implementation of ContractDao as example.
