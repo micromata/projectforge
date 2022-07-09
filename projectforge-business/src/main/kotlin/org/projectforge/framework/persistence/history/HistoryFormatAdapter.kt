@@ -26,6 +26,6 @@ package org.projectforge.framework.persistence.history
 /**
  * You may register history adapters for customizing convertion of history entries.
  */
-interface HistoryServiceAdapter {
-  fun convertEntries(item: Any, entries: MutableList<HistoryService.DisplayHistoryEntryDTO>)
+interface HistoryFormatAdapter {
+  fun convertEntries(item: Any, entries: MutableList<HistoryFormatService.DisplayHistoryEntryDTO>)
 }

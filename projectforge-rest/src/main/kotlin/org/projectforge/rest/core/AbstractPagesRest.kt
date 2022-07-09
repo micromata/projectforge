@@ -41,7 +41,7 @@ import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
-import org.projectforge.framework.persistence.history.HistoryService
+import org.projectforge.framework.persistence.history.HistoryFormatService
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.menu.MenuItem
@@ -186,7 +186,7 @@ constructor(
   lateinit var agGridSupport: AGGridSupport
 
   @Autowired
-  private lateinit var historyService: HistoryService
+  private lateinit var historyFormatService: HistoryFormatService
 
   @Autowired
   private lateinit var sessionCsrfService: SessionCsrfService
@@ -869,13 +869,13 @@ constructor(
    * @param id Id of the item to get the history entries for.
    */
   @GetMapping("history/{id}")
-  fun getHistory(@PathVariable("id") id: Int?): ResponseEntity<List<HistoryService.DisplayHistoryEntryDTO>> {
+  fun getHistory(@PathVariable("id") id: Int?): ResponseEntity<List<HistoryFormatService.DisplayHistoryEntryDTO>> {
     if (id == null) {
       return ResponseEntity(HttpStatus.BAD_REQUEST)
     }
     val item = baseDao.getById(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
     val historyEntries = baseDao.getHistoryEntries(item)
-    return ResponseEntity(historyService.format(item, historyEntries), HttpStatus.OK)
+    return ResponseEntity(historyFormatService.format(item, historyEntries), HttpStatus.OK)
   }
 
   /**
