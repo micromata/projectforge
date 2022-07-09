@@ -24,10 +24,7 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.business.user.UserGroupCache
-import org.projectforge.business.user.UserRight
-import org.projectforge.business.user.UserRightDao
-import org.projectforge.business.user.UserRightVO
+import org.projectforge.business.user.*
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -81,7 +78,15 @@ class UserRightsHandler {
       val right = userRightService.getRight(rightDto.rightId)
       if (right != null) {
         val rightVO = UserRightVO(right)
-        rightVO.setValue(rightDto.value)
+        if (right.isBooleanType) {
+          rightVO.value = when (rightDto.booleanValue) {
+            true -> UserRightValue.TRUE
+            false -> UserRightValue.FALSE
+            else -> null
+          }
+        } else {
+          rightVO.value = rightDto.value
+        }
         list.add(rightVO)
       } else {
         log.error("Oups, right with id '${rightDto.rightId}' not found. Will be ignored.")
