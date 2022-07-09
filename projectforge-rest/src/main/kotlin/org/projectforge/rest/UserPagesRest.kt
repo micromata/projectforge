@@ -436,7 +436,7 @@ class UserPagesRest
     }
     layout.add(
       UIAlert(
-        message = "ToDo: rights (watchfield update): Rechte nach Anlage in History strange, Datev-Import geht nicht.",
+        message = "ToDo: Rechte nach Anlage in History strange.",
         color = UIColor.DANGER
       )
     )
