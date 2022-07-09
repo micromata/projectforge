@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.core
+package org.projectforge.framework.persistence.history
 
 import de.micromata.genome.db.jpa.history.api.HistoryEntry
 import de.micromata.genome.db.jpa.history.entities.EntityOpType
@@ -30,11 +30,13 @@ import mu.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
 import java.util.*
+import javax.annotation.PostConstruct
 import javax.persistence.EntityManager
 import javax.persistence.PersistenceContext
 
@@ -47,6 +49,15 @@ private val log = KotlinLogging.logger {}
 class HistoryService {
   @PersistenceContext
   private lateinit var em: EntityManager
+
+  @Autowired
+  private lateinit var applicationContext: ApplicationContext
+
+  @Autowired
+  private lateinit var userGroupCache: UserGroupCache
+
+  private val historyServiceAdapters =
+    mutableMapOf<Class<out ExtendedBaseDO<Int>>, HistoryServiceAdapter>()
 
   data class DisplayHistoryEntryDTO(
     var modifiedAt: Date? = null,
@@ -66,44 +77,60 @@ class HistoryService {
     var newValue: String? = null
   )
 
-  @Autowired
-  private lateinit var userGroupCache: UserGroupCache
+  @PostConstruct
+  private fun postConstruct() {
+    register(PFUserDO::class.java, HistoryServiceUserAdapter(this, applicationContext))
+  }
+
+  fun <O : ExtendedBaseDO<Int>> register(clazz: Class<out O>, historyServiceAdapter: HistoryServiceAdapter) {
+    if (historyServiceAdapters[clazz] != null) {
+      log.warn { "Can't register HistoryServiceAdapter ${historyServiceAdapter::class.java.name} twice. Ignoring." }
+      return
+    }
+    this.historyServiceAdapters[clazz] = historyServiceAdapter
+  }
 
   /**
    * Creates a list of formatted history entries (get the user names etc.)
    */
-  fun format(orig: Array<HistoryEntry<*>>): List<DisplayHistoryEntryDTO> {
+  fun <O : ExtendedBaseDO<Int>> format(item: O, orig: Array<HistoryEntry<*>>): List<DisplayHistoryEntryDTO> {
     val entries = mutableListOf<DisplayHistoryEntryDTO>()
     orig.forEach { historyEntry ->
-      var user: PFUserDO? = null
-      try {
-        user = userGroupCache.getUser(historyEntry.modifiedBy.toInt())
-      } catch (e: NumberFormatException) {
-        // Ignore error.
-      }
-      val entryDTO = DisplayHistoryEntryDTO(
-        modifiedAt = historyEntry.modifiedAt,
-        timeAgo = TimeAgo.getMessage(historyEntry.modifiedAt),
-        modifiedByUserId = historyEntry.modifiedBy,
-        modifiedByUser = user?.getFullname(),
-        operationType = historyEntry.entityOpType,
-        operation = translate(historyEntry.entityOpType)
-      )
-      historyEntry.diffEntries?.forEach { diffEntry ->
-        val se = DisplayHistoryEntry(userGroupCache, historyEntry, diffEntry, em)
-
-        val diffEntryDTO = DisplayHistoryDiffEntryDTO(
-          operationType = diffEntry.propertyOpType,
-          operation = translate(diffEntry.propertyOpType),
-          property = se.propertyName,
-          oldValue = se.oldValue,
-          newValue = se.newValue
-        )
-        entryDTO.diffEntries.add(diffEntryDTO)
-      }
-      entries.add(entryDTO)
+      entries.add(convert(historyEntry))
     }
-    return entries
+    val adapter = historyServiceAdapters[item::class.java]
+    adapter?.convertEntries(item, entries)
+    return entries.sortedByDescending { it.modifiedAt }
+  }
+
+  fun convert(historyEntry: HistoryEntry<*>): DisplayHistoryEntryDTO {
+    var user: PFUserDO? = null
+    try {
+      user = userGroupCache.getUser(historyEntry.modifiedBy.toInt())
+    } catch (e: NumberFormatException) {
+      // Ignore error.
+    }
+    val entryDTO = DisplayHistoryEntryDTO(
+      modifiedAt = historyEntry.modifiedAt,
+      timeAgo = TimeAgo.getMessage(historyEntry.modifiedAt),
+      modifiedByUserId = historyEntry.modifiedBy,
+      modifiedByUser = user?.getFullname(),
+      operationType = historyEntry.entityOpType,
+      operation = translate(historyEntry.entityOpType)
+    )
+    historyEntry.diffEntries?.forEach { diffEntry ->
+      val se = DisplayHistoryEntry(userGroupCache, historyEntry, diffEntry, em)
+
+      val diffEntryDTO = DisplayHistoryDiffEntryDTO(
+        operationType = diffEntry.propertyOpType,
+        operation = translate(diffEntry.propertyOpType),
+        property = se.propertyName,
+        oldValue = se.oldValue,
+        newValue = se.newValue
+      )
+      entryDTO.diffEntries.add(diffEntryDTO)
+    }
+    return entryDTO
   }
 
   private fun translate(opType: EntityOpType?): String {

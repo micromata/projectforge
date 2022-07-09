@@ -41,6 +41,7 @@ import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.menu.MenuItem
@@ -874,7 +875,7 @@ constructor(
     }
     val item = baseDao.getById(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
     val historyEntries = baseDao.getHistoryEntries(item)
-    return ResponseEntity(historyService.format(historyEntries), HttpStatus.OK)
+    return ResponseEntity(historyService.format(item, historyEntries), HttpStatus.OK)
   }
 
   /**

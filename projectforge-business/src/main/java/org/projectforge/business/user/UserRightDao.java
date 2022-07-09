@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.List;
 
 @Repository
-
 public class UserRightDao extends BaseDao<UserRightDO> {
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"user.username", "user.firstname",
       "user.lastname"};
