@@ -27,20 +27,20 @@ import org.projectforge.framework.persistence.utils.ReflectionToString;
 
 /**
  * Bean used by ConfigXML (config.xml).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class LdapPosixAccountsConfig
 {
   private String homeDirectoryPrefix = "/home/";
 
-  private int defaultGidNumber = -1;
+  private int defaultGidNumber = 1000;
 
   private String defaultLoginShell = "/bin/bash";
 
   /**
    * The home default directory is built out of this prefix followed by the uid (username). Default is "/home/".
-   * 
+   *
    * @return
    */
   public String getHomeDirectoryPrefix()

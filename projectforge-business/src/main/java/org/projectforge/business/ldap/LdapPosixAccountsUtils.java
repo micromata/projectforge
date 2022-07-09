@@ -114,6 +114,18 @@ public class LdapPosixAccountsUtils
    */
   public void setDefaultValues(final LdapUserValues ldapUserValues, final PFUserDO user)
   {
+    setDefaultValues(ldapUserValues, user.getUsername());
+  }
+
+  /**
+   * Sets next free uid, the gid (configured in config.xml), the home directory (built of standard prefix and the given
+   * user's username) and the configured login-shell.
+   *
+   * @param ldapUserValues
+   * @param userName
+   */
+  public void setDefaultValues(final LdapUserValues ldapUserValues, final String userName)
+  {
     final LdapConfig ldapConfig = ldapService.getLdapConfig();
     LdapPosixAccountsConfig ldapPosixAccountsConfig = ldapConfig != null ? ldapConfig.getPosixAccountsConfig() : null;
     if (ldapPosixAccountsConfig == null) {
@@ -121,7 +133,7 @@ public class LdapPosixAccountsUtils
     }
     ldapUserValues.setUidNumber(getNextFreeUidNumber());
     ldapUserValues.setGidNumber(ldapPosixAccountsConfig.getDefaultGidNumber());
-    ldapUserValues.setHomeDirectory(ldapPosixAccountsConfig.getHomeDirectoryPrefix() + user.getUsername());
+    ldapUserValues.setHomeDirectory(ldapPosixAccountsConfig.getHomeDirectoryPrefix() + userName);
     ldapUserValues.setLoginShell(ldapPosixAccountsConfig.getDefaultLoginShell());
   }
 }

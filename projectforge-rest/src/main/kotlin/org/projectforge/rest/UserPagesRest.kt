@@ -27,6 +27,7 @@ import de.micromata.merlin.excel.ExcelWorkbook
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.ldap.LdapPosixAccountsUtils
+import org.projectforge.business.ldap.LdapSambaAccountsUtils
 import org.projectforge.business.ldap.LdapService
 import org.projectforge.business.ldap.LdapUserDao
 import org.projectforge.business.login.Login
@@ -84,6 +85,10 @@ class UserPagesRest
 
   @Autowired
   private lateinit var ldapPosixAccountsUtils: LdapPosixAccountsUtils
+
+  @Autowired
+  private lateinit var ldapSambaAccountsUtils: LdapSambaAccountsUtils
+
 
   @Autowired
   private lateinit var ldapService: LdapService
@@ -185,7 +190,7 @@ class UserPagesRest
         )
       )
       agGrid.add(UIAgGridColumnDef.createCol(lc, "rightsAsString", lcField = "rights", wrapText = true))
-      if (useLdapStuff) {
+      if (posixConfigured) {
         agGrid.add(
           UIAgGridColumnDef.createCol(
             lc,
@@ -207,10 +212,10 @@ class UserPagesRest
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
     if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
-      if (useLdapStuff) {
+      if (externalUserManagementSystem) {
         elements.add(
           UIFilterListElement("sync", label = translate("user.filter.syncStatus"), defaultFilter = true, multi = false)
-            .buildValues(UserPagesSyncFilter.SYNC::class.java)
+            .buildValues(UserPagesSyncFilter.Sync::class.java)
         )
       }
       elements.add(
@@ -232,7 +237,7 @@ class UserPagesRest
       if (!values.isNullOrEmpty() && values.size == 1) {
         val value = values[0]
         try {
-          UserPagesSyncFilter.SYNC.valueOf(value).let {
+          UserPagesSyncFilter.Sync.valueOf(value).let {
             filters.add(UserPagesSyncFilter(it))
           }
         } catch (ex: IllegalArgumentException) {
@@ -275,7 +280,10 @@ class UserPagesRest
   fun createUid(@Valid @RequestBody postData: PostData<User>):
       ResponseAction {
     val data = postData.data
-    data.ensureLdapValues().uidNumber = ldapPosixAccountsUtils.nextFreeUidNumber
+    val dtoValues = data.ensureLdapValues()
+    val ldapValues = dtoValues.convert()
+    ldapPosixAccountsUtils.setDefaultValues(ldapValues, data.username)
+    dtoValues.copyFrom(ldapValues)
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("data", data)
   }
@@ -284,23 +292,79 @@ class UserPagesRest
   fun createSambaSID(@Valid @RequestBody postData: PostData<User>):
       ResponseAction {
     val data = postData.data
-    data.ensureLdapValues().gidNumber = ldapPosixAccountsUtils.nextFreeUidNumber
+    val dtoValues = data.ensureLdapValues()
+    val ldapValues = dtoValues.convert()
+    ldapSambaAccountsUtils.setDefaultValues(ldapValues, data.id)
+    dtoValues.copyFrom(ldapValues)
     return ResponseAction(targetType = TargetType.UPDATE)
       .addVariable("data", data)
   }
 
   override fun validate(validationErrors: MutableList<ValidationError>, dto: User) {
     super.validate(validationErrors, dto)
-    dto.ldapValues?.uidNumber?.let { uidNumber ->
-      if (!ldapPosixAccountsUtils.isGivenNumberFree(dto.id ?: -1, uidNumber)) {
-        validationErrors.add(
-          ValidationError(
-            translateMsg("ldap.uidNumber.alreadyInUse", ldapPosixAccountsUtils.nextFreeUidNumber),
-            fieldId = "uidNumber",
-          )
-        )
-      }
+    validatePosixValues(validationErrors, dto)
+    validateSambaValues(validationErrors, dto)
+  }
+
+  private fun validatePosixValues(validationErrors: MutableList<ValidationError>, dto: User) {
+    val ldapValues = dto.ldapValues
+    if (!posixConfigured || ldapValues == null || ldapValues.isPosixValuesEmpty) {
+      return
     }
+    val uidNumber = ldapValues.uidNumber
+    if (uidNumber == null) {
+      validationErrors.add(ValidationError.createFieldRequired("ldapValues.uidNumber", translate("ldap.uidNumber")))
+    } else if (!ldapPosixAccountsUtils.isGivenNumberFree(dto.id ?: -1, uidNumber)) {
+      validationErrors.add(
+        ValidationError(
+          translateMsg("ldap.uidNumber.alreadyInUse", ldapPosixAccountsUtils.nextFreeUidNumber),
+          fieldId = "ldapValues.uidNumber",
+        )
+      )
+    }
+    val gidNumber = ldapValues.gidNumber
+    if (gidNumber == null) {
+      validationErrors.add(ValidationError.createFieldRequired("ldapValues.gidNumber", translate("ldap.gidNumber")))
+    }
+    if (ldapValues.homeDirectory.isNullOrBlank()) {
+      validationErrors.add(
+        ValidationError.createFieldRequired(
+          "ldapValues.homeDirectory",
+          translate("ldap.homeDirectory")
+        )
+      )
+    }
+    if (ldapValues.loginShell.isNullOrBlank()) {
+      validationErrors.add(ValidationError.createFieldRequired("ldapValues.loginShell", translate("ldap.loginShell")))
+    }
+  }
+
+  private fun validateSambaValues(validationErrors: MutableList<ValidationError>, dto: User) {
+    val ldapValues = dto.ldapValues
+    if (!sambaConfigured || ldapValues == null || ldapValues.isSambaValuesEmpty) {
+      return
+    }
+    val sambaSID = ldapValues.sambaSIDNumber
+    if (sambaSID == null) {
+      validationErrors.add(ValidationError.createFieldRequired("ldapValues.sambaSID", translate("ldap.sambaSID")))
+    } else if (!ldapSambaAccountsUtils.isGivenNumberFree(dto.id ?: -1, sambaSID)) {
+      validationErrors.add(
+        ValidationError(
+          translateMsg("ldap.sambaSID.alreadyInUse", ldapPosixAccountsUtils.nextFreeUidNumber),
+          fieldId = "ldapValues.sambaSID",
+        )
+      )
+    }
+    val sambaGroupSID = ldapValues.sambaPrimaryGroupSIDNumber
+    if (sambaGroupSID == null) {
+      validationErrors.add(
+        ValidationError.createFieldRequired(
+          "ldapValues.sambaPrimaryGroupSIDNumber",
+          translate("ldap.sambaPrimaryGroupSID")
+        )
+      )
+    }
+
   }
 
   /**
@@ -370,7 +434,12 @@ class UserPagesRest
         1,
       )
     }
-    layout.add(UIAlert(message = "ToDo: rights (watchfield update), ldap values", color = UIColor.DANGER))
+    layout.add(
+      UIAlert(
+        message = "ToDo: rights (watchfield update), ldap values (create home and login-shell on create-uid button)",
+        color = UIColor.DANGER
+      )
+    )
 
     layout.add(
       MenuItem(
@@ -395,7 +464,7 @@ class UserPagesRest
         "assignedGroups",
       )
     )
-    if (useLdapStuff) {
+    if (sambaConfigured || posixConfigured) {
       addLdap(layout, dto, lc)
     }
     addRights(layout, dto)
@@ -456,62 +525,86 @@ class UserPagesRest
             .add(rightCol)
         )
     )
-    val uidInput = UIInput(
-      "ldapValues.uidNumber",
-      label = "ldap.uidNumber",
-      additionalLabel = "ldap.posixAccount",
-      tooltip = "ldap.uidNumber.tooltip",
-    )
+    if (posixConfigured) {
+      val uidInput = UIInput(
+        "ldapValues.uidNumber",
+        label = "ldap.uidNumber",
+        additionalLabel = "ldap.posixAccount",
+        tooltip = "ldap.uidNumber.tooltip",
+      )
 
-    if (ldapValues.uidNumber != null) {
-      leftCol.add(uidInput)
-    } else {
-      val button = UIButton.createLinkButton(
-        id = "createGidNumber",
-        title = "create",
-        tooltip = "ldap.gidNumber.createDefault.tooltip",
-        responseAction = ResponseAction(
-          RestResolver.getRestUrl(
-            GroupPagesRest::class.java,
-            "createGid"
-          ), targetType = TargetType.POST
+      if (ldapValues.uidNumber != null) {
+        leftCol.add(uidInput)
+      } else {
+        val button = UIButton.createLinkButton(
+          id = "createUidNumber",
+          title = "create",
+          tooltip = "ldap.uidNumber.createDefault.tooltip",
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(
+              UserPagesRest::class.java,
+              "createUid"
+            ), targetType = TargetType.POST
+          )
+        )
+        leftCol.add(UIRow().add(UICol().add(uidInput)).add(UICol().add(button)))
+      }
+      leftCol.add(
+        UIInput(
+          "ldapValues.gidNumber",
+          label = "ldap.gidNumber",
+          tooltip = "ldap.user.gidNumber.tooltip",
+          additionalLabel = "ldap.posixAccount",
         )
       )
-      leftCol.add(UIRow().add(UICol().add(uidInput)).add(UICol().add(button)))
     }
-    leftCol.add(
-      UIInput(
-        "ldapValues.gidNumber",
-        label = "ldap.gidNumber",
-        additionalLabel = "ldap.posixAccount",
-      )
-    )
-    leftCol.add(
-      UIInput(
+    if (sambaConfigured) {
+      val sambaSIDInput = UIInput(
         "ldapValues.sambaSIDNumber",
         label = "ldap.sambaSID",
         additionalLabel = "'${translate("ldap.sambaAccount")}: ${ldapSambaAccountsConfig.sambaSIDPrefix}-",
         tooltip = "ldap.sambaSID.tooltip",
       )
-    )
-    leftCol.add(
-      UIInput(
-        "ldapValues.sambaPrimaryGroupSIDNumber",
-        label = "ldap.sambaPrimaryGroupSID",
-        additionalLabel = "'${translate("ldap.sambaAccount")}: ${ldapSambaAccountsConfig.sambaSIDPrefix}-",
-        tooltip = "ldap.sambaPrimaryGroupSID.tooltip",
+
+      if (ldapValues.sambaSIDNumber != null) {
+        leftCol.add(sambaSIDInput)
+      } else {
+        val button = UIButton.createLinkButton(
+          id = "createSambaSID",
+          title = "create",
+          tooltip = "ldap.uidNumber.createDefault.tooltip",
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(
+              UserPagesRest::class.java,
+              "createSambaSID"
+            ), targetType = TargetType.POST
+          )
+        )
+        leftCol.add(UIRow().add(UICol().add(sambaSIDInput)).add(UICol().add(button)))
+      }
+      leftCol.add(
+        UIInput(
+          "ldapValues.sambaPrimaryGroupSIDNumber",
+          label = "ldap.sambaPrimaryGroupSID",
+          additionalLabel = "'${translate("ldap.sambaAccount")}: ${ldapSambaAccountsConfig.sambaSIDPrefix}-",
+          tooltip = "ldap.sambaPrimaryGroupSID.tooltip",
+        )
       )
-    )
-    rightCol.add(UIInput("ldapValues.homeDirectory", label = "ldap.homeDirectory"))
-    rightCol.add(UIInput("ldapValues.loginShell", label = "ldap.loginShell"))
-    rightCol.add(
-      UIInput(
-        "ldapValues.sambaNTPassword",
-        label = "ldap.sambaNTPassword",
-        tooltip = "ldap.sambaNTPassword.tooltip",
-        additionalLabel = "ldap.sambaNTPassword.subtitle",
+    }
+    if (posixConfigured) {
+      rightCol.add(UIInput("ldapValues.homeDirectory", label = "ldap.homeDirectory"))
+      rightCol.add(UIInput("ldapValues.loginShell", label = "ldap.loginShell"))
+    }
+    if (sambaConfigured) {
+      rightCol.add(
+        UIReadOnlyField(
+          "ldapValues.sambaNTPassword",
+          label = "ldap.sambaNTPassword",
+          tooltip = "ldap.sambaNTPassword.tooltip",
+          additionalLabel = "ldap.sambaNTPassword.subtitle",
+        )
       )
-    )
+    }
   }
 
   private fun addRights(layout: UILayout, dto: User) {
@@ -679,7 +772,7 @@ class UserPagesRest
       ExcelUtils.registerColumn(sheet, PFUserDO::locale)
       ExcelUtils.registerColumn(sheet, PFUserDO::timeZone)
       ExcelUtils.registerColumn(sheet, PFUserDO::description, 50)
-      if (useLdapStuff) {
+      if (posixConfigured) {
         ExcelUtils.registerColumn(sheet, PFUserDO::ldapValues, 50)
       }
       ExcelUtils.addHeadRow(sheet, boldStyle)
@@ -761,7 +854,11 @@ class UserPagesRest
     }
   }
 
-  private val useLdapStuff: Boolean
-    get() = SystemStatus.isDevelopmentMode() || (accessChecker.isLoggedInUserMemberOfAdminGroup && Login.getInstance()
-      .hasExternalUsermanagementSystem() && ldapUserDao.isPosixAccountsConfigured)
+  private val externalUserManagementSystem: Boolean
+    get() = SystemStatus.isDevelopmentMode() ||
+        accessChecker.isLoggedInUserMemberOfAdminGroup && Login.getInstance().hasExternalUsermanagementSystem()
+  private val posixConfigured = SystemStatus.isDevelopmentMode() ||
+      (accessChecker.isLoggedInUserMemberOfAdminGroup && ldapUserDao.isPosixAccountsConfigured)
+  private val sambaConfigured = SystemStatus.isDevelopmentMode() ||
+      (accessChecker.isLoggedInUserMemberOfAdminGroup && ldapUserDao.isSambaAccountsConfigured)
 }
