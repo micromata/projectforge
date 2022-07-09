@@ -528,7 +528,8 @@ open class UserGroupCache() : AbstractCache() {
         return false
       }
       for (group in groups) {
-        if (userGroups.any { it?.name == group.key }) {
+        val dbGroup = getInstance().getGroup(group) ?: continue
+        if (userGroups.any { it?.id == dbGroup.id }) {
           return true
         }
       }

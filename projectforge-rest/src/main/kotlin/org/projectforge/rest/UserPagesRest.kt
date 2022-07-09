@@ -436,7 +436,7 @@ class UserPagesRest
     }
     layout.add(
       UIAlert(
-        message = "ToDo: rights (watchfield update), ldap values (create home and login-shell on create-uid button)",
+        message = "ToDo: rights (watchfield update): Rechte nach Anlage in History strange, Datev-Import geht nicht.",
         color = UIColor.DANGER
       )
     )
@@ -488,7 +488,7 @@ class UserPagesRest
         .addVariable(
           "data",
           dto
-        ) // must be added after createEditLayout is called, because createEditLaoyout may modify available user's rights.
+        ) // must be added after createEditLayout is called, because createEditLayout may modify available user's rights.
     )
   }
 
@@ -613,7 +613,6 @@ class UserPagesRest
     val userRights: List<UserRightDto> = userRightsHandler.getUserRights(dto, userDO)
     var counter = 0
     val uiElements = mutableListOf<UIElement>()
-    // TODO: preserver old user rights.
     val userGroups = User.getAssignedGroupDOs(dto)
     for (rightDto in userRights) {
       val right = userRightsHandler.getUserRight(rightDto, userDO, userGroups) ?: continue
