@@ -30,14 +30,14 @@ import org.springframework.context.ApplicationContext
 
 private val log = KotlinLogging.logger {}
 
-class HistoryServiceUserAdapter(
-  val historyService: HistoryService,
+class HistoryFormatUserAdapter(
+  val historyService: HistoryFormatService,
   val applicationContext: ApplicationContext,
-) : HistoryServiceAdapter {
+) : HistoryFormatAdapter {
 
   private val userRightDao = applicationContext.getBean(UserRightDao::class.java)
 
-  override fun convertEntries(item: Any, entries: MutableList<HistoryService.DisplayHistoryEntryDTO>) {
+  override fun convertEntries(item: Any, entries: MutableList<HistoryFormatService.DisplayHistoryEntryDTO>) {
     if (item !is PFUserDO) {
       log.warn { "Can't hanlde history entries for entity of type ${item::class.java.name}" }
       return

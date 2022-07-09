@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
  * History entries will be transformed into human readable formats.
  */
 @Component
-class HistoryService {
+class HistoryFormatService {
   @PersistenceContext
   private lateinit var em: EntityManager
 
@@ -57,7 +57,7 @@ class HistoryService {
   private lateinit var userGroupCache: UserGroupCache
 
   private val historyServiceAdapters =
-    mutableMapOf<Class<out ExtendedBaseDO<Int>>, HistoryServiceAdapter>()
+    mutableMapOf<Class<out ExtendedBaseDO<Int>>, HistoryFormatAdapter>()
 
   data class DisplayHistoryEntryDTO(
     var modifiedAt: Date? = null,
@@ -79,10 +79,10 @@ class HistoryService {
 
   @PostConstruct
   private fun postConstruct() {
-    register(PFUserDO::class.java, HistoryServiceUserAdapter(this, applicationContext))
+    register(PFUserDO::class.java, HistoryFormatUserAdapter(this, applicationContext))
   }
 
-  fun <O : ExtendedBaseDO<Int>> register(clazz: Class<out O>, historyServiceAdapter: HistoryServiceAdapter) {
+  fun <O : ExtendedBaseDO<Int>> register(clazz: Class<out O>, historyServiceAdapter: HistoryFormatAdapter) {
     if (historyServiceAdapters[clazz] != null) {
       log.warn { "Can't register HistoryServiceAdapter ${historyServiceAdapter::class.java.name} twice. Ignoring." }
       return
