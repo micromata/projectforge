@@ -35,8 +35,7 @@ import java.util.Objects;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-public class LdapSambaAccountsUtils
-{
+public class LdapSambaAccountsUtils {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapSambaAccountsUtils.class);
 
   @Autowired
@@ -49,8 +48,7 @@ public class LdapSambaAccountsUtils
    * Get all given uid numbers of all ProjectForge users including any deleted user and get the next highest and free
    * number. The number is 1000 if no uid number (with a value greater than 999) is found.
    */
-  public int getNextFreeSambaSIDNumber()
-  {
+  public int getNextFreeSambaSIDNumber() {
     final Collection<PFUserDO> allUsers = userGroupCache.getAllUsers();
     int currentMaxNumber = 999;
     for (final PFUserDO user : allUsers) {
@@ -72,10 +70,21 @@ public class LdapSambaAccountsUtils
    * @param currentUser
    * @param sambaSIDNumber
    * @return Returns true if any user (also deleted user) other than the given user has the given uidNumber, otherwise
-   *         false.
+   * false.
    */
-  public boolean isGivenNumberFree(final PFUserDO currentUser, final Integer sambaSIDNumber)
-  {
+  public boolean isGivenNumberFree(final PFUserDO currentUser, final Integer sambaSIDNumber) {
+    return isGivenNumberFree(currentUser.getId(), sambaSIDNumber);
+  }
+
+  /**
+   * For preventing double uidNumbers.
+   *
+   * @param currentUserId
+   * @param sambaSIDNumber
+   * @return Returns true if any user (also deleted user) other than the given user has the given uidNumber, otherwise
+   * false.
+   */
+  public boolean isGivenNumberFree(final Integer currentUserId, final Integer sambaSIDNumber) {
     if (sambaSIDNumber == null) {
       // Nothing to check.
       return true;
@@ -83,7 +92,7 @@ public class LdapSambaAccountsUtils
     final Collection<PFUserDO> allUsers = userGroupCache.getAllUsers();
     for (final PFUserDO user : allUsers) {
       final LdapUserValues ldapUserValues = PFUserDOConverter.readLdapUserValues(user.getLdapValues());
-      if (Objects.equals(user.getId(), currentUser.getId())) {
+      if (Objects.equals(user.getId(), currentUserId)) {
         // The current user may have the given sambaSIDNumber already, so ignore this entry.
         continue;
       }
@@ -104,14 +113,23 @@ public class LdapSambaAccountsUtils
    * @param ldapUserValues
    * @param user
    */
-  public void setDefaultValues(final LdapUserValues ldapUserValues, final PFUserDO user)
-  {
+  public void setDefaultValues(final LdapUserValues ldapUserValues, final PFUserDO user) {
+    setDefaultValues(ldapUserValues, user.getId());
+  }
+
+  /**
+   * Sets next free SambaSID or, if free and given the same id as the posix UID.
+   *
+   * @param ldapUserValues
+   * @param userId
+   */
+  public void setDefaultValues(final LdapUserValues ldapUserValues, final Integer userId) {
     final LdapConfig ldapConfig = ldapService.getLdapConfig();
     LdapSambaAccountsConfig ldapSambaAccountsConfig = ldapConfig != null ? ldapConfig.getSambaAccountsConfig() : null;
     if (ldapSambaAccountsConfig == null) {
       ldapSambaAccountsConfig = new LdapSambaAccountsConfig();
     }
-    if (ldapUserValues.getUidNumber() != null && isGivenNumberFree(user, ldapUserValues.getUidNumber())) {
+    if (ldapUserValues.getUidNumber() != null && isGivenNumberFree(userId, ldapUserValues.getUidNumber())) {
       ldapUserValues.setSambaSIDNumber(ldapUserValues.getUidNumber());
     } else {
       ldapUserValues.setSambaSIDNumber(getNextFreeSambaSIDNumber());

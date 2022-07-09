@@ -46,6 +46,27 @@ class UserLdapValues(
     return obj
   }
 
+  fun copyFrom(src: LdapUserValues) {
+    uidNumber = src.uidNumber
+    gidNumber = src.gidNumber
+    homeDirectory = src.homeDirectory
+    loginShell = src.loginShell
+    sambaPrimaryGroupSIDNumber = src.sambaPrimaryGroupSIDNumber
+    sambaSIDNumber = src.sambaSIDNumber
+  }
+
+  val isValuesEmpty: Boolean
+    get() = isPosixValuesEmpty && isSambaValuesEmpty
+
+  val isPosixValuesEmpty: Boolean
+    get() = uidNumber == null &&
+        homeDirectory.isNullOrBlank() &&
+        loginShell.isNullOrBlank() &&
+        gidNumber == null
+
+  val isSambaValuesEmpty: Boolean
+    get() = sambaSIDNumber == null && sambaPrimaryGroupSIDNumber == null
+
   companion object {
     fun create(src: LdapUserValues): UserLdapValues {
       val dto = UserLdapValues()

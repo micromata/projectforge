@@ -34,7 +34,7 @@ import java.util.*
 /**
  * Address images were moved to separate entity (db table). So do the migration here.
  */
-class V7_4_1_2__ReleaseUserPassword : BaseJavaMigration() {
+class V7_4_1_3__ReleaseUserPassword : BaseJavaMigration() {
   class UserPassword(
     val userId: Int?,
     val userName: String?,

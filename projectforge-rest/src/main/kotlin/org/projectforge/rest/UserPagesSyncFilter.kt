@@ -27,8 +27,8 @@ import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
-class UserPagesSyncFilter(val sync: SYNC) : CustomResultFilter<PFUserDO> {
-  enum class SYNC(val key: String) : I18nEnum {
+class UserPagesSyncFilter(val sync: Sync) : CustomResultFilter<PFUserDO> {
+  enum class Sync(val key: String) : I18nEnum {
     ALL("filter.all"), LOCAL_GROUP("user.localUser"), NORMAL_GROUP("user.localUser.not");
 
     /**
@@ -39,8 +39,8 @@ class UserPagesSyncFilter(val sync: SYNC) : CustomResultFilter<PFUserDO> {
   }
 
   override fun match(list: MutableList<PFUserDO>, element: PFUserDO): Boolean {
-    return sync == SYNC.ALL ||
-        sync == SYNC.LOCAL_GROUP && element.localUser ||
-        sync == SYNC.NORMAL_GROUP && !element.localUser
+    return sync == Sync.ALL ||
+        sync == Sync.LOCAL_GROUP && element.localUser ||
+        sync == Sync.NORMAL_GROUP && !element.localUser
   }
 }

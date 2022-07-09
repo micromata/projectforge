@@ -1,4 +1,4 @@
--- Vacation forms of employees supports now others substitutes (replacements) in addition to the main substitue (replacement)
+-- Password fields will be moved from table T_PF_USER to T_PF_USER_PASSWORD.
 
 CREATE TABLE T_PF_USER_PASSWORD
 (
