@@ -24,7 +24,6 @@
 package org.projectforge.web.admin;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -55,11 +54,8 @@ import org.projectforge.web.wicket.flowlayout.*;
 import java.util.List;
 import java.util.TimeZone;
 
-public class SetupForm extends AbstractForm<SetupForm, SetupPage>
-{
+public class SetupForm extends AbstractForm<SetupForm, SetupPage> {
   private static final long serialVersionUID = -277853572580468505L;
-
-  private static final String MAGIC_PASSWORD = "******";
 
   @SpringBean
   private UserService userService;
@@ -67,12 +63,12 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
   @SpringBean
   private PasswordQualityService passwordQualityService;
 
-  private final IModel<SetupTarget> setupModeModel = new Model<>(SetupTarget.TEST_DATA);
+  private SetupTarget setupTarget = SetupTarget.TEST_DATA;
 
   // this value is changed by a PropertyModel
   private TimeZone timeZone = TimeZone.getDefault();
 
-  private String password;
+  private String password, passwordRepeat;
 
   private final IModel<String> sysopEMailModel = new Model<>();
 
@@ -93,16 +89,14 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
    */
   private final CsrfTokenHandler csrfTokenHandler = new CsrfTokenHandler(this);
 
-  public SetupForm(final SetupPage parentPage)
-  {
+  public SetupForm(final SetupPage parentPage) {
     super(parentPage, "setupform");
     adminUser.setUsername(DatabaseService.DEFAULT_ADMIN_USER);
   }
 
   @Override
   @SuppressWarnings("serial")
-  protected void init()
-  {
+  protected void init() {
     add(createFeedbackPanel());
     final GridBuilder gridBuilder = newGridBuilder(this, "flowform");
     gridBuilder.newFormHeading(getString("administration.setup.heading"));
@@ -114,10 +108,11 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
       final DivPanel radioPanel = fs.addNewRadioBoxButtonDiv();
       fs.add(radioPanel);
       fs.setLabelFor(radioPanel);
-      final RadioGroupPanel<SetupTarget> radioGroup = new RadioGroupPanel<>(radioPanel.newChildId(), "setuptarget", setupModeModel);
+      final RadioGroupPanel<SetupTarget> radioGroup = new RadioGroupPanel<>(radioPanel.newChildId(), "setuptarget",
+          new PropertyModel<>(this, "setupTarget"));
       radioPanel.add(radioGroup);
       for (final SetupTarget target : SetupTarget.values()) {
-        radioGroup.add(new Model<SetupTarget>(target), getString(target.getI18nKey()),
+        radioGroup.add(new Model<>(target), getString(target.getI18nKey()),
             getString(target.getI18nKey() + ".tooltip"));
       }
     }
@@ -133,7 +128,8 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
       usernameTextField.setOutputMarkupId(true);
       fs.add(usernameTextField);
     }
-    final PasswordTextField passwordField = createPasswordField();
+    final PasswordTextField passwordField = new PasswordTextField(PasswordPanel.WICKET_ID,
+        new PropertyModel<String>(this, "password"));
     passwordField.setMarkupId("password").setOutputMarkupId(true);
     {
       // Password
@@ -145,7 +141,8 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
     {
       // Password repeat
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("passwordRepeat"));
-      final PasswordTextField passwordRepeatField = createPasswordField();
+      final PasswordTextField passwordRepeatField = new PasswordTextField(PasswordPanel.WICKET_ID,
+          new PropertyModel<String>(this, "passwordRepeat"));
       passwordRepeatField.setRequired(true); // No setReset(true), otherwise uploading and re-entering passwords is a real pain.
       passwordRepeatField.setMarkupId("passwordRepeat").setOutputMarkupId(true);
       passwordRepeatField.add((IValidator<String>) validatable -> {
@@ -153,18 +150,12 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
         final String passwordInput = passwordField.getConvertedInput();
         if (StringUtils.equals(input, passwordInput) == false) {
           passwordRepeatField.error(getString("user.error.passwordAndRepeatDoesNotMatch"));
-          password = null;
           return;
         }
-        if (MAGIC_PASSWORD.equals(passwordInput) == false || password == null) {
-          final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
-          if (errorMsgKeys.isEmpty() == false) {
-            password = null;
-            for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
-              passwordField.error(I18nHelper.getLocalizedMessage(errorMsgKey));
-            }
-          } else {
-            userService.encryptAndSavePassword(adminUser, passwordInput.toCharArray());
+        final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
+        if (errorMsgKeys.isEmpty() == false) {
+          for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
+            passwordField.error(I18nHelper.getLocalizedMessage(errorMsgKey));
           }
         }
       });
@@ -185,11 +176,9 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
       final RequiredMaxLengthTextField textField = new RequiredMaxLengthTextField(InputPanel.WICKET_ID, calendarDomainModel, ConfigurationDO.Companion.getParamLength());
       fs.add(textField);
       textField.setMarkupId("calendarDomain").setOutputMarkupId(true);
-      textField.add(new IValidator<String>()
-      {
+      textField.add(new IValidator<String>() {
         @Override
-        public void validate(final IValidatable<String> validatable)
-        {
+        public void validate(final IValidatable<String> validatable) {
           if (Configuration.isDomainValid(validatable.getValue()) == false) {
             textField.error(getString("validation.error.generic"));
           }
@@ -216,11 +205,9 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
     final RepeatingView actionButtons = new RepeatingView("buttons");
     add(actionButtons);
     {
-      final Button finishButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("finish"))
-      {
+      final Button finishButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("finish")) {
         @Override
-        public final void onSubmit()
-        {
+        public final void onSubmit() {
           csrfTokenHandler.onSubmit();
           parentPage.finishSetup();
         }
@@ -233,37 +220,21 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
     }
   }
 
-  private PasswordTextField createPasswordField()
-  {
-    return new PasswordTextField(PasswordPanel.WICKET_ID, new Model<>())
-    {
-      @Override
-      protected void onComponentTag(final ComponentTag tag)
-      {
-        super.onComponentTag(tag);
-        if (password == null) {
-          tag.put("value", "");
-        } else if (StringUtils.isEmpty(getConvertedInput()) == false) {
-          tag.put("value", MAGIC_PASSWORD);
-        }
-      }
-    };
-  }
-
   @Override
-  protected void onSubmit()
-  {
+  protected void onSubmit() {
     super.onSubmit();
     csrfTokenHandler.onSubmit();
   }
 
-  SetupTarget getSetupMode()
-  {
-    return setupModeModel.getObject();
+  public void setSetupTarget(SetupTarget setupTarget) {
+    this.setupTarget = setupTarget;
   }
 
-  public TimeZone getTimeZone()
-  {
+  public SetupTarget getSetupTarget() {
+    return setupTarget;
+  }
+
+  public TimeZone getTimeZone() {
     return timeZone;
   }
 
@@ -274,26 +245,22 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
   /**
    * @return the calendarDomain
    */
-  String getCalendarDomain()
-  {
+  String getCalendarDomain() {
     return calendarDomainModel.getObject();
   }
 
-  String getSysopEMail()
-  {
+  String getSysopEMail() {
     return sysopEMailModel.getObject();
   }
 
-  String getFeedbackEMail()
-  {
+  String getFeedbackEMail() {
     return feedbackEMailModel.getObject();
   }
 
   /**
    * @return the adminUser containing the desired username and password with the used salt-string.
    */
-  PFUserDO getAdminUser()
-  {
+  PFUserDO getAdminUser() {
     return adminUser;
   }
 }
