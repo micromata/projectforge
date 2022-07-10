@@ -23,9 +23,66 @@
 
 package org.projectforge.framework.persistence.history
 
+import de.micromata.genome.db.jpa.history.api.HistoryEntry
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.framework.i18n.TimeAgo
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import javax.persistence.EntityManager
+
 /**
  * You may register history adapters for customizing convertion of history entries.
  */
-interface HistoryFormatAdapter {
-  fun convertEntries(item: Any, entries: MutableList<HistoryFormatService.DisplayHistoryEntryDTO>)
+open class HistoryFormatAdapter(
+  protected val em: EntityManager,
+  protected val historyService: HistoryFormatService,
+) {
+  protected val userGroupCache = UserGroupCache.getInstance()
+  protected val applicationContext = historyService.applicationContext
+
+  /**
+   * A customized adapter may manipulate all found history entries by modifing, deleting or adding entries.
+   * Does nothing at default.
+   * @param item Item the history entries are related to.
+   * @param entries All found history entries for customization.
+   */
+  open fun convertEntries(item: Any, entries: MutableList<HistoryFormatService.DisplayHistoryEntryDTO>) {
+  }
+
+  /**
+   * A customized adapter may manipulate all found history entries by modifing, deleting or adding entries.
+   * Does nothing at default.
+   * @param item Item the history entries are related to.
+   * @param entries All found history entries for customization.
+   */
+  open fun convert(item: Any, entries: MutableList<HistoryFormatService.DisplayHistoryEntryDTO>) {
+  }
+
+  fun convert(item: Any, historyEntry: HistoryEntry<*>): HistoryFormatService.DisplayHistoryEntryDTO {
+    var user: PFUserDO? = null
+    try {
+      user = userGroupCache.getUser(historyEntry.modifiedBy.toInt())
+    } catch (e: NumberFormatException) {
+      // Ignore error.
+    }
+    val entryDTO = HistoryFormatService.DisplayHistoryEntryDTO(
+      modifiedAt = historyEntry.modifiedAt,
+      timeAgo = TimeAgo.getMessage(historyEntry.modifiedAt),
+      modifiedByUserId = historyEntry.modifiedBy,
+      modifiedByUser = user?.getFullname(),
+      operationType = historyEntry.entityOpType,
+      operation = HistoryFormatService.translate(historyEntry.entityOpType)
+    )
+    historyEntry.diffEntries?.forEach { diffEntry ->
+      val dhe = DisplayHistoryEntry(userGroupCache, historyEntry, diffEntry, em)
+      val diffEntryDTO = HistoryFormatService.DisplayHistoryDiffEntryDTO(
+        operationType = diffEntry.propertyOpType,
+        operation = HistoryFormatService.translate(diffEntry.propertyOpType),
+        property = dhe.propertyName,
+        oldValue = dhe.oldValue,
+        newValue = dhe.newValue
+      )
+      entryDTO.diffEntries.add(diffEntryDTO)
+    }
+    return entryDTO
+  }
 }
