@@ -93,7 +93,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     SEARCH("menu.search", "wa/search"), //
     TASK_TREE("menu.taskTree", "wa/taskTree"), //
     TIMESHEET_LIST("menu.timesheetList", "wa/timesheetList"), //
-    USER_LIST("menu.userList", "wa/userList"), //
+    USER_LIST("menu.userList", getReactListUrl("user")), //
     VACATION("menu.vacation", getReactListUrl("vacation")), //
     VACATION_ACCOUNT("menu.vacation.leaveaccount", getReactDynamicPageUrl("vacationAccount")), //
     VISITORBOOK("menu.orga.visitorbook", "wa/wicket/bookmarkable/org.projectforge.web.orga.VisitorbookListPage"), //

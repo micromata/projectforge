@@ -34,7 +34,7 @@ public class LdapPosixAccountsConfig
 {
   private String homeDirectoryPrefix = "/home/";
 
-  private int defaultGidNumber = 1000;
+  private int defaultGidNumber = -1;
 
   private String defaultLoginShell = "/bin/bash";
 

@@ -849,8 +849,10 @@ class UserPagesRest
   private val externalUserManagementSystem: Boolean
     get() = SystemStatus.isDevelopmentMode() ||
         accessChecker.isLoggedInUserMemberOfAdminGroup && Login.getInstance().hasExternalUsermanagementSystem()
-  private val posixConfigured = SystemStatus.isDevelopmentMode() ||
-      (accessChecker.isLoggedInUserMemberOfAdminGroup && ldapUserDao.isPosixAccountsConfigured)
-  private val sambaConfigured = SystemStatus.isDevelopmentMode() ||
-      (accessChecker.isLoggedInUserMemberOfAdminGroup && ldapUserDao.isSambaAccountsConfigured)
+  private val posixConfigured
+    get() = SystemStatus.isDevelopmentMode() ||
+        (accessChecker.isLoggedInUserMemberOfAdminGroup && ldapUserDao.isPosixAccountsConfigured)
+  private val sambaConfigured
+    get() = SystemStatus.isDevelopmentMode() ||
+        (accessChecker.isLoggedInUserMemberOfAdminGroup && ldapUserDao.isSambaAccountsConfigured)
 }
