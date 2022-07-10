@@ -109,7 +109,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
     //Init global addressbook
     databaseService.insertGlobalAddressbook();
 
-    if (setupForm.getSetupMode() == SetupTarget.EMPTY_DATABASE) {
+    if (setupForm.getSetupTarget() == SetupTarget.EMPTY_DATABASE) {
       //Init default data (admin user, groups and root task)
       databaseService.initializeDefaultData(adminUser, setupForm.getTimeZone());
       message = "administration.setup.message.emptyDatabase";
@@ -125,16 +125,16 @@ public class SetupPage extends AbstractUnsecureBasePage {
         log.error("Exception occured while running test data insert script. Message: " + e.getMessage());
       }
       Configuration.getInstance().forceReload();
-      adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
-      if (StringUtils.isNotBlank(setupForm.getPassword())) {
-        char[] clearTextPassword = setupForm.getPassword().toCharArray();
-        userService.encryptAndSavePassword(adminUser, clearTextPassword);
-      }
       databaseInitTestDataService.initAdditionalTestData();
       databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";
       // refreshes the visibility of the costConfigured dependent menu items:
       WicketSupport.getMenuCreator().refresh();
+    }
+    adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
+    if (StringUtils.isNotBlank(setupForm.getPassword())) {
+      char[] clearTextPassword = setupForm.getPassword().toCharArray();
+      userService.encryptAndSavePassword(adminUser, clearTextPassword);
     }
 
     WicketSupport.getSystemStatus().setSetupRequiredFirst(false);

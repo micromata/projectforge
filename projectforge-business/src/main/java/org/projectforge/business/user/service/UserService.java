@@ -226,7 +226,6 @@ public class UserService {
    *
    * @param user              The user to user.
    * @param clearTextPassword as clear text.x
-   * @see UserPasswordDao#encryptAndSavePassword(int, char[])
    */
   public void encryptAndSavePassword(final PFUserDO user, final char[] clearTextPassword, final boolean checkAccess) {
     userPasswordDao.encryptAndSavePassword(user.getId(), clearTextPassword, checkAccess);

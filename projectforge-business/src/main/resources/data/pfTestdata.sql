@@ -93,8 +93,8 @@ VALUES (16, '2013-04-07 15:49:57.114', FALSE, '2013-04-07 15:49:57.114', NULL, N
         NULL, 0,
         'My Company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'ann');
-INSERT INTO t_pf_user_passwords (pk, user_id, created, last_update, password, password_salt, last_password_change, last_wlan_password_change)
-VALUES(16, 16, '2013-04-07 15:49:57.114', '2013-04-07 15:49:57.114', 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL, NULL, NULL));
+INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
+VALUES(16, 16, '2013-04-07 15:49:57.114', '2013-04-07 15:49:57.114', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
 
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
@@ -112,8 +112,8 @@ VALUES (17, '2010-04-21 22:02:25.955', FALSE, '2013-04-07 18:04:45.05', '85L2ckM
         NULL, 0,
         'Micromata GmbH', NULL, NULL, FALSE, NULL, NULL, FALSE,
         NULL, 'Europe/Berlin', 'kai');
-INSERT INTO t_pf_user_passwords (pk, user_id, created, last_update, password, password_salt, last_password_change, last_wlan_password_change)
-VALUES(17, 17, '2013-04-07 18:04:45.05', '2013-04-07 18:04:45.05', 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL, NULL, NULL));
+INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
+VALUES(17, 17, '2013-04-07 18:04:45.05', '2013-04-07 18:04:45.05', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
 
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
@@ -132,8 +132,8 @@ VALUES (18, '2010-04-20 22:29:20.926', FALSE, '2013-04-27 15:56:13.735', 'HCOYto
         0,
         NULL, NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'demo');
-INSERT INTO t_pf_user_passwords (pk, user_id, created, last_update, password, password_salt, last_password_change, last_wlan_password_change)
-VALUES(18, 18, '2013-04-27 15:56:13.731', '2013-04-27 15:56:13.731', 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL, NULL, NULL));
+INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
+VALUES(18, 18, '2013-04-27 15:56:13.731', '2013-04-27 15:56:13.731', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
 
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
@@ -147,8 +147,8 @@ VALUES (20, '2013-04-07 15:49:34.35', FALSE, '2013-04-07 15:49:34.35', NULL, NUL
         FALSE, NULL, 0,
         'My Company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'alex');
-INSERT INTO t_pf_user_passwords (pk, user_id, created, last_update, password, password_salt, last_password_change, last_wlan_password_change)
-VALUES(20, 20, '2013-04-07 15:49:34.35', '2013-04-07 15:49:34.35', 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL, NULL, NULL));
+INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
+VALUES(20, 20, '2013-04-07 15:49:34.35', '2013-04-07 15:49:34.35', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
 
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
@@ -161,8 +161,8 @@ VALUES (21, '2013-04-07 15:51:04.237', FALSE, '2013-04-07 15:51:04.237', NULL, N
         NULL, FALSE, NULL, 0,
         'My company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'joe');
-INSERT INTO t_pf_user_passwords (pk, user_id, created, last_update, password, password_salt, last_password_change, last_wlan_password_change)
-VALUES(21, 21, '2013-04-07 15:51:04.237', '2013-04-07 15:51:04.237', 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL, NULL, NULL));
+INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
+VALUES(21, 21, '2013-04-07 15:51:04.237', '2013-04-07 15:51:04.237', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
 
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
@@ -178,8 +178,8 @@ VALUES (22, '2013-04-07 15:52:12.89', FALSE, '2013-04-07 15:52:12.89', NULL, NUL
         NULL, FALSE,
         NULL,
         'Europe/Berlin', 'max');
-INSERT INTO t_pf_user_passwords (pk, user_id, created, last_update, password, password_salt, last_password_change, last_wlan_password_change)
-VALUES(22, 22, '2013-04-07 15:52:12.89', '2013-04-07 15:52:12.89', 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL, NULL, NULL));
+INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
+VALUES(22, 22, '2013-04-07 15:52:12.89', '2013-04-07 15:52:12.89', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
 
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
@@ -192,8 +192,8 @@ VALUES (23, '2013-04-07 15:51:41.389', FALSE, '2013-04-07 15:51:41.389', NULL, N
         NULL, FALSE, NULL, 0,
         'My company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'julia');
-INSERT INTO t_pf_user_passwords (pk, user_id, created, last_update, password, password_salt, last_password_change, last_wlan_password_change)
-VALUES(23, 23, '2013-04-07 15:51:41.389', '2013-04-07 15:51:41.389', 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL, NULL, NULL));
+INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
+VALUES(23, 23, '2013-04-07 15:51:41.389', '2013-04-07 15:51:41.389', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
 
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
@@ -206,8 +206,8 @@ VALUES (24, '2013-04-07 15:52:44.012', FALSE, '2013-04-07 15:52:44.012', NULL, N
         NULL, FALSE, NULL, 0,
         'My company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'michael');
-INSERT INTO t_pf_user_passwords (pk, user_id, created, last_update, password, password_salt, last_password_change, last_wlan_password_change)
-VALUES(24, 24, '2013-04-07 15:52:44.012', '2013-04-07 15:52:44.012', 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL, NULL, NULL));
+INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
+VALUES(24, 24, '2013-04-07 15:52:44.012', '2013-04-07 15:52:44.012', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
 
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
@@ -220,8 +220,8 @@ VALUES (25, '2013-04-07 15:53:08.909', FALSE, '2013-04-07 15:53:08.909', NULL, N
         NULL, FALSE, NULL, 0,
         'My company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'mona');
-INSERT INTO t_pf_user_passwords (pk, user_id, created, last_update, password, password_salt, last_password_change, last_wlan_password_change)
-VALUES(25, 25, '2013-04-07 15:53:08.909', '2013-04-07 15:53:08.909', 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL, NULL, NULL));
+INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
+VALUES(25, 25, '2013-04-07 15:53:08.909', '2013-04-07 15:53:08.909', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
 
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
@@ -234,8 +234,8 @@ VALUES (26, '2013-04-07 15:50:32.15', FALSE, '2013-04-07 15:50:32.15', NULL, NUL
         NULL, FALSE, NULL, 0,
         'My company', NULL, NULL, FALSE, NULL, NULL, FALSE, NULL,
         'Europe/Berlin', 'chris');
-INSERT INTO t_pf_user_passwords (pk, user_id, created, last_update, password, password_salt, last_password_change, last_wlan_password_change)
-VALUES(26, 26, '2013-04-07 15:50:32.15', '2013-04-07 15:50:32.15', 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL, NULL, NULL));
+INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
+VALUES(26, 26, '2013-04-07 15:50:32.15', '2013-04-07 15:50:32.15', false, 'SHA{4369A8892D05285B1E6BA56881B9A9B26D1DAC7D}', NULL);
 
 INSERT INTO t_pf_user (pk, created, deleted, last_update, authentication_token, date_format, deactivated, description,
                        email, excel_date_format, first_day_of_week, firstname, hr_planning, jira_username, lastlogin,
@@ -249,8 +249,8 @@ VALUES (19, '2008-01-10 08:26:19.742', FALSE, '2014-09-02 12:26:04.944', NULL, N
         NULL,
         NULL, FALSE, NULL, NULL,
         TRUE, NULL, 'UTC', 'admin');
-INSERT INTO t_pf_user_passwords (pk, user_id, created, last_update, password, password_salt, last_password_change, last_wlan_password_change)
-VALUES(19, 19, '2014-09-02 12:34:47.785', '2014-09-02 12:34:47.785', 'SHA{9CE7B48A16130787B61C52C2120193EBD525FFAA}', 'UXKTgc9ZnrtB7w==', NULL, NULL));
+INSERT INTO t_pf_user_password (pk, user_id, created, last_update, deleted, password_hash, password_salt)
+VALUES(19, 19, '2014-09-02 12:34:47.785', '2014-09-02 12:34:47.785', false, 'SHA{9CE7B48A16130787B61C52C2120193EBD525FFAA}', 'UXKTgc9ZnrtB7w==');
 
 INSERT INTO t_addressbook_address (address_id, addressbook_id)
 VALUES (128, 1);
