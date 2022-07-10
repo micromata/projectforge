@@ -435,13 +435,6 @@ class UserPagesRest
       )
     }
     layout.add(
-      UIAlert(
-        message = "ToDo: Rechte nach Anlage in History strange.",
-        color = UIColor.DANGER
-      )
-    )
-
-    layout.add(
       MenuItem(
         "changePassword",
         i18nKey = "menu.changePassword",

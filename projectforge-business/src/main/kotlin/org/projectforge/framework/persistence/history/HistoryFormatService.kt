@@ -27,8 +27,6 @@ import de.micromata.genome.db.jpa.history.api.HistoryEntry
 import de.micromata.genome.db.jpa.history.entities.EntityOpType
 import de.micromata.genome.db.jpa.history.entities.PropertyOpType
 import mu.KotlinLogging
-import org.projectforge.business.user.UserGroupCache
-import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -51,13 +49,12 @@ class HistoryFormatService {
   private lateinit var em: EntityManager
 
   @Autowired
-  private lateinit var applicationContext: ApplicationContext
-
-  @Autowired
-  private lateinit var userGroupCache: UserGroupCache
+  internal lateinit var applicationContext: ApplicationContext
 
   private val historyServiceAdapters =
     mutableMapOf<Class<out ExtendedBaseDO<Int>>, HistoryFormatAdapter>()
+
+  private lateinit var stdHistoryFormatAdapter: HistoryFormatAdapter
 
   data class DisplayHistoryEntryDTO(
     var modifiedAt: Date? = null,
@@ -79,7 +76,8 @@ class HistoryFormatService {
 
   @PostConstruct
   private fun postConstruct() {
-    register(PFUserDO::class.java, HistoryFormatUserAdapter(this, applicationContext))
+    stdHistoryFormatAdapter = HistoryFormatAdapter(em, this)
+    register(PFUserDO::class.java, HistoryFormatUserAdapter(em, this))
   }
 
   fun <O : ExtendedBaseDO<Int>> register(clazz: Class<out O>, historyServiceAdapter: HistoryFormatAdapter) {
@@ -96,61 +94,38 @@ class HistoryFormatService {
   fun <O : ExtendedBaseDO<Int>> format(item: O, orig: Array<HistoryEntry<*>>): List<DisplayHistoryEntryDTO> {
     val entries = mutableListOf<DisplayHistoryEntryDTO>()
     orig.forEach { historyEntry ->
-      entries.add(convert(historyEntry))
+      entries.add(convert(item, historyEntry))
     }
     val adapter = historyServiceAdapters[item::class.java]
     adapter?.convertEntries(item, entries)
     return entries.sortedByDescending { it.modifiedAt }
   }
 
-  fun convert(historyEntry: HistoryEntry<*>): DisplayHistoryEntryDTO {
-    var user: PFUserDO? = null
-    try {
-      user = userGroupCache.getUser(historyEntry.modifiedBy.toInt())
-    } catch (e: NumberFormatException) {
-      // Ignore error.
-    }
-    val entryDTO = DisplayHistoryEntryDTO(
-      modifiedAt = historyEntry.modifiedAt,
-      timeAgo = TimeAgo.getMessage(historyEntry.modifiedAt),
-      modifiedByUserId = historyEntry.modifiedBy,
-      modifiedByUser = user?.getFullname(),
-      operationType = historyEntry.entityOpType,
-      operation = translate(historyEntry.entityOpType)
-    )
-    historyEntry.diffEntries?.forEach { diffEntry ->
-      val se = DisplayHistoryEntry(userGroupCache, historyEntry, diffEntry, em)
-
-      val diffEntryDTO = DisplayHistoryDiffEntryDTO(
-        operationType = diffEntry.propertyOpType,
-        operation = translate(diffEntry.propertyOpType),
-        property = se.propertyName,
-        oldValue = se.oldValue,
-        newValue = se.newValue
-      )
-      entryDTO.diffEntries.add(diffEntryDTO)
-    }
-    return entryDTO
+  fun <O : ExtendedBaseDO<Int>> convert(item: O, historyEntry: HistoryEntry<*>): DisplayHistoryEntryDTO {
+    val adapter = historyServiceAdapters[item::class.java]
+    return adapter?.convert(item, historyEntry) ?: stdHistoryFormatAdapter.convert(item, historyEntry)
   }
 
-  private fun translate(opType: EntityOpType?): String {
-    when (opType) {
-      EntityOpType.Insert -> return translate("operation.inserted")
-      EntityOpType.Update -> return translate("operation.updated")
-      EntityOpType.Deleted -> return translate("operation.deleted")
-      EntityOpType.MarkDeleted -> return translate("operation.markAsDeleted")
-      EntityOpType.UmarkDeleted -> return translate("operation.undeleted")
-      else -> return ""
+  companion object {
+    fun translate(opType: EntityOpType?): String {
+      return when (opType) {
+        EntityOpType.Insert -> translate("operation.inserted")
+        EntityOpType.Update -> translate("operation.updated")
+        EntityOpType.Deleted -> translate("operation.deleted")
+        EntityOpType.MarkDeleted -> translate("operation.markAsDeleted")
+        EntityOpType.UmarkDeleted -> translate("operation.undeleted")
+        else -> ""
+      }
     }
-  }
 
-  private fun translate(opType: PropertyOpType?): String {
-    return when (opType) {
-      PropertyOpType.Insert -> translate("operation.inserted")
-      PropertyOpType.Update -> translate("operation.updated")
-      PropertyOpType.Delete -> translate("operation.deleted")
-      PropertyOpType.Undefined -> translate("operation.undefined")
-      else -> ""
+    fun translate(opType: PropertyOpType?): String {
+      return when (opType) {
+        PropertyOpType.Insert -> translate("operation.inserted")
+        PropertyOpType.Update -> translate("operation.updated")
+        PropertyOpType.Delete -> translate("operation.deleted")
+        PropertyOpType.Undefined -> translate("operation.undefined")
+        else -> ""
+      }
     }
   }
 }
