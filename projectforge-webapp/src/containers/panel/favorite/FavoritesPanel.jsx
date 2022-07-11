@@ -20,6 +20,7 @@ function FavoritesPanel(
         onFavoriteRename,
         onFavoriteSelect,
         onFavoriteUpdate,
+        newFavoriteI18nKey,
         translations,
     },
 ) {
@@ -76,7 +77,7 @@ function FavoritesPanel(
                                 className={style.favoritesName}
                                 id="newFilterName"
                                 onSave={onFavoriteCreate}
-                                label={translations['favorite.addNew'] || 'Add new'}
+                                label={translations[newFavoriteI18nKey] || 'Add new'}
                             />
                         )}
                         <ul className={style.favoritesList}>
@@ -120,8 +121,8 @@ FavoritesPanel.propTypes = {
     onFavoriteDelete: PropTypes.func,
     onFavoriteRename: PropTypes.func,
     onFavoriteUpdate: PropTypes.func,
+    newFavoriteI18nKey: PropTypes.string,
     translations: PropTypes.shape({
-        'favorite.addNew': PropTypes.string,
     }),
 };
 
@@ -136,6 +137,7 @@ FavoritesPanel.defaultProps = {
     onFavoriteDelete: undefined,
     onFavoriteRename: undefined,
     onFavoriteUpdate: undefined,
+    newFavoriteI18nKey: 'favorite.addNew',
     translations: {},
 };
 

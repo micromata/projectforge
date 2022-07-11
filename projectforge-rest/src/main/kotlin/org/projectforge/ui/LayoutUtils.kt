@@ -92,7 +92,7 @@ object LayoutUtils {
         )
       )
     process(layout)
-    layout.addTranslations("search", "cancel")
+    layout.addTranslations("search", "cancel", "favorite.filter.addNew")
     addCommonTranslations(layout)
     Favorites.addTranslations(layout.translations)
     return layout

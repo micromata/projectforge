@@ -167,6 +167,7 @@ function DynamicTaskSelect(
                     favorites={favorites}
                     translations={ui.translations}
                     htmlId="taskFavoritesPopover"
+                    newFavoriteI18nKey="task.favorite.new"
                 />
                 <Collapse
                     isOpen={panelVisible}

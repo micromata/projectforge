@@ -87,6 +87,7 @@ function SearchFilter(props) {
                         closeOnSelect={false}
                         translations={ui.translations}
                         htmlId="searchFilterFavoritesPopover"
+                        newFavoriteI18nKey="favorite.filter.addNew"
                     />
                     {ui && ui.excelExportSupported && (
                         <Button
