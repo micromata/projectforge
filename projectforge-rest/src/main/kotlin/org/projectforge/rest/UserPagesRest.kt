@@ -181,6 +181,7 @@ class UserPagesRest
     agGrid.add("lastLoginTimeAgo", headerName = "login.lastLogin")
       .add(lc, PFUserDO::lastname, PFUserDO::firstname, PFUserDO::personalPhoneIdentifiers, PFUserDO::description)
     if (adminAccess) {
+      agGrid.add(lc, PFUserDO::mobilePhone)
       agGrid.add(
         UIAgGridColumnDef.createCol(
           lc,
@@ -757,6 +758,7 @@ class UserPagesRest
       ExcelUtils.registerColumn(sheet, PFUserDO::nickname)
       ExcelUtils.registerColumn(sheet, PFUserDO::lastname)
       ExcelUtils.registerColumn(sheet, PFUserDO::email)
+      ExcelUtils.registerColumn(sheet, PFUserDO::mobilePhone)
       sheet.registerColumn(translate("user.assignedGroups"), "assignedGroups").withSize(100)
       ExcelUtils.registerColumn(sheet, PFUserDO::rights)
       ExcelUtils.registerColumn(sheet, PFUserDO::organization)
@@ -781,7 +783,7 @@ class UserPagesRest
           it.setCellValue(user.rightsAsString)
           it.setCellStyle(wrapTextStyle)
         }
-        ExcelUtils.getCell(row, PFUserDO::timeZone)?.setCellValue(user.timeZone?.id)
+        ExcelUtils.getCell(row, PFUserDO::timeZone)?.setCellValue(user.timeZone)
         ExcelUtils.getCell(row, PFUserDO::description)?.setCellStyle(wrapTextStyle)
         ExcelUtils.getCell(row, PFUserDO::ldapValues)?.setCellStyle(wrapTextStyle)
       }
@@ -825,7 +827,7 @@ class UserPagesRest
         )
       }
       col.add(userLC, "timeZone", "personalPhoneIdentifiers")
-        .add(UISelect("locale", userLC, required = true, values = locales))
+        .add(UISelect("locale", userLC, required = false, values = locales))
         .add(UISelect("dateFormat", userLC, required = false, values = dateFormats))
         .add(UISelect("excelDateFormat", userLC, required = false, values = excelDateFormats))
         .add(UISelect("timeNotation", userLC, required = false, values = timeNotations))

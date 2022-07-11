@@ -304,7 +304,7 @@ open class RestAuthenticationUtils {
         val targetType = if (
           url.matches("""^/rs/.*/dynamic.*""".toRegex()) ||
           url.matches("""^/rs/.*/edit.*""".toRegex()) ||
-          url.matches("""^/rs/.*/list.*""".toRegex())
+          url.matches("""^/rs/.*/initialList.*""".toRegex())
         ) {
           TargetType.REDIRECT
         } else {
