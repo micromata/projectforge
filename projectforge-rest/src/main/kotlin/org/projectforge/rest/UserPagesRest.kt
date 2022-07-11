@@ -31,7 +31,9 @@ import org.projectforge.business.ldap.LdapSambaAccountsUtils
 import org.projectforge.business.ldap.LdapService
 import org.projectforge.business.ldap.LdapUserDao
 import org.projectforge.business.login.Login
+import org.projectforge.business.password.PasswordQualityService
 import org.projectforge.business.user.*
+import org.projectforge.business.user.service.UserService
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
@@ -97,6 +99,9 @@ class UserPagesRest
   private lateinit var ldapUserDao: LdapUserDao
 
   @Autowired
+  private lateinit var passwordQualityService: PasswordQualityService
+
+  @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
 
   @Autowired
@@ -107,6 +112,10 @@ class UserPagesRest
 
   @Autowired
   private lateinit var userRightsHandler: UserRightsHandler
+
+
+  @Autowired
+  private lateinit var userService: UserService
 
   override fun transformFromDB(obj: PFUserDO, editMode: Boolean): User {
     val user = User()
@@ -303,8 +312,33 @@ class UserPagesRest
 
   override fun validate(validationErrors: MutableList<ValidationError>, dto: User) {
     super.validate(validationErrors, dto)
+    val user = PFUserDO()
+    dto.copyTo(user)
+    if (userService.doesUsernameAlreadyExist(user)) {
+      validationErrors.add(
+        ValidationError(translate("user.error.usernameAlreadyExists"),
+          fieldId = PFUserDO::username.name,
+        )
+      )
+    }
     validatePosixValues(validationErrors, dto)
     validateSambaValues(validationErrors, dto)
+    validatePassword(User::password, dto.password, validationErrors)
+    validatePassword(User::wlanPassword, dto.wlanPassword, validationErrors)
+  }
+
+  private fun validatePassword(field: KProperty<*>, password: String?, validationErrors: MutableList<ValidationError>) {
+    if (password.isNullOrBlank()) {
+      return
+    }
+    passwordQualityService.checkPasswordQuality(password.toCharArray())?.forEach { errorMsgKey ->
+      validationErrors.add(
+        ValidationError(
+          translateMsg(errorMsgKey.key, errorMsgKey.params),
+          fieldId = field.name,
+        )
+      )
+    }
   }
 
   private fun validatePosixValues(validationErrors: MutableList<ValidationError>, dto: User) {
@@ -392,6 +426,27 @@ class UserPagesRest
         PFUserDO::deactivated,
         PFUserDO::restrictedUser,
       )
+    if (dto.id == null) {
+      // Show optional passwords for new users.
+      leftCol.add(
+        UIInput(
+          "password",
+          label = "password",
+          tooltip = "user.add.optionalPassword",
+          dataType = UIDataType.PASSWORD,
+        )
+      )
+      if (dto.id == null && Login.getInstance().isWlanPasswordChangeSupported(PFUserDO())) {
+        leftCol.add(
+          UIInput(
+            "wlanPassword",
+            label = "ldap.wlanSambaPassword",
+            tooltip = "user.add.optionalPassword",
+            dataType = UIDataType.PASSWORD,
+          )
+        )
+      }
+    }
     layout.add(
       UIRow()
         .add(leftCol)
@@ -503,6 +558,21 @@ class UserPagesRest
     //Only one time reload user group cache
     userGroupCache.forceReload()
     log.info("onAfterSaveOrUpdate: ${(System.currentTimeMillis() - start) / 1000}s.")
+  }
+
+  override fun onAfterSave(obj: PFUserDO, postData: PostData<User>): ResponseAction {
+    val dto = postData.data
+    val password = dto.password
+    val wlanPassword = dto.wlanPassword
+    if (!password.isNullOrBlank()) {
+      log.info { "Admin user wants to create password of new user '${obj.userDisplayName}' with id ${obj.id}." }
+      userService.changePasswordByAdmin(obj.id, password.toCharArray())
+    }
+    if (!wlanPassword.isNullOrBlank() && Login.getInstance().isWlanPasswordChangeSupported(obj)) {
+      log.info { "Admin user wants to create WLAN/Samba password of new user '${obj.userDisplayName}' with id ${obj.id}." }
+      userService.changeWlanPasswordByAdmin(obj, wlanPassword.toCharArray())
+    }
+    return super.onAfterSave(obj, postData)
   }
 
   private fun addLdap(layout: UILayout, dto: User, lc: LayoutContext) {

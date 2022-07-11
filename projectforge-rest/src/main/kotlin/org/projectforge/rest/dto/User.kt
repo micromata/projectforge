@@ -76,6 +76,15 @@ class User(
   var hrPlanning: Boolean? = false,
 ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
 
+  /**
+   * For admin's user page for setting initial password while creating new users.
+   */
+  var password: String? = null
+  /**
+   * For admin's user page for setting initial wlan password while creating new users.
+   */
+  var wlanPassword: String? = null
+
   var stayLoggedInTokenCreationDate: Date? = null
   var calendarExportTokenCreationDate: Date? = null
   var davTokenCreationDate: Date? = null
