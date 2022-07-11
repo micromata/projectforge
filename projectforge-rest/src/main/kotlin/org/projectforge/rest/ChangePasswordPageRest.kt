@@ -24,9 +24,11 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
+import org.projectforge.business.password.PasswordQualityService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.i18n.I18nKeyAndParams
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -54,6 +56,9 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
 
   @Autowired
   private lateinit var userService: UserService
+
+  @Autowired
+  private lateinit var passwordQualityService: PasswordQualityService
 
   @PostMapping
   fun save(request: HttpServletRequest, @RequestBody postData: PostData<ChangePasswordData>)
@@ -143,11 +148,12 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
         )
       )
     }
+    val passwordQualityI18nKeyAndParams = passwordQualityService.passwordQualityI18nKeyAndParams
     layout.add(
       UIInput(
         ChangePasswordData::newPassword.name,
         label = "$i18nPrefix.newPassword",
-        tooltip = "user.changePassword.error.passwordQualityCheck",
+        tooltip = I18nHelper.getLocalizedMessage(passwordQualityI18nKeyAndParams),
         dataType = UIDataType.PASSWORD,
         required = true
       )
