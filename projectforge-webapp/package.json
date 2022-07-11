@@ -12,7 +12,7 @@
     "@use-hooks/interval": "^1.0.1",
     "ace-builds": "^1.4.14",
     "ag-grid-community": "^28.0.2",
-    "ag-grid-react": "^28.0.2",
+    "ag-grid-react": "^28.0.0",
     "ag-grid-enterprise": "^28.0.2",
     "awesome-debounce-promise": "^2.1.0",
     "bootstrap": "^4.6.1",
