@@ -59,7 +59,7 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
         userService.changeWlanPassword(userDao.getById(data.userId), data.loginPassword, data.newPassword)
       } else {
         log.info { "Admin user wants to change WLAN/Samba password of user '${data.userDisplayName}' with id ${data.userId}." }
-        userService.changeWlanPassword(userDao.getById(data.userId), data.loginPassword, data.newPassword)
+        userService.changeWlanPasswordByAdmin(userDao.getById(data.userId), data.newPassword)
       }
     }
   }
