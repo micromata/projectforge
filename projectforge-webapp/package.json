@@ -24,7 +24,7 @@
     "js-file-download": "^0.4.12",
     "lodash": "^4.17.21",
     "micromark-extension-gfm-table": "^1.0.5",
-    "moment": "^2.29.2",
+    "moment": "^2.29.4",
     "moment-timezone": "^0.5.34",
     "node-fetch": "^3.2.4",
     "prop-types": "^15.7.2",
