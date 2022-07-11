@@ -328,6 +328,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     )
     layout.addTranslations(
       "templates",
+      "templates.new",
+      "task.favorite.new",
       "search.search",
       "fibu.kost2",
       "fibu.kunde",
