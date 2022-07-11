@@ -154,6 +154,16 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(
                       destField.isAccessible = true
                       destField.set(dest, value)
                     }
+                  } else if (destField.type.isPrimitive) { // boolean, ....
+                    @Suppress("RemoveRedundantQualifierName")
+                    if (destField.type == kotlin.Boolean::class.java) { // kotlin.Boolean needed (or not?)
+                      srcField.isAccessible = true
+                      val value = srcField.get(src)
+                      destField.isAccessible = true
+                      destField.set(dest, value == true)
+                    } else {
+                      log.error("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
+                    }
                   } else {
                     log.debug("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
                   }

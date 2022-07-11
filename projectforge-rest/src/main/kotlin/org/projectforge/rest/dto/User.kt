@@ -54,7 +54,7 @@ class User(
   var organization: String? = null,
   var email: String? = null,
   var deactivated: Boolean = false,
-  var timeZone: TimeZone? = null,
+  var timeZone: String? = null,
   var locale: Locale? = null,
   var dateFormat: String? = null,
   var excelDateFormat: String? = null,
@@ -72,6 +72,8 @@ class User(
   var rightsAsString: String? = null,
   var ldapValues: UserLdapValues? = null,
   var localUser: Boolean? = false,
+  var restrictedUser: Boolean? = false,
+  var hrPlanning: Boolean? = false,
 ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
 
   var stayLoggedInTokenCreationDate: Date? = null
@@ -122,7 +124,7 @@ class User(
     lastWlanPasswordChange?.let { date ->
       lastWlanPasswordChangeFormatted = TimeAgo.getDateAndMessage(date)
     }
-    timeZone = src.timeZone
+    timeZone = src.timeZoneString
     if (accessChecker.isLoggedInUserMemberOfAdminGroup) {
       // Rights
       val sb = StringBuilder()
@@ -160,6 +162,7 @@ class User(
 
   override fun copyTo(dest: PFUserDO) {
     super.copyTo(dest)
+    dest.timeZoneString = timeZone
     ldapValues?.let {
       val ldapUserValues = it.convert()
       dest.ldapValues = PFUserDOConverter.getLdapValuesAsXml(ldapUserValues)
