@@ -362,7 +362,7 @@ public class UserService {
       Validate.notNull(user);
       Validate.isTrue(!Objects.equals(user.getId(), ThreadLocalUserContext.getUserId()), "Admin user is not allowed to change his own password without entering his login password-");
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-      return doPasswordChange(user, null, newWlanPassword);
+      return doWlanPasswordChange(user, newWlanPassword);
     } finally {
       LoginHandler.clearPassword(newWlanPassword);
     }
