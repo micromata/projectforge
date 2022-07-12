@@ -85,6 +85,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     return internalGetForm(
       request, userIdString = userIdString, i18nPrefix = "user.changePassword",
       loginPasswordI18nKey = "user.changePassword.oldPassword",
+      this,
     )
   }
 
@@ -124,6 +125,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     userIdString: String?,
     i18nPrefix: String,
     loginPasswordI18nKey: String,
+    caller: AbstractDynamicPageRest,
   ): FormLayoutData {
     val userId = userIdString?.toIntOrNull() ?: ThreadLocalUserContext.getUserId()
     val changeOwnPassword = checkChangeOwn(userId)
@@ -169,10 +171,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
       .addAction(
         UIButton.createUpdateButton(
           responseAction = ResponseAction(
-            RestResolver.getRestUrl(
-              this::
-              class.java
-            ), targetType = TargetType.POST
+            RestResolver.getRestUrl(caller::class.java), targetType = TargetType.POST
           ),
         )
       )

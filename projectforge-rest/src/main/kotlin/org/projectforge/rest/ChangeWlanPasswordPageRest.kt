@@ -76,6 +76,7 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
     return changePasswordPageRest.internalGetForm(
       request, userIdString = userIdString, i18nPrefix = "user.changeWlanPassword",
       loginPasswordI18nKey = "user.changeWlanPassword.loginPassword",
+      this,
     )
   }
 }
