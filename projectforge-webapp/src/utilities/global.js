@@ -1,4 +1,6 @@
-import { forIn, get, set } from 'lodash/object';
+import { forIn, get, merge, set } from 'lodash/object';
+import { mergeWith } from 'lodash';
+import { cloneDeep, isArray } from 'lodash/lang';
 
 // https://stackoverflow.com/a/6491621
 Object.getByString = (object, multiKey) => {
@@ -15,11 +17,31 @@ Object.getByString = (object, multiKey) => {
 
 Object.isEmpty = (object) => Object.keys(object).length === 0;
 
+// Don't delete not given data properties while merging:
+const mergeDataProps = (src, combined) => {
+    const srcData = src.data;
+    const combinedData = combined.data;
+    if (!combinedData) {
+        return srcData;
+    }
+    forIn(srcData, (value, key) => {
+        if (Object.prototype.hasOwnProperty.call(srcData, key)) {
+            // If property exists, the use it: the value might be undefined.
+            set(combinedData, key, value);
+        }
+    });
+    return combinedData;
+};
+
 // Combines two objects. Paths like user.rights[2].value are also supported in o2 fields.
-Object.combine = (o1, o2) => {
-    const combined = { ...o1 };
-    forIn(o2, (value, key) => {
-        set(combined, key, value);
+Object.combine = (src, obj) => {
+    const combined = { ...src };
+    forIn(obj, (value, key) => {
+        if (key === 'data') {
+            set(combined, key, mergeDataProps(obj, combined));
+        } else {
+            set(combined, key, value);
+        }
     });
     return combined;
 };
