@@ -38,62 +38,65 @@ import org.springframework.stereotype.Component
 @Component
 class CalEventsProvider() {
 
-    @Autowired
-    private lateinit var calEventDao: CalEventDao
+  @Autowired
+  private lateinit var calEventDao: CalEventDao
 
   /**
    * @param calendarIds Null items should only occur on (de)serialization issues.
    */
-  fun addEvents(start: PFDateTime,
-                end: PFDateTime,
-                events: MutableList<FullCalendarEvent>,
-                calendarIds: List<Int?>?,
-                styleMap: CalendarStyleMap) {
-        if (calendarIds.isNullOrEmpty())
-            return
-        val eventFilter = TeamEventFilter()
-        eventFilter.teamCals = calendarIds
-        eventFilter.startDate = start.utilDate
-        eventFilter.endDate = end.utilDate
-        eventFilter.user = ThreadLocalUserContext.getUser()
-        val calendarEvents = calEventDao.getEventList(eventFilter, true)
-        calendarEvents?.forEach {
-            val eventDO: CalEventDO
-            val recurrentEvent: Boolean
-            if (it is CalEventDO) {
-                eventDO = it
-                recurrentEvent = false
-            }
-            else {
-                eventDO = CalEventDO() //(it as TeamRecurrenceEvent).master
-                recurrentEvent = true
-            }
-            val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate!!.time / 1000}" else ""
-            //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
-            val allDay = eventDO.allDay
-            val style = styleMap.get(eventDO.calendar.id)
-            val dbId: Int?
-            val uid:String?
-            if (eventDO.id > 0){
-                dbId = eventDO.id
-                uid = null
-            } else {
-                dbId = null
-                uid = "${eventDO.calendar.id}-${eventDO.uid}"
-            }
-            val event = FullCalendarEvent(
-                    it.subject,
-                    it.startDate!!,
-                    it.endDate!!,
-                    allDay,
-                    location = it.location,
-                    desc = it.note,
-                    category = "calEvent",
-                    dbId = dbId,
-                    uid = uid,
-                    backgroundColor = style?.bgColor,
-                    textColor = style?.fgColor)
-            events.add(event)
-        }
+  fun addEvents(
+    start: PFDateTime,
+    end: PFDateTime,
+    events: MutableList<FullCalendarEvent>,
+    calendarIds: List<Int?>?,
+    styleMap: CalendarStyleMap
+  ) {
+    if (calendarIds.isNullOrEmpty())
+      return
+    val eventFilter = TeamEventFilter()
+    eventFilter.teamCals = calendarIds
+    eventFilter.startDate = start.utilDate
+    eventFilter.endDate = end.utilDate
+    eventFilter.user = ThreadLocalUserContext.getUser()
+    val calendarEvents = calEventDao.getEventList(eventFilter, true)
+    calendarEvents?.forEach {
+      val eventDO: CalEventDO
+      val recurrentEvent: Boolean
+      if (it is CalEventDO) {
+        eventDO = it
+        recurrentEvent = false
+      } else {
+        eventDO = CalEventDO() //(it as TeamRecurrenceEvent).master
+        recurrentEvent = true
+      }
+      val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate!!.time / 1000}" else ""
+      //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
+      val allDay = eventDO.allDay
+      val style = styleMap.get(eventDO.calendar.id)
+      val dbId: Int?
+      val uid: String?
+      if (eventDO.id > 0) {
+        dbId = eventDO.id
+        uid = null
+      } else {
+        dbId = null
+        uid = "${eventDO.calendar.id}-${eventDO.uid}"
+      }
+      val event = FullCalendarEvent.createEvent(
+        id = dbId,
+        category = FullCalendarEvent.Category.CAL_EVENT,
+        title = it.subject,
+        start = it.startDate!!,
+        end = it.endDate!!,
+        allDay = allDay,
+        editable = true,
+        location = it.location,
+        dbId = dbId,
+        uid = uid,
+        backgroundColor = style?.bgColor,
+        textColor = style?.fgColor,
+      ).addParam("note", it.note)
+      events.add(event)
     }
+  }
 }

@@ -30,20 +30,38 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import java.io.IOException
 
+class EventDateSerializer : StdSerializer<FullCalendarEvent.EventDate>(FullCalendarEvent.EventDate::class.java) {
+  override fun serialize(value: FullCalendarEvent.EventDate?, jgen: JsonGenerator, provider: SerializerProvider) {
+    if (value == null) {
+      jgen.writeNull()
+      return
+    }
+    value.day?.let { day ->
+      jgen.writeObject(day)
+      return
+    }
+    value.date?.let { date ->
+      jgen.writeObject(date)
+      return
+    }
+    jgen.writeNull()
+  }
+}
+
 
 /**
  * Serialization for TeamCalDO etc.
  */
 class TeamCalDOSerializer : StdSerializer<TeamCalDO>(TeamCalDO::class.java) {
-    private class TeamCal(val id: Int?, val title: String?)
+  private class TeamCal(val id: Int?, val title: String?)
 
-    @Throws(IOException::class, JsonProcessingException::class)
-    override fun serialize(value: TeamCalDO?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) {
-            jgen.writeNull()
-            return
-        }
-        val teamCal = TeamCal(value.id, value.title)
-        jgen.writeObject(teamCal)
+  @Throws(IOException::class, JsonProcessingException::class)
+  override fun serialize(value: TeamCalDO?, jgen: JsonGenerator, provider: SerializerProvider) {
+    if (value == null) {
+      jgen.writeNull()
+      return
     }
+    val teamCal = TeamCal(value.id, value.title)
+    jgen.writeObject(teamCal)
+  }
 }
