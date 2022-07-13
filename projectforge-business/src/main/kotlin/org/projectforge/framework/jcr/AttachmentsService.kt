@@ -99,14 +99,17 @@ open class AttachmentsService {
   /**
    * @param path Unique path of data object.
    * @param id Id of data object.
+   * @return empty list if no attachments given (needed by client for merging data: attachments should be empty after
+   * deletion of last attachment).
    */
   @JvmOverloads
   open fun internalGetAttachments(
     path: String,
     id: Any,
     subPath: String? = null
-  ): List<Attachment>? {
+  ): List<Attachment> {
     return repoService.getFileInfos(getPath(path, id), subPath ?: DEFAULT_NODE)?.sortedByDescending { it.created }?.map { asAttachment(it) }
+      ?: emptyList()
   }
 
   /**
