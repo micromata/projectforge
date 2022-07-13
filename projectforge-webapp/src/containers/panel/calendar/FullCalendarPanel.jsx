@@ -3,8 +3,9 @@ import FullCalendar from '@fullcalendar/react'; // must go before plugins
 import deLocale from '@fullcalendar/core/locales/de';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
 import { connect } from 'react-redux'; // a plugin!
-import { UncontrolledPopover, PopoverHeader, PopoverBody } from 'reactstrap';
+import swatch from 'react-color/lib/components/common/Swatch';
 import LoadingContainer from '../../../components/design/loading-container';
 import { fetchJsonPost } from '../../../utilities/rest';
 
@@ -13,12 +14,23 @@ function FullCalendarPanel(options) {
         activeCalendars, timesheetUserId, locale, firstDayOfWeek,
         defaultDate, defaultView,
     } = options;
-    const activeCalendarIds = activeCalendars ? activeCalendars.map((obj) => obj.id) : [];
-
     const [myEvents, setMyEvents] = React.useState({});
     const [loading, setLoading] = React.useState(false);
     const [startDate, setStartDate] = React.useState(defaultDate);
     const [startView, setStartView] = React.useState(defaultView);
+    const activeCalendarsRef = React.useRef(activeCalendars);
+
+    const calendarRef = React.useRef();
+
+    React.useEffect(() => {
+        const api = calendarRef && calendarRef.current && calendarRef.current.getApi();
+        if (!api) {
+            console.log('no api');
+            return;
+        }
+        activeCalendarsRef.current = activeCalendars;
+        api.refetchEvents();
+    }, [activeCalendars, timesheetUserId]);
 
     /*    const eventMouseEnter = (mouseEnterInfo) => {
         const { event } = mouseEnterInfo;
@@ -52,13 +64,14 @@ function FullCalendarPanel(options) {
     const fetchEvents = (info, successCallback, failureCallback) => {
         setLoading(true);
         const { start, end } = info;
-
+        const { current } = activeCalendarsRef;
+        const activeCalendarIds = current ? current.map((obj) => obj.id) : [];
         fetchJsonPost(
             'calendar/events',
             {
                 start,
                 end,
-                view: 'month',
+                view: undefined,
                 activeCalendarIds,
                 timesheetUserId,
                 updateState: true,
@@ -81,9 +94,6 @@ function FullCalendarPanel(options) {
         );
     };
 
-    /*  React.useEffect(() => {
-    }, [activeCalendars, timesheetUserId]); */
-
     const views = {
         dayGrid: {
             // options apply to dayGridMonth, dayGridWeek, and dayGridDay views
@@ -104,20 +114,32 @@ function FullCalendarPanel(options) {
     const headerToolbar = { center: 'dayGridMonth,timeGridWeek,timeGridDay,agendaWeek' };
     const locales = [deLocale];
 
+    let initialView;
+    switch (defaultView) {
+        case 'month':
+            initialView = 'dayGridMonth';
+            break;
+        default:
+            initialView = 'timeGridWeek';
+    }
+
     return React.useMemo(() => (
         <LoadingContainer loading={loading}>
             <FullCalendar
-                plugins={[dayGridPlugin, timeGridPlugin]}
-                initialView="timeGridWeek"
+                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                initialView={initialView}
                 events={fetchEvents}
+                editable
+                selectable
                 headerToolbar={headerToolbar}
                 allDaySlot
-                eventLimit={false}
                 views={views}
                 locales={locales}
                 locale={locale}
-                firstDayOfWeek={firstDayOfWeek}
+                firstDay={firstDayOfWeek}
+                nowIndicator
                 // weekends={false}
+                ref={calendarRef}
             />
         </LoadingContainer>
     ), []);
