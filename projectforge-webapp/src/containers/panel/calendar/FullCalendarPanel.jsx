@@ -25,7 +25,7 @@ function FullCalendarPanel(options) {
     React.useEffect(() => {
         const api = calendarRef && calendarRef.current && calendarRef.current.getApi();
         if (!api) {
-            console.log('no api');
+            // console.log('no api yet available.');
             return;
         }
         activeCalendarsRef.current = activeCalendars;

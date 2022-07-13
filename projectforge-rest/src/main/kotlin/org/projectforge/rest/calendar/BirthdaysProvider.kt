@@ -40,7 +40,7 @@ object BirthdaysProvider {
     fun addEvents(addressDao: AddressDao,
                   start: PFDateTime,
                   end: PFDateTime,
-                  events: MutableList<BigCalendarEvent>,
+                  events: MutableList<FullCalendarEvent>,
                   styleMap: CalendarStyleMap,
                   showFavoritesBirthdays: Boolean = false,
                   showAllBirthdays: Boolean = false,
@@ -90,7 +90,7 @@ object BirthdaysProvider {
                 fgColor = allStyle.fgColor // favorites are not selected or entry is not a favorite
             }
 
-            events.add(BigCalendarEvent(
+            events.add(FullCalendarEvent(
                     title = title,
                     start = date.beginOfDay.utilDate,
                     end = date.endOfDay.utilDate,

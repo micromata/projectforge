@@ -49,7 +49,7 @@ class TimesheetEventsProvider {
     fun addTimesheetEvents(start: PFDateTime,
                            end: PFDateTime,
                            userId: Int?,
-                           events: MutableList<BigCalendarEvent>,
+                           events: MutableList<FullCalendarEvent>,
                            showBreaks: Boolean = false,
                            showStatistics: Boolean = true) {
         if (userId == null || userId < 0) {
@@ -118,7 +118,7 @@ class TimesheetEventsProvider {
                 }
                 //val link = "timesheet/edit/${timesheet.id}"
                 events.add(
-                    BigCalendarEvent(
+                    FullCalendarEvent(
                         title,
                         timesheet.startTime!!,
                         timesheet.stopTime!!,
@@ -185,7 +185,7 @@ class TimesheetEventsProvider {
                 } else {
                     durationString
                 }
-                val event = BigCalendarEvent(title, start = day.utilDate, end = day.utilDate, allDay = true, category = "ts-stats", classNames = "timesheet-stats", editable = false)
+                val event = FullCalendarEvent(title, start = day.utilDate, end = day.utilDate, allDay = true, category = "ts-stats", classNames = "timesheet-stats", editable = false)
                 events.add(event)
                 day = day.plusDays(1)
             } while (!day.isAfter(end))

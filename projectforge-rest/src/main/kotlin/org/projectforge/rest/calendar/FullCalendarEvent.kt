@@ -28,25 +28,25 @@ import org.projectforge.framework.time.PFDay
 import java.time.LocalDate
 import java.util.*
 
-class BigCalendarEvent(val title: String?,
-                       val start: Date,
-                       val end: Date,
-                       val allDay: Boolean? = null,
-                       val desc: String? = null,
-                       val location: String? = null,
-                       val tooltip: String? = null,
-                       val formattedDuration: String? = null,
-                       val outOfRange: Boolean? = null,
-                       val textColor: String? = null,
-                       val backgroundColor: String? = null,
-                       val classNames: String? = null,
-                       val category: String,
-                       val editable: Boolean = true,
-                       /**
+class FullCalendarEvent(val title: String?,
+                        val start: Date,
+                        val end: Date,
+                        val allDay: Boolean? = null,
+                        val desc: String? = null,
+                        val location: String? = null,
+                        val tooltip: String? = null,
+                        val formattedDuration: String? = null,
+                        val outOfRange: Boolean? = null,
+                        val textColor: String? = null,
+                        val backgroundColor: String? = null,
+                        val classNames: String? = null,
+                        val category: String,
+                        val editable: Boolean = true,
+                        /**
                         * For subscribed events.
                         */
                        val uid: String? = null,
-                       /**
+                        /**
                         * The db id of the object (team event, address (birthday) etc.)
                         */
                        val dbId: Int? = null) {
@@ -91,7 +91,7 @@ class BigCalendarEvent(val title: String?,
             return PFDateTime.from(end).endOfDay.utilDate
         }
 
-        fun samePeriod(event: BigCalendarEvent, start: LocalDate?, end: LocalDate?): Boolean {
+        fun samePeriod(event: FullCalendarEvent, start: LocalDate?, end: LocalDate?): Boolean {
             start ?: return false
             end ?: return false
             return event.start == asStartDate(start) && event.end == asEndDate(end)

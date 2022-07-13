@@ -49,7 +49,7 @@ open class VacationProvider {
   open fun addEvents(
     start: PFDateTime,
     end: PFDateTime,
-    events: MutableList<BigCalendarEvent>,
+    events: MutableList<FullCalendarEvent>,
     /**
      * Vacation days will only be displayed for employees (users) who are member of at least one of the following groups:
      */
@@ -68,12 +68,12 @@ open class VacationProvider {
       val endDate = PFDay.fromOrNull(vacation.endDate)?.format() ?: ""
       val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()} ${translate("date.until")} $endDate"
       if (!events.any {
-          it.title == title && BigCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) &&
+          it.title == title && FullCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) &&
               vacation.status != VacationStatus.REJECTED
         }) {
         // Event doesn't yet exist:
         events.add(
-          BigCalendarEvent(
+          FullCalendarEvent(
             title = title,
             start = vacation.startDate!!,
             end = vacation.endDate!!,

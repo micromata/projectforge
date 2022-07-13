@@ -57,7 +57,7 @@ class CalendarServicesRest {
     enum class ACCESS { OWNER, FULL, READ, MINIMAL, NONE }
 
     internal class CalendarData(val date: LocalDate,
-                                @Suppress("unused") val events: List<BigCalendarEvent>,
+                                @Suppress("unused") val events: List<FullCalendarEvent>,
                                 @Suppress("unused") val specialDays: Map<LocalDate, HolidayAndWeekendProvider.SpecialDayInfo>)
 
     private class DateTimeRange(var start: PFDateTime,
@@ -170,7 +170,7 @@ class CalendarServicesRest {
     }
 
     private fun buildEvents(filter: CalendarRestFilter): CalendarData { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
-        val events = mutableListOf<BigCalendarEvent>()
+        val events = mutableListOf<FullCalendarEvent>()
         val view = CalendarView.from(filter.view)
         // Workaround for BigCalendar, if the browser's timezone differs from user's timezone in ThreadLocalUserContext.
         // ZoneInfo.getTimeZone returns null, if timeZone not known. TimeZone.getTimeZone returns GMT on failure!
@@ -222,7 +222,7 @@ class CalendarServicesRest {
                 val specialDay = entry.value
                 if (specialDay.holidayTitle.isNotBlank()) {
                     val dateTime = PFDateTime.from(date) // not null
-                    events.add(BigCalendarEvent(
+                    events.add(FullCalendarEvent(
                             title = specialDay.holidayTitle,
                             start = dateTime.beginOfDay.utilDate,
                             end = dateTime.endOfDay.utilDate,
