@@ -34,13 +34,13 @@ object HolidayAndWeekendProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(HolidayAndWeekendProvider::class.java)
     private val holidays = Holidays.instance
 
-    class SpecialDayInfo(val weekend: Boolean, val holiday: Boolean, val holidayTitle: String, val workingDay: Boolean)
+    class SpecialDayInfo(val date: LocalDate, val weekend: Boolean, val holiday: Boolean, val holidayTitle: String, val workingDay: Boolean)
 
     /**
      * @return Map of special days. Key is the localDate.
      */
-    fun getSpecialDayInfos(start: PFDateTime, end: PFDateTime): Map<LocalDate, SpecialDayInfo> {
-        val result = mutableMapOf<LocalDate, SpecialDayInfo>()
+    fun getSpecialDayInfos(start: PFDateTime, end: PFDateTime): List<SpecialDayInfo> {
+        val result = mutableListOf<SpecialDayInfo>()
         var day = start.beginOfDay
         do {
             var paranoiaCounter = 0
@@ -57,9 +57,8 @@ object HolidayAndWeekendProvider {
                 if (holidayInfo.startsWith("calendar.holiday.")) {
                     holidayInfo = translate(holidayInfo)
                 }
-                val dayInfo = SpecialDayInfo(weekend, holiday, holidayInfo, workingDay)
-                val localDate = day.localDate
-                result.put(localDate, dayInfo)
+                val dayInfo = SpecialDayInfo(day.localDate, weekend, holiday, holidayInfo, workingDay)
+                result.add(dayInfo)
             }
             day = day.plusDays(1)
         } while (!day.isAfter(end))
