@@ -7,7 +7,7 @@ import LoadingContainer from '../../../components/design/loading-container';
 import { getTranslation } from '../../../utilities/layout';
 import { fetchJsonGet } from '../../../utilities/rest';
 import CalendarFilterSettings from '../../panel/calendar/CalendarFilterSettings';
-import CalendarPanel from '../../panel/calendar/CalendarPanel';
+import FullCalendarPanel from '../../panel/calendar/FullCalendarPanel';
 import FavoritesPanel from '../../panel/favorite/FavoritesPanel';
 import customStyles from './Calendar.module';
 import { CalendarContext, defaultValues as calendarContextDefaultValues } from './CalendarContext';
@@ -280,7 +280,7 @@ class CalendarPage extends React.Component {
                                 </form>
                             </CardBody>
                         </Card>
-                        <CalendarPanel
+                        <FullCalendarPanel
                             defaultDate={date}
                             defaultView={view}
                             gridSize={filter.gridSize}

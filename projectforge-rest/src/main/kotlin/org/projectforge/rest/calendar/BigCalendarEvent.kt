@@ -37,11 +37,11 @@ class BigCalendarEvent(val title: String?,
                        val tooltip: String? = null,
                        val formattedDuration: String? = null,
                        val outOfRange: Boolean? = null,
-                       val fgColor: String? = null,
-                       val bgColor: String? = null,
-                       val cssClass: String? = null,
+                       val textColor: String? = null,
+                       val backgroundColor: String? = null,
+                       val classNames: String? = null,
                        val category: String,
-                       val readOnly: Boolean = false,
+                       val editable: Boolean = true,
                        /**
                         * For subscribed events.
                         */
