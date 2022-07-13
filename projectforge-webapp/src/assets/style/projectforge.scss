@@ -308,6 +308,11 @@ svg.fa-chevron-down {
 	overflow-y: auto;
 }
 
+.fc-daygrid-body {
+	max-height: 100px;
+	overflow-y: auto;
+}
+
 .rbc-event {
 	color: #222222;
 	border-radius: 3px;

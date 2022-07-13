@@ -128,7 +128,7 @@ class TimesheetEventsProvider {
                         tooltip = tooltip,
                         formattedDuration = formattedDuration,
                         outOfRange = outOfRange,
-                        cssClass = "timesheet",
+                        classNames = "timesheet",
                         category = "timesheet",
                         dbId = timesheet.id
                     )
@@ -185,7 +185,7 @@ class TimesheetEventsProvider {
                 } else {
                     durationString
                 }
-                val event = BigCalendarEvent(title, start = day.utilDate, end = day.utilDate, allDay = true, category = "ts-stats", cssClass = "timesheet-stats", readOnly = true)
+                val event = BigCalendarEvent(title, start = day.utilDate, end = day.utilDate, allDay = true, category = "ts-stats", classNames = "timesheet-stats", editable = false)
                 events.add(event)
                 day = day.plusDays(1)
             } while (!day.isAfter(end))

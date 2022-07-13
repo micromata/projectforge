@@ -228,8 +228,8 @@ class CalendarServicesRest {
                             end = dateTime.endOfDay.utilDate,
                             allDay = true,
                             category = "holiday",
-                            cssClass = "holiday-event",
-                            readOnly = true))
+                            classNames = "holiday-event",
+                            editable = false))
                 }
             }
         }

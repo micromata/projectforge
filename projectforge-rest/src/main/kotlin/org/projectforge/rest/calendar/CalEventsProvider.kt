@@ -91,8 +91,8 @@ class CalEventsProvider() {
                     category = "calEvent",
                     dbId = dbId,
                     uid = uid,
-                    bgColor = style?.bgColor,
-                    fgColor = style?.fgColor)
+                    backgroundColor = style?.bgColor,
+                    textColor = style?.fgColor)
             events.add(event)
         }
     }
