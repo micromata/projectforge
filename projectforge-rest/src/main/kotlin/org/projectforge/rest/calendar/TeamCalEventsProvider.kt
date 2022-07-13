@@ -42,77 +42,81 @@ import org.springframework.stereotype.Component
 @Component
 open class TeamCalEventsProvider() {
 
-    @Autowired
-    private lateinit var teamCalDao: TeamCalDao
+  @Autowired
+  private lateinit var teamCalDao: TeamCalDao
 
-    @Autowired
-    private lateinit var teamEventDao: TeamEventDao
+  @Autowired
+  private lateinit var teamEventDao: TeamEventDao
 
-    @Autowired
-    private lateinit var vacationProvider: VacationProvider
+  @Autowired
+  private lateinit var vacationProvider: VacationProvider
 
   /**
    * @param teamCalendarIds Null items should only occur on (de)serialization issues.
    */
-  open fun addEvents(start: PFDateTime,
-                     end: PFDateTime,
-                     events: MutableList<FullCalendarEvent>,
-                     teamCalendarIds: List<Int?>?,
-                     styleMap: CalendarStyleMap) {
-        if (teamCalendarIds.isNullOrEmpty())
-            return
-        val eventFilter = TeamEventFilter()
-        eventFilter.teamCals = teamCalendarIds
-        eventFilter.startDate = start.utilDate
-        eventFilter.endDate = end.utilDate
-        eventFilter.user = ThreadLocalUserContext.getUser()
-        val teamEvents = teamEventDao.getEventList(eventFilter, true) ?: return
-        teamEvents.forEach {
-            val eventDO: TeamEventDO
-            val recurrentEvent: Boolean
-            if (it is TeamEventDO) {
-                eventDO = it
-                recurrentEvent = false
-            } else {
-                eventDO = (it as TeamRecurrenceEvent).master
-                recurrentEvent = true
-            }
-            //val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate!!.time / 1000}" else ""
-            //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
-            val allDay = eventDO.allDay
-            val style = styleMap.get(eventDO.calendarId)
-            val dbId: Int?
-            val uid: String?
-            if (eventDO.id > 0) {
-                dbId = eventDO.id
-                uid = null
-            } else {
-                dbId = null
-                uid = "${eventDO.calendarId}-${eventDO.uid}"
-            }
-            val event = FullCalendarEvent(
-                    it.subject,
-                    it.startDate!!,
-                    it.endDate!!,
-                    allDay,
-                    location = it.location,
-                    desc = it.note,
-                    category = "teamEvent",
-                    dbId = dbId,
-                    uid = uid,
-                    backgroundColor = style?.bgColor,
-                    textColor = style?.fgColor)
-            events.add(event)
-        }
-        for (calId in teamCalendarIds) {
-            val cal = teamCalDao.internalGetById(calId) ?: continue
-            if (cal.includeLeaveDaysForGroups.isNullOrBlank() && cal.includeLeaveDaysForUsers.isNullOrBlank()) {
-                continue
-            }
-            val userIds = User.toIntArray(cal.includeLeaveDaysForUsers)?.toSet()
-            val groupIds = Group.toIntArray(cal.includeLeaveDaysForGroups)?.toSet()
-            val style = styleMap.get(calId)
-            vacationProvider.addEvents(start, end, events, groupIds, userIds, style?.bgColor, style?.fgColor)
-        }
+  open fun addEvents(
+    start: PFDateTime,
+    end: PFDateTime,
+    events: MutableList<FullCalendarEvent>,
+    teamCalendarIds: List<Int?>?,
+    styleMap: CalendarStyleMap
+  ) {
+    if (teamCalendarIds.isNullOrEmpty())
+      return
+    val eventFilter = TeamEventFilter()
+    eventFilter.teamCals = teamCalendarIds
+    eventFilter.startDate = start.utilDate
+    eventFilter.endDate = end.utilDate
+    eventFilter.user = ThreadLocalUserContext.getUser()
+    val teamEvents = teamEventDao.getEventList(eventFilter, true) ?: return
+    teamEvents.forEach {
+      val eventDO: TeamEventDO
+      val recurrentEvent: Boolean
+      if (it is TeamEventDO) {
+        eventDO = it
+        recurrentEvent = false
+      } else {
+        eventDO = (it as TeamRecurrenceEvent).master
+        recurrentEvent = true
+      }
+      //val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate!!.time / 1000}" else ""
+      //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
+      val allDay = eventDO.allDay
+      val style = styleMap.get(eventDO.calendarId)
+      val dbId: Int?
+      val uid: String?
+      if (eventDO.id > 0) {
+        dbId = eventDO.id
+        uid = null
+      } else {
+        dbId = null
+        uid = "${eventDO.calendarId}-${eventDO.uid}"
+      }
+      val event = FullCalendarEvent.createEvent(
+        id = dbId ?: uid,
+        category = FullCalendarEvent.Category.TEAM_CAL_EVENT,
+        title = it.subject,
+        start = it.startDate!!,
+        end = it.endDate!!,
+        allDay = allDay,
+        editable = true,
+        location = it.location,
+        dbId = dbId,
+        uid = uid,
+        backgroundColor = style?.bgColor,
+        textColor = style?.fgColor
+      ).addParam("note", it.note)
+      events.add(event)
     }
+    for (calId in teamCalendarIds) {
+      val cal = teamCalDao.internalGetById(calId) ?: continue
+      if (cal.includeLeaveDaysForGroups.isNullOrBlank() && cal.includeLeaveDaysForUsers.isNullOrBlank()) {
+        continue
+      }
+      val userIds = User.toIntArray(cal.includeLeaveDaysForUsers)?.toSet()
+      val groupIds = Group.toIntArray(cal.includeLeaveDaysForGroups)?.toSet()
+      val style = styleMap.get(calId)
+      vacationProvider.addEvents(start, end, events, groupIds, userIds, style?.bgColor, style?.fgColor)
+    }
+  }
 }

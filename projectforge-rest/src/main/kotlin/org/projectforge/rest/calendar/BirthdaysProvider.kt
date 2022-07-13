@@ -34,89 +34,93 @@ import java.time.Month
 import java.time.format.DateTimeFormatter
 
 object BirthdaysProvider {
-    private val log = org.slf4j.LoggerFactory.getLogger(BirthdaysProvider::class.java)
-    private val holidays = Holidays.instance
+  private val log = org.slf4j.LoggerFactory.getLogger(BirthdaysProvider::class.java)
+  private val holidays = Holidays.instance
 
-    fun addEvents(addressDao: AddressDao,
-                  start: PFDateTime,
-                  end: PFDateTime,
-                  events: MutableList<FullCalendarEvent>,
-                  styleMap: CalendarStyleMap,
-                  showFavoritesBirthdays: Boolean = false,
-                  showAllBirthdays: Boolean = false,
-                  dataProtection: Boolean = true) {
-        var from = start
-        if (start.month == Month.MARCH && start.dayOfMonth == 1) {
-            from = start.minusDays(1)
-        }
-        val set = addressDao.getBirthdays(from.utilDate, end.utilDate, true)
-        val favoritesStyle = styleMap.birthdaysFavoritesStyle
-        val allStyle = styleMap.birthdaysAllStyle
-
-        for (birthdayAddress in set) {
-            if (!showAllBirthdays && !birthdayAddress.isFavorite)
-                continue // Ignore non-favorites
-            val address = birthdayAddress.getAddress()
-            val month = birthdayAddress.getMonth()
-            val dayOfMonth = birthdayAddress.getDayOfMonth()
-            var date = getDate(from, end, month, dayOfMonth)
-            // February, 29th fix:
-            if (date == null && month == Month.FEBRUARY && dayOfMonth == 29) {
-                date = getDate(from, end, Month.MARCH, 1)
-            }
-            if (date == null) {
-                log.info("Date ${birthdayAddress.getDayOfMonth()} / ${birthdayAddress.month} not found between $from and $end")
-                continue
-            } else {
-                if (dataProtection == false) {
-                    birthdayAddress.setAge(date.utilDate)
-                }
-            }
-            val name = "${birthdayAddress.address?.firstName ?: ""} ${birthdayAddress.address?.name ?: ""}"
-            val title = if (!dataProtection && birthdayAddress.age > 0) {
-                val birthday = org.projectforge.framework.time.DateTimeFormatter.instance().getFormattedDate(address.birthday, DateFormats.getFormatString(DateFormatType.DATE_SHORT))
-                "$birthday $name (${birthdayAddress.age} ${ThreadLocalUserContext.getLocalizedString("address.age.short")})"
-            } else {
-                name
-            }
-
-            val bgColor: String
-            val fgColor: String
-            if (showFavoritesBirthdays && birthdayAddress.isFavorite) {
-                bgColor = favoritesStyle.bgColor
-                fgColor = favoritesStyle.fgColor
-            } else {
-                bgColor = allStyle.bgColor // favorites are not selected or entry is not a favorite
-                fgColor = allStyle.fgColor // favorites are not selected or entry is not a favorite
-            }
-
-            events.add(FullCalendarEvent(
-                    title = title,
-                    start = date.beginOfDay.utilDate,
-                    end = date.endOfDay.utilDate,
-                    allDay = true,
-                    category = "address",
-                    backgroundColor = bgColor,
-                    textColor = fgColor,
-                    dbId = birthdayAddress.address?.id))
-        }
+  fun addEvents(
+    addressDao: AddressDao,
+    start: PFDateTime,
+    end: PFDateTime,
+    events: MutableList<FullCalendarEvent>,
+    styleMap: CalendarStyleMap,
+    showFavoritesBirthdays: Boolean = false,
+    showAllBirthdays: Boolean = false,
+    dataProtection: Boolean = true
+  ) {
+    var from = start
+    if (start.month == Month.MARCH && start.dayOfMonth == 1) {
+      from = start.minusDays(1)
     }
+    val set = addressDao.getBirthdays(from.utilDate, end.utilDate, true)
+    val favoritesStyle = styleMap.birthdaysFavoritesStyle
+    val allStyle = styleMap.birthdaysAllStyle
 
-    private fun getDate(start: PFDateTime, end: PFDateTime, month: Month, dayOfMonth: Int): PFDateTime? {
-        var day = start
-        var paranoiaCounter = 0
-        do {
-            if (day.month == month && day.dayOfMonth == dayOfMonth) {
-                return day
-            }
-            day = day.plusDays(1)
-            if (++paranoiaCounter > 1000) {
-                log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of getUtilDate.")
-                break
-            }
-        } while (!day.isAfter(end))
-        return null
+    for (birthdayAddress in set) {
+      if (!showAllBirthdays && !birthdayAddress.isFavorite) continue // Ignore non-favorites
+      val address = birthdayAddress.getAddress()
+      val month = birthdayAddress.getMonth()
+      val dayOfMonth = birthdayAddress.getDayOfMonth()
+      var date = getDate(from, end, month, dayOfMonth)
+      // February, 29th fix:
+      if (date == null && month == Month.FEBRUARY && dayOfMonth == 29) {
+        date = getDate(from, end, Month.MARCH, 1)
+      }
+      if (date == null) {
+        log.info("Date ${birthdayAddress.getDayOfMonth()} / ${birthdayAddress.month} not found between $from and $end")
+        continue
+      } else {
+        if (dataProtection == false) {
+          birthdayAddress.setAge(date.utilDate)
+        }
+      }
+      val name = "${birthdayAddress.address?.firstName ?: ""} ${birthdayAddress.address?.name ?: ""}"
+      val title = if (!dataProtection && birthdayAddress.age > 0) {
+        val birthday = org.projectforge.framework.time.DateTimeFormatter.instance()
+          .getFormattedDate(address.birthday, DateFormats.getFormatString(DateFormatType.DATE_SHORT))
+        "$birthday $name (${birthdayAddress.age} ${ThreadLocalUserContext.getLocalizedString("address.age.short")})"
+      } else {
+        name
+      }
+
+      val bgColor: String
+      val fgColor: String
+      if (showFavoritesBirthdays && birthdayAddress.isFavorite) {
+        bgColor = favoritesStyle.bgColor
+        fgColor = favoritesStyle.fgColor
+      } else {
+        bgColor = allStyle.bgColor // favorites are not selected or entry is not a favorite
+        fgColor = allStyle.fgColor // favorites are not selected or entry is not a favorite
+      }
+
+      events.add(
+        FullCalendarEvent.createAllDayEvent(
+          id = birthdayAddress.address?.id,
+          category = FullCalendarEvent.Category.BIRTHDAY,
+          title = title,
+          start = date.beginOfDay.localDate,
+          backgroundColor = bgColor,
+          textColor = fgColor,
+          dbId = birthdayAddress.address?.id
+        )
+      )
     }
+  }
 
-    private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+  private fun getDate(start: PFDateTime, end: PFDateTime, month: Month, dayOfMonth: Int): PFDateTime? {
+    var day = start
+    var paranoiaCounter = 0
+    do {
+      if (day.month == month && day.dayOfMonth == dayOfMonth) {
+        return day
+      }
+      day = day.plusDays(1)
+      if (++paranoiaCounter > 1000) {
+        log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of getUtilDate.")
+        break
+      }
+    } while (!day.isAfter(end))
+    return null
+  }
+
+  private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 }

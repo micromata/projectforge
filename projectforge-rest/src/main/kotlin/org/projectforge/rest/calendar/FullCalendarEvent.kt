@@ -24,77 +24,148 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.time.PFDay
 import java.time.LocalDate
 import java.util.*
 
-class FullCalendarEvent(val title: String?,
-                        val start: Date,
-                        val end: Date,
-                        val allDay: Boolean? = null,
-                        val desc: String? = null,
-                        val location: String? = null,
-                        val tooltip: String? = null,
-                        val formattedDuration: String? = null,
-                        val outOfRange: Boolean? = null,
-                        val textColor: String? = null,
-                        val backgroundColor: String? = null,
-                        val classNames: String? = null,
-                        val category: String,
-                        val editable: Boolean = true,
-                        /**
-                        * For subscribed events.
-                        */
-                       val uid: String? = null,
-                        /**
-                        * The db id of the object (team event, address (birthday) etc.)
-                        */
-                       val dbId: Int? = null) {
+class FullCalendarEvent(
+  /** Unique identifier. */
+  val id: String,
+  category: Category,
+  val title: String?,
+  var allDay: Boolean? = null,
+  val textColor: String? = null,
+  val backgroundColor: String? = null,
+  val classNames: String? = null,
+  val editable: Boolean = false,
+) {
+  enum class Category { BIRTHDAY, TIMESHEET, TIMESHEET_STATS, HOLIDAY, VACATION, CAL_EVENT, TEAM_CAL_EVENT }
 
-    constructor(title: String?,
-                start: LocalDate,
-                end: LocalDate,
-                allDay: Boolean? = null,
-                desc: String? = null,
-                location: String? = null,
-                tooltip: String? = null,
-                formattedDuration: String? = null,
-                outOfRange: Boolean? = null,
-                fgColor: String? = null,
-                bgColor: String? = null,
-                cssClass: String? = null,
-                category: String,
-                readOnly: Boolean = false,
-                /**
-                 * For subscribed events.
-                 */
-                uid: String? = null,
-                /**
-                 * The db id of the object (team event, address (birthday) etc.)
-                 */
-                dbId: Int? = null)
-            : this(title, asStartDate(start), asEndDate(end),
-            allDay, desc, location, tooltip, formattedDuration, outOfRange, fgColor, bgColor, cssClass, category, readOnly, uid, dbId)
+  class EventDate(
+    var date: Date? = null,
+    var day: LocalDate? = null,
+  )
 
+  class ExtendedProps(
+    val category: Category,
+    var location: String? = null,
+    var duration: String? = null,
     /**
-     * Must be unique in the list of events. The index of the list will be used: 'e-1', 'e-2', ...
-     * Will be set by [CalendarServicesRest].
+     * For subscribed events.
      */
-    internal var key: String? = null
-
-    companion object {
-        fun asStartDate(start: LocalDate): Date {
-            return PFDay.from(start).utilDate
-        }
-
-        fun asEndDate(end: LocalDate): Date {
-            return PFDateTime.from(end).endOfDay.utilDate
-        }
-
-        fun samePeriod(event: FullCalendarEvent, start: LocalDate?, end: LocalDate?): Boolean {
-            start ?: return false
-            end ?: return false
-            return event.start == asStartDate(start) && event.end == asEndDate(end)
-        }
+    var uid: String? = null,
+    /**
+     * The db id of the object (team event, address (birthday) etc.)
+     */
+    var dbId: Int? = null
+  ) {
+    /**
+     * Additional params to display in Popover: Kost2, description for time sheets and attendees, recurrence, ... for events.
+     */
+    var params: MutableMap<String, String>? = null
+    fun addParam(key: String, value: String?) {
+      value ?: return
+      if (params == null) {
+        params = mutableMapOf()
+      }
+      params!![key] = value
     }
+  }
+
+  var start: EventDate? = null
+
+  var end: EventDate? = null
+
+  /**
+   * Extended props of fullcalendar events available in frontend
+   */
+  var extendedProps = ExtendedProps(category)
+
+  /**
+   * @return this for chaining.
+   */
+  fun addParam(key: String, value: String?): FullCalendarEvent {
+    value ?: return this
+    extendedProps.addParam(key, value)
+    return this
+  }
+
+  companion object {
+    fun samePeriod(event: FullCalendarEvent, start: LocalDate?, end: LocalDate?): Boolean {
+      start ?: return false
+      end ?: return false
+      return event.start?.day == start && event.end?.day == end
+    }
+
+    fun createEvent(
+      id: Any?,
+      category: Category,
+      title: String?,
+      start: Date,
+      end: Date,
+      allDay: Boolean? = false,
+      location: String? = null,
+      textColor: String? = null,
+      backgroundColor: String? = null,
+      classNames: String? = null,
+      dbId: Int? = null,
+      uid: String? = null,
+      editable: Boolean = false,
+      formattedDuration: String? = null,
+    ): FullCalendarEvent {
+      val event = FullCalendarEvent(
+        id = "$category-${id?.toString() ?: "-1"}",
+        category = category,
+        title = title,
+        textColor = textColor,
+        backgroundColor = backgroundColor,
+        classNames = classNames,
+        editable = editable,
+      )
+      if (allDay == true) {
+        event.allDay = true
+        event.start = EventDate(day = PFDateTime.from(start).localDate)
+        event.end = EventDate(day = PFDateTime.from(end).localDate)
+      } else {
+        event.start = EventDate(date = start)
+        event.end = EventDate(date = end)
+      }
+      event.extendedProps.dbId = dbId
+      event.extendedProps.uid = uid
+      event.extendedProps.location = location
+      event.extendedProps.duration = formattedDuration
+      return event
+    }
+
+    fun createAllDayEvent(
+      id: Any?,
+      category: Category,
+      title: String?,
+      start: LocalDate,
+      end: LocalDate = start,
+      location: String? = null,
+      textColor: String? = null,
+      backgroundColor: String? = null,
+      classNames: String? = null,
+      dbId: Int? = null,
+      uid: String? = null,
+      editable: Boolean = false,
+    ): FullCalendarEvent {
+      val event = FullCalendarEvent(
+        id = "$category-${id?.toString() ?: "-1"}",
+        category = category,
+        allDay = true,
+        title = title,
+        textColor = textColor,
+        backgroundColor = backgroundColor,
+        classNames = classNames,
+        editable = editable,
+      )
+      event.start = EventDate(day = start)
+      event.end = EventDate(day = end)
+      event.extendedProps.dbId = dbId
+      event.extendedProps.uid = uid
+      event.extendedProps.location = location
+      return event
+    }
+  }
 }

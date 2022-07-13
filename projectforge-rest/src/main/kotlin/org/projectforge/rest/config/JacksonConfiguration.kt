@@ -49,8 +49,7 @@ import org.projectforge.framework.json.*
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.rest.calendar.ICalendarEventDeserializer
-import org.projectforge.rest.calendar.TeamCalDOSerializer
+import org.projectforge.rest.calendar.*
 import org.projectforge.rest.config.JacksonConfiguration.Companion.registerAllowedUnknownProperties
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.json.*
@@ -282,6 +281,9 @@ open class JacksonConfiguration {
     // Calendar serializers
     module.addSerializer(TeamCalDO::class.java, TeamCalDOSerializer())
     module.addDeserializer(ICalendarEvent::class.java, ICalendarEventDeserializer())
+
+    module.addSerializer(FullCalendarEvent.EventDate::class.java, EventDateSerializer())
+    module.addDeserializer(FullCalendarEvent.EventDate::class.java, EventDateDeserializer())
 
     module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
 

@@ -27,6 +27,8 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import org.projectforge.business.calendar.event.model.ICalendarEvent
+import org.projectforge.framework.time.PFDateTimeUtils
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.rest.dto.CalEvent
 
 /**
@@ -39,3 +41,19 @@ class ICalendarEventDeserializer : StdDeserializer<ICalendarEvent>(ICalendarEven
     }
 }
 
+class EventDateDeserializer : StdDeserializer<FullCalendarEvent.EventDate>(FullCalendarEvent.EventDate::class.java) {
+
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): FullCalendarEvent.EventDate? {
+        val str = ctxt.readValue(p, String::class.java)
+        if (str.isNullOrBlank()) {
+            return null
+        }
+        if (str.contains(":")) {
+            // Date: yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+            return FullCalendarEvent.EventDate(date = PFDateTimeUtils.parse(str)?.utilDate)
+        } else {
+            // LocalDate: yyyy-MM-dd
+            return FullCalendarEvent.EventDate(day = PFDayUtils.parseDate(str))
+        }
+    }
+}

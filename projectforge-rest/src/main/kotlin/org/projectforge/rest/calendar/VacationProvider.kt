@@ -73,15 +73,16 @@ open class VacationProvider {
         }) {
         // Event doesn't yet exist:
         events.add(
-          FullCalendarEvent(
+          FullCalendarEvent.createAllDayEvent(
+            id = vacation.id,
+            category = FullCalendarEvent.Category.VACATION,
             title = title,
             start = vacation.startDate!!,
             end = vacation.endDate!!,
-            allDay = true,
-            category = "vacation",
-            cssClass = "vacation-event",
+            backgroundColor = bgColor,
+            textColor = fgColor,
             dbId = vacation.id,
-            readOnly = true
+            classNames = "vacation-event"
           )
         )
       }
