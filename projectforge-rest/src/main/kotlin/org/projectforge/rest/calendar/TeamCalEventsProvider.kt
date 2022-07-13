@@ -55,10 +55,10 @@ open class TeamCalEventsProvider() {
    * @param teamCalendarIds Null items should only occur on (de)serialization issues.
    */
   open fun addEvents(start: PFDateTime,
-                  end: PFDateTime,
-                  events: MutableList<BigCalendarEvent>,
-                  teamCalendarIds: List<Int?>?,
-                  styleMap: CalendarStyleMap) {
+                     end: PFDateTime,
+                     events: MutableList<FullCalendarEvent>,
+                     teamCalendarIds: List<Int?>?,
+                     styleMap: CalendarStyleMap) {
         if (teamCalendarIds.isNullOrEmpty())
             return
         val eventFilter = TeamEventFilter()
@@ -90,7 +90,7 @@ open class TeamCalEventsProvider() {
                 dbId = null
                 uid = "${eventDO.calendarId}-${eventDO.uid}"
             }
-            val event = BigCalendarEvent(
+            val event = FullCalendarEvent(
                     it.subject,
                     it.startDate!!,
                     it.endDate!!,
