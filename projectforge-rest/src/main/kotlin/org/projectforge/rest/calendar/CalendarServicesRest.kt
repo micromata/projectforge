@@ -59,7 +59,6 @@ class CalendarServicesRest {
   internal class CalendarData(
     val date: LocalDate,
     @Suppress("unused") val events: List<FullCalendarEvent>,
-    @Suppress("unused") val specialDays: Map<LocalDate, HolidayAndWeekendProvider.SpecialDayInfo>
   )
 
   private class DateTimeRange(
@@ -247,27 +246,17 @@ class CalendarServicesRest {
     vacationProvider.addEvents(range.start, range.end!!, events, filter.vacationGroupIds, filter.vacationUserIds)
 
     val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
-    if (view != CalendarView.MONTH) {
-      var counter = 0;
-      specialDays.forEach { entry ->
-        val date = entry.key
-        val specialDay = entry.value
-        if (specialDay.holidayTitle.isNotBlank()) {
-          val dateTime = PFDateTime.from(date) // not null
-          events.add(
-            FullCalendarEvent.createAllDayEvent(
-              id = counter++,
-              category = FullCalendarEvent.Category.HOLIDAY,
-              title = specialDay.holidayTitle,
-              start = dateTime.beginOfDay.localDate,
-              classNames = "holiday-event",
-            )
-          )
-        }
-      }
+    specialDays.forEach { specialDay ->
+      events.add(
+        FullCalendarEvent.createBackgroundEvent(
+          title = specialDay.holidayTitle,
+          start = specialDay.date,
+          classNames = "fc-holiday-weekend",
+        )
+      )
     }
     var counter = 0
-    return CalendarData(range.start.localDate, events, specialDays)
+    return CalendarData(range.start.localDate, events)
   }
 
   /**

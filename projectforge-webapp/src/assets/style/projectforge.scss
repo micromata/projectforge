@@ -243,10 +243,6 @@ fieldset {
   margin-top: 1em;
 }
 
-.rbc-btn-group {
-  font-size: 13px;
-}
-
 // NavTabs
 
 .nav-tabs {
@@ -259,54 +255,7 @@ svg.fa-chevron-down {
   color: #009BA3;
 }
 
-// Calendar
-
-.rbc-month-view {
-  // Calendar Table Head
-  .rbc-row.rbc-month-header {
-    font-size: 13px;
-    line-height: 1.5;
-    //height: 24px;
-    background: #a8a8a8;
-    color: #fff;
-    letter-spacing: 1px;
-  }
-
-  .rbc-date-cell {
-    font-size: 13px;
-  }
-}
-
-.rbc-header,
-.rbc-header.weekend {
-  font-size: 13px !important;
-  line-height: 1.5;
-  background: #a8a8a8;
-  color: #fff;
-  letter-spacing: 1px;
-}
-
-.rbc-event.rbc-selected .rbc-event-content {
-  color: #FFF;
-}
-
-.rbc-time-slot {
-  text-align: right;
-}
-
-.rbc-time-view {
-  border-radius: 5px;
-  margin-bottom: 2em;
-}
-
-.rbc-overlay {
-  z-index: 11 !important; // Bottom line with copyright and links has 10.
-}
-
-.rbc-allday-cell {
-  max-height: 100px;
-  overflow-y: auto;
-}
+// Fullcalendar
 
 // All-day-events in time-grid-view
 .fc-timegrid {
@@ -316,55 +265,10 @@ svg.fa-chevron-down {
   }
 }
 
-.rbc-event {
-  color: #222222;
-  border-radius: 3px;
-  border: 0;
-  display: block;
+.fc-holiday-weekend {
+  color:red;
+  background: #f5e0df !important;
 }
-
-.rbc-event.timesheet {
-  color: #fff;
-  background: #7994d7;
-}
-
-.rbc-event.timesheet-stats {
-  color: #666;
-  background: #F9F9F9;
-}
-
-.rbc-event.vacation-event {
-  color: #ffffff;
-  background: #ffa500;
-}
-
-.rbc-event.holiday-event {
-  color: #D0021B;
-  background: #f5e0df;
-}
-
-// Indicator of current time on today's date:
-.rbc-current-time-indicator {
-  height: 3px !important;
-  background-color: red !important;
-}
-
-.rbc-timeslot-group {
-  border-bottom: none !important;
-}
-
-.weekend {
-  background: #f5e0df;
-}
-
-.weekend-holiday {
-  background: #f5e0df;
-}
-
-.holiday {
-  background: #f5e0df;
-}
-
 
 // Task tree
 
@@ -425,18 +329,6 @@ input.rc-time-picker-input {
 
 div.DayPickerInput input {
   width: 8em;
-}
-
-.rbc-addons-dnd.rbc-calendar {
-  margin-top: 40px !important;
-
-  .rbc-btn-group {
-    background: #FFF;
-  }
-
-  .rbc-timeslot-group {
-    min-height: 20px;
-  }
 }
 
 .DayPickerInput {

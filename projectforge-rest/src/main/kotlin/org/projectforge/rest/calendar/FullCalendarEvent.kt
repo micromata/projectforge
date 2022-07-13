@@ -29,14 +29,14 @@ import java.util.*
 
 class FullCalendarEvent(
   /** Unique identifier. */
-  val id: String,
-  category: Category,
-  val title: String?,
+  var id: String? = null,
+  category: Category? = null,
+  var title: String? = null,
   var allDay: Boolean? = null,
-  val textColor: String? = null,
-  val backgroundColor: String? = null,
-  val classNames: String? = null,
-  val editable: Boolean = false,
+  var textColor: String? = null,
+  var backgroundColor: String? = null,
+  var classNames: String? = null,
+  var editable: Boolean = false,
 ) {
   enum class Category { BIRTHDAY, TIMESHEET, TIMESHEET_STATS, HOLIDAY, VACATION, CAL_EVENT, TEAM_CAL_EVENT }
 
@@ -46,7 +46,7 @@ class FullCalendarEvent(
   )
 
   class ExtendedProps(
-    val category: Category,
+    val category: Category? = null,
     var location: String? = null,
     var duration: String? = null,
     /**
@@ -78,14 +78,31 @@ class FullCalendarEvent(
   /**
    * Extended props of fullcalendar events available in frontend
    */
-  var extendedProps = ExtendedProps(category)
+  var extendedProps: ExtendedProps? = null
+
+  var overlap: Boolean? = null
+
+  var display: String? = null
+
+  init {
+    if (category != null) {
+      extendedProps = ExtendedProps(category)
+    }
+  }
+
+  fun ensureExtendedProps(): ExtendedProps {
+    if (extendedProps == null) {
+      extendedProps = ExtendedProps()
+    }
+    return extendedProps!!
+  }
 
   /**
    * @return this for chaining.
    */
   fun addParam(key: String, value: String?): FullCalendarEvent {
     value ?: return this
-    extendedProps.addParam(key, value)
+    ensureExtendedProps().addParam(key, value)
     return this
   }
 
@@ -129,10 +146,12 @@ class FullCalendarEvent(
         event.start = EventDate(date = start)
         event.end = EventDate(date = end)
       }
-      event.extendedProps.dbId = dbId
-      event.extendedProps.uid = uid
-      event.extendedProps.location = location
-      event.extendedProps.duration = formattedDuration
+      event.ensureExtendedProps().let { props ->
+        props.dbId = dbId
+        props.uid = uid
+        props.location = location
+        props.duration = formattedDuration
+      }
       return event
     }
 
@@ -162,9 +181,31 @@ class FullCalendarEvent(
       )
       event.start = EventDate(day = start)
       event.end = EventDate(day = end)
-      event.extendedProps.dbId = dbId
-      event.extendedProps.uid = uid
-      event.extendedProps.location = location
+      event.ensureExtendedProps().let { props ->
+        props.dbId = dbId
+        props.uid = uid
+        props.location = location
+      }
+      return event
+    }
+
+    /**
+     * For rendering weekends and holiday.
+     * @return this for chaining.
+     */
+    fun createBackgroundEvent(
+      start: LocalDate,
+      end: LocalDate? = null,
+      classNames: String? = null,
+      title: String? = null,
+    ): FullCalendarEvent {
+      val event = FullCalendarEvent()
+      event.start = EventDate(day = start)
+      event.end = EventDate(day = end ?: start)
+      event.overlap = false
+      event.display = "background"
+      event.classNames = classNames
+      event.title = title
       return event
     }
   }
