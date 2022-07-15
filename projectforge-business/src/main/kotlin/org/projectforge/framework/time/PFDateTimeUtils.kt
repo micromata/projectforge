@@ -53,6 +53,8 @@ class PFDateTimeUtils {
         @JvmField
         val TIMEZONE_EUROPE_BERLIN = TimeZone.getTimeZone("Europe/Berlin")
 
+        @JvmField
+        val MILLIS_PER_DAY = 1000 * 60 * 60 * 24
 
         @JvmStatic
         fun getBeginOfYear(dateTime: ZonedDateTime): ZonedDateTime {
