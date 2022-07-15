@@ -32,9 +32,9 @@ function FullCalendarPanel(options) {
     }, [activeCalendars, timesheetUserId]);
 
     const eventDidMount = (info) => {
-        console.log(info, info.el);
+        console.log(info.el, info.event.title, info.event.extendedProps?.category);
         /* const tooltip = new Tooltip(info.el, {
-            title: info.event.extendedProps.description,
+            title: info.event.title,
             placement: 'top',
             trigger: 'hover',
             container: 'body',
