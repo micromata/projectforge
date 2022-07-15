@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import FullCalendar from '@fullcalendar/react'; // must go before plugins
 import deLocale from '@fullcalendar/core/locales/de';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -28,17 +28,17 @@ function FullCalendarPanel(options) {
         activeCalendars, timesheetUserId, locale, firstDayOfWeek,
         defaultDate, defaultView, match,
     } = options;
-    const [myEvents, setMyEvents] = React.useState({});
-    const [currentHoverEvent, setCurrentHoverEvent] = React.useState(null);
-    const [loading, setLoading] = React.useState(false);
-    const activeCalendarsRef = React.useRef(activeCalendars);
+    const [myEvents, setMyEvents] = useState({});
+    const [currentHoverEvent, setCurrentHoverEvent] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const activeCalendarsRef = useRef(activeCalendars);
 
     const tooltipRef = useRef(undefined);
     const popperRef = useRef(undefined);
 
-    const calendarRef = React.useRef();
+    const calendarRef = useRef();
 
-    React.useEffect(() => {
+    useEffect(() => {
         const api = calendarRef && calendarRef.current && calendarRef.current.getApi();
         if (!api) {
             // console.log('no api yet available.');
@@ -56,8 +56,6 @@ function FullCalendarPanel(options) {
         if (popperRef.current) {
             popperRef.current.destroy();
         }
-
-        console.log('hover start?');
 
         setCurrentHoverEvent(event.event);
         popperRef.current = createPopper(event.el, tooltipRef.current, {});
@@ -84,78 +82,39 @@ function FullCalendarPanel(options) {
                 origStartDate: event && event.start ? event.start.toISOString() : '',
                 origEndDate: (event && event.end) ? event.end.toISOString() : '',
                 // Browsers time zone may differ from user's time zone:
-                // timeZone: Intl.DateTimeFormat()
-                //    .resolvedOptions().timeZone,
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             },
             (json) => {
                 const { url } = json;
-                console.log(url, match);
+                console.log(url);
                 history.push(`${match.url}${url}`);
             },
         );
     };
 
     // User wants to create new event (by selecting a time-slot).
-    const select = (info) => {
+    const handleSelect = (info) => {
+        console.log(info);
         fetchAction('slotSelected', info.start, info.end);
         // ...
     };
 
     // User clicked an event.
-    const eventClick = (info) => {
+    const handleEventClick = (info) => {
         const { event } = info;
         const id = event.extendedProps?.uid || event.extendedProps?.dbId;
-        if (id && event.startEditable !== true) return;
-        console.log(event.s);
+        const category = event.extendedProps?.category;
+        if (!category || !id || event.startEditable !== true) return;
         // start date is send to the server and is needed for series events to detect the
         // current selected event of a series.
         // eslint-disable-next-line max-len
-        history.push(`${match.url}/${event.category}/edit/${id}?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
+        history.push(`${match.url}/${category}/edit/${id}?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
     };
 
-    const eventResize = (info) => {
+    const handleEventResize = (info) => {
         console.log(info);
         // ...
     };
-
-    const eventDidMount = (info) => {
-        // console.log(info.el, info.event.title, info.event.extendedProps?.category);
-        /* const tooltip = new Tooltip(info.el, {
-            title: info.event.title,
-            placement: 'top',
-            trigger: 'hover',
-            container: 'body',
-        }); */
-    };
-
-    /*    const eventMouseEnter = (mouseEnterInfo) => {
-        const { event } = mouseEnterInfo;
-        const popover = (
-            <UncontrolledPopover
-                target="UncontrolledPopover"
-            >
-                <PopoverHeader>
-                    {event.title}
-                </PopoverHeader>
-                <PopoverBody>
-                    ead Auditor:
-                    {' '}
-                    <br />
-                </PopoverBody>
-            </UncontrolledPopover>
-        );
-
-        const evtId = `event-${event.id}`;
-        const content = (
-            <OverlayTrigger placement="bottom" overlay={popover}>
-                <div className="fc-content" id={evtId}>
-                    <span className="fc-title">{info.event.title}</span>
-                </div>
-            </OverlayTrigger>
-        );
-
-        ReactDOM.render(content, info.el);
-    }; */
 
     const fetchEvents = (info, successCallback, failureCallback) => {
         setLoading(true);
@@ -220,10 +179,11 @@ function FullCalendarPanel(options) {
 
     return (
         <LoadingContainer loading={loading}>
-            {React.useMemo(() => (
+            {useMemo(() => (
                 <FullCalendar
                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                     initialView={initialView}
+                    initialDate={defaultDate}
                     events={fetchEvents}
                     editable
                     selectable
@@ -236,6 +196,9 @@ function FullCalendarPanel(options) {
                     nowIndicator
                     // weekends={false}
                     ref={calendarRef}
+                    eventClick={handleEventClick}
+                    select={handleSelect}
+                    eventResize={handleEventResize}
                     eventMouseEnter={handleEventMouseEnter}
                     eventMouseLeave={handleEventMouseLeave}
                 />
@@ -243,10 +206,9 @@ function FullCalendarPanel(options) {
             <CalendarEventTooltip
                 forwardRef={tooltipRef}
                 event={currentHoverEvent}
-                eventClick={eventClick}
-                select={select}
-                eventResize={eventResize}
-                eventDidMount={eventDidMount}
+                eventClick={handleEventClick}
+                select={handleSelect}
+                eventResize={handleEventResize}
                 eventMouseEnter={handleEventMouseEnter}
                 eventMouseLeave={handleEventMouseLeave}
             />
