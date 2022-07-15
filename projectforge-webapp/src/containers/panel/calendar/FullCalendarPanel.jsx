@@ -6,20 +6,31 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { connect } from 'react-redux'; // a plugin!
 import { createPopper } from '@popperjs/core';
+import { Route } from 'react-router-dom';
 import LoadingContainer from '../../../components/design/loading-container';
-import { fetchJsonPost } from '../../../utilities/rest';
+import { fetchJsonPost, fetchJsonGet } from '../../../utilities/rest';
 import CalendarEventTooltip from './CalendarEventTooltip';
+import history from '../../../utilities/history';
+import FormModal from '../../page/form/FormModal';
+
+/*
+TODO:
+ - Loading spinner while fetching events.
+ - Popovers.
+ - AgendaView
+ - Grid view for weeks
+ - Week view without weekends.
+ - save view type after switching.
+*/
 
 function FullCalendarPanel(options) {
     const {
         activeCalendars, timesheetUserId, locale, firstDayOfWeek,
-        defaultDate, defaultView,
+        defaultDate, defaultView, match,
     } = options;
     const [myEvents, setMyEvents] = React.useState({});
-    const [loading, setLoading] = React.useState(false);
     const [currentHoverEvent, setCurrentHoverEvent] = React.useState(null);
-    const [startDate, setStartDate] = React.useState(defaultDate);
-    const [startView, setStartView] = React.useState(defaultView);
+    const [loading, setLoading] = React.useState(false);
     const activeCalendarsRef = React.useRef(activeCalendars);
 
     const tooltipRef = useRef(undefined);
@@ -57,6 +68,64 @@ function FullCalendarPanel(options) {
             popperRef.current.destroy();
         }
         setCurrentHoverEvent(null);
+    };
+
+    const fetchAction = (action, startDate, endDate, allDay, event) => {
+        fetchJsonGet(
+            'calendar/action',
+            {
+                action,
+                startDate: startDate ? startDate.toISOString() : '',
+                endDate: endDate ? endDate.toISOString() : '',
+                allDay,
+                category: event ? event.category || '' : '',
+                dbId: event ? event.dbId || '' : '',
+                uid: event ? event.uid || '' : '',
+                origStartDate: event && event.start ? event.start.toISOString() : '',
+                origEndDate: (event && event.end) ? event.end.toISOString() : '',
+                // Browsers time zone may differ from user's time zone:
+                // timeZone: Intl.DateTimeFormat()
+                //    .resolvedOptions().timeZone,
+            },
+            (json) => {
+                const { url } = json;
+                console.log(url, match);
+                history.push(`${match.url}${url}`);
+            },
+        );
+    };
+
+    // User wants to create new event (by selecting a time-slot).
+    const select = (info) => {
+        fetchAction('slotSelected', info.start, info.end);
+        // ...
+    };
+
+    // User clicked an event.
+    const eventClick = (info) => {
+        const { event } = info;
+        const id = event.extendedProps?.uid || event.extendedProps?.dbId;
+        if (id && event.startEditable !== true) return;
+        console.log(event.s);
+        // start date is send to the server and is needed for series events to detect the
+        // current selected event of a series.
+        // eslint-disable-next-line max-len
+        history.push(`${match.url}/${event.category}/edit/${id}?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
+    };
+
+    const eventResize = (info) => {
+        console.log(info);
+        // ...
+    };
+
+    const eventDidMount = (info) => {
+        // console.log(info.el, info.event.title, info.event.extendedProps?.category);
+        /* const tooltip = new Tooltip(info.el, {
+            title: info.event.title,
+            placement: 'top',
+            trigger: 'hover',
+            container: 'body',
+        }); */
     };
 
     /*    const eventMouseEnter = (mouseEnterInfo) => {
@@ -108,8 +177,7 @@ function FullCalendarPanel(options) {
                 // dates start and end. They will be converted by using the browser's timezone.
                 // With this timeZone, the server is able to detect the correct start-end
                 // interval of the requested events.
-                timeZone: Intl.DateTimeFormat()
-                    .resolvedOptions().timeZone,
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             },
             (json) => {
                 const { events } = json;
@@ -175,6 +243,16 @@ function FullCalendarPanel(options) {
             <CalendarEventTooltip
                 forwardRef={tooltipRef}
                 event={currentHoverEvent}
+                eventClick={eventClick}
+                select={select}
+                eventResize={eventResize}
+                eventDidMount={eventDidMount}
+                eventMouseEnter={handleEventMouseEnter}
+                eventMouseLeave={handleEventMouseLeave}
+            />
+            <Route
+                path={`${match.url}/:category/:type/:id?`}
+                render={(props) => <FormModal baseUrl={match.url} {...props} />}
             />
         </LoadingContainer>
     );

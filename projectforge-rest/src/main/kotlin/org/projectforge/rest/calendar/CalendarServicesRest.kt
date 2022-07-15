@@ -181,7 +181,7 @@ class CalendarServicesRest {
 
   private fun buildEvents(filter: CalendarRestFilter): CalendarData { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
     val events = mutableListOf<FullCalendarEvent>()
-    val view = CalendarView.from(filter.view)
+    val view = getView(filter)
     // Workaround for BigCalendar, if the browser's timezone differs from user's timezone in ThreadLocalUserContext.
     // ZoneInfo.getTimeZone returns null, if timeZone not known. TimeZone.getTimeZone returns GMT on failure!
     val timeZone = if (filter.timeZone != null) TimeZone.getTimeZone(filter.timeZone) else null
@@ -255,6 +255,22 @@ class CalendarServicesRest {
     }
     var counter = 0
     return CalendarData(range.start.localDate, events)
+  }
+
+  private fun getView(filter: CalendarRestFilter): CalendarView? {
+    val start = filter.start
+    val end = filter.end
+    if (start != null && end != null) {
+      val diff = end.time - start.time
+      if (diff > 8 * PFDateTimeUtils.MILLIS_PER_DAY) {
+        return CalendarView.MONTH
+      }
+      if (diff > 2 * PFDateTimeUtils.MILLIS_PER_DAY) {
+        return CalendarView.WEEK
+      }
+      return CalendarView.DAY
+    }
+    return CalendarView.from(filter.view)
   }
 
   /**
