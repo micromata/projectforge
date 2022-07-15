@@ -4,6 +4,7 @@ import deLocale from '@fullcalendar/core/locales/de';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import listPlugin from '@fullcalendar/list';
 import { connect } from 'react-redux'; // a plugin!
 import { createPopper } from '@popperjs/core';
 import { Route } from 'react-router-dom';
@@ -127,6 +128,12 @@ function FullCalendarPanel(options) {
         fetchAction('dragAndDrop', event.start, event.end, event.allDay, category, oldEvent);
     };
 
+    /* To be implemented:
+    const handleViewChanged = (view, element) => {
+        console.log(view);
+        // ...
+    }; */
+
     const fetchEvents = (info, successCallback, failureCallback) => {
         setLoading(true);
         const { start, end } = info;
@@ -168,14 +175,19 @@ function FullCalendarPanel(options) {
         timeGridWeek: {
             // options apply to timeGridWeek and timeGridDay views
         },
-        week: {
-            // options apply to dayGridWeek and timeGridWeek views
+        timeGridWorkingWeek: {
+            type: 'timeGridWeek',
+            weekends: false,
+            buttonText: 'working days',
         },
-        day: {
-            // options apply to dayGridDay and timeGridDay views
+        listMonth: {
+
+        },
+        listWeek: {
+
         },
     };
-    const headerToolbar = { center: 'dayGridMonth,timeGridWeek,timeGridDay,agendaWeek' };
+    const headerToolbar = { center: 'dayGridMonth,dayGridWeek,timeGridWeek,timeGridWorkingWeek,timeGridDay,listWeek,listMonth' };
     const locales = [deLocale];
 
     let initialView;
@@ -191,7 +203,7 @@ function FullCalendarPanel(options) {
         <LoadingContainer loading={loading}>
             {useMemo(() => (
                 <FullCalendar
-                    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                    plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
                     initialView={initialView}
                     initialDate={defaultDate}
                     events={fetchEvents}
