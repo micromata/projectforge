@@ -9,7 +9,7 @@ import { connect } from 'react-redux'; // a plugin!
 import { createPopper } from '@popperjs/core';
 import { Route } from 'react-router-dom';
 import LoadingContainer from '../../../components/design/loading-container';
-import { fetchJsonPost, fetchJsonGet } from '../../../utilities/rest';
+import { fetchJsonPost, fetchJsonGet, fetchGet } from '../../../utilities/rest';
 import CalendarEventTooltip from './CalendarEventTooltip';
 import history from '../../../utilities/history';
 import FormModal from '../../page/form/FormModal';
@@ -27,7 +27,7 @@ TODO:
 function FullCalendarPanel(options) {
     const {
         activeCalendars, timesheetUserId, locale, firstDayOfWeek,
-        defaultDate, defaultView, match,
+        defaultDate, defaultView, match, translations,
     } = options;
     const [currentHoverEvent, setCurrentHoverEvent] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -39,13 +39,13 @@ function FullCalendarPanel(options) {
     const calendarRef = useRef();
 
     useEffect(() => {
-        const api = calendarRef && calendarRef.current && calendarRef.current.getApi();
-        if (!api) {
+        const currentApi = calendarRef && calendarRef.current && calendarRef.current.getApi();
+        if (!currentApi) {
             // console.log('no api yet available.');
             return;
         }
         activeCalendarsRef.current = activeCalendars;
-        api.refetchEvents();
+        currentApi.refetchEvents();
     }, [activeCalendars, timesheetUserId]);
 
     const handleEventMouseEnter = (event) => {
@@ -128,13 +128,20 @@ function FullCalendarPanel(options) {
         fetchAction('dragAndDrop', event.start, event.end, event.allDay, category, oldEvent);
     };
 
-    /* To be implemented:
-    const handleViewChanged = (view, element) => {
-        console.log(view);
-        // ...
-    }; */
+    // After changing view type, the view type will be stored on the server in user's pref settings.
+    const handleDatesSet = (info) => {
+        const view = info?.view?.type;
+        if (view) {
+            fetchGet(
+                'calendar/store',
+                {
+                    view,
+                },
+            );
+        }
+    };
 
-    const fetchEvents = (info, successCallback, failureCallback) => {
+    const fetchEvents = (info, successCallback) => {
         setLoading(true);
         const { start, end } = info;
         const { current } = activeCalendarsRef;
@@ -144,7 +151,6 @@ function FullCalendarPanel(options) {
             {
                 start,
                 end,
-                view: undefined,
                 activeCalendarIds,
                 timesheetUserId,
                 updateState: true,
@@ -166,45 +172,32 @@ function FullCalendarPanel(options) {
     };
 
     const views = {
-        dayGrid: {
-            // options apply to dayGridMonth, dayGridWeek, and dayGridDay views
-        },
-        timeGrid: {
-            // options apply to timeGridWeek and timeGridDay views
-        },
-        timeGridWeek: {
-            // options apply to timeGridWeek and timeGridDay views
+        dayGridWeek: {
+            buttonText: `${translations['calendar.view.dayGridWeek']}`,
         },
         timeGridWorkingWeek: {
             type: 'timeGridWeek',
             weekends: false,
-            buttonText: 'working days',
+            buttonText: `${translations['calendar.view.timeGridWorkingWeek']}`,
         },
         listMonth: {
-
+            buttonText: `${translations['calendar.view.monthAgenda']}`,
         },
         listWeek: {
-
+            buttonText: `${translations['calendar.view.weekAgenda']}`,
         },
     };
-    const headerToolbar = { center: 'dayGridMonth,dayGridWeek,timeGridWeek,timeGridWorkingWeek,timeGridDay,listWeek,listMonth' };
+    // dayGridMonth=Month, timeGridWeek=Week, timeGridWorkingWeek=Working week,
+    // timeGridDay=Day, dayGridWeek=Week list, listWeek=Week agenda, listMonth=Month agenda
+    const headerToolbar = { center: 'dayGridMonth,timeGridWeek,timeGridWorkingWeek,timeGridDay,dayGridWeek,listWeek,listMonth' };
     const locales = [deLocale];
-
-    let initialView;
-    switch (defaultView) {
-        case 'month':
-            initialView = 'dayGridMonth';
-            break;
-        default:
-            initialView = 'timeGridWeek';
-    }
 
     return (
         <LoadingContainer loading={loading}>
             {useMemo(() => (
                 <FullCalendar
                     plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-                    initialView={initialView}
+                    initialView={defaultView}
                     initialDate={defaultDate}
                     events={fetchEvents}
                     editable
@@ -219,6 +212,7 @@ function FullCalendarPanel(options) {
                     nowIndicator
                     // weekends={false}
                     ref={calendarRef}
+                    datesSet={handleDatesSet}
                     eventClick={handleEventClick}
                     select={handleSelect}
                     eventResize={handleEventResize}

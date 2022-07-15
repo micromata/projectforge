@@ -23,22 +23,30 @@
 
 package org.projectforge.business.calendar
 
-import com.fasterxml.jackson.annotation.JsonProperty
+/**
+ * Vales for Fullcalendar: dayGridMonth, timeGridWeek, timeGridWorkingWeek, timeGridDay, dayGridWeek, listWeek, listMonth
+ */
+enum class CalendarView(val key: String) {
+  MONTH("dayGridMonth"),
 
-enum class CalendarView {
-    @JsonProperty("month")
-    MONTH,
-    @JsonProperty("week")
-    WEEK,
-    @JsonProperty("work_week")
-    WORK_WEEK,
-    @JsonProperty("day")
-    DAY,
-    @JsonProperty("agenda")
-    AGENDA;
+  WEEK("timeGridWeek"),
 
-    companion object {
-        fun from(name: String?) = if (name == null) null
-        else valueOf(name.uppercase())
+  WORK_WEEK("timeGridWorkingWeek"),
+
+  DAY("timeGridDay"),
+
+  WEEK_LIST("dayGridWeek"),
+
+  AGENDA("listWeek"),
+
+  MONTH_AGENDA("listMonth");
+
+  companion object {
+    fun from(name: String?): CalendarView {
+      if (name == null) {
+        return MONTH // Default view.
+      }
+      return values().find { it.name == name || it.key == name } ?: MONTH
     }
+  }
 }
