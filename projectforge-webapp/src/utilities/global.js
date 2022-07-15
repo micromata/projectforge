@@ -1,6 +1,4 @@
-import { forIn, get, merge, set } from 'lodash/object';
-import { mergeWith } from 'lodash';
-import { cloneDeep, isArray } from 'lodash/lang';
+import { forIn, get, set } from 'lodash/object';
 
 // https://stackoverflow.com/a/6491621
 Object.getByString = (object, multiKey) => {
