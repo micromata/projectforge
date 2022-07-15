@@ -20,6 +20,7 @@ TODO:
  - Grid view for weeks
  - Week view without weekends.
  - save view type after switching.
+ - Handling of recurring events.
 */
 
 function FullCalendarPanel(options) {
@@ -27,7 +28,6 @@ function FullCalendarPanel(options) {
         activeCalendars, timesheetUserId, locale, firstDayOfWeek,
         defaultDate, defaultView, match,
     } = options;
-    const [myEvents, setMyEvents] = useState({});
     const [currentHoverEvent, setCurrentHoverEvent] = useState(null);
     const [loading, setLoading] = useState(false);
     const activeCalendarsRef = useRef(activeCalendars);
@@ -67,7 +67,11 @@ function FullCalendarPanel(options) {
         setCurrentHoverEvent(null);
     };
 
-    const fetchAction = (action, startDate, endDate, allDay, event) => {
+    // event: event state before resize or move etc.
+    const fetchAction = (action, startDate, endDate, allDay, category, event) => {
+        const useCategory = category || (event ? event.category || '' : '');
+        const dbId = event?.extendedProps?.dbId || '';
+        const uid = event?.extendedProps?.uid || '';
         fetchJsonGet(
             'calendar/action',
             {
@@ -75,9 +79,9 @@ function FullCalendarPanel(options) {
                 startDate: startDate ? startDate.toISOString() : '',
                 endDate: endDate ? endDate.toISOString() : '',
                 allDay,
-                category: event ? event.category || '' : '',
-                dbId: event ? event.dbId || '' : '',
-                uid: event ? event.uid || '' : '',
+                category: useCategory,
+                dbId,
+                uid,
                 origStartDate: event && event.start ? event.start.toISOString() : '',
                 origEndDate: (event && event.end) ? event.end.toISOString() : '',
                 // Browsers time zone may differ from user's time zone:
@@ -106,8 +110,21 @@ function FullCalendarPanel(options) {
     };
 
     const handleEventResize = (info) => {
-        console.log(info);
-        // ...
+        info.revert(); // always undo! refetch should handle modified entries.
+        const { event, oldEvent } = info;
+        const id = event.extendedProps?.uid || event.extendedProps?.dbId;
+        const category = event.extendedProps?.category;
+        if (!category || !id || event.startEditable !== true) return;
+        fetchAction('resize', event.start, event.end, event.allDay, category, oldEvent);
+    };
+
+    const handleEventDrop = (info) => {
+        info.revert(); // always undo! refetch should handle modified entries.
+        const { event, oldEvent } = info;
+        const id = event.extendedProps?.uid || event.extendedProps?.dbId;
+        const category = event.extendedProps?.category;
+        if (!category || !id || event.startEditable !== true) return;
+        fetchAction('dragAndDrop', event.start, event.end, event.allDay, category, oldEvent);
     };
 
     const fetchEvents = (info, successCallback, failureCallback) => {
@@ -134,7 +151,6 @@ function FullCalendarPanel(options) {
             },
             (json) => {
                 const { events } = json;
-                setMyEvents(events);
                 // Load into FullCalendar
                 successCallback(events);
                 setLoading(false);
@@ -180,6 +196,7 @@ function FullCalendarPanel(options) {
                     initialDate={defaultDate}
                     events={fetchEvents}
                     editable
+                    eventResizableFromStart
                     selectable
                     headerToolbar={headerToolbar}
                     allDaySlot
@@ -193,6 +210,7 @@ function FullCalendarPanel(options) {
                     eventClick={handleEventClick}
                     select={handleSelect}
                     eventResize={handleEventResize}
+                    eventDrop={handleEventDrop}
                     eventMouseEnter={handleEventMouseEnter}
                     eventMouseLeave={handleEventMouseLeave}
                 />

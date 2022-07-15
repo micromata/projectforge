@@ -210,7 +210,6 @@ class FullCalendarEvent(
       val event = FullCalendarEvent()
       event.start = EventDate(day = start)
       event.end = EventDate(day = end ?: start)
-      event.overlap = false
       event.display = "background"
       event.classNames = classNames
       event.title = title
