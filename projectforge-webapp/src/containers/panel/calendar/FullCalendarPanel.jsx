@@ -48,7 +48,7 @@ function FullCalendarPanel(options) {
 
         console.log('hover start?');
 
-        setCurrentHoverEvent({ title: 'Hello' });
+        setCurrentHoverEvent(event.event);
         popperRef.current = createPopper(event.el, tooltipRef.current, {});
     };
 
