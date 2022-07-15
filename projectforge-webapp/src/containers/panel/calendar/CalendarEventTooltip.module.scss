@@ -1,0 +1,10 @@
+.eventTooltip {
+  background: black;
+  border: 1px solid white;
+  color: #fff;
+  z-index: 1000;
+
+  &.hidden {
+    visibility: hidden;
+  }
+}
