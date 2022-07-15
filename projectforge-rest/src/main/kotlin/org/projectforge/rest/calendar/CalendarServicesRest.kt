@@ -54,8 +54,6 @@ import javax.ws.rs.BadRequestException
 @RestController
 @RequestMapping("${Rest.URL}/calendar")
 class CalendarServicesRest {
-  enum class ACCESS { OWNER, FULL, READ, MINIMAL, NONE }
-
   internal class CalendarData(
     val date: LocalDate,
     @Suppress("unused") val events: List<FullCalendarEvent>,

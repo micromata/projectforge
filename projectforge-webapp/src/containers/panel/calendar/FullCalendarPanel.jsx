@@ -5,7 +5,6 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { connect } from 'react-redux'; // a plugin!
-import swatch from 'react-color/lib/components/common/Swatch';
 import LoadingContainer from '../../../components/design/loading-container';
 import { fetchJsonPost } from '../../../utilities/rest';
 
@@ -31,6 +30,16 @@ function FullCalendarPanel(options) {
         activeCalendarsRef.current = activeCalendars;
         api.refetchEvents();
     }, [activeCalendars, timesheetUserId]);
+
+    const eventDidMount = (info) => {
+        console.log(info, info.el);
+        /* const tooltip = new Tooltip(info.el, {
+            title: info.event.extendedProps.description,
+            placement: 'top',
+            trigger: 'hover',
+            container: 'body',
+        }); */
+    };
 
     /*    const eventMouseEnter = (mouseEnterInfo) => {
         const { event } = mouseEnterInfo;
@@ -140,6 +149,7 @@ function FullCalendarPanel(options) {
                 nowIndicator
                 // weekends={false}
                 ref={calendarRef}
+                eventDidMount={eventDidMount}
             />
         </LoadingContainer>
     ), []);
