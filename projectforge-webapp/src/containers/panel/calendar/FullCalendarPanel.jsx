@@ -15,7 +15,6 @@ import FormModal from '../../page/form/FormModal';
 
 /*
 TODO:
- - Loading spinner while fetching events.
  - Popovers.
  - AgendaView
  - Grid view for weeks
@@ -86,18 +85,13 @@ function FullCalendarPanel(options) {
             },
             (json) => {
                 const { url } = json;
-                console.log(url);
                 history.push(`${match.url}${url}`);
             },
         );
     };
 
     // User wants to create new event (by selecting a time-slot).
-    const handleSelect = (info) => {
-        console.log(info);
-        fetchAction('slotSelected', info.start, info.end);
-        // ...
-    };
+    const handleSelect = (info) => fetchAction('slotSelected', info.start, info.end);
 
     // User clicked an event.
     const handleEventClick = (info) => {

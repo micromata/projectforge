@@ -38,7 +38,14 @@ class FullCalendarEvent(
   var classNames: String? = null,
   var editable: Boolean = false,
 ) {
-  enum class Category { BIRTHDAY, TIMESHEET, TIMESHEET_STATS, HOLIDAY, VACATION, CAL_EVENT, TEAM_CAL_EVENT }
+  enum class Category(val string: String) {
+    BIRTHDAY("address"),
+    TIMESHEET("timesheet"),
+    TIMESHEET_STATS("timesheet-stats"),
+    VACATION("vacation"),
+    CAL_EVENT("calEvent"),
+    TEAM_CAL_EVENT("teamEvent")
+  }
 
   class EventDate(
     var date: Date? = null,
@@ -46,7 +53,7 @@ class FullCalendarEvent(
   )
 
   class ExtendedProps(
-    val category: Category? = null,
+    category: Category? = null,
     var location: String? = null,
     var duration: String? = null,
     /**
@@ -58,6 +65,7 @@ class FullCalendarEvent(
      */
     var dbId: Int? = null
   ) {
+    var category = category?.string
     /**
      * Additional params to display in Popover: Kost2, description for time sheets and attendees, recurrence, ... for events.
      */
