@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import FullCalendar from '@fullcalendar/react'; // must go before plugins
 import deLocale from '@fullcalendar/core/locales/de';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { connect } from 'react-redux'; // a plugin!
+import { createPopper } from '@popperjs/core';
 import LoadingContainer from '../../../components/design/loading-container';
 import { fetchJsonPost } from '../../../utilities/rest';
+import CalendarEventTooltip from './CalendarEventTooltip';
 
 function FullCalendarPanel(options) {
     const {
@@ -15,9 +17,13 @@ function FullCalendarPanel(options) {
     } = options;
     const [myEvents, setMyEvents] = React.useState({});
     const [loading, setLoading] = React.useState(false);
+    const [currentHoverEvent, setCurrentHoverEvent] = React.useState(null);
     const [startDate, setStartDate] = React.useState(defaultDate);
     const [startView, setStartView] = React.useState(defaultView);
     const activeCalendarsRef = React.useRef(activeCalendars);
+
+    const tooltipRef = useRef(undefined);
+    const popperRef = useRef(undefined);
 
     const calendarRef = React.useRef();
 
@@ -31,14 +37,26 @@ function FullCalendarPanel(options) {
         api.refetchEvents();
     }, [activeCalendars, timesheetUserId]);
 
-    const eventDidMount = (info) => {
-        console.log(info.el, info.event.title, info.event.extendedProps?.category);
-        /* const tooltip = new Tooltip(info.el, {
-            title: info.event.title,
-            placement: 'top',
-            trigger: 'hover',
-            container: 'body',
-        }); */
+    const handleEventMouseEnter = (event) => {
+        if (!tooltipRef.current) {
+            return;
+        }
+
+        if (popperRef.current) {
+            popperRef.current.destroy();
+        }
+
+        console.log('hover start?');
+
+        setCurrentHoverEvent({ title: 'Hello' });
+        popperRef.current = createPopper(event.el, tooltipRef.current, {});
+    };
+
+    const handleEventMouseLeave = () => {
+        if (popperRef.current) {
+            popperRef.current.destroy();
+        }
+        setCurrentHoverEvent(null);
     };
 
     /*    const eventMouseEnter = (mouseEnterInfo) => {
@@ -95,7 +113,7 @@ function FullCalendarPanel(options) {
             },
             (json) => {
                 const { events } = json;
-                setMyEvents(myEvents);
+                setMyEvents(events);
                 // Load into FullCalendar
                 successCallback(events);
                 setLoading(false);
@@ -132,29 +150,34 @@ function FullCalendarPanel(options) {
             initialView = 'timeGridWeek';
     }
 
-    return React.useMemo(() => (
+    return (
         <LoadingContainer loading={loading}>
-            <FullCalendar
-                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                initialView={initialView}
-                events={fetchEvents}
-                editable
-                selectable
-                headerToolbar={headerToolbar}
-                allDaySlot
-                views={views}
-                locales={locales}
-                locale={locale}
-                firstDay={firstDayOfWeek}
-                nowIndicator
-                // weekends={false}
-                ref={calendarRef}
-                eventDidMount={eventDidMount}
-                // eventMouseEnter={eventMouseEnter}
-                // eventMouseLeave={eventMouseLeave}
+            {React.useMemo(() => (
+                <FullCalendar
+                    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                    initialView={initialView}
+                    events={fetchEvents}
+                    editable
+                    selectable
+                    headerToolbar={headerToolbar}
+                    allDaySlot
+                    views={views}
+                    locales={locales}
+                    locale={locale}
+                    firstDay={firstDayOfWeek}
+                    nowIndicator
+                    // weekends={false}
+                    ref={calendarRef}
+                    eventMouseEnter={handleEventMouseEnter}
+                    eventMouseLeave={handleEventMouseLeave}
+                />
+            ), [])}
+            <CalendarEventTooltip
+                forwardRef={tooltipRef}
+                event={currentHoverEvent}
             />
         </LoadingContainer>
-    ), []);
+    );
 }
 
 const mapStateToProps = ({ authentication }) => ({
