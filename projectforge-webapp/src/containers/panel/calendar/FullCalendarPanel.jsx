@@ -150,6 +150,8 @@ function FullCalendarPanel(options) {
                 // weekends={false}
                 ref={calendarRef}
                 eventDidMount={eventDidMount}
+                // eventMouseEnter={eventMouseEnter}
+                // eventMouseLeave={eventMouseLeave}
             />
         </LoadingContainer>
     ), []);
