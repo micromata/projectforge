@@ -33,8 +33,6 @@ class CalendarRestFilter(
   var start: Date? = null,
   /** Optional, if view is given. */
   var end: Date? = null,
-  /** Will be ignored if end is given. */
-  var view: String? = null,
   var timesheetUserId: Int? = null,
   /**
    * Check box for enabling and disabling vacation entries of employees.

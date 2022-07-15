@@ -179,20 +179,28 @@ class CalendarServicesRest {
     return ResponseEntity(responseAction, HttpStatus.OK)
   }
 
+  @GetMapping("store")
+  fun setViewType(
+    @RequestParam("view") view: String?,
+  ) {
+    if (!view.isNullOrBlank()) {
+      calendarFilterServicesRest.getFilterState().view = CalendarView.from(view)
+    }
+  }
+
   private fun buildEvents(filter: CalendarRestFilter): CalendarData { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
     val events = mutableListOf<FullCalendarEvent>()
-    val view = getView(filter)
     // Workaround for BigCalendar, if the browser's timezone differs from user's timezone in ThreadLocalUserContext.
     // ZoneInfo.getTimeZone returns null, if timeZone not known. TimeZone.getTimeZone returns GMT on failure!
     val timeZone = if (filter.timeZone != null) TimeZone.getTimeZone(filter.timeZone) else null
     if (filter.updateState == true) {
-      calendarFilterServicesRest.updateCalendarFilter(filter.start, view, filter)
+      calendarFilterServicesRest.updateCalendarFilter(filter)
     }
     val range = DateTimeRange(
       PFDateTime.fromOrNow(filter.start, timeZone = timeZone),
       PFDateTime.fromOrNull(filter.end, timeZone = timeZone)
     )
-    adjustRange(range, view)
+    adjustRange(range)
     timesheetsProvider.addTimesheetEvents(range.start, range.end!!, filter.timesheetUserId, events)
     var visibleCalendarIds = filter.activeCalendarIds
     if (filter.useVisibilityState == true && !visibleCalendarIds.isNullOrEmpty()) {
@@ -257,7 +265,7 @@ class CalendarServicesRest {
     return CalendarData(range.start.localDate, events)
   }
 
-  private fun getView(filter: CalendarRestFilter): CalendarView? {
+  private fun getView(filter: CalendarRestFilter): CalendarView {
     val start = filter.start
     val end = filter.end
     if (start != null && end != null) {
@@ -270,37 +278,19 @@ class CalendarServicesRest {
       }
       return CalendarView.DAY
     }
-    return CalendarView.from(filter.view)
+    return CalendarView.WEEK
   }
 
   /**
-   * Adjustes the range (start and end) if end is not given.
+   * Adjustes the range (start and end) to max 50 days and sets end date to start date + 1 day if not given.
    */
-  private fun adjustRange(range: DateTimeRange, view: CalendarView?) {
+  private fun adjustRange(range: DateTimeRange) {
     if (range.end != null) {
       if (range.start.daysBetween(range.end!!) > 50)
         throw BadRequestException("Requested range for calendar to big. Max. number of days between start and end must not higher than 50.")
       return
-    }
-    val start = range.start
-    when (view) {
-      CalendarView.WEEK -> {
-        range.start = start.beginOfWeek
-        range.end = range.start.plusDays(7)
-      }
-      CalendarView.WORK_WEEK -> {
-        range.start = start.beginOfWeek
-        range.end = range.start.plusDays(5)
-      }
-      CalendarView.DAY -> {
-        range.start = start.beginOfDay
-        range.end = range.start.plusDays(1)
-      }
-      else -> {
-        // Assuming month at default
-        range.start = start.beginOfMonth
-        range.end = start.endOfMonth
-      }
+    } else {
+      range.end = range.start.plusDays(1)
     }
   }
 }

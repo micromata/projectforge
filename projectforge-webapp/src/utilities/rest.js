@@ -67,7 +67,9 @@ export const fetchGet = (url, params, callback) => fetch(getServiceURL(url, para
     credentials: 'include',
 })
     .then(handleHTTPErrors)
-    .then(() => callback())
+    .then(() => {
+        if (typeof callback === 'function' && callback());
+    })
     .catch((error) => alert(`Internal error: ${error}`));
 
 export const getObjectFromQuery = (query) => (
