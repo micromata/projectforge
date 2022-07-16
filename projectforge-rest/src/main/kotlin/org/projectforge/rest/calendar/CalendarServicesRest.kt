@@ -34,6 +34,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
+import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestHelper
@@ -45,6 +46,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URLEncoder
 import java.time.LocalDate
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.ws.rs.BadRequestException
 
@@ -179,12 +182,35 @@ class CalendarServicesRest {
     return ResponseEntity(responseAction, HttpStatus.OK)
   }
 
-  @GetMapping("store")
+  @GetMapping("storeState")
   fun setViewType(
-    @RequestParam("view") view: String?,
+    @RequestParam("date") dateString: String?,
+    @RequestParam("view") viewString: String?,
+    @RequestParam("timeZone") timeZoneString: String?,
   ) {
-    if (!view.isNullOrBlank()) {
-      calendarFilterServicesRest.getFilterState().view = CalendarView.from(view)
+    if (dateString.isNullOrBlank()) {
+      return
+    }
+    val timeZone = if (timeZoneString != null) {
+      TimeZone.getTimeZone(timeZoneString)
+    } else {
+      ThreadLocalUserContext.getTimeZone()
+    }
+    val dateTime = ZonedDateTime.parse(dateString, DateTimeFormatter.ISO_DATE_TIME.withZone(timeZone.toZoneId()))
+    val date = dateTime.toLocalDate()
+    if (date != null && !viewString.isNullOrBlank()) {
+      val view = CalendarView.from(viewString)
+      val filterState = calendarFilterServicesRest.getFilterState()
+      if (view == CalendarView.MONTH) {
+        var day = PFDay.from(date)
+        if (day.dayOfMonth > 1) {
+          day = day.plusMonths(1).withDayOfMonth(1)
+        }
+        filterState.startDate = day.localDate
+      } else {
+        filterState.startDate = date
+      }
+      filterState.view = view
     }
   }
 
@@ -193,9 +219,6 @@ class CalendarServicesRest {
     // Workaround for BigCalendar, if the browser's timezone differs from user's timezone in ThreadLocalUserContext.
     // ZoneInfo.getTimeZone returns null, if timeZone not known. TimeZone.getTimeZone returns GMT on failure!
     val timeZone = if (filter.timeZone != null) TimeZone.getTimeZone(filter.timeZone) else null
-    if (filter.updateState == true) {
-      calendarFilterServicesRest.updateCalendarFilter(filter)
-    }
     val range = DateTimeRange(
       PFDateTime.fromOrNow(filter.start, timeZone = timeZone),
       PFDateTime.fromOrNull(filter.end, timeZone = timeZone)
@@ -261,24 +284,7 @@ class CalendarServicesRest {
         )
       )
     }
-    var counter = 0
     return CalendarData(range.start.localDate, events)
-  }
-
-  private fun getView(filter: CalendarRestFilter): CalendarView {
-    val start = filter.start
-    val end = filter.end
-    if (start != null && end != null) {
-      val diff = end.time - start.time
-      if (diff > 8 * PFDateTimeUtils.MILLIS_PER_DAY) {
-        return CalendarView.MONTH
-      }
-      if (diff > 2 * PFDateTimeUtils.MILLIS_PER_DAY) {
-        return CalendarView.WEEK
-      }
-      return CalendarView.DAY
-    }
-    return CalendarView.WEEK
   }
 
   /**

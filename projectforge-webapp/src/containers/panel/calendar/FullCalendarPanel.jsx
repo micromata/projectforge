@@ -17,10 +17,7 @@ import FormModal from '../../page/form/FormModal';
 /*
 TODO:
  - Popovers.
- - AgendaView
- - Grid view for weeks
- - Week view without weekends.
- - save view type after switching.
+ - org.projectforge.business.address.AddressDao.hasAccess (AddressDao.java:291): session is null.
  - Handling of recurring events.
 */
 
@@ -31,12 +28,23 @@ function FullCalendarPanel(options) {
     } = options;
     const [currentHoverEvent, setCurrentHoverEvent] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [currentState, setCurrentState] = useState({
+        date: defaultDate,
+        view: defaultView,
+    });
     const activeCalendarsRef = useRef(activeCalendars);
 
     const tooltipRef = useRef(undefined);
     const popperRef = useRef(undefined);
 
     const calendarRef = useRef();
+
+    // Needed as a workaround if the user's timezone (backend) differs from timezone of
+    // the browser. BigCalendar doesn't use moment's timezone for converting the
+    // dates start and end. They will be converted by using the browser's timezone.
+    // With this timeZone, the server is able to detect the correct start-end
+    // interval of the requested events.
+    const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
 
     useEffect(() => {
         const currentApi = calendarRef && calendarRef.current && calendarRef.current.getApi();
@@ -47,6 +55,14 @@ function FullCalendarPanel(options) {
         activeCalendarsRef.current = activeCalendars;
         currentApi.refetchEvents();
     }, [activeCalendars, timesheetUserId]);
+
+    useEffect(() => {
+        // Current state (view/date) changed, so store it in the user's prefs:
+        const { date, view } = currentState;
+        if (date && view) {
+            fetchGet('calendar/storeState', { date: date.toISOString(), view, timeZone });
+        }
+    }, [currentState]);
 
     const handleEventMouseEnter = (event) => {
         if (!tooltipRef.current) {
@@ -86,7 +102,7 @@ function FullCalendarPanel(options) {
                 origStartDate: event && event.start ? event.start.toISOString() : '',
                 origEndDate: (event && event.end) ? event.end.toISOString() : '',
                 // Browsers time zone may differ from user's time zone:
-                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timeZone,
             },
             (json) => {
                 const { url } = json;
@@ -131,13 +147,12 @@ function FullCalendarPanel(options) {
     // After changing view type, the view type will be stored on the server in user's pref settings.
     const handleDatesSet = (info) => {
         const view = info?.view?.type;
-        if (view) {
-            fetchGet(
-                'calendar/store',
-                {
-                    view,
-                },
-            );
+        const start = info?.start;
+        if (view && start) {
+            setCurrentState({
+                date: start,
+                view,
+            });
         }
     };
 
@@ -153,14 +168,13 @@ function FullCalendarPanel(options) {
                 end,
                 activeCalendarIds,
                 timesheetUserId,
-                updateState: true,
                 useVisibilityState: true,
                 // Needed as a workaround if the user's timezone (backend) differs from timezone of
                 // the browser. BigCalendar doesn't use moment's timezone for converting the
                 // dates start and end. They will be converted by using the browser's timezone.
                 // With this timeZone, the server is able to detect the correct start-end
                 // interval of the requested events.
-                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timeZone,
             },
             (json) => {
                 const { events } = json;
