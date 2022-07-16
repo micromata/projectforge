@@ -464,16 +464,5 @@ class CalendarFilterServicesRest {
     }
     return styleMap
   }
-
-  internal fun updateCalendarFilter(restFilter: CalendarRestFilter) {
-    val currentFilter = getCurrentFilter()
-    val activeCalendarIds = restFilter.activeCalendarIds
-    activeCalendarIds?.let {
-      currentFilter.calendarIds = activeCalendarIds.toMutableSet()
-    }
-    //currentFilter.showVacations = restFilter.showVacations
-    currentFilter.vacationGroupIds = restFilter.vacationGroupIds
-    currentFilter.vacationUserIds = restFilter.vacationUserIds
-  }
 }
 

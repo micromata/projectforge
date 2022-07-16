@@ -56,13 +56,6 @@ class CalendarRestFilter(
    */
   var activeCalendarIds: MutableSet<Int?>? = null,
   /**
-   * If true, then this filter updates the fields of the user's calendar state (start date and view).
-   * If the user calls the calendar page next time, this properties are restored.
-   * Default is false (the calendar state will not be updated.
-   * This flag is only used by the React client for restoring the states on later views.
-   */
-  var updateState: Boolean? = false,
-  /**
    * If true, then calendars in the invisibleCalendarIds set of the current filter will be hidden.
    * Default is false (all active calendars are displayed).
    * This flag is only used by the React client for hiding active calendars.
