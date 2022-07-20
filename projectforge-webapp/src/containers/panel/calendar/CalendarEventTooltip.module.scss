@@ -1,10 +1,14 @@
 .eventTooltip {
-  background: black;
+  background: #eee;
   border: 1px solid white;
-  color: #fff;
+  color: #000;
   z-index: 1000;
 
   &.hidden {
     visibility: hidden;
+  }
+
+  th {
+    vertical-align: top;
   }
 }

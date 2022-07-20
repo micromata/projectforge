@@ -95,7 +95,8 @@ class CalEventsProvider() {
         uid = uid,
         backgroundColor = style?.bgColor,
         textColor = style?.fgColor,
-      ).addParam("note", it.note)
+      )
+        // .addParam("note", it.note)
       events.add(event)
     }
   }

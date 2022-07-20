@@ -105,7 +105,23 @@ open class TeamCalEventsProvider() {
         uid = uid,
         backgroundColor = style?.bgColor,
         textColor = style?.fgColor
-      ).addParam("note", it.note)
+      )
+      /*
+      val tooltipText = TooltipBuilder().appendProps()
+      timesheet.kost2?.let { kost2 ->
+        tooltipText.appendProp(translate("fibu.kost2"), KostFormatter.formatLong(kost2))
+      }
+      tooltipText
+        .appendProp(
+          translate("task"),
+          TaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.HTML),
+          escapeHtml = false,
+        )
+        .appendProp(translate("timesheet.location"), timesheet.location)
+        .appendProp(translate("description"), timesheet.description)
+        .appendDuration(formattedDuration)
+      event.setTooltip("${translate("timesheet")}: ${timesheetUser?.displayName}", tooltipText)*/
+      // .addParam("note", it.note)
       events.add(event)
     }
     for (calId in teamCalendarIds) {
