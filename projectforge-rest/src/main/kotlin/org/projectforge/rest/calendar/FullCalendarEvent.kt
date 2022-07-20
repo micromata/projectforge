@@ -23,7 +23,10 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.common.StringHelper
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.TimePeriod
 import java.time.LocalDate
 import java.util.*
 
@@ -63,21 +66,16 @@ class FullCalendarEvent(
     /**
      * The db id of the object (team event, address (birthday) etc.)
      */
-    var dbId: Int? = null
+    var dbId: Int? = null,
+    /**
+     * If given, a tooltip will be displayed on mouse-over. Don't forget to add the content of the tooltip.
+     */
+    var tooltip: Tooltip? = null,
   ) {
     var category = category?.string
-    /**
-     * Additional params to display in Popover: Kost2, description for time sheets and attendees, recurrence, ... for events.
-     */
-    var params: MutableMap<String, String>? = null
-    fun addParam(key: String, value: String?) {
-      value ?: return
-      if (params == null) {
-        params = mutableMapOf()
-      }
-      params!![key] = value
-    }
   }
+
+  class Tooltip(var title: String?, var text: String, var markDown: Boolean)
 
   var start: EventDate? = null
 
@@ -105,13 +103,13 @@ class FullCalendarEvent(
     return extendedProps!!
   }
 
-  /**
-   * @return this for chaining.
-   */
-  fun addParam(key: String, value: String?): FullCalendarEvent {
-    value ?: return this
-    ensureExtendedProps().addParam(key, value)
-    return this
+  fun setTooltip(title: String, markDown: TooltipBuilder): Tooltip {
+    ensureExtendedProps().let { extendedProps ->
+      Tooltip(title, markDown.toString(), true).let { tooltip ->
+        extendedProps.tooltip = tooltip
+        return tooltip
+      }
+    }
   }
 
   companion object {
@@ -214,6 +212,20 @@ class FullCalendarEvent(
       event.classNames = classNames
       event.title = title
       return event
+    }
+
+    fun formatDuration(millis: Long, showTimePeriod: Boolean = false): String {
+      val fields = TimePeriod.getDurationFields(millis, 8, 200)
+      val buf = StringBuffer()
+      if (fields[0] > 0) {
+        buf.append(fields[0]).append(ThreadLocalUserContext.getLocalizedString("calendar.unit.day")).append(" ")
+      }
+      buf.append(fields[1]).append(":").append(StringHelper.format2DigitNumber(fields[2]))
+        .append(ThreadLocalUserContext.getLocalizedString("calendar.unit.hour"))
+      if (showTimePeriod == true) {
+        buf.append(" (").append(ThreadLocalUserContext.getLocalizedString("calendar.month")).append(")")
+      }
+      return buf.toString()
     }
   }
 }

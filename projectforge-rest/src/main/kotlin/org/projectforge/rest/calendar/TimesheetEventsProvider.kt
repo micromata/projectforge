@@ -23,17 +23,18 @@
 
 package org.projectforge.rest.calendar
 
-import org.apache.commons.lang3.StringUtils
+import org.projectforge.business.common.OutputType
+import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.task.formatter.TaskFormatter
 import org.projectforge.business.teamcal.common.CalendarHelper
 import org.projectforge.business.timesheet.OrderDirection
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
-import org.projectforge.common.StringHelper
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
-import org.projectforge.framework.time.TimePeriod
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.Month
@@ -67,6 +68,7 @@ class TimesheetEventsProvider {
     } else {
       tsFilter.userId = ThreadLocalUserContext.getUserId()
     }
+    val timesheetUser = UserGroupCache.getInstance().getUser(userId)
     val timesheets = timesheetDao.getList(tsFilter)
 
     ctx.days = start.daysBetween(end)
@@ -109,30 +111,43 @@ class TimesheetEventsProvider {
                     lastStopTime = stopTime*/
         }
         val title: String = CalendarHelper.getTitle(timesheet)
-        val tooltip: String? = null
-        val formattedDuration = formatDuration(timesheet.getDuration(), false)
-        val description: String? = null//getToolTip(timesheet)
-        var outOfRange: Boolean? = null
+        val formattedDuration = FullCalendarEvent.formatDuration(timesheet.getDuration(), false)
+        /*var outOfRange: Boolean? = null
         //if (ctx.longFormat) {
         // }
         if (ctx.month != null && startTime.month != ctx.month && stopTime.month != ctx.month) {
           outOfRange = true
-        }
+        }*/
         //val link = "timesheet/edit/${timesheet.id}"
-        events.add(
-          FullCalendarEvent.createEvent(
-            id = timesheet.id,
-            category = FullCalendarEvent.Category.TIMESHEET,
-            title = title,
-            start = timesheet.startTime!!,
-            end = timesheet.stopTime!!,
-            editable = true,
-            location = timesheet.location,
-            formattedDuration = formattedDuration,
-            classNames = "timesheet",
-            dbId = timesheet.id,
-          ).addParam("description", description)
-        )
+        FullCalendarEvent.createEvent(
+          id = timesheet.id,
+          category = FullCalendarEvent.Category.TIMESHEET,
+          title = title,
+          start = timesheet.startTime!!,
+          end = timesheet.stopTime!!,
+          editable = true,
+          location = timesheet.location,
+          formattedDuration = formattedDuration,
+          classNames = "timesheet",
+          dbId = timesheet.id,
+        ).let { event ->
+          events.add(event)
+          val tooltipText = TooltipBuilder().beginPropsTable()
+          timesheet.kost2?.let { kost2 ->
+            tooltipText.addPropRow(translate("fibu.kost2"), KostFormatter.formatLong(kost2))
+          }
+          tooltipText
+            .addPropRow(
+              translate("task"),
+              TaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.HTML),
+              escapeHtml = false,
+            )
+            .addPropRow(translate("timesheet.location"), timesheet.location)
+            .addPropRow(translate("description"), timesheet.description, pre = true)
+            .endPropsTable()
+            .appendDuration(formattedDuration)
+          event.setTooltip("${translate("timesheet")}: ${timesheetUser?.displayName}", tooltipText)
+        }
 
         val duration = timesheet.getDuration()
         if (ctx.month == null || ctx.month == startTime.month) {
@@ -141,10 +156,6 @@ class TimesheetEventsProvider {
         }
         val dayOfYear = startTime.dayOfYear
         ctx.addDurationOfDayOfYear(dayOfYear, duration)
-        //event.setTooltip(
-        //        getString("timesheet"),
-        //        arrayOf(arrayOf(title), arrayOf(timesheet.location, getString("timesheet.location")), arrayOf(KostFormatter.formatLong(timesheet.kost2), getString("fibu.kost2")), arrayOf(WicketTaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.PLAIN), getString("task")), arrayOf(timesheet.description, getString("description"))))
-
       }
     }
     if (showStatistics) { // Show statistics: duration of every day is shown as all day event.
@@ -163,7 +174,7 @@ class TimesheetEventsProvider {
           day = day.plusDays(1)
           continue
         }
-        val durationString = formatDuration(duration, false)
+        val durationString = FullCalendarEvent.formatDuration(duration, false)
         val title = if (firstDayOfWeek) { // Show week of year at top of first day of week.
           var weekDuration: Long = 0
           for (i in 0..6) {
@@ -176,7 +187,7 @@ class TimesheetEventsProvider {
           val buf = StringBuffer()
           buf.append(translate("calendar.weekOfYearShortLabel")).append(day.weekOfYear)
           if (ctx.days > 1 && weekDuration > 0) { // Show total sum of durations over all time sheets of current week (only in week and month view).
-            buf.append(": ").append(formatDuration(weekDuration, false))
+            buf.append(": ").append(FullCalendarEvent.formatDuration(weekDuration, false))
           }
           if (duration > 0) {
             buf.append(", ").append(durationString)
@@ -197,43 +208,6 @@ class TimesheetEventsProvider {
       } while (!day.isAfter(end))
     }
   }
-
-  fun getToolTip(timesheet: TimesheetDO): String {
-    val location = timesheet.location
-    val description = timesheet.getShortDescription()
-    val task = timesheet.task
-    val buf = StringBuffer()
-    if (StringUtils.isNotBlank(location) == true) {
-      buf.append(location)
-      if (StringUtils.isNotBlank(description) == true) {
-        buf.append(": ")
-      }
-    }
-    buf.append(description)
-    if (timesheet.kost2 == null) {
-      buf.append("; \n").append(task?.title)
-    }
-    return buf.toString()
-  }
-
-  private fun formatDuration(millis: Long, ctx: Context): String {
-    return formatDuration(millis, ctx.firstDayOfMonth != null)
-  }
-
-  private fun formatDuration(millis: Long, showTimePeriod: Boolean): String {
-    val fields = TimePeriod.getDurationFields(millis, 8, 200)
-    val buf = StringBuffer()
-    if (fields[0] > 0) {
-      buf.append(fields[0]).append(ThreadLocalUserContext.getLocalizedString("calendar.unit.day")).append(" ")
-    }
-    buf.append(fields[1]).append(":").append(StringHelper.format2DigitNumber(fields[2]))
-      .append(ThreadLocalUserContext.getLocalizedString("calendar.unit.hour"))
-    if (showTimePeriod == true) {
-      buf.append(" (").append(ThreadLocalUserContext.getLocalizedString("calendar.month")).append(")")
-    }
-    return buf.toString()
-  }
-
 
   private class Context() {
     var firstDayOfMonth: ZonedDateTime? = null
