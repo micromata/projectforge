@@ -147,7 +147,6 @@ class TimesheetEventsProvider {
           event.setTooltip(
             "${translate("timesheet")}: ${timesheetUser?.displayName}",
             tooltipText,
-            formattedDuration = formattedDuration,
           )
         }
 
