@@ -17,6 +17,7 @@ import FormModal from '../../page/form/FormModal';
 /*
 TODO:
  - Popovers: Urlaub von/bis, sonst wie klassisch
+ - show duration in Event (not only in Popover)
  - org.projectforge.business.address.AddressDao.hasAccess (AddressDao.java:291): session is null.
  - Handling of recurring events.
  - click on birthdays -> open address view.
