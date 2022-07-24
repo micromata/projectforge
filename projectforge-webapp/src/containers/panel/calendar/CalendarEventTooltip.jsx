@@ -1,25 +1,35 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import { CardFooter } from 'reactstrap';
 import styles from './CalendarEventTooltip.module.scss';
 import { Card, CardHeader, CardBody } from '../../../components/design';
 
 function CalendarEventTooltip(props) {
     const { forwardRef, event } = props;
+    const tooltip = event?.extendedProps?.tooltip;
+
     return (
         <div
             ref={forwardRef}
             className={classNames(styles.eventTooltip, !event && styles.hidden)}
         >
             <Card>
-                <CardHeader>
-                    <b>{event?.extendedProps?.tooltip?.title}</b>
-                </CardHeader>
+                {tooltip?.title && (
+                    <CardHeader>
+                        <b>{tooltip?.title}</b>
+                    </CardHeader>
+                ) }
                 <CardBody>
                     <div
-                        dangerouslySetInnerHTML={{ __html: event?.extendedProps?.tooltip?.text }}
+                        dangerouslySetInnerHTML={{ __html: tooltip?.text }}
                     />
                 </CardBody>
+                {tooltip?.formattedDuration && (
+                    <CardFooter>
+                        {tooltip?.formattedDuration}
+                    </CardFooter>
+                )}
             </Card>
         </div>
     );

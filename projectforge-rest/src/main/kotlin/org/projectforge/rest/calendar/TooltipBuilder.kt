@@ -24,14 +24,13 @@
 package org.projectforge.rest.calendar
 
 import org.apache.commons.text.StringEscapeUtils
-import org.projectforge.framework.i18n.translate
 
-class TooltipBuilder {
+class TooltipBuilder() {
   private val sb = StringBuilder()
+  private var endOfTable: Boolean = false
 
-  fun beginPropsTable(): TooltipBuilder {
+  init {
     sb.append("<table>")
-    return this
   }
 
   fun addPropRow(label: String, value: String?, escapeHtml: Boolean = true, pre: Boolean = false): TooltipBuilder {
@@ -50,22 +49,11 @@ class TooltipBuilder {
     return this
   }
 
-  fun endPropsTable(): TooltipBuilder {
-    sb.append("</table>")
-    return this
-  }
-
-  fun appendDuration(millis: Long): TooltipBuilder {
-    appendDuration(FullCalendarEvent.formatDuration(millis))
-    return this
-  }
-
-  fun appendDuration(formattedDuration: String): TooltipBuilder {
-    sb.append("<br><b>${translate("timesheet.duration")}</b>: $formattedDuration")
-    return this
-  }
-
   override fun toString(): String {
+    if (!endOfTable) {
+      sb.append("</table>")
+      endOfTable = false
+    }
     return sb.toString()
   }
 

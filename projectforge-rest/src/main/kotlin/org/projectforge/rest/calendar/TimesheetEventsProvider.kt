@@ -132,7 +132,7 @@ class TimesheetEventsProvider {
           dbId = timesheet.id,
         ).let { event ->
           events.add(event)
-          val tooltipText = TooltipBuilder().beginPropsTable()
+          val tooltipText = TooltipBuilder()
           timesheet.kost2?.let { kost2 ->
             tooltipText.addPropRow(translate("fibu.kost2"), KostFormatter.formatLong(kost2))
           }
@@ -144,9 +144,11 @@ class TimesheetEventsProvider {
             )
             .addPropRow(translate("timesheet.location"), timesheet.location)
             .addPropRow(translate("description"), timesheet.description, pre = true)
-            .endPropsTable()
-            .appendDuration(formattedDuration)
-          event.setTooltip("${translate("timesheet")}: ${timesheetUser?.displayName}", tooltipText)
+          event.setTooltip(
+            "${translate("timesheet")}: ${timesheetUser?.displayName}",
+            tooltipText,
+            formattedDuration = formattedDuration,
+          )
         }
 
         val duration = timesheet.getDuration()

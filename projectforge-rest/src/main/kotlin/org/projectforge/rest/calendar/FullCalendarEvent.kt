@@ -75,7 +75,7 @@ class FullCalendarEvent(
     var category = category?.string
   }
 
-  class Tooltip(var title: String?, var text: String, var markDown: Boolean)
+  class Tooltip(var title: String?, var text: String, var markDown: Boolean, var formattedDuration: String?)
 
   var start: EventDate? = null
 
@@ -103,9 +103,21 @@ class FullCalendarEvent(
     return extendedProps!!
   }
 
-  fun setTooltip(title: String, markDown: TooltipBuilder): Tooltip {
+  fun setTooltip(
+    title: String,
+    markDown: TooltipBuilder,
+    durationMillis: Long? = null,
+    formattedDuration: String? = null,
+  ): Tooltip {
+    val duration = if (formattedDuration != null) {
+      formattedDuration
+    } else if (durationMillis != null) {
+      formatDuration(durationMillis, false)
+    } else {
+      null
+    }
     ensureExtendedProps().let { extendedProps ->
-      Tooltip(title, markDown.toString(), true).let { tooltip ->
+      Tooltip(title, markDown.toString(), true, duration).let { tooltip ->
         extendedProps.tooltip = tooltip
         return tooltip
       }
@@ -146,11 +158,11 @@ class FullCalendarEvent(
       )
       if (allDay == true) {
         event.allDay = true
-        event.start = EventDate(day = PFDateTime.from(start).localDate)
-        event.end = EventDate(day = PFDateTime.from(end).localDate)
+        event.start = FullCalendarEvent.EventDate(day = PFDateTime.from(start).localDate)
+        event.end = FullCalendarEvent.EventDate(day = PFDateTime.from(end).localDate)
       } else {
-        event.start = EventDate(date = start)
-        event.end = EventDate(date = end)
+        event.start = FullCalendarEvent.EventDate(date = start)
+        event.end = FullCalendarEvent.EventDate(date = end)
       }
       event.ensureExtendedProps().let { props ->
         props.dbId = dbId
@@ -185,8 +197,8 @@ class FullCalendarEvent(
         classNames = classNames,
         editable = editable,
       )
-      event.start = EventDate(day = start)
-      event.end = EventDate(day = end)
+      event.start = FullCalendarEvent.EventDate(day = start)
+      event.end = FullCalendarEvent.EventDate(day = end)
       event.ensureExtendedProps().let { props ->
         props.dbId = dbId
         props.uid = uid
