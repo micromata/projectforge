@@ -7,7 +7,8 @@ import { Card, CardHeader, CardBody } from '../../../components/design';
 
 function CalendarEventTooltip(props) {
     const { forwardRef, event } = props;
-    const tooltip = event?.extendedProps?.tooltip;
+    const extendedProps = event?.extendedProps;
+    const tooltip = extendedProps?.tooltip;
 
     return (
         <div
@@ -25,9 +26,9 @@ function CalendarEventTooltip(props) {
                         dangerouslySetInnerHTML={{ __html: tooltip?.text }}
                     />
                 </CardBody>
-                {tooltip?.formattedDuration && (
+                {extendedProps?.duration && (
                     <CardFooter>
-                        {tooltip?.formattedDuration}
+                        {extendedProps?.duration}
                     </CardFooter>
                 )}
             </Card>

@@ -75,7 +75,7 @@ class FullCalendarEvent(
     var category = category?.string
   }
 
-  class Tooltip(var title: String?, var text: String, var markDown: Boolean, var formattedDuration: String?)
+  class Tooltip(var title: String?, var text: String, var markDown: Boolean)
 
   var start: EventDate? = null
 
@@ -106,18 +106,9 @@ class FullCalendarEvent(
   fun setTooltip(
     title: String,
     markDown: TooltipBuilder,
-    durationMillis: Long? = null,
-    formattedDuration: String? = null,
   ): Tooltip {
-    val duration = if (formattedDuration != null) {
-      formattedDuration
-    } else if (durationMillis != null) {
-      formatDuration(durationMillis, false)
-    } else {
-      null
-    }
     ensureExtendedProps().let { extendedProps ->
-      Tooltip(title, markDown.toString(), true, duration).let { tooltip ->
+      Tooltip(title, markDown.toString(), true).let { tooltip ->
         extendedProps.tooltip = tooltip
         return tooltip
       }
