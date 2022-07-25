@@ -399,7 +399,6 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
     }
     layout.getInputById("areaName").focus = true
     layout.watchFields.addAll(arrayOf("externalDownloadEnabled", "externalUploadEnabled"))
-    dto.layoutUid = layout.uid
 
     return LayoutUtils.processEditPage(layout, dto, this)
   }
@@ -410,13 +409,8 @@ class DataTransferAreaPagesRest : AbstractDTOPagesRest<DataTransferAreaDO, DataT
     dto: DataTransferArea,
     watchFieldsTriggered: Array<String>?
   ): ResponseEntity<ResponseAction> {
-    val preserveLayoutUid = dto.layoutUid
     val layout =
       createEditLayout(dto, UILayout.UserAccess(history = false, insert = true, update = true, delete = true))
-    preserveLayoutUid?.let {
-      layout.uid = it
-      dto.layoutUid = it
-    }
     DataTransferAreaDao.ensureSecureExternalAccess(dto)
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.UPDATE)
