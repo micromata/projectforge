@@ -24,10 +24,13 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.common.StringHelper
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.TimePeriod
+import org.projectforge.framework.utils.NumberFormatter
+import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 class FullCalendarEvent(
@@ -57,7 +60,6 @@ class FullCalendarEvent(
 
   class ExtendedProps(
     category: Category? = null,
-    var location: String? = null,
     var duration: String? = null,
     /**
      * For subscribed events.
@@ -75,7 +77,7 @@ class FullCalendarEvent(
     var category = category?.string
   }
 
-  class Tooltip(var title: String?, var text: String, var markDown: Boolean)
+  class Tooltip(var title: String?, var text: String)
 
   var start: EventDate? = null
 
@@ -104,14 +106,27 @@ class FullCalendarEvent(
   }
 
   fun setTooltip(
-    title: String,
-    markDown: TooltipBuilder,
+    title: String? = null,
+    tooltipBuilder: TooltipBuilder,
+  ): Tooltip {
+    return setTooltip(title, tooltipBuilder.toString())
+  }
+
+  fun setTooltip(
+    title: String? = null,
+    text: String,
   ): Tooltip {
     ensureExtendedProps().let { extendedProps ->
-      Tooltip(title, markDown.toString(), true).let { tooltip ->
+      Tooltip(title, text).let { tooltip ->
         extendedProps.tooltip = tooltip
         return tooltip
       }
+    }
+  }
+
+  fun setDuration(duration: Long) {
+    ensureExtendedProps().let { props ->
+      props.duration = formatDuration(duration)
     }
   }
 
@@ -129,7 +144,6 @@ class FullCalendarEvent(
       start: Date,
       end: Date,
       allDay: Boolean? = false,
-      location: String? = null,
       textColor: String? = null,
       backgroundColor: String? = null,
       classNames: String? = null,
@@ -150,38 +164,44 @@ class FullCalendarEvent(
       )
       if (allDay == true) {
         event.allDay = true
-        event.start = FullCalendarEvent.EventDate(day = PFDateTime.from(start).localDate)
-        event.end = FullCalendarEvent.EventDate(day = PFDateTime.from(end).localDate)
+        event.start = EventDate(day = PFDateTime.from(start).localDate)
+        event.end = EventDate(day = PFDateTime.from(end).localDate)
       } else {
-        event.start = FullCalendarEvent.EventDate(date = start)
-        event.end = FullCalendarEvent.EventDate(date = end)
+        event.start = EventDate(date = start)
+        event.end = EventDate(date = end)
       }
       event.ensureExtendedProps().let { props ->
         props.dbId = dbId
         props.uid = uid
-        props.location = location
         if (formattedDuration != null) {
           props.duration = formattedDuration
         } else if (duration != null) {
-          props.duration = formatDuration(duration)
+          event.setDuration(duration)
+        } else {
+          event.setDuration(end.time - start.time)
         }
       }
       return event
     }
 
+    /**
+     * @param end LocalDate inclusive (plus one day is used for export for Fullcalendar which uses enddate as
+     * exclusive for allDay events.
+     */
     fun createAllDayEvent(
       id: Any?,
       category: Category,
       title: String?,
       start: LocalDate,
       end: LocalDate = start,
-      location: String? = null,
       textColor: String? = null,
       backgroundColor: String? = null,
       classNames: String? = null,
       dbId: Int? = null,
       uid: String? = null,
       editable: Boolean = false,
+      formattedDuration: String? = null,
+      durationDays: BigDecimal? = null,
     ): FullCalendarEvent {
       val event = FullCalendarEvent(
         id = "$category-${id?.toString() ?: "-1"}",
@@ -193,12 +213,22 @@ class FullCalendarEvent(
         classNames = classNames,
         editable = editable,
       )
-      event.start = FullCalendarEvent.EventDate(day = start)
-      event.end = FullCalendarEvent.EventDate(day = end)
+      event.start = EventDate(day = start)
+      event.end = EventDate(day = end.plusDays(1))
       event.ensureExtendedProps().let { props ->
         props.dbId = dbId
         props.uid = uid
-        props.location = location
+        if (formattedDuration != null) {
+          props.duration = formattedDuration
+        } else {
+          val days = if (durationDays != null) {
+            NumberFormatter.format(durationDays)
+          } else {
+            (ChronoUnit.DAYS.between(start, end) + 1).toString()
+          }
+          val unit = if (days == "1") "calendar.day" else "days"
+          props.duration = "$days ${translate(unit)}"
+        }
       }
       return event
     }
@@ -222,17 +252,14 @@ class FullCalendarEvent(
       return event
     }
 
-    fun formatDuration(millis: Long, showTimePeriod: Boolean = false): String {
-      val fields = TimePeriod.getDurationFields(millis, 8, 200)
+    fun formatDuration(millis: Long): String {
+      val fields = TimePeriod.getDurationFields(millis, 24, 24)
       val buf = StringBuffer()
       if (fields[0] > 0) {
-        buf.append(fields[0]).append(ThreadLocalUserContext.getLocalizedString("calendar.unit.day")).append(" ")
+        buf.append(fields[0]).append(translate("calendar.unit.day")).append(" ")
       }
       buf.append(fields[1]).append(":").append(StringHelper.format2DigitNumber(fields[2]))
-        .append(ThreadLocalUserContext.getLocalizedString("calendar.unit.hour"))
-      if (showTimePeriod == true) {
-        buf.append(" (").append(ThreadLocalUserContext.getLocalizedString("calendar.month")).append(")")
-      }
+        .append(translate("calendar.unit.hour"))
       return buf.toString()
     }
   }

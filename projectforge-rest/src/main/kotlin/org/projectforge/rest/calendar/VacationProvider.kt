@@ -26,11 +26,13 @@ package org.projectforge.rest.calendar
 import mu.KotlinLogging
 import org.projectforge.business.vacation.VacationCache
 import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
 
 private val log = KotlinLogging.logger {}
 
@@ -65,26 +67,30 @@ open class VacationProvider {
     val vacations =
       vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
     vacations.forEach { vacation ->
-      val endDate = PFDay.fromOrNull(vacation.endDate)?.format() ?: ""
-      val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()} ${translate("date.until")} $endDate"
+      val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()}"
       if (!events.any {
           it.title == title && FullCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) &&
               vacation.status != VacationStatus.REJECTED
         }) {
+        val duration = VacationService.getVacationDays(vacation)
+        val unit = if (duration == BigDecimal.ONE) "fibu.common.workingDay" else "fibu.common.workingDays"
         // Event doesn't yet exist:
-        events.add(
-          FullCalendarEvent.createAllDayEvent(
-            id = vacation.id,
-            category = FullCalendarEvent.Category.VACATION,
-            title = title,
-            start = vacation.startDate!!,
-            end = vacation.endDate!!,
-            backgroundColor = bgColor,
-            textColor = fgColor,
-            dbId = vacation.id,
-            classNames = "vacation-event"
-          )
+        val event = FullCalendarEvent.createAllDayEvent(
+          id = vacation.id,
+          category = FullCalendarEvent.Category.VACATION,
+          title = title,
+          start = vacation.startDate!!,
+          end = vacation.endDate!!,
+          backgroundColor = bgColor,
+          textColor = fgColor,
+          dbId = vacation.id,
+          classNames = "vacation-event",
+          formattedDuration = "$duration ${translate(unit)}"
         )
+        val startDate = PFDay.fromOrNull(vacation.startDate)?.format() ?: ""
+        val endDate = PFDay.fromOrNull(vacation.endDate)?.format() ?: ""
+        event.setTooltip(title, "$startDate - $endDate")
+        events.add(event)
       }
     }
   }
