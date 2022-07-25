@@ -42,7 +42,11 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(
   var id: Int? = null,
   var deleted: Boolean = false,
   var created: Date? = null,
-  var lastUpdate: Date? = null
+  var lastUpdate: Date? = null,
+  /**
+   * Needed for updating UILayout for watchfields (uid of "old" layout will be restored.
+   */
+  var layoutUid: String? = null,
 ) {
 
   /**
