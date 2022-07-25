@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import org.apache.commons.lang3.StringUtils
 import org.apache.commons.text.StringEscapeUtils
 
 class TooltipBuilder() {
@@ -33,14 +34,17 @@ class TooltipBuilder() {
     sb.append("<table>")
   }
 
-  fun addPropRow(label: String, value: String?, escapeHtml: Boolean = true, pre: Boolean = false): TooltipBuilder {
+  fun addPropRow(label: String, value: String?, abbreviate: Boolean? = null, escapeHtml: Boolean = true, pre: Boolean = false): TooltipBuilder {
     if (value.isNullOrBlank()) {
       return this
     }
-    var displayValue = if (escapeHtml) {
-      StringEscapeUtils.escapeHtml4(value)
+    var displayValue = if (abbreviate == true) {
+      StringUtils.abbreviate(value, 60)
     } else {
       value
+    }
+    if (escapeHtml) {
+      displayValue = StringEscapeUtils.escapeHtml4(displayValue)
     }
     if (pre && value.contains("\n")) {
       displayValue = "<pre>$displayValue</pre>"

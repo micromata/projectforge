@@ -111,7 +111,7 @@ class TimesheetEventsProvider {
                     lastStopTime = stopTime*/
         }
         val title: String = CalendarHelper.getTitle(timesheet)
-        val formattedDuration = FullCalendarEvent.formatDuration(timesheet.getDuration(), false)
+        val formattedDuration = FullCalendarEvent.formatDuration(timesheet.getDuration())
         /*var outOfRange: Boolean? = null
         //if (ctx.longFormat) {
         // }
@@ -126,7 +126,6 @@ class TimesheetEventsProvider {
           start = timesheet.startTime!!,
           end = timesheet.stopTime!!,
           editable = true,
-          location = timesheet.location,
           formattedDuration = formattedDuration,
           classNames = "timesheet",
           dbId = timesheet.id,
@@ -142,8 +141,8 @@ class TimesheetEventsProvider {
               TaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.HTML),
               escapeHtml = false,
             )
-            .addPropRow(translate("timesheet.location"), timesheet.location)
-            .addPropRow(translate("description"), timesheet.description, pre = true)
+            .addPropRow(translate("timesheet.location"), timesheet.location, abbreviate = true)
+            .addPropRow(translate("description"), timesheet.description, pre = true, abbreviate = true)
           event.setTooltip("${translate("timesheet")}: ${timesheetUser?.displayName}", tooltipBuilder)
         }
 
@@ -172,7 +171,7 @@ class TimesheetEventsProvider {
           day = day.plusDays(1)
           continue
         }
-        val durationString = FullCalendarEvent.formatDuration(duration, false)
+        val durationString = FullCalendarEvent.formatDuration(duration)
         val title = if (firstDayOfWeek) { // Show week of year at top of first day of week.
           var weekDuration: Long = 0
           for (i in 0..6) {
@@ -185,7 +184,7 @@ class TimesheetEventsProvider {
           val buf = StringBuffer()
           buf.append(translate("calendar.weekOfYearShortLabel")).append(day.weekOfYear)
           if (ctx.days > 1 && weekDuration > 0) { // Show total sum of durations over all time sheets of current week (only in week and month view).
-            buf.append(": ").append(FullCalendarEvent.formatDuration(weekDuration, false))
+            buf.append(": ").append(FullCalendarEvent.formatDuration(weekDuration))
           }
           if (duration > 0) {
             buf.append(", ").append(durationString)

@@ -90,7 +90,6 @@ class CalEventsProvider() {
         end = it.endDate!!,
         allDay = allDay,
         editable = true,
-        location = it.location,
         dbId = dbId,
         uid = uid,
         backgroundColor = style?.bgColor,

@@ -34,6 +34,7 @@ import org.projectforge.business.utils.HtmlHelper
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper.greaterZero
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
@@ -97,36 +98,49 @@ open class TeamCalEventsProvider() {
         uid = "${eventDO.calendarId}-${eventDO.uid}"
       }
       val duration = it.endDate!!.time - it.startDate!!.time
-      val event = FullCalendarEvent.createEvent(
-        id = dbId ?: uid,
-        category = FullCalendarEvent.Category.TEAM_CAL_EVENT,
-        title = it.subject,
-        start = it.startDate!!,
-        end = it.endDate!!,
-        allDay = allDay,
-        duration = duration,
-        editable = true,
-        location = it.location,
-        dbId = dbId,
-        uid = uid,
-        backgroundColor = style?.bgColor,
-        textColor = style?.fgColor
-      )
+      val event = if (allDay) {
+        val start = PFDay.fromOrNow(it.startDate).localDate
+        val end = PFDay.fromOrNow(it.endDate).localDate
+        FullCalendarEvent.createAllDayEvent(
+          id = dbId ?: uid,
+          category = FullCalendarEvent.Category.TEAM_CAL_EVENT,
+          title = it.subject,
+          start = start,
+          end = end,
+        )
+      } else {
+        FullCalendarEvent.createEvent(
+          id = dbId ?: uid,
+          category = FullCalendarEvent.Category.TEAM_CAL_EVENT,
+          title = it.subject,
+          start = it.startDate!!,
+          end = it.endDate!!,
+        )
+      }
+      event.setDuration(duration)
+      event.editable = true
+      event.ensureExtendedProps().let { props ->
+        props.dbId = dbId
+        props.uid = uid
+      }
+      event.backgroundColor = style?.bgColor
+      event.textColor = style?.fgColor
+
       val tooltipBuilder = TooltipBuilder()
       val title = eventDO.calendar?.title ?: ""
       eventDO.subject?.let {
         if (it.isNotBlank()) {
-          tooltipBuilder.addPropRow(translate("plugins.teamcal.event.subject"), it)
+          tooltipBuilder.addPropRow(translate("plugins.teamcal.event.subject"), it, abbreviate = true)
         }
       }
       eventDO.location?.let {
         if (it.isNotBlank()) {
-          tooltipBuilder.addPropRow(translate("plugins.teamcal.event.location"), it)
+          tooltipBuilder.addPropRow(translate("plugins.teamcal.event.location"), it, abbreviate = true)
         }
       }
       eventDO.note?.let {
         if (it.isNotBlank()) {
-          tooltipBuilder.addPropRow(translate("plugins.teamcal.event.note"), it)
+          tooltipBuilder.addPropRow(translate("plugins.teamcal.event.note"), it, abbreviate = true)
         }
       }
       if (eventDO.hasRecurrence()) {

@@ -16,13 +16,13 @@ import FormModal from '../../page/form/FormModal';
 
 /*
 TODO:
- - Popovers: Urlaub von/bis, sonst wie klassisch
+ - Geburtstage
+ - Speichern von neuen Kalendereinträgen in Filter (Update, Reload)
  - show duration in Event (not only in Popover)
  - org.projectforge.business.address.AddressDao.hasAccess (AddressDao.java:291): session is null.
  - Handling of recurring events.
  - click on birthdays -> open address view.
  - Unterscheidung: freie Feiertage und andere Feiertage.
- - Zeitberichte: Anzeige im Event wie klassisch.
  - Raster einstellen.
  - Update Kalender und ggf. Datum nach Anlage/Editieren von Einträgen
  - Breaks
