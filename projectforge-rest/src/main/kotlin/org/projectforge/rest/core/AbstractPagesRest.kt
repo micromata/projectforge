@@ -310,6 +310,18 @@ constructor(
   open fun createEditLayout(dto: DTO, userAccess: UILayout.UserAccess): UILayout {
     val titleKey = if (getId(dto) != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
     val ui = UILayout(titleKey, getRestPath())
+    if (dto is BaseDTO<*>) {
+      dto.layoutUid.let {
+        // Now we have to handle the layout uid. By default, the layout's uid will switch on every
+        // creation resulting in different html id's. This would result in client errors, e. g. if
+        // element id's with tooltips are changed.
+        if (it.isNullOrBlank()) {
+          dto.layoutUid = ui.uid // Preserve uid of new layout for later recovery.
+        } else {
+          ui.uid = it // Recover layout uid from previous creation.
+        }
+      }
+    }
     ui.userAccess.copyFrom(userAccess)
     return ui
   }
