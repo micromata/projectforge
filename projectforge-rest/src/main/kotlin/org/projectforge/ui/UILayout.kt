@@ -99,7 +99,7 @@ class UILayout(
   val watchFields = mutableListOf<String>()
 
   /**
-   * UID usable by the client for having unique dialoque ids.
+   * UID usable by the client for having unique dialogue ids.
    */
   var uid = "layout${System.currentTimeMillis()}"
 
