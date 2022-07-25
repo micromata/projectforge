@@ -48,8 +48,16 @@ public class HtmlHelper
 
   /**
    * @param str              The string to convert.
-   * @param createLineBreaks If true then new lines will be replaced by newlines and &lt;br/&gt;
-   * @return
+   * @see StringEscapeUtils#escapeHtml4(String)
+   */
+  public static String escapeHtml(final String str)
+  {
+    return escapeHtml(str, false);
+  }
+
+  /**
+   * @param str              The string to convert.
+   * @param createLineBreaks If true then new lines will be replaced by newlines and &lt;br/&gt; Default is false.
    * @see StringEscapeUtils#escapeHtml4(String)
    */
   public static String escapeHtml(final String str, final boolean createLineBreaks)

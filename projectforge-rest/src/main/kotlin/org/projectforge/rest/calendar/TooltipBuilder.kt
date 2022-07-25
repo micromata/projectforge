@@ -56,5 +56,4 @@ class TooltipBuilder() {
     }
     return sb.toString()
   }
-
 }

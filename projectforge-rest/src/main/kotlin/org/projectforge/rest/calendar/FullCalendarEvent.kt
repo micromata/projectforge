@@ -137,6 +137,7 @@ class FullCalendarEvent(
       uid: String? = null,
       editable: Boolean = false,
       formattedDuration: String? = null,
+      duration: Long? = null,
     ): FullCalendarEvent {
       val event = FullCalendarEvent(
         id = "$category-${id?.toString() ?: "-1"}",
@@ -159,7 +160,11 @@ class FullCalendarEvent(
         props.dbId = dbId
         props.uid = uid
         props.location = location
-        props.duration = formattedDuration
+        if (formattedDuration != null) {
+          props.duration = formattedDuration
+        } else if (duration != null) {
+          props.duration = formatDuration(duration)
+        }
       }
       return event
     }
