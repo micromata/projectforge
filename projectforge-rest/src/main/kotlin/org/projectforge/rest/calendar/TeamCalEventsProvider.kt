@@ -28,9 +28,13 @@ import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.TeamEventFilter
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus
 import org.projectforge.business.teamcal.event.model.TeamEventDO
+import org.projectforge.business.utils.HtmlHelper
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.NumberHelper.greaterZero
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import org.springframework.beans.factory.annotation.Autowired
@@ -92,6 +96,7 @@ open class TeamCalEventsProvider() {
         dbId = null
         uid = "${eventDO.calendarId}-${eventDO.uid}"
       }
+      val duration = it.endDate!!.time - it.startDate!!.time
       val event = FullCalendarEvent.createEvent(
         id = dbId ?: uid,
         category = FullCalendarEvent.Category.TEAM_CAL_EVENT,
@@ -99,6 +104,7 @@ open class TeamCalEventsProvider() {
         start = it.startDate!!,
         end = it.endDate!!,
         allDay = allDay,
+        duration = duration,
         editable = true,
         location = it.location,
         dbId = dbId,
@@ -106,22 +112,78 @@ open class TeamCalEventsProvider() {
         backgroundColor = style?.bgColor,
         textColor = style?.fgColor
       )
-      /*
-      val tooltipText = TooltipBuilder().appendProps()
-      timesheet.kost2?.let { kost2 ->
-        tooltipText.appendProp(translate("fibu.kost2"), KostFormatter.formatLong(kost2))
+      val tooltipBuilder = TooltipBuilder()
+      val title = eventDO.calendar?.title ?: ""
+      eventDO.subject?.let {
+        if (it.isNotBlank()) {
+          tooltipBuilder.addPropRow(translate("plugins.teamcal.event.subject"), it)
+        }
       }
-      tooltipText
-        .appendProp(
-          translate("task"),
-          TaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.HTML),
-          escapeHtml = false,
+      eventDO.location?.let {
+        if (it.isNotBlank()) {
+          tooltipBuilder.addPropRow(translate("plugins.teamcal.event.location"), it)
+        }
+      }
+      eventDO.note?.let {
+        if (it.isNotBlank()) {
+          tooltipBuilder.addPropRow(translate("plugins.teamcal.event.note"), it)
+        }
+      }
+      if (eventDO.hasRecurrence()) {
+        val recurrenceData = eventDO.getRecurrenceData(ThreadLocalUserContext.getTimeZone())
+        val frequency = recurrenceData.frequency
+        if (frequency != null) {
+          val unitI18nKey = frequency.unitI18nKey
+          if (unitI18nKey != null) {
+            tooltipBuilder.addPropRow(
+              translate("plugins.teamcal.event.recurrence"),
+              recurrenceData.interval.toString() + " " + translate(unitI18nKey),
+            )
+          }
+        }
+      }
+
+      if (eventDO.reminderActionType != null && greaterZero(eventDO.reminderDuration) && eventDO.reminderDurationUnit != null) {
+        tooltipBuilder.addPropRow(
+          translate("plugins.teamcal.event.reminder"),
+          translate(eventDO.reminderActionType!!.i18nKey)
+              + " "
+              + eventDO.reminderDuration
+              + " "
+              + translate(eventDO.reminderDurationUnit!!.i18nKey)
         )
-        .appendProp(translate("timesheet.location"), timesheet.location)
-        .appendProp(translate("description"), timesheet.description)
-        .appendDuration(formattedDuration)
-      event.setTooltip("${translate("timesheet")}: ${timesheetUser?.displayName}", tooltipText)*/
-      // .addParam("note", it.note)
+      }
+      eventDO.attendees?.let { attendees ->
+        if (attendees.isNotEmpty()) {
+          val sb = StringBuilder()
+          sb.append("<ul>")
+          attendees.forEach { teamEventAttendeeDO ->
+            sb.append("<li>")
+            if (teamEventAttendeeDO.user != null) {
+              sb.append(HtmlHelper.escapeHtml(teamEventAttendeeDO.user!!.getFullname()))
+            } else if (teamEventAttendeeDO.url != null) {
+              sb.append(HtmlHelper.escapeHtml(teamEventAttendeeDO.url))
+            } else {
+              sb.append(HtmlHelper.escapeHtml(teamEventAttendeeDO.address!!.fullName))
+            }
+            teamEventAttendeeDO.status.let { status ->
+              if (status != null) {
+                sb.append("  [")
+                  .append(HtmlHelper.escapeHtml(translate(status.i18nKey)))
+                  .append("]")
+              } else {
+                sb.append("  [")
+                  .append(HtmlHelper.escapeHtml(translate(TeamEventAttendeeStatus.IN_PROCESS.i18nKey)))
+                  .append("]")
+              }
+            }
+            sb.append("</li>")
+          }
+          sb.append("</ul>")
+          tooltipBuilder.addPropRow(translate("plugins.teamcal.attendees"), sb.toString(), escapeHtml = false)
+        }
+      }
+      event.setTooltip(title, tooltipBuilder)
       events.add(event)
     }
     for (calId in teamCalendarIds) {
