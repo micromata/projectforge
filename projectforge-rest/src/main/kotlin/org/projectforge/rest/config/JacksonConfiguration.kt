@@ -35,6 +35,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import mu.KotlinLogging
 import org.hibernate.proxy.AbstractLazyInitializer
 import org.projectforge.business.address.AddressbookDO
+import org.projectforge.business.calendar.StyledTeamCalendar
 import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.KundeDO
@@ -170,6 +171,7 @@ open class JacksonConfiguration {
       )
       registerAllowedUnknownProperties(TeamEvent::class.java, "task") // Switch from time sheet.
       registerAllowedUnknownProperties(CalEvent::class.java, "task") // Switch from time sheet.
+      registerAllowedUnknownProperties(StyledTeamCalendar::class.java, "label", "filterType")
 
       registeredDelegatingDeserializer(
         Customer::class.java,

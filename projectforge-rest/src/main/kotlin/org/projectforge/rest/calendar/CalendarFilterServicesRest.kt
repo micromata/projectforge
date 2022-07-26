@@ -331,8 +331,8 @@ class CalendarFilterServicesRest {
     return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
   }
 
-  @GetMapping("changeGridSizer")
-  fun changeGridSizer(@RequestParam("size", required = true) sizeString: String): Map<String, Any> {
+  @GetMapping("changeGridSize")
+  fun changeGridSize(@RequestParam("size", required = true) sizeString: String): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     val size = NumberHelper.parseInteger(sizeString)
     if (size != null && size in intArrayOf(5, 10, 15, 30, 60)) {
