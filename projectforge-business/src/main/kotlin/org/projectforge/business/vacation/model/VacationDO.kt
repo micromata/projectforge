@@ -93,7 +93,7 @@ open class VacationDO : DefaultBaseDO() {
   @PropertyInfo(i18nKey = "vacation.replacement.others")
   @IndexedEmbedded(depth = 1)
   @get:Column(nullable = true) // Needed for telling MGC that this field is nullable.
-  @get:ManyToMany
+  @get:ManyToMany(fetch = FetchType.EAGER)
   @get:JoinTable(
     name = "t_employee_vacation_other_replacements",
     joinColumns = [JoinColumn(name = "vacation_id", referencedColumnName = "PK")],

@@ -89,7 +89,10 @@ open class VacationProvider {
         )
         val startDate = PFDay.fromOrNull(vacation.startDate)?.format() ?: ""
         val endDate = PFDay.fromOrNull(vacation.endDate)?.format() ?: ""
-        event.setTooltip(title, "$startDate - $endDate")
+        val tb = TooltipBuilder()
+          .addPropRow(translate("timePeriod"), "$startDate - $endDate")
+          .addPropRow(translate("vacation.replacement"), vacation.allReplacements.joinToString { it.displayName })
+        event.setTooltip(title, tb)
         events.add(event)
       }
     }
