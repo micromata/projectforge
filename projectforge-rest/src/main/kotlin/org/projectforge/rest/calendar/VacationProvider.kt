@@ -24,6 +24,7 @@
 package org.projectforge.rest.calendar
 
 import mu.KotlinLogging
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.vacation.VacationCache
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.service.VacationService
@@ -41,6 +42,9 @@ private val log = KotlinLogging.logger {}
  */
 @Component
 open class VacationProvider {
+  @Autowired
+  private lateinit var userGroupCache: UserGroupCache
+
   @Autowired
   private lateinit var vacationCache: VacationCache
 
@@ -67,7 +71,8 @@ open class VacationProvider {
     val vacations =
       vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
     vacations.forEach { vacation ->
-      val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()}"
+      val employeeUser = userGroupCache.getUser(vacation.employee)
+      val title = "${translate("vacation")}: ${employeeUser?.getFullname()}"
       if (!events.any {
           it.title == title && FullCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) &&
               vacation.status != VacationStatus.REJECTED
@@ -91,7 +96,9 @@ open class VacationProvider {
         val endDate = PFDay.fromOrNull(vacation.endDate)?.format() ?: ""
         val tb = TooltipBuilder()
           .addPropRow(translate("timePeriod"), "$startDate - $endDate")
-          .addPropRow(translate("vacation.replacement"), vacation.allReplacements.joinToString { it.displayName })
+          .addPropRow(
+            translate("vacation.replacement"),
+            vacation.allReplacements.joinToString { userGroupCache.getUser(it)?.displayName ?: "???" })
         event.setTooltip(title, tb)
         events.add(event)
       }

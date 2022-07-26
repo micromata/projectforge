@@ -24,6 +24,7 @@
 package org.projectforge.business.user
 
 import mu.KotlinLogging
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.login.Login
@@ -84,9 +85,9 @@ open class UserGroupCache() : AbstractCache() {
   private var userMap: MutableMap<Int, PFUserDO?>? = null
 
   /**
-   * Key is user id, value is employee id.
+   * Key is user id.
    */
-  private var employeeMap: MutableMap<Int?, Int>? = null
+  private var employeeMap = mapOf<Int?, EmployeeDO>()
   private var adminUsers: MutableSet<Int>? = null
   private var financeUsers: Set<Int>? = null
   private var controllingUsers: Set<Int>? = null
@@ -348,18 +349,13 @@ open class UserGroupCache() : AbstractCache() {
   fun getEmployeeId(userId: Int?): Int? {
     userId ?: return null
     checkRefresh()
-    var employeeId = employeeMap!![userId]
-    if (employeeId == null) {
-      employeeId = employeeDao.getEmployeeIdByByUserId(userId)
-      if (employeeId == null) {
-        employeeMap!![userId] = Int.MIN_VALUE
-        return null
-      }
-      employeeMap!![userId] = employeeId
-    } else if (employeeId == Int.MIN_VALUE) {
-      return null
-    }
-    return employeeId
+    return employeeMap[userId]?.id
+  }
+
+  fun getUser(employeeDO: EmployeeDO?): PFUserDO? {
+    employeeDO ?: return null
+    val userId = employeeMap.values.find { it.id == employeeDO.id }?.userId
+    return getUser(userId)
   }
 
   /**
@@ -449,7 +445,11 @@ open class UserGroupCache() : AbstractCache() {
     }
     userMap = uMap
     groupMap = gMap
-    employeeMap = HashMap()
+    val nEmployeeMap = mutableMapOf<Int?, EmployeeDO>()
+    employeeDao.internalLoadAll().forEach { employeeDO ->
+      nEmployeeMap[employeeDO.userId] = employeeDO
+    }
+    employeeMap = nEmployeeMap
     adminUsers = nAdminUsers
     financeUsers = nFinanceUser
     controllingUsers = nControllingUsers
