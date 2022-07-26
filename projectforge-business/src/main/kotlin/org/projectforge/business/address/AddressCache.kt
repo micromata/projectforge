@@ -55,8 +55,10 @@ class AddressCache(private val addressDao: AddressDao) : AbstractCache(), BaseDO
    */
   fun getAddressbooks(address: AddressDO): Set<AddressbookDO>? {
     val id = address.id ?: return null
-    addressMap[id]?.let {
-      return it
+    synchronized(addressMap) {
+      addressMap[id]?.let {
+        return it
+      }
     }
     val result = address.addressbookList ?: mutableSetOf()
     synchronized(addressMap) {
