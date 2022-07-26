@@ -16,22 +16,19 @@ import FormModal from '../../page/form/FormModal';
 
 /*
 TODO:
- - Geburtstage
- - Speichern von neuen Kalendereinträgen in Filter (Update, Reload)
- - show duration in Event (not only in Popover)
  - org.projectforge.business.address.AddressDao.hasAccess (AddressDao.java:291): session is null.
  - Handling of recurring events.
- - click on birthdays -> open address view.
  - Unterscheidung: freie Feiertage und andere Feiertage.
- - Raster einstellen.
  - Update Kalender und ggf. Datum nach Anlage/Editieren von Einträgen
+ - height of calendar
  - Breaks
 */
 
 function FullCalendarPanel(options) {
     const {
         activeCalendars, timesheetUserId, locale, firstDayOfWeek,
-        defaultDate, defaultView, match, translations,
+        defaultDate, defaultView, match, translations, gridSize,
+        vacationGroups, vacationUsers,
     } = options;
     const [currentHoverEvent, setCurrentHoverEvent] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -40,6 +37,7 @@ function FullCalendarPanel(options) {
         view: defaultView,
     });
     const activeCalendarsRef = useRef(activeCalendars);
+    const timesheetUserIdRef = useRef(timesheetUserId);
 
     const tooltipRef = useRef(undefined);
     const popperRef = useRef(undefined);
@@ -53,6 +51,14 @@ function FullCalendarPanel(options) {
     // interval of the requested events.
     const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
 
+    const getSlotDuration = (newGridSize) => {
+        let slotDuration = `00:${newGridSize}:00`;
+        if (newGridSize < 10) {
+            slotDuration = `00:0${newGridSize}:00`;
+        }
+        return slotDuration;
+    };
+
     useEffect(() => {
         const currentApi = calendarRef && calendarRef.current && calendarRef.current.getApi();
         if (!currentApi) {
@@ -60,16 +66,36 @@ function FullCalendarPanel(options) {
             return;
         }
         activeCalendarsRef.current = activeCalendars;
+        timesheetUserIdRef.current = timesheetUserId;
         currentApi.refetchEvents();
-    }, [activeCalendars, timesheetUserId]);
+    }, [activeCalendars, timesheetUserId, vacationGroups, vacationUsers]);
+
+    useEffect(() => {
+        const currentApi = calendarRef && calendarRef.current && calendarRef.current.getApi();
+        if (!currentApi) {
+            // console.log('no api yet available.');
+            return;
+        }
+        currentApi.slotDuration = getSlotDuration(gridSize);
+    }, [gridSize]);
 
     useEffect(() => {
         // Current state (view/date) changed, so store it in the user's prefs:
         const { date, view } = currentState;
         if (date && view) {
-            fetchGet('calendar/storeState', { date: date.toISOString(), view, timeZone });
+            fetchJsonPost(
+                'calendar/storeState',
+                {
+                    date: date.toISOString(),
+                    view,
+                    timeZone,
+                    activeCalendars,
+                },
+                // eslint-disable-next-line @typescript-eslint/no-empty-function
+                () => { },
+            );
         }
-    }, [currentState]);
+    }, [activeCalendars, currentState]);
 
     const handleEventMouseEnter = (info) => {
         if (!tooltipRef.current) {
@@ -133,7 +159,11 @@ function FullCalendarPanel(options) {
         // start date is send to the server and is needed for series events to detect the
         // current selected event of a series.
         // eslint-disable-next-line max-len
-        history.push(`${match.url}/${category}/edit/${id}?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
+        if (category === 'address') {
+            history.push(`${match.url}/addressView/dynamic/${id}`);
+        } else {
+            history.push(`${match.url}/${category}/edit/${id}?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
+        }
     };
 
     const handleEventResize = (info) => {
@@ -169,15 +199,17 @@ function FullCalendarPanel(options) {
     const fetchEvents = (info, successCallback) => {
         setLoading(true);
         const { start, end } = info;
-        const { current } = activeCalendarsRef;
-        const activeCalendarIds = current ? current.map((obj) => obj.id) : [];
+        const { current: activeCalendarsCurrent } = activeCalendarsRef;
+        const activeCalendarIds = activeCalendarsCurrent
+            ? activeCalendarsCurrent.map((obj) => obj.id) : [];
+        const { current: timesheetUserIdCurrent } = timesheetUserIdRef;
         fetchJsonPost(
             'calendar/events',
             {
                 start,
                 end,
                 activeCalendarIds,
-                timesheetUserId,
+                timesheetUserId: timesheetUserIdCurrent,
                 useVisibilityState: true,
                 // Needed as a workaround if the user's timezone (backend) differs from timezone of
                 // the browser. BigCalendar doesn't use moment's timezone for converting the
@@ -203,6 +235,7 @@ function FullCalendarPanel(options) {
             type: 'timeGridWeek',
             weekends: false,
             buttonText: `${translations['calendar.view.timeGridWorkingWeek']}`,
+            slotDuration: `${getSlotDuration(gridSize)}`,
         },
         listMonth: {
             buttonText: `${translations['calendar.view.monthAgenda']}`,
@@ -244,7 +277,7 @@ function FullCalendarPanel(options) {
                     eventMouseEnter={handleEventMouseEnter}
                     eventMouseLeave={handleEventMouseLeave}
                 />
-            ), [])}
+            ), [gridSize])}
             <CalendarEventTooltip
                 forwardRef={tooltipRef}
                 event={currentHoverEvent}

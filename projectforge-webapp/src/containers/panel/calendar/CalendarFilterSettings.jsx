@@ -109,7 +109,7 @@ class CalendarFilterSettings extends Component {
         const { saveUpdateResponseInState } = this.context;
         const size = gridSize ? gridSize.value : 30;
         fetchJsonGet(
-            'calendar/changeGridSizer',
+            'calendar/changeGridSize',
             { size },
             (json) => {
                 onGridSizeChange(size);

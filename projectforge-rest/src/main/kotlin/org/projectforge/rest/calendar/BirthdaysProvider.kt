@@ -100,7 +100,8 @@ object BirthdaysProvider {
           start = date.beginOfDay.localDate,
           backgroundColor = bgColor,
           textColor = fgColor,
-          dbId = birthdayAddress.address?.id
+          dbId = birthdayAddress.address?.id,
+          editable = true,
         )
       )
     }

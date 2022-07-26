@@ -31,7 +31,7 @@ import java.util.*
  */
 class CalendarRestFilter(
   var start: Date? = null,
-  /** Optional, if view is given. */
+  /** Optional, if view isn't given. */
   var end: Date? = null,
   var timesheetUserId: Int? = null,
   /**

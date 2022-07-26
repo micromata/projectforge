@@ -27,6 +27,7 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarView
+import org.projectforge.business.calendar.StyledTeamCalendar
 import org.projectforge.business.calendar.TeamCalendar
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
@@ -36,6 +37,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.rest.calendar.CalendarFilterServicesRest.Companion.getCurrentFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.ui.ResponseAction
@@ -60,6 +62,13 @@ class CalendarServicesRest {
   internal class CalendarData(
     val date: LocalDate,
     @Suppress("unused") val events: List<FullCalendarEvent>,
+  )
+
+  class CalendarState(
+    var date: String?,
+    var view: String?,
+    var timeZone: String?,
+    var activeCalendars: Collection<StyledTeamCalendar?>?
   )
 
   private class DateTimeRange(
@@ -182,36 +191,43 @@ class CalendarServicesRest {
     return ResponseEntity(responseAction, HttpStatus.OK)
   }
 
-  @GetMapping("storeState")
-  fun setViewType(
-    @RequestParam("date") dateString: String?,
-    @RequestParam("view") viewString: String?,
-    @RequestParam("timeZone") timeZoneString: String?,
-  ) {
-    if (dateString.isNullOrBlank()) {
-      return
-    }
-    val timeZone = if (timeZoneString != null) {
-      TimeZone.getTimeZone(timeZoneString)
-    } else {
-      ThreadLocalUserContext.getTimeZone()
-    }
-    val dateTime = ZonedDateTime.parse(dateString, DateTimeFormatter.ISO_DATE_TIME.withZone(timeZone.toZoneId()))
-    val date = dateTime.toLocalDate()
-    if (date != null && !viewString.isNullOrBlank()) {
-      val view = CalendarView.from(viewString)
-      val filterState = calendarFilterServicesRest.getFilterState()
-      if (view == CalendarView.MONTH) {
-        var day = PFDay.from(date)
-        if (day.dayOfMonth > 1) {
-          day = day.plusMonths(1).withDayOfMonth(1)
-        }
-        filterState.startDate = day.localDate
+  @PostMapping("storeState")
+  fun storeState(@RequestBody state: CalendarState): ResponseEntity<Any> {
+    val dateString = state.date
+    val timeZoneString = state.timeZone
+    val viewString = state.view
+    val filterState = calendarFilterServicesRest.getFilterState()
+    if (!dateString.isNullOrBlank()) {
+      val timeZone = if (timeZoneString != null) {
+        TimeZone.getTimeZone(timeZoneString)
       } else {
-        filterState.startDate = date
+        ThreadLocalUserContext.getTimeZone()
       }
-      filterState.view = view
+      val dateTime = ZonedDateTime.parse(dateString, DateTimeFormatter.ISO_DATE_TIME.withZone(timeZone.toZoneId()))
+      val date = dateTime.toLocalDate()
+      if (date != null && !viewString.isNullOrBlank()) {
+        val view = CalendarView.from(viewString)
+        if (view == CalendarView.MONTH) {
+          var day = PFDay.from(date)
+          if (day.dayOfMonth > 1) {
+            day = day.plusMonths(1).withDayOfMonth(1)
+          }
+          filterState.startDate = day.localDate
+        } else {
+          filterState.startDate = date
+        }
+        filterState.view = view
+      }
     }
+    state.activeCalendars?.let { activeCalendars ->
+      getCurrentFilter(userPrefService)?.let { currentFilter ->
+        currentFilter.calendarIds = activeCalendars.mapNotNull { it?.id }.toMutableSet()
+        // currentFilter.showVacations = restFilter.showVacations
+        // currentFilter.vacationGroupIds = restFilter.vacationGroupIds
+        // currentFilter.vacationUserIds = restFilter.vacationUserIds
+      }
+    }
+    return ResponseEntity("{}", HttpStatus.OK)
   }
 
   private fun buildEvents(filter: CalendarRestFilter): CalendarData { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
