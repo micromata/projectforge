@@ -16,8 +16,8 @@ import FormModal from '../../page/form/FormModal';
 
 /*
 TODO:
+ - Next full week inside month is displayed.
  - Handling of recurring events.
- - Unterscheidung: freie Feiertage und andere Feiertage.
  - height of calendar
  - Breaks
 */

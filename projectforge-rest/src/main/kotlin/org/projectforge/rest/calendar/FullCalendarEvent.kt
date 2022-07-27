@@ -50,7 +50,8 @@ class FullCalendarEvent(
     TIMESHEET_STATS("timesheet-stats"),
     VACATION("vacation"),
     CAL_EVENT("calEvent"),
-    TEAM_CAL_EVENT("teamEvent")
+    TEAM_CAL_EVENT("teamEvent"),
+    HOLIDAY("holiday"),
   }
 
   class EventDate(
@@ -189,11 +190,11 @@ class FullCalendarEvent(
      * exclusive for allDay events.
      */
     fun createAllDayEvent(
-      id: Any?,
-      category: Category,
       title: String?,
       start: LocalDate,
       end: LocalDate = start,
+      id: Any? = null,
+      category: Category? = null,
       textColor: String? = null,
       backgroundColor: String? = null,
       classNames: String? = null,
@@ -242,8 +243,11 @@ class FullCalendarEvent(
       end: LocalDate? = null,
       classNames: String? = null,
       title: String? = null,
+      category: Category? = null,
     ): FullCalendarEvent {
-      val event = FullCalendarEvent()
+      val event = FullCalendarEvent(
+        category = category,
+      )
       event.start = EventDate(day = start)
       event.end = EventDate(day = end ?: start)
       event.display = "background"

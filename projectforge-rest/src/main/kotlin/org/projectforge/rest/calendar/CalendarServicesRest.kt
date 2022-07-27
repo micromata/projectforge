@@ -275,13 +275,25 @@ class CalendarServicesRest {
 
     val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
     specialDays.forEach { specialDay ->
-      events.add(
-        FullCalendarEvent.createBackgroundEvent(
-          title = specialDay.holidayTitle,
-          start = specialDay.date,
-          classNames = "fc-holiday-weekend",
+      if (!specialDay.holidayTitle.isBlank()) {
+        // Show allday entry with title:
+        events.add(
+          FullCalendarEvent.createAllDayEvent(
+            title = specialDay.holidayTitle,
+            start = specialDay.date,
+            textColor = "red",
+            classNames = "fc-holiday-weekend",
+          )
         )
-      )
+      }
+      if (!specialDay.workingDay) {
+        events.add(
+          FullCalendarEvent.createBackgroundEvent(
+            start = specialDay.date,
+            classNames = "fc-holiday-weekend",
+          )
+        )
+      }
     }
     return CalendarData(range.start.localDate, events)
   }
