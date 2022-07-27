@@ -16,11 +16,7 @@ function CalendarPage({ match, location }) {
     const [loading, setLoading] = useState(true);
     const [translations, setTranslations] = useState(undefined);
     const queryParams = new URLSearchParams(window.location.search);
-    const dateParamString = queryParams.get('date');
-    let dateParam;
-    if (dateParamString) {
-        dateParam = new Date(dateParamString);
-    }
+    const dateParam = queryParams.get('date');
     const [state, setState] = useState({
         colors: {},
         date: dateParam,
@@ -98,14 +94,28 @@ function CalendarPage({ match, location }) {
         const newState = {
             ...json,
         };
-        if (newState.date) {
-            newState.date = new Date(newState.date);
-        }
         if (newState.translations) {
             setTranslations(newState.translations);
-            newState.translations = undefined;
         }
-        setState({ ...newState });
+        // console.log('saveUpdateResponseInState', newState);
+        setState((prevState) => ({
+            ...prevState,
+            colors: newState.colors || prevState.colors,
+            date: newState.date || prevState.date,
+            view: newState.view || prevState.view,
+            teamCalendars: newState.teamCalendars || prevState.teamCalendars,
+            activeCalendars: newState.activeCalendars || prevState.activeCalendars,
+            styleMap: newState.styleMap || prevState.styleMap,
+            filter: newState.filter || prevState.filter,
+            // eslint-disable-next-line max-len
+            listOfDefaultCalendars: newState.listOfDefaultCalendars || prevState.listOfDefaultCalendars,
+            timesheetUser: newState.timesheetUser || prevState.timesheetUser,
+            filterFavorites: newState.filterFavorites || prevState.filterFavorites,
+            // eslint-disable-next-line max-len
+            isFilterModified: newState.isFilterModified || (newState.isFilterModified === undefined && prevState.isFilterModified),
+            vacationGroups: newState.vacationGroups || prevState.vacationGroups,
+            vacationUsers: newState.vacationUsers || prevState.vacationUsers,
+        }));
     };
 
     const onFavoriteCreate = (newFilterName) => {

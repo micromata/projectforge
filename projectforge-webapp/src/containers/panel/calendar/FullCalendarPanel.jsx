@@ -16,11 +16,8 @@ import FormModal from '../../page/form/FormModal';
 
 /*
 TODO:
- - Aktuelles Datum und Ansicht werden überbügelt nach initialCall.
- - org.projectforge.business.address.AddressDao.hasAccess (AddressDao.java:291): session is null.
  - Handling of recurring events.
  - Unterscheidung: freie Feiertage und andere Feiertage.
- - Update Kalender und ggf. Datum nach Anlage/Editieren von Einträgen
  - height of calendar
  - Breaks
 */
@@ -32,11 +29,20 @@ function FullCalendarPanel(options) {
         vacationGroups, vacationUsers,
     } = options;
     const queryParams = new URLSearchParams(window.location.search);
-    const hash = queryParams.get('hash');
+    const hashParam = queryParams.get('hash');
+    const [hash, setHash] = useState(hashParam);
     const [currentHoverEvent, setCurrentHoverEvent] = useState(null);
     const [loading, setLoading] = useState(false);
+    let initialDate = defaultDate;
+    if (defaultDate && defaultView === 'dayGridMonth' && !initialDate.endsWith('01')) {
+        // Fullcalendar needs day of month to view as start date, not start-date of begin of
+        // first week with day of last month:
+        let date = new Date(initialDate);
+        date = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+        initialDate = Date.toIsoDateString(date);
+    }
     const [currentState, setCurrentState] = useState({
-        date: defaultDate,
+        date: initialDate,
         view: defaultView,
     });
     const activeCalendarsRef = useRef(activeCalendars);
@@ -46,13 +52,6 @@ function FullCalendarPanel(options) {
     const popperRef = useRef(undefined);
 
     const calendarRef = useRef();
-
-    // Needed as a workaround if the user's timezone (backend) differs from timezone of
-    // the browser. BigCalendar doesn't use moment's timezone for converting the
-    // dates start and end. They will be converted by using the browser's timezone.
-    // With this timeZone, the server is able to detect the correct start-end
-    // interval of the requested events.
-    const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
 
     const getSlotDuration = (newGridSize) => {
         let slotDuration = `00:${newGridSize}:00`;
@@ -68,11 +67,22 @@ function FullCalendarPanel(options) {
             // console.log('no api yet available.');
             return;
         }
+        if (hashParam !== hash) {
+            setHash(hashParam);
+            const queryDate = queryParams.get('date');
+            if (queryDate) {
+                queryParams.delete('date');
+                window.location.search = queryParams.toString();
+                // console.log('gotoDate', queryDate);
+                currentApi.gotoDate(queryDate);
+            }
+        }
         activeCalendarsRef.current = activeCalendars;
         timesheetUserIdRef.current = timesheetUserId;
-        console.log('refetch', activeCalendars, timesheetUserId, vacationGroups, vacationUsers, hash, currentState);
+        // eslint-disable-next-line max-len
+        // console.log('refetch', activeCalendars, timesheetUserId, vacationGroups, vacationUsers, hash, currentState);
         currentApi.refetchEvents();
-    }, [activeCalendars, timesheetUserId, vacationGroups, vacationUsers, hash]);
+    }, [activeCalendars, timesheetUserId, vacationGroups, vacationUsers, hashParam]);
 
     useEffect(() => {
         const currentApi = calendarRef && calendarRef.current && calendarRef.current.getApi();
@@ -86,14 +96,13 @@ function FullCalendarPanel(options) {
     useEffect(() => {
         // Current state (view/date) changed, so store it in the user's prefs:
         const { date, view } = currentState;
-        console.log('storeState', date, view, activeCalendars);
         if (date && view) {
+            // console.log('storeState', date, view);
             fetchJsonPost(
                 'calendar/storeState',
                 {
-                    date: date.toISOString(),
+                    date,
                     view,
-                    timeZone,
                     activeCalendars,
                 },
                 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -142,8 +151,6 @@ function FullCalendarPanel(options) {
                 uid,
                 origStartDate: event && event.start ? event.start.toISOString() : '',
                 origEndDate: (event && event.end) ? event.end.toISOString() : '',
-                // Browsers time zone may differ from user's time zone:
-                timeZone,
             },
             (json) => {
                 const { url } = json;
@@ -191,10 +198,12 @@ function FullCalendarPanel(options) {
 
     // After changing view type, the view type will be stored on the server in user's pref settings.
     const handleDatesSet = (info) => {
+        // console.log('handleDatesSet', info);
         const view = info?.view?.type;
-        const start = info?.start;
-        console.log('handleDatesSet', info);
-        if (view && start) {
+        const startDate = info?.start;
+        if (view && startDate) {
+            const start = Date.toIsoDateString(startDate);
+            // console.log('handleDatesSet', start);
             setCurrentState({
                 date: start,
                 view,
@@ -203,6 +212,7 @@ function FullCalendarPanel(options) {
     };
 
     const fetchEvents = (info, successCallback) => {
+        // console.log('fetchEvents', info);
         setLoading(true);
         const { start, end } = info;
         const { current: activeCalendarsCurrent } = activeCalendarsRef;
@@ -217,12 +227,6 @@ function FullCalendarPanel(options) {
                 activeCalendarIds,
                 timesheetUserId: timesheetUserIdCurrent,
                 useVisibilityState: true,
-                // Needed as a workaround if the user's timezone (backend) differs from timezone of
-                // the browser. BigCalendar doesn't use moment's timezone for converting the
-                // dates start and end. They will be converted by using the browser's timezone.
-                // With this timeZone, the server is able to detect the correct start-end
-                // interval of the requested events.
-                timeZone,
             },
             (json) => {
                 const { events } = json;
@@ -255,13 +259,14 @@ function FullCalendarPanel(options) {
     const headerToolbar = { center: 'dayGridMonth,timeGridWeek,timeGridWorkingWeek,timeGridDay,dayGridWeek,listWeek,listMonth' };
     const locales = [deLocale];
 
+    // console.log('FullCalendarPanel.render', defaultDate, defaultView);
     return (
         <LoadingContainer loading={loading}>
             {useMemo(() => (
                 <FullCalendar
                     plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
                     initialView={defaultView}
-                    initialDate={defaultDate}
+                    initialDate={initialDate}
                     events={fetchEvents}
                     editable
                     eventResizableFromStart
@@ -303,7 +308,6 @@ function FullCalendarPanel(options) {
 
 const mapStateToProps = ({ authentication }) => ({
     firstDayOfWeek: authentication.user.firstDayOfWeekSunday0,
-    // timeZone: authentication.user.timeZone,
     locale: authentication.user.locale,
 });
 

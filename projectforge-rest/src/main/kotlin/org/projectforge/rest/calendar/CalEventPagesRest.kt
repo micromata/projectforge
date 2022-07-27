@@ -155,9 +155,7 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
     }
 
     override fun onAfterEdit(obj: CalEventDO, postData: PostData<CalEvent>, event: RestButtonEvent): ResponseAction {
-        return ResponseAction("/${Constants.REACT_APP_PATH}calendar")
-                .addVariable("date", postData.data.startDate)
-                .addVariable("id", obj.id ?: -1)
+      return TimesheetPagesRest.redirectToCalendarWithDate(obj.startDate, event)
     }
 
     override fun getById(idString: String?, editMode: Boolean, userAccess: UILayout.UserAccess?): CalEvent? {

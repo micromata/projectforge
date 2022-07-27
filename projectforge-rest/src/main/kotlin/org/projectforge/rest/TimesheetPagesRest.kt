@@ -59,6 +59,7 @@ import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.*
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -193,9 +194,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     // Save time sheet as recent time sheet
     val timesheet = postData.data
     timesheetRecentService.addRecentTimesheet(transformForDB(timesheet))
-    val hash = NumberHelper.getSecureRandomAlphanumeric(4)
-    val date = PFDateTime.fromOrNow(obj.startTime).javaScriptString
-    return ResponseAction("/${Constants.REACT_APP_PATH}calendar?date=$date&id=${obj.id}&hash=$hash")
+    return redirectToCalendarWithDate(obj.startTime, event)
   }
 
   override fun processResultSetBeforeExport(
@@ -520,5 +519,18 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       return null
     }
     return UISelect(id, label = "timesheet.tag", required = false, values = tags.map { UISelectValue(it, it) })
+  }
+
+  companion object {
+    fun redirectToCalendarWithDate(date: Date?, event: RestButtonEvent): ResponseAction {
+      if (date != null && (event == RestButtonEvent.SAVE || event == RestButtonEvent.UPDATE)) {
+        // Time sheet was modified, so reload page and goto date of timesheet (if modified):
+        val hash = NumberHelper.getSecureRandomAlphanumeric(4)
+        val date = PFDateTime.fromOrNow(date).localDate
+        return ResponseAction("/${Constants.REACT_APP_PATH}calendar?date=$date&hash=$hash")
+      }
+      return ResponseAction("/${Constants.REACT_APP_PATH}calendar")
+
+    }
   }
 }

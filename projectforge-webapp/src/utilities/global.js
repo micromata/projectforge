@@ -62,3 +62,8 @@ Object.getResponseHeaderFilename = (contentDisposition) => {
     const matches = /filename[^;=\n]*=(UTF-8(['"]*))?([^;=\n]*)*/.exec(contentDisposition);
     return matches && matches.length >= 3 && matches[3] ? decodeURI(matches[3].replace(/['"]/g, '')) : 'download';
 };
+
+Date.toIsoDateString = (date) => {
+    const offset = date.getTimezoneOffset();
+    return new Date(date.getTime() - (offset * 60 * 1000)).toISOString().split('T')[0];
+};

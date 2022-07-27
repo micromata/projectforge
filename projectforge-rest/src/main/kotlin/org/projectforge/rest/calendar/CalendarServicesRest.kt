@@ -35,7 +35,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
-import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.calendar.CalendarFilterServicesRest.Companion.getCurrentFilter
 import org.projectforge.rest.config.Rest
@@ -48,8 +48,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URLEncoder
 import java.time.LocalDate
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.ws.rs.BadRequestException
 
@@ -194,28 +192,13 @@ class CalendarServicesRest {
   @PostMapping("storeState")
   fun storeState(@RequestBody state: CalendarState): ResponseEntity<Any> {
     val dateString = state.date
-    val timeZoneString = state.timeZone
     val viewString = state.view
     val filterState = calendarFilterServicesRest.getFilterState()
     if (!dateString.isNullOrBlank()) {
-      val timeZone = if (timeZoneString != null) {
-        TimeZone.getTimeZone(timeZoneString)
-      } else {
-        ThreadLocalUserContext.getTimeZone()
-      }
-      val dateTime = ZonedDateTime.parse(dateString, DateTimeFormatter.ISO_DATE_TIME.withZone(timeZone.toZoneId()))
-      val date = dateTime.toLocalDate()
+      val date = PFDayUtils.parseDate(dateString)
       if (date != null && !viewString.isNullOrBlank()) {
         val view = CalendarView.from(viewString)
-        if (view == CalendarView.MONTH) {
-          var day = PFDay.from(date)
-          if (day.dayOfMonth > 1) {
-            day = day.plusMonths(1).withDayOfMonth(1)
-          }
-          filterState.startDate = day.localDate
-        } else {
-          filterState.startDate = date
-        }
+        filterState.startDate = date
         filterState.view = view
       }
     }
