@@ -14,22 +14,7 @@ import { CalendarContext, defaultValues as calendarContextDefaultValues } from '
 
 function CalendarPage({ match, location }) {
     const [loading, setLoading] = useState(true);
-    // const [colors, setColors] = useState({});
-    // const [date, setDate] = useState(new Date());
-    // const [view, setView] = useState('week');
-    // const [teamCalendars, setTeamCalendars] = useState(undefined);
-    // const [activeCalendars, setActiveCalendars] = useState([]);
-    // const [filter, setFilter] = useState({
-    //     defaultCalendarId: undefined,
-    //     listOfDefaultCalendars: [],
-    //     gridSize: 30,
-    // });
-    // const [timesheetUser, setTimesheetUser] = useState(undefined);
-    // const [filterFavorites, setFilterFavorites] = useState(undefined);
-    // const [isFilterModified, setIsFilterModified] = useState(false);
     const [translations, setTranslations] = useState(undefined);
-    // const [vacationGroups, setVacationGroups] = useState([]);
-    // const [vacationUsers, setVacationUsers] = useState([]);
     const [state, setState] = useState({
         colors: {},
         date: new Date(),
@@ -110,7 +95,10 @@ function CalendarPage({ match, location }) {
         if (newState.date) {
             newState.date = new Date(newState.date);
         }
-        if (newState.translations) setTranslations(newState.translations);
+        if (newState.translations) {
+            setTranslations(newState.translations);
+            newState.translations = undefined;
+        }
         setState({ ...newState });
     };
 
