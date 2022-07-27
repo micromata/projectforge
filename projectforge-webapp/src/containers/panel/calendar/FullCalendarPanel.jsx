@@ -9,13 +9,14 @@ import { connect } from 'react-redux'; // a plugin!
 import { createPopper } from '@popperjs/core';
 import { Route } from 'react-router-dom';
 import LoadingContainer from '../../../components/design/loading-container';
-import { fetchJsonPost, fetchJsonGet, fetchGet } from '../../../utilities/rest';
+import { fetchJsonPost, fetchJsonGet } from '../../../utilities/rest';
 import CalendarEventTooltip from './CalendarEventTooltip';
 import history from '../../../utilities/history';
 import FormModal from '../../page/form/FormModal';
 
 /*
 TODO:
+ - Aktuelles Datum und Ansicht werden überbügelt nach initialCall.
  - org.projectforge.business.address.AddressDao.hasAccess (AddressDao.java:291): session is null.
  - Handling of recurring events.
  - Unterscheidung: freie Feiertage und andere Feiertage.
@@ -30,6 +31,8 @@ function FullCalendarPanel(options) {
         defaultDate, defaultView, match, translations, gridSize,
         vacationGroups, vacationUsers,
     } = options;
+    const queryParams = new URLSearchParams(window.location.search);
+    const hash = queryParams.get('hash');
     const [currentHoverEvent, setCurrentHoverEvent] = useState(null);
     const [loading, setLoading] = useState(false);
     const [currentState, setCurrentState] = useState({
@@ -67,8 +70,9 @@ function FullCalendarPanel(options) {
         }
         activeCalendarsRef.current = activeCalendars;
         timesheetUserIdRef.current = timesheetUserId;
+        console.log('refetch', activeCalendars, timesheetUserId, vacationGroups, vacationUsers, hash, currentState);
         currentApi.refetchEvents();
-    }, [activeCalendars, timesheetUserId, vacationGroups, vacationUsers]);
+    }, [activeCalendars, timesheetUserId, vacationGroups, vacationUsers, hash]);
 
     useEffect(() => {
         const currentApi = calendarRef && calendarRef.current && calendarRef.current.getApi();
@@ -82,6 +86,7 @@ function FullCalendarPanel(options) {
     useEffect(() => {
         // Current state (view/date) changed, so store it in the user's prefs:
         const { date, view } = currentState;
+        console.log('storeState', date, view, activeCalendars);
         if (date && view) {
             fetchJsonPost(
                 'calendar/storeState',
@@ -95,7 +100,7 @@ function FullCalendarPanel(options) {
                 () => { },
             );
         }
-    }, [activeCalendars, currentState]);
+    }, [activeCalendars, currentState.date, currentState.view]);
 
     const handleEventMouseEnter = (info) => {
         if (!tooltipRef.current) {
@@ -188,6 +193,7 @@ function FullCalendarPanel(options) {
     const handleDatesSet = (info) => {
         const view = info?.view?.type;
         const start = info?.start;
+        console.log('handleDatesSet', info);
         if (view && start) {
             setCurrentState({
                 date: start,
