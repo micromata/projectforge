@@ -32,7 +32,6 @@ import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.Group
@@ -48,7 +47,7 @@ import java.time.LocalDate
 @RequestMapping("${Rest.URL}/calendar")
 class CalendarFilterServicesRest {
   class CalendarInit(
-    var date: PFDateTime? = null,
+    var date: LocalDate? = null,
     @Suppress("unused")
     var view: String? = CalendarView.WEEK.key,
     var teamCalendars: List<StyledTeamCalendar>? = null,
@@ -133,7 +132,7 @@ class CalendarFilterServicesRest {
       StyledTeamCalendar.map(calendars, styleMap) // Add the styles of the styleMap to the exported calendars.
 
     val state = getFilterState()
-    initial.date = PFDateTime.fromOrNow(state.startDate)
+    initial.date = state.startDate
     initial.view = state.view?.key ?: CalendarView.MONTH.key
 
     initial.activeCalendars = getActiveCalendars(currentFilter, calendars, styleMap)

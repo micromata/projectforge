@@ -292,7 +292,7 @@ CalendarFilterSettings.propTypes = {
     defaultCalendarId: PropTypes.number,
     timesheetUser: PropTypes.shape(),
     gridSize: PropTypes.number,
-    otherTimesheetUsersEnabled: PropTypes.bool.isRequired,
+    otherTimesheetUsersEnabled: PropTypes.bool,
     listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     translations: PropTypes.shape({
         settings: PropTypes.string,
@@ -318,6 +318,7 @@ CalendarFilterSettings.propTypes = {
 CalendarFilterSettings.defaultProps = {
     defaultCalendarId: undefined,
     timesheetUser: undefined,
+    otherTimesheetUsersEnabled: undefined,
     gridSize: 30,
     vacationGroups: [],
     vacationUsers: [],
