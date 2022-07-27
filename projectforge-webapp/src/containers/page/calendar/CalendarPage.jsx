@@ -15,10 +15,16 @@ import { CalendarContext, defaultValues as calendarContextDefaultValues } from '
 function CalendarPage({ match, location }) {
     const [loading, setLoading] = useState(true);
     const [translations, setTranslations] = useState(undefined);
+    const queryParams = new URLSearchParams(window.location.search);
+    const dateParamString = queryParams.get('date');
+    let dateParam;
+    if (dateParamString) {
+        dateParam = new Date(dateParamString);
+    }
     const [state, setState] = useState({
         colors: {},
-        date: new Date(),
-        view: 'timeGridWorkingWeek',
+        date: dateParam,
+        view: undefined,
         teamCalendars: undefined,
         activeCalendars: [],
         filter: {
@@ -259,19 +265,21 @@ function CalendarPage({ match, location }) {
                             </form>
                         </CardBody>
                     </Card>
-                    <FullCalendarPanel
-                        defaultDate={state.date}
-                        defaultView={state.view}
-                        gridSize={state.filter.gridSize}
-                        activeCalendars={state.activeCalendars}
-                        timesheetUserId={state.timesheetUser?.id}
-                        topHeight="225px"
-                        translations={translations}
-                        match={match}
-                        location={location}
-                        vacationGroups={state.vacationGroups}
-                        vacationUsers={state.vacationUsers}
-                    />
+                    {state.date && (
+                        <FullCalendarPanel
+                            defaultDate={state.date}
+                            defaultView={state.view}
+                            gridSize={state.filter.gridSize}
+                            activeCalendars={state.activeCalendars}
+                            timesheetUserId={state.timesheetUser?.id}
+                            topHeight="225px"
+                            translations={translations}
+                            match={match}
+                            location={location}
+                            vacationGroups={state.vacationGroups}
+                            vacationUsers={state.vacationUsers}
+                        />
+                    )}
                 </CalendarContext.Provider>
             </LoadingContainer>
         </Container>

@@ -193,10 +193,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     // Save time sheet as recent time sheet
     val timesheet = postData.data
     timesheetRecentService.addRecentTimesheet(transformForDB(timesheet))
-
-    return ResponseAction("/${Constants.REACT_APP_PATH}calendar")
-      .addVariable("date", obj.startTime)
-      .addVariable("id", obj.id ?: -1)
+    val hash = NumberHelper.getSecureRandomAlphanumeric(4)
+    val date = PFDateTime.fromOrNow(obj.startTime).javaScriptString
+    return ResponseAction("/${Constants.REACT_APP_PATH}calendar?date=$date&id=${obj.id}&hash=$hash")
   }
 
   override fun processResultSetBeforeExport(
@@ -224,7 +223,11 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       duration += timesheet.getDuration()
     }
     val stats = ListStatisticsSupport()
-    stats.append("timesheet.totalDuration", dateTimeFormatter.getPrettyFormattedDuration(duration), ListStatisticsSupport.Color.BLUE)
+    stats.append(
+      "timesheet.totalDuration",
+      dateTimeFormatter.getPrettyFormattedDuration(duration),
+      ListStatisticsSupport.Color.BLUE
+    )
     myResultSet.addResultInfo(stats.asMarkdown)
 
     return myResultSet
@@ -259,7 +262,12 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+  override fun createListLayout(
+    request: HttpServletRequest,
+    layout: UILayout,
+    magicFilter: MagicFilter,
+    userAccess: UILayout.UserAccess
+  ) {
     lc.idPrefix = "timesheet."
     val table = agGridSupport.prepareUIGrid4ListPage(
       request,
