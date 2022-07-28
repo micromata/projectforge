@@ -133,7 +133,7 @@ class TimesheetEventsProvider {
           events.add(event)
           val tooltipBuilder = TooltipBuilder()
           timesheet.kost2?.let { kost2 ->
-            tooltipBuilder.addPropRow(translate("fibu.kost2"), KostFormatter.formatLong(kost2))
+            tooltipBuilder.addPropRow(translate("fibu.kost2"), KostFormatter.format(kost2, 50))
           }
           tooltipBuilder
             .addPropRow(
