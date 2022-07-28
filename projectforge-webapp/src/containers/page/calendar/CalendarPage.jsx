@@ -282,7 +282,7 @@ function CalendarPage({ match, location }) {
                             gridSize={state.filter.gridSize}
                             activeCalendars={state.activeCalendars}
                             timesheetUserId={state.timesheetUser?.id}
-                            topHeight="225px"
+                            topHeight="250px"
                             translations={translations}
                             match={match}
                             location={location}
