@@ -16,9 +16,7 @@ import FormModal from '../../page/form/FormModal';
 
 /*
 TODO:
- - Next full week inside month is displayed.
  - Handling of recurring events.
- - height of calendar
  - Breaks
 */
 
@@ -26,7 +24,7 @@ function FullCalendarPanel(options) {
     const {
         activeCalendars, timesheetUserId, locale, firstDayOfWeek,
         defaultDate, defaultView, match, translations, gridSize,
-        vacationGroups, vacationUsers,
+        vacationGroups, vacationUsers, topHeight,
     } = options;
     const queryParams = new URLSearchParams(window.location.search);
     const hashParam = queryParams.get('hash');
@@ -90,6 +88,7 @@ function FullCalendarPanel(options) {
             // console.log('no api yet available.');
             return;
         }
+        // console.log('gridSize', gridSize, getSlotDuration(gridSize));
         currentApi.slotDuration = getSlotDuration(gridSize);
     }, [gridSize]);
 
@@ -238,14 +237,22 @@ function FullCalendarPanel(options) {
     };
 
     const views = {
+        dayGridMonth: {
+            fixedWeekCount: false,
+        },
         dayGridWeek: {
             buttonText: `${translations['calendar.view.dayGridWeek']}`,
+        },
+        timeGridWeek: {
+            slotDuration: `${getSlotDuration(gridSize)}`,
+            scrollTime: '08:00:00',
         },
         timeGridWorkingWeek: {
             type: 'timeGridWeek',
             weekends: false,
             buttonText: `${translations['calendar.view.timeGridWorkingWeek']}`,
             slotDuration: `${getSlotDuration(gridSize)}`,
+            scrollTime: '08:00:00',
         },
         listMonth: {
             buttonText: `${translations['calendar.view.monthAgenda']}`,
@@ -278,7 +285,6 @@ function FullCalendarPanel(options) {
                     locale={locale}
                     firstDay={firstDayOfWeek}
                     nowIndicator
-                    // weekends={false}
                     ref={calendarRef}
                     datesSet={handleDatesSet}
                     eventClick={handleEventClick}
@@ -287,6 +293,7 @@ function FullCalendarPanel(options) {
                     eventDrop={handleEventDrop}
                     eventMouseEnter={handleEventMouseEnter}
                     eventMouseLeave={handleEventMouseLeave}
+                    height={`calc(100vh - ${topHeight})`}
                 />
             ), [gridSize])}
             <CalendarEventTooltip
