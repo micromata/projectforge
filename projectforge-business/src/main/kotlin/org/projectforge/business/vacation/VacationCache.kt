@@ -51,9 +51,9 @@ open class VacationCache : AbstractCache(), BaseDOChangedListener<VacationDO> {
   @Autowired
   private lateinit var userGroupCache: UserGroupCache
 
-  private lateinit var vacationMap: MutableMap<Int?, VacationDO>
+  private var vacationMap = mutableMapOf<Int?, VacationDO>()
 
-  private lateinit var vacations: Collection<VacationDO> // Thread safe
+  private var vacations = listOf<VacationDO>() // Thread safe
 
   @PostConstruct
   private fun postConstruct() {
