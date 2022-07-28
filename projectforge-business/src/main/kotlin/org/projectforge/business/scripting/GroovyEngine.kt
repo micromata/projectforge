@@ -31,7 +31,7 @@ import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.task.TaskDO
-import org.projectforge.business.task.formatter.TaskFormatter
+import org.projectforge.business.task.TaskFormatter
 import org.projectforge.business.utils.CurrencyFormatter
 import org.projectforge.business.utils.HtmlHelper
 import org.projectforge.common.FormatterUtils
@@ -330,7 +330,7 @@ class GroovyEngine @JvmOverloads constructor(
   fun getString(task: TaskDO?): String {
     return if (task == null) {
       ""
-    } else TaskFormatter.getTaskPath(task.id, true, OutputType.PLAIN)
+    } else TaskFormatter.getTaskPath(task.id, true, OutputType.PLAIN) ?: ""
   }
 
   fun getCurrency(value: BigDecimal?): String {
