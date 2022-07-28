@@ -47,13 +47,13 @@ import org.projectforge.rest.dto.TeamEvent
 import org.projectforge.rest.dto.Timesheet
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
-@Deprecated("Will be replaced by CalendarEventsRest.")
 @RestController
 @RequestMapping("${Rest.URL}/teamEvent")
 class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEventDao>(
@@ -338,6 +338,13 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
     )
       .add(UICustomized("calendar.reminder"))
       .add(UIRow().add(UICol(12).add(UICustomized("calendar.recurrency"))))
+    if (dto.allDay) {
+      (layout.getElementById("startDate") as UIInput).dataType = UIDataType.DATE
+      (layout.getElementById("endDate") as UIInput).dataType = UIDataType.DATE
+    } else {
+      (layout.getElementById("startDate") as UIInput).dataType = UIDataType.TIMESTAMP
+      (layout.getElementById("endDate") as UIInput).dataType = UIDataType.TIMESTAMP
+    }
     layout.addAction(
       UIButton.createSecondaryButton(
         id = "switch",
@@ -345,6 +352,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
         responseAction = ResponseAction(getRestRootPath("switch2Timesheet"), targetType = TargetType.POST)
       )
     )
+    layout.watchFields.addAll(arrayOf("allDay"))
     layout.addTranslations(
       "plugins.teamcal.event.recurrence",
       "plugins.teamcal.event.recurrence.customized",
@@ -362,5 +370,20 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
       "plugins.teamcal.event.reminder.DAYS_BEFORE"
     )
     return LayoutUtils.processEditPage(layout, dto, this)
+  }
+
+  override fun onWatchFieldsUpdate(
+    request: HttpServletRequest,
+    dto: TeamEvent,
+    watchFieldsTriggered: Array<String>?
+  ): ResponseEntity<ResponseAction> {
+    val userAccess = UILayout.UserAccess()
+    val event = TeamEventDO()
+    dto.copyTo(event)
+    checkUserAccess(event, userAccess)
+    return ResponseEntity.ok(
+      ResponseAction(targetType = TargetType.UPDATE)
+        .addVariable("ui", createEditLayout(dto, userAccess))
+    )
   }
 }

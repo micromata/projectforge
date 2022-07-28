@@ -83,7 +83,7 @@ function CalendarEventReminder() {
                                 <Input
                                     label=""
                                     id="reminderDuration"
-                                    value={data.reminderDuration.toString()}
+                                    value={data.reminderDuration?.toString()}
                                     onChange={handleInputChange}
                                 />
                             </Col>

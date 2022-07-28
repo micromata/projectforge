@@ -30,7 +30,6 @@ import org.projectforge.business.teamcal.event.model.*
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 
-@Deprecated("Will be replaced by CalendarEvent.")
 class TeamEvent(
         var seriesModificationMode: SeriesModificationMode? = null,
         /**
