@@ -26,9 +26,8 @@ function FullCalendarPanel(options) {
         defaultDate, defaultView, match, translations, gridSize,
         vacationGroups, vacationUsers, topHeight,
     } = options;
-    const queryParams = new URLSearchParams(window.location.search);
-    const hashParam = queryParams.get('hash');
-    const [hash, setHash] = useState(hashParam);
+    const [queryString, setQueryString] = useState(window.location.search);
+    const [gotoDate, setGotoDate] = useState(new URLSearchParams(window.location.search).get('gotoDate'));
     const [currentHoverEvent, setCurrentHoverEvent] = useState(null);
     const [loading, setLoading] = useState(false);
     let initialDate = defaultDate;
@@ -51,6 +50,68 @@ function FullCalendarPanel(options) {
 
     const calendarRef = useRef();
 
+    useEffect(() => {
+        // onComponentDidMount
+    }, []);
+
+    const refetch = (currentApi) => {
+        if (!currentApi) {
+            // console.log('currentApi not yet available');
+            return;
+        }
+        activeCalendarsRef.current = activeCalendars;
+        timesheetUserIdRef.current = timesheetUserId;
+        currentApi.refetchEvents();
+    };
+
+    const firstUpdate = useRef(true);
+
+    useEffect(() => {
+        if (firstUpdate.current) {
+            firstUpdate.current = false;
+            return;
+        }
+        const currentApi = calendarRef && calendarRef.current && calendarRef.current.getApi();
+        // eslint-disable-next-line max-len
+        // console.log('refetch', activeCalendars, timesheetUserId, vacationGroups, vacationUsers);
+        refetch(currentApi);
+    }, [activeCalendars, timesheetUserId, vacationGroups, vacationUsers]);
+
+    useEffect(() => {
+        const currentApi = calendarRef && calendarRef.current && calendarRef.current.getApi();
+        if (!currentApi) {
+            // console.log('currentApi not yet available');
+            return;
+        }
+        if (queryString !== window.location.search) {
+            const newQueryParams = new URLSearchParams(window.location.search);
+            const queryParams = new URLSearchParams(queryString);
+            const dateChanged = newQueryParams.get('gotoDate') !== undefined && queryParams.get('gotoDate') !== newQueryParams.get('gotoDate');
+            const hashChanged = newQueryParams.get('hash') !== undefined && queryParams.get('hash') !== newQueryParams.get('hash');
+            if (!dateChanged && !hashChanged) {
+                return;
+            }
+            // Hash param or date changed:
+            // console.log('queryString', queryString, window.location.search);
+            const date = newQueryParams.get('gotoDate');
+            let refetchTriggerd = false;
+            if (date) {
+                const viewStart = Date.toIsoDateString(currentApi.view.activeStart);
+                const viewEnd = Date.toIsoDateString(currentApi.view.activeEnd);
+                // console.log(date, viewStart, viewEnd, date < viewStart);
+                if (date < viewStart || date > viewEnd) {
+                    // console.log('gotoDate', date);
+                    currentApi.gotoDate(date);
+                    refetchTriggerd = true;
+                }
+            }
+            if (!refetchTriggerd && hashChanged) {
+                // console.log('hashChanged');
+                refetch(currentApi);
+            }
+        }
+    }, [window.location.search]);
+
     const getSlotDuration = (newGridSize) => {
         let slotDuration = `00:${newGridSize}:00`;
         if (newGridSize < 10) {
@@ -58,29 +119,6 @@ function FullCalendarPanel(options) {
         }
         return slotDuration;
     };
-
-    useEffect(() => {
-        const currentApi = calendarRef && calendarRef.current && calendarRef.current.getApi();
-        if (!currentApi) {
-            // console.log('no api yet available.');
-            return;
-        }
-        if (hashParam !== hash) {
-            setHash(hashParam);
-            const queryDate = queryParams.get('date');
-            if (queryDate) {
-                queryParams.delete('date');
-                window.location.search = queryParams.toString();
-                // console.log('gotoDate', queryDate);
-                currentApi.gotoDate(queryDate);
-            }
-        }
-        activeCalendarsRef.current = activeCalendars;
-        timesheetUserIdRef.current = timesheetUserId;
-        // eslint-disable-next-line max-len
-        // console.log('refetch', activeCalendars, timesheetUserId, vacationGroups, vacationUsers, hash, currentState);
-        currentApi.refetchEvents();
-    }, [activeCalendars, timesheetUserId, vacationGroups, vacationUsers, hashParam]);
 
     useEffect(() => {
         const currentApi = calendarRef && calendarRef.current && calendarRef.current.getApi();

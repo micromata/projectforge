@@ -25,6 +25,7 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.Constants
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarView
 import org.projectforge.business.calendar.StyledTeamCalendar
@@ -39,6 +40,7 @@ import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.calendar.CalendarFilterServicesRest.Companion.getCurrentFilter
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
@@ -308,6 +310,18 @@ class CalendarServicesRest {
       return
     } else {
       range.end = range.start.plusDays(1)
+    }
+  }
+
+  companion object {
+    fun redirectToCalendarWithDate(date: Date?, event: RestButtonEvent): ResponseAction {
+      if (date != null && (event == RestButtonEvent.SAVE || event == RestButtonEvent.UPDATE)) {
+        // Time sheet was modified, so reload page and goto date of timesheet (if modified):
+        val hash = NumberHelper.getSecureRandomAlphanumeric(4)
+        val date = PFDateTime.fromOrNow(date).localDate
+        return ResponseAction("/${Constants.REACT_APP_PATH}calendar?gotoDate=$date&hash=$hash")
+      }
+      return ResponseAction("/${Constants.REACT_APP_PATH}calendar")
     }
   }
 }
