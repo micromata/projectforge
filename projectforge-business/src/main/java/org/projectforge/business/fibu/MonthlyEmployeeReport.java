@@ -30,7 +30,7 @@ import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.formatter.TaskFormatter;
+import org.projectforge.business.task.TaskFormatter;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.business.vacation.service.VacationStats;

@@ -31,7 +31,7 @@ import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.task.formatter.TaskFormatter;
+import org.projectforge.business.task.TaskFormatter;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.export.MyXlsContentProvider;

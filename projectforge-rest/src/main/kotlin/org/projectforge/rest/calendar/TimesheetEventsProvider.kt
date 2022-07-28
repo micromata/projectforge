@@ -25,7 +25,7 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.business.common.OutputType
 import org.projectforge.business.fibu.KostFormatter
-import org.projectforge.business.task.formatter.TaskFormatter
+import org.projectforge.business.task.TaskFormatter
 import org.projectforge.business.teamcal.common.CalendarHelper
 import org.projectforge.business.timesheet.OrderDirection
 import org.projectforge.business.timesheet.TimesheetDO
@@ -138,7 +138,7 @@ class TimesheetEventsProvider {
           tooltipBuilder
             .addPropRow(
               translate("task"),
-              TaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.HTML),
+              TaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.HTML, abreviationLength = 50),
               escapeHtml = false,
             )
             .addPropRow(translate("timesheet.location"), timesheet.location, abbreviate = true)
