@@ -271,6 +271,15 @@ svg.fa-chevron-down {
   opacity: var(--fc-bg-event-opacity, 0.6) !important;
 }
 
+.fc-button-primary {
+  color: #333 !important;
+  background-color: transparent !important;
+}
+
+.fc-button-active {
+  background-color: #bbb !important;
+}
+
 // Task tree
 
 div.tree-nav {
