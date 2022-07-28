@@ -12,7 +12,7 @@ import { getServiceURL } from '../../../../../utilities/rest';
 import { AG_GRID_LOCALE_DE } from './agGridLocalization_de';
 import formatterFormat from '../../../FormatterFormat';
 
-LicenseManager.setLicenseKey('For_Trialing_ag-Grid_Only-Not_For_Real_Development_Or_Production_Projects-Valid_Until-6_August_2022_[v2]_MTY1OTc0MDQwMDAwMA==a9620703be8026031bd181b948f56476');
+LicenseManager.setLicenseKey('CompanyName=Micromata GmbH,LicensedApplication=ProjectForge,LicenseType=SingleApplication,LicensedConcurrentDeveloperCount=2,LicensedProductionInstancesCount=0,AssetReference=AG-029226,SupportServicesEnd=15_July_2023_[v2]_MTY4OTM3NTYwMDAwMA==d9c94f1e7c14ede1402f6577965ae36f');
 
 function DynamicAgGrid(props) {
     const {
