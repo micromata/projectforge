@@ -71,14 +71,14 @@ function FullCalendarPanel(options) {
             firstUpdate.current = false;
             return;
         }
-        const currentApi = calendarRef && calendarRef.current && calendarRef.current.getApi();
+        const currentApi = calendarRef?.current?.getApi();
         // eslint-disable-next-line max-len
         // console.log('refetch', activeCalendars, timesheetUserId, vacationGroups, vacationUsers);
         refetch(currentApi);
     }, [activeCalendars, timesheetUserId, vacationGroups, vacationUsers]);
 
     useEffect(() => {
-        const currentApi = calendarRef && calendarRef.current && calendarRef.current.getApi();
+        const currentApi = calendarRef?.current?.getApi();
         if (!currentApi) {
             // console.log('currentApi not yet available');
             return;
@@ -248,10 +248,42 @@ function FullCalendarPanel(options) {
         }
     };
 
+    const renderEventContent = (eventInfo) => {
+        const { event } = eventInfo;
+        const { extendedProps } = event;
+        const view = eventInfo.view?.type;
+        // console.log('renderEventContent', eventInfo, view);
+        if (view === 'dayGridWeek' || view === 'dayGridMonth') {
+            return undefined;
+        }
+        return (
+            <>
+                {eventInfo.timeText && (
+                    <>
+                        {eventInfo.timeText}
+                        <br />
+                    </>
+                )}
+                {event.title && (
+                    <>
+                        <b>{event.title}</b>
+                        <br />
+                    </>
+                )}
+                {extendedProps.description && (
+                    <div style={{ whiteSpace: 'pre-wrap' }}>
+                        {extendedProps.description}
+                    </div>
+                )}
+            </>
+        );
+    };
+
     const fetchEvents = (info, successCallback) => {
-        // console.log('fetchEvents', info);
         setLoading(true);
+        const { view } = currentState;
         const { start, end } = info;
+        // console.log('fetchEvents', info, start, end, view);
         const { current: activeCalendarsCurrent } = activeCalendarsRef;
         const activeCalendarIds = activeCalendarsCurrent
             ? activeCalendarsCurrent.map((obj) => obj.id) : [];
@@ -261,6 +293,7 @@ function FullCalendarPanel(options) {
             {
                 start,
                 end,
+                view,
                 activeCalendarIds,
                 timesheetUserId: timesheetUserIdCurrent,
                 useVisibilityState: true,
@@ -319,6 +352,7 @@ function FullCalendarPanel(options) {
                     headerToolbar={headerToolbar}
                     allDaySlot
                     views={views}
+                    eventContent={renderEventContent}
                     locales={locales}
                     locale={locale}
                     firstDay={firstDayOfWeek}

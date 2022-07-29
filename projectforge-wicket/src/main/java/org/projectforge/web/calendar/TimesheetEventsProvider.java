@@ -25,15 +25,13 @@ package org.projectforge.web.calendar;
 
 import net.ftlines.wicket.fullcalendar.Event;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.projectforge.Constants;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
-import org.projectforge.business.teamcal.common.CalendarHelper;
+import org.projectforge.business.teamcal.CalendarHelper;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.timesheet.OrderDirection;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -171,7 +169,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
         final String title = CalendarHelper.getTitle(timesheet);
         if (longFormat) {
           // Week or day view:
-          event.setTitle(title + "\n" + getToolTip(timesheet) + "\n" + formatDuration(duration, false));
+          event.setTitle(title + "\n" + CalendarHelper.getDescription(timesheet) + "\n" + formatDuration(duration, false));
         } else {
           // Month view:
           event.setTitle(title);
@@ -287,24 +285,6 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
         .append(ThreadLocalUserContext.getLocalizedString("calendar.unit.hour"));
     if (showTimePeriod) {
       sb.append(" (").append(ThreadLocalUserContext.getLocalizedString("calendar.month")).append(")");
-    }
-    return sb.toString();
-  }
-
-  public static String getToolTip(final TimesheetDO timesheet) {
-    final String location = timesheet.getLocation();
-    final String description = timesheet.getShortDescription();
-    final TaskDO task = timesheet.getTask();
-    final StringBuilder sb = new StringBuilder();
-    if (StringUtils.isNotBlank(location) == true) {
-      sb.append(location);
-      if (StringUtils.isNotBlank(description) == true) {
-        sb.append(": ");
-      }
-    }
-    sb.append(description);
-    if (timesheet.getKost2() == null) {
-      sb.append("; \n").append(task.getTitle());
     }
     return sb.toString();
   }

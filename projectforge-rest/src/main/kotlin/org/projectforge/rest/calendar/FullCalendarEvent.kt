@@ -38,6 +38,7 @@ class FullCalendarEvent(
   var id: String? = null,
   category: Category? = null,
   var title: String? = null,
+  var description: String? = null,
   var allDay: Boolean? = null,
   var textColor: String? = null,
   var backgroundColor: String? = null,
@@ -144,6 +145,7 @@ class FullCalendarEvent(
       title: String?,
       start: Date,
       end: Date,
+      description: String? = null,
       allDay: Boolean? = false,
       textColor: String? = null,
       backgroundColor: String? = null,
@@ -158,6 +160,7 @@ class FullCalendarEvent(
         id = "$category-${id?.toString() ?: "-1"}",
         category = category,
         title = title,
+        description = description,
         textColor = textColor,
         backgroundColor = backgroundColor,
         classNames = classNames,
@@ -194,6 +197,7 @@ class FullCalendarEvent(
       start: LocalDate,
       end: LocalDate = start,
       id: Any? = null,
+      description: String? = null,
       category: Category? = null,
       textColor: String? = null,
       backgroundColor: String? = null,
@@ -209,6 +213,7 @@ class FullCalendarEvent(
         category = category,
         allDay = true,
         title = title,
+        description = description,
         textColor = textColor,
         backgroundColor = backgroundColor,
         classNames = classNames,
@@ -243,21 +248,26 @@ class FullCalendarEvent(
       end: LocalDate? = null,
       classNames: String? = null,
       title: String? = null,
+      description: String? = null,
       category: Category? = null,
     ): FullCalendarEvent {
       val event = FullCalendarEvent(
         category = category,
+        title = title,
+        description = description,
+        classNames = classNames,
       )
       event.start = EventDate(day = start)
       event.end = EventDate(day = end ?: start)
       event.display = "background"
-      event.classNames = classNames
-      event.title = title
       return event
     }
 
-    fun formatDuration(millis: Long): String {
-      val fields = TimePeriod.getDurationFields(millis, 24, 24)
+    /**
+     * @see TimePeriod.getDurationFields
+     */
+    fun formatDuration(millis: Long, hoursPerDay: Int = 24, minHours4DaySeparation: Int = 24): String {
+      val fields = TimePeriod.getDurationFields(millis, hoursPerDay, minHours4DaySeparation)
       val buf = StringBuffer()
       if (fields[0] > 0) {
         buf.append(fields[0]).append(translate("calendar.unit.day")).append(" ")

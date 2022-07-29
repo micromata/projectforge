@@ -34,7 +34,7 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.teamcal.TeamCalConfig
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
-import org.projectforge.business.teamcal.common.CalendarHelper
+import org.projectforge.business.teamcal.CalendarHelper
 import org.projectforge.business.teamcal.event.TeamEventFilter
 import org.projectforge.business.teamcal.event.TeamEventService
 import org.projectforge.business.teamcal.event.ical.ICalGenerator
@@ -60,7 +60,6 @@ import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import org.projectforge.security.SecurityLogging.logSecurityWarn
-import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
