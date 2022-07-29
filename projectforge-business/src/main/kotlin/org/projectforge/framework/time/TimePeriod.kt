@@ -203,7 +203,7 @@ class TimePeriod @JvmOverloads constructor(
      * @param hoursOfDay Hours of day is for example 8 for a working day.
      * @param minHours4DaySeparation If minHours is e. g. 48 then 48 hours will result in 0 days and 48 hours independent
      * of the hoursOfDay. (Depending on the scope minHoursOfDay is more convenient to read.). If minHours is than
-     * zero, no seperation will be done.
+     * zero, no separation will be done.
      * @param millis duration.
      * @return int array { days, hours, minutes};
      */

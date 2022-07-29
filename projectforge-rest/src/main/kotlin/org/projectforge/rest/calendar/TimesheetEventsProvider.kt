@@ -26,7 +26,7 @@ package org.projectforge.rest.calendar
 import org.projectforge.business.common.OutputType
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.task.TaskFormatter
-import org.projectforge.business.teamcal.common.CalendarHelper
+import org.projectforge.business.teamcal.CalendarHelper
 import org.projectforge.business.timesheet.OrderDirection
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
@@ -53,7 +53,7 @@ class TimesheetEventsProvider {
     userId: Int?,
     events: MutableList<FullCalendarEvent>,
     showBreaks: Boolean = false,
-    showStatistics: Boolean = true
+    showStatistics: Boolean = true,
   ) {
     if (userId == null || userId < 0) {
       return
@@ -74,7 +74,6 @@ class TimesheetEventsProvider {
     ctx.days = start.daysBetween(end)
     if (ctx.days < 10) {
       // Week or day view:
-      ctx.longFormat = true
     } else {
       // Month view:
       val dayInCurrentMonth = start.dateTime.plusDays(10) // Now we're definitely in the right month
@@ -111,6 +110,7 @@ class TimesheetEventsProvider {
                     lastStopTime = stopTime*/
         }
         val title: String = CalendarHelper.getTitle(timesheet)
+        val description = CalendarHelper.getDescription(timesheet)
         val formattedDuration = FullCalendarEvent.formatDuration(timesheet.getDuration())
         /*var outOfRange: Boolean? = null
         //if (ctx.longFormat) {
@@ -123,6 +123,7 @@ class TimesheetEventsProvider {
           id = timesheet.id,
           category = FullCalendarEvent.Category.TIMESHEET,
           title = title,
+          description = description,
           start = timesheet.startTime!!,
           end = timesheet.stopTime!!,
           editable = true,
@@ -133,12 +134,12 @@ class TimesheetEventsProvider {
           events.add(event)
           val tooltipBuilder = TooltipBuilder()
           timesheet.kost2?.let { kost2 ->
-            tooltipBuilder.addPropRow(translate("fibu.kost2"), KostFormatter.format(kost2, 50))
+            tooltipBuilder.addPropRow(translate("fibu.kost2"), KostFormatter.format(kost2, 60))
           }
           tooltipBuilder
             .addPropRow(
               translate("task"),
-              TaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.HTML, abreviationLength = 50),
+              TaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.HTML, abreviationLength = 60),
               escapeHtml = false,
             )
             .addPropRow(translate("timesheet.location"), timesheet.location, abbreviate = true)
@@ -184,7 +185,7 @@ class TimesheetEventsProvider {
           val buf = StringBuffer()
           buf.append(translate("calendar.weekOfYearShortLabel")).append(day.weekOfYear)
           if (ctx.days > 1 && weekDuration > 0) { // Show total sum of durations over all time sheets of current week (only in week and month view).
-            buf.append(": ").append(FullCalendarEvent.formatDuration(weekDuration))
+            buf.append(": ").append(FullCalendarEvent.formatDuration(weekDuration, -1, -1))
           }
           if (duration > 0) {
             buf.append(", ").append(durationString)
@@ -208,7 +209,6 @@ class TimesheetEventsProvider {
 
   private class Context() {
     var firstDayOfMonth: ZonedDateTime? = null
-    var longFormat = false
     var totalDuration: Long = 0
     var month: Month? = null
     var days: Long = 0
