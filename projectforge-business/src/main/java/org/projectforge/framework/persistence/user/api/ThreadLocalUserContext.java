@@ -129,6 +129,14 @@ public class ThreadLocalUserContext {
   }
 
   /**
+   * @return The locale as String for external systems: e. g. 'de-DE' instead of 'de_DE'.
+   * @see #getLocale()
+   */
+  public static String getLocaleAsString() {
+    return getLocale(null).toString().replace('_', '-');
+  }
+
+  /**
    * Only for anonymous usage (needed by translations). Will throw an exception, if an user is already attached.
    *
    * @param locale

@@ -42,7 +42,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.DayOfWeek
-import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 /**
@@ -66,7 +65,7 @@ open class UserStatusRest {
     var firstName: String? = null,
     var userId: Int? = null,
     var employeeId: Int? = null,
-    var locale: Locale? = null,
+    var locale: String? = null,
     var timeZone: String? = null,
     var dateFormat: String? = null,
     var dateFormatShort: String? = null,
@@ -119,7 +118,7 @@ open class UserStatusRest {
       lastName = user.lastname,
       userId = user.id,
       employeeId = employeeId,
-      locale = ThreadLocalUserContext.getLocale(),
+      locale = ThreadLocalUserContext.getLocaleAsString(),
       timeZone = ThreadLocalUserContext.getTimeZone().id,
       timeNotation = DateFormats.ensureAndGetDefaultTimeNotation(),
       dateFormat = DateFormats.getFormatString(DateFormatType.DATE),
