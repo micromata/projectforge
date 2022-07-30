@@ -31,7 +31,6 @@ import org.projectforge.menu.Menu;
 import org.projectforge.menu.MenuItem;
 import org.projectforge.menu.builder.FavoritesMenuCreator;
 import org.projectforge.menu.builder.MenuCreatorContext;
-import org.projectforge.menu.builder.MenuItemDef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,9 +49,6 @@ public class WicketMenuBuilder {
 
   public WicketMenu getFavoriteMenu() {
     Menu menu = favoritesMenuCreator.getFavoriteMenu();
-    MenuItemDef reactMenu = MenuItemDef.create("GoReact", "goreact.menu.new");
-    reactMenu.setUrl("/react/calendar");
-    menu.add(reactMenu);
     return buildMenuTree(menu);
   }
 

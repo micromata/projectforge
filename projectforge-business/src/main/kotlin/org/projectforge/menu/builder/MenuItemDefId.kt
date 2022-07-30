@@ -37,8 +37,6 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     PROJECT_MANAGEMENT("menu.projectmanagement"), //
     REPORTING("menu.reporting"), //
 
-    GO_CLASSIC("goreact.menu.classics", "wa"), //
-
     // Sub menus in alphabetical order:
     ACCESS_LIST("menu.accessList", "wa/accessList"), //
     ACCOUNT_LIST("menu.fibu.konten", getReactListUrl("account")), //
