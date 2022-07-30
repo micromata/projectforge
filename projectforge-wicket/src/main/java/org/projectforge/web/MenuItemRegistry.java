@@ -37,9 +37,8 @@ import org.projectforge.web.humanresources.HRPlanningListPage;
 import org.projectforge.web.orga.VisitorbookListPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
 import org.projectforge.web.task.TaskTreePage;
-import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
-import org.projectforge.web.user.*;
+import org.projectforge.web.user.UserPrefListPage;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -76,7 +75,7 @@ public class MenuItemRegistry implements Serializable {
    * Registers all Wicket page classes.
    */
   private void initialize(final MenuItemRegistry reg) {
-    register(MenuItemDefId.CALENDAR, TeamCalCalendarPage.class);
+    // register(MenuItemDefId.CALENDAR, TeamCalCalendarPage.class);
     // createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
 
     register(MenuItemDefId.PHONE_CALL, PhoneCallPage.class);

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { Card, CardBody, CardHeader, CardText, CardTitle, Col, Container, Row } from 'reactstrap';
+import { Card, CardBody, CardHeader, CardText, CardTitle } from 'reactstrap';
 import { loadUserStatus } from '../../actions';
 import { getServiceURL } from '../../utilities/rest';
 
@@ -65,63 +65,25 @@ class IndexPage extends React.Component {
             return (<div>{' '}</div>);
         }
         return (
-            <Container>
-                <Row>
-                    <Col>
-                        <a href="/wa/">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>
-                                        {translations['goreact.index.classics.header']}
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardBody>
-                                    <CardText>
-                                        {translations['goreact.index.classics.body1']}
-                                    </CardText>
-                                    <CardText>
-                                        {translations['goreact.index.classics.body2']}
-                                    </CardText>
-                                </CardBody>
-                            </Card>
-                        </a>
-                    </Col>
-                    <Col>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>
-                                    {translations['goreact.index.react.header']}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardBody>
-                                <CardText>
-                                    {translations['goreact.index.react.body1']}
-                                </CardText>
-                                <CardText>
-                                    {translations['goreact.index.react.body2']}
-                                </CardText>
-                            </CardBody>
-                        </Card>
-                    </Col>
-                    <Col>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>
-                                    {translations['goreact.index.both.header']}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardBody>
-                                <CardText>
-                                    {translations['goreact.index.both.body1']}
-                                </CardText>
-                                <CardText>
-                                    {translations['goreact.index.both.body2']}
-                                </CardText>
-                            </CardBody>
-                        </Card>
-                    </Col>
-                </Row>
-            </Container>
+            <Card>
+                <CardHeader>
+                    <CardTitle>
+                        {translations['index.welcome']}
+                    </CardTitle>
+                </CardHeader>
+                <CardBody>
+                    <CardText>
+                        {translations['index.website']}
+                        {': '}
+                        <a href="https://www.projectforge.org" target="_blank" rel="noreferrer">www.projectforge.org</a>
+                    </CardText>
+                    <CardText>
+                        {translations['index.development']}
+                        {': '}
+                        <a href="https://github.com/micromata/projectforge/" target="_blank" rel="noreferrer">github.com/micromata/projectforge/</a>
+                    </CardText>
+                </CardBody>
+            </Card>
         );
     }
 }

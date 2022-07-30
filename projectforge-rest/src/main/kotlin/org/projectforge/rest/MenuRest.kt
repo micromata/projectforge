@@ -59,8 +59,6 @@ class MenuRest {
   fun getMenu(): Menus {
     val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
     val favoritesMenu = favoritesMenuCreator.getFavoriteMenu()
-    val goClassicsMenu = MenuItemDef(MenuItemDefId.GO_CLASSIC)
-    favoritesMenu.add(goClassicsMenu)
 
     val myAccountMenu = Menu()
     val userNameItem = MenuItem("username", ThreadLocalUserContext.getUser()?.getFullname(), key = "MY_MENU")

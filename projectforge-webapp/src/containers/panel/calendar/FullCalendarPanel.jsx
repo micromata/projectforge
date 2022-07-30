@@ -308,9 +308,13 @@ function FullCalendarPanel(options) {
     const views = {
         dayGridMonth: {
             fixedWeekCount: false,
+            text: `${translations['calendar.view.dayGrid.month']}`,
         },
         dayGridWeek: {
-            scrollTime: '08:00:00',
+            text: `${translations['calendar.view.dayGrid.week']}`,
+        },
+        dayGridDay: {
+            text: `${translations['calendar.view.dayGrid.day']}`,
         },
         timeGridWeek: {
             slotDuration: `${getSlotDuration(gridSize)}`,
@@ -327,39 +331,41 @@ function FullCalendarPanel(options) {
             scrollTime: '08:00:00',
         },
     };
-    // dayGridMonth=Month, timeGridWeek=Week, timeGridWorkingWeek=Working week,
-    // timeGridDay=Day, dayGridWeek=Week list, listWeek=Week agenda, listMonth=Month agenda
-    const headerToolbar = { center: 'dayGridMonth,listMonth,timeGridWeek,timeGridWorkingWeek,dayGridWeek,listWeek,timeGridDay,dayGridDay,listDay' };
+    const headerToolbar = { center: 'dayGridMonth,listMonth,dayGridWeek,timeGridWeek,listWeek,timeGridWorkingWeek,dayGridDay,timeGridDay,listDay,oldVersion' };
     const customButtons = {
         listMonth: {
             bootstrapFontAwesome: 'fa-list',
-            hint: `${translations['calendar.view.monthAgenda']}`,
+            hint: `${translations['calendar.view.agenda.month']}`,
             click: () => setView('listMonth'),
         },
         listWeek: {
             bootstrapFontAwesome: 'fa-list-ul',
-            hint: `${translations['calendar.view.weekAgenda']}`,
+            hint: `${translations['calendar.view.agenda.week']}`,
             click: () => setView('listWeek'),
-        },
-        dayGridWeek: {
-            bootstrapFontAwesome: 'fa-table-columns',
-            hint: `${translations['calendar.view.dayGridWeek']}`,
-            click: (event) => setView('dayGridWeek', event),
-        },
-        timeGridWorkingWeek: {
-            bootstrapFontAwesome: 'fa-building',
-            hint: `${translations['calendar.view.timeGridWorkingWeek']}`,
-            click: (event) => setView('timeGridWorkingWeek', event),
-        },
-        dayGridDay: {
-            bootstrapFontAwesome: 'fa-table-columns',
-            hint: `${translations['calendar.view.dayGridDay']}`,
-            click: (event) => setView('dayGridDay', event),
         },
         listDay: {
             bootstrapFontAwesome: 'fa-list-ul',
-            hint: `${translations['calendar.view.dayAgenda']}`,
+            hint: `${translations['calendar.view.agenda.day']}`,
             click: () => setView('listDay'),
+        },
+        timeGridWeek: {
+            bootstrapFontAwesome: 'fa-table',
+            hint: `${translations['calendar.view.timeGrid.week']}`,
+            click: (event) => setView('timeGridWeek', event),
+        },
+        timeGridWorkingWeek: {
+            bootstrapFontAwesome: 'fa-building',
+            hint: `${translations['calendar.view.timeGrid.workingWeek']}`,
+            click: (event) => setView('timeGridWorkingWeek', event),
+        },
+        timeGridDay: {
+            bootstrapFontAwesome: 'fa-table',
+            hint: `${translations['calendar.view.timeGrid.day']}`,
+            click: (event) => setView('timeGridDay', event),
+        },
+        oldVersion: {
+            text: `${translations['calendar.view.oldVersion']}`,
+            click: () => history.push('/wa'),
         },
     };
     const locales = [deLocale];
