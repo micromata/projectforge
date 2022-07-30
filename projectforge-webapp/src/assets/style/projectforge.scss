@@ -280,6 +280,26 @@ svg.fa-chevron-down {
   background-color: #bbb !important;
 }
 
+.fc-toolbar.fc-header-toolbar {
+  margin-bottom: 0.2em !important;
+}
+
+.fc-toolbar-title {
+  font-size: 1.2em !important;
+}
+
+.calendar-filter {
+  margin-bottom: 0.2em;
+
+  .col-sm-10 {
+    padding-right: 10px;
+  }
+
+  .col-sm-2 {
+    padding-left: 0px;
+  }
+}
+
 // Task tree
 
 div.tree-nav {

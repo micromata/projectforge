@@ -257,25 +257,17 @@ function FullCalendarPanel(options) {
             return undefined;
         }
         return (
-            <>
-                {eventInfo.timeText && (
-                    <>
-                        {eventInfo.timeText}
-                        <br />
-                    </>
-                )}
-                {event.title && (
-                    <>
-                        <b>{event.title}</b>
-                        <br />
-                    </>
-                )}
-                {extendedProps.description && (
-                    <div style={{ whiteSpace: 'pre-wrap' }}>
-                        {extendedProps.description}
-                    </div>
-                )}
-            </>
+            <div className="fc-event-main-frame">
+                <div className="fc-event-time">{eventInfo.timeText}</div>
+                <div className="fc-event-title-container">
+                    <div className="fc-event-title fc-sticky">{event.title}</div>
+                    {extendedProps.description && (
+                        <div style={{ whiteSpace: 'pre-wrap' }}>
+                            {extendedProps.description}
+                        </div>
+                    )}
+                </div>
+            </div>
         );
     };
 
@@ -313,8 +305,13 @@ function FullCalendarPanel(options) {
         },
         dayGridWeek: {
             buttonText: `${translations['calendar.view.dayGridWeek']}`,
+            scrollTime: '08:00:00',
         },
         timeGridWeek: {
+            slotDuration: `${getSlotDuration(gridSize)}`,
+            scrollTime: '08:00:00',
+        },
+        timeGridDay: {
             slotDuration: `${getSlotDuration(gridSize)}`,
             scrollTime: '08:00:00',
         },
