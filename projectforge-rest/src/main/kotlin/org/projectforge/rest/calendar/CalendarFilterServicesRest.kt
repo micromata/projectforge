@@ -191,6 +191,8 @@ class CalendarFilterServicesRest {
       "calendar.option.timesheets",
       "calendar.showMore",
       "calendar.title",
+      "calendar.view.dayAgenda",
+      "calendar.view.dayGridDay",
       "calendar.view.dayGridWeek",
       "calendar.view.monthAgenda",
       "calendar.view.timeGridWorkingWeek",

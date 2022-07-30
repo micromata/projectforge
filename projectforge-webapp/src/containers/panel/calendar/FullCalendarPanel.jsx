@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import FullCalendar from '@fullcalendar/react'; // must go before plugins
+import '@fortawesome/fontawesome-free/css/all.css';
 import deLocale from '@fullcalendar/core/locales/de';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
+import bootstrapPlugin from '@fullcalendar/bootstrap';
 import { connect } from 'react-redux'; // a plugin!
 import { createPopper } from '@popperjs/core';
 import { Route } from 'react-router-dom';
@@ -248,6 +250,10 @@ function FullCalendarPanel(options) {
         }
     };
 
+    const setView = (view, event) => {
+        calendarRef?.current?.getApi()?.changeView(view);
+    };
+
     const renderEventContent = (eventInfo) => {
         const { event } = eventInfo;
         const { extendedProps } = event;
@@ -304,7 +310,6 @@ function FullCalendarPanel(options) {
             fixedWeekCount: false,
         },
         dayGridWeek: {
-            buttonText: `${translations['calendar.view.dayGridWeek']}`,
             scrollTime: '08:00:00',
         },
         timeGridWeek: {
@@ -318,20 +323,45 @@ function FullCalendarPanel(options) {
         timeGridWorkingWeek: {
             type: 'timeGridWeek',
             weekends: false,
-            buttonText: `${translations['calendar.view.timeGridWorkingWeek']}`,
             slotDuration: `${getSlotDuration(gridSize)}`,
             scrollTime: '08:00:00',
-        },
-        listMonth: {
-            buttonText: `${translations['calendar.view.monthAgenda']}`,
-        },
-        listWeek: {
-            buttonText: `${translations['calendar.view.weekAgenda']}`,
         },
     };
     // dayGridMonth=Month, timeGridWeek=Week, timeGridWorkingWeek=Working week,
     // timeGridDay=Day, dayGridWeek=Week list, listWeek=Week agenda, listMonth=Month agenda
-    const headerToolbar = { center: 'dayGridMonth,timeGridWeek,timeGridWorkingWeek,timeGridDay,dayGridWeek,listWeek,listMonth' };
+    const headerToolbar = { center: 'dayGridMonth,listMonth,timeGridWeek,timeGridWorkingWeek,dayGridWeek,listWeek,timeGridDay,dayGridDay,listDay' };
+    const customButtons = {
+        listMonth: {
+            bootstrapFontAwesome: 'fa-list',
+            hint: `${translations['calendar.view.monthAgenda']}`,
+            click: () => setView('listMonth'),
+        },
+        listWeek: {
+            bootstrapFontAwesome: 'fa-list-ul',
+            hint: `${translations['calendar.view.weekAgenda']}`,
+            click: () => setView('listWeek'),
+        },
+        dayGridWeek: {
+            bootstrapFontAwesome: 'fa-table-columns',
+            hint: `${translations['calendar.view.dayGridWeek']}`,
+            click: (event) => setView('dayGridWeek', event),
+        },
+        timeGridWorkingWeek: {
+            bootstrapFontAwesome: 'fa-building',
+            hint: `${translations['calendar.view.timeGridWorkingWeek']}`,
+            click: (event) => setView('timeGridWorkingWeek', event),
+        },
+        dayGridDay: {
+            bootstrapFontAwesome: 'fa-table-columns',
+            hint: `${translations['calendar.view.dayGridDay']}`,
+            click: (event) => setView('dayGridDay', event),
+        },
+        listDay: {
+            bootstrapFontAwesome: 'fa-list-ul',
+            hint: `${translations['calendar.view.dayAgenda']}`,
+            click: () => setView('listDay'),
+        },
+    };
     const locales = [deLocale];
 
     // console.log('FullCalendarPanel.render', defaultDate, defaultView);
@@ -339,7 +369,8 @@ function FullCalendarPanel(options) {
         <LoadingContainer loading={loading}>
             {useMemo(() => (
                 <FullCalendar
-                    plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+                    /* eslint-disable-next-line max-len */
+                    plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, bootstrapPlugin]}
                     initialView={defaultView}
                     initialDate={initialDate}
                     events={fetchEvents}
@@ -347,6 +378,7 @@ function FullCalendarPanel(options) {
                     eventResizableFromStart
                     selectable
                     headerToolbar={headerToolbar}
+                    customButtons={customButtons}
                     allDaySlot
                     views={views}
                     eventContent={renderEventContent}
@@ -363,6 +395,7 @@ function FullCalendarPanel(options) {
                     eventMouseEnter={handleEventMouseEnter}
                     eventMouseLeave={handleEventMouseLeave}
                     height={`calc(100vh - ${topHeight})`}
+                    themeSystem="bootstrap"
                 />
             ), [gridSize])}
             <CalendarEventTooltip
