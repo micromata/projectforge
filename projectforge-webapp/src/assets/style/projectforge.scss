@@ -271,17 +271,24 @@ svg.fa-chevron-down {
   opacity: var(--fc-bg-event-opacity, 0.6) !important;
 }
 
-.fc-button-primary {
-  color: #333 !important;
-  background-color: transparent !important;
-}
-
 .fc-button-active {
   background-color: #bbb !important;
 }
 
 .fc-toolbar.fc-header-toolbar {
   margin-bottom: 0.2em !important;
+
+  .btn-primary {
+    color: #777 !important;
+    background-color: transparent !important;
+    border-color: #aaa !important;
+  }
+  .btn-primary.active {
+    background-color: #ccc !important;
+  }
+  .btn-group {
+    margin-top: 0px !important;
+  }
 }
 
 .fc-toolbar-title {
