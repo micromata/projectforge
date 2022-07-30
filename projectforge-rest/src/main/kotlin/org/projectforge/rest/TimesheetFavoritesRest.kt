@@ -30,6 +30,7 @@ import org.projectforge.business.timesheet.TimesheetFavorite
 import org.projectforge.business.timesheet.TimesheetFavoritesService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.dto.Timesheet
 import org.projectforge.rest.task.TaskServicesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
@@ -43,12 +44,12 @@ class TimesheetFavoritesRest {
     /**
      * Only for rest call to create a new timesheet favorite.
      */
-    class NewTimesheetFavorite(var name: String, var timesheet: TimesheetDO)
+    class NewTimesheetFavorite(var name: String, var timesheet: Timesheet)
 
     /**
      * Only for rest call to select a timesheet favorite.
      */
-    class SelectTimesheetFavorite(var id: Int, var timesheet: TimesheetDO)
+    class SelectTimesheetFavorite(var id: Int, var timesheet: Timesheet)
 
     @Autowired
     private lateinit var timsheetFavoritesService: TimesheetFavoritesService
@@ -75,7 +76,9 @@ class TimesheetFavoritesRest {
     fun new(@RequestBody newFavorite: NewTimesheetFavorite): Map<String, Any> {
         val favorite = TimesheetFavorite()
         favorite.name = newFavorite.name
-        favorite.fillFromTimesheet(newFavorite.timesheet)
+        val timesheetDO = TimesheetDO()
+        newFavorite.timesheet.copyTo(timesheetDO)
+        favorite.fillFromTimesheet(timesheetDO)
         timsheetFavoritesService.createFavorite(favorite)
         return mapOf("timesheetFavorites" to getList())
     }
