@@ -211,70 +211,68 @@ function CalendarPage({ match, location }) {
                         saveUpdateResponseInState,
                     }}
                 >
-                    <Card>
-                        <CardBody>
-                            <form>
-                                <Row>
-                                    <Col sm="11">
-                                        {options && (
-                                            <Select
-                                                closeMenuOnSelect={false}
-                                                components={{
-                                                    MultiValueLabel: EditableMultiValueLabel,
-                                                }}
-                                                getOptionLabel={(option) => (option.title)}
-                                                getOptionValue={(option) => (option.id)}
-                                                isClearable
-                                                isMulti
-                                                onChange={onChange}
-                                                options={options}
-                                                placeholder={translations['select.placeholder']}
-                                                setMultiValue={handleMultiValueChange}
-                                                styles={customStyles}
-                                                values={colors}
-                                                value={value}
-                                            />
-                                        )}
-                                    </Col>
-                                    <Col sm="1" className="d-flex align-items-center">
-                                        <FavoritesPanel
-                                            onFavoriteCreate={onFavoriteCreate}
-                                            onFavoriteDelete={onFavoriteDelete}
-                                            onFavoriteRename={onFavoriteRename}
-                                            onFavoriteSelect={onFavoriteSelect}
-                                            onFavoriteUpdate={onFavoriteUpdate}
-                                            favorites={state.filterFavorites}
-                                            translations={translations}
-                                            currentFavoriteId={state.filter.id}
-                                            isModified={state.isFilterModified}
-                                            closeOnSelect={false}
-                                            htmlId="calendarFavoritesPopover"
+                    <div className="calendar-filter">
+                        <form>
+                            <Row>
+                                <Col sm="10" md="11">
+                                    {options && (
+                                        <Select
+                                            closeMenuOnSelect={false}
+                                            components={{
+                                                MultiValueLabel: EditableMultiValueLabel,
+                                            }}
+                                            getOptionLabel={(option) => (option.title)}
+                                            getOptionValue={(option) => (option.id)}
+                                            isClearable
+                                            isMulti
+                                            onChange={onChange}
+                                            options={options}
+                                            placeholder={translations['select.placeholder']}
+                                            setMultiValue={handleMultiValueChange}
+                                            styles={customStyles}
+                                            values={colors}
+                                            value={value}
                                         />
-                                        <CalendarFilterSettings
-                                            /* eslint-disable-next-line max-len */
-                                            listOfDefaultCalendars={state.listOfDefaultCalendars}
-                                            defaultCalendarId={state.filter.defaultCalendarId}
-                                            otherTimesheetUsersEnabled={
-                                                state.filter.otherTimesheetUsersEnabled
-                                            }
-                                            timesheetUser={state.timesheetUser}
-                                            gridSize={state.filter.gridSize}
-                                            translations={translations}
-                                            onTimesheetUserChange={onTimesheetUserChange}
-                                            onDefaultCalendarChange={
-                                                onDefaultCalendarChange
-                                            }
-                                            onGridSizeChange={onGridSizeChange}
-                                            onVacationGroupsChange={onVacationGroupsChange}
-                                            onVacationUsersChange={onVacationUsersChange}
-                                            vacationGroups={state.vacationGroups}
-                                            vacationUsers={state.vacationUsers}
-                                        />
-                                    </Col>
-                                </Row>
-                            </form>
-                        </CardBody>
-                    </Card>
+                                    )}
+                                </Col>
+                                <Col sm="2" md="1" className="d-flex justify-content-end">
+                                    <FavoritesPanel
+                                        onFavoriteCreate={onFavoriteCreate}
+                                        onFavoriteDelete={onFavoriteDelete}
+                                        onFavoriteRename={onFavoriteRename}
+                                        onFavoriteSelect={onFavoriteSelect}
+                                        onFavoriteUpdate={onFavoriteUpdate}
+                                        favorites={state.filterFavorites}
+                                        translations={translations}
+                                        currentFavoriteId={state.filter.id}
+                                        isModified={state.isFilterModified}
+                                        closeOnSelect={false}
+                                        htmlId="calendarFavoritesPopover"
+                                    />
+                                    <CalendarFilterSettings
+                                        /* eslint-disable-next-line max-len */
+                                        listOfDefaultCalendars={state.listOfDefaultCalendars}
+                                        defaultCalendarId={state.filter.defaultCalendarId}
+                                        otherTimesheetUsersEnabled={
+                                            state.filter.otherTimesheetUsersEnabled
+                                        }
+                                        timesheetUser={state.timesheetUser}
+                                        gridSize={state.filter.gridSize}
+                                        translations={translations}
+                                        onTimesheetUserChange={onTimesheetUserChange}
+                                        onDefaultCalendarChange={
+                                            onDefaultCalendarChange
+                                        }
+                                        onGridSizeChange={onGridSizeChange}
+                                        onVacationGroupsChange={onVacationGroupsChange}
+                                        onVacationUsersChange={onVacationUsersChange}
+                                        vacationGroups={state.vacationGroups}
+                                        vacationUsers={state.vacationUsers}
+                                    />
+                                </Col>
+                            </Row>
+                        </form>
+                    </div>
                     {state.date && (
                         <FullCalendarPanel
                             defaultDate={state.date}
