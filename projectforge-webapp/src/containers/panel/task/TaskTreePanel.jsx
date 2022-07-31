@@ -1,12 +1,12 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { Card, CardBody } from 'reactstrap';
 import LoadingContainer from '../../../components/design/loading-container';
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import TaskTreeTable from './table/TaskTreeTable';
 import TaskFilter from './TaskFilter';
 import TaskTreeContext, { taskTreeContextDefaultValues } from './TaskTreeContext';
-import style from './TaskTreePanel.module.scss';
 
 const loadTasksBounced = (
     {
@@ -179,30 +179,34 @@ function TaskTreePanel(
     }, [visible, loading, translations]);
 
     return (
-        <LoadingContainer loading={loading} className={style.selectionContainer}>
-            <TaskTreeContext.Provider
-                /* eslint-disable-next-line react/jsx-no-constructed-context-values */
-                value={{
-                    ...taskTreeContextDefaultValues,
-                    columnsVisibility,
-                    highlightTaskId,
-                    selectTask,
-                    shortForm,
-                    toggleTask,
-                    translations,
-                }}
-            >
-                <TaskFilter
-                    filter={filter}
-                    onSubmit={() => loadTasks()}
-                    onCheckBoxChange={handleCheckBoxChange}
-                    onChange={handleSearchChange}
-                />
-                <TaskTreeTable
-                    nodes={nodes}
-                    consumptionBarClickable={consumptionBarClickable}
-                />
-            </TaskTreeContext.Provider>
+        <LoadingContainer loading={loading}>
+            <Card>
+                <CardBody>
+                    <TaskTreeContext.Provider
+                        /* eslint-disable-next-line react/jsx-no-constructed-context-values */
+                        value={{
+                            ...taskTreeContextDefaultValues,
+                            columnsVisibility,
+                            highlightTaskId,
+                            selectTask,
+                            shortForm,
+                            toggleTask,
+                            translations,
+                        }}
+                    >
+                        <TaskFilter
+                            filter={filter}
+                            onSubmit={() => loadTasks()}
+                            onCheckBoxChange={handleCheckBoxChange}
+                            onChange={handleSearchChange}
+                        />
+                        <TaskTreeTable
+                            nodes={nodes}
+                            consumptionBarClickable={consumptionBarClickable}
+                        />
+                    </TaskTreeContext.Provider>
+                </CardBody>
+            </Card>
         </LoadingContainer>
     );
 }
