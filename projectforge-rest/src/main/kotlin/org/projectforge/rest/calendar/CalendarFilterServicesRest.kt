@@ -191,6 +191,8 @@ class CalendarFilterServicesRest {
       "calendar.option.timesheets",
       "calendar.showMore",
       "calendar.title",
+      "calendar.templates.new",
+      "calendar.templates.new.tooltip",
       "calendar.view.agenda.day",
       "calendar.view.agenda.month",
       "calendar.view.agenda.week",
