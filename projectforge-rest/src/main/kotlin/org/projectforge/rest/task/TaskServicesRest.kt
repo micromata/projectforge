@@ -278,10 +278,12 @@ class TaskServicesRest {
         "task.consumption",
         "task.protectTimesheetsUntil",
         "task.protectTimesheetsUntil.short",
+        "task.reference",
+        "task.selectPanel.info",
         "task.status.closed",
         "task.status.notOpened",
         "task.status.opened",
-        "task.reference",
+        "task.selectPanel.noTasksFound",
         "task.tree.info"
       )
     }

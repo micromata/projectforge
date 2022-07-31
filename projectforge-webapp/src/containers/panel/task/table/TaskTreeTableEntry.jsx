@@ -5,7 +5,7 @@ import Formatter from '../../../../components/base/Formatter';
 import ConsumptionBar from '../ConsumptionBar';
 import TaskTreeContext from '../TaskTreeContext';
 import styles from '../TaskTreePanel.module.scss';
-import TaskTreeTableEntryIcon from './TaskTreeTableEntryIcon';
+import TaskTreeTableEntryNavigation from './TaskTreeTableEntryNavigation';
 
 function TaskTreeTableEntry({ task, consumptionBarClickable }) {
     const {
@@ -24,13 +24,12 @@ function TaskTreeTableEntry({ task, consumptionBarClickable }) {
             onClick={handleRowClick}
             className={classNames(styles.task, { [styles.highlighted]: highlightTaskId === id })}
         >
-            <td style={{ paddingLeft: `${task.indent * 1.5 + 0.75}rem` }}>
-                <TaskTreeTableEntryIcon
-                    treeStatus={task.treeStatus}
-                    taskId={id}
-                />
-                {task.title}
-            </td>
+            <TaskTreeTableEntryNavigation
+                treeStatus={task.treeStatus}
+                id={id}
+                indent={task.indent}
+                title={task.title}
+            />
             <td>
                 <ConsumptionBar
                     progress={task.consumption}

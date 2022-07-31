@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { Alert } from 'reactstrap';
 import { Table } from '../../../../components/design';
 import TaskTreeContext from '../TaskTreeContext';
 import styles from '../TaskTreePanel.module.scss';
@@ -57,8 +58,10 @@ function TaskTreeTable({ nodes, consumptionBarClickable }) {
                     ))}
                 </tbody>
             </Table>
-            {/* TODO TRANSLATION */}
-            {nodes.length === 0 && <span>[Keine Tasks gefunden]</span>}
+            {nodes.length === 0 && <span>{translations['task.selectPanel.noTasksFound']}</span>}
+            <Alert color="light">
+                {translations['task.selectPanel.info']}
+            </Alert>
         </>
     );
 }
