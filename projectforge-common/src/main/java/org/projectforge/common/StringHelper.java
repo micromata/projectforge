@@ -444,30 +444,7 @@ public class StringHelper {
      * then an empty string is returned.
      */
     public static String getWildcardString(final String... strs) {
-        if (strs == null) {
-            return "";
-        }
-        int maxLength = Integer.MAX_VALUE;
-        for (final String str : strs) {
-            if (str == null) {
-                return "";
-            } else if (str.length() < maxLength) {
-                maxLength = str.length();
-            }
-        }
-        for (int i = 0; i < maxLength; i++) {
-            final char ch = strs[0].charAt(i);
-            for (final String str : strs) {
-                if (ch != str.charAt(i)) {
-                    if (i > 0) {
-                        return strs[0].substring(0, i);
-                    } else {
-                        return "";
-                    }
-                }
-            }
-        }
-        return strs[0].substring(0, maxLength);
+        return StringHelper2.getWildCard(strs);
     }
 
     /**

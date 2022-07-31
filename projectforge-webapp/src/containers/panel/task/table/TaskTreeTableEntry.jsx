@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { UncontrolledTooltip } from 'reactstrap';
 import Formatter from '../../../../components/base/Formatter';
 import ConsumptionBar from '../ConsumptionBar';
 import TaskTreeContext from '../TaskTreeContext';
@@ -18,6 +19,8 @@ function TaskTreeTableEntry({ task, consumptionBarClickable }) {
     const { id } = task;
 
     const handleRowClick = () => selectTask(id, task);
+
+    const kost2TooltipId = task.kost2ListAsLines && task.kost2ListAsLines.length ? `kost2-${task.id}` : undefined;
 
     return (
         <tr
@@ -38,7 +41,22 @@ function TaskTreeTableEntry({ task, consumptionBarClickable }) {
                 />
             </td>
 
-            {columnsVisibility.kost2 ? <td>...</td> : undefined}
+            {columnsVisibility.kost2 && kost2TooltipId && (
+                <td>
+                    <span id={kost2TooltipId}>
+                        {task.kost2WildCard}
+                    </span>
+                    <UncontrolledTooltip placement="auto" target={kost2TooltipId} style={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+                        {task.kost2ListAsLines}
+                    </UncontrolledTooltip>
+
+                </td>
+            )}
+            {columnsVisibility.kost2 && !kost2TooltipId && (
+                <td>
+                    {task.kost2WildCard}
+                </td>
+            )}
 
             {!shortForm && columnsVisibility.orders ? <td>...</td> : undefined}
 
@@ -88,6 +106,8 @@ TaskTreeTableEntry.propTypes = {
         status: PropTypes.string,
         reference: PropTypes.string,
         priority: PropTypes.string,
+        kost2WildCard: PropTypes.string,
+        kost2ListAsLines: PropTypes.string,
     }).isRequired,
     /* If clickable a click on the consumption bar redirects to task view. */
     consumptionBarClickable: PropTypes.bool,

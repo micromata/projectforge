@@ -26,6 +26,7 @@ package org.projectforge.rest.task
 import org.projectforge.business.fibu.AuftragsPositionsStatus
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.fibu.kost.KostHelper
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskFilter
 import org.projectforge.business.task.TaskNode
@@ -86,6 +87,14 @@ class TaskServicesRest {
      */
     var timesheetReferenceList: List<String>? = null,
     var kost2List: List<Kost2>? = null,
+    /**
+     * Kost2List as formatted numbers (separated in each line) for displaying in tooltip.
+     */
+    var kost2ListAsLines: String? = null,
+    /**
+     * Wild card form of kost2List, e. g. 5.123.456.*
+     */
+    var kost2WildCard: String? = null,
     var path: List<Task>? = null,
     var consumption: Consumption? = null,
     var orderList: MutableList<Order>? = null
@@ -142,6 +151,8 @@ class TaskServicesRest {
           Kost2((it as Kost2DO).id, KostFormatter.format(it, 80))
         }
         task.kost2List = kost2List
+        task.kost2WildCard = KostHelper.getWildCardString(kost2DOList, "*")
+        task.kost2ListAsLines = KostHelper.getFormattedNumberLines(kost2DOList)
       }
     }
 

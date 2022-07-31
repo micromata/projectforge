@@ -172,6 +172,7 @@ public class StringHelperTest {
     assertEquals("h", StringHelper.getWildcardString("hallo", "hurz", "house"));
     assertEquals("hallo", StringHelper.getWildcardString("hallo", "hallo", "hallo"));
     assertEquals("hallo", StringHelper.getWildcardString("hallo1", "hallo2", "hallo3"));
+    assertEquals("", StringHelper.getWildcardString("", "hallo"));
   }
 
   @Test
