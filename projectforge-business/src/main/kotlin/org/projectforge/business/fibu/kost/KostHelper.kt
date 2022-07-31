@@ -20,8 +20,11 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.business.fibu.kost
 
+import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.common.StringHelper2
 import org.projectforge.framework.utils.NumberHelper.parseInteger
 
 object KostHelper {
@@ -52,5 +55,26 @@ object KostHelper {
       return result
     }
     return null
+  }
+
+  @JvmStatic
+  fun getWildCardString(kost2List: List<Kost2DO>?, wildCard: String = "*"): String {
+    if (kost2List.isNullOrEmpty()) {
+      return wildCard
+    }
+    val asFormattedNumbers = kost2List.map { KostFormatter.format(it) }.toTypedArray()
+    return StringHelper2.getWildCard(asFormattedNumbers, wildCard)
+  }
+
+  @JvmStatic
+  fun getFormattedNumberLines(kost2List: List<Kost2DO>?): String {
+    val sb = java.lang.StringBuilder()
+    kost2List?.forEach { kost ->
+      val number = KostFormatter.format(kost, 40)
+      if (!number.isNullOrEmpty()) {
+        sb.appendLine(number)
+      }
+    }
+    return sb.toString()
   }
 }
