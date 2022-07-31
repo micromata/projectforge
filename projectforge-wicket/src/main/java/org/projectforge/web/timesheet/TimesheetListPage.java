@@ -179,7 +179,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     final BookmarkablePageLink<Void> addTemplatesLink = UserPrefListPage.createLink("link",
         UserPrefArea.TIMESHEET_TEMPLATE);
     final ContentMenuEntryPanel menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), addTemplatesLink,
-        getString("templates"));
+        getString("timesheet.templates"));
     addContentMenuEntry(menuEntry);
     final ContentMenuEntryPanel exportMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), getString("export"));
     addContentMenuEntry(exportMenu);
