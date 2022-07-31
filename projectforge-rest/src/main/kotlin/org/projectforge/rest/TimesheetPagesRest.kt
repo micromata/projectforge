@@ -347,9 +347,13 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       "timesheet.recent",
       "timesheet.tag",
       "timesheet.templates",
+      "timesheet.templates.migrationOfLegacy.button",
+      "timesheet.templates.migrationOfLegacy.confirmationMessage",
+      "timesheet.templates.migrationOfLegacy.tooltip",
       "timesheet.templates.new",
       "timesheet.templates.new.tooltip",
-      "until"
+      "until",
+      "yes", "cancel", // Confirmation message
     )
     return LayoutUtils.processEditPage(layout, dto, this)
   }
@@ -492,7 +496,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     val task = TaskServicesRest.createTask(dto.task?.id) ?: return null
     return mutableMapOf(
       "task" to task,
-      "timesheetFavorites" to timesheetFavoritesService.getList()
+      "timesheetFavorites" to timesheetFavoritesService.getList(),
+      "hasLegacyFavoritesToMigrate" to timesheetFavoritesService.hasLegacyFavoritesToMigrate(),
     )
   }
 
