@@ -334,19 +334,21 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       )
     )
     layout.addTranslations(
-      "templates",
-      "templates.new",
-      "task.favorite.new",
       "search.search",
+      "task",
       "fibu.kost2",
       "fibu.kunde",
       "fibu.projekt",
-      "task",
+      "task.favorite.new",
+      "task.favorite.new.tooltip",
       "timesheet.description",
       "timesheet.location",
       "timesheet.reference",
       "timesheet.recent",
       "timesheet.tag",
+      "timesheet.templates",
+      "timesheet.templates.new",
+      "timesheet.templates.new.tooltip",
       "until"
     )
     return LayoutUtils.processEditPage(layout, dto, this)

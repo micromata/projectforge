@@ -1,4 +1,4 @@
-import { faCheck, faEdit, faSync, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faEdit, faAsterisk, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -91,10 +91,10 @@ function FavoriteEntry(
                     {onFavoriteUpdate && currentFavoriteId === id ? (
                         <FavoriteActionButton
                             className={style.syncIcon}
-                            icon={isModified ? faSync : faCheck}
+                            icon={isModified ? faAsterisk : faCheck}
                             id={`syncFavoriteIcon-${id}`}
                             onClick={handleSyncClick}
-                            tooltip={translations[isModified ? 'save' : 'uptodate']}
+                            tooltip={translations[isModified ? 'favorites.saveModification' : 'uptodate']}
                         />
                     ) : undefined}
                 </div>

@@ -108,8 +108,9 @@ function TimesheetTemplatesAndRecent() {
                         translations={ui.translations}
                         favorites={timesheetFavorites}
                         htmlId="timesheetFavoritesPopover"
-                        newFavoriteI18nKey="templates.new"
-                        favoriteButtonText={`${ui.translations.templates} | `}
+                        newFavoriteI18nKey="timesheet.templates.new"
+                        newFavoriteTooltipI18nKey="timesheet.templates.new.tooltip"
+                        favoriteButtonText={`${ui.translations['timesheet.templates']} | `}
                     />
                     <span ref={recentListRef}>
                         <Button

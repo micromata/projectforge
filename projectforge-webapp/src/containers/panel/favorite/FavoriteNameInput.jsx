@@ -1,4 +1,4 @@
-import { faCheckSquare } from '@fortawesome/free-solid-svg-icons';
+import { faFolderPlus } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Input } from '../../../components/design';
@@ -9,6 +9,7 @@ function FavoriteNameInput(
         id,
         label,
         onSave,
+        tooltip,
         ...props
     },
 ) {
@@ -27,7 +28,7 @@ function FavoriteNameInput(
     return (
         <Input
             label={label}
-            icon={faCheckSquare}
+            icon={faFolderPlus}
             iconProps={{
                 size: 'lg',
                 onClick: handleCreateClick,
@@ -36,6 +37,7 @@ function FavoriteNameInput(
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             value={filterName}
+            tooltip={tooltip}
             {...props}
         />
     );
@@ -47,11 +49,13 @@ FavoriteNameInput.propTypes = {
     onSave: PropTypes.func.isRequired,
     className: PropTypes.string,
     defaultValue: PropTypes.string,
+    tooltip: PropTypes.string,
 };
 
 FavoriteNameInput.defaultProps = {
     className: '',
     defaultValue: '',
+    tooltip: undefined,
 };
 
 export default FavoriteNameInput;

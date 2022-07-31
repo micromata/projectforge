@@ -248,6 +248,8 @@ function CalendarPage({ match, location }) {
                                         isModified={state.isFilterModified}
                                         closeOnSelect={false}
                                         htmlId="calendarFavoritesPopover"
+                                        newFavoriteI18nKey="calendar.templates.new"
+                                        newFavoriteTooltipI18nKey="calendar.templates.new.tooltip"
                                     />
                                     <CalendarFilterSettings
                                         /* eslint-disable-next-line max-len */
