@@ -1,7 +1,7 @@
 $transitionTime: .3s;
 
 .searchContainer {
-  float: right;
+  float: left;
   width: 50%;
 
   .searchInput {
@@ -32,4 +32,9 @@ $transitionTime: .3s;
       color: #009BA3;
     }
   }
+}
+
+.selectionContainer {
+  border: 1px solid #777;
+  border-radius: 5px 5px 0 0;
 }
