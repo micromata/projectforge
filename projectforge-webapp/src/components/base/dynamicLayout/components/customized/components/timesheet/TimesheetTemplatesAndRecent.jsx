@@ -1,6 +1,7 @@
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import React from 'react';
 import { Button, Card, CardBody, Table } from 'reactstrap';
+import { translations } from 'react-rrule-generator';
 import FavoritesPanel from '../../../../../../../containers/panel/favorite/FavoritesPanel';
 import { useClickOutsideHandler } from '../../../../../../../utilities/hooks';
 import {
@@ -13,6 +14,7 @@ import { Collapse } from '../../../../../../design';
 import Input from '../../../../../../design/input';
 import { DynamicLayoutContext } from '../../../../context';
 import TimesheetRecentEntry, { filterRecent } from './TimesheetRecentEntry';
+import DynamicButton from '../../../DynamicButton';
 
 function TimesheetTemplatesAndRecent() {
     const {
@@ -26,6 +28,8 @@ function TimesheetTemplatesAndRecent() {
         timesheetFavorites,
         setTimesheetFavorites,
     ] = React.useState(variables.timesheetFavorites);
+
+    const { hasLegacyFavoritesToMigrate } = variables;
 
     const [recentListVisible, setRecentListVisible] = React.useState(false);
     const recentListRef = React.useRef(null);
@@ -94,6 +98,12 @@ function TimesheetTemplatesAndRecent() {
                 ({ timesheetFavorites: response }) => setTimesheetFavorites(response),
             );
 
+            const handleFavoritesMigration = () => fetchJsonGet(
+                'timesheet/favorites/migrateOldTemplates',
+                { },
+                ({ timesheetFavorites: response }) => setTimesheetFavorites(response),
+            );
+
             const toggleModal = () => {
                 setRecentListVisible(!recentListVisible);
             };
@@ -110,8 +120,9 @@ function TimesheetTemplatesAndRecent() {
                         htmlId="timesheetFavoritesPopover"
                         newFavoriteI18nKey="timesheet.templates.new"
                         newFavoriteTooltipI18nKey="timesheet.templates.new.tooltip"
-                        favoriteButtonText={`${ui.translations['timesheet.templates']} | `}
+                        favoriteButtonText={ui.translations['timesheet.templates']}
                     />
+                    {' | '}
                     <span ref={recentListRef}>
                         <Button
                             color="link"
@@ -182,6 +193,20 @@ function TimesheetTemplatesAndRecent() {
                             </Card>
                         </Collapse>
                     </span>
+                    { hasLegacyFavoritesToMigrate && (
+                        <>
+                            {' | '}
+                            <DynamicButton
+                                className="selectPanelIconLinks"
+                                color="link"
+                                title={ui.translations['timesheet.templates.migrationOfLegacy.button']}
+                                confirmMessage={ui.translations['timesheet.templates.migrationOfLegacy.confirmationMessage']}
+                                handleButtonClick={handleFavoritesMigration}
+                                tooltip={ui.translations['timesheet.templates.migrationOfLegacy.tooltip']}
+                                id="migration"
+                            />
+                        </>
+                    )}
                 </>
             );
         },

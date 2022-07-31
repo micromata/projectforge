@@ -41,85 +41,94 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("${Rest.URL}/timesheet/favorites")
 class TimesheetFavoritesRest {
-    /**
-     * Only for rest call to create a new timesheet favorite.
-     */
-    class NewTimesheetFavorite(var name: String, var timesheet: Timesheet)
+  /**
+   * Only for rest call to create a new timesheet favorite.
+   */
+  class NewTimesheetFavorite(var name: String, var timesheet: Timesheet)
 
-    /**
-     * Only for rest call to select a timesheet favorite.
-     */
-    class SelectTimesheetFavorite(var id: Int, var timesheet: Timesheet)
+  /**
+   * Only for rest call to select a timesheet favorite.
+   */
+  class SelectTimesheetFavorite(var id: Int, var timesheet: Timesheet)
 
-    @Autowired
-    private lateinit var timsheetFavoritesService: TimesheetFavoritesService
+  @Autowired
+  private lateinit var timsheetFavoritesService: TimesheetFavoritesService
 
-    @Autowired
-    private lateinit var userService: UserService
+  @Autowired
+  private lateinit var userService: UserService
 
-    @Autowired
-    private lateinit var kost2Dao: Kost2Dao
+  @Autowired
+  private lateinit var kost2Dao: Kost2Dao
 
-    @Autowired
-    private lateinit var taskTree: TaskTree
+  @Autowired
+  private lateinit var taskTree: TaskTree
 
-    @GetMapping("list")
-    fun getList(): List<TimesheetFavorite> {
-        return timsheetFavoritesService.getList()
+  @GetMapping("list")
+  fun getList(): List<TimesheetFavorite> {
+    return timsheetFavoritesService.getList()
+  }
+
+  /**
+   * Adds new favorite timesheet with given name.
+   * @return new list of favorites.
+   */
+  @RequestMapping("create")
+  fun new(@RequestBody newFavorite: NewTimesheetFavorite): Map<String, Any> {
+    val favorite = TimesheetFavorite()
+    favorite.name = newFavorite.name
+    val timesheetDO = TimesheetDO()
+    newFavorite.timesheet.copyTo(timesheetDO)
+    favorite.fillFromTimesheet(timesheetDO)
+    timsheetFavoritesService.createFavorite(favorite)
+    return mapOf("timesheetFavorites" to getList())
+  }
+
+  /**
+   * Selects the timesheet favorite and prefills the edit data.
+   */
+  @RequestMapping("select")
+  fun select(@RequestBody selectFavorite: SelectTimesheetFavorite): Map<String, Any> {
+    val fav = timsheetFavoritesService.selectTimesheet(selectFavorite.id) ?: return mapOf()
+    val timesheet = TimesheetDO()
+    fav.copyToTimesheet(timesheet)
+    val result = mutableMapOf<String, Any>("data" to timesheet)
+    if (timesheet.taskId != null) {
+      val task = taskTree.getTaskById(timesheet.taskId)
+      timesheet.task = task
+      result["variables"] = mapOf("task" to TaskServicesRest.createTask(timesheet.taskId))
     }
-
-    /**
-     * Adds new favorite timesheet with given name.
-     * @return new list of favorites.
-     */
-    @RequestMapping("create")
-    fun new(@RequestBody newFavorite: NewTimesheetFavorite): Map<String, Any> {
-        val favorite = TimesheetFavorite()
-        favorite.name = newFavorite.name
-        val timesheetDO = TimesheetDO()
-        newFavorite.timesheet.copyTo(timesheetDO)
-        favorite.fillFromTimesheet(timesheetDO)
-        timsheetFavoritesService.createFavorite(favorite)
-        return mapOf("timesheetFavorites" to getList())
+    if (timesheet.userId != null) {
+      timesheet.user = userService.getUser(timesheet.userId)
     }
-
-    /**
-     * Selects the timesheet favorite and prefills the edit data.
-     */
-    @RequestMapping("select")
-    fun select(@RequestBody selectFavorite: SelectTimesheetFavorite): Map<String, Any> {
-        val fav = timsheetFavoritesService.selectTimesheet(selectFavorite.id) ?: return mapOf()
-        val timesheet = TimesheetDO()
-        fav.copyToTimesheet(timesheet)
-        val result = mutableMapOf<String, Any>("data" to timesheet)
-        if (timesheet.taskId != null) {
-            val task = taskTree.getTaskById(timesheet.taskId)
-            timesheet.task = task
-            result["variables"] = mapOf("task" to TaskServicesRest.createTask(timesheet.taskId))
-        }
-        if (timesheet.userId != null) {
-            timesheet.user = userService.getUser(timesheet.userId)
-        }
-        if (timesheet.kost2Id != null) {
-            // Load without check access. User needs now select access for using kost2.
-            val kost2 = kost2Dao.internalGetById(timesheet.kost2Id)
-            timesheet.kost2?.description = kost2?.description
-        }
-        return result
+    if (timesheet.kost2Id != null) {
+      // Load without check access. User needs now select access for using kost2.
+      val kost2 = kost2Dao.internalGetById(timesheet.kost2Id)
+      timesheet.kost2?.description = kost2?.description
     }
+    return result
+  }
 
-    /**
-     * Deletes the given timesheet template/favorite.
-     */
-    @GetMapping("delete")
-    fun delete(@RequestParam("id", required = true) id: Int): Map<String, Any> {
-        timsheetFavoritesService.deleteFavorite(id)
-        return mapOf("timesheetFavorites" to getList())
-    }
+  /**
+   * Deletes the given timesheet template/favorite.
+   */
+  @GetMapping("delete")
+  fun delete(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+    timsheetFavoritesService.deleteFavorite(id)
+    return mapOf("timesheetFavorites" to getList())
+  }
 
-    @GetMapping("rename")
-    fun rename(@RequestParam("id", required = true) id: Int, @RequestParam("newName", required = true) newName: String): Map<String, Any> {
-        timsheetFavoritesService.renameFavorite(id, newName)
-        return mapOf("timesheetFavorites" to getList())
-    }
+  @GetMapping("rename")
+  fun rename(
+    @RequestParam("id", required = true) id: Int,
+    @RequestParam("newName", required = true) newName: String
+  ): Map<String, Any> {
+    timsheetFavoritesService.renameFavorite(id, newName)
+    return mapOf("timesheetFavorites" to getList())
+  }
+
+  @GetMapping("migrateOldTemplates")
+  fun migrateOldTemplates(): Map<String, Any> {
+    timsheetFavoritesService.migrateFromLegacyFavorites()
+    return mapOf("timesheetFavorites" to getList())
+  }
 }
