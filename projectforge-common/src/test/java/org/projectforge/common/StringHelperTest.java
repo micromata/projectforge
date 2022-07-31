@@ -160,6 +160,7 @@ public class StringHelperTest {
 
   @Test
   public void getWildcardString() {
+    assertEquals("", StringHelper.getWildcardString((String[]) null));
     assertEquals("", StringHelper.getWildcardString(""));
     assertEquals("", StringHelper.getWildcardString("", null, ""));
     assertEquals("", StringHelper.getWildcardString("hallo", null, "hallo"));
@@ -175,6 +176,7 @@ public class StringHelperTest {
 
   @Test
   public void checkPhoneNumberFormat() {
+    assertTrue(StringHelper.checkPhoneNumberFormat(null));
     assertTrue(StringHelper.checkPhoneNumberFormat(""));
     assertTrue(StringHelper.checkPhoneNumberFormat(" "));
     assertTrue(StringHelper.checkPhoneNumberFormat("+49 561 316793-0"));
@@ -216,6 +218,7 @@ public class StringHelperTest {
   @Test
   public void isNotBlank() {
     assertEquals(false, StringHelper.isNotBlank());
+    assertEquals(false, StringHelper.isNotBlank((String[]) null));
     assertEquals(false, StringHelper.isNotBlank(null, ""));
     assertEquals(false, StringHelper.isNotBlank(null, "", " \t\n"));
     assertEquals(true, StringHelper.isNotBlank("a"));
@@ -249,7 +252,7 @@ public class StringHelperTest {
 
   @Test
   public void blank() {
-    testBlank(true);
+    testBlank(true, (String[]) null);
     testBlank(true, null, null);
     testBlank(true, null, "");
     testBlank(true, " ", null);
