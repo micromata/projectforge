@@ -40,20 +40,20 @@ function TaskFilter(
     if (!isOpen) {
         const additionalFilters = [];
 
-        if (opened) {
-            additionalFilters.push(translations['task.status.opened']);
-        }
-
-        if (notOpened) {
-            additionalFilters.push(translations['task.status.notOpened']);
-        }
-
-        if (closed) {
-            additionalFilters.push(translations['task.status.closed']);
-        }
-
-        if (deleted) {
-            additionalFilters.push(translations.deleted);
+        if (!opened || !notOpened || closed || deleted) {
+            // Not standard filter
+            if (opened) {
+                additionalFilters.push(translations['task.status.opened']);
+            }
+            if (notOpened) {
+                additionalFilters.push(translations['task.status.notOpened']);
+            }
+            if (closed) {
+                additionalFilters.push(translations['task.status.closed']);
+            }
+            if (deleted) {
+                additionalFilters.push(translations.deleted);
+            }
         }
 
         if (additionalFilters.length) {
