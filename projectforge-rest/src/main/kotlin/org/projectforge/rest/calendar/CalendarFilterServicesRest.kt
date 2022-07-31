@@ -200,6 +200,7 @@ class CalendarFilterServicesRest {
       "calendar.view.dayGrid.month",
       "calendar.view.dayGrid.week",
       "calendar.view.oldVersion",
+      "calendar.view.oldVersion.tooltip",
       "calendar.view.timeGrid.day",
       "calendar.view.timeGrid.week",
       "calendar.view.timeGrid.workingWeek",
