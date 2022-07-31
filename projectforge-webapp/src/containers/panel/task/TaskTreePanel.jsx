@@ -6,6 +6,7 @@ import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../uti
 import TaskTreeTable from './table/TaskTreeTable';
 import TaskFilter from './TaskFilter';
 import TaskTreeContext, { taskTreeContextDefaultValues } from './TaskTreeContext';
+import style from './TaskTreePanel.module.scss';
 
 const loadTasksBounced = (
     {
@@ -178,7 +179,7 @@ function TaskTreePanel(
     }, [visible, loading, translations]);
 
     return (
-        <LoadingContainer loading={loading}>
+        <LoadingContainer loading={loading} className={style.selectionContainer}>
             <TaskTreeContext.Provider
                 /* eslint-disable-next-line react/jsx-no-constructed-context-values */
                 value={{
