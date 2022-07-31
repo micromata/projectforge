@@ -365,6 +365,7 @@ function FullCalendarPanel(options) {
         },
         oldVersion: {
             text: `${translations['calendar.view.oldVersion']}`,
+            hint: `${translations['calendar.view.oldVersion.tooltip']}`,
             click: () => history.push('/wa'),
         },
     };
