@@ -354,7 +354,7 @@ function FullCalendarPanel(options) {
             click: (event) => setView('timeGridWeek', event),
         },
         timeGridWorkingWeek: {
-            bootstrapFontAwesome: 'fa-building',
+            bootstrapFontAwesome: 'fa-person-digging',
             hint: `${translations['calendar.view.timeGrid.workingWeek']}`,
             click: (event) => setView('timeGridWorkingWeek', event),
         },
