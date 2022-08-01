@@ -68,6 +68,9 @@ public class LdapServiceImpl implements LdapService
   @Value("${projectforge.ldap.sambaAccountsPrimaryGroupSID}")
   Integer sambaAccountsPrimaryGroupSID;
 
+  @Value("${projectforge.ldap.storePasswords}")
+  Boolean storePasswords;
+
   private LdapConfig ldapConfig;
 
   @PostConstruct
@@ -83,6 +86,7 @@ public class LdapServiceImpl implements LdapService
     this.ldapConfig.setGroupBase(groupBase);
     this.ldapConfig.setUserBase(userBase);
     this.ldapConfig.setAuthentication(authentication);
+    this.ldapConfig.setStorePasswords(storePasswords);
     LdapPosixAccountsConfig posixAccountsConfig = new LdapPosixAccountsConfig();
     if (posixAccountsDefaultGidNumber != null) {
       posixAccountsConfig.setDefaultGidNumber(posixAccountsDefaultGidNumber);

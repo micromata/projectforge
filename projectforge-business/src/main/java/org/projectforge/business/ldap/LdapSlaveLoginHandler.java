@@ -152,7 +152,8 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
       if (mode == Mode.SIMPLE || !ldapConfig.isStorePasswords()) {
         // Don't store password.
       } else {
-        userService.encryptAndSavePassword(user, password);
+        log.warn("Storing of passwords not (yet) supported.");
+        // userService.encryptAndSavePassword(user, password);
       }
     } else if (mode != Mode.SIMPLE) {
       PFUserDOConverter.copyUserFields(pfUserDOConverter.convert(ldapUser), user);

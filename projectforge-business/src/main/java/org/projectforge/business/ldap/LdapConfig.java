@@ -51,7 +51,7 @@ public class LdapConfig
 
   private String sslCertificateFile;
 
-  private boolean storePasswords = true;
+  private boolean storePasswords = false;
 
   @XmlField(alias = "posixAccounts")
   private LdapPosixAccountsConfig posixAccountsConfig;
