@@ -34,7 +34,7 @@ object CalendarHelper {
     val task = timesheet.task
     val buf = StringBuilder()
     if (kost2 == null) {
-      buf.append(StringUtils.abbreviate(task?.title ?: "", 30))
+      buf.append(StringUtils.abbreviate(task?.title ?: "", 60))
     } else {
       val b2 = StringBuilder()
       val projekt = kost2.projekt
@@ -47,7 +47,7 @@ object CalendarHelper {
       } else {
         b2.append(kost2.description)
       }
-      buf.append(StringUtils.abbreviate(b2.toString(), 30))
+      buf.append(StringUtils.abbreviate(b2.toString(), 60))
     }
     return buf.toString()
   }
@@ -58,12 +58,12 @@ object CalendarHelper {
     val description = timesheet.getShortDescription()
     val sb = StringBuilder()
     if (StringUtils.isNotBlank(location)) {
-      sb.append(StringUtils.abbreviate(location, 30))
+      sb.append(StringUtils.abbreviate(location, 60))
       if (StringUtils.isNotBlank(description)) {
         sb.append("\n")
       }
     }
-    sb.append(StringUtils.abbreviate(description, 30))
+    sb.append(StringUtils.abbreviate(description, 60))
     return sb.toString()
   }
 }

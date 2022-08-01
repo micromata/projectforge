@@ -198,6 +198,14 @@ function FullCalendarPanel(options) {
         );
     };
 
+    // User wants to create new event (by pressing '+'-button).
+    const handleCreate = () => {
+        const currentApi = calendarRef?.current?.getApi();
+        if (!currentApi) return;
+        const startDate = currentApi.getDate();
+        fetchAction('create', startDate);
+    };
+
     // User wants to create new event (by selecting a time-slot).
     const handleSelect = (info) => fetchAction('slotSelected', info.start, info.end);
 
@@ -308,19 +316,12 @@ function FullCalendarPanel(options) {
     const views = {
         dayGridMonth: {
             fixedWeekCount: false,
-            text: `${translations['calendar.view.dayGrid.month']}`,
         },
-        dayGridWeek: {
-            text: `${translations['calendar.view.dayGrid.week']}`,
-        },
-        dayGridDay: {
-            text: `${translations['calendar.view.dayGrid.day']}`,
+        dayGridWorkingMonth: {
+            type: 'dayGridMonth',
+            weekends: false,
         },
         timeGridWeek: {
-            slotDuration: `${getSlotDuration(gridSize)}`,
-            scrollTime: '08:00:00',
-        },
-        timeGridDay: {
             slotDuration: `${getSlotDuration(gridSize)}`,
             scrollTime: '08:00:00',
         },
@@ -330,38 +331,43 @@ function FullCalendarPanel(options) {
             slotDuration: `${getSlotDuration(gridSize)}`,
             scrollTime: '08:00:00',
         },
+        timeGridDay: {
+            slotDuration: `${getSlotDuration(gridSize)}`,
+            scrollTime: '08:00:00',
+        },
     };
-    const headerToolbar = { center: 'dayGridMonth,listMonth,dayGridWeek,timeGridWeek,listWeek,timeGridWorkingWeek,dayGridDay,timeGridDay,listDay,oldVersion' };
+    const headerToolbar = {
+        center: 'new dayGridMonth,listMonth,dayGridWorkingMonth timeGridWeek,dayGridWeek,timeGridWorkingWeek timeGridDay',
+        right: 'oldVersion today prev,next',
+    };
     const customButtons = {
+        new: {
+            text: '+',
+            click: () => handleCreate(),
+        },
         listMonth: {
-            bootstrapFontAwesome: 'fa-list',
-            hint: `${translations['calendar.view.agenda.month']}`,
+            text: `${translations['calendar.view.agenda']}`,
             click: () => setView('listMonth'),
         },
-        listWeek: {
-            bootstrapFontAwesome: 'fa-list-ul',
-            hint: `${translations['calendar.view.agenda.week']}`,
-            click: () => setView('listWeek'),
-        },
-        listDay: {
-            bootstrapFontAwesome: 'fa-list-ul',
-            hint: `${translations['calendar.view.agenda.day']}`,
-            click: () => setView('listDay'),
+        dayGridWorkingMonth: {
+            text: '5/7',
+            click: (event) => setView('dayGridWorkingMonth', event),
         },
         timeGridWeek: {
-            bootstrapFontAwesome: 'fa-table',
-            hint: `${translations['calendar.view.timeGrid.week']}`,
+            text: `${translations['calendar.week']}`,
             click: (event) => setView('timeGridWeek', event),
         },
-        timeGridWorkingWeek: {
-            bootstrapFontAwesome: 'fa-person-digging',
-            hint: `${translations['calendar.view.timeGrid.workingWeek']}`,
-            click: (event) => setView('timeGridWorkingWeek', event),
+        dayGridWeek: {
+            text: `${translations['calendar.view.overview']}`,
+            click: (event) => setView('dayGridWeek', event),
         },
-        timeGridDay: {
-            bootstrapFontAwesome: 'fa-table',
-            hint: `${translations['calendar.view.timeGrid.day']}`,
-            click: (event) => setView('timeGridDay', event),
+        listWeek: {
+            text: `${translations['calendar.view.agenda']}`,
+            click: () => setView('listWeek'),
+        },
+        timeGridWorkingWeek: {
+            text: '5/7',
+            click: (event) => setView('timeGridWorkingWeek', event),
         },
         oldVersion: {
             text: `${translations['calendar.view.oldVersion']}`,
