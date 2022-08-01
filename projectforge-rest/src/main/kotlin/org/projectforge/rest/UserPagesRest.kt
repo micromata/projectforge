@@ -316,7 +316,8 @@ class UserPagesRest
     dto.copyTo(user)
     if (userService.doesUsernameAlreadyExist(user)) {
       validationErrors.add(
-        ValidationError(translate("user.error.usernameAlreadyExists"),
+        ValidationError(
+          translate("user.error.usernameAlreadyExists"),
           fieldId = PFUserDO::username.name,
         )
       )
@@ -770,7 +771,16 @@ class UserPagesRest
     val list = super.queryAutocompleteObjects(request, filter)
     if (filter.searchString.isNullOrBlank() || request.getParameter(AutoCompletion.SHOW_ALL_PARAM) != "true") {
       // Show deactivated users only if search string is given or param SHOW_ALL_PARAM is true:
-      return list.filter { !it.deactivated } // Remove deactivated users when returning all.
+      if (!userGroupCache.isLoggedInUserMemberOfGroup(
+          ProjectForgeGroup.HR_GROUP,
+          ProjectForgeGroup.FINANCE_GROUP,
+          ProjectForgeGroup.ORGA_TEAM,
+          ProjectForgeGroup.ADMIN_GROUP,
+        )
+      ) {
+        // Shorten list only for non financial and administrative staff:
+        return list.filter { !it.deactivated } // Remove deactivated users when returning all.
+      }
     }
     return list
   }

@@ -186,6 +186,10 @@ open class UserGroupCache() : AbstractCache() {
     return groupSet != null && groupSet.contains(groupId)
   }
 
+  fun isLoggedInUserMemberOfAtLeastOneGroup(vararg groupIds: Int?): Boolean {
+    return isUserMemberOfAtLeastOneGroup(ThreadLocalUserContext.getUserId(), *groupIds)
+  }
+
   fun isUserMemberOfAtLeastOneGroup(userId: Int?, vararg groupIds: Int?): Boolean {
     if (groupIds.isEmpty()) {
       return false
@@ -272,6 +276,13 @@ open class UserGroupCache() : AbstractCache() {
     checkRefresh()
     // hrUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return hrUsers != null && hrUsers!!.contains(userId)
+  }
+
+  /**
+   * Checks if the given user is at least member of one of the given groups.
+   */
+  fun isLoggedInUserMemberOfGroup(vararg groups: ProjectForgeGroup): Boolean {
+    return isUserMemberOfGroup(ThreadLocalUserContext.getUser(), *groups)
   }
 
   /**
