@@ -34,6 +34,7 @@ import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.DatePrecision
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDayUtils
@@ -148,15 +149,22 @@ class CalendarServicesRest {
       : ResponseEntity<Any> {
     if (action.isNullOrBlank()) {
       return ResponseEntity(
-        "Action not given, 'slotSelected', 'resize' or 'dragAndDrop' expected.",
+        "Action not given, 'slotSelected', 'create', 'resize' or 'dragAndDrop' expected.",
         HttpStatus.BAD_REQUEST
       )
     }
-    val startDate = if (startDateParam != null) RestHelper.parseJSDateTime(startDateParam)?.javaScriptString else null
-    val endDate = if (endDateParam != null) RestHelper.parseJSDateTime(endDateParam)?.javaScriptString else null
+    var startDateTime = if (!startDateParam.isNullOrBlank()) RestHelper.parseJSDateTime(startDateParam) else null
+    var endDateTime = if (!endDateParam.isNullOrBlank()) RestHelper.parseJSDateTime(endDateParam) else null
+    if (action == "create" && startDateTime != null && endDateTime == null) {
+      // User wants to create new entry (but no slot was selected, only '+' button), so predefine hour of day:
+      startDateTime = startDateTime.withHour(8).withPrecision(DatePrecision.HOUR_OF_DAY)
+      endDateTime = startDateTime
+    }
+    val startDate = startDateTime?.javaScriptString
+    val endDate = endDateTime?.javaScriptString
     var url: String
     var category: String? = categoryParam
-    if (action == "slotSelected") {
+    if (action == "slotSelected" || action == "create") {
       val currentFilter = calendarFilterServicesRest.getCurrentFilter()
       val defaultCalendarId = currentFilter.defaultCalendarId
       category = if (defaultCalendarId != null && defaultCalendarId > 0) {
@@ -183,7 +191,7 @@ class CalendarServicesRest {
       }
     } else {
       return ResponseEntity(
-        "Action '$action' not supported. Supported actions are: 'slotSelected', 'resize' and 'dragAndDrop'.",
+        "Action '$action' not supported. Supported actions are: 'slotSelected', 'create', 'resize' and 'dragAndDrop'.",
         HttpStatus.BAD_REQUEST
       )
     }
