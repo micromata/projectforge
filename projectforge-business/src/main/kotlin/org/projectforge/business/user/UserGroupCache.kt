@@ -320,7 +320,8 @@ open class UserGroupCache() : AbstractCache() {
    *
    * @return collection if found, otherwise null.
    */
-  fun getUserGroups(user: PFUserDO): Collection<Int>? {
+  fun getUserGroups(user: PFUserDO?): Collection<Int>? {
+    user ?: return null
     checkRefresh()
     return getUserGroupIdMap()!![user.id]
   }
