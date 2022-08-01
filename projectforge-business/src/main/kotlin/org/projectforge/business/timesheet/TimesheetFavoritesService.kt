@@ -96,7 +96,7 @@ class TimesheetFavoritesService {
   }
 
   // Ensures filter list (stored one, restored from legacy filter or a empty new one).
-  private fun getFavorites(): Favorites<TimesheetFavorite> {
+  fun getFavorites(): Favorites<TimesheetFavorite> {
     var favorites: Favorites<TimesheetFavorite>? = null
     try {
       @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
@@ -105,7 +105,7 @@ class TimesheetFavoritesService {
         Favorites.PREF_NAME_LIST,
         Favorites::class.java
       ) as Favorites<TimesheetFavorite>?
-        ?: migrateFromLegacyFavorites()
+        ?: migrateFromLegacyFavorites(Favorites())
     } catch (ex: Exception) {
       log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
     }
@@ -120,27 +120,26 @@ class TimesheetFavoritesService {
   /**
    * Will not overwrite any existing new favorite (with name same).
    */
-  fun migrateFromLegacyFavorites(): Favorites<TimesheetFavorite>? {
+  fun migrateFromLegacyFavorites(currentFavorites: Favorites<TimesheetFavorite>): Favorites<TimesheetFavorite>? {
     val list = userPrefDao.getUserPrefs(UserPrefArea.TIMESHEET_TEMPLATE)
     if (list.isNullOrEmpty())
       return null
-    val favorites = getFavorites()
     var modified = false
     for (userPref in list) {
-      if (favorites.get(userPref.name) == null) {
+      if (currentFavorites.get(userPref.name) == null) {
         val timesheet = TimesheetDO()
         userPrefDao.fillFromUserPrefParameters(userPref, timesheet)
         val favorite = TimesheetFavorite(userPref.name)
         favorite.fillFromTimesheet(timesheet)
-        favorites.add(favorite)
+        currentFavorites.add(favorite)
         modified = true
       }
     }
     if (modified) {
-      userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, favorites)
+      userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, currentFavorites)
       migrationCache.refresh(ThreadLocalUserContext.getUserId())
     }
-    return favorites
+    return currentFavorites
   }
 
   fun hasLegacyFavoritesToMigrate(): Boolean {

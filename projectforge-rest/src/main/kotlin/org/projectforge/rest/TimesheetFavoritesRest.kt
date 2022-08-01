@@ -128,7 +128,7 @@ class TimesheetFavoritesRest {
 
   @GetMapping("migrateOldTemplates")
   fun migrateOldTemplates(): Map<String, Any> {
-    timsheetFavoritesService.migrateFromLegacyFavorites()
+    timsheetFavoritesService.migrateFromLegacyFavorites(timsheetFavoritesService.getFavorites())
     return mapOf("timesheetFavorites" to getList())
   }
 }
