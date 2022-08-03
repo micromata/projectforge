@@ -267,7 +267,7 @@ function FullCalendarPanel(options) {
         const { extendedProps } = event;
         const view = eventInfo.view?.type;
         // console.log('renderEventContent', eventInfo, view);
-        if (view === 'dayGridWeek' || view === 'dayGridMonth') {
+        if (view === 'dayGridWeek' || view === 'dayGridMonth' || view === 'dayGridWorkingMonth') {
             return undefined;
         }
         return (

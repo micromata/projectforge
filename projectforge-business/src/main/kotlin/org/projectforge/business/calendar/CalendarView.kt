@@ -29,6 +29,8 @@ package org.projectforge.business.calendar
 enum class CalendarView(val key: String) {
   MONTH("dayGridMonth"),
 
+  WORK_MONTH("dayGridWorkingMonth"),
+
   WEEK("timeGridWeek"),
 
   WORK_WEEK("timeGridWorkingWeek"),
