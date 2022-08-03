@@ -48,6 +48,12 @@
   background-color: #f4d5cb !important;
 }
 
+.ag-tooltip {
+  background-color: black !important;
+  color: white !important;
+  white-space: pre-wrap !important;
+}
+
 div.dropZone {
   :-moz-drag-over {
     border-radius: 5px;

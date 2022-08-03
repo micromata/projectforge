@@ -2,7 +2,6 @@ import { faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import TaskTreeContext from '../TaskTreeContext';
 import style from '../TaskTreePanel.module.scss';
 
 const TreeStatus = {
@@ -23,35 +22,22 @@ TreeStatus.getIcon = (status) => {
     }
 };
 
-function TaskTreeTableEntryNavigation({
+function TreeNavigation({
     id, treeStatus, indent, title,
 }) {
-    const { toggleTask } = React.useContext(TaskTreeContext);
-
-    const handleClick = (event) => {
-        if (TreeStatus.isLeaf(treeStatus)) {
-            // Click on leafs will result in selection.
-            return;
-        }
-        event.stopPropagation();
-        toggleTask(id, treeStatus);
-    };
-
     const icon = TreeStatus.getIcon(treeStatus);
 
     return (
-        // eslint-disable-next-line max-len
-        // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-noninteractive-element-interactions
-        <td style={{ paddingLeft: `${indent * 1.5 + 0.75}rem`, whiteSpace: 'nowrap' }} onClick={handleClick}>
-            <div className={style.taskIcon}>
+        <div style={{ paddingLeft: `${indent * 1.5 + 0.75}rem`, whiteSpace: 'nowrap', cursor: 'pointer' }}>
+            <span className={style.taskIcon}>
                 {icon ? <FontAwesomeIcon icon={icon} /> : undefined}
-            </div>
+            </span>
             {title}
-        </td>
+        </div>
     );
 }
 
-TaskTreeTableEntryNavigation.propTypes = {
+TreeNavigation.propTypes = {
     treeStatus: PropTypes.oneOf([
         TreeStatus.OPENED,
         TreeStatus.CLOSED,
@@ -62,12 +48,12 @@ TaskTreeTableEntryNavigation.propTypes = {
     title: PropTypes.string,
 };
 
-TaskTreeTableEntryNavigation.defaultProps = {
+TreeNavigation.defaultProps = {
     id: undefined,
     indent: 1,
     title: '',
 };
 
-TaskTreeTableEntryNavigation.defaultProps = {};
+TreeNavigation.defaultProps = {};
 
-export default TaskTreeTableEntryNavigation;
+export default TreeNavigation;

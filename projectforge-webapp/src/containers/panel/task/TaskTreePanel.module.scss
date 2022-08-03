@@ -23,13 +23,13 @@ $transitionTime: .3s;
         background-color: #e5c5bb;
       }
     }
-
-    .taskIcon {
-      display: inline-block;
-      cursor: pointer;
-      margin: 0 5px;
-      min-width: 10px;
-      color: #009BA3;
-    }
   }
 }
+
+.taskIcon {
+  display: inline-block;
+  margin: 0 5px;
+  min-width: 10px;
+  color: #009BA3;
+}
+
