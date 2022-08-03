@@ -1,78 +1,69 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert } from 'reactstrap';
-import { Table } from '../../../../components/design';
+import DynamicAgGrid from '../../../../components/base/dynamicLayout/components/table/DynamicAgGrid';
 import TaskTreeContext from '../TaskTreeContext';
-import styles from '../TaskTreePanel.module.scss';
-import TaskTreeTableEntry from './TaskTreeTableEntry';
 
-function TaskTreeTable({ nodes, consumptionBarClickable }) {
+function TaskTreeTable({
+    columnDefs, nodes, selectTask,
+}) {
     const {
-        columnsVisibility,
-        shortForm,
+        highlightTaskId,
+    } = React.useContext(TaskTreeContext);
+
+    const [gridApi, setGridApi] = useState();
+    const [columnApi, setColumnApi] = useState();
+
+    const { toggleTask } = React.useContext(TaskTreeContext);
+
+    const onGridApiReady = React.useCallback((api, colApi) => {
+        setGridApi(api);
+        setColumnApi(colApi);
+    }, []);
+
+    const onCellClicked = (event) => {
+        const { data, colDef } = event;
+        const { field } = colDef;
+        const { treeStatus, id } = data;
+        if (field !== 'title' || treeStatus === 'LEAF') {
+            selectTask(id, data);
+        } else {
+            toggleTask(id, treeStatus);
+        }
+    };
+
+    const {
         translations,
     } = React.useContext(TaskTreeContext);
 
     return (
-        <>
-            <Table striped hover responsive className={styles.tasks}>
-                <thead>
-                    <tr>
-                        <th>{translations.task}</th>
-                        <th>{translations['task.consumption']}</th>
-
-                        {columnsVisibility.kost2 && <th>{translations['fibu.kost2']}</th>}
-
-                        {!shortForm && columnsVisibility.orders
-                        && <th>{translations['fibu.auftrag.auftraege']}</th>}
-
-                        <th>{translations.shortDescription}</th>
-
-                        {!shortForm && (
-                            <>
-                                {columnsVisibility.protectionUntil
-                                && <th>{translations['task.protectTimesheetsUntil.short']}</th>}
-
-                                {columnsVisibility.reference
-                                && <th>{translations['task.reference']}</th>}
-
-                                {columnsVisibility.priority
-                                && <th>{translations.priority}</th>}
-
-                                <th>{translations.status}</th>
-
-                                {columnsVisibility.assignedUser
-                                && <th>{translations['task.assignedUser']}</th>}
-
-                            </>
-                        )}
-                    </tr>
-                </thead>
-                <tbody>
-                    {nodes.map((task) => (
-                        <TaskTreeTableEntry
-                            key={`task-tree-table-body-row-${task.id}`}
-                            task={task}
-                            consumptionBarClickable={consumptionBarClickable}
-                        />
-                    ))}
-                </tbody>
-            </Table>
-            {nodes.length === 0 && <span>{translations['task.selectPanel.noTasksFound']}</span>}
+        <div className="table-responsive">
+            <DynamicAgGrid
+                onGridApiReady={onGridApiReady}
+                columnDefs={columnDefs}
+                entries={nodes}
+                height={400}
+                onCellClicked={onCellClicked}
+                highlightId={highlightTaskId}
+            />
             <Alert color="light">
                 {translations['task.selectPanel.info']}
             </Alert>
-        </>
+        </div>
     );
 }
 
 TaskTreeTable.propTypes = {
+    columnDefs: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.string,
+        title: PropTypes.string,
+        titleIcon: PropTypes.arrayOf(PropTypes.string),
+    })).isRequired,
     nodes: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
-    consumptionBarClickable: PropTypes.bool,
+    selectTask: PropTypes.func.isRequired,
 };
 
 TaskTreeTable.defaultProps = {
-    consumptionBarClickable: undefined,
 };
 
 export default TaskTreeTable;

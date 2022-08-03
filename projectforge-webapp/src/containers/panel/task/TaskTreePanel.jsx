@@ -20,6 +20,7 @@ const loadTasksBounced = (
         setFilter,
         setLoading,
         setNodes,
+        setColumnDefs,
         setTranslations,
         showRootForAdmins,
     },
@@ -49,7 +50,8 @@ const loadTasksBounced = (
         .then((response) => response.json())
         .then((
             {
-                root,
+                nodes,
+                columnDefs,
                 translations: responseTranslations,
                 initFilter,
                 columnsVisibility: responseColumnsVisibility,
@@ -59,15 +61,19 @@ const loadTasksBounced = (
                 setTranslations(responseTranslations);
             }
 
-            setNodes(root.children);
+            setNodes(nodes);
             setColumnsVisibility(responseColumnsVisibility);
 
             // TODO: SCROLL TO HIGHLIGHTED TASK
 
-            if (initial && initFilter) {
-                setFilter(initFilter);
+            if (initial) {
+                if (initFilter) {
+                    setFilter(initFilter);
+                }
+                if (columnDefs) {
+                    setColumnDefs(columnDefs);
+                }
             }
-
             setLoading(false);
         })
         // TODO: ERROR HANDLING
@@ -94,6 +100,7 @@ function TaskTreePanel(
     });
     const [translations, setTranslations] = React.useState({});
     const [nodes, setNodes] = React.useState([]);
+    const [columnDefs, setColumnDefs] = React.useState([]);
     const [columnsVisibility, setColumnsVisibility] = React.useState({});
     const [loadTasksDebounced] = React.useState(
         () => AwesomeDebouncePromise(loadTasksBounced, debouncedWaitTime),
@@ -124,6 +131,7 @@ function TaskTreePanel(
             setFilter,
             setLoading,
             setNodes,
+            setColumnDefs,
             setTranslations,
             showRootForAdmins,
         });
@@ -202,7 +210,9 @@ function TaskTreePanel(
                         />
                         <TaskTreeTable
                             nodes={nodes}
+                            columnDefs={columnDefs}
                             consumptionBarClickable={consumptionBarClickable}
+                            selectTask={selectTask}
                         />
                     </TaskTreeContext.Provider>
                 </CardBody>
@@ -222,7 +232,7 @@ TaskTreePanel.propTypes = {
 
 TaskTreePanel.defaultProps = {
     highlightTaskId: undefined,
-    onTaskSelect: () => undefined,
+    onTaskSelect: undefined,
     shortForm: false,
     showRootForAdmins: false,
     consumptionBarClickable: true,

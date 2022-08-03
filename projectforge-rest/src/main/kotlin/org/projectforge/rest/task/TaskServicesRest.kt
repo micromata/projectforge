@@ -23,25 +23,23 @@
 
 package org.projectforge.rest.task
 
-import org.projectforge.business.fibu.AuftragsPositionsStatus
-import org.projectforge.business.fibu.KostFormatter
-import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostHelper
-import org.projectforge.business.task.TaskDao
-import org.projectforge.business.task.TaskFilter
-import org.projectforge.business.task.TaskNode
-import org.projectforge.business.task.TaskTree
+import org.projectforge.business.task.*
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.addTranslations
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ListFilterService
+import org.projectforge.ui.LayoutContext
+import org.projectforge.ui.UIAgGridColumnDef
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -55,15 +53,16 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/task")
 class TaskServicesRest {
   class Kost2(val id: Int, val title: String)
-  class OrderPosition(val number: Int, val personDays: Int?, val title: String, val status: AuftragsPositionsStatus?)
+
+  // class OrderPosition(val number: Int, val personDays: Int?, val title: String, val status: AuftragsPositionsStatus?)
   class Order(
     val number: String,
     val title: String,
     val text: String,
-    val orderPositions: MutableList<OrderPosition>? = null
+    // val orderPositions: MutableList<OrderPosition>? = null
   ) // Positions
 
-  enum class TreeStatus() { LEAF, OPENED, CLOSED }
+  enum class TreeStatus { LEAF, OPENED, CLOSED }
   class Task(
     val id: Int,
     /**
@@ -99,6 +98,8 @@ class TaskServicesRest {
     var consumption: Consumption? = null,
     var orderList: MutableList<Order>? = null
   ) {
+    val statusAsString: String? = status?.i18nKey?.let {  translate(it) }
+
     constructor(node: TaskNode) : this(
       id = node.task.id, title = node.task.title, shortDescription = node.task.shortDescription,
       protectTimesheetsUntil = PFDay.fromOrNull(node.task.protectTimesheetsUntil), reference = node.task.reference,
@@ -114,12 +115,11 @@ class TaskServicesRest {
   }
 
   class Result(
-    val root: Task,
+    val nodes: MutableList<Task> = mutableListOf(),
     var initFilter: TaskFilter? = null,
     var translations: MutableMap<String, String>? = null
   ) {
-    /** Only for table view: If optional columns are empty for all returned tasks, they are marked as false in this map. */
-    var columnsVisibility: MutableMap<String, Boolean>? = null
+    var columnDefs: MutableList<UIAgGridColumnDef> = mutableListOf()
   }
 
   companion object {
@@ -147,10 +147,10 @@ class TaskServicesRest {
     fun addKost2List(task: Task) {
       val kost2DOList = TaskTree.getInstance().getKost2List(task.id)
       if (!kost2DOList.isNullOrEmpty()) {
-        val kost2List: List<Kost2> = kost2DOList.map {
+        /* val kost2List: List<Kost2> = kost2DOList.map {
           Kost2((it as Kost2DO).id, KostFormatter.format(it, 80))
-        }
-        task.kost2List = kost2List
+        } */
+        // task.kost2List = kost2List // Not needed in tree, save bandwith...
         task.kost2WildCard = KostHelper.getWildCardString(kost2DOList, "*")
         task.kost2ListAsLines = KostHelper.getFormattedNumberLines(kost2DOList)
       }
@@ -164,11 +164,11 @@ class TaskServicesRest {
   }
 
   private class BuildContext(
+    val result: Result,
     val user: PFUserDO,
     val taskFilter: TaskFilter,
-    val rootTask: Task, // Only for table view.
     val openedNodes: MutableSet<Int>,
-    var highlightedTaskNode: TaskNode? = null
+    var highlightedTaskNode: TaskNode? = null,
   )
 
   private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
@@ -234,11 +234,8 @@ class TaskServicesRest {
       filter.isOpened = true
       filter.isNotOpened = true
     }
-    val rootNode = taskTree.rootTaskNode
-    val root = Task(rootNode)
-    addKost2List(root)
-    root.children = mutableListOf()
-    val ctx = BuildContext(ThreadLocalUserContext.getUser(), filter, root, openNodes)
+    val result = Result()
+    val ctx = BuildContext(result, ThreadLocalUserContext.getUser(), filter, openNodes)
     if (highlightedTaskId != null) {
       ctx.highlightedTaskNode = taskTree.getTaskNodeById(highlightedTaskId)
     }
@@ -250,63 +247,80 @@ class TaskServicesRest {
     //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
     filter.resetMatch() // taskFilter caches visibility, reset needed first.
     val indent = if (table == true) 0 else null
+    val rootNode = taskTree.rootTaskNode
+    val root = Task(rootNode)
+    addKost2List(root)
     buildTree(ctx, root, rootNode, indent)
     if (showRootForAdmins == true && table == true && (accessChecker.isLoggedInUserMemberOfAdminGroup() ||
           accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))
     ) {
       // Append root node for admins and financial staff only in table view for displaying purposes.
-      root.children?.add(Task(rootNode))
+      result.nodes.add(0, Task(rootNode))
     }
-    val result = Result(root)
-    if (table == true) {
-      val columnsVisibility = mutableMapOf<String, Boolean>()
-      columnsVisibility["consumption"] = true
-      columnsVisibility["shortDescription"] = true
-      columnsVisibility["status"] = true
-      root.children?.forEach { task ->
-        registerVisibleColumn(columnsVisibility, "kost2", !task.kost2List.isNullOrEmpty())
-        registerVisibleColumn(columnsVisibility, "orders", !task.orderList.isNullOrEmpty())
-        registerVisibleColumn(columnsVisibility, "protectionUntil", task.protectTimesheetsUntil != null)
-        registerVisibleColumn(columnsVisibility, "reference", !task.reference.isNullOrBlank())
-        registerVisibleColumn(columnsVisibility, "priority", task.priority != null)
-        registerVisibleColumn(columnsVisibility, "assignedUser", task.responsibleUser != null)
-      }
-      result.columnsVisibility = columnsVisibility
+    val kost2Visible = Configuration.instance.isCostConfigured
+    var ordersVisible = false
+    var protectionUntilVisible = false
+    var referenceVisible = false
+    var priorityVisible = false
+    var assignedUserVisible = false
+    root.children?.forEach { task ->
+      if (!ordersVisible && !task.orderList.isNullOrEmpty()) ordersVisible = true
+      if (!protectionUntilVisible && task.protectTimesheetsUntil != null) protectionUntilVisible = true
+      if (!referenceVisible && !task.reference.isNullOrBlank()) referenceVisible = true
+      if (!priorityVisible && task.priority != null) priorityVisible = true
+      if (!assignedUserVisible && task.responsibleUser != null) assignedUserVisible = true
     }
     if (initial == true) {
+      val lc = LayoutContext(TaskDO::class.java)
+      result.columnDefs.add(
+        UIAgGridColumnDef.createCol(
+          "title",
+          headerName = translate("task"),
+          valueFormatter = UIAgGridColumnDef.Formatter.TREE_NAVIGATION,
+          sortable = false,
+          width = UIAgGridColumnDef.DESCRIPTION_WIDTH,
+        )
+          .withPinnedLeft()
+      )
+      result.columnDefs.add(
+        UIAgGridColumnDef.createCol(
+          "consumption",
+          headerName = translate("task.consumption"),
+          valueFormatter = UIAgGridColumnDef.Formatter.CONSUMPTION,
+          sortable = false,
+        )
+      )
+      if (kost2Visible) {
+        result.columnDefs.add(
+          UIAgGridColumnDef.createCol(
+            "kost2WildCard",
+            headerName = translate("fibu.kost2"),
+            sortable = false,
+            width = 80,
+          )
+            .withTooltipField("kost2ListAsLines")
+        )
+      }
+      result.columnDefs.add(
+        UIAgGridColumnDef.createCol(lc, "statusAsString", lcField = "status", sortable = false, width = 100)
+      )
+      result.columnDefs.add(
+        UIAgGridColumnDef.createCol(lc, "shortDescription", sortable = false)
+      )
+      result.columnDefs.add(
+        UIAgGridColumnDef.createCol(lc, "responsibleUser", sortable = false)
+      )
       result.initFilter = filter
       result.translations = addTranslations(
         "deleted",
-        "fibu.auftrag.auftraege",
-        "fibu.kost2",
-        "priority",
         "search",
-        "searchFilter",
-        "shortDescription",
-        "status",
-        "task",
-        "task.assignedUser",
-        "task.consumption",
-        "task.protectTimesheetsUntil",
-        "task.protectTimesheetsUntil.short",
-        "task.reference",
-        "task.selectPanel.info",
+        "task.selectPanel.info", // Alert box at the end.
         "task.status.closed",
         "task.status.notOpened",
         "task.status.opened",
-        "task.selectPanel.noTasksFound",
-        "task.tree.info"
       )
     }
     return result
-  }
-
-  private fun registerVisibleColumn(columnsVisibility: MutableMap<String, Boolean>, column: String, value: Boolean) {
-    if (columnsVisibility[column] == null) {
-      columnsVisibility[column] = value // Store first value (true or false).
-    } else if (value && columnsVisibility[column] != true) {
-      columnsVisibility[column] = true
-    }
   }
 
   /**
@@ -331,7 +345,7 @@ class TaskServicesRest {
     if (taskNode.isRootNode || ctx.openedNodes.contains(taskNode.taskId)) {
       task.treeStatus = TreeStatus.OPENED
       val children = taskNode.children.toMutableList()
-      children.sortBy({ it.task.title })
+      children.sortBy { it.task.title }
       children.forEach { node ->
         if (ctx.taskFilter.match(node, taskDao, ctx.user)) {
           val child = Task(node)
@@ -362,7 +376,7 @@ class TaskServicesRest {
               }
             }
             if (!hidden) {
-              ctx.rootTask.children!!.add(child) // All children are added to root task (table view!)
+              ctx.result.nodes.add(child) // All children are added to root task (table view!)
               child.indent = indent
               buildTree(ctx, child, node, indent + 1) // Build as table (all children are direct children of root node.
             }

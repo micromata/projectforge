@@ -5,6 +5,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import formatterFormat from './FormatterFormat';
+import TreeNavigation from '../../containers/panel/task/table/TreeNavigation';
+import ConsumptionBar from '../../containers/panel/task/ConsumptionBar';
 
 function Formatter(
     {
@@ -49,6 +51,24 @@ function Formatter(
                     result = '-';
                 }
                 break;
+            case 'TREE_NAVIGATION':
+                result = (
+                    <TreeNavigation
+                        treeStatus={data.treeStatus}
+                        id={id}
+                        indent={data.indent}
+                        title={useValue}
+                    />
+                );
+                break;
+            case 'CONSUMPTION':
+                result = (
+                    <ConsumptionBar
+                        progress={data.consumption}
+                        identifier={id}
+                    />
+                );
+                break;
             default:
                 result = formatterFormat(
                     useValue,
@@ -79,7 +99,8 @@ function Formatter(
 }
 
 Formatter.propTypes = {
-    data: PropTypes.shape({}),
+    // eslint-disable-next-line react/forbid-prop-types
+    data: PropTypes.any,
     // eslint-disable-next-line react/forbid-prop-types
     value: PropTypes.any,
     dataType: PropTypes.string,

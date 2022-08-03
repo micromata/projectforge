@@ -134,13 +134,14 @@ function TimeInput({
 export const PrecisionType = PropTypes.oneOf([1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]);
 
 TimeInput.propTypes = {
-    id: PropTypes.string.isRequired,
+    id: PropTypes.string,
     value: PropTypes.arrayOf(PropTypes.number).isRequired,
     onChange: PropTypes.func.isRequired,
     precision: PrecisionType,
 };
 
 TimeInput.defaultProps = {
+    id: undefined,
     precision: 5,
 };
 

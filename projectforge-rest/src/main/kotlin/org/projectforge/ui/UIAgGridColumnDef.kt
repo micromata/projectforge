@@ -85,6 +85,10 @@ open class UIAgGridColumnDef(
    */
   var headerClass: Array<String>? = null
 
+  var tooltipField: String? = null
+
+  var suppressSizeToFit: Boolean? = null
+
   /**
    * https://www.ag-grid.com/react-data-grid/column-definitions/#right-aligned-and-numeric-columns
    */
@@ -92,6 +96,7 @@ open class UIAgGridColumnDef(
 
   enum class Formatter {
     BOOLEAN,
+    CONSUMPTION,
     CURRENCY,
     DATE,
     NUMBER,
@@ -108,6 +113,11 @@ open class UIAgGridColumnDef(
      * Each object of the list has a field displayName, which should be displayed comma separated.
      */
     SHOW_LIST_OF_DISPLAYNAMES,
+
+    /**
+     * Tree view (task tree).
+     */
+    TREE_NAVIGATION,
 
     ADDRESS_BOOK,
     AUFTRAG_POSITION,
@@ -134,6 +144,16 @@ open class UIAgGridColumnDef(
 
   fun withPinnedRight(): UIAgGridColumnDef {
     pinned = "right"
+    return this
+  }
+
+  fun withSuppressSizeToFit(): UIAgGridColumnDef {
+    suppressSizeToFit = true
+    return this
+  }
+
+  fun withTooltipField(tooltipField: String): UIAgGridColumnDef {
+    this.tooltipField = tooltipField
     return this
   }
 
@@ -261,7 +281,7 @@ open class UIAgGridColumnDef(
       var useFormatter = formatter
       if (elementInfo != null) {
         if (col.headerName == null) {
-          col.headerName = elementInfo.i18nKey
+          col.headerName = translate(elementInfo.i18nKey)
         }
         if (useFormatter == null) {
           // Try to determine formatter by type and propertyInfo (defined on DO-field):
@@ -335,6 +355,9 @@ open class UIAgGridColumnDef(
           }
           Formatter.DATE -> {
             col.width = DATE_WIDTH
+          }
+          Formatter.CONSUMPTION -> {
+            col.width = 80
           }
           else -> {}
         }

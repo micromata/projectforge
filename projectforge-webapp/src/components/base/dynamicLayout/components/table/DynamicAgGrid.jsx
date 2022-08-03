@@ -17,12 +17,14 @@ LicenseManager.setLicenseKey('CompanyName=Micromata GmbH,LicensedApplication=Pro
 function DynamicAgGrid(props) {
     const {
         columnDefs,
-        id,
+        id, // If given, data.id is used as entries
+        entries, // own entries (not data.id)
         sortModel,
         rowSelection,
         rowMultiSelectWithClick,
         rowClickRedirectUrl,
         rowClickFunction,
+        onCellClicked,
         onColumnStatesChangedUrl,
         onGridApiReady,
         pagination,
@@ -38,19 +40,23 @@ function DynamicAgGrid(props) {
         timestampFormatSeconds,
         timestampFormatMinutes,
         currency,
+        height,
+        highlightId,
     } = props;
     // eslint-disable-next-line no-new-func
     const getRowClassFunction = Function('params', getRowClass);
     const rowClass = 'ag-row-standard';
     const { data, ui } = React.useContext(DynamicLayoutContext);
     const [gridApi, setGridApi] = useState();
+    const [columnApi, setColumnApi] = useState();
     const gridRef = useRef();
-    const gridStyle = React.useMemo(() => ({ width: '100%' }), []);
-    const entries = Object.getByString(data, id) || '';
+    // const gridStyle = React.useMemo(() => ({ width: '100%' }), []);
+    const rowData = entries || Object.getByString(data, id) || '';
     const { selectedEntityIds } = data;
 
     const onGridReady = React.useCallback((params) => {
         setGridApi(params.api);
+        setColumnApi(params.columnApi);
         params.columnApi.applyColumnState({
             state: sortModel,
             defaultState: { sort: null },
@@ -58,7 +64,9 @@ function DynamicAgGrid(props) {
         if (onGridApiReady) {
             onGridApiReady(params.api, params.columnApi);
         }
-        params.api.setDomLayout('autoHeight'); // Needed to get maximum height.
+        if (!height) {
+            params.api.setDomLayout('autoHeight'); // Needed to get maximum height.
+        }
     }, [selectedEntityIds, setGridApi]);
 
     React.useEffect(() => {
@@ -72,11 +80,11 @@ function DynamicAgGrid(props) {
     }, [gridApi, selectedEntityIds]);
 
     React.useEffect(() => {
-        if (gridApi && data.highlightRowId) {
+        if (gridApi && (data.highlightRowId || highlightId)) {
             // Force redraw to highlight the current row (otherwise getRawClass is not updated).
             gridApi.redrawRows();
         }
-    }, [gridApi, data.highlightRowId]);
+    }, [gridApi, data.highlightRowId, highlightId]);
 
     const getLocaleText = (params) => {
         const { defaultValue, key } = params;
@@ -201,7 +209,8 @@ function DynamicAgGrid(props) {
 
     const usedGetRowClass = React.useCallback((params) => {
         const myClass = getRowClassFunction(params);
-        if (data?.highlightRowId && params.node.data?.id === data?.highlightRowId) {
+        const rowId = highlightId || data?.highlightRowId;
+        if (rowId && params.node.data?.id === rowId) {
             const classes = [];
             classes.push('ag-row-highlighted');
             if (myClass) {
@@ -210,17 +219,17 @@ function DynamicAgGrid(props) {
             return classes;
         }
         return myClass;
-    }, [data.highlightRowId]);
+    }, [data.highlightRowId, highlightId]);
     return React.useMemo(
         () => (
             <div
                 className="ag-theme-alpine"
-                style={gridStyle}
+                style={{ width: '100%', height }}
             >
                 <AgGridReact
                     {...props}
                     ref={gridRef}
-                    rowData={entries}
+                    rowData={rowData}
                     components={allComponents}
                     columnDefs={columnDefs}
                     rowSelection={rowSelection}
@@ -232,6 +241,7 @@ function DynamicAgGrid(props) {
                     onColumnResized={onColumnResized}
                     onColumnVisible={onColumnVisible}
                     onRowClicked={onRowClicked}
+                    onCellClicked={onCellClicked}
                     pagination={pagination}
                     paginationPageSize={paginationPageSize}
                     rowClass={rowClass}
@@ -242,15 +252,17 @@ function DynamicAgGrid(props) {
                     getLocaleText={getLocaleText}
                     processCellForClipboard={processCellForClipboard}
                     // processCellCallback={processCellCallback}
+                    tooltipShowDelay={0}
+                    suppressScrollOnNewData
                 />
             </div>
         ),
         [
-            entries,
+            rowData,
             ui,
             sortModel,
             data.highlightRowId,
-            gridStyle,
+            // gridStyle,
             columnDefs,
             rowSelection,
             rowMultiSelectWithClick,
@@ -267,6 +279,7 @@ DynamicAgGrid.propTypes = {
         titleIcon: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
     id: PropTypes.string,
+    entries: PropTypes.arrayOf(PropTypes.shape()),
     sortModel: PropTypes.arrayOf(PropTypes.shape({
         colId: PropTypes.string.isRequired,
         sort: PropTypes.string,
@@ -293,10 +306,12 @@ DynamicAgGrid.propTypes = {
     timestampFormatSeconds: PropTypes.string,
     timestampFormatMinutes: PropTypes.string,
     currency: PropTypes.string,
+    height: PropTypes.number,
 };
 
 DynamicAgGrid.defaultProps = {
     id: undefined,
+    entries: undefined,
     pagination: undefined,
     paginationPageSize: undefined,
     getRowClass: undefined,
@@ -311,6 +326,7 @@ DynamicAgGrid.defaultProps = {
     timestampFormatSeconds: 'YYYY-MM-dd HH:mm:ss',
     timestampFormatMinutes: 'YYYY-MM-dd HH:mm',
     currency: '€',
+    height: undefined,
 };
 
 export default DynamicAgGrid;
