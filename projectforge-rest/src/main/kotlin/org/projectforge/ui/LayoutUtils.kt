@@ -92,7 +92,7 @@ object LayoutUtils {
         )
       )
     process(layout)
-    layout.addTranslations("search", "cancel", "favorite.filter.addNew")
+    layout.addTranslations("search", "cancel", "save", "favorite.filter.addNew")
     addCommonTranslations(layout)
     Favorites.addTranslations(layout.translations)
     return layout
@@ -312,6 +312,7 @@ object LayoutUtils {
               "forceDelete" -> "forceDelete"
               "markAsDeleted" -> "markAsDeleted"
               "reset" -> "reset"
+              "save" -> "save"
               "search" -> "search"
               "undelete" -> "undelete"
               "update" -> "save"

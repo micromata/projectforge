@@ -88,13 +88,13 @@ function MagicFilterPill(
                             disabled={!value}
                             onClick={handleDelete}
                         >
-                            {translations.delete || ''}
+                            {translations.delete || 'Delete'}
                         </AdvancedPopperAction>
                         <AdvancedPopperAction
                             type="success"
                             onClick={handleSave}
                         >
-                            {translations.save || ''}
+                            {translations.save || 'Save'}
                         </AdvancedPopperAction>
                     </>
                 )}
