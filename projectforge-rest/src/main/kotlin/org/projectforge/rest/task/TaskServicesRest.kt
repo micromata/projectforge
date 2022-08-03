@@ -23,6 +23,8 @@
 
 package org.projectforge.rest.task
 
+import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostHelper
 import org.projectforge.business.task.*
 import org.projectforge.business.user.ProjectForgeGroup
@@ -144,13 +146,15 @@ class TaskServicesRest {
       return task
     }
 
-    fun addKost2List(task: Task) {
+    fun addKost2List(task: Task, includeKost2ObjectList: Boolean = true) {
       val kost2DOList = TaskTree.getInstance().getKost2List(task.id)
       if (!kost2DOList.isNullOrEmpty()) {
-        /* val kost2List: List<Kost2> = kost2DOList.map {
-          Kost2((it as Kost2DO).id, KostFormatter.format(it, 80))
-        } */
-        // task.kost2List = kost2List // Not needed in tree, save bandwith...
+        if (includeKost2ObjectList) {  // Only if needed in tree, save bandwith...
+           val kost2List: List<Kost2> = kost2DOList.map {
+            Kost2((it as Kost2DO).id, KostFormatter.format(it, 80))
+          }
+          task.kost2List = kost2List
+        }
         task.kost2WildCard = KostHelper.getWildCardString(kost2DOList, "*")
         task.kost2ListAsLines = KostHelper.getFormattedNumberLines(kost2DOList)
       }
@@ -349,7 +353,7 @@ class TaskServicesRest {
       children.forEach { node ->
         if (ctx.taskFilter.match(node, taskDao, ctx.user)) {
           val child = Task(node)
-          addKost2List(child)
+          addKost2List(child, false)
           child.consumption = Consumption.create(node)
           if (indent != null) {
             var hidden = false
