@@ -21,7 +21,9 @@ function DynamicTaskSelect(
         showRootForAdmins,
     },
 ) {
-    const { setData, ui, variables } = React.useContext(DynamicLayoutContext);
+    const {
+        setData, ui, variables, setVariables,
+    } = React.useContext(DynamicLayoutContext);
 
     const [panelVisible, setPanelVisible] = React.useState(false);
     const [modalHighlight, setModalHighlight] = React.useState(undefined);
@@ -95,7 +97,10 @@ function DynamicTaskSelect(
 
                     if (json) {
                         setData({ [id]: { id: json.id } });
-
+                        setVariables({
+                            ...variables,
+                            task: json,
+                        });
                         if (onKost2Changed) {
                             onKost2Changed(json.kost2List);
                         }
