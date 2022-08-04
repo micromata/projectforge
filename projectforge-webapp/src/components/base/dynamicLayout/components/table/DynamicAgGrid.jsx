@@ -54,6 +54,24 @@ function DynamicAgGrid(props) {
     const rowData = entries || Object.getByString(data, id) || '';
     const { selectedEntityIds } = data;
 
+    /*
+    const showHighlightedRow = () => {
+        console.log('showHighlightedRow');
+        const highlightRowId = data.highlightRowId || highlightId;
+        if (gridApi && visible && highlightRowId) {
+            let highlightIndex;
+            gridApi.forEachNode((rowNode, index) => {
+                if (!highlightIndex && rowNode.data?.id === highlightRowId) {
+                    highlightIndex = index;
+                }
+            });
+            if (highlightIndex) {
+                console.log('scroll to', highlightIndex);
+                gridApi.ensureIndexVisible(highlightIndex);
+            }
+        }
+    }; */
+
     const onGridReady = React.useCallback((params) => {
         setGridApi(params.api);
         setColumnApi(params.columnApi);
@@ -67,6 +85,7 @@ function DynamicAgGrid(props) {
         if (!height) {
             params.api.setDomLayout('autoHeight'); // Needed to get maximum height.
         }
+        // showHighlightedRow();
     }, [selectedEntityIds, setGridApi]);
 
     React.useEffect(() => {
@@ -85,6 +104,12 @@ function DynamicAgGrid(props) {
             gridApi.redrawRows();
         }
     }, [gridApi, data.highlightRowId, highlightId]);
+
+    /*
+    React.useEffect(() => {
+        showHighlightedRow();
+    }, [gridApi, data.highlightRowId, highlightId, visible]);
+    */
 
     const getLocaleText = (params) => {
         const { defaultValue, key } = params;
@@ -119,6 +144,11 @@ function DynamicAgGrid(props) {
         }
         history.push(modifyRedirectUrl(rowClickRedirectUrl, event.data.id));
     };
+
+    /*
+    const onFirstDataRendered = () => {
+        showHighlightedRow();
+    }; */
 
     const onSelectionChanged = () => {
         if (!rowClickRedirectUrl) {
@@ -254,6 +284,7 @@ function DynamicAgGrid(props) {
                     // processCellCallback={processCellCallback}
                     tooltipShowDelay={0}
                     suppressScrollOnNewData
+                    // onFirstDataRendered={onFirstDataRendered}
                 />
             </div>
         ),
@@ -307,6 +338,7 @@ DynamicAgGrid.propTypes = {
     timestampFormatMinutes: PropTypes.string,
     currency: PropTypes.string,
     height: PropTypes.number,
+    // visible: PropTypes.bool,
 };
 
 DynamicAgGrid.defaultProps = {
@@ -327,6 +359,7 @@ DynamicAgGrid.defaultProps = {
     timestampFormatMinutes: 'YYYY-MM-dd HH:mm',
     currency: '€',
     height: undefined,
+    // visible: undefined,
 };
 
 export default DynamicAgGrid;

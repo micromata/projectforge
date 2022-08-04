@@ -2,7 +2,7 @@ import { faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import style from '../TaskTreePanel.module.scss';
+import style from './TaskTreePanel.module.scss';
 
 const TreeStatus = {
     OPENED: 'OPENED',

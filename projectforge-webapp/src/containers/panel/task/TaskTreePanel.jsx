@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardBody } from 'reactstrap';
 import LoadingContainer from '../../../components/design/loading-container';
 import { debouncedWaitTime, getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
-import TaskTreeTable from './table/TaskTreeTable';
+import TaskTreeTable from './TaskTreeTable';
 import TaskFilter from './TaskFilter';
 import TaskTreeContext, { taskTreeContextDefaultValues } from './TaskTreeContext';
 
@@ -16,7 +16,6 @@ const loadTasksBounced = (
         initial,
         loading,
         open,
-        setColumnsVisibility,
         setFilter,
         setLoading,
         setNodes,
@@ -54,7 +53,6 @@ const loadTasksBounced = (
                 columnDefs,
                 translations: responseTranslations,
                 initFilter,
-                columnsVisibility: responseColumnsVisibility,
             },
         ) => {
             if (responseTranslations) {
@@ -62,7 +60,6 @@ const loadTasksBounced = (
             }
 
             setNodes(nodes);
-            setColumnsVisibility(responseColumnsVisibility);
 
             // TODO: SCROLL TO HIGHLIGHTED TASK
 
@@ -101,7 +98,6 @@ function TaskTreePanel(
     const [translations, setTranslations] = React.useState({});
     const [nodes, setNodes] = React.useState([]);
     const [columnDefs, setColumnDefs] = React.useState([]);
-    const [columnsVisibility, setColumnsVisibility] = React.useState({});
     const [loadTasksDebounced] = React.useState(
         () => AwesomeDebouncePromise(loadTasksBounced, debouncedWaitTime),
     );
@@ -127,7 +123,6 @@ function TaskTreePanel(
             initial,
             loading,
             open,
-            setColumnsVisibility,
             setFilter,
             setLoading,
             setNodes,
@@ -194,7 +189,6 @@ function TaskTreePanel(
                         /* eslint-disable-next-line react/jsx-no-constructed-context-values */
                         value={{
                             ...taskTreeContextDefaultValues,
-                            columnsVisibility,
                             highlightTaskId,
                             selectTask,
                             shortForm,
