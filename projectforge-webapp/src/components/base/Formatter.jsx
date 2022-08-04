@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import formatterFormat from './FormatterFormat';
-import TreeNavigation from '../../containers/panel/task/table/TreeNavigation';
+import TreeNavigation from '../../containers/panel/task/TreeNavigation';
 import ConsumptionBar from '../../containers/panel/task/ConsumptionBar';
 
 function Formatter(

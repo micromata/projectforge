@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import { Alert } from 'reactstrap';
-import DynamicAgGrid from '../../../../components/base/dynamicLayout/components/table/DynamicAgGrid';
-import TaskTreeContext from '../TaskTreeContext';
+import DynamicAgGrid from '../../../components/base/dynamicLayout/components/table/DynamicAgGrid';
+import TaskTreeContext from './TaskTreeContext';
 
 function TaskTreeTable({
-    columnDefs, nodes, selectTask,
+    columnDefs, nodes, selectTask, // visible,
 }) {
     const {
         highlightTaskId,
@@ -45,6 +45,7 @@ function TaskTreeTable({
                 height={400}
                 onCellClicked={onCellClicked}
                 highlightId={highlightTaskId}
+                // visible={visible}
             />
             <Alert color="light">
                 {translations['task.selectPanel.info']}
@@ -61,9 +62,11 @@ TaskTreeTable.propTypes = {
     })).isRequired,
     nodes: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     selectTask: PropTypes.func.isRequired,
+    // visible: PropTypes.bool,
 };
 
 TaskTreeTable.defaultProps = {
+    // visible: undefined,
 };
 
 export default TaskTreeTable;
