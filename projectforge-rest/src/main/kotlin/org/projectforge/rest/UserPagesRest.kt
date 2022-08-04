@@ -233,6 +233,10 @@ class UserPagesRest
           .buildValues(UserPagesTypeFilter.TYPE::class.java)
       )
       elements.add(
+        UIFilterListElement("status", label = translate("user.filter.status"), defaultFilter = true, multi = false)
+          .buildValues(UserPagesStatusFilter.STATUS::class.java)
+      )
+      elements.add(
         UIFilterListElement("hrPlanning", label = translate("user.filter.hrPlanning"), multi = false)
           .buildValues(UserPagesHRPlanningFilter.PLANNING_TYPE::class.java)
       )
@@ -263,6 +267,20 @@ class UserPagesRest
         try {
           UserPagesTypeFilter.TYPE.valueOf(value).let {
             filters.add(UserPagesTypeFilter(it))
+          }
+        } catch (ex: IllegalArgumentException) {
+          log.warn { "Oups, can't convert '$value': ${ex.message}" }
+        }
+      }
+    }
+    source.entries.find { it.field == "status" }?.let { filter ->
+      filter.synthetic = true
+      val values = filter.value.values
+      if (!values.isNullOrEmpty() && values.size == 1) {
+        val value = values[0]
+        try {
+          UserPagesStatusFilter.STATUS.valueOf(value).let {
+            filters.add(UserPagesStatusFilter(it))
           }
         } catch (ex: IllegalArgumentException) {
           log.warn { "Oups, can't convert '$value': ${ex.message}" }
