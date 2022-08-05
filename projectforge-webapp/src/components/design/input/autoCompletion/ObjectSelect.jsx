@@ -93,7 +93,7 @@ ObjectSelect.propTypes = {
         employeeId: PropTypes.number,
     }),
     value: PropTypes.shape({
-        id: PropTypes.string,
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     }),
 };
 

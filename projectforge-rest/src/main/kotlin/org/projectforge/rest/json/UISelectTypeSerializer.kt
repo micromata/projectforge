@@ -38,70 +38,83 @@ import java.io.IOException
  */
 class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) {
 
-    @Throws(IOException::class, JsonProcessingException::class)
-    override fun serialize(value: UISelect<*>?, jgen: JsonGenerator, provider: SerializerProvider) {
-        if (value == null) return
+  @Throws(IOException::class, JsonProcessingException::class)
+  override fun serialize(value: UISelect<*>?, jgen: JsonGenerator, provider: SerializerProvider) {
+    if (value == null) return
 
+    jgen.writeStartObject()
+    jgen.writeStringField("id", value.id)
+    jgen.writeStringField("type", value.type.name)
+    jgen.writeStringField("key", value.key)
+    JacksonUtils.writeField(jgen, "required", value.required)
+    JacksonUtils.writeField(jgen, "multi", value.multi)
+    JacksonUtils.writeField(jgen, "label", value.label)
+    JacksonUtils.writeField(jgen, "additionalLabel", value.additionalLabel)
+    JacksonUtils.writeField(jgen, "tooltip", value.tooltip)
+    JacksonUtils.writeField(jgen, "labelProperty", value.labelProperty)
+    JacksonUtils.writeField(jgen, "valueProperty", value.valueProperty)
+
+    if (!value.values.isNullOrEmpty()) {
+      jgen.writeArrayFieldStart("values")
+      value.values?.forEach {
+        if (it.id != null) {
+          jgen.writeStartObject()
+          JacksonUtils.writeField(jgen, value.valueProperty, it.id) // Custom serialization needed.
+          jgen.writeStringField(value.labelProperty, it.displayName)         // Custom serialization needed.
+          jgen.writeEndObject()
+        }
+      }
+      jgen.writeEndArray()
+    }
+
+    if (value.favorites != null) {
+      jgen.writeArrayFieldStart("favorites")
+      value.favorites?.forEach {
         jgen.writeStartObject()
-        jgen.writeStringField("id", value.id)
-        jgen.writeStringField("type", value.type.name)
-        jgen.writeStringField("key", value.key)
-        JacksonUtils.writeField(jgen, "required", value.required)
-        JacksonUtils.writeField(jgen, "multi", value.multi)
-        JacksonUtils.writeField(jgen, "label", value.label)
-        JacksonUtils.writeField(jgen, "additionalLabel", value.additionalLabel)
-        JacksonUtils.writeField(jgen, "tooltip", value.tooltip)
-        JacksonUtils.writeField(jgen, "labelProperty", value.labelProperty)
-        JacksonUtils.writeField(jgen, "valueProperty", value.valueProperty)
-
-        if (!value.values.isNullOrEmpty()) {
-            jgen.writeArrayFieldStart("values")
-            value.values?.forEach {
-                if (it.id != null) {
-                    jgen.writeStartObject()
-                    JacksonUtils.writeField(jgen, value.valueProperty, it.id) // Custom serialization needed.
-                    jgen.writeStringField(value.labelProperty, it.displayName)         // Custom serialization needed.
-                    jgen.writeEndObject()
-                }
-            }
-            jgen.writeEndArray()
-        }
-
-        if (value.favorites != null) {
-            jgen.writeArrayFieldStart("favorites")
-            value.favorites?.forEach {
-                jgen.writeStartObject()
-                JacksonUtils.writeField(jgen, "id", it.id)
-                jgen.writeStringField("name", it.name)
-                jgen.writeEndObject()
-            }
-            jgen.writeEndArray()
-        }
-
-        if (value.autoCompletion != null) {
-            jgen.writeObjectFieldStart("autoCompletion")
-            val ac = value.autoCompletion
-            JacksonUtils.writeField(jgen, "minChars", ac?.minChars)
-            JacksonUtils.writeField(jgen, "url", ac?.url)
-            JacksonUtils.writeStringMapField(jgen, "urlParams", ac?.urlParams)
-            JacksonUtils.writeField(jgen, "type", ac?.type)
-            writeEntries(jgen, ac?.values, "values", value.valueProperty, value.labelProperty) // See above.
-            jgen.writeEndObject()
-        }
+        JacksonUtils.writeField(jgen, "id", it.id)
+        jgen.writeStringField("name", it.name)
         jgen.writeEndObject()
+      }
+      jgen.writeEndArray()
     }
 
-    private fun writeEntries(jgen: JsonGenerator, entries: List<AutoCompletion.Entry<out Any?>>?, property: String, valueProperty: String, labelProperty: String) {
-        if (entries != null) {
-            jgen.writeArrayFieldStart(property)
-            entries.forEach {
-                jgen.writeStartObject()
-                JacksonUtils.writeField(jgen, valueProperty, it.value)
-                jgen.writeStringField(labelProperty, it.label)
-                JacksonUtils.writeField(jgen, "allSearchableFields", it.allSearchableFields)
-                jgen.writeEndObject()
-            }
-            jgen.writeEndArray()
-        }
+    if (value.autoCompletion != null) {
+      jgen.writeObjectFieldStart("autoCompletion")
+      val ac = value.autoCompletion
+      JacksonUtils.writeField(jgen, "minChars", ac?.minChars)
+      JacksonUtils.writeField(jgen, "url", ac?.url)
+      /*
+       * Must be in lower case due to DOM:
+       * Warning: React does not recognize the `urlParams` prop on a DOM element.
+       * If you intentionally want it to appear in the DOM as a custom attribute,
+       * spell it as lowercase `urlparams` instead. If you accidentally passed it
+       * from a parent component, remove it from the DOM element.
+       */
+      JacksonUtils.writeStringMapField(jgen, "urlparams", ac?.urlParams)
+      JacksonUtils.writeField(jgen, "type", ac?.type)
+      writeEntries(jgen, ac?.values, "values", value.valueProperty, value.labelProperty) // See above.
+      jgen.writeEndObject()
     }
+    jgen.writeEndObject()
+  }
+
+  private fun writeEntries(
+    jgen: JsonGenerator,
+    entries: List<AutoCompletion.Entry<out Any?>>?,
+    property: String,
+    valueProperty: String,
+    labelProperty: String
+  ) {
+    if (entries != null) {
+      jgen.writeArrayFieldStart(property)
+      entries.forEach {
+        jgen.writeStartObject()
+        JacksonUtils.writeField(jgen, valueProperty, it.value)
+        jgen.writeStringField(labelProperty, it.label)
+        JacksonUtils.writeField(jgen, "allSearchableFields", it.allSearchableFields)
+        jgen.writeEndObject()
+      }
+      jgen.writeEndArray()
+    }
+  }
 }

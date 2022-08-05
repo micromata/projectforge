@@ -22,7 +22,7 @@ function DynamicInputResolver(
     let Tag;
     const additionalProps = {
         url: autoCompletionUrl,
-        urlParams: autoCompletionUrlParams,
+        urlparams: autoCompletionUrlParams,
     };
 
     switch (dataType) {
