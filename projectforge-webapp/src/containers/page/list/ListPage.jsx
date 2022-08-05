@@ -74,9 +74,10 @@ ListPage.propTypes = {
         ui: PropTypes.shape({
             title: PropTypes.string,
             hideSearchFilter: PropTypes.bool,
+            pageMenu: PropTypes.arrayOf(PropTypes.shape({})),
         }),
         data: PropTypes.shape({
-            resultInfo: PropTypes.shape,
+            resultInfo: PropTypes.shape({}),
         }),
         variables: PropTypes.shape({ }),
     }),

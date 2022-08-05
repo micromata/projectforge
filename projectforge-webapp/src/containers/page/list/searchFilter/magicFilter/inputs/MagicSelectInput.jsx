@@ -44,9 +44,8 @@ function MagicSelectInput(
 MagicSelectInput.propTypes = {
     onChange: PropTypes.func.isRequired,
     value: PropTypes.shape({
-        values: PropTypes.shape({
-            includes: PropTypes.shape({}),
-        }),
+        // eslint-disable-next-line react/forbid-prop-types
+        values: PropTypes.any,
     }).isRequired,
     values: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     id: PropTypes.string,

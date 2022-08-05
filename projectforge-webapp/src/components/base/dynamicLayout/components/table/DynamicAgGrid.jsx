@@ -1,10 +1,11 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import { LicenseManager } from 'ag-grid-enterprise';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
+import { connect } from 'react-redux';
 import { DynamicLayoutContext } from '../../context';
 import Formatter from '../../../Formatter';
 import history from '../../../../../utilities/history';
@@ -32,7 +33,7 @@ function DynamicAgGrid(props) {
         getRowClass,
         suppressRowClickSelection,
         components,
-        // can't use locale from authentication, because AG-Grid is also used in public pages:
+        // If not usable from locale from authentication, e. g. in public pages:
         locale,
         dateFormat,
         thousandSeparator,
@@ -40,6 +41,14 @@ function DynamicAgGrid(props) {
         timestampFormatSeconds,
         timestampFormatMinutes,
         currency,
+        // By authentication object:
+        userLocale,
+        userDateFormat,
+        userThousandSeparator,
+        userDecimalSeparator,
+        userTimestampFormatSeconds,
+        userTimestampFormatMinutes,
+        userCurrency,
         height,
         highlightId,
     } = props;
@@ -117,12 +126,14 @@ function DynamicAgGrid(props) {
             return dateFormat || AG_GRID_LOCALE_DE[key] || defaultValue;
         }
         if (key === 'thousandSeparator') {
-            return thousandSeparator || AG_GRID_LOCALE_DE[key] || defaultValue;
+            return thousandSeparator || userThousandSeparator
+                || AG_GRID_LOCALE_DE[key] || defaultValue;
         }
         if (key === 'decimalSeparator') {
-            return decimalSeparator || AG_GRID_LOCALE_DE[key] || defaultValue;
+            return decimalSeparator || userDecimalSeparator
+                || AG_GRID_LOCALE_DE[key] || defaultValue;
         }
-        if (locale === 'de') return AG_GRID_LOCALE_DE[key] || defaultValue;
+        if ((locale || userLocale) === 'de') return AG_GRID_LOCALE_DE[key] || defaultValue;
         return params.defaultValue;
     };
 
@@ -217,11 +228,11 @@ function DynamicAgGrid(props) {
             return formatterFormat(
                 value,
                 cellRendererParams?.dataType,
-                dateFormat,
-                timestampFormatSeconds,
-                timestampFormatMinutes,
-                locale,
-                currency,
+                dateFormat || userDateFormat,
+                timestampFormatSeconds || userTimestampFormatSeconds,
+                timestampFormatMinutes || userTimestampFormatMinutes,
+                locale || userLocale,
+                currency || userCurrency,
             );
         }
         return value;
@@ -323,7 +334,10 @@ DynamicAgGrid.propTypes = {
     onColumnStatesChangedUrl: PropTypes.string,
     pagination: PropTypes.bool,
     paginationPageSize: PropTypes.number,
-    getRowClass: PropTypes.shape({}),
+    getRowClass: PropTypes.oneOfType([
+        PropTypes.shape({}),
+        PropTypes.string,
+    ]),
     suppressRowClickSelection: PropTypes.bool,
     checkboxSelection: PropTypes.bool,
     components: PropTypes.oneOfType([
@@ -352,9 +366,9 @@ DynamicAgGrid.defaultProps = {
     suppressRowClickSelection: undefined,
     components: undefined,
     locale: undefined,
-    dateFormat: undefined,
-    thousandSeparator: undefined,
-    decimalSeparator: undefined,
+    dateFormat: 'YYYY-MM-dd',
+    thousandSeparator: ',',
+    decimalSeparator: '.',
     timestampFormatSeconds: 'YYYY-MM-dd HH:mm:ss',
     timestampFormatMinutes: 'YYYY-MM-dd HH:mm',
     currency: '€',
@@ -362,4 +376,14 @@ DynamicAgGrid.defaultProps = {
     // visible: undefined,
 };
 
-export default DynamicAgGrid;
+const mapStateToProps = ({ authentication }) => ({
+    userLocale: authentication?.user?.locale,
+    userDateFormat: authentication?.user?.dateFormat,
+    userThousandSeparator: authentication?.user?.thousandSeparator,
+    userDecimalSeparator: authentication?.user?.decimalSeparator,
+    userTimestampFormatSeconds: authentication?.user?.timestampFormatSeconds,
+    userTimestampFormatMinutes: authentication?.user?.timestampFormatMinutes,
+    userCurrency: authentication?.user?.currency,
+});
+
+export default connect(mapStateToProps)(DynamicAgGrid);

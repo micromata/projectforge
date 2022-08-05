@@ -148,14 +148,16 @@ MagicFilters.propTypes = {
         reset: PropTypes.string,
         searchFilter: PropTypes.string,
         search: PropTypes.string,
-        'datatable.no-records-found': PropTypes.shape({}),
+        'datatable.no-records-found': PropTypes.string,
     }).isRequired,
     filterEntries: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     onResetAllFilters: PropTypes.func.isRequired,
     searchFilter: PropTypes.shape({
-        content: PropTypes.shape({
-            filter: PropTypes.shape({}),
-        }),
+        content: PropTypes.oneOfType([
+            PropTypes.shape({
+                filter: PropTypes.shape({}),
+            }),
+            PropTypes.arrayOf(PropTypes.shape({}))]),
     }),
     searchString: PropTypes.string,
 };
