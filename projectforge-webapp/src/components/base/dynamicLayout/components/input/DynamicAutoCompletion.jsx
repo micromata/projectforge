@@ -9,7 +9,7 @@ function DynamicAutoCompletion(
     {
         id,
         url,
-        urlParams,
+        urlparams,
         label,
         ...props
     },
@@ -20,9 +20,9 @@ function DynamicAutoCompletion(
 
     let nUrl = url;
 
-    if (urlParams) {
-        Object.keys(urlParams).forEach((key) => {
-            autoCompletionData[key] = Object.getByString(data, urlParams[key]);
+    if (urlparams) {
+        Object.keys(urlparams).forEach((key) => {
+            autoCompletionData[key] = Object.getByString(data, urlparams[key]);
         });
         nUrl = evalServiceURL(url, autoCompletionData);
     }
@@ -33,7 +33,7 @@ function DynamicAutoCompletion(
                 inputId={`${ui.uid}-${id}`}
                 inputProps={{ label }}
                 onChange={(completion) => setData({ [id]: completion })}
-                url={nUrl} // urlParams (Fin)
+                url={nUrl}
                 value={data[id]}
                 {...props}
             />
@@ -45,7 +45,7 @@ DynamicAutoCompletion.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     url: PropTypes.string.isRequired,
-    urlParams: PropTypes.shape({}),
+    urlparams: PropTypes.shape({}),
 };
 
 DynamicAutoCompletion.defaultProps = {};

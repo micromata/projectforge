@@ -41,10 +41,9 @@ CalendarEventTooltip.propTypes = {
         // Or the instance of a DOM native element (see the note about SSR)
         PropTypes.shape({ current: PropTypes.instanceOf(Element) }),
     ]).isRequired,
-    event: PropTypes.oneOfType([
-        PropTypes.shape({}),
-        null,
-    ]),
+    event: PropTypes.shape({
+        extendedProps: PropTypes.arrayOf(PropTypes.shape({})),
+    }),
 };
 
 CalendarEventTooltip.defaultProps = {
