@@ -175,7 +175,7 @@ SearchFilter.propTypes = {
                 exportAsXls: PropTypes.string,
             }),
             title: PropTypes.string,
-            pageMenu: PropTypes.shape({}),
+            pageMenu: PropTypes.arrayOf(PropTypes.shape({})),
             excelExportSupported: PropTypes.bool,
             multiSelectionSupported: PropTypes.bool,
         }),

@@ -24,8 +24,10 @@
 package org.projectforge.rest
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.Constants
 import org.projectforge.SystemAlertMessage
 import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.business.user.UserLocale
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
@@ -41,6 +43,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.text.DecimalFormatSymbols
 import java.time.DayOfWeek
 import javax.servlet.http.HttpServletRequest
 
@@ -77,7 +80,10 @@ open class UserStatusRest {
     var jsTimestampFormatMinutes: String? = null,
     var jsTimestampFormatSeconds: String? = null,
     var firstDayOfWeek: DayOfWeek? = null,
-    var timeNotation: TimeNotation? = null
+    var timeNotation: TimeNotation? = null,
+    var currency: String? = Constants.CURRENCY_SYMBOL,
+    var thousandSeparator: Char? = null,
+    var decimalSeparator: Char? = null,
   ) {
     /**
      * 0 - Sunday, 1 - Monday, ...
@@ -126,8 +132,11 @@ open class UserStatusRest {
       timestampFormatMinutes = DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES),
       timestampFormatSeconds = DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS),
       timestampFormatMillis = DateFormats.getFormatString(DateFormatType.DATE_TIME_MILLIS),
-      firstDayOfWeek = firstDayOfWeek
-    )
+      firstDayOfWeek = firstDayOfWeek,
+      thousandSeparator = DecimalFormatSymbols(UserLocale.determineUserLocale()).groupingSeparator,
+      decimalSeparator = DecimalFormatSymbols(UserLocale.determineUserLocale()).decimalSeparator,
+
+      )
     userData.jsDateFormat = convertToJavascriptFormat(userData.dateFormat)
     userData.jsDateFormatShort = convertToJavascriptFormat(userData.dateFormatShort)
     userData.jsTimestampFormatMinutes = convertToJavascriptFormat(userData.timestampFormatMinutes)
