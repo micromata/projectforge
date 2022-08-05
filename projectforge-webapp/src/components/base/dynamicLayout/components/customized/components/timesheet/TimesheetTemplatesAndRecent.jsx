@@ -1,7 +1,6 @@
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import React from 'react';
 import { Button, Card, CardBody, Table } from 'reactstrap';
-import { translations } from 'react-rrule-generator';
 import FavoritesPanel from '../../../../../../../containers/panel/favorite/FavoritesPanel';
 import { useClickOutsideHandler } from '../../../../../../../utilities/hooks';
 import {

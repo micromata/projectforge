@@ -21,8 +21,6 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-@file:Suppress("DEPRECATION")
-
 package org.projectforge.rest.calendar
 
 import org.projectforge.Constants
@@ -30,6 +28,8 @@ import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarView
 import org.projectforge.business.calendar.StyledTeamCalendar
 import org.projectforge.business.calendar.TeamCalendar
+import org.projectforge.business.teamcal.admin.TeamCalCache
+import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.access.AccessChecker
@@ -93,16 +93,22 @@ class CalendarServicesRest {
   private lateinit var calendarEventsProvider: CalEventsProvider
 
   @Autowired
-  private lateinit var vacationProvider: VacationProvider
+  private lateinit var calendarFilterServicesRest: CalendarFilterServicesRest
+
+  @Autowired
+  private lateinit var teamCalCache: TeamCalCache
+
+  @Autowired
+  private lateinit var teamEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
 
   @Autowired
   private lateinit var timesheetsProvider: TimesheetEventsProvider
 
   @Autowired
-  private lateinit var calendarFilterServicesRest: CalendarFilterServicesRest
+  private lateinit var userPrefService: UserPrefService
 
   @Autowired
-  private lateinit var userPrefService: UserPrefService
+  private lateinit var vacationProvider: VacationProvider
 
   @PostMapping("events")
   fun getEvents(@RequestBody filter: CalendarRestFilter): ResponseEntity<Any> {
@@ -114,6 +120,31 @@ class CalendarServicesRest {
     filter.vacationGroupIds = currentFilter.vacationGroupIds?.toMutableSet()
     filter.vacationUserIds = currentFilter.vacationUserIds?.toMutableSet()
     return ResponseEntity(buildEvents(filter), HttpStatus.OK)
+  }
+
+  /**
+   * Force to poll (refresh) external calendars (if currently displayed). If no external calendar is displayed, nothing
+   * is done.
+   */
+  @GetMapping("refresh")
+  fun refresh(): ResponseEntity<Any> {
+    val filter = calendarFilterServicesRest.getCurrentFilter()
+    val visibleCalendarIds = mutableListOf<Int>()
+    filter.calendarIds.forEach {
+      if (it != null && !filter.invisibleCalendars.contains(it)) {
+        visibleCalendarIds.add(it)
+      }
+    }
+    var reload = false
+    visibleCalendarIds.forEach { calendarId ->
+      val teamCalDO = teamCalCache.getCalendar(calendarId)
+      if (teamCalDO != null && teamCalDO.externalSubscription) {
+        // Force reload of given calendar.
+        reload = true
+        teamEventExternalSubscriptionCache.updateCache(teamCalDO, true)
+      }
+    }
+    return ResponseEntity("{\"reload\": $reload}", HttpStatus.OK)
   }
 
   /**
@@ -225,18 +256,15 @@ class CalendarServicesRest {
 
   private fun buildEvents(filter: CalendarRestFilter): CalendarData { //startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
     val events = mutableListOf<FullCalendarEvent>()
-    // Workaround for BigCalendar, if the browser's timezone differs from user's timezone in ThreadLocalUserContext.
-    // ZoneInfo.getTimeZone returns null, if timeZone not known. TimeZone.getTimeZone returns GMT on failure!
-    val timeZone = if (filter.timeZone != null) TimeZone.getTimeZone(filter.timeZone) else null
     val range = DateTimeRange(
-      PFDateTime.fromOrNow(filter.start, timeZone = timeZone),
-      PFDateTime.fromOrNull(filter.end, timeZone = timeZone)
+      PFDateTime.fromOrNow(filter.start),
+      PFDateTime.fromOrNull(filter.end)
     )
     adjustRange(range)
     timesheetsProvider.addTimesheetEvents(range.start, range.end!!, filter.timesheetUserId, events)
     var visibleCalendarIds = filter.activeCalendarIds
     if (filter.useVisibilityState == true && !visibleCalendarIds.isNullOrEmpty()) {
-      val currentFilter = CalendarFilterServicesRest.getCurrentFilter(userPrefService)
+      val currentFilter = getCurrentFilter(userPrefService)
       if (currentFilter != null) {
         val set = mutableSetOf<Int?>()
         visibleCalendarIds.forEach {

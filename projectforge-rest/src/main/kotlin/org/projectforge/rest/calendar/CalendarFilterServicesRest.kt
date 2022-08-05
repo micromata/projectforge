@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import mu.KotlinLogging
 import org.projectforge.business.calendar.*
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.timesheet.TimesheetDao
@@ -39,6 +40,8 @@ import org.projectforge.rest.dto.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Rest services for the user's settings of calendar filters.
@@ -75,8 +78,6 @@ class CalendarFilterServicesRest {
   )
 
   companion object {
-    private val log = org.slf4j.LoggerFactory.getLogger(CalendarFilterServicesRest::class.java)
-
     private const val PREF_AREA = "calendar"
     private const val PREF_NAME_STATE = "state"
     private const val PREF_NAME_STYLES = "styles"
@@ -187,17 +188,23 @@ class CalendarFilterServicesRest {
       "calendar.defaultCalendar",
       "calendar.defaultCalendar.tooltip",
       "calendar.navigation.today",
+      "calendar.newEntry",
       "calendar.option.gridSize",
       "calendar.option.timesheets",
       "calendar.showMore",
       "calendar.title",
       "calendar.templates.new",
       "calendar.templates.new.tooltip",
+      "calendar.templates.tooltip",
       "calendar.view.agenda",
+      "calendar.view.settings.tooltip",
       "calendar.view.oldVersion",
       "calendar.view.oldVersion.tooltip",
       "calendar.view.overview",
+      "calendar.view.workDays",
       "calendar.week",
+      "plugins.teamcal.calendar.listAndIcsExport.tooltip",
+      "plugins.teamcal.calendar.refresh.tooltip",
       "settings",
       "tooltip.selectMe"
     )

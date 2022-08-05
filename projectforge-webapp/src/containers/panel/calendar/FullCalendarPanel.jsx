@@ -343,6 +343,7 @@ function FullCalendarPanel(options) {
     const customButtons = {
         new: {
             text: '+',
+            hint: `${translations['calendar.newEntry']}`,
             click: () => handleCreate(),
         },
         listMonth: {
@@ -351,6 +352,7 @@ function FullCalendarPanel(options) {
         },
         dayGridWorkingMonth: {
             text: '5/7',
+            hint: `${translations['calendar.view.workDays']}`,
             click: (event) => setView('dayGridWorkingMonth', event),
         },
         timeGridWeek: {
@@ -367,6 +369,7 @@ function FullCalendarPanel(options) {
         },
         timeGridWorkingWeek: {
             text: '5/7',
+            hint: `${translations['calendar.view.workDays']}`,
             click: (event) => setView('timeGridWorkingWeek', event),
         },
         oldVersion: {
