@@ -42,10 +42,7 @@ CalendarEventTooltip.propTypes = {
         PropTypes.shape({ current: PropTypes.instanceOf(Element) }),
     ]).isRequired,
     event: PropTypes.shape({
-        extendedProps: PropTypes.oneOfType([
-            PropTypes.arrayOf(PropTypes.shape({})),
-            PropTypes.shape({}),
-        ]),
+        extendedProps: PropTypes.shape({}),
     }),
 };
 
