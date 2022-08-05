@@ -15,6 +15,7 @@ function FavoritesPanel(
         isModified,
         favorites,
         favoriteButtonText,
+        favoriteButtonTooltip,
         onFavoriteCreate,
         onFavoriteDelete,
         onFavoriteRename,
@@ -55,6 +56,8 @@ function FavoritesPanel(
                 id={htmlId}
                 isOpen={open}
                 favoriteButtonText={favoriteButtonText}
+                favoriteButtonTooltip={favoriteButtonTooltip}
+                translations={translations}
             />
             <Popover
                 placement="left-start"
@@ -111,6 +114,7 @@ FavoritesPanel.propTypes = {
     // The current used favorite (can be saved with modified settings).
     currentFavoriteId: PropTypes.number,
     favoriteButtonText: PropTypes.string,
+    favoriteButtonTooltip: PropTypes.string,
     favorites: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.number,
         name: PropTypes.string,
@@ -133,6 +137,7 @@ FavoritesPanel.defaultProps = {
     closeOnSelect: true,
     currentFavoriteId: -1,
     favoriteButtonText: undefined,
+    favoriteButtonTooltip: undefined,
     favorites: [],
     htmlId: 'favoritesPopover',
     isModified: false,

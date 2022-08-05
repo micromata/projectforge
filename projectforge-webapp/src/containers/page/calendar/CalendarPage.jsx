@@ -181,6 +181,25 @@ function CalendarPage({ match, location }) {
         );
     };
 
+    /**
+     * Force polling/refresh of external calendar subscriptions (if any displayed).
+     */
+    const refresh = () => {
+        setLoading(true);
+        fetchJsonGet(
+            'calendar/refresh',
+            undefined,
+            (json) => {
+                // const { reload } = json;
+                // if (reload) {
+                // Force reload page independent from refreshing subscribed calendars:
+                window.location.reload(false);
+                // }
+                setLoading(false);
+            },
+        );
+    };
+
     useEffect(() => {
         fetchInitial(); // Component mounted
     }, []);
@@ -214,7 +233,7 @@ function CalendarPage({ match, location }) {
                     <div className="calendar-filter">
                         <form>
                             <Row>
-                                <Col sm="10" md="11">
+                                <Col sm="9" md="10">
                                     {options && (
                                         <Select
                                             closeMenuOnSelect={false}
@@ -235,7 +254,7 @@ function CalendarPage({ match, location }) {
                                         />
                                     )}
                                 </Col>
-                                <Col sm="2" md="1" className="d-flex justify-content-end">
+                                <Col sm="3" md="2" className="d-flex justify-content-end">
                                     <FavoritesPanel
                                         onFavoriteCreate={onFavoriteCreate}
                                         onFavoriteDelete={onFavoriteDelete}
@@ -250,6 +269,7 @@ function CalendarPage({ match, location }) {
                                         htmlId="calendarFavoritesPopover"
                                         newFavoriteI18nKey="calendar.templates.new"
                                         newFavoriteTooltipI18nKey="calendar.templates.new.tooltip"
+                                        favoriteButtonTooltip={translations['calendar.templates.tooltip']}
                                     />
                                     <CalendarFilterSettings
                                         /* eslint-disable-next-line max-len */
@@ -270,6 +290,7 @@ function CalendarPage({ match, location }) {
                                         onVacationUsersChange={onVacationUsersChange}
                                         vacationGroups={state.vacationGroups}
                                         vacationUsers={state.vacationUsers}
+                                        refresh={refresh}
                                     />
                                 </Col>
                             </Row>

@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import mu.KotlinLogging
 import org.projectforge.business.common.OutputType
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.task.TaskFormatter
@@ -40,10 +41,10 @@ import org.springframework.stereotype.Component
 import java.time.Month
 import java.time.ZonedDateTime
 
+private val log = KotlinLogging.logger {}
+
 @Component
 class TimesheetEventsProvider {
-  private val log = org.slf4j.LoggerFactory.getLogger(TimesheetEventsProvider::class.java)
-
   @Autowired
   private lateinit var timesheetDao: TimesheetDao
 

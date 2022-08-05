@@ -25,6 +25,7 @@
 
 package org.projectforge.rest.calendar
 
+import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.admin.TeamCalDao
@@ -54,6 +55,8 @@ import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
+private val log = KotlinLogging.logger {}
+
 @RestController
 @RequestMapping("${Rest.URL}/teamEvent")
 class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEventDao>(
@@ -61,8 +64,6 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
   "plugins.teamcal.event.title",
   cloneSupport = CloneSupport.AUTOSAVE
 ) {
-
-  private val log = org.slf4j.LoggerFactory.getLogger(TeamEventPagesRest::class.java)
 
   @Autowired
   private lateinit var calendarFilterServicesRest: CalendarFilterServicesRest

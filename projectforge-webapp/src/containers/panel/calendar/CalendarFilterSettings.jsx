@@ -1,13 +1,15 @@
-import { faCog } from '@fortawesome/free-solid-svg-icons';
+import { faCog, faArrowsRotate, faList } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { Button, Col, Container, Modal, ModalBody, ModalHeader, Row } from 'reactstrap';
+import { Button, Col, Container, Modal, ModalBody, ModalHeader, Row, UncontrolledTooltip } from 'reactstrap';
 import ObjectSelect from '../../../components/design/input/autoCompletion/ObjectSelect';
 import CheckBox from '../../../components/design/input/CheckBox';
 import style from '../../../components/design/input/Input.module.scss';
 import ReactSelect from '../../../components/design/react-select/ReactSelect';
 import { fetchJsonGet, fetchJsonPost } from '../../../utilities/rest';
+import history from '../../../utilities/history';
+import prefix from '../../../utilities/prefix';
 import { CalendarContext } from '../../page/calendar/CalendarContext';
 
 /**
@@ -148,6 +150,7 @@ class CalendarFilterSettings extends Component {
             translations,
             vacationGroups,
             vacationUsers,
+            refresh,
         } = this.props;
         const gridSizes = [{
             value: 5,
@@ -174,6 +177,7 @@ class CalendarFilterSettings extends Component {
             <>
                 <Button
                     color="link"
+                    id="calendar-view-settings"
                     className="selectPanelIconLinks"
                     onClick={this.toggle}
                 >
@@ -183,6 +187,39 @@ class CalendarFilterSettings extends Component {
                         size="lg"
                     />
                 </Button>
+                <UncontrolledTooltip placement="bottom" target="calendar-view-settings">
+                    {translations['calendar.view.settings.tooltip']}
+                </UncontrolledTooltip>
+                <Button
+                    color="link"
+                    id="calendar-refresh"
+                    className="selectPanelIconLinks"
+                    onClick={refresh}
+                >
+                    <FontAwesomeIcon
+                        icon={faArrowsRotate}
+                        className={style.icon}
+                        size="lg"
+                    />
+                </Button>
+                <UncontrolledTooltip placement="bottom" target="calendar-refresh">
+                    {translations['plugins.teamcal.calendar.refresh.tooltip']}
+                </UncontrolledTooltip>
+                <Button
+                    color="link"
+                    id="calendarlist"
+                    className="selectPanelIconLinks"
+                    onClick={() => history.push(`${prefix}teamCal`)}
+                >
+                    <FontAwesomeIcon
+                        icon={faList}
+                        className={style.icon}
+                        size="lg"
+                    />
+                </Button>
+                <UncontrolledTooltip placement="bottom" target="calendarlist">
+                    {translations['plugins.teamcal.calendar.listAndIcsExport.tooltip']}
+                </UncontrolledTooltip>
                 <Modal
                     isOpen={isOpen}
                     toggle={this.toggle}
@@ -288,6 +325,7 @@ CalendarFilterSettings.propTypes = {
     onGridSizeChange: PropTypes.func.isRequired,
     onVacationGroupsChange: PropTypes.func.isRequired,
     onVacationUsersChange: PropTypes.func.isRequired,
+    refresh: PropTypes.func.isRequired,
     /* eslint-disable-next-line react/no-unused-prop-types */
     defaultCalendarId: PropTypes.number,
     timesheetUser: PropTypes.shape(),
@@ -304,6 +342,9 @@ CalendarFilterSettings.propTypes = {
         'calendar.filter.vacation.users': PropTypes.string,
         'calendar.filter.vacation.user.tooltip': PropTypes.string,
         'calendar.option.gridSize': PropTypes.string,
+        'calendar.view.settings.tooltip': PropTypes.string,
+        'plugins.teamcal.calendar.listAndIcsExport.tooltip': PropTypes.string,
+        'plugins.teamcal.calendar.refresh.tooltip': PropTypes.string,
     }).isRequired,
     vacationGroups: PropTypes.arrayOf(PropTypes.shape({
         title: PropTypes.string,

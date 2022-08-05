@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import mu.KotlinLogging
 import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
@@ -30,8 +31,9 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+private val log = KotlinLogging.logger {}
+
 object HolidayAndWeekendProvider {
-    private val log = org.slf4j.LoggerFactory.getLogger(HolidayAndWeekendProvider::class.java)
     private val holidays = Holidays.instance
 
     class SpecialDayInfo(val date: LocalDate, val weekend: Boolean, val holiday: Boolean, val holidayTitle: String, val workingDay: Boolean)

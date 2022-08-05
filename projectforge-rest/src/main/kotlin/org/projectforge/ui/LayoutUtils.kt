@@ -45,7 +45,13 @@ object LayoutUtils {
 
   @JvmStatic
   fun addCommonTranslations(translations: MutableMap<String, String>) {
-    addTranslations("select.placeholder", "calendar.today", "task.title.list.select", translations = translations)
+    addTranslations(
+      "calendar.today",
+      "select.placeholder",
+      "task.title.list.select",
+      "task.tree.rootNode",
+      translations = translations,
+    )
   }
 
   /**

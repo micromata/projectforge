@@ -1,8 +1,9 @@
 /* eslint-disable no-alert */
-import { faStream } from '@fortawesome/free-solid-svg-icons';
+import { faBarsStaggered, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { UncontrolledTooltip } from 'reactstrap';
 import FavoritesPanel from '../../../../../../containers/panel/favorite/FavoritesPanel';
 import TaskTreePanel from '../../../../../../containers/panel/task/TaskTreePanel';
 import { useClickOutsideHandler } from '../../../../../../utilities/hooks';
@@ -130,6 +131,11 @@ function DynamicTaskSelect(
             setModalHighlight(undefined); // Reset to highlight current task.
         };
 
+        let toggleIcon = faBarsStaggered;
+        if (panelVisible) {
+            toggleIcon = faChevronDown;
+        }
+
         // Opens the task tree modal dialog with the given task highlighted.
         const openModal = (taskId) => {
             setPanelVisible(true);
@@ -147,6 +153,7 @@ function DynamicTaskSelect(
                                 openModal(taskId);
                                 setTask(taskId);
                             }}
+                            translations={ui.translations}
                         />
                     )
                     : (
@@ -155,15 +162,19 @@ function DynamicTaskSelect(
                         </span>
                     )}
                 <Button
+                    id="toggleTaskTree"
                     color="link"
                     className="selectPanelIconLinks"
                     onClick={toggleModal}
                 >
                     <FontAwesomeIcon
-                        icon={faStream}
+                        icon={toggleIcon}
                         className={inputStyle.icon}
                     />
                 </Button>
+                <UncontrolledTooltip placement="bottom" target="toggleTaskTree">
+                    {ui.translations['task.title.list.select']}
+                </UncontrolledTooltip>
                 <FavoritesPanel
                     onFavoriteDelete={handleFavoriteDelete}
                     onFavoriteRename={handleFavoriteRename}

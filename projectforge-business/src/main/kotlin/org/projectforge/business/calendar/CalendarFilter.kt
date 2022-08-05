@@ -82,8 +82,14 @@ class CalendarFilter(name: String? = null,
                      var showPlanning: Boolean? = null)
     : AbstractFavorite(name, id) {
 
+    /**
+     * All calendars of this filter (visible and invisible ones).
+     */
     var calendarIds = mutableSetOf<Int?>()
 
+    /**
+     * Some calendarIds aren't visible (if they are listed here).
+     */
     var invisibleCalendars = mutableSetOf<Int?>()
 
     /**

@@ -3,7 +3,7 @@ import { faStar as faStarSolid } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Button } from 'reactstrap';
+import { Button, UncontrolledTooltip } from 'reactstrap';
 import style from '../../../components/design/input/Input.module.scss';
 
 function FavoritesButton(
@@ -12,6 +12,8 @@ function FavoritesButton(
         isOpen,
         toggle,
         favoriteButtonText,
+        favoriteButtonTooltip,
+        translations,
     },
 ) {
     const [hover, setHover] = React.useState(false);
@@ -27,19 +29,25 @@ function FavoritesButton(
             size="lg"
         />
     );
+
     return (
-        <Button
-            id={id}
-            color="link"
-            className="selectPanelIconLinks"
-            onClick={toggle}
-            onFocus={handleOpenButtonHover}
-            onBlur={handleOpenButtonHover}
-            onMouseOver={handleOpenButtonHover}
-            onMouseLeave={handleOpenButtonHover}
-        >
-            {button}
-        </Button>
+        <>
+            <Button
+                id={id}
+                color="link"
+                className="selectPanelIconLinks"
+                onClick={toggle}
+                onFocus={handleOpenButtonHover}
+                onBlur={handleOpenButtonHover}
+                onMouseOver={handleOpenButtonHover}
+                onMouseLeave={handleOpenButtonHover}
+            >
+                {button}
+            </Button>
+            <UncontrolledTooltip placement="bottom" target={id}>
+                {favoriteButtonTooltip || translations.favorites}
+            </UncontrolledTooltip>
+        </>
     );
 }
 
@@ -47,12 +55,18 @@ FavoritesButton.propTypes = {
     id: PropTypes.string.isRequired,
     toggle: PropTypes.func.isRequired,
     favoriteButtonText: PropTypes.string,
+    favoriteButtonTooltip: PropTypes.string,
     isOpen: PropTypes.bool,
+    translations: PropTypes.shape({
+        favorites: PropTypes.string.isRequired,
+    }),
 };
 
 FavoritesButton.defaultProps = {
     favoriteButtonText: undefined,
+    favoriteButtonTooltip: undefined,
     isOpen: false,
+    translations: {},
 };
 
 export default FavoritesButton;

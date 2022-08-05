@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import mu.KotlinLogging
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarStyleMap
 import org.projectforge.common.DateFormatType
@@ -33,8 +34,9 @@ import org.projectforge.framework.time.PFDateTime
 import java.time.Month
 import java.time.format.DateTimeFormatter
 
+private val log = KotlinLogging.logger {}
+
 object BirthdaysProvider {
-  private val log = org.slf4j.LoggerFactory.getLogger(BirthdaysProvider::class.java)
   private val holidays = Holidays.instance
 
   fun addEvents(
