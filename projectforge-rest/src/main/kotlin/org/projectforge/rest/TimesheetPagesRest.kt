@@ -335,12 +335,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     )
     layout.addTranslations(
       "search.search",
-      "task",
       "fibu.kost2",
       "fibu.kunde",
       "fibu.projekt",
-      "task.favorite.new",
-      "task.favorite.new.tooltip",
       "timesheet.description",
       "timesheet.location",
       "timesheet.reference",
@@ -355,6 +352,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       "until",
       "yes", "cancel", // Confirmation message
     )
+    LayoutUtils.addTranslations4TaskSelection(layout)
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 

@@ -29,6 +29,7 @@ import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetFavorite
 import org.projectforge.business.timesheet.TimesheetFavoritesService
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.Timesheet
 import org.projectforge.rest.task.TaskServicesRest
@@ -114,6 +115,7 @@ class TimesheetFavoritesRest {
   @GetMapping("delete")
   fun delete(@RequestParam("id", required = true) id: Int): Map<String, Any> {
     timsheetFavoritesService.deleteFavorite(id)
+    timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.getUserId())
     return mapOf("timesheetFavorites" to getList())
   }
 
@@ -123,6 +125,7 @@ class TimesheetFavoritesRest {
     @RequestParam("newName", required = true) newName: String
   ): Map<String, Any> {
     timsheetFavoritesService.renameFavorite(id, newName)
+    timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.getUserId())
     return mapOf("timesheetFavorites" to getList())
   }
 

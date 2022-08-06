@@ -95,6 +95,14 @@ class TimesheetFavoritesService {
     getFavorites().rename(id, newName)
   }
 
+  /**
+   * After modifying the user's favorites, the migration cache should be invalidated for the given user, so
+   * it will be checked, if there are any favorites of the old (classical) version to migrate.
+   */
+  fun refreshMigrationCache(userId: Int) {
+    migrationCache.refresh(userId)
+  }
+
   // Ensures filter list (stored one, restored from legacy filter or a empty new one).
   fun getFavorites(): Favorites<TimesheetFavorite> {
     var favorites: Favorites<TimesheetFavorite>? = null
@@ -161,7 +169,6 @@ class TimesheetFavoritesService {
   }
 
   companion object {
-    private const val OLD_AREA_ID = "TIMESHEET_TEMPLATE"
     private const val PREF_AREA = "timesheet"
   }
 }
