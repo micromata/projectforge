@@ -185,6 +185,7 @@ function DynamicTaskSelect(
                     htmlId="taskFavoritesPopover"
                     newFavoriteI18nKey="task.favorite.new"
                     newFavoriteTooltipI18nKey="task.favorite.new.tooltip"
+                    favoriteButtonTooltip={ui.translations['task.favorites.tooltip']}
                 />
                 <Collapse
                     isOpen={panelVisible}

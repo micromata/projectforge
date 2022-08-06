@@ -46,10 +46,8 @@ object LayoutUtils {
   @JvmStatic
   fun addCommonTranslations(translations: MutableMap<String, String>) {
     addTranslations(
-      "calendar.today",
+      "calendar.today", // Used for date picker.
       "select.placeholder",
-      "task.title.list.select",
-      "task.tree.rootNode",
       translations = translations,
     )
   }
@@ -279,38 +277,38 @@ object LayoutUtils {
    */
   private fun processAllElements(layout: UILayout, elements: List<Any>): List<Any?> {
     var counter = 0
-    elements.forEach {
-      if (it is UIElement) {
-        it.key = "el-${++counter}"
+    elements.forEach { element ->
+      if (element is UIElement) {
+        element.key = "el-${++counter}"
       }
-      when (it) {
+      when (element) {
         is UILabelledElement -> {
-          it.label = getLabelTransformation(it.label, it as UIElement)
-          it.additionalLabel = getLabelTransformation(it.additionalLabel, it, LabelType.ADDITIONAL_LABEL)
-          it.tooltip = getLabelTransformation(it.tooltip, it, LabelType.TOOLTIP)
+          element.label = getLabelTransformation(element.label, element as UIElement)
+          element.additionalLabel = getLabelTransformation(element.additionalLabel, element, LabelType.ADDITIONAL_LABEL)
+          element.tooltip = getLabelTransformation(element.tooltip, element, LabelType.TOOLTIP)
         }
         is UIFieldset -> {
-          it.title = getLabelTransformation(it.title, it as UIElement)
+          element.title = getLabelTransformation(element.title, element as UIElement)
         }
         is UITableColumn -> {
-          getLabelTransformation(it.title)?.let { translation ->
-            it.title = translation
+          getLabelTransformation(element.title)?.let { translation ->
+            element.title = translation
           }
         }
         is UIAgGridColumnDef -> {
-          getLabelTransformation(it.headerName)?.let { translation ->
-            it.headerName = translation
+          getLabelTransformation(element.headerName)?.let { translation ->
+            element.headerName = translation
           }
         }
         is UIAlert -> {
-          val title = getLabelTransformation(it.title)
-          if (title != null) it.title = title
-          val message = getLabelTransformation(it.message)
-          if (message != null) it.message = message
+          val title = getLabelTransformation(element.title)
+          if (title != null) element.title = title
+          val message = getLabelTransformation(element.message)
+          if (message != null) element.message = message
         }
         is UIButton -> {
-          if (it.title == null) {
-            val i18nKey = when (it.id) {
+          if (element.title == null) {
+            val i18nKey = when (element.id) {
               "cancel" -> "cancel"
               "clone" -> "clone"
               "create" -> "create"
@@ -325,32 +323,48 @@ object LayoutUtils {
               else -> null
             }
             if (i18nKey == null) {
-              log.error("i18nKey not found for action button '${it.id}'.")
+              log.error("i18nKey not found for action button '${element.id}'.")
             } else {
-              it.title = translate(i18nKey)
+              element.title = translate(i18nKey)
             }
           }
-          if (!it.confirmMessage.isNullOrBlank()) {
+          if (!element.confirmMessage.isNullOrBlank()) {
             layout.addTranslations("cancel", "yes")
           }
-          val tooltip = getLabelTransformation(it.tooltip)
-          if (tooltip != null) it.tooltip = tooltip
+          val tooltip = getLabelTransformation(element.tooltip)
+          if (tooltip != null) element.tooltip = tooltip
 
         }
         is UIList -> {
           // Translate position label
-          it.positionLabel = translate(it.positionLabel)
+          element.positionLabel = translate(element.positionLabel)
         }
         is UIAttachmentList -> {
-          it.addTranslations(layout)
+          element.addTranslations(layout)
         }
         is UIDropArea -> {
-          it.title = getLabelTransformation(it.title, it as UIElement)
-          it.tooltip = getLabelTransformation(it.tooltip, it, LabelType.TOOLTIP)
+          element.title = getLabelTransformation(element.title, element as UIElement)
+          element.tooltip = getLabelTransformation(element.tooltip, element, LabelType.TOOLTIP)
+        }
+      }
+      if (element is UIInput) {
+        if (element.dataType == UIDataType.TASK) {
+          addTranslations4TaskSelection(layout)
         }
       }
     }
     return elements
+  }
+
+  fun addTranslations4TaskSelection(layout: UILayout) {
+    layout.addTranslations(
+      "task",
+      "task.title.list.select",
+      "task.favorite.new",
+      "task.favorite.new.tooltip",
+      "task.favorites.tooltip",
+      "task.tree.rootNode",
+    )
   }
 
   /**
