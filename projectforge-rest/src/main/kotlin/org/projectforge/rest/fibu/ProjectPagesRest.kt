@@ -25,14 +25,12 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
-import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Project
 import org.projectforge.ui.*
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
@@ -45,8 +43,7 @@ class ProjectPagesRest
   "fibu.projekt.title"
 ) {
 
-  @Autowired
-  private val kostCache: KostCache? = null
+  override val addNewEntryUrl = "wa/projectEdit"
 
   override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Project {
     val projekt = Project()
@@ -123,6 +120,7 @@ class ProjectPagesRest
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: Project, userAccess: UILayout.UserAccess): UILayout {
+    /*
     val konto = UIInput("konto", lc, tooltip = "fibu.projekt.konto.tooltip")
 
     val layout = super.createEditLayout(dto, userAccess)
@@ -147,7 +145,9 @@ class ProjectPagesRest
       val uiCheckbox = UICheckbox("" + it.getFormattedId(), label = label)
       layout.add(UIRow().add(UICol().add(uiCheckbox)))
     }
-
+    */
+    val layout = super.createEditLayout(dto, userAccess)
+    layout.add(UIAlert("Not yet implemented.", color = UIColor.DANGER))
 
     return LayoutUtils.processEditPage(layout, dto, this)
   }
