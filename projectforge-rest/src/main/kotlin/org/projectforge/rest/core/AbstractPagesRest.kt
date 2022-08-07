@@ -106,6 +106,8 @@ constructor(
    */
   open val autoCompleteSearchFields: Array<String>? = null
 
+  open val addNewEntryUrl = "${Constants.REACT_APP_PATH}$category/edit"
+
   @PostConstruct
   private fun postConstruct() {
     this.lc = LayoutContext(baseDao.doClass)
@@ -438,7 +440,7 @@ constructor(
       )
     }
     if (ui.userAccess.insert != false) {
-      ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = "${Constants.REACT_APP_PATH}$category/edit"))
+      ui.add(MenuItem(CREATE_MENU, title = translate("add"), url = addNewEntryUrl))
     }
 
     return InitialListData(
