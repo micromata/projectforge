@@ -10,23 +10,31 @@ export const useConstant = (calculateInitialValue, inputs) => {
     return constant;
 };
 
-export const useMouseUpHandler = (handler, inputs, active = true) => {
+export const useMouseClickHandler = (handler, inputs, active = true) => {
     React.useEffect(() => {
         if (active) {
-            document.addEventListener('mouseup', handler);
-
-            return () => document.removeEventListener('mouseup', handler);
+            console.log('add', active);
+            document.addEventListener('click', handler, { capture: true });
+            return () => {
+                console.log('remove');
+                document.removeEventListener('click', handler);
+            };
         }
 
         return undefined;
     }, inputs);
 };
 
-export const useClickOutsideHandler = (reference, callback, active) => useMouseUpHandler(
-    ({ target }) => {
+export const useClickOutsideHandler = (reference, callback, active) => useMouseClickHandler(
+    (event) => {
+        const { target } = event;
         if (reference.current && !reference.current.contains(target)) {
-            callback(false);
+            event.preventDefault();
+            event.stopPropagation();
+            callback(false, event);
+            return false;
         }
+        return undefined;
     },
     [active],
     active,
