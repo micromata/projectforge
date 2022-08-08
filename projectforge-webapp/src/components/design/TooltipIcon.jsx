@@ -7,7 +7,7 @@ function TooltipIcon() {
         <FontAwesomeIcon
             icon={faQuestion}
             size="sm"
-            style={{ color: 'gold', marginLeft: '.5em' }}
+            style={{ color: '#FF8633', marginLeft: '.5em' }}
         />
     );
 }

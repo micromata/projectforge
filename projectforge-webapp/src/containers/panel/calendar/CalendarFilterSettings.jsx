@@ -48,6 +48,7 @@ class CalendarFilterSettings extends Component {
         this.handleVacationGroupsChange = this.handleVacationGroupsChange.bind(this);
         this.handleVacationUsersChange = this.handleVacationUsersChange.bind(this);
         this.handleGridSizeChange = this.handleGridSizeChange.bind(this);
+        this.handleFirstHourChange = this.handleFirstHourChange.bind(this);
         this.toggle = this.toggle.bind(this);
         this.handleCheckBoxChange = this.handleCheckBoxChange.bind(this);
     }
@@ -120,6 +121,20 @@ class CalendarFilterSettings extends Component {
         );
     }
 
+    handleFirstHourChange(firstHour) {
+        const { onFirstHourChange } = this.props;
+        const { saveUpdateResponseInState } = this.context;
+        const hour = firstHour ? firstHour.value : 8;
+        fetchJsonGet(
+            'calendar/changeFirstHour',
+            { hour },
+            (json) => {
+                onFirstHourChange(hour);
+                saveUpdateResponseInState(json);
+            },
+        );
+    }
+
     handleDefaultCalendarChange(value) {
         const { onDefaultCalendarChange } = this.props;
         const { saveUpdateResponseInState } = this.context;
@@ -147,6 +162,7 @@ class CalendarFilterSettings extends Component {
             otherTimesheetUsersEnabled,
             timesheetUser,
             gridSize,
+            firstHour,
             translations,
             vacationGroups,
             vacationUsers,
@@ -170,7 +186,18 @@ class CalendarFilterSettings extends Component {
         }];
         const gridSizeValue = {
             value: gridSize,
-            label: gridSize,
+            label: gridSize.toString(),
+        };
+        const firstHours = [];
+        for (let i = 0; i < 24; i += 1) {
+            firstHours.push({
+                value: i,
+                label: Number.as2Digits(i),
+            });
+        }
+        const firstHourValue = {
+            value: firstHour,
+            label: Number.as2Digits(firstHour),
         };
         const defaultCalendar = CalendarFilterSettings.extractDefaultCalendarValue(this.props);
         return (
@@ -232,6 +259,7 @@ class CalendarFilterSettings extends Component {
                             <Row>
                                 <Col>
                                     <ReactSelect
+                                        id="defaultCalendar"
                                         values={listOfDefaultCalendars}
                                         value={defaultCalendar}
                                         label={translations['calendar.defaultCalendar']}
@@ -267,6 +295,7 @@ class CalendarFilterSettings extends Component {
                             <Row>
                                 <Col>
                                     <ReactSelect
+                                        id="vacationGroups"
                                         loadOptions={
                                             CalendarFilterSettings.loadVacationGroupsOptions
                                         }
@@ -284,12 +313,13 @@ class CalendarFilterSettings extends Component {
                             <Row>
                                 <Col>
                                     <ReactSelect
+                                        id="vacationUsers"
                                         loadOptions={
                                             CalendarFilterSettings.loadVacationUsersOptions
                                         }
                                         value={vacationUsers}
                                         label={translations['calendar.filter.vacation.users']}
-                                        tooltip={translations['calendar.filter.vacation.user.tooltip']}
+                                        tooltip={translations['calendar.filter.vacation.users.tooltip']}
                                         translations={translations}
                                         valueProperty="id"
                                         labelProperty="displayName"
@@ -299,13 +329,26 @@ class CalendarFilterSettings extends Component {
                                 </Col>
                             </Row>
                             <Row>
-                                <Col>
+                                <Col md={6}>
                                     <ReactSelect
+                                        id="gridSize"
                                         values={gridSizes}
                                         value={gridSizeValue}
                                         label={translations['calendar.option.gridSize']}
+                                        tooltip={translations['calendar.option.gridSize.tooltip']}
                                         translations={translations}
                                         onChange={this.handleGridSizeChange}
+                                    />
+                                </Col>
+                                <Col md={6}>
+                                    <ReactSelect
+                                        id="firstHour"
+                                        values={firstHours}
+                                        value={firstHourValue}
+                                        label={translations['calendar.option.firstHour']}
+                                        tooltip={translations['calendar.option.firstHour.tooltip']}
+                                        translations={translations}
+                                        onChange={this.handleFirstHourChange}
                                     />
                                 </Col>
                             </Row>
@@ -323,6 +366,7 @@ CalendarFilterSettings.propTypes = {
     onTimesheetUserChange: PropTypes.func.isRequired,
     onDefaultCalendarChange: PropTypes.func.isRequired,
     onGridSizeChange: PropTypes.func.isRequired,
+    onFirstHourChange: PropTypes.func.isRequired,
     onVacationGroupsChange: PropTypes.func.isRequired,
     onVacationUsersChange: PropTypes.func.isRequired,
     refresh: PropTypes.func.isRequired,
@@ -330,6 +374,7 @@ CalendarFilterSettings.propTypes = {
     defaultCalendarId: PropTypes.number,
     timesheetUser: PropTypes.shape(),
     gridSize: PropTypes.number,
+    firstHour: PropTypes.number,
     otherTimesheetUsersEnabled: PropTypes.bool,
     listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     translations: PropTypes.shape({
@@ -340,8 +385,11 @@ CalendarFilterSettings.propTypes = {
         'calendar.filter.vacation.groups': PropTypes.string,
         'calendar.filter.vacation.groups.tooltip': PropTypes.string,
         'calendar.filter.vacation.users': PropTypes.string,
-        'calendar.filter.vacation.user.tooltip': PropTypes.string,
+        'calendar.filter.vacation.users.tooltip': PropTypes.string,
+        'calendar.option.firstHour': PropTypes.string,
+        'calendar.option.firstHour.tooltip': PropTypes.string,
         'calendar.option.gridSize': PropTypes.string,
+        'calendar.option.gridSize.tooltip': PropTypes.string,
         'calendar.view.settings.tooltip': PropTypes.string,
         'plugins.teamcal.calendar.listAndIcsExport.tooltip': PropTypes.string,
         'plugins.teamcal.calendar.refresh.tooltip': PropTypes.string,
@@ -360,7 +408,8 @@ CalendarFilterSettings.defaultProps = {
     defaultCalendarId: undefined,
     timesheetUser: undefined,
     otherTimesheetUsersEnabled: undefined,
-    gridSize: 30,
+    gridSize: '30',
+    firstHour: '08',
     vacationGroups: [],
     vacationUsers: [],
 };

@@ -57,6 +57,13 @@ String.idify = (string) => string.replace(/[.#*, >+~/[\]=|^$:()]/g, '-');
 
 String.truncate = (str, length) => (str?.length > length ? str.substring(0, length) : str);
 
+Number.as2Digits = (number) => {
+    if (number < 10) {
+        return `0${number.toString()}`;
+    }
+    return number.toString();
+};
+
 Object.getResponseHeaderFilename = (contentDisposition) => {
     // attachment; filename*=UTF-8''document.pdf; filename=document.pdf
     const matches = /filename[^;=\n]*=(UTF-8(['"]*))?([^;=\n]*)*/.exec(contentDisposition);

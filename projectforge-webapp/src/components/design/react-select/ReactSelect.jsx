@@ -65,7 +65,7 @@ function ReactSelect(
                     className={style.icon}
                     size="sm"
                     id={tooltipId}
-                    style={{ color: 'gold' }}
+                    style={{ color: '#FF8633' }}
                 />
                 <UncontrolledTooltip placement="right" target={tooltipId}>
                     {tooltip}

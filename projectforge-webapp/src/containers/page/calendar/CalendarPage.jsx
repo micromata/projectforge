@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
-import { Card, CardBody, Col, Container, Row } from '../../../components/design';
+import { Col, Container, Row } from '../../../components/design';
 import EditableMultiValueLabel from '../../../components/design/EditableMultiValueLabel';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getTranslation } from '../../../utilities/layout';
@@ -26,6 +26,7 @@ function CalendarPage({ match, location }) {
         filter: {
             defaultCalendarId: undefined,
             gridSize: 30,
+            firstHour: 8,
         },
         listOfDefaultCalendars: [],
         timesheetUser: undefined,
@@ -85,6 +86,16 @@ function CalendarPage({ match, location }) {
             filter: {
                 ...prevState.filter,
                 gridSize,
+            },
+        }));
+    };
+
+    const onFirstHourChange = (firstHour) => {
+        setState((prevState) => ({
+            ...prevState,
+            filter: {
+                ...prevState.filter,
+                firstHour,
             },
         }));
     };
@@ -280,12 +291,14 @@ function CalendarPage({ match, location }) {
                                         }
                                         timesheetUser={state.timesheetUser}
                                         gridSize={state.filter.gridSize}
+                                        firstHour={state.filter.firstHour}
                                         translations={translations}
                                         onTimesheetUserChange={onTimesheetUserChange}
                                         onDefaultCalendarChange={
                                             onDefaultCalendarChange
                                         }
                                         onGridSizeChange={onGridSizeChange}
+                                        onFirstHourChange={onFirstHourChange}
                                         onVacationGroupsChange={onVacationGroupsChange}
                                         onVacationUsersChange={onVacationUsersChange}
                                         vacationGroups={state.vacationGroups}
@@ -301,6 +314,7 @@ function CalendarPage({ match, location }) {
                             defaultDate={state.date}
                             defaultView={state.view}
                             gridSize={state.filter.gridSize}
+                            firstHour={state.filter.firstHour}
                             activeCalendars={state.activeCalendars}
                             timesheetUserId={state.timesheetUser?.id}
                             topHeight="250px"

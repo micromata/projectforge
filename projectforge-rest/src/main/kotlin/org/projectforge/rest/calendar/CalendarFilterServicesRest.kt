@@ -189,7 +189,10 @@ class CalendarFilterServicesRest {
       "calendar.defaultCalendar.tooltip",
       "calendar.navigation.today",
       "calendar.newEntry",
+      "calendar.option.firstHour",
+      "calendar.option.firstHour.tooltip",
       "calendar.option.gridSize",
+      "calendar.option.gridSize.tooltip",
       "calendar.option.timesheets",
       "calendar.showMore",
       "calendar.title",
@@ -341,11 +344,19 @@ class CalendarFilterServicesRest {
   }
 
   @GetMapping("changeGridSize")
-  fun changeGridSize(@RequestParam("size", required = true) sizeString: String): Map<String, Any> {
+  fun changeGridSize(@RequestParam("size", required = true) size: Int): Map<String, Any> {
     val currentFilter = getCurrentFilter()
-    val size = NumberHelper.parseInteger(sizeString)
-    if (size != null && size in intArrayOf(5, 10, 15, 30, 60)) {
+    if (size in intArrayOf(5, 10, 15, 30, 60)) {
       currentFilter.gridSize = size
+    }
+    return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+  }
+
+  @GetMapping("changeFirstHour")
+  fun changeFirstHour(@RequestParam("hour", required = true) hour: Int): Map<String, Any> {
+    val currentFilter = getCurrentFilter()
+    if (hour >= 0 && hour < 24) {
+      currentFilter.firstHour = hour
     }
     return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
   }
