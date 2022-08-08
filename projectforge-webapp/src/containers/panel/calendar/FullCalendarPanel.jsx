@@ -25,11 +25,10 @@ TODO:
 function FullCalendarPanel(options) {
     const {
         activeCalendars, timesheetUserId, locale, firstDayOfWeek,
-        defaultDate, defaultView, match, translations, gridSize,
+        defaultDate, defaultView, match, translations, gridSize, firstHour,
         vacationGroups, vacationUsers, topHeight,
     } = options;
-    const [queryString, setQueryString] = useState(window.location.search);
-    const [gotoDate, setGotoDate] = useState(new URLSearchParams(window.location.search).get('gotoDate'));
+    const [queryString] = useState(window.location.search);
     const [currentHoverEvent, setCurrentHoverEvent] = useState(null);
     const [loading, setLoading] = useState(false);
     let initialDate = defaultDate;
@@ -115,11 +114,17 @@ function FullCalendarPanel(options) {
     }, [window.location.search]);
 
     const getSlotDuration = (newGridSize) => {
-        let slotDuration = `00:${newGridSize}:00`;
-        if (newGridSize < 10) {
-            slotDuration = `00:0${newGridSize}:00`;
+        if (newGridSize > 0 && newGridSize <= 60) {
+            return `00:${Number.as2Digits(newGridSize)}:00`;
         }
-        return slotDuration;
+        return '00:30:00';
+    };
+
+    const getScrollTime = (newFirstHour) => {
+        if (newFirstHour && newFirstHour >= 0 && newFirstHour < 24) {
+            return `${Number.as2Digits(newFirstHour)}:00:00`;
+        }
+        return '08:00:00';
     };
 
     useEffect(() => {
@@ -129,8 +134,10 @@ function FullCalendarPanel(options) {
             return;
         }
         // console.log('gridSize', gridSize, getSlotDuration(gridSize));
+        // console.log('scrollTime', firstHour, getScrollTime(firstHour));
         currentApi.slotDuration = getSlotDuration(gridSize);
-    }, [gridSize]);
+        currentApi.scrollToTime(getScrollTime(firstHour));
+    }, [gridSize, firstHour]);
 
     useEffect(() => {
         // Current state (view/date) changed, so store it in the user's prefs:
@@ -323,17 +330,17 @@ function FullCalendarPanel(options) {
         },
         timeGridWeek: {
             slotDuration: `${getSlotDuration(gridSize)}`,
-            scrollTime: '08:00:00',
+            scrollTime: `${getScrollTime(firstHour)}`,
         },
         timeGridWorkingWeek: {
             type: 'timeGridWeek',
             weekends: false,
             slotDuration: `${getSlotDuration(gridSize)}`,
-            scrollTime: '08:00:00',
+            scrollTime: `${getScrollTime(firstHour)}`,
         },
         timeGridDay: {
             slotDuration: `${getSlotDuration(gridSize)}`,
-            scrollTime: '08:00:00',
+            scrollTime: `${getScrollTime(firstHour)}`,
         },
     };
     const headerToolbar = {
@@ -413,7 +420,7 @@ function FullCalendarPanel(options) {
                     height={`calc(100vh - ${topHeight})`}
                     themeSystem="bootstrap"
                 />
-            ), [gridSize])}
+            ), [gridSize, firstHour])}
             <CalendarEventTooltip
                 forwardRef={tooltipRef}
                 event={currentHoverEvent}
