@@ -11,7 +11,11 @@ import { useClickOutsideHandler } from '../../utilities/hooks';
 import { getServiceURL, handleHTTPErrors } from '../../utilities/rest';
 import Popper from './popper';
 
-function EditableMultiValueLabel({ data, selectProps, ...props }) {
+function EditableMultiValueLabel({
+    data,
+    selectProps,
+    ...props
+}) {
     const initialValue = selectProps.values[data.id] || '';
 
     const { saveUpdateResponseInState } = React.useContext(CalendarContext);
@@ -94,7 +98,10 @@ function EditableMultiValueLabel({ data, selectProps, ...props }) {
             {...selectHandler}
             target={(
                 <div
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={(event) => {
+                        setIsOpen(!isOpen);
+                        event.nativeEvent.stopPropagation();
+                    }}
                     role="button"
                     tabIndex={-1}
                     onKeyPress={() => undefined}
@@ -136,7 +143,7 @@ EditableMultiValueLabel.propTypes = {
     }).isRequired,
     selectProps: PropTypes.shape({
         setMultiValue: PropTypes.func,
-        values: PropTypes.shape({ }),
+        values: PropTypes.shape({}),
     }).isRequired,
 };
 
