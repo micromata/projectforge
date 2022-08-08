@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useLayoutEffect, useMemo } from 'react';
+import React, { useLayoutEffect } from 'react';
 import { Popover, PopoverBody } from '../../../components/design';
 import style from '../../../components/design/input/Input.module.scss';
 import { useClickOutsideHandler } from '../../../utilities/hooks';
@@ -30,15 +30,14 @@ function FavoritesPanel(
     const popperRef = React.useRef(null);
     const [maxListHeight, setMaxListHeight] = React.useState('300px');
 
-    const toggle = (event) => {
-        console.log('toggle', event);
+    const toggle = (ev) => {
+        ev.nativeEvent.stopPropagation();
         setOpen(!open);
     };
 
-    const close = useMemo(() => (value, event) => {
-        console.log('close', event, value);
+    const close = () => {
         setOpen(false);
-    }, [setOpen]);
+    };
 
     const handleFavoriteSelect = (id, name) => {
         if (closeOnSelect) {
