@@ -13,7 +13,8 @@ export const useConstant = (calculateInitialValue, inputs) => {
 export const useMouseClickHandler = (handler, inputs, active = true) => {
     React.useEffect(() => {
         if (active) {
-            const options = {};
+            // If no capture, then most popups will not be closed:
+            const options = { capture: true };
             document.addEventListener('click', handler, options);
             return () => document.removeEventListener('click', handler, options);
         }

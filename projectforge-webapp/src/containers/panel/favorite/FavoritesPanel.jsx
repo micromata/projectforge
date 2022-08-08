@@ -30,13 +30,9 @@ function FavoritesPanel(
     const popperRef = React.useRef(null);
     const [maxListHeight, setMaxListHeight] = React.useState('300px');
 
-    const toggle = (ev) => {
-        ev.nativeEvent.stopPropagation();
+    const toggle = () => {
+        // event.nativeEvent?.stopPropagation();
         setOpen(!open);
-    };
-
-    const close = () => {
-        setOpen(false);
     };
 
     const handleFavoriteSelect = (id, name) => {
@@ -48,7 +44,7 @@ function FavoritesPanel(
         }
     };
 
-    useClickOutsideHandler(popperRef, close, open);
+    useClickOutsideHandler(popperRef, setOpen, open);
 
     useLayoutEffect(() => {
         if (popperRef.current) {
