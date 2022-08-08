@@ -98,10 +98,7 @@ function EditableMultiValueLabel({
             {...selectHandler}
             target={(
                 <div
-                    onClick={(event) => {
-                        setIsOpen(!isOpen);
-                        event.nativeEvent.stopPropagation();
-                    }}
+                    onClick={() => setIsOpen(!isOpen)}
                     role="button"
                     tabIndex={-1}
                     onKeyPress={() => undefined}
