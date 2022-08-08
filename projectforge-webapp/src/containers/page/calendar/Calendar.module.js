@@ -1,4 +1,5 @@
 const getBackgroundColor = ({ style }) => ((style && style.bgColor) ? style.bgColor : '#eee');
+const getFocusedBackgroundColor = ({ style }) => ((style && style.bgColor) ? style.bgColor : '#ddd');
 
 const getForegroundColor = ({ style }) => ((style && style.fgColor) ? style.fgColor : '#222');
 
@@ -14,18 +15,12 @@ const customStyles = {
     option: (styles, {
         data,
         isFocused,
-    }) => { // The options displayed in the opened menu:
-        let opacity = null;
-        if (isFocused) {
-            opacity = '0.5';
-        }
-        return {
-            ...styles,
-            backgroundColor: getBackgroundColor(data),
-            color: getForegroundColor(data),
-            opacity,
-        };
-    },
+        // The options displayed in the opened menu:
+    }) => ({
+        ...styles,
+        backgroundColor: isFocused ? getFocusedBackgroundColor(data) : getBackgroundColor(data),
+        color: getForegroundColor(data),
+    }),
     // Selected value in input field:
     multiValue: (styles, { data }) => ({
         ...styles,
