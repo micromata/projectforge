@@ -194,6 +194,8 @@ class CalendarFilterServicesRest {
       "calendar.option.firstHour.tooltip",
       "calendar.option.gridSize",
       "calendar.option.gridSize.tooltip",
+      "calendar.option.showBreaks",
+      "calendar.option.showBreaks.tooltip",
       "calendar.option.timesheets",
       "calendar.showMore",
       "calendar.title",
@@ -327,6 +329,16 @@ class CalendarFilterServicesRest {
         null
       }
     }
+    return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+  }
+
+  /**
+   * @param userIdString Change user for displaying time sheets if allowed. If null, no time sheets will be displayed.
+   */
+  @GetMapping("changeShowBreaks")
+  fun changeShowBreaks(@RequestParam("showBreaks") showBreaks: Boolean?): Map<String, Any> {
+    val currentFilter = getCurrentFilter()
+    currentFilter.showBreaks = showBreaks
     return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
   }
 

@@ -78,9 +78,10 @@ class CalendarFilter(
   var vacationUserIds: Set<Int?>? = null,
 
   /**
-   * Not yet supported.
+   * If true, breaks between time sheets of a day will be displayed. If the user clicks on a break, a time sheet
+   * with the start and stop time of the break could easily be created.
    */
-  var showBreaks: Boolean? = false,
+  var showBreaks: Boolean? = null,
 
   /**
    * Not yet supported.

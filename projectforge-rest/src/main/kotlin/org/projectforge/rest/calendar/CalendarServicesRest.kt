@@ -261,7 +261,7 @@ class CalendarServicesRest {
       PFDateTime.fromOrNull(filter.end)
     )
     adjustRange(range)
-    timesheetsProvider.addTimesheetEvents(range.start, range.end!!, filter.timesheetUserId, events)
+    timesheetsProvider.addTimesheetEvents(range.start, range.end!!, filter.timesheetUserId, events, showBreaks = filter.showBreaks)
     var visibleCalendarIds = filter.activeCalendarIds
     if (filter.useVisibilityState == true && !visibleCalendarIds.isNullOrEmpty()) {
       val currentFilter = getCurrentFilter(userPrefService)

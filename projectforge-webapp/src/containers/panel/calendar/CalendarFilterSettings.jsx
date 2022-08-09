@@ -50,10 +50,11 @@ class CalendarFilterSettings extends Component {
         this.handleGridSizeChange = this.handleGridSizeChange.bind(this);
         this.handleFirstHourChange = this.handleFirstHourChange.bind(this);
         this.toggle = this.toggle.bind(this);
-        this.handleCheckBoxChange = this.handleCheckBoxChange.bind(this);
+        this.handleTimesheetsCheckBoxChange = this.handleTimesheetsCheckBoxChange.bind(this);
+        this.handleShowBreaksChange = this.handleShowBreaksChange.bind(this);
     }
 
-    handleCheckBoxChange(event) {
+    handleTimesheetsCheckBoxChange(event) {
         const { onTimesheetUserChange } = this.props;
         const { saveUpdateResponseInState } = this.context;
         const user = { id: event.target.checked ? 1 : -1 };
@@ -62,6 +63,20 @@ class CalendarFilterSettings extends Component {
             { userId: user.id },
             (json) => {
                 onTimesheetUserChange(user);
+                saveUpdateResponseInState(json);
+            },
+        );
+    }
+
+    handleShowBreaksChange(event) {
+        const { onShowBreaksChange } = this.props;
+        const { saveUpdateResponseInState } = this.context;
+        const showBreaks = event.target.checked;
+        fetchJsonGet(
+            'calendar/changeShowBreaks',
+            { showBreaks },
+            (json) => {
+                onShowBreaksChange(showBreaks);
                 saveUpdateResponseInState(json);
             },
         );
@@ -161,6 +176,7 @@ class CalendarFilterSettings extends Component {
             listOfDefaultCalendars,
             otherTimesheetUsersEnabled,
             timesheetUser,
+            showBreaks,
             gridSize,
             firstHour,
             translations,
@@ -192,12 +208,12 @@ class CalendarFilterSettings extends Component {
         for (let i = 0; i < 24; i += 1) {
             firstHours.push({
                 value: i,
-                label: Number.as2Digits(i),
+                label: `${Number.as2Digits(i)}:00`,
             });
         }
         const firstHourValue = {
             value: firstHour,
-            label: Number.as2Digits(firstHour),
+            label: `${Number.as2Digits(firstHour)}:00`,
         };
         const defaultCalendar = CalendarFilterSettings.extractDefaultCalendarValue(this.props);
         return (
@@ -272,7 +288,7 @@ class CalendarFilterSettings extends Component {
                                 </Col>
                             </Row>
                             <Row>
-                                <Col>
+                                <Col md={6}>
                                     {otherTimesheetUsersEnabled ? (
                                         <ObjectSelect
                                             id="showTimesheets"
@@ -286,10 +302,19 @@ class CalendarFilterSettings extends Component {
                                         <CheckBox
                                             label={translations['calendar.option.timesheets']}
                                             id="showTimesheets"
-                                            onChange={this.handleCheckBoxChange}
+                                            onChange={this.handleTimesheetsCheckBoxChange}
                                             checked={timesheetUser && timesheetUser.id > 0}
                                         />
                                     )}
+                                </Col>
+                                <Col md={6}>
+                                    <CheckBox
+                                        id="showBreaks"
+                                        label={translations['calendar.option.showBreaks']}
+                                        tooltip={translations['calendar.option.showBreaks.tooltip']}
+                                        onChange={this.handleShowBreaksChange}
+                                        checked={showBreaks}
+                                    />
                                 </Col>
                             </Row>
                             <Row>
@@ -364,6 +389,7 @@ CalendarFilterSettings.contextType = CalendarContext;
 
 CalendarFilterSettings.propTypes = {
     onTimesheetUserChange: PropTypes.func.isRequired,
+    onShowBreaksChange: PropTypes.func.isRequired,
     onDefaultCalendarChange: PropTypes.func.isRequired,
     onGridSizeChange: PropTypes.func.isRequired,
     onFirstHourChange: PropTypes.func.isRequired,
@@ -373,14 +399,17 @@ CalendarFilterSettings.propTypes = {
     /* eslint-disable-next-line react/no-unused-prop-types */
     defaultCalendarId: PropTypes.number,
     timesheetUser: PropTypes.shape(),
+    otherTimesheetUsersEnabled: PropTypes.bool,
+    showBreaks: PropTypes.bool,
     gridSize: PropTypes.number,
     firstHour: PropTypes.number,
-    otherTimesheetUsersEnabled: PropTypes.bool,
     listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     translations: PropTypes.shape({
         settings: PropTypes.string,
         'calendar.defaultCalendar': PropTypes.string,
         'calendar.defaultCalendar.tooltip': PropTypes.string,
+        'calendar.option.showBreaks': PropTypes.string,
+        'calendar.option.showBreaks.tooltip': PropTypes.string,
         'calendar.option.timesheets': PropTypes.string,
         'calendar.filter.vacation.groups': PropTypes.string,
         'calendar.filter.vacation.groups.tooltip': PropTypes.string,
@@ -408,6 +437,7 @@ CalendarFilterSettings.defaultProps = {
     defaultCalendarId: undefined,
     timesheetUser: undefined,
     otherTimesheetUsersEnabled: undefined,
+    showBreaks: undefined,
     gridSize: '30',
     firstHour: '08',
     vacationGroups: [],
