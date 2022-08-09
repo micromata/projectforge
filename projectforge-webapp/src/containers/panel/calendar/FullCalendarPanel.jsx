@@ -204,6 +204,7 @@ function FullCalendarPanel(options) {
                 uid,
                 origStartDate: event && event.start ? event.start.toISOString() : '',
                 origEndDate: (event && event.end) ? event.end.toISOString() : '',
+                firstHour,
             },
             (json) => {
                 const { url } = json;

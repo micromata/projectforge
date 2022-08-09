@@ -175,7 +175,8 @@ class CalendarServicesRest {
     @RequestParam("dbId") dbIdParam: String?,
     @RequestParam("uid") uidParam: String?,
     @RequestParam("origStartDate") origStartDateParam: String?,
-    @RequestParam("origEndDate") origEndDateParam: String?
+    @RequestParam("origEndDate") origEndDateParam: String?,
+    @RequestParam("firstHour") firstHour: Int?,
   )
       : ResponseEntity<Any> {
     if (action.isNullOrBlank()) {
@@ -207,7 +208,7 @@ class CalendarServicesRest {
       if (defaultCalendarId != null && defaultCalendarId > 0) {
         url = "$url&calendar=$defaultCalendarId"
       } else {
-        url = "$url&userId=${currentFilter.timesheetUserId ?: ThreadLocalUserContext.getUserId()}"
+        url = "$url&userId=${currentFilter.timesheetUserId ?: ThreadLocalUserContext.getUserId()}&firstHour=$firstHour"
       }
     } else if (action == "resize" || action == "dragAndDrop") {
       val origStartDate =
