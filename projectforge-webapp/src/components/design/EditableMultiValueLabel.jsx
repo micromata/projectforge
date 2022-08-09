@@ -29,6 +29,7 @@ function EditableMultiValueLabel({
 
     let popperContent;
     let { label } = data;
+    const { translations } = data;
 
     // disable eslint because variable is provided by react-select and can't be changed.
     /* eslint-disable-next-line no-underscore-dangle */
@@ -60,7 +61,7 @@ function EditableMultiValueLabel({
     switch (data.filterType) {
         case 'COLOR_PICKER':
             popperContent = (
-                <CalendarStyler calendar={data} submit={submitValue} />
+                <CalendarStyler calendar={data} submit={submitValue} translations={translations} />
             );
             break;
         // Case for plain searchString without filterType
@@ -91,6 +92,7 @@ function EditableMultiValueLabel({
         },
     };
 
+    const backgroundColor = data?.style?.bgColor || '#eee';
     return (
         <Popper
             direction="right"
@@ -108,7 +110,24 @@ function EditableMultiValueLabel({
                         selectProps={selectProps}
                         {...props}
                     >
-                        {label}
+                        <div style={{ display: 'flex' }}>
+                            <span
+                                className="dot"
+                                style={{
+                                    backgroundColor,
+                                    borderRadius: 10,
+                                    borderStyle: 'solid',
+                                    borderWidth: '1px',
+                                    borderColor: '#777',
+                                    content: '" "',
+                                    display: 'block',
+                                    marginRight: 8,
+                                    height: 15,
+                                    width: 15,
+                                }}
+                            />
+                            {label}
+                        </div>
                     </components.MultiValueLabel>
                 </div>
             )}
@@ -135,8 +154,10 @@ EditableMultiValueLabel.propTypes = {
         filterType: PropTypes.string,
         label: PropTypes.string,
         bgColor: PropTypes.string,
+        style: PropTypes.shape(),
         isNew: PropTypes.bool,
         __isNew__: PropTypes.bool,
+        translations: PropTypes.shape({}),
     }).isRequired,
     selectProps: PropTypes.shape({
         setMultiValue: PropTypes.func,

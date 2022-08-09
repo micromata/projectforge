@@ -1,8 +1,3 @@
-const getBackgroundColor = ({ style }) => ((style && style.bgColor) ? style.bgColor : '#eee');
-const getFocusedBackgroundColor = ({ style }) => ((style && style.bgColor) ? style.bgColor : '#ddd');
-
-const getForegroundColor = ({ style }) => ((style && style.fgColor) ? style.fgColor : '#222');
-
 const customStyles = {
     control: (styles) => ({
         ...styles,
@@ -18,19 +13,29 @@ const customStyles = {
         // The options displayed in the opened menu:
     }) => ({
         ...styles,
-        backgroundColor: isFocused ? getFocusedBackgroundColor(data) : getBackgroundColor(data),
-        color: getForegroundColor(data),
+        backgroundColor: isFocused ? '#ddd' : undefined,
+        color: isFocused ? '#000' : undefined,
+        display: 'flex',
+        ':before': {
+            backgroundColor: data?.style?.bgColor || '#eee',
+            borderRadius: 10,
+            borderStyle: 'solid',
+            borderWidth: '1px',
+            content: '" "',
+            display: 'block',
+            marginRight: 8,
+            height: 15,
+            width: 15,
+        },
     }),
     // Selected value in input field:
     multiValue: (styles, { data }) => ({
         ...styles,
-        backgroundColor: getBackgroundColor(data),
         opacity: (!data.visible) ? '0.5' : undefined,
     }),
     // Selected value in input field (label):
     multiValueLabel: (styles, { data }) => ({
         ...styles,
-        color: getForegroundColor(data),
         textDecoration: (!data.visible) ? 'line-through' : undefined,
         fontStyle: (!data.visible) ? 'italic' : undefined,
     }),

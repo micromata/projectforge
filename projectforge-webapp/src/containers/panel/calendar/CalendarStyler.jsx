@@ -2,6 +2,7 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { SketchPicker } from 'react-color';
+import { Card, CardBody, CardHeader } from 'reactstrap';
 import CheckBox from '../../../components/design/input/CheckBox';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { CalendarContext } from '../../page/calendar/CalendarContext';
@@ -53,22 +54,30 @@ class CalendarStyler extends Component {
 
     render() {
         const { background, visible } = this.state;
-        const { calendar } = this.props;
+        const { calendar, translations } = this.props;
         return (
-            <>
-                <CheckBox
-                    // label={translations['calendar.filter.visible']}
-                    label={calendar.title}
-                    id="opened"
-                    onChange={this.handleVisibilityChange}
-                    checked={visible}
-                />
-                <SketchPicker
-                    color={background}
-                    onChangeComplete={this.handleBackgroundColorChange}
-                    disableAlpha
-                />
-            </>
+            <Card>
+                <CardHeader>
+                    <h3>
+                        { calendar.title }
+                    </h3>
+                </CardHeader>
+                <CardBody>
+                    <CheckBox
+                        label={translations['calendar.filter.showCalendarEntries']}
+                        id="opened"
+                        onChange={this.handleVisibilityChange}
+                        checked={visible}
+                    />
+                    <div style={{ marginLeft: '30px' }}>
+                        <SketchPicker
+                            color={background}
+                            onChangeComplete={this.handleBackgroundColorChange}
+                            disableAlpha
+                        />
+                    </div>
+                </CardBody>
+            </Card>
         );
     }
 }
@@ -86,6 +95,9 @@ CalendarStyler.propTypes = {
         bgColor: PropTypes.string,
     }).isRequired,
     submit: PropTypes.func,
+    translations: PropTypes.shape({
+        'calendar.filter.showCalendarEntries': PropTypes.string,
+    }).isRequired,
 };
 
 CalendarStyler.defaultProps = {
