@@ -228,6 +228,7 @@ function CalendarPage({ match, location }) {
         ...option,
         filterType: 'COLOR_PICKER',
         label: option.title,
+        translations,
     })) || [];
     const colors = state.colors || {};
 

@@ -142,6 +142,11 @@ function FullCalendarPanel(options) {
     useEffect(() => {
         // Current state (view/date) changed, so store it in the user's prefs:
         const { date, view } = currentState;
+        const calendars = activeCalendars.map((calendar) => ({
+            style: calendar.style,
+            visible: calendar.visible,
+            id: calendar.id,
+        }));
         if (date && view) {
             // console.log('storeState', date, view);
             fetchJsonPost(
@@ -149,7 +154,7 @@ function FullCalendarPanel(options) {
                 {
                     date,
                     view,
-                    activeCalendars,
+                    activeCalendars: calendars,
                 },
                 // eslint-disable-next-line @typescript-eslint/no-empty-function
                 () => { },
