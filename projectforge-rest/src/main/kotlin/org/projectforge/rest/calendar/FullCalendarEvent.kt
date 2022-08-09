@@ -48,6 +48,7 @@ class FullCalendarEvent(
   enum class Category(val string: String) {
     BIRTHDAY("address"),
     TIMESHEET("timesheet"),
+    TIMESHEET_BREAK("timesheet-break"),
     TIMESHEET_STATS("timesheet-stats"),
     VACATION("vacation"),
     CAL_EVENT("calEvent"),

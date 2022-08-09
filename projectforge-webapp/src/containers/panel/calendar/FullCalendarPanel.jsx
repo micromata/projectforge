@@ -24,7 +24,7 @@ TODO:
 
 function FullCalendarPanel(options) {
     const {
-        activeCalendars, timesheetUserId, locale, firstDayOfWeek,
+        activeCalendars, timesheetUserId, showBreaks, locale, firstDayOfWeek,
         defaultDate, defaultView, match, translations, gridSize, firstHour,
         vacationGroups, vacationUsers, topHeight,
     } = options;
@@ -45,6 +45,7 @@ function FullCalendarPanel(options) {
     });
     const activeCalendarsRef = useRef(activeCalendars);
     const timesheetUserIdRef = useRef(timesheetUserId);
+    const showBreaksRef = useRef(showBreaks);
 
     const tooltipRef = useRef(undefined);
     const popperRef = useRef(undefined);
@@ -62,6 +63,7 @@ function FullCalendarPanel(options) {
         }
         activeCalendarsRef.current = activeCalendars;
         timesheetUserIdRef.current = timesheetUserId;
+        showBreaksRef.current = showBreaks;
         currentApi.refetchEvents();
     };
 
@@ -76,7 +78,7 @@ function FullCalendarPanel(options) {
         // eslint-disable-next-line max-len
         // console.log('refetch', activeCalendars, timesheetUserId, vacationGroups, vacationUsers);
         refetch(currentApi);
-    }, [activeCalendars, timesheetUserId, vacationGroups, vacationUsers]);
+    }, [activeCalendars, timesheetUserId, showBreaks, vacationGroups, vacationUsers]);
 
     useEffect(() => {
         const currentApi = calendarRef?.current?.getApi();
@@ -226,6 +228,10 @@ function FullCalendarPanel(options) {
         const { event } = info;
         const id = event.extendedProps?.uid || event.extendedProps?.dbId;
         const category = event.extendedProps?.category;
+        if (category === 'timesheet-break') {
+            history.push(`${match.url}/timesheet/edit?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
+            return;
+        }
         if (!category || !id || event.startEditable !== true) return;
         // start date is send to the server and is needed for series events to detect the
         // current selected event of a series.
@@ -308,6 +314,7 @@ function FullCalendarPanel(options) {
         const activeCalendarIds = activeCalendarsCurrent
             ? activeCalendarsCurrent.map((obj) => obj.id) : [];
         const { current: timesheetUserIdCurrent } = timesheetUserIdRef;
+        const { current: showBreaksCurrent } = showBreaksRef;
         fetchJsonPost(
             'calendar/events',
             {
@@ -316,6 +323,7 @@ function FullCalendarPanel(options) {
                 view,
                 activeCalendarIds,
                 timesheetUserId: timesheetUserIdCurrent,
+                showBreaks: showBreaksCurrent,
                 useVisibilityState: true,
             },
             (json) => {

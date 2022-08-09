@@ -27,6 +27,7 @@ function CalendarPage({ match, location }) {
             defaultCalendarId: undefined,
             gridSize: 30,
             firstHour: 8,
+            showBreaks: undefined,
         },
         listOfDefaultCalendars: [],
         timesheetUser: undefined,
@@ -53,6 +54,16 @@ function CalendarPage({ match, location }) {
         setState((prevState) => ({
             ...prevState,
             timesheetUser: newTimesheetUser,
+        }));
+    };
+
+    const onShowBreaksChange = (showBreaks) => {
+        setState((prevState) => ({
+            ...prevState,
+            filter: {
+                ...prevState.filter,
+                showBreaks,
+            },
         }));
     };
 
@@ -291,10 +302,12 @@ function CalendarPage({ match, location }) {
                                             state.filter.otherTimesheetUsersEnabled
                                         }
                                         timesheetUser={state.timesheetUser}
+                                        showBreaks={state.filter.showBreaks}
                                         gridSize={state.filter.gridSize}
                                         firstHour={state.filter.firstHour}
                                         translations={translations}
                                         onTimesheetUserChange={onTimesheetUserChange}
+                                        onShowBreaksChange={onShowBreaksChange}
                                         onDefaultCalendarChange={
                                             onDefaultCalendarChange
                                         }
@@ -318,6 +331,7 @@ function CalendarPage({ match, location }) {
                             firstHour={state.filter.firstHour}
                             activeCalendars={state.activeCalendars}
                             timesheetUserId={state.timesheetUser?.id}
+                            showBreaks={state.filter.showBreaks}
                             topHeight="250px"
                             translations={translations}
                             match={match}

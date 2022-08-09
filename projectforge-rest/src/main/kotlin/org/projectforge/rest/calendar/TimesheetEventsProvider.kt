@@ -53,7 +53,7 @@ class TimesheetEventsProvider {
     end: PFDateTime,
     userId: Int?,
     events: MutableList<FullCalendarEvent>,
-    showBreaks: Boolean = false,
+    showBreaks: Boolean? = null,
     showStatistics: Boolean = true,
   ) {
     if (userId == null || userId < 0) {
@@ -83,7 +83,8 @@ class TimesheetEventsProvider {
     }
 
     if (timesheets != null) {
-      //var lastStopTime: LocalDateTime? = null
+      var breaksCounter = 0
+      var lastStopTime: PFDateTime? = null
       for (timesheet in timesheets) {
         val startTime = PFDateTime.fromOrNow(timesheet.startTime)
         val stopTime = PFDateTime.fromOrNow(timesheet.stopTime)
@@ -91,24 +92,29 @@ class TimesheetEventsProvider {
           // Time sheet doesn't match time period start - end.
           continue
         }
-        if (showBreaks) {
-/*                    if (lastStopTime != null
-                            && DateHelper.isSameDay(stopTime, lastStopTime) == true
-                            && startTime.millis - lastStopTime.millis > 60000) {
-                        // Show breaks between time sheets of one day (> 60s).
-                        val breakEvent = Event()
-                        breakEvent.setEditable(false)
-                        val breakId = (++breaksCounter).toString()
-                        breakEvent.setClassName(Const.BREAK_EVENT_CLASS_NAME).setId(breakId).setStart(lastStopTime)
-                                .setEnd(startTime)
-                                .setTitle(getString("timesheet.break"))
-                        breakEvent.setTextColor("#666666").setBackgroundColor("#F9F9F9").setColor("#F9F9F9")
-                        events.put(breakId, breakEvent)
-                        val breakTimesheet = TimesheetDO().setStartDate(lastStopTime.toDate())
-                                .setStopDate(startTime.millis)
-                        breaksMap.put(breakId, breakTimesheet)
-                    }
-                    lastStopTime = stopTime*/
+        if (showBreaks == true) {
+          if (lastStopTime != null &&
+            stopTime.isSameDay(lastStopTime) &&
+            startTime.epochSeconds - lastStopTime.epochSeconds > 60 // Must be longer than 1 minute
+          ) {
+            // Show breaks between time sheets of one day (> 60s).
+            events.add(
+              FullCalendarEvent.createEvent(
+                id = ++breaksCounter,
+                category = FullCalendarEvent.Category.TIMESHEET_BREAK,
+                start = lastStopTime.utilDate,
+                end = startTime.utilDate,
+                title = translate("timesheet.break"),
+                classNames = "timesheet.break",
+                backgroundColor = "#F9F9F9",
+                textColor = "#666666"
+              )
+            )
+            // val breakTimesheet = TimesheetDO().setStartDate(lastStopTime.toDate())
+            //  .setStopDate(startTime.millis)
+            // breaksMap.put(breakId, breakTimesheet)
+          }
+          lastStopTime = stopTime
         }
         val title: String = CalendarHelper.getTitle(timesheet)
         val description = CalendarHelper.getDescription(timesheet)

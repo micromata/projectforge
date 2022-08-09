@@ -36,6 +36,11 @@ class CalendarRestFilter(
   var end: Date? = null,
   var timesheetUserId: Int? = null,
   /**
+   * If true, breaks between time sheets of a day will be displayed. If the user clicks on a break, a time sheet
+   * with the start and stop time of the break could easily be created.
+   */
+  var showBreaks: Boolean? = null,
+  /**
    * Check box for enabling and disabling vacation entries of employees.
    */
   //var showVacations: Boolean = false,
