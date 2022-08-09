@@ -286,12 +286,14 @@ function FullCalendarPanel(options) {
             <div className="fc-event-main-frame">
                 <div className="fc-event-time">{eventInfo.timeText}</div>
                 <div className="fc-event-title-container">
-                    <div className="fc-event-title fc-sticky">{event.title}</div>
-                    {extendedProps.description && (
-                        <div style={{ whiteSpace: 'pre-wrap' }}>
-                            {extendedProps.description}
-                        </div>
-                    )}
+                    <div className="fc-event-title fc-sticky">
+                        {event.title}
+                        {extendedProps.description && (
+                            <div style={{ whiteSpace: 'pre-wrap' }}>
+                                {extendedProps.description}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         );
