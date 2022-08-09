@@ -124,6 +124,9 @@ open class PFDateTime internal constructor(
   override val isBeginOfWeek: Boolean
     get() = dateTime.dayOfWeek == PFDayUtils.getFirstDayOfWeek() && dateTime.hour == 0 && dateTime.minute == 0 && dateTime.second == 0 && dateTime.nano == 0
 
+  val isBeginOfDay: Boolean
+    get() = dateTime.hour == 0 && dateTime.minute == 0 && dateTime.second == 0 && dateTime.nano == 0
+
   override val endOfWeek: PFDateTime
     get() = PFDateTime(PFDateTimeUtils.getEndOfWeek(dateTime), locale, precision)
 

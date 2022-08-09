@@ -30,10 +30,7 @@ import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.systeminfo.SystemInfoCache
 import org.projectforge.business.task.TaskTree
-import org.projectforge.business.timesheet.TimesheetDO
-import org.projectforge.business.timesheet.TimesheetDao
-import org.projectforge.business.timesheet.TimesheetFavoritesService
-import org.projectforge.business.timesheet.TimesheetRecentService
+import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.configuration.Configuration
@@ -60,6 +57,7 @@ import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.*
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -469,19 +467,46 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
    * @see PFDateTimeUtils.parse for supported date formats.
    */
   override fun onGetItemAndLayout(request: HttpServletRequest, dto: Timesheet, formLayoutData: FormLayoutData) {
-    val startTime = PFDateTimeUtils.parseAndCreateDateTime(
+    var startTime = PFDateTimeUtils.parseAndCreateDateTime(
       request.getParameter("startDate"),
       numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS
     )
-    if (startTime != null) {
-      dto.startTime = startTime.withPrecision(DatePrecision.MINUTE_5).sqlTimestamp
-    }
-    val stopTime = PFDateTimeUtils.parseAndCreateDateTime(
+    var stopTime = PFDateTimeUtils.parseAndCreateDateTime(
       request.getParameter("endDate"),
       numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS
     )
-    if (stopTime != null) {
-      dto.stopTime = stopTime.withPrecision(DatePrecision.MINUTE_5).sqlTimestamp
+    if (startTime != null && startTime.isBeginOfDay && stopTime != null && stopTime.isBeginOfDay) {
+      // Time sheet has no length (generated from grid view like month, agenda or overview).
+      // Try to find a better startTime
+      val firstHour = request.getParameter("firstHour")?.toIntOrNull() ?: 8
+      startTime = startTime.withHour(firstHour)
+      stopTime = stopTime.withHour(firstHour)
+      val userId = dto.user?.id
+      if (userId != null) {
+        val filter = TimesheetFilter()
+        filter.userId = userId
+        filter.startTime = startTime.utilDate
+        filter.stopTime = startTime.endOfDay.utilDate
+        val timesheetsOfDay = timesheetDao.getList(filter)
+        var maxStopDate: Date? = null
+        timesheetsOfDay?.forEach {
+          if (maxStopDate == null ||
+            (it.stopTime != null && it.stopTime!!.after(maxStopDate))
+          ) {
+            maxStopDate = it.stopTime
+          }
+        }
+        maxStopDate?.let {
+          startTime = PFDateTime.from(maxStopDate!!)
+          stopTime = startTime
+        }
+      }
+    }
+    startTime?.let {
+      dto.startTime = it.withPrecision(DatePrecision.MINUTE_5).sqlTimestamp
+    }
+    stopTime?.let {
+      dto.stopTime = it.withPrecision(DatePrecision.MINUTE_5).sqlTimestamp
     }
     super.onGetItemAndLayout(request, dto, formLayoutData)
   }
