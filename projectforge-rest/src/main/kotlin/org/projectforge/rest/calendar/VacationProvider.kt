@@ -24,6 +24,7 @@
 package org.projectforge.rest.calendar
 
 import mu.KotlinLogging
+import org.projectforge.business.calendar.CalendarStyle
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.vacation.VacationCache
 import org.projectforge.business.vacation.model.VacationStatus
@@ -61,13 +62,12 @@ open class VacationProvider {
      */
     groupIds: Set<Int?>?,
     userIds: Set<Int?>?,
-    bgColor: String? = null,
-    fgColor: String? = null
+    bgColor: String? = "#F6D9AB",
   ) {
     if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
       return // Nothing to do
     }
-
+    val textColor = if (bgColor != null) CalendarStyle.getTextColor(bgColor) else null
     val vacations =
       vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
     vacations.forEach { vacation ->
@@ -87,7 +87,7 @@ open class VacationProvider {
           start = vacation.startDate!!,
           end = vacation.endDate!!,
           backgroundColor = bgColor,
-          textColor = fgColor,
+          textColor = textColor,
           dbId = vacation.id,
           classNames = "vacation-event",
           formattedDuration = "$duration ${translate(unit)}"

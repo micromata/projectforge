@@ -180,7 +180,7 @@ function FullCalendarPanel(options) {
         }
     };
 
-    const handleEventMouseLeave = () => {
+    const closePopOver = () => {
         if (popperRef.current) {
             popperRef.current.destroy();
         }
@@ -246,6 +246,7 @@ function FullCalendarPanel(options) {
 
     const handleEventResize = (info) => {
         info.revert(); // always undo! refetch should handle modified entries.
+        closePopOver();
         const { event, oldEvent } = info;
         const id = event.extendedProps?.uid || event.extendedProps?.dbId;
         const category = event.extendedProps?.category;
@@ -429,10 +430,12 @@ function FullCalendarPanel(options) {
                     datesSet={handleDatesSet}
                     eventClick={handleEventClick}
                     select={handleSelect}
+                    eventDragStart={closePopOver}
+                    eventResizeStart={closePopOver}
                     eventResize={handleEventResize}
                     eventDrop={handleEventDrop}
                     eventMouseEnter={handleEventMouseEnter}
-                    eventMouseLeave={handleEventMouseLeave}
+                    eventMouseLeave={closePopOver}
                     height={`calc(100vh - ${topHeight})`}
                     themeSystem="bootstrap"
                 />
@@ -444,7 +447,7 @@ function FullCalendarPanel(options) {
                 select={handleSelect}
                 eventResize={handleEventResize}
                 eventMouseEnter={handleEventMouseEnter}
-                eventMouseLeave={handleEventMouseLeave}
+                eventMouseLeave={closePopOver}
             />
             <Route
                 path={`${match.url}/:category/:type/:id?`}

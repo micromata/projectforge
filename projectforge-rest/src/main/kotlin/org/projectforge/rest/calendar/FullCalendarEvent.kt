@@ -44,6 +44,8 @@ class FullCalendarEvent(
   var backgroundColor: String? = null,
   var classNames: String? = null,
   var editable: Boolean = false,
+  var startEditable: Boolean? = null,
+  var durationEditable: Boolean? = null,
 ) {
   enum class Category(val string: String) {
     BIRTHDAY("address"),
@@ -154,6 +156,8 @@ class FullCalendarEvent(
       dbId: Int? = null,
       uid: String? = null,
       editable: Boolean = false,
+      startEditable: Boolean? = null,
+      durationEditable: Boolean? = null,
       formattedDuration: String? = null,
       duration: Long? = null,
     ): FullCalendarEvent {
@@ -166,6 +170,8 @@ class FullCalendarEvent(
         backgroundColor = backgroundColor,
         classNames = classNames,
         editable = editable,
+        startEditable = startEditable,
+        durationEditable = durationEditable,
       )
       if (allDay == true) {
         event.allDay = true
