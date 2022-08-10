@@ -24,6 +24,7 @@
 package org.projectforge.rest.calendar
 
 import mu.KotlinLogging
+import org.projectforge.business.calendar.CalendarStyle
 import org.projectforge.business.common.OutputType
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.task.TaskFormatter
@@ -82,6 +83,13 @@ class TimesheetEventsProvider {
       ctx.firstDayOfMonth = dayInCurrentMonth.withDayOfMonth(1)
     }
 
+    val breakBackgroundColor = "#F9F9F9"
+    val breakTextColor = CalendarStyle.getTextColor(breakBackgroundColor)
+    val timesheetBackgroundColor = "#2F65C8" // Blue 47 101 200
+    val timesheetTextColor = CalendarStyle.getTextColor(timesheetBackgroundColor)
+    val timesheetStatsBackgroundColor = "#2F65C8" // Blue 47 101 200
+    val timesheetStatsTextColor = CalendarStyle.getTextColor(timesheetBackgroundColor)
+
     if (timesheets != null) {
       var breaksCounter = 0
       var lastStopTime: PFDateTime? = null
@@ -105,9 +113,9 @@ class TimesheetEventsProvider {
                 start = lastStopTime.utilDate,
                 end = startTime.utilDate,
                 title = translate("timesheet.break"),
-                classNames = "timesheet.break",
-                backgroundColor = "#F9F9F9",
-                textColor = "#666666"
+                classNames = "timesheet-break",
+                backgroundColor = breakBackgroundColor,
+                textColor = breakTextColor,
               )
             )
             // val breakTimesheet = TimesheetDO().setStartDate(lastStopTime.toDate())
@@ -137,6 +145,8 @@ class TimesheetEventsProvider {
           formattedDuration = formattedDuration,
           classNames = "timesheet",
           dbId = timesheet.id,
+          backgroundColor = timesheetBackgroundColor,
+          textColor = timesheetTextColor,
         ).let { event ->
           events.add(event)
           val tooltipBuilder = TooltipBuilder()
@@ -207,6 +217,8 @@ class TimesheetEventsProvider {
           title = title,
           start = day.localDate,
           classNames = "timesheet-stats",
+          backgroundColor = timesheetStatsBackgroundColor,
+          textColor = timesheetStatsTextColor,
         )
         events.add(event)
         day = day.plusDays(1)

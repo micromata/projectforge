@@ -1,5 +1,6 @@
 .eventTooltip {
   z-index: 1000;
+  transition: visibility 0s ease 0.75s;
 
   &.hidden {
     visibility: hidden;
