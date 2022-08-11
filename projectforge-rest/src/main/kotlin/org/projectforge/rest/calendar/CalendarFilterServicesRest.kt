@@ -74,7 +74,7 @@ class CalendarFilterServicesRest {
     /**
      * If true, the client should provide an save button for syncing the current filter to the data base.
      */
-    var isFilterModified: Boolean = false
+    var isFilterModified: Boolean = false,
   )
 
   companion object {
@@ -209,8 +209,11 @@ class CalendarFilterServicesRest {
       "calendar.view.overview",
       "calendar.view.workDays",
       "calendar.week",
+      "menu.plugins.teamcal",
+      "more",
       "plugins.teamcal.calendar.listAndIcsExport.tooltip",
       "plugins.teamcal.calendar.refresh.tooltip",
+      "reload",
       "settings",
       "tooltip.selectMe"
     )

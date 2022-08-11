@@ -1,16 +1,27 @@
-import { faCog, faArrowsRotate, faList } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faCog, faEllipsis } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import PropTypes from 'prop-types';
 import React, { useContext, useState } from 'react';
-import { Button, Col, Container, Modal, ModalBody, ModalHeader, Row, UncontrolledTooltip } from 'reactstrap';
+import {
+    Button,
+    Col,
+    Container,
+    DropdownItem, DropdownMenu,
+    DropdownToggle,
+    Modal,
+    ModalBody,
+    ModalHeader, Navbar, NavLink,
+    Row, UncontrolledDropdown,
+    UncontrolledTooltip,
+} from 'reactstrap';
 import ObjectSelect from '../../../components/design/input/autoCompletion/ObjectSelect';
 import CheckBox from '../../../components/design/input/CheckBox';
 import style from '../../../components/design/input/Input.module.scss';
 import ReactSelect from '../../../components/design/react-select/ReactSelect';
-import { fetchJsonGet, fetchJsonPost } from '../../../utilities/rest';
-import history from '../../../utilities/history';
+import { fetchJsonGet, fetchJsonPost, getServiceURL } from '../../../utilities/rest';
 import prefix from '../../../utilities/prefix';
 import { CalendarContext } from '../../page/calendar/CalendarContext';
+import { Nav } from '../../../components/design';
 
 /**
  * Settings of a calendar view: time sheet user, default calendar for new events, show holidays etc.
@@ -35,6 +46,7 @@ function CalendarFilterSettings({
     vacationGroups,
     vacationUsers,
 }) {
+    // Modal dialog with calendars, vacations and other option such first hour of day etc.
     const [open, setOpen] = useState(false);
 
     const { saveUpdateResponseInState } = useContext(CalendarContext);
@@ -201,39 +213,57 @@ function CalendarFilterSettings({
                     size="lg"
                 />
             </Button>
-            <UncontrolledTooltip placement="bottom" target="calendar-view-settings">
+            <UncontrolledTooltip placement="left" target="calendar-view-settings">
                 {translations['calendar.view.settings.tooltip']}
             </UncontrolledTooltip>
-            <Button
-                color="link"
-                id="calendar-refresh"
-                className="selectPanelIconLinks"
-                onClick={refresh}
-            >
-                <FontAwesomeIcon
-                    icon={faArrowsRotate}
-                    className={style.icon}
-                    size="lg"
-                />
-            </Button>
-            <UncontrolledTooltip placement="bottom" target="calendar-refresh">
-                {translations['plugins.teamcal.calendar.refresh.tooltip']}
-            </UncontrolledTooltip>
-            <Button
-                color="link"
-                id="calendarlist"
-                className="selectPanelIconLinks"
-                onClick={() => history.push(`${prefix}teamCal`)}
-            >
-                <FontAwesomeIcon
-                    icon={faList}
-                    className={style.icon}
-                    size="lg"
-                />
-            </Button>
-            <UncontrolledTooltip placement="bottom" target="calendarlist">
-                {translations['plugins.teamcal.calendar.listAndIcsExport.tooltip']}
-            </UncontrolledTooltip>
+            <Navbar style={{ marginLeft: '0 !important', padding: '0' }}>
+                <Nav className="ml-auto">
+                    <UncontrolledDropdown nav>
+                        <DropdownToggle nav style={{ marginLeft: '0 !important', padding: '0' }}>
+                            <div id="more-menu" style={{ whiteSpace: 'nowrap' }}>
+                                <FontAwesomeIcon
+                                    icon={faEllipsis}
+                                    className={style.icon}
+                                    size="lg"
+                                />
+                                <FontAwesomeIcon icon={faChevronDown} />
+                            </div>
+                            <UncontrolledTooltip placement="top" target="more-menu">
+                                {translations.more}
+                            </UncontrolledTooltip>
+                        </DropdownToggle>
+                        <DropdownMenu right="true">
+                            <DropdownItem
+                                key="entry-item-calendar-refresh"
+                            >
+                                <NavLink
+                                    id="calendar-refresh"
+                                    onClick={refresh}
+                                >
+                                    {translations.reload || '[reload]'}
+                                </NavLink>
+                                <UncontrolledTooltip placement="left" target="calendar-refresh">
+                                    {translations['plugins.teamcal.calendar.refresh.tooltip']}
+                                </UncontrolledTooltip>
+                            </DropdownItem>
+                            <DropdownItem
+                                key="entry-item-calendar-refresh"
+                            >
+                                <NavLink
+                                    id="calendarlist"
+                                    href={getServiceURL(`${prefix}teamCal`)}
+                                    rel="noopener noreferrer"
+                                >
+                                    {translations['menu.plugins.teamcal'] || '[List of calendars]'}
+                                </NavLink>
+                                <UncontrolledTooltip placement="left" target="calendarlist">
+                                    {translations['plugins.teamcal.calendar.listAndIcsExport.tooltip']}
+                                </UncontrolledTooltip>
+                            </DropdownItem>
+                        </DropdownMenu>
+                    </UncontrolledDropdown>
+                </Nav>
+            </Navbar>
             <Modal
                 isOpen={open}
                 toggle={toggle}
@@ -369,6 +399,8 @@ CalendarFilterSettings.propTypes = {
     firstHour: PropTypes.number,
     listOfDefaultCalendars: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
     translations: PropTypes.shape({
+        more: PropTypes.string,
+        reload: PropTypes.string,
         settings: PropTypes.string,
         'calendar.defaultCalendar': PropTypes.string,
         'calendar.defaultCalendar.tooltip': PropTypes.string,
@@ -384,6 +416,7 @@ CalendarFilterSettings.propTypes = {
         'calendar.option.gridSize': PropTypes.string,
         'calendar.option.gridSize.tooltip': PropTypes.string,
         'calendar.view.settings.tooltip': PropTypes.string,
+        'menu.plugins.teamcal': PropTypes.string,
         'plugins.teamcal.calendar.listAndIcsExport.tooltip': PropTypes.string,
         'plugins.teamcal.calendar.refresh.tooltip': PropTypes.string,
     }).isRequired,
