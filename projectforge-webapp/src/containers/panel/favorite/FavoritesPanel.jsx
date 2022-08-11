@@ -82,6 +82,7 @@ function FavoritesPanel(
                         {onFavoriteCreate && (
                             <FavoriteNameInput
                                 className={style.favoritesName}
+                                defaultValue={translations['favorite.untitled'] || 'untitled'}
                                 id="newFilterName"
                                 onSave={onFavoriteCreate}
                                 label={translations[newFavoriteI18nKey] || 'Add new'}
@@ -133,6 +134,7 @@ FavoritesPanel.propTypes = {
     newFavoriteI18nKey: PropTypes.string,
     newFavoriteTooltipI18nKey: PropTypes.string,
     translations: PropTypes.shape({
+        'favorite.untitled': PropTypes.string,
     }),
 };
 

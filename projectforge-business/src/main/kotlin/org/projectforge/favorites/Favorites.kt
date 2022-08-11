@@ -214,6 +214,7 @@ open class Favorites<T : AbstractFavorite>() {
         "rename",
         "favorites",
         "favorite.addNew",
+        "favorite.untitled",
         "favorites.saveModification",
         "uptodate",
         translations = translations
