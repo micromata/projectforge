@@ -1,7 +1,7 @@
 import { faCog, faArrowsRotate, faList } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import React, { useContext, useState } from 'react';
 import { Button, Col, Container, Modal, ModalBody, ModalHeader, Row, UncontrolledTooltip } from 'reactstrap';
 import ObjectSelect from '../../../components/design/input/autoCompletion/ObjectSelect';
 import CheckBox from '../../../components/design/input/CheckBox';
@@ -15,48 +15,50 @@ import { CalendarContext } from '../../page/calendar/CalendarContext';
 /**
  * Settings of a calendar view: time sheet user, default calendar for new events, show holidays etc.
  */
-class CalendarFilterSettings extends Component {
-    static extractDefaultCalendarValue(props) {
-        const { listOfDefaultCalendars, defaultCalendarId } = props;
-        return listOfDefaultCalendars.find((it) => it.id === defaultCalendarId);
-    }
+function CalendarFilterSettings({
+    onTimesheetUserChange,
+    onShowBreaksChange,
+    onDefaultCalendarChange,
+    onGridSizeChange,
+    onFirstHourChange,
+    onVacationGroupsChange,
+    onVacationUsersChange,
+    refresh,
+    defaultCalendarId,
+    timesheetUser,
+    otherTimesheetUsersEnabled,
+    showBreaks,
+    gridSize,
+    firstHour,
+    listOfDefaultCalendars,
+    translations,
+    vacationGroups,
+    vacationUsers,
+}) {
+    const [open, setOpen] = useState(false);
 
-    static loadVacationGroupsOptions(search, callback) {
+    const { saveUpdateResponseInState } = useContext(CalendarContext);
+
+    // eslint-disable-next-line max-len
+    const extractDefaultCalendarValue = () => listOfDefaultCalendars.find((it) => it.id === defaultCalendarId);
+
+    const loadVacationGroupsOptions = (search, callback) => {
         fetchJsonGet(
             'group/autosearch',
             { search },
             callback,
         );
-    }
+    };
 
-    static loadVacationUsersOptions(search, callback) {
+    const loadVacationUsersOptions = (search, callback) => {
         fetchJsonGet(
             'vacation/users',
             { search },
             callback,
         );
-    }
+    };
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            isOpen: false,
-        };
-
-        this.handleDefaultCalendarChange = this.handleDefaultCalendarChange.bind(this);
-        this.handleTimesheetUserChange = this.handleTimesheetUserChange.bind(this);
-        this.handleVacationGroupsChange = this.handleVacationGroupsChange.bind(this);
-        this.handleVacationUsersChange = this.handleVacationUsersChange.bind(this);
-        this.handleGridSizeChange = this.handleGridSizeChange.bind(this);
-        this.handleFirstHourChange = this.handleFirstHourChange.bind(this);
-        this.toggle = this.toggle.bind(this);
-        this.handleTimesheetsCheckBoxChange = this.handleTimesheetsCheckBoxChange.bind(this);
-        this.handleShowBreaksChange = this.handleShowBreaksChange.bind(this);
-    }
-
-    handleTimesheetsCheckBoxChange(event) {
-        const { onTimesheetUserChange } = this.props;
-        const { saveUpdateResponseInState } = this.context;
+    const handleTimesheetsCheckBoxChange = (event) => {
         const user = { id: event.target.checked ? 1 : -1 };
         fetchJsonGet(
             'calendar/changeTimesheetUser',
@@ -66,25 +68,21 @@ class CalendarFilterSettings extends Component {
                 saveUpdateResponseInState(json);
             },
         );
-    }
+    };
 
-    handleShowBreaksChange(event) {
-        const { onShowBreaksChange } = this.props;
-        const { saveUpdateResponseInState } = this.context;
-        const showBreaks = event.target.checked;
+    const handleShowBreaksChange = (event) => {
+        const { checked } = event.target;
         fetchJsonGet(
             'calendar/changeShowBreaks',
             { showBreaks },
             (json) => {
-                onShowBreaksChange(showBreaks);
+                onShowBreaksChange(checked);
                 saveUpdateResponseInState(json);
             },
         );
-    }
+    };
 
-    handleTimesheetUserChange(user) {
-        const { onTimesheetUserChange } = this.props;
-        const { saveUpdateResponseInState } = this.context;
+    const handleTimesheetUserChange = (user) => {
         const userId = user ? user.id : undefined;
         fetchJsonGet(
             'calendar/changeTimesheetUser',
@@ -94,38 +92,32 @@ class CalendarFilterSettings extends Component {
                 saveUpdateResponseInState(json);
             },
         );
-    }
+    };
 
-    handleVacationGroupsChange(groups) {
+    const handleVacationGroupsChange = (groups) => {
         fetchJsonPost(
             'calendar/changeVacationGroups',
             (groups || []).map(({ id }) => id),
             (json) => {
-                const { saveUpdateResponseInState } = this.context;
-                const { onVacationGroupsChange } = this.props;
                 onVacationGroupsChange(groups);
                 saveUpdateResponseInState(json);
             },
         );
-    }
+    };
 
-    handleVacationUsersChange(users) {
+    const handleVacationUsersChange = (users) => {
         fetchJsonPost(
             'calendar/changeVacationUsers',
             (users || []).map(({ id }) => id),
             (json) => {
-                const { saveUpdateResponseInState } = this.context;
-                const { onVacationUsersChange } = this.props;
                 onVacationUsersChange(users);
                 saveUpdateResponseInState(json);
             },
         );
-    }
+    };
 
-    handleGridSizeChange(gridSize) {
-        const { onGridSizeChange } = this.props;
-        const { saveUpdateResponseInState } = this.context;
-        const size = gridSize ? gridSize.value : 30;
+    const handleGridSizeChange = (newGridSize) => {
+        const size = newGridSize ? newGridSize.value : 30;
         fetchJsonGet(
             'calendar/changeGridSize',
             { size },
@@ -134,12 +126,10 @@ class CalendarFilterSettings extends Component {
                 saveUpdateResponseInState(json);
             },
         );
-    }
+    };
 
-    handleFirstHourChange(firstHour) {
-        const { onFirstHourChange } = this.props;
-        const { saveUpdateResponseInState } = this.context;
-        const hour = firstHour ? firstHour.value : 8;
+    const handleFirstHourChange = (newFirstHour) => {
+        const hour = newFirstHour ? newFirstHour.value : 8;
         fetchJsonGet(
             'calendar/changeFirstHour',
             { hour },
@@ -148,11 +138,9 @@ class CalendarFilterSettings extends Component {
                 saveUpdateResponseInState(json);
             },
         );
-    }
+    };
 
-    handleDefaultCalendarChange(value) {
-        const { onDefaultCalendarChange } = this.props;
-        const { saveUpdateResponseInState } = this.context;
+    const handleDefaultCalendarChange = (value) => {
         const id = value ? value.id : '';
         fetchJsonGet(
             'calendar/changeDefaultCalendar',
@@ -162,230 +150,206 @@ class CalendarFilterSettings extends Component {
                 saveUpdateResponseInState(json);
             },
         );
-    }
+    };
 
-    toggle() {
-        this.setState((prevState) => ({
-            isOpen: !prevState.isOpen,
-        }));
-    }
+    const toggle = () => {
+        setOpen(!open);
+    };
 
-    render() {
-        const { isOpen } = this.state;
-        const {
-            listOfDefaultCalendars,
-            otherTimesheetUsersEnabled,
-            timesheetUser,
-            showBreaks,
-            gridSize,
-            firstHour,
-            translations,
-            vacationGroups,
-            vacationUsers,
-            refresh,
-        } = this.props;
-        const gridSizes = [{
-            value: 5,
-            label: '5',
-        }, {
-            value: 10,
-            label: '10',
-        }, {
-            value: 15,
-            label: '15',
-        }, {
-            value: 30,
-            label: '30',
-        }, {
-            value: 60,
-            label: '60',
-        }];
-        const gridSizeValue = {
-            value: gridSize,
-            label: gridSize.toString(),
-        };
-        const firstHours = [];
-        for (let i = 0; i < 24; i += 1) {
-            firstHours.push({
-                value: i,
-                label: `${Number.as2Digits(i)}:00`,
-            });
-        }
-        const firstHourValue = {
-            value: firstHour,
-            label: `${Number.as2Digits(firstHour)}:00`,
-        };
-        const defaultCalendar = CalendarFilterSettings.extractDefaultCalendarValue(this.props);
-        return (
-            <>
-                <Button
-                    color="link"
-                    id="calendar-view-settings"
-                    className="selectPanelIconLinks"
-                    onClick={this.toggle}
-                >
-                    <FontAwesomeIcon
-                        icon={faCog}
-                        className={style.icon}
-                        size="lg"
-                    />
-                </Button>
-                <UncontrolledTooltip placement="bottom" target="calendar-view-settings">
-                    {translations['calendar.view.settings.tooltip']}
-                </UncontrolledTooltip>
-                <Button
-                    color="link"
-                    id="calendar-refresh"
-                    className="selectPanelIconLinks"
-                    onClick={refresh}
-                >
-                    <FontAwesomeIcon
-                        icon={faArrowsRotate}
-                        className={style.icon}
-                        size="lg"
-                    />
-                </Button>
-                <UncontrolledTooltip placement="bottom" target="calendar-refresh">
-                    {translations['plugins.teamcal.calendar.refresh.tooltip']}
-                </UncontrolledTooltip>
-                <Button
-                    color="link"
-                    id="calendarlist"
-                    className="selectPanelIconLinks"
-                    onClick={() => history.push(`${prefix}teamCal`)}
-                >
-                    <FontAwesomeIcon
-                        icon={faList}
-                        className={style.icon}
-                        size="lg"
-                    />
-                </Button>
-                <UncontrolledTooltip placement="bottom" target="calendarlist">
-                    {translations['plugins.teamcal.calendar.listAndIcsExport.tooltip']}
-                </UncontrolledTooltip>
-                <Modal
-                    isOpen={isOpen}
-                    toggle={this.toggle}
-                >
-                    <ModalHeader toggle={this.toggle}>
-                        {translations.settings}
-                    </ModalHeader>
-                    <ModalBody>
-                        <Container>
-                            <Row>
-                                <Col>
-                                    <ReactSelect
-                                        id="defaultCalendar"
-                                        values={listOfDefaultCalendars}
-                                        value={defaultCalendar}
-                                        label={translations['calendar.defaultCalendar']}
-                                        tooltip={translations['calendar.defaultCalendar.tooltip']}
+    const gridSizes = [{
+        value: 5,
+        label: '5',
+    }, {
+        value: 10,
+        label: '10',
+    }, {
+        value: 15,
+        label: '15',
+    }, {
+        value: 30,
+        label: '30',
+    }, {
+        value: 60,
+        label: '60',
+    }];
+    const gridSizeValue = {
+        value: gridSize,
+        label: gridSize.toString(),
+    };
+    const firstHours = [];
+    for (let i = 0; i < 24; i += 1) {
+        firstHours.push({
+            value: i,
+            label: `${Number.as2Digits(i)}:00`,
+        });
+    }
+    const firstHourValue = {
+        value: firstHour,
+        label: `${Number.as2Digits(firstHour)}:00`,
+    };
+    return (
+        <>
+            <Button
+                color="link"
+                id="calendar-view-settings"
+                className="selectPanelIconLinks"
+                onClick={toggle}
+            >
+                <FontAwesomeIcon
+                    icon={faCog}
+                    className={style.icon}
+                    size="lg"
+                />
+            </Button>
+            <UncontrolledTooltip placement="bottom" target="calendar-view-settings">
+                {translations['calendar.view.settings.tooltip']}
+            </UncontrolledTooltip>
+            <Button
+                color="link"
+                id="calendar-refresh"
+                className="selectPanelIconLinks"
+                onClick={refresh}
+            >
+                <FontAwesomeIcon
+                    icon={faArrowsRotate}
+                    className={style.icon}
+                    size="lg"
+                />
+            </Button>
+            <UncontrolledTooltip placement="bottom" target="calendar-refresh">
+                {translations['plugins.teamcal.calendar.refresh.tooltip']}
+            </UncontrolledTooltip>
+            <Button
+                color="link"
+                id="calendarlist"
+                className="selectPanelIconLinks"
+                onClick={() => history.push(`${prefix}teamCal`)}
+            >
+                <FontAwesomeIcon
+                    icon={faList}
+                    className={style.icon}
+                    size="lg"
+                />
+            </Button>
+            <UncontrolledTooltip placement="bottom" target="calendarlist">
+                {translations['plugins.teamcal.calendar.listAndIcsExport.tooltip']}
+            </UncontrolledTooltip>
+            <Modal
+                isOpen={open}
+                toggle={toggle}
+            >
+                <ModalHeader toggle={toggle}>
+                    {translations.settings}
+                </ModalHeader>
+                <ModalBody>
+                    <Container>
+                        <Row>
+                            <Col>
+                                <ReactSelect
+                                    id="defaultCalendar"
+                                    values={listOfDefaultCalendars}
+                                    value={extractDefaultCalendarValue}
+                                    label={translations['calendar.defaultCalendar']}
+                                    tooltip={translations['calendar.defaultCalendar.tooltip']}
+                                    translations={translations}
+                                    valueProperty="id"
+                                    labelProperty="title"
+                                    onChange={handleDefaultCalendarChange}
+                                />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md={6}>
+                                {otherTimesheetUsersEnabled ? (
+                                    <ObjectSelect
+                                        id="showTimesheets"
+                                        label={translations['calendar.option.timesheets']}
+                                        onSelect={handleTimesheetUserChange}
                                         translations={translations}
-                                        valueProperty="id"
-                                        labelProperty="title"
-                                        onChange={this.handleDefaultCalendarChange}
+                                        type="USER"
+                                        value={timesheetUser}
                                     />
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md={6}>
-                                    {otherTimesheetUsersEnabled ? (
-                                        <ObjectSelect
-                                            id="showTimesheets"
-                                            label={translations['calendar.option.timesheets']}
-                                            onSelect={this.handleTimesheetUserChange}
-                                            translations={translations}
-                                            type="USER"
-                                            value={timesheetUser}
-                                        />
-                                    ) : (
-                                        <CheckBox
-                                            label={translations['calendar.option.timesheets']}
-                                            id="showTimesheets"
-                                            onChange={this.handleTimesheetsCheckBoxChange}
-                                            checked={timesheetUser && timesheetUser.id > 0}
-                                        />
-                                    )}
-                                </Col>
-                                <Col md={6}>
+                                ) : (
                                     <CheckBox
-                                        id="showBreaks"
-                                        label={translations['calendar.option.showBreaks']}
-                                        tooltip={translations['calendar.option.showBreaks.tooltip']}
-                                        onChange={this.handleShowBreaksChange}
-                                        checked={showBreaks}
+                                        label={translations['calendar.option.timesheets']}
+                                        id="showTimesheets"
+                                        onChange={handleTimesheetsCheckBoxChange}
+                                        checked={timesheetUser && timesheetUser.id > 0}
                                     />
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col>
-                                    <ReactSelect
-                                        id="vacationGroups"
-                                        loadOptions={
-                                            CalendarFilterSettings.loadVacationGroupsOptions
-                                        }
-                                        value={vacationGroups}
-                                        label={translations['calendar.filter.vacation.groups']}
-                                        tooltip={translations['calendar.filter.vacation.groups.tooltip']}
-                                        translations={translations}
-                                        valueProperty="id"
-                                        labelProperty="displayName"
-                                        multi
-                                        onChange={this.handleVacationGroupsChange}
-                                    />
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col>
-                                    <ReactSelect
-                                        id="vacationUsers"
-                                        loadOptions={
-                                            CalendarFilterSettings.loadVacationUsersOptions
-                                        }
-                                        value={vacationUsers}
-                                        label={translations['calendar.filter.vacation.users']}
-                                        tooltip={translations['calendar.filter.vacation.users.tooltip']}
-                                        translations={translations}
-                                        valueProperty="id"
-                                        labelProperty="displayName"
-                                        multi
-                                        onChange={this.handleVacationUsersChange}
-                                    />
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md={6}>
-                                    <ReactSelect
-                                        id="gridSize"
-                                        values={gridSizes}
-                                        value={gridSizeValue}
-                                        label={translations['calendar.option.gridSize']}
-                                        tooltip={translations['calendar.option.gridSize.tooltip']}
-                                        translations={translations}
-                                        onChange={this.handleGridSizeChange}
-                                    />
-                                </Col>
-                                <Col md={6}>
-                                    <ReactSelect
-                                        id="firstHour"
-                                        values={firstHours}
-                                        value={firstHourValue}
-                                        label={translations['calendar.option.firstHour']}
-                                        tooltip={translations['calendar.option.firstHour.tooltip']}
-                                        translations={translations}
-                                        onChange={this.handleFirstHourChange}
-                                    />
-                                </Col>
-                            </Row>
-                        </Container>
-                    </ModalBody>
-                </Modal>
-            </>
-        );
-    }
+                                )}
+                            </Col>
+                            <Col md={6}>
+                                <CheckBox
+                                    id="showBreaks"
+                                    label={translations['calendar.option.showBreaks']}
+                                    tooltip={translations['calendar.option.showBreaks.tooltip']}
+                                    onChange={handleShowBreaksChange}
+                                    checked={showBreaks}
+                                />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <ReactSelect
+                                    id="vacationGroups"
+                                    loadOptions={loadVacationGroupsOptions}
+                                    value={vacationGroups}
+                                    label={translations['calendar.filter.vacation.groups']}
+                                    tooltip={translations['calendar.filter.vacation.groups.tooltip']}
+                                    translations={translations}
+                                    valueProperty="id"
+                                    labelProperty="displayName"
+                                    multi
+                                    onChange={handleVacationGroupsChange}
+                                />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <ReactSelect
+                                    id="vacationUsers"
+                                    loadOptions={loadVacationUsersOptions}
+                                    value={vacationUsers}
+                                    label={translations['calendar.filter.vacation.users']}
+                                    tooltip={translations['calendar.filter.vacation.users.tooltip']}
+                                    translations={translations}
+                                    valueProperty="id"
+                                    labelProperty="displayName"
+                                    multi
+                                    onChange={handleVacationUsersChange}
+                                />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md={6}>
+                                <ReactSelect
+                                    id="gridSize"
+                                    values={gridSizes}
+                                    value={gridSizeValue}
+                                    label={translations['calendar.option.gridSize']}
+                                    tooltip={translations['calendar.option.gridSize.tooltip']}
+                                    translations={translations}
+                                    onChange={handleGridSizeChange}
+                                />
+                            </Col>
+                            <Col md={6}>
+                                <ReactSelect
+                                    id="firstHour"
+                                    values={firstHours}
+                                    value={firstHourValue}
+                                    label={translations['calendar.option.firstHour']}
+                                    tooltip={translations['calendar.option.firstHour.tooltip']}
+                                    translations={translations}
+                                    onChange={handleFirstHourChange}
+                                />
+                            </Col>
+                        </Row>
+                    </Container>
+                </ModalBody>
+            </Modal>
+        </>
+    );
 }
-
-CalendarFilterSettings.contextType = CalendarContext;
 
 CalendarFilterSettings.propTypes = {
     onTimesheetUserChange: PropTypes.func.isRequired,
