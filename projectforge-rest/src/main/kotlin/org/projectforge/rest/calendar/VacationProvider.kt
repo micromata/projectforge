@@ -99,6 +99,9 @@ open class VacationProvider {
           .addPropRow(
             translate("vacation.replacement"),
             vacation.allReplacements.joinToString { userGroupCache.getUser(it)?.displayName ?: "???" })
+        if (!vacation.comment.isNullOrBlank()) {
+          tb.addPropRow(translate("comment"), vacation.comment, abbreviate = true)
+        }
         event.setTooltip(title, tb)
         events.add(event)
       }

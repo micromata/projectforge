@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import FullCalendar from '@fullcalendar/react'; // must go before plugins
 import '@fortawesome/fontawesome-free/css/all.css';
 import deLocale from '@fullcalendar/core/locales/de';
@@ -11,7 +11,7 @@ import { connect } from 'react-redux'; // a plugin!
 import { createPopper } from '@popperjs/core';
 import { Route } from 'react-router-dom';
 import LoadingContainer from '../../../components/design/loading-container';
-import { fetchJsonPost, fetchJsonGet } from '../../../utilities/rest';
+import { fetchJsonGet, fetchJsonPost } from '../../../utilities/rest';
 import CalendarEventTooltip from './CalendarEventTooltip';
 import history from '../../../utilities/history';
 import FormModal from '../../page/form/FormModal';
@@ -19,7 +19,6 @@ import FormModal from '../../page/form/FormModal';
 /*
 TODO:
  - Handling of recurring events.
- - Breaks
 */
 
 function FullCalendarPanel(options) {
@@ -159,7 +158,8 @@ function FullCalendarPanel(options) {
                     activeCalendars: calendars,
                 },
                 // eslint-disable-next-line @typescript-eslint/no-empty-function
-                () => { },
+                () => {
+                },
             );
         }
     }, [activeCalendars, currentState.date, currentState.view]);
@@ -176,7 +176,7 @@ function FullCalendarPanel(options) {
         setCurrentHoverEvent(info.event);
         const tooltip = info.event?.extendedProps?.tooltip;
         if (tooltip) {
-            popperRef.current = createPopper(info.el, tooltipRef.current, { });
+            popperRef.current = createPopper(info.el, tooltipRef.current, {});
         }
     };
 
@@ -231,13 +231,12 @@ function FullCalendarPanel(options) {
         const category = event.extendedProps?.category;
         if (category === 'timesheet-break') {
             history.push(`${match.url}/timesheet/edit?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
-            return;
-        }
-        if (!category || !id || event.startEditable !== true) return;
-        // start date is send to the server and is needed for series events to detect the
-        // current selected event of a series.
-        // eslint-disable-next-line max-len
-        if (category === 'address') {
+        } else if (!category || !id || event.startEditable !== true) {
+            history.push(`${match.url}/vacation/edit/${id}`);
+        } else if (category === 'address') {
+            // start date is send to the server and is needed for series events to detect the
+            // current selected event of a series.
+            // eslint-disable-next-line max-len
             history.push(`${match.url}/addressView/dynamic/${id}`);
         } else {
             history.push(`${match.url}/${category}/edit/${id}?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
