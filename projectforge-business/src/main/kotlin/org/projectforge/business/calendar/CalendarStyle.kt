@@ -49,7 +49,9 @@ class CalendarStyle(var bgColor: String = "#777") {
       fun getTextColor(bgColor: String): String {
         checkRefresh()
         synchronized(map) {
+          // if (!SystemStatus.isDevelopmentMode()) {
           map[bgColor]?.let { return it }
+          // }
           val color = calculateTextColor(bgColor)
           map[bgColor] = color
           return color
@@ -113,12 +115,12 @@ class CalendarStyle(var bgColor: String = "#777") {
       if (bgBrightness > 127) {
         brightness -= 0.5f // Darker
         if (hue > 0.0001 && saturation < 0.5) { // hue > 0.0001: Preserve gray colors for white.
-          saturation += 0.8f
+          saturation += 0.5f
         }
       } else {
         brightness += 0.5f // Brighter
         if (saturation > 0.5) {
-          saturation -= 0.8f
+          saturation -= 0.5f
         }
       }
       if (saturation < 0) {
