@@ -62,12 +62,14 @@ open class VacationProvider {
      */
     groupIds: Set<Int?>?,
     userIds: Set<Int?>?,
-    bgColor: String? = "#F6D9AB",
+    settings: CalendarSettings,
+    bgColor: String? = null,
   ) {
     if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
       return // Nothing to do
     }
-    val textColor = if (bgColor != null) CalendarStyle.getTextColor(bgColor) else null
+    val backgroundColor = CalendarStyle.getBackgroundColor(bgColor, settings.vacationColor ?: CalendarSettings.VACATION_DEFAULT_COLOR)
+    val textColor = CalendarStyle.getTextColor(backgroundColor)
     val vacations =
       vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
     vacations.forEach { vacation ->
@@ -86,7 +88,7 @@ open class VacationProvider {
           title = title,
           start = vacation.startDate!!,
           end = vacation.endDate!!,
-          backgroundColor = bgColor,
+          backgroundColor = backgroundColor,
           textColor = textColor,
           dbId = vacation.id,
           classNames = "vacation-event",

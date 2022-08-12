@@ -96,6 +96,9 @@ class CalendarServicesRest {
   private lateinit var calendarFilterServicesRest: CalendarFilterServicesRest
 
   @Autowired
+  private lateinit var calendarSettingsRest: CalendarSettingsService
+
+  @Autowired
   private lateinit var teamCalCache: TeamCalCache
 
   @Autowired
@@ -156,7 +159,6 @@ class CalendarServicesRest {
    * @param action slotSelected, resize, drop
    * @param startDateParam startDate timestamp of event (after resize or drag&drop)
    * @param endDateParam endDate timestamp of event (after resize or drag&drop)
-   * @param allDay
    * @param categoryParam calEvent, teamEvent or timesheet.
    * @param dbIdParam Data base id of timesheet or team event.
    * @param uidParam Uid of event, if given.
@@ -170,7 +172,7 @@ class CalendarServicesRest {
     @RequestParam("action") action: String?,
     @RequestParam("startDate") startDateParam: String?,
     @RequestParam("endDate") endDateParam: String?,
-    @RequestParam("allDay") allDay: String?,
+    // @RequestParam("allDay") allDay: String?,
     @RequestParam("category") categoryParam: String?,
     @RequestParam("dbId") dbIdParam: String?,
     @RequestParam("uid") uidParam: String?,
@@ -205,10 +207,10 @@ class CalendarServicesRest {
         "timesheet"
       }
       url = "/$category/edit?startDate=$startDate&endDate=$endDate"
-      if (defaultCalendarId != null && defaultCalendarId > 0) {
-        url = "$url&calendar=$defaultCalendarId"
+      url = if (defaultCalendarId != null && defaultCalendarId > 0) {
+        "$url&calendar=$defaultCalendarId"
       } else {
-        url = "$url&userId=${currentFilter.timesheetUserId ?: ThreadLocalUserContext.getUserId()}&firstHour=$firstHour"
+        "$url&userId=${currentFilter.timesheetUserId ?: ThreadLocalUserContext.getUserId()}&firstHour=$firstHour"
       }
     } else if (action == "resize" || action == "dragAndDrop") {
       val origStartDate =
@@ -262,7 +264,15 @@ class CalendarServicesRest {
       PFDateTime.fromOrNull(filter.end)
     )
     adjustRange(range)
-    timesheetsProvider.addTimesheetEvents(range.start, range.end!!, filter.timesheetUserId, events, showBreaks = filter.showBreaks)
+    val settings = calendarSettingsRest.getSettings()
+    timesheetsProvider.addTimesheetEvents(
+      range.start,
+      range.end!!,
+      filter.timesheetUserId,
+      events,
+      settings,
+      showBreaks = filter.showBreaks
+    )
     var visibleCalendarIds = filter.activeCalendarIds
     if (filter.useVisibilityState == true && !visibleCalendarIds.isNullOrEmpty()) {
       val currentFilter = getCurrentFilter(userPrefService)
@@ -292,7 +302,8 @@ class CalendarServicesRest {
         range.end!!,
         events,
         visibleTeamCalendarIds,
-        calendarFilterServicesRest.getStyleMap()
+        calendarFilterServicesRest.getStyleMap(),
+        settings,
       )
     }
 
@@ -310,11 +321,18 @@ class CalendarServicesRest {
         )
       )
     }
-    vacationProvider.addEvents(range.start, range.end!!, events, filter.vacationGroupIds, filter.vacationUserIds)
+    vacationProvider.addEvents(
+      range.start,
+      range.end!!,
+      events,
+      filter.vacationGroupIds,
+      filter.vacationUserIds,
+      settings,
+    )
 
     val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
     specialDays.forEach { specialDay ->
-      if (!specialDay.holidayTitle.isBlank()) {
+      if (specialDay.holidayTitle.isNotBlank()) {
         // Show allday entry with title:
         events.add(
           FullCalendarEvent.createAllDayEvent(
@@ -355,8 +373,8 @@ class CalendarServicesRest {
       if (date != null && (event == RestButtonEvent.SAVE || event == RestButtonEvent.UPDATE)) {
         // Time sheet was modified, so reload page and goto date of timesheet (if modified):
         val hash = NumberHelper.getSecureRandomAlphanumeric(4)
-        val date = PFDateTime.fromOrNow(date).localDate
-        return ResponseAction("/${Constants.REACT_APP_PATH}calendar?gotoDate=$date&hash=$hash")
+        val gotoDate = PFDateTime.fromOrNow(date).localDate
+        return ResponseAction("/${Constants.REACT_APP_PATH}calendar?gotoDate=$gotoDate&hash=$hash")
       }
       return ResponseAction("/${Constants.REACT_APP_PATH}calendar")
     }

@@ -44,8 +44,8 @@ object HolidayAndWeekendProvider {
     fun getSpecialDayInfos(start: PFDateTime, end: PFDateTime): List<SpecialDayInfo> {
         val result = mutableListOf<SpecialDayInfo>()
         var day = start.beginOfDay
+        var paranoiaCounter = 0
         do {
-            var paranoiaCounter = 0
             val dateTime = day.dateTime
             if (++paranoiaCounter > 4000) {
                 log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of build.")

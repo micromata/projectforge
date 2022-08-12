@@ -21,27 +21,31 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.ui
+package org.projectforge.rest.calendar
 
-data class UICustomized(
-  val id: String,
-  var values: MutableMap<String, Any>? = null
-) : UIElement(UIElementType.CUSTOMIZED) {
-  constructor(
-    type: TYPE,
-    values: MutableMap<String, Any>? = null
-  ) : this(type.id, values)
+import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
 
-  fun add(property: String, value: Any): UICustomized {
-    if (values == null) {
-      values = mutableMapOf()
+/**
+ * Page and services for settings for the calendar (independent of filter).
+ */
+@Service
+class CalendarSettingsService : AbstractDynamicPageRest() {
+  @Autowired
+  private lateinit var userPrefService: UserPrefService
+
+  private val PREF_NAME = "settings"
+
+  internal fun getSettings(): CalendarSettings {
+    var settings =
+      userPrefService.getEntry(CalendarFilterServicesRest.PREF_AREA, PREF_NAME, CalendarSettings::class.java)
+    if (settings == null) {
+      settings = CalendarSettings()
+      // Don't save the settings yet, settings is under construction.
+      // userPrefService.putEntry(CalendarFilterServicesRest.PREF_AREA, PREF_NAME, settings)
     }
-    values?.put(property, value)
-    return this
+    return settings
   }
-
-  /**
-   * Some specified types (known by frontend).
-   */
-  enum class TYPE(val id: String) { COLOR_CHOOSER("color-chooser") }
 }

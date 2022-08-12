@@ -78,7 +78,7 @@ class CalendarFilterServicesRest {
   )
 
   companion object {
-    private const val PREF_AREA = "calendar"
+    internal const val PREF_AREA = "calendar"
     private const val PREF_NAME_STATE = "state"
     private const val PREF_NAME_STYLES = "styles"
 
@@ -197,6 +197,9 @@ class CalendarFilterServicesRest {
       "calendar.option.showBreaks",
       "calendar.option.showBreaks.tooltip",
       "calendar.option.timesheets",
+      "calendar.settings",
+      "calendar.settings.intro",
+      "calendar.settings.tooltip",
       "calendar.showMore",
       "calendar.title",
       "calendar.templates.new",

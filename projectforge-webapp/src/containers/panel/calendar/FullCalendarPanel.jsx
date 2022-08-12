@@ -347,16 +347,19 @@ function FullCalendarPanel(options) {
         timeGridWeek: {
             slotDuration: `${getSlotDuration(gridSize)}`,
             scrollTime: `${getScrollTime(firstHour)}`,
+            slotEventOverlap: false,
         },
         timeGridWorkingWeek: {
             type: 'timeGridWeek',
             weekends: false,
             slotDuration: `${getSlotDuration(gridSize)}`,
             scrollTime: `${getScrollTime(firstHour)}`,
+            slotEventOverlap: false,
         },
         timeGridDay: {
             slotDuration: `${getSlotDuration(gridSize)}`,
             scrollTime: `${getScrollTime(firstHour)}`,
+            slotEventOverlap: false,
         },
     };
     const headerToolbar = {
