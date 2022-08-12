@@ -6,6 +6,7 @@ import CustomizedAddressView from './components/CustomizedAddressView';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedAddressPhoneNumbers from './components/CustomizedAddressPhoneNumbers';
 import CustomizedAddressPhoneNumber from './components/CustomizedAddressPhoneNumber';
+import CustomizedColorChooser from './components/CustomizedColorChooser';
 import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
 import CustomizedEMail from './components/CustomizedEMail';
 import CustomizedImage from './components/CustomizedImage';
@@ -51,6 +52,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'email':
             Tag = CustomizedEMail;
+            break;
+        case 'color-chooser':
+            Tag = CustomizedColorChooser;
             break;
         case 'book.lendOutComponent':
             Tag = BookLendOut;

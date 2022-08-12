@@ -92,8 +92,8 @@ class CalEventsProvider() {
         editable = true,
         dbId = dbId,
         uid = uid,
-        backgroundColor = style?.bgColor,
-        textColor = style?.fgColor,
+        backgroundColor = style?.backgroundColor,
+        textColor = style?.textColor,
       )
         // .addParam("note", it.note)
       events.add(event)

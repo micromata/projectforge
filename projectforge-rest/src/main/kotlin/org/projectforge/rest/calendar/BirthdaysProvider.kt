@@ -87,11 +87,11 @@ object BirthdaysProvider {
       val bgColor: String
       val fgColor: String
       if (showFavoritesBirthdays && birthdayAddress.isFavorite) {
-        bgColor = favoritesStyle.bgColor
-        fgColor = favoritesStyle.fgColor
+        bgColor = favoritesStyle.backgroundColor
+        fgColor = favoritesStyle.textColor
       } else {
-        bgColor = allStyle.bgColor // favorites are not selected or entry is not a favorite
-        fgColor = allStyle.fgColor // favorites are not selected or entry is not a favorite
+        bgColor = allStyle.backgroundColor // favorites are not selected or entry is not a favorite
+        fgColor = allStyle.textColor // favorites are not selected or entry is not a favorite
       }
 
       events.add(

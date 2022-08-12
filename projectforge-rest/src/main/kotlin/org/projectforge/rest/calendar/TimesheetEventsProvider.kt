@@ -54,6 +54,7 @@ class TimesheetEventsProvider {
     end: PFDateTime,
     userId: Int?,
     events: MutableList<FullCalendarEvent>,
+    settings: CalendarSettings,
     showBreaks: Boolean? = null,
     showStatistics: Boolean = true,
   ) {
@@ -83,11 +84,11 @@ class TimesheetEventsProvider {
       ctx.firstDayOfMonth = dayInCurrentMonth.withDayOfMonth(1)
     }
 
-    val breakBackgroundColor = "#F9F9F9"
+    val breakBackgroundColor = CalendarStyle.getBackgroundColor(settings.timesheetBreaksColor, CalendarSettings.TIMESHEETS_BREAKS_DEFAULT_COLOR)
     val breakTextColor = CalendarStyle.getTextColor(breakBackgroundColor)
-    val timesheetBackgroundColor = "#2F65C8" // Blue 47 101 200
+    val timesheetBackgroundColor = CalendarStyle.getBackgroundColor(settings.timesheetsColor, CalendarSettings.TIMESHEETS_DEFAULT_COLOR)
     val timesheetTextColor = CalendarStyle.getTextColor(timesheetBackgroundColor)
-    val timesheetStatsBackgroundColor = "#2F65C8" // Blue 47 101 200
+    val timesheetStatsBackgroundColor = CalendarStyle.getBackgroundColor(settings.timesheetStatsColor, CalendarSettings.TIMESHEETS_STATS_DEFAULT_COLOR)
     val timesheetStatsTextColor = CalendarStyle.getTextColor(timesheetBackgroundColor)
 
     if (timesheets != null) {

@@ -26,17 +26,34 @@ package org.projectforge.business.calendar
 import org.projectforge.framework.cache.AbstractCache
 import java.awt.Color
 
-class CalendarStyle(var bgColor: String = "#777") {
-
-  var fgColor: String
+class CalendarStyle(
+  /**
+   * Base background color. Don't use this property as color, use backgroundColor instead.
+   */
+  var bgColor: String = "#777",
+) {
+  /**
+   * Color will be calculated from bgColor.
+   */
+  val textColor: String
     get() = colorCache.getTextColor(bgColor)
-    set(_) {
-      // Do nothing.
-    }
+
+  /**
+   * Color will be calculated from bgColor (bgCoor with alpha value).
+   */
+  val backgroundColor: String
+    get() = getBackgroundColor(bgColor)
 
   internal class RGB(val r: Int, val g: Int, val b: Int)
 
   companion object {
+    /**
+     * Appends alpha value.
+     */
+    fun getBackgroundColor(color: String?, defaultColor: String = "#777777"): String {
+      return "${color ?: defaultColor}33"
+    }
+
     private val shortHandRegex = """([a-f\d])""".toRegex()
     private val hexRegex = """#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})""".toRegex()
 
@@ -107,31 +124,16 @@ class CalendarStyle(var bgColor: String = "#777") {
 
     private fun calculateTextColor(backgroundColor: String?): String {
       val bgColor = hexToColor(backgroundColor)
-      val bgBrightness = (bgColor.red * 299 + bgColor.green * 587 + bgColor.blue * 114) / 1000 // 0-255
       val hsbColor = Color.RGBtoHSB(bgColor.red, bgColor.green, bgColor.blue, null)
       val hue = hsbColor[0]
       var saturation = hsbColor[1]
       var brightness = hsbColor[2]
-      if (bgBrightness > 127) {
-        brightness -= 0.5f // Darker
-        if (hue > 0.0001 && saturation < 0.5) { // hue > 0.0001: Preserve gray colors for white.
-          saturation += 0.5f
-        }
-      } else {
-        brightness += 0.5f // Brighter
-        if (saturation > 0.5) {
-          saturation -= 0.5f
-        }
-      }
-      if (saturation < 0) {
-        saturation = 0f
-      } else if (saturation > 1f) {
-        saturation = 1f
+      brightness -= 0.5f // Darker
+      if (hue > 0.0001 && saturation < 0.5) { // hue > 0.0001: Preserve gray colors for white.
+        saturation += 0.5f
       }
       if (brightness < 0) {
         brightness = 0f
-      } else if (brightness > 1) {
-        brightness = 1f
       }
       val color = Color(Color.HSBtoRGB(hue, saturation, brightness))
       return String.format("#%02x%02x%02x", color.red, color.green, color.blue)

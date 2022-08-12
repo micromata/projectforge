@@ -21,27 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.ui
+package org.projectforge.rest.calendar
 
-data class UICustomized(
-  val id: String,
-  var values: MutableMap<String, Any>? = null
-) : UIElement(UIElementType.CUSTOMIZED) {
-  constructor(
-    type: TYPE,
-    values: MutableMap<String, Any>? = null
-  ) : this(type.id, values)
-
-  fun add(property: String, value: Any): UICustomized {
-    if (values == null) {
-      values = mutableMapOf()
-    }
-    values?.put(property, value)
-    return this
+/**
+ * Settings for the calendar (independent of filter).
+ */
+class CalendarSettings(
+  // var contrastMode: Boolean? = null,
+  var timesheetsColor: String? = null,
+  var timesheetBreaksColor: String? = null,
+  var timesheetStatsColor: String? = null,
+  var vacationColor: String? = null,
+) {
+  companion object {
+    const val TIMESHEETS_DEFAULT_COLOR = "#2F65C8"
+    const val TIMESHEETS_BREAKS_DEFAULT_COLOR = "#F9F9F9"
+    const val TIMESHEETS_STATS_DEFAULT_COLOR = "#2F65C8"
+    const val VACATION_DEFAULT_COLOR = "#F6D9AB"
   }
-
-  /**
-   * Some specified types (known by frontend).
-   */
-  enum class TYPE(val id: String) { COLOR_CHOOSER("color-chooser") }
 }

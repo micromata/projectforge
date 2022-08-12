@@ -64,7 +64,8 @@ open class TeamCalEventsProvider() {
     end: PFDateTime,
     events: MutableList<FullCalendarEvent>,
     teamCalendarIds: List<Int?>?,
-    styleMap: CalendarStyleMap
+    styleMap: CalendarStyleMap,
+    settings: CalendarSettings,
   ) {
     if (teamCalendarIds.isNullOrEmpty())
       return
@@ -123,8 +124,8 @@ open class TeamCalEventsProvider() {
         props.dbId = dbId
         props.uid = uid
       }
-      event.backgroundColor = style?.bgColor
-      event.textColor = style?.fgColor
+      event.backgroundColor = style?.backgroundColor
+      event.textColor = style?.textColor
 
       val tooltipBuilder = TooltipBuilder()
       val title = eventDO.calendar?.title ?: ""
@@ -208,7 +209,7 @@ open class TeamCalEventsProvider() {
       val userIds = User.toIntArray(cal.includeLeaveDaysForUsers)?.toSet()
       val groupIds = Group.toIntArray(cal.includeLeaveDaysForGroups)?.toSet()
       val style = styleMap.get(calId)
-      vacationProvider.addEvents(start, end, events, groupIds, userIds, style?.bgColor)
+      vacationProvider.addEvents(start, end, events, groupIds, userIds, settings, style?.backgroundColor)
     }
   }
 }
