@@ -285,8 +285,10 @@ a.timesheet-break, a.vacation-event {
   cursor: pointer;
 }
 
-.fc-event-title {
-  font-weight: bold !important;
+.fc-timegrid {
+  .fc-event-title {
+    font-weight: bold !important;
+  }
 }
 
 .fc-toolbar.fc-header-toolbar {
