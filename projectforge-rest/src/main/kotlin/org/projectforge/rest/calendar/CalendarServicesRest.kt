@@ -338,9 +338,8 @@ class CalendarServicesRest {
           FullCalendarEvent.createAllDayEvent(
             title = specialDay.holidayTitle,
             start = specialDay.date,
-            textColor = "red",
             classNames = "fc-holiday-weekend",
-          )
+          ).withTextColor("red")
         )
       }
       if (!specialDay.workingDay) {

@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.calendar.CalendarStyle
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
@@ -40,11 +41,11 @@ class FullCalendarEvent(
   var title: String? = null,
   var description: String? = null,
   var allDay: Boolean? = null,
-  var textColor: String? = null,
-  var backgroundColor: String? = null,
   var classNames: String? = null,
   var editable: Boolean = false,
+  @Suppress("unused")
   var startEditable: Boolean? = null,
+  @Suppress("unused")
   var durationEditable: Boolean? = null,
 ) {
   enum class Category(val string: String) {
@@ -97,10 +98,43 @@ class FullCalendarEvent(
 
   var display: String? = null
 
+  var textColor: String? = null
+
+  var backgroundColor: String? = null
+
+  /**
+   * Border color is also used in list views (and agenda) for using as bullet points before title.
+   * This should be the original color (without transparency and also not the text color).
+   */
+  var borderColor: String? = null
+
   init {
     if (category != null) {
       extendedProps = ExtendedProps(category)
     }
+  }
+
+  /**
+   * Will set the backgroundColor (with transparency) and the calculated text color as well as the borderColor.
+   * The borderColor will be the bgColor.
+   * @param bgColor is the chosen color without transparency.
+   * @param style You may set the color by this style as an alternative.
+   * @return this for chaining.
+   */
+  fun withColor(bgColor: String? = null, style: CalendarStyle? = null): FullCalendarEvent {
+    val useStyle = style ?: CalendarStyle(bgColor)
+    textColor = useStyle.textColor
+    borderColor = useStyle.bgColor
+    backgroundColor = useStyle.backgroundColor
+    return this
+  }
+
+  /**
+   * Use this only, if you have no background or if you want to set all colors on your own.
+   */
+  fun withTextColor(textColor: String): FullCalendarEvent {
+    this.textColor = textColor
+    return this
   }
 
   fun ensureExtendedProps(): ExtendedProps {
@@ -142,6 +176,10 @@ class FullCalendarEvent(
       return event.start?.day == start && event.end?.day == end
     }
 
+    /**
+     * @param baseBackgroundColor backgroundColor of event without alpha channel. You may define the color by this param or by style param.
+     * @param style If given, the color of the given style will be used.
+     */
     fun createEvent(
       id: Any?,
       category: Category,
@@ -150,8 +188,8 @@ class FullCalendarEvent(
       end: Date,
       description: String? = null,
       allDay: Boolean? = false,
-      textColor: String? = null,
-      backgroundColor: String? = null,
+      baseBackgroundColor: String? = null,
+      style: CalendarStyle? = null,
       classNames: String? = null,
       dbId: Int? = null,
       uid: String? = null,
@@ -166,13 +204,12 @@ class FullCalendarEvent(
         category = category,
         title = title,
         description = description,
-        textColor = textColor,
-        backgroundColor = backgroundColor,
         classNames = classNames,
         editable = editable,
         startEditable = startEditable,
         durationEditable = durationEditable,
       )
+      event.withColor(baseBackgroundColor, style)
       if (allDay == true) {
         event.allDay = true
         event.start = EventDate(day = PFDateTime.from(start).localDate)
@@ -197,6 +234,8 @@ class FullCalendarEvent(
 
     /**
      * @param end LocalDate inclusive (plus one day is used for export for Fullcalendar which uses enddate as
+     * @param baseBackgroundColor backgroundColor of event without alpha channel. You may define the color by this param or by style param.
+     * @param style If given, the color of the given style will be used.
      * exclusive for allDay events.
      */
     fun createAllDayEvent(
@@ -206,8 +245,8 @@ class FullCalendarEvent(
       id: Any? = null,
       description: String? = null,
       category: Category? = null,
-      textColor: String? = null,
-      backgroundColor: String? = null,
+      baseBackgroundColor: String? = null,
+      style: CalendarStyle? = null,
       classNames: String? = null,
       dbId: Int? = null,
       uid: String? = null,
@@ -221,11 +260,10 @@ class FullCalendarEvent(
         allDay = true,
         title = title,
         description = description,
-        textColor = textColor,
-        backgroundColor = backgroundColor,
         classNames = classNames,
         editable = editable,
       )
+      event.withColor(baseBackgroundColor, style)
       event.start = EventDate(day = start)
       event.end = EventDate(day = end.plusDays(1))
       event.ensureExtendedProps().let { props ->

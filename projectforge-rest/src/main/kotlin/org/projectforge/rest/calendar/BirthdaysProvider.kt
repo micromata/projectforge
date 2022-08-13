@@ -84,14 +84,10 @@ object BirthdaysProvider {
         name
       }
 
-      val bgColor: String
-      val fgColor: String
-      if (showFavoritesBirthdays && birthdayAddress.isFavorite) {
-        bgColor = favoritesStyle.backgroundColor
-        fgColor = favoritesStyle.textColor
+      val style = if (showFavoritesBirthdays && birthdayAddress.isFavorite) {
+        favoritesStyle
       } else {
-        bgColor = allStyle.backgroundColor // favorites are not selected or entry is not a favorite
-        fgColor = allStyle.textColor // favorites are not selected or entry is not a favorite
+        allStyle // favorites are not selected or entry is not a favorite
       }
 
       events.add(
@@ -100,8 +96,7 @@ object BirthdaysProvider {
           category = FullCalendarEvent.Category.BIRTHDAY,
           title = title,
           start = date.beginOfDay.localDate,
-          backgroundColor = bgColor,
-          textColor = fgColor,
+          style = style,
           dbId = birthdayAddress.address?.id,
           editable = true,
         )
