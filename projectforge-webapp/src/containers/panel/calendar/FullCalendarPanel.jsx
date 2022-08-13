@@ -25,7 +25,7 @@ function FullCalendarPanel(options) {
     const {
         activeCalendars, timesheetUserId, showBreaks, locale, firstDayOfWeek,
         defaultDate, defaultView, match, translations, gridSize, firstHour,
-        vacationGroups, vacationUsers, topHeight,
+        timeNotation, vacationGroups, vacationUsers, topHeight,
     } = options;
     const [queryString] = useState(window.location.search);
     const [currentHoverEvent, setCurrentHoverEvent] = useState(null);
@@ -336,7 +336,23 @@ function FullCalendarPanel(options) {
         );
     };
 
+    const hour12 = timeNotation !== 'H24';
     const views = {
+        dayGrid: {
+            // options apply to dayGridMonth, dayGridWeek, and dayGridDay views
+            titleFormat: { year: 'numeric', month: 'long', day: '2-digit' },
+        },
+        timeGrid: {
+            // options apply to timeGridWeek and timeGridDay views
+            titleFormat: { year: 'numeric', month: 'long', day: '2-digit' },
+            slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12 },
+        },
+        week: {
+            // options apply to dayGridWeek and timeGridWeek views
+        },
+        day: {
+            // options apply to dayGridDay and timeGridDay views
+        },
         dayGridMonth: {
             fixedWeekCount: false,
         },
@@ -362,6 +378,13 @@ function FullCalendarPanel(options) {
             slotEventOverlap: false,
         },
     };
+
+    const eventTimeFormat = {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12,
+    };
+
     const headerToolbar = {
         center: 'new dayGridMonth,listMonth,dayGridWorkingMonth timeGridWeek,dayGridWeek,timeGridWorkingWeek timeGridDay',
         right: 'oldVersion today prev,next',
@@ -426,6 +449,7 @@ function FullCalendarPanel(options) {
                     eventContent={renderEventContent}
                     locales={locales}
                     locale={locale}
+                    eventTimeFormat={eventTimeFormat}
                     firstDay={firstDayOfWeek}
                     nowIndicator
                     ref={calendarRef}
@@ -461,6 +485,7 @@ function FullCalendarPanel(options) {
 
 const mapStateToProps = ({ authentication }) => ({
     firstDayOfWeek: authentication.user.firstDayOfWeekSunday0,
+    timeNotation: authentication.user.timeNotation,
     locale: authentication.user.locale,
 });
 
