@@ -84,12 +84,9 @@ class TimesheetEventsProvider {
       ctx.firstDayOfMonth = dayInCurrentMonth.withDayOfMonth(1)
     }
 
-    val breakBackgroundColor = CalendarStyle.getBackgroundColor(settings.timesheetBreaksColor, CalendarSettings.TIMESHEETS_BREAKS_DEFAULT_COLOR)
-    val breakTextColor = CalendarStyle.getTextColor(breakBackgroundColor)
-    val timesheetBackgroundColor = CalendarStyle.getBackgroundColor(settings.timesheetsColor, CalendarSettings.TIMESHEETS_DEFAULT_COLOR)
-    val timesheetTextColor = CalendarStyle.getTextColor(timesheetBackgroundColor)
-    val timesheetStatsBackgroundColor = CalendarStyle.getBackgroundColor(settings.timesheetStatsColor, CalendarSettings.TIMESHEETS_STATS_DEFAULT_COLOR)
-    val timesheetStatsTextColor = CalendarStyle.getTextColor(timesheetBackgroundColor)
+    val breakStyle = CalendarStyle(settings.timesheetBreaksColor ?: CalendarSettings.TIMESHEETS_BREAKS_DEFAULT_COLOR)
+    val timesheetStyle = CalendarStyle(settings.timesheetsColor ?: CalendarSettings.TIMESHEETS_DEFAULT_COLOR)
+    val timesheetStatsStyle = CalendarStyle(settings.timesheetStatsColor ?: CalendarSettings.TIMESHEETS_STATS_DEFAULT_COLOR)
 
     if (timesheets != null) {
       var breaksCounter = 0
@@ -115,8 +112,7 @@ class TimesheetEventsProvider {
                 end = startTime.utilDate,
                 title = translate("timesheet.break"),
                 classNames = "timesheet-break",
-                backgroundColor = breakBackgroundColor,
-                textColor = breakTextColor,
+                style = breakStyle,
               )
             )
             // val breakTimesheet = TimesheetDO().setStartDate(lastStopTime.toDate())
@@ -146,8 +142,7 @@ class TimesheetEventsProvider {
           formattedDuration = formattedDuration,
           classNames = "timesheet",
           dbId = timesheet.id,
-          backgroundColor = timesheetBackgroundColor,
-          textColor = timesheetTextColor,
+          style = timesheetStyle,
         ).let { event ->
           events.add(event)
           val tooltipBuilder = TooltipBuilder()
@@ -218,8 +213,7 @@ class TimesheetEventsProvider {
           title = title,
           start = day.localDate,
           classNames = "timesheet-stats",
-          backgroundColor = timesheetStatsBackgroundColor,
-          textColor = timesheetStatsTextColor,
+          style = timesheetStatsStyle,
         )
         events.add(event)
         day = day.plusDays(1)

@@ -27,11 +27,13 @@ import org.projectforge.framework.cache.AbstractCache
 import java.awt.Color
 
 class CalendarStyle(
+  baseBackgroundColor: String? = null,
+) {
   /**
    * Base background color. Don't use this property as color, use backgroundColor instead.
    */
-  var bgColor: String = "#777",
-) {
+  var bgColor: String = baseBackgroundColor ?: "#777"
+
   /**
    * Color will be calculated from bgColor.
    */
@@ -39,21 +41,15 @@ class CalendarStyle(
     get() = colorCache.getTextColor(bgColor)
 
   /**
-   * Color will be calculated from bgColor (bgCoor with alpha value).
+   * Color will be calculated from bgColor (bgColor with alpha value):
+   * #777 -> #7773, #777777 -> #77777733
    */
   val backgroundColor: String
-    get() = getBackgroundColor(bgColor)
+    get() = if (bgColor.length == 4) "${bgColor}3" else "${bgColor}33"
 
   internal class RGB(val r: Int, val g: Int, val b: Int)
 
   companion object {
-    /**
-     * Appends alpha value.
-     */
-    fun getBackgroundColor(color: String?, defaultColor: String = "#777777"): String {
-      return "${color ?: defaultColor}33"
-    }
-
     private val shortHandRegex = """([a-f\d])""".toRegex()
     private val hexRegex = """#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})""".toRegex()
 
@@ -126,15 +122,14 @@ class CalendarStyle(
       val bgColor = hexToColor(backgroundColor)
       val hsbColor = Color.RGBtoHSB(bgColor.red, bgColor.green, bgColor.blue, null)
       val hue = hsbColor[0]
-      var saturation = hsbColor[1]
-      var brightness = hsbColor[2]
-      brightness -= 0.5f // Darker
-      if (hue > 0.0001 && saturation < 0.5) { // hue > 0.0001: Preserve gray colors for white.
-        saturation += 0.5f
+      val saturation = hsbColor[1]
+      var brightness = hsbColor[2] - 0.6f
+      if (brightness < 0.3f) {
+        brightness = 0.3f
       }
-      if (brightness < 0) {
-        brightness = 0f
-      }
+      // if (hue > 0.0001 && saturation < 0.5) { // hue > 0.0001: Preserve gray colors for white.
+      // saturation += 0.5f
+      // }
       val color = Color(Color.HSBtoRGB(hue, saturation, brightness))
       return String.format("#%02x%02x%02x", color.red, color.green, color.blue)
     }

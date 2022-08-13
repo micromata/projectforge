@@ -124,8 +124,7 @@ open class TeamCalEventsProvider() {
         props.dbId = dbId
         props.uid = uid
       }
-      event.backgroundColor = style?.backgroundColor
-      event.textColor = style?.textColor
+      event.withColor(style = style)
 
       val tooltipBuilder = TooltipBuilder()
       val title = eventDO.calendar?.title ?: ""
@@ -209,7 +208,7 @@ open class TeamCalEventsProvider() {
       val userIds = User.toIntArray(cal.includeLeaveDaysForUsers)?.toSet()
       val groupIds = Group.toIntArray(cal.includeLeaveDaysForGroups)?.toSet()
       val style = styleMap.get(calId)
-      vacationProvider.addEvents(start, end, events, groupIds, userIds, settings, style?.bgColor)
+      vacationProvider.addEvents(start, end, events, groupIds, userIds, settings, style)
     }
   }
 }

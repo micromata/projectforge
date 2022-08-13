@@ -74,7 +74,7 @@ class CalendarLegacyFilter(val state: CalendarFilterState,
             oldFilter.templateEntries?.forEach { templateEntry ->
                 templateEntry.calendarProperties?.forEach {
                     if (!styleMap.contains(it.calId)) {
-                        styleMap.add(it.calId, CalendarStyle(bgColor = it.colorCode)) // Only bgColor was stored for ProjectForge earlier than 7.0.
+                        styleMap.add(it.calId, CalendarStyle(baseBackgroundColor = it.colorCode)) // Only bgColor was stored for ProjectForge earlier than 7.0.
                     }
                 }
             }

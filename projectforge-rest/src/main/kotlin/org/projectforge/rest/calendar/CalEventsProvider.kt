@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.calendar.CalendarStyle
 import org.projectforge.business.calendar.CalendarStyleMap
 import org.projectforge.business.teamcal.event.CalEventDao
 import org.projectforge.business.teamcal.event.TeamEventFilter
@@ -72,7 +73,7 @@ class CalEventsProvider() {
       val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate!!.time / 1000}" else ""
       //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
       val allDay = eventDO.allDay
-      val style = styleMap.get(eventDO.calendar.id)
+      val style = styleMap.get(eventDO.calendar.id) ?: CalendarStyle()
       val dbId: Int?
       val uid: String?
       if (eventDO.id > 0) {
@@ -92,10 +93,9 @@ class CalEventsProvider() {
         editable = true,
         dbId = dbId,
         uid = uid,
-        backgroundColor = style?.backgroundColor,
-        textColor = style?.textColor,
+        style = style,
       )
-        // .addParam("note", it.note)
+      // .addParam("note", it.note)
       events.add(event)
     }
   }

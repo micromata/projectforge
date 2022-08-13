@@ -57,10 +57,10 @@ class CalendarStyleMap {
         var style = styles[calendarId]
         if (style == null) {
             if (calendarId == BIRTHDAYS_FAVS_CAL_ID) {
-                style = CalendarStyle(bgColor = "#06790e")
+                style = CalendarStyle(baseBackgroundColor = "#06790e")
                 add(BIRTHDAYS_FAVS_CAL_ID, style)
             } else if (calendarId == BIRTHDAYS_ALL_CAL_ID) {
-                style = CalendarStyle(bgColor = "#ffffff")
+                style = CalendarStyle(baseBackgroundColor = "#ffffff")
                 add(BIRTHDAYS_ALL_CAL_ID, style)
             }
         }
