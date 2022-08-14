@@ -44,6 +44,7 @@ class CalendarSettingsService : AbstractDynamicPageRest() {
    */
   internal fun getSettings(): CalendarSettings {
     return userPrefService.getEntry(CalendarFilterServicesRest.PREF_AREA, PREF_NAME, CalendarSettings::class.java)
+      ?.cloneWithDefaultValues()
       ?: CalendarSettings()
   }
 
@@ -51,12 +52,12 @@ class CalendarSettingsService : AbstractDynamicPageRest() {
    * Default values will not be persisted (null values instead).
    */
   internal fun persistSettings(settings: CalendarSettings) {
-    var settings =
+    var storedSettings =
       userPrefService.getEntry(CalendarFilterServicesRest.PREF_AREA, PREF_NAME, CalendarSettings::class.java)
-    if (settings == null) {
-      settings = CalendarSettings()
-      userPrefService.putEntry(CalendarFilterServicesRest.PREF_AREA, PREF_NAME, settings)
+    if (storedSettings == null) {
+      storedSettings = CalendarSettings()
+      userPrefService.putEntry(CalendarFilterServicesRest.PREF_AREA, PREF_NAME, storedSettings)
     }
-    settings.copyWithoutDefaultsFrom(settings)
+    storedSettings.copyWithoutDefaultsFrom(settings)
   }
 }
