@@ -38,14 +38,25 @@ class CalendarSettingsService : AbstractDynamicPageRest() {
 
   private val PREF_NAME = "settings"
 
+  /**
+   * Doesn't persist the calendar settings. Will get a clone of the persisted settings or a new settings object.
+   * You have to persist modified settings through persistSettings.
+   */
   internal fun getSettings(): CalendarSettings {
+    return userPrefService.getEntry(CalendarFilterServicesRest.PREF_AREA, PREF_NAME, CalendarSettings::class.java)
+      ?: CalendarSettings()
+  }
+
+  /**
+   * Default values will not be persisted (null values instead).
+   */
+  internal fun persistSettings(settings: CalendarSettings) {
     var settings =
       userPrefService.getEntry(CalendarFilterServicesRest.PREF_AREA, PREF_NAME, CalendarSettings::class.java)
     if (settings == null) {
       settings = CalendarSettings()
-      // Don't save the settings yet, settings is under construction.
-      // userPrefService.putEntry(CalendarFilterServicesRest.PREF_AREA, PREF_NAME, settings)
+      userPrefService.putEntry(CalendarFilterServicesRest.PREF_AREA, PREF_NAME, settings)
     }
-    return settings
+    settings.copyWithoutDefaultsFrom(settings)
   }
 }

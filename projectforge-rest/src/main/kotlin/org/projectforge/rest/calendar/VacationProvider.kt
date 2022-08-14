@@ -68,7 +68,7 @@ open class VacationProvider {
     if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
       return // Nothing to do
     }
-    val useStyle = style ?: CalendarStyle(settings.vacationColor ?: CalendarSettings.VACATION_DEFAULT_COLOR)
+    val useStyle = style ?: CalendarStyle(settings.vacationsColorOrDefault)
     val vacations =
       vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
     vacations.forEach { vacation ->

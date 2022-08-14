@@ -20,6 +20,7 @@ export const colorPropType = PropTypes.oneOf([
     'danger',
     'warning',
     'info',
+    'light',
 ]);
 
 export const selectProps = {

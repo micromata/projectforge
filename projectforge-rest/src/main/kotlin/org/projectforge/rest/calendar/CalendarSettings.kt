@@ -26,17 +26,48 @@ package org.projectforge.rest.calendar
 /**
  * Settings for the calendar (independent of filter).
  */
-class CalendarSettings(
+class CalendarSettings {
   // var contrastMode: Boolean? = null,
-  var timesheetsColor: String? = null,
-  var timesheetBreaksColor: String? = null,
-  var timesheetStatsColor: String? = null,
-  var vacationColor: String? = null,
-) {
+  var timesheetsColor: String? = TIMESHEETS_DEFAULT_COLOR
+  var timesheetBreaksColor: String? = TIMESHEETS_BREAK_DEFAULT_COLOR
+  var timesheetStatsColor: String? = TIMESHEETS_STATS_DEFAULT_COLOR
+  var vacationsColor: String? = VACATIONS_DEFAULT_COLOR
+
+  val timesheetsColorOrDefault: String
+    get() = timesheetsColor ?: TIMESHEETS_DEFAULT_COLOR
+
+  val timesheetsBreaksColorOrDefault: String
+    get() = timesheetBreaksColor ?: TIMESHEETS_BREAK_DEFAULT_COLOR
+
+  val timesheetsStatsColorOrDefault: String
+    get() = timesheetStatsColor ?: TIMESHEETS_STATS_DEFAULT_COLOR
+
+  val vacationsColorOrDefault: String
+    get() = vacationsColor ?: VACATIONS_DEFAULT_COLOR
+
+  /**
+   * Removes default values before saving as user preference.
+   */
+  fun copyWithoutDefaultsFrom(src: CalendarSettings) {
+    this.timesheetsColor = getValueOrNull(src.timesheetsColor, TIMESHEETS_DEFAULT_COLOR)
+    this.timesheetBreaksColor = getValueOrNull(src.timesheetBreaksColor, TIMESHEETS_BREAK_DEFAULT_COLOR)
+    this.timesheetStatsColor = getValueOrNull(src.timesheetStatsColor, TIMESHEETS_STATS_DEFAULT_COLOR)
+    this.vacationsColor = getValueOrNull(src.vacationsColor, VACATIONS_DEFAULT_COLOR)
+  }
+
+  private fun getValueOrNull(value: String?, default: String): String? {
+    value ?: return null
+    return if (value == default) {
+      null
+    } else {
+      value
+    }
+  }
+
   companion object {
-    const val TIMESHEETS_DEFAULT_COLOR = "#2F65C8"
-    const val TIMESHEETS_BREAKS_DEFAULT_COLOR = "#F9F9F9"
-    const val TIMESHEETS_STATS_DEFAULT_COLOR = "#2F65C8"
-    const val VACATION_DEFAULT_COLOR = "#F6D9AB"
+    private const val TIMESHEETS_DEFAULT_COLOR = "#2F65C8"
+    private const val TIMESHEETS_BREAK_DEFAULT_COLOR = "#F9F9F9"
+    private const val TIMESHEETS_STATS_DEFAULT_COLOR = "#2F65C8"
+    private const val VACATIONS_DEFAULT_COLOR = "#F6D9AB"
   }
 }
