@@ -1,7 +1,7 @@
 import { faChevronDown, faCog, faEllipsis } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome/index';
 import PropTypes from 'prop-types';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
     Button,
     Col,
@@ -49,10 +49,13 @@ function CalendarFilterSettings({
     // Modal dialog with calendars, vacations and other option such first hour of day etc.
     const [open, setOpen] = useState(false);
 
-    const { saveUpdateResponseInState } = useContext(CalendarContext);
+    const [defaultCalendar, setDefaultCalendar] = useState();
 
-    // eslint-disable-next-line max-len
-    const extractDefaultCalendarValue = () => listOfDefaultCalendars.find((it) => it.id === defaultCalendarId);
+    useEffect(() => {
+        setDefaultCalendar(listOfDefaultCalendars.find((it) => it.id === defaultCalendarId));
+    }, [listOfDefaultCalendars, defaultCalendarId]);
+
+    const { saveUpdateResponseInState } = useContext(CalendarContext);
 
     const loadVacationGroupsOptions = (search, callback) => {
         fetchJsonGet(
@@ -232,7 +235,7 @@ function CalendarFilterSettings({
                                 {translations.more}
                             </UncontrolledTooltip>
                         </DropdownToggle>
-                        <DropdownMenu right="true">
+                        <DropdownMenu right>
                             <DropdownItem
                                 key="entry-item-calendar-refresh"
                             >
@@ -247,7 +250,7 @@ function CalendarFilterSettings({
                                 </UncontrolledTooltip>
                             </DropdownItem>
                             <DropdownItem
-                                key="entry-item-calendar-refresh"
+                                key="entry-item-calendar-list"
                             >
                                 <NavLink
                                     id="calendarlist"
@@ -278,7 +281,7 @@ function CalendarFilterSettings({
                                 <ReactSelect
                                     id="defaultCalendar"
                                     values={listOfDefaultCalendars}
-                                    value={extractDefaultCalendarValue}
+                                    value={defaultCalendar}
                                     label={translations['calendar.defaultCalendar']}
                                     tooltip={translations['calendar.defaultCalendar.tooltip']}
                                     translations={translations}
@@ -390,8 +393,10 @@ CalendarFilterSettings.propTypes = {
     onVacationGroupsChange: PropTypes.func.isRequired,
     onVacationUsersChange: PropTypes.func.isRequired,
     refresh: PropTypes.func.isRequired,
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    defaultCalendarId: PropTypes.number,
+    defaultCalendarId: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+    ]),
     timesheetUser: PropTypes.shape(),
     otherTimesheetUsersEnabled: PropTypes.bool,
     showBreaks: PropTypes.bool,
