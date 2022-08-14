@@ -4,6 +4,7 @@ import { Button,
     Col,
     Modal,
     ModalBody,
+    ModalFooter,
     ModalHeader,
     Row } from 'reactstrap';
 import { SketchPicker } from 'react-color';
@@ -27,7 +28,6 @@ function CustomizedColorChooser({ values }) {
 
     const handleColorChange = (color) => {
         setData({ [id]: color.hex });
-        setOpen(false);
     };
 
     const toggle = () => {
@@ -81,6 +81,7 @@ function CustomizedColorChooser({ values }) {
                 <Modal
                     isOpen={open}
                     toggle={toggle}
+                    size="sm"
                 >
                     <ModalHeader toggle={toggle}>
                         {label}
@@ -94,6 +95,11 @@ function CustomizedColorChooser({ values }) {
                             />
                         </div>
                     </ModalBody>
+                    <ModalFooter>
+                        <Button color="primary" onClick={toggle} outline>
+                            {ui.translations.finish}
+                        </Button>
+                    </ModalFooter>
                 </Modal>
             </Row>
         ),

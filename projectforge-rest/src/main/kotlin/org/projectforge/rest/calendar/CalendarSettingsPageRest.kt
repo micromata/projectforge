@@ -114,7 +114,7 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
         CalendarSettings::vacationsColor.name,
       )
     )
-    layout.addTranslations("default", "select")
+    layout.addTranslations("default", "finish", "select")
     return FormLayoutData(settings, layout, createServerData(request))
   }
 

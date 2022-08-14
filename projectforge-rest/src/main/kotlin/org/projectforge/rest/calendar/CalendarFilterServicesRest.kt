@@ -37,6 +37,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
+import org.projectforge.ui.LayoutUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
@@ -220,6 +221,7 @@ class CalendarFilterServicesRest {
       "tooltip.selectMe"
     )
     Favorites.addTranslations(translations)
+    LayoutUtils.addCommonTranslations(translations)
     initial.translations = translations
     return initial
   }

@@ -47,6 +47,9 @@ object LayoutUtils {
   fun addCommonTranslations(translations: MutableMap<String, String>) {
     addTranslations(
       "calendar.today", // Used for date picker.
+      "cancel",
+      "finish", // Color picker
+      "save", // Color picker
       "select.placeholder",
       translations = translations,
     )
