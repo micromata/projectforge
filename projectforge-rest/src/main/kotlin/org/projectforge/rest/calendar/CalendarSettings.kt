@@ -23,24 +23,26 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.calendar.CalendarStyle
+
 /**
  * Settings for the calendar (independent of filter).
  */
 class CalendarSettings {
   // var contrastMode: Boolean? = null,
   var timesheetsColor: String? = TIMESHEETS_DEFAULT_COLOR
-  var timesheetBreaksColor: String? = TIMESHEETS_BREAK_DEFAULT_COLOR
-  var timesheetStatsColor: String? = TIMESHEETS_STATS_DEFAULT_COLOR
+  var timesheetsBreaksColor: String? = TIMESHEETS_BREAK_DEFAULT_COLOR
+  var timesheetsStatsColor: String? = TIMESHEETS_STATS_DEFAULT_COLOR
   var vacationsColor: String? = VACATIONS_DEFAULT_COLOR
 
   val timesheetsColorOrDefault: String
     get() = timesheetsColor ?: TIMESHEETS_DEFAULT_COLOR
 
   val timesheetsBreaksColorOrDefault: String
-    get() = timesheetBreaksColor ?: TIMESHEETS_BREAK_DEFAULT_COLOR
+    get() = timesheetsBreaksColor ?: TIMESHEETS_BREAK_DEFAULT_COLOR
 
   val timesheetsStatsColorOrDefault: String
-    get() = timesheetStatsColor ?: TIMESHEETS_STATS_DEFAULT_COLOR
+    get() = timesheetsStatsColor ?: TIMESHEETS_STATS_DEFAULT_COLOR
 
   val vacationsColorOrDefault: String
     get() = vacationsColor ?: VACATIONS_DEFAULT_COLOR
@@ -50,24 +52,42 @@ class CalendarSettings {
    */
   fun copyWithoutDefaultsFrom(src: CalendarSettings) {
     this.timesheetsColor = getValueOrNull(src.timesheetsColor, TIMESHEETS_DEFAULT_COLOR)
-    this.timesheetBreaksColor = getValueOrNull(src.timesheetBreaksColor, TIMESHEETS_BREAK_DEFAULT_COLOR)
-    this.timesheetStatsColor = getValueOrNull(src.timesheetStatsColor, TIMESHEETS_STATS_DEFAULT_COLOR)
+    this.timesheetsBreaksColor = getValueOrNull(src.timesheetsBreaksColor, TIMESHEETS_BREAK_DEFAULT_COLOR)
+    this.timesheetsStatsColor = getValueOrNull(src.timesheetsStatsColor, TIMESHEETS_STATS_DEFAULT_COLOR)
     this.vacationsColor = getValueOrNull(src.vacationsColor, VACATIONS_DEFAULT_COLOR)
+  }
+
+  /**
+   * Gets a clone of the given (stored) calendar settings. Ensures, that all colors are present. Missing colors
+   * will be filled by their defined default colors.
+   */
+  fun cloneWithDefaultValues(): CalendarSettings {
+    val clone = CalendarSettings()
+    clone.timesheetsColor = timesheetsColorOrDefault
+    clone.timesheetsBreaksColor = timesheetsBreaksColorOrDefault
+    clone.timesheetsStatsColor = timesheetsStatsColorOrDefault
+    clone.vacationsColor = vacationsColorOrDefault
+    return clone
   }
 
   private fun getValueOrNull(value: String?, default: String): String? {
     value ?: return null
+    val color = value.trim().lowercase()
     return if (value == default) {
       null
+    } else if (CalendarStyle.validateHexCode(color)) {
+      // hex code seems to be valid.
+      color
     } else {
-      value
+      // Syntax error in color, ignoring it.
+      null
     }
   }
 
   companion object {
-    private const val TIMESHEETS_DEFAULT_COLOR = "#2F65C8"
-    private const val TIMESHEETS_BREAK_DEFAULT_COLOR = "#F9F9F9"
-    private const val TIMESHEETS_STATS_DEFAULT_COLOR = "#2F65C8"
-    private const val VACATIONS_DEFAULT_COLOR = "#F6D9AB"
+    private const val TIMESHEETS_DEFAULT_COLOR = "#2f65c8"
+    private const val TIMESHEETS_BREAK_DEFAULT_COLOR = "#f9f9f9"
+    private const val TIMESHEETS_STATS_DEFAULT_COLOR = "#2f65c8"
+    private const val VACATIONS_DEFAULT_COLOR = "#f6d9ab"
   }
 }

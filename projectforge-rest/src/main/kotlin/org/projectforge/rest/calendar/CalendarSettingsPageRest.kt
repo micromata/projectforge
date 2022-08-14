@@ -24,6 +24,7 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.Constants
+import org.projectforge.business.calendar.CalendarStyle
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
@@ -33,9 +34,12 @@ import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
+import kotlin.reflect.KMutableProperty1
 
 /**
  * Page and services for settings for the calendar (independent of filter).
@@ -45,6 +49,18 @@ import javax.validation.Valid
 class CalendarSettingsPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var calendarSettingsRest: CalendarSettingsService
+
+  fun validate(data: CalendarSettings): ResponseEntity<ResponseAction>? {
+    val validationErrors = mutableListOf<ValidationError>()
+    checkColorCode(validationErrors, CalendarSettings::timesheetsColor, data.timesheetsColor)
+    checkColorCode(validationErrors, CalendarSettings::timesheetsBreaksColor, data.timesheetsBreaksColor)
+    checkColorCode(validationErrors, CalendarSettings::timesheetsStatsColor, data.timesheetsStatsColor)
+    checkColorCode(validationErrors, CalendarSettings::vacationsColor, data.vacationsColor)
+    if (validationErrors.isEmpty()) {
+      return null
+    }
+    return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+  }
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
@@ -60,11 +76,11 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
             .add("label", translate("calendar.settings.colors.timesheets"))
         )
         .add(
-          UICustomized(UICustomized.TYPE.COLOR_CHOOSER).add("id", CalendarSettings::timesheetStatsColor.name)
+          UICustomized(UICustomized.TYPE.COLOR_CHOOSER).add("id", CalendarSettings::timesheetsStatsColor.name)
             .add("label", translate("calendar.settings.colors.timesheetStats"))
         )
         .add(
-          UICustomized(UICustomized.TYPE.COLOR_CHOOSER).add("id", CalendarSettings::timesheetBreaksColor.name)
+          UICustomized(UICustomized.TYPE.COLOR_CHOOSER).add("id", CalendarSettings::timesheetsBreaksColor.name)
             .add("label", translate("calendar.settings.colors.timesheetBreaks"))
         )
         .add(
@@ -79,16 +95,15 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
       UIButton.createDefaultButton(
         "save",
         title = "save",
-        responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-          .addVariable("hash", NumberHelper.getSecureRandomAlphanumeric(4)),
+        responseAction = ResponseAction(this.getRestPath(RestPaths.SAVE), targetType = TargetType.POST)
       )
     )
     LayoutUtils.process(layout)
     layout.watchFields.addAll(
       arrayOf(
         CalendarSettings::timesheetsColor.name,
-        CalendarSettings::timesheetStatsColor.name,
-        CalendarSettings::timesheetBreaksColor.name,
+        CalendarSettings::timesheetsStatsColor.name,
+        CalendarSettings::timesheetsBreaksColor.name,
         CalendarSettings::vacationsColor.name,
       )
     )
@@ -96,11 +111,38 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
   }
 
   @PostMapping(RestPaths.WATCH_FIELDS)
-  fun watchFields(@Valid @RequestBody postData: PostData<CalendarSettings>): ResponseAction {
-    if (postData.watchFieldsTriggered?.contains("employee") == false) {
-      return ResponseAction(targetType = TargetType.NOTHING)
-    }
-    return ResponseAction(targetType = TargetType.NOTHING)
+  fun watchFields(@Valid @RequestBody postData: PostData<CalendarSettings>): ResponseEntity<*> {
+    val data = postData.data
+    validate(data)?.let { return it }
+    return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
   }
 
+  @PostMapping(RestPaths.SAVE)
+  fun save(
+    request: HttpServletRequest,
+    @RequestBody postData: PostData<CalendarSettings>
+  ): ResponseEntity<ResponseAction> {
+    validateCsrfToken(request, postData)?.let { return it }
+    val data = postData.data
+    validate(data)?.let { return it }
+    calendarSettingsRest.persistSettings(data)
+    return ResponseEntity.ok(
+      ResponseAction("/${Constants.REACT_APP_PATH}calendar?hash=${NumberHelper.getSecureRandomAlphanumeric(4)}")
+    )
+  }
+
+  private fun checkColorCode(
+    validationErrors: MutableList<ValidationError>,
+    fieldId: KMutableProperty1<*, *>,
+    color: String?
+  ) {
+    if (color.isNullOrBlank()) {
+      // Nothing to validate
+      return
+    }
+    val checkColor = color.trim().lowercase()
+    if (!CalendarStyle.validateHexCode(checkColor)) {
+      validationErrors.add(ValidationError(translate("color.error.unknownFormat"), fieldId = fieldId.name))
+    }
+  }
 }
