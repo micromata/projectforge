@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common.development
+package org.projectforge.development
 
 import java.io.File
 import java.nio.charset.StandardCharsets
