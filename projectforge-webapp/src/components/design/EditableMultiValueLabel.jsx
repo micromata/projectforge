@@ -57,6 +57,10 @@ function EditableMultiValueLabel({
         selectProps.setMultiValue(data.id, initialValue);
     };
 
+    const cancelValue = () => {
+        setIsOpen(false);
+    };
+
     // Handle Different Types of Filters
     switch (data.filterType) {
         case 'COLOR_PICKER':
@@ -140,9 +144,15 @@ function EditableMultiValueLabel({
                 }}
             >
                 {popperContent}
-                <Button color="success" block onClick={submitValue}>
-                    <FontAwesomeIcon icon={faCheck} />
-                </Button>
+                <div style={{ float: 'right' }}>
+                    <Button color="danger" outline onClick={cancelValue}>
+                        {translations.cancel}
+                    </Button>
+                    {' '}
+                    <Button color="primary" outline onClick={submitValue}>
+                        {translations.save}
+                    </Button>
+                </div>
             </div>
         </Popper>
     );
@@ -157,7 +167,10 @@ EditableMultiValueLabel.propTypes = {
         style: PropTypes.shape(),
         isNew: PropTypes.bool,
         __isNew__: PropTypes.bool,
-        translations: PropTypes.shape({}),
+        translations: PropTypes.shape({
+            cancel: PropTypes.string.isRequired,
+            save: PropTypes.string.isRequired,
+        }),
     }).isRequired,
     selectProps: PropTypes.shape({
         setMultiValue: PropTypes.func,
