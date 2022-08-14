@@ -86,7 +86,7 @@ function DynamicButton(props) {
                         <Button color="secondary" outline onClick={toggleShowConfirmMessage}>
                             {ui.translations.cancel || 'cancel'}
                         </Button>
-                        <Button color="primary" onClick={confirmAction}>
+                        <Button color="primary" outline onClick={confirmAction}>
                             {ui.translations.yes || 'yes'}
                         </Button>
                     </ModalFooter>
