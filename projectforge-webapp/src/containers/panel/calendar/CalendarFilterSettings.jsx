@@ -22,6 +22,7 @@ import { fetchJsonGet, fetchJsonPost, getServiceURL } from '../../../utilities/r
 import prefix from '../../../utilities/prefix';
 import { CalendarContext } from '../../page/calendar/CalendarContext';
 import { Nav } from '../../../components/design';
+import history from '../../../utilities/history';
 
 /**
  * Settings of a calendar view: time sheet user, default calendar for new events, show holidays etc.
@@ -237,6 +238,17 @@ function CalendarFilterSettings({
                         </DropdownToggle>
                         <DropdownMenu right>
                             <DropdownItem
+                                key="entry-item-calendar-settings"
+                            >
+                                <NavLink
+                                    id="calendarSettings"
+                                    onClick={() => history.push(`${prefix}calendar/calendarSettings/dynamic`)}
+                                    rel="noopener noreferrer"
+                                >
+                                    {translations['calendar.settings'] || '[Calendar settings]'}
+                                </NavLink>
+                            </DropdownItem>
+                            <DropdownItem
                                 key="entry-item-calendar-refresh"
                             >
                                 <NavLink
@@ -420,6 +432,7 @@ CalendarFilterSettings.propTypes = {
         'calendar.option.firstHour.tooltip': PropTypes.string,
         'calendar.option.gridSize': PropTypes.string,
         'calendar.option.gridSize.tooltip': PropTypes.string,
+        'calendar.settings': PropTypes.string,
         'calendar.view.settings.tooltip': PropTypes.string,
         'menu.plugins.teamcal': PropTypes.string,
         'plugins.teamcal.calendar.listAndIcsExport.tooltip': PropTypes.string,

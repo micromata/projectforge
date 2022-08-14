@@ -74,18 +74,25 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
           UICustomized(UICustomized.TYPE.COLOR_CHOOSER)
             .add("id", CalendarSettings::timesheetsColor.name)
             .add("label", translate("calendar.settings.colors.timesheets"))
+            .add("defaultColor", CalendarSettings.TIMESHEETS_DEFAULT_COLOR)
         )
         .add(
-          UICustomized(UICustomized.TYPE.COLOR_CHOOSER).add("id", CalendarSettings::timesheetsStatsColor.name)
+          UICustomized(UICustomized.TYPE.COLOR_CHOOSER)
+            .add("id", CalendarSettings::timesheetsStatsColor.name)
             .add("label", translate("calendar.settings.colors.timesheetStats"))
+            .add("defaultColor", CalendarSettings.TIMESHEETS_STATS_DEFAULT_COLOR)
         )
         .add(
-          UICustomized(UICustomized.TYPE.COLOR_CHOOSER).add("id", CalendarSettings::timesheetsBreaksColor.name)
+          UICustomized(UICustomized.TYPE.COLOR_CHOOSER)
+            .add("id", CalendarSettings::timesheetsBreaksColor.name)
             .add("label", translate("calendar.settings.colors.timesheetBreaks"))
+            .add("defaultColor", CalendarSettings.TIMESHEETS_BREAKS_DEFAULT_COLOR)
         )
         .add(
-          UICustomized(UICustomized.TYPE.COLOR_CHOOSER).add("id", CalendarSettings::vacationsColor.name)
+          UICustomized(UICustomized.TYPE.COLOR_CHOOSER)
+            .add("id", CalendarSettings::vacationsColor.name)
             .add("label", translate("calendar.settings.colors.vacations"))
+            .add("defaultColor", CalendarSettings.VACATIONS_DEFAULT_COLOR)
         )
         .add(UIAlert("calendar.settings.colors.vacations.info", color = UIColor.LIGHT, markdown = true))
     )
@@ -107,6 +114,7 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
         CalendarSettings::vacationsColor.name,
       )
     )
+    layout.addTranslations("default", "select")
     return FormLayoutData(settings, layout, createServerData(request))
   }
 

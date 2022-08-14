@@ -31,7 +31,7 @@ import org.projectforge.business.calendar.CalendarStyle
 class CalendarSettings {
   // var contrastMode: Boolean? = null,
   var timesheetsColor: String? = TIMESHEETS_DEFAULT_COLOR
-  var timesheetsBreaksColor: String? = TIMESHEETS_BREAK_DEFAULT_COLOR
+  var timesheetsBreaksColor: String? = TIMESHEETS_BREAKS_DEFAULT_COLOR
   var timesheetsStatsColor: String? = TIMESHEETS_STATS_DEFAULT_COLOR
   var vacationsColor: String? = VACATIONS_DEFAULT_COLOR
 
@@ -39,7 +39,7 @@ class CalendarSettings {
     get() = timesheetsColor ?: TIMESHEETS_DEFAULT_COLOR
 
   val timesheetsBreaksColorOrDefault: String
-    get() = timesheetsBreaksColor ?: TIMESHEETS_BREAK_DEFAULT_COLOR
+    get() = timesheetsBreaksColor ?: TIMESHEETS_BREAKS_DEFAULT_COLOR
 
   val timesheetsStatsColorOrDefault: String
     get() = timesheetsStatsColor ?: TIMESHEETS_STATS_DEFAULT_COLOR
@@ -52,7 +52,7 @@ class CalendarSettings {
    */
   fun copyWithoutDefaultsFrom(src: CalendarSettings) {
     this.timesheetsColor = getValueOrNull(src.timesheetsColor, TIMESHEETS_DEFAULT_COLOR)
-    this.timesheetsBreaksColor = getValueOrNull(src.timesheetsBreaksColor, TIMESHEETS_BREAK_DEFAULT_COLOR)
+    this.timesheetsBreaksColor = getValueOrNull(src.timesheetsBreaksColor, TIMESHEETS_BREAKS_DEFAULT_COLOR)
     this.timesheetsStatsColor = getValueOrNull(src.timesheetsStatsColor, TIMESHEETS_STATS_DEFAULT_COLOR)
     this.vacationsColor = getValueOrNull(src.vacationsColor, VACATIONS_DEFAULT_COLOR)
   }
@@ -85,9 +85,9 @@ class CalendarSettings {
   }
 
   companion object {
-    private const val TIMESHEETS_DEFAULT_COLOR = "#2f65c8"
-    private const val TIMESHEETS_BREAK_DEFAULT_COLOR = "#f9f9f9"
-    private const val TIMESHEETS_STATS_DEFAULT_COLOR = "#2f65c8"
-    private const val VACATIONS_DEFAULT_COLOR = "#f6d9ab"
+    internal const val TIMESHEETS_DEFAULT_COLOR = "#2f65c8"
+    internal const val TIMESHEETS_BREAKS_DEFAULT_COLOR = "#f9f9f9"
+    internal const val TIMESHEETS_STATS_DEFAULT_COLOR = "#2f65c8"
+    internal const val VACATIONS_DEFAULT_COLOR = "#f6d9ab"
   }
 }
