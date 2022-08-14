@@ -24,16 +24,18 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.Constants
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
+import javax.validation.Valid
 
 /**
  * Page and services for settings for the calendar (independent of filter).
@@ -48,20 +50,28 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
   fun getForm(request: HttpServletRequest): FormLayoutData {
     val layout = UILayout("calendar.settings.title")
     val settings = calendarSettingsRest.getSettings()
-    layout.add(UIAlert("calendar.settings.intro", color = UIColor.INFO))
     // layout.add(UICheckbox("contrastMode"))
     layout.add(
-      UICustomized(UICustomized.TYPE.COLOR_CHOOSER)
-        .add("property", CalendarSettings::timesheetsColor.name)
-        .add("label", "calendar.settings.timesheetsColor")
-    )
-    layout.add(
-      UICustomized(UICustomized.TYPE.COLOR_CHOOSER).add("property", CalendarSettings::timesheetStatsColor.name)
-        .add("label", "calendar.settings.timesheetStatsColor")
-    )
-    layout.add(
-      UICustomized(UICustomized.TYPE.COLOR_CHOOSER).add("property", CalendarSettings::timesheetBreaksColor.name)
-        .add("label", "calendar.settings.timesheetBreaksColor")
+      UIFieldset(12, "calendar.settings.colors")
+        .add(UIAlert("calendar.settings.intro", color = UIColor.INFO))
+        .add(
+          UICustomized(UICustomized.TYPE.COLOR_CHOOSER)
+            .add("id", CalendarSettings::timesheetsColor.name)
+            .add("label", translate("calendar.settings.colors.timesheets"))
+        )
+        .add(
+          UICustomized(UICustomized.TYPE.COLOR_CHOOSER).add("id", CalendarSettings::timesheetStatsColor.name)
+            .add("label", translate("calendar.settings.colors.timesheetStats"))
+        )
+        .add(
+          UICustomized(UICustomized.TYPE.COLOR_CHOOSER).add("id", CalendarSettings::timesheetBreaksColor.name)
+            .add("label", translate("calendar.settings.colors.timesheetBreaks"))
+        )
+        .add(
+          UICustomized(UICustomized.TYPE.COLOR_CHOOSER).add("id", CalendarSettings::vacationsColor.name)
+            .add("label", translate("calendar.settings.colors.vacations"))
+        )
+        .add(UIAlert("calendar.settings.colors.vacations.info", color = UIColor.LIGHT, markdown = true))
     )
     layout.add(
       UIButton.createCancelButton(responseAction = ResponseAction("/${Constants.REACT_APP_PATH}calendar"))
@@ -74,6 +84,23 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
       )
     )
     LayoutUtils.process(layout)
+    layout.watchFields.addAll(
+      arrayOf(
+        CalendarSettings::timesheetsColor.name,
+        CalendarSettings::timesheetStatsColor.name,
+        CalendarSettings::timesheetBreaksColor.name,
+        CalendarSettings::vacationsColor.name,
+      )
+    )
     return FormLayoutData(settings, layout, createServerData(request))
   }
+
+  @PostMapping(RestPaths.WATCH_FIELDS)
+  fun watchFields(@Valid @RequestBody postData: PostData<CalendarSettings>): ResponseAction {
+    if (postData.watchFieldsTriggered?.contains("employee") == false) {
+      return ResponseAction(targetType = TargetType.NOTHING)
+    }
+    return ResponseAction(targetType = TargetType.NOTHING)
+  }
+
 }

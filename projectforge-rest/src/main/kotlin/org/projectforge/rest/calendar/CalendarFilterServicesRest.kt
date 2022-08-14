@@ -198,6 +198,8 @@ class CalendarFilterServicesRest {
       "calendar.option.showBreaks.tooltip",
       "calendar.option.timesheets",
       "calendar.settings",
+      "calendar.settings.colors",
+      "calendar.settings.colors.vacations.info",
       "calendar.settings.intro",
       "calendar.settings.tooltip",
       "calendar.showMore",

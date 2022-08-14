@@ -84,9 +84,9 @@ class TimesheetEventsProvider {
       ctx.firstDayOfMonth = dayInCurrentMonth.withDayOfMonth(1)
     }
 
-    val breakStyle = CalendarStyle(settings.timesheetBreaksColor ?: CalendarSettings.TIMESHEETS_BREAKS_DEFAULT_COLOR)
-    val timesheetStyle = CalendarStyle(settings.timesheetsColor ?: CalendarSettings.TIMESHEETS_DEFAULT_COLOR)
-    val timesheetStatsStyle = CalendarStyle(settings.timesheetStatsColor ?: CalendarSettings.TIMESHEETS_STATS_DEFAULT_COLOR)
+    val breakStyle = CalendarStyle(settings.timesheetsBreaksColorOrDefault)
+    val timesheetStyle = CalendarStyle(settings.timesheetsColorOrDefault)
+    val timesheetStatsStyle = CalendarStyle(settings.timesheetsStatsColorOrDefault)
 
     if (timesheets != null) {
       var breaksCounter = 0
