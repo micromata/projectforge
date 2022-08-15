@@ -95,6 +95,13 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
             .add("defaultColor", CalendarSettings.VACATIONS_DEFAULT_COLOR)
         )
         .add(UIAlert("calendar.settings.colors.vacations.info", color = UIColor.LIGHT, markdown = true))
+        .add(
+          UICheckbox(
+            CalendarSettings::alternateHoursBackground.name,
+            label = "calendar.settings.alternateHoursBackground",
+            tooltip = "calendar.settings.alternateHoursBackground.toolip",
+          )
+        )
     )
     layout.add(
       UIButton.createCancelButton(responseAction = ResponseAction("/${Constants.REACT_APP_PATH}calendar"))
