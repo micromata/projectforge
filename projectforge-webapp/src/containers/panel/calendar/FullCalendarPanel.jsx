@@ -25,7 +25,7 @@ function FullCalendarPanel(options) {
     const {
         activeCalendars, timesheetUserId, showBreaks, locale, firstDayOfWeek,
         defaultDate, defaultView, match, translations, gridSize, firstHour,
-        timeNotation, vacationGroups, vacationUsers, topHeight,
+        timeNotation, vacationGroups, vacationUsers, topHeight, alternateHoursBackground,
     } = options;
     const [queryString] = useState(window.location.search);
     const [currentHoverEvent, setCurrentHoverEvent] = useState(null);
@@ -431,41 +431,44 @@ function FullCalendarPanel(options) {
 
     // console.log('FullCalendarPanel.render', defaultDate, defaultView);
     return (
+        // grid-size-## is used for alternating background row colors (hours) in time grid view.
         <LoadingContainer loading={loading}>
             {useMemo(() => (
-                <FullCalendar
-                    /* eslint-disable-next-line max-len */
-                    plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, bootstrapPlugin]}
-                    initialView={defaultView}
-                    initialDate={initialDate}
-                    events={fetchEvents}
-                    editable
-                    eventResizableFromStart
-                    selectable
-                    headerToolbar={headerToolbar}
-                    customButtons={customButtons}
-                    allDaySlot
-                    views={views}
-                    eventContent={renderEventContent}
-                    locales={locales}
-                    locale={locale}
-                    eventTimeFormat={eventTimeFormat}
-                    firstDay={firstDayOfWeek}
-                    nowIndicator
-                    ref={calendarRef}
-                    datesSet={handleDatesSet}
-                    eventClick={handleEventClick}
-                    select={handleSelect}
-                    eventDragStart={closePopOver}
-                    eventResizeStart={closePopOver}
-                    eventResize={handleEventResize}
-                    eventDrop={handleEventDrop}
-                    eventMouseEnter={handleEventMouseEnter}
-                    eventMouseLeave={closePopOver}
-                    height={`calc(100vh - ${topHeight})`}
-                    themeSystem="bootstrap"
-                />
-            ), [gridSize, firstHour])}
+                <div className={`grid-size-${gridSize}${alternateHoursBackground === true ? '' : '-none'}`}>
+                    <FullCalendar
+                        /* eslint-disable-next-line max-len */
+                        plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, bootstrapPlugin]}
+                        initialView={defaultView}
+                        initialDate={initialDate}
+                        events={fetchEvents}
+                        editable
+                        eventResizableFromStart
+                        selectable
+                        headerToolbar={headerToolbar}
+                        customButtons={customButtons}
+                        allDaySlot
+                        views={views}
+                        eventContent={renderEventContent}
+                        locales={locales}
+                        locale={locale}
+                        eventTimeFormat={eventTimeFormat}
+                        firstDay={firstDayOfWeek}
+                        nowIndicator
+                        ref={calendarRef}
+                        datesSet={handleDatesSet}
+                        eventClick={handleEventClick}
+                        select={handleSelect}
+                        eventDragStart={closePopOver}
+                        eventResizeStart={closePopOver}
+                        eventResize={handleEventResize}
+                        eventDrop={handleEventDrop}
+                        eventMouseEnter={handleEventMouseEnter}
+                        eventMouseLeave={closePopOver}
+                        height={`calc(100vh - ${topHeight})`}
+                        themeSystem="bootstrap"
+                    />
+                </div>
+            ), [gridSize, firstHour, alternateHoursBackground])}
             <CalendarEventTooltip
                 forwardRef={tooltipRef}
                 event={currentHoverEvent}

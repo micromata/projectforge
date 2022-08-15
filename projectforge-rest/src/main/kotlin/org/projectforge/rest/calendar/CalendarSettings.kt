@@ -30,6 +30,10 @@ import org.projectforge.business.calendar.CalendarStyle
  */
 class CalendarSettings {
   // var contrastMode: Boolean? = null,
+  /**
+   * If true, the background colors of even and odd hours in the week and day views are alternated.
+   */
+  var alternateHoursBackground: Boolean? = true
   var timesheetsColor: String? = TIMESHEETS_DEFAULT_COLOR
   var timesheetsBreaksColor: String? = TIMESHEETS_BREAKS_DEFAULT_COLOR
   var timesheetsStatsColor: String? = TIMESHEETS_STATS_DEFAULT_COLOR
@@ -55,6 +59,7 @@ class CalendarSettings {
     this.timesheetsBreaksColor = getValueOrNull(src.timesheetsBreaksColor, TIMESHEETS_BREAKS_DEFAULT_COLOR)
     this.timesheetsStatsColor = getValueOrNull(src.timesheetsStatsColor, TIMESHEETS_STATS_DEFAULT_COLOR)
     this.vacationsColor = getValueOrNull(src.vacationsColor, VACATIONS_DEFAULT_COLOR)
+    this.alternateHoursBackground = src.alternateHoursBackground
   }
 
   /**
@@ -67,6 +72,7 @@ class CalendarSettings {
     clone.timesheetsBreaksColor = timesheetsBreaksColorOrDefault
     clone.timesheetsStatsColor = timesheetsStatsColorOrDefault
     clone.vacationsColor = vacationsColorOrDefault
+    clone.alternateHoursBackground = alternateHoursBackground
     return clone
   }
 

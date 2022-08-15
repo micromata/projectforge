@@ -54,6 +54,7 @@ class CalendarFilterServicesRest {
     var date: LocalDate? = null,
     @Suppress("unused")
     var view: String? = CalendarView.WEEK.key,
+    var alternateHoursBackground: Boolean? = null,
     var teamCalendars: List<StyledTeamCalendar>? = null,
     var filterFavorites: List<Favorites.FavoriteIdTitle>? = null,
     /**
@@ -102,6 +103,9 @@ class CalendarFilterServicesRest {
   }
 
   @Autowired
+  private lateinit var calendarSettingService: CalendarSettingsService
+
+  @Autowired
   private lateinit var userPrefService: UserPrefService
 
   @Autowired
@@ -136,6 +140,7 @@ class CalendarFilterServicesRest {
     val state = getFilterState()
     initial.date = state.startDate
     initial.view = state.view?.key ?: CalendarView.MONTH.key
+    initial.alternateHoursBackground = calendarSettingService.getSettings().alternateHoursBackground
 
     initial.activeCalendars = getActiveCalendars(currentFilter, calendars, styleMap)
     initial.vacationGroups = currentFilter.vacationGroupIds?.map {

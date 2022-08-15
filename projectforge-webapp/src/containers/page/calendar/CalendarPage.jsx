@@ -21,6 +21,7 @@ function CalendarPage({ match, location }) {
         colors: {},
         date: dateParam,
         view: undefined,
+        alternateHoursBackground: undefined,
         teamCalendars: undefined,
         activeCalendars: [],
         filter: {
@@ -125,6 +126,8 @@ function CalendarPage({ match, location }) {
             colors: newState.colors || prevState.colors,
             date: newState.date || prevState.date,
             view: newState.view || prevState.view,
+            alternateHoursBackground: newState.alternateHoursBackground
+                || prevState.alternateHoursBackground,
             teamCalendars: newState.teamCalendars || prevState.teamCalendars,
             activeCalendars: newState.activeCalendars || prevState.activeCalendars,
             styleMap: newState.styleMap || prevState.styleMap,
@@ -327,6 +330,7 @@ function CalendarPage({ match, location }) {
                         <FullCalendarPanel
                             defaultDate={state.date}
                             defaultView={state.view}
+                            alternateHoursBackground={state.alternateHoursBackground}
                             gridSize={state.filter.gridSize}
                             firstHour={state.filter.firstHour}
                             activeCalendars={state.activeCalendars}

@@ -72,6 +72,7 @@ div.dropZone {
     vertical-align: middle;
     margin-top: 20px;
     cursor: pointer;
+
     .icon {
       margin-right: 10px;
     }
@@ -285,6 +286,51 @@ a.timesheet-break, a.vacation-event {
   cursor: pointer;
 }
 
+// 60 minutes
+.grid-size-60 .fc-timegrid-slots {
+  tr:nth-of-type(odd) {
+    background: #00000007;
+  }
+}
+
+// 30 minutes
+.grid-size-30 .fc-timegrid-slots {
+  tr:nth-of-type(4n+1), tr:nth-of-type(4n+2) {
+    background: #00000007;
+  }
+}
+
+// 15 minutes
+.grid-size-15 .fc-timegrid-slots {
+  tr:nth-of-type(8n+1), tr:nth-of-type(8n+2), tr:nth-of-type(8n+3), tr:nth-of-type(8n+4) {
+    background: #00000007;
+  }
+}
+
+// 10 minutes
+.grid-size-10 .fc-timegrid-slots {
+  tr:nth-of-type(12n+1), tr:nth-of-type(12n+2), tr:nth-of-type(12n+3), tr:nth-of-type(12n+4), tr:nth-of-type(12n+5), tr:nth-of-type(12n+6) {
+    background: #00000007;
+  }
+}
+
+// 5 minutes
+.grid-size-5 .fc-timegrid-slots {
+  tr:nth-of-type(24n+1), tr:nth-of-type(24n+2), tr:nth-of-type(24n+3), tr:nth-of-type(24n+4), tr:nth-of-type(24n+5), tr:nth-of-type(24n+6), tr:nth-of-type(24n+7), tr:nth-of-type(24n+8), tr:nth-of-type(24n+9), tr:nth-of-type(24n+10), tr:nth-of-type(24n+11), tr:nth-of-type(24n+12) {
+    background: #00000007;
+  }
+}
+
+.fc-timegrid-event .fc-event-main {
+  padding: 1px 4px 0 !important;
+  backdrop-filter: blur(1px) !important;
+}
+
+.fc-daygrid-block-event .fc-event-time, .fc-daygrid-block-event .fc-event-title {
+  padding: 1px 0 1px 1px !important;
+  backdrop-filter: blur(1px) !important;
+}
+
 .fc-timegrid {
   .fc-event-title {
     font-weight: bold !important;
@@ -300,9 +346,11 @@ a.timesheet-break, a.vacation-event {
     border-color: #aaa !important;
     white-space: nowrap;
   }
+
   .btn-primary.active {
     background-color: #ccc !important;
   }
+
   .btn-group {
     margin-top: 0px !important;
   }

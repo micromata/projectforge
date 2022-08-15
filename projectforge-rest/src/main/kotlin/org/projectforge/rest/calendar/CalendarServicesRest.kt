@@ -62,6 +62,7 @@ import javax.ws.rs.BadRequestException
 class CalendarServicesRest {
   internal class CalendarData(
     val date: LocalDate,
+    val alternateHoursBackground: Boolean?,
     @Suppress("unused") val events: List<FullCalendarEvent>,
   )
 
@@ -96,7 +97,7 @@ class CalendarServicesRest {
   private lateinit var calendarFilterServicesRest: CalendarFilterServicesRest
 
   @Autowired
-  private lateinit var calendarSettingsRest: CalendarSettingsService
+  private lateinit var calendarSettingsService: CalendarSettingsService
 
   @Autowired
   private lateinit var teamCalCache: TeamCalCache
@@ -264,7 +265,7 @@ class CalendarServicesRest {
       PFDateTime.fromOrNull(filter.end)
     )
     adjustRange(range)
-    val settings = calendarSettingsRest.getSettings()
+    val settings = calendarSettingsService.getSettings()
     timesheetsProvider.addTimesheetEvents(
       range.start,
       range.end!!,
@@ -351,7 +352,7 @@ class CalendarServicesRest {
         )
       }
     }
-    return CalendarData(range.start.localDate, events)
+    return CalendarData(range.start.localDate, calendarSettingsService.getSettings().alternateHoursBackground, events)
   }
 
   /**
