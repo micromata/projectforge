@@ -23,4 +23,4 @@
 
 package org.projectforge.security.dto
 
-class WebAuthnExtensions(var appidExclude: String, var credProps: Boolean = true)
+class WebAuthnExtensions(var appidExclude: String, var credProps: Boolean = false)
