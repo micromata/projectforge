@@ -231,7 +231,9 @@ function FullCalendarPanel(options) {
         const category = event.extendedProps?.category;
         if (category === 'timesheet-break') {
             history.push(`${match.url}/timesheet/edit?startDate=${event.start.getTime() / 1000}&endDate=${event.end.getTime() / 1000}`);
-        } else if (!category || !id || event.startEditable !== true) {
+        } else if (category === 'timesheet-stats') {
+            // Do nothing
+        } else if (category === 'vaction') {
             history.push(`${match.url}/vacation/edit/${id}?returnToCaller=%2Freact%2Fcalendar`);
         } else if (category === 'address') {
             // start date is send to the server and is needed for series events to detect the
