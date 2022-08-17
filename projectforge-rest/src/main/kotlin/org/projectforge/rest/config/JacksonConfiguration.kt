@@ -46,10 +46,10 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.jcr.Attachment
-import org.projectforge.framework.json.*
+import org.projectforge.framework.json.HibernateProxySerializer
+import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.calendar.*
 import org.projectforge.rest.config.JacksonConfiguration.Companion.registerAllowedUnknownProperties
 import org.projectforge.rest.dto.*
@@ -58,9 +58,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.math.BigDecimal
-import java.sql.Timestamp
-import java.time.LocalDate
-import java.time.LocalTime
 
 private val log = KotlinLogging.logger {}
 
@@ -246,24 +243,7 @@ open class JacksonConfiguration {
         return deserializer
       }
     })
-    module.addSerializer(LocalDate::class.java, LocalDateSerializer())
-    module.addDeserializer(LocalDate::class.java, LocalDateDeserializer())
-
-    module.addSerializer(LocalTime::class.java, LocalTimeSerializer())
-    module.addDeserializer(LocalTime::class.java, LocalTimeDeserializer())
-
-    module.addSerializer(PFDateTime::class.java, PFDateTimeSerializer())
-    module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
-
-    module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
-    module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer())
-
-    module.addSerializer(Timestamp::class.java, TimestampSerializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
-    module.addDeserializer(Timestamp::class.java, TimestampDeserializer())
-
-    module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
-    module.addDeserializer(java.sql.Date::class.java, SqlDateDeserializer())
-
+    JsonUtils.initializeMapper(module)
     module.addDeserializer(String::class.java, TextDeserializer())
     module.addDeserializer(java.lang.Integer::class.java, IntDeserializer())
     module.addDeserializer(BigDecimal::class.java, BigDecimalDeserializer())

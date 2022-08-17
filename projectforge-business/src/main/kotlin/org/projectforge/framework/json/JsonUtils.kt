@@ -27,10 +27,14 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import mu.KotlinLogging
-import org.slf4j.LoggerFactory
+import org.projectforge.framework.time.PFDateTime
 import java.io.IOException
+import java.sql.Timestamp
+import java.time.LocalDate
+import java.time.LocalTime
 
 private val log = KotlinLogging.logger {}
 
@@ -48,6 +52,9 @@ object JsonUtils {
   init {
     objectMapper.registerModule(KotlinModule())
     objectMapperIgnoreNullableProps.registerModule(KotlinModule())
+    val module = SimpleModule()
+    initializeMapper(module)
+    objectMapper.registerModule(module)
     objectMapperIgnoreNullableProps.setSerializationInclusion(JsonInclude.Include.NON_NULL)
     objectMapperIgnoreUnknownProps.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
   }
@@ -80,5 +87,27 @@ object JsonUtils {
     } else {
       objectMapperIgnoreUnknownProps.readValue(json, classOfT)
     }
+  }
+
+  fun initializeMapper(module: SimpleModule) {
+    module.addSerializer(LocalDate::class.java, LocalDateSerializer())
+    module.addDeserializer(LocalDate::class.java, LocalDateDeserializer())
+
+    module.addSerializer(LocalTime::class.java, LocalTimeSerializer())
+    module.addDeserializer(LocalTime::class.java, LocalTimeDeserializer())
+
+    module.addSerializer(PFDateTime::class.java, PFDateTimeSerializer())
+    module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
+
+    module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
+    module.addDeserializer(java.util.Date::class.java, UtilDateDeserializer())
+
+    module.addSerializer(Timestamp::class.java, TimestampSerializer(UtilDateFormat.JS_DATE_TIME_MILLIS))
+    module.addDeserializer(Timestamp::class.java, TimestampDeserializer())
+
+    module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
+    module.addDeserializer(java.sql.Date::class.java, SqlDateDeserializer())
+
+
   }
 }
