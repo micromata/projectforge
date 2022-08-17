@@ -78,8 +78,8 @@ class CalendarRestFilter(
    * function.
    */
   fun afterDeserialization() {
-    activeCalendarIds?.remove(null as Int?)
-    vacationGroupIds?.remove(null as Int?)
-    vacationUserIds?.remove(null as Int?)
+    activeCalendarIds?.removeIf { it == null }
+    vacationGroupIds?.removeIf { it == null }
+    vacationUserIds?.removeIf { it == null }
   }
 }

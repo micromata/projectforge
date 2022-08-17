@@ -54,6 +54,8 @@ import java.time.LocalDate
 import java.util.*
 import javax.ws.rs.BadRequestException
 
+// private val log = KotlinLogging.logger {}
+
 /**
  * Rest services for getting events.
  */
@@ -280,7 +282,7 @@ class CalendarServicesRest {
       if (currentFilter != null) {
         val set = mutableSetOf<Int?>()
         visibleCalendarIds.forEach {
-          if (it != null && currentFilter.isVisible(it))
+          if (it != null && !currentFilter.isInvisible(it))
             set.add(it) // Add only visible calendars.
         }
         visibleCalendarIds = set

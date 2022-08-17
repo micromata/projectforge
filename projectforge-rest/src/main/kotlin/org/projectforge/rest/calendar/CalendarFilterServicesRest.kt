@@ -253,7 +253,7 @@ class CalendarFilterServicesRest {
       StyledTeamCalendar(
         calendars.find { it.id == id }, // Might be not accessible / null, see below.
         style = styleMap.get(id), // Add the styles of the styleMap to the exported calendar.
-        visible = currentFilter.isVisible(id)
+        visible = !currentFilter.isInvisible(id)
       )
     }.toMutableList()
     activeCalendars.removeIf { it.id == null } // Access to this calendars is not given (anymore).
