@@ -13,14 +13,14 @@ function ConsumptionBar({ progress, taskId, identifier }) {
     const {
         title,
         status,
-        percentage,
+        barPercentage,
         id,
     } = progress;
 
     const element = (
         <>
             <Progress
-                value={percentage}
+                value={barPercentage}
                 className={classNames(style.consumption, style[status])}
                 id={`${identifier}-${id}`}
             />
@@ -43,9 +43,8 @@ ConsumptionBar.propTypes = {
     progress: PropTypes.shape({
         title: PropTypes.string,
         status: PropTypes.string,
-        width: PropTypes.string,
         id: PropTypes.number,
-        percentage: PropTypes.number,
+        barPercentage: Progress.number,
     }),
     taskId: PropTypes.number,
     identifier: PropTypes.string,

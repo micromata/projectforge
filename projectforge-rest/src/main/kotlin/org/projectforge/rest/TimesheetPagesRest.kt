@@ -313,7 +313,13 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       .add(UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2")))
       .add(lc, "user")
       .add(dayRange)
-      .add(UICustomized("task.consumption"))
+      .add(
+        UIRow()
+          .add(
+            UICol(xs = 6)
+              .add(UICustomized("task.consumption"))
+          )
+      )
       .add(UIInput("location", lc).enableAutoCompletion(this))
     val row = UIRow()
     layout.add(row)

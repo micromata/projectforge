@@ -40,8 +40,12 @@ class Consumption(
   val title: String,
   val status: Status,
   val percentage: Int?,
-  val width: String,
-  val id: Int?
+  /**
+   * If overbooked, the colors will be changed and barPercentage will be 0-100, but percentage will be >100.
+   * barPercentage = if (percentage > 100) 100 / percentage else percentage
+   */
+  val barPercentage: Int?,
+  val id: Int?,
 ) {
 
   enum class Status {
@@ -78,14 +82,16 @@ class Consumption(
         DateHelper.SECONDS_PER_WORKING_DAY, 2,
         RoundingMode.HALF_UP
       )
-      usage = NumberHelper.setDefaultScale(usage)
+      usage = NumberHelper.setDefaultScale(usage)!!
 
       val percentage = if (maxDays != null && maxDays.toDouble() > 0)
         usage.divide(maxDays, 2, RoundingMode.HALF_UP).multiply(NumberHelper.HUNDRED).toInt()
       else
         0
-      // TODO: What does 10000 / percentage mean?
-      val width = if (percentage <= 100) percentage else 10000 / percentage
+      var barPercentage = if (percentage <= 100) percentage else 10000 / percentage
+      if (barPercentage < 0) {
+        barPercentage = 0
+      }
       //bar.add(AttributeModifier.replace("class", "progress"))
       val status =
         if (percentage <= 80 || finished && percentage <= 100) {
@@ -117,7 +123,7 @@ class Consumption(
           ""
         }
       val title = "$usageStr$unitStr$maxValueStr"
-      return Consumption(title, status, percentage = percentage, width = "$width%", id = node.taskId)
+      return Consumption(title, status, percentage = percentage, barPercentage = barPercentage, id = node.taskId)
     }
   }
 }
