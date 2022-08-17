@@ -341,7 +341,8 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         ResponseAction(
           RestResolver.getRestUrl(this::class.java, RestPaths.CANCEL_MULTI_SELECTION),
           targetType = TargetType.GET,
-        )
+        ),
+        title = translate("stop")
       )
     )
     if (!MultiSelectionSupport.getRegisteredEntityIds(request, pagesRest::class.java).isNullOrEmpty()) {

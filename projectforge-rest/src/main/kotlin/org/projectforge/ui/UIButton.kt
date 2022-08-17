@@ -149,11 +149,11 @@ private constructor(
     /**
      * @param responseAction If not given, return to default page is used as response action.
      */
-    fun createCancelButton(responseAction: ResponseAction? = null): UIButton {
+    fun createCancelButton(responseAction: ResponseAction? = null, title: String = translate("cancel")): UIButton {
       val result = UIButton(
         "cancel",
-        translate("cancel"),
-        UIColor.DANGER,
+        title = title,
+        color = UIColor.DANGER,
         responseAction = responseAction,
         outline = true,
       )
