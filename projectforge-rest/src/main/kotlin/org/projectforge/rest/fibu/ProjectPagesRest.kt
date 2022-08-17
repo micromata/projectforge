@@ -45,6 +45,10 @@ class ProjectPagesRest
 
   override val addNewEntryUrl = "wa/projectEdit"
 
+  override fun getStandardEditPage(): String {
+    return "wa/projectEdit?id=:id"
+  }
+
   override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Project {
     val projekt = Project()
     projekt.copyFrom(obj)
