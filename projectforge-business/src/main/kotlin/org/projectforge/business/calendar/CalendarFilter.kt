@@ -148,8 +148,8 @@ class CalendarFilter(
   /**
    * @param calendarId Null should only occur on (de)serialization issues.
    */
-  fun isVisible(calendarId: Int?): Boolean {
-    return calendarId != null && calendarIds.contains(calendarId) && !invisibleCalendars.contains(calendarId)
+  fun isInvisible(calendarId: Int?): Boolean {
+    return calendarId == null || invisibleCalendars.contains(calendarId)
   }
 
   /**
