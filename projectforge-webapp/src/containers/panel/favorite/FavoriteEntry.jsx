@@ -66,6 +66,7 @@ function FavoriteEntry(
                     label={translations.rename}
                     id={`rename-favorite-input-${id}`}
                     autoFocus
+                    rename
                 />
             </span>
             <span className={classNames({ [style.hidden]: inEditMode })}>
