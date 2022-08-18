@@ -241,7 +241,7 @@
         <jersey.version>2.35</jersey.version> <!-- 3.x uses jakarta.servlet instead of javax.servlet! -->
         <jfreechart.version>1.5.3</jfreechart.version>
         <jlf4j.version>1.7.36</jlf4j.version> <!-- should be the same as used in spring boot started. -->
-        <jackson.version>2.13.2</jackson.version>
+        <jackson.version>2.13.3</jackson.version>
         <joda-time.version>2.10.14</joda-time.version>
         <!-- Version 5.4.2 doesn't work with Intellij. Tested 03/28/2019. -->
         <junit.jupiter.version>5.3.2</junit.jupiter.version>
