@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList
 import org.projectforge.business.task.ScriptingTaskTree
-import org.projectforge.business.task.TaskTree
 import org.projectforge.registry.Registry
 
 private val log = KotlinLogging.logger {}
@@ -90,7 +89,7 @@ abstract class ScriptExecutor(
     variables["appId"] = ProjectForgeVersion.APP_ID
     variables["appVersion"] = ProjectForgeVersion.VERSION_NUMBER
     variables["appRelease"] = ProjectForgeVersion.BUILD_DATE
-    variables["taskTree"] = ScriptingTaskTree(TaskTree.getInstance())
+    variables["taskTree"] = ScriptingTaskTree()
     variables["log"] = scriptLogger
     variables["reportList"] = ReportGeneratorList()
     variables["i18n"] = I18n()
