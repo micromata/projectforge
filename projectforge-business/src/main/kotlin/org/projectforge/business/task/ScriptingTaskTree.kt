@@ -25,6 +25,7 @@ package org.projectforge.business.task
 
 import org.projectforge.business.fibu.AuftragsPositionVO
 import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.timesheet.TimesheetDO
 import java.math.BigDecimal
 
 /**
@@ -75,6 +76,36 @@ class ScriptingTaskTree {
       taskNode = taskNode?.parent
     }
     return false
+  }
+
+  class FilteredTimesheets {
+    val filteredTimesheets = mutableListOf<TimesheetDO>()
+    val matchingTasks = mutableSetOf<TaskDO>()
+    val notMatchingTasks = mutableSetOf<TaskDO>()
+  }
+
+  /**
+   * Filter the timesheets by matching tasks.
+   * @see matchesMarker
+   */
+  fun filterTimesheets(timesheets: List<TimesheetDO>, marker: String?, ignoreCase: Boolean = true): FilteredTimesheets {
+    val result = FilteredTimesheets()
+    timesheets.forEach { timesheet ->
+      val task = timesheet.task
+      if (task != null) {
+        if (matchesMarker(task.id, marker, ignoreCase)) {
+          if (!result.matchingTasks.any { it.id == task.id }) {
+            result.matchingTasks.add(task)
+          }
+          result.filteredTimesheets.add(timesheet)
+        } else {
+          if (!result.notMatchingTasks.any { it.id == task.id }) {
+            result.notMatchingTasks.add(task)
+          }
+        }
+      }
+    }
+    return result
   }
 
   /**
