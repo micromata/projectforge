@@ -81,7 +81,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
       script.parameter5?.name = scriptDO.parameter5Name
       script.parameter6?.name = scriptDO.parameter6Name
       layout.add(UIReadOnlyField("name", label = "scripting.script.name"))
-      layout.add(UIReadOnlyField("description", label = "description"))
+      layout.add(UIAlert(id = "description", title = "description", markdown = true, color = UIColor.LIGHT))
       UIFieldset(title = "scripting.script.parameter").let { fieldset ->
         layout.add(fieldset)
         addParameterInput(fieldset, script.parameter1, 1)
