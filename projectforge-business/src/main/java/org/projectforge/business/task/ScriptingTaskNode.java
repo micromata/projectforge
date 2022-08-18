@@ -152,7 +152,7 @@ public class ScriptingTaskNode
 
   public long getDuration(final ScriptingTaskTree taskTree, final boolean recursive)
   {
-    return __baseObject.getDuration(taskTree.__baseDao, recursive);
+    return __baseObject.getDuration(TaskTree.getInstance(), recursive);
   }
 
   @Override
