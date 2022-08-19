@@ -77,7 +77,10 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.URL}/user")
 class UserPagesRest
-  : AbstractDTOPagesRest<PFUserDO, User, UserDao>(UserDao::class.java, "user.title") {
+  : AbstractDTOPagesRest<PFUserDO, User, UserDao>(
+  UserDao::class.java, "user.title",
+  cloneSupport = CloneSupport.CLONE,
+) {
 
   @Autowired
   private lateinit var accessChecker: AccessChecker
@@ -153,6 +156,17 @@ class UserPagesRest
     val userDO = PFUserDO()
     dto.copyTo(userDO)
     return userDO
+  }
+
+  override fun prepareClone(dto: User): User {
+    dto.ldapValues?.let {
+      it.uidNumber = null
+      it.sambaNTPassword= null
+      it.sambaPrimaryGroupSIDNumber =null
+      it.sambaSIDNumber = null
+      it.homeDirectory = null
+    }
+    return super.prepareClone(dto)
   }
 
   override val classicsLinkListUrl: String
