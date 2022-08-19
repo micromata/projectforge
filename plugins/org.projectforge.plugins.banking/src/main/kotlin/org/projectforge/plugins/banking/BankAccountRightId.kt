@@ -21,18 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common.props;
+package org.projectforge.plugins.banking
 
-/**
- * If the type of a field isn't represented by the Java type it may be defined in more detail by this enum. For example a BigDecimal may
- * represent a currency value.
- * @author Kai Reinhard (k.reinhard@micromata.de)
- */
-public enum PropertyType
-{
-  CURRENCY, DATE, DATE_TIME, DATE_TIME_SECONDS, DATE_TIME_MILLIS,
-  /**
-   * Use INPUT for long text fields if you wish to use input fields instead of text areas.
-   */
-  INPUT, TIME, TIME_SECONDS, TIME_MILLIS, UNSPECIFIED;
+import org.hibernate.search.annotations.ClassBridge
+import org.hibernate.search.annotations.Indexed
+import org.projectforge.business.user.HibernateSearchUserRightIdBridge
+import org.projectforge.framework.persistence.api.IUserRightId
+
+@Indexed
+@ClassBridge(impl = HibernateSearchUserRightIdBridge::class)
+enum class BankAccountRightId(override val id: String, override val orderString: String?, override val i18nKey: String?)
+    : IUserRightId {
+    PLUGIN_BANKING_ACCOUNT("PLUGIN_BANKING_ACCOUNT", null, null);
 }

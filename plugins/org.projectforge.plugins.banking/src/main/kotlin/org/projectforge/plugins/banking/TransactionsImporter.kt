@@ -21,18 +21,29 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common.props;
+package org.projectforge.plugins.banking
 
-/**
- * If the type of a field isn't represented by the Java type it may be defined in more detail by this enum. For example a BigDecimal may
- * represent a currency value.
- * @author Kai Reinhard (k.reinhard@micromata.de)
- */
-public enum PropertyType
-{
-  CURRENCY, DATE, DATE_TIME, DATE_TIME_SECONDS, DATE_TIME_MILLIS,
-  /**
-   * Use INPUT for long text fields if you wish to use input fields instead of text areas.
-   */
-  INPUT, TIME, TIME_SECONDS, TIME_MILLIS, UNSPECIFIED;
+import mu.KotlinLogging
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
+
+private val log = KotlinLogging.logger {}
+
+@Service
+class TransactionsImporter {
+  @Autowired
+  private lateinit var bankAccountRecordDao: BankAccountRecordDao
+
+  fun import(bankAccountDO: BankAccountDO, importContext: ImportContext) {
+    importContext.analyzeReadTransactions()
+    val fromDate = importContext.fromDate
+    val untilDate = importContext.untilDate
+    if (fromDate == null || untilDate == null) {
+      return
+    }
+    log.info { "Trying to import account records from $fromDate-$untilDate for account '${bankAccountDO.name}': ${bankAccountDO.iban}" }
+    // Ordered by date:
+    importContext.databaseTransactions = bankAccountRecordDao.getByTimePeriod(bankAccountDO.id, fromDate, untilDate)
+
+  }
 }

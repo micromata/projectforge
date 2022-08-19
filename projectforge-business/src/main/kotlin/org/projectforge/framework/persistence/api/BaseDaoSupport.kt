@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
@@ -35,6 +36,7 @@ import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
 import org.projectforge.framework.persistence.jpa.PfEmgr
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 private val log = KotlinLogging.logger {}
 
@@ -309,5 +311,16 @@ object BaseDaoSupport {
       }
     }
     internalSaveOrUpdate(baseDao, list)
+  }
+
+  @JvmStatic
+  @JvmOverloads
+  fun returnFalseOrThrowException(throwException: Boolean, msg: String, user: PFUserDO? = null, operationType: OperationType? = null): Boolean {
+    if (throwException) {
+      val ex = AccessException(user, msg)
+      ex.operationType = operationType
+      throw ex
+    }
+    return false
   }
 }

@@ -54,6 +54,7 @@ import java.util.jar.JarInputStream
  * Plugins to load, if ProjectForge is started from IDE. If not started from IDE, all loaded jars will be scanned automatically.
  */
 private val embeddedPlugins4IDEStart = arrayOf(
+  "banking",
   "datatransfer",
   "extendedemployeedata",
   "ihk",

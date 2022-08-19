@@ -9,6 +9,7 @@
   <artifactId>org.projectforge.plugins</artifactId>
   <packaging>pom</packaging>
   <modules>
+    <module>org.projectforge.plugins.banking</module>
     <module>org.projectforge.plugins.datatransfer</module>
     <module>org.projectforge.plugins.memo</module>
     <module>org.projectforge.plugins.merlin</module>

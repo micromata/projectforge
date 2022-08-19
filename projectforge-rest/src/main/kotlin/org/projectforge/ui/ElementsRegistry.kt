@@ -30,6 +30,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
+import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -89,7 +90,7 @@ object ElementsRegistry {
         when (elementInfo.propertyClass) {
           String::class.java -> {
             val maxLength = elementInfo.maxLength
-            if (maxLength != null && maxLength >= minLengthOfTextArea) {
+            if (elementInfo.propertyType != PropertyType.INPUT && maxLength != null && maxLength >= minLengthOfTextArea) {
               UITextArea(property, maxLength = elementInfo.maxLength, layoutContext = lc)
             } else {
               UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutContext = lc)
