@@ -58,7 +58,10 @@ private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/group")
-class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::class.java, "group.title") {
+class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
+  GroupDao::class.java, "group.title",
+  cloneSupport = CloneSupport.CLONE,
+) {
 
   @Autowired
   private lateinit var accessChecker: AccessChecker
@@ -117,7 +120,12 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+  override fun createListLayout(
+    request: HttpServletRequest,
+    layout: UILayout,
+    magicFilter: MagicFilter,
+    userAccess: UILayout.UserAccess
+  ) {
     userAccess.update = accessChecker.isLoggedInUserMemberOfAdminGroup
     val agGrid = agGridSupport.prepareUIGrid4ListPage(
       request,
@@ -172,6 +180,16 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(GroupDao::
 
   override fun validate(validationErrors: MutableList<ValidationError>, dto: Group) {
     super.validate(validationErrors, dto)
+    val group = GroupDO()
+    dto.copyTo(group)
+    if (baseDao.doesGroupnameAlreadyExist(group)) {
+      validationErrors.add(
+        ValidationError(
+          translate("group.error.groupnameAlreadyExists"),
+          fieldId = GroupDO::name.name,
+        )
+      )
+    }
     dto.gidNumber?.let { gidNumber ->
       if (!ldapPosixGroupsUtils.isGivenNumberFree(dto.id ?: -1, gidNumber)) {
         validationErrors.add(
