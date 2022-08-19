@@ -43,6 +43,7 @@ object SortAndCheckI18nPropertiesMain {
   val LANGUAGES = listOf("de")          // Add here all used languages in addition to the default language.
   val FILES = listOf(
     "projectforge-business/src/main/resources/I18nResources",
+    "plugins/org.projectforge.plugins.banking/src/main/resources/BankingI18nResources",
     "plugins/org.projectforge.plugins.extendemployeedata/src/main/resources/ExtendEmployeeDataI18nResources",
     "plugins/org.projectforge.plugins.datatransfer/src/main/resources/DataTransferI18nResources",
     "plugins/org.projectforge.plugins.ihk/src/main/resources/IHKI18nResources",
