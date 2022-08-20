@@ -25,6 +25,7 @@ package org.projectforge.plugins.banking
 
 import org.projectforge.rest.dto.BaseDTO
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 
 class BankAccountRecord(
@@ -124,17 +125,20 @@ class BankAccountRecord(
   }
 
   private fun getScore(value: BigDecimal?, dest: BigDecimal?): Int {
-    if (value == null) {
-      return if (dest == null) {
-        1
-      } else {
-        0
-      }
-    }
-    return if (value.subtract(dest).abs() <= BigDecimal.ONE) {
-      1 // Both amounts are nearly equal.
+    return if (value == null || dest == null) {
+      0
+    } else if (value.compareTo(dest) == 0) {
+      1
     } else {
       0
+    }
+  }
+
+  private fun truncate(value: BigDecimal): BigDecimal {
+    return if (value < BigDecimal.ZERO) {
+      value.setScale(0, RoundingMode.CEILING) // -1,23 -> -1
+    } else {
+      value.setScale(0, RoundingMode.FLOOR)   // +1,23 -> +1
     }
   }
 

@@ -24,15 +24,17 @@
 package org.projectforge.plugins.banking
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import org.projectforge.rest.importer.ImportEntry
+import org.projectforge.rest.importer.ImportStorage
 import java.time.LocalDate
 import kotlin.reflect.KMutableProperty1
 
 class ImportContext {
-  class MatchingPair(val read: BankAccountRecord? = null, val dbRecord: BankAccountRecordDO? = null)
+  val importStorage = ImportStorage<BankAccountRecord>()
 
-  val foundColumns = mutableMapOf<String, String>()
-  val ignoredColumns = mutableListOf<String>()
-  val pairsByDate = mutableMapOf<LocalDate, List<MatchingPair>>()
+  val foundColumns = importStorage.foundColumns
+  val ignoredColumns = importStorage.ignoredColumns
+  val pairs = importStorage.entries
 
   var fromDate: LocalDate? = null
   var untilDate: LocalDate? = null
@@ -42,7 +44,7 @@ class ImportContext {
   var readTransactions = mutableListOf<BankAccountRecord>()
   var databaseTransactions: List<BankAccountRecordDO>? = null
 
-  internal fun createPairs() {
+  internal fun fillImportStorage() {
     if (fromDate == null || untilDate == null || fromDate!! > untilDate!!) {
       return // Shouldn't occur
     }
@@ -50,8 +52,7 @@ class ImportContext {
     for (i in 0..999999) { // Paranoia counter, max 1 mio records.
       val readByDay = readTransactions.filter { it.date == date }
       val dbRecordsByDay = databaseTransactions?.filter { it.date == date } ?: emptyList()
-      val list = buildMatchingPairs(readByDay, dbRecordsByDay)
-      pairsByDate[date] = list
+      buildMatchingPairs(readByDay, dbRecordsByDay)
       date = date.plusDays(1)
       if (date > untilDate) {
         break
@@ -62,13 +63,13 @@ class ImportContext {
   private fun buildMatchingPairs(
     readByDay: List<BankAccountRecord>,
     dbRecordsByDay: List<BankAccountRecordDO>,
-  ): List<MatchingPair> {
-    val pairs = mutableListOf<MatchingPair>()
+  ) {
+    val pairs = importStorage.entries
     if (readByDay.isEmpty()) {
       dbRecordsByDay.forEach { dbRecord ->
-        pairs.add(MatchingPair(null, dbRecord))
+        pairs.add(ImportEntry(null, createRecord(dbRecord)))
       }
-      return pairs // Nothing to import (only db records given).
+      return // Nothing to import (only db records given).
     }
     val scoreMatrix = Array(readByDay.size) { IntArray(dbRecordsByDay.size) }
     for (k in 0 until readByDay.size) {
@@ -102,25 +103,24 @@ class ImportContext {
       }
       takenReadRecords.add(maxK)
       takenDBRecords.add(maxL)
-      pairs.add(MatchingPair(readByDay[maxK], dbRecordsByDay[maxL]))
+      pairs.add(ImportEntry(readByDay[maxK], createRecord(dbRecordsByDay[maxL])))
     }
     // Now, add the unmatching records
     for (k in 0 until readByDay.size) {
       if (takenReadRecords.contains(k)) {
         continue // Entry k is already taken.
       }
-      pairs.add(MatchingPair(readByDay[k], null))
+      pairs.add(ImportEntry(readByDay[k], null))
     }
     for (l in 0 until dbRecordsByDay.size) {
       if (takenDBRecords.contains(l)) {
         continue // Entry l is already taken.
       }
-      pairs.add(MatchingPair(null, dbRecordsByDay[l]))
+      pairs.add(ImportEntry(null, createRecord(dbRecordsByDay[l])))
     }
-    return pairs
   }
 
-  fun analyzeReadTransactions() {
+  internal fun analyzeReadTransactions() {
     readTransactions.removeIf { it.date == null }
     readTransactions.sortBy { it.date }
     if (readTransactions.isEmpty()) {
@@ -128,5 +128,11 @@ class ImportContext {
     }
     fromDate = readTransactions.first().date!!
     untilDate = readTransactions.last().date!!
+  }
+
+  private fun createRecord(accountDO: BankAccountRecordDO): BankAccountRecord {
+    val result = BankAccountRecord()
+    result.copyFrom(accountDO)
+    return result
   }
 }

@@ -44,14 +44,9 @@ class BankAccountRecordTest {
     Assertions.assertEquals(3, record.matchScore(dbRecord))
     dbRecord.iban = null
     Assertions.assertEquals(2, record.matchScore(dbRecord))
+
     dbRecord.amount = BigDecimal("10.9")
-    Assertions.assertEquals(2, record.matchScore(dbRecord), "Amount differs less than 1 Euro.")
-    dbRecord.amount = BigDecimal("9.1")
-    Assertions.assertEquals(2, record.matchScore(dbRecord), "Amount differs less than 1 Euro.")
-    dbRecord.amount = BigDecimal("11.1")
-    Assertions.assertEquals(1, record.matchScore(dbRecord), "Amount differs more than 1 Euro.")
-    dbRecord.amount = BigDecimal("8.9")
-    Assertions.assertEquals(1, record.matchScore(dbRecord), "Amount differs more than 1 Euro.")
+    Assertions.assertEquals(1, record.matchScore(dbRecord))
   }
 
   private fun createDBRecord(
