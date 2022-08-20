@@ -23,11 +23,15 @@
 
 package org.projectforge.rest.importer
 
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTimeUtils
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 
 class MappingInfoEntry(
@@ -97,6 +101,66 @@ class MappingInfoEntry(
     }
   }
 
+  fun parseDate(str: String?): Date? {
+    if (str.isNullOrBlank()) {
+      return null
+    }
+    val value = str.trim()
+    parseFormatList.forEach { format ->
+      try {
+        val formatter = DateTimeFormatter.ofPattern(format)
+        val localDateTime = LocalDateTime.parse(value, formatter)
+        val dateTime = PFDateTime.fromOrNull(localDateTime)
+        if (dateTime != null) {
+          return dateTime.utilDate
+        }
+      } catch (ex: Exception) {
+        // Might occur.
+      }
+    }
+    try {
+      return PFDateTimeUtils.parse(value)?.utilDate
+    } catch (ex: Exception) {
+      // Might occur.
+      return null
+    }
+  }
+
+  fun parseInt(str: String?): Int? {
+    if (str.isNullOrBlank()) {
+      return null
+    }
+    val value = str.trim()
+    parseFormatList.forEach { pattern ->
+      try {
+        val decimalFormat = getIntFormat(pattern)
+        synchronized(decimalFormat) {
+          return decimalFormat.parse(value) as Int
+        }
+      } catch (ex: Exception) {
+        println(ex)
+        // Might occur.
+      }
+    }
+    try {
+      return value.toIntOrNull()
+    } catch (ex: Exception) {
+      // Might occur.
+      return null
+    }
+  }
+
+  fun parseBoolean(str: String?): Boolean? {
+    str ?: return null
+    parseFormatList.forEach { pattern ->
+      if (str.startsWith(pattern)) {
+        return true
+      }
+    }
+    return str.startsWith('y', ignoreCase = true) || str.startsWith('j', ignoreCase = true) ||
+        str.startsWith('1') || str.startsWith("true", ignoreCase = true)
+  }
+
   fun parseBigDecimal(str: String?): BigDecimal? {
     if (str.isNullOrBlank()) {
       return null
@@ -104,7 +168,7 @@ class MappingInfoEntry(
     val value = str.trim()
     parseFormatList.forEach { pattern ->
       try {
-        val decimalFormat = getDecimalFormat(pattern)
+        val decimalFormat = getBigDecimalFormat(pattern)
         synchronized(decimalFormat) {
           return decimalFormat.parse(value) as BigDecimal
         }
@@ -121,13 +185,38 @@ class MappingInfoEntry(
     }
   }
 
-  internal fun getDecimalFormat(pattern: String): DecimalFormat {
-    synchronized(decimalFormatMap) {
-      val result = decimalFormatMap[pattern]
+  internal fun getBigDecimalFormat(pattern: String): DecimalFormat {
+    synchronized(bigDecimalFormatMap) {
+      val result = bigDecimalFormatMap[pattern]
       if (result != null) {
         return result
       }
     }
+    val decimalFormat = buildDecimalFormat(pattern)
+    decimalFormat.isParseBigDecimal = true
+    synchronized(bigDecimalFormatMap) {
+      bigDecimalFormatMap[pattern] = decimalFormat
+    }
+    return decimalFormat
+  }
+
+  internal fun getIntFormat(pattern: String): DecimalFormat {
+    synchronized(intFormatMap) {
+      val result = intFormatMap[pattern]
+      if (result != null) {
+        return result
+      }
+    }
+    val decimalFormat = buildDecimalFormat(pattern)
+    decimalFormat.isParseIntegerOnly = true
+    synchronized(intFormatMap) {
+      intFormatMap[pattern] = decimalFormat
+    }
+    return decimalFormat
+  }
+
+  private fun buildDecimalFormat(str: String): DecimalFormat {
+    val pattern = str.trim()
     val symbols = DecimalFormatSymbols()
     val comaPosition = pattern.indexOf(',')
     val decimalPosition = pattern.indexOf('.')
@@ -151,12 +240,7 @@ class MappingInfoEntry(
       symbols.decimalSeparator = '.'
       symbols.groupingSeparator = ','
     }
-    val decimalFormat = DecimalFormat(javaPattern, symbols)
-    decimalFormat.isParseBigDecimal = true
-    synchronized(decimalFormatMap) {
-      decimalFormatMap[pattern] = decimalFormat
-    }
-    return decimalFormat
+    return DecimalFormat(javaPattern, symbols)
   }
 
   private fun getRegex(userString: String): Regex? {
@@ -171,7 +255,8 @@ class MappingInfoEntry(
   }
 
   companion object {
-    private val decimalFormatMap = mutableMapOf<String, DecimalFormat>()
+    private val bigDecimalFormatMap = mutableMapOf<String, DecimalFormat>()
+    private val intFormatMap = mutableMapOf<String, DecimalFormat>()
 
     internal fun matches(headerString: String, regex: Regex): Boolean {
       return regex.matches(headerString.trim())

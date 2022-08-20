@@ -25,7 +25,6 @@ package org.projectforge.plugins.banking
 
 import org.projectforge.rest.importer.ImportEntry
 import org.projectforge.rest.importer.ImportStorage
-import org.projectforge.rest.importer.MappingInfoEntry
 import java.time.LocalDate
 
 class BankingImportStorage : ImportStorage<BankAccountRecord>() {
@@ -129,10 +128,6 @@ class BankingImportStorage : ImportStorage<BankAccountRecord>() {
 
   override fun prepareEntity(): BankAccountRecord {
     return BankAccountRecord()
-  }
-
-  override fun setProperty(obj: BankAccountRecord, mappingInfoEntry: MappingInfoEntry, value: String) {
-    TODO("Not yet implemented")
   }
 
   override fun commitEntity(obj: BankAccountRecord) {

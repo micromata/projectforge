@@ -24,22 +24,17 @@
 package org.projectforge.rest.importer
 
 import mu.KotlinLogging
+import org.projectforge.common.BeanHelper
 import org.projectforge.common.CSVParser
 import java.io.Reader
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.util.Date
 
 private val log = KotlinLogging.logger {}
 
 object CsvImporter {
-  /*@JvmStatic
-  fun main(vararg args: String) {
-    val file = File(System.getProperty("user.home"), "tmp/test-transactions.csv")
-    val mapping = BankAccountRecordMapping()
-    val bankAccount = BankAccount()
-    bankAccount.mappingTable = mapping
-    parse(file.bufferedReader(), bankAccount, true)
-  } */
-
-  fun <O: Any> parse(reader: Reader, mappingInfo: MappingInfo, importStorage: ImportStorage<O>) {
+  fun <O : Any> parse(reader: Reader, mappingInfo: MappingInfo, importStorage: ImportStorage<O>) {
     val parser = CSVParser(reader)
     val headCols = parser.parseLine()
     headCols.forEachIndexed { index, head ->
@@ -62,7 +57,29 @@ object CsvImporter {
       val record = importStorage.prepareEntity()
       line.forEachIndexed { index, value ->
         importStorage.columnMapping[index]?.let { mappingInfoEntry ->
-          importStorage.setProperty(record, mappingInfoEntry, value)
+          if (!importStorage.setProperty(record, mappingInfoEntry, value)) {
+            val targetValue = when (BeanHelper.determinePropertyType(record::class.java, mappingInfoEntry.property)) {
+              LocalDate::class.java -> {
+                mappingInfoEntry.parseLocalDate(value)
+              }
+              Date::class.java -> {
+                mappingInfoEntry.parseDate(value)
+              }
+              BigDecimal::class.java -> {
+                mappingInfoEntry.parseBigDecimal(value)
+              }
+              Int::class.java -> {
+                mappingInfoEntry.parseInt(value)
+              }
+              Boolean::class.java -> {
+                mappingInfoEntry.parseBoolean(value)
+              }
+              else -> {
+                value
+              }
+            }
+            BeanHelper.setProperty(record, mappingInfoEntry.property, targetValue)
+          }
         }
       }
       importStorage.commitEntity(record)
