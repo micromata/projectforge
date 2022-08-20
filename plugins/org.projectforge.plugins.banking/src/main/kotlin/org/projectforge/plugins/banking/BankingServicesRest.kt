@@ -74,7 +74,7 @@ class BankingServicesRest {
     } else {
       importStorage = BankingImportStorage()
       // Try to import CSV
-      CsvImporter.parse(file.inputStream.reader(), MappingInfo(), importStorage)
+      CsvImporter.parse(file.inputStream.reader(), MappingInfo.parseMappingInfo(bankAccount.importMappingTable), importStorage)
     }
     transactionsImporter.import(request, bankAccountDO, importStorage)
     return ResponseEntity.ok("OK")

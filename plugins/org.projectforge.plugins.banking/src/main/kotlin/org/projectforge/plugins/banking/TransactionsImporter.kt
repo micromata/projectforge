@@ -53,12 +53,12 @@ class TransactionsImporter {
     importStorage.databaseTransactions = bankAccountRecordDao.getByTimePeriod(bankAccountDO.id, fromDate, untilDate)
     importStorage.reconcileImportStorage()
     importStorage.databaseTransactions = null // Save memory, not needed anymore.
-    importStorage.readTransactions.clear() // Save memor, not needed anymore
+    importStorage.readTransactions.clear() // Save memory, not needed anymore
     ExpiringSessionAttributes.setAttribute(
       request,
       AbstractImportPageRest.getSessionAttributeName(BankAccountRecordImportPageRest::class.java),
       importStorage,
-      10,
+      20,
     )
   }
 }

@@ -151,8 +151,6 @@ valueDate=valuta*|:dd.MM.yyyy|:dd.MM.yy
 amount=betrag*|:#.##0,0#|:#0,0#
 type=buchungstext*
 debteeId=gläub*|glaeu*
-# Empty line and comment
-
 subject=verwendung*
 mandateReference=Mandat*
 customerReference=Kundenref*
