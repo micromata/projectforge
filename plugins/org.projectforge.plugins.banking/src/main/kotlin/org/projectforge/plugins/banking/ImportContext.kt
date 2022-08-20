@@ -44,7 +44,7 @@ class ImportContext {
   var readTransactions = mutableListOf<BankAccountRecord>()
   var databaseTransactions: List<BankAccountRecordDO>? = null
 
-  internal fun fillImportStorage() {
+  internal fun reconcileImportStorage() {
     if (fromDate == null || untilDate == null || fromDate!! > untilDate!!) {
       return // Shouldn't occur
     }

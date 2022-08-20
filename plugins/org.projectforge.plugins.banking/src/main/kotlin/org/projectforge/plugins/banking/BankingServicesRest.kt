@@ -27,10 +27,12 @@ import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.BankAccount
+import org.projectforge.rest.dto.BankAccountRecordMapping
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -45,6 +47,7 @@ class BankingServicesRest {
 
   @PostMapping("import/{id}")
   fun import(
+    request: HttpServletRequest,
     @PathVariable("id", required = true) id: Int,
     @RequestParam("file") file: MultipartFile
   ): ResponseEntity<*> {
@@ -65,13 +68,29 @@ class BankingServicesRest {
     bankAccount.copyFrom(bankAccountDO)
     log.info("Importing transactions for bank account #$id, iban=${bankAccount.iban}")
     var context: ImportContext? = null
+    val mapping = BankAccountRecordMapping()
+    mapping.mappingMap[BankAccountRecord::date.name] = listOf("buchungstag")
+    mapping.mappingMap[BankAccountRecord::valueDate.name] = listOf("valuta*")
+    mapping.mappingMap[BankAccountRecord::type.name] = listOf("buchungstext*")
+    mapping.mappingMap[BankAccountRecord::subject.name] = listOf("verwendung*")
+    mapping.mappingMap[BankAccountRecord::debteeId.name] = listOf("gläub*", "glaeu*")
+    mapping.mappingMap[BankAccountRecord::mandateReference.name] = listOf("Mandat*")
+    mapping.mappingMap[BankAccountRecord::customerReference.name] = listOf("Kundenref*")
+    mapping.mappingMap[BankAccountRecord::collectionReference.name] = listOf("sammler*")
+    mapping.mappingMap[BankAccountRecord::receiverSender.name] = listOf("*beguen*", "*zahlungspflicht*")
+    mapping.mappingMap[BankAccountRecord::iban.name] = listOf("*iban*")
+    mapping.mappingMap[BankAccountRecord::bic.name] = listOf("bic*")
+    mapping.mappingMap[BankAccountRecord::amount.name] = listOf("betrag")
+    mapping.mappingMap[BankAccountRecord::currency.name] = listOf("waehrung")
+    mapping.mappingMap[BankAccountRecord::info.name] = listOf("info")
+    bankAccount.mappingTable = mapping
     if (filename.endsWith("xls", ignoreCase = true) || filename.endsWith("xlsx", ignoreCase = true)) {
       throw IllegalArgumentException("Excel not yet supported.")
     } else {
       // Try to import CSV
       context = CsvImporter.parse(file.inputStream.reader(), bankAccount = bankAccount)
     }
-    transactionsImporter.import(bankAccountDO, importContext = context)
+    transactionsImporter.import(request, bankAccountDO, importContext = context)
     return ResponseEntity.ok("OK")
   }
 

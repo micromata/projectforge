@@ -24,8 +24,11 @@
 package org.projectforge.plugins.banking
 
 import mu.KotlinLogging
+import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.importer.AbstractImportPageRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
@@ -34,7 +37,11 @@ class TransactionsImporter {
   @Autowired
   private lateinit var bankAccountRecordDao: BankAccountRecordDao
 
-  fun import(bankAccountDO: BankAccountDO, importContext: ImportContext) {
+  fun import(
+    request: HttpServletRequest,
+    bankAccountDO: BankAccountDO,
+    importContext: ImportContext,
+  ) {
     importContext.analyzeReadTransactions()
     val fromDate = importContext.fromDate
     val untilDate = importContext.untilDate
@@ -44,6 +51,12 @@ class TransactionsImporter {
     log.info { "Trying to import account records from $fromDate-$untilDate for account '${bankAccountDO.name}': ${bankAccountDO.iban}" }
     // Ordered by date:
     importContext.databaseTransactions = bankAccountRecordDao.getByTimePeriod(bankAccountDO.id, fromDate, untilDate)
-
+    importContext.reconcileImportStorage()
+    ExpiringSessionAttributes.setAttribute(
+      request,
+      AbstractImportPageRest.getSessionAttributeName(BankAccountRecordImportPageRest::class.java),
+      importContext.importStorage,
+      10,
+    )
   }
 }
