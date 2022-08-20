@@ -21,46 +21,36 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.banking
+package org.projectforge.rest.importer
 
 import mu.KotlinLogging
 import org.projectforge.common.CSVParser
-import org.projectforge.framework.time.PFDayUtils
-import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.rest.dto.BankAccount
-import org.projectforge.rest.dto.BankAccountRecordMapping
-import java.io.File
 import java.io.Reader
-import java.math.BigDecimal
-import java.time.LocalDate
-import kotlin.reflect.jvm.javaField
 
 private val log = KotlinLogging.logger {}
 
 object CsvImporter {
-  @JvmStatic
+  /*@JvmStatic
   fun main(vararg args: String) {
     val file = File(System.getProperty("user.home"), "tmp/test-transactions.csv")
     val mapping = BankAccountRecordMapping()
     val bankAccount = BankAccount()
     bankAccount.mappingTable = mapping
     parse(file.bufferedReader(), bankAccount, true)
-  }
+  } */
 
-  fun parse(reader: Reader, bankAccount: BankAccount, testMode: Boolean = false): ImportContext {
-    val context = ImportContext()
+  fun <O: Any> parse(reader: Reader, mappingInfo: MappingInfo, importStorage: ImportStorage<O>) {
     val parser = CSVParser(reader)
     val headCols = parser.parseLine()
-    val mapping = bankAccount.mappingTable ?: BankAccountRecordMapping()
     headCols.forEachIndexed { index, head ->
-      val field = mapping.getField(head)
-      if (field != null) {
-        log.debug { "Field '$head' found: -> ${field.name}." }
-        context.lineMapping[index] = field
-        context.foundColumns[head] = field.name
+      val mapping = mappingInfo.getMapping(head)
+      if (mapping != null) {
+        log.debug { "Field '$head' found: -> ${mapping.property}." }
+        importStorage.columnMapping[index] = mapping
+        importStorage.foundColumns[head] = mapping.property
       } else {
         log.debug { "Field '$head' not found." }
-        context.ignoredColumns.add(head)
+        importStorage.ignoredColumns.add(head)
       }
     }
     for (i in 0..100000) { // Paranoi loop, read 100000 lines at max.
@@ -69,34 +59,13 @@ object CsvImporter {
         // Finished
         break
       }
-      val record = BankAccountRecord()
+      val record = importStorage.prepareEntity()
       line.forEachIndexed { index, value ->
-        context.lineMapping[index]?.let { property ->
-          when (property.javaField?.type) {
-            LocalDate::class.java -> {
-              if (testMode) {
-                property.set(record, LocalDate.now())
-              } else {
-                PFDayUtils.parseDate(value)?.let {
-                  property.set(record, it)
-                }
-              }
-            }
-            String::class.java -> {
-              property.set(record, value)
-            }
-            BigDecimal::class.java -> {
-              NumberHelper.parseBigDecimal(value)?.let {
-                property.set(record, it)
-              }
-            }
-          }
+        importStorage.columnMapping[index]?.let { mappingInfoEntry ->
+          importStorage.setProperty(record, mappingInfoEntry, value)
         }
       }
-      if (record.date != null && record.amount != null) { // At least date and amount is required.
-        context.readTransactions.add(record)
-      }
+      importStorage.commitEntity(record)
     }
-    return context
   }
 }

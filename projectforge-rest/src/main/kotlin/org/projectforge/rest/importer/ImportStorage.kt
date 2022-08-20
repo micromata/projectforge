@@ -23,11 +23,29 @@
 
 package org.projectforge.rest.importer
 
-import org.projectforge.rest.core.AbstractDynamicPageRest
-
-class ImportStorage<O : Any> : AbstractDynamicPageRest() {
+abstract class ImportStorage<O : Any> {
   val foundColumns = mutableMapOf<String, String>()
   val ignoredColumns = mutableListOf<String>()
 
+  /**
+   * Mapping of columns to properties.
+   */
+  val columnMapping = mutableMapOf<Int, MappingInfoEntry>()
+
   var entries = mutableListOf<ImportEntry<O>>()
+
+  /**
+   * Prepares an entity (normally only by return new object).
+   */
+  abstract fun prepareEntity(): O
+
+  /**
+   * Set the property of the prepared entity.
+   */
+  abstract fun setProperty(obj: O, mappingInfoEntry: MappingInfoEntry, value: String)
+
+  /**
+   * Store or skip this entity after the setting of all properties.
+   */
+  abstract fun commitEntity(obj: O)
 }

@@ -29,7 +29,7 @@ import org.projectforge.rest.importer.ImportEntry
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class ImportContextTest {
+class BankingImportStorageTest {
   @Test
   fun matchingPairsTest() {
     val today = LocalDate.now()
@@ -51,11 +51,11 @@ class ImportContextTest {
     db.add(createDBRecord(tomorrow, "1.23", "Apple", null))
     db.add(createDBRecord(tomorrow, "1.23", "Apple", "DE222"))
 
-    val context = ImportContext()
-    context.readTransactions = read
-    context.databaseTransactions = db
-    context.analyzeReadTransactions()
-    context.reconcileImportStorage()
+    val storage = BankingImportStorage()
+    storage.readTransactions = read
+    storage.databaseTransactions = db
+    storage.analyzeReadTransactions()
+    storage.reconcileImportStorage()
     /*  PRINT storage for debugging:
     context.pairs.forEach {
       val read = it.readEntry
@@ -68,18 +68,18 @@ class ImportContextTest {
       )
     }
      */
-    Assertions.assertEquals(9, context.pairs.size)
-    context.pairs.filter { it.readEntry?.date == yesterday }.let { list ->
+    Assertions.assertEquals(9, storage.entries.size)
+    storage.entries.filter { it.readEntry?.date == yesterday }.let { list ->
       Assertions.assertEquals(3, list.size)
       Assertions.assertTrue(list.all { it.storedEntry == null })
       Assertions.assertTrue(list.none { it.readEntry == null })
     }
-    context.pairs.filter { (it.readEntry?.date ?: it.storedEntry?.date) == today }.let { list ->
+    storage.entries.filter { (it.readEntry?.date ?: it.storedEntry?.date) == today }.let { list ->
       Assertions.assertEquals(3, list.size)
       Assertions.assertTrue(list.all { it.readEntry == null })
       Assertions.assertTrue(list.none { it.storedEntry == null })
     }
-    context.pairs.filter { (it.readEntry?.date ?: it.storedEntry?.date) == tomorrow }.let { list ->
+    storage.entries.filter { (it.readEntry?.date ?: it.storedEntry?.date) == tomorrow }.let { list ->
       Assertions.assertEquals(3, list.size)
       Assertions.assertEquals(1, list.filter { it.readEntry == null }.size)
       Assertions.assertTrue(list.none { it.storedEntry == null })

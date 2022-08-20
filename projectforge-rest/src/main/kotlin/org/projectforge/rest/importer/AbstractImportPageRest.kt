@@ -55,7 +55,7 @@ abstract class AbstractImportPageRest<O : Any> : AbstractDynamicPageRest() {
       request,
       getSessionAttributeName(this::class.java),
       ImportStorage::class.java,
-    ) ?: ImportStorage<O>()
+    )
     @Suppress("UNCHECKED_CAST")
     importStorage as ImportStorage<O>
     // ExpiringSessionAttributes.removeAttribute(request.getSession(false), "${this::class.java.name}.importStorage")
