@@ -26,10 +26,14 @@ package org.projectforge.plugins.banking
 import mu.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.BankAccount
 import org.projectforge.rest.importer.CsvImporter
 import org.projectforge.rest.importer.MappingInfo
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -77,7 +81,12 @@ class BankingServicesRest {
       CsvImporter.parse(file.inputStream.reader(), MappingInfo.parseMappingInfo(bankAccount.importMappingTable), importStorage)
     }
     transactionsImporter.import(request, bankAccountDO, importStorage)
-    return ResponseEntity.ok("OK")
+    return ResponseEntity(
+      ResponseAction(
+        PagesResolver.getDynamicPageUrl(BankAccountRecordImportPageRest::class.java, absolute = true),
+        targetType = TargetType.REDIRECT
+      ), HttpStatus.OK
+    )
   }
 
   companion object {
