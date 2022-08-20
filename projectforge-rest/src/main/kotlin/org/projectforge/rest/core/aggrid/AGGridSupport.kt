@@ -96,28 +96,7 @@ class AGGridSupport {
     magicFilter.paginationPageSize?.let { agGrid.paginationPageSize = it }
     layout.add(agGrid)
     if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
-      layout.hideSearchFilter = true
-      MultiSelectionSupport.getSessionContext(
-        request,
-        pagesRest::class.java
-      )?.paginationPageSize?.let { paginationPageSize ->
-        // pageSize was initially set by Wicket's list page. So use the same pagination size.
-        agGrid.paginationPageSize = paginationPageSize
-      }
-      if (pageAfterMultiSelect != null) {
-        agGrid.urlAfterMultiSelect =
-          RestResolver.getRestUrl(pageAfterMultiSelect, AbstractMultiSelectedPage.URL_PATH_SELECTED)
-      }
-      agGrid.handleCancelUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.CANCEL_MULTI_SELECTION)
-      layout
-        .add(
-          UIAlert(
-            message = "multiselection.aggrid.selection.info.message",
-            title = "multiselection.aggrid.selection.info.title",
-            color = UIColor.INFO,
-            markdown = true,
-          )
-        )
+      prepareUIGrid4MultiSelectionListPage(request, layout, agGrid, pagesRest, pageAfterMultiSelect)
     } else if (userAccess.update == true) {
       agGrid.withSingleRowClick()
       val redirectUrl = rowClickUrl ?: "${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id"
@@ -128,6 +107,53 @@ class AGGridSupport {
       }
     }
     agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.SET_COLUMN_STATES)
+    return agGrid
+  }
+
+  fun prepareUIGrid4MultiSelectionListPage(
+    request: HttpServletRequest,
+    layout: UILayout,
+    callerRest: Any,
+    pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
+  ): UIAgGrid {
+    val agGrid = UIAgGrid.createUIResultSetTable()
+    agGrid.enablePagination()
+    layout.add(agGrid)
+    prepareUIGrid4MultiSelectionListPage(request, layout, agGrid, callerRest, pageAfterMultiSelect)
+    agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(callerRest::class.java, RestPaths.SET_COLUMN_STATES)
+    return agGrid
+  }
+
+  private fun prepareUIGrid4MultiSelectionListPage(
+    request: HttpServletRequest,
+    layout: UILayout,
+    agGrid: UIAgGrid,
+    callerRest: Any,
+    pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
+  ): UIAgGrid {
+    layout.hideSearchFilter = true
+    MultiSelectionSupport.getSessionContext(
+      request,
+      callerRest::class.java
+    )?.paginationPageSize?.let { paginationPageSize ->
+      // pageSize was initially set by Wicket's list page. So use the same pagination size.
+      agGrid.paginationPageSize = paginationPageSize
+    }
+    if (pageAfterMultiSelect != null) {
+      agGrid.urlAfterMultiSelect =
+        RestResolver.getRestUrl(pageAfterMultiSelect, AbstractMultiSelectedPage.URL_PATH_SELECTED)
+    }
+    agGrid.handleCancelUrl = RestResolver.getRestUrl(callerRest::class.java, RestPaths.CANCEL_MULTI_SELECTION)
+    layout
+      .add(
+        UIAlert(
+          message = "multiselection.aggrid.selection.info.message",
+          title = "multiselection.aggrid.selection.info.title",
+          color = UIColor.INFO,
+          markdown = true,
+        )
+      )
+    agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(callerRest::class.java, RestPaths.SET_COLUMN_STATES)
     return agGrid
   }
 

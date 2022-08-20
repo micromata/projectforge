@@ -26,6 +26,8 @@ package org.projectforge.plugins.banking
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.importer.AbstractImportPageRest
+import org.projectforge.ui.LayoutContext
+import org.projectforge.ui.UIAgGrid
 import org.projectforge.ui.UILayout
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -34,12 +36,20 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/importBankAccountRecords")
-open class BankAccountRecordImportPageRest : AbstractImportPageRest() {
-
+class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord>() {
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
     val layout = UILayout("plugins.banking.account.record.import.title")
     return FormLayoutData(BankAccountRecord(), layout, createServerData(request))
   }
 
+  override fun createListLayout(
+    request: HttpServletRequest,
+    layout: UILayout,
+    agGrid: UIAgGrid,
+  ) {
+    val lc = LayoutContext(BankAccountRecordDO::class.java)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::date)
+    addStoredColumn(agGrid, lc, BankAccountRecordDO::date)
+  }
 }

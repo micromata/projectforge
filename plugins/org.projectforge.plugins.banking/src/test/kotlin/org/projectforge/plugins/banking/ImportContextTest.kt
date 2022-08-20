@@ -55,7 +55,7 @@ class ImportContextTest {
     context.readTransactions = read
     context.databaseTransactions = db
     context.analyzeReadTransactions()
-    context.fillImportStorage()
+    context.reconcileImportStorage()
     /*  PRINT storage for debugging:
     context.pairs.forEach {
       val read = it.readEntry
