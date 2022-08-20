@@ -56,8 +56,8 @@ class BankingImportStorageTest {
     storage.databaseTransactions = db
     storage.analyzeReadTransactions()
     storage.reconcileImportStorage()
-    /*  PRINT storage for debugging:
-    context.pairs.forEach {
+    /*//  PRINT storage for debugging:
+    storage.entries.forEach {
       val read = it.readEntry
       val stored = it.storedEntry
       println(
@@ -66,8 +66,7 @@ class BankingImportStorageTest {
         )
             + "db=[${stored?.date}, ${stored?.amount}, ${stored?.subject}, ${stored?.iban}]"
       )
-    }
-     */
+    }*/
     Assertions.assertEquals(9, storage.entries.size)
     storage.entries.filter { it.readEntry?.date == yesterday }.let { list ->
       Assertions.assertEquals(3, list.size)
@@ -138,4 +137,36 @@ class BankingImportStorageTest {
     assertRecord(pair.readEntry, readAmount, readSubject, readIban)
     assertRecord(pair.storedEntry, storedAmount, storedSubject, storedIban)
   }
+
+  /*
+  @Test
+  fun localTest() {
+    val file = File(System.getProperty("user.home"), "tmp/test-transactions.csv")
+    if (!file.exists()) {
+      return
+    }
+    val mappingString = """
+date=buchungstag|:dd.MM.yyyy|:dd.MM.yy
+valueDate=valuta*|:dd.MM.yyyy|:dd.MM.yy
+amount=betrag*|:#.##0,0#|:#0,0#
+type=buchungstext*
+debteeId=gläub*|glaeu*
+# Empty line and comment
+
+subject=verwendung*
+mandateReference=Mandat*
+customerReference=Kundenref*
+collectionReference=sammler*
+receiverSender=*beguen*|*zahlungspflicht*
+iban=*iban*
+bic=*bic*|*swift*
+currency=waehrung|währung
+info=info
+    """.trimMargin()
+    val mappingInfo = MappingInfo.parseMappingInfo(mappingString)
+    val importStorage = BankingImportStorage()
+    CsvImporter.parse(file.reader(), mappingInfo, importStorage)
+    Assertions.assertTrue(importStorage.readTransactions.isNotEmpty())
+    // println(JsonUtils.toJson(importStorage))
+  }*/
 }

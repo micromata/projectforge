@@ -40,9 +40,13 @@ abstract class ImportStorage<O : Any> {
   abstract fun prepareEntity(): O
 
   /**
-   * Set the property of the prepared entity.
+   * Set the property of the prepared entity on your own.
+   * @return true if the property is set by the implementation. If false (default), then the property will be set automatically
+   * by the importer tool (if possible).
    */
-  abstract fun setProperty(obj: O, mappingInfoEntry: MappingInfoEntry, value: String)
+  open fun setProperty(obj: O, mappingInfoEntry: MappingInfoEntry, value: String): Boolean {
+    return false
+  }
 
   /**
    * Store or skip this entity after the setting of all properties.

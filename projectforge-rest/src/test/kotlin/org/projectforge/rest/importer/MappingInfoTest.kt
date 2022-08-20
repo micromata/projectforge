@@ -44,24 +44,15 @@ class MappingInfoTest {
   fun parseMappingInfoTest() {
     val mappingString = """
 date=buchungstag|:dd.MM.yyyy|:dd.MM.yy
-valueDate=valuta*|:dd.MM.yyyy|:dd.MM.yy
 amount=betrag*|:#.##0,0#|:#0,0#
 type=buchungstext*
 debteeId=gläub*|glaeu*
 # Empty line and comment
 
 subject=verwendung*
-mandateReference=Mandat*
-customerReference=Kundenref*
-collectionReference=sammler*
-receiverSender=*beguen*|*zahlungspflicht*
-iban=*iban*
-bic=*bic*|*swift*
-currency=waehrung|währung
-info=info
     """.trimMargin()
     val info = MappingInfo.parseMappingInfo(mappingString)
-    Assertions.assertEquals(14, info.entries.size)
+    Assertions.assertEquals(5, info.entries.size)
     val dateMapping = info.entries.find { it.property == "date" }!!
     val amountMapping = info.entries.find { it.property == "amount" }!!
     checkMapping(dateMapping, arrayOf("buchungstag"), arrayOf("dd.MM.yyyy", "dd.MM.yy"))
