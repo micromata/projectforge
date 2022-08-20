@@ -5,6 +5,7 @@ import { UncontrolledTooltip } from 'reactstrap';
 import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
 import DropArea from '../../../../design/droparea';
 import LoadingContainer from '../../../../design/loading-container';
+import { DynamicLayoutContext } from '../../context';
 
 function DynamicAttachmentList(
     {
@@ -14,6 +15,10 @@ function DynamicAttachmentList(
         tooltip,
     },
 ) {
+    const {
+        callAction,
+    } = React.useContext(DynamicLayoutContext);
+
     const [loading, setLoading] = React.useState(false);
 
     const uploadFile = (files) => {
@@ -49,7 +54,7 @@ function DynamicAttachmentList(
                     // result as blob expected:
                     return fileDownload(result, filename);
                 }
-                throw Error('Not yet implemented.');
+                return callAction({ responseAction: result });
             })
             .catch((catchError) => {
                 // eslint-disable-next-line no-alert
