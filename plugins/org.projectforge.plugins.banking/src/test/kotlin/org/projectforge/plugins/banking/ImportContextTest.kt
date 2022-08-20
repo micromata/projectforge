@@ -23,7 +23,9 @@
 
 package org.projectforge.plugins.banking
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.rest.importer.ImportEntry
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -35,54 +37,105 @@ class ImportContextTest {
     val tomorrow = today.plusDays(1)
 
     val read = mutableListOf<BankAccountRecord>()
-    read.add(createRecord(yesterday, BigDecimal("1.23"), "Ice", "DE1111"))
-    read.add(createRecord(yesterday, BigDecimal("1.24"), "Ice", "DE1111"))
-    read.add(createRecord(yesterday, BigDecimal("1.23"), "Cake", "DE8888"))
-    read.add(createRecord(tomorrow, BigDecimal("27.12"), "Apple", "DE222"))
-    read.add(createRecord(tomorrow, BigDecimal("1.23"), "Apple", "DE222"))
+    read.add(createRecord(yesterday, "1.23", "Ice", "DE1111"))
+    read.add(createRecord(yesterday, "1.24", "Ice", "DE1111"))
+    read.add(createRecord(yesterday, "1.23", "Cake", "DE8888"))
+    read.add(createRecord(tomorrow, "27.12", "Apple", "DE222"))
+    read.add(createRecord(tomorrow, "1.23", "Apple", "DE222"))
 
     val db = mutableListOf<BankAccountRecordDO>()
-    db.add(createDBRecord(today, BigDecimal("1.23"), "Ice", "DE1111"))
-    db.add(createDBRecord(today, BigDecimal("1.24"), "Ice", "DE1111"))
-    db.add(createDBRecord(today, BigDecimal("1.23"), "Cake", "DE8888"))
-    db.add(createDBRecord(tomorrow, BigDecimal("27.12"), "Cake", "DE888"))
-    db.add(createDBRecord(tomorrow, BigDecimal("1.23"), "Apple", null))
-    db.add(createDBRecord(tomorrow, BigDecimal("1.23"), "Apple", "DE222"))
+    db.add(createDBRecord(today, "1.23", "Ice", "DE1111"))
+    db.add(createDBRecord(today, "1.24", "Ice", "DE1111"))
+    db.add(createDBRecord(today, "1.23", "Cake", "DE8888"))
+    db.add(createDBRecord(tomorrow, "27.12", "Cake", "DE888"))
+    db.add(createDBRecord(tomorrow, "1.23", "Apple", null))
+    db.add(createDBRecord(tomorrow, "1.23", "Apple", "DE222"))
 
     val context = ImportContext()
     context.readTransactions = read
     context.databaseTransactions = db
     context.analyzeReadTransactions()
-    context.createPairs()
-    context.pairsByDate.forEach { date, list ->
-      println("*** Date: $date")
-      list.forEach {
-        println("read=[${it.read?.date}, ${it.read?.amount}, ${it.read?.subject}, ${it.read?.iban}]".padEnd(40)
-        + "db=[${it.dbRecord?.date}, ${it.dbRecord?.amount}, ${it.dbRecord?.subject}, ${it.dbRecord?.iban}]")
-      }
+    context.fillImportStorage()
+    /*  PRINT storage for debugging:
+    context.pairs.forEach {
+      val read = it.readEntry
+      val stored = it.storedEntry
+      println(
+        "${read?.date ?: stored?.date}: read=[${read?.date}, ${read?.amount}, ${read?.subject}, ${read?.iban}]".padEnd(
+          55
+        )
+            + "db=[${stored?.date}, ${stored?.amount}, ${stored?.subject}, ${stored?.iban}]"
+      )
+    }
+     */
+    Assertions.assertEquals(9, context.pairs.size)
+    context.pairs.filter { it.readEntry?.date == yesterday }.let { list ->
+      Assertions.assertEquals(3, list.size)
+      Assertions.assertTrue(list.all { it.storedEntry == null })
+      Assertions.assertTrue(list.none { it.readEntry == null })
+    }
+    context.pairs.filter { (it.readEntry?.date ?: it.storedEntry?.date) == today }.let { list ->
+      Assertions.assertEquals(3, list.size)
+      Assertions.assertTrue(list.all { it.readEntry == null })
+      Assertions.assertTrue(list.none { it.storedEntry == null })
+    }
+    context.pairs.filter { (it.readEntry?.date ?: it.storedEntry?.date) == tomorrow }.let { list ->
+      Assertions.assertEquals(3, list.size)
+      Assertions.assertEquals(1, list.filter { it.readEntry == null }.size)
+      Assertions.assertTrue(list.none { it.storedEntry == null })
+      assertPair(list[0], "1.23", "Apple", "DE222", "1.23", "Apple", "DE222")
+      assertPair(list[1], "27.12", "Apple", "DE222", "27.12", "Cake", "DE888")
+      Assertions.assertNull(list[2].readEntry)
+      assertRecord(list[2].storedEntry, "1.23", "Apple", null)
     }
   }
 
   private fun createRecord(
     date: LocalDate?,
-    amount: BigDecimal?,
+    amount: String?,
     subject: String?,
     iban: String? = null
   ): BankAccountRecord {
-    return BankAccountRecord(date = date, amount = amount, subject = subject, iban = iban)
+    return BankAccountRecord(
+      date = date,
+      amount = if (amount != null) BigDecimal(amount) else null,
+      subject = subject,
+      iban = iban
+    )
   }
 
   private fun createDBRecord(
     date: LocalDate?,
-    amount: BigDecimal?,
+    amount: String?,
     subject: String?,
     iban: String? = null
   ): BankAccountRecordDO {
     val result = BankAccountRecordDO()
     result.date = date
-    result.amount = amount
+    result.amount = if (amount != null) BigDecimal(amount) else null
     result.subject = subject
     result.iban = iban
     return result
+  }
+
+  private fun assertRecord(record: BankAccountRecord?, amount: String, subject: String?, iban: String?) {
+    Assertions.assertNotNull(record)
+    Assertions.assertEquals(BigDecimal(amount), record!!.amount)
+    Assertions.assertEquals(subject, record.subject)
+    Assertions.assertEquals(iban, record.iban)
+
+  }
+
+  private fun assertPair(
+    pair: ImportEntry<BankAccountRecord>,
+    readAmount: String,
+    readSubject: String?,
+    readIban: String?,
+    storedAmount: String,
+    storedSubject: String?,
+    storedIban: String?,
+  ) {
+    assertRecord(pair.readEntry, readAmount, readSubject, readIban)
+    assertRecord(pair.storedEntry, storedAmount, storedSubject, storedIban)
   }
 }
