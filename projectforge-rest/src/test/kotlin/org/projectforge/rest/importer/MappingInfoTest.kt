@@ -25,6 +25,8 @@ package org.projectforge.rest.importer
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.rest.importer.MappingInfoEntryTest.Companion.checkMapping
+import org.projectforge.rest.importer.MappingInfoEntryTest.Companion.checkValues
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
@@ -58,10 +60,10 @@ bic=*bic*|*swift*
 currency=waehrung|währung
 info=info
     """.trimMargin()
-    val mappings = MappingInfo.parseMappings(mappingString)
-    Assertions.assertEquals(14, mappings.size)
-    val dateMapping = mappings.find { it.property == "date" }!!
-    val amountMapping = mappings.find { it.property == "amount" }!!
+    val info = MappingInfo.parseMappingInfo(mappingString)
+    Assertions.assertEquals(14, info.entries.size)
+    val dateMapping = info.entries.find { it.property == "date" }!!
+    val amountMapping = info.entries.find { it.property == "amount" }!!
     checkMapping(dateMapping, arrayOf("buchungstag"), arrayOf("dd.MM.yyyy", "dd.MM.yy"))
     checkMapping(amountMapping, arrayOf("betrag*"), arrayOf("#.##0,0#", "#0,0#"))
     Assertions.assertEquals(LocalDate.of(2000, Month.MAY, 18), dateMapping.parseLocalDate("18.05.2000"))
@@ -70,26 +72,5 @@ info=info
     Assertions.assertEquals(BigDecimal("1000.12"), amountMapping.parseBigDecimal("1000,12"))
     Assertions.assertEquals(BigDecimal("1000"), amountMapping.parseBigDecimal("1000"))
     Assertions.assertEquals(BigDecimal("1000.2"), amountMapping.parseBigDecimal("1000,2"))
-  }
-
-  private fun checkValues(str: String, expectedAliases: Array<String>, expectedParseFormats: Array<String>) {
-    val info = MappingInfo("someProp")
-    info.setValues(str)
-    checkMapping(info, expectedAliases, expectedParseFormats)
-  }
-
-  private fun checkMapping(
-    mappingInfo: MappingInfo,
-    expectedAliases: Array<String>,
-    expectedParseFormats: Array<String>,
-  ) {
-    Assertions.assertEquals(expectedAliases.size, mappingInfo.aliasList.size)
-    for (i in 0 until expectedAliases.size) {
-      Assertions.assertEquals(expectedAliases[i], mappingInfo.aliasList[i])
-    }
-    Assertions.assertEquals(expectedParseFormats.size, mappingInfo.parseFormatList.size)
-    for (i in 0 until expectedParseFormats.size) {
-      Assertions.assertEquals(expectedParseFormats[i], mappingInfo.parseFormatList[i])
-    }
   }
 }

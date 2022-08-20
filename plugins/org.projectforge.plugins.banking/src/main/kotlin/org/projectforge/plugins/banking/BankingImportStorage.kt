@@ -23,24 +23,15 @@
 
 package org.projectforge.plugins.banking
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.rest.importer.ImportEntry
 import org.projectforge.rest.importer.ImportStorage
+import org.projectforge.rest.importer.MappingInfoEntry
 import java.time.LocalDate
-import kotlin.reflect.KMutableProperty1
 
-class ImportContext {
-  val importStorage = ImportStorage<BankAccountRecord>()
-
-  val foundColumns = importStorage.foundColumns
-  val ignoredColumns = importStorage.ignoredColumns
-  val pairs = importStorage.entries
-
+class BankingImportStorage : ImportStorage<BankAccountRecord>() {
   var fromDate: LocalDate? = null
   var untilDate: LocalDate? = null
 
-  @JsonIgnore // for debugging as json
-  val lineMapping = mutableMapOf<Int, KMutableProperty1<BankAccountRecord, Any>>()
   var readTransactions = mutableListOf<BankAccountRecord>()
   var databaseTransactions: List<BankAccountRecordDO>? = null
 
@@ -64,7 +55,7 @@ class ImportContext {
     readByDay: List<BankAccountRecord>,
     dbRecordsByDay: List<BankAccountRecordDO>,
   ) {
-    val pairs = importStorage.entries
+    val pairs = entries
     if (readByDay.isEmpty()) {
       dbRecordsByDay.forEach { dbRecord ->
         pairs.add(ImportEntry(null, createRecord(dbRecord)))
@@ -134,5 +125,17 @@ class ImportContext {
     val result = BankAccountRecord()
     result.copyFrom(accountDO)
     return result
+  }
+
+  override fun prepareEntity(): BankAccountRecord {
+    return BankAccountRecord()
+  }
+
+  override fun setProperty(obj: BankAccountRecord, mappingInfoEntry: MappingInfoEntry, value: String) {
+    TODO("Not yet implemented")
+  }
+
+  override fun commitEntity(obj: BankAccountRecord) {
+    readTransactions.add(obj)
   }
 }

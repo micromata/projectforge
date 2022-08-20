@@ -40,22 +40,24 @@ class TransactionsImporter {
   fun import(
     request: HttpServletRequest,
     bankAccountDO: BankAccountDO,
-    importContext: ImportContext,
+    importStorage: BankingImportStorage,
   ) {
-    importContext.analyzeReadTransactions()
-    val fromDate = importContext.fromDate
-    val untilDate = importContext.untilDate
+    importStorage.analyzeReadTransactions()
+    val fromDate = importStorage.fromDate
+    val untilDate = importStorage.untilDate
     if (fromDate == null || untilDate == null) {
       return
     }
     log.info { "Trying to import account records from $fromDate-$untilDate for account '${bankAccountDO.name}': ${bankAccountDO.iban}" }
     // Ordered by date:
-    importContext.databaseTransactions = bankAccountRecordDao.getByTimePeriod(bankAccountDO.id, fromDate, untilDate)
-    importContext.reconcileImportStorage()
+    importStorage.databaseTransactions = bankAccountRecordDao.getByTimePeriod(bankAccountDO.id, fromDate, untilDate)
+    importStorage.reconcileImportStorage()
+    importStorage.databaseTransactions = null // Save memory, not needed anymore.
+    importStorage.readTransactions.clear() // Save memor, not needed anymore
     ExpiringSessionAttributes.setAttribute(
       request,
       AbstractImportPageRest.getSessionAttributeName(BankAccountRecordImportPageRest::class.java),
-      importContext.importStorage,
+      importStorage,
       10,
     )
   }
