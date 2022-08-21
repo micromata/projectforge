@@ -24,12 +24,24 @@
 package org.projectforge.rest.importer
 
 import java.io.StringReader
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import java.util.*
 
 
 class MappingInfo(
 ) {
   val entries = mutableListOf<MappingInfoEntry>()
+  var encoding: String? = null
+  val charSet: Charset
+    get() {
+      encoding ?: return StandardCharsets.UTF_8
+      return try {
+        Charset.forName(encoding)
+      } catch (ex: Exception) {
+        StandardCharsets.UTF_8
+      }
+    }
 
   /**
    * @param name is the name of the property or the column head of the data table matching any alias.
@@ -56,12 +68,16 @@ class MappingInfo(
       props.keys.forEach { key ->
         if (key != null) {
           key as String
-          val entry = MappingInfoEntry(key)
-          val value = props[key]
-          if (value != null) {
-            entry.setValues(value as String)
+          val value = props[key] as String?
+          if (key == "encoding") {
+            result.encoding = value
+          } else {
+            val entry = MappingInfoEntry(key)
+            if (value != null) {
+              entry.setValues(value)
+            }
+            result.entries.add(entry)
           }
-          result.entries.add(entry)
         }
       }
       return result

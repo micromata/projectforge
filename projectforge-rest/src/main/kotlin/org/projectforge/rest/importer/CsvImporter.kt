@@ -34,7 +34,7 @@ import java.util.Date
 private val log = KotlinLogging.logger {}
 
 object CsvImporter {
-  fun <O : Any> parse(reader: Reader, mappingInfo: MappingInfo, importStorage: ImportStorage<O>) {
+  fun <O : ImportEntry.Modified<O>> parse(reader: Reader, mappingInfo: MappingInfo, importStorage: ImportStorage<O>) {
     val parser = CSVParser(reader)
     val headCols = parser.parseLine()
     headCols.forEachIndexed { index, head ->

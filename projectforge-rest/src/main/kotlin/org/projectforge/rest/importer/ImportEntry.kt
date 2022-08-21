@@ -25,45 +25,59 @@ package org.projectforge.rest.importer
 
 import org.projectforge.rest.core.AbstractDynamicPageRest
 
-class ImportEntry<O : Any>(
-  /**
-   * If given, this entry was read from import file.
-   */
-  var readEntry: O? = null,
-  /**
-   * If given, this entry does already exist in the database.
-   */
-  var storedEntry: O? = null,
+class ImportEntry<O: ImportEntry.Modified<O>>(
+/**
+ * If given, this entry was read from import file.
+ */
+var readEntry: O? = null,
+
+/**
+ * If given, this entry does already exist in the database.
+ */
+var storedEntry: O? = null,
 ) : AbstractDynamicPageRest() {
   enum class Status { NEW, DELETED, MODIFIED, UNMODIFIED, UNKNOWN_MODIFICATION, UNKNOWN }
+
+  interface Modified<O> {
+    fun isModified(other: O): Boolean
+  }
+
+  fun isModified(): Boolean? {
+    val read = readEntry
+    val stored = storedEntry
+    if (read == null || stored == null) {
+      return null
+    }
+    return read.isModified(stored)
+  }
 
   /**
    * If both exists, read- and storedEntry, here is the list of modified / changed
    * properties.
    */
   var diff: List<ImportPropertyDiff>? = null
-    set(value) {
-      field = value
-      dirtyFlag = false
-    }
+  set(value) {
+    field = value
+    dirtyFlag = false
+  }
 
   private var dirtyFlag = true
 
   val status: Status
-    get() {
-      return if (readEntry == null) {
-        if (storedEntry == null) {
-          Status.UNKNOWN
-        }
-        Status.NEW
-      } else if (storedEntry == null) {
-        Status.DELETED
-      } else if (dirtyFlag) {
-        Status.UNKNOWN_MODIFICATION
-      } else if (diff.isNullOrEmpty()) {
-        Status.UNMODIFIED
-      } else {
-        Status.MODIFIED
+  get() {
+    return if (readEntry == null) {
+      if (storedEntry == null) {
+        Status.UNKNOWN
       }
+      Status.NEW
+    } else if (storedEntry == null) {
+      Status.DELETED
+    } else if (dirtyFlag) {
+      Status.UNKNOWN_MODIFICATION
+    } else if (diff.isNullOrEmpty()) {
+      Status.UNMODIFIED
+    } else {
+      Status.MODIFIED
     }
+  }
 }

@@ -23,7 +23,14 @@
 
 package org.projectforge.rest.importer
 
-abstract class ImportStorage<O : Any> {
+abstract class ImportStorage<O : ImportEntry.Modified<O>> {
+  class DisplayOptions(
+    var new: Boolean? = true,
+    var modified: Boolean? = true,
+    var unmodified: Boolean? = null,
+    var deleted: Boolean? = true,
+  )
+
   val foundColumns = mutableMapOf<String, String>()
   val ignoredColumns = mutableListOf<String>()
 
@@ -33,6 +40,11 @@ abstract class ImportStorage<O : Any> {
   val columnMapping = mutableMapOf<Int, MappingInfoEntry>()
 
   var entries = mutableListOf<ImportEntry<O>>()
+
+  var displayOptions = DisplayOptions()
+
+  val info: ImportStorageInfo
+    get() = ImportStorageInfo(this)
 
   /**
    * Prepares an entity (normally only by return new object).

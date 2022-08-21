@@ -55,14 +55,13 @@ function DynamicAgGrid(props) {
     // eslint-disable-next-line no-new-func
     const getRowClassFunction = Function('params', getRowClass);
     const rowClass = 'ag-row-standard';
-    const { data, ui } = React.useContext(DynamicLayoutContext);
+    const { data, ui, variables } = React.useContext(DynamicLayoutContext);
     const [gridApi, setGridApi] = useState();
     const [columnApi, setColumnApi] = useState();
     const gridRef = useRef();
     // const gridStyle = React.useMemo(() => ({ width: '100%' }), []);
-    const rowData = entries || Object.getByString(data, id) || '';
+    const rowData = entries || Object.getByString(data, id) || Object.getByString(variables, id) || '';
     const { selectedEntityIds } = data;
-
     /*
     const showHighlightedRow = () => {
         console.log('showHighlightedRow');

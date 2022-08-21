@@ -73,12 +73,13 @@ class BankingServicesRest {
     bankAccount.copyFrom(bankAccountDO)
     log.info("Importing transactions for bank account #$id, iban=${bankAccount.iban}")
     var importStorage: BankingImportStorage? = null
+    val mappingInfo = MappingInfo.parseMappingInfo(bankAccount.importMappingTable)
     if (filename.endsWith("xls", ignoreCase = true) || filename.endsWith("xlsx", ignoreCase = true)) {
       throw IllegalArgumentException("Excel not yet supported.")
     } else {
       importStorage = BankingImportStorage()
       // Try to import CSV
-      CsvImporter.parse(file.inputStream.reader(), MappingInfo.parseMappingInfo(bankAccount.importMappingTable), importStorage)
+      CsvImporter.parse(file.inputStream.reader(charset = mappingInfo.charSet), mappingInfo, importStorage)
     }
     transactionsImporter.import(request, bankAccountDO, importStorage)
     return ResponseEntity(

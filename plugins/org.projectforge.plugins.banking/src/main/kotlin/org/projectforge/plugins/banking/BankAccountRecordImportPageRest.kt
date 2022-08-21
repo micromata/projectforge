@@ -24,6 +24,7 @@
 package org.projectforge.plugins.banking
 
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.importer.AbstractImportPageRest
 import org.projectforge.ui.LayoutContext
@@ -39,8 +40,12 @@ import javax.servlet.http.HttpServletRequest
 class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord>() {
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
-    val layout = UILayout("plugins.banking.account.record.import.title")
-    return FormLayoutData(BankAccountRecord(), layout, createServerData(request))
+    val importStorage = ExpiringSessionAttributes.getAttribute(
+      request,
+      getSessionAttributeName(BankAccountRecordImportPageRest::class.java),
+      BankingImportStorage::class.java,
+    )
+    return createLayout(request, "plugins.banking.account.record.import.title", importStorage)
   }
 
   override fun createListLayout(
@@ -50,6 +55,19 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
   ) {
     val lc = LayoutContext(BankAccountRecordDO::class.java)
     addReadColumn(agGrid, lc, BankAccountRecordDO::date)
-    addStoredColumn(agGrid, lc, BankAccountRecordDO::date)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::valueDate)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::amount)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::receiverSender)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::iban)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::bic)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::subject)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::collectionReference)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::debteeId)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::mandateReference)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::customerReference)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::currency)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::type)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::info)
+    // addStoredColumn(agGrid, lc, BankAccountRecordDO::date)
   }
 }
