@@ -105,33 +105,19 @@ class AGGridSupport {
       if (pageAfterMultiSelect != null) {
         layout.multiSelectionSupported = true
       }
+      // Done for multiselection by prepareUIGrid4MultiSelectionListPage:
+      agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.SET_COLUMN_STATES)
     }
-    agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(pagesRest::class.java, RestPaths.SET_COLUMN_STATES)
     return agGrid
   }
 
   fun prepareUIGrid4MultiSelectionListPage(
     request: HttpServletRequest,
     layout: UILayout,
-    callerRest: Any,
-    pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
-  ): UIAgGrid {
-    val agGrid = UIAgGrid.createUIResultSetTable()
-    agGrid.enablePagination()
-    layout.add(agGrid)
-    prepareUIGrid4MultiSelectionListPage(request, layout, agGrid, callerRest, pageAfterMultiSelect)
-    agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(callerRest::class.java, RestPaths.SET_COLUMN_STATES)
-    return agGrid
-  }
-
-  private fun prepareUIGrid4MultiSelectionListPage(
-    request: HttpServletRequest,
-    layout: UILayout,
     agGrid: UIAgGrid,
     callerRest: Any,
     pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
-  ): UIAgGrid {
-    layout.hideSearchFilter = true
+  ) {
     MultiSelectionSupport.getSessionContext(
       request,
       callerRest::class.java
@@ -154,7 +140,6 @@ class AGGridSupport {
         )
       )
     agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(callerRest::class.java, RestPaths.SET_COLUMN_STATES)
-    return agGrid
   }
 
   fun restoreColumnsFromUserPref(category: String, agGrid: UIAgGrid) {

@@ -84,6 +84,8 @@ open class UIAgGrid(
       pagination = true
     }
 
+  var height: String? = null
+
   var onColumnStatesChangedUrl: String? = null
 
   /**
@@ -96,9 +98,11 @@ open class UIAgGrid(
 
   var dateFormat = UserStatusRest.convertToJavascriptFormat(DateFormats.getFormatString(DateFormatType.DATE))
 
-  var timestampFormatSeconds = UserStatusRest.convertToJavascriptFormat(DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS))
+  var timestampFormatSeconds =
+    UserStatusRest.convertToJavascriptFormat(DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS))
 
-  var timestampFormatMinutes = UserStatusRest.convertToJavascriptFormat(DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES))
+  var timestampFormatMinutes =
+    UserStatusRest.convertToJavascriptFormat(DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES))
 
   var thousandSeparator = DecimalFormatSymbols(UserLocale.determineUserLocale()).groupingSeparator
 
@@ -236,6 +240,7 @@ open class UIAgGrid(
   }
 
   /**
+   * Enables row selection if magic filter contains this flag: [MultiSelectionSupport.isMultiSelection].
    * @return this for chaining.
    */
   fun withMultiRowSelection(
@@ -244,13 +249,27 @@ open class UIAgGrid(
   ): UIAgGrid {
     val multiSelectionMode = MultiSelectionSupport.isMultiSelection(request, magicFilter)
     if (multiSelectionMode) {
-      rowSelection = "multiple"
-      rowMultiSelectWithClick = true
-      if (columnDefs.size > 0) {
-        columnDefs[0].checkboxSelection = true
-        columnDefs[0].headerCheckboxSelection = true
-        multiSelectButtonTitle = translate("next")
+      withMultiRowSelection()
+    }
+    return this
+  }
+
+  /**
+   * Enables multi row selection
+   * @return this for chaining.
+   */
+  fun withMultiRowSelection(): UIAgGrid {
+    rowSelection = "multiple"
+    rowMultiSelectWithClick = true
+    if (columnDefs.size > 0) {
+      columnDefs[0].let { firstColumn ->
+        firstColumn.checkboxSelection = true
+        firstColumn.headerCheckboxSelection = true
+        firstColumn.width?.let { width ->
+         firstColumn.width = width + 15 // enlarge width because of additional checkbox.
+        }
       }
+      multiSelectButtonTitle = translate("next")
     }
     return this
   }

@@ -24,6 +24,7 @@
 package org.projectforge.plugins.banking
 
 import org.projectforge.rest.dto.BaseDTO
+import org.projectforge.rest.importer.ImportEntry
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -46,7 +47,7 @@ class BankAccountRecord(
   var receiverSender: String? = null,
   var iban: String? = null,
   var bic: String? = null,
-) : BaseDTO<BankAccountRecordDO>() {
+) : BaseDTO<BankAccountRecordDO>(), ImportEntry.Modified<BankAccountRecord> {
   override fun copyFrom(src: BankAccountRecordDO) {
     super.copyFrom(src)
     accountIban = src.bankAccount?.iban
@@ -56,21 +57,21 @@ class BankAccountRecord(
   /**
    * Checks if the given dest account needs an update (differs from this).
    */
-  fun updateNeeded(dest: BankAccountRecordDO): Boolean {
-    return updateNeeded(amount, dest.amount)
+  override fun isModified(other: BankAccountRecord): Boolean {
+    return isModified(amount, other.amount)
         // ||updateNeeded(date, dest.date) // Can't occur (the records will never match)
-        || updateNeeded(valueDate, dest.valueDate)
-        || updateNeeded(type, dest.type)
-        || updateNeeded(subject, dest.subject)
-        || updateNeeded(currency, dest.currency)
-        || updateNeeded(debteeId, dest.debteeId)
-        || updateNeeded(mandateReference, dest.mandateReference)
-        || updateNeeded(customerReference, dest.customerReference)
-        || updateNeeded(collectionReference, dest.collectionReference)
-        || updateNeeded(info, dest.info)
-        || updateNeeded(receiverSender, dest.receiverSender) // Shouldn't occur
-        || updateNeeded(iban, dest.iban)
-        || updateNeeded(bic, dest.bic)
+        || isModified(valueDate, other.valueDate)
+        || isModified(type, other.type)
+        || isModified(subject, other.subject)
+        || isModified(currency, other.currency)
+        || isModified(debteeId, other.debteeId)
+        || isModified(mandateReference, other.mandateReference)
+        || isModified(customerReference, other.customerReference)
+        || isModified(collectionReference, other.collectionReference)
+        || isModified(info, other.info)
+        || isModified(receiverSender, other.receiverSender) // Shouldn't occur
+        || isModified(iban, other.iban)
+        || isModified(bic, other.bic)
   }
 
   /**
@@ -142,7 +143,7 @@ class BankAccountRecord(
     }
   }
 
-  private fun updateNeeded(value: Any?, dest: Any?): Boolean {
+  private fun isModified(value: Any?, dest: Any?): Boolean {
     value ?: return false
     return value != dest
   }

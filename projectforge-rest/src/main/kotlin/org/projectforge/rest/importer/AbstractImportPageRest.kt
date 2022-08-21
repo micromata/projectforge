@@ -23,21 +23,24 @@
 
 package org.projectforge.rest.importer
 
-import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.business.common.ListStatisticsSupport
+import org.projectforge.framework.utils.NumberFormatter
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.aggrid.AGGridSupport
-import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UIAgGrid
-import org.projectforge.ui.UILayout
+import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.dto.PostData
+import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import javax.servlet.http.HttpServletRequest
+import javax.validation.Valid
 import kotlin.reflect.KProperty
 
-abstract class AbstractImportPageRest<O : Any> : AbstractDynamicPageRest() {
+abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDynamicPageRest() {
   /**
    * Contains the data, layout and filter settings served by [getInitialList].
    */
@@ -49,37 +52,81 @@ abstract class AbstractImportPageRest<O : Any> : AbstractDynamicPageRest() {
   @Autowired
   protected lateinit var agGridSupport: AGGridSupport
 
-  @GetMapping("initialList")
-  fun requestInitialList(request: HttpServletRequest): InitialListData {
-    val importStorage = ExpiringSessionAttributes.getAttribute(
-      request,
-      getSessionAttributeName(this::class.java),
-      ImportStorage::class.java,
-    )
-    @Suppress("UNCHECKED_CAST")
-    importStorage as ImportStorage<O>
-    // ExpiringSessionAttributes.removeAttribute(request.getSession(false), "${this::class.java.name}.importStorage")
-    val result = getInitialList(request, importStorage)
-    return result
-  }
-
-  protected abstract fun createListLayout(request: HttpServletRequest, layout: UILayout, agGrid: UIAgGrid)
-
-  protected fun getInitialList(request: HttpServletRequest, importStorage: ImportStorage<O>): InitialListData {
-    val layout = UILayout("plugins.banking.account.record.import.title")
-    val agGrid = agGridSupport.prepareUIGrid4MultiSelectionListPage(
+  protected fun createLayout(request: HttpServletRequest, title: String, importStorage: ImportStorage<*>?): FormLayoutData {
+    val layout = UILayout(title)
+    val data = importStorage?.info
+    val statsSupport = ListStatisticsSupport()
+    if (data != null) {
+      statsSupport.append("import.entries.total", NumberFormatter.format(data.totalNumber))
+      addIfNotZero(statsSupport, "import.entries.new", data.numberOfNewEntries, ListStatisticsSupport.Color.GREEN)
+      addIfNotZero(
+        statsSupport,
+        "import.entries.deleted",
+        data.numberOfDeletedEntries,
+        ListStatisticsSupport.Color.RED
+      )
+      addIfNotZero(
+        statsSupport,
+        "import.entries.modified",
+        data.numberOfModifiedEntries,
+        ListStatisticsSupport.Color.BLUE
+      )
+      addIfNotZero(statsSupport, "import.entries.unmodified", data.numberOfUnmodifiedEntries)
+      val row = UIRow()
+      layout.add(row)
+      row.add(
+        UICol(md = 6)
+          .add(UIAlert("'${statsSupport.asMarkdown}", color = UIColor.LIGHT, markdown = true))
+      )
+      if (data.totalNumber > 0) {
+        val col = UICol(md = 6)
+        row.add(col)
+        val checkboxGroup = UIRow()
+        col.add(checkboxGroup)
+        checkboxGroup.add(UILabel("import.display.options"))
+        addCheckBoxIfNotZero(layout, checkboxGroup, "new", data.numberOfNewEntries)
+        addCheckBoxIfNotZero(layout, checkboxGroup, "deleted", data.numberOfDeletedEntries)
+        addCheckBoxIfNotZero(layout, checkboxGroup, "modified", data.numberOfModifiedEntries)
+        addCheckBoxIfNotZero(layout, checkboxGroup, "unmodified", data.numberOfUnmodifiedEntries)
+      }
+    }
+    val agGrid = UIAgGrid("entries")
+    layout.add(agGrid)
+    agGridSupport.prepareUIGrid4MultiSelectionListPage(
       request,
       layout,
+      agGrid,
       this,
       pageAfterMultiSelect = this::class.java,
     )
+    // agGrid.height = "window.screen.height - 400"
     createListLayout(request, layout, agGrid)
+    agGrid.withMultiRowSelection()
     LayoutUtils.process(layout)
-    return InitialListData(
-      ui = layout,
-      data = ResultSet(importStorage.entries, null, magicFilter = MagicFilter()),
+    val formLayoutData = FormLayoutData(data, layout, createServerData(request))
+    importStorage?.entries.let { entries ->
+      // Put result list to variables instead of data, otherwise any post data of the client will contain the whole list.
+      formLayoutData.variables = mapOf("entries" to (entries ?: emptyList<Any>()))
+    }
+    return formLayoutData
+
+  }
+
+  /**
+   * Will be called, if the user wants to see the encryption options.
+   */
+  @PostMapping(RestPaths.WATCH_FIELDS)
+  fun watchFields(
+    @Valid @RequestBody postData: PostData<ImportStorageInfo>
+  ): ResponseEntity<ResponseAction> {
+    val data = postData.data
+    return ResponseEntity.ok(
+      ResponseAction(targetType = TargetType.UPDATE)
+        .addVariable("data", data)
     )
   }
+
+  protected abstract fun createListLayout(request: HttpServletRequest, layout: UILayout, agGrid: UIAgGrid)
 
   protected fun addReadColumn(agGrid: UIAgGrid, lc: LayoutContext, property: KProperty<*>) {
     val field = property.name
@@ -89,6 +136,30 @@ abstract class AbstractImportPageRest<O : Any> : AbstractDynamicPageRest() {
   protected fun addStoredColumn(agGrid: UIAgGrid, lc: LayoutContext, property: KProperty<*>) {
     val field = property.name
     agGrid.add(lc, "storedEntry.$field", lcField = field)
+  }
+
+  protected fun addIfNotZero(
+    statsSupport: ListStatisticsSupport,
+    i18nKey: String,
+    number: Int,
+    color: ListStatisticsSupport.Color? = null,
+  ) {
+    if (number > 0) {
+      statsSupport.append(i18nKey, NumberFormatter.format(number), color)
+    }
+  }
+
+  protected fun addCheckBoxIfNotZero(
+    layout: UILayout,
+    row: IUIContainer,
+    id: String,
+    number: Int,
+  ) {
+    if (number > 0) {
+      val fieldId = "displayOptions.$id"
+      row.add(UICheckbox(fieldId, label = "import.display.$id"))
+      layout.watchFields.add(fieldId)
+    }
   }
 
   companion object {

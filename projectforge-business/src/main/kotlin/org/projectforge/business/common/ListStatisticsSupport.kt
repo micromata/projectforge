@@ -33,20 +33,20 @@ class ListStatisticsSupport {
 
   private var first = true
 
-  enum class Color(val color: String) { RED("red"), BLUE("blue") }
+  enum class Color(val color: String) { RED("red"), BLUE("blue"), GREEN("green") }
 
   val asMarkdown: String
     get() = sb.toString()
 
-  fun append(i18nKey: String, value: String) {
+  fun append(i18nKey: String, value: String, color: Color? = null) {
     ensureSeparator()
+    if (color != null) {
+      sb.append("<span style=\"color:${color.color};\">")
+    }
     sb.append(translate(i18nKey)).append(": ").append(value)
-  }
-
-  fun append(i18nKey: String, value: String, color: Color) {
-    sb.append("<span style=\"color:${color.color};\">")
-    append(i18nKey, value)
-    sb.append("</span>")
+    if (color != null) {
+      sb.append("</span>")
+    }
   }
 
   private fun ensureSeparator() {

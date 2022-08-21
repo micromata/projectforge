@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.rest.importer.MappingInfoEntryTest.Companion.checkMapping
 import org.projectforge.rest.importer.MappingInfoEntryTest.Companion.checkValues
 import java.math.BigDecimal
+import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 import java.time.Month
 
@@ -43,6 +44,7 @@ class MappingInfoTest {
   @Test
   fun parseMappingInfoTest() {
     val mappingString = """
+encoding=iso-8859-1
 date=buchungstag|:dd.MM.yyyy|:dd.MM.yy
 amount=betrag*|:#.##0,0#|:#0,0#
 type=buchungstext*
@@ -57,6 +59,8 @@ subject=verwendung*
     val amountMapping = info.entries.find { it.property == "amount" }!!
     checkMapping(dateMapping, arrayOf("buchungstag"), arrayOf("dd.MM.yyyy", "dd.MM.yy"))
     checkMapping(amountMapping, arrayOf("betrag*"), arrayOf("#.##0,0#", "#0,0#"))
+    Assertions.assertEquals("iso-8859-1", info.encoding)
+    Assertions.assertEquals(StandardCharsets.ISO_8859_1, info.charSet)
     Assertions.assertEquals(LocalDate.of(2000, Month.MAY, 18), dateMapping.parseLocalDate("18.05.2000"))
     Assertions.assertEquals(LocalDate.of(2000, Month.MAY, 18), dateMapping.parseLocalDate("18.05.00"))
     Assertions.assertEquals(BigDecimal("1000.12"), amountMapping.parseBigDecimal("1.000,12"))

@@ -7,7 +7,7 @@ import TooltipIcon from '../../../design/TooltipIcon';
 function DynamicLabel({ label, tooltip }) {
     const id = tooltip ? String.idify(label) : undefined;
     return (
-        <Label id={id}>
+        <Label className="ui-label" id={id}>
             {label}
             {tooltip && (
                 <>
