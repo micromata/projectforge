@@ -466,7 +466,7 @@ function FullCalendarPanel(options) {
                         eventDrop={handleEventDrop}
                         eventMouseEnter={handleEventMouseEnter}
                         eventMouseLeave={closePopOver}
-                        height={`calc(100vh - ${topHeight})`}
+                        height={`max(calc(100vh - ${topHeight}), 400px)`}
                         themeSystem="bootstrap"
                     />
                 </div>
