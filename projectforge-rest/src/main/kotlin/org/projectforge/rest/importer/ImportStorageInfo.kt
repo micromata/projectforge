@@ -30,8 +30,8 @@ class ImportStorageInfo() {
   var numberOfModifiedEntries: Int = 0
   var numberOfUnmodifiedEntries: Int = 0
 
-  var foundColumns: Map<String, String>? = null
-  var ignoredColumns: List<String>? = null
+  var detectedColumns: Map<String, String>? = null
+  var unknownColumns: List<String>? = null
 
   var displayOptions = ImportStorage.DisplayOptions()
 
@@ -52,8 +52,8 @@ class ImportStorageInfo() {
         numberOfUnmodifiedEntries += 1
       }
     }
-    foundColumns = importStorage.foundColumns
-    ignoredColumns = importStorage.ignoredColumns
+    detectedColumns = importStorage.detectedColumns
+    unknownColumns = importStorage.unknownColumns
 
   }
 }

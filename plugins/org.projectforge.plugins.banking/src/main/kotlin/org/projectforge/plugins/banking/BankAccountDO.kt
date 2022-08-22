@@ -79,10 +79,7 @@ open class BankAccountDO : BaseUserGroupRightsDO() {
   /**
    *
    */
-  @PropertyInfo(
-    i18nKey = "plugins.banking.account.importSettings",
-    tooltip = "plugins.banking.account.importSettings.tooltip",
-  )
+  @PropertyInfo(i18nKey = "plugins.banking.account.importSettings")
   @Field
   @get:Column(length = 10000, name = "import_settings")
   open var importSettings: String? = null

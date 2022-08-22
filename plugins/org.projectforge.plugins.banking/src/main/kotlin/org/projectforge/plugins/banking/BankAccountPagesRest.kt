@@ -34,6 +34,7 @@ import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.BankAccount
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
+import org.projectforge.rest.importer.AbstractImportPageRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
@@ -164,6 +165,8 @@ class BankAccountPagesRest : AbstractDTOPagesRest<BankAccountDO, BankAccount, Ba
           )
       )
       .add(lc, BankAccountDO::importSettings)
+      .add(AbstractImportPageRest.createSettingsHelp(null))
+
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 }

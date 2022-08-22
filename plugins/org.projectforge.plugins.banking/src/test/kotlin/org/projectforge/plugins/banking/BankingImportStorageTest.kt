@@ -146,6 +146,7 @@ class BankingImportStorageTest {
       return
     }
     val importSettings = """
+encoding=iso-8859-15
 date=buchungstag|:dd.MM.yyyy|:dd.MM.yy
 valueDate=valuta*|:dd.MM.yyyy|:dd.MM.yy
 amount=betrag*|:#.##0,0#|:#0,0#

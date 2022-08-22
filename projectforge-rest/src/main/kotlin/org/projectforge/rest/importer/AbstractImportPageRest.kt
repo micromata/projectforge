@@ -24,6 +24,7 @@
 package org.projectforge.rest.importer
 
 import org.projectforge.business.common.ListStatisticsSupport
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -52,11 +53,15 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
   @Autowired
   protected lateinit var agGridSupport: AGGridSupport
 
-  protected fun createLayout(request: HttpServletRequest, title: String, importStorage: ImportStorage<*>?): FormLayoutData {
+  protected fun createLayout(
+    request: HttpServletRequest,
+    title: String,
+    importStorage: ImportStorage<*>?
+  ): FormLayoutData {
     val layout = UILayout(title)
     val data = importStorage?.info
-    val statsSupport = ListStatisticsSupport()
     if (data != null) {
+      val statsSupport = ListStatisticsSupport()
       statsSupport.append("import.entries.total", NumberFormatter.format(data.totalNumber))
       addIfNotZero(statsSupport, "import.entries.new", data.numberOfNewEntries, ListStatisticsSupport.Color.GREEN)
       addIfNotZero(
@@ -89,6 +94,8 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
         addCheckBoxIfNotZero(layout, checkboxGroup, "modified", data.numberOfModifiedEntries)
         addCheckBoxIfNotZero(layout, checkboxGroup, "unmodified", data.numberOfUnmodifiedEntries)
       }
+    } else {
+      layout.add(UIAlert("import.error.nothingToImport", color = UIColor.DANGER))
     }
     val agGrid = UIAgGrid("entries")
     layout.add(agGrid)
@@ -102,6 +109,26 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
     // agGrid.height = "window.screen.height - 400"
     createListLayout(request, layout, agGrid)
     agGrid.withMultiRowSelection()
+
+    if (importStorage != null) {
+      val settingsInfo = StringBuilder()
+      settingsInfo
+        .appendLine("### ${translate("import.info.detectedColumns")}")
+        .appendLine()
+        .appendLine("| ${translate("import.field.field")} | ${translate("import.field.mapping")} |")
+        .appendLine("| --- | --- |")
+      importStorage.detectedColumns.entries.forEach {
+        settingsInfo.appendLine("| ${it.value} | ${it.key} |")
+      }
+      settingsInfo
+        .appendLine()
+        .appendLine("### ${translate("import.info.unknownColumns")}")
+        .appendLine()
+        .appendLine(importStorage.unknownColumns.joinToString())
+      layout.add(UIAlert("'$settingsInfo", color = UIColor.LIGHT, markdown = true))
+    }
+    layout.add(createSettingsHelp(importStorage))
+
     LayoutUtils.process(layout)
     val formLayoutData = FormLayoutData(data, layout, createServerData(request))
     importStorage?.entries.let { entries ->
@@ -165,6 +192,17 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
   companion object {
     fun getSessionAttributeName(importPageRest: Class<*>): String {
       return "${importPageRest.name}.importStorage"
+    }
+
+    fun createSettingsHelp(importStorage: ImportStorage<*>?): UIAlert {
+      val sb = StringBuilder()
+      sb.appendLine(translate("import.help.settings.info"))
+      sb.appendLine("```")
+      sb.appendLine("# Uncomment the following line for other coding than UTF-8")
+      sb.appendLine("#encoding=iso-8859-15")
+      sb.appendLine("field=header column|:dd.MM.yyyy|:dd.MM.yy")
+      sb.appendLine("```")
+      return UIAlert(sb.toString(), title = "import.help.settings.title", markdown = true, color = UIColor.LIGHT)
     }
   }
 }
