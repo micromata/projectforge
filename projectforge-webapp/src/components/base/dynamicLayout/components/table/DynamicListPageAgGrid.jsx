@@ -78,7 +78,7 @@ function DynamicListPageAgGrid({
                             color="danger"
                             outline
                         >
-                            {ui.translations.cancel}
+                            {ui.translations.cancel || 'cancel'}
                         </Button>
                         <Button
                             id="next"
@@ -86,7 +86,7 @@ function DynamicListPageAgGrid({
                             color="success"
                             outline
                         >
-                            {multiSelectButtonTitle}
+                            {multiSelectButtonTitle || 'next'}
                         </Button>
                     </>
                 )}

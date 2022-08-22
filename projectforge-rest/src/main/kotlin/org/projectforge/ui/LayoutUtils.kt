@@ -63,6 +63,7 @@ object LayoutUtils {
    */
   @JvmStatic
   fun process(layout: UILayout): List<Any?> {
+    addCommonTranslations(layout.translations)
     layout.postProcessPageMenu()
     val elements = processAllElements(layout, layout.getAllElements())
     var counter = 0

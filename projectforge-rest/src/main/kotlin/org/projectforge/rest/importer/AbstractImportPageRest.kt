@@ -33,6 +33,7 @@ import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -71,6 +72,14 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
     layout.add(fieldset)
     if (!hasEntries) {
       fieldset.add(UIAlert("import.error.nothingToImport", color = UIColor.DANGER))
+      fieldset.add(
+        UIButton.createCancelButton(
+          ResponseAction(
+            RestResolver.getRestUrl(this::class.java, "cancel"),
+            targetType = TargetType.GET,
+          )
+        )
+      )
     } else {
       if (data != null) {
         val statsSupport = ListStatisticsSupport()
@@ -107,7 +116,7 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
           addCheckBoxIfNotZero(layout, checkboxGroup, "unmodified", data.numberOfUnmodifiedEntries)
         }
       }
-      val agGrid = UIAgGrid("entries")
+      val agGrid = UIAgGrid("entries", listPageTable = true)
       layout.add(agGrid)
       agGridSupport.prepareUIGrid4MultiSelectionListPage(
         request,
@@ -116,9 +125,12 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
         this,
         pageAfterMultiSelect = this::class.java,
       )
+      agGrid.handleCancelUrl = RestResolver.getRestUrl(this::class.java, "cancelAndGetUrl")
+      agGrid.urlAfterMultiSelect = RestResolver.getRestUrl(this::class.java, "import")
       // agGrid.height = "window.screen.height - 400"
       createListLayout(request, layout, agGrid)
       agGrid.withMultiRowSelection()
+      agGrid.multiSelectButtonTitle = translate("import")
     }
 
     val settingsInfo = StringBuilder()
@@ -138,30 +150,6 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
         .appendLine(importStorage.unknownColumns.joinToString())
       layout.add(UIAlert("'$settingsInfo", color = UIColor.WARNING, markdown = true))
       layout.add(createSettingsHelp(importStorage.importSettings))
-    }
-
-    val buttons = UIRow()
-    fieldset.add(buttons)
-    buttons.add(
-      UIButton.createCancelButton(
-        ResponseAction(
-          RestResolver.getRestUrl(this::class.java, "cancel"),
-          targetType = TargetType.GET,
-        )
-      )
-    )
-    if ((data?.totalNumber ?: 0) > 0) {
-      buttons.add(
-        UIButton.createDefaultButton(
-          id = "import",
-          title = "import",
-          responseAction = ResponseAction(
-            RestResolver.getRestUrl(this::class.java, "import"),
-            targetType = TargetType.POST,
-          ),
-          default = false,
-        )
-      )
     }
 
     LayoutUtils.process(layout)
@@ -193,23 +181,31 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
    */
   @PostMapping("import")
   fun import(
-    @Valid @RequestBody postData: PostData<ImportStorageInfo>
+    @RequestBody selectedIds: AbstractMultiSelectedPage.MultiSelection?
   ): ResponseEntity<ResponseAction> {
-    val data = postData.data
     return ResponseEntity.ok(
-      ResponseAction(targetType = TargetType.UPDATE)
-        .addVariable("data", data)
+      ResponseAction(targetType = TargetType.NOTHING)
     )
   }
 
   /**
-   * Will be called, if the user wants to import the selected entries.
+   * Called from UIButton cancel above.
    */
   @GetMapping("cancel")
   fun cancel(request: HttpServletRequest): ResponseAction {
     val callerPage = callerPage(request) // must be called before clearImportStorage!
     clearImportStorage(request)
     return ResponseAction(callerPage)
+  }
+
+  /**
+   * Called by DynamicListPageAgGrid
+   */
+  @GetMapping("cancelAndGetUrl")
+  fun cancelAndGetUrl(request: HttpServletRequest): String {
+    val callerPage = callerPage(request) // must be called before clearImportStorage!
+    clearImportStorage(request)
+    return callerPage
   }
 
   protected abstract fun createListLayout(request: HttpServletRequest, layout: UILayout, agGrid: UIAgGrid)
