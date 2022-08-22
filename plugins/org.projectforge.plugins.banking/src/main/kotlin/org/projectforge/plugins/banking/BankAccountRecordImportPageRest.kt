@@ -29,9 +29,12 @@ import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.BankAccount
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.importer.AbstractImportPageRest
+import org.projectforge.rest.importer.ImportEntry
+import org.projectforge.rest.importer.ImportStorage
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIAgGrid
 import org.projectforge.ui.UILayout
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -40,6 +43,12 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/importBankAccountRecords")
 class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord>() {
+
+  @Autowired
+  private lateinit var bankAccountRecordDao: BankAccountRecordDao
+
+  @Autowired
+  private lateinit var bankAccountDao: BankAccountDao
 
   override fun callerPage(request: HttpServletRequest): String {
     val targetEntity = getImportStorage(request)?.targetEntity as? BankAccount
@@ -58,12 +67,46 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
     )
   }
 
-  private fun getImportStorage(request: HttpServletRequest): BankingImportStorage? {
+  override fun getImportStorage(request: HttpServletRequest): BankingImportStorage? {
     return ExpiringSessionAttributes.getAttribute(
       request,
       getSessionAttributeName(BankAccountRecordImportPageRest::class.java),
       BankingImportStorage::class.java,
     )
+  }
+
+  override fun import(importStorage: ImportStorage<*>, selectedEntries: List<ImportEntry<BankAccountRecord>>) {
+    val result = ImportStorage.ImportResult()
+    importStorage.importResult = result
+    val bankAccount = importStorage.targetEntity as? BankAccount
+    if (bankAccount == null) {
+      result.errorMessages = listOf("plugins.banking.account.record.import.error.noBankAccountGiven")
+      return
+    }
+    val bankAccountDO = bankAccountDao.getById(bankAccount.id)
+    if (bankAccountDO == null) {
+      result.errorMessages = listOf("plugins.banking.account.record.import.error.noBankAccountGiven")
+      return
+    }
+    selectedEntries.forEach { entry ->
+      val storedEntryId = entry.storedEntry?.id
+      val readEntry = entry.readEntry
+      var dbEntry = if (storedEntryId != null) {
+        bankAccountRecordDao.getById(storedEntryId)
+      } else {
+        null
+      }
+      if (dbEntry == null) {
+        if (readEntry != null) {
+          dbEntry = BankAccountRecordDO()
+          readEntry.copyTo(dbEntry)
+          dbEntry.bankAccount = bankAccountDO
+          bankAccountRecordDao.internalSave(dbEntry)
+        }
+      } else {
+        throw IllegalArgumentException("Not yet implemented.")
+      }
+    }
   }
 
   @GetMapping("dynamic")

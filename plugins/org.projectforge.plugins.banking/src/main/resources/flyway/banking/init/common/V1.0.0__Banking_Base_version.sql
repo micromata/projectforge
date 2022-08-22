@@ -52,7 +52,7 @@ CREATE TABLE t_plugin_banking_account_record
     iban                      CHARACTER VARYING(1000),
     bic                       CHARACTER VARYING(1000),
     bank                      CHARACTER VARYING(1000),
-    banking_account_fk        INTEGER
+    banking_account_fk        INTEGER                     NOT NULL
 );
 
 ALTER TABLE t_plugin_banking_account_record

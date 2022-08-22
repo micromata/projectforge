@@ -37,6 +37,13 @@ abstract class ImportStorage<O : ImportEntry.Modified<O>>(
     var deleted: Boolean? = true,
   )
 
+  class ImportResult {
+    var inserted: Int = 0
+    var deleted: Int = 0
+    var updated: Int = 0
+    var errorMessages: List<String>? = null
+  }
+
   /**
    * If the user is able to import data for different target entities, please set the targetEntity here.
    */
@@ -84,6 +91,8 @@ abstract class ImportStorage<O : ImportEntry.Modified<O>>(
   }
 
   var displayOptions = DisplayOptions()
+
+  var importResult: ImportResult? = null
 
   val info: ImportStorageInfo
     get() = ImportStorageInfo(this)
