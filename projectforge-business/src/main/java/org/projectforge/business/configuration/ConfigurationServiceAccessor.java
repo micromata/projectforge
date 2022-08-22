@@ -23,6 +23,8 @@
 
 package org.projectforge.business.configuration;
 
+import org.projectforge.framework.configuration.Configuration;
+
 import java.time.DayOfWeek;
 import java.util.Locale;
 
@@ -37,7 +39,9 @@ public class ConfigurationServiceAccessor {
     cfg.setDefaultLocale(Locale.ENGLISH);
     cfg.setDefaultFirstDayOfWeek(DayOfWeek.MONDAY);
     cfg.setCurrencySymbol("€");
+    cfg.setJunitMode(true);
     configurationService = cfg;
+    new Configuration(cfg);
   }
 
   public static void internalSetLocaleForJunitTests(Locale defaultLocale) {

@@ -34,7 +34,8 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 object CsvImporter {
-  fun <O : ImportEntry.Modified<O>> parse(reader: Reader, settings: ImportSettings, importStorage: ImportStorage<O>) {
+  fun <O : ImportEntry.Modified<O>> parse(reader: Reader, importStorage: ImportStorage<O>) {
+    val settings = importStorage.importSettings
     val parser = CSVParser(reader)
     val headCols = parser.parseLine()
     headCols.forEachIndexed { index, head ->
@@ -42,7 +43,7 @@ object CsvImporter {
       if (fieldSettings != null) {
         log.debug { "Field '$head' found: -> ${fieldSettings.property}." }
         importStorage.columnMapping[index] = fieldSettings
-        importStorage.detectedColumns[head] = fieldSettings.property
+        importStorage.detectedColumns[head] = fieldSettings
       } else {
         log.debug { "Field '$head' not found." }
         importStorage.unknownColumns.add(head)

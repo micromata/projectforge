@@ -45,20 +45,20 @@ class TransactionsImporter {
     importStorage.analyzeReadTransactions()
     val fromDate = importStorage.fromDate
     val untilDate = importStorage.untilDate
-    if (fromDate == null || untilDate == null) {
-      return
-    }
     log.info { "Trying to import account records from $fromDate-$untilDate for account '${bankAccountDO.name}': ${bankAccountDO.iban}" }
-    // Ordered by date:
-    importStorage.databaseTransactions = bankAccountRecordDao.getByTimePeriod(bankAccountDO.id, fromDate, untilDate)
-    importStorage.reconcileImportStorage()
-    importStorage.databaseTransactions = null // Save memory, not needed anymore.
-    importStorage.readTransactions.clear() // Save memory, not needed anymore
     ExpiringSessionAttributes.setAttribute(
       request,
       AbstractImportPageRest.getSessionAttributeName(BankAccountRecordImportPageRest::class.java),
       importStorage,
       20,
     )
+    if (fromDate == null || untilDate == null) {
+      return
+    }
+    // Ordered by date:
+    importStorage.databaseTransactions = bankAccountRecordDao.getByTimePeriod(bankAccountDO.id, fromDate, untilDate)
+    importStorage.reconcileImportStorage()
+    importStorage.databaseTransactions = null // Save memory, not needed anymore.
+    importStorage.readTransactions.clear() // Save memory, not needed anymore
   }
 }

@@ -51,6 +51,8 @@ private val log = KotlinLogging.logger {}
 
 @Service
 open class ConfigurationService {
+  protected var junitMode: Boolean = false
+
   private lateinit var configXml: ConfigXml
 
   @Autowired
@@ -396,10 +398,16 @@ open class ConfigurationService {
   }
 
   open fun getDaoValue(parameter: IConfigurationParam?, configurationDO: ConfigurationDO?): Any? {
+    if (junitMode) {
+      return null
+    }
     return configDao.getValue(parameter, configurationDO)
   }
 
   open fun daoInternalLoadAll(): List<ConfigurationDO> {
+    if (junitMode) {
+      return emptyList()
+    }
     return configDao.internalLoadAll()
   }
 

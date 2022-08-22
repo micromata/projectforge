@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import fileDownload from 'js-file-download';
 import { UncontrolledTooltip } from 'reactstrap';
 import { getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
@@ -19,6 +19,12 @@ function DynamicAttachmentList(
         callAction,
     } = React.useContext(DynamicLayoutContext);
 
+    const uploadUrlRef = useRef(uploadUrl);
+
+    useEffect(() => {
+        uploadUrlRef.current = uploadUrl;
+    }, [uploadUrl]);
+
     const [loading, setLoading] = React.useState(false);
 
     const uploadFile = (files) => {
@@ -28,7 +34,7 @@ function DynamicAttachmentList(
         let status = 0;
         formData.append('file', files[0]);
         return fetch(
-            getServiceURL(`${uploadUrl}`),
+            getServiceURL(`${uploadUrlRef.current}`),
             {
                 credentials: 'include',
                 method: 'POST',

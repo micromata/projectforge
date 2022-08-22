@@ -165,7 +165,8 @@ class BankAccountPagesRest : AbstractDTOPagesRest<BankAccountDO, BankAccount, Ba
           )
       )
       .add(lc, BankAccountDO::importSettings)
-      .add(AbstractImportPageRest.createSettingsHelp(null))
+
+    layout.add(AbstractImportPageRest.createSettingsHelp(BankingImportStorage(dto.importSettings).importSettings))
 
     return LayoutUtils.processEditPage(layout, dto, this)
   }

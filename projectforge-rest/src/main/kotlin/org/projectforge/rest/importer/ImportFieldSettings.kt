@@ -23,6 +23,8 @@
 
 package org.projectforge.rest.importer
 
+import org.projectforge.common.DateFormatType
+import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import java.math.BigDecimal
@@ -35,8 +37,12 @@ import java.util.*
 
 
 class ImportFieldSettings(
-  val property: String
+  val property: String,
 ) {
+  var label: String = property
+
+  var type: Class<*>? = null
+
   private val regexMap = mutableMapOf<String, Regex?>()
 
   /**
@@ -49,13 +55,18 @@ class ImportFieldSettings(
    */
   val parseFormatList = mutableListOf<String>()
 
+  val hasDefinitions: Boolean
+    get() = aliasList.isNotEmpty() || parseFormatList.isNotEmpty()
+
   /**
    * @param name is the name of the property or the column head of the data table matching any alias.
    * @return true if the name matches the property or any alias.
    */
   fun matches(name: String): Boolean {
     val str = name.trim()
-    if (str.equals(property, ignoreCase = true)) {
+    if (str.startsWith(property, ignoreCase = true)
+      || str.startsWith(label, ignoreCase = true)
+    ) {
       return true
     }
     return aliasList.any { getRegex(it)?.matches(str) == true }
@@ -75,6 +86,35 @@ class ImportFieldSettings(
         aliasList.add(part.trim())
       }
     }
+  }
+
+  /**
+   * @param createExampleEntry If true and no definition (alias/format patterns) are given, an example for copy & paste will be returned. If
+   * false (default) an empty settingsString will be returned.
+   */
+  fun getSettingsAsString(createExampleEntry: Boolean = false): String {
+    val sb = StringBuilder()
+    if (hasDefinitions) {
+      if (aliasList.isNotEmpty()) {
+        sb.append(aliasList.joinToString("|"))
+        if (parseFormatList.isNotEmpty()) {
+          sb.append("|")
+        }
+      }
+      sb.append(parseFormatList.joinToString("|") { ":$it" })
+    } else if (createExampleEntry) {
+      sb.append(label)
+      if (type == LocalDate::class.java) {
+        sb.append("|:${DateFormats.getFormatString(DateFormatType.DATE)}")
+        sb.append("|:${DateFormats.getFormatString(DateFormatType.DATE_SHORT)}")
+      } else if (type == BigDecimal::class.java) {
+        sb.append("|:#,##0.0#|:#0.0#")
+      } else if (type == Integer::class.java || type == Int::class.java || type == Short::class.java) {
+        sb.append("|:#,##0|:#0")
+      }
+
+    }
+    return sb.toString()
   }
 
   fun parseLocalDate(str: String?): LocalDate? {

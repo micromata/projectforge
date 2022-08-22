@@ -24,10 +24,13 @@
 package org.projectforge.plugins.banking
 
 import org.projectforge.rest.importer.ImportEntry
+import org.projectforge.rest.importer.ImportSettings
 import org.projectforge.rest.importer.ImportStorage
 import java.time.LocalDate
 
-class BankingImportStorage : ImportStorage<BankAccountRecord>() {
+class BankingImportStorage(importSettings: String? = null) : ImportStorage<BankAccountRecord>(
+  ImportSettings().parseSettings(importSettings, BankAccountRecordDO::class.java, BankAccountRecordDO::bankAccount.name)
+) {
   var fromDate: LocalDate? = null
   var untilDate: LocalDate? = null
 
