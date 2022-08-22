@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.PaymentScheduleDO
 import org.projectforge.business.task.TaskDO
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.importer.ImportFieldSettingsTest.Companion.checkFieldSettings
 import org.projectforge.rest.importer.ImportFieldSettingsTest.Companion.checkValues
 import org.projectforge.test.AbstractTestBase
@@ -34,10 +35,12 @@ import java.math.BigDecimal
 import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 import java.time.Month
+import java.util.*
 
 class ImportSettingsTest: AbstractTestBase() { // AbstractTestBase needed for getting configured date-formats.
   @Test
   fun parseFieldSettingsTest() {
+    ThreadLocalUserContext.setLocale(Locale.ENGLISH)
     checkValues("", emptyArray(), emptyArray())
     checkValues("alias ", arrayOf("alias"), emptyArray())
     checkValues(":dd.MM.yyyy | | ", emptyArray(), arrayOf("dd.MM.yyyy"))
