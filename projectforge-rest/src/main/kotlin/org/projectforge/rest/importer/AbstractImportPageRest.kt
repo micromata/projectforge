@@ -28,6 +28,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.dto.FormLayoutData
@@ -35,6 +36,7 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import javax.servlet.http.HttpServletRequest
@@ -53,6 +55,10 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
   @Autowired
   protected lateinit var agGridSupport: AGGridSupport
 
+  protected abstract fun callerPage(request: HttpServletRequest): String
+
+  protected abstract fun clearImportStorage(request: HttpServletRequest)
+
   protected fun createLayout(
     request: HttpServletRequest,
     title: String,
@@ -61,8 +67,10 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
     val layout = UILayout(title)
     val hasEntries = importStorage?.entries?.isNotEmpty() == true
     val data = importStorage?.info
+    val fieldset = UIFieldset(title = importStorage?.title ?: translate("import.title"))
+    layout.add(fieldset)
     if (!hasEntries) {
-      layout.add(UIAlert("import.error.nothingToImport", color = UIColor.DANGER))
+      fieldset.add(UIAlert("import.error.nothingToImport", color = UIColor.DANGER))
     } else {
       if (data != null) {
         val statsSupport = ListStatisticsSupport()
@@ -82,7 +90,7 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
         )
         addIfNotZero(statsSupport, "import.entries.unmodified", data.numberOfUnmodifiedEntries)
         val row = UIRow()
-        layout.add(row)
+        fieldset.add(row)
         row.add(
           UICol(md = 6)
             .add(UIAlert("'${statsSupport.asMarkdown}", color = UIColor.LIGHT, markdown = true))
@@ -128,9 +136,34 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
         .appendLine("### ${translate("import.info.unknownColumns")}")
         .appendLine()
         .appendLine(importStorage.unknownColumns.joinToString())
-      layout.add(UIAlert("'$settingsInfo", color = UIColor.INFO, markdown = true))
+      layout.add(UIAlert("'$settingsInfo", color = UIColor.WARNING, markdown = true))
       layout.add(createSettingsHelp(importStorage.importSettings))
     }
+
+    val buttons = UIRow()
+    fieldset.add(buttons)
+    buttons.add(
+      UIButton.createCancelButton(
+        ResponseAction(
+          RestResolver.getRestUrl(this::class.java, "cancel"),
+          targetType = TargetType.GET,
+        )
+      )
+    )
+    if ((data?.totalNumber ?: 0) > 0) {
+      buttons.add(
+        UIButton.createDefaultButton(
+          id = "import",
+          title = "import",
+          responseAction = ResponseAction(
+            RestResolver.getRestUrl(this::class.java, "import"),
+            targetType = TargetType.POST,
+          ),
+          default = false,
+        )
+      )
+    }
+
     LayoutUtils.process(layout)
     val formLayoutData = FormLayoutData(data, layout, createServerData(request))
     importStorage?.entries?.let { entries ->
@@ -153,6 +186,30 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
       ResponseAction(targetType = TargetType.UPDATE)
         .addVariable("data", data)
     )
+  }
+
+  /**
+   * Will be called, if the user wants to import the selected entries.
+   */
+  @PostMapping("import")
+  fun import(
+    @Valid @RequestBody postData: PostData<ImportStorageInfo>
+  ): ResponseEntity<ResponseAction> {
+    val data = postData.data
+    return ResponseEntity.ok(
+      ResponseAction(targetType = TargetType.UPDATE)
+        .addVariable("data", data)
+    )
+  }
+
+  /**
+   * Will be called, if the user wants to import the selected entries.
+   */
+  @GetMapping("cancel")
+  fun cancel(request: HttpServletRequest): ResponseAction {
+    val callerPage = callerPage(request) // must be called before clearImportStorage!
+    clearImportStorage(request)
+    return ResponseAction(callerPage)
   }
 
   protected abstract fun createListLayout(request: HttpServletRequest, layout: UILayout, agGrid: UIAgGrid)

@@ -23,6 +23,8 @@
 
 package org.projectforge.rest.importer
 
+import org.projectforge.framework.i18n.translate
+
 abstract class ImportStorage<O : ImportEntry.Modified<O>>(
   val importSettings: ImportSettings
 ) {
@@ -32,6 +34,27 @@ abstract class ImportStorage<O : ImportEntry.Modified<O>>(
     var unmodified: Boolean? = null,
     var deleted: Boolean? = true,
   )
+
+  /**
+   * If the user is able to import data for different target entities, please set the targetEntity here.
+   */
+  var targetEntity: Any? = null
+
+  /**
+   * If the user is able to import data for different target entities, this title is displayed
+   * in the import tool for clarification.
+   */
+  open val targetEntityTitle: String? = null
+
+  val title: String
+    get() {
+      targetEntityTitle?.let {
+        if (it.isNotBlank()) {
+          return "${translate("import.title")}: $it"
+        }
+      }
+      return translate("import.title")
+    }
 
   val detectedColumns = mutableMapOf<String, ImportFieldSettings>()
   val unknownColumns = mutableListOf<String>()
