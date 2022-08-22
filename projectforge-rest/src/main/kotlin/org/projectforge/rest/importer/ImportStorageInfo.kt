@@ -30,7 +30,7 @@ class ImportStorageInfo() {
   var numberOfModifiedEntries: Int = 0
   var numberOfUnmodifiedEntries: Int = 0
 
-  var detectedColumns: Map<String, String>? = null
+  var detectedColumns: Map<String, ImportFieldSettings>? = null
   var unknownColumns: List<String>? = null
 
   var displayOptions = ImportStorage.DisplayOptions()

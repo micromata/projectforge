@@ -29,7 +29,6 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.BankAccount
 import org.projectforge.rest.importer.CsvImporter
-import org.projectforge.rest.importer.ImportSettings
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
@@ -73,13 +72,12 @@ class BankingServicesRest {
     bankAccount.copyFrom(bankAccountDO)
     log.info("Importing transactions for bank account #$id, iban=${bankAccount.iban}")
     var importStorage: BankingImportStorage? = null
-    val importSettings = ImportSettings.parseSettings(bankAccount.importSettings)
     if (filename.endsWith("xls", ignoreCase = true) || filename.endsWith("xlsx", ignoreCase = true)) {
       throw IllegalArgumentException("Excel not yet supported.")
     } else {
-      importStorage = BankingImportStorage()
+      importStorage = BankingImportStorage(bankAccount.importSettings)
       // Try to import CSV
-      CsvImporter.parse(file.inputStream.reader(charset = importSettings.charSet), importSettings, importStorage)
+      CsvImporter.parse(file.inputStream.reader(charset = importStorage.importSettings.charSet), importStorage)
     }
     transactionsImporter.import(request, bankAccountDO, importStorage)
     return ResponseEntity(

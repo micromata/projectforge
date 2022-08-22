@@ -50,7 +50,7 @@ import javax.persistence.*
   ),
 )
 open class BankAccountRecordDO : DefaultBaseDO() {
-  @PropertyInfo(i18nKey = "plugins.teamcal.calendar")
+  @PropertyInfo(i18nKey = "plugins.banking.account")
   @IndexedEmbedded(depth = 1)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "banking_account_fk", nullable = false)

@@ -23,7 +23,9 @@
 
 package org.projectforge.rest.importer
 
-abstract class ImportStorage<O : ImportEntry.Modified<O>> {
+abstract class ImportStorage<O : ImportEntry.Modified<O>>(
+  val importSettings: ImportSettings
+) {
   class DisplayOptions(
     var new: Boolean? = true,
     var modified: Boolean? = true,
@@ -31,7 +33,7 @@ abstract class ImportStorage<O : ImportEntry.Modified<O>> {
     var deleted: Boolean? = true,
   )
 
-  val detectedColumns = mutableMapOf<String, String>()
+  val detectedColumns = mutableMapOf<String, ImportFieldSettings>()
   val unknownColumns = mutableListOf<String>()
 
   /**

@@ -25,6 +25,9 @@ package org.projectforge.rest.importer
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.configuration.ConfigurationServiceAccessor
+import org.projectforge.business.fibu.PaymentScheduleDO
+import org.projectforge.business.task.TaskDO
 import org.projectforge.rest.importer.ImportFieldSettingsTest.Companion.checkFieldSettings
 import org.projectforge.rest.importer.ImportFieldSettingsTest.Companion.checkValues
 import java.math.BigDecimal
@@ -39,6 +42,22 @@ class ImportSettingsTest {
     checkValues("alias ", arrayOf("alias"), emptyArray())
     checkValues(":dd.MM.yyyy | | ", emptyArray(), arrayOf("dd.MM.yyyy"))
     checkValues(":dd.MM.yyyy | alias| :dd.MM.yy|alias2 ", arrayOf("alias", "alias2"), arrayOf("dd.MM.yyyy", "dd.MM.yy"))
+
+    ConfigurationServiceAccessor.internalInitJunitTestMode()
+    var settings = ImportSettings().parseSettings("", PaymentScheduleDO::class.java)
+    Assertions.assertEquals(
+      "fibu.rechnung.datum.short|:yyyy-MM-dd|:yy-MM-dd",
+      settings.getFieldSettings("scheduleDate")!!.getSettingsAsString(true),
+    )
+    Assertions.assertEquals(
+      "fibu.common.betrag|:#,##0.0#|:#0.0#",
+      settings.getFieldSettings("amount")!!.getSettingsAsString(true),
+    )
+    settings = ImportSettings().parseSettings("", TaskDO::class.java)
+    Assertions.assertEquals(
+      "task.maxHours|:#,##0|:#0",
+      settings.getFieldSettings("maxHours")!!.getSettingsAsString(true),
+    )
   }
 
   @Test
@@ -53,7 +72,8 @@ debteeId=gläub*|glaeu*
 
 subject=verwendung*
     """.trimMargin()
-    val settings = ImportSettings.parseSettings(settingsString)
+    val settings = ImportSettings()
+    settings.parseSettings(settingsString)
     Assertions.assertEquals(5, settings.fieldSettings.size)
     val dateMapping = settings.fieldSettings.find { it.property == "date" }!!
     val amountMapping = settings.fieldSettings.find { it.property == "amount" }!!

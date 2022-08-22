@@ -59,79 +59,81 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
     importStorage: ImportStorage<*>?
   ): FormLayoutData {
     val layout = UILayout(title)
+    val hasEntries = importStorage?.entries?.isNotEmpty() == true
     val data = importStorage?.info
-    if (data != null) {
-      val statsSupport = ListStatisticsSupport()
-      statsSupport.append("import.entries.total", NumberFormatter.format(data.totalNumber))
-      addIfNotZero(statsSupport, "import.entries.new", data.numberOfNewEntries, ListStatisticsSupport.Color.GREEN)
-      addIfNotZero(
-        statsSupport,
-        "import.entries.deleted",
-        data.numberOfDeletedEntries,
-        ListStatisticsSupport.Color.RED
-      )
-      addIfNotZero(
-        statsSupport,
-        "import.entries.modified",
-        data.numberOfModifiedEntries,
-        ListStatisticsSupport.Color.BLUE
-      )
-      addIfNotZero(statsSupport, "import.entries.unmodified", data.numberOfUnmodifiedEntries)
-      val row = UIRow()
-      layout.add(row)
-      row.add(
-        UICol(md = 6)
-          .add(UIAlert("'${statsSupport.asMarkdown}", color = UIColor.LIGHT, markdown = true))
-      )
-      if (data.totalNumber > 0) {
-        val col = UICol(md = 6)
-        row.add(col)
-        val checkboxGroup = UIRow()
-        col.add(checkboxGroup)
-        checkboxGroup.add(UILabel("import.display.options"))
-        addCheckBoxIfNotZero(layout, checkboxGroup, "new", data.numberOfNewEntries)
-        addCheckBoxIfNotZero(layout, checkboxGroup, "deleted", data.numberOfDeletedEntries)
-        addCheckBoxIfNotZero(layout, checkboxGroup, "modified", data.numberOfModifiedEntries)
-        addCheckBoxIfNotZero(layout, checkboxGroup, "unmodified", data.numberOfUnmodifiedEntries)
-      }
-    } else {
+    if (!hasEntries) {
       layout.add(UIAlert("import.error.nothingToImport", color = UIColor.DANGER))
+    } else {
+      if (data != null) {
+        val statsSupport = ListStatisticsSupport()
+        statsSupport.append("import.entries.total", NumberFormatter.format(data.totalNumber))
+        addIfNotZero(statsSupport, "import.entries.new", data.numberOfNewEntries, ListStatisticsSupport.Color.GREEN)
+        addIfNotZero(
+          statsSupport,
+          "import.entries.deleted",
+          data.numberOfDeletedEntries,
+          ListStatisticsSupport.Color.RED
+        )
+        addIfNotZero(
+          statsSupport,
+          "import.entries.modified",
+          data.numberOfModifiedEntries,
+          ListStatisticsSupport.Color.BLUE
+        )
+        addIfNotZero(statsSupport, "import.entries.unmodified", data.numberOfUnmodifiedEntries)
+        val row = UIRow()
+        layout.add(row)
+        row.add(
+          UICol(md = 6)
+            .add(UIAlert("'${statsSupport.asMarkdown}", color = UIColor.LIGHT, markdown = true))
+        )
+        if (data.totalNumber > 0) {
+          val col = UICol(md = 6)
+          row.add(col)
+          val checkboxGroup = UIRow()
+          col.add(checkboxGroup)
+          checkboxGroup.add(UILabel("import.display.options"))
+          addCheckBoxIfNotZero(layout, checkboxGroup, "new", data.numberOfNewEntries)
+          addCheckBoxIfNotZero(layout, checkboxGroup, "deleted", data.numberOfDeletedEntries)
+          addCheckBoxIfNotZero(layout, checkboxGroup, "modified", data.numberOfModifiedEntries)
+          addCheckBoxIfNotZero(layout, checkboxGroup, "unmodified", data.numberOfUnmodifiedEntries)
+        }
+      }
+      val agGrid = UIAgGrid("entries")
+      layout.add(agGrid)
+      agGridSupport.prepareUIGrid4MultiSelectionListPage(
+        request,
+        layout,
+        agGrid,
+        this,
+        pageAfterMultiSelect = this::class.java,
+      )
+      // agGrid.height = "window.screen.height - 400"
+      createListLayout(request, layout, agGrid)
+      agGrid.withMultiRowSelection()
     }
-    val agGrid = UIAgGrid("entries")
-    layout.add(agGrid)
-    agGridSupport.prepareUIGrid4MultiSelectionListPage(
-      request,
-      layout,
-      agGrid,
-      this,
-      pageAfterMultiSelect = this::class.java,
-    )
-    // agGrid.height = "window.screen.height - 400"
-    createListLayout(request, layout, agGrid)
-    agGrid.withMultiRowSelection()
 
+    val settingsInfo = StringBuilder()
+    settingsInfo
+      .appendLine("### ${translate("import.info.detectedColumns")}")
+      .appendLine()
+      .appendLine("| ${translate("import.field.name")} | ${translate("import.field.mapping")} |")
+      .appendLine("| --- | --- |")
     if (importStorage != null) {
-      val settingsInfo = StringBuilder()
-      settingsInfo
-        .appendLine("### ${translate("import.info.detectedColumns")}")
-        .appendLine()
-        .appendLine("| ${translate("import.field.field")} | ${translate("import.field.mapping")} |")
-        .appendLine("| --- | --- |")
       importStorage.detectedColumns.entries.forEach {
-        settingsInfo.appendLine("| ${it.value} | ${it.key} |")
+        settingsInfo.appendLine("| ${it.value.label} | ${it.key} |")
       }
       settingsInfo
         .appendLine()
         .appendLine("### ${translate("import.info.unknownColumns")}")
         .appendLine()
         .appendLine(importStorage.unknownColumns.joinToString())
-      layout.add(UIAlert("'$settingsInfo", color = UIColor.LIGHT, markdown = true))
+      layout.add(UIAlert("'$settingsInfo", color = UIColor.INFO, markdown = true))
+      layout.add(createSettingsHelp(importStorage.importSettings))
     }
-    layout.add(createSettingsHelp(importStorage))
-
     LayoutUtils.process(layout)
     val formLayoutData = FormLayoutData(data, layout, createServerData(request))
-    importStorage?.entries.let { entries ->
+    importStorage?.entries?.let { entries ->
       // Put result list to variables instead of data, otherwise any post data of the client will contain the whole list.
       formLayoutData.variables = mapOf("entries" to (entries ?: emptyList<Any>()))
     }
@@ -194,13 +196,32 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
       return "${importPageRest.name}.importStorage"
     }
 
-    fun createSettingsHelp(importStorage: ImportStorage<*>?): UIAlert {
+    fun createSettingsHelp(importSettings: ImportSettings?): UIAlert {
       val sb = StringBuilder()
       sb.appendLine(translate("import.help.settings.info"))
       sb.appendLine("```")
-      sb.appendLine("# Uncomment the following line for other coding than UTF-8")
-      sb.appendLine("#encoding=iso-8859-15")
-      sb.appendLine("field=header column|:dd.MM.yyyy|:dd.MM.yy")
+      if (importSettings?.charSet == null) {
+        sb.appendLine("# Uncomment the following line for other coding than UTF-8")
+        sb.appendLine("#encoding=iso-8859-15")
+      }
+      if (importSettings != null) {
+        sb.appendLine("encoding=${importSettings.charSet.name()}")
+        importSettings.allFieldNames.forEach { fieldName ->
+          if (!arrayOf("id", "created", "lastUpdate", "deleted", "importSettings").contains(fieldName)) {
+            val fieldSettings = importSettings.getFieldSettings(fieldName)
+            sb.append("$fieldName=")
+            if (fieldSettings != null) {
+              sb.appendLine(fieldSettings.getSettingsAsString(true))
+            } else {
+              sb.appendLine()
+            }
+          }
+        }
+      }
+      sb.appendLine("# Example of field 'birthday', found by header column:")
+      sb.appendLine("#columnfield=[header column(s)]|:[format]")
+      sb.appendLine("#birthday=birthday*|*born*|:dd.MM.yyyy|:dd.MM.yy")
+      sb.appendLine("# header column(s) are mapped case-insensitive, wildchars '*' for text and '?' for single char are supported.")
       sb.appendLine("```")
       return UIAlert(sb.toString(), title = "import.help.settings.title", markdown = true, color = UIColor.LIGHT)
     }
