@@ -42,10 +42,10 @@ object CsvImporter {
       if (fieldSettings != null) {
         log.debug { "Field '$head' found: -> ${fieldSettings.property}." }
         importStorage.columnMapping[index] = fieldSettings
-        importStorage.foundColumns[head] = fieldSettings.property
+        importStorage.detectedColumns[head] = fieldSettings.property
       } else {
         log.debug { "Field '$head' not found." }
-        importStorage.ignoredColumns.add(head)
+        importStorage.unknownColumns.add(head)
       }
     }
     for (i in 0..100000) { // Paranoi loop, read 100000 lines at max.

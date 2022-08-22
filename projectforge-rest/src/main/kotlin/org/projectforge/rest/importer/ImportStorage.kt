@@ -31,8 +31,8 @@ abstract class ImportStorage<O : ImportEntry.Modified<O>> {
     var deleted: Boolean? = true,
   )
 
-  val foundColumns = mutableMapOf<String, String>()
-  val ignoredColumns = mutableListOf<String>()
+  val detectedColumns = mutableMapOf<String, String>()
+  val unknownColumns = mutableListOf<String>()
 
   /**
    * Mapping of columns to properties.
