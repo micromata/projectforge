@@ -30,7 +30,7 @@ class ImportStorageInfo() {
   var numberOfModifiedEntries: Int = 0
   var numberOfUnmodifiedEntries: Int = 0
 
-  var detectedColumns: Map<String, ImportFieldSettings>? = null
+  var detectedColumns: List<String>? = null
   var unknownColumns: List<String>? = null
 
   var displayOptions = ImportStorage.DisplayOptions()
@@ -52,7 +52,7 @@ class ImportStorageInfo() {
         numberOfUnmodifiedEntries += 1
       }
     }
-    detectedColumns = importStorage.detectedColumns
+    detectedColumns = importStorage.detectedColumns.keys.sorted()
     unknownColumns = importStorage.unknownColumns
 
   }

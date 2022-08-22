@@ -25,6 +25,8 @@ package org.projectforge.plugins.banking
 
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.BankAccount
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.importer.AbstractImportPageRest
 import org.projectforge.ui.LayoutContext
@@ -38,13 +40,35 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/importBankAccountRecords")
 class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord>() {
-  @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest): FormLayoutData {
-    val importStorage = ExpiringSessionAttributes.getAttribute(
+
+  override fun callerPage(request: HttpServletRequest): String {
+    val targetEntity = getImportStorage(request)?.targetEntity as? BankAccount
+    val targetEntityId = targetEntity?.id
+    return if (targetEntityId != null) {
+      PagesResolver.getEditPageUrl(BankAccountPagesRest::class.java, targetEntityId, absolute = true)
+    } else {
+      PagesResolver.getListPageUrl(BankAccountPagesRest::class.java, absolute = true)
+    }
+  }
+
+  override fun clearImportStorage(request: HttpServletRequest) {
+    ExpiringSessionAttributes.removeAttribute(
+      request,
+      getSessionAttributeName(BankAccountRecordImportPageRest::class.java),
+    )
+  }
+
+  private fun getImportStorage(request: HttpServletRequest): BankingImportStorage? {
+    return ExpiringSessionAttributes.getAttribute(
       request,
       getSessionAttributeName(BankAccountRecordImportPageRest::class.java),
       BankingImportStorage::class.java,
     )
+  }
+
+  @GetMapping("dynamic")
+  fun getForm(request: HttpServletRequest): FormLayoutData {
+    val importStorage = getImportStorage(request)
     return createLayout(request, "plugins.banking.account.record.import.title", importStorage)
   }
 

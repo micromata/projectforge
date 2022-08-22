@@ -23,12 +23,13 @@
 
 package org.projectforge.plugins.banking
 
+import org.projectforge.rest.dto.BankAccount
 import org.projectforge.rest.importer.ImportEntry
 import org.projectforge.rest.importer.ImportSettings
 import org.projectforge.rest.importer.ImportStorage
 import java.time.LocalDate
 
-class BankingImportStorage(importSettings: String? = null) : ImportStorage<BankAccountRecord>(
+class BankingImportStorage(importSettings: String? = null, targetEntity: BankAccount? = null) : ImportStorage<BankAccountRecord>(
   ImportSettings().parseSettings(importSettings, BankAccountRecordDO::class.java, BankAccountRecordDO::bankAccount.name)
 ) {
   var fromDate: LocalDate? = null
@@ -36,6 +37,13 @@ class BankingImportStorage(importSettings: String? = null) : ImportStorage<BankA
 
   var readTransactions = mutableListOf<BankAccountRecord>()
   var databaseTransactions: List<BankAccountRecordDO>? = null
+
+  override val targetEntityTitle: String?
+    get() = (targetEntity as? BankAccount)?.name
+
+  init {
+    this.targetEntity = targetEntity
+  }
 
   internal fun reconcileImportStorage() {
     if (fromDate == null || untilDate == null || fromDate!! > untilDate!!) {

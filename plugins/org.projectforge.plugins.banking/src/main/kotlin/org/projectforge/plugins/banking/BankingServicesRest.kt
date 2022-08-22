@@ -75,7 +75,7 @@ class BankingServicesRest {
     if (filename.endsWith("xls", ignoreCase = true) || filename.endsWith("xlsx", ignoreCase = true)) {
       throw IllegalArgumentException("Excel not yet supported.")
     } else {
-      importStorage = BankingImportStorage(bankAccount.importSettings)
+      importStorage = BankingImportStorage(bankAccount.importSettings, bankAccount)
       // Try to import CSV
       CsvImporter.parse(file.inputStream.reader(charset = importStorage.importSettings.charSet), importStorage)
     }
