@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.importer
 
+import org.hibernate.search.util.AnalyzerUtils.log
 import org.projectforge.business.common.ListStatisticsSupport
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberFormatter
@@ -49,7 +50,13 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
 
   protected abstract fun callerPage(request: HttpServletRequest): String
 
+  protected abstract fun getImportStorage(request: HttpServletRequest): ImportStorage<O>?
   protected abstract fun clearImportStorage(request: HttpServletRequest)
+
+  /**
+   * Don't forget to fill the [ImportStorage.importResult].
+   */
+  protected abstract fun import(importStorage: ImportStorage<*>, selectedEntries: List<ImportEntry<O>>)
 
   protected fun createLayout(
     request: HttpServletRequest,
@@ -173,8 +180,32 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
    */
   @PostMapping("import")
   fun import(
-    @RequestBody selectedIds: AbstractMultiSelectedPage.MultiSelection?
+    request: HttpServletRequest,
+    @RequestBody multiSelection: AbstractMultiSelectedPage.MultiSelection?
   ): ResponseEntity<ResponseAction> {
+    val importStorage = getImportStorage(request)
+    val selectedIds = multiSelection?.selectedIds
+    val selectedEntries = mutableListOf<ImportEntry<O>>()
+    if (selectedIds != null) {
+      importStorage?.entries?.forEach { entry ->
+        if (selectedIds.contains(entry.id)) {
+          selectedEntries.add(entry)
+        }
+      }
+    }
+    if (importStorage == null || selectedEntries.isEmpty()) {
+      return showValidationErrors(ValidationError("import.error.noEntrySelected"))
+    }
+    log.info { "User wants to import #${selectedEntries.size} entries..." }
+    import(importStorage, selectedEntries)
+    importStorage.importResult.let { result ->
+      if (result == null) {
+        throw IllegalArgumentException("Import without result object! Please contact the developer.")
+      }
+      result.errorMessages?.let { errors ->
+        return showValidationErrors(*errors.map { ValidationError(it) }.toTypedArray())
+      }
+    }
     return ResponseEntity.ok(
       ResponseAction(targetType = TargetType.NOTHING)
     )
