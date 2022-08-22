@@ -51,6 +51,7 @@ object LayoutUtils {
       "finish", // Color picker
       "save", // Color picker
       "select.placeholder",
+      "yes",
       translations = translations,
     )
   }

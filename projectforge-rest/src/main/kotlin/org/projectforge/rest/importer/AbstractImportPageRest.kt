@@ -29,7 +29,6 @@ import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
-import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -45,14 +44,6 @@ import javax.validation.Valid
 import kotlin.reflect.KProperty
 
 abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDynamicPageRest() {
-  /**
-   * Contains the data, layout and filter settings served by [getInitialList].
-   */
-  class InitialListData(
-    val ui: UILayout?,
-    val data: ResultSet<*>,
-  )
-
   @Autowired
   protected lateinit var agGridSupport: AGGridSupport
 
@@ -131,6 +122,7 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
       createListLayout(request, layout, agGrid)
       agGrid.withMultiRowSelection()
       agGrid.multiSelectButtonTitle = translate("import")
+      agGrid.multiSelectButtonConfirmMessage = translate("import.confirmMessage")
     }
 
     val settingsInfo = StringBuilder()
@@ -154,7 +146,7 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
 
     LayoutUtils.process(layout)
     val formLayoutData = FormLayoutData(data, layout, createServerData(request))
-    importStorage?.entries?.let { entries ->
+    importStorage?.ensureEntriesIds?.let { entries ->
       // Put result list to variables instead of data, otherwise any post data of the client will contain the whole list.
       formLayoutData.variables = mapOf("entries" to (entries ?: emptyList<Any>()))
     }

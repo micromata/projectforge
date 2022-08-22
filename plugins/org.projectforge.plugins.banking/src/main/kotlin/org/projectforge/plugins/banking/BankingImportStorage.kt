@@ -65,10 +65,9 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
     readByDay: List<BankAccountRecord>,
     dbRecordsByDay: List<BankAccountRecordDO>,
   ) {
-    val pairs = entries
     if (readByDay.isEmpty()) {
       dbRecordsByDay.forEach { dbRecord ->
-        pairs.add(ImportEntry(null, createRecord(dbRecord)))
+        addEntry(ImportEntry(null, createRecord(dbRecord)))
       }
       return // Nothing to import (only db records given).
     }
@@ -104,20 +103,20 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
       }
       takenReadRecords.add(maxK)
       takenDBRecords.add(maxL)
-      pairs.add(ImportEntry(readByDay[maxK], createRecord(dbRecordsByDay[maxL])))
+      addEntry(ImportEntry(readByDay[maxK], createRecord(dbRecordsByDay[maxL])))
     }
     // Now, add the unmatching records
     for (k in 0 until readByDay.size) {
       if (takenReadRecords.contains(k)) {
         continue // Entry k is already taken.
       }
-      pairs.add(ImportEntry(readByDay[k], null))
+      addEntry(ImportEntry(readByDay[k], null))
     }
     for (l in 0 until dbRecordsByDay.size) {
       if (takenDBRecords.contains(l)) {
         continue // Entry l is already taken.
       }
-      pairs.add(ImportEntry(null, createRecord(dbRecordsByDay[l])))
+      addEntry(ImportEntry(null, createRecord(dbRecordsByDay[l])))
     }
   }
 

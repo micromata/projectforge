@@ -5,6 +5,7 @@ import { fetchJsonPost, getServiceURL, handleHTTPErrors } from '../../../../../u
 import history from '../../../../../utilities/history';
 import DynamicAgGrid from './DynamicAgGrid';
 import { DynamicLayoutContext } from '../../context';
+import DynamicButton from '../DynamicButton';
 
 function DynamicListPageAgGrid({
     columnDefs,
@@ -15,6 +16,7 @@ function DynamicListPageAgGrid({
     rowClickRedirectUrl,
     onColumnStatesChangedUrl,
     multiSelectButtonTitle,
+    multiSelectButtonConfirmMessage,
     urlAfterMultiSelect,
     handleCancelUrl,
     pagination,
@@ -72,22 +74,21 @@ function DynamicListPageAgGrid({
                 {multiSelectButtonTitle && (
                     // Show these buttons only for multi selection with e. g. mass update:
                     <>
-                        <Button
+                        <DynamicButton
                             id="cancel"
-                            onClick={handleCancel}
+                            title={ui.translations.cancel || 'cancel'}
+                            handleButtonClick={handleCancel}
                             color="danger"
                             outline
-                        >
-                            {ui.translations.cancel || 'cancel'}
-                        </Button>
-                        <Button
+                        />
+                        <DynamicButton
                             id="next"
-                            onClick={handleClick}
+                            title={multiSelectButtonTitle || 'next'}
+                            handleButtonClick={handleClick}
                             color="success"
                             outline
-                        >
-                            {multiSelectButtonTitle || 'next'}
-                        </Button>
+                            confirmMessage={multiSelectButtonConfirmMessage}
+                        />
                     </>
                 )}
                 <DynamicAgGrid
@@ -108,6 +109,7 @@ function DynamicListPageAgGrid({
         [
             handleClick,
             multiSelectButtonTitle,
+            multiSelectButtonConfirmMessage,
             columnDefs,
             sortModel,
             rowSelection,
@@ -134,6 +136,7 @@ DynamicListPageAgGrid.propTypes = {
     rowClickRedirectUrl: PropTypes.string,
     onColumnStatesChangedUrl: PropTypes.string,
     multiSelectButtonTitle: PropTypes.string,
+    multiSelectButtonConfirmMessage: PropTypes.string,
     urlAfterMultiSelect: PropTypes.string,
     handleCancelUrl: PropTypes.string,
     pagination: PropTypes.bool,
