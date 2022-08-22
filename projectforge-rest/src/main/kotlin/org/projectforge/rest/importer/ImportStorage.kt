@@ -28,6 +28,8 @@ import org.projectforge.framework.i18n.translate
 abstract class ImportStorage<O : ImportEntry.Modified<O>>(
   val importSettings: ImportSettings
 ) {
+  private var idCounter = 0
+
   class DisplayOptions(
     var new: Boolean? = true,
     var modified: Boolean? = true,
@@ -65,6 +67,21 @@ abstract class ImportStorage<O : ImportEntry.Modified<O>>(
   val columnMapping = mutableMapOf<Int, ImportFieldSettings>()
 
   var entries = mutableListOf<ImportEntry<O>>()
+
+  val ensureEntriesIds: MutableList<ImportEntry<O>>
+    get() {
+      entries.forEach { entry ->
+        if (entry.id < 0) {
+          entry.id = idCounter++
+        }
+      }
+      return entries
+    }
+
+  fun addEntry(entry: ImportEntry<O>) {
+    entry.id = idCounter++
+    entries.add(entry)
+  }
 
   var displayOptions = DisplayOptions()
 

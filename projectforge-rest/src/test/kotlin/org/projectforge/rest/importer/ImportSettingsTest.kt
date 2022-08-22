@@ -25,17 +25,17 @@ package org.projectforge.rest.importer
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.business.fibu.PaymentScheduleDO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.rest.importer.ImportFieldSettingsTest.Companion.checkFieldSettings
 import org.projectforge.rest.importer.ImportFieldSettingsTest.Companion.checkValues
+import org.projectforge.test.AbstractTestBase
 import java.math.BigDecimal
 import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 import java.time.Month
 
-class ImportSettingsTest {
+class ImportSettingsTest: AbstractTestBase() { // AbstractTestBase needed for getting configured date-formats.
   @Test
   fun parseFieldSettingsTest() {
     checkValues("", emptyArray(), emptyArray())
@@ -43,19 +43,18 @@ class ImportSettingsTest {
     checkValues(":dd.MM.yyyy | | ", emptyArray(), arrayOf("dd.MM.yyyy"))
     checkValues(":dd.MM.yyyy | alias| :dd.MM.yy|alias2 ", arrayOf("alias", "alias2"), arrayOf("dd.MM.yyyy", "dd.MM.yy"))
 
-    ConfigurationServiceAccessor.internalInitJunitTestMode()
     var settings = ImportSettings().parseSettings("", PaymentScheduleDO::class.java)
     Assertions.assertEquals(
-      "fibu.rechnung.datum.short|:yyyy-MM-dd|:yy-MM-dd",
+      "Date|:MM/dd/yyyy|:MM/dd/yy",
       settings.getFieldSettings("scheduleDate")!!.getSettingsAsString(true),
     )
     Assertions.assertEquals(
-      "fibu.common.betrag|:#,##0.0#|:#0.0#",
+      "Amount|:#,##0.0#|:#0.0#",
       settings.getFieldSettings("amount")!!.getSettingsAsString(true),
     )
     settings = ImportSettings().parseSettings("", TaskDO::class.java)
     Assertions.assertEquals(
-      "task.maxHours|:#,##0|:#0",
+      "Maximum hours|:#,##0|:#0",
       settings.getFieldSettings("maxHours")!!.getSettingsAsString(true),
     )
   }

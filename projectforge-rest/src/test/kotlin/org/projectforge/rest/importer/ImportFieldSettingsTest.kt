@@ -54,13 +54,13 @@ class ImportFieldSettingsTest {
     checkValues(":dd.MM.yyyy | alias| :dd.MM.yy|alias2 ", arrayOf("alias", "alias2"), arrayOf("dd.MM.yyyy", "dd.MM.yy"))
 
     var entry = ImportFieldSettings("someProp")
-    Assertions.assertEquals("someProp=", entry.getSettingsAsString())
+    Assertions.assertEquals("", entry.getSettingsAsString())
     entry.parseSettings(":dd.MM.yyyy | alias| :dd.MM.yy|alias2 ")
-    Assertions.assertEquals("someProp=alias|alias2|:dd.MM.yyyy|:dd.MM.yy", entry.getSettingsAsString())
+    Assertions.assertEquals("alias|alias2|:dd.MM.yyyy|:dd.MM.yy", entry.getSettingsAsString())
 
     entry = ImportFieldSettings("someProp")
     entry.parseSettings(":dd.MM.yyyy")
-    Assertions.assertEquals("someProp=:dd.MM.yyyy", entry.getSettingsAsString())
+    Assertions.assertEquals(":dd.MM.yyyy", entry.getSettingsAsString())
   }
 
   companion object {

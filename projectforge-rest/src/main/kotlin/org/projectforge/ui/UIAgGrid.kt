@@ -48,6 +48,7 @@ open class UIAgGrid(
   var rowMultiSelectWithClick: Boolean? = null,
 ) : UIElement(if (listPageTable) UIElementType.AG_GRID_LIST_PAGE else UIElementType.AG_GRID) {
   var multiSelectButtonTitle: String? = null
+  var multiSelectButtonConfirmMessage: String? = null
 
   var sortModel: List<SortModelEntry>? = null
 
