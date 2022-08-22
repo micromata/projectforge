@@ -163,7 +163,7 @@ class BankAccountPagesRest : AbstractDTOPagesRest<BankAccountDO, BankAccount, Ba
               )
           )
       )
-      .add(lc, BankAccountDO::importMappingTable)
+      .add(lc, BankAccountDO::importSettings)
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 }

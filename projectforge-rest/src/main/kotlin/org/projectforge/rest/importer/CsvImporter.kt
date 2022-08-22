@@ -29,20 +29,20 @@ import org.projectforge.common.CSVParser
 import java.io.Reader
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.Date
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
 object CsvImporter {
-  fun <O : ImportEntry.Modified<O>> parse(reader: Reader, mappingInfo: MappingInfo, importStorage: ImportStorage<O>) {
+  fun <O : ImportEntry.Modified<O>> parse(reader: Reader, settings: ImportSettings, importStorage: ImportStorage<O>) {
     val parser = CSVParser(reader)
     val headCols = parser.parseLine()
     headCols.forEachIndexed { index, head ->
-      val mapping = mappingInfo.getMapping(head)
-      if (mapping != null) {
-        log.debug { "Field '$head' found: -> ${mapping.property}." }
-        importStorage.columnMapping[index] = mapping
-        importStorage.foundColumns[head] = mapping.property
+      val fieldSettings = settings.getFieldSettings(head)
+      if (fieldSettings != null) {
+        log.debug { "Field '$head' found: -> ${fieldSettings.property}." }
+        importStorage.columnMapping[index] = fieldSettings
+        importStorage.foundColumns[head] = fieldSettings.property
       } else {
         log.debug { "Field '$head' not found." }
         importStorage.ignoredColumns.add(head)
@@ -56,29 +56,29 @@ object CsvImporter {
       }
       val record = importStorage.prepareEntity()
       line.forEachIndexed { index, value ->
-        importStorage.columnMapping[index]?.let { mappingInfoEntry ->
-          if (!importStorage.setProperty(record, mappingInfoEntry, value)) {
-            val targetValue = when (BeanHelper.determinePropertyType(record::class.java, mappingInfoEntry.property)) {
+        importStorage.columnMapping[index]?.let { fieldSettings ->
+          if (!importStorage.setProperty(record, fieldSettings, value)) {
+            val targetValue = when (BeanHelper.determinePropertyType(record::class.java, fieldSettings.property)) {
               LocalDate::class.java -> {
-                mappingInfoEntry.parseLocalDate(value)
+                fieldSettings.parseLocalDate(value)
               }
               Date::class.java -> {
-                mappingInfoEntry.parseDate(value)
+                fieldSettings.parseDate(value)
               }
               BigDecimal::class.java -> {
-                mappingInfoEntry.parseBigDecimal(value)
+                fieldSettings.parseBigDecimal(value)
               }
               Int::class.java -> {
-                mappingInfoEntry.parseInt(value)
+                fieldSettings.parseInt(value)
               }
               Boolean::class.java -> {
-                mappingInfoEntry.parseBoolean(value)
+                fieldSettings.parseBoolean(value)
               }
               else -> {
                 value
               }
             }
-            BeanHelper.setProperty(record, mappingInfoEntry.property, targetValue)
+            BeanHelper.setProperty(record, fieldSettings.property, targetValue)
           }
         }
       }

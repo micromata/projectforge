@@ -24,7 +24,7 @@ CREATE TABLE t_plugin_banking_account
     readonly_access_group_ids CHARACTER VARYING(255),
     readonly_access_user_ids  CHARACTER VARYING(255),
     title                     CHARACTER VARYING(1000),
-    import_mapping_table      CHARACTER VARYING(10000)
+    import_settings           CHARACTER VARYING(10000)
 );
 
 ALTER TABLE t_plugin_banking_account

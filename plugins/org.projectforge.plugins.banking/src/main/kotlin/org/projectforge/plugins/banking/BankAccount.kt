@@ -37,9 +37,8 @@ class BankAccount(
   var readonlyAccessUsers: List<User>? = null,
   var minimalAccessGroups: List<Group>? = null,
   var minimalAccessUsers: List<User>? = null,
-  var importMappingTable: String? = null,
+  var importSettings: String? = null,
 ) : BaseDTO<BankAccountDO>() {
-  // var mappingInfo: MappingInfo? = null
 
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: BankAccountDO) {
@@ -50,7 +49,6 @@ class BankAccount(
     readonlyAccessUsers = User.toUserList(src.readonlyAccessUserIds)
     minimalAccessGroups = Group.toGroupList(src.minimalAccessGroupIds)
     minimalAccessUsers = User.toUserList(src.minimalAccessUserIds)
-    // mappingInfo = MappingInfo.parseMappingInfo(src.importMappingTable)
   }
 
   // The user and group ids are stored as csv list of integers in the data base.

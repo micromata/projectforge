@@ -80,10 +80,10 @@ open class BankAccountDO : BaseUserGroupRightsDO() {
    *
    */
   @PropertyInfo(
-    i18nKey = "plugins.banking.account.importMappingTable",
-    tooltip = "plugins.banking.account.importMappingTable.tooltip",
+    i18nKey = "plugins.banking.account.importSettings",
+    tooltip = "plugins.banking.account.importSettings.tooltip",
   )
   @Field
-  @get:Column(length = 10000, name = "import_mapping_table")
-  open var importMappingTable: String? = null
+  @get:Column(length = 10000, name = "import_settings")
+  open var importSettings: String? = null
 }

@@ -29,9 +29,9 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 
 
-class MappingInfo(
+class ImportSettings(
 ) {
-  val entries = mutableListOf<MappingInfoEntry>()
+  val fieldSettings = mutableListOf<ImportFieldSettings>()
   var encoding: String? = null
   val charSet: Charset
     get() {
@@ -46,8 +46,8 @@ class MappingInfo(
   /**
    * @param name is the name of the property or the column head of the data table matching any alias.
    */
-  fun getMapping(header: String): MappingInfoEntry? {
-    return entries.find { it.matches(header) }
+  fun getFieldSettings(header: String): ImportFieldSettings? {
+    return fieldSettings.find { it.matches(header) }
   }
 
   companion object {
@@ -60,9 +60,9 @@ class MappingInfo(
      * birthday and firstname will have two aliases (usable for column heads) and birthday supports two date
      * formats while parsing: MM/dd/yyyy and MM/dd/yy.
      */
-    fun parseMappingInfo(str: String?): MappingInfo {
-      val result = MappingInfo()
-      str ?: return result
+    fun parseSettings(str: String?): ImportSettings {
+      val settings = ImportSettings()
+      str ?: return settings
       val props = Properties()
       props.load(StringReader(str))
       props.keys.forEach { key ->
@@ -70,17 +70,17 @@ class MappingInfo(
           key as String
           val value = props[key] as String?
           if (key == "encoding") {
-            result.encoding = value
+            settings.encoding = value
           } else {
-            val entry = MappingInfoEntry(key)
+            val entry = ImportFieldSettings(key)
             if (value != null) {
-              entry.setValues(value)
+              entry.parseSettings(value)
             }
-            result.entries.add(entry)
+            settings.fieldSettings.add(entry)
           }
         }
       }
-      return result
+      return settings
     }
   }
 }
