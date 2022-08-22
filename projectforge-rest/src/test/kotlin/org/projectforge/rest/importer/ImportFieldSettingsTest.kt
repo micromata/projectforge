@@ -26,13 +26,13 @@ package org.projectforge.rest.importer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class MappingInfoEntryTest {
+class ImportFieldSettingsTest {
   @Test
   fun regexTest() {
-    Assertions.assertEquals("", MappingInfoEntry.createRegexString(""))
-    Assertions.assertEquals("123", MappingInfoEntry.createRegexString("123"))
-    Assertions.assertEquals("Test \\(or more\\)", MappingInfoEntry.createRegexString("Test (or more)"))
-    Assertions.assertEquals("Test.*\\(or m.re\\)", MappingInfoEntry.createRegexString("Test*(or m?re)"))
+    Assertions.assertEquals("", ImportFieldSettings.createRegexString(""))
+    Assertions.assertEquals("123", ImportFieldSettings.createRegexString("123"))
+    Assertions.assertEquals("Test \\(or more\\)", ImportFieldSettings.createRegexString("Test (or more)"))
+    Assertions.assertEquals("Test.*\\(or m.re\\)", ImportFieldSettings.createRegexString("Test*(or m?re)"))
 
     assertMatches(" Hurzel (Test)", "hurz*")
     assertMatches(" Hurzel (Test)", "hurz *", false)
@@ -43,11 +43,11 @@ class MappingInfoEntryTest {
   }
 
   private fun assertMatches(header: String, userString: String, matches: Boolean = true) {
-    Assertions.assertEquals(matches, MappingInfoEntry.matches(header, MappingInfoEntry.createRegex(userString)))
+    Assertions.assertEquals(matches, ImportFieldSettings.matches(header, ImportFieldSettings.createRegex(userString)))
   }
 
   @Test
-  fun mappingSetValuesTest() {
+  fun parseFieldSettingsTest() {
     checkValues("", emptyArray(), emptyArray())
     checkValues("alias ", arrayOf("alias"), emptyArray())
     checkValues(":dd.MM.yyyy | | ", emptyArray(), arrayOf("dd.MM.yyyy"))
@@ -57,13 +57,13 @@ class MappingInfoEntryTest {
   companion object {
 
     internal fun checkValues(str: String, expectedAliases: Array<String>, expectedParseFormats: Array<String>) {
-      val entry = MappingInfoEntry("someProp")
-      entry.setValues(str)
-      checkMapping(entry, expectedAliases, expectedParseFormats)
+      val entry = ImportFieldSettings("someProp")
+      entry.parseSettings(str)
+      checkFieldSettings(entry, expectedAliases, expectedParseFormats)
     }
 
-    internal fun checkMapping(
-      entry: MappingInfoEntry,
+    internal fun checkFieldSettings(
+      entry: ImportFieldSettings,
       expectedAliases: Array<String>,
       expectedParseFormats: Array<String>,
     ) {

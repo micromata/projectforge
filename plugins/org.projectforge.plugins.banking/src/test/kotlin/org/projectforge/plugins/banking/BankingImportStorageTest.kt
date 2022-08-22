@@ -138,14 +138,14 @@ class BankingImportStorageTest {
     assertRecord(pair.storedEntry, storedAmount, storedSubject, storedIban)
   }
 
-  /*
+/*
   @Test
   fun localTest() {
     val file = File(System.getProperty("user.home"), "tmp/test-transactions.csv")
     if (!file.exists()) {
       return
     }
-    val mappingString = """
+    val importSettings = """
 date=buchungstag|:dd.MM.yyyy|:dd.MM.yy
 valueDate=valuta*|:dd.MM.yyyy|:dd.MM.yy
 amount=betrag*|:#.##0,0#|:#0,0#
@@ -161,10 +161,10 @@ bic=*bic*|*swift*
 currency=waehrung|währung
 info=info
     """.trimMargin()
-    val mappingInfo = MappingInfo.parseMappingInfo(mappingString)
+    val settings = ImportSettings.parseSettings(importSettings)
     val importStorage = BankingImportStorage()
-    CsvImporter.parse(file.reader(), mappingInfo, importStorage)
+    CsvImporter.parse(file.reader(), settings, importStorage)
     Assertions.assertTrue(importStorage.readTransactions.isNotEmpty())
-    // println(JsonUtils.toJson(importStorage))
+    println(JsonUtils.toJson(importStorage))
   }*/
 }

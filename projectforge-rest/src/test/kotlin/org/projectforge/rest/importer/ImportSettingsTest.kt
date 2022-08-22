@@ -25,16 +25,16 @@ package org.projectforge.rest.importer
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.rest.importer.MappingInfoEntryTest.Companion.checkMapping
-import org.projectforge.rest.importer.MappingInfoEntryTest.Companion.checkValues
+import org.projectforge.rest.importer.ImportFieldSettingsTest.Companion.checkFieldSettings
+import org.projectforge.rest.importer.ImportFieldSettingsTest.Companion.checkValues
 import java.math.BigDecimal
 import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 import java.time.Month
 
-class MappingInfoTest {
+class ImportSettingsTest {
   @Test
-  fun mappingSetValuesTest() {
+  fun parseFieldSettingsTest() {
     checkValues("", emptyArray(), emptyArray())
     checkValues("alias ", arrayOf("alias"), emptyArray())
     checkValues(":dd.MM.yyyy | | ", emptyArray(), arrayOf("dd.MM.yyyy"))
@@ -42,8 +42,8 @@ class MappingInfoTest {
   }
 
   @Test
-  fun parseMappingInfoTest() {
-    val mappingString = """
+  fun parseSettingsTest() {
+    val settingsString = """
 encoding=iso-8859-1
 date=buchungstag|:dd.MM.yyyy|:dd.MM.yy
 amount=betrag*|:#.##0,0#|:#0,0#
@@ -53,14 +53,14 @@ debteeId=gläub*|glaeu*
 
 subject=verwendung*
     """.trimMargin()
-    val info = MappingInfo.parseMappingInfo(mappingString)
-    Assertions.assertEquals(5, info.entries.size)
-    val dateMapping = info.entries.find { it.property == "date" }!!
-    val amountMapping = info.entries.find { it.property == "amount" }!!
-    checkMapping(dateMapping, arrayOf("buchungstag"), arrayOf("dd.MM.yyyy", "dd.MM.yy"))
-    checkMapping(amountMapping, arrayOf("betrag*"), arrayOf("#.##0,0#", "#0,0#"))
-    Assertions.assertEquals("iso-8859-1", info.encoding)
-    Assertions.assertEquals(StandardCharsets.ISO_8859_1, info.charSet)
+    val settings = ImportSettings.parseSettings(settingsString)
+    Assertions.assertEquals(5, settings.fieldSettings.size)
+    val dateMapping = settings.fieldSettings.find { it.property == "date" }!!
+    val amountMapping = settings.fieldSettings.find { it.property == "amount" }!!
+    checkFieldSettings(dateMapping, arrayOf("buchungstag"), arrayOf("dd.MM.yyyy", "dd.MM.yy"))
+    checkFieldSettings(amountMapping, arrayOf("betrag*"), arrayOf("#.##0,0#", "#0,0#"))
+    Assertions.assertEquals("iso-8859-1", settings.encoding)
+    Assertions.assertEquals(StandardCharsets.ISO_8859_1, settings.charSet)
     Assertions.assertEquals(LocalDate.of(2000, Month.MAY, 18), dateMapping.parseLocalDate("18.05.2000"))
     Assertions.assertEquals(LocalDate.of(2000, Month.MAY, 18), dateMapping.parseLocalDate("18.05.00"))
     Assertions.assertEquals(BigDecimal("1000.12"), amountMapping.parseBigDecimal("1.000,12"))

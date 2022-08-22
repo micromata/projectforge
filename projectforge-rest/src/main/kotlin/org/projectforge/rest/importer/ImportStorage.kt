@@ -37,7 +37,7 @@ abstract class ImportStorage<O : ImportEntry.Modified<O>> {
   /**
    * Mapping of columns to properties.
    */
-  val columnMapping = mutableMapOf<Int, MappingInfoEntry>()
+  val columnMapping = mutableMapOf<Int, ImportFieldSettings>()
 
   var entries = mutableListOf<ImportEntry<O>>()
 
@@ -56,7 +56,7 @@ abstract class ImportStorage<O : ImportEntry.Modified<O>> {
    * @return true if the property is set by the implementation. If false (default), then the property will be set automatically
    * by the importer tool (if possible).
    */
-  open fun setProperty(obj: O, mappingInfoEntry: MappingInfoEntry, value: String): Boolean {
+  open fun setProperty(obj: O, fieldSettings: ImportFieldSettings, value: String): Boolean {
     return false
   }
 

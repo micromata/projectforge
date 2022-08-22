@@ -34,7 +34,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 
-class MappingInfoEntry(
+class ImportFieldSettings(
   val property: String
 ) {
   private val regexMap = mutableMapOf<String, Regex?>()
@@ -66,8 +66,8 @@ class MappingInfoEntry(
    * separated by '|'. Format strings begin with ':'. If an alias should start with ':' use wildchar '?' instead.
    * Examples: Birthday|born*|:MM/dd/yyyy|:MM/dd/yy (2 aliases and 2 parse formats will be defined.
    */
-  fun setValues(str: String) {
-    str.split("|").forEach { part ->
+  fun parseSettings(settings: String) {
+    settings.split("|").forEach { part ->
       val str = part.trim()
       if (str.startsWith(":")) {
         parseFormatList.add(str.substring(1))
