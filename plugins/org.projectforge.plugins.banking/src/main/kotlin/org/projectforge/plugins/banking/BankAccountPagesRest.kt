@@ -27,9 +27,11 @@ import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.MenuItem
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.BankAccount
 import org.projectforge.rest.dto.Group
@@ -102,14 +104,13 @@ class BankAccountPagesRest : AbstractDTOPagesRest<BankAccountDO, BankAccount, Ba
     )
       .add(lc, BankAccountDO::name, BankAccountDO::bank, BankAccountDO::iban, BankAccountDO::description)
 
-    /*layout.add(
+    layout.add(
       MenuItem(
-        "skillmatrix.export",
-        i18nKey = "exportAsXls",
-        url = "${SkillMatrixServicesRest.REST_EXCEL_EXPORT_PATH}",
-        type = MenuItemTargetType.DOWNLOAD
+        "banking.account.record.list",
+        i18nKey = "plugins.banking.account.record.title.list",
+        url = PagesResolver.getListPageUrl(BankAccountRecordPagesRest::class.java),
       )
-    )*/
+    )
   }
 
   /**
@@ -167,7 +168,13 @@ class BankAccountPagesRest : AbstractDTOPagesRest<BankAccountDO, BankAccount, Ba
       .add(lc, BankAccountDO::importSettings)
 
     layout.add(AbstractImportPageRest.createSettingsHelp(BankingImportStorage(dto.importSettings).importSettings))
-
+    layout.add(
+      MenuItem(
+        "banking.account.record.list",
+        i18nKey = "plugins.banking.account.record.title.list",
+        url = PagesResolver.getListPageUrl(BankAccountRecordPagesRest::class.java, params = mapOf("bankAccount" to dto.id)),
+      )
+    )
     return LayoutUtils.processEditPage(layout, dto, this)
   }
 }

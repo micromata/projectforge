@@ -7,7 +7,7 @@ import DropArea from '../../../../design/droparea';
 import LoadingContainer from '../../../../design/loading-container';
 import { DynamicLayoutContext } from '../../context';
 
-function DynamicAttachmentList(
+function DynamicDropArea(
     {
         id,
         title,
@@ -86,16 +86,16 @@ function DynamicAttachmentList(
     ), [loading]);
 }
 
-DynamicAttachmentList.propTypes = {
+DynamicDropArea.propTypes = {
     id: PropTypes.string,
     title: PropTypes.string.isRequired,
     uploadUrl: PropTypes.string.isRequired,
     tooltip: PropTypes.string,
 };
 
-DynamicAttachmentList.defaultProps = {
+DynamicDropArea.defaultProps = {
     id: undefined,
     tooltip: undefined,
 };
 
-export default DynamicAttachmentList;
+export default DynamicDropArea;

@@ -25,7 +25,7 @@ package org.projectforge.plugins.banking
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.rest.importer.ImportEntry
+import org.projectforge.rest.importer.ImportPairEntry
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -67,25 +67,25 @@ class BankingImportStorageTest {
             + "db=[${stored?.date}, ${stored?.amount}, ${stored?.subject}, ${stored?.iban}]"
       )
     }*/
-    Assertions.assertEquals(9, storage.entries.size)
-    storage.entries.filter { it.readEntry?.date == yesterday }.let { list ->
+    Assertions.assertEquals(9, storage.pairEntries.size)
+    storage.pairEntries.filter { it.read?.date == yesterday }.let { list ->
       Assertions.assertEquals(3, list.size)
-      Assertions.assertTrue(list.all { it.storedEntry == null })
-      Assertions.assertTrue(list.none { it.readEntry == null })
+      Assertions.assertTrue(list.all { it.stored == null })
+      Assertions.assertTrue(list.none { it.read == null })
     }
-    storage.entries.filter { (it.readEntry?.date ?: it.storedEntry?.date) == today }.let { list ->
+    storage.pairEntries.filter { (it.read?.date ?: it.stored?.date) == today }.let { list ->
       Assertions.assertEquals(3, list.size)
-      Assertions.assertTrue(list.all { it.readEntry == null })
-      Assertions.assertTrue(list.none { it.storedEntry == null })
+      Assertions.assertTrue(list.all { it.read == null })
+      Assertions.assertTrue(list.none { it.stored == null })
     }
-    storage.entries.filter { (it.readEntry?.date ?: it.storedEntry?.date) == tomorrow }.let { list ->
+    storage.pairEntries.filter { (it.read?.date ?: it.stored?.date) == tomorrow }.let { list ->
       Assertions.assertEquals(3, list.size)
-      Assertions.assertEquals(1, list.filter { it.readEntry == null }.size)
-      Assertions.assertTrue(list.none { it.storedEntry == null })
+      Assertions.assertEquals(1, list.filter { it.read == null }.size)
+      Assertions.assertTrue(list.none { it.stored == null })
       assertPair(list[0], "1.23", "Apple", "DE222", "1.23", "Apple", "DE222")
       assertPair(list[1], "27.12", "Apple", "DE222", "27.12", "Cake", "DE888")
-      Assertions.assertNull(list[2].readEntry)
-      assertRecord(list[2].storedEntry, "1.23", "Apple", null)
+      Assertions.assertNull(list[2].read)
+      assertRecord(list[2].stored, "1.23", "Apple", null)
     }
   }
 
@@ -126,7 +126,7 @@ class BankingImportStorageTest {
   }
 
   private fun assertPair(
-    pair: ImportEntry<BankAccountRecord>,
+    pair: ImportPairEntry<BankAccountRecord>,
     readAmount: String,
     readSubject: String?,
     readIban: String?,
@@ -134,8 +134,8 @@ class BankingImportStorageTest {
     storedSubject: String?,
     storedIban: String?,
   ) {
-    assertRecord(pair.readEntry, readAmount, readSubject, readIban)
-    assertRecord(pair.storedEntry, storedAmount, storedSubject, storedIban)
+    assertRecord(pair.read, readAmount, readSubject, readIban)
+    assertRecord(pair.stored, storedAmount, storedSubject, storedIban)
   }
 
 /*

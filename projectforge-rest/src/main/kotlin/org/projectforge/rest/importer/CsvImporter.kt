@@ -34,7 +34,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 object CsvImporter {
-  fun <O : ImportEntry.Modified<O>> parse(reader: Reader, importStorage: ImportStorage<O>) {
+  fun <O : ImportPairEntry.Modified<O>> parse(reader: Reader, importStorage: ImportStorage<O>) {
     val settings = importStorage.importSettings
     val parser = CSVParser(reader)
     val headCols = parser.parseLine()

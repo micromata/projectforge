@@ -46,7 +46,7 @@ import javax.persistence.*
 @NamedQueries(
   NamedQuery(
     name = BankAccountRecordDO.FIND_BY_TIME_PERIOD,
-    query = "from BankAccountRecordDO where id=:id and date>=:from and date<=:until order by date"
+    query = "from BankAccountRecordDO where bankAccount.id=:bankAccountId and date>=:from and date<=:until order by date"
   ),
 )
 open class BankAccountRecordDO : DefaultBaseDO() {

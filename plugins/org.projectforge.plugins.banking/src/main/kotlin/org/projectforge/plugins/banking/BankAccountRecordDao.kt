@@ -94,9 +94,9 @@ open class BankAccountRecordDao : BaseDao<BankAccountRecordDO>(BankAccountRecord
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   open fun getByTimePeriod(accountId: Int, from: LocalDate, until: LocalDate): List<BankAccountRecordDO> {
     val account = bankAccountDao.getById(accountId) // For access checking
-    log.info("Getting records of account '${account.name}', IBAN=${account.iban}: $from-$until")
+    log.info("Getting records of account '${account.name}', IBAN=${account.iban}: $from until $until")
     return em.createNamedQuery(BankAccountRecordDO.FIND_BY_TIME_PERIOD, BankAccountRecordDO::class.java)
-      .setParameter("id", accountId)
+      .setParameter("bankAccountId", accountId)
       .setParameter("from", from)
       .setParameter("until", until)
       .resultList
