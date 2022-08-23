@@ -39,11 +39,17 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
     var unknown: Boolean? = true,
   )
 
-  class ImportResult {
+  class ImportResult(errorMessage: String? = null) {
     var inserted: Int = 0
     var deleted: Int = 0
     var updated: Int = 0
     var errorMessages: List<String>? = null
+
+    init {
+      if (errorMessage != null) {
+        errorMessages = listOf(errorMessage)
+      }
+    }
   }
 
   /**

@@ -69,7 +69,7 @@ open class BankAccountRecordDO : DefaultBaseDO() {
   @get:Column(name = "value_date")
   open var valueDate: LocalDate? = null
 
-  @PropertyInfo(i18nKey = "plugins.banking.account.record.type")
+  @PropertyInfo(i18nKey = "plugins.banking.account.record.type", type = PropertyType.INPUT)
   @Field
   @get:Column(length = Constants.LENGTH_TEXT)
   open var type: String? = null
@@ -84,32 +84,32 @@ open class BankAccountRecordDO : DefaultBaseDO() {
   @get:Column(length = Constants.LENGTH_TEXT)
   open var comment: String? = null
 
-  @PropertyInfo(i18nKey = "plugins.banking.account.record.currency")
+  @PropertyInfo(i18nKey = "plugins.banking.account.record.currency", type = PropertyType.INPUT)
   @Field
   @get:Column(length = Constants.LENGTH_TEXT)
   open var currency: String? = null
 
-  @PropertyInfo(i18nKey = "plugins.banking.account.record.debteeId")
+  @PropertyInfo(i18nKey = "plugins.banking.account.record.debteeId", type = PropertyType.INPUT)
   @Field
   @get:Column(length = Constants.LENGTH_TEXT, name = "debtee_id")
   open var debteeId: String? = null
 
-  @PropertyInfo(i18nKey = "plugins.banking.account.record.mandateReference")
+  @PropertyInfo(i18nKey = "plugins.banking.account.record.mandateReference", type = PropertyType.INPUT)
   @Field
   @get:Column(length = Constants.LENGTH_TEXT, name = "mandate_reference")
   open var mandateReference: String? = null
 
-  @PropertyInfo(i18nKey = "plugins.banking.account.record.customerReference")
+  @PropertyInfo(i18nKey = "plugins.banking.account.record.customerReference", type = PropertyType.INPUT)
   @Field
   @get:Column(length = Constants.LENGTH_TEXT, name = "customer_reference")
   open var customerReference: String? = null
 
-  @PropertyInfo(i18nKey = "plugins.banking.account.record.collectionReference")
+  @PropertyInfo(i18nKey = "plugins.banking.account.record.collectionReference", type = PropertyType.INPUT)
   @Field
   @get:Column(length = Constants.LENGTH_TEXT, name = "collection_reference")
   open var collectionReference: String? = null
 
-  @PropertyInfo(i18nKey = "plugins.banking.account.record.info")
+  @PropertyInfo(i18nKey = "plugins.banking.account.record.info", type = PropertyType.INPUT)
   @Field
   @get:Column(length = Constants.LENGTH_TEXT)
   open var info: String? = null
@@ -117,23 +117,23 @@ open class BankAccountRecordDO : DefaultBaseDO() {
   /**
    * Receiver for outgoing payments and sender for incoming payments.
    */
-  @PropertyInfo(i18nKey = "plugins.banking.account.record.receiverSender")
+  @PropertyInfo(i18nKey = "plugins.banking.account.record.receiverSender", type = PropertyType.INPUT)
   @Field
   @get:Column(length = Constants.LENGTH_TEXT, name = "receiver_sender")
   open var receiverSender: String? = null
 
-  @PropertyInfo(i18nKey = "plugins.banking.account.iban")
+  @PropertyInfo(i18nKey = "plugins.banking.account.iban", type = PropertyType.INPUT)
   @Field
   @get:Column(length = Constants.LENGTH_TITLE)
   open var iban: String? = null
 
-  @PropertyInfo(i18nKey = "plugins.banking.account.bic")
+  @PropertyInfo(i18nKey = "plugins.banking.account.bic", type = PropertyType.INPUT)
   @Field
   @get:Column(length = Constants.LENGTH_TITLE)
   open var bic: String? = null
 
   companion object {
-    const val FIND_BY_TIME_PERIOD =  "BankAccountRecordDO_FindByTimePeriod"
+    const val FIND_BY_TIME_PERIOD = "BankAccountRecordDO_FindByTimePeriod"
 
   }
 }
