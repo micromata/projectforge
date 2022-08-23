@@ -24,11 +24,14 @@
 package org.projectforge.plugins.banking
 
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.menu.MenuItem
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.UIReadOnlyField
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
@@ -40,6 +43,9 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
   "plugins.banking.account.record.title",
   cloneSupport = CloneSupport.CLONE
 ) {
+  @Autowired
+  private lateinit var bankAccountDao: BankAccountDao
+
   override fun transformFromDB(obj: BankAccountRecordDO, editMode: Boolean): BankAccountRecord {
     val bankAccountRecord = BankAccountRecord()
     bankAccountRecord.copyFrom(obj)
@@ -62,6 +68,12 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
     magicFilter: MagicFilter,
     userAccess: UILayout.UserAccess
   ) {
+    val bankAccountId = request.getParameter("bankAccount")?.toIntOrNull()
+    val bankAccount = if (bankAccountId != null) {
+      bankAccountDao.getById(bankAccountId)
+    } else {
+      null
+    }
     agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
@@ -72,15 +84,18 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       .add("accountIban", headerName = "plugins.banking.account.record.accountIban")
       .add("accountName", headerName = "plugins.banking.account.record.accountName")
       .add(lc, BankAccountRecordDO::date, BankAccountRecordDO::subject, BankAccountRecordDO::amount)
-
-    /*layout.add(
-      MenuItem(
-        "skillmatrix.export",
-        i18nKey = "exportAsXls",
-        url = "${SkillMatrixServicesRest.REST_EXCEL_EXPORT_PATH}",
-        type = MenuItemTargetType.DOWNLOAD
+      .withGetRowClass(
+        """if (params.node.data.amount >= 0) {
+            return 'ag-row-green';
+        }"""
       )
-    )*/
+    layout.add(
+      MenuItem(
+        "banking.account.list",
+        i18nKey = "plugins.banking.account.title.list",
+        url = PagesResolver.getListPageUrl(BankAccountPagesRest::class.java),
+      )
+    )
   }
 
   /**

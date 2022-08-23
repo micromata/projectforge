@@ -29,7 +29,7 @@ import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.BankAccount
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.importer.AbstractImportPageRest
-import org.projectforge.rest.importer.ImportEntry
+import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportStorage
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIAgGrid
@@ -75,7 +75,7 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
     )
   }
 
-  override fun import(importStorage: ImportStorage<*>, selectedEntries: List<ImportEntry<BankAccountRecord>>) {
+  override fun import(importStorage: ImportStorage<*>, selectedEntries: List<ImportPairEntry<BankAccountRecord>>) {
     val result = ImportStorage.ImportResult()
     importStorage.importResult = result
     val bankAccount = importStorage.targetEntity as? BankAccount
@@ -89,8 +89,8 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
       return
     }
     selectedEntries.forEach { entry ->
-      val storedEntryId = entry.storedEntry?.id
-      val readEntry = entry.readEntry
+      val storedEntryId = entry.stored?.id
+      val readEntry = entry.read
       var dbEntry = if (storedEntryId != null) {
         bankAccountRecordDao.getById(storedEntryId)
       } else {
@@ -104,7 +104,14 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
           bankAccountRecordDao.internalSave(dbEntry)
         }
       } else {
-        throw IllegalArgumentException("Not yet implemented.")
+        if (readEntry != null) {
+          val id = dbEntry.id
+          readEntry.copyTo(dbEntry)
+          dbEntry.id = id
+          bankAccountRecordDao.update(dbEntry)
+        } else {
+          bankAccountRecordDao.markAsDeleted(dbEntry)
+        }
       }
     }
   }

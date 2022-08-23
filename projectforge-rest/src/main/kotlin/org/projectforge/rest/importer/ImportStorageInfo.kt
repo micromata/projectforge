@@ -29,6 +29,8 @@ class ImportStorageInfo() {
   var numberOfDeletedEntries: Int = 0
   var numberOfModifiedEntries: Int = 0
   var numberOfUnmodifiedEntries: Int = 0
+  var numberOfUnknownEntries: Int = 0
+  var numberOfFaultyEntries: Int = 0
 
   var detectedColumns: List<String>? = null
   var unknownColumns: List<String>? = null
@@ -36,24 +38,18 @@ class ImportStorageInfo() {
   var displayOptions = ImportStorage.DisplayOptions()
 
   constructor(importStorage: ImportStorage<*>) : this() {
-    totalNumber = importStorage.entries.size
-    importStorage.entries.forEach {
-      if (it.readEntry == null) {
-        if (it.storedEntry != null) {
-          numberOfDeletedEntries += 1
-        } else {
-          // ??? Shouldn't occur: empty entry.
-        }
-      } else if (it.storedEntry == null) {
-        numberOfNewEntries += 1
-      } else if (it.isModified() == true) {
-        numberOfModifiedEntries += 1
-      } else {
-        numberOfUnmodifiedEntries += 1
+    totalNumber = importStorage.pairEntries.size
+    importStorage.pairEntries.forEach {
+      when (it.status) {
+        ImportEntry.Status.NEW -> numberOfNewEntries += 1
+        ImportEntry.Status.UNKNOWN, ImportEntry.Status.UNKNOWN_MODIFICATION -> numberOfUnknownEntries += 1
+        ImportEntry.Status.MODIFIED -> numberOfModifiedEntries += 1
+        ImportEntry.Status.UNMODIFIED -> numberOfUnmodifiedEntries += 1
+        ImportEntry.Status.DELETED -> numberOfDeletedEntries += 1
+        ImportEntry.Status.FAULTY -> numberOfFaultyEntries += 1
       }
     }
     detectedColumns = importStorage.detectedColumns.keys.sorted()
     unknownColumns = importStorage.unknownColumns
-
   }
 }

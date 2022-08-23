@@ -62,7 +62,11 @@ function DynamicListPageAgGrid({
             { selectedIds },
             (json) => {
                 const { url } = json;
-                history.push(url);
+                if (url) {
+                    history.push(url);
+                } else {
+                    window.location.reload();
+                }
             },
         );
     }, [gridApi, urlAfterMultiSelect]);

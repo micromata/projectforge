@@ -44,7 +44,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 import kotlin.reflect.KProperty
 
-abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDynamicPageRest() {
+abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : AbstractDynamicPageRest() {
   @Autowired
   protected lateinit var agGridSupport: AGGridSupport
 
@@ -56,7 +56,7 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
   /**
    * Don't forget to fill the [ImportStorage.importResult].
    */
-  protected abstract fun import(importStorage: ImportStorage<*>, selectedEntries: List<ImportEntry<O>>)
+  protected abstract fun import(importStorage: ImportStorage<*>, selectedEntries: List<ImportPairEntry<O>>)
 
   protected fun createLayout(
     request: HttpServletRequest,
@@ -64,7 +64,7 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
     importStorage: ImportStorage<*>?
   ): FormLayoutData {
     val layout = UILayout(title)
-    val hasEntries = importStorage?.entries?.isNotEmpty() == true
+    val hasEntries = importStorage?.pairEntries?.isNotEmpty() == true
     val data = importStorage?.info
     val fieldset = UIFieldset(title = importStorage?.title ?: translate("import.title"))
     layout.add(fieldset)
@@ -81,21 +81,33 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
     } else {
       if (data != null) {
         val statsSupport = ListStatisticsSupport()
-        statsSupport.append("import.entries.total", NumberFormatter.format(data.totalNumber))
-        addIfNotZero(statsSupport, "import.entries.new", data.numberOfNewEntries, ListStatisticsSupport.Color.GREEN)
+        statsSupport.append("import.stats.total", NumberFormatter.format(data.totalNumber))
+        addIfNotZero(statsSupport, "import.stats.new", data.numberOfNewEntries, ListStatisticsSupport.Color.GREEN)
         addIfNotZero(
           statsSupport,
-          "import.entries.deleted",
+          "import.stats.deleted",
           data.numberOfDeletedEntries,
-          ListStatisticsSupport.Color.RED
+          ListStatisticsSupport.Color.RED,
         )
         addIfNotZero(
           statsSupport,
-          "import.entries.modified",
+          "import.stats.modified",
           data.numberOfModifiedEntries,
-          ListStatisticsSupport.Color.BLUE
+          ListStatisticsSupport.Color.BLUE,
         )
-        addIfNotZero(statsSupport, "import.entries.unmodified", data.numberOfUnmodifiedEntries)
+        addIfNotZero(statsSupport, "import.stats.unmodified", data.numberOfUnmodifiedEntries)
+        addIfNotZero(
+          statsSupport,
+          "import.stats.faulty",
+          data.numberOfFaultyEntries,
+          ListStatisticsSupport.Color.RED,
+        )
+        addIfNotZero(
+          statsSupport,
+          "import.stats.unknown",
+          data.numberOfUnknownEntries,
+          ListStatisticsSupport.Color.RED,
+        )
         val row = UIRow()
         fieldset.add(row)
         row.add(
@@ -112,6 +124,8 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
           addCheckBoxIfNotZero(layout, checkboxGroup, "deleted", data.numberOfDeletedEntries)
           addCheckBoxIfNotZero(layout, checkboxGroup, "modified", data.numberOfModifiedEntries)
           addCheckBoxIfNotZero(layout, checkboxGroup, "unmodified", data.numberOfUnmodifiedEntries)
+          addCheckBoxIfNotZero(layout, checkboxGroup, "faulty", data.numberOfFaultyEntries)
+          addCheckBoxIfNotZero(layout, checkboxGroup, "unknown", data.numberOfUnknownEntries)
         }
       }
       val agGrid = UIAgGrid("entries", listPageTable = true)
@@ -126,10 +140,20 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
       agGrid.handleCancelUrl = RestResolver.getRestUrl(this::class.java, "cancelAndGetUrl")
       agGrid.urlAfterMultiSelect = RestResolver.getRestUrl(this::class.java, "import")
       // agGrid.height = "window.screen.height - 400"
+      agGrid.add("statusAsString", headerName = "status", width = 120)
       createListLayout(request, layout, agGrid)
       agGrid.withMultiRowSelection()
       agGrid.multiSelectButtonTitle = translate("import")
       agGrid.multiSelectButtonConfirmMessage = translate("import.confirmMessage")
+      agGrid.withGetRowClass(
+        """if (params.node.data.status === 'NEW') {
+             return 'ag-row-green';
+           } else if (['DELETED', 'FAULTY', 'UNKNOWN', 'UNKNOWN_MODIFICATION'].includes(params.node.data.status)) {
+             return 'ag-row-red';
+           } else if (params.node.data.status === 'MODIFIED') {
+             return 'ag-row-blue';
+        }""".trimMargin()
+      )
     }
 
     val settingsInfo = StringBuilder()
@@ -153,9 +177,9 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
 
     LayoutUtils.process(layout)
     val formLayoutData = FormLayoutData(data, layout, createServerData(request))
-    importStorage?.ensureEntriesIds?.let { entries ->
-      // Put result list to variables instead of data, otherwise any post data of the client will contain the whole list.
-      formLayoutData.variables = mapOf("entries" to (entries ?: emptyList<Any>()))
+    importStorage?.let { storage ->
+      val entries = createListEntries(storage, data?.displayOptions ?: ImportStorage.DisplayOptions())
+      formLayoutData.variables = mapOf("entries" to (entries))
     }
     return formLayoutData
 
@@ -166,13 +190,23 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
    */
   @PostMapping(RestPaths.WATCH_FIELDS)
   fun watchFields(
+    request: HttpServletRequest,
     @Valid @RequestBody postData: PostData<ImportStorageInfo>
   ): ResponseEntity<ResponseAction> {
     val data = postData.data
+    val importStorage = getImportStorage(request)
+      ?: return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     return ResponseEntity.ok(
-      ResponseAction(targetType = TargetType.UPDATE)
-        .addVariable("data", data)
+      ResponseAction(targetType = TargetType.UPDATE, merge = true)
+        .addVariable("variables", mapOf("entries" to createListEntries(importStorage, data.displayOptions)))
     )
+  }
+
+  protected open fun createListEntries(
+    importStorage: ImportStorage<*>,
+    displayOptions: ImportStorage.DisplayOptions,
+  ): List<ImportEntry<*>> {
+    return importStorage.createEntries(displayOptions)
   }
 
   /**
@@ -185,9 +219,9 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
   ): ResponseEntity<ResponseAction> {
     val importStorage = getImportStorage(request)
     val selectedIds = multiSelection?.selectedIds
-    val selectedEntries = mutableListOf<ImportEntry<O>>()
+    val selectedEntries = mutableListOf<ImportPairEntry<O>>()
     if (selectedIds != null) {
-      importStorage?.entries?.forEach { entry ->
+      importStorage?.pairEntries?.forEach { entry ->
         if (selectedIds.contains(entry.id)) {
           selectedEntries.add(entry)
         }
@@ -235,12 +269,12 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
 
   protected fun addReadColumn(agGrid: UIAgGrid, lc: LayoutContext, property: KProperty<*>) {
     val field = property.name
-    agGrid.add(lc, "readEntry.$field", lcField = field)
+    agGrid.add(lc, "read.$field", lcField = field)
   }
 
   protected fun addStoredColumn(agGrid: UIAgGrid, lc: LayoutContext, property: KProperty<*>) {
     val field = property.name
-    agGrid.add(lc, "storedEntry.$field", lcField = field)
+    agGrid.add(lc, "stored.$field", lcField = field)
   }
 
   protected fun addIfNotZero(
@@ -262,7 +296,7 @@ abstract class AbstractImportPageRest<O : ImportEntry.Modified<O>> : AbstractDyn
   ) {
     if (number > 0) {
       val fieldId = "displayOptions.$id"
-      row.add(UICheckbox(fieldId, label = "import.display.$id"))
+      row.add(UICheckbox(fieldId, label = "import.entry.status.$id"))
       layout.watchFields.add(fieldId)
     }
   }

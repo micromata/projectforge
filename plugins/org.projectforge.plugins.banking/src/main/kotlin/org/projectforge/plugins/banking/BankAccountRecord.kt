@@ -24,7 +24,7 @@
 package org.projectforge.plugins.banking
 
 import org.projectforge.rest.dto.BaseDTO
-import org.projectforge.rest.importer.ImportEntry
+import org.projectforge.rest.importer.ImportPairEntry
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -47,7 +47,7 @@ class BankAccountRecord(
   var receiverSender: String? = null,
   var iban: String? = null,
   var bic: String? = null,
-) : BaseDTO<BankAccountRecordDO>(), ImportEntry.Modified<BankAccountRecord> {
+) : BaseDTO<BankAccountRecordDO>(), ImportPairEntry.Modified<BankAccountRecord> {
   override fun copyFrom(src: BankAccountRecordDO) {
     super.copyFrom(src)
     accountIban = src.bankAccount?.iban
@@ -141,10 +141,5 @@ class BankAccountRecord(
     } else {
       value.setScale(0, RoundingMode.FLOOR)   // +1,23 -> +1
     }
-  }
-
-  private fun isModified(value: Any?, dest: Any?): Boolean {
-    value ?: return false
-    return value != dest
   }
 }

@@ -25,7 +25,7 @@ package org.projectforge.rest.importer
 
 import org.projectforge.framework.i18n.translate
 
-abstract class ImportStorage<O : ImportEntry.Modified<O>>(
+abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
   val importSettings: ImportSettings
 ) {
   private var idCounter = 0
@@ -35,6 +35,8 @@ abstract class ImportStorage<O : ImportEntry.Modified<O>>(
     var modified: Boolean? = true,
     var unmodified: Boolean? = null,
     var deleted: Boolean? = true,
+    var error: Boolean? = true,
+    var unknown: Boolean? = true,
   )
 
   class ImportResult {
@@ -73,21 +75,41 @@ abstract class ImportStorage<O : ImportEntry.Modified<O>>(
    */
   val columnMapping = mutableMapOf<Int, ImportFieldSettings>()
 
-  var entries = mutableListOf<ImportEntry<O>>()
+  var pairEntries = mutableListOf<ImportPairEntry<O>>()
 
-  val ensureEntriesIds: MutableList<ImportEntry<O>>
+  /**
+   * @return [pairEntries], but with ensured id's.
+   */
+  val ensurePairEntriesIds: MutableList<ImportPairEntry<O>>
     get() {
-      entries.forEach { entry ->
+      pairEntries.forEach { entry ->
         if (entry.id < 0) {
           entry.id = idCounter++
         }
       }
-      return entries
+      return pairEntries
     }
 
-  fun addEntry(entry: ImportEntry<O>) {
+  /**
+   * @return created list of ImportEntry (not ImportPairEntry) with ensured id's.
+   */
+  fun createEntries(displayOptions: DisplayOptions?): MutableList<ImportEntry<O>> {
+    val result = mutableListOf<ImportEntry<O>>()
+    ensurePairEntriesIds.forEach { pair ->
+      if (displayOptions == null || pair.match(displayOptions)) {
+        val entry = ImportEntry(pair.read)
+        entry.status = pair.status
+        entry.diff = pair.diff
+        entry.id = pair.id
+        result.add(entry)
+      }
+    }
+    return result
+  }
+
+  fun addEntry(entry: ImportPairEntry<O>) {
     entry.id = idCounter++
-    entries.add(entry)
+    pairEntries.add(entry)
   }
 
   var displayOptions = DisplayOptions()

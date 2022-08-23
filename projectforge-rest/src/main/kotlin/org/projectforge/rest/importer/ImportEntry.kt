@@ -23,63 +23,37 @@
 
 package org.projectforge.rest.importer
 
-import org.projectforge.rest.core.AbstractDynamicPageRest
+import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.framework.i18n.translate
 
-class ImportEntry<O : ImportEntry.Modified<O>>(
-  /**
-   * If given, this entry was read from import file.
-   */
-  var readEntry: O? = null,
-
-  /**
-   * If given, this entry does already exist in the database.
-   */
-  var storedEntry: O? = null,
-) : AbstractDynamicPageRest() {
-  enum class Status { NEW, DELETED, MODIFIED, UNMODIFIED, UNKNOWN_MODIFICATION, UNKNOWN }
-
-  interface Modified<O> {
-    fun isModified(other: O): Boolean
-  }
+open class ImportEntry<O : Any>(
+  val read: O? = null,
+) {
+  enum class Status { NEW, DELETED, MODIFIED, UNMODIFIED, UNKNOWN_MODIFICATION, UNKNOWN, FAULTY }
 
   var id: Int = -1
 
-  fun isModified(): Boolean? {
-    val read = readEntry
-    val stored = storedEntry
-    if (read == null || stored == null) {
-      return null
-    }
-    return read.isModified(stored)
-  }
+  open var status: Status = Status.UNKNOWN
+
+  @get:JsonProperty
+  val statusAsString: String
+    get() = translate("import.entry.status.${status.name.lowercase()}")
 
   /**
    * If both exists, read- and storedEntry, here is the list of modified / changed
    * properties.
    */
   var diff: List<ImportPropertyDiff>? = null
-    set(value) {
-      field = value
-      dirtyFlag = false
-    }
 
-  private var dirtyFlag = true
-
-  val status: Status
-    get() {
-      return if (readEntry == null) {
-        if (storedEntry == null) {
-          Status.UNKNOWN
-        }
-        Status.NEW
-      } else if (storedEntry == null) {
-        Status.DELETED
-      } else if (dirtyFlag) {
-        Status.UNKNOWN_MODIFICATION
-      } else if (diff.isNullOrEmpty()) {
-        Status.UNMODIFIED
-      } else {
-        Status.MODIFIED
-      }
+  fun match(displayOptions: ImportStorage.DisplayOptions): Boolean {
+    return when (status) {
+      Status.NEW -> displayOptions.new == true
+      Status.DELETED -> displayOptions.deleted == true
+      Status.MODIFIED -> displayOptions.modified == true
+      Status.UNMODIFIED -> displayOptions.unmodified == true
+      Status.UNKNOWN, Status.UNKNOWN_MODIFICATION -> displayOptions.unknown == true
+      Status.FAULTY -> displayOptions.error == true
+      else -> false
     }
+  }
 }

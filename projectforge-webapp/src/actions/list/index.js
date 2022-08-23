@@ -1,4 +1,3 @@
-import fileDownload from 'js-file-download';
 import history from '../../utilities/history';
 import { fetchJsonPost, getObjectFromQuery, getServiceURL, handleHTTPErrors } from '../../utilities/rest';
 

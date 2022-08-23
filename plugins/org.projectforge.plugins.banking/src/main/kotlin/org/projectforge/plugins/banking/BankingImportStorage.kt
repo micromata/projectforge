@@ -24,7 +24,7 @@
 package org.projectforge.plugins.banking
 
 import org.projectforge.rest.dto.BankAccount
-import org.projectforge.rest.importer.ImportEntry
+import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportSettings
 import org.projectforge.rest.importer.ImportStorage
 import java.time.LocalDate
@@ -67,13 +67,13 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
   ) {
     if (readByDay.isEmpty()) {
       dbRecordsByDay.forEach { dbRecord ->
-        addEntry(ImportEntry(null, createRecord(dbRecord)))
+        addEntry(ImportPairEntry(null, createRecord(dbRecord)))
       }
       return // Nothing to import (only db records given).
     }
     val scoreMatrix = Array(readByDay.size) { IntArray(dbRecordsByDay.size) }
-    for (k in 0 until readByDay.size) {
-      for (l in 0 until dbRecordsByDay.size) {
+    for (k in readByDay.indices) {
+      for (l in dbRecordsByDay.indices) {
         scoreMatrix[k][l] = readByDay[k].matchScore(dbRecordsByDay[l])
       }
     }
@@ -83,11 +83,11 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
       var maxScore = 0
       var maxK = -1
       var maxL = -1
-      for (k in 0 until readByDay.size) {
+      for (k in readByDay.indices) {
         if (takenReadRecords.contains(k)) {
           continue // Entry k is already taken.
         }
-        for (l in 0 until dbRecordsByDay.size) {
+        for (l in dbRecordsByDay.indices) {
           if (takenDBRecords.contains(l)) {
             continue // Entry l is already taken.
           }
@@ -103,20 +103,20 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
       }
       takenReadRecords.add(maxK)
       takenDBRecords.add(maxL)
-      addEntry(ImportEntry(readByDay[maxK], createRecord(dbRecordsByDay[maxL])))
+      addEntry(ImportPairEntry(readByDay[maxK], createRecord(dbRecordsByDay[maxL])))
     }
     // Now, add the unmatching records
-    for (k in 0 until readByDay.size) {
+    for (k in readByDay.indices) {
       if (takenReadRecords.contains(k)) {
         continue // Entry k is already taken.
       }
-      addEntry(ImportEntry(readByDay[k], null))
+      addEntry(ImportPairEntry(readByDay[k], null))
     }
-    for (l in 0 until dbRecordsByDay.size) {
+    for (l in dbRecordsByDay.indices) {
       if (takenDBRecords.contains(l)) {
         continue // Entry l is already taken.
       }
-      addEntry(ImportEntry(null, createRecord(dbRecordsByDay[l])))
+      addEntry(ImportPairEntry(null, createRecord(dbRecordsByDay[l])))
     }
   }
 

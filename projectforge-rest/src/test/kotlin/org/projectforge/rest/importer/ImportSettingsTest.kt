@@ -40,6 +40,7 @@ import java.util.*
 class ImportSettingsTest: AbstractTestBase() { // AbstractTestBase needed for getting configured date-formats.
   @Test
   fun parseFieldSettingsTest() {
+    ThreadLocalUserContext.clear()
     ThreadLocalUserContext.setLocale(Locale.ENGLISH)
     checkValues("", emptyArray(), emptyArray())
     checkValues("alias ", arrayOf("alias"), emptyArray())
