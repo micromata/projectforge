@@ -80,39 +80,11 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
       )
     } else {
       if (data != null) {
-        val statsSupport = ListStatisticsSupport()
-        statsSupport.append("import.stats.total", NumberFormatter.format(data.totalNumber))
-        addIfNotZero(statsSupport, "import.stats.new", data.numberOfNewEntries, ListStatisticsSupport.Color.GREEN)
-        addIfNotZero(
-          statsSupport,
-          "import.stats.deleted",
-          data.numberOfDeletedEntries,
-          ListStatisticsSupport.Color.RED,
-        )
-        addIfNotZero(
-          statsSupport,
-          "import.stats.modified",
-          data.numberOfModifiedEntries,
-          ListStatisticsSupport.Color.BLUE,
-        )
-        addIfNotZero(statsSupport, "import.stats.unmodified", data.numberOfUnmodifiedEntries)
-        addIfNotZero(
-          statsSupport,
-          "import.stats.faulty",
-          data.numberOfFaultyEntries,
-          ListStatisticsSupport.Color.RED,
-        )
-        addIfNotZero(
-          statsSupport,
-          "import.stats.unknown",
-          data.numberOfUnknownEntries,
-          ListStatisticsSupport.Color.RED,
-        )
         val row = UIRow()
         fieldset.add(row)
         row.add(
           UICol(md = 6)
-            .add(UIAlert("'${statsSupport.asMarkdown}", color = UIColor.LIGHT, markdown = true))
+            .add(UIAlert("'${createStatsMarkdown(data)}", color = UIColor.LIGHT, markdown = true))
         )
         if (data.totalNumber > 0) {
           val col = UICol(md = 6)
@@ -128,6 +100,9 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
           addCheckBoxIfNotZero(layout, checkboxGroup, "unknown", data.numberOfUnknownEntries)
         }
       }
+
+      addImportResult(layout, importStorage?.importResult)
+
       val agGrid = UIAgGrid("entries", listPageTable = true)
       layout.add(agGrid)
       agGridSupport.prepareUIGrid4MultiSelectionListPage(
@@ -156,24 +131,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
       )
     }
 
-    val settingsInfo = StringBuilder()
-    settingsInfo
-      .appendLine("### ${translate("import.info.detectedColumns")}")
-      .appendLine()
-      .appendLine("| ${translate("import.field.name")} | ${translate("import.field.mapping")} |")
-      .appendLine("| --- | --- |")
-    if (importStorage != null) {
-      importStorage.detectedColumns.entries.forEach {
-        settingsInfo.appendLine("| ${it.value.label} | ${it.key} |")
-      }
-      settingsInfo
-        .appendLine()
-        .appendLine("### ${translate("import.info.unknownColumns")}")
-        .appendLine()
-        .appendLine(importStorage.unknownColumns.joinToString())
-      layout.add(UIAlert("'$settingsInfo", color = UIColor.WARNING, markdown = true))
-      layout.add(createSettingsHelp(importStorage.importSettings))
-    }
+    addSettingsInfo(layout, importStorage)
 
     LayoutUtils.process(layout)
     val formLayoutData = FormLayoutData(data, layout, createServerData(request))
@@ -218,17 +176,23 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
     @RequestBody multiSelection: AbstractMultiSelectedPage.MultiSelection?
   ): ResponseEntity<ResponseAction> {
     val importStorage = getImportStorage(request)
+    if (importStorage == null) {
+      log.error("No import storage given (expired?). Can't proceed any import here.")
+      return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
+    }
     val selectedIds = multiSelection?.selectedIds
     val selectedEntries = mutableListOf<ImportPairEntry<O>>()
     if (selectedIds != null) {
-      importStorage?.pairEntries?.forEach { entry ->
+      importStorage.pairEntries.forEach { entry ->
         if (selectedIds.contains(entry.id)) {
           selectedEntries.add(entry)
         }
       }
     }
-    if (importStorage == null || selectedEntries.isEmpty()) {
-      return showValidationErrors(ValidationError("import.error.noEntrySelected"))
+    if (selectedEntries.isEmpty()) {
+      importStorage.importResult = ImportStorage.ImportResult(translate("import.error.noEntrySelected"))
+      // TODO: merge UPDATE
+      return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
     log.info { "User wants to import #${selectedEntries.size} entries..." }
     import(importStorage, selectedEntries)
@@ -335,5 +299,94 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
       sb.appendLine("```")
       return UIAlert(sb.toString(), title = "import.help.settings.title", markdown = true, color = UIColor.LIGHT)
     }
+  }
+
+  private fun addSettingsInfo(container: IUIContainer, importStorage: ImportStorage<*>?) {
+    val settingsInfo = StringBuilder()
+    settingsInfo
+      .appendLine("### ${translate("import.info.detectedColumns")}")
+      .appendLine()
+      .appendLine("| ${translate("import.field.name")} | ${translate("import.field.mapping")} |")
+      .appendLine("| --- | --- |")
+    if (importStorage != null) {
+      importStorage.detectedColumns.entries.forEach {
+        settingsInfo.appendLine("| ${it.value.label} | ${it.key} |")
+      }
+      settingsInfo
+        .appendLine()
+        .appendLine("### ${translate("import.info.unknownColumns")}")
+        .appendLine()
+        .appendLine(importStorage.unknownColumns.joinToString())
+      container.add(UIAlert("'$settingsInfo", color = UIColor.WARNING, markdown = true))
+      container.add(createSettingsHelp(importStorage.importSettings))
+    }
+  }
+
+  private fun createStatsMarkdown(data: ImportStorageInfo): String {
+    val statsSupport = ListStatisticsSupport()
+    statsSupport.append("import.stats.total", NumberFormatter.format(data.totalNumber))
+    addIfNotZero(statsSupport, "import.stats.new", data.numberOfNewEntries, ListStatisticsSupport.Color.GREEN)
+    addIfNotZero(
+      statsSupport,
+      "import.stats.deleted",
+      data.numberOfDeletedEntries,
+      ListStatisticsSupport.Color.RED,
+    )
+    addIfNotZero(
+      statsSupport,
+      "import.stats.modified",
+      data.numberOfModifiedEntries,
+      ListStatisticsSupport.Color.BLUE,
+    )
+    addIfNotZero(statsSupport, "import.stats.unmodified", data.numberOfUnmodifiedEntries)
+    addIfNotZero(
+      statsSupport,
+      "import.stats.faulty",
+      data.numberOfFaultyEntries,
+      ListStatisticsSupport.Color.RED,
+    )
+    addIfNotZero(
+      statsSupport,
+      "import.stats.unknown",
+      data.numberOfUnknownEntries,
+      ListStatisticsSupport.Color.RED,
+    )
+    return statsSupport.asMarkdown
+  }
+
+  private fun addImportResult(container: IUIContainer, importResult: ImportStorage.ImportResult?) {
+    importResult ?: return
+    val importStatsSupport = ListStatisticsSupport()
+    importStatsSupport.append(
+      "import.result.numberOfCreated",
+      NumberFormatter.format(importResult.inserted),
+      ListStatisticsSupport.Color.GREEN,
+    )
+    importStatsSupport.append(
+      "import.result.numberOfUpdated",
+      NumberFormatter.format(importResult.updated),
+      ListStatisticsSupport.Color.BLUE,
+    )
+    importStatsSupport.append(
+      "import.result.numberOfDeleted",
+      NumberFormatter.format(importResult.deleted),
+      ListStatisticsSupport.Color.RED,
+    )
+    val msg = StringBuilder()
+    msg.appendLine(importStatsSupport.asMarkdown)
+    var color = UIColor.SECONDARY
+    importResult.errorMessages?.let {
+      msg.appendLine("### ${translate("errors")}")
+      msg.appendLine(it.joinToString("\n", "- ") { it })
+      color = UIColor.DANGER
+    }
+    container.add(
+      UIAlert(
+        title = "import.result.title",
+        message = "$msg\n\n",
+        markdown = true,
+        color = color,
+      )
+    )
   }
 }

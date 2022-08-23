@@ -102,6 +102,7 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
           readEntry.copyTo(dbEntry)
           dbEntry.bankAccount = bankAccountDO
           bankAccountRecordDao.internalSave(dbEntry)
+          result.inserted += 1
         }
       } else {
         if (readEntry != null) {
@@ -109,8 +110,10 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
           readEntry.copyTo(dbEntry)
           dbEntry.id = id
           bankAccountRecordDao.update(dbEntry)
+          result.updated += 1
         } else {
           bankAccountRecordDao.markAsDeleted(dbEntry)
+          result.deleted += 1
         }
       }
     }

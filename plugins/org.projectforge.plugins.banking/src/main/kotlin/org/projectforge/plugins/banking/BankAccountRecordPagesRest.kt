@@ -28,9 +28,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UIReadOnlyField
+import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -103,25 +101,65 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
    */
   override fun createEditLayout(dto: BankAccountRecord, userAccess: UILayout.UserAccess): UILayout {
     val layout = super.createEditLayout(dto, userAccess)
-      .add(UIReadOnlyField("accountName", label="plugins.banking.account.entry.accountName"))
-      .add(UIReadOnlyField("accountIban", label="plugins.banking.account.entry.accountIban"))
       .add(
-        lc,
-        BankAccountRecordDO::date,
-        BankAccountRecordDO::valueDate,
-        BankAccountRecordDO::iban,
-        BankAccountRecordDO::bic,
-        BankAccountRecordDO::subject,
-        BankAccountRecordDO::amount,
-        BankAccountRecordDO::collectionReference,
-        BankAccountRecordDO::comment,
-        BankAccountRecordDO::currency,
-        BankAccountRecordDO::customerReference,
-        BankAccountRecordDO::debteeId,
-        BankAccountRecordDO::mandateReference,
-        BankAccountRecordDO::receiverSender,
-        BankAccountRecordDO::info,
-        BankAccountRecordDO::type,
+        LayoutBuilder.createRowWithColumns(
+          UILength(md = 6),
+          UIReadOnlyField("accountName", label = "plugins.banking.account.record.accountName"),
+          UIReadOnlyField("accountIban", label = "plugins.banking.account.record.accountIban"),
+        )
+      )
+      .add(
+        UIRow()
+          .add(
+            UICol(md = 6)
+              .add(
+                LayoutBuilder.createRowWithColumns(
+                  UILength(md = 6),
+                  LayoutBuilder.createElement(lc, BankAccountRecordDO::date),
+                  LayoutBuilder.createElement(lc, BankAccountRecordDO::valueDate),
+                )
+              )
+              .add(
+                LayoutBuilder.createRowWithColumns(
+                  UILength(md = 6),
+                  LayoutBuilder.createElement(lc, BankAccountRecordDO::amount),
+                  LayoutBuilder.createElement(lc, BankAccountRecordDO::currency),
+                )
+              )
+              .add(
+                LayoutBuilder.createRowWithColumns(
+                  UILength(md = 6),
+                  LayoutBuilder.createElement(lc, BankAccountRecordDO::info),
+                  LayoutBuilder.createElement(lc, BankAccountRecordDO::type),
+                )
+              )
+          )
+          .add(
+            UICol(md = 6)
+              .add(lc, BankAccountRecordDO::receiverSender, BankAccountRecordDO::iban, BankAccountRecordDO::bic)
+
+          )
+      )
+      .add(
+        LayoutBuilder.createRowWithColumns(
+          UILength(md = 6),
+          LayoutBuilder.createElement(lc, BankAccountRecordDO::subject),
+          LayoutBuilder.createElement(lc, BankAccountRecordDO::comment),
+        )
+      )
+      .add(
+        LayoutBuilder.createRowWithColumns(
+          UILength(md = 6),
+          LayoutBuilder.createElement(lc, BankAccountRecordDO::debteeId),
+          LayoutBuilder.createElement(lc, BankAccountRecordDO::customerReference),
+        )
+      )
+      .add(
+        LayoutBuilder.createRowWithColumns(
+          UILength(md = 6),
+          LayoutBuilder.createElement(lc, BankAccountRecordDO::mandateReference),
+          LayoutBuilder.createElement(lc, BankAccountRecordDO::collectionReference),
+        )
       )
     return LayoutUtils.processEditPage(layout, dto, this)
   }

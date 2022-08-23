@@ -65,7 +65,7 @@ function DynamicListPageAgGrid({
                 if (url) {
                     history.push(url);
                 } else {
-                    window.location.reload();
+                    window.location.reload(); // Fin: hier bekomme ich leider nicht callAction!?
                 }
             },
         );
