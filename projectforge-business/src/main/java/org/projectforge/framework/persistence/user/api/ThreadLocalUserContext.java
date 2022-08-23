@@ -142,9 +142,6 @@ public class ThreadLocalUserContext {
    * @param locale
    */
   public static void setLocale(Locale locale) {
-    if (getUser() != null) {
-      throw new IllegalStateException("Can't register locale if an user is already registered. setLocale(Locale) should only used for public/anonymous services.");
-    }
     threadLocalLocale.set(locale);
   }
 
