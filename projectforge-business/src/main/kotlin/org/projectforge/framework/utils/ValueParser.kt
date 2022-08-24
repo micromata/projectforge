@@ -65,9 +65,10 @@ object ValueParser {
       return null
     }
     val value = str.trim()
-    val germanStyle = str.indexOf('.') in 0 until str.indexOf(',') // #.###.###,##
+    // val germanStyle = str.indexOf('.') in 0 until str.indexOf(',') // #.###.###,##
     parseFormatList.forEach { pattern ->
       try {
+        /*
         var usePattern = pattern
         val patternGermanStyle = pattern.indexOf('.') in 0 until pattern.indexOf(',') // #.###.###,##
         if (germanStyle != patternGermanStyle) {
@@ -82,8 +83,8 @@ object ValueParser {
             }
           }
           usePattern = sb.toString()
-        }
-        val decimalFormat = getBigDecimalFormat(usePattern)
+        }*/
+        val decimalFormat = getBigDecimalFormat(pattern)
         synchronized(decimalFormat) {
           return decimalFormat.parse(value) as BigDecimal
         }
@@ -96,6 +97,25 @@ object ValueParser {
     } catch (ex: Exception) {
       // Might occur.
       return null
+    }
+  }
+
+  internal fun isGermanStyle(str: String): Boolean {
+    val dotPos = str.indexOf('.')
+    val comaPos = str.indexOf(',')
+    if (dotPos >= 0 && comaPos >= 0) {
+      return comaPos > dotPos
+    }
+    if (dotPos >= 0) {
+      if (str.count { it == '.'} > 1) { // 1.234.000
+        return true
+      }
+      return dotPos == str.length - 4 // 1.000?
+    } else {
+      if (str.count { it == ','} > 1) { // 1,234,000
+        return false
+      }
+      return comaPos != str.length - 4 // 1,000?
     }
   }
 

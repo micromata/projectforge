@@ -45,4 +45,18 @@ class ValueParserTest {
       "value has german number format but pattern has standard number format.",
     )
   }
+
+  @Test
+  fun autoDetectGermanStyle() {
+    Assertions.assertTrue(ValueParser.isGermanStyle("1.000,12"))
+    Assertions.assertFalse(ValueParser.isGermanStyle("1,000.12"))
+    Assertions.assertTrue(ValueParser.isGermanStyle("1.000.122"))
+    Assertions.assertFalse(ValueParser.isGermanStyle("1.00"))
+    Assertions.assertTrue(ValueParser.isGermanStyle("0,12"))
+    Assertions.assertFalse(ValueParser.isGermanStyle("0.12"))
+    Assertions.assertFalse(ValueParser.isGermanStyle("1,000,122"))
+    Assertions.assertTrue(ValueParser.isGermanStyle("100,12"))
+    Assertions.assertFalse(ValueParser.isGermanStyle("100,122"))
+    Assertions.assertTrue(ValueParser.isGermanStyle("100.122"))
+  }
 }
