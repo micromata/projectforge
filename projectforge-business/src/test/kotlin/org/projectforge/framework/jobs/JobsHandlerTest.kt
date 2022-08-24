@@ -24,6 +24,7 @@
 package org.projectforge.framework.jobs
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -33,25 +34,33 @@ class JobsHandlerTest {
     val jobHandler = JobHandler()
     val job = jobHandler.addJob(object : AbstractJob("Sleep job 1.000ms") {
       override suspend fun run() {
-        Assertions.assertEquals(AbstractJob.Status.RUNNING, status)
+        Assertions.assertEquals(Status.RUNNING, status)
         repeat(100) { i -> // Paranoia counter
           delay(100L)
         }
       }
 
       override fun onBeforeCancel() {
-        Assertions.assertEquals(AbstractJob.Status.RUNNING, status)
+        Assertions.assertEquals(Status.RUNNING, status)
       }
       override fun onAfterCancel() {
-        Assertions.assertEquals(AbstractJob.Status.CANCELLED, status)
+        Assertions.assertEquals(Status.CANCELLED, status)
       }
     })
-    jobHandler.cancelJob(job)
+    runBlocking {
+      for (i in 0..1000) {
+        delay(100)
+        if (job.status == AbstractJob.Status.RUNNING) {
+          break
+        }
+      }
+    }
+    jobHandler.shutdownJobHandler()
   }
 
   companion object {
     @JvmStatic
-    fun main(args: Array<String>) {
+    fun madin(args: Array<String>) {
       val jobHandler = JobHandler()
       val job1 = jobHandler.addJob(object : AbstractJob("Sleep job 1.000ms") {
         override suspend fun run() {

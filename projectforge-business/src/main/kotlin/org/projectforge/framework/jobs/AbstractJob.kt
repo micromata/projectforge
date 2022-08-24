@@ -34,7 +34,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * @param title Human readable title for displaying and logging purposes.
- * @param area Area describing type of job. If [queue] is true then jobs of same area and same user are queued.
+ * @param area Area describing type of job. If [queueStrategy] is true then jobs of same area and same user are queued.
  * @param userId Job is started by this user.
  */
 abstract class AbstractJob(
@@ -44,13 +44,14 @@ abstract class AbstractJob(
   /**
    * If true then jobs of same area and same user are queued.
    */
-  val queue: Boolean = false,
+  val queueStrategy: QueueStrategy = QueueStrategy.NONE,
   /**
    * At default, this job will be cancelled after 120s +.
    */
   timeoutSeconds: Int = 120
 ) {
-  enum class Status { INIT, RUNNING, CANCELLED, FINISHED }
+  enum class QueueStrategy { NONE, GLOBAL, PER_USER }
+  enum class Status { WAITING, RUNNING, CANCELLED, FINISHED }
 
   @JsonIgnore
   internal lateinit var coroutinesJob: Job
@@ -67,7 +68,7 @@ abstract class AbstractJob(
   val terminatedTimeMillis: Long?
     get() = terminatedTime?.time
 
-  var status: Status = Status.INIT
+  var status: Status = Status.WAITING
     internal set
 
   var totalNumber: Int = -1
@@ -92,7 +93,7 @@ abstract class AbstractJob(
 
   val terminatedForDeletion: Boolean
     get() {
-      if (status == Status.RUNNING || status == Status.INIT) {
+      if (status == Status.RUNNING || status == Status.WAITING) {
         return false
       }
       val ms = terminatedTimeMillis
@@ -104,6 +105,17 @@ abstract class AbstractJob(
     startTime = Date()
     status = Status.RUNNING
     run()
+  }
+
+  fun isBlocking(newJob: AbstractJob): Boolean {
+    if (newJob.queueStrategy == QueueStrategy.NONE || newJob.status != Status.WAITING && status != Status.RUNNING) {
+      // Other job is not marked to be queued or this job isn't running or the other job isn't waiting for RUNNING.
+      return false
+    }
+    if (area != newJob.area) {
+      return false
+    }
+    return newJob.queueStrategy != QueueStrategy.PER_USER || userId == newJob.userId
   }
 
   abstract suspend fun run()
