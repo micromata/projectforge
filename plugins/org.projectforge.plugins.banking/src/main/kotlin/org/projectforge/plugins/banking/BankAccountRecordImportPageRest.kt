@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.banking
 
+import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.PagesResolver
@@ -49,6 +50,9 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
 
   @Autowired
   private lateinit var bankAccountDao: BankAccountDao
+
+  @Autowired
+  private lateinit var jobHandler: JobHandler
 
   override fun callerPage(request: HttpServletRequest): String {
     val targetEntity = getImportStorage(request)?.targetEntity as? BankAccount
@@ -88,38 +92,7 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
       result.errorMessages = listOf("plugins.banking.account.record.import.error.noBankAccountGiven")
       return
     }
-    selectedEntries.forEach { entry ->
-      val storedEntryId = entry.stored?.id
-      val readEntry = entry.read
-      var dbEntry = if (storedEntryId != null) {
-        bankAccountRecordDao.getById(storedEntryId)
-      } else {
-        null
-      }
-      if (dbEntry == null) {
-        if (readEntry != null) {
-          dbEntry = BankAccountRecordDO()
-          readEntry.copyTo(dbEntry)
-          dbEntry.bankAccount = bankAccountDO
-          dbEntry.checksum = dbEntry.buildCheckSum()
-          bankAccountRecordDao.internalSave(dbEntry)
-          result.inserted += 1
-        }
-      } else {
-        if (readEntry != null) {
-          val id = dbEntry.id
-          readEntry.copyTo(dbEntry)
-          dbEntry.id = id
-          dbEntry.checksum = dbEntry.buildCheckSum()
-          dbEntry.isDeleted = false
-          bankAccountRecordDao.update(dbEntry)
-          result.updated += 1
-        } else {
-          bankAccountRecordDao.markAsDeleted(dbEntry)
-          result.deleted += 1
-        }
-      }
-    }
+    jobHandler.addJob(BankingImportJob(bankAccountDO, bankAccountRecordDao, selectedEntries))
   }
 
   @GetMapping("dynamic")

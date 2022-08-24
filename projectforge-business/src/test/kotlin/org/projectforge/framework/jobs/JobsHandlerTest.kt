@@ -30,8 +30,10 @@ import org.junit.jupiter.api.Test
 
 class JobsHandlerTest {
   @Test
-  fun jobQueueTest() {
+  fun jobExecutionTest() {
     val jobHandler = JobHandler()
+    var onBeforeCancel = false
+    var onAfterCancel = false
     val job = jobHandler.addJob(object : AbstractJob("Sleep job 1.000ms") {
       override suspend fun run() {
         Assertions.assertEquals(Status.RUNNING, status)
@@ -42,13 +44,16 @@ class JobsHandlerTest {
 
       override fun onBeforeCancel() {
         Assertions.assertEquals(Status.RUNNING, status)
+        onBeforeCancel = true
       }
+
       override fun onAfterCancel() {
         Assertions.assertEquals(Status.CANCELLED, status)
+        onAfterCancel = true
       }
     })
     runBlocking {
-      for (i in 0..1000) {
+      for (i in 0..20) {
         delay(100)
         if (job.status == AbstractJob.Status.RUNNING) {
           break
@@ -56,6 +61,34 @@ class JobsHandlerTest {
       }
     }
     jobHandler.shutdownJobHandler()
+    Assertions.assertTrue(onBeforeCancel)
+    Assertions.assertTrue(onAfterCancel)
+  }
+
+  @Test
+  fun failureTest() {
+    val jobHandler = JobHandler()
+    var onAfterException = false
+    val job = jobHandler.addJob(object : AbstractJob("Sleep job 1.000ms") {
+      override suspend fun run() {
+        throw Exception("job failed.")
+      }
+
+      override fun onAfterException(ex: Exception) {
+        Assertions.assertEquals(Status.FAILED, status)
+        Assertions.assertEquals("job failed.", ex.message)
+        onAfterException = true
+      }
+    })
+    runBlocking {
+      for (i in 0..20) {
+        delay(100)
+        if (job.status == AbstractJob.Status.FAILED) {
+          break
+        }
+      }
+    }
+    Assertions.assertTrue(onAfterException)
   }
 
   companion object {

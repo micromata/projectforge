@@ -67,7 +67,7 @@ class JobHandler {
           job.start()
         }
         job.coroutinesJob.join()
-        job.finished()
+        job.onFinish()
       }
     }
     return job
@@ -96,7 +96,7 @@ class JobHandler {
   val terminatedJobs: List<AbstractJob>
     get() {
       synchronized(jobs) {
-        return jobs.filter { it.status == AbstractJob.Status.CANCELLED || it.status == AbstractJob.Status.FINISHED }
+        return jobs.filter { it.terminated }
       }
     }
 
