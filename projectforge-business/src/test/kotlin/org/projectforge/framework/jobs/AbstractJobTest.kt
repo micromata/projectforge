@@ -75,4 +75,34 @@ class AbstractJobTest {
     Assertions.assertTrue(onAfterFinishedCalled)
     // println(job.toString())
   }
+
+  @Test
+  fun toBeQueuedTest() {
+    var job = createJob("job1", "area")
+    var newJob = createJob("job1", "area")
+    Assertions.assertFalse(job.isBlocking(newJob))
+    newJob = createJob("job1", "area", queueStrategy = AbstractJob.QueueStrategy.GLOBAL)
+    Assertions.assertTrue(job.isBlocking(newJob))
+    newJob = createJob("job1", "area", userId = 5, queueStrategy = AbstractJob.QueueStrategy.GLOBAL)
+    Assertions.assertTrue(job.isBlocking(newJob))
+
+    newJob = createJob("job1", "area", queueStrategy = AbstractJob.QueueStrategy.PER_USER)
+    Assertions.assertTrue(job.isBlocking(newJob), "Both userId's are null / equal.")
+    newJob = createJob("job1", "area", userId = 5, queueStrategy = AbstractJob.QueueStrategy.PER_USER)
+    Assertions.assertFalse(job.isBlocking(newJob))
+    job = createJob("job1", "area", userId = 5)
+    Assertions.assertTrue(job.isBlocking(newJob))
+  }
+
+  private fun createJob(
+    title: String,
+    area: String? = null,
+    userId: Int? = null,
+    queueStrategy: AbstractJob.QueueStrategy = AbstractJob.QueueStrategy.NONE,
+  ): AbstractJob {
+    return object : AbstractJob(title, area = area, userId = userId, queueStrategy = queueStrategy) {
+      override suspend fun run() {
+      }
+    }
+  }
 }
