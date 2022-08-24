@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.importer
 
-import org.hibernate.search.util.AnalyzerUtils.log
+import mu.KotlinLogging
 import org.projectforge.business.common.ListStatisticsSupport
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberFormatter
@@ -43,6 +43,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
 import kotlin.reflect.KProperty
+
+private val log = KotlinLogging.logger {}
 
 abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : AbstractDynamicPageRest() {
   @Autowired
@@ -205,7 +207,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
       }
     }
     return ResponseEntity.ok(
-      ResponseAction(targetType = TargetType.NOTHING)
+      ResponseAction(url = callerPage(request), targetType = TargetType.REDIRECT)
     )
   }
 

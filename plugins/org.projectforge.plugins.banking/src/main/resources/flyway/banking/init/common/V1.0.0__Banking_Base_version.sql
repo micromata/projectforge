@@ -51,6 +51,7 @@ CREATE TABLE t_plugin_banking_account_record
     type                      CHARACTER VARYING(4000),
     iban                      CHARACTER VARYING(1000),
     bic                       CHARACTER VARYING(1000),
+    checksum                  CHARACTER VARYING(255),
     bank                      CHARACTER VARYING(1000),
     banking_account_fk        INTEGER                     NOT NULL
 );

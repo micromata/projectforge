@@ -23,14 +23,17 @@
 
 package org.projectforge.plugins.banking
 
+import org.apache.commons.codec.digest.DigestUtils
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.Indexed
 import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.Constants
+import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
 import java.time.LocalDate
 import javax.persistence.*
@@ -131,6 +134,27 @@ open class BankAccountRecordDO : DefaultBaseDO() {
   @Field
   @get:Column(length = Constants.LENGTH_TITLE)
   open var bic: String? = null
+
+  /**
+   * Checksum is generated after import for detecting any later manipulation.
+   */
+  @PropertyInfo(i18nKey = "plugins.banking.account.record.checksum", tooltip = "plugins.banking.account.record.checksum.info")
+  @Field
+  @get:Column(length = Constants.LENGTH_TITLE)
+  open var checksum: String? = null
+
+  fun buildCheckSum(): String {
+    val sb = StringBuilder()
+    sb.append(amount?.setScale(2).toString()).append('|')
+    sb.append(StringHelper.removeNonDigitsAndNonASCIILetters(subject)).append('|')
+    sb.append(StringHelper.removeNonDigitsAndNonASCIILetters(receiverSender)).append('|')
+    sb.append(StringHelper.removeNonDigitsAndNonASCIILetters(iban)).append('|')
+    sb.append(StringHelper.removeNonDigitsAndNonASCIILetters(bic)).append('|')
+    sb.append(bankAccount?.id).append('|')
+    sb.append(PFDay.fromOrNull(date)?.isoString).append('|')
+    sb.append(PFDay.fromOrNull(valueDate)?.isoString).append('|')
+    return DigestUtils.sha256Hex(sb.toString())
+  }
 
   companion object {
     const val FIND_BY_TIME_PERIOD = "BankAccountRecordDO_FindByTimePeriod"

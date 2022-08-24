@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
-import { Button } from '../../../../design';
 import { fetchJsonPost, getServiceURL, handleHTTPErrors } from '../../../../../utilities/rest';
 import history from '../../../../../utilities/history';
 import DynamicAgGrid from './DynamicAgGrid';
@@ -41,7 +40,7 @@ function DynamicListPageAgGrid({
         }
     }, [columnApi, sortModel]);
 
-    const { ui } = React.useContext(DynamicLayoutContext);
+    const { ui, callAction } = React.useContext(DynamicLayoutContext);
 
     const handleCancel = React.useCallback(() => {
         fetch(getServiceURL(handleCancelUrl), {
@@ -61,12 +60,7 @@ function DynamicListPageAgGrid({
             urlAfterMultiSelect,
             { selectedIds },
             (json) => {
-                const { url } = json;
-                if (url) {
-                    history.push(url);
-                } else {
-                    window.location.reload(); // Fin: hier bekomme ich leider nicht callAction!?
-                }
+                callAction({ responseAction: json });
             },
         );
     }, [gridApi, urlAfterMultiSelect]);

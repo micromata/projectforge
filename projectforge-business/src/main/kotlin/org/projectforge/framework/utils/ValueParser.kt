@@ -1,0 +1,159 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.framework.utils
+
+import java.math.BigDecimal
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+
+/**
+ * Some helper methods for parsing numbers
+ *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+object ValueParser {
+  /**
+   * Doesn't throw an exception, returns null instead.
+   * @param patterns Optional number formats to test before "".toInt() is tried.
+   */
+  fun parseInt(number: String?, patterns: Iterable<String>): Int? {
+    if (number.isNullOrBlank()) {
+      return null
+    }
+    val value = number.trim()
+    patterns.forEach { pattern ->
+      try {
+        val decimalFormat = getIntFormat(pattern)
+        synchronized(decimalFormat) {
+          return decimalFormat.parse(value) as Int
+        }
+      } catch (ex: Exception) {
+        // Might occur.
+      }
+    }
+    return try {
+      value.toIntOrNull()
+    } catch (ex: Exception) {
+      // Might occur.
+      null
+    }
+  }
+
+  fun parseBigDecimal(str: String?, parseFormatList: Iterable<String>): BigDecimal? {
+    if (str.isNullOrBlank()) {
+      return null
+    }
+    val value = str.trim()
+    val germanStyle = str.indexOf('.') in 0 until str.indexOf(',') // #.###.###,##
+    parseFormatList.forEach { pattern ->
+      try {
+        var usePattern = pattern
+        val patternGermanStyle = pattern.indexOf('.') in 0 until pattern.indexOf(',') // #.###.###,##
+        if (germanStyle != patternGermanStyle) {
+          val sb = StringBuilder()
+          pattern.forEach { ch ->
+            if (ch == '.') {
+              sb.append(',')
+            } else if (ch == ',') {
+              sb.append('.')
+            } else {
+              sb.append(ch)
+            }
+          }
+          usePattern = sb.toString()
+        }
+        val decimalFormat = getBigDecimalFormat(usePattern)
+        synchronized(decimalFormat) {
+          return decimalFormat.parse(value) as BigDecimal
+        }
+      } catch (ex: Exception) {
+        // Might occur.
+      }
+    }
+    try {
+      return BigDecimal(value)
+    } catch (ex: Exception) {
+      // Might occur.
+      return null
+    }
+  }
+
+  private fun getBigDecimalFormat(pattern: String): DecimalFormat {
+    return getFormat(bigDecimalFormatMap, pattern, false)
+  }
+
+  private fun getIntFormat(pattern: String): DecimalFormat {
+    return getFormat(intFormatMap, pattern, true)
+  }
+
+  private fun getFormat(map: MutableMap<String, DecimalFormat>, pattern: String, integer: Boolean): DecimalFormat {
+    synchronized(map) {
+      val result = map[pattern]
+      if (result != null) {
+        return result
+      }
+    }
+    val decimalFormat = buildDecimalFormat(pattern)
+    if (integer) {
+      decimalFormat.isParseIntegerOnly = true
+    } else {
+      decimalFormat.isParseBigDecimal = true
+    }
+    synchronized(map) {
+      map[pattern] = decimalFormat
+    }
+    return decimalFormat
+  }
+
+  private fun buildDecimalFormat(str: String): DecimalFormat {
+    val pattern = str.trim()
+    val symbols = DecimalFormatSymbols()
+    val comaPosition = pattern.indexOf(',')
+    val decimalPosition = pattern.indexOf('.')
+    var javaPattern = pattern
+    if (comaPosition > decimalPosition) { // Last char defines decimal separator
+      symbols.decimalSeparator = ','
+      symbols.groupingSeparator = '.'
+      val sb = StringBuilder()
+      // swap , and .
+      pattern.forEach { ch ->
+        if (ch == '.') {
+          sb.append(',')
+        } else if (ch == ',') {
+          sb.append('.')
+        } else {
+          sb.append(ch)
+        }
+      }
+      javaPattern = sb.toString()
+    } else {
+      symbols.decimalSeparator = '.'
+      symbols.groupingSeparator = ','
+    }
+    return DecimalFormat(javaPattern, symbols)
+  }
+
+  private val bigDecimalFormatMap = mutableMapOf<String, DecimalFormat>()
+  private val intFormatMap = mutableMapOf<String, DecimalFormat>()
+}

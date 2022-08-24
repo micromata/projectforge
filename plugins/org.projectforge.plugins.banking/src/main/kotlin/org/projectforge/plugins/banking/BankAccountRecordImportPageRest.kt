@@ -101,6 +101,7 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
           dbEntry = BankAccountRecordDO()
           readEntry.copyTo(dbEntry)
           dbEntry.bankAccount = bankAccountDO
+          dbEntry.checksum = dbEntry.buildCheckSum()
           bankAccountRecordDao.internalSave(dbEntry)
           result.inserted += 1
         }
@@ -109,6 +110,8 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
           val id = dbEntry.id
           readEntry.copyTo(dbEntry)
           dbEntry.id = id
+          dbEntry.checksum = dbEntry.buildCheckSum()
+          dbEntry.isDeleted = false
           bankAccountRecordDao.update(dbEntry)
           result.updated += 1
         } else {
