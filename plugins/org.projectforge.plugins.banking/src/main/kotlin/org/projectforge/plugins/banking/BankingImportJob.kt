@@ -50,6 +50,11 @@ class BankingImportJob(
     processedNumber = 0
   }
 
+  override val info: String?
+    get() {
+      return super.info
+    }
+
   override suspend fun run() {
     log.info { "Starting import job for bank account records..." }
     selectedEntries.forEach { entry ->

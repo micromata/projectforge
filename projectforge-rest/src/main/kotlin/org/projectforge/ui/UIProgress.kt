@@ -26,19 +26,28 @@ package org.projectforge.ui
 /**
  * @param fetchUpdateUrl If given, the status of the progress bar will be fetched every 2 seconds. The rest service
  * should update the data object or the variables part (if progress info is set as variable).
- * @param fetchUpdateInterval Update interval in ms if [fetchUpdateUrl] is given. Default is 2000 (2s).
+ * @param fetchUpdateInterval Update interval in ms if [fetchUpdateUrl] is given. Default is 1000 (1s).
  */
 data class UIProgress(
   override var id: String,
   var collapseable: Boolean? = null,
   var fetchUpdateUrl: String? = null,
   var fetchUpdateInterval: Long? = null,
+  var cancelUrl: String? = null,
+  var cancelConfirmMessage: String? = null,
 ) : UIElement(UIElementType.PROGRESS), IUIId {
+  /**
+   * @param autoRefresh If true, the status should be refreshed by fetching [fetchUpdateUrl].
+   * @param info Info box (markdown) for showing details.
+   */
   class Data(
     var value: Int?,
     var title: String? = null,
     var info: String? = null,
+    var infoColor: UIColor? = null,
     var color: UIColor? = null,
     var animated: Boolean? = false,
+    var autoRefresh: Boolean? = null,
+    var showCancelButton: Boolean? = null,
   )
 }

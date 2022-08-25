@@ -94,6 +94,11 @@ abstract class AbstractJob(
   val progressPercentage: Int
     get() = if (processedNumber < 0 || totalNumber <= 0) 0 else processedNumber * 100 / totalNumber
 
+  /**
+   * For displaying purposes (e. g. progress, errors etc.). Use pure text or markdown format.
+   */
+  open val info: String? = null
+
   val timeout = timeoutSeconds * 1000
 
   val timeoutReached: Boolean
