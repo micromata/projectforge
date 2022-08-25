@@ -27,6 +27,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 
 class AbstractJobTest {
@@ -34,6 +35,10 @@ class AbstractJobTest {
   fun timeoutReachedTest() {
     val job = object : AbstractJob("job1", timeoutSeconds = 10) {
       override suspend fun run() {
+      }
+
+      override fun writeAccess(user: PFUserDO?): Boolean {
+        return true
       }
     }
     job.status = AbstractJob.Status.RUNNING
@@ -50,6 +55,10 @@ class AbstractJobTest {
     val job = jobHandler.addJob(object : AbstractJob("job") {
       override suspend fun run() {
         // println("job2")
+      }
+
+      override fun writeAccess(user: PFUserDO?): Boolean {
+        return true
       }
 
       override fun onAfterFinish() {
@@ -102,6 +111,10 @@ class AbstractJobTest {
   ): AbstractJob {
     return object : AbstractJob(title, area = area, userId = userId, queueStrategy = queueStrategy) {
       override suspend fun run() {
+      }
+
+      override fun writeAccess(user: PFUserDO?): Boolean {
+        return true
       }
     }
   }

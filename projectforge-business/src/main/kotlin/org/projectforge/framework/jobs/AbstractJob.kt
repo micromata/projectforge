@@ -27,13 +27,17 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import kotlinx.coroutines.Job
 import mu.KotlinLogging
 import org.apache.commons.lang3.builder.ToStringBuilder
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.jobs.JobHandler.Companion.KEEP_TERMINATED_JOBS_INTERVALL_MS
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 
 private val log = KotlinLogging.logger {}
 
 /**
+ * IMPORTANT: Don't forget to check [isActive] in your import job in every loop to enable cancellation.
  * @param title Human readable title for displaying and logging purposes.
  * @param area Area describing type of job. If [queueStrategy] is true then jobs of same area and same user are queued.
  * @param userId Job is started by this user.
@@ -57,6 +61,9 @@ abstract class AbstractJob(
 ) {
   enum class QueueStrategy { NONE, PER_QUEUE, PER_QUEUE_AND_USER }
   enum class Status { WAITING, RUNNING, CANCELLED, FINISHED, FAILED }
+
+  @Autowired
+  protected lateinit var accessChecker: AccessChecker
 
   @JsonIgnore
   internal lateinit var coroutinesJob: Job
@@ -145,6 +152,9 @@ abstract class AbstractJob(
     return newJob.queueStrategy != QueueStrategy.PER_QUEUE_AND_USER || userId == newJob.userId
   }
 
+  protected val isActive: Boolean
+    get() = this.coroutinesJob.isActive
+
   protected fun markJobAsFailed(ex: Exception? = null) {
     status = Status.FAILED
     if (ex != null) {
@@ -154,8 +164,14 @@ abstract class AbstractJob(
 
   abstract suspend fun run()
 
+  /**
+   * IMPORTANT: Don't forget to check [isActive] in your import job in every loop to enable cancellation.
+   */
   open fun onBeforeCancel() {}
 
+  /**
+   * IMPORTANT: Don't forget to check [isActive] in your import job in every loop to enable cancellation.
+   */
   open fun onAfterCancel() {}
 
   open fun onAfterFinish() {}
@@ -180,10 +196,12 @@ abstract class AbstractJob(
     }
 
   internal fun onFinish() {
-    log.info { "Job is finished: $logInfo" }
-    terminatedTime = Date()
-    status = Status.FINISHED
-    onAfterFinish()
+    if (status == Status.RUNNING) {
+      log.info { "Job is finished: $logInfo" }
+      terminatedTime = Date()
+      status = Status.FINISHED
+      onAfterFinish()
+    }
   }
 
   internal fun cancel() {
@@ -194,6 +212,15 @@ abstract class AbstractJob(
     status = Status.CANCELLED
     onAfterCancel()
   }
+
+  /**
+   * Default implementation is to call [writeAccess]
+   */
+  open fun readAccess(user: PFUserDO? = ThreadLocalUserContext.getUser()): Boolean {
+    return writeAccess(user)
+  }
+
+  abstract fun writeAccess(user: PFUserDO? = ThreadLocalUserContext.getUser()): Boolean
 
   override fun toString(): String {
     return ToStringBuilder(this)

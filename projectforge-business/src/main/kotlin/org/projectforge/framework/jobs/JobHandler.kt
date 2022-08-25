@@ -25,7 +25,9 @@ package org.projectforge.framework.jobs
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.hibernate.search.util.AnalyzerUtils.log
 import org.projectforge.Constants
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import javax.annotation.PreDestroy
@@ -40,7 +42,7 @@ class JobHandler {
   fun tidyUp() {
     runningJobs.forEach { job ->
       if (job.timeoutReached) {
-        cancelJob(job)
+        internalCancelJob(job)
       }
     }
     terminatedJobs.forEach { job ->
@@ -74,12 +76,25 @@ class JobHandler {
   }
 
   fun getJobById(id: Int): AbstractJob? {
-    synchronized(jobs) {
-      return jobs.find { it.id == id }
+    val job = synchronized(jobs) {
+      jobs.find { it.id == id }
+    } ?: return null
+    if (job.readAccess()) {
+      return job
     }
+    log.warn { "Logged-in user ${ThreadLocalUserContext.getUser()?.username} has no read access to requested job." }
+    return null
   }
 
   fun cancelJob(job: AbstractJob) {
+    if (job.writeAccess()) {
+      internalCancelJob(job)
+    }
+    log.warn { "Logged-in user ${ThreadLocalUserContext.getUser()?.username} has no write access to requested job. So job will not be cancelled." }
+  }
+
+  private fun internalCancelJob(job: AbstractJob) {
+    log.warn{ "Job ${job.logInfo} is going to be cancelled."}
     job.cancel()
   }
 
