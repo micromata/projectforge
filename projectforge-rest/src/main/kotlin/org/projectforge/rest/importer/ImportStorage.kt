@@ -23,7 +23,11 @@
 
 package org.projectforge.rest.importer
 
+import org.projectforge.business.common.ListStatisticsSupport
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.utils.NumberFormatter
+import org.projectforge.ui.UIAlert
+import org.projectforge.ui.UIColor
 
 abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
   val importSettings: ImportSettings
@@ -122,6 +126,22 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
 
   var importResult: ImportResult? = null
 
+  val importResultAsAlert: UIAlert?
+    get() {
+      val markdown = asMarkdown(importResult) ?: return null
+      var color = UIColor.SECONDARY
+      if (importResult?.errorMessages?.isNotEmpty() == true) {
+        color = UIColor.DANGER
+      }
+      return UIAlert(
+        title = "import.result.title",
+        message = "$markdown\n\n",
+        markdown = true,
+        color = color,
+      )
+    }
+
+
   val info: ImportStorageInfo
     get() = ImportStorageInfo(this)
 
@@ -143,4 +163,33 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
    * Store or skip this entity after the setting of all properties.
    */
   abstract fun commitEntity(obj: O)
+
+  companion object {
+    fun asMarkdown(importResult: ImportStorage.ImportResult?): String? {
+      importResult ?: return null
+      val importStatsSupport = ListStatisticsSupport()
+      importStatsSupport.append(
+        "import.result.numberOfCreated",
+        NumberFormatter.format(importResult.inserted),
+        ListStatisticsSupport.Color.GREEN,
+      )
+      importStatsSupport.append(
+        "import.result.numberOfUpdated",
+        NumberFormatter.format(importResult.updated),
+        ListStatisticsSupport.Color.BLUE,
+      )
+      importStatsSupport.append(
+        "import.result.numberOfDeleted",
+        NumberFormatter.format(importResult.deleted),
+        ListStatisticsSupport.Color.RED,
+      )
+      val msg = StringBuilder()
+      msg.appendLine(importStatsSupport.asMarkdown)
+      importResult.errorMessages?.let {
+        msg.appendLine("### ${translate("errors")}")
+        msg.appendLine(it.joinToString("\n", "- ") { it })
+      }
+      return msg.toString()
+    }
+  }
 }

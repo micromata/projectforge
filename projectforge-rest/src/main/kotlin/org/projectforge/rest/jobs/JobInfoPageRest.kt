@@ -63,9 +63,12 @@ class JobInfoPageRest : AbstractDynamicPageRest() {
     layout.add(
       UIProgress(
         getProgressId(data),
-        fetchUpdateUrl = RestResolver.getRestUrl(this::class.java, "progress", params = mapOf("id" to id))
+        fetchUpdateUrl = RestResolver.getRestUrl(this::class.java, "progress", params = mapOf("id" to id)),
+        cancelUrl = RestResolver.getRestUrl(this::class.java, "cancel", params = mapOf("id" to id)),
+        cancelConfirmMessage = translate("jobs.cancel.confirmationMessage"),
       )
     )
+    LayoutUtils.process(layout)
     return FormLayoutData(data, layout, createServerData(request), variables = getProgressDataAsVariables(data, job))
   }
 
@@ -76,10 +79,9 @@ class JobInfoPageRest : AbstractDynamicPageRest() {
   fun getProgress(@RequestParam("id", required = true) id: Int): ResponseAction {
     val pair = getJob(id)
     return ResponseAction(
-      variables = getProgressDataAsVariables(pair.first, pair.second),
       targetType = TargetType.UPDATE,
       merge = true,
-    )
+    ).addVariable("variables", getProgressDataAsVariables(pair.first, pair.second))
   }
 
   /**
@@ -92,10 +94,9 @@ class JobInfoPageRest : AbstractDynamicPageRest() {
       jobHandler.cancelJob(job)
     }
     return ResponseAction(
-      variables = getProgressDataAsVariables(pair.first, pair.second),
       targetType = TargetType.UPDATE,
       merge = true,
-    )
+    ).addVariable("variables", getProgressDataAsVariables(pair.first, pair.second))
   }
 
   private fun getJob(id: Int): Pair<JobDTO, AbstractJob?> {
@@ -114,29 +115,46 @@ class JobInfoPageRest : AbstractDynamicPageRest() {
 
   private fun getProgressData(job: AbstractJob?): UIProgress.Data {
     val title = StringBuilder()
-    title.append("${job?.progressPercentage} %")
     job?.let {
-      title.append(" (")
+      title.append(translate("jobs.status.${it.status.name.lowercase()}"))
+        .append(": ")
         .append(NumberFormatter.format(it.processedNumber))
         .append("/")
         .append(NumberFormatter.format(it.totalNumber))
-        .append(")")
-    }
-    job?.status?.let { status ->
-      title.append(": ").append(translate("jobs.status.${status.name.lowercase()}"))
     }
     var color: UIColor? = null
     var anmiated: Boolean? = null
+    var autoRefresh: Boolean = false
+    var showCancelButton: Boolean? = null
+    var infoColor = UIColor.SECONDARY
     when (job?.status) {
+      AbstractJob.Status.WAITING -> {
+        autoRefresh = true
+        showCancelButton = job.writeAccess()
+      }
       AbstractJob.Status.RUNNING -> {
         color = UIColor.INFO
         anmiated = true
+        autoRefresh = true
+        showCancelButton = job.writeAccess()
       }
-      AbstractJob.Status.CANCELLED, AbstractJob.Status.FAILED -> color = UIColor.DANGER
+      AbstractJob.Status.CANCELLED, AbstractJob.Status.FAILED -> {
+        color = UIColor.DANGER
+        infoColor = UIColor.DANGER
+      }
       AbstractJob.Status.FINISHED -> color = UIColor.SUCCESS
       else -> {}
     }
-    return UIProgress.Data(job?.progressPercentage, title = title.toString(), color = color, animated = anmiated)
+    return UIProgress.Data(
+      job?.progressPercentage,
+      title = title.toString(),
+      color = color,
+      animated = anmiated,
+      autoRefresh = autoRefresh,
+      showCancelButton = showCancelButton,
+      info = job?.info,
+      infoColor = infoColor,
+    )
   }
 
   private fun getProgressId(jobDTO: JobDTO): String {

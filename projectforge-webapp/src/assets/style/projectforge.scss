@@ -84,13 +84,12 @@ div.dropZone {
 }
 
 div.job-progress {
-  height: 2em;
-  font-size: small;
-}
-
-div.uploadProgress {
+  display: flex;
+  margin: 0 auto;
+  gap: 5px;
   div.progress {
-    height: 1.5em;
+    height: 2em;
+    flex-basis: 100%;
     font-size: 1em;
   }
 }

@@ -29,7 +29,7 @@ import org.projectforge.framework.i18n.translate
  * For displaying statistics on result page (markdown).
  */
 class ListStatisticsSupport {
-  private val sb = java.lang.StringBuilder()
+  private val sb = StringBuilder()
 
   private var first = true
 

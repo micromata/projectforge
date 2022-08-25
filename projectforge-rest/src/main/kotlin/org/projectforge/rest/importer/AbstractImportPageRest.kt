@@ -106,7 +106,9 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         }
       }
 
-      addImportResult(layout, importStorage?.importResult)
+      importStorage?.importResultAsAlert?.let {
+        layout.add(it)
+      }
 
       val agGrid = UIAgGrid("entries", listPageTable = true)
       layout.add(agGrid)
@@ -362,41 +364,5 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
       ListStatisticsSupport.Color.RED,
     )
     return statsSupport.asMarkdown
-  }
-
-  private fun addImportResult(container: IUIContainer, importResult: ImportStorage.ImportResult?) {
-    importResult ?: return
-    val importStatsSupport = ListStatisticsSupport()
-    importStatsSupport.append(
-      "import.result.numberOfCreated",
-      NumberFormatter.format(importResult.inserted),
-      ListStatisticsSupport.Color.GREEN,
-    )
-    importStatsSupport.append(
-      "import.result.numberOfUpdated",
-      NumberFormatter.format(importResult.updated),
-      ListStatisticsSupport.Color.BLUE,
-    )
-    importStatsSupport.append(
-      "import.result.numberOfDeleted",
-      NumberFormatter.format(importResult.deleted),
-      ListStatisticsSupport.Color.RED,
-    )
-    val msg = StringBuilder()
-    msg.appendLine(importStatsSupport.asMarkdown)
-    var color = UIColor.SECONDARY
-    importResult.errorMessages?.let {
-      msg.appendLine("### ${translate("errors")}")
-      msg.appendLine(it.joinToString("\n", "- ") { it })
-      color = UIColor.DANGER
-    }
-    container.add(
-      UIAlert(
-        title = "import.result.title",
-        message = "$msg\n\n",
-        markdown = true,
-        color = color,
-      )
-    )
   }
 }
