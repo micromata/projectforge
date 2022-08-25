@@ -29,10 +29,12 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.jobs.JobInfoPageRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -57,8 +59,9 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
 
   /**
    * Don't forget to fill the [ImportStorage.importResult].
+   * @return Job id (null, if no job was created).
    */
-  protected abstract fun import(importStorage: ImportStorage<*>, selectedEntries: List<ImportPairEntry<O>>)
+  protected abstract fun import(importStorage: ImportStorage<*>, selectedEntries: List<ImportPairEntry<O>>): Int?
 
   protected fun createLayout(
     request: HttpServletRequest,
@@ -197,17 +200,22 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
       return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
     log.info { "User wants to import #${selectedEntries.size} entries..." }
-    import(importStorage, selectedEntries)
-    importStorage.importResult.let { result ->
-      if (result == null) {
-        throw IllegalArgumentException("Import without result object! Please contact the developer.")
-      }
-      result.errorMessages?.let { errors ->
-        return showValidationErrors(*errors.map { ValidationError(it) }.toTypedArray())
+    val jobId = import(importStorage, selectedEntries)
+    if (jobId == null) {
+      importStorage.importResult.let { result ->
+        if (result == null) {
+          throw IllegalArgumentException("Import without result object! Please contact the developer.")
+        }
+        result.errorMessages?.let { errors ->
+          return showValidationErrors(*errors.map { ValidationError(it) }.toTypedArray())
+        }
       }
     }
     return ResponseEntity.ok(
-      ResponseAction(url = callerPage(request), targetType = TargetType.REDIRECT)
+      ResponseAction(
+        url = PagesResolver.getDynamicPageUrl(JobInfoPageRest::class.java, id = jobId, absolute = true),
+        targetType = TargetType.REDIRECT,
+      )
     )
   }
 

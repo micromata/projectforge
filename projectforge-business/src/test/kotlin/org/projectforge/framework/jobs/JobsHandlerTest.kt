@@ -27,6 +27,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class JobsHandlerTest {
   @Test
@@ -40,6 +41,10 @@ class JobsHandlerTest {
         repeat(100) { i -> // Paranoia counter
           delay(100L)
         }
+      }
+
+      override fun writeAccess(user: PFUserDO?): Boolean {
+        return true
       }
 
       override fun onBeforeCancel() {
@@ -74,6 +79,10 @@ class JobsHandlerTest {
         throw Exception("job failed.")
       }
 
+      override fun writeAccess(user: PFUserDO?): Boolean {
+        return true
+      }
+
       override fun onAfterException(ex: Exception) {
         Assertions.assertEquals(Status.FAILED, status)
         Assertions.assertEquals("job failed.", ex.message)
@@ -103,6 +112,10 @@ class JobsHandlerTest {
           }
         }
 
+        override fun writeAccess(user: PFUserDO?): Boolean {
+          return true
+        }
+
         override fun onAfterCancel() {
           println("Job 1 cancelled")
         }
@@ -113,6 +126,10 @@ class JobsHandlerTest {
             println("job2: I'm sleeping $i ...")
             delay(200L)
           }
+        }
+
+        override fun writeAccess(user: PFUserDO?): Boolean {
+          return true
         }
 
         override fun onAfterCancel() {

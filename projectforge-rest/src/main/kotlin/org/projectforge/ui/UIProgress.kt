@@ -23,40 +23,22 @@
 
 package org.projectforge.ui
 
-enum class UIElementType {
-    ALERT,
-    /**
-     * Attachments including list view, downloading, uploading and deleting files.
-     */
-    ATTACHMENT_LIST,
-    AG_GRID,
-    AG_GRID_LIST_PAGE,
-    AG_GRID_COLUMN_DEF,
-    BADGE,
-    BADGE_LIST,
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CREATABLE_SELECT,
-    CUSTOMIZED,
-    DROP_AREA,
-    EDITOR,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    PROGRESS,
-    RADIOBUTTON,
-    READONLY_FIELD,
-    RATING,
-    ROW,
-    SPACER,
-    SELECT,
-    TABLE,
-    TABLE_LIST_PAGE,
-    TABLE_COLUMN,
-    TEXTAREA
+/**
+ * @param fetchUpdateUrl If given, the status of the progress bar will be fetched every 2 seconds. The rest service
+ * should update the data object or the variables part (if progress info is set as variable).
+ * @param fetchUpdateInterval Update interval in ms if [fetchUpdateUrl] is given. Default is 2000 (2s).
+ */
+data class UIProgress(
+  override var id: String,
+  var collapseable: Boolean? = null,
+  var fetchUpdateUrl: String? = null,
+  var fetchUpdateInterval: Long? = null,
+) : UIElement(UIElementType.PROGRESS), IUIId {
+  class Data(
+    var value: Int?,
+    var title: String? = null,
+    var info: String? = null,
+    var color: UIColor? = null,
+    var animated: Boolean? = false,
+  )
 }

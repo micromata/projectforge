@@ -21,42 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.ui
+package org.projectforge.rest.jobs
 
-enum class UIElementType {
-    ALERT,
-    /**
-     * Attachments including list view, downloading, uploading and deleting files.
-     */
-    ATTACHMENT_LIST,
-    AG_GRID,
-    AG_GRID_LIST_PAGE,
-    AG_GRID_COLUMN_DEF,
-    BADGE,
-    BADGE_LIST,
-    BUTTON,
-    CHECKBOX,
-    COL,
-    CREATABLE_SELECT,
-    CUSTOMIZED,
-    DROP_AREA,
-    EDITOR,
-    FIELDSET,
-    FILTER_ELEMENT,
-    GROUP,
-    INPUT,
-    LABEL,
-    LIST,
-    NAMED_CONTAINER,
-    PROGRESS,
-    RADIOBUTTON,
-    READONLY_FIELD,
-    RATING,
-    ROW,
-    SPACER,
-    SELECT,
-    TABLE,
-    TABLE_LIST_PAGE,
-    TABLE_COLUMN,
-    TEXTAREA
+import org.projectforge.framework.jobs.AbstractJob
+import org.projectforge.rest.dto.User
+
+class JobDTO(
+  var id: Int? = null,
+  var title: String? = null,
+  var area: String? = null,
+  var queueName: String? = null,
+  var user: User? = null,
+) {
+  companion object {
+    fun create(job: AbstractJob): JobDTO {
+      val dto = JobDTO(job.id, job.title, area = job.area, queueName = job.queueName)
+      job.userId?.let { userId ->
+        dto.user = User.getUser(userId)
+      }
+      return dto
+    }
+  }
 }

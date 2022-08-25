@@ -79,20 +79,22 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
     )
   }
 
-  override fun import(importStorage: ImportStorage<*>, selectedEntries: List<ImportPairEntry<BankAccountRecord>>) {
+  override fun import(importStorage: ImportStorage<*>, selectedEntries: List<ImportPairEntry<BankAccountRecord>>):
+      Int? {
     val result = ImportStorage.ImportResult()
     importStorage.importResult = result
     val bankAccount = importStorage.targetEntity as? BankAccount
     if (bankAccount == null) {
       result.errorMessages = listOf("plugins.banking.account.record.import.error.noBankAccountGiven")
-      return
+      return null
     }
     val bankAccountDO = bankAccountDao.getById(bankAccount.id)
     if (bankAccountDO == null) {
       result.errorMessages = listOf("plugins.banking.account.record.import.error.noBankAccountGiven")
-      return
+      return null
     }
-    jobHandler.addJob(BankingImportJob(bankAccountDO, bankAccountRecordDao, selectedEntries))
+    return jobHandler.addJob(BankingImportJob(bankAccountDO, bankAccountDao, bankAccountRecordDao, selectedEntries))
+      .id
   }
 
   @GetMapping("dynamic")

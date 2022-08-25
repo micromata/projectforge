@@ -26,6 +26,7 @@ package org.projectforge.plugins.banking
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jobs.AbstractJob
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportStorage
 
@@ -33,6 +34,7 @@ private val log = KotlinLogging.logger {}
 
 class BankingImportJob(
   val bankAccountDO: BankAccountDO,
+  val bankAccountDao: BankAccountDao,
   val bankAccountRecordDao: BankAccountRecordDao,
   val selectedEntries: List<ImportPairEntry<BankAccountRecord>>,
 ) : AbstractJob(
@@ -51,6 +53,10 @@ class BankingImportJob(
   override suspend fun run() {
     log.info { "Starting import job for bank account records..." }
     selectedEntries.forEach { entry ->
+      if (!isActive) {
+        // Job is going to be cancelled.
+        return
+      }
       val storedEntryId = entry.stored?.id
       val readEntry = entry.read
       var dbEntry = if (storedEntryId != null) {
@@ -83,5 +89,15 @@ class BankingImportJob(
       }
       processedNumber += 1
     }
+  }
+
+  override fun readAccess(user: PFUserDO?): Boolean {
+    user ?: return false
+    return bankAccountDao.hasUserSelectAccess(user, bankAccountDO, false)
+  }
+
+  override fun writeAccess(user: PFUserDO?): Boolean {
+    user ?: return false
+    return bankAccountDao.hasUpdateAccess(user, bankAccountDO, bankAccountDO, false)
   }
 }
