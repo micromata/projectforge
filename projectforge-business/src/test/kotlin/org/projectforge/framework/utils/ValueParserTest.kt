@@ -35,12 +35,12 @@ class ValueParserTest {
     Assertions.assertEquals(BigDecimal("-1"), ValueParser.parseBigDecimal("-1", listOf("###.##0,0#")))
     Assertions.assertEquals(BigDecimal("-1000.27"), ValueParser.parseBigDecimal("-1.000,27", listOf("###.##0,0#")))
     Assertions.assertEquals(
-      BigDecimal("-1000.27"),
+      BigDecimal("-1.000"),
       ValueParser.parseBigDecimal("-1.000,27", listOf("###,##0.0#")),
       "value has standard number format but pattern has german number format.",
     )
     Assertions.assertEquals(
-      BigDecimal("-1000.27"),
+      BigDecimal("-1.000"),
       ValueParser.parseBigDecimal("-1,000.27", listOf("###.##0,0#")),
       "value has german number format but pattern has standard number format.",
     )
