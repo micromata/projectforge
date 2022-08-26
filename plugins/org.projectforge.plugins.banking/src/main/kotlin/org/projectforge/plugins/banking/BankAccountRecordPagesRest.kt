@@ -23,16 +23,27 @@
 
 package org.projectforge.plugins.banking
 
+import mu.KotlinLogging
+import org.apache.commons.lang3.StringUtils
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.menu.MenuItem
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterElement
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
+
+private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/bankAccountRecord")
@@ -94,6 +105,60 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
         url = PagesResolver.getListPageUrl(BankAccountPagesRest::class.java),
       )
     )
+  }
+
+  override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+    elements.add(
+      UIFilterElement(
+        "period",
+        label = translate("timePeriod"),
+        filterType = UIFilterElement.FilterType.DATE,
+        defaultFilter = true,
+      )
+    )
+    val accountsFilter = UIFilterListElement(
+      "accounts",
+      label = translate("plugins.banking.accounts"),
+      defaultFilter = true,
+      multi = true,
+    )
+    val values = mutableListOf<UISelectValue<String>>()
+    bankAccountDao.getList(BaseSearchFilter())?.forEach { account ->
+      values.add(UISelectValue("${account.id}", StringUtils.abbreviate(account.name, 20)))
+    }
+    accountsFilter.values = values
+    elements.add(accountsFilter)
+  }
+
+  override fun preProcessMagicFilter(
+    target: QueryFilter,
+    source: MagicFilter
+  ): List<CustomResultFilter<BankAccountRecordDO>> {
+    val filters = mutableListOf<CustomResultFilter<BankAccountRecordDO>>()
+    source.entries.find { it.field == "period" }?.let { periodFilterEntry ->
+      periodFilterEntry.synthetic = true
+      val fromDate = PFDayUtils.parseDate(periodFilterEntry.value.fromValue)
+      val toDate = PFDayUtils.parseDate(periodFilterEntry.value.toValue)
+      if (fromDate != null) {
+        if (toDate != null) {
+          target.add(QueryFilter.between("date", fromDate, toDate))
+        } else {
+          target.add(QueryFilter.ge("date", fromDate))
+        }
+      } else if (toDate != null) {
+        target.add(QueryFilter.le("date", toDate))
+      } else {
+        // Do nothing
+      }
+    }
+    source.entries.find { it.field == "accounts" }?.let { entry ->
+      entry.synthetic = true
+      val ids = entry.value.values?.mapNotNull { it.toLongOrNull() }
+      if (!ids.isNullOrEmpty()) {
+        target.add(QueryFilter.eq("bankAccount.id", ids[0]))
+      }
+    }
+    return filters
   }
 
   /**

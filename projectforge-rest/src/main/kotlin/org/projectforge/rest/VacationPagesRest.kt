@@ -155,6 +155,7 @@ class VacationPagesRest :
       .add(lc, "otherReplacements", formatter = UIAgGridColumnDef.Formatter.SHOW_LIST_OF_DISPLAYNAMES)
       .add(lc, "manager")
       .add(lc, "workingDaysFormatted", headerName = "vacation.Days")
+      .add(lc, "comment")
       .withGetRowClass(
         """if (params.node.data.conflict) {
             return 'ag-row-red';
