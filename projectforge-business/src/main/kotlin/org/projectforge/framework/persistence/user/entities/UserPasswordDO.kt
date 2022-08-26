@@ -26,7 +26,6 @@ package org.projectforge.framework.persistence.user.entities
 import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import mu.KotlinLogging
-import org.hibernate.search.util.AnalyzerUtils.log
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import javax.persistence.*

@@ -23,13 +23,15 @@
 
 package org.projectforge.flyway.dbmigration
 
+import mu.KotlinLogging
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
-import org.hibernate.search.util.AnalyzerUtils.log
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Address images were moved to separate entity (db table). So do the migration here.
