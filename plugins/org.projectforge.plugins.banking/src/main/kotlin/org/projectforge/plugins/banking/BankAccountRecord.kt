@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.banking
 
+import org.projectforge.rest.dto.BankAccount
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.importer.ImportPairEntry
 import java.math.BigDecimal
@@ -30,8 +31,7 @@ import java.math.RoundingMode
 import java.time.LocalDate
 
 class BankAccountRecord(
-  var accountName: String? = null,
-  var accountIban: String? = null,
+  var bankAccount: BankAccount? = null,
   var amount: BigDecimal? = null,
   var date: LocalDate? = null,
   var valueDate: LocalDate? = null,
@@ -50,8 +50,14 @@ class BankAccountRecord(
 ) : BaseDTO<BankAccountRecordDO>(), ImportPairEntry.Modified<BankAccountRecord> {
   override fun copyFrom(src: BankAccountRecordDO) {
     super.copyFrom(src)
-    accountIban = src.bankAccount?.iban
-    accountName = src.bankAccount?.name
+    src.bankAccount?.let { bankAccountDO ->
+      val account = BankAccount()
+      account.copyFromMinimal(bankAccountDO)
+      account.name = bankAccountDO.name
+      account.iban = bankAccountDO.iban
+      account.bic = bankAccountDO.bic
+      bankAccount = account
+    }
   }
 
   /**

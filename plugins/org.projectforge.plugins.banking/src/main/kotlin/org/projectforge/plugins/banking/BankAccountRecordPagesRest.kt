@@ -90,9 +90,15 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       this,
       userAccess = userAccess,
     )
-      .add("accountIban", headerName = "plugins.banking.account.record.accountIban")
-      .add("accountName", headerName = "plugins.banking.account.record.accountName")
-      .add(lc, BankAccountRecordDO::date, BankAccountRecordDO::subject, BankAccountRecordDO::amount)
+      .add("bankAccount.iban", headerName = "plugins.banking.account.record.accountIban")
+      .add("bankAccount.name", headerName = "plugins.banking.account.record.accountName")
+      .add(
+        lc,
+        BankAccountRecordDO::date,
+        BankAccountRecordDO::subject,
+        BankAccountRecordDO::amount,
+        BankAccountRecordDO::comment,
+      )
       .withGetRowClass(
         """if (params.node.data.amount >= 0) {
             return 'ag-row-green';
@@ -169,8 +175,8 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       .add(
         LayoutBuilder.createRowWithColumns(
           UILength(md = 6),
-          UIReadOnlyField("accountName", label = "plugins.banking.account.record.accountName"),
-          UIReadOnlyField("accountIban", label = "plugins.banking.account.record.accountIban"),
+          UIReadOnlyField("bankAccount.name", label = "plugins.banking.account.record.accountName"),
+          UIReadOnlyField("bankAccount.iban", label = "plugins.banking.account.record.accountIban"),
         )
       )
       .add(
