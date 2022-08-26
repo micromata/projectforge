@@ -12,6 +12,7 @@ import CustomizedEMail from './components/CustomizedEMail';
 import CustomizedImage from './components/CustomizedImage';
 import DayRange from './components/DayRange';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
+import CustomizedJobsMonitor from './components/CustomizedJobsMonitor';
 import JiraIssuesLinks from './components/JiraIssuesLinks';
 import TimesheetEditTaskAndKost2 from './components/timesheet/TimesheetEditTaskAndKost2';
 import TimesheetTemplatesAndRecent from './components/timesheet/TimesheetTemplatesAndRecent';
@@ -91,6 +92,9 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'jira.issuesLinks':
             Tag = JiraIssuesLinks;
+            break;
+        case 'jobs.monitor':
+            Tag = CustomizedJobsMonitor;
             break;
         case 'task.consumption':
             Tag = CustomizedConsumptionBar;

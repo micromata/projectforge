@@ -93,12 +93,34 @@ class JobHandler {
     log.warn { "Logged-in user ${ThreadLocalUserContext.getUser()?.username} has no write access to requested job. So job will not be cancelled." }
   }
 
+  /**
+   * @param jobId If given, this job will be the first of the result list (if the user has read-access.
+   * @param all If true, all jobs of the user will be part of the result list. The list is ordered by status and timestamps.
+   */
+  fun getJobsOfUser(jobId: Int?, all: Boolean? = true): List<AbstractJob> {
+    val list = mutableListOf<AbstractJob>()
+    if (all == true) {
+      synchronized(jobs) {
+        list.addAll(jobs.filter { it.readAccess() })
+      }
+    }
+    list.sort()
+    if (jobId != null) {
+      val job = getJobById(jobId)
+      if (job != null) {
+        list.removeIf { it.id == job.id }
+        list.add(0, job)
+      }
+    }
+    return list
+  }
+
   private fun internalCancelJob(job: AbstractJob) {
-    log.warn{ "Job ${job.logInfo} is going to be cancelled."}
+    log.warn { "Job ${job.logInfo} is going to be cancelled." }
     job.cancel()
   }
 
-  val runningJobs: List<AbstractJob>
+  private val runningJobs: List<AbstractJob>
     get() {
       synchronized(jobs) {
         return jobs.filter { it.status == AbstractJob.Status.RUNNING }
@@ -108,7 +130,7 @@ class JobHandler {
   /**
    * Finished and cancelled jobs.
    */
-  val terminatedJobs: List<AbstractJob>
+  private val terminatedJobs: List<AbstractJob>
     get() {
       synchronized(jobs) {
         return jobs.filter { it.terminated }

@@ -34,7 +34,7 @@ import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.jobs.JobInfoPageRest
+import org.projectforge.rest.jobs.JobsMonitorPageRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -215,7 +215,11 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
     }
     return ResponseEntity.ok(
       ResponseAction(
-        url = PagesResolver.getDynamicPageUrl(JobInfoPageRest::class.java, id = jobId, absolute = true),
+        url = PagesResolver.getDynamicPageUrl(
+          JobsMonitorPageRest::class.java,
+          absolute = true,
+          params = mapOf("jobId" to jobId),
+        ),
         targetType = TargetType.REDIRECT,
       )
     )

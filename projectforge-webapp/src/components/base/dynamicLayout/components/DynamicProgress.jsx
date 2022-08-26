@@ -5,6 +5,7 @@ import { colorPropType } from '../../../../utilities/propTypes';
 import { DynamicLayoutContext } from '../context';
 import { fetchJsonGet } from '../../../../utilities/rest';
 import DynamicButton from './DynamicButton';
+import DynamicAlert from './DynamicAlert';
 
 function DynamicProgress(props) {
     const {
@@ -14,68 +15,32 @@ function DynamicProgress(props) {
         value,
         info,
         infoColor,
-        fetchUpdateUrl,
-        fetchUpdateInterval,
-        cancelUrl,
+        cancelId,
         cancelConfirmMessage,
+        onCancelClick,
+        animated,
     } = props;
-    const {
-        data, setData, variables, setVariables, callAction,
-        ui,
-    } = useContext(DynamicLayoutContext);
-    const interval = useRef();
-    const fetchUpdateUrlRef = useRef(fetchUpdateUrl);
-    const fetchUpdateIntervalRef = useRef(fetchUpdateInterval);
-    const cancelUrlRef = useRef(cancelUrl);
-
-    const state = Object.getByString(data, id) || Object.getByString(variables, id)
-        || {
-            value, title, color, info, infoColor,
-        };
-
-    const fetchUpdate = () => {
-        fetchJsonGet(
-            fetchUpdateUrlRef.current,
-            undefined,
-            (json) => callAction({ responseAction: json }),
-        );
-    };
-
+    const { data, variables, ui } = useContext(DynamicLayoutContext);
     const handleCancelClick = () => {
-        fetchJsonGet(
-            cancelUrlRef.current,
-            undefined,
-            (json) => callAction({ responseAction: json }),
-        );
+        onCancelClick(cancelId);
     };
 
+    let state;
+    if (id) {
+        state = Object.getByString(data, id) || Object.getByString(variables, id);
+    }
+    if (!state) {
+        state = {
+            value, title, color, info, animated, infoColor, cancelId,
+        };
+    }
     const {
         value: useValue, title: useTitle, color: useColor, animated: useAnimated,
-        showCancelButton, info: useInfo, infoColor: useInfoColor,
+        cancelId: useCancelId, info: useInfo, infoColor: useInfoColor,
     } = state;
 
-    useEffect(() => {
-        if (fetchUpdateUrl) {
-            interval.current = setInterval(
-                () => fetchUpdate(),
-                fetchUpdateIntervalRef.current || 1000,
-            );
-        }
-        return () => {
-            if (fetchUpdateUrl) {
-                clearInterval(interval.current);
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        fetchUpdateUrlRef.current = fetchUpdateUrl;
-        fetchUpdateIntervalRef.current = fetchUpdateInterval;
-        cancelUrlRef.current = cancelUrl;
-    }, [fetchUpdateUrl, fetchUpdateInterval, cancelUrl]);
-
     let cancelButton;
-    if (cancelUrlRef.current && showCancelButton === true) {
+    if (useCancelId) {
         cancelButton = (
             <DynamicButton
                 id="next"
@@ -87,32 +52,26 @@ function DynamicProgress(props) {
             />
         );
     }
-
-    return useMemo(
-        () => (
-            <>
-                <div>
-                    {useTitle}
-                </div>
-                <div className="job-progress">
-                    <Progress
-                        className="job-progress"
-                        value={useValue}
-                        color={useColor}
-                        animated={useAnimated}
-                    >
-                        {`${useValue}%`}
-                    </Progress>
-                    {cancelButton}
-                </div>
-                {info && (
-                    <div>
-                        Info
-                    </div>
-                )}
-            </>
-        ),
-        [state, useValue, useColor, useAnimated, useTitle, setData, variables, setVariables],
+    return (
+        <>
+            <div>
+                {useTitle}
+            </div>
+            <div className="job-progress">
+                <Progress
+                    className="job-progress"
+                    value={useValue}
+                    color={useColor}
+                    animated={useAnimated}
+                >
+                    {`${useValue}%`}
+                </Progress>
+                {cancelButton}
+            </div>
+            {useInfo && (
+                <DynamicAlert color={useColor} message={useInfo} markdown />
+            )}
+        </>
     );
 }
 
@@ -123,10 +82,10 @@ DynamicProgress.propTypes = {
     info: PropTypes.string,
     infoColor: PropTypes.string,
     id: PropTypes.string,
-    fetchUpdateUrl: PropTypes.string,
-    fetchUpdateInterval: PropTypes.number,
-    cancelUrl: PropTypes.string,
+    cancelId: PropTypes.number || PropTypes.string,
     cancelConfirmMessage: PropTypes.string,
+    onCancelClick: PropTypes.func,
+    animated: PropTypes.bool,
 };
 
 DynamicProgress.defaultProps = {
@@ -136,10 +95,10 @@ DynamicProgress.defaultProps = {
     value: 0,
     info: undefined,
     infoColor: undefined,
-    fetchUpdateUrl: undefined,
-    fetchUpdateInterval: undefined,
-    cancelUrl: undefined,
+    cancelId: undefined,
     cancelConfirmMessage: undefined,
+    onCancelClick: undefined,
+    animated: undefined,
 };
 
 export default DynamicProgress;

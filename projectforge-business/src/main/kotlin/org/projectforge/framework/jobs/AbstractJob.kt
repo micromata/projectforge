@@ -58,9 +58,11 @@ abstract class AbstractJob(
    * At default, this job will be cancelled after 120s +.
    */
   timeoutSeconds: Int = 120
-) {
+) : Comparable<AbstractJob> {
   enum class QueueStrategy { NONE, PER_QUEUE, PER_QUEUE_AND_USER }
-  enum class Status { WAITING, RUNNING, CANCELLED, FINISHED, FAILED }
+
+  // Order of status used for ordering job list:
+  enum class Status { RUNNING, WAITING, FINISHED, FAILED, CANCELLED }
 
   @Autowired
   protected lateinit var accessChecker: AccessChecker
@@ -226,6 +228,24 @@ abstract class AbstractJob(
   }
 
   abstract fun writeAccess(user: PFUserDO? = ThreadLocalUserContext.getUser()): Boolean
+
+  override fun compareTo(other: AbstractJob): Int {
+    if (id == other.id) {
+      return 0 // Equals
+    }
+    status.compareTo(other.status).let { if (it != 0) return it }
+    compare(startTime, other.startTime).let { if (it != 0) return it }
+    compare(terminatedTime, other.terminatedTime).let { if (it != 0) return it }
+    title.compareTo(other.title, ignoreCase = true).let { if (it != 0) return it }
+    return id.compareTo(other.id) // OK, no more order fields.
+  }
+
+  private fun compare(date1: Date?, date2: Date?): Int {
+    if (date1 == null || date2 == null) {
+      return 0 // Can't compare -> assume equals.
+    }
+    return date1.compareTo(date2)
+  }
 
   override fun toString(): String {
     return ToStringBuilder(this)
