@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { connect } from 'react-redux';
-import { loadList } from '../../../actions';
+import { callAction, loadList } from '../../../actions';
 import DynamicLayout from '../../../components/base/dynamicLayout';
 import { Card, Container } from '../../../components/design';
 import SearchFilter from './searchFilter/SearchFilter';
@@ -15,6 +15,7 @@ function ListPage(
         category,
         location,
         match,
+        onCallAction,
         onCategoryChange,
     },
 ) {
@@ -33,6 +34,7 @@ function ListPage(
             <Card>
                 {category && (
                     <DynamicLayout
+                        callAction={onCallAction}
                         ui={category.ui}
                         data={category.data}
                         setData={undefined}
@@ -69,6 +71,7 @@ ListPage.propTypes = {
             category: PropTypes.string.isRequired,
         }).isRequired,
     }).isRequired,
+    onCallAction: PropTypes.func.isRequired,
     onCategoryChange: PropTypes.func.isRequired,
     category: PropTypes.shape({
         ui: PropTypes.shape({
@@ -92,6 +95,7 @@ const mapStateToProps = ({ list }, { match }) => ({
 });
 
 const actions = {
+    onCallAction: callAction,
     onCategoryChange: loadList,
 };
 
