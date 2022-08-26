@@ -117,6 +117,10 @@ public class SourceFileHeadersMain {
         continue;
       }
       String content = FileUtils.readFileToString(file, "UTF-8");
+      if (content.contains("org.hibernate.search." + "util.AnalyzerUtils.log")) { // Use concatenation, otherwise this source file would fail.
+        Assertions.fail("Source code file '" + file.getPath() + "' contains wrong Logger-import (use 'private val log = KotlinLogging.logger {}' instead): "
+            + file.getAbsolutePath());
+      }
       if (openSource && content.startsWith(OSS_HEADER)) {
         // Header up-to-date
         continue;

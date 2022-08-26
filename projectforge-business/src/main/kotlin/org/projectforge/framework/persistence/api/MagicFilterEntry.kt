@@ -53,7 +53,7 @@ class MagicFilterEntry(
             var toValue: String? = null,
 
             /**
-             * Find entries where the given field has one of the given values).
+             * Find entries where the given field has one of the given values.
              */
             var values: Array<String>? = null,
 

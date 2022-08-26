@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.banking
 
-import org.hibernate.search.util.AnalyzerUtils.log
+import mu.KotlinLogging
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
@@ -36,6 +36,8 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import javax.annotation.PostConstruct
+
+private val log = KotlinLogging.logger {}
 
 /**
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,

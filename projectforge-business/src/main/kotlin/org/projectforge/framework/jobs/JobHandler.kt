@@ -25,13 +25,15 @@ package org.projectforge.framework.jobs
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.hibernate.search.util.AnalyzerUtils.log
+import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import javax.annotation.PreDestroy
 import kotlin.concurrent.thread
+
+private val log = KotlinLogging.logger {}
 
 @Service
 class JobHandler {
