@@ -23,9 +23,7 @@
 
 package org.projectforge.plugins.banking
 
-import kotlinx.coroutines.delay
 import mu.KotlinLogging
-import org.projectforge.SystemStatus
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -57,10 +55,6 @@ class BankingImportJob(
       if (!isActive) {
         // Job is going to be cancelled.
         return
-      }
-      if (SystemStatus.isDevelopmentMode()) {
-        log.warn { "********** delay of 5s for development purposes...." }
-        delay(5000) // Longer run for test cases.
       }
       val storedEntryId = entry.stored?.id
       val readEntry = entry.read
