@@ -23,12 +23,14 @@
 
 package org.projectforge.plugins.banking
 
+import org.bouncycastle.asn1.x500.style.RFC4519Style.title
 import org.hibernate.search.annotations.*
 import org.projectforge.Constants
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
+import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -44,7 +46,21 @@ import javax.persistence.Transient
 @Table(
   name = "T_PLUGIN_BANKING_ACCOUNT",
 )
-open class BankAccountDO : BaseUserGroupRightsDO() {
+open class BankAccountDO : BaseUserGroupRightsDO(), DisplayNameCapable {
+  override val displayName: String
+    @Transient
+    get() {
+      val sb = StringBuilder()
+      iban?.let {
+        if (it.isNotBlank()) {
+          sb.append(it).append(" ")
+        }
+      }
+      sb.append(title)
+      return sb.toString()
+    }
+
+
   /**
    * Unused field
    */
