@@ -24,8 +24,8 @@
 package org.projectforge.rest.importer
 
 import mu.KotlinLogging
-import org.projectforge.business.common.ListStatisticsSupport
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.utils.MarkdownBuilder
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -106,7 +106,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         }
       }
 
-      importStorage?.importResultAsAlert?.let {
+      importStorage?.lastJobRun?.result?.asUIAlert?.let {
         layout.add(it)
       }
 
@@ -196,22 +196,18 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         }
       }
     }
+    importStorage.clearErrors()
     if (selectedEntries.isEmpty()) {
-      importStorage.importResult = ImportStorage.ImportResult(translate("import.error.noEntrySelected"))
+      importStorage.addError(translate("import.error.noEntrySelected"))
       // TODO: merge UPDATE
       return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
     log.info { "User wants to import #${selectedEntries.size} entries..." }
     val jobId = import(importStorage, selectedEntries)
     if (jobId == null) {
-      importStorage.importResult.let { result ->
-        if (result == null) {
-          throw IllegalArgumentException("Import without result object! Please contact the developer.")
-        }
-        result.errorMessages?.let { errors ->
-          return showValidationErrors(*errors.map { ValidationError(it) }.toTypedArray())
-        }
-      }
+      importStorage.addError("Internal error: can't create batch job.")
+      // TODO: merge UPDATE
+      return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
     return ResponseEntity.ok(
       ResponseAction(
@@ -258,13 +254,13 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
   }
 
   protected fun addIfNotZero(
-    statsSupport: ListStatisticsSupport,
+    md: MarkdownBuilder,
     i18nKey: String,
     number: Int,
-    color: ListStatisticsSupport.Color? = null,
+    color: MarkdownBuilder.Color? = null,
   ) {
     if (number > 0) {
-      statsSupport.append(i18nKey, NumberFormatter.format(number), color)
+      md.appendPipedValue(i18nKey, NumberFormatter.format(number), color)
     }
   }
 
@@ -318,55 +314,50 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
   }
 
   private fun addSettingsInfo(container: IUIContainer, importStorage: ImportStorage<*>?) {
-    val settingsInfo = StringBuilder()
-    settingsInfo
-      .appendLine("### ${translate("import.info.detectedColumns")}")
-      .appendLine()
-      .appendLine("| ${translate("import.field.name")} | ${translate("import.field.mapping")} |")
-      .appendLine("| --- | --- |")
+    val md = MarkdownBuilder()
+      .h3(translate("import.info.detectedColumns"))
+      .beginTable(translate("import.field.name"), translate("import.field.mapping"))
     if (importStorage != null) {
       importStorage.detectedColumns.entries.forEach {
-        settingsInfo.appendLine("| ${it.value.label} | ${it.key} |")
+        md.row(it.value.label, it.key)
       }
-      settingsInfo
-        .appendLine()
-        .appendLine("### ${translate("import.info.unknownColumns")}")
-        .appendLine()
+      md.appendLine()
+        .h3(translate("import.info.unknownColumns"))
         .appendLine(importStorage.unknownColumns.joinToString())
-      container.add(UIAlert("'$settingsInfo", color = UIColor.WARNING, markdown = true))
+      container.add(UIAlert("'$md", color = UIColor.WARNING, markdown = true))
       container.add(createSettingsHelp(importStorage.importSettings))
     }
   }
 
   private fun createStatsMarkdown(data: ImportStorageInfo): String {
-    val statsSupport = ListStatisticsSupport()
-    statsSupport.append("import.stats.total", NumberFormatter.format(data.totalNumber))
-    addIfNotZero(statsSupport, "import.stats.new", data.numberOfNewEntries, ListStatisticsSupport.Color.GREEN)
+    val md = MarkdownBuilder()
+    md.appendPipedValue("import.stats.total", NumberFormatter.format(data.totalNumber))
+    addIfNotZero(md, "import.stats.new", data.numberOfNewEntries, MarkdownBuilder.Color.GREEN)
     addIfNotZero(
-      statsSupport,
+      md,
       "import.stats.deleted",
       data.numberOfDeletedEntries,
-      ListStatisticsSupport.Color.RED,
+      MarkdownBuilder.Color.RED,
     )
     addIfNotZero(
-      statsSupport,
+      md,
       "import.stats.modified",
       data.numberOfModifiedEntries,
-      ListStatisticsSupport.Color.BLUE,
+      MarkdownBuilder.Color.BLUE,
     )
-    addIfNotZero(statsSupport, "import.stats.unmodified", data.numberOfUnmodifiedEntries)
+    addIfNotZero(md, "import.stats.unmodified", data.numberOfUnmodifiedEntries)
     addIfNotZero(
-      statsSupport,
+      md,
       "import.stats.faulty",
       data.numberOfFaultyEntries,
-      ListStatisticsSupport.Color.RED,
+      MarkdownBuilder.Color.RED,
     )
     addIfNotZero(
-      statsSupport,
+      md,
       "import.stats.unknown",
       data.numberOfUnknownEntries,
-      ListStatisticsSupport.Color.RED,
+      MarkdownBuilder.Color.RED,
     )
-    return statsSupport.asMarkdown
+    return md.toString()
   }
 }

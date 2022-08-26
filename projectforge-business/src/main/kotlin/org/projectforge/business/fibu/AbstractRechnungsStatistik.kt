@@ -23,9 +23,9 @@
 
 package org.projectforge.business.fibu
 
-import org.projectforge.business.common.ListStatisticsSupport
 import org.projectforge.business.utils.CurrencyFormatter
 import org.projectforge.framework.time.PFDay.Companion.fromOrNow
+import org.projectforge.framework.utils.MarkdownBuilder
 import org.projectforge.framework.utils.NumberHelper.add
 import org.projectforge.statistics.IntAggregatedValues
 import java.io.Serializable
@@ -105,18 +105,22 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
     } else (zahlungsZielSum / counter).toInt()
   val asMarkdown: String
     get() {
-      val stats = ListStatisticsSupport()
-      stats.append("fibu.common.brutto", CurrencyFormatter.format(brutto))
-      stats.append("fibu.common.netto", CurrencyFormatter.format(netto))
+      val md = MarkdownBuilder()
+      md.appendPipedValue("fibu.common.brutto", CurrencyFormatter.format(brutto))
+      md.appendPipedValue("fibu.common.netto", CurrencyFormatter.format(netto))
       if (bruttoMitSkonto.compareTo(brutto) != 0) {
-        stats.append("fibu.rechnung.mitSkonto", CurrencyFormatter.format(bruttoMitSkonto))
+        md.appendPipedValue("fibu.rechnung.mitSkonto", CurrencyFormatter.format(bruttoMitSkonto))
       }
-      stats.append("fibu.rechnung.offen", CurrencyFormatter.format(offen), ListStatisticsSupport.Color.BLUE)
-      stats.append("fibu.rechnung.filter.ueberfaellig", CurrencyFormatter.format(ueberfaellig), ListStatisticsSupport.Color.RED)
-      stats.append("fibu.rechnung.skonto", CurrencyFormatter.format(skonto))
-      stats.append("fibu.rechnung.zahlungsZiel", "$zahlungszielAverage")
-      stats.append("fibu.rechnung.zahlungsZiel.actual", "Ø$tatsaechlichesZahlungzielAverage")
-      return stats.asMarkdown
+      md.appendPipedValue("fibu.rechnung.offen", CurrencyFormatter.format(offen), MarkdownBuilder.Color.BLUE)
+      md.appendPipedValue(
+        "fibu.rechnung.filter.ueberfaellig",
+        CurrencyFormatter.format(ueberfaellig),
+        MarkdownBuilder.Color.RED
+      )
+      md.appendPipedValue("fibu.rechnung.skonto", CurrencyFormatter.format(skonto))
+      md.appendPipedValue("fibu.rechnung.zahlungsZiel", "$zahlungszielAverage")
+      md.appendPipedValue("fibu.rechnung.zahlungsZiel.actual", "Ø$tatsaechlichesZahlungzielAverage")
+      return md.toString()
     }
 
   val tatsaechlichesZahlungzielAverage: Int

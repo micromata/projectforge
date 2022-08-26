@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.banking
 
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
@@ -81,16 +82,14 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
 
   override fun import(importStorage: ImportStorage<*>, selectedEntries: List<ImportPairEntry<BankAccountRecord>>):
       Int? {
-    val result = ImportStorage.ImportResult()
-    importStorage.importResult = result
     val bankAccount = importStorage.targetEntity as? BankAccount
     if (bankAccount == null) {
-      result.errorMessages = listOf("plugins.banking.account.record.import.error.noBankAccountGiven")
+      importStorage.addError(translate("plugins.banking.account.record.import.error.noBankAccountGiven"))
       return null
     }
     val bankAccountDO = bankAccountDao.getById(bankAccount.id)
     if (bankAccountDO == null) {
-      result.errorMessages = listOf("plugins.banking.account.record.import.error.noBankAccountGiven")
+      importStorage.addError(translate("plugins.banking.account.record.import.error.noBankAccountGiven"))
       return null
     }
     return jobHandler.addJob(BankingImportJob(bankAccountDO, bankAccountDao, bankAccountRecordDao, selectedEntries))

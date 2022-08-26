@@ -24,15 +24,23 @@
 package org.projectforge.framework.jobs
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import mu.KotlinLogging
 import org.apache.commons.lang3.builder.ToStringBuilder
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.common.StringHelper
+import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.TimeAgo
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jobs.JobHandler.Companion.KEEP_TERMINATED_JOBS_INTERVALL_MS
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.utils.MarkdownBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
+import kotlin.math.absoluteValue
 
 private val log = KotlinLogging.logger {}
 
@@ -62,7 +70,15 @@ abstract class AbstractJob(
   enum class QueueStrategy { NONE, PER_QUEUE, PER_QUEUE_AND_USER }
 
   // Order of status used for ordering job list:
-  enum class Status { RUNNING, WAITING, FINISHED, FAILED, CANCELLED }
+  enum class Status(val key: String) : I18nEnum {
+    RUNNING("running"), WAITING("waiting"), FINISHED("finished"), FAILED("failed"), CANCELLED("cancelled");
+
+    /**
+     * @return The full i18n key including the i18n prefix "book.type.".
+     */
+    override val i18nKey: String
+      get() = "jobs.job.status.$key"
+  }
 
   @Autowired
   protected lateinit var accessChecker: AccessChecker
@@ -99,7 +115,27 @@ abstract class AbstractJob(
   /**
    * For displaying purposes (e. g. progress, errors etc.). Use pure text or markdown format.
    */
-  open val info: String? = null
+  open val info: String
+    get() {
+      val md = MarkdownBuilder()
+      md.appendPipedValue("status", translate(status.i18nKey)) // user, started, terminated, status, title
+      UserGroupCache.getInstance().getUser(userId)?.let { user ->
+        md.appendPipedValue("user", user.getFullname())
+      }
+      startTime?.let { started ->
+        md.appendPipedValue("jobs.job.startedAt", TimeAgo.getMessage(started))
+      }
+      terminatedTime?.let { terminated ->
+        md.appendPipedValue("jobs.job.terminatedAt", TimeAgo.getMessage(terminated))
+        startTime?.let { started ->
+          md.appendPipedValue(
+            "jobs.job.runtime", displayDuration(started, terminated)
+          )
+        }
+      }
+      md.appendPipedValue("jobs.job.title", title)
+      return md.toString()
+    }
 
   val timeout = timeoutSeconds * 1000
 
@@ -136,10 +172,14 @@ abstract class AbstractJob(
     try {
       run()
     } catch (ex: Exception) {
-      status = Status.FAILED
-      log.error("Error while executing job $logInfo: ${ex.message}", ex)
-      exception = ex
-      onAfterException(ex)
+      if (ex is CancellationException) {
+        // OK, not failed.
+      } else {
+        status = Status.FAILED
+        log.error("Error while executing job $logInfo: ${ex.message}", ex)
+        exception = ex
+        onAfterException(ex)
+      }
     }
   }
 
@@ -233,7 +273,9 @@ abstract class AbstractJob(
     if (id == other.id) {
       return 0 // Equals
     }
-    status.compareTo(other.status).let { if (it != 0) return it }
+    if (status == Status.RUNNING || other.status == Status.RUNNING && status != other.status) {
+      return if (status == Status.RUNNING) -1 else 1 // Show running jobs first.
+    }
     compare(startTime, other.startTime).let { if (it != 0) return it }
     compare(terminatedTime, other.terminatedTime).let { if (it != 0) return it }
     title.compareTo(other.title, ignoreCase = true).let { if (it != 0) return it }
@@ -265,9 +307,29 @@ abstract class AbstractJob(
   companion object {
     private var counter = 0
     private val TERMINATED_STATUS_VALUES = arrayOf(
-      AbstractJob.Status.CANCELLED,
-      AbstractJob.Status.FINISHED,
-      AbstractJob.Status.FAILED,
+      Status.CANCELLED,
+      Status.FINISHED,
+      Status.FAILED,
     )
+
+    fun displayDuration(start: Date, stop: Date? = Date()): String {
+      val sb = StringBuilder()
+      var seconds = ((stop ?: Date()).time - start.time).absoluteValue / 1000
+      val hours = seconds / 3600
+      if (hours > 0) {
+        seconds -= hours * 3600
+        sb.append(StringHelper.format2DigitNumber(hours))
+          .append(":")
+      }
+      val minutes = seconds / 60
+      if (minutes > 0) {
+        seconds -= minutes * 60
+      }
+      sb.append(StringHelper.format2DigitNumber(minutes))
+        .append(":")
+        .append(StringHelper.format2DigitNumber(seconds))
+        .append("s")
+      return sb.toString()
+    }
   }
 }

@@ -21,24 +21,68 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.common
+package org.projectforge.framework.utils
 
 import org.projectforge.framework.i18n.translate
 
 /**
- * For displaying statistics on result page (markdown).
+ * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class ListStatisticsSupport {
+class MarkdownBuilder {
   private val sb = StringBuilder()
-
-  private var first = true
 
   enum class Color(val color: String) { RED("red"), BLUE("blue"), GREEN("green") }
 
-  val asMarkdown: String
-    get() = sb.toString()
+  fun h3(text: String): MarkdownBuilder {
+    sb.append("### ").appendLine(text).appendLine()
+    return this
+  }
 
-  fun append(i18nKey: String, value: String, color: Color? = null) {
+  fun emptyLine(): MarkdownBuilder {
+    first = true
+    sb.appendLine()
+    return this
+  }
+
+  fun append(text: String?): MarkdownBuilder {
+    sb.append(text ?: "")
+    return this
+  }
+
+  fun appendLine(text: String? = null): MarkdownBuilder {
+    first = true
+    sb.appendLine(text ?: "")
+    return this
+  }
+
+  /**
+   * @return this for chaining.
+   */
+  fun beginTable(vararg header: String?): MarkdownBuilder {
+    first = true
+    row(*header)
+    header.forEach { sb.append("---").append(" | ") }
+    sb.appendLine()
+    return this
+  }
+
+  fun row(vararg cell: String?): MarkdownBuilder {
+    first = true
+    sb.append("| ")
+    cell.forEach { sb.append(it ?: "").append(" | ") }
+    sb.appendLine()
+    return this
+  }
+
+  fun endTable(): MarkdownBuilder {
+    first = true
+    sb.appendLine()
+    return this
+  }
+
+  private var first = true
+
+  fun appendPipedValue(i18nKey: String, value: String, color: Color? = null) {
     ensureSeparator()
     if (color != null) {
       sb.append("<span style=\"color:${color.color};\">")

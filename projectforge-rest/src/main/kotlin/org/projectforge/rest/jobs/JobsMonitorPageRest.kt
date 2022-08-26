@@ -59,9 +59,10 @@ class JobsMonitorPageRest : AbstractDynamicPageRest() {
     if (jobId != null) {
       jobMonitor.add("jobId", jobId)
     }
-    jobMonitor.add("cancelConfirmMessage", translate("jobs.cancel.confirmationMessage"));
+    jobMonitor.add("cancelConfirmMessage", translate("jobs.job.cancel.confirmationMessage"));
     layout.add(jobMonitor)
     LayoutUtils.process(layout)
+    layout.addTranslations("jobs.monitor.noJobsAvailable")
     return FormLayoutData(null, layout, createServerData(request), variables = getJobsAsVariable(jobId, all))
   }
 
