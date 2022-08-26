@@ -30,24 +30,11 @@ package org.projectforge.ui
  */
 data class UIProgress(
   override var id: String,
-  var collapseable: Boolean? = null,
-  var fetchUpdateUrl: String? = null,
-  var fetchUpdateInterval: Long? = null,
-  var cancelUrl: String? = null,
+  val title: String? = null,
+  var color: UIColor? = null,
+  var value: Int? = null,
+  var info: String? = null,
+  var infoColor: UIColor? = null,
   var cancelConfirmMessage: String? = null,
-) : UIElement(UIElementType.PROGRESS), IUIId {
-  /**
-   * @param autoRefresh If true, the status should be refreshed by fetching [fetchUpdateUrl].
-   * @param info Info box (markdown) for showing details.
-   */
-  class Data(
-    var value: Int?,
-    var title: String? = null,
-    var info: String? = null,
-    var infoColor: UIColor? = null,
-    var color: UIColor? = null,
-    var animated: Boolean? = false,
-    var autoRefresh: Boolean? = null,
-    var showCancelButton: Boolean? = null,
-  )
-}
+  var animated: Boolean? = null,
+) : UIElement(UIElementType.PROGRESS), IUIId

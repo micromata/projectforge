@@ -23,8 +23,10 @@
 
 package org.projectforge.plugins.banking
 
+import kotlinx.coroutines.delay
 import mu.KotlinLogging
-import org.projectforge.framework.i18n.translate
+import org.projectforge.SystemStatus
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jobs.AbstractJob
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.importer.ImportPairEntry
@@ -38,10 +40,11 @@ class BankingImportJob(
   val bankAccountRecordDao: BankAccountRecordDao,
   val selectedEntries: List<ImportPairEntry<BankAccountRecord>>,
 ) : AbstractJob(
-  translate("plugins.banking.import.job.title"),
+  translateMsg("plugins.banking.import.job.title", bankAccountDO.name),
   area = "BankingRecordsImport",
   queueName = "bankAccount#${bankAccountDO.id}",
   queueStrategy = QueueStrategy.PER_QUEUE_AND_USER,
+  timeoutSeconds = 600,
 ) {
   val result = ImportStorage.ImportResult()
 
@@ -61,6 +64,10 @@ class BankingImportJob(
       if (!isActive) {
         // Job is going to be cancelled.
         return
+      }
+      if (SystemStatus.isDevelopmentMode()) {
+        log.warn { "********** delay of 5s for development purposes...." }
+        delay(5000) // Longer run for test cases.
       }
       val storedEntryId = entry.stored?.id
       val readEntry = entry.read
